@@ -44,7 +44,7 @@ outputs:
   {
     module_type: RootOutput
     fileName:    "beam_ana.root" #default file name, can override from command line with -o or --output
-    outputCommands: []
+#    outputCommands: []
     dataTier:   "reconstructed"
     
   }
@@ -115,6 +115,10 @@ physics.producers.beamana.CKov2:               "XCET022716"
 physics.producers.beamana.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
 physics.producers.beamana.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
+
+
+
+
 #physics.producers.beamana.MultipleTimes:            [1536253221
 #,1536253242
 #,1536253264

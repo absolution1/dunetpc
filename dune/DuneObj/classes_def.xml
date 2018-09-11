@@ -63,7 +63,15 @@
   <version ClassVersion="13" checksum="1473612469"/>
  </class>
 
+ <class name="beam::CKov"/>
+ <class name="beam::FBM"/>
+ <class name="std::map<string,std::vector<beam::FBM>>"/>
+ <class name="std::vector<beam::CKov>"/>
+ <class name="std::vector<beam::FBM>"/>
+
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
  <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
  <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
+<!-- <class name="std::bitset"/> -->
+<!-- <class name="std::array"/> -->
 </lcgdict>

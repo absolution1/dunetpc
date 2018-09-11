@@ -14,7 +14,8 @@ namespace beam
   struct FBM{
 
     //Bitmap for hit fibers in the monitor
-    std::bitset<192> fibers;
+//    std::bitset<192> fibers;
+    std::array<short,192> fibers;
 
     //Raw Data from ifbeam
     double fiberData[6];    

@@ -68,12 +68,18 @@ public:
 
   std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   void matchStraightTriggers(beam::ProtoDUNEBeamEvent beamevt,double);
+
+  TVector3 ConvertProfCoordinates(double x, double y, double z, double zOffset);
+  void BeamMonitorBasisVectors(); 
+  void RotateMonitorVector(TVector3 &vec); 
+
   void MakeTrack(size_t);
 //  void matchCurvedTriggers();
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   double GetPosition(std::string, size_t);
+  double GetPairedPosition(std::string, size_t);
   TVector3 TranslateDeviceToDetector(TVector3);
  
   void  InitXBPFInfo(beam::ProtoDUNEBeamEvent *);
@@ -128,10 +134,13 @@ private:
   double fXTOF2BCoarse; 
   TH1F * fTOFHist;
   TH1F * fCKovHist;
-  recob::TrackTrajectory theTraj;
   recob::Track * theTrack;
+  std::vector<recob::Track*> theTracks;
   double eventTime;
   
+  TVector3 fBMBasisX;
+  TVector3 fBMBasisY;
+  TVector3 fBMBasisZ;
 
   // Declare member data here.
   //bool fLoadFromDB; // unused
@@ -170,6 +179,14 @@ private:
   
   std::string fCKov1;
   std::string fCKov2;
+
+  double fRotateMonitorXZ;
+  double fRotateMonitorYZ;
+
+  double fFirstTrackingProfZ;
+  double fSecondTrackingProfZ;
+  double fNP04FrontZ;  
+  double fBeamX, fBeamY, fBeamZ;
 
   beam::ProtoDUNEBeamEvent * beamevt;
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
@@ -656,13 +673,13 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
 
     for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
       beamevt->DecodeFibers(name,i);
-      std::cout << name << " at time: " << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-      for(size_t iF = 0; iF < beamevt->GetActiveFibers(name,i).size(); ++iF)std::cout << beamevt->GetActiveFibers(name, i)[iF] << " "; 
-      std::cout << std::endl;
+//      std::cout << name << " at time: " << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
+//      for(size_t iF = 0; iF < beamevt->GetActiveFibers(name,i).size(); ++iF)std::cout << beamevt->GetActiveFibers(name, i)[iF] << " "; 
+//      std::cout << std::endl;
         
       *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
       fProfTime[name] = beamevt->DecodeFiberTime(name, i);
-      std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " " << beamevt->ReturnTriggerAndTime(name,i)[1] << " " << beamevt->ReturnTriggerAndTime(name,i)[2] << " " << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+//      std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " " << beamevt->ReturnTriggerAndTime(name,i)[1] << " " << beamevt->ReturnTriggerAndTime(name,i)[2] << " " << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
       fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
       fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
       fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
@@ -912,7 +929,7 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   // Implementation of optional member function here.
   fBundleName  = p.get<std::string>("BundleName");
   fOutputLabel = p.get<std::string>("OutputLabel");
-  fInputLabel = p.get<std::string>("InputLabel");
+  fInputLabel  = p.get<std::string>("InputLabel");
   fURLStr      = p.get<std::string>("URLStr");
   fNRetries    = p.get<int>("NRetries");
   fValidWindow = p.get<double>("ValidWindow");
@@ -947,8 +964,6 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fGlobalDetCoords = TVector3(detCoords[0],detCoords[1],detCoords[2]);
 
   fDetRotation = p.get<std::array<double,3>>("DetRotation");
-
-
   
   //XTOF devices 
   fTOF1 = p.get< std::string >("TOF1");
@@ -967,6 +982,19 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
   fXCETPrefix      = p.get<std::string>("XCETPrefix");
   fDummyEventTime = p.get<double>("DummyEventTime");
+
+
+  //New parameters to match Leigh's
+  fRotateMonitorXZ = p.get<double>("RotateMonitorXZ");
+  fRotateMonitorYZ = p.get<double>("RotateMonitorYZ");
+
+  fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
+  fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
+  fNP04FrontZ          = p.get<double>("NP04FrontZ");  
+
+  fBeamX               = p.get<double>("BeamX");
+  fBeamY               = p.get<double>("BeamY");
+  fBeamZ               = p.get<double>("BeamZ");
 }
 
 std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
@@ -980,6 +1008,37 @@ std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
   if(upper.any()) std::cout << "WARNING: NONZERO HALF" << std::endl;
 
   return mybits;
+}
+
+TVector3 proto::BeamAna::ConvertProfCoordinates(double x, double y, double z, double zOffset){
+  double off = fNP04FrontZ - zOffset;
+
+  TVector3 old(x,y,z);
+
+  double newX = x*fBMBasisX.X() + y*fBMBasisY.X() + (z-zOffset)*fBMBasisZ.X() + off*fabs(fBMBasisZ.X());
+  double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() + (z-zOffset)*fBMBasisZ.Y() + off*fabs(fBMBasisZ.Y());
+  double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() + (z-zOffset) - off*fabs(fBMBasisZ.Z());
+
+  newX += fBeamX*10.;
+  newY += fBeamY*10.;
+  newZ += fBeamZ*10.;
+
+  TVector3 result(newX, newY, newZ);
+  return result;
+}
+
+void proto::BeamAna::BeamMonitorBasisVectors(){
+  fBMBasisX = TVector3(1.,0.,0.);
+  fBMBasisY = TVector3(0.,1.,0.);
+  fBMBasisZ = TVector3(0.,0.,1.);
+  RotateMonitorVector(fBMBasisX);
+  RotateMonitorVector(fBMBasisY);
+  RotateMonitorVector(fBMBasisZ);
+}
+
+void proto::BeamAna::RotateMonitorVector(TVector3 &vec){
+  vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
+  vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
 }
 
 void proto::BeamAna::MakeTrack(size_t theTrigger){
@@ -1025,6 +1084,133 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
   }
   std::cout << std::endl;
   //////////////////////////////////////////////
+
+  if( (firstUpstreamFibers.size() < 1) || (secondUpstreamFibers.size() < 1) || (firstDownstreamFibers.size() < 1) || (secondDownstreamFibers.size() < 1) ){
+    std::cout << "Warning, at least one empty Beam Profiler. Not making track" << std::endl;
+    return;
+  }
+  else if( (firstUpstreamFibers.size() > 5) || (secondUpstreamFibers.size() > 5) || (firstDownstreamFibers.size() > 5) || (secondDownstreamFibers.size() > 5) ){
+    std::cout << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not making track" << std::endl;
+    return;
+  }
+
+  //We have the active Fibers, now go through them.
+  //Skip the second of any adjacents 
+  std::vector< std::pair<size_t, size_t> > upstreamPairedFibers;
+  std::vector< std::pair<size_t, size_t> > downstreamPairedFibers;
+  std::string firstUpstreamType = fDeviceTypes[firstUpstreamName]; 
+  std::string secondUpstreamType = fDeviceTypes[secondUpstreamName]; 
+  std::string firstDownstreamType = fDeviceTypes[firstDownstreamName]; 
+  std::string secondDownstreamType = fDeviceTypes[secondDownstreamName]; 
+
+  std::vector< TVector3 > upstreamPositions;
+  std::vector< TVector3 > downstreamPositions; 
+  
+
+
+  //Pair the upstream fibers together
+  for(size_t iF1 = 0; iF1 < firstUpstreamFibers.size(); ++iF1){
+    
+    size_t firstFiber = firstUpstreamFibers[iF1];
+
+    for(size_t iF2 = 0; iF2 < secondUpstreamFibers.size(); ++iF2){
+      size_t secondFiber = secondUpstreamFibers[iF2];
+
+      upstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
+
+      if (iF2 < secondUpstreamFibers.size() - 1){
+        if (secondUpstreamFibers[iF2] == (secondUpstreamFibers[iF2 + 1] - 1)) ++iF2;
+      }
+    }
+
+    if (iF1 < firstUpstreamFibers.size() - 1){
+      if (firstUpstreamFibers[iF1] == (firstUpstreamFibers[iF1 + 1] - 1)) ++iF1;
+    }
+  }
+ 
+  for(size_t iF = 0; iF < upstreamPairedFibers.size(); ++iF){
+    
+    std::pair<size_t,size_t> thePair = upstreamPairedFibers.at(iF);
+ 
+    if(firstUpstreamType == "horiz" && secondUpstreamType == "vert"){
+      double xPos = GetPosition(firstUpstreamName, thePair.first);
+      double yPos = GetPosition(secondUpstreamName, thePair.second);
+
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      upstreamPositions.push_back( posInDet );
+    }
+    else if(firstUpstreamType == "vert" && secondUpstreamType == "horiz"){
+      double yPos = GetPosition(firstUpstreamName, thePair.first);
+      double xPos = GetPosition(secondUpstreamName, thePair.second);
+
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      upstreamPositions.push_back( posInDet );
+    }
+
+  }
+
+  //Pair the downstream fibers together
+  for(size_t iF1 = 0; iF1 < firstDownstreamFibers.size(); ++iF1){
+    
+    size_t firstFiber = firstDownstreamFibers[iF1];
+
+    for(size_t iF2 = 0; iF2 < secondDownstreamFibers.size(); ++iF2){
+      size_t secondFiber = secondDownstreamFibers[iF2];
+
+      downstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
+
+      if (iF2 < secondDownstreamFibers.size() - 1){
+        if (secondDownstreamFibers[iF2] == (secondDownstreamFibers[iF2 + 1] - 1)) ++iF2;
+      }
+    }
+
+    if (iF1 < firstDownstreamFibers.size() - 1){
+      if (firstDownstreamFibers[iF1] == (firstDownstreamFibers[iF1 + 1] - 1)) ++iF1;
+    }
+  }
+
+  for(size_t iF = 0; iF < downstreamPairedFibers.size(); ++iF){
+    
+    std::pair<size_t,size_t> thePair = downstreamPairedFibers.at(iF);
+ 
+    if(firstDownstreamType == "horiz" && secondDownstreamType == "vert"){
+      double xPos = GetPosition(firstDownstreamName, thePair.first);
+      double yPos = GetPosition(secondDownstreamName, thePair.second);
+
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      downstreamPositions.push_back( posInDet );
+    }
+    else if(firstDownstreamType == "vert" && secondDownstreamType == "horiz"){
+      double yPos = GetPosition(firstDownstreamName, thePair.first);
+      double xPos = GetPosition(secondDownstreamName, thePair.second);
+
+      TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+      downstreamPositions.push_back( posInDet );
+    }
+
+  }
+ 
+  //Just for creating tracks
+  std::vector< std::vector<double> > dummy;
+  std::vector<double> mom(3, util::kBogusD);
+  /// 
+
+  for(size_t iU = 0; iU < upstreamPositions.size(); ++iU){
+    std::vector<TVector3> thePoints;
+    thePoints.push_back(upstreamPositions.at(iU));
+
+    for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
+      thePoints.push_back(downstreamPositions.at(iD));
+      
+      std::vector<TVector3> theMomenta;
+      //Just push back the unit vector
+      theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
+      theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
+
+      recob::Track * tempTrack = new recob::Track(thePoints, theMomenta, dummy, mom, 1);      
+      theTracks.push_back(tempTrack);
+    }
+  }
 
 }
 
@@ -1350,11 +1536,12 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
   }
 
 }
+
 double proto::BeamAna::GetPosition(std::string deviceName, size_t iFiber){
   //NEEDS WORK
   if(iFiber > 192){ std::cout << "Please select fiber in range [0,191]" << std::endl; return -1.;}
- // double size = fFiberDimension[deviceName];
-  double size = 1.;
+  double size = fFiberDimension[deviceName];
+  //double size = 1.;
   
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
   double pos = size*iFiber + size/2.;

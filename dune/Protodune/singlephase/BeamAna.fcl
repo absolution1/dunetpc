@@ -37,6 +37,21 @@ proto_beamana:
 
   PairedDevices:  [["XBPF022697","XBPF022698"]]
   Devices:        ["XBPF022701","XBPF022702"]
+
+
+  RotateMonitorXZ:   -10.3
+  RotateMonitorYZ:    11.7
+
+# Position of beam monitor in z in [mm] 
+  FirstTrackingProfZ: 707479
+  SecondTrackingProfZ: 716048
+  NP04FrontZ: 717243
+
+# Position of Beam in [cm]
+  BeamX: 8.0757
+  BeamY: 461.06
+  BeamZ: -196.11
+
 }
 
 END_PROLOG
