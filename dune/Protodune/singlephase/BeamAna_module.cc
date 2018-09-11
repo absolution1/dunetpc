@@ -253,8 +253,9 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 void proto::BeamAna::produce(art::Event & e)
 {
 
-  //auto theInfo = e.getValidHandle< std::vector<raw::RDTimeStamp> >("timingrawdecoder");  
-  //std::cout << theInfo << std::endl;
+  //const auto theInfo = e.getValidHandle< std::vector<raw::RDTimeStamp> >("timingrawdecoder");  
+//  const auto theInfo = e.getValidHandle< std::vector<raw::ctb::pdspctb> >(fInputLabel);  
+//  std::cout << theInfo << std::endl;
 
   // Open up and read from  the IFBeam Service
   std::cerr << "%%%%%%%%%% Getting ifbeam service handle %%%%%%%%%%" << std::endl;

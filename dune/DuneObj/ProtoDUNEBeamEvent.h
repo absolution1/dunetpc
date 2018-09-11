@@ -78,6 +78,7 @@ namespace beam
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
       void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
+      recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
     
     private:
 

@@ -6,7 +6,7 @@ proto_beamana:
   LoadFromDB: true
   URLStr:                 ""
   OutputLabel:         "BeamEvent"
-  InputLabel:         "daq"
+  InputLabel:         "ctbrawdecoder"
   NRetries:             5
   TimeWindow: 25  # width of time window in seconds
   CSVFileName: ""
