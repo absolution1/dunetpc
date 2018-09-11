@@ -21,6 +21,7 @@
 // Data type includes
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -280,84 +281,83 @@ namespace tpc_monitor{
     
     //Mean/RMS by offline channel for each view in each APA
     for(unsigned int i=0;i<fNofAPA;i++)
-    {
-      UChMin=fUChanMin + i*fChansPerAPA;
-      UChMax=fUChanMax + i*fChansPerAPA;      
-      VChMin=fVChanMin + i*fChansPerAPA;
-      VChMax=fVChanMax + i*fChansPerAPA;      
-      ZChMin=fZ0ChanMin + i*fChansPerAPA;
-      //ZChMax=fZ0ChanMax + i*fChansPerAPA;
-      ZChMax=fZ1ChanMax + i*fChansPerAPA; //including unused channels
+      {
+	UChMin=fUChanMin + i*fChansPerAPA;
+	UChMax=fUChanMax + i*fChansPerAPA;      
+	VChMin=fVChanMin + i*fChansPerAPA;
+	VChMax=fVChanMax + i*fChansPerAPA;      
+	ZChMin=fZ0ChanMin + i*fChansPerAPA;
+	//ZChMax=fZ0ChanMax + i*fChansPerAPA;
+	ZChMax=fZ1ChanMax + i*fChansPerAPA; //including unused channels
       
-      std::cout<<"UCh:"<<UChMin<<" - "<<UChMax<<std::endl;
-      std::cout<<"VCh:"<<VChMin<<" - "<<VChMax<<std::endl;
-      std::cout<<"ZCh:"<<ZChMin<<" - "<<ZChMax<<std::endl;
+	//std::cout<<"UCh:"<<UChMin<<" - "<<UChMax<<std::endl;
+	//std::cout<<"VCh:"<<VChMin<<" - "<<VChMax<<std::endl;
+	//std::cout<<"ZCh:"<<ZChMin<<" - "<<ZChMax<<std::endl;
+
+	// summaries for all views
+
+	unsigned int j=fApaLabelNum.at(i);
+
+	fStuckCodeOffFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOffFrac%d",j),Form("Stuck-Off Code Fraction APA%d",j),100,0,1));
+	fStuckCodeOnFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOnFrac%d",j),Form("Stuck-On Code Fraction APA%d",j),100,0,1));
+
+	// U view
+	fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", j),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+	fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",j),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+	fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", j),Form("fChanFFT (Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+	fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",j),Form("Means of Channels in (Plane U, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanRMSDistU.push_back(tfs->make<TH1F>(Form("fChanRMSDistU%d",j),Form("RMSs of Channels in (Plane U, APA%d)",j), 100, 0, 50));
+	fChanStuckCodeOffFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracU%d",j),Form("Stuck-Off Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+	fChanStuckCodeOnFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracU%d",j),Form("Stuck-On Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
       
-
-      // summaries for all views
-
-      unsigned int j=fApaLabelNum.at(i);
-
-      fStuckCodeOffFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOffFrac%d",j),Form("Stuck-Off Code Fraction APA%d",j),100,0,1));
-      fStuckCodeOnFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOnFrac%d",j),Form("Stuck-On Code Fraction APA%d",j),100,0,1));
-
-      // U view
-      fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", j),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
-      fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",j),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
-      fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", j),Form("fChanFFT (Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",j),Form("Means of Channels in (Plane U, APA%d)",j), 4096, -0.5, 4095.5));
-      fChanRMSDistU.push_back(tfs->make<TH1F>(Form("fChanRMSDistU%d",j),Form("RMSs of Channels in (Plane U, APA%d)",j), 100, 0, 50));
-      fChanStuckCodeOffFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracU%d",j),Form("Stuck-Off Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
-      fChanStuckCodeOnFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracU%d",j),Form("Stuck-On Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
+	// V view
+	fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
+	fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
+	fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", j),Form("fChanFFT (Plane V, APA%d)", j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+	fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",j),Form("Means of Channels in (Plane V, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanRMSDistV.push_back(tfs->make<TH1F>(Form("fChanRMSDistV%d",j),Form("RMSs of Channels in (Plane V, APA%d)",j), 100, 0, 50));
+	fChanStuckCodeOffFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracV%d",j),Form("Stuck-Off Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+	fChanStuckCodeOnFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracV%d",j),Form("Stuck-On Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
       
-      // V view
-      fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
-      fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
-      fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", j),Form("fChanFFT (Plane V, APA%d)", j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",j),Form("Means of Channels in (Plane V, APA%d)",j), 4096, -0.5, 4095.5));
-      fChanRMSDistV.push_back(tfs->make<TH1F>(Form("fChanRMSDistV%d",j),Form("RMSs of Channels in (Plane V, APA%d)",j), 100, 0, 50));
-      fChanStuckCodeOffFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracV%d",j),Form("Stuck-Off Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
-      fChanStuckCodeOnFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracV%d",j),Form("Stuck-On Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
+	// Z view                                                                                                                                                           
+	fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+	fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+	fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", j),Form("fChanFFT (Plane Z, APA%d)", j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
+	fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",j),Form("Means of Channels in (Plane Z, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanRMSDistZ.push_back(tfs->make<TH1F>(Form("fChanRMSDistZ%d",j),Form("RMSs of Channels in (Plane Z, APA%d)",j), 100, 0, 50));
+	fChanStuckCodeOffFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracZ%d",j),Form("Stuck-Off Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
+	fChanStuckCodeOnFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracZ%d",j),Form("Stuck-On Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
       
-      // Z view                                                                                                                                                           
-      fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
-      fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
-      fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", j),Form("fChanFFT (Plane Z, APA%d)", j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-      fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",j),Form("Means of Channels in (Plane Z, APA%d)",j), 4096, -0.5, 4095.5));
-      fChanRMSDistZ.push_back(tfs->make<TH1F>(Form("fChanRMSDistZ%d",j),Form("RMSs of Channels in (Plane Z, APA%d)",j), 100, 0, 50));
-      fChanStuckCodeOffFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracZ%d",j),Form("Stuck-Off Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
-      fChanStuckCodeOnFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracZ%d",j),Form("Stuck-On Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
-      
-      // Set titles
-      fChanRMSU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSU_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanU_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
-      fChanRMSV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSV_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanV_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
-      fChanRMSZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSZ_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
-      fChanMeanZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanZ_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
-      fChanFFTU[i]->GetXaxis()->SetTitle("Chan"); fChanFFTU[i]->GetYaxis()->SetTitle("kHz"); 
-      fChanFFTV[i]->GetXaxis()->SetTitle("Chan"); fChanFFTV[i]->GetYaxis()->SetTitle("kHz"); 
-      fChanFFTZ[i]->GetXaxis()->SetTitle("Chan"); fChanFFTZ[i]->GetYaxis()->SetTitle("kHz"); 
-      fChanStuckCodeOffFracU[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
-      fChanStuckCodeOnFracU[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
-      fChanStuckCodeOffFracV[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
-      fChanStuckCodeOnFracV[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
-      fChanStuckCodeOffFracZ[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
-      fChanStuckCodeOnFracZ[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	// Set titles
+	fChanRMSU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSU_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
+	fChanMeanU_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanU_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
+	fChanRMSV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSV_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
+	fChanMeanV_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanV_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
+	fChanRMSZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanRMSZ_pfx[i]->GetYaxis()->SetTitle("raw RMS"); 
+	fChanMeanZ_pfx[i]->GetXaxis()->SetTitle("Chan"); fChanMeanZ_pfx[i]->GetYaxis()->SetTitle("raw Mean"); 
+	fChanFFTU[i]->GetXaxis()->SetTitle("Chan"); fChanFFTU[i]->GetYaxis()->SetTitle("kHz"); 
+	fChanFFTV[i]->GetXaxis()->SetTitle("Chan"); fChanFFTV[i]->GetYaxis()->SetTitle("kHz"); 
+	fChanFFTZ[i]->GetXaxis()->SetTitle("Chan"); fChanFFTZ[i]->GetYaxis()->SetTitle("kHz"); 
+	fChanStuckCodeOffFracU[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	fChanStuckCodeOnFracU[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	fChanStuckCodeOffFracV[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	fChanStuckCodeOnFracV[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	fChanStuckCodeOffFracZ[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOffFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
+	fChanStuckCodeOnFracZ[i]->GetXaxis()->SetTitle("Chan"); fChanStuckCodeOnFracZ[i]->GetYaxis()->SetTitle("Fraction"); 
 
-      fChanMeanDistU[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
-      fChanRMSDistU[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
-      fChanMeanDistV[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
-      fChanRMSDistV[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
-      fChanMeanDistZ[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
-      fChanRMSDistZ[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
+	fChanMeanDistU[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
+	fChanRMSDistU[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
+	fChanMeanDistV[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
+	fChanRMSDistV[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
+	fChanMeanDistZ[i]->GetXaxis()->SetTitle("Mean (ADC counts)");
+	fChanRMSDistZ[i]->GetXaxis()->SetTitle("RMS (ADC counts)");
 
-      //  Rebin histograms
-      //std::cout<<"RebinX = "<<fRebinX<<"  RebinY = "<<fRebinY<<std::endl;
-      fChanFFTU[i]->Rebin2D(fRebinX, fRebinY);
-      fChanFFTV[i]->Rebin2D(fRebinX, fRebinY);
-      fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
-    }
+	//  Rebin histograms
+	//std::cout<<"RebinX = "<<fRebinX<<"  RebinY = "<<fRebinY<<std::endl;
+	fChanFFTU[i]->Rebin2D(fRebinX, fRebinY);
+	fChanFFTV[i]->Rebin2D(fRebinX, fRebinY);
+	fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
+      }
     
     //All in one view
     //make the histograms
@@ -376,15 +376,15 @@ namespace tpc_monitor{
     fAllChanRMS->GetYaxis()->SetBinLabel(37, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(47, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(58, "Z");
 
     for(int i=0;i<12;i++)
-    {
-    fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
-    fBitValue[i]->SetStats(false);
-    fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bit Fraction On");
-    fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
-    fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
-    fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
-    fBitValue[i]->GetYaxis()->SetBinLabel(37, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(47, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(58, "Z");
-    }
+      {
+	fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
+	fBitValue[i]->SetStats(false);
+	fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bit Fraction On");
+	fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
+	fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
+	fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
+	fBitValue[i]->GetYaxis()->SetBinLabel(37, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(47, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(58, "Z");
+      }
 
     // Mean/RMS by slot channel number for each slot
     for(int i=0;i<30;i++) {
@@ -535,16 +535,34 @@ namespace tpc_monitor{
     art::Handle< std::vector<raw::RawDigit> > RawTPC;
     event.getByLabel(fTPCInput, fTPCInstance, RawTPC);
 
+    // Get RDStatus handle
+
+    art::Handle< std::vector<raw::RDStatus> > RDStatusHandle;
+    event.getByLabel(fTPCInput, fTPCInstance, RDStatusHandle);
+
     // Fill pointer vectors - more useful form for the raw data
     // a more usable form
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
     art::fill_ptr_vector(RawDigits, RawTPC);
 
     //for the large all channel summary histograms these are key points for bin mapping
-      //for each offline numbered apa, the left most bin should be at the x value:
+    //for each offline numbered apa, the left most bin should be at the x value:
     int xEdgeAPA[6] = {0,0,80,80,160,160}; //these numbers may be adjusted to horizontally space out the histogram
-      //for each of the apas, the bottom most bin should be at the y value:
+    //for each of the apas, the bottom most bin should be at the y value:
     int yEdgeAPA[2] = {0,32}; //these numbers may be adjusted to vertically space out the histograms
+
+    // example of retrieving RDStatus word and flags
+
+    for ( auto const& rdstatus : (*RDStatusHandle) )
+      {
+	if (rdstatus.GetCorruptDataDroppedFlag())
+	  {
+	    LOG_INFO("TpcMonitor_module: ") << "Corrupt Data Dropped Flag set in RDStatus";
+	  }
+	//std::cout << "RDStatus:  Corrupt Data dropped " << rdstatus.GetCorruptDataDroppedFlag() << std::endl; 
+	//std::cout << "RDStatus:  Corrupt Data kept " << rdstatus.GetCorruptDataKeptFlag() << std::endl; 
+	//std::cout << "RDStatus:  Status Word " << rdstatus.GetStatWord() << std::endl; 
+      }
 
     // Loop over all RawRCEDigits (entire channels)                                                                                                        
     for(auto const & dptr : RawDigits) {
@@ -606,19 +624,19 @@ namespace tpc_monitor{
 
       // summary stuck code fraction distributions by APA -- here the APA is the offline APA number.  The plot labels contain the mapping
 
-     fStuckCodeOffFrac[apa]->Fill(fracstuckoff);
-     fStuckCodeOnFrac[apa]->Fill(fracstuckon);
+      fStuckCodeOffFrac[apa]->Fill(fracstuckoff);
+      fStuckCodeOnFrac[apa]->Fill(fracstuckon);
  
       // Mean and RMS
       float mean = meanADC(uncompPed);
       float rms = rmsADC(uncompPed);
 
       //get ready to fill the summary plots
-            //get the channel's FEMB and WIB
-      int WIB = channelMap->WIBFromOfflineChannel(chan);
-      int FEMB = channelMap->FEMBFromOfflineChannel(chan);
+      //get the channel's FEMB and WIB
+      int WIB = channelMap->WIBFromOfflineChannel(chan); //0-4
+      int FEMB = channelMap->FEMBFromOfflineChannel(chan); //1-4
       int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
-      int iFEMB = ((WIB*4)+FEMB); //indexx of the FEMB 0-19
+      int iFEMB = ((WIB*4)+(FEMB-1)); //index of the FEMB 0-19
       //Get the location of any FEMBchan in the hitogram
       //put as a function for clenliness.
       int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa
@@ -628,17 +646,17 @@ namespace tpc_monitor{
       fAllChanRMS->Fill(xBin,yBin,rms); //histogram the rms
 
       for (int i=0; i<nSamples; i++) //histogram the 12 bits
-      { 
-        auto adc=uncompressed.at(i);
-        int bitstring = adc;
-        for(int mm=0;mm<12;mm++)
-        {
-          // get the bit value from the adc
-          int bit = (bitstring%2);
-          fBitValue[mm]->Fill(xBin,yBin,bit);
-          bitstring = (bitstring/2);
-        }
-      }
+	{ 
+	  auto adc=uncompressed.at(i);
+	  int bitstring = adc;
+	  for(int mm=0;mm<12;mm++)
+	    {
+	      // get the bit value from the adc
+	      int bit = (bitstring%2);
+	      fBitValue[mm]->Fill(xBin,yBin,bit);
+	      bitstring = (bitstring/2);
+	    }
+	}
 
 	     
       // U View, induction Plane	  
@@ -795,18 +813,30 @@ namespace tpc_monitor{
           nnoisychannels_sigma++;
           fNNoisyChannelsListFromNSigma->SetBinContent(fChannelID, 1.0);
         }
-        if(htitle.Contains("Plane U") && fChannelValue > fNoiseLevelMinNCountsU){ // noisy U channel above count threshold
-          nnoisychannels_counts++;
-          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
-        }
-	else if(htitle.Contains("Plane V") && fChannelValue > fNoiseLevelMinNCountsV){ // noisy V channel above count threshold
-          nnoisychannels_counts++;
-          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
-        }
-	else if(htitle.Contains("Plane Z") && fChannelValue > fNoiseLevelMinNCountsZ){ // noisy Z channel above count threshold
-          nnoisychannels_counts++;
-          fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
-        }
+        if(htitle.Contains("Plane U"))
+	  {
+	    if (fChannelValue > fNoiseLevelMinNCountsU)
+	      { // noisy U channel above count threshold
+		nnoisychannels_counts++;
+		fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+	      }
+	  }
+	else if(htitle.Contains("Plane V"))
+	  {
+	    if (fChannelValue > fNoiseLevelMinNCountsV)
+	      { // noisy V channel above count threshold
+		nnoisychannels_counts++;
+		fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+	      }
+	  }
+	else if(htitle.Contains("Plane Z"))
+	  {
+	    if (fChannelValue > fNoiseLevelMinNCountsZ)
+	      { // noisy Z channel above count threshold
+		nnoisychannels_counts++;
+		fNNoisyChannelsListFromNCounts->SetBinContent(fChannelID, 1.0);
+	      }
+	  }
 	else{
 	  mf::LogVerbatim("TpcMonitor::FillChannelHistos")
 	    << " Unknown histogram title: " << htitle.Data() << std::endl;

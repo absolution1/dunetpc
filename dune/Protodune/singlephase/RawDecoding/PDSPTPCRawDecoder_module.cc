@@ -98,6 +98,8 @@ private:
   size_t        _rce_frag_small_size;
   bool          _rce_drop_frags_with_badcsf;
   bool          _rce_hex_dump;
+  bool          _rce_check_buffer_size;
+  size_t        _rce_buffer_size_checklimit;
 
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
@@ -106,6 +108,8 @@ private:
   bool          _drop_events_with_small_felix_frags;
   bool          _drop_small_felix_frags;
   size_t        _felix_frag_small_size;
+  bool          _felix_check_buffer_size;
+  size_t        _felix_buffer_size_checklimit;
 
   bool          _compress_Huffman;
   bool          _print_coldata_convert_count;
@@ -158,6 +162,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
   _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
   _rce_hex_dump = p.get<bool>("RCEHexDump",false);  
+  _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
+  _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -170,6 +176,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _drop_events_with_small_felix_frags = p.get<bool>("FELIXDropEventsWithSmallFrags",false);
   _drop_small_felix_frags = p.get<bool>("FELIXDropSmallFrags",true);
   _felix_frag_small_size = p.get<unsigned int>("FELIXSmallFragSize",10000);
+  _felix_check_buffer_size = p.get<bool>("FELIXCheckBufferSize",true);
+  _felix_buffer_size_checklimit = p.get<unsigned int>("FELIXBufferSizeCheckLimit",10000000);
 
   _output_label = p.get<std::string>("OutputDataLabel");
 
@@ -321,23 +329,12 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  
 
-  bool have_data=true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data=false;
-  }
+  bool have_data=false;
+  bool have_data_nc=false;
 
-  if (have_data)
+  if (cont_frags.isValid())
     {
-      //Check that the data are valid
-      if(!cont_frags.isValid()){
-	LOG_ERROR("_processRCE") << "Container TPC/RCE fragments found but Not Valid " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
+      have_data = true;
 
       //size of RCE fragments into histogram
       if(_make_histograms)
@@ -377,23 +374,15 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 	}
     }
 
+  //noncontainer frags
+
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags); 
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+
+  if (frags.isValid())
     {
-      if(!frags.isValid()){
-	LOG_ERROR("_process_RCE") << "TPC/RCE fragments found but Not Valid " 
-				  << "Run: " << evt.run()
-				  << ", SubRun: " << evt.subRun()
-				  << ", Event: " << evt.event();
-	return false;
-      }
+      have_data_nc = true;
 
       //size of RCE fragments into histogram
       if(_make_histograms)
@@ -565,7 +554,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      incorrect_ticks++;
 	      _discard_data = true;
               _DiscardedCorruptData = true;
-	      return true; 
+	      return false; 
 	    }
 	  _KeptCorruptData = true;
 	}
@@ -586,7 +575,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		  error_counter++;
 		  _discard_data = true;
 		  _DiscardedCorruptData = true;
-		  return true;
+		  return false;
 		}
 	    }
 	  _KeptCorruptData = true;
@@ -601,6 +590,22 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       // TODO -- speed this up!!  Remove one buffer copy
 
       size_t buffer_size = n_ch * n_ticks;
+
+      if (buffer_size > _rce_buffer_size_checklimit)
+	{
+	  if (_rce_check_buffer_size)
+	    {
+	      LOG_WARNING("_process_RCE_AUX:") << "n_ch*nticks too large: " << n_ch << " * " << n_ticks << " = " << 
+		buffer_size << " larger than: " <<  _rce_buffer_size_checklimit << ".  Discarding this fragment";
+	      _DiscardedCorruptData = true;
+	      return false;
+	    }
+	  else
+	    {
+	      _KeptCorruptData = true;
+	    }
+	}
+
       if (_buffer.capacity() < buffer_size)
 	{
 	  //  LOG_INFO("_process_RCE_AUX")
@@ -620,7 +625,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 					       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
 	      error_counter++;
               _DiscardedCorruptData = true;
-	      return true;
+	      return false;
 	    }
 	  _KeptCorruptData = true;
 	}
@@ -657,7 +662,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		      error_counter++;
 		      _discard_data = true;
 		      _DiscardedCorruptData = true;
-		      return true;
+		      return false;
 		    }
 		  _KeptCorruptData = true;
 		}
@@ -698,24 +703,12 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(_felix_input_label, _felix_input_container_instance, cont_frags); 
 
-  bool have_data = true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data = false;
-  }
+  bool have_data = false;
+  bool have_data_nc = false;
 
-  if (have_data)
+  if(cont_frags.isValid())
     {
-      //Check that the data is valid
-
-      if(!cont_frags.isValid()){
-	LOG_ERROR("_processFELIX") << "Container TPC/FELIX fragments found but they are Not Valid " 
-				   << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
+      have_data = true;
 
       //size of felix fragments into histogram
       if(_make_histograms)
@@ -755,25 +748,13 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	}
     }
 
+  // noncontainer frags
+
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+  if(frags.isValid())
     {
-      //Check that the data is valid
-      if(!frags.isValid()){
-	LOG_ERROR("_process_FELIX") << "found TPC/FELIX non-container fragments but they are Not Valid " 
-				    << "Run: " << evt.run()
-				    << ", SubRun: " << evt.subRun()
-				    << ", Event: " << evt.event();
-	_DiscardedCorruptData = true;
-	return false;
-      }
 
       if(_make_histograms)
 	{
@@ -911,6 +892,22 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
+
+
+  if (n_frames*n_channels > _felix_buffer_size_checklimit)
+    {
+      if (_felix_check_buffer_size)
+	{
+	  LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
+	    n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
+	  _DiscardedCorruptData = true;
+	  return false;
+	}
+      else
+	{
+	  _KeptCorruptData = true;
+	}
+    }
 
   if(_make_histograms)
     {

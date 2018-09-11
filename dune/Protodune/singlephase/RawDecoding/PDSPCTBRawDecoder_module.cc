@@ -82,6 +82,12 @@ PDSPCTBRawDecoder::PDSPCTBRawDecoder(fhicl::ParameterSet const & p)
 void PDSPCTBRawDecoder::produce(art::Event & evt)
 {
 
+  fTrigs.clear();
+  fChStats.clear();
+  fFeedbacks.clear();
+  fMiscs.clear();
+  fWordIndexes.clear();
+
   // look first for container fragments and then non-container fragments
 
   std::vector<raw::ctb::pdspctb> pdspctbs;
@@ -89,25 +95,8 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
   art::Handle<artdaq::Fragments> cont_frags;
   evt.getByLabel(fInputLabel, fInputContainerInstance, cont_frags);  
 
-  bool have_data=true;
-  try { cont_frags->size(); }
-  catch(std::exception e) {
-    have_data=false;
-  }
-
-  if (have_data)
+  if(cont_frags.isValid())
     {
-      //Check that the data are valid
-      if(!cont_frags.isValid()){
-	LOG_ERROR("PDSPCTBRawDecoder") << "Container CTB fragments found but Not Valid " 
-				 << "Run: " << evt.run()
-				 << ", SubRun: " << evt.subRun()
-				 << ", Event: " << evt.event();
-        // emtpy output collection
-        evt.put(std::make_unique<std::vector<raw::ctb::pdspctb> >(std::move(pdspctbs)),fOutputLabel);
-	return;
-      }
-
       for (auto const& cont : *cont_frags)
 	{
 	  artdaq::ContainerFragment cont_frag(cont);
@@ -120,24 +109,9 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
 
   art::Handle<artdaq::Fragments> frags;
   evt.getByLabel(fInputLabel, fInputNonContainerInstance, frags); 
-  bool have_data_nc = true;
-  try { frags->size(); }
-  catch(std::exception e) {
-    have_data_nc = false;
-  }
 
-  if (have_data_nc)
+  if(frags.isValid())
     {
-      if(!frags.isValid()){
-	LOG_ERROR("PDSPCTBRawDecoder") << "NonContainer CTB fragments found but Not Valid " 
-				  << "Run: " << evt.run()
-				  << ", SubRun: " << evt.subRun()
-				  << ", Event: " << evt.event();
-        // emtpy output collection
-        evt.put(std::make_unique<std::vector<raw::ctb::pdspctb> >(std::move(pdspctbs)),fOutputLabel);
-	return;	
-      }
-
       for(auto const& frag: *frags)
 	{
 	  _process_CTB_AUX(frag);
@@ -147,12 +121,6 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
   raw::ctb::pdspctb ctbdp(fTrigs,fChStats,fFeedbacks,fMiscs,fWordIndexes);
   pdspctbs.push_back(ctbdp);  // just one for now
   evt.put(std::make_unique<std::vector<raw::ctb::pdspctb>>(std::move(pdspctbs)),fOutputLabel);
-
-  fTrigs.clear();
-  fChStats.clear();
-  fFeedbacks.clear();
-  fMiscs.clear();
-  fWordIndexes.clear();
 
 }
 
@@ -164,6 +132,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 
   for (size_t iword = 0; iword < ctbfrag.NWords(); ++iword)
     {
+      size_t ix=0;
       uint32_t wt=0;
       if (ctbfrag.Trigger(iword))
 	{
@@ -172,6 +141,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  wt = tstruct.word_type;
 	  tstruct.trigger_word = ctbfrag.Trigger(iword)->trigger_word;
 	  tstruct.timestamp = ctbfrag.Trigger(iword)->timestamp;
+	  ix = fTrigs.size();
 	  fTrigs.push_back(tstruct);
 	}
       else if (ctbfrag.ChStatus(iword))
@@ -184,6 +154,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  cstruct.beam_hi = ctbfrag.ChStatus(iword)->beam_hi;
 	  cstruct.beam_lo = ctbfrag.ChStatus(iword)->beam_lo;
 	  cstruct.timestamp = ctbfrag.ChStatus(iword)->timestamp;
+	  ix = fChStats.size();
 	  fChStats.push_back(cstruct);
 	}
       else if (ctbfrag.Feedback(iword))
@@ -195,6 +166,7 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  fstruct.source = ctbfrag.Feedback(iword)->source;
 	  fstruct.code = ctbfrag.Feedback(iword)->code;
 	  fstruct.timestamp = ctbfrag.Feedback(iword)->timestamp;
+	  ix = fFeedbacks.size();
 	  fFeedbacks.push_back(fstruct);
 	}
       else
@@ -204,12 +176,13 @@ void PDSPCTBRawDecoder::_process_CTB_AUX(const artdaq::Fragment& frag)
 	  wt = mstruct.word_type;
 	  mstruct.payload = ctbfrag.Word(iword)->payload;
 	  mstruct.timestamp = ctbfrag.Word(iword)->timestamp;
+	  ix = fMiscs.size();
 	  fMiscs.push_back(mstruct);
 	}
 
       raw::ctb::WordIndex wstruct;
       wstruct.word_type = wt;
-      wstruct.index = iword;
+      wstruct.index = ix;
       fWordIndexes.push_back(wstruct);
 
     }

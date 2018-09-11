@@ -39,9 +39,11 @@ pdsp_tpc_raw_decoder:
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
-  RCESmallFragSize: 10000
+  RCESmallFragSize: 500000
   RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
   RCEHexDump: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
@@ -54,6 +56,8 @@ pdsp_tpc_raw_decoder:
   FELIXDropEventsWithSmallFrags: false
   FELIXDropSmallFrags: true
   FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
 
   CompressHuffman: false
   PrintColdataConvertCount: false
@@ -117,8 +121,8 @@ ctb_raw_decoder:
 {
   module_type: "PDSPCTBRawDecoder"
   InputLabel: "daq"
-  InputContainerInstance: "ContainerTRIGGER"
-  InputNonContainerInstance: "TRIGGER"
+  InputContainerInstance: "ContainerCTB"
+  InputNonContainerInstance: "CTB"
   OutputLabel: "daq"
 }
 
