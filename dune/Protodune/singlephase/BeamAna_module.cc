@@ -168,15 +168,26 @@ private:
 
   int fNRetries;
 
+  // Names of the CERN Beam Devices
+  // Names have the form of a prefix + device
+  
+  // Prefixes for different devices classes:
+  // Beam Positions (BPF)
+  // Time of flights (TOF)
+  // and Cerenkov counters (CET)
   std::string fXBPFPrefix;
   std::string fXTOFPrefix;
   std::string fXCETPrefix;
 
+  // Device Names for each device
+
+  // Time of Flights
   std::string fTOF1;
   std::string fTOF1A, fTOF1B;
   std::string fTOF2;
   std::string fTOF2A, fTOF2B;
-  
+
+  // Cerenkovs
   std::string fCKov1;
   std::string fCKov2;
 
@@ -192,16 +203,20 @@ private:
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
 };
 
-
+// Constructor
 proto::BeamAna::BeamAna(fhicl::ParameterSet const & p)
-//  :
-//  EDProducer(p)  // ,
- // More initializers here.
 {
+  // Declare products this module will provide
   produces<std::vector<beam::ProtoDUNEBeamEvent>>();  
+
+  // Configure/Reconfigure
   this->reconfigure(p);
 }
+// END Constructor
+////////////////////////
 
+////////////////////////
+// Fetch Method
 template <class T> 
 T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
   T theResult;
@@ -229,30 +244,43 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 
   return theResult; 
 }
+// END FeatchWithRetries
+////////////////////////
 
+////////////////////////
+// Producer Method (reads in the event and derives values)
 void proto::BeamAna::produce(art::Event & e)
 {
 
+  // Open up and read from  the IFBeam Service
   std::cerr << "%%%%%%%%%% Getting ifbeam service handle %%%%%%%%%%" << std::endl;
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
   std::cerr << "%%%%%%%%%% Got ifbeam handle %%%%%%%%%%" << std::endl;
 
+  // Read in and cache the beam bundle folder for a specific time
   bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
   std::cerr << "%%%%%%%%%% Got beam folder %%%%%%%%%%" << std::endl;
+
+  // Set the readout window of interest
   bfp->setValidWindow(fValidWindow);
   std::cerr << "%%%%%%%%%% Valid window " << bfp->getValidWindow() << " %%%%%%%%%%" << std::endl;
-  std::cout <<"Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
 
+  // Now for the current event retrieve the time (trigger) of the event
+  // This will take the form a 64-bit timestamp with a high and low word
+  // Break this up to have access to each word and the long long word
+  std::cout <<"Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
   std::cout << "Low: " << e.time().timeLow()  << std::endl;
   std::cout << "High: " << e.time().timeHigh()  << std::endl;
 
+  // Use the bottom word of the time
   eventTime = e.time().timeLow();
+
   //Use multiple times provided to fcl
   if( fMultipleTimes.size() ){
     std::cout << "Using multiple times: " << std::endl;
     for(size_t it = 0; it < fMultipleTimes.size(); ++it){
       std::cout << fMultipleTimes[it] << std::endl;
-    }
+    } // endfor
   }
   //Use singular time provided to fcl
   else if(fFixedTime > 0.){
@@ -263,20 +291,26 @@ void proto::BeamAna::produce(art::Event & e)
   else{
     std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
     fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
-  }
+  } // endif
 
   //Start getting beam event info
+
+  // Create a new beam event (note the "new" here)  
   beamevt = new beam::ProtoDUNEBeamEvent();
 
+  // Loop over the different particle times 
   for(size_t it = 0; it < fMultipleTimes.size(); ++it){
     std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-    parseXTOF(fMultipleTimes[it]);
-    
-    std::cout << "NGoodParticles: " << beamevt->GetNT0() << std::endl;
-    std::cout << "NTOF0: " << beamevt->GetNTOF0Triggers() << std::endl;
-    std::cout << "NTOF1: " << beamevt->GetNTOF1Triggers() << std::endl;
 
-    
+    // Parse the Time of Flight Counter data for the list
+    // of times that we are using
+    parseXTOF(fMultipleTimes[it]);
+    std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
+    std::cout << "NTOF0: "          << beamevt->GetNTOF0Triggers() << std::endl;
+    std::cout << "NTOF1: "          << beamevt->GetNTOF1Triggers() << std::endl;
+
+    // Parse the Beam postion counter information for the list
+    // of time that we are using
     InitXBPFInfo(beamevt);
     parseXBPF(fMultipleTimes[it]);
     parsePairedXBPF(fMultipleTimes[it]);
@@ -284,10 +318,15 @@ void proto::BeamAna::produce(art::Event & e)
 
     std::cout << "NXBPF: " << beamevt->GetNFBMTriggers(fDevices[0]) << std::endl;
 
+    // Loop over the number of TOF counter readouts (i.e. GetNT0())
     for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
-      std::cout << beamevt->GetT0(ip) << " " << beamevt->GetTOF0(ip) << " " << beamevt->GetTOF1(ip) << " " << beamevt->GetFiberTime(fDevices[0],ip) << std::endl;
+      std::cout << beamevt->GetT0(ip)   << " "
+		<< beamevt->GetTOF0(ip) << " "
+		<< beamevt->GetTOF1(ip) << " "
+		<< beamevt->GetFiberTime(fDevices[0],ip) << std::endl;
 
-      matchedGen = beamevt->GetT0(ip);
+      // Associate the times from TOF-0 and TOF-1 with the master time T0
+      matchedGen  = beamevt->GetT0(ip);
       matchedTOF1 = beamevt->GetTOF0(ip);
       matchedTOF2 = beamevt->GetTOF1(ip);
 
@@ -299,8 +338,9 @@ void proto::BeamAna::produce(art::Event & e)
 
     }
 
-    for(size_t iTrack = 0; iTrack < 10; ++iTrack) MakeTrack(iTrack);
-
+    for(size_t iTrack = 0; iTrack < 10; ++iTrack){
+      MakeTrack(iTrack);
+    }
 
 //    parseXCET(fMultipleTimes[it]);
   }
@@ -383,26 +423,29 @@ void proto::BeamAna::produce(art::Event & e)
  delete beamevt;
  std::cout << "Putting" << std::endl;
  e.put(std::move(beamData)/*,fOutputLabel*/);
- 
+
+ // Write out the to tree
  fOutTree->Fill();
  std::cout << "Put" << std::endl;
 }
+// END BeamAna::produce
+////////////////////////
 
 void proto::BeamAna::InitXBPFInfo(beam::ProtoDUNEBeamEvent * beamevt){
-  
-  //Places a dummy trigger vector for each device
-  size_t nDev = 0; 
-  std::vector<std::string> monitors;
+  // Places a dummy trigger vector for each device
 
+  // Make a vector the names of each of the devices being readout
+  std::vector<std::string> monitors;
+  size_t nDev = 0; 
 
   for(size_t id = 0; id < fDevices.size(); ++id){
-    std::cout << fXBPFPrefix + fDevices[id] << std::endl;
     std::string name = fDevices[id];
-    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
-    std::cout << "Rotated: " << fRotations[name][0] << " " << fRotations[name][1] << " " << fRotations[name][2] << std::endl;
-    
-    monitors.push_back(name);
+    std::cout << fXBPFPrefix + fDevices[id] << std::endl;
+    std::cout << "At: "      << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
+    std::cout << "Rotated: " << fRotations[name][0]   << " " << fRotations[name][1]   << " " << fRotations[name][2]   << std::endl;
 
+    // Put the current device name on the list
+    monitors.push_back(name);
     nDev++;
   }
 
@@ -451,6 +494,9 @@ void proto::BeamAna::InitXBPFInfo(beam::ProtoDUNEBeamEvent * beamevt){
   std::cout << std::endl;
   beamevt->InitFBMs(monitors);
 }
+// END BeamAna::InitXBPFInfo
+////////////////////////
+
 
 void proto::BeamAna::parseXTOF(uint64_t time){
   std::cout << "Getting General trigger info " << std::endl;
@@ -589,6 +635,9 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   }
 
 }
+// END BeamAna::parseXTOF
+////////////////////////
+
 
 void proto::BeamAna::parseXCET(uint64_t time){
   std::cout << "Getting CKov1 info: " << fCKov1 << std::endl;
@@ -599,97 +648,117 @@ void proto::BeamAna::parseXCET(uint64_t time){
   std::vector<double> dataCKov2 = bfp->GetNamedVector(time, fXCETPrefix + fCKov2 + ":countsTrig");
   std::cout << "countsTrig: " << dataCKov2[0] << std::endl; 
 }
+// END BeamAna::parseXCET
+////////////////////////
 
 
 
-
+////////////////////////
+// 
 void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID){
-    std::vector<double> counts;
-    counts = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
-    std::cout << "Counts: " << counts.size() << std::endl;
-    for(size_t i = 0; i < counts.size(); ++i){
-      std::cout << counts[i] << std::endl;
-    }
 
-    std::vector<double> data;
-    data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
-    std::cout << "Data: " << data.size() << std::endl;
+  // Retrieve the number of counts in the BPF
+  std::vector<double> counts;
+  counts = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
+  std::cout << "Counts: " << counts.size() << std::endl;
+  for(size_t i = 0; i < counts.size(); ++i){
+    std::cout << counts[i] << std::endl;
+  }
 
+  std::vector<double> data;
+  data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
+  std::cout << "Data: " << data.size() << std::endl;
 
-    if(counts[1] > data.size())return;
-
-    beam::FBM fbm;
-    fbm.ID = ID;
+  // If the number of counts is larger than the data we have
+  // we bail (without an error???)
+  if(counts[1] > data.size()){
+    return;
+  }
+  
+  beam::FBM fbm;
+  fbm.ID = ID;
     
-    //Use this just in case any are out of sync?
-    //Shouldn't be, but just to be safe...
-    //Helps cut down on time
-    std::vector<size_t> leftOvers;      
-    for(size_t lo = 0; lo < beamevt->GetNT0(); ++lo){
-      leftOvers.push_back(lo);
-    }
+  //Use this just in case any are out of sync?
+  //Shouldn't be, but just to be safe...
+  //Helps cut down on time
+  std::vector<size_t> leftOvers;      
+  for(size_t lo = 0; lo < beamevt->GetNT0(); ++lo){
+    leftOvers.push_back(lo);
+  }
  
-    //Skipping anything > 500, the data seems to be corrupted now
-    for(size_t i = 0; (i < counts[1] || i < 500); ++i){
-      
-
-//      std::cout << "Count: " << i << std::endl;
-      for(int j = 0; j < 10; ++j){
-        double theData = data[20*i + (2*j + 1)];
-//        std::cout << std::setw(15) << theData ;
-        if(j < 4){
-          fbm.timeData[j] = theData;           
-        }
-        else{
-          fbm.fiberData[j - 4] = theData;
-        }
-      }
-      if(fbm.timeData[1] < .0000001){
- //       std::cout << "Skipping bad time" << std::endl;
-        continue;
-      }
-      fbm.timeStamp = fbm.timeData[0]*8.;
-
+  //Skipping anything > 500, the data seems to be corrupted now
+  for(size_t i = 0; (i < counts[1] || i < 500); ++i){      
+    //  std::cout << "Count: " << i << std::endl;
     
-      //Go through the valid Good Particles, and emplace the FBM 
-//      std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
+    for(int j = 0; j < 10; ++j){
+      double theData = data[20*i + (2*j + 1)];
+      // std::cout << std::setw(15) << theData ;
+      if(j < 4){
+	fbm.timeData[j] = theData;           
+      }else{
+	fbm.fiberData[j - 4] = theData;
+      } // endif j
+    } // endfor j
 
-      for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
-//        std::cout << "\t" << fbm.timeStamp << " " << beamevt->GetT0(*ip) << std::endl;
-        if( fabs(fbm.timeStamp - beamevt->GetT0(*ip)) < 5000.){
-          if(beamevt->GetFBM(name, *ip).ID != -1){
-            std::cout << "Warning: Replacing non-dummy FBM at " << 
-            name << " " << *ip << std::endl;
-          }
-//          std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
-          beamevt->ReplaceFBMTrigger(name, fbm, *ip);
-          leftOvers.erase(ip);
-          break;
-        }
-      }
+    // Check the time data for corruption
+    if(fbm.timeData[1] < .0000001){
+      // std::cout << "Skipping bad time" << std::endl;
+      continue;
+    } // endif timeData
+    fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value
+    
+    //Go through the valid Good Particles, and emplace the FBM 
+    // std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
-//      std::cout << std::endl;
+    for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
+      // std::cout << "\t" << fbm.timeStamp << " " << beamevt->GetT0(*ip) << std::endl;
+
+      // Compute the time delta between the timeStamp and the T0, see if it's less than 5000
+      if( fabs(fbm.timeStamp - beamevt->GetT0(*ip)) < 5000.){
+	if(beamevt->GetFBM(name, *ip).ID != -1){
+	  std::cout << "Warning: Replacing non-dummy FBM at "
+		    << name << " " << *ip << std::endl;
+	} // endif GetFBM
+	
+	// std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
+	beamevt->ReplaceFBMTrigger(name, fbm, *ip);
+	leftOvers.erase(ip);
+	break;
+      } // endif time delta calc 
+    } // endfor ip
+
+    // std::cout << std::endl;
+  } // endfor i
+
+  for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
+    beamevt->DecodeFibers(name,i);
+    std::cout << name << " at time: "
+	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
+    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
+      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
     }
-
-    for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
-      beamevt->DecodeFibers(name,i);
-//      std::cout << name << " at time: " << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-//      for(size_t iF = 0; iF < beamevt->GetActiveFibers(name,i).size(); ++iF)std::cout << beamevt->GetActiveFibers(name, i)[iF] << " "; 
-//      std::cout << std::endl;
-        
-      *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
-      fProfTime[name] = beamevt->DecodeFiberTime(name, i);
-//      std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " " << beamevt->ReturnTriggerAndTime(name,i)[1] << " " << beamevt->ReturnTriggerAndTime(name,i)[2] << " " << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
-      fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
-      fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
-      fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
-      fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
-      fProfTree[name]->Fill(); 
-
-    }
+    std::cout << std::endl;
+    
+    *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
+    fProfTime[name] = beamevt->DecodeFiberTime(name, i);
+    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+    fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
+    fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
+    fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
+    fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
+    fProfTree[name]->Fill(); 
+    
+  } // endfor i
 
 }
+// END BeamAna::parseGeneralXBFP
+////////////////////////
 
+////////////////////////
+// 
 void proto::BeamAna::parseXBPF(uint64_t time){
   for(size_t d = 0; d < fDevices.size(); ++d){
     std::string name = fDevices[d];
@@ -697,7 +766,11 @@ void proto::BeamAna::parseXBPF(uint64_t time){
     parseGeneralXBPF(name, time, d);
   }  
 }
+// END BeamAna::parseXBFP
+////////////////////////
 
+////////////////////////
+// 
 void proto::BeamAna::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
@@ -709,7 +782,11 @@ void proto::BeamAna::parsePairedXBPF(uint64_t time){
     parseGeneralXBPF(name, time, d);
   }
 }
+// END BeamAna::parsePairedXBFP
+////////////////////////
 
+////////////////////////
+// 
 void proto::BeamAna::parsePairedStraightXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
     std::string name = fPairedStraightDevices[d].first;
@@ -721,6 +798,8 @@ void proto::BeamAna::parsePairedStraightXBPF(uint64_t time){
     parseGeneralXBPF(name, time, d);
   }
 }
+// END BeamAna::parsePairedStrightXBFP
+////////////////////////
 
 void proto::BeamAna::beginJob()
 {
@@ -1509,7 +1588,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor 
       }
     }
 
@@ -1518,7 +1599,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor 
       }
     }
   }
@@ -1530,7 +1613,9 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
       if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iF = 0; iF < beamevt.GetActiveFibers(name,itN).size(); ++iF) fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iF]); 
+        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
+	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
+	} // endfor
       }
     }
   }
@@ -1544,7 +1629,7 @@ double proto::BeamAna::GetPosition(std::string deviceName, size_t iFiber){
   //double size = 1.;
   
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
-  double pos = size*iFiber + size/2.;
+  double pos = size*fiberIdx + size/2.;
   return pos;
 }
 
