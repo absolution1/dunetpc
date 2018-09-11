@@ -716,7 +716,8 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
 
   for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
     beamevt->DecodeFibers(name,i);
-    std::cout << name << " at time: " << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
+    std::cout << name << " at time: "
+	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
     for(size_t iF = 0; iF < beamevt->GetActiveFibers(name,i).size(); ++iF)std::cout << beamevt->GetActiveFibers(name, i)[iF] << " "; 
     std::cout << std::endl;
     
