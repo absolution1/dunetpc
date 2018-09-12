@@ -4,6 +4,7 @@ proto_savesps:
 {
   module_type:           "SaveSpacePoints"
   SpacePointModuleLabel: "reco3d"
+  BeamModuleLabel:       "beamana"
 }
 
 END_PROLOG

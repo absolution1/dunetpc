@@ -4,10 +4,54 @@ proto_beamana:
 {
   module_type:          "BeamAna"
   LoadFromDB: true
+  URLStr:                 ""
+  OutputLabel:         "BeamEvent"
+  InputLabel:         "ctbrawdecoder"
+  NRetries:             5
   TimeWindow: 25  # width of time window in seconds
   CSVFileName: ""
-  BundleName: "DUNE_MC"
-  FixedTime: 100000 # a non-zero value here forces all queries to use the same time
+  BundleName: "DUNE_CERN_SEP2018"
+  DummyEventTime: 1.5000e+08
+  MultipleTimes: [] 
+  FixedTime:     0.#Tells the code to use event time
+#  Devices:       []
+  Coordinates:   [] 
+  Dimension:     []
+  XBPFPrefix:        ""
+  XTOFPrefix:        ""
+  XCETPrefix:        ""
+  GlobalDetCoords: []
+  DetRotation:     []
+
+  DeviceTypes:  [["XBPF022697","horiz"],
+                 ["XBPF022698","vert"],
+                 ["XBPF022701","horiz"],
+                 ["XBPF022702","horiz"],
+                 ["XBPF022707","horiz"],
+                 ["XBPF022708","vert"], 
+                 ["XBPF022716","horiz"],
+                 ["XBPF022717","vert"]]
+
+  PairedStraightDevices: [["XBPF022707", "XBPF022708"],
+                          ["XBPF022716", "XBPF022717"]]
+
+  PairedDevices:  [["XBPF022697","XBPF022698"]]
+  Devices:        ["XBPF022701","XBPF022702"]
+
+
+  RotateMonitorXZ:   -10.3
+  RotateMonitorYZ:    11.7
+
+# Position of beam monitor in z in [mm] 
+  FirstTrackingProfZ: 707479
+  SecondTrackingProfZ: 716048
+  NP04FrontZ: 717243
+
+# Position of Beam in [cm]
+  BeamX: 8.0757
+  BeamY: 461.06
+  BeamZ: -196.11
+
 }
 
 END_PROLOG
