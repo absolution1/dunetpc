@@ -21,6 +21,8 @@
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
 
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+
 // ROOT includes
 #include "TTree.h"
 #include "TTimeStamp.h"
@@ -51,16 +53,28 @@ public:
 private:
 
   const art::InputTag fSpacePointModuleLabel;
+  const art::InputTag fBeamModuleLabel;
   TTree *fTree;
   // Run information
   int run;
   int subrun;
   int event;
   double evttime;
+
+  // space point information
   std::vector<double> vx;
   std::vector<double> vy;
   std::vector<double> vz;
   std::vector<double> vcharge;
+
+  // beam information
+  std::vector<double> trkStartx;
+  std::vector<double> trkStarty;
+  std::vector<double> trkStartz;
+
+  std::vector<double> trkEndx;
+  std::vector<double> trkEndy;
+  std::vector<double> trkEndz;
 
 };
 
@@ -68,7 +82,8 @@ private:
 proto::SaveSpacePoints::SaveSpacePoints(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
-  fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel"))
+  fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
+  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel"))
 {}
 
 void proto::SaveSpacePoints::analyze(art::Event const & evt)
@@ -84,17 +99,22 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   vy.clear();
   vz.clear();
   vcharge.clear();
+  trkStartx.clear();
+  trkStarty.clear();
+  trkStartz.clear();
+  trkEndx.clear();
+  trkEndy.clear();
+  trkEndz.clear();
 
-  auto spsHandle = evt.getValidHandle< std::vector<recob::SpacePoint> >(fSpacePointModuleLabel);
-  auto pcsHandle = evt.getValidHandle< std::vector<recob::PointCharge>>(fSpacePointModuleLabel);
-
-  // all space points in the collection
+  art::Handle< std::vector<recob::SpacePoint> > spsHandle;
   std::vector< art::Ptr<recob::SpacePoint> > sps;
-  art::fill_ptr_vector(sps, spsHandle);
+  if (evt.getByLabel(fSpacePointModuleLabel, spsHandle))
+    art::fill_ptr_vector(sps, spsHandle);
 
-  // all point charge in the collection
+  art::Handle< std::vector<recob::PointCharge> > pcsHandle;
   std::vector< art::Ptr<recob::PointCharge> > pcs;
-  art::fill_ptr_vector(pcs, pcsHandle);
+  if (evt.getByLabel(fSpacePointModuleLabel, pcsHandle))
+    art::fill_ptr_vector(pcs, pcsHandle);
 
   for (size_t i = 0; i<sps.size(); ++i){
     vx.push_back(sps[i]->XYZ()[0]);
@@ -102,6 +122,25 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
     vz.push_back(sps[i]->XYZ()[2]);
     vcharge.push_back(pcs[i]->charge());
   }
+
+  art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
+  std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
+  if (evt.getByLabel(fBeamModuleLabel, pdbeamHandle))
+    art::fill_ptr_vector(beaminfo, pdbeamHandle);
+  
+  if (beaminfo.size()){
+    auto & tracks = beaminfo[0]->GetBeamTracks();
+    for (size_t i = 0; i<tracks.size(); ++i){
+      //std::cout<<i<<" "<<tracks[i].NPoints()<<std::endl;
+      trkStartx.push_back(tracks[i].Vertex().X());
+      trkStarty.push_back(tracks[i].Vertex().Y());
+      trkStartz.push_back(tracks[i].Vertex().Z());
+      trkEndx.push_back(tracks[i].End().X());
+      trkEndy.push_back(tracks[i].End().Y());
+      trkEndz.push_back(tracks[i].End().Z());
+    }
+  }
+
   fTree->Fill();
 }
 
@@ -117,6 +156,12 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("vy",&vy);
   fTree->Branch("vz",&vz);
   fTree->Branch("vcharge",&vcharge);
+  fTree->Branch("trkStartx",&trkStartx);
+  fTree->Branch("trkStarty",&trkStarty);
+  fTree->Branch("trkStartz",&trkStartz);
+  fTree->Branch("trkEndx",&trkEndx);
+  fTree->Branch("trkEndy",&trkEndy);
+  fTree->Branch("trkEndz",&trkEndz);
 }
 
 DEFINE_ART_MODULE(proto::SaveSpacePoints)
