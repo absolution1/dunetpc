@@ -68,13 +68,13 @@ private:
   std::vector<double> vcharge;
 
   // beam information
-  std::vector<double> trkStartx;
-  std::vector<double> trkStarty;
-  std::vector<double> trkStartz;
-
-  std::vector<double> trkEndx;
-  std::vector<double> trkEndy;
-  std::vector<double> trkEndz;
+  std::vector<double> beamPosx;
+  std::vector<double> beamPosy;
+  std::vector<double> beamPosz;
+  
+  std::vector<double> beamDirx;
+  std::vector<double> beamDiry;
+  std::vector<double> beamDirz;
 
 };
 
@@ -99,12 +99,12 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   vy.clear();
   vz.clear();
   vcharge.clear();
-  trkStartx.clear();
-  trkStarty.clear();
-  trkStartz.clear();
-  trkEndx.clear();
-  trkEndy.clear();
-  trkEndz.clear();
+  beamPosx.clear();
+  beamPosy.clear();
+  beamPosz.clear();
+  beamDirx.clear();
+  beamDiry.clear();
+  beamDirz.clear();
 
   art::Handle< std::vector<recob::SpacePoint> > spsHandle;
   std::vector< art::Ptr<recob::SpacePoint> > sps;
@@ -132,12 +132,12 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
     auto & tracks = beaminfo[0]->GetBeamTracks();
     for (size_t i = 0; i<tracks.size(); ++i){
       //std::cout<<i<<" "<<tracks[i].NPoints()<<std::endl;
-      trkStartx.push_back(tracks[i].Vertex().X());
-      trkStarty.push_back(tracks[i].Vertex().Y());
-      trkStartz.push_back(tracks[i].Vertex().Z());
-      trkEndx.push_back(tracks[i].End().X());
-      trkEndy.push_back(tracks[i].End().Y());
-      trkEndz.push_back(tracks[i].End().Z());
+      beamPosx.push_back(tracks[i].End().X());
+      beamPosy.push_back(tracks[i].End().Y());
+      beamPosz.push_back(tracks[i].End().Z());
+      beamDirx.push_back(tracks[i].StartDirection().X());
+      beamDiry.push_back(tracks[i].StartDirection().Y());
+      beamDirz.push_back(tracks[i].StartDirection().Z());
     }
   }
 
@@ -156,12 +156,12 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("vy",&vy);
   fTree->Branch("vz",&vz);
   fTree->Branch("vcharge",&vcharge);
-  fTree->Branch("trkStartx",&trkStartx);
-  fTree->Branch("trkStarty",&trkStarty);
-  fTree->Branch("trkStartz",&trkStartz);
-  fTree->Branch("trkEndx",&trkEndx);
-  fTree->Branch("trkEndy",&trkEndy);
-  fTree->Branch("trkEndz",&trkEndz);
+  fTree->Branch("beamPosx",&beamPosx);
+  fTree->Branch("beamPosy",&beamPosy);
+  fTree->Branch("beamPosz",&beamPosz);
+  fTree->Branch("beamDirx",&beamDirx);
+  fTree->Branch("beamDiry",&beamDiry);
+  fTree->Branch("beamDirz",&beamDirz);
 }
 
 DEFINE_ART_MODULE(proto::SaveSpacePoints)
