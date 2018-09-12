@@ -97,6 +97,12 @@ private:
   TH1F *fDriftTime;
   TH2F *fDriftTimeVTPC;
 
+  TH1F *fSNR;
+  TH2F *fSNRVTPC;
+
+  TH1F *fAmplitudes;
+  TH1F *fNoise;
+
 };
 
 
@@ -141,6 +147,16 @@ void nlana::SPLifetime::beginJob()
   setHistTitles(fDriftTime,"Cluster Drift Time [ms]", "Clusters / Bin");
   fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. TPC", 12,0,12,500,0.,10.);
   setHistTitles(fDriftTimeVTPC,"TPC Number","Cluster Drift Time [ms]");
+
+  fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 1000, 0.,10000.);
+  setHistTitles(fSNR,"Signal to Noise Ratio", "Hits / Bin");
+  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. TPC", 12,0,12,1000,0.,10000.);
+  setHistTitles(fSNRVTPC,"TPC Number","Signal to Noise Ratio");
+
+  fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 2000, 0.,4000.);
+  setHistTitles(fAmplitudes,"Hit Amplitude [ADC]", "Hits / Bin");
+  fNoise = tfs->make<TH1F>("Noise","Wire Noise", 2000, 0.,5.);
+  setHistTitles(fNoise,"RMS Noise [ADC]", "Hit Wires / Bin");
 
 } // beginJob
 
@@ -502,9 +518,13 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       } // chrms
       if(pedRMS < 0) continue;
       float snr = hit->PeakAmplitude() / pedRMS;
-      std::cout<<"SNR "<<(int)snr << " S: " << hit->PeakAmplitude() << " N: "<< pedRMS <<"\n";
+      //std::cout<<"SNR "<<(int)snr << " S: " << hit->PeakAmplitude() << " N: "<< pedRMS <<"\n";
       signalToNoise[tpc] += snr;
       ++signalToNoiseCnt[tpc];
+      fAmplitudes->Fill(hit->PeakAmplitude());
+      fNoise->Fill(pedRMS);
+      fSNR->Fill(snr);
+      fSNRVTPC->Fill(tpc,snr);
 //      aveSN += sn;
 //      ++cnt;
     } // hit
