@@ -80,7 +80,7 @@ namespace beam
       void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
       size_t            GetNBeamTracks(){return Tracks.size();}
-    
+      const std::vector< recob::Track > & GetBeamTracks() const;
     private:
 
       //Time of a coincidence between 2 TOFs
@@ -108,6 +108,7 @@ namespace beam
   
   };
 
+  inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
   
   inline double ProtoDUNEBeamEvent::GetT0(size_t trigger){
     if( trigger > t0.size() - 1 ){
@@ -368,6 +369,7 @@ namespace beam
   }
   /////////////////////////////////
 
+  /*
       std::vector< long long int > TOF1;
       std::vector< long long int > TOF2;
 
@@ -375,7 +377,7 @@ namespace beam
       //
       std::vector< CKov > CKov1;
       std::vector< CKov > CKov2;
-  
+  */
 }
 
 
