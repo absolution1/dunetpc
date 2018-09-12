@@ -37,13 +37,27 @@ pdsp_tpc_raw_decoder:
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
-  RCEDropEventsWithSmallFrags: true
-  RCESmallFragSize: 10000
+  RCEDropEventsWithSmallFrags: false
+  RCEDropSmallFrags: true
+  RCESmallFragSize: 500000
+  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEHexDump: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
-  FELIXFragmentType: 2    # not used in code
+  FELIXFragmentType: 8  
+  FELIXDropFragsWithBadCSF: true
+  FELIXEnforceExactCrateNumber: false
+  FELIXCrateNumberToCheck: 6
+  FELIXHexDump: false
+  FELIXDropEventsWithSmallFrags: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
 
   CompressHuffman: false
   PrintColdataConvertCount: false
@@ -71,7 +85,7 @@ pdsp_tpc_raw_decoder:
 # requires that all channels have the specified number of ticks
 
   EnforceFullTickCount: false
-  FullTickCount: 10000
+  FullTickCount: 6000
 
 # requires that no errors are reported by the unpacker (checksum or capture errors)
 
@@ -107,8 +121,8 @@ ctb_raw_decoder:
 {
   module_type: "PDSPCTBRawDecoder"
   InputLabel: "daq"
-  InputContainerInstance: "ContainerTRIGGER"
-  InputNonContainerInstance: "TRIGGER"
+  InputContainerInstance: "ContainerCTB"
+  InputNonContainerInstance: "CTB"
   OutputLabel: "daq"
 }
 

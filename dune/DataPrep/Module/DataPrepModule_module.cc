@@ -30,6 +30,7 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
+#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -39,6 +40,7 @@
 #include "dune/DuneCommon/DuneTimeConverter.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TTimeStamp.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
 using std::cout;
 using std::endl;
@@ -47,6 +49,7 @@ using std::vector;
 using std::move;
 using art::ServiceHandle;
 using art::Timestamp;
+using raw::RDStatus;
 using recob::Wire;
 
 //**********************************************************************
@@ -95,6 +98,9 @@ private:
 
   // Processed event count.
   unsigned int m_nproc =0;
+
+  // Skipped event count.
+  unsigned int m_nskip =0;
 
 };
 
@@ -188,13 +194,17 @@ void DataPrepModule::beginJob() {
   const string myname = "DataPrepModule::beginJob: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Starting job." << endl;
   m_nproc = 0;
+  m_nskip = 0;
 }
 
 //**********************************************************************
 
 void DataPrepModule::endJob() {
   const string myname = "DataPrepModule::endJob: ";
-  if ( m_LogLevel >= 2 ) cout << myname << "# events processed: " << m_nproc << endl;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "# events processed: " << m_nproc << endl;
+    cout << myname << "  # events skipped: " << m_nskip << endl;
+  }
 }
   
 //**********************************************************************
@@ -202,15 +212,64 @@ void DataPrepModule::endJob() {
 void DataPrepModule::produce(art::Event& evt) {      
   const string myname = "DataPrepModule::produce: ";
 
+  // Control flags.
+  bool skipAllEvents = false;
+  bool skipEventsWithCorruptDataDropped = false;
+
   // Fetch the event time.
   Timestamp beginTime = evt.time();
+
+  // Fetch the timing clock.
+  string m_TimingProducer = "timingrawdecoder";
+  AdcLongIndex timingClock = 0;
+  if ( true ) {
+    art::Handle<std::vector<raw::RDTimeStamp>> htims;
+    //evt.getByLabel(m_DigitProducer, m_DigitName, htims);
+    evt.getByLabel("timingrawdecoder", "daq", htims);
+    if ( ! htims.isValid() ) {
+      cout << myname << "WARNING: Timing clocks product not found." << endl;
+    } else if (  htims->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << endl;
+      for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
+        cout << myname << "  " << htims->at(itim).GetTimeStamp() << endl;
+      }
+    } else {
+      const raw::RDTimeStamp& tim = htims->at(0);
+      cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
+      timingClock = tim.GetTimeStamp();
+    }
+  }
+
+  // Read the raw digit status.
+  art::Handle<std::vector<raw::RDStatus>> hrdstats;
+  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
+  string srdstat;
+  bool skipEvent = skipAllEvents;
+  if ( ! hrdstats.isValid() ) {
+    cout << myname << "WARNING: Raw data status product not found." << endl;
+  } else {
+    if ( hrdstats->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected raw data status size: " << hrdstats->size() << endl;
+    }
+    const RDStatus rdstat = hrdstats->at(0);
+    if ( false ) {
+      cout << myname << "Raw data status: " << rdstat.GetStatWord();
+      if ( rdstat.GetCorruptDataDroppedFlag() ) cout << " (Corrupt data was dropped.)";
+      if ( rdstat.GetCorruptDataKeptFlag() ) cout << " (Corrupt data was retained.)";
+      cout << endl;
+    }
+    srdstat = "rdstat=" + std::to_string(rdstat.GetStatWord());
+    skipEvent |= skipEventsWithCorruptDataDropped && rdstat.GetCorruptDataDroppedFlag();
+  }
 
   // Read in the digits. 
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Run " << evt.run();
     if ( evt.subRun() ) cout << "-" << evt.subRun();
     cout << ", event " << evt.event();
-    cout << ", Nproc: " << m_nproc;
+    if ( srdstat.size() ) cout << ", " << srdstat;
+    cout << ", nproc=" << m_nproc;
+    if ( m_nskip ) cout << ", nskip=" << m_nskip;
     cout << endl;
     if ( m_LogLevel >= 3 ) cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
@@ -226,7 +285,9 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( m_LogLevel >= 3 ) {
     cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
-  art::Handle< std::vector<raw::RawDigit> > hdigits;
+
+  // Read in the digits. 
+  art::Handle<std::vector<raw::RawDigit>> hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
   if ( m_LogLevel >= 3 ) {
     cout << myname << "# digits read: " << hdigits->size() << endl;
@@ -240,6 +301,17 @@ void DataPrepModule::produce(art::Event& evt) {
   // Create the association container.
   std::unique_ptr<art::Assns<raw::RawDigit,recob::Wire>> passns(new art::Assns<raw::RawDigit,recob::Wire>);
 
+  // If status was bad, skip this event.
+  // We store empty results to avoid exception.
+  // We have to have read digits to store those results (yech).
+  if ( skipEvent ) {
+    cout << myname << "Skipping event with " << srdstat << endl;
+    evt.put(std::move(pwires), m_WireName);
+    if ( m_DoAssns ) evt.put(std::move(passns), m_WireName);
+    ++m_nskip;
+    return;
+  }
+  
   // Prepare the intermediate state cache.
   // Note that transient data is retained between groups and so most of the memory saving
   // of groups is lost if  intermediate states are recorded.
@@ -268,7 +340,7 @@ void DataPrepModule::produce(art::Event& evt) {
       continue;
     }
     if ( fulldatamap.find(chan) != fulldatamap.end() ) {
-      mf::LogWarning("DataPrepModule") << "Skipping duplicate channel " << chan << "." << endl;
+      cout << myname << "WARNING: Skipping duplicate channel " << chan << "." << endl;
       ++nskip;
       continue;
     }
@@ -302,6 +374,7 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembID = fembID;
       acd.fembChannel = fembChannel;
     }
+    acd.triggerClock = timingClock;
     acd.metadata["ndigi"] = ndigi;
     ++nkeep;
   }

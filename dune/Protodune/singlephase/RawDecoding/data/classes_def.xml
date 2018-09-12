@@ -1,0 +1,18 @@
+<!-- 
+  File: classes_def.xml
+  Brief: Data product definitions for  raw::RDStatus data product.
+  Author: Tom Junk
+-->
+
+<lcgdict>
+  <!-- The data product added in this directory -->
+
+  <class name="raw::RDStatus" ClassVersion="10">
+   <version ClassVersion="10" checksum="2422597770"/>
+  </class>
+
+  <class name="art::Ptr<raw::RDStatus>"/>
+  <class name="std::vector<raw::RDStatus>"/>
+  <class name="art::Wrapper<std::vector<raw::RDStatus>>"/>
+
+</lcgdict>

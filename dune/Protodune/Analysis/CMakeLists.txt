@@ -21,6 +21,7 @@ art_make(BASENAME_ONLY
   lardata_Utilities
   larcorealg_Geometry
   nusimdata_SimulationBase
+  larsim_MCCheater_PhotonBackTrackerService_service           
   larsim_MCCheater_BackTrackerService_service           
   larsim_MCCheater_ParticleInventoryService_service
   larreco_RecoAlg

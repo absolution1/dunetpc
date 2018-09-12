@@ -21,7 +21,13 @@ CRTSim_standard:
 CRTSimValidation_standard:
 {
   module_type: "CRTSimValidation"
-  CRTLabel: "CRTSim"
+  CRTLabel: "crt"
+}
+
+CRTOnlineMonitor_standard:
+{
+  module_type: "CRTOnlineMonitor"
+  CRTLabel: "crt"
 }
 
 END_PROLOG
