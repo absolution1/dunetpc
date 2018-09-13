@@ -136,6 +136,7 @@ dunefddphase_simulation_services: {
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunefddphase_reco_services:                            @local::dunefddphase_services
@@ -200,6 +201,7 @@ dunedphase3x1x1_simulation_services: {
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -273,6 +275,7 @@ protodunedphase_simulation_services: {
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
