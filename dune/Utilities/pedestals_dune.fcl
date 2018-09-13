@@ -57,7 +57,7 @@ dune_fixedpeds: {
 dunedp_fixedpeds: {
   service_provider: DPhaseFixedDetPedestalService
   FixedDetPedestal: {
-    PedMeanY: 5.0
+    PedMeanX: 5.0
     PedMeanY: 5.0
     PedMeanZ: 5.0
     PedRmsX:     0.5
