@@ -67,7 +67,7 @@ public:
   void beginJob() override;
   void endJob() override;
   void reconfigure(fhicl::ParameterSet const & p);
-  void respondToOpenInputFile(art::FileBlock const & infileblock);
+  void respondToOpenInputFile(art::FileBlock const & infileblock) override;
 
 private:
 
