@@ -10,6 +10,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::setw;
+using NameVector = IndexRange::NameVector;
 
 //**********************************************************************
 
@@ -27,7 +28,7 @@ FclIndexRangeTool::FclIndexRangeTool(fhicl::ParameterSet const& ps)
     }
     IndexRange& ran = m_Ranges[rnam];
     ran.name = rnam;
-    ran.setLabel("label");
+    ran.labels = psr.get<NameVector>("labels");
     ran.begin = psr.get<Index>("begin");
     ran.end = psr.get<Index>("end");
     if ( ran.name.size() > namSize ) namSize = ran.name.size();

@@ -56,13 +56,13 @@ public:
     if ( ! isValid() ) return "[]";
     return "[" + std::to_string(begin) + ", " + std::to_string(end) + ")";
   }
-  void setLabel( Name lab) { setLabel(0, lab); }
+  void setLabel(Name lab) { setLabel(0, lab); }
   void setLabel(Index ilab, Name lab) {
     labels.resize(ilab+1, "");
     labels[ilab] = lab;
   }
   Name label(Index ilab =0) const {
-    if ( ilab < labels.size() ) return "";
+    if ( ilab >= labels.size() ) return "";
     return labels[ilab];
   }
   

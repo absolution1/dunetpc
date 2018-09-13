@@ -11,7 +11,7 @@
 # Tools to display ADC data.
 ################################################################################
 
-tools.tickRanges.plotTicks: { begin:3000  end:4000 label:"Plot ticks" }
+tools.tickRanges.plotTicks: { begin:3000  end:4000 labels:["Plot ticks"] }
 
 ################################################################################
 # Dumpers.

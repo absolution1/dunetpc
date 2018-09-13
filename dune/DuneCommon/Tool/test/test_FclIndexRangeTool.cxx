@@ -44,8 +44,8 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
       fout << "  mytool: {" << endl;
       fout << "    tool_type: FclIndexRangeTool" << endl;
       fout << "    LogLevel: 2" << endl;
-      fout << "    range1: { label:\"Range 1\" begin:10 end:20}" << endl;
-      fout << "    range2: { label:\"Range 2\" begin:20 end:30}" << endl;
+      fout << "    range1: { labels:[\"Range 1\"] begin:10 end:20}" << endl;
+      fout << "    range2: { labels:[\"Range 2\"] begin:20 end:30}" << endl;
       fout << "  }" << endl;
       fout << "}" << endl;
     } else {
