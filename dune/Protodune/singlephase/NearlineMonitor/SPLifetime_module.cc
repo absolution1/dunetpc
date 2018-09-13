@@ -198,7 +198,7 @@ void nlana::SPLifetime::endJob()
     // Now do drift time
     size_t nBinsY = fDriftTimeVTPC->GetNbinsY();
     float driftTime = -1.;
-    for (size_t iBin=nBinsY; iBin >=0; iBin--)
+    for (int iBin=nBinsY; iBin >=0; iBin--)
     {
       if (fDriftTimeVTPC->GetBinContent(tpc+1,iBin) > 1)
       {
