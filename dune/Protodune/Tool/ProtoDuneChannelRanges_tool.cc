@@ -25,32 +25,36 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchav = 800;
   Index nchaz = 480;
   bool isEven = true;
-  Index apaIdx[6] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
-  insertLen("all", 0, ntps*nchaApa, "All");
+  Index apaIdx[ntps] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
+  string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
+  insertLen("all", 0, ntps*nchaApa, "All", "", "");
   for ( Index itps=0; itps<ntps; ++itps ) {
-    string siapa = std::to_string(apaIdx[itps]);
-    Index ch0 = itps*nchaApa;
     string sitps = std::to_string(itps);
+    string siapa = std::to_string(apaIdx[itps]);
+    string labTps = "TPS set " + sitps;
+    string labApa = "APA " + siapa;
+    string sloc = slocs[itps];
+    Index ch0 = itps*nchaApa;
     string stps = "tps" + sitps;
     string sapa = "apa" + siapa;
-    insertLen(      stps, ch0, nchaApa, "TPC set " + sitps);
-    insertLen(      sapa, ch0, nchaApa, "APA " + siapa);
+    insertLen(      stps, ch0, nchaApa, labTps, sloc, labApa);
+    insertLen(      sapa, ch0, nchaApa, labApa, sloc);
     string stpp = "tpp" + sitps;
-    insertLen(stpp + "u", ch0, nchau, "TPC plane " + sitps + "u");
-    insertLen(sapa + "u", ch0, nchau, "APA plane " + siapa + "u");
+    insertLen(stpp + "u", ch0, nchau, "TPC plane " + sitps + "u", sloc, labApa);
+    insertLen(sapa + "u", ch0, nchau, "APA plane " + siapa + "u", sloc);
     ch0 += nchau;
-    insertLen(stpp + "v", ch0, nchav, "TPC plane " + sitps + "v");
-    insertLen(sapa + "v", ch0, nchav, "APA plane " + siapa + "v");
+    insertLen(stpp + "v", ch0, nchav, "TPC plane " + sitps + "v", sloc, labApa);
+    insertLen(sapa + "v", ch0, nchav, "APA plane " + siapa + "v", sloc);
     ch0 += nchav;
     Index chx1 = ch0;
     ch0 += nchaz;
     Index chx2 = ch0;
     Index chz = isEven ? chx2 : chx1;
     Index chc = isEven ? chx1 : chx2;
-    insertLen(stpp + "c", chc, nchaz, "TPC plane " + sitps + "c");
-    insertLen(sapa + "c", chc, nchaz, "APA plane " + siapa + "c");
-    insertLen(stpp + "z", chz, nchaz, "TPC plane " + sitps + "z");
-    insertLen(sapa + "z", chz, nchaz, "APA plane " + siapa + "z");
+    insertLen(stpp + "c", chc, nchaz, "TPC plane " + sitps + "c", sloc, labApa);
+    insertLen(sapa + "c", chc, nchaz, "APA plane " + siapa + "c", sloc);
+    insertLen(stpp + "z", chz, nchaz, "TPC plane " + sitps + "z", sloc, labApa);
+    insertLen(sapa + "z", chz, nchaz, "APA plane " + siapa + "z", sloc);
     isEven = ! isEven;
   }
   if ( m_ExtraRanges.size() ) {
@@ -82,8 +86,8 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
 //**********************************************************************
 
 void ProtoDuneChannelRanges::
-insertLen(Name nam, Index begin, Index len, Name lab) {
-  m_Ranges[nam] = IndexRange(nam, begin, begin+len, lab);
+insertLen(Name nam, Index begin, Index len, Name lab, Name lab1, Name lab2) {
+  m_Ranges[nam] = IndexRange(nam, begin, begin+len, lab, lab1, lab2);
 }
 
 //**********************************************************************

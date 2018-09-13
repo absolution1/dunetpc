@@ -259,6 +259,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     StringManipulator smhnam(hnam0);
     smhnam.replace("%CRNAME%", cr.name);
     smhnam.replace("%CRLABEL%", cr.label());
+    smhnam.replace("%CRLABEL1%", cr.label(1));
+    smhnam.replace("%CRLABEL2%", cr.label(2));
     Name hnam = smhnam.string();
     if ( getState().chanSumHists.find(hnam) != getState().chanSumHists.end() ) {
       cout << myname << "ERROR: Duplicate channel summary histogram name: " << hnam << endl;
@@ -267,6 +269,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     StringManipulator smttl(httl0);
     smttl.replace("%CRNAME%", cr.name);
     smttl.replace("%CRLABEL%", cr.label());
+    smttl.replace("%CRLABEL1%", cr.label(1));
+    smttl.replace("%CRLABEL2%", cr.label(2));
     Name httl = smttl.string();
     TH1* phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
     phf->GetXaxis()->SetTitle("Channel");
