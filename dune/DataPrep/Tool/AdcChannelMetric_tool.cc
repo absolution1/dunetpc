@@ -293,7 +293,7 @@ string AdcChannelMetric::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
   StringManipulator sman(name);
   sman.replace("%CRNAME%", ran.name);
-  sman.replace("%CRLABEL%", ran.label);
+  sman.replace("%CRLABEL%", ran.label());
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;
