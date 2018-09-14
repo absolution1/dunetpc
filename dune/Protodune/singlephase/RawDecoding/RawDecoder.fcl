@@ -98,7 +98,12 @@ ssp_raw_decoder:
 
   module_type: "SSPRawDecoder"
   RawDataLabel: "daq"
-  OutputDataLabel: "daq"
+   
+  SplitTriggers: false           # If true, split into external and internal trigger data products
+  OutputDataLabel: "daq"         # Used if SplitTriggers = false
+  ExtTrigOutputLabel: "external" # Used if SplitTriggers = true
+  IntTrigOutputLabel: "internal" # Used if SPlitTriggers = true
+   
 #  UseChannelMap: "true"
   UseChannelMap: "false"
   Debug: "false"
