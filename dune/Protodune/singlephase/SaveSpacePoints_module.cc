@@ -93,8 +93,15 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   subrun = evt.subRun();
   event = evt.id().event();
   art::Timestamp ts = evt.time();
-  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-  evttime = tts.AsDouble();
+  //std::cout<<ts.timeHigh()<<" "<<ts.timeLow()<<std::endl;
+  if (ts.timeHigh() == 0){
+    TTimeStamp tts(ts.timeLow());
+    evttime = tts.AsDouble();
+  }
+  else{
+    TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+    evttime = tts.AsDouble();
+  }
   vx.clear();
   vy.clear();
   vz.clear();
