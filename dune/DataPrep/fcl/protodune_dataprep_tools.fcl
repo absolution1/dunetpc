@@ -61,7 +61,7 @@ tools.rawAdcDetectorPlotColl: {
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
-  SignalThreshold: 100
+  SignalThreshold:  20
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -82,7 +82,7 @@ tools.rawAdcDetectorPlotInd1: {
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
-  SignalThreshold: 100
+  SignalThreshold:  20
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -103,7 +103,7 @@ tools.rawAdcDetectorPlotInd2: {
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
-  SignalThreshold: 100
+  SignalThreshold:  20
   FirstTick: 0
   LastTick: 0
   ShowWires: true
