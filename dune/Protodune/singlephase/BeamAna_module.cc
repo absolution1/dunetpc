@@ -266,8 +266,42 @@ void proto::BeamAna::produce(art::Event & e)
   BeamMonitorBasisVectors();
 
   //const auto theInfo = e.getValidHandle< std::vector<raw::RDTimeStamp> >("timingrawdecoder");  
-//  const auto theInfo = e.getValidHandle< std::vector<raw::ctb::pdspctb> >(fInputLabel);  
+  //const auto theInfo = e.getValidHandle< std::vector<raw::ctb::pdspctb> >(fInputLabel);  
 //  std::cout << theInfo << std::endl;
+
+  art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
+  e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
+  std::cout << "RDTS valid? " << RDTimeStampHandle.isValid() << std::endl;
+  for (auto const & RDTS : *RDTimeStampHandle){
+    std::cout << "High: " << RDTS.GetTimeStamp_High() << std::endl;
+    std::cout << "Low: " << RDTS.GetTimeStamp_Low() << std::endl;
+
+    std::bitset<64> high = RDTS.GetTimeStamp_High();
+    std::cout << "High: " << high << std::endl;
+
+    std::bitset<64> low  = RDTS.GetTimeStamp_Low();
+    std::cout << "Low: " << low << std::endl;
+
+    high = high << 32; 
+    std::bitset<64> joined = (high ^ low);
+    std::cout << joined << std::endl;
+
+    std::cout << (joined).to_ullong() << std::endl;
+
+  }
+  
+  art::Handle< std::vector<raw::ctb::pdspctb> > CTBHandle;
+  e.getByLabel("ctbrawdecoder","daq",CTBHandle);
+  std::cout << "CTB valid? " << CTBHandle.isValid() << std::endl;
+  for (auto const & CTB : *CTBHandle){
+    std::cout << "NTriggers: " << CTB.GetNTriggers() << std::endl;
+    for (size_t nTrig = 0; nTrig < CTB.GetNTriggers(); ++nTrig){
+      raw::ctb::Trigger ctbTrig = CTB.GetTrigger(nTrig);
+      std::cout << "Type: " << ctbTrig.word_type << std::endl
+                << "Word: " << ctbTrig.trigger_word <<std::endl
+                << "TS: "   << ctbTrig.timestamp << " " << ctbTrig.timestamp*20.E-9 << std::endl;
+    }
+  }
 
   // Open up and read from  the IFBeam Service
   std::cerr << "%%%%%%%%%% Getting ifbeam service handle %%%%%%%%%%" << std::endl;
@@ -322,7 +356,14 @@ void proto::BeamAna::produce(art::Event & e)
 
     // Parse the Time of Flight Counter data for the list
     // of times that we are using
-    parseXTOF(fMultipleTimes[it]);
+    try{
+      parseXTOF(fMultipleTimes[it]);
+    }
+    catch(std::exception e){
+      std::cout << "COULD NOT GET INFO" << std::endl;
+      std::cout << "SKIPPING EVENT" << std::endl;
+      break;
+    }
     std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
     std::cout << "NTOF0: "          << beamevt->GetNTOF0Triggers() << std::endl;
     std::cout << "NTOF1: "          << beamevt->GetNTOF1Triggers() << std::endl;
