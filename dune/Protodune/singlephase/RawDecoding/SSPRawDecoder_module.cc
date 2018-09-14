@@ -163,7 +163,7 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   fSplitTriggers = pset.get<bool>("SplitTriggers");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
   fExtTrigOutputLabel = pset.get<std::string>("ExtTrigOutputLabel");
-  fIngTrigOutputLabel = pset.get<std::string>("IntTrigOutputLabel");
+  fIntTrigOutputLabel = pset.get<std::string>("IntTrigOutputLabel");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
@@ -211,8 +211,8 @@ void dune::SSPRawDecoder::printParameterSet(){
   }
   else{
     std::cout << "Splitting triggers" << std::endl;
-    std::cout << "fExtOutputLabel: " << fExtOutputLabel << std::endl;
-    std::cout << "fIntOutputLabel: " << fIntOutputLabel << std::endl;
+    std::cout << "fExtTrigOutputLabel: " << fExtTrigOutputLabel << std::endl;
+    std::cout << "fIntTrigOutputLabel: " << fIntTrigOutputLabel << std::endl;
   }    
   std::cout << "fDebug: ";
   if(fDebug) std::cout << "true" << std::endl;
@@ -361,7 +361,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 
   waveforms.clear();
   int_waveforms.clear();
-  ext_waveforms.clear()
+  ext_waveforms.clear();
   hits.clear();
   int_hits.clear();
   ext_hits.clear();
@@ -576,7 +576,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
           int_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
         }
         else {
-          std::err << "Unknown trigger type " << trig.type << ", cannot assign to appropriate data product with SplitTriggers enabled." << std::endl;
+          std::cerr << "Unknown trigger type " << trig.type << ", cannot assign to appropriate data product with SplitTriggers enabled." << std::endl;
         }
       }
 
