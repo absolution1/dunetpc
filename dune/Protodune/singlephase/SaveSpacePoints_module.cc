@@ -20,6 +20,7 @@
 
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
+#include "lardataobj/RecoBase/Track.h"
 
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
@@ -54,6 +55,8 @@ private:
 
   const art::InputTag fSpacePointModuleLabel;
   const art::InputTag fBeamModuleLabel;
+  const art::InputTag fTrackModuleLabel;
+
   TTree *fTree;
   // Run information
   int run;
@@ -66,6 +69,7 @@ private:
   std::vector<double> vy;
   std::vector<double> vz;
   std::vector<double> vcharge;
+  std::vector<int> vtrackid;
 
   // beam information
   std::vector<double> beamPosx;
@@ -83,7 +87,8 @@ proto::SaveSpacePoints::SaveSpacePoints(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
   fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
-  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel"))
+  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
+  fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel"))
 {}
 
 void proto::SaveSpacePoints::analyze(art::Event const & evt)
@@ -93,12 +98,20 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   subrun = evt.subRun();
   event = evt.id().event();
   art::Timestamp ts = evt.time();
-  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-  evttime = tts.AsDouble();
+  //std::cout<<ts.timeHigh()<<" "<<ts.timeLow()<<std::endl;
+  if (ts.timeHigh() == 0){
+    TTimeStamp tts(ts.timeLow());
+    evttime = tts.AsDouble();
+  }
+  else{
+    TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+    evttime = tts.AsDouble();
+  }
   vx.clear();
   vy.clear();
   vz.clear();
   vcharge.clear();
+  vtrackid.clear();
   beamPosx.clear();
   beamPosy.clear();
   beamPosz.clear();
@@ -121,6 +134,25 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
     vy.push_back(sps[i]->XYZ()[1]);
     vz.push_back(sps[i]->XYZ()[2]);
     vcharge.push_back(pcs[i]->charge());
+    vtrackid.push_back(-1);
+  }
+
+  art::Handle< std::vector<recob::Track> > trkHandle;
+  std::vector< art::Ptr<recob::Track> > trks;
+  if (evt.getByLabel(fTrackModuleLabel, trkHandle))
+    art::fill_ptr_vector(trks, trkHandle);
+
+  for (size_t i = 0; i<trks.size(); ++i){
+    auto & trk = trks[i];
+    for (size_t j = 0; j<trk->NPoints(); ++j){
+      if (trk->HasValidPoint(j)){
+        vx.push_back(trk->TrajectoryPoint(j).position.X());
+        vy.push_back(trk->TrajectoryPoint(j).position.Y());
+        vz.push_back(trk->TrajectoryPoint(j).position.Z());
+        vcharge.push_back(0);
+        vtrackid.push_back(trk->ID());
+      }
+    }
   }
 
   art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
@@ -156,6 +188,7 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("vy",&vy);
   fTree->Branch("vz",&vz);
   fTree->Branch("vcharge",&vcharge);
+  fTree->Branch("vtrackid",&vtrackid);
   fTree->Branch("beamPosx",&beamPosx);
   fTree->Branch("beamPosy",&beamPosy);
   fTree->Branch("beamPosz",&beamPosz);
