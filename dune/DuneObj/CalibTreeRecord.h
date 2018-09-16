@@ -119,6 +119,7 @@ namespace CalibTreeRecord {
       Double_t z_pos;
       Double_t t_pos;
       std::vector<ParticleRecord> particles;
+      std::string generator="";
 
   };
 
