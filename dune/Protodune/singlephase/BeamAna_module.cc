@@ -78,6 +78,8 @@ public:
   uint64_t GetRawDecoderInfo(art::Event &);
 
   void MakeTrack(size_t);
+  void MomentumSpec(size_t);
+  double MomentumCosTheta(double, double, double);
 //  void matchCurvedTriggers();
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
@@ -177,6 +179,18 @@ private:
   double fValidWindow;
   uint64_t fFixedTime;
   std::vector< uint64_t > fMultipleTimes;
+
+  std::string firstUpstreamName;
+  std::string secondUpstreamName;
+  std::string firstDownstreamName;
+  std::string secondDownstreamName;
+
+  std::string firstBPROF1;
+  std::string secondBPROF1;
+  std::string BPROF2;
+  std::string BPROF3;
+  double      fBeamBend;
+
   std::vector< std::string > fDevices;
   std::vector< std::pair<std::string, std::string> > fPairedDevices;
   std::vector< std::pair<std::string, std::string> > fPairedStraightDevices;
@@ -229,6 +243,9 @@ private:
   art::Handle< std::vector<raw::ctb::pdspctb> > CTBHandle;
 
   uint64_t validTimeStamp;
+
+  double L0, L1, L2, L3;
+  double magnetLen, magnetField;
 
 };
 
@@ -463,6 +480,7 @@ void proto::BeamAna::produce(art::Event & e)
 
       for(size_t iTrigger = 0; iTrigger < 10; ++iTrigger){
         MakeTrack(iTrigger);
+        MomentumSpec(iTrigger);
 
       }
 
@@ -592,13 +610,40 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::cout << "Getting General trigger info " << std::endl;
   std::vector<double> coarseGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
   std::vector<double> fracGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
+  std::vector<double> acqStampGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
   std::cout << "Size of coarse,frac: " << coarseGeneralTrigger.size() << " " << fracGeneralTrigger.size() << std::endl; 
 
+  std::cout <<"Size of acqStamp: " << acqStampGeneralTrigger.size() << std::endl;
+  
+  double low = acqStampGeneralTrigger[1];
+  uint32_t low32 = (uint32_t)low;
+  std::cout << low << " " << low32 << std::endl;
+  std::bitset<64> lowbits = low32;
+  std::cout << lowbits << std::endl;
+
+  double high = acqStampGeneralTrigger[0];
+  uint32_t high32 = (uint32_t)high;
+  std::cout << high << " " << high32 << std::endl;
+  std::bitset<64> highbits = high32;
+  std::cout << highbits << std::endl;
+
+  highbits = highbits << 32;
+  std::cout << highbits << std::endl;
+  std::bitset<64> joinedbits = highbits ^ lowbits;
+
+  std::cout << joinedbits.to_ullong() << std::endl;
+/*
   std::cout << "Getting XBTF702 info " << std::endl;
   std::vector<double> coarseXBTF022702 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/XBTF022702:coarse[]",fNRetries);
   std::vector<double> fracXBTF022702 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/XBTF022702:frac[]",fNRetries); 
   std::cout << "Size of coarse,frac: " << coarseXBTF022702.size() << " " << fracXBTF022702.size() << std::endl; 
- 
+ */
+
+/*  std::cout << "Getting S11 info " << std::endl;
+  std::vector<double> coarseS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]",fNRetries);
+  std::vector<double> fracS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:frac[]",fNRetries); 
+  std::cout << "Size of coarse,frac: " << coarseS11.size() << " " << fracS11.size() << std::endl; 
+*/
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
   std::vector<double> coarseTOF1A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);
   std::vector<double> fracTOF1A =   FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":frac[]",fNRetries);
@@ -661,9 +706,9 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF2BTree->Fill();
 
     std::cout << i << " "  << 8.*coarseTOF2B[i] + fracTOF2B[i]/512. << std::endl;
-    fXBTF022702Coarse = coarseXBTF022702[i];
-    fXBTF022702Frac =     fracXBTF022702[i];
-    unorderedXBTF022702Time.push_back(fXTOF2BCoarse*8. + fXTOF2BFrac/512.);
+//    fXBTF022702Coarse = coarseXBTF022702[i];
+//    fXBTF022702Frac =     fracXBTF022702[i];
+//    unorderedXBTF022702Time.push_back(fXTOF2BCoarse*8. + fXTOF2BFrac/512.);
     fXBTF022702Tree->Fill();
   }
 
@@ -1163,6 +1208,26 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fPairedDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedDevices");
   fPairedStraightDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedStraightDevices");   
 
+  //For Tracking/////
+  firstUpstreamName    = p.get< std::string >("FirstUpstream");
+  secondUpstreamName   = p.get< std::string >("SecondUpstream");
+  firstDownstreamName  = p.get< std::string >("FirstDownstream");
+  secondDownstreamName = p.get< std::string >("SecondDownstream");
+  ///////////////////
+
+  //For Momentum Spectrometry////
+  firstBPROF1  = p.get< std::string >("FirstBPROF1");
+  secondBPROF1 = p.get< std::string >("SecondBPROF1");
+  BPROF2       = p.get< std::string >("BPROF2");
+  BPROF3       = p.get< std::string >("BPROF3");
+  fBeamBend    = p.get< double >("BeamBend");
+  L1           = 2.004;//(m)
+  L2           = 1.718*cos(fBeamBend);//(m)
+  L3           = 2.728*cos(fBeamBend);//(m)
+  magnetLen    = 1.;//(m)
+  magnetField  = 1000.;//()
+  ///////////////////////////////
+
   std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
   fDeviceTypes  = std::map<std::string, std::string>(tempTypes.begin(), tempTypes.end() );
 
@@ -1270,11 +1335,11 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
   
   std::cout << "Making Track for time: " << beamevt->GetT0(theTrigger) << std::endl;
 
-  std::string firstUpstreamName    = fPairedStraightDevices[0].first;
+/*  std::string firstUpstreamName    = fPairedStraightDevices[0].first;
   std::string secondUpstreamName   = fPairedStraightDevices[0].second;
   std::string firstDownstreamName  = fPairedStraightDevices[1].first;
   std::string secondDownstreamName = fPairedStraightDevices[1].second;
-
+*/
 
   //Get the active fibers from the upstream tracking XBPF
   std::vector<short> firstUpstreamFibers  = beamevt->GetActiveFibers(firstUpstreamName, theTrigger);
@@ -1331,8 +1396,6 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
   std::vector< TVector3 > upstreamPositions;
   std::vector< TVector3 > downstreamPositions; 
   
-
-
   //Pair the upstream fibers together
   std::cout << "Upstream" << std::endl;
   for(size_t iF1 = 0; iF1 < firstUpstreamFibers.size(); ++iF1){
@@ -1457,6 +1520,146 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
     }
   }
 
+}
+
+void proto::BeamAna::MomentumSpec(size_t theTrigger){
+  
+  std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetT0(theTrigger) << std::endl;
+
+  //Get the active fibers from the upstream tracking XBPF
+  std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
+  std::string secondBPROF1Type   = fDeviceTypes[secondBPROF1]; 
+  std::vector<short> BPROF1Fibers;
+  if (firstBPROF1Type == "horiz" && secondBPROF1Type == "vert"){
+    BPROF1Fibers = beamevt->GetActiveFibers(firstBPROF1, theTrigger);
+    std::cout << firstBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(firstBPROF1,theTrigger) << std::endl;
+    for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
+      std::cout << BPROF1Fibers[i] << " ";
+    }
+    std::cout << std::endl;
+
+  }
+  else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
+    BPROF1Fibers = beamevt->GetActiveFibers(secondBPROF1, theTrigger);
+    std::cout << secondBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(secondBPROF1,theTrigger) << std::endl;
+    for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
+      std::cout << BPROF1Fibers[i] << " ";
+    }
+    std::cout << std::endl;
+  }
+  else{
+    std::cout << "Error: type is not correct" << std::endl;
+    return;
+  }
+
+
+  //////////////////////////////////////////////
+
+  if( (BPROF1Fibers.size() < 1) ){
+    std::cout << "Warning, at least one empty Beam Profiler. Not checking momentum" << std::endl;
+    return;
+  }
+  else if( (BPROF1Fibers.size() > 5) ){
+    std::cout << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not checking momentum" << std::endl;
+    return;
+  }
+
+  //We have the active Fibers, now go through them.
+  //Skip the second of any adjacents 
+  std::vector< short > strippedFibers; 
+  std::cout << "BPROF1" << std::endl;
+  for(size_t iF1 = 0; iF1 < BPROF1Fibers.size(); ++iF1){
+    
+    size_t Fiber = BPROF1Fibers[iF1];
+    strippedFibers.push_back(Fiber);
+
+    if (iF1 < BPROF1Fibers.size() - 1){
+      if (BPROF1Fibers[iF1] == (BPROF1Fibers[iF1 + 1] - 1)) ++iF1;
+    }
+  }
+  
+  double X1, X2, X3;
+//    double xPos = -1.*GetPosition(firstBPROF1, strippedFibers[iF]);
+//    X1 = xPos*cos(TMath::Pi() - fBeamBend/1000.);   
+
+/*  for(size_t iF = 0; iF < strippedFibers.size(); ++iF){   
+    //X-direction convention is reversed for the spectrometer   
+      X1 = -1.*GetPosition(firstBPROF1, strippedFibers[iF]);
+  }
+*/
+
+  //X-direction convention is reversed for the spectrometer   
+  X1 = -1.*GetPosition(BPROF2, strippedFibers[0])/1.E3;
+
+  //BPROF2////
+  //
+  std::vector<short>  BPROF2Fibers = beamevt->GetActiveFibers(BPROF2, theTrigger);
+  std::cout << BPROF2 << " has " << BPROF2Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(BPROF2,theTrigger) << std::endl;
+  for(size_t i = 0; i < BPROF2Fibers.size(); ++i){
+    std::cout << BPROF2Fibers[i] << " ";
+  }
+  std::cout << std::endl;
+
+  strippedFibers.clear(); 
+  std::cout << "BPROF2" << std::endl;
+  for(size_t iF1 = 0; iF1 < BPROF2Fibers.size(); ++iF1){
+    
+    size_t Fiber = BPROF2Fibers[iF1];
+    strippedFibers.push_back(Fiber);
+
+    if (iF1 < BPROF2Fibers.size() - 1){
+      if (BPROF2Fibers[iF1] == (BPROF2Fibers[iF1 + 1] - 1)) ++iF1;
+    }
+  }
+ 
+  X2 = -1.*GetPosition(BPROF2, strippedFibers[0])/1.E3; 
+  //X2 = X2*cos(TMath::Pi() - fBeamBend/1000.);
+  ////////////
+
+  //BPROF3////
+  //
+  std::vector<short>  BPROF3Fibers = beamevt->GetActiveFibers(BPROF3, theTrigger);
+  std::cout << BPROF3 << " has " << BPROF3Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(BPROF3,theTrigger) << std::endl;
+  for(size_t i = 0; i < BPROF3Fibers.size(); ++i){
+    std::cout << BPROF3Fibers[i] << " ";
+  }
+  std::cout << std::endl;
+
+  strippedFibers.clear(); 
+  std::cout << "BPROF3" << std::endl;
+  for(size_t iF1 = 0; iF1 < BPROF3Fibers.size(); ++iF1){
+    
+    size_t Fiber = BPROF3Fibers[iF1];
+    strippedFibers.push_back(Fiber);
+
+    if (iF1 < BPROF3Fibers.size() - 1){
+      if (BPROF3Fibers[iF1] == (BPROF3Fibers[iF1 + 1] - 1)) ++iF1;
+    }
+  }
+ 
+  X3 = -1.*GetPosition(BPROF3, strippedFibers[0])/1.E3; 
+  //X3 = X3*cos(TMath::Pi() - fBeamBend/1000.);
+  ////////////
+  
+  double cosTheta = MomentumCosTheta(X1,X2,X3);
+  std::cout << magnetLen*magnetField/(1.E9 * acos(cosTheta)) << std::endl; 
+}
+
+double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
+  double a = (X2*L3 - X3*L2) / (L3 - L2);
+
+  double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) - (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
+
+  double denomTerm1, denomTerm2, denom; 
+  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
+  denomTerm2 = sqrt( 
+               (L3 - L2)*(L3 - L2) 
+             + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
+                           - (X3 - X2)*cos(fBeamBend) ), 2 ) );
+  denom = denomTerm1*denomTerm2;                         
+  cosTheta = cosTheta / denom;
+
+  return cosTheta;
 }
 
 //Gets info from FBMs matching in time

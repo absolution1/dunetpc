@@ -39,6 +39,23 @@ proto_beamana:
   Devices:        ["XBPF022701","XBPF022702"]
 
 
+  #For tracking###################
+  FirstUpstream:    "XBPF022707"
+  SecondUpstream:   "XBPF022708"
+  FirstDownstream:  "XBPF022716"
+  SecondDownstream: "XBPF022717"
+  ################################
+
+  #For Momentum Spectrometry######
+  FirstBPROF1:  "XBPF022697"
+  SecondBPROF1: "XBPF022698"
+  BPROF2:       "XBPF022701"
+  BPROF3:       "XBPF022702"
+  #Nominal beam bend (mrad)
+  BeamBend:     120.3
+  ################################
+
+
   RotateMonitorXZ:   -10.3
   RotateMonitorYZ:    11.7
 
