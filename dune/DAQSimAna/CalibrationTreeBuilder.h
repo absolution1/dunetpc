@@ -50,9 +50,11 @@ namespace CalibrationTreeBuilder {
     Double_t eve_x ;
     Double_t eve_y ;
     Double_t eve_z ;
+    Double_t eve_t ;
     Double_t part_x ;
     Double_t part_y ;
     Double_t part_z ;
+    Double_t part_t ;
     Double_t hit_charge;
     Double_t hit_energy;
     Double_t hit_time ;

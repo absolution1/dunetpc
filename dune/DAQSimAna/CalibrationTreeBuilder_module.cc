@@ -39,8 +39,8 @@ namespace CalibrationTreeBuilder {
   void CalibrationTreeBuilder::beginJob(){
     private_CalibrationTree = private_service_tfs->make<TTree>("CalibrationRecordTree"," A TTree for storing hit and ophit values under their particles for each event in the simulation");
     private_FlatCalibrationTree = private_service_tfs->make<TTree>("FlatCalibrationRecordTree"," A TTree for storing hit and ophit values with their particles for each event in the simulation");
-    private_CalibrationRecord = private_CalibrationTree->Branch("event_records", &private_eventBuffer);
-    private_FlatCalibrationRecord = private_FlatCalibrationTree->Branch("flat_event_records", &fl, "eve_x/D:eve_y:eve_z:part_x:part_y:part_z:hit_charge:hit_energy:hit_time:hit_width:hit_split:ophit_pes:ophit_energy:ophit_time:ophit_width:ophit_split:hit_index/L:ophit_index:run/i:subrun:event_n:hit_wire:ophit_opchan:eve_index:part_index:eve_trackid/I:eve_pdgid:part_trackid:part_pdgid:part_iseve/O");
+    private_CalibrationRecord = private_CalibrationTree->Branch("event_records", &private_eventBuffer );
+    private_FlatCalibrationRecord = private_FlatCalibrationTree->Branch("flat_event_records", &fl, "eve_x/D:eve_y:eve_z:eve_t:part_x:part_y:part_z:part_t:hit_charge:hit_energy:hit_time:hit_width:hit_split:ophit_pes:ophit_energy:ophit_time:ophit_width:ophit_split:hit_index/L:ophit_index:run/i:subrun:event_n:hit_wire:ophit_opchan:eve_index:part_index:eve_trackid/I:eve_pdgid:part_trackid:part_pdgid:part_iseve/O");
   }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -242,6 +242,7 @@ namespace CalibrationTreeBuilder {
             fl.eve_x         = eve.x_pos;
             fl.eve_y         = eve.y_pos;
             fl.eve_z         = eve.z_pos;
+            fl.eve_t         = eve.t_pos;
             fl.eve_trackid   = eve.trackId;
             fl.eve_pdgid     = eve.pdgid;
             fl.eve_index     = eve_pos;
@@ -250,6 +251,7 @@ namespace CalibrationTreeBuilder {
               fl.part_x        = part.x_pos;
               fl.part_y        = part.y_pos;
               fl.part_z        = part.z_pos;
+              fl.part_t        = part.t_pos;
               fl.part_trackid  = part.trackId;
               fl.part_pdgid    = part.pdgid;
               fl.part_iseve    = part.isEve;
@@ -331,7 +333,6 @@ namespace CalibrationTreeBuilder {
 
 
     private_CalibrationTree->Fill();
-
 
 
 
@@ -443,6 +444,7 @@ namespace CalibrationTreeBuilder {
       tmpRec.x_pos   = part->Position(0).X();
       tmpRec.y_pos   = part->Position(0).Y();
       tmpRec.z_pos   = part->Position(0).Z();
+      tmpRec.t_pos   = part->Position(0).T();
       eve_marker.first->particles.push_back(tmpRec);
       if(part_ptr == (eve_marker.first->particles.end()-1) ){
         return std::make_pair(part_ptr, true); //If the vector hasn't been moved (can happen with expanding), just return what we have made).
@@ -464,6 +466,7 @@ namespace CalibrationTreeBuilder {
       tmpRec.x_pos   = eve->Position(0).X();
       tmpRec.y_pos   = eve->Position(0).Y();
       tmpRec.z_pos   = eve->Position(0).Z();
+      tmpRec.t_pos   = eve->Position(0).T();
       eves.push_back(tmpRec);
       if(eve_ptr == (eves.end()-1) ){
         return std::make_pair(eve_ptr, true);
