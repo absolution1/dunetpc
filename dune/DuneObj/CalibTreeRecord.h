@@ -9,8 +9,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 //includes
-#ifndef DUNE_DUNEOBJBASE_EVENTRECORD_H
-#define DUNE_DUNEOBJBASE_EVENTRECORD_H
+#ifndef DUNE_DUNEOBJ_CALIBTREERECORD_H
+#define DUNE_DUNEOBJ_CALIBTREERECORD_H
 #include <vector>
 #include <TObject.h>
 
