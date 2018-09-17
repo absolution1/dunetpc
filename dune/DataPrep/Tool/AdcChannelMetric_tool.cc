@@ -274,6 +274,16 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
       sum += dif*dif;
     }
     val = acd.raw.size() == 0 ? 0.0 : sqrt(sum/nsam);
+  } else if ( m_Metric == "rawTailFraction" ) {
+    Index ntail = 0;
+    double lim = 3.0*acd.pedestalRms;
+    double ped = acd.pedestal;
+    double nsam = acd.raw.size();
+    for ( AdcSignal sig : acd.raw ) {
+      double dif = double(sig) - ped;
+      if ( fabs(dif) > lim ) ++ntail;
+    }
+    val = acd.raw.size() == 0 ? 0.0 : double(ntail)/nsam;
   } else if ( acd.hasMetadata(m_Metric) ) {
     val = acd.metadata.find(m_Metric)->second;
   // Compound metric: met1+met2

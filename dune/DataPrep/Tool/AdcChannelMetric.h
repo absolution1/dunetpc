@@ -23,6 +23,7 @@
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
+//              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".

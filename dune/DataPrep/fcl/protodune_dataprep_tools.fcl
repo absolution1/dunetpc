@@ -357,6 +357,15 @@ tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC counts]"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# Pedestal tail fraction for each TPS channel.
+tools.pdtps_adcChannelPedestalRawTailPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalRawTailPlotter.Metric: rawTailFraction
+tools.pdtps_adcChannelPedestalRawTailPlotter.MetricMax: 0.5
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
+tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
 # Pedestal for each z-plane channel.
 tools.pdwz_adcChannelPedestalPlotter: @local::pdwz_template
 tools.pdwz_adcChannelPedestalPlotter.Metric: pedestal
