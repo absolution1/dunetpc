@@ -78,7 +78,7 @@ tools.adcPlotRawDist: {
 }
 
 # Fit ADC distribution to get pedestal.
-tools.adcPedestalFit: {
+tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   FitRmsMin:  1.0

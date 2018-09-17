@@ -4,7 +4,13 @@
 // April 2018
 //
 // Tool to evalute metrics for single ADC channel and make histograms
-// for multiple channels. Subclasses may be used to extend the list of
+// of metric vs. channel for ranges of channels.
+//
+// If plots are made, graphs are shown instead of histograms.
+// If a plot range is specified then values outside the range arae
+// shown at the nearest range limit.
+//
+// Subclasses may be used to extend the list of
 // metrics (names and algorithms).
 //
 // Configuration:
@@ -16,6 +22,7 @@
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
+//              rawRms - RMS of (ADC - pedestal)
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
