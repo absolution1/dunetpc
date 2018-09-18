@@ -2,6 +2,7 @@
 
 #include "AdcChannelPlotter.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
@@ -44,12 +45,17 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: No histogram types are specified." << endl;
     return;
   }
+  DuneToolManager* ptm = DuneToolManager::instance();
   if ( m_HistManager.size() ) {
-    DuneToolManager* ptm = DuneToolManager::instance();
     m_phm = ptm->getShared<HistogramManager>(m_HistManager);
     if ( m_phm == nullptr ) {
       cout << myname << "WARNING: Histoggram manager not found: " << m_HistManager << endl;
     }
+  }
+  string stringBuilder = "adcStringBuilder";
+  m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
+  if ( m_adcStringBuilder == nullptr ) {
+    cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
@@ -268,18 +274,13 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
 
 string AdcChannelPlotter::
 nameReplace(string name, const AdcChannelData& acd, string type) const {
+  const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   string nameout = name;
   StringManipulator sman(nameout);
-  if ( acd.run != AdcChannelData::badIndex ) sman.replace("%RUN%", acd.run);
-  else sman.replace("%RUN%", "RunNotFound");
-  if ( acd.subRun != AdcChannelData::badIndex ) sman.replace("%SUBRUN%", acd.subRun);
-  else sman.replace("%SUBRUN%", "SubRunNotFound");
-  if ( acd.event != AdcChannelData::badIndex ) sman.replace("%EVENT%", acd.event);
-  else sman.replace("%EVENT%", "EventNotFound");
-  if ( acd.channel != AdcChannelData::badChannel ) sman.replace("%CHAN%", acd.channel);
-  else sman.replace("%CHAN%", "ChannelNotFound");
   if ( type.size() ) sman.replace("%TYPE%", type);
-  return nameout;
+  if ( pnbl == nullptr ) return nameout;
+  DataMap dm;
+  return pnbl->build(acd, dm, nameout);
 }
 
 //**********************************************************************

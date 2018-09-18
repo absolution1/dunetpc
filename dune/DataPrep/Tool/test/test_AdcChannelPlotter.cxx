@@ -35,18 +35,17 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: AdcChannelPlotter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "    HistTypes: [\"raw\", \"rawdist\", \"prepared\"]" << endl;
-    fout << "    HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
-    fout << "    HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
-    fout << "    RootFileName: \"adcplot.root\"" << endl;
-    fout << "    PlotFileName: \"adcsigs.png\"" << endl;
-    fout << "    HistManager: \"\"" << endl;
-    fout << "    MaxSample: 80" << endl;
-    fout << "  }" << endl;
+    fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
+    fout << "tools.mytool: {" << endl;
+    fout << "  tool_type: AdcChannelPlotter" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  HistTypes: [\"raw\", \"rawdist\", \"prepared\"]" << endl;
+    fout << "  HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
+    fout << "  HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
+    fout << "  RootFileName: \"adcplot.root\"" << endl;
+    fout << "  PlotFileName: \"adcsigs.png\"" << endl;
+    fout << "  HistManager: \"\"" << endl;
+    fout << "  MaxSample: 80" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -59,7 +58,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;

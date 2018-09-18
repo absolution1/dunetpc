@@ -34,6 +34,7 @@
 #include <vector>
 
 class HistogramManager;
+class AdcChannelStringTool;
 
 class AdcChannelPlotter : AdcChannelTool {
 
@@ -63,6 +64,9 @@ private:
   // Derived/fixed data.
   Index m_plotSamMin = 0;      // Tick range to plot.
   Index m_plotSamMax = 1000;
+
+  // ADC string tool.
+  const AdcChannelStringTool* m_adcStringBuilder;
 
   // Histogram manager.
   HistogramManager* m_phm;
