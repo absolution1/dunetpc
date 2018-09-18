@@ -27,7 +27,7 @@ CRTSimValidation_standard:
 CRTOnlineMonitor_standard:
 {
   module_type: "CRTOnlineMonitor"
-  CRTLabel: "crt"
+  CRTLabel: "crtrawdecoder"
 }
 
 END_PROLOG
