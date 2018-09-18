@@ -14,7 +14,8 @@
 //   HistTitle: Title for the histogram.
 //   RootFileName: If non-blank, histograms are written to this file.
 //                 File is opened in UPDATE mode.
-//   HistManager: Name of the tool that manages the histograms.
+//   PlotFileName: Name of the file to which plots should be saved.
+//   HistManager: Name of the tool that manages the histograms. Obsolete.
 //                If blank, they are owned by the file or the current Root directory.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
@@ -41,12 +42,14 @@ public:
   AdcChannelPlotter(fhicl::ParameterSet const& ps);
 
   DataMap view(const AdcChannelData& acd) const override;
+  DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
 
 private:
 
   using Name = std::string;
   using NameVector = std::vector<Name>;
+  using Index = unsigned int;
 
   // Configuration data.
   int m_LogLevel;
@@ -54,7 +57,12 @@ private:
   Name m_HistName;
   Name m_HistTitle;
   Name m_RootFileName;
+  Name m_PlotFileName;
   Name m_HistManager;
+
+  // Derived/fixed data.
+  Index m_plotSamMin = 0;      // Tick range to plot.
+  Index m_plotSamMax = 1000;
 
   // Histogram manager.
   HistogramManager* m_phm;

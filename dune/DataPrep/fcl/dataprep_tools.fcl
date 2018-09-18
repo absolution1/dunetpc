@@ -52,6 +52,7 @@ tools.adcPlotRaw: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 
@@ -63,6 +64,7 @@ tools.adcPlotPrepared: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 
@@ -74,6 +76,7 @@ tools.adcPlotRawDist: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 

@@ -2,6 +2,7 @@
 
 #include "AdcChannelPlotter.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
@@ -35,6 +36,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_RootFileName(ps.get<string>("RootFileName")),
+  m_PlotFileName(ps.get<string>("PlotFileName")),
   m_HistManager(ps.get<string>("HistManager")),
   m_phm(nullptr) {
   const string myname = "AdcChannelPlotter::ctor: ";
@@ -62,6 +64,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "      HistName: " << m_HistName << endl;
     cout << myname << "     HistTitle: " << m_HistTitle << endl;
     cout << myname << "  RootFileName: " << m_RootFileName << endl;
+    cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "   HistManager: " << m_HistManager << endl;
   }
 }
@@ -99,9 +102,18 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       htitl += "; Tick; ADC count";
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
+      float sigMin = acd.raw[0];
+      float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
-        ph->SetBinContent(isam+1, acd.raw[isam]);
+        float sig = acd.raw[isam];
+        ph->SetBinContent(isam+1, sig);
+        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+          if ( sig < sigMin ) sigMin = sig;
+          if ( sig > sigMax ) sigMax = sig;
+        }
       }
+      res.setFloat("plotSigMin_" + type, sigMin);
+      res.setFloat("plotSigMax_" + type, sigMax);
     } else if ( type == "rawdist" ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
@@ -112,9 +124,18 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       unsigned int nadc = 4096;
       ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
       hists.push_back(ph);
+      float sigMin = acd.raw[0];
+      float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
-        ph->Fill(acd.raw[isam]);
+        float sig = acd.raw[isam];
+        ph->Fill(sig);
+        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+          if ( sig < sigMin ) sigMin = sig;
+          if ( sig > sigMax ) sigMax = sig;
+        }
       }
+      res.setFloat("plotSigMin_" + type, sigMin);
+      res.setFloat("plotSigMax_" + type, sigMax);
     } else if ( type == "prepared" ) {
       Index nsam = acd.samples.size();
       if ( nsam == 0 ) {
@@ -127,9 +148,18 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       }
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
+      float sigMin = acd.raw[0];
+      float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
-        ph->SetBinContent(isam+1, acd.samples[isam]);
+        float sig = acd.samples[isam];
+        ph->SetBinContent(isam+1, sig);
+        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+          if ( sig < sigMin ) sigMin = sig;
+          if ( sig > sigMax ) sigMax = sig;
+        }
       }
+      res.setFloat("plotSigMin_" + type, sigMin);
+      res.setFloat("plotSigMax_" + type, sigMax);
     } else {
       cout << myname << "WARNING: Unknown type: " << type << endl;
     }
@@ -159,6 +189,79 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     gDirectory = polddir;
   }
   return res;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
+  const string myname = "AdcChannelPlotter::view: ";
+  DataMap resall;
+  bool doPlots = m_PlotFileName.size();
+  Index nx = 1;
+  Index ny = 0;
+  Index iplt = 0;
+  using ManMap = std::map<string, TPadManipulator>;
+  using NameMap = std::map<string, string>;
+  ManMap mans;
+  if ( doPlots ) ny = 8;  // For now 8 histos/plot
+  Index nplt = nx*ny;
+  NameMap pfnames;
+  std::vector<TLatex*> labs;
+  for ( const AdcChannelDataMap::value_type& iacd : acds ) {
+    Index icha = iacd.first;
+    string schan = std::to_string(icha);
+    TLatex* ptxt = new TLatex(0.98, 0.14, schan.c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    ptxt->SetTextSize(0.16);
+    ptxt->SetTextAlign(31);
+    labs.push_back(ptxt);
+    const AdcChannelData& acd = iacd.second;
+    DataMap res = view(acd);
+    if ( doPlots ) {
+      if ( mans.size() == 0 ) {
+        for ( string type : m_HistTypes ) {
+          TPadManipulator& man = mans[type];
+          man.setCanvasSize(1400, 1000);
+          man.split(nx,ny);
+          for ( Index ipad=0; ipad<nplt; ++ipad ) {
+            man.man(ipad)->addHorizontalModLines(64);
+            man.man(ipad)->setRangeX(m_plotSamMin, m_plotSamMax);
+          }
+          pfnames[type] = nameReplace(m_PlotFileName, acd, type);
+        }
+      }
+      for ( string type : m_HistTypes ) {
+        TH1* ph = res.getHist(type);
+        TPadManipulator& man = *mans[type].man(iplt);
+        man.add(ph, "hist", false);
+        if ( type == "raw" ) {
+          Index dSigMin = 100;
+          Index gSigMin = res.getFloat("plotSigMin_" + type);
+          Index gSigMax = res.getFloat("plotSigMax_" + type) + 0.999;
+          if ( gSigMax - gSigMin < dSigMin ) {
+            while ( gSigMax - gSigMin < dSigMin ) {
+              if ( gSigMin > 0 ) --gSigMin;
+              if ( gSigMax - gSigMin < dSigMin ) ++gSigMax;
+            }
+            man.setRangeY(gSigMin, gSigMax);
+          }
+        }
+        man.add(ptxt);
+      }
+      if ( ++iplt >= nplt ) {
+        for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
+        mans.clear();
+        pfnames.clear();
+        iplt = 0;
+      }
+    }
+  }
+  if ( mans.size() ) {
+    for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
+  }
+  for ( TLatex* ptxt : labs ) delete ptxt;
+  return resall;
 }
 
 //**********************************************************************

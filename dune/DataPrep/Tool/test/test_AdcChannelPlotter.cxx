@@ -43,6 +43,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
     fout << "    HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
     fout << "    HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
     fout << "    RootFileName: \"adcplot.root\"" << endl;
+    fout << "    PlotFileName: \"adcsigs.png\"" << endl;
     fout << "    HistManager: \"\"" << endl;
     fout << "    MaxSample: 80" << endl;
     fout << "  }" << endl;
