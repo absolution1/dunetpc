@@ -1,5 +1,6 @@
 #include "services_dune.fcl"
 #include "BeamAna.fcl"
+#include "RawDecoding/RunRawDecoder.fcl"
 
 process_name: BeamAna
 
@@ -22,7 +23,7 @@ services:
   ChannelStatusService:         @local::dunefd_channel_status
 
   TFileService: { #closeFileFast: true
-                  fileName: "beamana_hist.root" 
+                  fileName: "beamana_hist.root" #can be overridden by '-T'
                 }
   IFBeam:            {}
 }
@@ -33,9 +34,7 @@ source:
 {
   module_type: RootInput
   maxEvents: -1
-#  fileNames: ["/pnfs/dune/tape_backed/dunepro/mcc10/mc/full-reconstructed/02/04/87/92/mcc10_protodune_beam_p7GeV_cosmics_3ms_15_20171229T015257_merged0.root"]
-  #fileNames: ["/pnfs/dune/tape_backed/dunepro/protodune/np04/beam/detector/None/raw/04/98/89/04/np04_raw_run004140_0004_dl1.root"]  
-  #fileNames: ["RawDecoding/RawDecoder.root"]
+  #fileNames: [""]
 }
 
 outputs:
@@ -44,7 +43,6 @@ outputs:
   {
     module_type: RootOutput
     fileName:    "beam_ana.root" #default file name, can override from command line with -o or --output
-#    outputCommands: []
     dataTier:   "reconstructed"
     
   }
@@ -54,23 +52,19 @@ physics:
 {
  producers:
  {
+  timingrawdecoder: @local::timing_raw_decoder
+  ctbrawdecoder:    @local::ctb_raw_decoder
   beamana:          @local::proto_beamana
  }
 
- produce:  [ beamana ]
+ produce:  [ timingrawdecoder, ctbrawdecoder, beamana ]
  stream1: [ out1 ]
 
  trigger_paths:     [ produce ]
  end_paths:         [ stream1 ]
 }
 
-#physics.producers.beamana.FixedTime:            1535414422    
-#physics.producers.beamana.FixedTime:             1535540435        
-#physics.producers.beamana.FixedTime:             1536253221
-#physics.producers.beamana.FixedTime:             1536229335
-#physics.producers.beamana.FixedTime:             1536598824
 physics.producers.beamana.ValidWindow:           100
-#physics.producers.beamana.DummyEventTime:        1.1682e+08
 physics.producers.beamana.Tolerance:           10000
 
 
@@ -118,9 +112,3 @@ physics.producers.beamana.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
 
-
-
-#physics.producers.beamana.MultipleTimes:            [1536253221
-#,1536253242
-#,1536253264
-#,1536253329]
