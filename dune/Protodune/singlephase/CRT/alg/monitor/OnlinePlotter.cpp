@@ -148,7 +148,6 @@ namespace CRT
         for(const auto& trigger: triggers)
         {
           const auto timestamp = trigger.Timestamp();
-          if(timestamp > 1e16)
           {
             //Update time bounds based on this timestamp
             if(timestamp < fRunStartTime) 
@@ -179,7 +178,7 @@ namespace CRT
             }
             fCurrentRunPlots->fMeanRatePerBoard->Fill(module);
             fWholeJobPlots.fMeanRatePerBoard->Fill(module);
-          } //If UNIX timestamp is not 0
+          } //TODO: Used to be if UNIX timestamp is > 0.  Now, I'm not sure that makes sense.
         }
       }
 

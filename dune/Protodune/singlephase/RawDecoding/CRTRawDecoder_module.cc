@@ -59,7 +59,22 @@ namespace CRT
       // Declare member data here.
       art::InputTag fFragLabel; //Label of the module that produced artdaq::Fragments 
                                 //from CRT data that I will turn into CRT::Triggers.
-    
+  
+      //TODO: Sync diagnostic plots
+      /*struct PerModule
+      {
+        PerModule(util::Directory parent, const size_t module): fModuleDir(parent.mkdir("Module"+std::to_string(module)))
+        {
+          fLowerTimeVersusTime = fModuleDir.makeAndRegister<TGraph>("LowerTimeVersusTime", "Raw 32 Bit Timestamp versus Elapsed Time in Seconds;"
+                                                                                           "Time [s];Raw Timestamp [ticks]");
+        }
+
+        util::Directory fModuleDir; //Directory for plots from this module
+        TGraph* fLowerTimeVersusTime; //Graph of lower 32 bits of raw timestamp versus processed timestamp in seconds.  
+      }; 
+
+      std::vector<PerModule> fSyncPlots; //Mapping from module number to sync diagnostic plots in a directory 
+      uint64_t fEarliestTime; //Earliest time in clock ticks*/
   };
   
   
@@ -113,8 +128,20 @@ namespace CRT
                                   << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
   
         triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); //TODO: Get AuxDet index from channel map
-  
-        //LOG_DEBUG("CRT Triggers") << triggers->back() << "\n";
+        
+        /* //TODO: Get raw lower timestamp for this plot
+        //Make diagnostic plots for sync pulses
+        const auto& plots = fSyncPlots[trigger.Channel()];
+        const double deltaT = (triggers.back().Timestamp() - fEarliestTime)*1.6e-8;
+        if(deltaT > 0 && deltaT < 1e6) //Ignore time differences less than 1s and greater than 1 day
+                                       //TODO: Understand why these cases come up
+        {
+          plots.fLowerTimeVersusTime->SetPoint(plots.fLowerTimeVersusTime->GetN(), deltaT, pair.second*16);
+        }
+        else
+        {
+          //TODO: Print something out here
+        }*/
       } 
     }
     catch(const cet::exception& exc) //If there are no artdaq::Fragments in this Event, just add an empty container of CRT::Triggers.
@@ -129,6 +156,8 @@ namespace CRT
   /*void CRT::CRTRawDecoder::beginJob()
   {
     // Implementation of optional member function here.
+    art::ServiceHandle<art::TFileService> tfs;
+    for(size_t module = 0; module < 32; ++module) fSyncPlots.emplace_back(tfs, module); //32 modules in the ProtoDUNE-SP CRT
   }
   
   void CRT::CRTRawDecoder::beginRun(art::Run & r)
