@@ -65,6 +65,13 @@ tools.pd_evtview: {
   EventGraphs: ["event:0:0:nfemb:0:125"]
 }
 
+tools.pd_evtpedpwr: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["rmPedPower:50:0:25"]
+  EventGraphs: ["event:0:0:rmPedPower:0:14"]
+}
+
 ################################################################################
 # Detector event display.
 ################################################################################

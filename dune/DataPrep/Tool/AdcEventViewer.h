@@ -10,6 +10,7 @@
 //   EventHists - Array of string histogram specifiers with format "name:nbin:xmin:xmax"
 //                The field name must contain the histogramed variable. Allowed values:
 //                  nfemb - # FEMBs with data 
+//                  rmPedPowern - sqrt(<(ped noise)^2>)
 //  EventGraphs - Array of graph specifiers with format xname:xmin:xmax:yname:ymin:ymax
 //                The name fields may contain any of the above plus
 //                  event - Event number
@@ -53,23 +54,32 @@ public:
   struct GraphInfo {
     Name varx;
     Name xlab;
+    Name xunit;
     FloatVector xvals;
     float xmin;
     float xmax;
     Name vary;
     FloatVector yvals;
     Name ylab;
+    Name yunit;
     float ymin;
     float ymax;
     GraphInfo() { };
-    GraphInfo(Name avarx, Name axlab, float axmin, float axmax,
-              Name avary, Name aylab, float aymin, float aymax)
-    : varx(avarx), xlab(axlab), xmin(axmin), xmax(axmax),
-      vary(avary), ylab(aylab), ymin(aymin), ymax(aymax) { }
+    GraphInfo(Name avarx, Name axlab, Name axunit, float axmin, float axmax,
+              Name avary, Name aylab, Name ayunit, float aymin, float aymax)
+    : varx(avarx), xlab(axlab), xunit(axunit), xmin(axmin), xmax(axmax),
+      vary(avary), ylab(aylab), yunit(ayunit), ymin(aymin), ymax(aymax) { }
     // Add value to vector if name matches.
     void add(Name var, float val) {
       if ( var == varx ) xvals.push_back(val);
       if ( var == vary ) yvals.push_back(val);
+    }
+    // Return axis labels.
+    Name xAxisLabel() const {
+      return xlab + (xunit.size() ? " [" + xunit + "]" : "");
+    }
+    Name yAxisLabel() const {
+      return ylab + (yunit.size() ? " [" + yunit + "]" : "");
     }
   };
   using GraphInfoVector = std::vector<GraphInfo>;
@@ -85,6 +95,7 @@ public:
     Index ngroup;            // # groups processed for this event
     IndexSet fembIDSet;      // FEMBs for ths event.
     Index nchan;             // # channels processed for this event
+    float pedPower;          // Sum over (pedestal noise)^2
     HistVector hists;        // Monitoring histograms.
     GraphInfoVector graphs;  // Monitoring graphs.
   };

@@ -33,6 +33,7 @@ struct VarInfo {
   string name;
   string vname;
   string label;
+  string unit;
   VarInfo(string aname);
   bool isValid() const { return vname.size(); }
 };
@@ -45,6 +46,10 @@ VarInfo::VarInfo(string aname) : name(aname) {
   } else if ( name.find("event") != string::npos ) {
     vname = "event";
     label = "Event";
+  } else if ( name.find("rmPedPower") != string::npos ) {
+    vname = "rmPedPower";
+    label = "Pedestal noise RMS";
+    unit = "ADC counts";
   }
 }
 
@@ -111,13 +116,19 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       cout << "WARNING: Invalid histogram configuration string: " << hspec << endl;
       continue;
     }
-    string sttl;
+    string vname;
     if ( name.find("nfemb") != string::npos ) {
-      sttl = "FEMB counts;# FEMB;# event";
+      vname = "nfemb";
+    } else if ( name.find("rmPedPower") != string::npos ) {
+      vname = "rmPedPower";
     } else {
       cout << myname << "ERROR: No variable for histogram name " << name << endl;
       continue;
     }
+    VarInfo vinfo(vname);
+    string sttl = vinfo.label + ";" + vinfo.label;
+    if ( vinfo.unit.size() ) sttl += " [" + vinfo.unit + "]";
+    sttl += ";# event";
     if ( m_LogLevel >= 2 ) {
       cout << myname << "Creating in histogram " << name << ", nbin=" << nbin
            << ", range=(" << xmin << ", " << xmax << ")" << endl;
@@ -188,7 +199,8 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       if ( xmax > xmin ) cout << " range=(" << xmin << ", " << xmax << ")";
       cout << endl;
     } 
-    state().graphs.emplace_back(xname, xvin.label, xmin, xmax, yname, yvin.label, ymin, ymax);
+    state().graphs.emplace_back(xname, xvin.label, xvin.unit, xmin, xmax,
+                                yname, yvin.label, yvin.unit, ymin, ymax);
     if ( m_LogLevel>= 1 ) cout << myname << "Created graph of " << yname << " vs. " << xname << endl;
   }
 }
@@ -214,6 +226,8 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   }
   state().fembIDSet.insert(acd.fembID);
   ++state().nchan;
+  float pedNoise = acd.pedestalRms;
+  state().pedPower += pedNoise*pedNoise;
   return res;
 }
 
@@ -257,6 +271,7 @@ void AdcEventViewer::startEvent(const AdcChannelData& acd) const {
   state().ngroup = 0;
   state().fembIDSet.clear();
   state().nchan = 0;
+  state().pedPower = 0.0;
 }
 
 //**********************************************************************
@@ -275,6 +290,8 @@ void AdcEventViewer::printReport() const {
   Index ndup = nevt - state().eventSet.size();
   Index nfmb = state().fembIDSet.size();
   Index nchn = state().nchan;
+  float meanPedPower = nchn > 0 ? state().pedPower/nchn : 0.0;
+  float rmPedPower = sqrt(meanPedPower);
   double chanPerFemb = nfmb > 0 ? double(nchn)/nfmb : 0.0;
   if ( m_LogLevel >= 1 ) {
     const int w = 5;
@@ -289,6 +306,7 @@ void AdcEventViewer::printReport() const {
   for ( TH1* ph : state().hists ) {
     string name = ph->GetName();
     if ( name.find("nfemb") != string::npos ) ph->Fill(nfmb);
+    else if ( name.find("rmPedPower") != string::npos ) ph->Fill(rmPedPower);
     else {
       cout << myname << "ERROR: No variable for histogram name " << name << endl;
     }
@@ -296,6 +314,7 @@ void AdcEventViewer::printReport() const {
   for ( GraphInfo& gin : state().graphs ) {
     gin.add("nfemb", nfmb);
     gin.add("event", state().event);
+    gin.add("rmPedPower", rmPedPower);
   }
 }
 
@@ -351,8 +370,8 @@ void AdcEventViewer::displayGraphs() const {
       continue;
     }
     TGraph* pg = new TGraph(npt, &gin.xvals[0], &gin.yvals[0]);
-    pg->GetXaxis()->SetTitle(gin.xlab.c_str());
-    pg->GetYaxis()->SetTitle(gin.ylab.c_str());
+    pg->GetXaxis()->SetTitle(gin.xAxisLabel().c_str());
+    pg->GetYaxis()->SetTitle(gin.yAxisLabel().c_str());
     pg->SetMarkerStyle(2);
     if ( gin.xmax > gin.xmin ) pg->GetXaxis()->SetRangeUser(gin.xmin, gin.xmax);
     if ( gin.ymax > gin.ymin ) pg->GetYaxis()->SetRangeUser(gin.ymin, gin.ymax);
