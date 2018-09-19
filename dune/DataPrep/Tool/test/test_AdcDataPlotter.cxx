@@ -42,7 +42,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     ofstream fout(fclfile.c_str());
     fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
     fout << "#include \"dunecommon_tools.fcl\"" << endl;  // Need tickRanges
-    fout << "tools.tickRanges.myTicks: { begin:10 end:90 label:\"My ticks\" }" << endl;
+    fout << "tools.tickRanges.myTicks: { begin:10 end:90 labels:[\"My ticks\"] }" << endl;
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcDataPlotter" << endl;
     fout << "            DataType: 0" << endl;

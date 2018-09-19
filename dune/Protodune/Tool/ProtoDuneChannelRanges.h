@@ -58,7 +58,7 @@ private:
   const IndexRangeTool* m_pExtraRanges =nullptr;
 
   // Add an entry to the range map.
-  void insertLen(Name nam, Index begin, Index len, Name lab);
+  void insertLen(Name nam, Index begin, Index len, Name lab, Name lab1 ="", Name lab2 ="");
 
 };
 

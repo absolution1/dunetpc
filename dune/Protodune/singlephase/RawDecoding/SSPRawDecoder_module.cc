@@ -127,7 +127,6 @@ private:
   std::map<size_t,TH1D*> trigger_type_; // internal vs. external  (16 internal, 48 external)
 
   // more parameters from the FCL file
-  int fragment;
 
   std::vector<raw::OpDetWaveform> waveforms;
   std::vector<recob::OpHit> hits;
@@ -171,7 +170,6 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   std::cout << "m1: " << m1 << std::endl;
   std::cout << "i1: " << i1 << std::endl;
   std::cout << "i2: " << i2 << std::endl;
-  std::cout << "Fragment: " << fragment << std::endl;
   std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
   std::cout << "SPESize: " << SPESize << std::endl;
   std::cout << std::endl;

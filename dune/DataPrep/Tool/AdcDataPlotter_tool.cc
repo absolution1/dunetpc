@@ -355,7 +355,9 @@ string AdcDataPlotter::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
   StringManipulator sman(name);
   sman.replace("%CRNAME%", ran.name);
-  sman.replace("%CRLABEL%", ran.label);
+  sman.replace("%CRLABEL%", ran.label(0));
+  sman.replace("%CRLABEL1%", ran.label(1));
+  sman.replace("%CRLABEL2%", ran.label(2));
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;

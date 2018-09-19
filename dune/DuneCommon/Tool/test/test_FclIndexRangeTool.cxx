@@ -44,8 +44,8 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
       fout << "  mytool: {" << endl;
       fout << "    tool_type: FclIndexRangeTool" << endl;
       fout << "    LogLevel: 2" << endl;
-      fout << "    range1: { label:\"Range 1\" begin:10 end:20}" << endl;
-      fout << "    range2: { label:\"Range 2\" begin:20 end:30}" << endl;
+      fout << "    range1: { labels:[\"Range 1\"] begin:10 end:20}" << endl;
+      fout << "    range2: { labels:[\"Range 2\"] begin:20 end:30}" << endl;
       fout << "  }" << endl;
       fout << "}" << endl;
     } else {
@@ -76,7 +76,7 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
   cout << ir1.rangeString() << endl;
   assert( ir1.isValid() );
   assert( ir1.name == "range1" );
-  assert( ir1.label == "Range 1" );
+  assert( ir1.label() == "Range 1" );
   assert( ir1.begin == 10 );
   assert( ir1.end == 20 );
 
@@ -86,7 +86,7 @@ int test_FclIndexRangeTool(bool useExistingFcl =false, Index runin =0) {
   cout << ir2.rangeString() << endl;
   assert( ir2.isValid() );
   assert( ir2.name == "range2" );
-  assert( ir2.label == "Range 2" );
+  assert( ir2.label() == "Range 2" );
   assert( ir2.begin == 20 );
   assert( ir2.end == 30 );
 

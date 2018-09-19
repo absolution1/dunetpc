@@ -28,6 +28,7 @@
 // ROOT includes
 #include "TH1.h"
 #include "TStyle.h"
+#include "TMath.h"
 
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/RceFragment.hh"
@@ -146,6 +147,8 @@ private:
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+
+  void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
 
   std::vector<int16_t> _buffer;
 };
@@ -349,6 +352,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     
       for (auto const& cont : *cont_frags)
 	{
+	  //std::cout << "RCE container fragment size bytes: " << cont.sizeBytes() << std::endl; 
 	  if (cont.sizeBytes() < _rce_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_rce_frags )
@@ -668,7 +672,11 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		}
 	      _duplicate_channel_checklist[offlineChannel] = true;
 	    }
-	    
+	  
+	  float median=0;
+	  float sigma=0;
+	  computeMedianSigma(v_adc,median,sigma);
+
 	  raw::Compress_t cflag=raw::kNone;
 	  if (_compress_Huffman)
 	    {
@@ -677,6 +685,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	    }
 	  // here n_ticks is the uncompressed size as required by the constructor
 	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
+	  raw_digit.SetPedestal(median,sigma);
 	  raw_digits.push_back(raw_digit);  
 
 	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp());
@@ -691,6 +700,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 
   return true;
 }
+
 
 bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
@@ -1043,8 +1053,11 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	_duplicate_channel_checklist[offlineChannel] = true;
       }
 
-    auto n_ticks = v_adc.size();
+    float median=0;
+    float sigma=0;
+    computeMedianSigma(v_adc,median,sigma);
 
+    auto n_ticks = v_adc.size();
     raw::Compress_t cflag=raw::kNone;
     if (_compress_Huffman)
       {
@@ -1053,6 +1066,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       }
     // here n_ticks is the uncompressed size as required by the constructor
     raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
+    raw_digit.SetPedestal(median,sigma);
     raw_digits.push_back(raw_digit);
 
     raw::RDTimeStamp rdtimestamp(felix.timestamp());
@@ -1064,6 +1078,76 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     tsassocs.addSingle(rawdigitptr,rdtimestampptr);
   }
   return true;
+}
+
+
+// compute median and sigma.  Sigma is half the distance between the upper and lower bounds of the
+// 68% region where 34% is above the median and 34% is below ("centered" on the median).
+
+void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
+{
+  size_t asiz = v_adc.size();
+  if (asiz == 0)
+    {
+      median = 0;
+      sigma = 0;
+    }
+  else
+    {
+      // this is actually faster than the code below by about one second per event.
+      // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
+
+      median = TMath::Median(asiz,v_adc.data());
+      sigma = TMath::RMS(asiz,v_adc.data());
+    }
+
+  // never do this, but keep the code around in case we want it later
+
+  // if (asiz > 100000000)
+  //   {
+  //     size_t mednum = asiz/2;
+  //     size_t m1snum = mednum - ( (float) asiz )*0.34;
+  //     size_t p1snum = mednum + ( (float) asiz )*0.34;
+
+  //     std::map<size_t,size_t> adcmap;
+  //     for (auto const adc : v_adc)
+  // 	{
+  // 	  auto mapiter = adcmap.find(adc);
+  // 	  if (mapiter != adcmap.end())
+  // 	    {
+  // 	      mapiter->second ++;
+  // 	    }
+  // 	  else
+  // 	    {
+  // 	      adcmap[adc] = 1;
+  // 	    }
+  // 	}
+
+  //     // find quantiles, -1 sigma, median, plus 1 sigma
+  //     size_t sum = 0;
+  //     size_t m1s = 0;
+  //     size_t p1s = 0;
+  //     size_t m = 0;
+  //     for (auto const &mv : adcmap)
+  // 	{
+  // 	  sum += mv.second;
+  // 	  if (m1s == 0 && sum >= m1snum) 
+  // 	    {
+  // 	      m1s = mv.first;
+  // 	    }
+  // 	  if (m == 0 && sum >= mednum)
+  // 	    {
+  // 	      m = mv.first;
+  // 	    }
+  // 	  if (p1s == 0 && sum >= p1snum)
+  // 	    {
+  // 	      p1s = mv.first;
+  // 	      break;
+  // 	    }
+  // 	}
+  //     median = (float) m;
+  //     sigma = ((float) (p1s - m1s))/2.0;
+  //   }
 }
 
 DEFINE_ART_MODULE(PDSPTPCRawDecoder)
