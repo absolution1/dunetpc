@@ -288,6 +288,14 @@ tools.adcVintageDeconvoluter: {
   LogLevel: 1
 }
 
+# Subtract baseline after deconvolution
+tools.adcSubtractBaseline: {
+  tool_type: SubtractBaseline
+  LogLevel: 1
+  BaseSampleBins: 32
+  BaseVarCut: 5.
+}
+
 # Find one ADC signals that includes all samples.
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
