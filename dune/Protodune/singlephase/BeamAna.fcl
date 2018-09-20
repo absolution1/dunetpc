@@ -52,7 +52,7 @@ proto_beamana:
   BPROF2:       "XBPF022701"
   BPROF3:       "XBPF022702"
   #Nominal beam bend (mrad)
-  BeamBend:     120.3
+  BeamBend:     .12003
   ################################
 
 

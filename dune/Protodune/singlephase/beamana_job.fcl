@@ -65,7 +65,7 @@ physics:
 }
 
 physics.producers.beamana.ValidWindow:           100
-physics.producers.beamana.Tolerance:           10000
+physics.producers.beamana.Tolerance:           1000000
 
 
 physics.producers.beamana.Coordinates:         [["XBPF022697",[0,0,0]],

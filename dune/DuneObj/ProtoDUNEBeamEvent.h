@@ -45,9 +45,10 @@ namespace beam
       ~ProtoDUNEBeamEvent();
 
       void              InitFBMs(std::vector<std::string>);
-      double            GetT0(size_t);
+      std::pair< double, double >  GetT0(size_t);
+      double            GetFullT0(size_t);
       size_t            GetNT0(){return t0.size();};
-      void              AddT0(double);
+      void              AddT0(std::pair< double, double >);
      
       FBM               GetFBM(std::string name, size_t theTrigger);
       void              AddFBMTrigger(std::string, FBM); 
@@ -70,10 +71,10 @@ namespace beam
       long long         GetCKov0Time(size_t);
       long long         GetCKov1Time(size_t);
 
-      void              AddTOF0Trigger(double theT){ TOF0.push_back(theT); };
-      void              AddTOF1Trigger(double theT){ TOF1.push_back(theT); }; 
-      double            GetTOF0(size_t);
-      double            GetTOF1(size_t);
+      void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };
+      void              AddTOF1Trigger( std::pair<double,double> theT){ TOF1.push_back(theT); }; 
+      std::pair< double, double > GetTOF0(size_t);
+      std::pair< double, double > GetTOF1(size_t);
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
@@ -86,7 +87,7 @@ namespace beam
       //Time of a coincidence between 2 TOFs
       //Signalling a good particle
       //
-      std::vector<double> t0;
+      std::vector<std::pair<double,double>> t0;
 
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
@@ -96,8 +97,8 @@ namespace beam
 
       //Set of TOF detectors
       //
-      std::vector< double > TOF0;
-      std::vector< double > TOF1;
+      std::vector< std::pair< double, double > > TOF0;
+      std::vector< std::pair< double, double > > TOF1;
 
       //Set of Cerenkov detectors
       //
@@ -110,15 +111,25 @@ namespace beam
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
   
-  inline double ProtoDUNEBeamEvent::GetT0(size_t trigger){
+  inline std::pair< double, double > ProtoDUNEBeamEvent::GetT0(size_t trigger){
     if( trigger > t0.size() - 1 ){
       std::cout << "Error. Trigger out of bunds" << std::endl;
-      return -1;
+      return std::make_pair(-1.,-1.);
     }
 
     return t0[trigger];
   }
-  inline void ProtoDUNEBeamEvent::AddT0(double theT0){
+
+  inline double ProtoDUNEBeamEvent::GetFullT0(size_t trigger){
+    if( trigger > t0.size() - 1 ){
+      std::cout << "Error. Trigger out of bunds" << std::endl;
+      return -1.;
+    }
+
+    return t0[trigger].first + 1.e-9*t0[trigger].second;
+  }
+
+  inline void ProtoDUNEBeamEvent::AddT0(std::pair< double, double > theT0){
     t0.push_back(theT0);
   }
 
@@ -350,19 +361,19 @@ namespace beam
 
 
   ////////////TOF Access
-  inline double ProtoDUNEBeamEvent::GetTOF0(size_t nTrigger){
+  inline std::pair< double, double > ProtoDUNEBeamEvent::GetTOF0(size_t nTrigger){
     if( (nTrigger >= TOF0.size()) ){
       std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
-      return -1;
+      return std::make_pair(-1.,-1.);
     }
 
     return TOF0[nTrigger];
   }
 
-  inline double ProtoDUNEBeamEvent::GetTOF1(size_t nTrigger){
+  inline std::pair< double, double > ProtoDUNEBeamEvent::GetTOF1(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
-      return -1;
+      return std::make_pair(-1.,-1.);
     }
 
     return TOF1[nTrigger];

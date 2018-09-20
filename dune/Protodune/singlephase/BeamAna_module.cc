@@ -123,6 +123,7 @@ private:
   std::map<std::string, double> fProfTime1;
   std::map<std::string, double> fProfTime2;
   std::map<std::string, TTree*> fProfTree;
+  TH1F  * fMomentumHist;
   TTree * fGenTrigTree;
   TTree * fXTOF1ATree;
   TTree * fXTOF1BTree;
@@ -133,6 +134,7 @@ private:
   double matchedGen;
   double matchedTOF1;
   double matchedTOF2;
+  int    matchedNom;
   std::map<std::string, double> matchedXBPF;
   
 
@@ -258,8 +260,14 @@ private:
 
   uint64_t validTimeStamp;
 
-  double L0, L1, L2, L3;
+  double L1=1.961, L2=1.71358, L3=2.17325;
   double magnetLen, magnetField;
+
+  //Hardware Parameters for magnetic field stuff
+  double mag_P1 = 5.82044830e-3;
+  double mag_P2 = 0.;
+  double mag_P3 = -4.68880000e-6;
+  double mag_P4 = 324.573967;
 
 };
 
@@ -505,29 +513,31 @@ void proto::BeamAna::produce(art::Event & e)
 
       // Loop over the number of TOF counter readouts (i.e. GetNT0())
       for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
-        std::cout << beamevt->GetT0(ip)   << " "
-          	<< beamevt->GetTOF0(ip) << " "
-          	<< beamevt->GetTOF1(ip) << " "
-          	<< beamevt->GetFiberTime(fDevices[0],ip) << std::endl;
+        std::cout <<   beamevt->GetT0(ip).first << " " <<   beamevt->GetT0(ip).second << " "  
+          	  << beamevt->GetTOF0(ip).first << " " << beamevt->GetTOF0(ip).second << " " 
+          	  << beamevt->GetTOF1(ip).first << " " << beamevt->GetTOF1(ip).second << " " 
+          	  << beamevt->GetFiberTime(fDevices[0],ip) << std::endl;
 
         // Associate the times from TOF-0 and TOF-1 with the master time T0
-        matchedGen  = beamevt->GetT0(ip);
-        matchedTOF1 = beamevt->GetTOF0(ip);
-        matchedTOF2 = beamevt->GetTOF1(ip);
+        matchedGen  =   beamevt->GetT0(ip).second;
+        matchedTOF1 = beamevt->GetTOF0(ip).second;
+        matchedTOF2 = beamevt->GetTOF1(ip).second;
 
         for(std::map<std::string,double>::iterator itMap = matchedXBPF.begin(); itMap != matchedXBPF.end(); ++itMap){
           itMap->second = beamevt->GetFiberTime(itMap->first, ip);
         }
         
         fMatchedTriggers->Fill();
+        //Reset
+        matchedNom = 0;
+
+        MakeTrack(ip);
+        MomentumSpec(ip);            
+
+        fTOFHist->Fill( matchedTOF2 - matchedTOF1  );
 
       }
 
-      for(size_t iTrigger = 0; iTrigger < 10; ++iTrigger){
-        MakeTrack(iTrigger);
-        MomentumSpec(iTrigger);
-            
-      }
        
       for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
         beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
@@ -556,10 +566,11 @@ void proto::BeamAna::produce(art::Event & e)
   
 
 
-/* 
+ 
  std::cout << "Pairing" << std::endl;
  //GetPairedFBMInfo(*beamevt,1.50000e+08);
  GetPairedFBMInfo(*beamevt,fDummyEventTime);
+ GetPairedStraightFBMInfo(*beamevt,fDummyEventTime);
  std::cout << "Paired" << std::endl;
 
  std::cout << "Unpaired" << std::endl;
@@ -567,7 +578,7 @@ void proto::BeamAna::produce(art::Event & e)
  std::cout << "Unpaired" << std::endl;
 
  std::cout << "Event stuff" << std::endl;
-*/
+
 
  std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
  beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
@@ -665,6 +676,7 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::cout <<"Size of seconds: " << secondsGeneralTrigger.size() << std::endl;
   std::cout << "Size of counts: " << timestampCountGeneralTrigger.size() << std::endl;
   std::cout << "timestampCounts: " << timestampCountGeneralTrigger[0] << std::endl;
+  matchedNom = int(timestampCountGeneralTrigger[0]);
   
   double low = acqStampGeneralTrigger[1];
   uint32_t low32 = (uint32_t)low;
@@ -720,24 +732,54 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::vector<double> secondsTOF2B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2B + ":seconds[]",fNRetries);
   std::cout << "Size of coarse,frac: " << coarseTOF2B.size() << " " << fracTOF2B.size() << std::endl; 
 
-  std::vector<double> unorderedGenTrigTime;
-  std::vector<double> unorderedXBTF022702Time;
-  std::vector<double> unorderedTOF1ATime;
-  std::vector<double> unorderedTOF1BTime;
-  std::vector<double> unorderedTOF2ATime;
-  std::vector<double> unorderedTOF2BTime;
+  std::vector<std::pair<double,double>> unorderedGenTrigTime;
+  std::vector<std::pair<double,double>> unorderedXBTF022702Time;
+  std::vector<std::pair<double,double>> unorderedTOF1ATime;
+  std::vector<std::pair<double,double>> unorderedTOF1BTime;
+  std::vector<std::pair<double,double>> unorderedTOF2ATime;
+  std::vector<std::pair<double,double>> unorderedTOF2BTime;
     
+  std::vector<double> tempTime;
+
+  std::map< double, std::vector<double> > new_unorderedGenTrigTime;
+  std::map< double, std::vector<double> > new_unorderedTOF1ATime;
+  std::map< double, std::vector<double> > new_unorderedTOF1BTime;
+  std::map< double, std::vector<double> > new_unorderedTOF2ATime;
+  std::map< double, std::vector<double> > new_unorderedTOF2BTime;
+  
+  double prev_time = secondsGeneralTrigger[1];
+
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " " << secondsGeneralTrigger[i] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
     fGenTrigCoarse = coarseGeneralTrigger[i];
     fGenTrigFrac = fracGeneralTrigger[i];
     //2*i + 1 because the format is weird
     fGenTrigSec = secondsGeneralTrigger[2*i + 1];
-    unorderedGenTrigTime.push_back(fGenTrigSec + 1.e-9*(fGenTrigCoarse*8. + fGenTrigFrac/512.) );
+    unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
+
+    
+    if(prev_time != fGenTrigSec){
+      new_unorderedGenTrigTime[prev_time] = tempTime;
+      new_unorderedTOF1ATime[prev_time] = std::vector<double>();
+      new_unorderedTOF1BTime[prev_time] = std::vector<double>();
+      new_unorderedTOF2ATime[prev_time] = std::vector<double>();
+      new_unorderedTOF2BTime[prev_time] = std::vector<double>();
+      tempTime.clear();
+    }
+    
 
     if (fGenTrigFrac == 0.0) break;
+    tempTime.push_back((fGenTrigCoarse*8. + fGenTrigFrac/512.));
     fGenTrigTree->Fill();
+    prev_time = fGenTrigSec;
   }
+  //add the last one
+  new_unorderedGenTrigTime[prev_time] = tempTime;
+  new_unorderedTOF1ATime[prev_time] = std::vector<double>();
+  new_unorderedTOF1BTime[prev_time] = std::vector<double>();
+  new_unorderedTOF2ATime[prev_time] = std::vector<double>();
+  new_unorderedTOF2BTime[prev_time] = std::vector<double>();
+
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
     std::cout << i << " "  << 8.*coarseTOF1A[i] + fracTOF1A[i]/512. << std::endl;
@@ -745,7 +787,12 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF1AFrac = fracTOF1A[i];
     fXTOF1ASec = secondsTOF1A[2*i + 1];
     if(fXTOF1ASec < eventTime) break; 
-    unorderedTOF1ATime.push_back(fXTOF1ASec + 1.e-9*(fXTOF1ACoarse*8. + fXTOF1AFrac/512.) );
+
+    if( new_unorderedTOF1ATime.find(fXTOF1ASec) != new_unorderedTOF1ATime.end() ){
+      new_unorderedTOF1ATime[fXTOF1ASec].push_back(8.*fXTOF1ACoarse + fXTOF1AFrac/512.);
+    }
+
+    unorderedTOF1ATime.push_back(std::make_pair(fXTOF1ASec, (fXTOF1ACoarse*8. + fXTOF1AFrac/512.)) );
     fXTOF1ATree->Fill();
   }
     
@@ -755,7 +802,13 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF1BFrac = fracTOF1B[i];
     fXTOF1BSec = secondsTOF1B[2*i + 1];
     if(fXTOF1BSec < eventTime) break;
-    unorderedTOF1BTime.push_back(fXTOF1BSec + 1.e-9*(fXTOF1BCoarse*8. + fXTOF1BFrac/512.) );
+
+    if( new_unorderedTOF1BTime.find(fXTOF1BSec) != new_unorderedTOF1BTime.end() ){
+      new_unorderedTOF1BTime[fXTOF1BSec].push_back(8.*fXTOF1BCoarse + fXTOF1BFrac/512.);
+    }
+
+
+    unorderedTOF1BTime.push_back(std::make_pair(fXTOF1BSec, (fXTOF1BCoarse*8. + fXTOF1BFrac/512.)) );
     fXTOF1BTree->Fill();
   }
 
@@ -765,7 +818,13 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF2AFrac = fracTOF2A[i];
     fXTOF2ASec = secondsTOF2A[2*i + 1];
     if(fXTOF2ASec < eventTime) break;
-    unorderedTOF2ATime.push_back(fXTOF2ASec + 1.e-9*(fXTOF2ACoarse*8. + fXTOF2AFrac/512.) );
+
+    if( new_unorderedTOF2ATime.find(fXTOF2ASec) != new_unorderedTOF2ATime.end() ){
+      new_unorderedTOF2ATime[fXTOF2ASec].push_back(8.*fXTOF2ACoarse + fXTOF2AFrac/512.);
+    }
+
+
+    unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
     fXTOF2ATree->Fill();
   }  
 
@@ -775,16 +834,85 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF2BFrac = fracTOF2B[i];
     fXTOF2BSec = secondsTOF2B[2*i + 1];
     if(fXTOF2BSec < eventTime) break;
-    unorderedTOF2BTime.push_back(fXTOF2BSec + 1.e-9*(fXTOF2BCoarse*8. + fXTOF2BFrac/512.) );
+
+    if( new_unorderedTOF2BTime.find(fXTOF2BSec) != new_unorderedTOF2BTime.end() ){
+      new_unorderedTOF2BTime[fXTOF2BSec].push_back(8.*fXTOF2BCoarse + fXTOF2BFrac/512.);
+    }
+
+ 
+    unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
     fXTOF2BTree->Fill();
   }
-    //std::cout << i << " "  << 8.*coarseTOF2B[i] + fracTOF2B[i]/512. << std::endl;
-   // fXBTF022702Coarse = coarseXBTF022702[i];
-   // fXBTF022702Frac =     fracXBTF022702[i];
-   // unorderedXBTF022702Time.push_back(fXTOF2BCoarse*8. + fXTOF2BFrac/512.);
-   // fXBTF022702Tree->Fill();
-  
 
+  std::cout << "NEW" << std::endl;
+  std::map<double, std::vector<double>>::iterator itMap;
+  for(itMap = new_unorderedGenTrigTime.begin(); itMap != new_unorderedGenTrigTime.end(); ++itMap){
+    std::cout << itMap->first << std::endl;
+    
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      std::cout << "\t" << itMap->second.at(i) << std::endl;
+    }
+
+  }
+
+  std::cout <<"TOF1A" << std::endl;
+  for(itMap = new_unorderedTOF1ATime.begin(); itMap != new_unorderedTOF1ATime.end(); ++itMap){
+    std::cout << itMap->first << std::endl;
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      std::cout << "\t" << itMap->second.at(i) << std::endl;
+    }
+  }
+
+  std::cout <<"TOF1B" << std::endl;
+  for(itMap = new_unorderedTOF1BTime.begin(); itMap != new_unorderedTOF1BTime.end(); ++itMap){
+    std::cout << itMap->first << std::endl;
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      std::cout << "\t" << itMap->second.at(i) << std::endl;
+    }
+  }
+
+  std::cout <<"TOF2A" << std::endl;
+  for(itMap = new_unorderedTOF2ATime.begin(); itMap != new_unorderedTOF2ATime.end(); ++itMap){
+    std::cout << itMap->first << std::endl;
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      std::cout << "\t" << itMap->second.at(i) << std::endl;
+    }
+  }
+
+  
+  std::cout <<"TOF2B" << std::endl;
+  for(itMap = new_unorderedTOF2BTime.begin(); itMap != new_unorderedTOF2BTime.end(); ++itMap){
+    std::cout << itMap->first << std::endl;
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      std::cout << "\t" << itMap->second.at(i) << std::endl;
+    }
+  }
+
+/*
+  for(itMap = new_unorderedGenTrigTime.begin(); itMap != new_unorderedGenTrigTime.end(); ++itMap){
+    std::cout << "Searching " << itMap->first << std::endl;
+    for(size_t i = 0; i < itMap->second.size(); ++i){
+      double the_time = itMap->second.at(i);
+      
+      std::vector< double > new_times;
+      std::vector< double > TOF1A_temp = new_unorderedTOF1ATime[itMap->first]; 
+      std::vector< double > TOF1B_temp = new_unorderedTOF1BTime[itMap->first]; 
+      std::vector< double > TOF2A_temp = new_unorderedTOF2ATime[itMap->first]; 
+      std::vector< double > TOF2B_temp = new_unorderedTOF2BTime[itMap->first]; 
+      for(size_t j = 0; j < 4000; ++j){
+        if (j < TOF1A_temp.size()){
+          TOF1A_time = TOF1A_temp[j];
+          std::cout << "TOF1A: " << TOF1A_time << " " << the_time - TOF1A_time << std::endl;
+          if((the_time - TOF1A_time) < 500.e-9  && the_time > TOF1A_time){
+            std::cout << "FOUND" << std::endl;
+            found_TOF1 = true; 
+            the_TOF1 = TOF1A_time;
+          }
+        }        
+      }             
+    }
+  }
+*/
   //Go through the unordered TOF triggers
   //Look for coincidences between TOF1 and TOF2
   //There should only be one match between A and B
@@ -792,54 +920,72 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     bool found_TOF1 = false;
     bool found_TOF2 = false;
 
-    double the_time = unorderedGenTrigTime[iT];
+    double the_gen = unorderedGenTrigTime[iT].first + 1.e-9*unorderedGenTrigTime[iT].second;
+    double the_gen_sec = unorderedGenTrigTime[iT].first;
+    double the_gen_ns = unorderedGenTrigTime[iT].second;
     double TOF1A_time;
     double TOF1B_time;
     double TOF2A_time;
     double TOF2B_time;
 
-    double the_TOF1 = -1.;
-    double the_TOF2 = -1.;
+    double the_TOF1_sec = -1.;
+    double the_TOF2_sec = -1.;
+    double the_TOF1_ns = -1.;
+    double the_TOF2_ns = -1.;
+
 
     //Technically out of bounds of the vectors, but it simplifies things
     //Iterate through TOF1s, look for matching trigger
     //SOMETHING'S WRONG
     for(size_t iT2 = 0; iT2 < 4000; ++iT2){
       if (iT2 < unorderedTOF1ATime.size()){
-        TOF1A_time = unorderedTOF1ATime[iT2];
-        if((the_time - TOF1A_time) < 500.  && the_time > TOF1A_time){
+        TOF1A_time = unorderedTOF1ATime[iT2].first + 1.e-9*unorderedTOF1ATime[iT2].second;
+        std::cout << "TOF1A: " << TOF1A_time << " " << the_gen - TOF1A_time << std::endl;
+        if((the_gen - TOF1A_time) < 500.e-9  && the_gen >= TOF1A_time){
+          std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
-          the_TOF1 = TOF1A_time;
+          the_TOF1_sec = unorderedTOF1ATime[iT2].first;
+          the_TOF1_ns  = unorderedTOF1ATime[iT2].second;
         }
       }
       if (iT2 < unorderedTOF1BTime.size()){
-        TOF1B_time = unorderedTOF1BTime[iT2];
-        if(!found_TOF1 && ((the_time - TOF1B_time) < 500. ) && the_time > TOF1B_time){
+        TOF1B_time = unorderedTOF1BTime[iT2].first + 1.e-9*unorderedTOF1BTime[iT2].second;
+        std::cout << "TOF1B: " << TOF1B_time << " " << the_gen - TOF1B_time << std::endl;
+        if(!found_TOF1 && ((the_gen - TOF1B_time) < 500.e-9 ) && the_gen >= TOF1B_time){
+          std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
-          the_TOF1 = TOF1B_time;
+          the_TOF1_sec = unorderedTOF1BTime[iT2].first;
+          the_TOF1_ns  = unorderedTOF1BTime[iT2].second;
         }
       }
     
     
       if (iT2 < unorderedTOF2ATime.size()){
-        TOF2A_time = unorderedTOF2ATime[iT2];
-        if((the_time - TOF2A_time) < 500.  && the_time > TOF2A_time){
+        TOF2A_time = unorderedTOF2ATime[iT2].first + 1.e-9*unorderedTOF2ATime[iT2].second;
+        std::cout << "TOF2A: " << TOF2A_time << " " << the_gen - TOF2A_time << std::endl;
+        if((the_gen - TOF2A_time) < 500.e-9  && the_gen >= TOF2A_time){
+          std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
-          the_TOF2 = TOF2A_time;
+          the_TOF2_sec = unorderedTOF2ATime[iT2].first;
+          the_TOF2_ns  = unorderedTOF2ATime[iT2].second;
         }
       }
       if (iT2 < unorderedTOF2BTime.size()){
-        TOF2B_time = unorderedTOF2BTime[iT2];
-        if(!found_TOF2 && ((the_time - TOF2B_time) < 500. ) && the_time > TOF2B_time){
+        TOF2B_time = unorderedTOF2BTime[iT2].first + 1.e-9*unorderedTOF2BTime[iT2].second;
+        std::cout << "TOF2B: " << TOF2B_time << " " << the_gen - TOF2B_time << std::endl;
+        if(!found_TOF2 && ((the_gen - TOF2B_time) < 500.e-9 ) && the_gen >= TOF2B_time){
+          std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
-          the_TOF2 = TOF2B_time;
+          the_TOF2_sec = unorderedTOF2BTime[iT2].first;
+          the_TOF2_ns  = unorderedTOF2BTime[iT2].second;
         }
       }
 
       if(found_TOF1 && found_TOF2){
-        beamevt->AddT0(the_time);
-        beamevt->AddTOF0Trigger(the_TOF1);
-        beamevt->AddTOF1Trigger(the_TOF2);
+//        std::cout << "Found matching TOF " << the_gen << " " << the_TOF1 << " " << the_TOF2 << std::endl;
+        beamevt->AddT0(std::make_pair(the_gen_sec,the_gen_ns));
+        beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec, the_TOF1_ns));
+        beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
         break;
       }
 
@@ -957,7 +1103,8 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
       // std::cout << "\t" << fbm.timeStamp << " " << beamevt->GetT0(*ip) << std::endl;
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 5000
-      if( fabs(fbm.timeStamp - beamevt->GetT0(*ip)) < 5000.){
+      std::cout << fbm.timeStamp << " " << beamevt->GetFullT0(*ip) << std::endl;
+      if( fabs(fbm.timeStamp - beamevt->GetT0(*ip).second) < 5000./*e-9*/){
 	if(beamevt->GetFBM(name, *ip).ID != -1){
 	  std::cout << "Warning: Replacing non-dummy FBM at "
 		    << name << " " << *ip << std::endl;
@@ -1049,8 +1196,9 @@ void proto::BeamAna::beginJob()
   art::ServiceHandle<art::TFileService> tfs;
   
 
-  fTOFHist = tfs->make<TH1F>("TOF","",100,0,100);
+  fTOFHist = tfs->make<TH1F>("TOF","",500,0,500);
   fCKovHist = tfs->make<TH1F>("CKov","",4,0,4);
+  fMomentumHist = tfs->make<TH1F>("Momentum", "", 150, 0, 15.);
 
   fOutTree = tfs->make<TTree>("tree", "lines"); 
   theTrack = new recob::Track();
@@ -1094,6 +1242,7 @@ void proto::BeamAna::beginJob()
   fMatchedTriggers->Branch("Gen", &matchedGen);
   fMatchedTriggers->Branch("TOF1", &matchedTOF1);
   fMatchedTriggers->Branch("TOF2", &matchedTOF2);
+  fMatchedTriggers->Branch("NominalTriggers", &matchedNom);
 
   for(size_t i = 0; i < fPairedDevices.size(); ++i){
     std::string name = "BeamProf2D_" + fPairedDevices[i].first + "_" + fPairedDevices[i].second;
@@ -1318,9 +1467,10 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   BPROF2       = p.get< std::string >("BPROF2");
   BPROF3       = p.get< std::string >("BPROF3");
   fBeamBend    = p.get< double >("BeamBend");
-  L1           = 2.004;//(m)
+/*  L1           = 2.004;//(m)
   L2           = 1.718*cos(fBeamBend);//(m)
   L3           = 2.728*cos(fBeamBend);//(m)
+*/
   magnetLen    = 1.;//(m)
   magnetField  = 1000.;//()
   ///////////////////////////////
@@ -1430,7 +1580,7 @@ void proto::BeamAna::RotateMonitorVector(TVector3 &vec){
 
 void proto::BeamAna::MakeTrack(size_t theTrigger){
   
-  std::cout << "Making Track for time: " << beamevt->GetT0(theTrigger) << std::endl;
+  std::cout << "Making Track for time: " << beamevt->GetFullT0(theTrigger) << std::endl;
 
 /*  std::string firstUpstreamName    = fPairedStraightDevices[0].first;
   std::string secondUpstreamName   = fPairedStraightDevices[0].second;
@@ -1621,7 +1771,20 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
 
 void proto::BeamAna::MomentumSpec(size_t theTrigger){
   
-  std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetT0(theTrigger) << std::endl;
+  std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetFullT0(theTrigger) << std::endl;
+
+  //First, try getting the current from the magnet in IFBeam
+  std::vector<double> current;
+  try{
+    current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+  }
+  catch(std::exception e){
+    std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
+    return;
+  }
+
+  std::cout << "Current: " << current[0] << std::endl;
+
 
   //Get the active fibers from the upstream tracking XBPF
   std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
@@ -1738,21 +1901,31 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
   //X3 = X3*cos(TMath::Pi() - fBeamBend/1000.);
   ////////////
   
+  std::cout << "fBeamBend " << fBeamBend  << std::endl;
   double cosTheta = MomentumCosTheta(X1,X2,X3);
-  std::cout << magnetLen*magnetField/(1.E9 * acos(cosTheta)) << std::endl; 
+  std::cout <<"CosTheta " << cosTheta << std::endl;
+  std::cout <<"Theta " << acos(cosTheta) << std::endl;
+  double LB = mag_P1*fabs(current[0]);
+  double deltaI = fabs(current[0]) - mag_P4;
+  if(deltaI>0) LB+= mag_P3*deltaI*deltaI;
+
+  double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
+  fMomentumHist->Fill(momentum);
+
+  std::cout << "Momentum: " << 299792458*LB/(1.E9 * acos(cosTheta)) << std::endl; 
 }
 
 double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
   double a = (X2*L3 - X3*L2) / (L3 - L2);
 
-  double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) - (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
+  double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) + (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
 
   double denomTerm1, denomTerm2, denom; 
   denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
   denomTerm2 = sqrt( 
                (L3 - L2)*(L3 - L2) 
              + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
-                           - (X3 - X2)*cos(fBeamBend) ), 2 ) );
+                             + (X3 - X2)*cos(fBeamBend) ), 2 ) );
   denom = denomTerm1*denomTerm2;                         
   cosTheta = cosTheta / denom;
 
