@@ -217,8 +217,8 @@ adcprep_readraw: {
   DisplayTools:             []
 }
 
-# Process simulation.
-adcprep_sim: {
+# Process simulation using service-based dataprep.
+adcprep_with_services_sim: {
   service_provider: StandardRawDigitPrepService
   LogLevel: 1
   SkipBad:                true
@@ -232,6 +232,32 @@ adcprep_sim: {
   DoWires:                true
   DoIntermediateStates:  false
   DisplayTools:             []
+}
+
+# Process simulation using tool-based dataprep.
+adcprep_with_tools_sim: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
+}
+
+# Process data using tool-based dataprep.
+adcprep_with_tools_data: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  AdcChannelToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcVintageDeconvoluter",
+    "adcThresholdSignalFinder"
+  ]
 }
 
 # Process DP 3x1x1 data.
@@ -279,11 +305,18 @@ changroup_apa_keepall: {
   ApaRops: []
 }
 
-# Process by APA dropping the protoDUNE outer collection plane.
+# Process by APA dropping the protoDUNE cryostat-side collection plane.
 changroup_apa_pd_drop_outer: {
   service_provider: GeoApaChannelGroupService
   LogLevel: 1
   ApaRops: [11, 7]
+}
+
+# Process by APA keeping only the protoDUNE TPC-side collection plane.
+changroup_apa_pd_tpccoll: {
+  service_provider: GeoApaChannelGroupService
+  LogLevel: 1
+  ApaRops: [ 8, 4]
 }
 
 changroup_rop: {

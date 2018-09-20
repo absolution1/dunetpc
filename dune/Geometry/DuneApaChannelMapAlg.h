@@ -33,7 +33,7 @@
 
 #include <vector>
 #include <set>
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID, ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcorealg/Geometry/ChannelMapAlg.h"
@@ -90,7 +90,7 @@ public:
     { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
   virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
   //@}
-  SigType_t                SignalType( raw::ChannelID_t const channel) const override;
+  SigType_t                SignalTypeForChannelImpl( raw::ChannelID_t const channel) const override;
   std::set<PlaneID> const& PlaneIDs()                                  const override;
 
   //
@@ -232,7 +232,7 @@ public:
   unsigned int OpDetFromOpChannel(unsigned int opChannel)               const override;
   unsigned int HardwareChannelFromOpChannel(unsigned int opChannel)     const override;
     
-private:
+protected:
 
   template<class T>
   using Vector = std::vector<T>;

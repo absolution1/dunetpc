@@ -5,6 +5,21 @@
 
 # Dune common tools.
 
+# ProtoDUNE run data tool.
+tools.protoduneRunDataTool: {
+  tool_type: FclRunDataTool
+  LogLevel: 1
+  FileNames: ["rundata/protodune/rundata.fcl", "rundata/protodune/rundata%RUN%.fcl"]
+}
+
+# Tick range tool.
+# So tools can share tick ranges.
+tools.tickRanges: {
+  tool_type: FclIndexRangeTool
+  LogLevel: 1
+  allTicks:  { begin:0     end:0     labels:["All ticks"]  }
+}
+
 # Histogram manager.
 tools.histMgr: {
   tool_type: SimpleHistogramManager

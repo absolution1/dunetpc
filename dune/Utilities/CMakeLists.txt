@@ -16,7 +16,7 @@ set( dune_util_lib_list lardata_Utilities_LArFFT_service
 			${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
                         ${ROOT_GEOM}

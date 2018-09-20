@@ -22,6 +22,8 @@
 #include "channelmap_35t.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
+#include "PdspChannelMapService.fcl"
+#include "xyzcalib_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -79,7 +81,7 @@ dunefd_simulation_services: {
 # Reco services for 35-ton simulation.
 dunefd_reco_services:                            @local::dunefd_services
 dunefd_reco_services.RawDigitExtractService:     @local::rdx_std
-dunefd_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunefd_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
@@ -134,13 +136,14 @@ dunefddphase_simulation_services: {
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunefddphase_reco_services:                            @local::dunefddphase_services
 dunefddphase_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
 dunefddphase_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
 dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
-dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
+dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
 dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
 dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
@@ -195,8 +198,10 @@ dunedphase3x1x1_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
- SpaceCharge:                    @local::dunefddphase_spacecharge
+ SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
+ PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -269,13 +274,15 @@ protodunedphase_simulation_services: {
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
+ PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
 protodunedphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
 protodunedphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 protodunedphase_reco_services.RawDigitExtractService:     @local::rdx_std
-protodunedphase_reco_services.RawDigitPrepService:        @local::adcprep_sim
+protodunedphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 protodunedphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
 protodunedphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
 protodunedphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
@@ -323,7 +330,7 @@ protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: fa
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
@@ -333,22 +340,23 @@ protodune_services: {
  PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ PdspChannelMapService:        @local::pdspchannelmap
 }
 
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
 }
@@ -358,7 +366,7 @@ protodune_simulation_services: {
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
@@ -366,7 +374,7 @@ protodune_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
@@ -392,13 +400,21 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
 # Reco services for ProtoDUNE simulation.
 protodune_reco_services:                            @local::protodune_services
 protodune_reco_services.RawDigitExtractService:     @local::rdx_std
-protodune_reco_services.RawDigitPrepService:        @local::adcprep_sim
+protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 
+# Switch to tool-based dataprep for ProtoDUNE simulation.
+# Comment out the the following line to go back to the service-based dataprep.
+protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
+
+# xyz calibration service
+protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
+
+# Reco services for ProtoDUNE real data.
 protodune_data_services.RawDigitExtractService:     @local::rdx_std
-protodune_data_services.RawDigitPrepService:        @local::adcprep_sim
+protodune_data_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 protodune_data_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 protodune_data_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_data_services.AdcWireBuildingService:     @local::adcwire_std
@@ -521,7 +537,7 @@ dune35tdata_reco_services.RawDigitPrepService:        @local::adcprep_dune35tdat
 # Reco services for 35-ton simulation.
 dune35tsim_reco_services:                             @local::dune35tdata_reco_services
 dune35tsim_reco_services.RawDigitExtractService:      @local::rdx_std
-dune35tsim_reco_services.RawDigitPrepService:         @local::adcprep_sim
+dune35tsim_reco_services.RawDigitPrepService:         @local::adcprep_with_services_sim
 
 dune35t_milliblock_reco_services:                                 @local::dune35tsim_reco_services
 dune35t_milliblock_reco_services.DetectorPropertiesService:       @local::dune35t_milliblock_detproperties

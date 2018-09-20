@@ -31,7 +31,7 @@
 //               and up to that many plots are shown on the screen.
 //
 // Tools:
-//   adcNameBuilder and adcTitleBuilder are used to make the following
+//   adcStringBuilder is used to make the following
 // substitutions in the names and title:
 //      %RUN%    --> run number
 //      %SUBRUN% --> subrun number
@@ -40,6 +40,8 @@
 //
 // The updating methods add metadata to the ADC channel data:
 //
+//   fitPedFractionLow     - fraction of samples below the fit range
+//   fitPedFractionHigh    - fraction of samples above the fit range
 //   fitPedestal           - fitted pedestal (same as the assigned value)
 //   fitPedRms             - Fit sigma of the pedestal
 //   fitPedChiSquare       - Chi-square of the fit
@@ -49,6 +51,8 @@
 //
 // The single-channel methods return a data map with the following:
 //   pedestal           - pedestal histogram
+//   fitFractionLow     - fraction of samples below the fit range
+//   fitFractionHigh    - fraction of samples above the fit range
 //   fitPedestal        - mean from the pedestal fit
 //   fitPedestalRms     - sigma from the pedestal
 //   fitChiSquare       - chi-square from the pedestal fit
@@ -115,8 +119,7 @@ private:
   Index m_PlotSplitY;
 
   // ADC string tool.
-  const AdcChannelStringTool* m_adcNameBuilder;
-  const AdcChannelStringTool* m_adcTitleBuilder;
+  const AdcChannelStringTool* m_adcStringBuilder;
 
   // Histogram manager.
   HistogramManager* m_phm;
@@ -125,8 +128,11 @@ private:
   Name nameReplace(Name name, const AdcChannelData& acd, bool isTitle) const;
 
   // Find and return pedestal.
-  // if pman is not null, the histogram is drawn there.
-  DataMap getPedestal(const AdcChannelData& acd, TPadManipulator* pman) const;
+  DataMap getPedestal(const AdcChannelData& acd) const;
+
+  // Fill the pad for a channel.
+  // Histogram "pedestal" from dm is drawn.
+  int fillChannelPad(DataMap& dm, TPadManipulator* pman) const;
 
 };
 

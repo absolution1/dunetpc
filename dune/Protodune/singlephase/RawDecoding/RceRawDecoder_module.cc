@@ -76,7 +76,7 @@ private:
   std::vector<TProfile*> _h_mean_slot_channels_pfx;
   std::vector<TProfile*> _h_rms_slot_channels_pfx;	
   std::vector<TH2I*> _h_fiber_persistent_wav;
-  std::vector<uint16_t> _buffer;
+  std::vector<int16_t> _buffer;
   	
   // define my rms and mean functions
   float rmsADC(raw::RawDigit::ADCvector_t & wav);
@@ -274,7 +274,7 @@ bool dune::RceRawDecoder::_process(
          _buffer.reserve(buffer_size);
      }
 
-     uint16_t* adcs = _buffer.data();
+     int16_t* adcs = _buffer.data();
      rce_stream->getMultiChannelData(adcs);
 
      raw::RawDigit::ADCvector_t v_adc;
@@ -298,7 +298,7 @@ bool dune::RceRawDecoder::_process(
 
         ch_counter++;
         int offlineChannel = -1;
-        offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch);
+        offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
         _h_offline_channels->Fill(offlineChannel);
         raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc);
         raw_digits.push_back(raw_digit);

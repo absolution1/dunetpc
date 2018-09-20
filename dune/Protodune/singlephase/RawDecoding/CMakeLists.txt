@@ -12,7 +12,7 @@ simple_plugin(TimingRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -33,7 +33,7 @@ simple_plugin(SSPRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
@@ -57,7 +57,7 @@ simple_plugin(RceRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -78,7 +78,7 @@ simple_plugin(FelixRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -99,7 +99,41 @@ simple_plugin(PDSPTPCRawDecoder "module"
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${RCEDAMLIB}
+                        BASENAME_ONLY
+)
+
+#simple_plugin(CRTRawDecoder "module"
+#                        dune-raw-data_Overlays
+#                        artdaq-core_Data
+#                        ${ART_FRAMEWORK_CORE}
+#                        ${ART_FRAMEWORK_PRINCIPAL}
+#                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+#                        ${MF_MESSAGELOGGER}
+#                        ${CETLIB}
+#                        ${ROOT_BASIC_LIB_LIST}
+#                        ${RCEDAMLIB}
+#                        BASENAME_ONLY                        
+#)
+
+simple_plugin(PDSPCTBRawDecoder "module"
+                        dune-raw-data_Overlays
+			artdaq-core_Data
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${MF_MESSAGELOGGER}
+ #                       art_Persistency_Common canvas_Persistency_Common
+ #                       art_Persistency_Provenance canvas_Persistency_Provenance
+ #                       art_Utilities canvas_Utilities
+                        ${MF_MESSAGELOGGER}                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -122,7 +156,7 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
  #                 art_Persistency_Provenance canvas_Persistency_Provenance
  #                 art_Utilities canvas_Utilities
                   ${MF_MESSAGELOGGER}
-                  ${MF_UTILITIES}
+                  
                   ${CETLIB}
                   ${ROOT_BASIC_LIB_LIST}
                   ${RCEDAMLIB}
@@ -133,3 +167,4 @@ install_headers()
 install_fhicl()
 install_source()
 install_scripts()
+add_subdirectory(data)

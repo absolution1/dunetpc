@@ -13,7 +13,7 @@ simple_plugin(RawData311InputDriver "service"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -40,7 +40,7 @@ simple_plugin(dlardaq "service"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -71,7 +71,7 @@ simple_plugin(EventDecoder "service"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY
@@ -101,7 +101,7 @@ simple_plugin(HuffDataCompressor "service"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			${MF_UTILITIES}
+			
 			${CETLIB}
 			${ROOT_BASIC_LIB_LIST}
 			BASENAME_ONLY

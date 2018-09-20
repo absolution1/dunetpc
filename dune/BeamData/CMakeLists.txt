@@ -25,7 +25,7 @@ art_make_library(  LIBRARY_NAME  BeamData
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
                         ${MF_MESSAGELOGGER}
-                        ${MF_UTILITIES}
+                        
                         cetlib cetlib_except
 			${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
@@ -53,3 +53,4 @@ install_fhicl()
 install_source()
 
 #add_subdirectory(test)
+#add_subdirectory(ProtoDUNEBeamSpill)

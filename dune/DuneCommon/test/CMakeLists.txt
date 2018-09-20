@@ -32,3 +32,15 @@ cet_test(test_RootPalette SOURCES test_RootPalette.cxx
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_coldelecResponse SOURCES test_coldelecResponse.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
+cet_test(test_offsetLine SOURCES test_offsetLine.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)

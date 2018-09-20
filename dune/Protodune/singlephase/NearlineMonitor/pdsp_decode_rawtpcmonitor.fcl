@@ -2,7 +2,7 @@
 #include "RawDecoder.fcl"
 #include "TPCMonitor.fcl"
 #include "SSPMonitor.fcl"
-#include "Header.fcl"
+#include "PDSPNearlineHeader.fcl"
 
 process_name: DecodeRawTPCMonitor
 
@@ -20,17 +20,10 @@ services:
  LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  ChannelStatusService:         @local::dunefd_channel_status
- PdspChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_v3.txt"
-    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
-    LogLevel:         1
-  }
+ PdspChannelMapService:        @local::pdspchannelmap
  TFileService: { fileName: "rawtpcmonitor.root" }
 
 }
-
-services.DetectorPropertiesService.NumberTimeSamples: 10000
-services.DetectorPropertiesService.ReadOutWindowSize: 10000
 
 #source is now a root file
 source:
@@ -57,11 +50,11 @@ physics:
   {
     tpcmonitor: @local::TPCMonitor_params
     sspmonitor: @local::SSPMonitor_params
-    header: @local::Header_params
+    pdspnearlineheader: @local::PDSPNearlineHeader_params
   }
 
   produce: [ tpcrawdecoder, ssprawdecoder, timingrawdecoder ]
-  analysis: [ header, tpcmonitor, sspmonitor ] 
+  analysis: [ pdspnearlineheader, tpcmonitor, sspmonitor ] 
   trigger_paths : [ produce ]
   end_paths: [ analysis ]
 }

@@ -95,14 +95,31 @@ dune35t_signalshapingservice.ShapeTimeConst:    [ 3.0 , 3.0 , 3.0 ] #Gain and Pe
 # 3x1x1, protoDUNE and DUNE dual-phase signal service
 #
 
-dunedphase3x1x1_signalshapingservice: {
-  DeconNorm: 200
+# ProtoDUNE single phase
+protodunesp_signalshapingservice: @local::dunefd_signalshapingservice
+protodunesp_signalshapingservice.ColFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.ColFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndUFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndUFilterParams: [ 1.0, 0.0, 0.1 ]
+protodunesp_signalshapingservice.IndVFilter: "(x>0.0)*gaus"
+protodunesp_signalshapingservice.IndVFilterParams: [ 1.0, 0.0, 0.1 ]
 
-  ASICmVperfC: 6.4    # Amplifier gain in mV/fC
-  ADCpermV:    1.0    # ADC conversion factor
-  AmpENC:      1700.0 # Amplifier ENC e for Cdet=450pF
+dunedphase3x1x1_signalshapingservice: {
+
+  Collection1MeterShape: "[0]*exp((x-[1])/[2]) / ( 1 + exp((x-[1])/[3]))" 	#obtained from pulsed waveform fit
+  Collection1MeterParams:  [1.46135, 1.0228, 0.336029, 0.29685]			#obtained from pulsed waveform fit
+
+  Collection3MeterShape: "[0]*exp((x-[1])/[2]) / ( 1 + exp((x-[1])/[3]))"	#obtained from pulsed waveform fit
+  Collection3MeterParams:  [1.21581, 0.864873, 0.288648, 0.27413]		#obtained from pulsed waveform fit
+
+  ASICmVperfC1Meter: 	6.38    # obtained from pulsed waveforms
+  ASICmVperfC3Meter: 	2.53    # obtained from pulsed waveforms at 14 fC: 35.42 ADC / 14 fC
+  ADCpermV:    		1.0     # ADC conversion factor (for now already included in ASICmVperfC1Meter and ASICmVperfC3Meter)
+  AmpENC:      		1700.0  # Amplifier ENC e for Cdet=450pF
 
   RespSamplingPeriod: 400. # in nano second
+
+  DeconNorm: 200
 
   AddFieldFunction: false
   ColFieldFunction: "x*[0]"
@@ -115,9 +132,15 @@ dunedphase3x1x1_signalshapingservice: {
 }
 
 protodunedphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
+protodunedphase_signalshapingservice.ASICmVperfC3Meter: 6.4
+protodunedphase_signalshapingservice.Collection3MeterShape:  "[1]/([0]-[1]) * ( exp(-(x)/[1]) - exp(-(x)/[2]) )" 	#IPNL preamp response
+protodunedphase_signalshapingservice.Collection3MeterParams: [2.83, 0.47]						#IPNL preamp response
+
 
 dunefddphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
-dunefddphase_signalshapingservice.ASICmVperfC: 3.2
+dunefddphase_signalshapingservice.ASICmVperfC3Meter: 3.2
+dunefddphase_signalshapingservice.Collection3MeterShape:  "[1]/([0]-[1]) * ( exp(-(x)/[1]) - exp(-(x)/[2]) )" 	#IPNL preamp response
+dunefddphase_signalshapingservice.Collection3MeterParams: [2.83, 0.47]						#IPNL preamp response
 
 
 END_PROLOG

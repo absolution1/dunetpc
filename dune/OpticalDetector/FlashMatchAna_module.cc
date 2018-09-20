@@ -78,10 +78,13 @@ namespace opdet {
 
     TEfficiency * fRecoEfficiencyVsE;
     TEfficiency * fRecoEfficiencyVsX;
+    TEfficiency * fRecoEfficiencyVsXandE;
     TEfficiency * fLargestEfficiencyVsE;
     TEfficiency * fLargestEfficiencyVsX;
+    TEfficiency * fLargestEfficiencyVsXandE;
     TEfficiency * fSelectedEfficiencyVsE;
     TEfficiency * fSelectedEfficiencyVsX;
+    TEfficiency * fSelectedEfficiencyVsXandE;
 
     // Parameters from the fhicl
     int   fNBinsE;
@@ -245,12 +248,15 @@ namespace opdet {
     fSelectedFlashTree->Branch("Distance",                    &fDistance,    "Distance/F");
 
 
-    fRecoEfficiencyVsE     = tfs->make<TEfficiency>("recoEfficiencyVsE",     ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
-    fRecoEfficiencyVsX     = tfs->make<TEfficiency>("recoEfficiencyVsX",     ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
-    fLargestEfficiencyVsE  = tfs->make<TEfficiency>("largestEfficiencyVsE",  ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
-    fLargestEfficiencyVsX  = tfs->make<TEfficiency>("largestEfficiencyVsX",  ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
-    fSelectedEfficiencyVsE = tfs->make<TEfficiency>("selectedEfficiencyVsE", ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
-    fSelectedEfficiencyVsX = tfs->make<TEfficiency>("selectedEfficiencyVsX", ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
+    fRecoEfficiencyVsE         = tfs->make<TEfficiency>("recoEfficiencyVsE",         ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
+    fRecoEfficiencyVsX         = tfs->make<TEfficiency>("recoEfficiencyVsX",         ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
+    fRecoEfficiencyVsXandE     = tfs->make<TEfficiency>("recoEfficiencyVsXandE",     ";Position (cm);Energy (GeV);Efficiency", fNBinsX, fLowX, fHighX, fNBinsE, fLowE, fHighE);
+    fLargestEfficiencyVsE      = tfs->make<TEfficiency>("largestEfficiencyVsE",      ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
+    fLargestEfficiencyVsX      = tfs->make<TEfficiency>("largestEfficiencyVsX",      ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
+    fLargestEfficiencyVsXandE  = tfs->make<TEfficiency>("largestEfficiencyVsXandE",  ";Position (cm);Energy (GeV);Efficiency", fNBinsX, fLowX, fHighX, fNBinsE, fLowE, fHighE);
+    fSelectedEfficiencyVsE     = tfs->make<TEfficiency>("selectedEfficiencyVsE",     ";Energy (GeV);Efficiency",  fNBinsE, fLowE, fHighE);
+    fSelectedEfficiencyVsX     = tfs->make<TEfficiency>("selectedEfficiencyVsX",     ";Position (cm);Efficiency", fNBinsX, fLowX, fHighX);
+    fSelectedEfficiencyVsXandE = tfs->make<TEfficiency>("selectedEfficiencyVsXandE", ";Position (cm);Energy (GeV);Efficiency", fNBinsX, fLowX, fHighX, fNBinsE, fLowE, fHighE);
   }
 
   //-----------------------------------------------------------------------
@@ -313,6 +319,10 @@ namespace opdet {
     int plane = 0;
     double loc[] = {part.Vx(), part.Vy(), part.Vz()};
     geo::TPCID tpc = geom->FindTPCAtPosition(loc);
+    if (! geom->HasTPC(tpc) ) {
+      mf::LogInfo("FlashMatchAna") << "No valid TPC for " << tpc;
+      return;
+    }
     geo::PlaneID planeid(tpc, plane);
 
     // Convert true X to would-be charge arrival time, and convert from ticks to us, add to MC time
@@ -462,13 +472,16 @@ namespace opdet {
     // but use the booleans to decide if it was
     // "selected" or not.
     fRecoEfficiencyVsE->Fill(AnyReconstructed, fTrueE);
-    fRecoEfficiencyVsX ->Fill(AnyReconstructed, fTrueX);
+    fRecoEfficiencyVsX->Fill(AnyReconstructed, fTrueX);
+    fRecoEfficiencyVsXandE->Fill(AnyReconstructed, fTrueX, fTrueE);
 
     fLargestEfficiencyVsE->Fill(LargestRight, fTrueE);
     fLargestEfficiencyVsX->Fill(LargestRight, fTrueX);
+    fLargestEfficiencyVsXandE->Fill(LargestRight, fTrueX, fTrueE);
     
     fSelectedEfficiencyVsE->Fill(SelectedRight, fTrueE);
     fSelectedEfficiencyVsX->Fill(SelectedRight, fTrueX);
+    fSelectedEfficiencyVsXandE->Fill(SelectedRight, fTrueX, fTrueE);
 
 
 

@@ -190,7 +190,7 @@ namespace geo{
 
     //initialize fWirePitch and fOrientation
     for (unsigned int plane=0; plane<fPlanesPerAPA; plane++){
-      fWirePitch[plane]=cgeo[0].TPC(0).WirePitch(0,1,plane);
+      fWirePitch[plane]=cgeo[0].TPC(0).WirePitch(plane);
       fOrientation[plane]=cgeo[0].TPC(0).Plane(plane).Wire(0).ThetaZ();
       fSinOrientation[plane] = sin(fOrientation[plane]);
       fCosOrientation[plane] = cos(fOrientation[plane]);
@@ -412,7 +412,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMap35OptAlg::SignalType( raw::ChannelID_t const channel )  const
+  SigType_t ChannelMap35OptAlg::SignalTypeForChannelImpl( raw::ChannelID_t const channel )  const
   {
     raw::ChannelID_t chan = channel % fChannelsPerAPA;
     SigType_t sigt = kInduction;

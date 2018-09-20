@@ -17,6 +17,8 @@
 #include "TF1.h"
 #include "TLegend.h"
 #include "TPaletteAxis.h"
+#include "TError.h"
+#include "TSystem.h"
 
 using std::string;
 using std::cout;
@@ -25,6 +27,14 @@ using std::ostringstream;
 using Index = unsigned int;
 
 bool dbg = 0;
+
+//**********************************************************************
+
+namespace {
+
+//void EmptyErrorHandler(Int_t, Bool_t, const char*, const char*) { }
+
+}  // end unnamed namespace
 
 //**********************************************************************
 
@@ -132,7 +142,14 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
 //**********************************************************************
 
 TPadManipulator::~TPadManipulator() {
-  //cout << "Destructed @" << this << endl;
+  //cout << "Destroying manipulator " << this << " with pad " << m_ppad
+  //     << " and parent " << m_parent << endl;
+  if ( m_ppad != nullptr && m_parent == nullptr ) {
+    m_ppad->Close();
+    gSystem->ProcessEvents();
+    delete m_ppad;
+    m_ppad = nullptr;
+  }
 }
 
 //**********************************************************************
@@ -223,7 +240,19 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 int TPadManipulator::print(string fname) {
   TCanvas* pcan = canvas(true);
   if ( pcan == nullptr ) return 1;
+  // Suppress printing message from Root.
+  int levelSave = gErrorIgnoreLevel;
+  gErrorIgnoreLevel = 1001;
+  // Block non-default (e.g. art) from handling the Root "error".
+  // We switch to the Root default handler while making the call to Print.
+  ErrorHandlerFunc_t pehSave = nullptr;
+  ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+  if ( GetErrorHandler() != pehDefault ) {
+    pehSave = SetErrorHandler(pehDefault);
+  }
   pcan->Print(fname.c_str());
+  if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+  gErrorIgnoreLevel = levelSave;
   return 0;
 }
 
@@ -513,7 +542,9 @@ int TPadManipulator::update() {
   }
 */
   if ( ! haveHistOrGraph() ) {
-    if ( npad() == 0 ) cout << myname << "Pad does not have a histogram or graph or subpads!" << endl;
+    if ( npad() == 0 && !haveParent() ) {
+      cout << myname << "Top-level pad does not have a histogram or graph or subpads!" << endl;
+    }
     gPad = pPadSave;
     return 0;
   }
@@ -1037,7 +1068,7 @@ int TPadManipulator::drawHistFuns() {
   for ( unsigned int ifun : m_histFuns ) {
     if ( ifun >= nfun ) continue;
     TF1* pfun = dynamic_cast<TF1*>(funs.At(ifun));
-    pfun->Draw("same");
+    if ( pfun != nullptr ) pfun->Draw("same");
   }
   gPad = pPadSave;
   return 0;
