@@ -109,6 +109,12 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(SubtractBaseline   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service
                 art_Framework_Services_Registry
