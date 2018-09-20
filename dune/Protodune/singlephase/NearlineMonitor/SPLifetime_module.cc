@@ -44,16 +44,16 @@
 #define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
 
 //// apa = tpcMapping[tpc]
-const std::array<size_t,13> tpcMapping = {0,4,1,0,0,5,2,0,0,6,3,0,0};
+const std::array<size_t,13> tpcMapping = {{0,4,1,0,0,5,2,0,0,6,3,0,0}};
 //// hist->GetXaxis()->SetBinLabel(iBin+1,apaLabels[iBin])
-const std::array<std::string,6> apaLabels = {
+const std::array<std::string,6> apaLabels = {{
                                                 "APA-DaS-US/APA5",
                                                 "APA-DaS-MS/APA6",
                                                 "APA-DaS-DS/APA4",
                                                 "APA-RaS-US/APA3", 
                                                 "APA-RaS-MS/APA2",
                                                 "APA-RaS-DS/APA1",
-                                            };
+                                            }};
 
 namespace nlana {
   class SPLifetime;
