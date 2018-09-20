@@ -273,13 +273,18 @@ void DataPrepModule::produce(art::Event& evt) {
     cout << endl;
     if ( m_LogLevel >= 3 ) cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
-    if ( beginTime.timeHigh() == 0 ) {
-      unsigned int itim = beginTime.timeLow();
-      TTimeStamp rtim(itim);
+    if ( beginTime.timeLow() == 0 ) {
+      cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
+    } else {
+      unsigned int itim = beginTime.timeHigh();
+      unsigned int itimrem = 0;
+      if ( itim == 0 ) {
+        itimrem = itim;
+        itim = beginTime.timeLow();
+      }
+      TTimeStamp rtim(itim, itimrem);
       string stim = string(rtim.AsString("s")) + " UTC";
       cout << myname << "Real data event time: " << itim << " (" << stim << ")" << endl;
-    } else {
-      cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
     }
   }
   if ( m_LogLevel >= 3 ) {
