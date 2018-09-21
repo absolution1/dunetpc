@@ -3,8 +3,8 @@
 // leigh.howard.whitehead@cern.ch
 //
 
-#ifndef FlashMatchAna_H
-#define FlashMatchAna_H 1
+#ifndef ProtoFlash_H
+#define ProtoFlash_H 1
 
 // ROOT includes
 #include "TH1D.h"
@@ -25,6 +25,8 @@
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
 #include "dune/OpticalDetector/OpFlashSort.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 // ART includes.
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -78,6 +80,8 @@ namespace protoana {
     TH1D *hFlashToRecoTime;
     TH1D *hFlashToRecoWide;
     TH1D *hFlashToRecoWider;
+    TH1D *hFlashTimes;
+    TH1D *hHitTimes;
     TH1D *hNFlash;
     TH1D *hNHitPerFlash;
   };
@@ -112,7 +116,8 @@ namespace protoana {
     hFlashToRecoWider = tfs->make<TH1D>("hFlashToRecoWider","",100,-50,50);
     hNFlash          = tfs->make<TH1D>("hNFlash","",50,0,400);
     hNHitPerFlash    = tfs->make<TH1D>("hNHitPerFlash","",50,0,100);
-
+    hFlashTimes      = tfs->make<TH1D>("hFlashTimes","",100,-4000,4000);
+    hHitTimes        = tfs->make<TH1D>("hHitTimes","",100,-4000,4000);
     hPurityTimeDiff  = tfs->make<TH2D>("hPurityTimeDiff","",25,-5,5,25,0.499,1.001);
   }
 
@@ -131,7 +136,7 @@ namespace protoana {
 
     // Make sure we can use this on data and MC
     bool isMC = !(evt.isRealData());
-    isMC = false;
+//    isMC = false;
 
     // Get flashes from event
     art::Handle< std::vector< recob::OpFlash > > FlashHandle;
@@ -165,6 +170,9 @@ namespace protoana {
 
     hNFlash->Fill(FlashHandle->size());
 
+    // Use the clocks service to make sure to account for the offset between true times and the electronics clocks
+    auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
+
     // Store a map of flash times
     std::map<int,double> flashMap;
 
@@ -177,10 +185,16 @@ namespace protoana {
       recob::OpFlash TheFlash = *TheFlashPtr;
       art::FindManyP< recob::OpHit > Assns(FlashHandle, evt, fOpFlashModuleLabel);
       std::vector< art::Ptr<recob::OpHit> > matchedHits = Assns.at(i);
-      
-      flashMap.insert(std::make_pair(i,TheFlash.Time()));
+
+      // Account for the time offset in the TPC
+      flashMap.insert(std::make_pair(i,TheFlash.Time() - detclock->TriggerOffsetTPC()));
 
       hNHitPerFlash->Fill(matchedHits.size());
+      hFlashTimes->Fill(TheFlash.Time());
+
+      for(auto const h : matchedHits){
+        hHitTimes->Fill(h->PeakTime());
+      }
 
       // Truth level code
       if(isMC){
@@ -240,7 +254,7 @@ namespace protoana {
       if(t0s.size() == 0) continue;
 
       // Pandora gives us times in ns
-      double recoT0 = t0s[0].Time() /  1000.; 
+      double recoT0 = t0s[0].Time() / 1000.; 
    
       int bestRecoMatch = 0;
       double minRecoTimeDiff = 1e20;
@@ -269,6 +283,7 @@ namespace protoana {
   }
 
   void ProtoFlash::ExtractTrueTimes(const std::string &moduleName, std::map<int,double> &timeMap, const art::Event &evt){
+
 
     auto MCTruthsHandle = evt.getValidHandle<std::vector<simb::MCTruth> >(moduleName);
     art::Ptr<simb::MCTruth> thisMCTruth(MCTruthsHandle, 0);
