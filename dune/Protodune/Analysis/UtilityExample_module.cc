@@ -274,7 +274,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
       // If this is a track-like particle then we can get a secondary interaction point from the
       // downstream end of the track.
       if(pfpUtil.IsPFParticleTracklike(*prim)){
-        const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fTrackerTag,fPFParticleTag);
+        const TVector3 sec = pfpUtil.GetPFParticleSecondaryVertex(*prim,evt,fPFParticleTag,fTrackerTag);
         std::cout << "Beam particle interaction vertex: " << std::endl;
         sec.Print();
         // The following(complicated) statement gets the recob::Track from the recob::PFParticle and then

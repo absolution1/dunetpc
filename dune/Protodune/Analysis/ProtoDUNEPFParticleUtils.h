@@ -75,7 +75,7 @@ namespace protoana {
     const TVector3 GetPFParticleVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Function to find the secondary interaction vertex of a primary PFParticle
-    const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const;
+    const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Is the particle track-like?
     bool IsPFParticleTracklike(const recob::PFParticle &particle) const;

@@ -296,7 +296,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
 }
 
 // Function to find the secondary interaction vertex of a primary PFParticle
-const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const{
+const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
 
   // In this case we want to find the end of the track-like PFParticle
   // To do this, we need to access things via the track
