@@ -290,7 +290,12 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
       // We can also ask the PFParticle how many recob::Hit and recob::SpacePoint objects it contains
       std::cout << "Beam particle has " << pfpUtil.GetNumberPFParticleHits(*prim,evt,fPFParticleTag) << " hits and " 
                 << pfpUtil.GetNumberPFParticleSpacePoints(*prim,evt,fPFParticleTag) << " space points" << std::endl;
+      // Try to get the daughter tracks and showers
+      const std::vector<const recob::Track*> daughterTracks = pfpUtil.GetPFParticleDaughterTracks(*prim,evt,fPFParticleTag,fTrackerTag);
+      const std::vector<const recob::Shower*> daughterShowers = pfpUtil.GetPFParticleDaughterShowers(*prim,evt,fPFParticleTag,fShowerTag);
+      std::cout << "Beam particle has " << daughterTracks.size() << " daughter tracks and " << daughterShowers.size() << " daughter showers." << std::endl;
     }
+
   }
 
   // The first pass of pandora reconstruction identifies clear cosmic particles. We can get a vector of these from the PFParticle utility

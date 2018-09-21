@@ -32,9 +32,9 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <array>
 
 //#include "larsim/MCCheater/BackTracker.h"
-
 
 #include "TH1F.h"
 #include "TH2F.h"
@@ -42,6 +42,18 @@
 #include "TCanvas.h"
 
 #define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
+
+//// apa = tpcMapping[tpc]
+const std::array<size_t,13> tpcMapping = {{0,4,1,0,0,5,2,0,0,6,3,0,0}};
+//// hist->GetXaxis()->SetBinLabel(iBin+1,apaLabels[iBin])
+const std::array<std::string,6> apaLabels = {{
+                                                "APA-DaS-US/APA5",
+                                                "APA-DaS-MS/APA6",
+                                                "APA-DaS-DS/APA4",
+                                                "APA-RaS-US/APA3", 
+                                                "APA-RaS-MS/APA2",
+                                                "APA-RaS-DS/APA1",
+                                            }};
 
 namespace nlana {
   class SPLifetime;
@@ -131,7 +143,7 @@ void nlana::SPLifetime::beginJob()
   
   fLifeInv_E = tfs->make<TProfile>("LifeInv_E","LifeInv_E", 20, 0, 40);
   fLifeInv_Angle = tfs->make<TProfile>("LifeInv_Angle","LifeInv_Angle", 15, -1.5, 1.5);
-  
+
   // initialize an invalid run number
   lastRun = -1;
   for(unsigned short tpc = 0; tpc < 12; ++tpc) {
@@ -145,18 +157,23 @@ void nlana::SPLifetime::beginJob()
 
   fDriftTime = tfs->make<TH1F>("DriftTime","Drift Time", 500, 0.,10.);
   setHistTitles(fDriftTime,"Cluster Drift Time [ms]", "Clusters / Bin");
-  fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. TPC", 12,0,12,500,0.,10.);
-  setHistTitles(fDriftTimeVTPC,"TPC Number","Cluster Drift Time [ms]");
+  fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. APA", 6,0.5,6.5,500,0.,10.);
+  setHistTitles(fDriftTimeVTPC,"","Cluster Drift Time [ms]");
 
   fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 1000, 0.,10000.);
   setHistTitles(fSNR,"Signal to Noise Ratio", "Hits / Bin");
-  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. TPC", 12,0,12,1000,0.,10000.);
+  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. APA", 6,0.5,6.5,1000,0.,10000.);
   setHistTitles(fSNRVTPC,"TPC Number","Signal to Noise Ratio");
 
   fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 2000, 0.,4000.);
   setHistTitles(fAmplitudes,"Hit Amplitude [ADC]", "Hits / Bin");
   fNoise = tfs->make<TH1F>("Noise","Wire Noise", 2000, 0.,5.);
   setHistTitles(fNoise,"RMS Noise [ADC]", "Hit Wires / Bin");
+
+  for(size_t apa = 0; apa < 6; ++apa){
+    fDriftTimeVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
+    fSNRVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
+  }
 
 } // beginJob
 
@@ -196,13 +213,15 @@ void nlana::SPLifetime::endJob()
     purfile<<", "<<std::setprecision(1)<<sn<<", "<<signalToNoiseClsCnt[tpc];
 
     // Now do drift time
+    size_t apa = tpcMapping.at(tpc);
+    if (apa == 0) continue;
     size_t nBinsY = fDriftTimeVTPC->GetNbinsY();
     float driftTime = -1.;
     for (int iBin=nBinsY; iBin >=0; iBin--)
     {
-      if (fDriftTimeVTPC->GetBinContent(tpc+1,iBin) > 1)
+      if (fDriftTimeVTPC->GetBinContent(apa,iBin) > 1)
       {
-        driftTime = fDriftTime->GetXaxis()->GetBinCenter(iBin);
+        driftTime = fDriftTimeVTPC->GetYaxis()->GetBinCenter(iBin);
         break;
       }
     }
@@ -215,6 +234,8 @@ void nlana::SPLifetime::endJob()
   // Now for images
   TCanvas * canvas = new TCanvas("canvas_SPLifetime");
   canvas->SetLogz();
+  canvas->SetBottomMargin(0.13);
+  canvas->SetRightMargin(0.12);
   std::string imageFileName;
   // Try to get rid of directory and .root extension
   std::string infilenameStripped = fInFilename;
@@ -250,15 +271,16 @@ void nlana::SPLifetime::endJob()
   // file list json file
   std::ofstream filelistfile;
   filelistfile.open("purity_FileList.json");
-  filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\",\n    \"Files\": {\n      \"Cluster Drift Time\": ";
+  filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\",\n    \"Files\": {\n      \"Cluster Drift Time\": \"";
 
   imageFileName = "driftVTPC_";
   imageFileName += infilenameStripped;
   imageFileName += ".png";
   fDriftTimeVTPC->SetStats(false);
+  fDriftTimeVTPC->GetXaxis()->SetLabelSize(0.050);
   fDriftTimeVTPC->Draw("colz");
   canvas->SaveAs(imageFileName.c_str());
-  filelistfile << "\""<<imageFileName<<"\", ";
+  filelistfile << imageFileName<<",";
 
   imageFileName = "driftVTPC_zoom_";
   imageFileName += infilenameStripped;
@@ -269,9 +291,9 @@ void nlana::SPLifetime::endJob()
   fDriftTimeVTPC->Draw("colz");
   canvas->SaveAs(imageFileName.c_str());
   fDriftTimeVTPC->SetTitle(originalTitle.c_str());
-  filelistfile << "\""<<imageFileName<<"\"";
+  filelistfile << imageFileName;
 
-  filelistfile << "\n    }\n  }\n]";
+  filelistfile << "\"\n    }\n  }\n]";
   filelistfile.close();
   delete canvas;
 
@@ -324,7 +346,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     if(clsHits.size() == 0) continue;
     unsigned short tpc = clsHits[0]->WireID().TPC;
     fDriftTime->Fill(dTick*msPerTick);
-    fDriftTimeVTPC->Fill(tpc,dTick*msPerTick);
+    fDriftTimeVTPC->Fill(tpcMapping.at(tpc),dTick*msPerTick);
     unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
     if(nhist < 5) continue;
     if(clsHits.size() < 100) continue;
@@ -524,7 +546,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       fAmplitudes->Fill(hit->PeakAmplitude());
       fNoise->Fill(pedRMS);
       fSNR->Fill(snr);
-      fSNRVTPC->Fill(tpc,snr);
+      fSNRVTPC->Fill(tpcMapping.at(tpc),snr);
 //      aveSN += sn;
 //      ++cnt;
     } // hit

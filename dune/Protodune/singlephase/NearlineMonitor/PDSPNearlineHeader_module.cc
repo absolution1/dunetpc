@@ -21,6 +21,7 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TString.h"
+#include "TTimeStamp.h"
 
 // C++ Includes
 #include <fstream>
@@ -46,7 +47,8 @@ namespace PDSPNearlineheader_module{
     
     int fRun;
     int fSubRun;
-    uint64_t fTimeStamp;
+    //uint64_t fTimeStamp;
+    double fTimeStamp;
     
     TTree *fPDSPNearlineHeaderTree;
     
@@ -64,7 +66,7 @@ namespace PDSPNearlineheader_module{
     fPDSPNearlineHeaderTree = tfs->make<TTree>("PDSPNearlineHeader", "PDSP Nearline header tree");
     fPDSPNearlineHeaderTree->Branch("fRun",       &fRun,       "fRun/I");
     fPDSPNearlineHeaderTree->Branch("fSubRun",    &fSubRun,    "fSubRun/I");
-    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/l");
+    fPDSPNearlineHeaderTree->Branch("fTimeStamp", &fTimeStamp, "fTimeStamp/D");
   }
   
   //-----------------------------------------------------------------------
@@ -78,7 +80,18 @@ namespace PDSPNearlineheader_module{
     
     fRun = evt.run();
     fSubRun = evt.subRun();
-    fTimeStamp = evt.time().value();
+    //fTimeStamp = evt.time().value();
+
+    art::Timestamp ts = evt.time();
+    //std::cout<<ts.timeHigh()<<" "<<ts.timeLow()<<std::endl;
+    if (ts.timeHigh() == 0){
+      TTimeStamp ts2(ts.timeLow());
+      fTimeStamp = ts2.AsDouble();
+    }
+    else{
+      TTimeStamp ts2(ts.timeHigh(), ts.timeLow());
+      fTimeStamp = ts2.AsDouble();
+    }
     
     TString tempstring = Form("%i-%i",fRun,fSubRun);
     

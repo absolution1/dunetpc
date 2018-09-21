@@ -57,7 +57,7 @@ outputs:
   {
     compressionLevel: 1
     module_type: RootOutput
-    fileName: "RawDecoder.root"
+    fileName: "%ifb_decode.root"
   }
 
 }
