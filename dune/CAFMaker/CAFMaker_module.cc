@@ -123,7 +123,7 @@ namespace dunemva {
       double fCVNResultNutau;
       double fRegCVNNueE;
 
-      int meta_run, meta_subrun;
+    //int meta_run, meta_subrun;
       double meta_pot;
 
       systtools::provider_list_t fSystProviders;
