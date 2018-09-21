@@ -50,6 +50,10 @@ VarInfo::VarInfo(string aname) : name(aname) {
     vname = "rmPedPower";
     label = "Pedestal noise RMS";
     unit = "ADC counts";
+  } else if ( name.find("meanPed") != string::npos ) {
+    vname = "meanPed";
+    label = "Pedestal mean";
+    unit = "ADC counts";
   }
 }
 
@@ -121,6 +125,8 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       vname = "nfemb";
     } else if ( name.find("rmPedPower") != string::npos ) {
       vname = "rmPedPower";
+    } else if ( name.find("meanPed") != string::npos ) {
+      vname = "meanPed";
     } else {
       cout << myname << "ERROR: No variable for histogram name " << name << endl;
       continue;
@@ -226,6 +232,7 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   }
   state().fembIDSet.insert(acd.fembID);
   ++state().nchan;
+  state().pedSum += acd.pedestal;
   float pedNoise = acd.pedestalRms;
   state().pedPower += pedNoise*pedNoise;
   return res;
@@ -271,6 +278,7 @@ void AdcEventViewer::startEvent(const AdcChannelData& acd) const {
   state().ngroup = 0;
   state().fembIDSet.clear();
   state().nchan = 0;
+  state().pedSum = 0.0;
   state().pedPower = 0.0;
 }
 
@@ -290,6 +298,7 @@ void AdcEventViewer::printReport() const {
   Index ndup = nevt - state().eventSet.size();
   Index nfmb = state().fembIDSet.size();
   Index nchn = state().nchan;
+  float meanPed = nchn > 0 ? state().pedSum/nchn : 0.0;
   float meanPedPower = nchn > 0 ? state().pedPower/nchn : 0.0;
   float rmPedPower = sqrt(meanPedPower);
   double chanPerFemb = nfmb > 0 ? double(nchn)/nfmb : 0.0;
@@ -307,6 +316,7 @@ void AdcEventViewer::printReport() const {
     string name = ph->GetName();
     if ( name.find("nfemb") != string::npos ) ph->Fill(nfmb);
     else if ( name.find("rmPedPower") != string::npos ) ph->Fill(rmPedPower);
+    else if ( name.find("meanPed") != string::npos ) ph->Fill(meanPed);
     else {
       cout << myname << "ERROR: No variable for histogram name " << name << endl;
     }
@@ -315,6 +325,7 @@ void AdcEventViewer::printReport() const {
     gin.add("nfemb", nfmb);
     gin.add("event", state().event);
     gin.add("rmPedPower", rmPedPower);
+    gin.add("meanPed", meanPed);
   }
 }
 

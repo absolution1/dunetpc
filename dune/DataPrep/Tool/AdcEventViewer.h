@@ -95,6 +95,7 @@ public:
     Index ngroup;            // # groups processed for this event
     IndexSet fembIDSet;      // FEMBs for ths event.
     Index nchan;             // # channels processed for this event
+    float pedSum;            // Sum over pedestals
     float pedPower;          // Sum over (pedestal noise)^2
     HistVector hists;        // Monitoring histograms.
     GraphInfoVector graphs;  // Monitoring graphs.
