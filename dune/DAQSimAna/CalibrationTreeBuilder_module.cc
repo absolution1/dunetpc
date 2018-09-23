@@ -19,11 +19,46 @@ namespace{}
 
 namespace CalibrationTreeBuilder {
 
+  struct genFinder{
+    private:
+      typedef std::pair<int, std::string> track_id_to_string;
+      std::vector<track_id_to_string> track_id_map;
+      std::set<std::string> generator_names;
+      bool isSorted=false;
+//      static bool pairsort(const std::pair<int, std::string>& a, const std::pair<int, std::string>& b){
+//        return (a.first<b.first);
+//      }
+
+    public:
+      void sort_now(){
+        std::sort(this->track_id_map.begin(), this->track_id_map.end(), [](const auto &a, const auto &b){return (a.first < b.first) ; } );
+//        std::sort(this->track_id_map.begin(), this->track_id_map.end(), pairsort);
+        isSorted=true;
+      }
+      void add(const int& track_id, const std::string& gname){
+        this->track_id_map.push_back(std::make_pair(track_id, gname));
+        generator_names.emplace(gname);
+        isSorted=false;
+      }
+      bool has_gen(std::string gname){
+        return static_cast<bool>(generator_names.count(gname));
+      };
+      std::string get_gen(int tid){
+        if( !isSorted ){
+          this->sort_now();
+        }
+        return std::lower_bound(track_id_map.begin(), track_id_map.end(), tid,[](const auto &a, const auto &b){return (a.first < b) ; } )->second;
+      };
+
+  };
+  genFinder* gf = new genFinder();
+
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   CalibrationTreeBuilder::CalibrationTreeBuilder(fhicl::ParameterSet const& pSet)
     :EDAnalyzer(pSet),
     private_HitLabel(pSet.get<art::InputTag>("HitLabel","gaushit")),
-    private_OpHitLabel(pSet.get<art::InputTag>("OpHitLabel","ophit"))
+    private_OpHitLabel(pSet.get<art::InputTag>("OpHitLabel","ophit")),
+    fWavLabel(pSet.get<art::InputTag>("WavLabel", "opdigi"))
   {  }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -41,6 +76,7 @@ namespace CalibrationTreeBuilder {
     private_FlatCalibrationTree = private_service_tfs->make<TTree>("FlatCalibrationRecordTree"," A TTree for storing hit and ophit values with their particles for each event in the simulation");
     private_CalibrationRecord = private_CalibrationTree->Branch("event_records", &private_eventBuffer );
     private_FlatCalibrationRecord = private_FlatCalibrationTree->Branch("flat_event_records", &fl, "eve_x/D:eve_y:eve_z:eve_t:part_x:part_y:part_z:part_t:hit_charge:hit_energy:hit_time:hit_width:hit_split:ophit_pes:ophit_energy:ophit_time:ophit_width:ophit_split:hit_index/L:ophit_index:run/i:subrun:event_n:hit_wire:ophit_opchan:eve_index:part_index:eve_trackid/I:eve_pdgid:part_trackid:part_pdgid:part_iseve/O");
+
   }
 
   //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -48,11 +84,28 @@ namespace CalibrationTreeBuilder {
     //eprV.clear();
     private_eventPrep.Clear();
     private_eventBuffer.Clear();
+    priv_DivRecs.clear();
+    this->PrepDivRec(evt);
+
 
     //Set up BackTracking //Now in header
     /*    art::ServiceHandle<cheat::ParticleInventoryService> PIS;
           art::ServiceHandle<cheat::BackTrackerService> BTS;
           art::ServiceHandle<cheat::PhotonBackTrackerService> PBS;*/
+    //Get a list of generator names.
+    std::vector< art::Handle< std::vector< simb::MCTruth > > > mcHandles;
+    evt.getManyByType(mcHandles);
+    std::vector< std::pair<int, std::string>> track_id_to_label;
+
+    for( auto const& mcHandle : mcHandles ){
+      const std::string& sModuleLabel = mcHandle.provenance()->moduleLabel();
+      art::FindManyP<simb::MCParticle> findMCParts(mcHandle, evt, "largeant");
+      std::vector<art::Ptr<simb::MCParticle> > mcParts = findMCParts.at(0);
+      for( const art::Ptr<simb::MCParticle> ptr : mcParts){
+        int track_id = ptr->TrackId();
+        gf->add(track_id, sModuleLabel);
+      }
+    }
 
     art::Handle<std::vector<recob::Hit>> hitHandle;
     std::vector<art::Ptr<recob::Hit>> hitList;
@@ -114,7 +167,7 @@ namespace CalibrationTreeBuilder {
     {//Forced local scope for a few variables. This is a good indication that the code I am writing doesn't belong here, but in another function.
       int eve_pos=0;
       for(auto eve : private_eventPrep.eves){
-        if(!private_eventPrep.eves.empty()){
+        if(!private_eventPrep.eves.empty()){ //This is not needed and is redundant.
           int part_pos=0;
           for(auto part : eve.particles){
             { //keep partial_hit_pos local scope for the loop
@@ -386,7 +439,7 @@ namespace CalibrationTreeBuilder {
 
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter){
     {//make each loop local so the vectors don't persist
-      const std::vector< sim::SDP> sdps = PBS->OpHitToChannelWeightedSimSDPs(hit);
+      const std::vector< sim::SDP> sdps = this->OpHitToChannelWeightedSimSDPs(hit);
       std::vector<std::pair<int, CalibTreeRecord::PartialOpHit>> track_partials;
       Double_t total_charge = 0.0;
       if(sdps.empty()){return false;}
@@ -461,11 +514,12 @@ namespace CalibrationTreeBuilder {
     if( eve_ptr != eves.end() ){ return std::make_pair(eve_ptr, false); }else{
       CalibTreeRecord::EveRecord tmpRec;
       tmpRec.trackId = eve_id;
+      tmpRec.generator = gf->get_gen(eve_id);
       tmpRec.pdgid = eve->PdgCode();
       mf::LogDebug(__FUNCTION__)<<"The eve now enetered into the particle record has PDGID "<<eve->PdgCode()<<"\n";
       tmpRec.x_pos   = eve->Position(0).X();
       tmpRec.y_pos   = eve->Position(0).Y();
-      tmpRec.z_pos   = eve->Position(0).Z();
+      tmpRec.z_pos   = eve->Position(0).Z();      tmpRec.t_pos   = eve->Position(0).T();
       tmpRec.t_pos   = eve->Position(0).T();
       eves.push_back(tmpRec);
       if(eve_ptr == (eves.end()-1) ){
@@ -476,7 +530,123 @@ namespace CalibrationTreeBuilder {
     }
   }
 
-}//end namespace
 
+  //DUNE CalibTree specific tools intended for PhotonBackTracker (DivRec must be a larsfot wide product for that to happen).
+
+  //----------------------------------------------------------------
+  const art::Ptr< sim::OpDetDivRec > CalibrationTreeBuilder::FindDivRec(int const& opDetNum) const
+  {
+    art::Ptr< sim::OpDetDivRec > opDet;
+    for(size_t detnum = 0; detnum < priv_DivRecs.size(); ++detnum){
+      if(priv_DivRecs.at(detnum)->OpDetNum() == opDetNum)
+        opDet = priv_DivRecs.at(detnum);
+    }
+    if(!opDet)
+    {
+      throw cet::exception("CalibTreeBuilder") << "No sim:: OpDetDivRec corresponding "
+        << "to opDetNum: " << opDetNum << "\n";
+    }
+    return opDet;
+  }
+
+
+  //----------------------------------------------------------------
+  //This function weights each of the returned sdps by the correct fractional number of detected photons. This make nPEs and Energy in the SDP make sense. Because these are constructed in place as weighted copies of the actual SDPs, they do not exist in the principle, cannot be returned as pointers, and are not comparable between calls.
+  //This function is largely copied from OpHitToSimSDPs_Ps
+  const std::vector< sim::SDP > CalibrationTreeBuilder::OpHitToChannelWeightedSimSDPs(art::Ptr<recob::OpHit> const& opHit_P) const
+  {
+    const double fDelay = PBS->GetDelay();
+    std::vector< sim::SDP > retVec;
+    double fPeakTime = opHit_P->PeakTime();
+    double fWidth = opHit_P->Width();
+    UInt_t fChan = opHit_P->OpChannel();
+    art::ServiceHandle<geo::Geometry> geom;
+    int fDet  = geom->OpDetFromOpChannel(fChan);
+    //I should use the timing service for these time conversions.
+    sim::OpDetBacktrackerRecord::timePDclock_t start_time = ((fPeakTime- fWidth)*1000.0)-fDelay;
+    sim::OpDetBacktrackerRecord::timePDclock_t end_time = ((fPeakTime+ fWidth)*1000.0)-fDelay;
+    if(start_time > end_time){throw;}//This is bad. Give a reasonable error message here, and use cet::except
+
+    //BUG!!!fGeom->OpDetFromOpChannel(channel)
+    art::Ptr<sim::OpDetBacktrackerRecord> fBTR = PBS->FindOpDetBTR(fDet);
+    const std::vector<std::pair<double, std::vector<sim::SDP>> >& timeSDPMap
+      = fBTR->timePDclockSDPsMap(); //Not guranteed to be sorted.
+    art::Ptr<sim::OpDetDivRec> div_rec = this->FindDivRec(fDet);//This is an OpDetDivRec collected from this BTR.
+
+
+    std::vector<const std::pair<double, std::vector<sim::SDP>>*> timePDclockSDPMap_SortedPointers;
+    std::vector<const sim::OpDet_Time_Chans*> div_rec_SortedPointers;
+    for ( auto& pair : timeSDPMap ){ timePDclockSDPMap_SortedPointers.push_back(&pair); }
+    auto pairSort = [](auto& a, auto& b) { return a->first < b->first ; } ;
+    if( !std::is_sorted( timePDclockSDPMap_SortedPointers.begin(), timePDclockSDPMap_SortedPointers.end(), pairSort)){
+      std::sort(timePDclockSDPMap_SortedPointers.begin(), timePDclockSDPMap_SortedPointers.end(), pairSort);
+    }
+
+    //This section is a hack to make comparisons work right.
+    std::vector<sim::SDP> dummyVec;
+    std::pair<double, std::vector<sim::SDP>> start_timePair = std::make_pair(start_time, dummyVec);
+    std::pair<double, std::vector<sim::SDP>> end_timePair = std::make_pair(end_time, dummyVec);
+    auto start_timePair_P = &start_timePair;
+    auto end_timePair_P = &end_timePair;
+
+    //First interesting iterator.
+    auto map_pdsdp_itr = std::lower_bound(timePDclockSDPMap_SortedPointers.begin(), timePDclockSDPMap_SortedPointers.end(), start_timePair_P, pairSort);
+    //Last interesting iterator.
+    auto map_pdsdp_last = std::upper_bound(map_pdsdp_itr, timePDclockSDPMap_SortedPointers.end(), end_timePair_P, pairSort);
+
+    //retvec.push_back(map_pdsdp_first.second[0]);
+    //This code screams fragile. Really. If you read this, feel free to clean up the methods.
+    for(auto& sdp_time_pair =  map_pdsdp_itr; sdp_time_pair != map_pdsdp_last; ++sdp_time_pair){
+      //cut div_rec by time
+      auto time=(*sdp_time_pair)->first;
+      for(auto& sdp : (*sdp_time_pair)->second){
+        //      auto sdp = (*sdp_time_pair)->second; //This is a vector
+        //auto slice = div_rec->GetSlice(start_time, end_time);
+        auto time_divr_pair = div_rec->FindClosestTimeChan(time);
+        auto time_divr=time_divr_pair.first;
+        auto time_divr_found=time_divr_pair.second;
+        sim::SDP tmp = sdp;
+        if( time_divr_found && time_divr->time == time){ //This will break if time_divr is the end value of the vector
+          tmp.energy = time_divr->GetFrac(fChan) * tmp.energy;
+          // ((*map_divrec_itr)->DivChans.eScaleFrac(fChan))*tmp.energy;
+        }else{
+          //          std::cout<<"I am having trouble reconciling "<<time<<" and "<<time_divr->time<<"\n";
+          tmp.energy = 0; //This does not corespond to an energy detected. A photon may or may not have been incident on  the detector, but it didn't get picked up.
+        }
+        retVec.emplace_back(tmp);
+
+      }
+    }
+
+    //while( map_pdsdp_itr != map_pdsdp_last /*&& map_divrec_itr != map_divrec_last*/){ //Stepping through.
+    /*for(auto const& sdp :  (*map_pdsdp_itr)->second){
+      sim::SDP tmp = sdp;
+      tmp.energy = ((*map_divrec_itr)->DivChans.eScaleFrac(fChan))*tmp.energy;
+    //              second[fChan].tick_photons_frac)*tmp.energy;
+    retVec.emplace_back(tmp);
+    }
+    ++map_pdsdp_itr;
+    ++map_divrec_itr;
+    }*/
+
+    return retVec;
+  }
+
+  void CalibrationTreeBuilder::PrepDivRec(const art::Event& evt)
+  {
+      if( 0 ){ return;} //Insert check for DivRecs here, or don't use validHandle below.
+      auto const& divrecHandle = evt.getValidHandle <std::vector<sim::OpDetDivRec>>(fWavLabel);
+      if(divrecHandle.failedToGet()){
+        return;
+      }
+      art::fill_ptr_vector(priv_DivRecs, divrecHandle);
+      auto compareDivReclambda = [](art::Ptr<sim::OpDetDivRec> a, art::Ptr<sim::OpDetDivRec> b) {return(a->OpDetNum() < b->OpDetNum());};
+      if (!std::is_sorted(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda))
+        std::sort(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda);
+
+  }
+
+
+}//end namespace
 
 DEFINE_ART_MODULE(CalibrationTreeBuilder::CalibrationTreeBuilder)

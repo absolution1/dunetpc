@@ -10,6 +10,7 @@
 
 //Includes
 #include "dune/DuneObj/CalibTreeRecord.h"
+#include "dune/DuneObj/OpDetDivRec.h"
 
 //LArSoft Includes
 #include "lardataobj/RecoBase/Track.h"
@@ -95,9 +96,11 @@ namespace CalibrationTreeBuilder {
 
 
     private:
+      //  fhicl::Atom<art::InputTag> WavLabel{fhicl::Name("WavLabel"), fhicl::Comment("The default label for the module to use when DivRecs "), "opdigi"};
 
       bool AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter);
       bool AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter);
+      void PrepDivRec(const art::Event& evt);
       std::pair<std::vector<CalibTreeRecord::EveRecord>::iterator, bool> EmplaceEve(const simb::MCParticle* new_eve);
       std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> EmplaceParticle(const simb::MCParticle* new_part);
 
@@ -108,6 +111,7 @@ namespace CalibrationTreeBuilder {
 
       art::InputTag private_HitLabel;
       art::InputTag private_OpHitLabel;
+      art::InputTag fWavLabel;
 
       art::ServiceHandle<art::TFileService> private_service_tfs;
 
@@ -116,10 +120,15 @@ namespace CalibrationTreeBuilder {
       TBranch* private_CalibrationRecord;
       TBranch* private_FlatCalibrationRecord;
 
+      const art::Ptr< sim::OpDetDivRec > FindDivRec(int const& opDetNum) const;
+      const std::vector< sim::SDP > OpHitToChannelWeightedSimSDPs(art::Ptr<recob::OpHit> const& opHit_P) const;
+
       CalibTreeRecord::CalibTreeRecord private_eventBuffer;
       CalibTreeRecord::CalibTreeRecord private_eventPrep;
       flatfiller fl;
 
+      mutable std::vector<art::Ptr<sim::OpDetDivRec>> priv_DivRecs;
+      //std::map<UInt_t, sim::OpDetDivRec> priv_od_to_chanDiv;
 
 
       //Also need buffers
