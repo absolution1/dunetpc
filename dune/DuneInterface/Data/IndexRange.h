@@ -65,6 +65,7 @@ public:
     if ( ilab >= labels.size() ) return "";
     return labels[ilab];
   }
+  bool contains(Index ival) const { return ival >= begin && ival < end; }
   
 };
 
