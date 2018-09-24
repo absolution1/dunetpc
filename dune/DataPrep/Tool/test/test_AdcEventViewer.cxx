@@ -45,6 +45,8 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
     fout << "  LogLevel: 1" << endl;
     fout << "  EventHists: []" << endl;
     fout << "  EventGraphs: []" << endl;
+    fout << "  ChannelRanges: []" << endl;
+    fout << "  ChannelRangeLabel: \"\"" << endl;
     fout << "}" << endl;
     fout.close();
   } else {

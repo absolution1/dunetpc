@@ -20,7 +20,10 @@
 //                  are made for each channel range. Otherwise all channels are included.
 //                  The tool channelRanges is used to map the names in this list to ranges.
 //                  Special name "all" or "" plots all channels with label "All".
-
+//  ChannelRangeLabel - Label for channel ranges. May include %XXX% for
+//                      XXX = CRLABEL to replace with cr.label()
+//                      XXX = CRLABEL1 to replace with cr.label(1)
+//                      XXX = CRLABEL2 to replace with cr.label(2)
 #ifndef AdcEventViewer_H
 #define AdcEventViewer_H
 
@@ -155,6 +158,7 @@ private:
   NameVector m_EventHists;
   NameVector m_EventGraphs;
   NameVector m_ChannelRanges;
+  Name m_ChannelRangeLabel;
 
   // Channel ranges.
   IndexRangeVector m_crs;

@@ -6,6 +6,7 @@
 #include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/StringManipulator.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TH1.h"
 #include <iostream>
@@ -57,7 +58,6 @@ VarInfo::VarInfo(string aname, const IndexRange& cr) : name(aname) {
     label = "Pedestal mean";
     unit = "ADC counts";
   }
-  //if ( cr.name != "all" ) label += " for " + cr.label();
 }
 
 }  // end unnamed namespace
@@ -71,6 +71,7 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
   m_EventHists(ps.get<NameVector>("EventHists")),
   m_EventGraphs(ps.get<NameVector>("EventGraphs")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
+  m_ChannelRangeLabel(ps.get<Name>("ChannelRangeLabel")),
   m_state(new AdcEventViewer::State) {
   const string myname = "AdcEventViewer::ctor: ";
   // Fetch the channel ranges.
@@ -118,6 +119,7 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       cout << ran.name;
     }
     cout << "]" << endl;
+    cout << myname << "   ChannelRangeLabel: " << m_ChannelRangeLabel << endl;
   }
   state().run = 0;
   state().event = 0;
@@ -181,7 +183,6 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       }
       VarInfo vinfo(vname, cr);
       string sttl = vinfo.label;
-      if ( cr.name != "all" ) sttl += " " + cr.label();
       sttl += ";" + vinfo.label;
       if ( vinfo.unit.size() ) sttl += " [" + vinfo.unit + "]";
       sttl += ";# event";
@@ -368,9 +369,15 @@ void AdcEventViewer::printReport() const {
   if ( state().event == 0 ) return;
   Index nevt = state().events.size();
   Index ndup = nevt - state().eventSet.size();
-  for ( ChannelRangeStates::iterator icr=state().crstates.begin();
-        icr!=state().crstates.end(); ++icr ) {
-    ChannelRangeState& crstate = icr->second;
+  const int w = 5;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "               event: " << setw(w) << state().event << endl;
+    cout << myname << "            # events: " << setw(w) << state().events.size() << endl;
+    cout << myname << "  # duplicate events: " << setw(w) << ndup << endl;
+    cout << myname << "            # groups: " << setw(w) << state().ngroup << endl;
+  }
+  for ( const IndexRange& cr : m_crs ) {
+    ChannelRangeState& crstate = state().crstates[cr.name];
     Index nfmb = crstate.fembIDSet.size();
     Index nchn = crstate.nchan;
     float meanPed = nchn > 0 ? crstate.pedSum/nchn : 0.0;
@@ -378,11 +385,7 @@ void AdcEventViewer::printReport() const {
     float rmPedPower = sqrt(meanPedPower);
     double chanPerFemb = nfmb > 0 ? double(nchn)/nfmb : 0.0;
     if ( m_LogLevel >= 1 ) {
-      const int w = 5;
-      cout << myname << "               event: " << setw(w) << state().event << endl;
-      cout << myname << "            # events: " << setw(w) << state().events.size() << endl;
-      cout << myname << "  # duplicate events: " << setw(w) << ndup << endl;
-      cout << myname << "            # groups: " << setw(w) << state().ngroup << endl;
+      cout << myname << "     ----- " << cr.label() << endl;
       cout << myname << "             # FEMBs: " << setw(w) << nfmb << endl;
       cout << myname << "          # channels: " << setw(w) << nchn << endl;
       cout << myname << "     # channels/FEMB: " << setw(w+5) << fixed << setprecision(4) << chanPerFemb << endl;
@@ -424,7 +427,13 @@ void AdcEventViewer::displayHists() const {
       TPadManipulator man;
       man.add(ph);
       string sttl = ph->GetTitle() + sttlSuf;
-      if ( cr.name != "all" ) sttl += " for " + cr.name;
+      string crlab = m_ChannelRangeLabel;
+      StringManipulator smlab(crlab);
+      smlab.replace("%CRNAME%", cr.name);
+      smlab.replace("%CRLABEL%", cr.label());
+      smlab.replace("%CRLABEL1%", cr.label(1));
+      smlab.replace("%CRLABEL2%", cr.label(2));
+      if ( crlab.size() ) sttl += " " + crlab;
       man.setTitle(sttl.c_str());
       string fname = string("eviewh_") + ph->GetName() + "_run" + to_string(state().run) + "_" + cr.name + ".png";
       man.showUnderflow();
@@ -452,7 +461,13 @@ void AdcEventViewer::displayGraphs() const {
     if ( m_LogLevel >= 1 ) cout << myname << "Creating " << nplt << " graph"
                                 << (nplt == 1 ? "" : "s") << sttlSuf
                                 << (nplt > 0 ? ":" : "") << endl;
-    if ( cr.name != "all" ) sttlSuf += " " + cr.label();
+    string crlab = m_ChannelRangeLabel;
+    StringManipulator smlab(crlab);
+    smlab.replace("%CRNAME%", cr.name);
+    smlab.replace("%CRLABEL%", cr.label());
+    smlab.replace("%CRLABEL1%", cr.label(1));
+    smlab.replace("%CRLABEL2%", cr.label(2));
+    if ( crlab.size() ) sttlSuf += " " + crlab;
     for ( GraphInfo& gin : crstate.graphs ) {
       if ( m_LogLevel >= 1 ) cout << myname << "Creating graph of " << gin.vary << " vs. " << gin.varx << endl;
       Index npt = gin.xvals.size();
