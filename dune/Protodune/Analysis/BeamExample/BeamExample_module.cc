@@ -3,16 +3,13 @@
 // Plugin Type: analyzer (art v2_07_03)
 // File:        BeamExample_module.cc
 //
-// Generated at Mon Sep  4 06:55:33 2017 by Leigh Whitehead using cetskelgen
-// from cetlib version v3_00_01.
+// Author: Leigh Whitehead using cetskelgen
 //
-// This module is designed to show some usage examples of the analysis
-// tools that I have been producing for protoDUNE. The aim has been to
-// simplify the associations between the different objects to make
-// some of the low-level art features more transparent
-//
-// The code is split into a few sections with each focusing on a different
-// type of initial object
+// Example module that will access PFParticle objects tagged as beam
+// particles by Pandora. A lot of useful information about these
+// objects is stored in art via associations. These complex links
+// are encapsulated by the ProtoDUNEPFParticleUtils class used here
+// to simplify the process 
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -181,6 +178,11 @@ void protoana::BeamExample::analyze(art::Event const & evt)
     const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
     const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
     std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+
+    // At this point we have access to the primary particle track or shower, plus the track and shower daughters of this event.
+    // For other information that can be extracted from the PFParticle objects please see the ProtoDUNEPFParticleUtils header file
+    // /dunetpc/dune/ProtoDUNE/Analysis/ProtoDUNEPFParticleUtils.h
+
   } 
 
 }
