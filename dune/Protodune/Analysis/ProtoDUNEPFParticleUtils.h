@@ -75,7 +75,7 @@ namespace protoana {
     const TVector3 GetPFParticleVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Function to find the secondary interaction vertex of a primary PFParticle
-    const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const;
+    const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Is the particle track-like?
     bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
@@ -100,6 +100,12 @@ namespace protoana {
 
     /// Get the number of hits
     unsigned int GetNumberPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
+
+    /// Get the daughter tracks from the PFParticle
+    const std::vector<const recob::Track*> GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
+
+    /// Get the daughter showers from the PFParticle
+    const std::vector<const recob::Shower*> GetPFParticleDaughterShowers(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
 
   private:
 

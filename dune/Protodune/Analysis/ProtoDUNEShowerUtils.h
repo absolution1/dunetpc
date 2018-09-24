@@ -10,6 +10,7 @@
 
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/PCAxis.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
@@ -29,6 +30,9 @@ namespace protoana {
     const std::vector<const recob::Hit*> GetRecoShowerHits(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
     /// Get the number of hits from a given reco shower
     unsigned int GetNumberRecoShowerHits(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
+    /// Get the associated PCAxis object (from a principal component analysis)
+    std::vector<const recob::PCAxis*> GetRecoShowerPCAxis(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
+
   private:
 
 

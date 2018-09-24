@@ -10,7 +10,7 @@
 
 <!-- support classes (e.g., elements of data product classes) -->
 
- <!--<class name="CalibTreeRecord::PartialOpHit" ClassVersion="14">
+ <class name="CalibTreeRecord::PartialOpHit" ClassVersion="14">
   <version ClassVersion="14" checksum="2757242751"/>
    <version ClassVersion="10" checksum="2378973873"/>
  </class>
@@ -22,7 +22,8 @@
   <version ClassVersion="14" checksum="624439765"/>
    <version ClassVersion="10" checksum="2362630748"/>
  </class>
- <class name="CalibTreeRecord::ParticleRecord" ClassVersion="14">
+ <class name="CalibTreeRecord::ParticleRecord" ClassVersion="15">
+  <version ClassVersion="15" checksum="3991742100"/>
   <version ClassVersion="14" checksum="1650255122"/>
    <version ClassVersion="10" checksum="2971884106"/>
  </class>
@@ -34,14 +35,16 @@
   <version ClassVersion="11" checksum="1006747457"/>
    <version ClassVersion="10" checksum="930023805"/>
  </class>
- <class name="CalibTreeRecord::EveRecord" ClassVersion="12">
+ <class name="CalibTreeRecord::EveRecord" ClassVersion="14">
+  <version ClassVersion="14" checksum="2784049926"/>
+  <version ClassVersion="13" checksum="556589786"/>
   <version ClassVersion="12" checksum="1006193482"/>
    <version ClassVersion="10" checksum="3936382072"/>
  </class>
  <class name="CalibTreeRecord::HCRec" ClassVersion="11">
   <version ClassVersion="11" checksum="3691634903"/>
    <version ClassVersion="10" checksum="1066719352"/>
- </class>-->
+ </class>
  <class name="sim::OpDetDivRec" ClassVersion="13">
   <version ClassVersion="13" checksum="593579870"/>
   <version ClassVersion="12" checksum="3335723222"/>
