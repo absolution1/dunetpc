@@ -10,11 +10,16 @@
 //   EventHists - Array of string histogram specifiers with format "name:nbin:xmin:xmax"
 //                The field name must contain the histogramed variable. Allowed values:
 //                  nfemb - # FEMBs with data 
-//                  rmPedPowern - sqrt(<(ped noise)^2>)
+//                  rmPedPower - sqrt(<(ped noise)^2>)
+//                  meanPedPower - <ped>
 //  EventGraphs - Array of graph specifiers with format xname:xmin:xmax:yname:ymin:ymax
 //                The name fields may contain any of the above plus
 //                  event - Event number
 //                For both histograms and graphs min >= max gives auto scaling
+//  ChannelRanges - If this is not empty, then a separate histogram an graph plots
+//                  are made for each channel range. Otherwise all channels are included.
+//                  The tool channelRanges is used to map the names in this list to ranges.
+//                  Special name "all" or "" plots all channels with label "All".
 
 #ifndef AdcEventViewer_H
 #define AdcEventViewer_H
@@ -22,6 +27,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include <iostream>
 
 class AdcEventViewer : AdcChannelTool {
@@ -38,6 +44,7 @@ public:
   using NameMap = std::map<Name, Name>;
   using FloatVector = std::vector<float>;
   using GraphVector = std::vector<TGraph*>;
+  using IndexRangeVector = std::vector<IndexRange>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -84,6 +91,19 @@ public:
   };
   using GraphInfoVector = std::vector<GraphInfo>;
 
+  // This subclass carries state data for one channel range.
+  class ChannelRangeState {
+  public:
+    IndexSet fembIDSet;      // FEMBs for ths event.
+    Index nchan =0;          // # channels processed for this event
+    float pedSum =0.0;       // Sum over pedestals
+    float pedPower =0.0;     // Sum over (pedestal noise)^2
+    HistVector hists;        // Monitoring histograms.
+    GraphInfoVector graphs;  // Monitoring graphs.
+  };
+
+  using ChannelRangeStates = std::map<Name,ChannelRangeState>;
+
   // This subclass carries the state for this tool, i.e. data that can change
   // after initialization.
   class State {
@@ -93,12 +113,7 @@ public:
     IndexVector events;      // Events in processed order.
     IndexSet eventSet;       // Events ordered.
     Index ngroup;            // # groups processed for this event
-    IndexSet fembIDSet;      // FEMBs for ths event.
-    Index nchan;             // # channels processed for this event
-    float pedSum;            // Sum over pedestals
-    float pedPower;          // Sum over (pedestal noise)^2
-    HistVector hists;        // Monitoring histograms.
-    GraphInfoVector graphs;  // Monitoring graphs.
+    ChannelRangeStates crstates;
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -114,6 +129,9 @@ public:
 
   // Return the state.
   State& state() const { return *m_state; }
+
+  // Return the state for a channel range.
+  ChannelRangeState& crstate(Name crn) const;
 
   // Initialize the state for a new event.
   void startEvent(const AdcChannelData& acd) const;
@@ -136,7 +154,11 @@ private:
   int m_LogLevel;
   NameVector m_EventHists;
   NameVector m_EventGraphs;
+  NameVector m_ChannelRanges;
 
+  // Channel ranges.
+  IndexRangeVector m_crs;
+  
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 

@@ -63,6 +63,7 @@ tools.pd_evtview: {
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
   EventGraphs: ["event:0:0:nfemb:0:125"]
+  ChannelRanges: []
 }
 
 tools.pd_evtped: {
@@ -70,6 +71,7 @@ tools.pd_evtped: {
   LogLevel: 2
   EventHists: ["meanPed:80:0:4000"]
   EventGraphs: ["event:0:0:meanPed:0:0"]
+  ChannelRanges: []
 }
 
 tools.pd_evtpedpwr: {
@@ -77,6 +79,7 @@ tools.pd_evtpedpwr: {
   LogLevel: 2
   EventHists: ["rmPedPower:50:0:25"]
   EventGraphs: ["event:0:0:rmPedPower:0:14"]
+  ChannelRanges: []
 }
 
 ################################################################################
