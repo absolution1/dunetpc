@@ -1,6 +1,12 @@
 #include "dataprep_tools.fcl"
 
 ################################################################################
+# Shared data.
+################################################################################
+
+data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
+
+################################################################################
 # Channel mapping.
 ################################################################################
 
@@ -80,6 +86,14 @@ tools.pd_evtpedpwr: {
   EventHists: ["rmPedPower:50:0:25"]
   EventGraphs: ["event:0:0:rmPedPower:0:14"]
   ChannelRanges: []
+}
+
+tools.pd_tpsviewNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:21:0:21"]
+  EventGraphs: ["event:0:0:nfemb:0:21"]
+  ChannelRanges: @local::data.pd_tpsChannelRanges
 }
 
 ################################################################################

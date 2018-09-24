@@ -57,7 +57,7 @@ VarInfo::VarInfo(string aname, const IndexRange& cr) : name(aname) {
     label = "Pedestal mean";
     unit = "ADC counts";
   }
-  if ( cr.name != "all" ) label += " for " + cr.label();
+  //if ( cr.name != "all" ) label += " for " + cr.label();
 }
 
 }  // end unnamed namespace
@@ -180,7 +180,9 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
         continue;
       }
       VarInfo vinfo(vname, cr);
-      string sttl = vinfo.label + ";" + vinfo.label;
+      string sttl = vinfo.label;
+      if ( cr.name != "all" ) sttl += " " + cr.label();
+      sttl += ";" + vinfo.label;
       if ( vinfo.unit.size() ) sttl += " [" + vinfo.unit + "]";
       sttl += ";# event";
       if ( m_LogLevel >= 2 ) {
@@ -438,17 +440,19 @@ void AdcEventViewer::displayHists() const {
 
 void AdcEventViewer::displayGraphs() const {
   const string myname = "AdcEventViewer::displayGraphs: ";
-  string sttlSuf = " for run " + to_string(state().run);
+  string sttlSufBase = " for run " + to_string(state().run);
   for ( const IndexRange& cr : m_crs ) {
     ChannelRangeState& crstate = state().crstates[cr.name];
     Index nplt = crstate.graphs.size();
-    if ( m_LogLevel >= 1 ) cout << myname << "Creating " << nplt << " graph"
-                                << (nplt == 1 ? "" : "s") << sttlSuf
-                                << (nplt > 0 ? ":" : "") << endl;
     Index nevt = state().eventSet.size();
+    string sttlSuf = sttlSufBase;
     if ( nevt == 0 ) sttlSuf += " with no events.";
     else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
     else sttlSuf += " events " + to_string(*state().eventSet.begin()) + "-" + to_string(*state().eventSet.rbegin());
+    if ( m_LogLevel >= 1 ) cout << myname << "Creating " << nplt << " graph"
+                                << (nplt == 1 ? "" : "s") << sttlSuf
+                                << (nplt > 0 ? ":" : "") << endl;
+    if ( cr.name != "all" ) sttlSuf += " " + cr.label();
     for ( GraphInfo& gin : crstate.graphs ) {
       if ( m_LogLevel >= 1 ) cout << myname << "Creating graph of " << gin.vary << " vs. " << gin.varx << endl;
       Index npt = gin.xvals.size();
