@@ -15,6 +15,7 @@
 //  EventGraphs - Array of graph specifiers with format xname:xmin:xmax:yname:ymin:ymax
 //                The name fields may contain any of the above plus
 //                  event - Event number
+//                  clock - Timing clock count
 //                For both histograms and graphs min >= max gives auto scaling
 //  ChannelRanges - If this is not empty, then a separate histogram an graph plots
 //                  are made for each channel range. Otherwise all channels are included.
@@ -24,6 +25,8 @@
 //                      XXX = CRLABEL to replace with cr.label()
 //                      XXX = CRLABEL1 to replace with cr.label(1)
 //                      XXX = CRLABEL2 to replace with cr.label(2)
+//      ClockUnit - Unit for plotting clock counts: tick, ktick or Mtick
+//      ClockRate - # clock ticks per second. Used to conver to time.
 #ifndef AdcEventViewer_H
 #define AdcEventViewer_H
 
@@ -40,6 +43,8 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using IndexSet = std::set<Index>;
+  using LongIndex = unsigned long;
+  using LongIndexVector = std::vector<LongIndex>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
@@ -112,8 +117,12 @@ public:
   class State {
   public:
     Index run;
-    Index event;             // Current event
+    Index event;             // Current event.
+    LongIndex clock;         // Current timing clock.
     IndexVector events;      // Events in processed order.
+    LongIndexVector clocks;  // Timing clocks in processed order.
+    LongIndex firstClock;    // First timing clock.
+    LongIndex minClock;      // Minimum timing clock.
     IndexSet eventSet;       // Events ordered.
     Index ngroup;            // # groups processed for this event
     ChannelRangeStates crstates;
@@ -159,6 +168,8 @@ private:
   NameVector m_EventGraphs;
   NameVector m_ChannelRanges;
   Name m_ChannelRangeLabel;
+  Name m_ClockUnit;
+  double m_ClockRate;
 
   // Channel ranges.
   IndexRangeVector m_crs;

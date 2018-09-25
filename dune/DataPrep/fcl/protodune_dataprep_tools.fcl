@@ -5,6 +5,8 @@
 ################################################################################
 
 data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
+data.pd_ClockUnit: "Mtick"
+data.pd_TriggerClockRate: 50000000.0
 
 ################################################################################
 # Channel mapping.
@@ -64,13 +66,15 @@ tools.pd_adcPedestalFit: {
 # Event metrics.
 ################################################################################
 
-tools.pd_evtviewNFemb: {
+tools.pd_evtviewNfemb: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
   EventGraphs: ["event:0:0:nfemb:0:125"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
 }
 
 tools.pd_evtviewPed: {
@@ -80,6 +84,8 @@ tools.pd_evtviewPed: {
   EventGraphs: ["event:0:0:meanPed:0:0"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
 }
 
 tools.pd_evtviewPedpwr: {
@@ -89,15 +95,19 @@ tools.pd_evtviewPedpwr: {
   EventGraphs: ["event:0:0:rmPedPower:0:14"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
 }
 
-tools.pd_tpsviewNfemb: {
+tools.pd_evtviewNfembByTps: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:21:0:21"]
   EventGraphs: ["event:0:0:nfemb:0:21"]
   ChannelRanges: @local::data.pd_tpsChannelRanges
   ChannelRangeLabel: "%CRLABEL% (%CRLABEL2% %CRLABEL1%)"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
 }
 
 ################################################################################

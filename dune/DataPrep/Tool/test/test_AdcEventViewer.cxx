@@ -47,6 +47,8 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
     fout << "  EventGraphs: []" << endl;
     fout << "  ChannelRanges: []" << endl;
     fout << "  ChannelRangeLabel: \"\"" << endl;
+    fout << "  ClockUnit: Mtick" << endl;
+    fout << "  ClockRate: 50000000" << endl;
     fout << "}" << endl;
     fout.close();
   } else {

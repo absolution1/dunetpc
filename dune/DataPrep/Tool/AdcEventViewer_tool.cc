@@ -37,18 +37,26 @@ struct VarInfo {
   string vname;
   string label;
   string unit;
-  VarInfo(string aname, const IndexRange& cr);
+  VarInfo(string aname, const IndexRange& cr, string clockUnit);
   bool isValid() const { return vname.size(); }
 };
 
 // Extract variable info from a name.
-VarInfo::VarInfo(string aname, const IndexRange& cr) : name(aname) {
+VarInfo::VarInfo(string aname, const IndexRange& cr, string clockUnit) : name(aname) {
   if ( name.find("nfemb") != string::npos ) {
     vname = "nfemb";
     label = "FEMB count";
   } else if ( name.find("event") != string::npos ) {
     vname = "event";
     label = "Event";
+  } else if ( name.find("clock") != string::npos ) {
+    vname = "clock";
+    label = "Timing clock";
+    unit = clockUnit;
+  } else if ( name.find("time") != string::npos ) {
+    vname = "time";
+    label = "Time";
+    unit = "sec";
   } else if ( name.find("rmPedPower") != string::npos ) {
     vname = "rmPedPower";
     label = "Pedestal noise RMS";
@@ -72,6 +80,8 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
   m_EventGraphs(ps.get<NameVector>("EventGraphs")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_ChannelRangeLabel(ps.get<Name>("ChannelRangeLabel")),
+  m_ClockUnit(ps.get<Name>("ClockUnit")),
+  m_ClockRate(ps.get<double>("ClockRate")),
   m_state(new AdcEventViewer::State) {
   const string myname = "AdcEventViewer::ctor: ";
   // Fetch the channel ranges.
@@ -120,10 +130,22 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
     }
     cout << "]" << endl;
     cout << myname << "   ChannelRangeLabel: " << m_ChannelRangeLabel << endl;
+    cout << myname << "           ClockUnit: " << m_ClockUnit << endl;
+    cout << myname << "           ClockRate: " << m_ClockRate << " tick/sec" << endl;
   }
   state().run = 0;
   state().event = 0;
+  state().firstClock = 0;
+  state().minClock = 0;
   const string::size_type& npos = string::npos;
+  // Make sure clock unit is valid.
+  if ( m_ClockUnit != "tick" &&
+       m_ClockUnit != "ktick" &&
+       m_ClockUnit != "Mtick" &&
+       m_ClockUnit != "Gtick" ) {
+    cout << myname << "WARNING: invalid clock unit changed to tick" << endl;
+    m_ClockUnit = "tick";
+  }
   // Loop over channel ranges
   for ( const IndexRange& cr : m_crs ) {
     // Create the substate;
@@ -181,10 +203,11 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
         cout << myname << "ERROR: No variable for histogram name " << hname << endl;
         continue;
       }
-      VarInfo vinfo(vname, cr);
+      VarInfo vinfo(vname, cr, m_ClockUnit);
       string sttl = vinfo.label;
       sttl += ";" + vinfo.label;
-      if ( vinfo.unit.size() ) sttl += " [" + vinfo.unit + "]";
+      Name unit = vinfo.unit;
+      if ( unit.size() ) sttl += " [" + unit + "]";
       sttl += ";# event";
       if ( m_LogLevel >= 2 ) {
         cout << myname << "Creating in histogram " << hname << ", nbin=" << nbin
@@ -240,9 +263,9 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
           }
         }
       }
-      VarInfo xvin(xname, cr);
+      VarInfo xvin(xname, cr, m_ClockUnit);
       ok &= xvin.isValid();
-      VarInfo yvin(yname, cr);
+      VarInfo yvin(yname, cr, m_ClockUnit);
       ok &= yvin.isValid();
       if ( ! ok ) {
         cout << "WARNING: Invalid graph configuration string: " << gspec << endl;
@@ -276,14 +299,17 @@ AdcEventViewer::~AdcEventViewer() {
 //**********************************************************************
 
 DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
+  const string myname = "AdcEventViewer::view: ";
   DataMap res;
   Index ievt = acd.event;
   Index irun = acd.run;
+  if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel
+                              << " in run " << irun << " event " << ievt << endl;
   if ( ievt != state().event || irun != state().run ) {
     startEvent(acd);
   }
   for ( const IndexRange& cr : m_crs ) {
-    if ( ! cr.contains(acd.channel) ) continue;
+    if ( cr.name != "all" && !cr.contains(acd.channel) ) continue;
     ChannelRangeState& crstate = state().crstates[cr.name];
     crstate.fembIDSet.insert(acd.fembID);
     ++crstate.nchan;
@@ -341,9 +367,14 @@ void AdcEventViewer::startEvent(const AdcChannelData& acd) const {
     state().run = acd.run;
   }
   Index ievt = acd.event;
+  if ( m_LogLevel >= 4 ) cout << myname << "Starting event " << ievt << endl;
   state().event = ievt;
   state().events.push_back(ievt);
   state().eventSet.insert(ievt);
+  LongIndex clk = acd.triggerClock;
+  state().clock = clk;
+  if ( state().firstClock == 0 ) state().firstClock = clk;
+  if ( clk < state().minClock ) state().minClock = clk;
   state().ngroup = 0;
   for ( ChannelRangeStates::iterator icr=state().crstates.begin();
         icr!=state().crstates.end(); ++icr ) {
@@ -359,21 +390,26 @@ void AdcEventViewer::startEvent(const AdcChannelData& acd) const {
 
 void AdcEventViewer::endEvent() const {
   const string myname = "AdcEventViewer::endEvent: ";
-  printReport();
-}
-
-//**********************************************************************
-
-void AdcEventViewer::printReport() const {
-  const string myname = "AdcEventViewer::printReport: ";
   if ( state().event == 0 ) return;
   Index nevt = state().events.size();
   Index ndup = nevt - state().eventSet.size();
   const int w = 5;
-  if ( m_LogLevel >= 1 ) {
+  long iclk = state().clock;
+  iclk -= state().firstClock;
+  // Plotted clock has zero 1 sec after the clock for the first event.
+  float xclk = iclk + m_ClockRate;
+  float time = m_ClockRate == 0.0 ? 0.0 : xclk/m_ClockRate;
+  Name clkunit = m_ClockUnit;
+  if      ( clkunit == "ktick" ) xclk *= 0.001;
+  else if ( clkunit == "Mtick" ) xclk *= 0.000001;
+  else if ( clkunit == "Gtick" ) xclk *= 0.000000001;
+  if ( m_LogLevel >= 2 ) {
     cout << myname << "               event: " << setw(w) << state().event << endl;
     cout << myname << "            # events: " << setw(w) << state().events.size() << endl;
     cout << myname << "  # duplicate events: " << setw(w) << ndup << endl;
+    cout << myname << "           Min clock: " << setw(w) << state().minClock << endl;
+    cout << myname << "               clock: " << setw(w+3) << fixed << setprecision(2) << xclk << " " << clkunit << endl;
+    cout << myname << "                time: " << setw(w+3) << fixed << setprecision(2) << time << " sec" << endl;
     cout << myname << "            # groups: " << setw(w) << state().ngroup << endl;
   }
   for ( const IndexRange& cr : m_crs ) {
@@ -384,11 +420,13 @@ void AdcEventViewer::printReport() const {
     float meanPedPower = nchn > 0 ? crstate.pedPower/nchn : 0.0;
     float rmPedPower = sqrt(meanPedPower);
     double chanPerFemb = nfmb > 0 ? double(nchn)/nfmb : 0.0;
-    if ( m_LogLevel >= 1 ) {
-      cout << myname << "     ----- " << cr.label() << endl;
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "----- Channel range " << cr.label() << ":" << endl;
       cout << myname << "             # FEMBs: " << setw(w) << nfmb << endl;
       cout << myname << "          # channels: " << setw(w) << nchn << endl;
       cout << myname << "     # channels/FEMB: " << setw(w+5) << fixed << setprecision(4) << chanPerFemb << endl;
+      cout << myname << "       Mean pedestal: " << setw(w+3) << fixed << setprecision(2) << meanPed << endl;
+      cout << myname << "   RM pedestal power: " << setw(w+3) << fixed << setprecision(2) << rmPedPower << endl;
     }
     for ( TH1* ph : crstate.hists ) {
       string name = ph->GetName();
@@ -400,8 +438,10 @@ void AdcEventViewer::printReport() const {
       }
     }
     for ( GraphInfo& gin : crstate.graphs ) {
-      gin.add("nfemb", nfmb);
       gin.add("event", state().event);
+      gin.add("clock", xclk);
+      gin.add("time", time);
+      gin.add("nfemb", nfmb);
       gin.add("rmPedPower", rmPedPower);
       gin.add("meanPed", meanPed);
     }
