@@ -73,8 +73,10 @@ namespace beam
 
       void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };
       void              AddTOF1Trigger( std::pair<double,double> theT){ TOF1.push_back(theT); }; 
+      void              AddTOFChan(int theChan){ TOFChan.push_back(theChan); };
       std::pair< double, double > GetTOF0(size_t);
       std::pair< double, double > GetTOF1(size_t);
+      int               GetTOFChan(size_t);
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
@@ -99,6 +101,7 @@ namespace beam
       //
       std::vector< std::pair< double, double > > TOF0;
       std::vector< std::pair< double, double > > TOF1;
+      std::vector< int > TOFChan;
 
       //Set of Cerenkov detectors
       //
@@ -377,6 +380,15 @@ namespace beam
     }
 
     return TOF1[nTrigger];
+  }
+
+  inline int ProtoDUNEBeamEvent::GetTOFChan(size_t nTrigger){
+    if( (nTrigger >= TOF1.size()) ){
+      std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
+      return -1;
+    }
+
+    return TOFChan[nTrigger];
   }
   /////////////////////////////////
 
