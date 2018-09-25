@@ -14,6 +14,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -23,6 +24,9 @@
 
 //dunetpc includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+
+//ROOT includes
+#include "TGraph.h"
 
 //c++ includes
 #include <memory>
@@ -50,7 +54,7 @@ namespace CRT
       void produce(art::Event & e) override;
     
       // Selected optional functions.  I might get services that I expect to change here.  So far, seems like only service I might need is timing.
-      //void beginJob() override;
+      void beginJob() override;
       //void beginRun(art::Run & r) override;
       //void beginSubRun(art::SubRun & sr) override;
     
@@ -60,28 +64,30 @@ namespace CRT
       art::InputTag fFragLabel; //Label of the module that produced artdaq::Fragments 
                                 //from CRT data that I will turn into CRT::Triggers.
   
-      //TODO: Sync diagnostic plots
-      /*struct PerModule
+      //Sync diagnostic plots
+      struct PerModule
       {
-        PerModule(util::Directory parent, const size_t module): fModuleDir(parent.mkdir("Module"+std::to_string(module)))
+        PerModule(art::TFileDirectory& parent, const size_t module): fModuleDir(parent.mkdir("Module"+std::to_string(module)))
         {
           fLowerTimeVersusTime = fModuleDir.makeAndRegister<TGraph>("LowerTimeVersusTime", "Raw 32 Bit Timestamp versus Elapsed Time in Seconds;"
                                                                                            "Time [s];Raw Timestamp [ticks]");
         }
 
-        util::Directory fModuleDir; //Directory for plots from this module
+        art::TFileDirectory fModuleDir; //Directory for plots from this module
         TGraph* fLowerTimeVersusTime; //Graph of lower 32 bits of raw timestamp versus processed timestamp in seconds.  
       }; 
 
       std::vector<PerModule> fSyncPlots; //Mapping from module number to sync diagnostic plots in a directory 
-      uint64_t fEarliestTime; //Earliest time in clock ticks*/
+      uint64_t fEarliestTime; //Earliest time in clock ticks
   };
   
   
-  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.get<std::string>("RawDataLabel"), p.get<std::string>("RawDataInstance"))
+  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.get<std::string>("RawDataLabel"), p.get<std::string>("RawDataInstance")), 
+                                                               fEarliestTime(std::numeric_limits<decltype(fEarliestTime)>::max())
   {
     // Call appropriate produces<>() functions here.
     produces<std::vector<CRT::Trigger>>();
+    //TODO: call consumes
   }
   
   //Read artdaq::Fragments produced by fFragLabel, and use CRT::Fragment to convert them to CRT::Triggers.  
@@ -97,7 +103,16 @@ namespace CRT
       //Try to get artdaq::Fragments produced from CRT data.  The following line is the reason for 
       //this try-catch block.  I don't expect anything else to throw a cet::Exception.
       const auto& fragHandle = e.getValidHandle<std::vector<artdaq::Fragment>>(fFragLabel);
-      
+   
+      //If this is the first event, set fEarliestTime
+      if(fEarliestTime == std::numeric_limits<decltype(fEarliestTime)>::max())
+      {
+        fEarliestTime = CRT::Fragment(*(std::min_element(fragHandle->begin(), fragHandle->end(), 
+                                         [](const auto& first, const auto& second)
+                                         { return CRT::Fragment(first).fifty_mhz_time() < CRT::Fragment(second).fifty_mhz_time(); }
+                                        ))).fifty_mhz_time(); 
+      }
+
       //Convert each fragment into a CRT::Trigger.
       for(const auto& artFrag: *fragHandle)
       {
@@ -129,19 +144,20 @@ namespace CRT
   
         triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); //TODO: Get AuxDet index from channel map
         
-        /* //TODO: Get raw lower timestamp for this plot
         //Make diagnostic plots for sync pulses
-        const auto& plots = fSyncPlots[trigger.Channel()];
-        const double deltaT = (triggers.back().Timestamp() - fEarliestTime)*1.6e-8;
+        const auto& plots = fSyncPlots[frag.module_num()];
+        const double deltaT = (frag.fifty_mhz_time() - fEarliestTime)*1.6e-8; //TODO: Get size of clock ticks from a service
         if(deltaT > 0 && deltaT < 1e6) //Ignore time differences less than 1s and greater than 1 day
                                        //TODO: Understand why these cases come up
         {
-          plots.fLowerTimeVersusTime->SetPoint(plots.fLowerTimeVersusTime->GetN(), deltaT, pair.second*16);
+          plots.fLowerTimeVersusTime->SetPoint(plots.fLowerTimeVersusTime->GetN(), deltaT, frag.raw_backend_time());
         }
         else
         {
-          //TODO: Print something out here
-        }*/
+          mf::LogWarning("SyncPlots") << "Got time difference " << deltaT << " that was not included in sync plots.\n"
+                                      << "lhs is " << frag.fifty_mhz_time() << ", and rhs is " << fEarliestTime << ".\n"
+                                      << "Hardware raw time is " << frag.raw_backend_time() << ".\n";
+        }
       } 
     }
     catch(const cet::exception& exc) //If there are no artdaq::Fragments in this Event, just add an empty container of CRT::Triggers.
@@ -153,14 +169,14 @@ namespace CRT
     e.put(std::move(triggers));
   }
   
-  /*void CRT::CRTRawDecoder::beginJob()
+  void CRT::CRTRawDecoder::beginJob()
   {
     // Implementation of optional member function here.
     art::ServiceHandle<art::TFileService> tfs;
-    for(size_t module = 0; module < 32; ++module) fSyncPlots.emplace_back(tfs, module); //32 modules in the ProtoDUNE-SP CRT
+    for(size_t module = 0; module < 32; ++module) fSyncPlots.emplace_back(*tfs, module); //32 modules in the ProtoDUNE-SP CRT
   }
   
-  void CRT::CRTRawDecoder::beginRun(art::Run & r)
+  /*void CRT::CRTRawDecoder::beginRun(art::Run & r)
   {
     // Implementation of optional member function here.
   }
