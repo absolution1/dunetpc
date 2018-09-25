@@ -1,5 +1,6 @@
 #include "calorimetry_dune10kt.fcl"
 #include "trackfinderalgorithms.fcl"
+#include "dunerw.fcl"
 
 BEGIN_PROLOG
 
@@ -13,6 +14,7 @@ dunefd_cafmaker:
     MVASelectNumuLabel: "mvaselectnumu"
 
     CVNLabel:           "cvneval"
+    RegCVNLabel:        "regcvneval"
 
     EnergyRecoNueLabel:      "energyreconue"
     EnergyRecoNumuLabel:     "energyreconumu"
@@ -43,6 +45,7 @@ dunefd_cafmaker:
     FidVolCut:	             3.0
     NuECut:                  0.8
     NuMuCut:                 0.8
+    generated_systematic_provider_configuration: @local::generated_systematic_provider_configuration
 }
 
 END_PROLOG

@@ -9,6 +9,7 @@
 #include "databaseutil_dune.fcl"
 #include "backtrackerservice.fcl"
 #include "particleinventoryservice.fcl"
+#include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
@@ -136,6 +137,7 @@ dunefddphase_simulation_services: {
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  SpaceCharge:                    @local::dunefddphase_spacecharge
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunefddphase_reco_services:                            @local::dunefddphase_services
@@ -200,6 +202,7 @@ dunedphase3x1x1_simulation_services: {
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -273,6 +276,7 @@ protodunedphase_simulation_services: {
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
+ DetPedestalService:		 @local::dunedp_fixedpeds
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
@@ -337,7 +341,7 @@ protodune_services: {
  PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
  PdspChannelMapService:        @local::pdspchannelmap
@@ -353,7 +357,7 @@ protodune_data_services: {
  DatabaseUtil:                 @local::dunefd_database
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
 }
@@ -371,7 +375,7 @@ protodune_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
  OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status

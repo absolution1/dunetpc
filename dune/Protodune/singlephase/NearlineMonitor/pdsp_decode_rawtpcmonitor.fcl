@@ -25,9 +25,6 @@ services:
 
 }
 
-services.DetectorPropertiesService.NumberTimeSamples: 10000
-services.DetectorPropertiesService.ReadOutWindowSize: 10000
-
 #source is now a root file
 source:
 {

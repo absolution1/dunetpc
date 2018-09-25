@@ -1,10 +1,9 @@
 ////////////////////////////////////////////////////////////////////////
 //
-// File: EventRecord.h
+// File: OpDetDivRec..cxx
 // Author: Jason Stock (jason.stock@mines.sdsmt.edu)
-// This file is a set of classes for writeout of data relative to calibration sources.
-// The main purpose of this class is to allow easy fast analysis of calibration
-// simulations.
+// This file is a set of classes for writeout of data relative to 
+// OpticalChannels in the DUNE detectors.
 //
 ////////////////////////////////////////////////////////////////////////
 
