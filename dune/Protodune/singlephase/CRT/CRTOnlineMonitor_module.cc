@@ -47,8 +47,8 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
-  //void beginRun(art::Run const & r) override;
-  //void endRun(art::Run const & r) override;
+  void beginRun(art::Run const & r) override;
+  void endRun(art::Run const & r) override;
   void onFileClose();
 
 private:
@@ -94,25 +94,26 @@ void CRTOnlineMonitor::beginJob()
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
   fPlotter = std::make_unique<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>>(tfs);
-  onFileClose();
+  fPlotter->ReactBeginRun("");
 }
 
 void CRTOnlineMonitor::onFileClose()
 {
+  art::ServiceHandle<art::TFileService> tfs;
+  fPlotter.reset(new CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>(tfs));
   fPlotter->ReactBeginRun("");
-  fPlotter->ReactEndRun("");
 }
 
-/*void CRTOnlineMonitor::beginRun(art::Run const & r)
+void CRTOnlineMonitor::beginRun(art::Run const & r)
 {
   // Implementation of optional member function here.
   fPlotter->ReactBeginRun(""); //TODO: Remove std::string from interface for OnlinePlotter and friends
-}*/
+}
 
-/*void CRTOnlineMonitor::endRun(art::Run const & r)
+void CRTOnlineMonitor::endRun(art::Run const & r)
 {
   // Implementation of optional member function here.
   fPlotter->ReactEndRun(""); //TODO: Remove std::string from interface for OnlinePlotter and friends
-}*/
+}
 
 DEFINE_ART_MODULE(CRTOnlineMonitor)
