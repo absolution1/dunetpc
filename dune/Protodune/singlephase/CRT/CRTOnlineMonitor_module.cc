@@ -72,8 +72,16 @@ CRTOnlineMonitor::CRTOnlineMonitor(fhicl::ParameterSet const & p)
 void CRTOnlineMonitor::analyze(art::Event const & e)
 {
   // Implementation of required member function here.
-  const auto& triggers = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
-  fPlotter->AnalyzeEvent(*triggers);
+  try
+  {
+    const auto& triggers = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
+    fPlotter->AnalyzeEvent(*triggers);
+  }
+  catch(const cet::exception& e)
+  {
+    mf::LogWarning("MissingData") << "Caught exception when trying to find CRT::Triggers from label " << fCRTLabel << ":\n"
+                                  << e.what() << "\n";
+  }
 }
 
 void CRTOnlineMonitor::beginJob()
