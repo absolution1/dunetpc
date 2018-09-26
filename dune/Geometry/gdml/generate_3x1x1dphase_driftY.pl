@@ -9,6 +9,7 @@
 #  More detector elements are going to be added (e.g. PMTs, field cage, ...)
 #  For more info, please contact Christoph Alt: christoph.alt@cern.ch 
 #
+#  !!!NOTE!!!: the readout is on a positive Y
 ##################################################################################
 
 
@@ -157,23 +158,25 @@ $FracMassOfAir   =  1 - $FracMassOfSteel;
 $SpaceSteelSupportToWall    = 0;
 $SpaceSteelSupportToCeiling = 0;
 
-$DetEncWidth   =    $Cryostat_x
+$DetEncX   =    $Cryostat_x
                   + 2*($SteelSupport_x + $FoamPadding) + 2*$SpaceSteelSupportToWall;
-$DetEncHeight  =    $Cryostat_y
+
+$DetEncY  =    $Cryostat_y
                   + 2*($SteelSupport_y + $FoamPadding) + $SpaceSteelSupportToCeiling;
-$DetEncLength  =    $Cryostat_z
+
+$DetEncZ  =    $Cryostat_z
                   + 2*($SteelSupport_z + $FoamPadding) + 2*$SpaceSteelSupportToWall;
 
-$posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
+$posCryoInDetEnc_y = - $DetEncY/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
 
 
 # 2*AirThickness is added to the world volume in x, y and z
 $AirThickness = 3000;
 
   # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
+  # This is to be added to the x and y position of every volume in volWorld
 
-$OriginXSet =  $DetEncWidth/2.0
+$OriginXSet =  $DetEncX/2.0
               -$SpaceSteelSupportToWall
               -$SteelSupport_x
               -$FoamPadding
@@ -181,7 +184,7 @@ $OriginXSet =  $DetEncWidth/2.0
               -$xLArBuffer
               -$widthTPCActive/2.0;
 
-$OriginYSet =   $DetEncHeight/2.0
+$OriginYSet =   $DetEncY/2.0
               - $SteelSupport_y
               - $FoamPadding
               - $SteelThickness
@@ -194,13 +197,13 @@ $OriginYSet =   $DetEncHeight/2.0
   # dead LAr on the edge of the TPC)
   # This is to be added to the z position of every volume in volWorld
 
-$OriginZSet =   $DetEncLength/2.0 
+$OriginZSet =   $DetEncZ/2.0 
               - $SpaceSteelSupportToWall
               - $SteelSupport_z
               - $FoamPadding
               - $SteelThickness
               - $zLArBuffer
-	      - $borderCRM;
+              - $borderCRM;
 
 
 ##################################################################
@@ -830,9 +833,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="$DetEncWidth"
-      y="$DetEncHeight"
-      z="$DetEncLength"/>
+      x="$DetEncX"
+      y="$DetEncY"
+      z="$DetEncZ"/>
 
 </solids>
 EOF
@@ -911,9 +914,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$AirThickness]}" 
-      y="@{[$DetEncHeight+2*$AirThickness]}" 
-      z="@{[$DetEncLength+2*$AirThickness]}"/>
+      x="@{[$DetEncX+2*$AirThickness]}" 
+      y="@{[$DetEncY+2*$AirThickness]}" 
+      z="@{[$DetEncZ+2*$AirThickness]}"/>
 </solids>
 EOF
 
@@ -1022,7 +1025,7 @@ print "CRM active area    : $widthCRM_active x $lengthCRM_active\n";
 print "CRM total area     : $widthCRM x $lengthCRM\n";
 print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
-print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
+print "Detector enclosure : $DetEncX x $DetEncY x $DetEncZ\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
 print "PMTs               : $pmt_switch \n";
 

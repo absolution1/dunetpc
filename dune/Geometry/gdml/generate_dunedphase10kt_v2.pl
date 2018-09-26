@@ -207,7 +207,7 @@ $posCryoInDetEnc_x = - $DetEncX/2 + $SteelSupport_x + $FoamPadding + $Cryostat_x
 $RockThickness = 4000;
 
   # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
+  # This is to be added to the x and y position of every volume in volWorld
 
 $OriginXSet =  $DetEncX/2.0
               -$SteelSupport_x

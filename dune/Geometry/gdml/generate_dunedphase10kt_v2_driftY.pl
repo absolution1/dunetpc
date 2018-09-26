@@ -5,8 +5,7 @@
 #  adapted from single phase cryostat geometry script from Tyler Dalion
 #  by Vyacheslav Galymov < vgalymov@ipnl.in2p3.fr >
 #
-#  !!!NOTE!!!: the readout is on a positive X -- a fix for electric field
-#              direction  problem in larsoft
+#  !!!NOTE!!!: the readout is on a positive Y
 
 #################################################################################
 #
@@ -207,7 +206,7 @@ $posCryoInDetEnc_y = - $DetEncY/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y
 $RockThickness = 4000;
 
   # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
+  # This is to be added to the x and y position of every volume in volWorld
 
 $OriginXSet =  $DetEncX/2.0
               -$SpaceSteelSupportToWall
