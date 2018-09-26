@@ -357,6 +357,15 @@ tools.pdtps_adcChannelFembChannelPlotter.HistTitle: "FEMB channels for run %RUN%
 tools.pdtps_adcChannelFembChannelPlotter.MetricLabel: "FEMB channel"
 tools.pdtps_adcChannelFembChannelPlotter.PlotFileName: "chmet_fembchan_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# Raw tick count for each TPS channel.
+tools.pdtps_adcChannelNrawPlotter: @local::pdtps_template
+tools.pdtps_adcChannelNrawPlotter.Metric: nraw
+tools.pdtps_adcChannelNrawPlotter.MetricMax: 6200
+tools.pdtps_adcChannelNrawPlotter.HistName: "hchpd%CRNAME%_nraw_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelNrawPlotter.HistTitle: "Raw tick count for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelNrawPlotter.MetricLabel: "# ticks"
+tools.pdtps_adcChannelNrawPlotter.PlotFileName: "chmet_nraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
 # Pedestal for each TPS channel.
 tools.pdtps_adcChannelPedestalPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPlotter.Metric: pedestal

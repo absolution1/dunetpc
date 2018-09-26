@@ -263,6 +263,10 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
     val = acd.fembID;
   } else if ( m_Metric == "apaFembID" ) {
     val = acd.fembID%20;
+  } else if ( m_Metric == "nraw" ) {
+    val = acd.raw.size();
+  } else if ( m_Metric == "nsam" ) {
+    val = acd.samples.size();
   } else if ( m_Metric == "fembChannel" ) {
     val = acd.fembChannel;
   } else if ( m_Metric == "rawRms" ) {
