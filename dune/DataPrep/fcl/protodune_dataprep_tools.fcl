@@ -455,10 +455,13 @@ tools.pdwz_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_wp_pedpea
 ################################################################################
 
 # Read in the tick offset
+# 26sep2018 dla: Set phase to 1. It appears protoDUNE has been using this
+# phase up til now and will presumably keep it.
+# If not, we will have to start using run data.
 tools.pd_tickOffset: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
-  TpcTickPhase: 0
+  TpcTickPhase: 1
   Unit: tick
   RunDataTool: ""
 }
