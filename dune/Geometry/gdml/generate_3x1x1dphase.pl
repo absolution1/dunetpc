@@ -410,7 +410,7 @@ print TPC <<EOF;
       <solidref ref="CRMVPlane"/>
 EOF
 
-if ($wires_on==1) # add wires to Z plane
+if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
 for($i=0;$i<$nChannelsWidthPerCRM;++$i)
 {
@@ -435,7 +435,7 @@ print TPC <<EOF;
 EOF
 
 
-if ($wires_on==1) # add wires to X plane
+if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
 {
 for($i=0;$i<$nChannelsLengthPerCRM;++$i)
 {
@@ -491,7 +491,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="@{[$posTPCActive[0]+$padWidth]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>

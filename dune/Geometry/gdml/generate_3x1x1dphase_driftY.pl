@@ -494,7 +494,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="$posTPCActive[0]" y="@{[$posTPCActive[1]+$padWidth]}" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
