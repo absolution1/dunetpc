@@ -47,8 +47,9 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
-  void beginRun(art::Run const & r) override;
-  void endRun(art::Run const & r) override;
+  //void beginRun(art::Run const & r) override;
+  //void endRun(art::Run const & r) override;
+  void onFileClose();
 
 private:
 
@@ -67,6 +68,10 @@ CRTOnlineMonitor::CRTOnlineMonitor(fhicl::ParameterSet const & p)
  // More initializers here.
 {
   consumes<std::vector<CRT::Trigger>>(fCRTLabel);
+
+  //Register callback to create new histograms for each file processed
+  art::ServiceHandle<art::TFileService> tfs;
+  tfs->registerFileSwitchCallback(this, &CRTOnlineMonitor::onFileClose);
 }
 
 void CRTOnlineMonitor::analyze(art::Event const & e)
@@ -89,18 +94,25 @@ void CRTOnlineMonitor::beginJob()
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
   fPlotter = std::make_unique<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>>(tfs);
+  onFileClose();
 }
 
-void CRTOnlineMonitor::beginRun(art::Run const & r)
+void CRTOnlineMonitor::onFileClose()
+{
+  fPlotter->ReactBeginRun("");
+  fPlotter->ReactEndRun("");
+}
+
+/*void CRTOnlineMonitor::beginRun(art::Run const & r)
 {
   // Implementation of optional member function here.
   fPlotter->ReactBeginRun(""); //TODO: Remove std::string from interface for OnlinePlotter and friends
-}
+}*/
 
-void CRTOnlineMonitor::endRun(art::Run const & r)
+/*void CRTOnlineMonitor::endRun(art::Run const & r)
 {
   // Implementation of optional member function here.
   fPlotter->ReactEndRun(""); //TODO: Remove std::string from interface for OnlinePlotter and friends
-}
+}*/
 
 DEFINE_ART_MODULE(CRTOnlineMonitor)

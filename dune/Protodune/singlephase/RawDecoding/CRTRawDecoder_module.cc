@@ -77,6 +77,8 @@ namespace CRT
         TGraph* fLowerTimeVersusTime; //Graph of lower 32 bits of raw timestamp versus processed timestamp in seconds.  
       }; 
 
+      void createSyncPlots();
+
       std::vector<PerModule> fSyncPlots; //Mapping from module number to sync diagnostic plots in a directory 
       uint64_t fEarliestTime; //Earliest time in clock ticks
   };
@@ -88,6 +90,10 @@ namespace CRT
     // Call appropriate produces<>() functions here.
     produces<std::vector<CRT::Trigger>>();
     //TODO: call consumes
+    
+    //Register callback to make new plots on every file
+    art::ServiceHandle<art::TFileService> tfs;
+    tfs->registerFileSwitchCallback(this, &CRTRawDecoder::createSyncPlots);
   }
   
   //Read artdaq::Fragments produced by fFragLabel, and use CRT::Fragment to convert them to CRT::Triggers.  
@@ -171,8 +177,14 @@ namespace CRT
   
   void CRT::CRTRawDecoder::beginJob()
   {
+    createSyncPlots();
+  }
+
+  void CRT::CRTRawDecoder::createSyncPlots()
+  {
     // Implementation of optional member function here.
     art::ServiceHandle<art::TFileService> tfs;
+    fSyncPlots.clear(); //Clear any previous pointers to histograms.  Some TFile owned them.  
     for(size_t module = 0; module < 32; ++module) fSyncPlots.emplace_back(*tfs, module); //32 modules in the ProtoDUNE-SP CRT
   }
   
