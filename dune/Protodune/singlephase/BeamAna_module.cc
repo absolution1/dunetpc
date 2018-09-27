@@ -308,6 +308,7 @@ template <class T>
 T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
   T theResult;
   
+  std::cout << std::endl;
   uint64_t newTime;
   //Search at and above time given with nRetries
   //Will later search below, just in case the event time is actually greater than
@@ -344,7 +345,7 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
   std::cout << "At time: " << newTime << std::endl;
   theResult = bfp->GetNamedVector(newTime, name);
   std::cout << "Successfully fetched" << std::endl;
-
+  std::cout << std::endl;
   return theResult; 
 }
 // END FeatchWithRetries
@@ -359,7 +360,8 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 //
 //Returns the timestamp of the high level trigger.
 uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
-
+  std::cout << std::endl;
+  std::cout << "Getting Raw Decoder Info" << std::endl;
   e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
   std::cout << "RDTS valid? " << RDTimeStampHandle.isValid() << std::endl;
   for (auto const & RDTS : *RDTimeStampHandle){
@@ -486,6 +488,7 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
     
   }
   std::cout << "Error! Invalid CTB Handle!" << std::endl;
+  std::cout << std::endl;
   return 0;
 
 }
@@ -521,6 +524,7 @@ void proto::BeamAna::produce(art::Event & e)
   BeamMonitorBasisVectors();
 
   validTimeStamp = GetRawDecoderInfo(e);
+  std::cout << std::endl;
   std::cout << "RawDecoder TimeStamp" << std::endl;
   bool usedEventTime = false;
   if(validTimeStamp){
@@ -533,15 +537,18 @@ void proto::BeamAna::produce(art::Event & e)
     bfp->setValidWindow(fValidWindow);
     std::cerr << "%%%%%%%%%% Valid window " << bfp->getValidWindow() << " %%%%%%%%%%" << std::endl;
 
+    std::cout << std::endl;
     // Now for the current event retrieve the time (trigger) of the event
     // This will take the form a 64-bit timestamp with a high and low word
     // Break this up to have access to each word and the long long word
     std::cout <<"Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
     std::cout << "Low: " << e.time().timeLow()  << std::endl;
     std::cout << "High: " << e.time().timeHigh()  << std::endl;
+    std::cout << std::endl;
+    //Need to use either for different versions
+    if( e.time().timeHigh() == 0 ) eventTime = e.time().timeLow();
+    else eventTime = e.time().timeHigh();
 
-    // Use the bottom word of the time
-    eventTime = e.time().timeLow();
     //Use multiple times provided to fcl
     if( fMultipleTimes.size() ){
       std::cout << "Using multiple times: " << std::endl;
@@ -556,8 +563,8 @@ void proto::BeamAna::produce(art::Event & e)
     }
     //Use time of event
     else{
-      std::cout <<" Using Event Time: " << uint64_t(e.time().timeLow()) << std::endl;
-      fMultipleTimes.push_back(uint64_t(e.time().timeLow()));
+      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
+      fMultipleTimes.push_back(uint64_t(eventTime));
       usedEventTime = true;
     } 
 
@@ -586,6 +593,7 @@ void proto::BeamAna::produce(art::Event & e)
           std::cout << "SKIPPING EVENT" << std::endl;
           break;
         }
+        std::cout << std::endl;
         std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
         std::cout << "NTOF0: "          << beamevt->GetNTOF0Triggers() << std::endl;
         std::cout << "NTOF1: "          << beamevt->GetNTOF1Triggers() << std::endl;
@@ -649,7 +657,7 @@ void proto::BeamAna::produce(art::Event & e)
           fTrackTree->Fill();
         }
 
-        std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
+  //      std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
 
         parseXCET(fetch_time);
       }
@@ -830,7 +838,14 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::vector<std::pair<double,double>> unorderedTOF1BTime;
   std::vector<std::pair<double,double>> unorderedTOF2ATime;
   std::vector<std::pair<double,double>> unorderedTOF2BTime;
-    
+
+/*
+    std::cout << "SECONDS!!" << std::endl;
+    for(size_t i = 0; i < secondsGeneralTrigger.size(); ++i){
+      std::cout << secondsGeneralTrigger[i] << std::endl;
+    }
+*/
+
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
     std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
     fGenTrigCoarse = coarseGeneralTrigger[i];
@@ -1071,11 +1086,11 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
  
   //Skipping anything > 500, the data seems to be corrupted now
   for(size_t i = 0; (i < counts[1] && i < 500); ++i){      
-      std::cout << "Count: " << i << std::endl;
+//      std::cout << "Count: " << i << std::endl;
     
     for(int j = 0; j < 10; ++j){
       double theData = data[20*i + (2*j + 1)];
-      std::cout << std::setw(15) << theData ;
+//      std::cout << std::setw(15) << theData ;
       if(j < 4){
 	fbm.timeData[j] = theData;           
       }else{
@@ -1085,50 +1100,51 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
 
     // Check the time data for corruption
     if(fbm.timeData[1] < .0000001){
-      std::cout << "Skipping bad time" << std::endl;
+//      std::cout << "Skipping bad time" << std::endl;
       continue;
     } 
     fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value
     
     //Go through the valid Good Particles, and emplace the FBM 
-    std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
+//    std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
       // std::cout << "\t" << fbm.timeStamp << " " << beamevt->GetT0(*ip) << std::endl;
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 5000
-      std::cout << fbm.timeStamp << " " << beamevt->GetFullT0(*ip) << std::endl;
+//      std::cout << fbm.timeStamp << " " << beamevt->GetFullT0(*ip) << std::endl;
       if( fabs(fbm.timeStamp - beamevt->GetT0(*ip).second) < 5000./*e-9*/){
 	if(beamevt->GetFBM(name, *ip).ID != -1){
 	  std::cout << "Warning: Replacing non-dummy FBM at "
 		    << name << " " << *ip << std::endl;
 	} 
 	
-	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
+//	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
 	beamevt->ReplaceFBMTrigger(name, fbm, *ip);
 	leftOvers.erase(ip);
 	break;
       } 
     } 
 
-    std::cout << std::endl;
+//    std::cout << std::endl;
   } 
 
   for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
     beamevt->DecodeFibers(name,i);
-    std::cout << name << " at time: "
-	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
-      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
-    }
-    std::cout << std::endl;
+//    std::cout << name << " at time: "
+//	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
+//    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
+//      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
+//    }
+//    std::cout << std::endl;
     
     *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
     fProfTime[name] = beamevt->DecodeFiberTime(name, i);
-    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
+/*    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+*/
     fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
     fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
     fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];

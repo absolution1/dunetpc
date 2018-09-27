@@ -103,8 +103,8 @@ physics.producers.beamana.DetRotation:        [0.,0.,0.]
 physics.producers.beamana.TOF1:               "XBTF022687"
 physics.producers.beamana.TOF2:               "XBTF022716"
 
-#physics.producers.beamana.CKov1:               "XCET022713"
-physics.producers.beamana.CKov1:               ""
+physics.producers.beamana.CKov1:               "XCET022713"
+#physics.producers.beamana.CKov1:               ""
 physics.producers.beamana.CKov2:               "XCET022716"
 
 physics.producers.beamana.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
