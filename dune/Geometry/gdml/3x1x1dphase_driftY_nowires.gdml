@@ -557,7 +557,7 @@
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="0" y="-0.03" z="0"/>
+         x="0" y="-0.015" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>

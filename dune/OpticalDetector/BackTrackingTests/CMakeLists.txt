@@ -1,4 +1,3 @@
-add_subdirectory(SNAnaClustering)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   lbne-raw-data_Overlays
@@ -23,7 +22,7 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  
+  ${MF_UTILITIES}
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   )
