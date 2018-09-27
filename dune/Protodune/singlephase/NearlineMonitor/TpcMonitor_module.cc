@@ -574,8 +574,9 @@ namespace tpc_monitor{
       int nSamples = digit.Samples();
       fNTicksTPC->Fill(nSamples);
       unsigned int apa = std::floor( chan/fChansPerAPA );	  
-      int pedestal = (int)digit.GetPedestal();
-      
+      //int pedestal = (int)digit.GetPedestal();
+      int pedestal = 0;  
+
       std::vector<short> uncompressed(nSamples);
       // with pedestal	  
       raw::Uncompress(digit.ADCs(), uncompressed, pedestal, digit.Compression());

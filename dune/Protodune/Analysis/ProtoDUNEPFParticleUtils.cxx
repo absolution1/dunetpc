@@ -296,7 +296,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
 }
 
 // Function to find the secondary interaction vertex of a primary PFParticle
-const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const{
+const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
 
   // In this case we want to find the end of the track-like PFParticle
   // To do this, we need to access things via the track
@@ -362,7 +362,7 @@ const recob::Track* protoana::ProtoDUNEPFParticleUtils::GetPFParticleTrack(const
     return track;
   }
   else{
-    std::cerr << "No track found, returning null pointer" << std::endl;
+//    std::cerr << "No track found, returning null pointer" << std::endl;
     return nullptr;
   }
 
@@ -382,7 +382,7 @@ const recob::Shower* protoana::ProtoDUNEPFParticleUtils::GetPFParticleShower(con
     return shw;
   }
   else{
-    std::cerr << "No shower found, returning null pointer" << std::endl;
+//    std::cerr << "No shower found, returning null pointer" << std::endl;
     return nullptr;
   }
 
@@ -438,5 +438,49 @@ unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleHits(const r
   return GetPFParticleHits(particle,evt,particleLabel).size();
 
 }
+
+// Get the daughter tracks from the PFParticle
+const std::vector<const recob::Track*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, 
+                                                                                                       const std::string particleLabel, const std::string trackLabel) const{
+
+  // Get the PFParticles
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  std::vector<const recob::Track*> daughterTracks;
+
+  // Loop over the daughters
+  for(size_t daughterID : particle.Daughters()){
+    const recob::Track* track = GetPFParticleTrack(particles->at(daughterID),evt,particleLabel,trackLabel);
+    if(track != 0x0){
+      daughterTracks.push_back(track);
+    }  
+  }
+
+  return daughterTracks;
+
+}
+
+// Get the daughter showers from the PFParticle
+const std::vector<const recob::Shower*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterShowers(const recob::PFParticle &particle, art::Event const &evt, 
+                                                                                                         const std::string particleLabel, const std::string showerLabel) const{
+
+  // Get the PFParticles
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  std::vector<const recob::Shower*> daughterShowers;
+
+  // Loop over the daughters
+  for(size_t daughterID : particle.Daughters()){
+    const recob::Shower* shower = GetPFParticleShower(particles->at(daughterID),evt,particleLabel,showerLabel);
+    if(shower != 0x0){
+      daughterShowers.push_back(shower);
+    }
+  }
+
+  return daughterShowers;
+
+}
+
+
 
 

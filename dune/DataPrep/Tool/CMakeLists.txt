@@ -26,6 +26,7 @@ simple_plugin(AdcChannelDumper   "tool"
 
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -107,6 +108,12 @@ simple_plugin(AdcSampleFiller   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+
+simple_plugin(SubtractBaseline   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service

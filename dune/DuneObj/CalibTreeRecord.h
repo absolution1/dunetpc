@@ -9,10 +9,11 @@
 ////////////////////////////////////////////////////////////////////////
 
 //includes
-#ifndef DUNE_DUNEOBJBASE_EVENTRECORD_H
-#define DUNE_DUNEOBJBASE_EVENTRECORD_H
+#ifndef DUNE_DUNEOBJ_CALIBTREERECORD_H
+#define DUNE_DUNEOBJ_CALIBTREERECORD_H
 #include <vector>
 #include <TObject.h>
+#include <iostream>
 
 namespace CalibTreeRecord {
   typedef int64_t eve_number_t ;
@@ -102,6 +103,7 @@ namespace CalibTreeRecord {
       Double_t x_pos;
       Double_t y_pos;
       Double_t z_pos;
+      Double_t t_pos;
       std::vector<PartialHit> partial_hits;
       std::vector<PartialOpHit> partial_ophits;
   };
@@ -115,7 +117,9 @@ namespace CalibTreeRecord {
       Double_t x_pos;
       Double_t y_pos;
       Double_t z_pos;
+      Double_t t_pos;
       std::vector<ParticleRecord> particles;
+      std::string generator="";
 
   };
 
@@ -132,6 +136,7 @@ namespace CalibTreeRecord {
       std::vector<HitContributor> ophits;
 
       void Clear();
+      void stdout_dump();
   };
 
 

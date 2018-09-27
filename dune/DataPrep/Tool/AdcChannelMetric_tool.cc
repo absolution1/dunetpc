@@ -200,7 +200,12 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     Index icha = iacd->first;
     Index bin = (icha + 1) - ich0;
     ph->SetBinContent(bin, val);
-    pg->SetPoint(pg->GetN(), icha, val);
+    float gval = val;
+    if ( m_MetricMax > m_MetricMin ) {
+      if ( val < m_MetricMin ) gval = m_MetricMin;
+      if ( val > m_MetricMax ) gval = m_MetricMax;
+    }
+    pg->SetPoint(pg->GetN(), icha, gval);
     ++nfill;
   }
   if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
@@ -258,8 +263,31 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
     val = acd.fembID;
   } else if ( m_Metric == "apaFembID" ) {
     val = acd.fembID%20;
+  } else if ( m_Metric == "nraw" ) {
+    val = acd.raw.size();
+  } else if ( m_Metric == "nsam" ) {
+    val = acd.samples.size();
   } else if ( m_Metric == "fembChannel" ) {
     val = acd.fembChannel;
+  } else if ( m_Metric == "rawRms" ) {
+    double sum = 0.0;
+    double ped = acd.pedestal;
+    double nsam = acd.raw.size();
+    for ( AdcSignal sig : acd.raw ) {
+      double dif = double(sig) - ped;
+      sum += dif*dif;
+    }
+    val = acd.raw.size() == 0 ? 0.0 : sqrt(sum/nsam);
+  } else if ( m_Metric == "rawTailFraction" ) {
+    Index ntail = 0;
+    double lim = 3.0*acd.pedestalRms;
+    double ped = acd.pedestal;
+    double nsam = acd.raw.size();
+    for ( AdcSignal sig : acd.raw ) {
+      double dif = double(sig) - ped;
+      if ( fabs(dif) > lim ) ++ntail;
+    }
+    val = acd.raw.size() == 0 ? 0.0 : double(ntail)/nsam;
   } else if ( acd.hasMetadata(m_Metric) ) {
     val = acd.metadata.find(m_Metric)->second;
   // Compound metric: met1+met2
@@ -293,7 +321,9 @@ string AdcChannelMetric::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
   StringManipulator sman(name);
   sman.replace("%CRNAME%", ran.name);
-  sman.replace("%CRLABEL%", ran.label);
+  sman.replace("%CRLABEL%", ran.label());
+  sman.replace("%CRLABEL1%", ran.label(1));
+  sman.replace("%CRLABEL2%", ran.label(2));
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   if ( pnbl == nullptr ) return name;
   DataMap dm;

@@ -83,7 +83,9 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
         ++nbad;
       } else {
         cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
-             << " " << ir.label << endl;
+             << " " << ir.label();
+        for ( Index ilab=1; ilab<ir.labels.size(); ++ilab ) cout << ", " << ir.label(ilab);
+        cout << endl;
         assert( ir.name == nam );
       }
     }
@@ -104,7 +106,9 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
         ++nbad;
       } else {
         cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
-             << " " << ir.label << endl;
+             << " " << ir.label();
+        for ( Index ilab=1; ilab<ir.labels.size(); ++ilab ) cout << ", " << ir.label(ilab);
+        cout << endl;
         assert( ir.name == nam );
       }
     }

@@ -10,6 +10,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::setw;
+using NameVector = IndexRange::NameVector;
 
 //**********************************************************************
 
@@ -27,11 +28,11 @@ FclIndexRangeTool::FclIndexRangeTool(fhicl::ParameterSet const& ps)
     }
     IndexRange& ran = m_Ranges[rnam];
     ran.name = rnam;
-    ran.label = psr.get<Name>("label");
+    ran.labels = psr.get<NameVector>("labels");
     ran.begin = psr.get<Index>("begin");
     ran.end = psr.get<Index>("end");
     if ( ran.name.size() > namSize ) namSize = ran.name.size();
-    if ( ran.label.size() > labSize ) labSize = ran.label.size();
+    if ( ran.label().size() > labSize ) labSize = ran.label().size();
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "     LogLevel: " << m_LogLevel << endl;
@@ -42,7 +43,7 @@ FclIndexRangeTool::FclIndexRangeTool(fhicl::ParameterSet const& ps)
         cout << myname << setw(namSize+2) << ran.name
              << setw(6) << ran.begin
              << setw(6) << ran.end
-             << setw(labSize+1) << ran.label << endl;
+             << setw(labSize+1) << ran.label() << endl;
       }
     }
   }
