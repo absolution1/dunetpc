@@ -176,6 +176,15 @@ private:
   long long int acqTime;
   int HLTWord;
   long long int HLTTS;
+  int BeamOn;
+  int BITrigger;
+  int Upstream;
+  int C1;
+  int C2;
+  int BP1;
+  int BP2;
+  int BP3;
+  int BP4;
 
   uint64_t prev_fetch_time;
   long long int prev_event_time;
@@ -266,7 +275,7 @@ private:
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
 
   art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
-  art::Handle< std::vector<raw::ctb::pdspctb> > CTBHandle;
+//  art::Handle< std::vector<raw::ctb::pdspctb> > CTBHandle;
 
   uint64_t validTimeStamp;
 
@@ -350,7 +359,7 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
 //
 //Returns the timestamp of the high level trigger.
 uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
-  
+
   e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
   std::cout << "RDTS valid? " << RDTimeStampHandle.isValid() << std::endl;
   for (auto const & RDTS : *RDTimeStampHandle){
@@ -366,58 +375,115 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 
   }
 
-  e.getByLabel("ctbrawdecoder","daq",CTBHandle);
+  auto const CTBHandle = e.getValidHandle< std::vector< raw::ctb::pdspctb > >("ctbrawdecoder:daq");
   std::cout << "CTB valid? " << CTBHandle.isValid() << std::endl;
   if(CTBHandle.isValid()){
-    for (auto const & CTB : *CTBHandle){
-      std::cout << "NTriggers: " << CTB.GetNTriggers() << std::endl;
-      for (size_t nTrig = 0; nTrig < CTB.GetNTriggers(); ++nTrig){
-        raw::ctb::Trigger ctbTrig = CTB.GetTrigger(nTrig);
+    auto const & CTB = (*CTBHandle)[0];
+
+    bool noHLT = true;
+
+    std::cout << "NTriggers: " << CTB.GetNTriggers() << std::endl;
+    for (size_t nTrig = 0; nTrig < CTB.GetNTriggers(); ++nTrig){
+
+      raw::ctb::Trigger ctbTrig = CTB.GetTrigger(nTrig);      
+      uint32_t  theType  = ctbTrig.word_type;
+      ULong64_t theWord  = ctbTrig.trigger_word;
+      ULong64_t theTS    = ctbTrig.timestamp;
+
+
+      std::cout << "Type: " << theType << std::endl
+                << "Word: " << theWord << std::endl
+                << "TS: "   << theTS   << " " << ctbTrig.timestamp*20.E-9 << std::endl;
+      
+      if (theType == 2){
+        std::cout << "Found the High Level Trigger" << std::endl;
         
-        uint32_t  theType  = ctbTrig.word_type;
-        ULong64_t theWord  = ctbTrig.trigger_word;
-        ULong64_t theTS    = ctbTrig.timestamp;
-
-
-        std::cout << "Type: " << theType << std::endl
-                  << "Word: " << theWord << std::endl
-                  << "TS: "   << theTS   << " " << ctbTrig.timestamp*20.E-9 << std::endl;
+        HLTWord = theWord;
+        HLTTS = theTS;
         
-        if (theType == 2){
-          std::cout << "Found the High Level Trigger" << std::endl;
-          
-          HLTWord = theWord;
-          HLTTS = theTS;
-          
-          //The High Level Trigger consists of 8 bits
-          //HLT7 -> HLT0
-          std::bitset<8> theHLT(theWord);
-          std::cout << "High Level Trigger: " << theHLT << std::endl;
-          
-          //HLT5 corresponds to excluding Low Level Triggers
-          //from the Beamline
-          //So return 0, we'll skip this event
-          if (theHLT[5]) {         
-            std::cout << "HLT 5 activated. Excluding beam events. Skipping this event" << std::endl;
-            return 0;          
-          }
-          else if (theHLT[0] && (theHLT.count() == 1)) {
-            std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl
-                      << "Skipping this Event." << std::endl;
-            return 0;
-          }
-          else{
-            std::cout << "Found valid beam event." << std::endl;
-            return theTS; 
-          }
-        }       
-      }
+        //The High Level Trigger consists of 8 bits
+        //HLT7 -> HLT0
+        std::bitset<8> theHLT(theWord);
+        std::cout << "High Level Trigger: " << theHLT << std::endl;
+        
+        //HLT5 corresponds to excluding Low Level Triggers
+        //from the Beamline
+        //So return 0, we'll skip this event
+        if (theHLT[5]) {         
+          std::cout << "HLT 5 activated. Excluding beam events. Skipping this event" << std::endl;
+          break;
+        }
+        else if (theHLT[0] && (theHLT.count() == 1)) {
+          std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl
+                    << "Skipping this Event." << std::endl;
+          break;
+        }
+        else{
+          noHLT = false;
+          std::cout << "Found valid beam event." << std::endl;
+          break;
+        }
+      }       
+    }
 
-      //If it got here, then no High Level Trigger was found
+    if(noHLT){
       //This should never happen but...
       std::cout << "Error! No High Level Trigger Found!" << std::endl;
       return 0;
     }
+    else{
+
+      //Now check the channel statuses        
+      std::cout << "ChStatuses: " << CTB.GetNChStatuses() << std::endl;
+      for(size_t nStat = 0; nStat < CTB.GetNChStatuses(); ++nStat){
+        raw::ctb::ChStatus theStatus = CTB.GetChStatuse(nStat);
+      
+        uint32_t the_beam_hi    = theStatus.beam_hi; 
+        uint32_t the_beam_lo    = theStatus.beam_lo; 
+        ULong64_t the_timestamp = theStatus.timestamp; 
+        
+        std::cout << "Timestamp : " << the_timestamp << std::endl;
+        if( the_timestamp > ULong64_t(HLTTS) ){
+          std::cout << "Found Channel status > HLT timestamp. Skipping" << std::endl;
+          continue;
+        }
+
+        std::cout << "beam_hi   : " << std::bitset<5>(the_beam_hi) << std::endl; 
+        std::cout << "beam_lo   : " << std::bitset<4>(the_beam_lo) << std::endl; 
+
+        std::bitset<4> beam_lo(the_beam_lo);
+        std::bitset<5> beam_hi(the_beam_hi);
+
+        BeamOn     =  beam_lo[0];
+        BITrigger  =  beam_lo[1];
+        Upstream   =  beam_lo[2];
+        C1         =  beam_lo[3];
+        C2         =  beam_hi[0];
+        BP1        =  beam_hi[1];
+        BP2        =  beam_hi[2];
+        BP3        =  beam_hi[3];
+        BP4        =  beam_hi[4];
+
+
+        std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
+        std::cout << "Beam On:    " << BeamOn    << std::endl
+                  << "BI Trigger: " << BITrigger << std::endl
+                  << "Upstream:   " << Upstream  << std::endl
+                  << "C1:         " << C1        << std::endl
+                  << "C2:         " << C2        << std::endl
+                  << "BP1:        " << BP1       << std::endl
+                  << "BP2:        " << BP2       << std::endl
+                  << "BP3:        " << BP3       << std::endl
+                  << "BP4:        " << BP4       << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
+
+        fCKovHist->Fill(C1 + 2*C2);
+
+      }
+
+      return HLTTS;
+    }
+    
   }
   std::cout << "Error! Invalid CTB Handle!" << std::endl;
   return 0;
@@ -429,9 +495,21 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 // Producer Method (reads in the event and derives values)
 void proto::BeamAna::produce(art::Event & e)
 {
+  //Reset 
   acqTime = 0;
   HLTWord = 0;
   HLTTS = 0;
+  BeamOn     = -1;
+  BITrigger  = -1;
+  Upstream   = -1;
+  C1         = -1;
+  C2         = -1;
+  BP1        = -1;
+  BP2        = -1;
+  BP3        = -1;
+  BP4        = -1; 
+
+
 
   eventNum = e.event();
   runNum = e.run();
@@ -1142,8 +1220,17 @@ void proto::BeamAna::beginJob()
   fOutTree->Branch("acqTime", &acqTime);
   HLTWord = 0;
   HLTTS = 0;
-  fOutTree->Branch("HLTWord", &HLTWord);
-  fOutTree->Branch("HLTTS", &HLTTS);
+  fOutTree->Branch("HLTWord",     &HLTWord);
+  fOutTree->Branch("HLTTS",       &HLTTS);
+  fOutTree->Branch("BeamOn",      &BeamOn);
+  fOutTree->Branch("BITrigger",   &BITrigger);
+  fOutTree->Branch("Upstream",    &Upstream);
+  fOutTree->Branch("C1",          &C1);
+  fOutTree->Branch("C2",          &C2);
+  fOutTree->Branch("BP1",         &BP1);
+  fOutTree->Branch("BP2",         &BP2);
+  fOutTree->Branch("BP3",         &BP3);
+  fOutTree->Branch("BP4",         &BP4);
 
 //  fOutTree->Branch("fetchTime", &fetchTime);
 
