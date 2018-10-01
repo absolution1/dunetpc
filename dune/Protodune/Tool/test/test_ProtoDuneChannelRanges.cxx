@@ -144,7 +144,7 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
       }
     }
     for ( Index icha=0; icha<15360; ++icha ) {
-      assert( ichk[icha] == 1 );
+      assert( chk[icha] == 1 );
     }
   }
   assert( nbad == 0 );
