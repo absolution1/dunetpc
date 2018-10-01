@@ -22,7 +22,9 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::istringstream;
+using std::ostringstream;
 using std::setw;
+using std::setfill;
 using std::vector;
 using fhicl::ParameterSet;
 using Index = unsigned int;
@@ -111,6 +113,38 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
         cout << endl;
         assert( ir.name == nam );
       }
+    }
+  }
+  assert( nbad == 0 );
+
+  bool showFembBlocks = true;
+  if ( showFembBlocks ) {
+    cout << myname << line << endl;
+    cout << myname << "Fetching FEMB block ranges." << endl;
+    nbad = 0;
+    IndexVector chk(15360, 0);
+    for ( Index iapa=1; iapa<=6; ++iapa ) {
+      for ( string view : {"u", "v", "x"} ) {
+        for ( Index ifmb=1; ifmb<=20; ++ifmb ) {
+          ostringstream ssnam;
+          ssnam << "femb" << iapa << setfill('0') << setw(2) << ifmb << view;
+          string nam = ssnam.str();
+          IndexRange ir = irt->get(nam);
+          if ( ! ir.isValid() ) {
+            cout << myname << "Invalid range: " << nam << endl;
+            ++nbad;
+          } else {
+             cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
+                 << " " << ir.label();
+            for ( Index ilab=1; ilab<ir.labels.size(); ++ilab ) cout << ", " << ir.label(ilab);
+            for ( Index icha=ir.begin; icha<ir.end; ++icha ) chk[icha] += 1;
+            cout << endl;
+          }
+        }
+      }
+    }
+    for ( Index icha=0; icha<15360; ++icha ) {
+      assert( ichk[icha] == 1 );
     }
   }
   assert( nbad == 0 );
