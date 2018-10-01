@@ -8,8 +8,11 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larcorealg_Geometry
   lardataobj_RawData
   lardataobj_RecoBase
+  lardataobj_AnalysisBase
+  dune_DuneObj
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
+  larsim_MCCheater_PhotonBackTrackerService_service
   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
   lardata_ArtDataHelper
   nusimdata_SimulationBase	

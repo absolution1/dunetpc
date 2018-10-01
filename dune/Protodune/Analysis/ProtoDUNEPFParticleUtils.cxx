@@ -18,6 +18,22 @@ protoana::ProtoDUNEPFParticleUtils::~ProtoDUNEPFParticleUtils(){
 
 }
 
+// Get the number of primary PFParticles
+unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPrimaryPFParticle(art::Event const &evt, const std::string particleLabel) const{
+
+  // Get the particles
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  unsigned int nPrimary = 0;
+  for(unsigned int p = 0; p < pfParticles->size(); ++p){
+    if(pfParticles->at(p).IsPrimary()){
+      ++nPrimary;
+    }
+  }
+
+  return nPrimary;
+}
+
 // Return a map of particles grouped by their reconstructed slice. Useful for finding slices with multiple particles
 std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const{
 
@@ -280,7 +296,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
 }
 
 // Function to find the secondary interaction vertex of a primary PFParticle
-const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string trackLabel, const std::string particleLabel) const{
+const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
 
   // In this case we want to find the end of the track-like PFParticle
   // To do this, we need to access things via the track
@@ -346,7 +362,7 @@ const recob::Track* protoana::ProtoDUNEPFParticleUtils::GetPFParticleTrack(const
     return track;
   }
   else{
-    std::cerr << "No track found, returning null pointer" << std::endl;
+//    std::cerr << "No track found, returning null pointer" << std::endl;
     return nullptr;
   }
 
@@ -366,9 +382,105 @@ const recob::Shower* protoana::ProtoDUNEPFParticleUtils::GetPFParticleShower(con
     return shw;
   }
   else{
-    std::cerr << "No shower found, returning null pointer" << std::endl;
+//    std::cerr << "No shower found, returning null pointer" << std::endl;
     return nullptr;
   }
 
 }
+
+// Get the space points associated to the PFParticle
+const std::vector<const recob::SpacePoint*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSpacePoints(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  // Get the particles and their associations
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::SpacePoint> findSpacePoints(particles,evt,particleLabel);
+  const std::vector<art::Ptr<recob::SpacePoint>> pfpSpacePoints = findSpacePoints.at(particle.Self());
+
+  // We don't want the art::Ptr so we need to get rid of it
+  std::vector<const recob::SpacePoint*> sp;
+  for(auto pointer : pfpSpacePoints){
+    sp.push_back(pointer.get());
+  }  
+
+  return sp;
+}
+
+// Get the number of space points
+unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleSpacePoints(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  return GetPFParticleSpacePoints(particle,evt,particleLabel).size();
+
+}
+
+// Get the hits associated to the PFParticle
+const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  const std::vector<const recob::SpacePoint*> spacePoints = GetPFParticleSpacePoints(particle,evt,particleLabel);
+  auto allSpacePoints = evt.getValidHandle<std::vector<recob::SpacePoint>>(particleLabel);
+  const art::FindManyP<recob::Hit> findHits(allSpacePoints,evt,particleLabel);
+
+  std::vector<const recob::Hit*> pfpHits;
+ 
+  // Store all of the hits in a single vector 
+  for(auto sp : spacePoints){
+    const std::vector<art::Ptr<recob::Hit>> spacePointHits = findHits.at(sp->ID());
+    for(auto hit : spacePointHits){
+      pfpHits.push_back(hit.get());
+    }
+  }
+
+  return pfpHits;
+}
+
+// Get the number of hits
+unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  return GetPFParticleHits(particle,evt,particleLabel).size();
+
+}
+
+// Get the daughter tracks from the PFParticle
+const std::vector<const recob::Track*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, 
+                                                                                                       const std::string particleLabel, const std::string trackLabel) const{
+
+  // Get the PFParticles
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  std::vector<const recob::Track*> daughterTracks;
+
+  // Loop over the daughters
+  for(size_t daughterID : particle.Daughters()){
+    const recob::Track* track = GetPFParticleTrack(particles->at(daughterID),evt,particleLabel,trackLabel);
+    if(track != 0x0){
+      daughterTracks.push_back(track);
+    }  
+  }
+
+  return daughterTracks;
+
+}
+
+// Get the daughter showers from the PFParticle
+const std::vector<const recob::Shower*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterShowers(const recob::PFParticle &particle, art::Event const &evt, 
+                                                                                                         const std::string particleLabel, const std::string showerLabel) const{
+
+  // Get the PFParticles
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+
+  std::vector<const recob::Shower*> daughterShowers;
+
+  // Loop over the daughters
+  for(size_t daughterID : particle.Daughters()){
+    const recob::Shower* shower = GetPFParticleShower(particles->at(daughterID),evt,particleLabel,showerLabel);
+    if(shower != 0x0){
+      daughterShowers.push_back(shower);
+    }
+  }
+
+  return daughterShowers;
+
+}
+
+
+
 

@@ -1,0 +1,33 @@
+<lcgdict>
+
+  <class name="beamspill::ProtoDUNEBeamSpill" ClassVersion="12" >
+   <version ClassVersion="12" checksum="1104027121"/>
+   <version ClassVersion="11" checksum="2976893266"/>
+   <version ClassVersion="10" checksum="2699170884"/>
+  </class>
+  
+
+  <class name="art::Ptr<beamspill::ProtoDUNEBeamSpill>" />
+  <class name="art::Wrapper<beamspill::ProtoDUNEBeamSpill>" />
+
+<!-- 
+
+
+  <class name="std::pair< art::Ptr<dune::EnergyRecoOutput>, art::Ptr<recob::Track>      >"    />
+  <class name="std::pair< art::Ptr<dune::EnergyRecoOutput>, art::Ptr<recob::Shower>      >"    />
+  <class name="std::pair< art::Ptr<recob::Track>, art::Ptr<dune::EnergyRecoOutput>      >"    />
+  <class name="std::pair< art::Ptr<recob::Shower>, art::Ptr<dune::EnergyRecoOutput>      >"    />
+  <class name="art::Assns<dune::EnergyRecoOutput, recob::Track, void>" />
+  <class name="art::Assns<dune::EnergyRecoOutput, recob::Shower, void>" />
+  <class name="art::Assns<recob::Track, dune::EnergyRecoOutput, void>" />
+  <class name="art::Assns<recob::Shower, dune::EnergyRecoOutput, void>" />
+
+  <class name="art::Wrapper< art::Assns<dune::EnergyRecoOutput, recob::Track, void> >" />
+  <class name="art::Wrapper< art::Assns<dune::EnergyRecoOutput, recob::Shower, void> >" />
+  <class name="art::Wrapper< art::Assns<recob::Track, dune::EnergyRecoOutput, void> >" />
+  <class name="art::Wrapper< art::Assns<recob::Shower, dune::EnergyRecoOutput, void> >" /> -->
+
+
+</lcgdict>
+
+

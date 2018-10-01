@@ -22,6 +22,8 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
+#include "dunetpc/dune/DuneObj/ProtoDUNETimeStamp.h"
+
 // larsoft includes
 #include "lardataobj/RawData/RDTimeStamp.h"
 
@@ -90,7 +92,8 @@ dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
 
   reconfigure(pset);
   // Call appropriate produces<>() functions here.
-  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);  
+  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);
+  produces< std::vector<dune::ProtoDUNETimeStamp> > (fOutputDataLabel);
 }
 
 void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
@@ -151,32 +154,31 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   art::RunNumber_t runNumber = evt.run();
 
   std::vector<raw::RDTimeStamp> rdtimestamps;
+  std::vector<dune::ProtoDUNETimeStamp> pdtimestamps;
 
-  // Check if there is Timing data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception e) {
-    std::cout << " WARNING: Raw Timing data not found in event " << eventNumber << std::endl;
-    evt.put(std::make_unique<std::vector<raw::RDTimeStamp>>(std::move(rdtimestamps)), fOutputDataLabel);
-    std::cout<<std::endl;
-    return;
-  }
+  if(rawFragments.isValid()){
 
-  //Check that the data is valid
-  if(!rawFragments.isValid()){
-    std::cerr << "Run: " << evt.run()
-	      << ", SubRun: " << evt.subRun()
-	      << ", Event: " << eventNumber
-	      << " is NOT VALID" << std::endl;
-    throw cet::exception("rawFragments NOT VALID");
-  }
-  ULong64_t evtTimestamp = 0;
-  for(auto const& rawFrag : *rawFragments){
+    ULong64_t evtTimestamp = 0;
+    for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
       //std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
       ULong64_t currentTimestamp=frag.get_tstamp();
       uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
       rdtimestamps.emplace_back(currentTimestamp,scmd);
+
+      dune::ProtoDUNETimeStamp pdts;
+      pdts.setCookie(frag.get_cookie());
+      pdts.setTriggerType((dune::ProtoDUNETimingCommand)frag.get_scmd());
+      pdts.setReservedBits(frag.get_tcmd());
+      pdts.setTimeStamp(frag.get_tstamp());
+      pdts.setEventCounter(frag.get_evtctr());
+      // TODO: Checksum isn't set by the board reader yet
+      pdts.setChecksumGood(true);
+      pdts.setLastRunStart(frag.get_last_runstart_timestamp());
+      pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
+      pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
+      
+      pdtimestamps.push_back(pdts);
 
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
@@ -184,29 +186,32 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
       if(fPrevTimestamp!=0) fHTimestampDelta->Fill((currentTimestamp-fPrevTimestamp)/1e6);
 
       fPrevTimestamp=currentTimestamp;
-//      fHTimestamp->Fill(rawFrag.timestamp());
+      //      fHTimestamp->Fill(rawFrag.timestamp());
 
-    if ( fMakeEventTimeFile ) {
-      if ( evtTimestamp == 0 ) {
-        evtTimestamp = rawFrag.timestamp();
-        string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber);
-        int subrun = evt.subRun();
-        if ( subrun != 1 ) {
-          cout << "TimingRawDecoder::produce: WARNING: Unexpected subrun number: " << subrun << endl;
-          foutName += "-Sub" + std::to_string(subrun);
-        }
-        foutName += "-Event" + std::to_string(eventNumber) + ".dat";
-        ofstream fout(foutName);
-        fout << evtTimestamp << endl;
-      } else {
-        if ( rawFrag.timestamp() != evtTimestamp ) {
-          cout << "TimingRawDecoder::produce: WARNING: Fragments have inconsistent timestamps." << endl;
-        }
+      if ( fMakeEventTimeFile ) {
+	if ( evtTimestamp == 0 ) {
+	  evtTimestamp = rawFrag.timestamp();
+	  string foutName = "artdaqTimestamp-Run" + std::to_string(runNumber);
+	  int subrun = evt.subRun();
+	  if ( subrun != 1 ) {
+	    cout << "TimingRawDecoder::produce: WARNING: Unexpected subrun number: " << subrun << endl;
+	    foutName += "-Sub" + std::to_string(subrun);
+	  }
+	  foutName += "-Event" + std::to_string(eventNumber) + ".dat";
+	  ofstream fout(foutName);
+	  fout << evtTimestamp << endl;
+	} 
+	else 
+	  {
+	    if ( rawFrag.timestamp() != evtTimestamp ) {
+	      cout << "TimingRawDecoder::produce: WARNING: Fragments have inconsistent timestamps." << endl;
+	    }
+	  }
       }
     }
   }
   evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
-  std::cout<<std::endl;
+  evt.put(std::make_unique<decltype(pdtimestamps)>(std::move(pdtimestamps)), fOutputDataLabel);
 }
 
 DEFINE_ART_MODULE(dune::TimingRawDecoder)

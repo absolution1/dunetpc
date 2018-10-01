@@ -71,6 +71,20 @@ dunedphase10kt_geo:
  DisableWiresInG4:   true
 }
 
+dunedphase10kt_driftY_geo:
+{
+ Name:      "dunedphase10kt_v2_driftY"
+ 
+ GDML:      "dunedphase10kt_v2_driftY.gdml"
+ ROOT:      "dunedphase10kt_v2_driftY.gdml"
+
+ SortingParameters:	{ChannelsPerOpDet:	1}
+
+ SurfaceY: 147828                       # Underground option. 4850 feet to cm. from DocDb-3833
+
+ DisableWiresInG4:   true
+}
+
 protodunedphase_geo:
 {
  Name:      "protodunedphase"
@@ -107,6 +121,18 @@ dphase3x1x1_geo:
  DisableWiresInG4:   true
 }
 
+dphase3x1x1_driftY_geo:
+{
+ Name:      "3x1x1dphase_driftY"
+
+ GDML:      "3x1x1dphase_driftY.gdml"
+ ROOT:      "3x1x1dphase_driftY.gdml"
+
+ SortingParameters:    {ChannelsPerOpDet:    1}
+ SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
+ DisableWiresInG4:   true
+}
+
 dune10kt_workspace_geo: @local::dune10kt_geo
 dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
 dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
@@ -136,6 +162,22 @@ dunedphase10kt_workspace4x2_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace4x2_geo.Name: "dunedphase10kt_v2_workspace4x2"
 dunedphase10kt_workspace4x2_geo.GDML: "dunedphase10kt_v2_workspace4x2.gdml"
 dunedphase10kt_workspace4x2_geo.ROOT: "dunedphase10kt_v2_workspace4x2.gdml"
+
+
+
+
+dunedphase10kt_driftY_workspace_geo: @local::dunedphase10kt_driftY_geo
+dunedphase10kt_driftY_workspace_geo.Name: "dunedphase10kt_v2_driftY_workspace"
+dunedphase10kt_driftY_workspace_geo.GDML: "dunedphase10kt_v2_driftY_workspace.gdml"
+dunedphase10kt_driftY_workspace_geo.ROOT: "dunedphase10kt_v2_driftY_workspace.gdml"
+
+dunedphase10kt_driftY_workspace4x2_geo: @local::dunedphase10kt_driftY_geo
+dunedphase10kt_driftY_workspace4x2_geo.Name: "dunedphase10kt_v2_driftY_workspace4x2"
+dunedphase10kt_driftY_workspace4x2_geo.GDML: "dunedphase10kt_v2_driftY_workspace4x2.gdml"
+dunedphase10kt_driftY_workspace4x2_geo.ROOT: "dunedphase10kt_v2_driftY_workspace4x2.gdml"
+
+
+
 
 dune10kt_45deg_workspace_geo: @local::dune10kt_geo
 dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
