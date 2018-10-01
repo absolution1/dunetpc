@@ -172,9 +172,9 @@ void DataHit::beginJob()
     fDataHitTree->Branch("Run"       , &Run       , "Run/I"       );
     fDataHitTree->Branch("SubRun"    , &SubRun    , "SubRun/I"    );
     fDataHitTree->Branch("Event"     , &Event     , "Event/I"     );
-    fDataHitTree->Branch("NTotHit"   , &NTotHit   , "NTotHits/I"  );
-    fDataHitTree->Branch("NColHit"   , &NColHit   , "NColHits/I"  );
-    fDataHitTree->Branch("NIndHit"   , &NIndHit   , "NIndHits/I"  );
+    fDataHitTree->Branch("NTotHit"   , &NTotHit   , "NTotHit/I"  );
+    fDataHitTree->Branch("NColHit"   , &NColHit   , "NColHit/I"  );
+    fDataHitTree->Branch("NIndHit"   , &NIndHit   , "NIndHit/I"  );
 
     fDataHitTree->Branch("Hit_View"                 , &Hit_View                 );
     fDataHitTree->Branch("Hit_Size"                 , &Hit_Size                 );
