@@ -18,8 +18,7 @@ trigprimpass1: {
 
 trigprimpass1_protodune: {
    @table::trigprimpass1
-   InputTag: "tpcrawdecoder:daq:RunRawDecoder"
-   
+   InputTag: "tpcrawdecoder:daq:DecoderandReco"  
 }
 
 trigprimpass1old: {

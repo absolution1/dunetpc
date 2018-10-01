@@ -75,7 +75,7 @@ physics: {
       datahittrigprim3200:    @local::trigprim_datahit
       waveformstotree: {
          module_type: "WaveformsToTree"
-         InputTag: "tpcrawdecoder:daq:RunRawDecoder"
+         InputTag: "tpcrawdecoder:daq:DecoderandReco"
          MaxChannels: 50
       }
    }
