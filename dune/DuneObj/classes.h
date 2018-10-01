@@ -17,6 +17,7 @@
 #include "lardataobj/RawData/OpDetWaveform.h"
 //#include <bitset>
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/DuneObj/ProtoDUNETimeStamp.h"
 
 #include <vector>
 #include <map>

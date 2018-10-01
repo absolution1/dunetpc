@@ -76,6 +76,13 @@
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
  <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
  <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
+
+ <class name="dune::ProtoDUNETimeStamp"/> 
+ <enum name="dune::ProtoDUNETimingCommand"/> 
+ <class name="art::Ptr<dune::ProtoDUNETimeStamp>" />
+ <class name="std::vector<dune::ProtoDUNETimeStamp>"  />
+ <class name="art::Wrapper<std::vector<dune::ProtoDUNETimeStamp> >" />
+
 <!-- <class name="std::bitset"/> -->
 <!-- <class name="std::array"/> -->
 </lcgdict>
