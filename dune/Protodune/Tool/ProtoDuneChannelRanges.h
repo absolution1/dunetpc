@@ -3,11 +3,27 @@
 // David Adams
 // July 2018
 //
-// Tool to return channel ranges for protoDUNE. There are many
-// hardwired ranges apa2, apa4u, etc. and teh option to override
-// or extend these with ranges specified in another index range tool.
+// Tool to return channel ranges for protoDUNE. The following are created:
+//      tpsS - for TPC set S, e.g. tps0
+//     tppSP - TPC plane P in TPC set S, e.g. tps0z
+//      apaA - APA, e.g. apa3
+//  fembAFFV - FEMB AFF orientation x, eg femb302x
 //
-// We assume that TPCSet numbering follows the convention:
+// In the above
+//    S is the TPC set (offline APA) number in range [0,5]
+//    A is the APA number in range [1,6]
+//    P is the wire plane: u, v, z (TPC-side collection) or c (cryostat-side collection)
+//   FF is the FEMB number in an APA in range [01,20]
+//    V is a wire orientation: u, v or x (collection)
+//
+// Where relevant, the ranges are assigned a second label location as one of:
+//   US-RaS, US-DaS, MS-RaS, MS-DaS, DS-RaS, DS-DaS
+// and a third label indication the APA, e.g. APA3.
+//
+// Note there is the option to append another indexx range tool which can
+// oveerride or extend the above set of ranges.
+//
+// The TPC set numbering follows the convention:
 //
 //  --->   TPS1  TPS3  TPS5
 //  beam   TPS0  TPS2  TPS4

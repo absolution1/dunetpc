@@ -3,6 +3,7 @@
 simple_plugin(TimingRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
+                        dune_DuneObj
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
