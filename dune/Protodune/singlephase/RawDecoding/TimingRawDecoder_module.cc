@@ -174,9 +174,9 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
       pdts.setEventCounter(frag.get_evtctr());
       // TODO: Checksum isn't set by the board reader yet
       pdts.setChecksumGood(true);
-      // pdts.setLastRunStart(frag.get_last_runstart_timestamp());
-      // pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
-      // pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
+      pdts.setLastRunStart(frag.get_last_runstart_timestamp());
+      pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
+      pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
       
       pdtimestamps.push_back(pdts);
 
