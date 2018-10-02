@@ -242,10 +242,10 @@ void DataPrepModule::produce(art::Event& evt) {
       cout << myname << "Trigger flag: " << trigFlag << " (";
       bool isBeam = trigFlag == 0xc;
       bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
-      if ( isBeam ) cout << "beam";
-      else if ( isFake ) cout << "fake";
-      else cout << "unexpected";
-      cout << endl;
+      if ( isBeam ) cout << "Beam";
+      else if ( isFake ) cout << "Fake";
+      else cout << "Unexpected";
+      cout << ")" << endl;
     }
   }
 
