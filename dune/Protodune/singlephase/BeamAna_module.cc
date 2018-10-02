@@ -98,6 +98,7 @@ public:
  
   void  InitXBPFInfo(beam::ProtoDUNEBeamEvent *);
   void  parseGeneralXBPF(std::string, uint64_t, size_t);
+  void  parseGeneralXBPFUnmatched(std::string, uint64_t, size_t);
   void  parseXBPF(uint64_t);
   void  parsePairedXBPF(uint64_t);
   void  parsePairedStraightXBPF(uint64_t);
@@ -140,6 +141,26 @@ private:
   TTree * fXTOF2BTree;
   TTree * fXBTF022702Tree;
   TTree * fMatchedTriggers;
+
+  TH1F  * fDeltaXHist;
+  TH1F  * fDeltaYHist;
+  TH1F  * fDeltaZHist;
+  TH2F  * fDeltaXYHist;
+  TH2F  * fDeltaYZHist;
+  TH2F  * fDeltaZXHist;
+  TTree * fDeltaTree;
+  double  fDeltaX;
+  double  fDeltaY;
+  double  fDeltaZ;
+  double  fBeamPosX;
+  double  fBeamPosY;
+  double  fBeamPosZ;
+  double  fTrackPosX;
+  double  fTrackPosY;
+  double  fTrackPosZ;
+  int trackNum;
+  int beamNum;
+
   double matchedGen;
   double matchedTOF1;
   double matchedTOF2;
@@ -269,6 +290,9 @@ private:
   double fSecondTrackingProfZ;
   double fNP04FrontZ;  
   double fBeamX, fBeamY, fBeamZ;
+
+  bool   fMatchToTPC;
+  bool   fUnmatched;
 
   beam::ProtoDUNEBeamEvent * beamevt;
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
@@ -571,7 +595,7 @@ void proto::BeamAna::produce(art::Event & e)
     //Start getting beam event info
 
 
-    if(eventTime - prev_event_time > 18){
+//    if(eventTime - prev_event_time > 18){
       // Loop over the different particle times 
       for(size_t it = 0; it < fMultipleTimes.size(); ++it){
         std::cout << "Time: " << fMultipleTimes[it] << std::endl;
@@ -585,13 +609,29 @@ void proto::BeamAna::produce(art::Event & e)
 
         // Parse the Time of Flight Counter data for the list
         // of times that we are using
-        try{
-          parseXTOF(fetch_time);
+        if(!fUnmatched){
+          try{
+            parseXTOF(fetch_time);
+          }
+          catch(std::exception e){
+            std::cout << "COULD NOT GET INFO" << std::endl;
+            std::cout << "SKIPPING EVENT" << std::endl;
+            //break;
+          }
         }
-        catch(std::exception e){
-          std::cout << "COULD NOT GET INFO" << std::endl;
-          std::cout << "SKIPPING EVENT" << std::endl;
-          break;
+        else{
+          std::cout << "PLACING DUMMIES" << std::endl << std::endl;
+          for(size_t iDummy = 0; iDummy < 500; ++iDummy){
+            double the_gen_sec, the_gen_ns;
+            double the_TOF1_sec, the_TOF1_ns;
+            double the_TOF2_sec, the_TOF2_ns;
+            int channel = 0;
+            
+            beamevt->AddT0(std::make_pair(the_gen_sec,the_gen_ns));
+            beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec, the_TOF1_ns));
+            beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
+            beamevt->AddTOFChan(channel);        
+          }
         }
         std::cout << std::endl;
         std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
@@ -657,11 +697,72 @@ void proto::BeamAna::produce(art::Event & e)
           fTrackTree->Fill();
         }
 
-  //      std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
+        std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
+        
+        //Analyze reconstructed tracks if flag enabled
+        //
+        if(fMatchToTPC){
+
+          auto const TrackHandle = e.getValidHandle< std::vector< recob::Track > >("pandoraTrack");
+          std::vector<recob::Track> TrackVec(*TrackHandle);                   
+          std::cout << "Got " << TrackVec.size()  << " Tracks" << std::endl;
+
+          //Go through the reco tracks.
+          //Skip any that aren't "close" to the beam window
+          //"Close": X < 0, Y > 000, Z < 100
+          //
+          for(size_t iTrack = 0; iTrack < TrackVec.size(); ++iTrack){
+            const recob::Track & TPCTrack = TrackVec[iTrack];
+            const recob::Trajectory & theTraj = TPCTrack.Trajectory().Trajectory();
+            std::cout << "Start of Track " << iTrack << ": " 
+	               << theTraj.Positions()[0].X() << " " 
+                       << theTraj.Positions()[0].Y() << " " 
+                       << theTraj.Positions()[0].Z() << std::endl;
+            if( (theTraj.Positions()[0].X() < 0.) && (theTraj.Positions()[0].Y() > 000.) && (theTraj.Positions()[0].Z() < 100.) ){
+              std::cout << "Found potential beam track" << std::endl;
+        
+              //Go through all of the tracks grabbed from the beam
+              //
+              for(size_t iBeam = 0; iBeam < beamevt->GetNBeamTracks(); ++iBeam){
+                const recob::Track & beamTrack = beamevt->GetBeamTrack(iBeam);
+                const recob::Trajectory & beamTraj = beamTrack.Trajectory().Trajectory();
+                std::cout << "\tStart of Track " << iBeam << ": " 
+	                  << beamTraj.Positions()[2].X()  << " " 
+                          << beamTraj.Positions()[2].Y()  << " " 
+                          << beamTraj.Positions()[2].Z()  << std::endl;
+
+                fBeamPosX = beamTraj.Positions()[2].X();
+                fBeamPosY = beamTraj.Positions()[2].Y();
+                fBeamPosZ = beamTraj.Positions()[2].Z();
+                fTrackPosX = theTraj.Positions()[2].X();
+                fTrackPosY = theTraj.Positions()[2].Y();
+                fTrackPosZ = theTraj.Positions()[2].Z();
+
+                fDeltaX = fTrackPosX - fBeamPosX;
+                fDeltaY = fTrackPosY - fBeamPosY;
+                fDeltaZ = fTrackPosZ - fBeamPosZ;
+
+                fDeltaXHist->Fill( fDeltaX );
+                fDeltaYHist->Fill( fDeltaY );
+                fDeltaZHist->Fill( fDeltaZ );
+
+                fDeltaXYHist->Fill( fDeltaX, fDeltaY ); 
+                fDeltaYZHist->Fill( fDeltaY, fDeltaZ ); 
+                fDeltaZXHist->Fill( fDeltaZ, fDeltaX ); 
+
+                trackNum = iTrack;
+                beamNum = iBeam;
+
+                fDeltaTree->Fill();
+
+              }
+            }
+          }   
+        }
 
         parseXCET(fetch_time);
       }
-    }
+    //}
   }
   
 
@@ -691,6 +792,7 @@ void proto::BeamAna::produce(art::Event & e)
  fOutTree->Fill();
  std::cout << "Put" << std::endl;
  prev_event_time = eventTime; 
+ theTracks.clear();
  if(usedEventTime) fMultipleTimes.clear();
 }
 // END BeamAna::produce
@@ -796,12 +898,6 @@ void proto::BeamAna::parseXTOF(uint64_t time){
 
   std::cout << joinedbits.to_ullong() << std::endl;
   acqTime = joinedbits.to_ullong() / 1000000000; 
-/*
-  std::cout << "Getting XBTF702 info " << std::endl;
-  std::vector<double> coarseXBTF022702 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/XBTF022702:coarse[]",fNRetries);
-  std::vector<double> fracXBTF022702 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/XBTF022702:frac[]",fNRetries); 
-  std::cout << "Size of coarse,frac: " << coarseXBTF022702.size() << " " << fracXBTF022702.size() << std::endl; 
- */
 
 /*  std::cout << "Getting S11 info " << std::endl;
   std::vector<double> coarseS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]",fNRetries);
@@ -1154,6 +1250,84 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
   } 
 
 }
+
+void proto::BeamAna::parseGeneralXBPFUnmatched(std::string name, uint64_t time, size_t ID){
+
+  // Retrieve the number of counts in the BPF
+  std::vector<double> counts;
+  counts = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
+  std::cout << "Counts: " << counts.size() << std::endl;
+  for(size_t i = 0; i < counts.size(); ++i){
+    std::cout << counts[i] << std::endl;
+  }
+
+  std::vector<double> data;
+  data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
+  std::cout << "Data: " << data.size() << std::endl;
+
+  // If the number of counts is larger than the data we have
+  // we bail 
+  if(counts[1] > data.size()){
+    return;
+  }
+  
+  beam::FBM fbm;
+  fbm.ID = ID;
+
+    
+  for(size_t i = 0; i < counts[1]; ++i){      
+      std::cout << "Count: " << i << std::endl;
+    
+    for(int j = 0; j < 10; ++j){
+      double theData = data[20*i + (2*j + 1)];
+      std::cout << std::setw(15) << theData ;
+      if(j < 4){
+	fbm.timeData[j] = theData;           
+      }
+      else{
+	fbm.fiberData[j - 4] = theData;
+      } 
+    } 
+    std::cout << std::endl;
+    fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value 
+    if(fbm.timeData[1] < .0000001){
+      continue;
+    } 
+
+    if(beamevt->GetFBM(name, i).ID != -1){
+      std::cout << "Warning: Replacing non-dummy FBM at "
+    	    << name << " " << i << std::endl;
+    } 
+    
+    beamevt->ReplaceFBMTrigger(name, fbm, i);
+
+  } 
+
+  for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
+    beamevt->DecodeFibers(name,i);
+//    std::cout << name << " at time: "
+//	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
+//    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
+//      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
+//    }
+//    std::cout << std::endl;
+    
+    *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
+    fProfTime[name] = beamevt->DecodeFiberTime(name, i);
+/*    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
+	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+*/
+    fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
+    fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
+    fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
+    fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
+    fProfTree[name]->Fill(); 
+    
+  } 
+
+}
 // END BeamAna::parseGeneralXBFP
 ////////////////////////
 
@@ -1163,7 +1337,13 @@ void proto::BeamAna::parseXBPF(uint64_t time){
   for(size_t d = 0; d < fDevices.size(); ++d){
     std::string name = fDevices[d];
     std::cout <<"Device: " << name << std::endl;
-    parseGeneralXBPF(name, time, d);
+    if(fUnmatched){
+      std::cout << "UnMatched" << std::endl;
+      parseGeneralXBPFUnmatched(name, time, d);
+    }
+    else{
+      parseGeneralXBPF(name, time, d);
+    }
   }  
 }
 // END BeamAna::parseXBFP
@@ -1175,11 +1355,23 @@ void proto::BeamAna::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
-    parseGeneralXBPF(name, time, d);
+    if(fUnmatched){
+      std::cout << "UnMatched" << std::endl;
+      parseGeneralXBPFUnmatched(name, time, d);
+    }
+    else{
+      parseGeneralXBPF(name, time, d);
+    }
 
     name = fPairedDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
-    parseGeneralXBPF(name, time, d);
+    if(fUnmatched){
+      std::cout << "UnMatched" << std::endl;
+      parseGeneralXBPFUnmatched(name, time, d);
+    }
+    else{
+      parseGeneralXBPF(name, time, d);
+    }
   }
 }
 // END BeamAna::parsePairedXBFP
@@ -1191,11 +1383,23 @@ void proto::BeamAna::parsePairedStraightXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
     std::string name = fPairedStraightDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
-    parseGeneralXBPF(name, time, d);
+    if(fUnmatched){
+      std::cout << "UnMatched" << std::endl;
+      parseGeneralXBPFUnmatched(name, time, d);
+    }
+    else{
+      parseGeneralXBPF(name, time, d);
+    }
 
     name = fPairedStraightDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
-    parseGeneralXBPF(name, time, d);
+    if(fUnmatched){
+      std::cout << "UnMatched" << std::endl;
+      parseGeneralXBPFUnmatched(name, time, d);
+    }
+    else{
+      parseGeneralXBPF(name, time, d);
+    }
   }
 }
 // END BeamAna::parsePairedStrightXBFP
@@ -1209,6 +1413,33 @@ void proto::BeamAna::beginJob()
   fTOFHist = tfs->make<TH1F>("TOF","",500,0,500);
   fCKovHist = tfs->make<TH1F>("CKov","",4,0,4);
   fMomentumHist = tfs->make<TH1F>("Momentum", "", 150, 0, 15.);
+
+  fDeltaXHist  = tfs->make<TH1F>("DeltaX",  "",600,-300,300);
+  fDeltaYHist  = tfs->make<TH1F>("DeltaY",  "",600,-300,300);
+  fDeltaZHist  = tfs->make<TH1F>("DeltaZ",  "",600,-300,300);
+  fDeltaXYHist = tfs->make<TH2F>("DeltaXY", "",600,-300,300,600,-300,300);
+  fDeltaYZHist = tfs->make<TH2F>("DeltaYZ", "",600,-300,300,600,-300,300);
+  fDeltaZXHist = tfs->make<TH2F>("DeltaZX", "",600,-300,300,600,-300,300);
+  fDeltaTree   = tfs->make<TTree>("Delta", "");
+  fDeltaX = 0.;
+  fDeltaY = 0.;
+  fDeltaZ = 0.;
+  trackNum = 0;
+  beamNum  = 0;
+  fDeltaTree->Branch("DeltaX", &fDeltaX);
+  fDeltaTree->Branch("DeltaY", &fDeltaY);
+  fDeltaTree->Branch("DeltaZ", &fDeltaZ);
+  fDeltaTree->Branch("BeamX",  &fBeamPosX);
+  fDeltaTree->Branch("BeamY",  &fBeamPosY);
+  fDeltaTree->Branch("BeamZ",  &fBeamPosZ);
+  fDeltaTree->Branch("TrackX", &fTrackPosX);
+  fDeltaTree->Branch("TrackY", &fTrackPosY);
+  fDeltaTree->Branch("TrackZ", &fTrackPosZ);
+  fDeltaTree->Branch("Event",  &eventNum);
+  fDeltaTree->Branch("Track",  &trackNum);
+  fDeltaTree->Branch("Beam",   &beamNum);
+
+
   fFullMomentum = tfs->make<TH1F>("FullMomentum", "", 150, 0, 15.);
   fCutMomentum = tfs->make<TH1F>("CutMomentum", "", 150, 0, 15.);
 
@@ -1550,6 +1781,10 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fBeamX               = p.get<double>("BeamX");
   fBeamY               = p.get<double>("BeamY");
   fBeamZ               = p.get<double>("BeamZ");
+
+  fMatchToTPC          = p.get<bool>("MatchToTPC");
+  fUnmatched           = p.get<bool>("Unmatched");
+
 }
 
 std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
@@ -2013,6 +2248,7 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
 }
 
 double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
+/*
   double a = cos(fBeamBend)*(X3*L2 - X2*L3) / (L3 - L2);
 
   double cosTheta = (a + X1)*( (L3 - L2)*tan(fBeamBend) + (X2 - X3)*cos(fBeamBend) )+ (L3 - L2)*L1 ;
@@ -2028,7 +2264,7 @@ double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
   cosTheta = cosTheta / denom;
 
   //
- /*
+ 
   double a = (X2*L3 - X3*L2) / (L3 - L2);
    
   double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) + (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
@@ -2042,10 +2278,12 @@ double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
   
   denom = denomTerm1*denomTerm2;
   cosTheta = cosTheta / denom;
- 
+ */
 
-    double a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
+    //double a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
+    double a =  ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
     a = a / (L3 - X3*sin(fBeamBend) - L2 + X2*sin(fBeamBend) );
+    a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - a;
   
     double numTerm = (a - X1)*(L3 - L2)*tan(fBeamBend) + (a - X1)*(X3 - X2)*cos(fBeamBend) + L1*( (L3 - L2) - (X3 - X2)*sin(fBeamBend) );
   
@@ -2057,7 +2295,7 @@ double proto::BeamAna::MomentumCosTheta(double X1, double X2, double X3){
 
     double cosTheta = numTerm/denom;
   
-*/  return cosTheta;
+  return cosTheta;
 }
 
 //Gets info from FBMs matching in time
