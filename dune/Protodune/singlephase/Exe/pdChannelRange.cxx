@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
     cout << "    tps0 - tps5: APA (TPC set) with offline numbering." << endl;
     cout << "    tpp0u, tpp0v, tpp0z, tpp0c, ..., tpp5c: APA plane with offline numbering." << endl;
     cout << "    (u and v are induction, z is TPC-side collection, c is cryostat side." << endl;
+    cout << "    femb101u, femb102u, ..., femb620u: FEMB u channels (same for v and x)." << endl;
     return 0;
   }
 
@@ -50,7 +51,11 @@ int main(int argc, char** argv) {
 
   IndexRangeTool* pcrt = tm.getShared<IndexRangeTool>(tname);
   IndexRange cr = pcrt->get(crname);
-  cout << cr << endl;
+  if ( cr.isValid() ) {
+    cout << cr << endl;
+  } else {
+    cout << crname << " is not a valid channel range." << endl;
+  }
 
   return 0;
 }
