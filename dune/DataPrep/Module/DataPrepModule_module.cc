@@ -237,6 +237,15 @@ void DataPrepModule::produce(art::Event& evt) {
       const raw::RDTimeStamp& tim = htims->at(0);
       cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
       timingClock = tim.GetTimeStamp();
+      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+      int trigFlag = tim.GetFlags();
+      cout << myname << "Trigger flag: " << trigFlag << " (";
+      bool isBeam = trigFlag == 0xc;
+      bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
+      if ( isBeam ) cout << "beam";
+      else if ( isFake ) cout << "fake";
+      else cout << "unexpected";
+      cout << endl;
     }
   }
 
