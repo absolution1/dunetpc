@@ -50,7 +50,8 @@ namespace dune {
         ULong64_t getLastRunStart()  const { return m_lastRunStart; } 
         ULong64_t getLastSpillStart()  const { return m_lastSpillStart; } 
         ULong64_t getLastSpillEnd()  const { return m_lastSpillEnd; } 
-        
+        UInt_t getVersion() const { return m_version; }
+
         void setCookie(UInt_t arg) { m_cookie = arg; } 
         void setTriggerType(dune::ProtoDUNETimingCommand arg) { m_triggerType = arg; } 
         void setReservedBits(UInt_t arg) { m_reservedBits = arg; } 
@@ -60,17 +61,29 @@ namespace dune {
         void setLastRunStart(ULong64_t arg) { m_lastRunStart = arg; } 
         void setLastSpillStart(ULong64_t arg) { m_lastSpillStart = arg; } 
         void setLastSpillEnd(ULong64_t arg) { m_lastSpillEnd = arg; } 
-        
+        void setVersion(UInt_t arg) { m_version = arg; }
+
     protected:
+        /// The cookie which identifies the event as coming from the timing board
         UInt_t m_cookie; 
+        /// The type of trigger command
         ProtoDUNETimingCommand m_triggerType; 
+        /// Reserved bits from the trigger command word (ought to be zero)
         UInt_t m_reservedBits; 
+        /// The 50 MHz timestamp of the trigger
         ULong64_t m_timeStamp; 
+        /// The event counter from the timing board reader
         UInt_t m_eventCounter; 
+        /// Whether the checksum is good (always true)
         bool m_checksumGood;
+        /// The timestamp of the last run start seen by the timing board reader
         ULong64_t m_lastRunStart; 
+        /// The timestamp of the last spill start seen by the timing board reader
         ULong64_t m_lastSpillStart; 
-        ULong64_t m_lastSpillEnd; 
+        /// The timestamp of the last spill end seen by the timing board reader
+        ULong64_t m_lastSpillEnd;
+        /// The version of the artdaq timing fragment that this object is made from
+        UInt_t m_version;
     };
 
 }
