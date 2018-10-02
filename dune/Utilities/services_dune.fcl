@@ -173,7 +173,7 @@ dunedphase3x1x1_services: {
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
  Geometry:                       @local::dphase3x1x1_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
@@ -194,7 +194,7 @@ dunedphase3x1x1_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
