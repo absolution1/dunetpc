@@ -36,7 +36,7 @@ tools.pd_onlineChannelMapByFemb: {
 
 tools.channelRanges: {
   tool_type: ProtoDuneChannelRanges
-  LogLevel: 1
+  LogLevel: 0
   ExtraRanges: ""
 }
 
