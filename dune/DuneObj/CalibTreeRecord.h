@@ -9,14 +9,17 @@
 ////////////////////////////////////////////////////////////////////////
 
 //includes
-#ifndef DUNE_DUNEOBJBASE_EVENTRECORD_H
-#define DUNE_DUNEOBJBASE_EVENTRECORD_H
+#ifndef DUNE_DUNEOBJ_CALIBTREERECORD_H
+#define DUNE_DUNEOBJ_CALIBTREERECORD_H
 #include <vector>
 #include <TObject.h>
+#include <iostream>
 
 namespace CalibTreeRecord {
-  typedef int64_t eve_number_t ;
-  typedef int64_t particle_number_t ;
+//  typedef int64_t eve_number_t ;
+//  typedef int64_t particle_number_t ;
+  typedef Long64_t eve_number_t ;
+  typedef Long64_t particle_number_t ;
   //class OpHit : public TObject{
 
   class HCRec{
@@ -55,7 +58,8 @@ namespace CalibTreeRecord {
       Double_t energy;
       Double_t split;//fraction of hit energy in this partial.
       UInt_t opdet;
-      int64_t index;
+      Long64_t index;
+      //int64_t index;
   };
 
   class PartialOpHit : public PartialPDOpHit {
@@ -75,7 +79,8 @@ namespace CalibTreeRecord {
       Double_t width;
       Double_t split;//fraction of track energy in this hit.
       UInt_t wire;
-      int64_t index;
+      Long64_t index;
+      //int64_t index;
       Bool_t is_collection_wire;
   };
 
@@ -102,6 +107,7 @@ namespace CalibTreeRecord {
       Double_t x_pos;
       Double_t y_pos;
       Double_t z_pos;
+      Double_t t_pos;
       std::vector<PartialHit> partial_hits;
       std::vector<PartialOpHit> partial_ophits;
   };
@@ -115,7 +121,9 @@ namespace CalibTreeRecord {
       Double_t x_pos;
       Double_t y_pos;
       Double_t z_pos;
+      Double_t t_pos;
       std::vector<ParticleRecord> particles;
+      std::string generator="";
 
   };
 
@@ -132,6 +140,7 @@ namespace CalibTreeRecord {
       std::vector<HitContributor> ophits;
 
       void Clear();
+      void stdout_dump();
   };
 
 

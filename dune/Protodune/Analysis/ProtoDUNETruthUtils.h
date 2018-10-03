@@ -28,6 +28,14 @@ namespace protoana {
     const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
     const simb::MCParticle* GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const;
 
+    // Converting times in LArSoft can be a bit of a minefield. These functions convert true times in ns
+    // to pandora times in ns
+    const float ConvertTrueTimeToPandoraTimeNano(const simb::MCParticle &part) const;
+    const float ConvertTrueTimeToPandoraTimeNano(const float trueTime) const;
+    // Microsecond versions
+    const float ConvertTrueTimeToPandoraTimeMicro(const simb::MCParticle &part) const;
+    const float ConvertTrueTimeToPandoraTimeMicro(const float trueTime) const;
+
   private:
 
 

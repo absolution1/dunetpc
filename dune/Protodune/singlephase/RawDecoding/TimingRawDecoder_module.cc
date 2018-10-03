@@ -22,6 +22,8 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
+#include "dunetpc/dune/DuneObj/ProtoDUNETimeStamp.h"
+
 // larsoft includes
 #include "lardataobj/RawData/RDTimeStamp.h"
 
@@ -90,7 +92,8 @@ dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
 
   reconfigure(pset);
   // Call appropriate produces<>() functions here.
-  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);  
+  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);
+  produces< std::vector<dune::ProtoDUNETimeStamp> > (fOutputDataLabel);
 }
 
 void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
@@ -151,6 +154,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   art::RunNumber_t runNumber = evt.run();
 
   std::vector<raw::RDTimeStamp> rdtimestamps;
+  std::vector<dune::ProtoDUNETimeStamp> pdtimestamps;
 
   if(rawFragments.isValid()){
 
@@ -161,6 +165,20 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
       ULong64_t currentTimestamp=frag.get_tstamp();
       uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
       rdtimestamps.emplace_back(currentTimestamp,scmd);
+
+      dune::ProtoDUNETimeStamp pdts;
+      pdts.setCookie(frag.get_cookie());
+      pdts.setTriggerType((dune::ProtoDUNETimingCommand)frag.get_scmd());
+      pdts.setReservedBits(frag.get_tcmd());
+      pdts.setTimeStamp(frag.get_tstamp());
+      pdts.setEventCounter(frag.get_evtctr());
+      // TODO: Checksum isn't set by the board reader yet
+      pdts.setChecksumGood(true);
+      // pdts.setLastRunStart(frag.get_last_runstart_timestamp());
+      // pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
+      // pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
+      
+      pdtimestamps.push_back(pdts);
 
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
@@ -193,6 +211,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     }
   }
   evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
+  evt.put(std::make_unique<decltype(pdtimestamps)>(std::move(pdtimestamps)), fOutputDataLabel);
 }
 
 DEFINE_ART_MODULE(dune::TimingRawDecoder)

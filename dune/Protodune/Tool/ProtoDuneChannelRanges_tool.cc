@@ -3,12 +3,15 @@
 #include "ProtoDuneChannelRanges.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 using std::cout;
 using std::endl;
 using std::string;
+using std::ostringstream;
 using std::setw;
+using std::setfill;
 using Name = ProtoDuneChannelRanges::Name;
 using Index = ProtoDuneChannelRanges::Index;
 using IndexVector = std::vector<Index>;
@@ -21,17 +24,20 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   const Name myname = "ProtoDuneChannelRanges::ctor: ";
   const Index ntps = 6;
   Index nchaApa = 2560;
+  Index nfchau = 40;
+  Index nfchav = 40;
+  Index nfchax = 48;
   Index nchau = 800;
   Index nchav = 800;
   Index nchaz = 480;
-  bool isEven = true;
+  bool isEven = true;  // Even TPS is beam right
   Index apaIdx[ntps] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
   string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
   insertLen("all", 0, ntps*nchaApa, "All", "", "");
   for ( Index itps=0; itps<ntps; ++itps ) {
     string sitps = std::to_string(itps);
     string siapa = std::to_string(apaIdx[itps]);
-    string labTps = "TPS set " + sitps;
+    string labTps = "TPC set " + sitps;
     string labApa = "APA " + siapa;
     string sloc = slocs[itps];
     Index ch0 = itps*nchaApa;
@@ -40,21 +46,52 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     insertLen(      stps, ch0, nchaApa, labTps, sloc, labApa);
     insertLen(      sapa, ch0, nchaApa, labApa, sloc);
     string stpp = "tpp" + sitps;
-    insertLen(stpp + "u", ch0, nchau, "TPC plane " + sitps + "u", sloc, labApa);
-    insertLen(sapa + "u", ch0, nchau, "APA plane " + siapa + "u", sloc);
-    ch0 += nchau;
-    insertLen(stpp + "v", ch0, nchav, "TPC plane " + sitps + "v", sloc, labApa);
-    insertLen(sapa + "v", ch0, nchav, "APA plane " + siapa + "v", sloc);
-    ch0 += nchav;
-    Index chx1 = ch0;
-    ch0 += nchaz;
-    Index chx2 = ch0;
-    Index chz = isEven ? chx2 : chx1;
-    Index chc = isEven ? chx1 : chx2;
-    insertLen(stpp + "c", chc, nchaz, "TPC plane " + sitps + "c", sloc, labApa);
-    insertLen(sapa + "c", chc, nchaz, "APA plane " + siapa + "c", sloc);
-    insertLen(stpp + "z", chz, nchaz, "TPC plane " + sitps + "z", sloc, labApa);
-    insertLen(sapa + "z", chz, nchaz, "APA plane " + siapa + "z", sloc);
+    Index chu0 = ch0;
+    Index chv0 = chu0 + nchau;
+    Index chx10 = chv0 + nchav;
+    Index chx20 = chx10 + nchaz;
+    Index chz0 = isEven ? chx20 : chx10;
+    Index chc0 = isEven ? chx10 : chx20;
+    insertLen(stpp + "u", chu0, nchau, "TPC plane " + sitps + "u", sloc, labApa);
+    insertLen(sapa + "u", chu0, nchau, "APA plane " + siapa + "u", sloc);
+    insertLen(stpp + "v", chv0, nchav, "TPC plane " + sitps + "v", sloc, labApa);
+    insertLen(sapa + "v", chv0, nchav, "APA plane " + siapa + "v", sloc);
+    insertLen(stpp + "c", chc0, nchaz, "TPC plane " + sitps + "c", sloc, labApa);
+    insertLen(sapa + "c", chc0, nchaz, "APA plane " + siapa + "c", sloc);
+    insertLen(stpp + "z", chz0, nchaz, "TPC plane " + sitps + "z", sloc, labApa);
+    insertLen(sapa + "z", chz0, nchaz, "APA plane " + siapa + "z", sloc);
+    Index fchu0 = chu0;
+    Index fchv0 = chv0;
+    Index fchx0 = chx10;
+    Index ifmbu = isEven ? 11 :  1;
+    Index ifmbv = isEven ? 20 : 10;
+    Index ifmbx = isEven ? 20 : 10;
+    // Loop over FEMBS in offline order.
+    for ( Index ifmbOff=0; ifmbOff<20; ++ifmbOff ) {
+      ostringstream ssnamu;
+      ssnamu << siapa << setfill('0') << setw(2) << ifmbu << "u";
+      string namu = ssnamu.str();
+      insertLen("femb" + namu, fchu0, nfchau, "FEMB block " + namu, sloc);
+      ostringstream ssnamv;
+      ssnamv << siapa << setfill('0') << setw(2) << ifmbv << "v";
+      string namv = ssnamv.str();
+      insertLen("femb" + namv, fchv0, nfchav, "FEMB block " + namv, sloc);
+      ostringstream ssnamx;
+      ssnamx << siapa << setfill('0') << setw(2) << ifmbx << "x";
+      string namx = ssnamx.str();
+      insertLen("femb" + namx, fchx0, nfchax, "FEMB block " + namx, sloc);
+      fchu0 += nfchau;
+      fchv0 += nfchav;
+      fchx0 += nfchax;
+      ifmbu += 1; 
+      if ( ifmbu > 20 ) ifmbu = 1;
+      ifmbv -= 1;
+      if ( ifmbv == 0 ) ifmbv = 20;
+      if ( ifmbOff < 9 )       ifmbx -= 1;
+      else if ( ifmbOff == 9 ) ifmbx = isEven ? 1 : 11;
+      else                      ifmbx += 1;
+      
+    }
     isEven = ! isEven;
   }
   if ( m_ExtraRanges.size() ) {

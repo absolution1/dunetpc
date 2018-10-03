@@ -5,6 +5,8 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "art/Framework/Principal/Event.h"
 
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+
 protoana::ProtoDUNETruthUtils::ProtoDUNETruthUtils(){
 
 }
@@ -148,4 +150,26 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
 
 }
 
+// Converting times in LArSoft can be a bit of a minefield. These functions convert true times in ns
+// to pandora times in ns
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeNano(const simb::MCParticle &part) const{
+  return ConvertTrueTimeToPandoraTimeNano(part.T());
+}
+
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeNano(const float trueTime) const{
+  return 1000. * ConvertTrueTimeToPandoraTimeMicro(trueTime);
+}
+
+// Microsecond versions
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeMicro(const simb::MCParticle &part) const{
+  return ConvertTrueTimeToPandoraTimeMicro(part.T());
+}
+
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeMicro(const float trueTime) const{
+
+  // Use the clocks service to account for the offset between the Geant4 time and the electronics clock
+  auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
+
+  return detclock->G4ToElecTime(trueTime);
+}
 
