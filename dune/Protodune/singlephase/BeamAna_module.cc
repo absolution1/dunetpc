@@ -28,6 +28,7 @@
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
+#include "dune/DuneObj/ProtoDUNETimeStamp.h"
 #include <bitset>
 #include <iomanip>
 #include <utility>
@@ -84,6 +85,7 @@ public:
   void RotateMonitorVector(TVector3 &vec); 
 
   uint64_t GetRawDecoderInfo(art::Event &);
+  void TimeIn(art::Event &);
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
@@ -193,6 +195,10 @@ private:
   recob::Track * theTrack;
   std::vector<recob::Track*> theTracks;
   long long int eventTime;
+  double SpillStart;
+  double SpillEnd;
+  double RDTSTime;
+  std::vector< double > * GenTriggers;
 
   long long int acqTime;
   int HLTWord;
@@ -390,14 +396,17 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
   std::cout << "RDTS valid? " << RDTimeStampHandle.isValid() << std::endl;
   for (auto const & RDTS : *RDTimeStampHandle){
     std::cout << "High: " << RDTS.GetTimeStamp_High() << std::endl;
-    std::cout << "Low: " << RDTS.GetTimeStamp_Low() << " ";
+    std::cout << "Low: " << RDTS.GetTimeStamp_Low() << std::endl; 
 
     std::bitset<64> high = RDTS.GetTimeStamp_High();
     std::bitset<64> low  = RDTS.GetTimeStamp_Low();
     high = high << 32; 
     std::bitset<64> joined = (high ^ low);
 
-    std::cout << (joined).to_ullong() << std::endl;
+    std::cout << "Join: " << (joined).to_ullong() << std::endl;
+    std::cout << "Join: " << 2.e-8 * (joined).to_ullong() << std::endl;
+
+    RDTSTime = 2.e-8 * joined.to_ullong(); 
 
   }
 
@@ -417,9 +426,9 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
       ULong64_t theTS    = ctbTrig.timestamp;
 
 
-      std::cout << "Type: " << theType << std::endl
-                << "Word: " << theWord << std::endl
-                << "TS: "   << theTS   << " " << ctbTrig.timestamp*20.E-9 << std::endl;
+//      std::cout << "Type: " << theType << std::endl
+//                << "Word: " << theWord << std::endl
+//                << "TS: "   << theTS   << " " << ctbTrig.timestamp*20.E-9 << std::endl;
       
       if (theType == 2){
         std::cout << "Found the High Level Trigger" << std::endl;
@@ -461,51 +470,48 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 
       //Now check the channel statuses        
       std::cout << "ChStatuses: " << CTB.GetNChStatuses() << std::endl;
-      for(size_t nStat = 0; nStat < CTB.GetNChStatuses(); ++nStat){
-        raw::ctb::ChStatus theStatus = CTB.GetChStatuse(nStat);
+      raw::ctb::ChStatus theStatus = CTB.GetChStatuse(0);
       
-        uint32_t the_beam_hi    = theStatus.beam_hi; 
-        uint32_t the_beam_lo    = theStatus.beam_lo; 
-        ULong64_t the_timestamp = theStatus.timestamp; 
-        
-        std::cout << "Timestamp : " << the_timestamp << std::endl;
-        if( the_timestamp > ULong64_t(HLTTS) ){
-          std::cout << "Found Channel status > HLT timestamp. Skipping" << std::endl;
-          continue;
-        }
-
-        std::cout << "beam_hi   : " << std::bitset<5>(the_beam_hi) << std::endl; 
-        std::cout << "beam_lo   : " << std::bitset<4>(the_beam_lo) << std::endl; 
-
-        std::bitset<4> beam_lo(the_beam_lo);
-        std::bitset<5> beam_hi(the_beam_hi);
-
-        BeamOn     =  beam_lo[0];
-        BITrigger  =  beam_lo[1];
-        Upstream   =  beam_lo[2];
-        C1         =  beam_lo[3];
-        C2         =  beam_hi[0];
-        BP1        =  beam_hi[1];
-        BP2        =  beam_hi[2];
-        BP3        =  beam_hi[3];
-        BP4        =  beam_hi[4];
-
-
-        std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
-        std::cout << "Beam On:    " << BeamOn    << std::endl
-                  << "BI Trigger: " << BITrigger << std::endl
-                  << "Upstream:   " << Upstream  << std::endl
-                  << "C1:         " << C1        << std::endl
-                  << "C2:         " << C2        << std::endl
-                  << "BP1:        " << BP1       << std::endl
-                  << "BP2:        " << BP2       << std::endl
-                  << "BP3:        " << BP3       << std::endl
-                  << "BP4:        " << BP4       << std::endl;
-        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
-
-        fCKovHist->Fill(C1 + 2*C2);
-
+      uint32_t the_beam_hi    = theStatus.beam_hi; 
+      uint32_t the_beam_lo    = theStatus.beam_lo; 
+      ULong64_t the_timestamp = theStatus.timestamp; 
+      
+      std::cout << "Timestamp : " << the_timestamp << std::endl;
+      if( the_timestamp > ULong64_t(HLTTS) ){
+        std::cout << "Found Channel status > HLT timestamp. Skipping" << std::endl;
+//        continue;
       }
+
+      std::cout << "beam_hi   : " << std::bitset<5>(the_beam_hi) << std::endl; 
+      std::cout << "beam_lo   : " << std::bitset<4>(the_beam_lo) << std::endl; 
+
+      std::bitset<4> beam_lo(the_beam_lo);
+      std::bitset<5> beam_hi(the_beam_hi);
+
+      BeamOn     =  beam_lo[0];
+      BITrigger  =  beam_lo[1];
+      Upstream   =  beam_lo[2];
+      C1         =  beam_lo[3];
+      C2         =  beam_hi[0];
+      BP1        =  beam_hi[1];
+      BP2        =  beam_hi[2];
+      BP3        =  beam_hi[3];
+      BP4        =  beam_hi[4];
+
+
+      std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
+      std::cout << "Beam On:    " << BeamOn    << std::endl
+                << "BI Trigger: " << BITrigger << std::endl
+                << "Upstream:   " << Upstream  << std::endl
+                << "C1:         " << C1        << std::endl
+                << "C2:         " << C2        << std::endl
+                << "BP1:        " << BP1       << std::endl
+                << "BP2:        " << BP2       << std::endl
+                << "BP3:        " << BP3       << std::endl
+                << "BP4:        " << BP4       << std::endl;
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
+
+      fCKovHist->Fill(C1 + 2*C2);
 
       return HLTTS;
     }
@@ -517,6 +523,41 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 
 }
 
+void proto::BeamAna::TimeIn(art::Event & e){
+    auto const PDTStampHandle = e.getValidHandle< std::vector< dune::ProtoDUNETimeStamp > > ("timingrawdecoder:daq");  
+    std::vector< dune::ProtoDUNETimeStamp > PDTStampVec(*PDTStampHandle); 
+    auto PDTStamp = PDTStampVec[0];            
+          
+    UInt_t    ver        = PDTStamp.getVersion();   
+    ULong64_t RunStart   = PDTStamp.getLastRunStart();            
+    SpillStart = 2.e-8*PDTStamp.getLastSpillStart();          
+    SpillEnd   = 2.e-8*PDTStamp.getLastSpillEnd();            
+          
+    std::cout << "Version:     " << ver        << std::endl;      
+    std::cout << "Run:         " << RunStart   << std::endl;      
+          
+    std::cout << "Spill Start: " << SpillStart <<  std::endl;      
+    std::cout << "Spill End:   " << SpillEnd   <<  std::endl;      
+          
+    std::cout << std::endl;           
+          
+    if( SpillEnd > SpillStart ){      
+      std::cout << "Outside of spill" << std::endl; 
+      std::cout << "End - Start: "    << 2.e-8 * (SpillEnd - SpillStart) << std::endl;        
+    }     
+    else{ 
+      std::cout << "Within a spill" << std::endl;   
+    }     
+          
+    //std::cout << "Start - Prev: " <<  2.e-8 * (SpillStart - prevStart) << std::endl;          
+    //std::cout << "End - Prev:   " <<  2.e-8 * (SpillEnd   - prevEnd  ) << std::endl;          
+          
+    std::cout << std::endl;           
+          
+    //prevStart = SpillStart;           
+    //prevEnd   = SpillEnd;    
+
+}
 
 ////////////////////////
 // Producer Method (reads in the event and derives values)
@@ -535,6 +576,10 @@ void proto::BeamAna::produce(art::Event & e)
   BP2        = -1;
   BP3        = -1;
   BP4        = -1; 
+  SpillStart = -1;
+  SpillEnd   = -1;
+  RDTSTime   = -1;
+  GenTriggers->clear();
 
 
 
@@ -549,7 +594,8 @@ void proto::BeamAna::produce(art::Event & e)
 
   validTimeStamp = GetRawDecoderInfo(e);
   std::cout << std::endl;
-  std::cout << "RawDecoder TimeStamp" << std::endl;
+
+
   bool usedEventTime = false;
   if(validTimeStamp){
 
@@ -593,8 +639,6 @@ void proto::BeamAna::produce(art::Event & e)
     } 
 
     //Start getting beam event info
-
-
 //    if(eventTime - prev_event_time > 18){
       // Loop over the different particle times 
       for(size_t it = 0; it < fMultipleTimes.size(); ++it){
@@ -606,6 +650,11 @@ void proto::BeamAna::produce(art::Event & e)
         else{
           fetch_time = fMultipleTimes[it];
         }
+
+        //Get the conversion from the ProtoDUNE Timing system
+        //To the one in the SPS.
+        TimeIn(e);
+
 
         // Parse the Time of Flight Counter data for the list
         // of times that we are using
@@ -667,6 +716,7 @@ void proto::BeamAna::produce(art::Event & e)
           }
           
           fMatchedTriggers->Fill();
+          GenTriggers->push_back(beamevt->GetT0(ip).first +  beamevt->GetT0(ip).second*1.e-9);
           //Reset
           matchedNom = 0;
 
@@ -955,46 +1005,50 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fGenTrigTree->Fill();
   }
 
-  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " "  << 8.*coarseTOF1A[i] + fracTOF1A[i]/512. << std::endl;
+//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+  for(size_t i = 0; i < coarseTOF1A.size(); ++i){
+    std::cout << "TOF1A " << i << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
     fXTOF1ACoarse = coarseTOF1A[i];
     fXTOF1AFrac = fracTOF1A[i];
     fXTOF1ASec = secondsTOF1A[2*i + 1];
-    if(fXTOF1ASec < eventTime) break; 
-
+//    if(fXTOF1ASec < eventTime) break; 
+    if (fXTOF1ACoarse == 0.0 && fXTOF1AFrac == 0.0 && fXTOF1ASec == 0.0) break;
     unorderedTOF1ATime.push_back(std::make_pair(fXTOF1ASec, (fXTOF1ACoarse*8. + fXTOF1AFrac/512.)) );
     fXTOF1ATree->Fill();
   }
     
-  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " "  << 8.*coarseTOF1B[i] + fracTOF1B[i]/512. << std::endl;
+  //for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+  for(size_t i = 0; i < coarseTOF1B.size(); ++i){
+    std::cout << "TOF1B " << i << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
     fXTOF1BCoarse = coarseTOF1B[i];
     fXTOF1BFrac = fracTOF1B[i];
     fXTOF1BSec = secondsTOF1B[2*i + 1];
-    if(fXTOF1BSec < eventTime) break;
-
+//    if(fXTOF1BSec < eventTime) break;
+    if (fXTOF1BCoarse == 0.0 && fXTOF1BFrac == 0.0 && fXTOF1BSec == 0.0) break;
     unorderedTOF1BTime.push_back(std::make_pair(fXTOF1BSec, (fXTOF1BCoarse*8. + fXTOF1BFrac/512.)) );
     fXTOF1BTree->Fill();
   }
 
-  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " "  << 8.*coarseTOF2A[i] + fracTOF2A[i]/512. << std::endl;
+//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+  for(size_t i = 0; i < coarseTOF2A.size(); ++i){
+    std::cout << "TOF2A " << i << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
     fXTOF2ACoarse = coarseTOF2A[i];
     fXTOF2AFrac = fracTOF2A[i];
     fXTOF2ASec = secondsTOF2A[2*i + 1];
-    if(fXTOF2ASec < eventTime) break;
-
+//    if(fXTOF2ASec < eventTime) break;
+    if (fXTOF2ACoarse == 0.0 && fXTOF2AFrac == 0.0 && fXTOF2ASec == 0.0) break;
     unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
     fXTOF2ATree->Fill();
   }  
 
-  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " "  << 8.*coarseTOF2B[i] + fracTOF2B[i]/512. << std::endl;
+//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+  for(size_t i = 0; i < coarseTOF2B.size(); ++i){
+    std::cout << "TOF2B " << i << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
     fXTOF2BCoarse = coarseTOF2B[i];
     fXTOF2BFrac = fracTOF2B[i];
     fXTOF2BSec = secondsTOF2B[2*i + 1];
-    if(fXTOF2BSec < eventTime) break;
-
+//    if(fXTOF2BSec < eventTime) break;
+    if (fXTOF2BCoarse == 0.0 && fXTOF2BFrac == 0.0 && fXTOF2BSec == 0.0) break;
     unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
     fXTOF2BTree->Fill();
   }
@@ -1094,7 +1148,8 @@ void proto::BeamAna::parseXTOF(uint64_t time){
       }
 
       if(found_TOF1 && found_TOF2){
-//        std::cout << "Found matching TOF " << the_gen << " " << the_TOF1 << " " << the_TOF2 << std::endl;
+        std::cout << "Found matching TOF " << the_gen_ns << " " << the_TOF1_ns << " " << the_TOF2_ns << std::endl;
+        std::cout << "Found matching TOF " << the_gen_sec << " " << the_TOF1_sec << " " << the_TOF2_sec << std::endl;
         beamevt->AddT0(std::make_pair(the_gen_sec,the_gen_ns));
         beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec, the_TOF1_ns));
         beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
@@ -1455,7 +1510,12 @@ void proto::BeamAna::beginJob()
   CKov2Efficiency = 0.;
   fOutTree->Branch("Track", &theTrack);
   fOutTree->Branch("Time", &eventTime);
+  fOutTree->Branch("RDTS", &RDTSTime);
+  GenTriggers = new std::vector<double>;
+  fOutTree->Branch("Gens", &GenTriggers);
   fOutTree->Branch("Event", &eventNum);
+  fOutTree->Branch("SpillStart", &SpillStart);
+  fOutTree->Branch("SpillEnd", &SpillEnd);
   fOutTree->Branch("Run",   &runNum);
   fOutTree->Branch("Subrun", &subRunNum);
   fOutTree->Branch("Pressure1", &CKov1Pressure);
