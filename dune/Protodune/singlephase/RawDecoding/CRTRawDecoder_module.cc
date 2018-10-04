@@ -19,6 +19,9 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+//dune-artdaq includes
+#include "artdaq-core/Data/ContainerFragment.hh"
+
 //dune-raw-data includes
 #include "dune-raw-data/Overlays/CRTFragment.hh"
 
@@ -61,9 +64,24 @@ namespace CRT
     private:
     
       // Declare member data here.
-      art::InputTag fFragLabel; //Label of the module that produced artdaq::Fragments 
-                                //from CRT data that I will turn into CRT::Triggers.
-  
+      const art::InputTag fFragTag; //Label and product instance name (try eventdump.fcl on your input file) of the module that produced 
+                                      //artdaq::Fragments from CRT data that I will turn into CRT::Triggers. Usually seems to be "daq" from artdaq.  
+
+      const bool fLookForContainer; //Should this module look for "container" artdaq::Fragments instead of "single" artdaq::Fragments?  
+                                    //If you ran the CRT board reader with the "request_mode" FHICL parameter set to "window", you need 
+                                    //to look for "container" Fragments and probably won't get any useful Fragments otherwise.  If you 
+                                    //ran the CRT board reader with "request_mode" set to "ignore", then set fLookForContainer to "false" 
+                                    //which is the default.  
+                                    //You probably want this set to "true" because the CRT should be run in "window" request_mode for 
+                                    //production.  You might set it to "false" if you took debugging data in which you wanted to ignore 
+                                    //timestamp matching with other detectors.  
+
+      // Compartmentalize internal functionality so that I can reuse it with both regular Fragments and "container" Fragments
+      void FragmentToTriggers(const artdaq::Fragment& artFrag, std::unique_ptr<std::vector<CRT::Trigger>>& triggers);
+
+      // For the first Event of every job, I want to set fEarliestTime to the earliest time in that Event
+      void SetEarliestTime(const artdaq::Fragment& frag);
+
       //Sync diagnostic plots
       struct PerModule
       {
@@ -84,93 +102,121 @@ namespace CRT
   };
   
   
-  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragLabel(p.get<std::string>("RawDataLabel"), p.get<std::string>("RawDataInstance")), 
+  CRTRawDecoder::CRTRawDecoder(fhicl::ParameterSet const & p): fFragTag(p.get<std::string>("RawDataTag")), 
+                                                               fLookForContainer(p.get<bool>("LookForContainer", false)),
                                                                fEarliestTime(std::numeric_limits<decltype(fEarliestTime)>::max())
   {
     // Call appropriate produces<>() functions here.
     produces<std::vector<CRT::Trigger>>();
-    //TODO: call consumes
-    
+    consumes<std::vector<artdaq::Fragment>>(fFragTag);
+ 
     //Register callback to make new plots on every file
     art::ServiceHandle<art::TFileService> tfs;
     tfs->registerFileSwitchCallback(this, &CRTRawDecoder::createSyncPlots);
   }
+
+  void CRTRawDecoder::FragmentToTriggers(const artdaq::Fragment& artFrag, std::unique_ptr<std::vector<CRT::Trigger>>& triggers)
+  {
+    CRT::Fragment frag(artFrag);
+                                                                                                                                                   
+    //TODO: Remove me
+    LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
+    frag.print_header();
+    frag.hexdump();
+                                                                                                                                                   
+    std::vector<CRT::Hit> hits;
+                                                                                                                                                   
+    //Make a CRT::Hit from each non-zero ADC value in this Fragment
+    for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
+    {
+      const auto hit = *(frag.hit(hitNum));
+      LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
+                          << "ADC: " << hit.adc << "\n";
+                                                                                                                                                   
+      hits.emplace_back(hit.channel, hit.adc);
+      //LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
+                                                                    //      function template from namespace CRT.  using namespace CRT seems like 
+                                                                    //      it should solve this, but it doesn't seem to.
+    }
+                                                                                                                                                   
+    LOG_DEBUG("CRTFragments") << "Module: " << frag.module_num() << "\n"
+                              << "Number of hits: " << frag.num_hits() << "\n"
+                              << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
+                                                                                                                                                   
+    triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); //TODO: Get AuxDet index from channel map
+    
+    //Make diagnostic plots for sync pulses
+    const auto& plots = fSyncPlots[frag.module_num()];
+    const double deltaT = (frag.fifty_mhz_time() - fEarliestTime)*1.6e-8; //TODO: Get size of clock ticks from a service
+    if(deltaT > 0 && deltaT < 1e6) //Ignore time differences less than 1s and greater than 1 day
+                                   //TODO: Understand why these cases come up
+    {
+      plots.fLowerTimeVersusTime->SetPoint(plots.fLowerTimeVersusTime->GetN(), deltaT, frag.raw_backend_time());
+    }
+    else
+    {
+      mf::LogWarning("SyncPlots") << "Got time difference " << deltaT << " that was not included in sync plots.\n"
+                                  << "lhs is " << frag.fifty_mhz_time() << ", and rhs is " << fEarliestTime << ".\n"
+                                  << "Hardware raw time is " << frag.raw_backend_time() << ".\n";
+    }
+  }
+
+  void CRTRawDecoder::SetEarliestTime(const artdaq::Fragment& frag)
+  {
+    CRT::Fragment crt(frag);
+    if(crt.fifty_mhz_time() < fEarliestTime) fEarliestTime = crt.fifty_mhz_time();
+  }
   
-  //Read artdaq::Fragments produced by fFragLabel, and use CRT::Fragment to convert them to CRT::Triggers.  
+  //Read artdaq::Fragments produced by fFragTag, and use CRT::Fragment to convert them to CRT::Triggers.  
   void CRTRawDecoder::produce(art::Event & e)
   {
     //Create an empty container of CRT::Triggers.  Any Triggers in this container will be put into the 
     //event at the end of produce.  I will try to fill this container, but just not produce any CRT::Triggers 
     //if there are no input artdaq::Fragments.  
     auto triggers = std::make_unique<std::vector<CRT::Trigger>>();
-  
+
     try
     {
       //Try to get artdaq::Fragments produced from CRT data.  The following line is the reason for 
       //this try-catch block.  I don't expect anything else to throw a cet::Exception.
-      const auto& fragHandle = e.getValidHandle<std::vector<artdaq::Fragment>>(fFragLabel);
-   
-      //If this is the first event, set fEarliestTime
-      if(fEarliestTime == std::numeric_limits<decltype(fEarliestTime)>::max())
+      const auto& fragHandle = e.getValidHandle<std::vector<artdaq::Fragment>>(fFragTag);
+
+      if(fLookForContainer)
       {
-        fEarliestTime = CRT::Fragment(*(std::min_element(fragHandle->begin(), fragHandle->end(), 
-                                         [](const auto& first, const auto& second)
-                                         { return CRT::Fragment(first).fifty_mhz_time() < CRT::Fragment(second).fifty_mhz_time(); }
-                                        ))).fifty_mhz_time(); 
+        //If this is the first event, set fEarliestTime
+        if(fEarliestTime == std::numeric_limits<decltype(fEarliestTime)>::max())
+        {
+          for(const auto& frag: *fragHandle) 
+          {
+            artdaq::ContainerFragment container(frag);
+            for(size_t pos = 0; pos < container.block_count(); ++pos) SetEarliestTime(*container[pos]);
+          }
+        }
+
+        for(const auto& artFrag: *fragHandle)
+        {
+          artdaq::ContainerFragment container(artFrag);
+          for(size_t pos = 0; pos < container.block_count(); ++pos) FragmentToTriggers(*container[pos], triggers); 
+        }
       }
-
-      //Convert each fragment into a CRT::Trigger.
-      for(const auto& artFrag: *fragHandle)
+      else
       {
-        CRT::Fragment frag(artFrag);
+        //If this is the first event, set fEarliestTime
+        if(fEarliestTime == std::numeric_limits<decltype(fEarliestTime)>::max())
+        {
+          for(const auto& frag: *fragHandle) SetEarliestTime(frag);
+        }
 
-        //TODO: Remove me
-        LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
-        frag.print_header();
-        frag.hexdump();
-
-        std::vector<CRT::Hit> hits;
-  
-        //Make a CRT::Hit from each non-zero ADC value in this Fragment
-        for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
-        {
-          const auto hit = *(frag.hit(hitNum));
-          LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
-                              << "ADC: " << hit.adc << "\n";
-  
-          hits.emplace_back(hit.channel, hit.adc);
-          //LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
-                                                                        //      function template from namespace CRT.  using namespace CRT seems like 
-                                                                        //      it should solve this, but it doesn't seem to.
-        }
-  
-        LOG_DEBUG("CRTFragments") << "Module: " << frag.module_num() << "\n"
-                                  << "Number of hits: " << frag.num_hits() << "\n"
-                                  << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
-  
-        triggers->emplace_back(frag.module_num(), frag.fifty_mhz_time(), std::move(hits)); //TODO: Get AuxDet index from channel map
-        
-        //Make diagnostic plots for sync pulses
-        const auto& plots = fSyncPlots[frag.module_num()];
-        const double deltaT = (frag.fifty_mhz_time() - fEarliestTime)*1.6e-8; //TODO: Get size of clock ticks from a service
-        if(deltaT > 0 && deltaT < 1e6) //Ignore time differences less than 1s and greater than 1 day
-                                       //TODO: Understand why these cases come up
-        {
-          plots.fLowerTimeVersusTime->SetPoint(plots.fLowerTimeVersusTime->GetN(), deltaT, frag.raw_backend_time());
-        }
-        else
-        {
-          mf::LogWarning("SyncPlots") << "Got time difference " << deltaT << " that was not included in sync plots.\n"
-                                      << "lhs is " << frag.fifty_mhz_time() << ", and rhs is " << fEarliestTime << ".\n"
-                                      << "Hardware raw time is " << frag.raw_backend_time() << ".\n";
-        }
-      } 
+        //Convert each fragment into a CRT::Trigger.
+        for(const auto& artFrag: *fragHandle) FragmentToTriggers(artFrag, triggers);
+      }
     }
     catch(const cet::exception& exc) //If there are no artdaq::Fragments in this Event, just add an empty container of CRT::Triggers.
     {
-      mf::LogWarning("MissingData") << "No artdaq::Fragments produced by " << fFragLabel << " in this event, so not doing anything.\n";
+      mf::LogWarning("MissingData") << "No artdaq::Fragments produced by " << fFragTag << " in this event, so "
+                                    << "not doing anything.\n";
     }
-  
+
     //Put a vector of CRT::Triggers into this Event for other modules to read.
     e.put(std::move(triggers));
   }
