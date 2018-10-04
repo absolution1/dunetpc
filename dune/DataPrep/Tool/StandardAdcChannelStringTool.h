@@ -23,6 +23,7 @@
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build
+//   %TRIG% --> acd.trigger
 // where acd is the AdcChannelData object and dm is the DataMap object
 // passed in the call to build.
 //
@@ -74,8 +75,9 @@ private:
   Index m_ChannelWidth;
   Index m_CountWidth;
   Index m_FembWidth;
+  Index m_TriggerWidth;
 
-  static const Index m_nrep = 8;
+  static const Index m_nrep = 9;
   Index m_wids[m_nrep];
   std::string m_reps[m_nrep];
   std::string m_bads[m_nrep];

@@ -24,7 +24,8 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_EventWidth(ps.get<Index>("EventWidth")),
   m_ChannelWidth(ps.get<Index>("ChannelWidth")),
   m_CountWidth(ps.get<Index>("CountWidth")),
-  m_FembWidth(ps.get<Index>("FembWidth")) {
+  m_FembWidth(ps.get<Index>("FembWidth")),
+  m_TriggerWidth(ps.get<Index>("TriggerWidth")) {
   const string myname = "StandardAdcChannelStringTool::ctor: ";
   m_reps[0] = "RUN";
   m_reps[1] = "SUBRUN";
@@ -34,6 +35,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_reps[5] = "CHAN1";
   m_reps[6] = "CHAN2";
   m_reps[7] = "FEMB";
+  m_reps[8] = "TRIG";
   m_wids[0] = m_RunWidth;
   m_wids[1] = m_SubRunWidth;
   m_wids[2] = m_EventWidth;
@@ -42,6 +44,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_wids[5] = m_ChannelWidth;
   m_wids[6] = m_ChannelWidth;
   m_wids[7] = m_FembWidth;
+  m_wids[8] = m_TriggerWidth;
   m_bads[0] = "RunNotFound";
   m_bads[1] = "SubRunNotFound";
   m_bads[2] = "EventNotFound";
@@ -50,6 +53,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_bads[5] = "Channel1NotFound";
   m_bads[6] = "Channel2NotFound";
   m_bads[7] = "FembNotFound";
+  m_bads[8] = "TriggerNotFound";
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
@@ -59,6 +63,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
     cout << myname << "  ChannelWidth: " << m_ChannelWidth << endl;
     cout << myname << "    CountWidth: " << m_CountWidth << endl;
     cout << myname << "     FembWidth: " << m_CountWidth << endl;
+    cout << myname << "  TriggerWidth: " << m_TriggerWidth << endl;
   }
 }
 
@@ -72,7 +77,8 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
                         Index(dm.getInt("chan2")),
-                        acd.fembID};
+                        acd.fembID,
+                        acd.trigger};
   bool isBad[m_nrep] = {
     acd.run     == AdcChannelData::badIndex,
     acd.subRun  == AdcChannelData::badIndex,
@@ -82,6 +88,7 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
     !dm.haveInt("chan1"),
     !dm.haveInt("chan2"),
     acd.fembID  == AdcChannelData::badIndex,
+    acd.trigger == AdcChannelData::badIndex
   };
   string sout = spat;
   for ( Index irep=0; irep<m_nrep; ++irep ) {

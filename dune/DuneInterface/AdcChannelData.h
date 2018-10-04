@@ -11,6 +11,7 @@
 //      channel - Offline channel number
 //       fembID - FEMB ID
 //  fembChannel - Channel number in FEMB (0, 1,..., 127).
+//      trigger - Index indicating which trigger(s) fired.
 // triggerClock - Time counter for the trigger
 //     pedestal - Pedestal subtracted from the raw count
 //  pedestalRms - Pedestal RMS or sigma
@@ -68,6 +69,7 @@ public:
   AdcChannel channel =badIndex;
   AdcIndex fembID =badIndex;
   AdcIndex fembChannel =badIndex;
+  AdcIndex trigger =badIndex;
   AdcLongIndex triggerClock =0;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
@@ -118,6 +120,7 @@ public:
     if ( mname == "event" ) return event;
     if ( mname == "fembID" ) return fembID;
     if ( mname == "fembChannel" ) return fembChannel;
+    if ( mname == "trigger" ) return trigger;
     if ( mname == "triggerClock" ) return triggerClock;  // lose precision here
     if ( mname == "pedestal" ) return pedestal;
     if ( mname == "pedestalRms" ) return pedestalRms;
@@ -165,6 +168,7 @@ inline void AdcChannelData::clear() {
   channel = badIndex;
   fembID = badIndex;
   fembChannel = badIndex;
+  trigger = badIndex;
   triggerClock = 0;
   pedestal = badSignal;
   pedestalRms = 0.0;

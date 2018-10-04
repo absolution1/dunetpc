@@ -37,7 +37,7 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   for ( Index itps=0; itps<ntps; ++itps ) {
     string sitps = std::to_string(itps);
     string siapa = std::to_string(apaIdx[itps]);
-    string labTps = "TPS set " + sitps;
+    string labTps = "TPC set " + sitps;
     string labApa = "APA " + siapa;
     string sloc = slocs[itps];
     Index ch0 = itps*nchaApa;

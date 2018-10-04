@@ -1323,7 +1323,7 @@
       <solidref ref="GaseousArgon"/>
       <physvol>
       <volumeref ref="volLEMs"/>
-      <position name="posLEMs" unit="cm" x="0" y="-49.55" z="0"/>
+      <position name="posLEMs" unit="cm" x="0" y="-49.45" z="0"/>
       </physvol>
     </volume>
 
