@@ -350,7 +350,7 @@ namespace dunemva {
     }
 
     if( !cvnin.failedToGet() ) {
-      using i = cvn::Interaction;
+      //using i = cvn::Interaction;
       //if(cvnin->empty() || (*cvnin)[0].fOutput.size() <= i::kNutauOther){
       if(cvnin->empty()){
         fCVNResultIsAntineutrino = fCVNResultNue = fCVNResultNumu = fCVNResultNutau = fCVNResultNC = \
