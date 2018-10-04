@@ -79,13 +79,14 @@ public:
 
 
   std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
+  uint64_t joinHighLow(double,double);
 
   TVector3 ConvertProfCoordinates(double x, double y, double z, double zOffset);
   void BeamMonitorBasisVectors(); 
   void RotateMonitorVector(TVector3 &vec); 
 
   uint64_t GetRawDecoderInfo(art::Event &);
-  void TimeIn(art::Event &);
+  void TimeIn(art::Event &, uint64_t);
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
@@ -200,7 +201,9 @@ private:
   double RDTSTime;
   std::vector< double > * GenTriggers;
 
-  long long int acqTime;
+  double acqTime;
+  double acqStampMBPL;
+  double cycleStampMBPL;
   int HLTWord;
   long long int HLTTS;
   int BeamOn;
@@ -523,7 +526,7 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 
 }
 
-void proto::BeamAna::TimeIn(art::Event & e){
+void proto::BeamAna::TimeIn(art::Event & e, uint64_t time){
     auto const PDTStampHandle = e.getValidHandle< std::vector< dune::ProtoDUNETimeStamp > > ("timingrawdecoder:daq");  
     std::vector< dune::ProtoDUNETimeStamp > PDTStampVec(*PDTStampHandle); 
     auto PDTStamp = PDTStampVec[0];            
@@ -536,8 +539,8 @@ void proto::BeamAna::TimeIn(art::Event & e){
     std::cout << "Version:     " << ver        << std::endl;      
     std::cout << "Run:         " << RunStart   << std::endl;      
           
-    std::cout << "Spill Start: " << SpillStart <<  std::endl;      
-    std::cout << "Spill End:   " << SpillEnd   <<  std::endl;      
+    std::cout << "Spill Start: " << std::setw(15) << 1.e-9*SpillStart <<  std::endl;      
+    std::cout << "Spill End:   " << std::setw(15) << 1.e-9*SpillEnd   <<  std::endl;      
           
     std::cout << std::endl;           
           
@@ -557,6 +560,20 @@ void proto::BeamAna::TimeIn(art::Event & e){
     //prevStart = SpillStart;           
     //prevEnd   = SpillEnd;    
 
+
+
+    /////Now look at the cycleStamp and acqStamp coming out of IFBeam
+    std::vector<double> acqStamp = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]",fNRetries); 
+    std::vector<double> cycleStamp = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:cycleStamp[]",fNRetries); 
+
+    acqStampMBPL   = 1.e-9 * joinHighLow(acqStamp[0],   acqStamp[1]); 
+    cycleStampMBPL = 1.e-9 * joinHighLow(cycleStamp[0], cycleStamp[1]);
+
+    std::cout << "%%%IFBeam%%%" << std::endl;
+    std::cout << std::setw(15) << acqStampMBPL*1.e-9   << std::endl;
+    std::cout << std::setw(15) << cycleStampMBPL*1.e-9 << std::endl;
+
+    std::cout << std::endl;
 }
 
 ////////////////////////
@@ -565,6 +582,8 @@ void proto::BeamAna::produce(art::Event & e)
 {
   //Reset 
   acqTime = 0;
+  acqStampMBPL = 0;
+  cycleStampMBPL = 0;
   HLTWord = 0;
   HLTTS = 0;
   BeamOn     = -1;
@@ -653,7 +672,7 @@ void proto::BeamAna::produce(art::Event & e)
 
         //Get the conversion from the ProtoDUNE Timing system
         //To the one in the SPS.
-        TimeIn(e);
+        TimeIn(e, fetch_time);
 
 
         // Parse the Time of Flight Counter data for the list
@@ -947,7 +966,7 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::bitset<64> joinedbits = highbits ^ lowbits;
 
   std::cout << joinedbits.to_ullong() << std::endl;
-  acqTime = joinedbits.to_ullong() / 1000000000; 
+  acqTime = joinedbits.to_ullong() / 1000000000.; 
 
 /*  std::cout << "Getting S11 info " << std::endl;
   std::vector<double> coarseS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]",fNRetries);
@@ -994,6 +1013,7 @@ void proto::BeamAna::parseXTOF(uint64_t time){
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
     std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
     fGenTrigCoarse = coarseGeneralTrigger[i];
     fGenTrigFrac = fracGeneralTrigger[i];
 
@@ -1005,8 +1025,8 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fGenTrigTree->Fill();
   }
 
-//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-  for(size_t i = 0; i < coarseTOF1A.size(); ++i){
+  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+ // for(size_t i = 0; i < coarseTOF1A.size(); ++i){
     std::cout << "TOF1A " << i << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
     fXTOF1ACoarse = coarseTOF1A[i];
     fXTOF1AFrac = fracTOF1A[i];
@@ -1017,8 +1037,8 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF1ATree->Fill();
   }
     
-  //for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-  for(size_t i = 0; i < coarseTOF1B.size(); ++i){
+  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+ // for(size_t i = 0; i < coarseTOF1B.size(); ++i){
     std::cout << "TOF1B " << i << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
     fXTOF1BCoarse = coarseTOF1B[i];
     fXTOF1BFrac = fracTOF1B[i];
@@ -1029,8 +1049,8 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF1BTree->Fill();
   }
 
-//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-  for(size_t i = 0; i < coarseTOF2A.size(); ++i){
+  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+ // for(size_t i = 0; i < coarseTOF2A.size(); ++i){
     std::cout << "TOF2A " << i << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
     fXTOF2ACoarse = coarseTOF2A[i];
     fXTOF2AFrac = fracTOF2A[i];
@@ -1041,8 +1061,8 @@ void proto::BeamAna::parseXTOF(uint64_t time){
     fXTOF2ATree->Fill();
   }  
 
-//  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-  for(size_t i = 0; i < coarseTOF2B.size(); ++i){
+  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+ // for(size_t i = 0; i < coarseTOF2B.size(); ++i){
     std::cout << "TOF2B " << i << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
     fXTOF2BCoarse = coarseTOF2B[i];
     fXTOF2BFrac = fracTOF2B[i];
@@ -1524,7 +1544,9 @@ void proto::BeamAna::beginJob()
   fOutTree->Branch("Eff2", &CKov2Efficiency);
   
   acqTime = 0;
-  fOutTree->Branch("acqTime", &acqTime);
+  fOutTree->Branch("acqTime",        &acqTime);
+  fOutTree->Branch("acqStampMBPL",   &acqStampMBPL);
+  fOutTree->Branch("cycleStampMBPL", &cycleStampMBPL);
   HLTWord = 0;
   HLTTS = 0;
   fOutTree->Branch("HLTWord",     &HLTWord);
@@ -1845,6 +1867,31 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
   fMatchToTPC          = p.get<bool>("MatchToTPC");
   fUnmatched           = p.get<bool>("Unmatched");
 
+}
+
+uint64_t proto::BeamAna::joinHighLow(double high, double low){
+
+  std::cout << "%%% Joining high and low %%%" << std::endl;
+
+  uint32_t low32 = (uint32_t)low;
+  std::bitset<64> lowbits = low32;
+
+  uint32_t high32 = (uint32_t)high;
+  std::bitset<64> highbits = high32;
+
+  highbits = highbits << 32;
+  std::bitset<64> joinedbits = highbits ^ lowbits;
+
+  std::cout << low << " " << low32 << std::endl;
+  std::cout << lowbits << std::endl;
+
+  std::cout << high << " " << high32 << std::endl;
+  std::cout << highbits << std::endl;
+
+  std::cout << joinedbits.to_ullong() << std::endl;
+  std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;
+
+  return joinedbits.to_ullong(); 
 }
 
 std::bitset<sizeof(long)*CHAR_BIT> proto::BeamAna::toBinary(long num){
