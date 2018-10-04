@@ -1133,7 +1133,7 @@ EOF
   {
 
 $posLEMsX = 0;
-$posLEMsY = -0.5*$HeightGaseousAr+0.5-0.5*$LEMsSizeY;
+$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
 $posLEMsZ = 0;
 
       print CRYO <<EOF;

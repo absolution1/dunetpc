@@ -1130,7 +1130,7 @@ EOF
   if ( $LEMs_switch eq "on" )
   {
 
-$posLEMsX = -0.5*$HeightGaseousAr+0.5-0.5*$LEMsSizeX;
+$posLEMsX = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeX;
 $posLEMsY = 0;
 $posLEMsZ = 0;
 
