@@ -7,6 +7,7 @@
 data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
 data.pd_ClockUnit: "Mtick"
 data.pd_TriggerClockRate: 50000000.0
+data.pd_Tick0: 500
 
 tools.tickRanges.plotTicks.begin: 4000
 tools.tickRanges.plotTicks.end:   5000
@@ -125,13 +126,14 @@ tools.rawAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -146,13 +148,14 @@ tools.rawAdcDetectorPlotInd1: {
   LogLevel: 1
   WireAngle: 0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -167,13 +170,14 @@ tools.rawAdcDetectorPlotInd2: {
   LogLevel: 1
   WireAngle: -0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -190,13 +194,14 @@ tools.preparedAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -211,13 +216,14 @@ tools.preparedAdcDetectorPlotInd1: {
   LogLevel: 1
   WireAngle: 0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
@@ -232,13 +238,14 @@ tools.preparedAdcDetectorPlotInd2: {
   LogLevel: 1
   WireAngle: -0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
