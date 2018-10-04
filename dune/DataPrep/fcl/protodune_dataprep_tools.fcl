@@ -8,6 +8,9 @@ data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
 data.pd_ClockUnit: "Mtick"
 data.pd_TriggerClockRate: 50000000.0
 
+tools.tickRanges.plotTicks.begin: 4000
+tools.tickRanges.plotTicks.end:   5000
+
 ################################################################################
 # Channel mapping.
 ################################################################################
@@ -288,6 +291,10 @@ tools.pdcht_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
 tools.pdcht_ZPlanes.ChannelLineModulus: 2560
 tools.pdcht_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# Plot APA3z (where the beam enters).
+tools.pdcht_Apa3z: @local::tools.pdcht_Zplanes
+tools.pdcht_Apa3z.ChannelRanges: [tpp0z]
 
 # One plot for each C-plane. C is the cryostat-side collection plane.
 tools.pdcht_Cplanes: @local::tools.pdcht_Zplanes
