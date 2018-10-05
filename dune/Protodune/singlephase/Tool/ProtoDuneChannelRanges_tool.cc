@@ -10,6 +10,7 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::ostringstream;
+using std::istringstream;
 using std::setw;
 using std::setfill;
 using Name = ProtoDuneChannelRanges::Name;
@@ -114,6 +115,54 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
   if ( m_pExtraRanges != nullptr ) {
     IndexRange rout = m_pExtraRanges->get(nam);
     if ( rout.isValid() ) return rout;
+  }
+  // Special handling for online wire specifier fembAFFVII
+  // We look up FEMB block fembAFFV and pick the channel corresponding to II,
+  if ( nam.size() == 10 && nam.substr(0,4) == "femb" ) {
+    IndexRange fbran = get(nam.substr(0,8));
+    Index ifchmax = 0;
+    if ( fbran.isValid() ) {
+      char cpla = nam[7];
+      bool dirSame = true;   // Is channel numbering dir same in FEMB and offline?
+      if ( cpla == 'u' ) {
+        ifchmax = 40;
+        dirSame = false;
+      } else if ( cpla == 'v' ) {
+        ifchmax = 40;
+      } else if ( cpla == 'x' || cpla == 'w') {
+        ifchmax = 48;
+        istringstream ssapa(nam.substr(4,1));
+        int iapa = 0;
+        ssapa >> iapa;
+        bool beamLeft = iapa >= 4 && iapa <=6;
+        bool beamRigh = iapa >= 1 && iapa <=3;
+        istringstream ssfmb(nam.substr(5,2));
+        int ifmb = 0;
+        ssfmb >> ifmb;
+        bool sideTpc = ifmb >=  1 && ifmb <= 10;
+        bool sideCry = ifmb >= 11 && ifmb <= 20;
+        if      ( beamLeft && sideTpc ) dirSame = true;
+        else if ( beamLeft && sideCry ) dirSame = false;
+        else if ( beamRigh && sideTpc ) dirSame = false;
+        else if ( beamRigh && sideCry ) dirSame = true;
+        else                            ifchmax = 0;
+      }
+      if ( ifchmax != fbran.size() ) {
+        cout << myname << "WARNING: FEMB block has unexpected size: "
+             << ifchmax << " != " << fbran.size() << endl;
+        ifchmax = 0;
+      }
+      string sch = nam.substr(8,2);
+      istringstream ssfch(sch);
+      Index ifch;
+      ssfch >> ifch;
+      if ( ifch > 0 && ifch <= ifchmax ) {
+        if ( dirSame ) --ifch;
+        else ifch = ifchmax - ifch;
+        Index ich = fbran.begin + ifch;
+        return IndexRange(nam, ich, ich+1, fbran.label(0) + sch, fbran.label(1));
+      } 
+    }
   }
   IndexRangeMap::const_iterator iran = m_Ranges.find(nam);
   if ( iran == m_Ranges.end() ) return IndexRange();

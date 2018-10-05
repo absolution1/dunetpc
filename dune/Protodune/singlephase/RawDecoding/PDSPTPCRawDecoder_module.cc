@@ -700,6 +700,8 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      _fix302(v_adc,median);
 	    }
 
+	  auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
+
 	  raw::Compress_t cflag=raw::kNone;
 	  if (_compress_Huffman)
 	    {
@@ -707,7 +709,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      raw::Compress(v_adc,cflag);
 	    }
 	  // here n_ticks is the uncompressed size as required by the constructor
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
+	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
 	  raw_digit.SetPedestal(median,sigma);
 	  raw_digits.push_back(raw_digit);  
 
