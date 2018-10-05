@@ -34,7 +34,7 @@
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
-// For the title and file names, the following sustitutions are made:
+// For the title and file names, substitutions are made with adcStringBuilder, e.g.
 //     %RUN%    --> run number
 //     %SUBRUN% --> subrun number
 //     %EVENT%  --> event number

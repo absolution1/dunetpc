@@ -161,6 +161,33 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     ULong64_t evtTimestamp = 0;
     for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
+      // Try to determine the version of the fragment. This is
+      // complicated because early versions of the fragment didn't
+      // have a metadata object with the version, so for those, we
+      // have to look at the size of the fragment (actually the size
+      // of the payload, which excludes the header and metadata)
+      int fragmentVersion=0;
+      if(rawFrag.hasMetadata()){
+          dune::TimingFragment::Metadata const* metadata=rawFrag.metadata<dune::TimingFragment::Metadata>();
+          fragmentVersion=metadata->fragment_version;
+      }
+      else{
+          size_t dataSizeBytes=rawFrag.dataSizeBytes();
+          // The first version of the fragment had 6 uint32_t words
+          if(dataSizeBytes==6*sizeof(uint32_t)){
+              fragmentVersion=1;
+          }
+          // The second version of the fragment had 12 uint32_t words,
+          // as the last spill start/end and last run start timestamps
+          // were added
+          else if(dataSizeBytes==12*sizeof(uint32_t)){
+              fragmentVersion=2;
+          }
+          else{
+              throw cet::exception("TimingRawDecoder::produce") << "Fragment had no metadata and unexpected size " << dataSizeBytes << " bytes. Can't determined timing fragment version";
+          }
+      }
+
       //std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
       ULong64_t currentTimestamp=frag.get_tstamp();
       uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
@@ -174,10 +201,20 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
       pdts.setEventCounter(frag.get_evtctr());
       // TODO: Checksum isn't set by the board reader yet
       pdts.setChecksumGood(true);
-      // pdts.setLastRunStart(frag.get_last_runstart_timestamp());
-      // pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
-      // pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
-      
+      pdts.setVersion(fragmentVersion);
+      // The additional timestamps were not added until version 2 of the timing fragment
+      if(fragmentVersion>=2){
+          pdts.setLastRunStart(frag.get_last_runstart_timestamp());
+          pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
+          pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
+      }
+      else{
+          // Set to 0xfff... if not present
+          pdts.setLastRunStart(~0ul);
+          pdts.setLastSpillStart(~0ul);
+          pdts.setLastSpillEnd(~0ul);
+      }
+
       pdtimestamps.push_back(pdts);
 
       fHTimestamp->Fill(currentTimestamp/1e6);
