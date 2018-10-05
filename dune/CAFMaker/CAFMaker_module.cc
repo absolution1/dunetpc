@@ -118,9 +118,14 @@ namespace dunemva {
       double fMVAResultNue;
       double fMVAResultNumu;
 
-      double fCVNResultNue;
-      double fCVNResultNumu;
-      double fCVNResultNutau;
+      // CVN outputs
+      double fCVNResultIsAntineutrino;
+      double fCVNResultNue, fCVNResultNumu, fCVNResultNutau, fCVNResultNC; // flavour
+      double fCVNResult0Protons, fCVNResult1Protons, fCVNResult2Protons, fCVNResultNProtons; // #protons
+      double fCVNResult0Pions, fCVNResult1Pions, fCVNResult2Pions, fCVNResultNPions; // #pions
+      double fCVNResult0Pizeros, fCVNResult1Pizeros, fCVNResult2Pizeros, fCVNResultNPizeros; // #pizeros
+      double fCVNResult0Neutrons, fCVNResult1Neutrons, fCVNResult2Neutrons, fCVNResultNNeutrons; // #neutrons
+
       double fRegCVNNueE;
 
     //int meta_run, meta_subrun;
@@ -220,9 +225,29 @@ namespace dunemva {
     fTree->Branch("mvaresult",   &fMVAResult,  "mvaresult/D");
     fTree->Branch("mvanue",      &fMVAResultNue,  "mvanue/D");
     fTree->Branch("mvanumu",     &fMVAResultNumu, "mvanumu/D");
-    fTree->Branch("cvnnue",      &fCVNResultNue,   "cvnnue/D");
-    fTree->Branch("cvnnumu",     &fCVNResultNumu,  "cvnnumu/D");
-    fTree->Branch("cvnnutau",    &fCVNResultNutau, "cvnnutau/D");
+
+    fTree->Branch("cvnisantineutrino", &fCVNResultIsAntineutrino, "cvnisantineutrino/D");
+    fTree->Branch("cvnnue",            &fCVNResultNue,            "cvnnue/D");
+    fTree->Branch("cvnnumu",           &fCVNResultNumu,           "cvnnumu/D");
+    fTree->Branch("cvnnutau",          &fCVNResultNutau,          "cvnnutau/D");
+    fTree->Branch("cvnnc",             &fCVNResultNC,             "cvnnc/D");
+    fTree->Branch("cvn0protons",       &fCVNResult0Protons,       "cvn0protons/D");
+    fTree->Branch("cvn1protons",       &fCVNResult1Protons,       "cvn1protons/D");
+    fTree->Branch("cvn2protons",       &fCVNResult2Protons,       "cvn2protons/D");
+    fTree->Branch("cvnNprotons",       &fCVNResultNProtons,       "cvnNprotons/D");
+    fTree->Branch("cvn0pions",         &fCVNResult0Pions,         "cvn0pions/D");
+    fTree->Branch("cvn1pions",         &fCVNResult1Pions,         "cvn1pions/D");
+    fTree->Branch("cvn2pions",         &fCVNResult2Pions,         "cvn2pions/D");
+    fTree->Branch("cvnNpions",         &fCVNResultNPions,         "cvnNpions/D");
+    fTree->Branch("cvn0pizeros",       &fCVNResult0Pizeros,       "cvn0pizeros/D");
+    fTree->Branch("cvn1pizeros",       &fCVNResult1Pizeros,       "cvn1pizeros/D");
+    fTree->Branch("cvn2pizeros",       &fCVNResult2Pizeros,       "cvn2pizeros/D");
+    fTree->Branch("cvnNpizeros",       &fCVNResultNPizeros,       "cvnNpizeros/D");
+    fTree->Branch("cvn0neutrons",      &fCVNResult0Neutrons,      "cvn0neutrons/D");
+    fTree->Branch("cvn1neutrons",      &fCVNResult1Neutrons,      "cvn1neutrons/D");
+    fTree->Branch("cvn2neutrons",      &fCVNResult2Neutrons,      "cvn2neutrons/D");
+    fTree->Branch("cvnNneutrons",      &fCVNResultNNeutrons,      "cvnNneutrons/D");
+
     fTree->Branch("RegCVNNueE",  &fRegCVNNueE,   "RegCVNNueE/D");
     fTree->Branch("weight",      &fWeight,     "weight/D");
     fTree->Branch("oscpro",      &fOscPro,     "oscpro/F");
@@ -325,15 +350,47 @@ namespace dunemva {
     }
 
     if( !cvnin.failedToGet() ) {
-      using i = cvn::Interaction;
-      if(cvnin->empty() || (*cvnin)[0].fOutput.size() <= i::kNutauOther){
-        fCVNResultNue = fCVNResultNumu = fCVNResultNutau = -3;
+      //using i = cvn::Interaction;
+      //if(cvnin->empty() || (*cvnin)[0].fOutput.size() <= i::kNutauOther){
+      if(cvnin->empty()){
+        fCVNResultIsAntineutrino = fCVNResultNue = fCVNResultNumu = fCVNResultNutau = fCVNResultNC = \
+        fCVNResult0Protons = fCVNResult1Protons = fCVNResult2Protons = fCVNResultNProtons = \
+        fCVNResult0Pions = fCVNResult1Pions = fCVNResult2Pions = fCVNResultNPions = \
+        fCVNResult0Pizeros = fCVNResult1Pizeros = fCVNResult2Pizeros = fCVNResultNPizeros = \
+        fCVNResult0Neutrons = fCVNResult1Neutrons = fCVNResult2Neutrons = fCVNResultNNeutrons = -3;
       }
       else{
-        const std::vector<float>& v = (*cvnin)[0].fOutput;
-        fCVNResultNue = v[i::kNueQE] + v[i::kNueRes] + v[i::kNueDIS] + v[i::kNueOther];
-        fCVNResultNumu = v[i::kNumuQE] + v[i::kNumuRes] + v[i::kNumuDIS] + v[i::kNumuOther];
-        fCVNResultNutau = v[i::kNutauQE] + v[i::kNutauRes] + v[i::kNutauDIS] + v[i::kNutauOther];
+        //const std::vector<float>& v = (*cvnin)[0].fOutput;
+        //fCVNResultNue = v[i::kNueQE] + v[i::kNueRes] + v[i::kNueDIS] + v[i::kNueOther];
+        //fCVNResultNumu = v[i::kNumuQE] + v[i::kNumuRes] + v[i::kNumuDIS] + v[i::kNumuOther];
+        //fCVNResultNutau = v[i::kNutauQE] + v[i::kNutauRes] + v[i::kNutauDIS] + v[i::kNutauOther]
+
+        fCVNResultIsAntineutrino = (*cvnin)[0].GetIsAntineutrinoProbability();
+
+        fCVNResultNue = (*cvnin)[0].GetNueProbability();
+        fCVNResultNumu = (*cvnin)[0].GetNumuProbability();
+        fCVNResultNutau = (*cvnin)[0].GetNutauProbability();
+        fCVNResultNC = (*cvnin)[0].GetNCProbability();
+
+        fCVNResult0Protons = (*cvnin)[0].Get0protonsProbability();
+        fCVNResult1Protons = (*cvnin)[0].Get1protonsProbability();
+        fCVNResult2Protons = (*cvnin)[0].Get2protonsProbability();
+        fCVNResultNProtons = (*cvnin)[0].GetNprotonsProbability();
+
+        fCVNResult0Pions = (*cvnin)[0].Get0pionsProbability();
+        fCVNResult1Pions = (*cvnin)[0].Get1pionsProbability();
+        fCVNResult2Pions = (*cvnin)[0].Get2pionsProbability();
+        fCVNResultNPions = (*cvnin)[0].GetNpionsProbability();
+
+        fCVNResult0Pizeros = (*cvnin)[0].Get0pizerosProbability();
+        fCVNResult1Pizeros = (*cvnin)[0].Get1pizerosProbability();
+        fCVNResult2Pizeros = (*cvnin)[0].Get2pizerosProbability();
+        fCVNResultNPizeros = (*cvnin)[0].GetNpizerosProbability();
+
+        fCVNResult0Neutrons = (*cvnin)[0].Get0neutronsProbability();
+        fCVNResult1Neutrons = (*cvnin)[0].Get1neutronsProbability();
+        fCVNResult2Neutrons = (*cvnin)[0].Get2neutronsProbability();
+        fCVNResultNNeutrons = (*cvnin)[0].GetNneutronsProbability();
       }
     }
 

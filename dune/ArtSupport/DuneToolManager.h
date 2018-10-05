@@ -63,7 +63,7 @@ public:
   // The name is ignored once the tool manager is set.
   // if fclname is blank and the tool manager is not yet set, an attempt
   // is made to find the fcl name on the command line following "-c"..
-  static DuneToolManager* instance(std::string fclname ="");
+  static DuneToolManager* instance(std::string fclname ="", int dbg =1);
 
   // Ctor from FCL file name.
   explicit DuneToolManager(std::string fclname);

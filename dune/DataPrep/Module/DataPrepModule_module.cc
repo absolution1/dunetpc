@@ -219,8 +219,9 @@ void DataPrepModule::produce(art::Event& evt) {
   // Fetch the event time.
   Timestamp beginTime = evt.time();
 
-  // Fetch the timing clock.
+  // Fetch the trigger and timing clock.
   string m_TimingProducer = "timingrawdecoder";
+  AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
   if ( true ) {
     art::Handle<std::vector<raw::RDTimeStamp>> htims;
@@ -237,6 +238,15 @@ void DataPrepModule::produce(art::Event& evt) {
       const raw::RDTimeStamp& tim = htims->at(0);
       cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
       timingClock = tim.GetTimeStamp();
+      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+      trigFlag = tim.GetFlags();
+      cout << myname << "Trigger flag: " << trigFlag << " (";
+      bool isBeam = trigFlag == 0xc;
+      bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
+      if ( isBeam ) cout << "Beam";
+      else if ( isFake ) cout << "Fake";
+      else cout << "Unexpected";
+      cout << ")" << endl;
     }
   }
 
@@ -380,6 +390,7 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembChannel = fembChannel;
     }
     acd.triggerClock = timingClock;
+    acd.trigger = trigFlag;
     acd.metadata["ndigi"] = ndigi;
     ++nkeep;
   }

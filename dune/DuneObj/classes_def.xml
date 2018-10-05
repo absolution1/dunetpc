@@ -10,15 +10,18 @@
 
 <!-- support classes (e.g., elements of data product classes) -->
 
- <class name="CalibTreeRecord::PartialOpHit" ClassVersion="14">
+ <class name="CalibTreeRecord::PartialOpHit" ClassVersion="15">
+  <version ClassVersion="15" checksum="523263086"/>
   <version ClassVersion="14" checksum="2757242751"/>
    <version ClassVersion="10" checksum="2378973873"/>
  </class>
- <class name="CalibTreeRecord::PartialPDOpHit" ClassVersion="11">
+ <class name="CalibTreeRecord::PartialPDOpHit" ClassVersion="12">
+  <version ClassVersion="12" checksum="3402305491"/>
   <version ClassVersion="11" checksum="413174620"/>
   <version ClassVersion="10" checksum="530436685"/>
  </class>
- <class name="CalibTreeRecord::PartialHit" ClassVersion="14">
+ <class name="CalibTreeRecord::PartialHit" ClassVersion="15">
+  <version ClassVersion="15" checksum="2986922004"/>
   <version ClassVersion="14" checksum="624439765"/>
    <version ClassVersion="10" checksum="2362630748"/>
  </class>
@@ -76,6 +79,13 @@
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
  <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
  <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
+
+ <class name="dune::ProtoDUNETimeStamp"/> 
+ <enum name="dune::ProtoDUNETimingCommand"/> 
+ <class name="art::Ptr<dune::ProtoDUNETimeStamp>" />
+ <class name="std::vector<dune::ProtoDUNETimeStamp>"  />
+ <class name="art::Wrapper<std::vector<dune::ProtoDUNETimeStamp> >" />
+
 <!-- <class name="std::bitset"/> -->
 <!-- <class name="std::array"/> -->
 </lcgdict>
