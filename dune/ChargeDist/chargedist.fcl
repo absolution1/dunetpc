@@ -1,0 +1,112 @@
+# A script to run an analysis module: ChargeDist. You may want to
+# compare this script with ${LARSIM_DIR}/job/prodsingle.fcl; in
+# particular, in this script there are no output streams because the
+# module doesn't write any events, just histograms or n-tuples.
+
+# See <https://cdcvs.fnal.gov/redmine/projects/larsoftsvn/wiki/Running_Jobs> for 
+# more information on the structure of .fcl files. 
+
+# The following line will have to be changed to match your experiment;
+# e.g., "services_dune.fcl", "services_microboone.fcl".
+# Here we pick the relevant services and the FHiCL files with their
+# configurations one by one, according to what is directly used in
+# ChargeDist plus a bit of knowledge about what each service depends on
+#
+#include "geometry_dune.fcl"
+#include "messageservice.fcl"
+#include "services_dune.fcl"
+
+process_name: ChargeDist
+
+services:
+{
+
+  TFileService:           { fileName: "ChargeDist.root" }
+
+  TimeTracker:            {}
+  message:                @local::standard_info
+  Geometry:		  @local::dune10kt_1x2x6_geo
+  ExptGeoHelperInterface: @local::dune_geometry_helper
+  LArG4Parameters:        @local::dunefd_largeantparameters
+	@table::dunefd_simulation_services
+
+} # services
+
+# The 'source' section tells the script to expect an input file with art::Event records.
+# Note that the name of the input file is not included here. You specify that on the
+# command line when you run this script; e.g.,
+#    lar -c chargedist.fcl -s myinput.root
+# The file "myinput.root" is assumed to have been created by a previous LArSoft job.
+
+source:
+{
+  module_type: RootInput
+
+  # Number of events to analyze; "-1" means all of the events in the input
+  # file. You can override this value with the "-n" option on the command line. 
+  maxEvents:  -1 
+
+  # I've commented this out, but if you really want to include the name of
+  # an input file in this script, here's how you do it.
+  # fileNames: ["myinput.root"]
+}
+
+# This is empty, because we're not writing any art::Events to an output file. 
+outputs:{}
+
+# The 'physics' section defines and configures some modules to do work on each event.
+# First modules are defined; they are scheduled later. Modules are grouped by type.
+physics:
+{
+  # Define the variables we'll need to run for this analysis program.
+  analyzers:
+  {
+    # This name defines a job step below, and will appear as a directory 
+    # in the output histogram file. 
+    ChargeDist: 
+    {
+      # The "module_type" tells us which module to run. The name here
+      # matches the name supplied to DEFINE_ART_MODULE near the end of
+      # ChargeDist_module.cc.
+
+      module_type:     "ChargeDist"
+
+      # The input parameters for our ChargeDist module. Compare
+      # the names you see here with the reconfigure method in
+      # ChargeDist.cxx. You will want to add/remove/rename the
+      # example parameters below to suit your task.
+
+      DetSimLabel: "daq"   
+      CalDataModuleLabel: "caldata"
+  	  MCParticleLabel: "largeant"
+	  
+	  #HitSpacePointLabel: "pmtrack"
+	  #HitTrackLabel: "pmtrack"
+	  #HitClusterLabel: "linecluster"
+	  
+	  HitSpacePointLabel: "pmtracktc"
+	  HitTrackLabel: "pmtracktc"
+	  #HitClusterLabel: "trajcluster"
+	  HitClusterLabel: "gaushit"
+	  #hitfd, fasthit, gaushit
+	  
+	  OpFlashLabel: "opflash"
+	  CaloLabel: "pmtracktccalo"	  
+     
+    }
+  }
+
+  # Schedule job step(s) for execution by defining the analysis module
+  # for this job. An 'analysis' module (as opposed to a 'producer' or
+  # a 'filter') does not alter the contents of events in the input
+  # file, nor does it create any events as output. Any step names
+  # listed here must match a name in the 'analyzers' section above.
+
+  analysis: [ ChargeDist ]
+
+  # "end_paths" is a keyword and contains the modules that do not modify the art::Event;
+  # i.e., analyzers and output streams.
+
+  end_paths: [ analysis ]
+}
+
