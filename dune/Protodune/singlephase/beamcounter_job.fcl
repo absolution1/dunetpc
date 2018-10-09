@@ -23,7 +23,7 @@ services:
   ChannelStatusService:         @local::dunefd_channel_status
 
   TFileService: { #closeFileFast: true
-                  fileName: "beamdqm_hist.root" #can be overridden by '-T'
+                  fileName: "beamcounter_hist.root" #can be overridden by '-T'
                 }
   IFBeam:            {}
 }
@@ -46,11 +46,11 @@ physics:
 
  analyzers:
  {
-  beamdqm:           @local::proto_beamdqm
+  beamcounter:           @local::proto_beamcounter
  }
 
  produce:  [ ctbrawdecoder]
- ana:      [ beamdqm ]
+ ana:      [ beamcounter ]
 
  trigger_paths:     [ produce ]
  end_paths:         [ ana ]

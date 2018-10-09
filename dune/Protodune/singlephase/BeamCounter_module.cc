@@ -60,93 +60,39 @@ public:
   BeamCounter & operator = (BeamCounter &&) = delete;
 
   // Required functions.
-  void reconfigure(fhicl::ParameterSet const & p);
   void analyze(art::Event const & e) override;
 
   // Selected optional functions.
   void beginJob() override;
   
-  uint64_t GetCTBInfo(art::Event const &);
+  void GetCTBInfo(art::Event const &);
   
 private:
   TTree * fOutTree;
-  TH1F * fCKovHist;
 
   int HLTWord;
-  long long int HLTTS;
+  double HLTTS;
   int BeamOn;
   int BITrigger;
   int C1;
   int C2;
 
   int eventNum;
+  double eventTime;
   int runNum;
   int subRunNum;
 
 };
 
 proto::BeamCounter::BeamCounter(fhicl::ParameterSet const & p) : EDAnalyzer(p)
-{
-  // Configure/Reconfigure
-  this->reconfigure(p);
-}
-
-////////////////////////
-// Fetch Method
-template <class T> 
-T proto::BeamCounter::FetchWithRetries(uint64_t time, std::string name, int nRetry){
-  T theResult;
-  
-  std::cout << std::endl;
-  uint64_t newTime;
-  //Search at and above time given with nRetries
-  //Will later search below, just in case the event time is actually greater than
-  for(newTime = time; newTime < time + nRetry; ++newTime){
-    std::cout << "Trying to grab from folder: " << name << std::endl;
-    std::cout << "At Time: " << newTime << std::endl;    
-    try{
-      theResult = bfp->GetNamedVector(newTime, name);
-      std::cout << "Successfully fetched" << std::endl;
-      prev_fetch_time = newTime;
-      return theResult;
-    }
-    catch(std::exception e){
-      std::cout << "Could not fetch with time " << newTime << std::endl;      
-    }
-  }
-  //Now search below
-  for(newTime = time - 1; newTime > time - nRetry - 1; --newTime){
-    std::cout << "Trying to grab from folder: " << name << std::endl;
-    std::cout << "At Time: " << newTime << std::endl;    
-    try{
-      theResult = bfp->GetNamedVector(newTime, name);
-      std::cout << "Successfully fetched" << std::endl;
-      prev_fetch_time = newTime;
-      return theResult;
-    }
-    catch(std::exception e){
-      std::cout << "Could not fetch with time " << newTime << std::endl;      
-    }
-  }
-  
-  //Try a final time. Let it crash if it doesn't work
-  std::cout << "Trying a final time to grab from folder: " << name << std::endl;
-  std::cout << "At time: " << newTime << std::endl;
-  theResult = bfp->GetNamedVector(newTime, name);
-  std::cout << "Successfully fetched" << std::endl;
-  std::cout << std::endl;
-  return theResult; 
-}
-// END FetchWithRetries
-////////////////////////
-
+{}
 
 //Gets the Timing and CTB raw-decoded info.
 //Finds the triggers, and looks for a valid trigger word
 //(i.e. coming from beam)
 //
 //Returns the timestamp of the high level trigger.
-uint64_t proto::BeamCounter::GetCTBInfo(art::Event const & e){
+void proto::BeamCounter::GetCTBInfo(art::Event const & e){
 
   std::cout << std::endl;
   std::cout << "Getting Raw Decoder Info" << std::endl;
@@ -170,7 +116,7 @@ uint64_t proto::BeamCounter::GetCTBInfo(art::Event const & e){
         std::cout << "Found the High Level Trigger" << std::endl;
         
         HLTWord = theWord;
-        HLTTS = theTS;
+        HLTTS = 2.e-8*theTS;
         
         //The High Level Trigger consists of 8 bits
         //HLT7 -> HLT0
@@ -213,7 +159,7 @@ uint64_t proto::BeamCounter::GetCTBInfo(art::Event const & e){
       ULong64_t the_timestamp = theStatus.timestamp; 
       
       std::cout << "Timestamp : " << the_timestamp << std::endl;
-      if( the_timestamp > ULong64_t(HLTTS) ){
+      if( 2.e-8*the_timestamp > HLTTS ){
         std::cout << "Found Channel status > HLT timestamp. Skipping" << std::endl;
       }
 
@@ -255,18 +201,19 @@ void proto::BeamCounter::analyze(art::Event const & e)
 {
   //Reset 
   HLTWord = 0;
-  HLTTS = 0;
+  HLTTS      = -1;
   BeamOn     = -1;
   BITrigger  = -1;
   C1         = -1;
   C2         = -1;
 
   eventNum = e.event();
+  eventTime = e.time().timeHigh() + 1.e-9*e.time().timeLow(); 
   runNum = e.run();
   subRunNum = e.subRun();
    
-  validTimeStamp = GetCTBInfo(e);
-  std::cout << std::endl;
+  GetCTBInfo(e);
+
   // Write out the to tree
   fOutTree->Fill();
 }
@@ -275,29 +222,17 @@ void proto::BeamCounter::analyze(art::Event const & e)
 void proto::BeamCounter::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
-  fCKovHist = tfs->make<TH1F>("CKov","",4,0,4);
+  fOutTree = tfs->make<TTree>("tree", ""); 
 
-  fOutTree = tfs->make<TTree>("tree", "lines"); 
-  //eventTime = 0;
-  eventNum = 0;
-  runNum = 0;
-  subRunNum = 0;
-  CKov1Pressure = 0.;
-  CKov2Pressure = 0.;
-  CKov1Efficiency = 0.;
-  CKov2Efficiency = 0.;
-  fOutTree->Branch("Event", &eventNum);
-  fOutTree->Branch("Run",   &runNum);
+  fOutTree->Branch("Time",   &eventTime);
+  fOutTree->Branch("Event",  &eventNum);
+  fOutTree->Branch("Run",    &runNum);
   fOutTree->Branch("Subrun", &subRunNum);
-  fOutTree->Branch("Pressure1", &CKov1Pressure);
-  fOutTree->Branch("Eff1", &CKov1Efficiency);
-  fOutTree->Branch("Pressure2", &CKov2Pressure);
-  fOutTree->Branch("Eff2", &CKov2Efficiency);
+
+  fOutTree->Branch("C1",        &C1);
+  fOutTree->Branch("C2",        &C2);
+  fOutTree->Branch("BITrigger", &BITrigger);
+  fOutTree->Branch("BeamOn",    &BeamOn);
 }
-
-/*void proto::BeamCounter::reconfigure(fhicl::ParameterSet const & p)
-{
-}*/
-
 
 DEFINE_ART_MODULE(proto::BeamCounter)
