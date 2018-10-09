@@ -72,7 +72,6 @@ private:
 
   int HLTWord;
   double HLTTS;
-  int BeamOn;
   int BITrigger;
   int C1;
   int C2;
@@ -169,15 +168,13 @@ void proto::BeamCounter::GetCTBInfo(art::Event const & e){
       std::bitset<4> beam_lo(the_beam_lo);
       std::bitset<5> beam_hi(the_beam_hi);
 
-      BeamOn     =  beam_lo[0];
       BITrigger  =  beam_lo[1];
       C1         =  beam_lo[3];
       C2         =  beam_hi[0];
 
 
       std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
-      std::cout << "Beam On:    " << BeamOn    << std::endl
-                << "BI Trigger: " << BITrigger << std::endl
+      std::cout << "BI Trigger: " << BITrigger << std::endl
                 << "C1:         " << C1        << std::endl
                 << "C2:         " << C2        << std::endl
                 << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
@@ -202,7 +199,6 @@ void proto::BeamCounter::analyze(art::Event const & e)
   //Reset 
   HLTWord = 0;
   HLTTS      = -1;
-  BeamOn     = -1;
   BITrigger  = -1;
   C1         = -1;
   C2         = -1;
@@ -232,7 +228,6 @@ void proto::BeamCounter::beginJob()
   fOutTree->Branch("C1",        &C1);
   fOutTree->Branch("C2",        &C2);
   fOutTree->Branch("BITrigger", &BITrigger);
-  fOutTree->Branch("BeamOn",    &BeamOn);
 }
 
 DEFINE_ART_MODULE(proto::BeamCounter)
