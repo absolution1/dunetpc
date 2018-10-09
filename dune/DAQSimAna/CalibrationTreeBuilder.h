@@ -90,9 +90,9 @@ namespace CalibrationTreeBuilder {
       //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
       CalibrationTreeBuilder(fhicl::ParameterSet const& pSet);
 
-      virtual void beginJob();
+      virtual void beginJob() override;
       virtual void analyze(const art::Event& evt) override;
-      virtual void endJob();
+      virtual void endJob() override;
 
 
     private:
