@@ -134,9 +134,9 @@ private:
   double NOvAClockFrequency;
   double SPESize;
 
-  const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
+  //const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
   const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
-  const uint32_t spillsamptime_ = 720000000; //~4.8 sec beam spill time
+  //const uint32_t spillsamptime_ = 720000000; //~4.8 sec beam spill time
   
   //global vectors for smuggling relevant variables out of the producer method/function
   std::vector<unsigned short> coin_module_id, coin_channel_id;

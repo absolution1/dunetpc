@@ -95,7 +95,7 @@ namespace pd_monitor {
     std::string fSSPInstance;
     unsigned int fSSP_m1,fSSP_m2,fSSP_i1,fSSP_i2,fSSP_readout_pretrigger,fSSP_disc_width;
     unsigned int fSSP_wfm_verbose,fPDwaveform_fft;
-    unsigned int fSSP_corrchan1, fSSP_corrchan2, fSSP_intwin;
+    unsigned int fSSP_corrchan1, fSSP_corrchan2, fSSP_intwin, fSSP_extwin;
 
 
     bool fIsSSP;
@@ -109,7 +109,8 @@ namespace pd_monitor {
     TH2F* PDchanPED; // Distribution of ALL ADC convertions in a waveform for each channel
     TH2F* PDchanMax; // Distribution of the max ADC count from each waveform
     TH2F* PDchanMaxPed; // Distribution of max ADC count from each waveform minus the pedestal
-    TH2D* PDCalib; // Channel integral calibration at a glance
+    TH2D* PDCalibint; // Channel integral calibration at a glance for internal triggers
+    TH2D* PDCalibext; // Channel integral calibration at a glance for external triggers
     TH2D* PDchanCorr; //Correlattion between two channels selected in the fhicl file
     TH2F* PDchanCorPerTrace[288]; //OpDetWaveForms after pedestal subtraction per channel
     TH2F* PDchanRawPerTrace[288]; //OpDetWaveForm raw persistence traces per channel
@@ -145,6 +146,7 @@ namespace pd_monitor {
     fSSP_corrchan1=p.get<unsigned int>("SSP_Corr_Chan_1");
     fSSP_corrchan2=p.get<unsigned int>("SSP_Corr_Chan_2");
     fSSP_intwin=p.get<unsigned int>("SSP_calib_int_win");
+    fSSP_extwin=p.get<unsigned int>("SSP_calib_ext_win");
 
     if( fSSP_wfm_verbose ){
       std::cout << " fSSP_m1=" << fSSP_m1 <<std::endl;
@@ -156,6 +158,7 @@ namespace pd_monitor {
       std::cout << " fSSP_corrchan1="<< fSSP_corrchan1 << std::endl;
       std::cout << " fSSP_corrchan2="<< fSSP_corrchan2 << std::endl;
       std::cout << " fSSP_intwin="<< fSSP_intwin << std::endl;
+      std::cout << " fSSP_extwin="<< fSSP_extwin << std::endl;
     }
   }
   
@@ -172,7 +175,8 @@ namespace pd_monitor {
     PDchanRMS = tFileService->make<TH2F>("RMS vs. Channel","RMS vs. Channel",288,0.,288.,100,0.,10.);
     PDchanRMSwide = tFileService->make<TH2F>("Coarse RMS vs. Channel","Coarse RMS vs. Channel",288,0.,288.,100,0.,100.);
     PDchanFFT = tFileService->make<TH2F>("FFTFreq vs. Channel","FFTFreq vs. Channel",288,0.,288.,1000,0.,75.);
-    PDCalib = tFileService->make<TH2D>("Integral_cal","Integral Calibration by Channel",288,0,288.,1000,0.0,1000.0);
+    PDCalibint = tFileService->make<TH2D>("Integral_cal_int","Internal Trigger Integral Calibration by Channel",288,0,288.,1000,0.0,1000.0);
+    PDCalibext = tFileService->make<TH2D>("Integral_cal_ext","External Trigger Integral Calibration by Channel",288,0,288.,1000,0.0,1000.0);
     PDtrigs = tFileService->make<TH1I>("Triggers vs. Channel","Triggers vs. Channel",288.,0.,288.);
     PDPEDhist = tFileService->make<TH1F>("Pedestal vs. Channel","Pedestal vs. Channel",288.,0.,288.);
     PDchanThres = tFileService->make<TH1F>("Threshold vs. Channel","Threshold vs. Channel",288,0.,288.);
@@ -191,7 +195,7 @@ namespace pd_monitor {
       PDchanWaveIntPre[i] = tFileService->make<TH1D>(Form("pre_wave_intgerals_pedsub_chan_%d",i),
 						     Form("Pedestal Subtracted Pre-Beam Wave Integrals Channel %d",i),1000,0.0,1000.0); 
       PDchanWaveIntPost[i] = tFileService->make<TH1D>(Form("post_wave_intgerals_pedsub_chan_%d",i),
-						      Form("Pedestal Subtracted Post-Beam Wave Integrals Channel %d",i),10000,0.0,100000.0); 
+						      Form("Pedestal Subtracted Post-Beam Wave Integrals Channel %d",i),1000,0.0,1000.0); 
     }
   }
   
@@ -238,7 +242,7 @@ namespace pd_monitor {
       PDtrigs->Fill(CurChannel);
       
       // Loop through individual waveform and print ADC's at each position
-      long int ADCval,sum=0,sum2=0,N=0,ADCMax=0;
+      long int ADCval,sum=0,sum2=0,N=0,ADCMax=0, ADCMax_ext=0;
       double sumthres=0,sumpedsub=0, sumpresub=0,sumpostsub=0;;
       int nBins = PDdigit.size();
       TH1F WfmHist("Waveform","Waveform",nBins,0,nBins), 
@@ -254,6 +258,7 @@ namespace pd_monitor {
 	}
 	  
 	ADCMax=std::max(ADCMax,ADCval);
+	if(i > 800) ADCMax_ext=std::max(ADCMax_ext,ADCval);
 	N=N+1;
 
 	WfmHist.SetBinContent(i+1,ADCval);
@@ -269,11 +274,20 @@ namespace pd_monitor {
 	  if(i-intcount < fSSP_intwin) sumpresub+=(ADCval-(sumthres/static_cast<float>(fSSP_i1)));
 	  if(i-intcount == fSSP_intwin) {
 	    PDchanWaveIntPre[CurChannel]->Fill(sumpresub);
-	    PDCalib->Fill(CurChannel,sumpresub);
+	    PDCalibint->Fill(CurChannel,sumpresub);
 	  }
 	}
-	if(i > 800) sumpostsub+=(ADCval-(sumthres/static_cast<float>(fSSP_i1)));
-
+	if(i > 800){
+	  if(ADCMax_ext==ADCval) {
+	    sumpostsub+=(ADCval-(sumthres/static_cast<float>(fSSP_i1)));
+	    intcount=i;
+	  }
+	  if(i-intcount < fSSP_extwin) sumpostsub+=(ADCval-(sumthres/static_cast<float>(fSSP_i1)));
+	  if(i-intcount == fSSP_extwin) {
+	    PDchanWaveIntPost[CurChannel]->Fill(sumpostsub);
+	    PDCalibext->Fill(CurChannel,sumpostsub);
+	  }
+	}
       }
       float mean = (float)sum/(float)N;
       float rms = sqrt((float)sum2/(float)N - mean*mean );

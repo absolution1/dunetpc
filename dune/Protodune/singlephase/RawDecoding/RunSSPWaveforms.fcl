@@ -52,7 +52,8 @@ physics: {
       SSP_readout_pretrigger: 50 #internal pretrigger tick wait
       SSP_Corr_Chan_1: 0 #correlation channel 1
       SSP_Corr_Chan_2: 1 #correlation channel 2
-      SSP_calib_int_win: 10 #calibration integration window length
+      SSP_calib_int_win: 15 #calibration integration window length for internal triggers
+      SSP_calib_ext_win: 15 #calibration integration window length for external triggers
       SSP_wfm_verbose: 0
       PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
       
