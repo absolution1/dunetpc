@@ -62,16 +62,14 @@ namespace beam
       size_t            GetNFBMTriggers(std::string);
       std::bitset<32>   toBinary(double); 
 
-      void              AddCKov0Trigger(CKov theCKov){ CKov0.push_back(theCKov); }; 
-      void              AddCKov1Trigger(CKov theCKov){ CKov1.push_back(theCKov); };
-      int               GetNCKov0Triggers(){ return CKov0.size(); };
-      int               GetNCKov1Triggers(){ return CKov1.size(); };
-      short             GetCKov0Status(size_t);
-      short             GetCKov1Status(size_t);
-      double            GetCKov0Time(size_t);
-      double            GetCKov1Time(size_t);
-      double            GetCKov0Pressure(size_t);
-      double            GetCKov1Pressure(size_t);
+      void              SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
+      void              SetCKov1(CKov theCKov){ CKov1 = theCKov; };
+      short             GetCKov0Status(){ return CKov0.trigger; };
+      short             GetCKov1Status(){ return CKov1.trigger; };
+      double            GetCKov0Time(){ return CKov0.timeStamp; };
+      double            GetCKov1Time(){ return CKov1.timeStamp; };
+      double            GetCKov0Pressure(){ return CKov0.pressure; };
+      double            GetCKov1Pressure(){ return CKov1.pressure; };
 
 
       void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };
@@ -88,8 +86,13 @@ namespace beam
       size_t            GetNBeamTracks(){return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
 
-      void              SetActiveTrigger(size_t theTrigger){ activeTrigger = theTrigger; };
+      void              SetActiveTrigger(size_t theTrigger){ activeTrigger = theTrigger; isMatched = true; };
+      bool              CheckIsMatched(){ return isMatched; };
       size_t            GetActiveTrigger(){ return activeTrigger; };
+
+      void              AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
+      size_t            GetNRecoBeamMomenta() { return RecoBeamMomenta.size(); };
+      double            GetRecoBeamMomentum( size_t i ){ return RecoBeamMomenta[i]; };  
     private:
 
       //Time of a coincidence between 2 TOFs
@@ -111,12 +114,15 @@ namespace beam
 
       //Set of Cerenkov detectors
       //
-      std::vector< CKov > CKov0;
-      std::vector< CKov > CKov1;
+      CKov CKov0;
+      CKov CKov1;
 
       std::vector<recob::Track> Tracks;
   
       size_t activeTrigger;
+      bool   isMatched = false;
+
+      std::vector< double > RecoBeamMomenta;
   };
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
@@ -332,13 +338,8 @@ namespace beam
 
   ////////////Cerenkov Access
   
-  inline short ProtoDUNEBeamEvent::GetCKov0Status(size_t nTrigger){
-    if( (nTrigger >= CKov0.size()) ){
-      std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
-      return -1;
-    }
-    
-    return CKov0[nTrigger].trigger;                
+/*  inline short ProtoDUNEBeamEvent::GetCKov0Status(){
+    return CKov0.trigger;                
   }
 
   inline short ProtoDUNEBeamEvent::GetCKov1Status(size_t nTrigger){
@@ -385,6 +386,7 @@ namespace beam
     
     return CKov1[nTrigger].pressure;                
   }
+  */
   /////////////////////////////////
 
 

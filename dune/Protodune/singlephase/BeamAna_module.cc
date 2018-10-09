@@ -323,6 +323,7 @@ private:
 
   double L1=1.980, L2=1.69472, L3=2.11666;
   double magnetLen, magnetField;
+  std::vector<double> current;
 
   //Hardware Parameters for magnetic field stuff
   double mag_P1 = 5.82044830e-3;
@@ -390,10 +391,8 @@ T proto::BeamAna::FetchWithRetries(uint64_t time, std::string name, int nRetry){
   std::cout << std::endl;
   return theResult; 
 }
-// END FeatchWithRetries
+// END FetchWithRetries
 ////////////////////////
-
-
 
 
 //Gets the Timing and CTB raw-decoded info.
@@ -536,6 +535,8 @@ uint64_t proto::BeamAna::GetRawDecoderInfo(art::Event & e){
 }
 
 void proto::BeamAna::TimeIn(art::Event & e, uint64_t time){
+
+    std::cout << "Attempting to Time In" << std::endl;   
     auto const PDTStampHandle = e.getValidHandle< std::vector< dune::ProtoDUNETimeStamp > > ("timingrawdecoder:daq");  
     std::vector< dune::ProtoDUNETimeStamp > PDTStampVec(*PDTStampHandle); 
     auto PDTStamp = PDTStampVec[0];            
@@ -745,19 +746,6 @@ void proto::BeamAna::produce(art::Event & e)
             std::cout << "SKIPPING EVENT" << std::endl;
             //break;
           }
-          /*
-          for(size_t iDummy = 0; iDummy < 500; ++iDummy){
-            double the_gen_sec, the_gen_ns;
-            double the_TOF1_sec, the_TOF1_ns;
-            double the_TOF2_sec, the_TOF2_ns;
-            int channel = 0;
-            
-            beamevt->AddT0(std::make_pair(the_gen_sec,the_gen_ns));
-            beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec, the_TOF1_ns));
-            beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
-            beamevt->AddTOFChan(channel);        
-          }
-          */
         }
         std::cout << std::endl;
         std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
@@ -777,13 +765,56 @@ void proto::BeamAna::produce(art::Event & e)
         //Now do the matching in Time:
         //
         bool matched = MatchBeamToTPC(e, fetch_time);
-        if(matched){
+        std::cout << matched << std::endl;
+        if( beamevt->CheckIsMatched() ){
           std::pair<double,double> theTime = beamevt->GetT0(beamevt->GetActiveTrigger());
           ActiveTriggerTime = theTime.first + theTime.second*1.e-9;
-          std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       }
+          std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       
 
+          MakeTrack( beamevt->GetActiveTrigger() );
+          for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
+            beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
+            
+            auto thisTrack = theTracks[iTrack]; 
+            const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
+            trackX->clear(); 
+            trackY->clear(); 
+            trackZ->clear(); 
+            std::cout << "npositison: " << theTraj.NPoints() << std::endl;
+            for(auto const & pos : theTraj.Trajectory().Positions()){
+              std::cout << pos.X() << " " << pos.Y() << " " << pos.Z() << std::endl;
+              trackX->push_back(pos.X());
+              trackY->push_back(pos.Y());
+              trackZ->push_back(pos.Z());
+            }
+
+            fTrackTree->Fill();
+          }
+          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl << std::endl;
+
+          //Momentum
+          //First, try getting the current from the magnet in IFBeam
+          if(current.empty()){
+            std::cout << "Trying to get the current" << std::endl;
+            try{
+              current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            }
+            catch(std::exception e){
+              std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
+              return;
+            }
+          }
+          std::cout << "Current: " << current[0] << std::endl;
+
+          MomentumSpec( beamevt->GetActiveTrigger() ); 
+          std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
+        }
+
+
+
+        //////ANALYSIS SECTION
         // Loop over the number of TOF counter readouts (i.e. GetNT0())
-/*        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
+        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
           std::cout <<   beamevt->GetT0(ip).first << " " <<   beamevt->GetT0(ip).second << " "  
             	  << beamevt->GetTOF0(ip).first << " " << beamevt->GetTOF0(ip).second << " " 
             	  << beamevt->GetTOF1(ip).first << " " << beamevt->GetTOF1(ip).second << " " 
@@ -801,38 +832,32 @@ void proto::BeamAna::produce(art::Event & e)
           
           fMatchedTriggers->Fill();
           GenTriggers->push_back(beamevt->GetT0(ip).first +  beamevt->GetT0(ip).second*1.e-9);
+          fTOFHist->Fill( matchedTOF2 - matchedTOF1  );
           //Reset
           matchedNom = 0;
-
+        }
+/*
+          ////Tracking and momentum section
           MakeTrack(ip);
-          MomentumSpec(ip);            
 
-          fTOFHist->Fill( matchedTOF2 - matchedTOF1  );
-
-        }
-        
-         
-        for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
-          beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
-          
-          auto thisTrack = theTracks[iTrack]; 
-          const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
-          trackX->clear(); 
-          trackY->clear(); 
-          trackZ->clear(); 
-          std::cout << "npositison: " << theTraj.NPoints() << std::endl;
-          for(auto const & pos : theTraj.Trajectory().Positions()){
-            std::cout << pos.X() << " " << pos.Y() << " " << pos.Z() << std::endl;
-            trackX->push_back(pos.X());
-            trackY->push_back(pos.Y());
-            trackZ->push_back(pos.Z());
+          //First, try getting the current from the magnet in IFBeam
+          if(current.empty()){
+            std::cout << "Trying to get the current" << std::endl;
+            try{
+              current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            }
+            catch(std::exception e){
+              std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
+              return;
+            }
           }
+          std::cout << "Current: " << current[0] << std::endl;
 
-          fTrackTree->Fill();
-        }
-
-        std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl;
+          MomentumSpec(ip);            
+*/
         
+        
+       
         //Analyze reconstructed tracks if flag enabled
         //
         if(fMatchToTPC){
@@ -893,27 +918,12 @@ void proto::BeamAna::produce(art::Event & e)
             }
           }   
         }
-*/
+
         parseXCET(fetch_time);
       }
     //}
   }
   
-
-
-/* 
- std::cout << "Pairing" << std::endl;
- //GetPairedFBMInfo(*beamevt,1.50000e+08);
- GetPairedFBMInfo(*beamevt,fDummyEventTime);
- GetPairedStraightFBMInfo(*beamevt,fDummyEventTime);
- std::cout << "Paired" << std::endl;
-
- std::cout << "Unpaired" << std::endl;
- GetUnpairedFBMInfo(*beamevt,fDummyEventTime);
- std::cout << "Unpaired" << std::endl;
-
- std::cout << "Event stuff" << std::endl;
-*/
 
  std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
  beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
@@ -927,6 +937,7 @@ void proto::BeamAna::produce(art::Event & e)
  std::cout << "Put" << std::endl;
  prev_event_time = eventTime; 
  theTracks.clear();
+ current.clear();
  if(usedEventTime) fMultipleTimes.clear();
 }
 // END BeamAna::produce
@@ -1033,11 +1044,6 @@ void proto::BeamAna::parseXTOF(uint64_t time){
   std::cout << joinedbits.to_ullong() << std::endl;
   acqTime = joinedbits.to_ullong() / 1000000000.; 
 
-/*  std::cout << "Getting S11 info " << std::endl;
-  std::vector<double> coarseS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]",fNRetries);
-  std::vector<double> fracS11 = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:frac[]",fNRetries); 
-  std::cout << "Size of coarse,frac: " << coarseS11.size() << " " << fracS11.size() << std::endl; 
-*/
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
   std::vector<double> coarseTOF1A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);
   std::vector<double> fracTOF1A =   FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":frac[]",fNRetries);
@@ -1169,8 +1175,12 @@ void proto::BeamAna::parseXTOF(uint64_t time){
         std::cout << "TOF1A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
         std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
 
+        double delta_sec = the_gen_sec - temp_sec;
+        double delta_ns = the_gen_ns - temp_ns;
+
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
+//        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
+        if( ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
@@ -1182,11 +1192,15 @@ void proto::BeamAna::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF1BTime[iT2].first;
         double temp_ns  = unorderedTOF1BTime[iT2].second;
 
+        double delta_sec = the_gen_sec - temp_sec;
+        double delta_ns = the_gen_ns - temp_ns;
+
         std::cout << "TOF1B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
         std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if(!found_TOF1 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
+//        if(!found_TOF1 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
+        if( !found_TOF1  && ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
@@ -1202,11 +1216,15 @@ void proto::BeamAna::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF2ATime[iT2].first;
         double temp_ns  = unorderedTOF2ATime[iT2].second;
 
+        double delta_sec = the_gen_sec - temp_sec;
+        double delta_ns = the_gen_ns - temp_ns;
+
         std::cout << "TOF2A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
         std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
+//        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
+        if( ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
@@ -1218,11 +1236,15 @@ void proto::BeamAna::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF2BTime[iT2].first;
         double temp_ns  = unorderedTOF2BTime[iT2].second;
 
+        double delta_sec = the_gen_sec - temp_sec;
+        double delta_ns = the_gen_ns - temp_ns;
+
         std::cout << "TOF2B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
         std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
         
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if(!found_TOF2 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
+//        if(!found_TOF2 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
+        if( !found_TOF2 && ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
@@ -1345,12 +1367,12 @@ void proto::BeamAna::parseXCET(uint64_t time){
   CKov1Status.timeStamp = triggerTime;
   CKov1Status.pressure  = CKov1Pressure;
   CKov1Status.trigger   = C1;
-  beamevt->AddCKov0Trigger( CKov1Status );
+  beamevt->SetCKov0( CKov1Status );
 
   CKov2Status.timeStamp = triggerTime;
   CKov2Status.pressure  = CKov2Pressure;
   CKov2Status.trigger   = C2;
-  beamevt->AddCKov1Trigger( CKov2Status );
+  beamevt->SetCKov1( CKov2Status );
 
 }
 // END BeamAna::parseXCET
@@ -1548,13 +1570,13 @@ void proto::BeamAna::parseXBPF(uint64_t time){
   for(size_t d = 0; d < fDevices.size(); ++d){
     std::string name = fDevices[d];
     std::cout <<"Device: " << name << std::endl;
-    if(fUnmatched){
-      std::cout << "UnMatched" << std::endl;
-      parseGeneralXBPFUnmatched(name, time, d);
-    }
-    else{
-      parseGeneralXBPF(name, time, d);
-    }
+ //   if(fUnmatched){
+ //     std::cout << "UnMatched" << std::endl;
+ //     parseGeneralXBPFUnmatched(name, time, d);
+ //   }
+ //   else{
+        parseGeneralXBPF(name, time, d);
+ //   }
   }  
 }
 // END BeamAna::parseXBFP
@@ -1566,23 +1588,23 @@ void proto::BeamAna::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
-    if(fUnmatched){
-      std::cout << "UnMatched" << std::endl;
-      parseGeneralXBPFUnmatched(name, time, d);
-    }
-    else{
+//    if(fUnmatched){
+//      std::cout << "UnMatched" << std::endl;
+//      parseGeneralXBPFUnmatched(name, time, d);
+//    }
+//    else{
       parseGeneralXBPF(name, time, d);
-    }
+//    }
 
     name = fPairedDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
-    if(fUnmatched){
-      std::cout << "UnMatched" << std::endl;
-      parseGeneralXBPFUnmatched(name, time, d);
-    }
-    else{
-      parseGeneralXBPF(name, time, d);
-    }
+ //   if(fUnmatched){
+ //     std::cout << "UnMatched" << std::endl;
+ //     parseGeneralXBPFUnmatched(name, time, d);
+ //   }
+ //   else{
+        parseGeneralXBPF(name, time, d);
+ //   }
   }
 }
 // END BeamAna::parsePairedXBFP
@@ -1594,23 +1616,23 @@ void proto::BeamAna::parsePairedStraightXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
     std::string name = fPairedStraightDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
-    if(fUnmatched){
-      std::cout << "UnMatched" << std::endl;
-      parseGeneralXBPFUnmatched(name, time, d);
-    }
-    else{
-      parseGeneralXBPF(name, time, d);
-    }
+ //   if(fUnmatched){
+ //     std::cout << "UnMatched" << std::endl;
+ //     parseGeneralXBPFUnmatched(name, time, d);
+ //   }
+ //   else{
+        parseGeneralXBPF(name, time, d);
+ //   }
 
     name = fPairedStraightDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
-    if(fUnmatched){
-      std::cout << "UnMatched" << std::endl;
-      parseGeneralXBPFUnmatched(name, time, d);
-    }
-    else{
-      parseGeneralXBPF(name, time, d);
-    }
+//    if(fUnmatched){
+//      std::cout << "UnMatched" << std::endl;
+//      parseGeneralXBPFUnmatched(name, time, d);
+//    }
+//    else{
+        parseGeneralXBPF(name, time, d);
+//    }
   }
 }
 // END BeamAna::parsePairedStrightXBFP
@@ -2089,12 +2111,6 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
   
   std::cout << "Making Track for time: " << beamevt->GetFullT0(theTrigger) << std::endl;
 
-/*  std::string firstUpstreamName    = fPairedStraightDevices[0].first;
-  std::string secondUpstreamName   = fPairedStraightDevices[0].second;
-  std::string firstDownstreamName  = fPairedStraightDevices[1].first;
-  std::string secondDownstreamName = fPairedStraightDevices[1].second;
-*/
-
   //Get the active fibers from the upstream tracking XBPF
   std::vector<short> firstUpstreamFibers  = beamevt->GetActiveFibers(firstUpstreamName, theTrigger);
   std::vector<short> secondUpstreamFibers = beamevt->GetActiveFibers(secondUpstreamName, theTrigger);
@@ -2269,8 +2285,6 @@ void proto::BeamAna::MakeTrack(size_t theTrigger){
 
       recob::Track * tempTrack = new recob::Track(thePoints, theMomenta, dummy, mom, 1);      
       theTracks.push_back(tempTrack);
-
-
     }
   }
 
@@ -2280,7 +2294,7 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
   
   std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetFullT0(theTrigger) << std::endl;
 
-  //First, try getting the current from the magnet in IFBeam
+/*  //First, try getting the current from the magnet in IFBeam
   std::vector<double> current;
   try{
     current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
@@ -2291,7 +2305,7 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
   }
 
   std::cout << "Current: " << current[0] << std::endl;
-
+*/
 
   //Get the active fibers from the upstream tracking XBPF
   std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
@@ -2425,8 +2439,10 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
   double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
   fMomentumHist->Fill(momentum);
   if( (BPROF1Fibers.size() == 1) && (BPROF2Fibers.size() == 1) && (BPROF3Fibers.size() == 1) ){
-    std::cout << "Warning, at least one empty Beam Profiler. Not checking momentum" << std::endl;
+    std::cout << "Filling Cut Momentum Spectrum" << std::endl;
     fCutMomentum->Fill(momentum);
+
+    beamevt->AddRecoBeamMomentum(momentum);
   }
 
   std::cout << "Momentum: " << 299792458*LB/(1.E9 * acos(cosTheta)) << std::endl; 
@@ -2493,7 +2509,6 @@ void proto::BeamAna::MomentumSpec(size_t theTrigger){
         ++i1;
       }
     }
-
   }
 }
 

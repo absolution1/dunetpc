@@ -113,3 +113,5 @@ physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
 physics.producers.beamana.MatchToTPC:           "false"
 physics.producers.beamana.Unmatched:            "true"
+
+#physics.producers.beamana.MultipleTimes:        [1536620421, 1536620446]

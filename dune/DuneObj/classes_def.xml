@@ -62,7 +62,9 @@
  <class name="sim::Chan_Phot"/>
  <class name="std::vector<sim::Chan_Phot>"/>
 
- <class name="beam::ProtoDUNEBeamEvent" ClassVersion="20" > 
+ <class name="beam::ProtoDUNEBeamEvent" ClassVersion="22" > 
+  <version ClassVersion="22" checksum="3355369171"/>
+  <version ClassVersion="21" checksum="3826802943"/>
   <version ClassVersion="20" checksum="423527008"/>
   <version ClassVersion="19" checksum="414782339"/>
   <version ClassVersion="18" checksum="1131692464"/>
@@ -76,7 +78,7 @@
  <class name="beam::CKov"/>
  <class name="beam::FBM"/>
  <class name="std::map<string,std::vector<beam::FBM>>"/>
- <class name="std::vector<beam::CKov>"/>
+<!-- <class name="std::vector<beam::CKov>"/> -->
  <class name="std::vector<beam::FBM>"/>
 
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
