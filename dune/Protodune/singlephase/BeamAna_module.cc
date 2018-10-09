@@ -33,6 +33,7 @@
 #include <iomanip>
 #include <utility>
 #include <algorithm>
+#include <limits>
 
 #include "TTree.h"
 #include "TH2F.h"
@@ -50,6 +51,7 @@ enum tofChan{
   k1B2B
 };
 
+typedef std::numeric_limits< double > dbl;
 
 class proto::BeamAna : public art::EDProducer {
 public:
@@ -87,6 +89,7 @@ public:
 
   uint64_t GetRawDecoderInfo(art::Event &);
   void TimeIn(art::Event &, uint64_t);
+  bool MatchBeamToTPC(art::Event &, uint64_t);
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
@@ -107,6 +110,7 @@ public:
   void  parsePairedStraightXBPF(uint64_t);
 
   void  parseXTOF(uint64_t);
+  void  parseXTOFUnmatched(uint64_t);
   void  parseXCET(uint64_t);
 
   void  InitXCETInfo(beam::ProtoDUNEBeamEvent *);
@@ -198,6 +202,8 @@ private:
   long long int eventTime;
   double SpillStart;
   double SpillEnd;
+  double SpillOffset;
+  double ActiveTriggerTime;
   double RDTSTime;
   std::vector< double > * GenTriggers;
 
@@ -302,6 +308,9 @@ private:
 
   bool   fMatchToTPC;
   bool   fUnmatched;
+  double fTimingCalibration;
+  double fCalibrationTolerance;
+  double fOffsetTAI;
 
   beam::ProtoDUNEBeamEvent * beamevt;
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
@@ -574,6 +583,47 @@ void proto::BeamAna::TimeIn(art::Event & e, uint64_t time){
     std::cout << std::setw(15) << cycleStampMBPL*1.e-9 << std::endl;
 
     std::cout << std::endl;
+
+
+    //Assign the calibration offset
+    SpillOffset = SpillStart - acqStampMBPL;
+}
+
+bool proto::BeamAna::MatchBeamToTPC(art::Event & e, uint64_t time){
+  //Get the conversion from the ProtoDUNE Timing system
+  //To the one in the SPS.
+  //
+  TimeIn(e, time);
+  std::cout << "SpillOffset " << SpillOffset << std::endl;
+
+  std::cout << "Matching in time between Beamline and TPC!!!" << std::endl; 
+  for(size_t iT = 0; iT < beamevt->GetNT0(); ++iT){
+    
+    //GenTrig = sec + 1.e-9*ns portions
+    double GenTrigTime = beamevt->GetT0(iT).first + 1.e-09*beamevt->GetT0(iT).second;
+
+    //Fix the offset from TAI -> UTC
+    //It's already fixed now
+  //  GenTrigTime -= fOffsetTAI;
+
+    //HLTTime in 50MHz ticks
+    double HLTTime = 2.e-08*HLTTS;
+    double diff = HLTTime - GenTrigTime - SpillOffset;
+    std::cout.precision(dbl::max_digits10);
+    std::cout << GenTrigTime << " " << HLTTime << " " << diff << " " << fTimingCalibration << std::endl << std::endl;
+
+  
+    if( ( fTimingCalibration - fCalibrationTolerance < diff ) && (fTimingCalibration + fCalibrationTolerance > diff) ){
+      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+
+
+      beamevt->SetActiveTrigger( iT ); 
+      return true;
+    }
+  }
+
+  std::cout << "Could not find matching time " << std::endl << std::endl;
+  return false;
 }
 
 ////////////////////////
@@ -597,6 +647,8 @@ void proto::BeamAna::produce(art::Event & e)
   BP4        = -1; 
   SpillStart = -1;
   SpillEnd   = -1;
+  SpillOffset = -1;
+  ActiveTriggerTime = -1;
   RDTSTime   = -1;
   GenTriggers->clear();
 
@@ -670,10 +722,6 @@ void proto::BeamAna::produce(art::Event & e)
           fetch_time = fMultipleTimes[it];
         }
 
-        //Get the conversion from the ProtoDUNE Timing system
-        //To the one in the SPS.
-        TimeIn(e, fetch_time);
-
 
         // Parse the Time of Flight Counter data for the list
         // of times that we are using
@@ -689,6 +737,15 @@ void proto::BeamAna::produce(art::Event & e)
         }
         else{
           std::cout << "PLACING DUMMIES" << std::endl << std::endl;
+          try{
+            parseXTOFUnmatched(fetch_time);
+          }
+          catch(std::exception e){
+            std::cout << "COULD NOT GET INFO" << std::endl;
+            std::cout << "SKIPPING EVENT" << std::endl;
+            //break;
+          }
+          /*
           for(size_t iDummy = 0; iDummy < 500; ++iDummy){
             double the_gen_sec, the_gen_ns;
             double the_TOF1_sec, the_TOF1_ns;
@@ -700,6 +757,7 @@ void proto::BeamAna::produce(art::Event & e)
             beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
             beamevt->AddTOFChan(channel);        
           }
+          */
         }
         std::cout << std::endl;
         std::cout << "NGoodParticles: " << beamevt->GetNT0()           << std::endl;
@@ -713,12 +771,19 @@ void proto::BeamAna::produce(art::Event & e)
         parseXBPF(fetch_time);
         parsePairedXBPF(fetch_time);
         parsePairedStraightXBPF(fetch_time);
-
         std::cout << "NXBPF: " << beamevt->GetNFBMTriggers(fDevices[0]) << std::endl;
 
-        // Loop over the number of TOF counter readouts (i.e. GetNT0())
 
-        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
+        //Now do the matching in Time:
+        //
+        bool matched = MatchBeamToTPC(e, fetch_time);
+        if(matched){
+          std::pair<double,double> theTime = beamevt->GetT0(beamevt->GetActiveTrigger());
+          ActiveTriggerTime = theTime.first + theTime.second*1.e-9;
+          std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       }
+
+        // Loop over the number of TOF counter readouts (i.e. GetNT0())
+/*        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
           std::cout <<   beamevt->GetT0(ip).first << " " <<   beamevt->GetT0(ip).second << " "  
             	  << beamevt->GetTOF0(ip).first << " " << beamevt->GetTOF0(ip).second << " " 
             	  << beamevt->GetTOF1(ip).first << " " << beamevt->GetTOF1(ip).second << " " 
@@ -828,7 +893,7 @@ void proto::BeamAna::produce(art::Event & e)
             }
           }   
         }
-
+*/
         parseXCET(fetch_time);
       }
     //}
@@ -1170,9 +1235,11 @@ void proto::BeamAna::parseXTOF(uint64_t time){
       if(found_TOF1 && found_TOF2){
         std::cout << "Found matching TOF " << the_gen_ns << " " << the_TOF1_ns << " " << the_TOF2_ns << std::endl;
         std::cout << "Found matching TOF " << the_gen_sec << " " << the_TOF1_sec << " " << the_TOF2_sec << std::endl;
-        beamevt->AddT0(std::make_pair(the_gen_sec,the_gen_ns));
-        beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec, the_TOF1_ns));
-        beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec, the_TOF2_ns));
+
+        //Convert from TAI to UTC at this point
+        beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+        beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
+        beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
         beamevt->AddTOFChan(channel);        
         break;
       }
@@ -1183,6 +1250,59 @@ void proto::BeamAna::parseXTOF(uint64_t time){
 // END BeamAna::parseXTOF
 ////////////////////////
 
+void proto::BeamAna::parseXTOFUnmatched(uint64_t time){
+  std::cout << "Getting General trigger info " << std::endl;
+  std::vector<double> coarseGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
+  std::vector<double> fracGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
+  std::vector<double> acqStampGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
+  std::vector<double> secondsGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:seconds[]",fNRetries); 
+  std::vector<double> timestampCountGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount",fNRetries); 
+  std::cout << "Size of coarse,frac: " << coarseGeneralTrigger.size() << " " << fracGeneralTrigger.size() << std::endl; 
+
+  std::cout <<"Size of acqStamp: " << acqStampGeneralTrigger.size() << std::endl;
+  std::cout <<"Size of seconds: " << secondsGeneralTrigger.size() << std::endl;
+  std::cout << "Size of counts: " << timestampCountGeneralTrigger.size() << std::endl;
+  std::cout << "timestampCounts: " << timestampCountGeneralTrigger[0] << std::endl;
+  matchedNom = int(timestampCountGeneralTrigger[0]);
+  
+  double low = acqStampGeneralTrigger[1];
+  uint32_t low32 = (uint32_t)low;
+  std::cout << low << " " << low32 << std::endl;
+  std::bitset<64> lowbits = low32;
+  std::cout << lowbits << std::endl;
+
+  double high = acqStampGeneralTrigger[0];
+  uint32_t high32 = (uint32_t)high;
+  std::cout << high << " " << high32 << std::endl;
+  std::bitset<64> highbits = high32;
+  std::cout << highbits << std::endl;
+
+  highbits = highbits << 32;
+  std::cout << highbits << std::endl;
+  std::bitset<64> joinedbits = highbits ^ lowbits;
+
+  std::cout << joinedbits.to_ullong() << std::endl;
+  acqTime = joinedbits.to_ullong() / 1000000000.; 
+
+  std::vector<std::pair<double,double>> unorderedGenTrigTime;
+
+  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
+    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
+    fGenTrigCoarse = coarseGeneralTrigger[i];
+    fGenTrigFrac = fracGeneralTrigger[i];
+
+    //2*i + 1 because the format is weird
+    fGenTrigSec = secondsGeneralTrigger[2*i + 1];
+    unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
+
+    if (fGenTrigFrac == 0.0) break;
+    beamevt->AddT0(std::make_pair(fGenTrigSec - fOffsetTAI, (fGenTrigCoarse*8. + fGenTrigFrac/512.)));
+    fGenTrigTree->Fill();
+  }
+}
+// END BeamAna::parseXTOFUnmatched
+////////////////////////
 
 void proto::BeamAna::parseXCET(uint64_t time){
   if(fCKov1 != ""){  
@@ -1216,6 +1336,22 @@ void proto::BeamAna::parseXCET(uint64_t time){
       CKov2Efficiency = countsCKov2[0]/countsTrigCKov2[0];
     }
   }
+
+  beam::CKov CKov1Status, CKov2Status;
+
+  double triggerTime = beamevt->GetT0( beamevt->GetActiveTrigger() ).first;
+  triggerTime += 1.e-9*beamevt->GetT0( beamevt->GetActiveTrigger() ).second;
+
+  CKov1Status.timeStamp = triggerTime;
+  CKov1Status.pressure  = CKov1Pressure;
+  CKov1Status.trigger   = C1;
+  beamevt->AddCKov0Trigger( CKov1Status );
+
+  CKov2Status.timeStamp = triggerTime;
+  CKov2Status.pressure  = CKov2Pressure;
+  CKov2Status.trigger   = C2;
+  beamevt->AddCKov1Trigger( CKov2Status );
+
 }
 // END BeamAna::parseXCET
 ////////////////////////
@@ -1310,7 +1446,7 @@ void proto::BeamAna::parseGeneralXBPF(std::string name, uint64_t time, size_t ID
 //    std::cout << std::endl;
     
     *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
-    fProfTime[name] = beamevt->DecodeFiberTime(name, i);
+    fProfTime[name] = beamevt->DecodeFiberTime(name, i, fOffsetTAI);
 /*    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
@@ -1351,11 +1487,11 @@ void proto::BeamAna::parseGeneralXBPFUnmatched(std::string name, uint64_t time, 
 
     
   for(size_t i = 0; i < counts[1]; ++i){      
-      std::cout << "Count: " << i << std::endl;
+//      std::cout << "Count: " << i << std::endl;
     
     for(int j = 0; j < 10; ++j){
       double theData = data[20*i + (2*j + 1)];
-      std::cout << std::setw(15) << theData ;
+//      std::cout << std::setw(15) << theData ;
       if(j < 4){
 	fbm.timeData[j] = theData;           
       }
@@ -1363,7 +1499,7 @@ void proto::BeamAna::parseGeneralXBPFUnmatched(std::string name, uint64_t time, 
 	fbm.fiberData[j - 4] = theData;
       } 
     } 
-    std::cout << std::endl;
+//    std::cout << std::endl;
     fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value 
     if(fbm.timeData[1] < .0000001){
       continue;
@@ -1388,7 +1524,7 @@ void proto::BeamAna::parseGeneralXBPFUnmatched(std::string name, uint64_t time, 
 //    std::cout << std::endl;
     
     *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
-    fProfTime[name] = beamevt->DecodeFiberTime(name, i);
+    fProfTime[name] = beamevt->DecodeFiberTime(name, i, fOffsetTAI);
 /*    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
 	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
@@ -1536,6 +1672,8 @@ void proto::BeamAna::beginJob()
   fOutTree->Branch("Event", &eventNum);
   fOutTree->Branch("SpillStart", &SpillStart);
   fOutTree->Branch("SpillEnd", &SpillEnd);
+  fOutTree->Branch("SpillOffset", &SpillOffset);
+  fOutTree->Branch("ActiveTriggerTime", &ActiveTriggerTime);
   fOutTree->Branch("Run",   &runNum);
   fOutTree->Branch("Subrun", &subRunNum);
   fOutTree->Branch("Pressure1", &CKov1Pressure);
@@ -1866,6 +2004,11 @@ void proto::BeamAna::reconfigure(fhicl::ParameterSet const & p)
 
   fMatchToTPC          = p.get<bool>("MatchToTPC");
   fUnmatched           = p.get<bool>("Unmatched");
+
+
+  fTimingCalibration      = p.get<double>("TimingCalibration");
+  fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
+  fOffsetTAI              = p.get<double>("OffsetTAI");
 
 }
 
@@ -2420,7 +2563,7 @@ void proto::BeamAna::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double T
     std::vector<size_t> triggers;
 //    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
 //        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
@@ -2431,7 +2574,7 @@ void proto::BeamAna::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double T
     triggers.clear();
 //    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
 //        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
@@ -2477,7 +2620,7 @@ void proto::BeamAna::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, 
     std::vector<size_t> triggers;
     //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
@@ -2488,7 +2631,7 @@ void proto::BeamAna::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, 
     triggers.clear();
     //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         triggers.push_back(itN);
       }
@@ -2532,7 +2675,7 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     std::string name = fPairedDevices[ip].first;
     //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
 	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
@@ -2543,7 +2686,7 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     name = fPairedDevices[ip].second;
     //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
 	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
@@ -2557,7 +2700,7 @@ void proto::BeamAna::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double
     std::string name = fDevices[id];
     //std::cout << id << " " << name << " " << fDevices[id] << std::endl;
     for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN ) - Time)     >= 0 ) ){
+      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
         //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
         for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
 	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);

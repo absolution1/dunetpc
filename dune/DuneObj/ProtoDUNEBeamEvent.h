@@ -32,9 +32,9 @@ namespace beam
   //
   struct CKov{          
     //Status at time of system trigger (on/off)
-    bool trigger;
-    
-    long long int timeStamp;
+    short trigger;
+    double pressure;
+    double timeStamp;
   };
 
 
@@ -54,7 +54,7 @@ namespace beam
       void              AddFBMTrigger(std::string, FBM); 
       void              ReplaceFBMTrigger(std::string, FBM, size_t); 
       void              DecodeFibers(std::string, size_t);
-      double            DecodeFiberTime(std::string, size_t);
+      double            DecodeFiberTime(std::string, size_t, double);
       std::array<double,4> ReturnTriggerAndTime(std::string, size_t);
       short             GetFiberStatus(std::string, size_t, size_t);
       std::vector<short> GetActiveFibers(std::string, size_t);
@@ -68,8 +68,11 @@ namespace beam
       int               GetNCKov1Triggers(){ return CKov1.size(); };
       short             GetCKov0Status(size_t);
       short             GetCKov1Status(size_t);
-      long long         GetCKov0Time(size_t);
-      long long         GetCKov1Time(size_t);
+      double            GetCKov0Time(size_t);
+      double            GetCKov1Time(size_t);
+      double            GetCKov0Pressure(size_t);
+      double            GetCKov1Pressure(size_t);
+
 
       void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };
       void              AddTOF1Trigger( std::pair<double,double> theT){ TOF1.push_back(theT); }; 
@@ -84,6 +87,9 @@ namespace beam
       recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
       size_t            GetNBeamTracks(){return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
+
+      void              SetActiveTrigger(size_t theTrigger){ activeTrigger = theTrigger; };
+      size_t            GetActiveTrigger(){ return activeTrigger; };
     private:
 
       //Time of a coincidence between 2 TOFs
@@ -94,7 +100,7 @@ namespace beam
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
 //      std::vector< std::vector < FBM > > fiberMonitors;
-     std::map<std::string, std::vector< FBM > > fiberMonitors;
+      std::map<std::string, std::vector< FBM > > fiberMonitors;
       size_t nFBMs;
 
       //Set of TOF detectors
@@ -110,6 +116,7 @@ namespace beam
 
       std::vector<recob::Track> Tracks;
   
+      size_t activeTrigger;
   };
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
@@ -222,7 +229,7 @@ namespace beam
     }
   }
 
-  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, size_t nTrigger){
+  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, size_t nTrigger, double OffsetTAI){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "FBM not found in list" << std::endl;
       return -1.;
@@ -236,20 +243,20 @@ namespace beam
     //timeData[3] -> Event Time in Seconds
     //timeData[2] -> Number of 8ns ticks after that time
 //    return fiberMonitors[FBMName][nTrigger].timeData[0];
-    return fiberMonitors[FBMName][nTrigger].timeData[3] + fiberMonitors[FBMName][nTrigger].timeData[2]*8.e-9;
+    return fiberMonitors[FBMName][nTrigger].timeData[3] - OffsetTAI + fiberMonitors[FBMName][nTrigger].timeData[2]*8.e-9;
   }
 
   inline std::array<double,4> ProtoDUNEBeamEvent::ReturnTriggerAndTime(std::string FBMName, size_t nTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "FBM not found in list" << std::endl;
-      return {{-1.,-1.,-1.,-1.}};
+      return {-1.,-1.,-1.,-1.};
     }
     if( (nTrigger > fiberMonitors[FBMName].size()) ){
       std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
-      return {{-1.,-1.,-1.,-1.}};
+      return {-1.,-1.,-1.,-1.};
     }
 
-    return {{fiberMonitors[FBMName][nTrigger].timeData[0], fiberMonitors[FBMName][nTrigger].timeData[1], fiberMonitors[FBMName][nTrigger].timeData[2], fiberMonitors[FBMName][nTrigger].timeData[3]}};
+    return {fiberMonitors[FBMName][nTrigger].timeData[0], fiberMonitors[FBMName][nTrigger].timeData[1], fiberMonitors[FBMName][nTrigger].timeData[2], fiberMonitors[FBMName][nTrigger].timeData[3]};
   }
 
   inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
@@ -343,22 +350,40 @@ namespace beam
     return CKov1[nTrigger].trigger;                
   }
 
-  inline long long ProtoDUNEBeamEvent::GetCKov0Time(size_t nTrigger){
+  inline double ProtoDUNEBeamEvent::GetCKov0Time(size_t nTrigger){
     if( (nTrigger >= CKov0.size()) ){
       std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
-      return -1;
+      return -1.;
     }
     
     return CKov0[nTrigger].timeStamp;                
   }
 
-  inline long long ProtoDUNEBeamEvent::GetCKov1Time(size_t nTrigger){
+  inline double ProtoDUNEBeamEvent::GetCKov1Time(size_t nTrigger){
     if( (nTrigger >= CKov1.size()) ){
       std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
-      return -1;
+      return -1.;
     }
     
     return CKov1[nTrigger].timeStamp;                
+  }
+
+  inline double ProtoDUNEBeamEvent::GetCKov0Pressure(size_t nTrigger){
+    if( (nTrigger >= CKov0.size()) ){
+      std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+    
+    return CKov0[nTrigger].pressure;                
+  }
+
+  inline double ProtoDUNEBeamEvent::GetCKov1Pressure(size_t nTrigger){
+    if( (nTrigger >= CKov1.size()) ){
+      std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+    
+    return CKov1[nTrigger].pressure;                
   }
   /////////////////////////////////
 

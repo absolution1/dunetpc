@@ -112,4 +112,4 @@ physics.producers.beamana.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
 physics.producers.beamana.MatchToTPC:           "false"
-physics.producers.beamana.Unmatched:            "false"
+physics.producers.beamana.Unmatched:            "true"
