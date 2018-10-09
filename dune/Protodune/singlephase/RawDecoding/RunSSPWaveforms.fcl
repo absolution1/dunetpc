@@ -1,0 +1,88 @@
+#include "services_dune.fcl"
+#include "RawDecoder.fcl"
+
+services: {
+
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::protodune_geo
+  DetectorClocksService:        @local::dunefd_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+  PdspChannelMapService:        @local::pdspchannelmap
+  
+  TFileService: { 
+   closeFileFast: true  # default
+   fileName:  "RunRawDecoderTFile.root"
+   tmpDir: "<parent-path-of-filename>"
+  }
+
+  PdspChannelMapService: {
+    FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
+    FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
+    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
+    LogLevel:         1
+  }
+
+}
+
+physics: {
+  
+  producers: {
+    ssprawdecoder: @local::ssp_raw_decoder  
+    timingrawdecoder: @local::timing_raw_decoder  
+    ctbrawdecoder: @local::ctb_raw_decoder
+  }
+
+  analyzers: {
+
+    sspmonitor: { 
+      module_type:     "PDWaveform" #SSPRawDecoder" #PDWaveform"
+      SSPInputModule:  "ssprawdecoder"
+      SSPInstanceName: "daq"		       
+      SSP_m1: 10 #samples used to calculate peak height
+      SSP_m2: 10 #samples used to calculate integral
+      SSP_i1: 40 #samples used to calculate pedestal
+      SSP_i2: 1200 #samples used to calculate peak height
+      SSP_disc_width: 10 #discrimination window width
+      SSP_readout_pretrigger: 50 #internal pretrigger tick wait
+      SSP_Corr_Chan_1: 0 #correlation channel 1
+      SSP_Corr_Chan_2: 1 #correlation channel 2
+      SSP_calib_int_win: 10 #calibration integration window length
+      SSP_wfm_verbose: 0
+      PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
+      
+      SelectEvents: [ produce ]
+    }
+
+  } 
+
+  produce: [ timingrawdecoder, ctbrawdecoder, ssprawdecoder ] 
+  analyze: [ sspmonitor ]
+  output: [ out1 ]
+  trigger_paths : [ produce ]
+  #end_paths: [ output, analyze ]
+  end_paths:[analyze]
+}
+
+outputs: {
+
+  out1: {
+    compressionLevel: 1
+    module_type: RootOutput
+    fileName: "SSPRawDecoderOutput.root"
+  }
+
+}
+
+source: {
+  module_type: RootInput
+  fileNames: [ "/afs/cern.ch/user/s/sergiand/workspace/artdaq_devel/pdune_r1000077_sr01_20170629T181646_1_0.root" ]
+  maxEvents : -1
+}
+
+process_name: RunRawDecoder
