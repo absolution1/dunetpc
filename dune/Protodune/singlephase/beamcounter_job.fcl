@@ -1,8 +1,8 @@
 #include "services_dune.fcl"
-#include "BeamDQM.fcl"
+#include "BeamCounter.fcl"
 #include "RawDecoding/RunRawDecoder.fcl"
 
-process_name: BeamDQM
+process_name: BeamCounter
 
 services:
 {
@@ -42,7 +42,6 @@ physics:
  producers:
  {
   ctbrawdecoder:    @local::ctb_raw_decoder
-#  beamevent:          @local::proto_beamevent
  }
 
  analyzers:
@@ -50,7 +49,6 @@ physics:
   beamdqm:           @local::proto_beamdqm
  }
 
-# produce:  [ timingrawdecoder, ctbrawdecoder, beamevent ]
  produce:  [ ctbrawdecoder]
  ana:      [ beamdqm ]
 
@@ -58,9 +56,3 @@ physics:
  end_paths:         [ ana ]
 }
 
-physics.analyzers.beamdqm.ValidWindow:           100
-
-physics.analyzers.beamdqm.CKov1:               "XCET022713"
-physics.analyzers.beamdqm.CKov2:               "XCET022716"
-
-physics.analyzers.beamdqm.XCETPrefix:           "dip/acc/NORTH/NP04/BI/XCET/"

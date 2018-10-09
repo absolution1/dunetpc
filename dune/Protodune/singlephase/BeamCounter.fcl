@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+proto_beamcounter:
+{
+  module_type:          "BeamCounter"
+}
+
+END_PROLOG
