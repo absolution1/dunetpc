@@ -104,7 +104,6 @@ public:
  
   void  InitXBPFInfo(beam::ProtoDUNEBeamEvent *);
   void  parseGeneralXBPF(std::string, uint64_t, size_t);
-  void  parseGeneralXBPFUnmatched(std::string, uint64_t, size_t);
   void  parseXBPF(uint64_t);
   void  parsePairedXBPF(uint64_t);
   void  parsePairedStraightXBPF(uint64_t);
@@ -794,20 +793,18 @@ void proto::BeamEvent::produce(art::Event & e)
 
           //Momentum
           //First, try getting the current from the magnet in IFBeam
-          if(current.empty()){
-            std::cout << "Trying to get the current" << std::endl;
-            try{
-              current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
-            }
-            catch(std::exception e){
-              std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
-              return;
-            }
+          std::cout << "Trying to get the current" << std::endl;
+          try{
+            current = FetchWithRetries< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            std::cout << "Current: " << current[0] << std::endl;
+    
+            MomentumSpec( beamevt->GetActiveTrigger() ); 
+            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
           }
-          std::cout << "Current: " << current[0] << std::endl;
-
-          MomentumSpec( beamevt->GetActiveTrigger() ); 
-          std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
+          catch(std::exception e){
+            std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
+          }
+          
         }
 
 
@@ -1484,99 +1481,13 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 
 }
 
-void proto::BeamEvent::parseGeneralXBPFUnmatched(std::string name, uint64_t time, size_t ID){
-
-  // Retrieve the number of counts in the BPF
-  std::vector<double> counts;
-  counts = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
-  std::cout << "Counts: " << counts.size() << std::endl;
-  for(size_t i = 0; i < counts.size(); ++i){
-    std::cout << counts[i] << std::endl;
-  }
-
-  std::vector<double> data;
-  data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
-  std::cout << "Data: " << data.size() << std::endl;
-
-  // If the number of counts is larger than the data we have
-  // we bail 
-  if(counts[1] > data.size()){
-    return;
-  }
-  
-  beam::FBM fbm;
-  fbm.ID = ID;
-
-    
-  for(size_t i = 0; i < counts[1]; ++i){      
-//      std::cout << "Count: " << i << std::endl;
-    
-    for(int j = 0; j < 10; ++j){
-      double theData = data[20*i + (2*j + 1)];
-//      std::cout << std::setw(15) << theData ;
-      if(j < 4){
-	fbm.timeData[j] = theData;           
-      }
-      else{
-	fbm.fiberData[j - 4] = theData;
-      } 
-    } 
-//    std::cout << std::endl;
-    fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value 
-    if(fbm.timeData[1] < .0000001){
-      continue;
-    } 
-
-    if(beamevt->GetFBM(name, i).ID != -1){
-      std::cout << "Warning: Replacing non-dummy FBM at "
-    	    << name << " " << i << std::endl;
-    } 
-    
-    beamevt->ReplaceFBMTrigger(name, fbm, i);
-
-  } 
-
-  for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
-    beamevt->DecodeFibers(name,i);
-//    std::cout << name << " at time: "
-//	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-//    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
-//      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
-//    }
-//    std::cout << std::endl;
-    
-    *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
-    fProfTime[name] = beamevt->DecodeFiberTime(name, i, fOffsetTAI);
-/*    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
-*/
-    fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
-    fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
-    fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
-    fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
-    fProfTree[name]->Fill(); 
-    
-  } 
-
-}
-// END BeamEvent::parseGeneralXBFP
-////////////////////////
-
 ////////////////////////
 // 
 void proto::BeamEvent::parseXBPF(uint64_t time){
   for(size_t d = 0; d < fDevices.size(); ++d){
     std::string name = fDevices[d];
     std::cout <<"Device: " << name << std::endl;
- //   if(fUnmatched){
- //     std::cout << "UnMatched" << std::endl;
- //     parseGeneralXBPFUnmatched(name, time, d);
- //   }
- //   else{
         parseGeneralXBPF(name, time, d);
- //   }
   }  
 }
 // END BeamEvent::parseXBFP
@@ -1588,23 +1499,11 @@ void proto::BeamEvent::parsePairedXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedDevices.size(); ++d){
     std::string name = fPairedDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
-//    if(fUnmatched){
-//      std::cout << "UnMatched" << std::endl;
-//      parseGeneralXBPFUnmatched(name, time, d);
-//    }
-//    else{
       parseGeneralXBPF(name, time, d);
-//    }
 
     name = fPairedDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
- //   if(fUnmatched){
- //     std::cout << "UnMatched" << std::endl;
- //     parseGeneralXBPFUnmatched(name, time, d);
- //   }
- //   else{
         parseGeneralXBPF(name, time, d);
- //   }
   }
 }
 // END BeamEvent::parsePairedXBFP
@@ -1616,23 +1515,11 @@ void proto::BeamEvent::parsePairedStraightXBPF(uint64_t time){
   for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
     std::string name = fPairedStraightDevices[d].first;
     std::cout <<"Device: " << name << std::endl;
- //   if(fUnmatched){
- //     std::cout << "UnMatched" << std::endl;
- //     parseGeneralXBPFUnmatched(name, time, d);
- //   }
- //   else{
         parseGeneralXBPF(name, time, d);
- //   }
 
     name = fPairedStraightDevices[d].second;
     std::cout <<"Device: " << name << std::endl;
-//    if(fUnmatched){
-//      std::cout << "UnMatched" << std::endl;
-//      parseGeneralXBPFUnmatched(name, time, d);
-//    }
-//    else{
         parseGeneralXBPF(name, time, d);
-//    }
   }
 }
 // END BeamEvent::parsePairedStrightXBFP
@@ -2293,19 +2180,6 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   
   std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetFullT0(theTrigger) << std::endl;
-
-/*  //First, try getting the current from the magnet in IFBeam
-  std::vector<double> current;
-  try{
-    current = FetchWithRetries< std::vector<double> >(eventTime, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
-  }
-  catch(std::exception e){
-    std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
-    return;
-  }
-
-  std::cout << "Current: " << current[0] << std::endl;
-*/
 
   //Get the active fibers from the upstream tracking XBPF
   std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
