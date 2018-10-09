@@ -50,7 +50,7 @@ simple_plugin(PDWaveform "module"
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                          ${MF_MESSAGELOGGER}
-
+			 dune_Geometry
                          ${CETLIB}
                          ${ROOT_BASIC_LIB_LIST}
                          BASENAME_ONLY
@@ -84,6 +84,7 @@ simple_plugin(FelixRawDecoder "module"
                         dune-raw-data_Overlays
                         artdaq-core_Data
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+			dune_Geometry
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
