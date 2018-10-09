@@ -86,6 +86,12 @@ private:
   std::string fClusterModuleLabel;
   double fChiCut;
   std::vector<float> fChgCuts;
+  double fTicksPerBin; // 200 ticks * 0.5 us/tick = 0.1 ms
+  unsigned fMinBins;
+  unsigned fMinHits;
+  double fMinDTickSNR;
+  double fMinDWireSNR;
+  unsigned fMinHitsSNR;
   int lastRun;
   int fDebugCluster;
   std::string fInFilename;
@@ -184,6 +190,12 @@ void nlana::SPLifetime::reconfigure(fhicl::ParameterSet const & pset)
   fClusterModuleLabel  = pset.get<std::string>("ClusterModuleLabel");
   fChgCuts             = pset.get<std::vector<float>>("ChgCuts", {0, 5});
   fChiCut              = pset.get<double>("ChiCut", 3);
+  fTicksPerBin         = pset.get<double>("TicksPerBin");
+  fMinBins             = pset.get<unsigned>("MinBins");
+  fMinHits             = pset.get<unsigned>("MinHits");
+  fMinDTickSNR         = pset.get<double>("MinDTickSNR");
+  fMinDWireSNR         = pset.get<double>("MinDWireSNR");
+  fMinHitsSNR          = pset.get<unsigned>("MinHitsSNR");
   fDebugCluster        = pset.get<int>("DebugCluster");
 } // reconfigure
 
@@ -328,8 +340,6 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   
 //  bool prt = false;
   
-  // This corresponds to time bins of size 200 ticks * 0.5 us/tick = 0.1 ms
-  constexpr float ticksPerHist = 200;
   
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
@@ -347,9 +357,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     unsigned short tpc = clsHits[0]->WireID().TPC;
     fDriftTime->Fill(dTick*msPerTick);
     fDriftTimeVTPC->Fill(tpcMapping.at(tpc),dTick*msPerTick);
-    unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
-    if(nhist < 5) continue;
-    if(clsHits.size() < 100) continue;
+    unsigned short nhist = 1 + (unsigned short)(dTick / fTicksPerBin);
+    if(nhist < fMinBins) continue;
+    if(clsHits.size() < fMinHits) continue;
 /*
     if(prt) {
       auto& sht = clsHits[0];
@@ -372,7 +382,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       } // ihist
       // Sum to get the (truncated) average
       for(auto& pht : clsHits) {
-        unsigned short ihist = (pht->PeakTime() - sTick) / ticksPerHist;
+        unsigned short ihist = (pht->PeakTime() - sTick) / fTicksPerBin;
         if(ihist > nhist - 1) continue;
         float chg = pht->Integral();
         if(chg < minChg[ihist] || chg > maxChg[ihist]) continue;
@@ -421,7 +431,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
 /*
     if(prt) {
       for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
-        float xx = (ihist + 0.5) * ticksPerHist + sTick;
+        float xx = (ihist + 0.5) * fTicksPerBin + sTick;
         std::cout<<"ihist "<<ihist<<" tick "<<(int)xx<<" ave "<<(int)ave[ihist]<<" +/- "<<(int)err[ihist]<<" cnt "<<(int)cnt[ihist]<<"\n";
       } // ihist
     }
@@ -520,13 +530,13 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     // only consider the collection plane
     if(cls->Plane().Plane != 2) continue;
     float dTick = std::abs(cls->StartTick() - cls->EndTick());
-    if(dTick < 500) continue;
+    if(dTick < fMinDTickSNR) continue;
     float dWire = std::abs(cls->StartWire() - cls->EndWire());
-    if(dWire < 300) continue;
+    if(dWire < fMinDWireSNR) continue;
     // Get the hits
     std::vector<art::Ptr<recob::Hit> > clsHits;
     clsHitsFind.get(icl, clsHits);
-    if(clsHits.size() < 300) continue;
+    if(clsHits.size() < fMinHitsSNR) continue;
     unsigned short tpc = clsHits[0]->WireID().TPC;
     ++signalToNoiseClsCnt[tpc];
 //    float aveSN = 0;
