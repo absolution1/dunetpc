@@ -7,7 +7,7 @@ services: {
   RandomNumberGenerator: {} 
   ExptGeoHelperInterface:       @local::dune_geometry_helper
   Geometry:                     @local::protodune_geo
-  DetectorClocksService:        @local::dunefd_detectorclocks
+  DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
   LArPropertiesService:         @local::dunefd_properties
   LArFFT:                       @local::dunefd_larfft  

@@ -1038,9 +1038,18 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   n_event_packets_->Fill(allPacketsProcessed);
   
   endEvent(eventNumber);
-  
-  evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
-  evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel); 
+
+
+  if (!fSplitTriggers) {
+    evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
+    evt.put(std::make_unique<decltype(hits)>(     std::move(hits)),      fOutputDataLabel);
+  }
+  else {
+    evt.put(std::make_unique<decltype(ext_waveforms)>(std::move(ext_waveforms)), fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(ext_hits)>(     std::move(ext_hits)),      fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_waveforms)>(std::move(int_waveforms)), fIntTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_hits)>(     std::move(int_hits)),      fIntTrigOutputLabel);
+  }
 }
 
 
@@ -1055,7 +1064,6 @@ recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned 
   auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
   double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
-  //std::cout << ts->OpticalClock().TickPeriod() << " " << ts->OpticalClock().TickPeriod() << std::endl;
   double pedestal = ( (double) trig.baselinesum ) / ( (double) i1 );
   double area =     ( (double) trig.intsum      ) - pedestal * ( (double) i2 );
   double peak =     ( (double) trig.peaksum     ) / ( (double) m1 ) - pedestal;
