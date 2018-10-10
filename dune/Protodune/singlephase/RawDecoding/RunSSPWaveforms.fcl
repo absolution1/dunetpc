@@ -4,30 +4,15 @@
 services: {
 
   TimeTracker:       {}
-  RandomNumberGenerator: {} 
-  ExptGeoHelperInterface:       @local::dune_geometry_helper
-  Geometry:                     @local::protodune_geo
-  DetectorClocksService:        @local::protodune_detectorclocks
-  DetectorPropertiesService:    @local::protodune_detproperties
-  LArPropertiesService:         @local::dunefd_properties
-  LArFFT:                       @local::dunefd_larfft  
-  DatabaseUtil:                 @local::dunefd_database
-  ChannelStatusService:         @local::dunefd_channel_status
-  PdspChannelMapService:        @local::pdspchannelmap
+  RandomNumberGenerator: {}
+
+  @table::protodune_rawdecoding_services
   
   TFileService: { 
    closeFileFast: true  # default
    fileName:  "RunRawDecoderTFile.root"
    tmpDir: "<parent-path-of-filename>"
   }
-
-  PdspChannelMapService: {
-    FileName:         "protoDUNETPCChannelMap_RCE_v4.txt"
-    FELIXFileName:    "protoDUNETPCChannelMap_FELIX_v4.txt"
-    SSPFileName:      "protoDUNESSPChannelMap_v1.txt"
-    LogLevel:         1
-  }
-
 }
 
 physics: {

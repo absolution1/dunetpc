@@ -99,7 +99,10 @@ private:
 
   // Declare member data here.
   std::string fRawDataLabel;
+  bool        fSplitTriggers;
   std::string fOutputDataLabel;
+  std::string fExtTrigOutputLabel;
+  std::string fIntTrigOutputLabel;
   bool fUseChannelMap;
   bool fDebug;
   raw::Compress_t        fCompression;      ///< compression type to use
@@ -499,8 +502,12 @@ private:
   // more parameters from the FCL file
   int fragment;
 
-  std::vector<raw::OpDetWaveform> waveforms;
+  std::vector<raw::OpDetWaveform> waveforms; 
+  std::vector<raw::OpDetWaveform> ext_waveforms;
+  std::vector<raw::OpDetWaveform> int_waveforms;
   std::vector<recob::OpHit> hits;
+  std::vector<recob::OpHit> ext_hits;
+  std::vector<recob::OpHit> int_hits;
 
 };
 
@@ -509,14 +516,25 @@ dune::SSPRawDecoder::SSPRawDecoder(fhicl::ParameterSet const & pset)
 // :
 {
   reconfigure(pset);
-  produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
-  produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  if (!fSplitTriggers) {
+    produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
+    produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  }
+  else{
+    produces< std::vector<raw::OpDetWaveform> > (fExtTrigOutputLabel);
+    produces< std::vector<raw::OpDetWaveform> > (fIntTrigOutputLabel);
+    produces< std::vector<recob::OpHit> > (fExtTrigOutputLabel);
+    produces< std::vector<recob::OpHit> > (fIntTrigOutputLabel);
+  }
 }
 
 void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
 
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
+  fSplitTriggers = pset.get<bool>("SplitTriggers");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
+  fExtTrigOutputLabel = pset.get<std::string>("ExtTrigOutputLabel");
+  fIntTrigOutputLabel = pset.get<std::string>("IntTrigOutputLabel");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
@@ -561,7 +579,15 @@ void dune::SSPRawDecoder::printParameterSet(){
   std::cout << std::endl;
 
   std::cout << "fRawDataLabel: " << fRawDataLabel << std::endl;
-  std::cout << "fOutputDataLabel: " << fOutputDataLabel << std::endl;
+  if (!fSplitTriggers) {
+    std::cout << "Not splitting triggers" << std::endl;
+    std::cout << "fOutputDataLabel: " << fOutputDataLabel << std::endl;
+  }
+  else{
+    std::cout << "Splitting triggers" << std::endl;
+    std::cout << "fExtTrigOutputLabel: " << fExtTrigOutputLabel << std::endl;
+    std::cout << "fIntTrigOutputLabel: " << fIntTrigOutputLabel << std::endl;
+  }    
   std::cout << "fDebug: ";
   if(fDebug) std::cout << "true" << std::endl;
   else std::cout << "false" << std::endl;
@@ -645,28 +671,28 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
     {
       //Check that the data are valid
       if(!containerFragments.isValid()){
-	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << eventNumber
-				   << " Container Fragments found but NOT VALID";
-	return;
+        LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+                                   << ", SubRun: " << evt.subRun()
+                                   << ", Event: " << eventNumber
+                                   << " Container Fragments found but NOT VALID";
+        return;
       }
 
       for (auto cont : *containerFragments)
-	{
-	  //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
-	  artdaq::ContainerFragment contf(cont);
-	  for (size_t ii = 0; ii < contf.block_count(); ++ii)
-	    {
-	      size_t fragSize = contf.fragSize(ii);
-	      frag_sizes_->Fill(fragSize);
-	      //artdaq::Fragment thisfrag;
-	      //thisfrag.resizeBytes(fragSize);
-	    
-	      //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
-	      fragments->emplace_back(*contf[ii]);
-	    }
-	}
+        {
+          //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
+          artdaq::ContainerFragment contf(cont);
+          for (size_t ii = 0; ii < contf.block_count(); ++ii)
+            {
+              size_t fragSize = contf.fragSize(ii);
+              frag_sizes_->Fill(fragSize);
+              //artdaq::Fragment thisfrag;
+              //thisfrag.resizeBytes(fragSize);
+            
+              //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
+              fragments->emplace_back(*contf[ii]);
+            }
+        }
     }
 
   /// Look for non-container Raw Fragments:
@@ -688,14 +714,14 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
       //Check that the data is valid
       if(!rawFragments.isValid()){
 
-	LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-				   << ", SubRun: " << evt.subRun()
-				   << ", Event: " << eventNumber
-				   << " Non-Container Fragments found but NOT VALID";
-	return;
+        LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+                                   << ", SubRun: " << evt.subRun()
+                                   << ", Event: " << eventNumber
+                                   << " Non-Container Fragments found but NOT VALID";
+        return;
       }
       for(auto const& rawfrag: *rawFragments){
-	fragments->emplace_back( rawfrag );
+        fragments->emplace_back( rawfrag );
       }
     }
   
@@ -735,11 +761,11 @@ void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
       trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
       hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
       for(size_t j=0;j<i;j++){
-	if(abs(coin_int_time[i]-coin_int_time[j]) < diff_time){
-	  coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
-	  coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].first,phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].second);  
-	}
-	
+        if(abs(coin_int_time[i]-coin_int_time[j]) < diff_time){
+          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
+          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].first,phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].second);  
+        }
+        
       }
     }
   }
@@ -776,7 +802,11 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   // not guaranteed by the standard.
 
   waveforms.clear();
+  int_waveforms.clear();
+  ext_waveforms.clear();
   hits.clear();
+  int_hits.clear();
+  ext_hits.clear();
   
   /// Process all packets:
   
@@ -802,7 +832,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       ///> get the packet header
       const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
       
-      /// read the header to provide the trigger variables structure	
+      /// read the header to provide the trigger variables structure        
       struct trig_variables trig;
       readHeader(daqHeader, &trig);
       
@@ -816,27 +846,27 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       
       //internal and external reference times on external (beam/cosmic window triggers). Can be used to time external timestamp down to the internal timesample. Might want to try this at some point in production...
       if(trig.type==48) {
-	if (ssptrigtime==0) {
-	  ssptrigtime=trig.timestamp_nova;
-	  if(verb_meta_) std::cout << "SSP: " << ssptrigtime << std::endl; 
-	}
-	
-	intreftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;  
-	extreftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova; 
-	if(int_ireftime_[ssp_map_[trig.module_id]] == 0) int_ireftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;
-	if(ext_ireftime_[ssp_map_[trig.module_id]] == 0) ext_ireftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova;  
+        if (ssptrigtime==0) {
+          ssptrigtime=trig.timestamp_nova;
+          if(verb_meta_) std::cout << "SSP: " << ssptrigtime << std::endl; 
+        }
+        
+        intreftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;  
+        extreftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova; 
+        if(int_ireftime_[ssp_map_[trig.module_id]] == 0) int_ireftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;
+        if(ext_ireftime_[ssp_map_[trig.module_id]] == 0) ext_ireftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova;  
       }
      
       // Trigger type histogram
       if (trigger_type_.find(channel) == trigger_type_.end())
-	{
-	  TH1D* tth = tFileService->make<TH1D>(Form("trigger_type_channel_%d",channel),Form("trigger_type_channel_%d",channel),4,0,3);
-	  tth->SetTitle(Form("Trigger type - Channel %d",channel));
-	  tth->GetXaxis()->SetTitle("Trigger type");
-	  tth->GetXaxis()->SetBinLabel(2,"Internal (16)");
-	  tth->GetXaxis()->SetBinLabel(3,"External (48)");
-	  trigger_type_[channel] = tth;
-	}
+        {
+          TH1D* tth = tFileService->make<TH1D>(Form("trigger_type_channel_%d",channel),Form("trigger_type_channel_%d",channel),4,0,3);
+          tth->SetTitle(Form("Trigger type - Channel %d",channel));
+          tth->GetXaxis()->SetTitle("Trigger type");
+          tth->GetXaxis()->SetBinLabel(2,"Internal (16)");
+          tth->GetXaxis()->SetBinLabel(3,"External (48)");
+          trigger_type_[channel] = tth;
+        }
       
       if ( trig.type == 16 ) trigger_type_[channel]->Fill(1);
       if ( trig.type == 48 ) trigger_type_[channel]->Fill(2);
@@ -876,30 +906,30 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       unsigned int calpeaksum =0;
       ///> copy the waveforms
       for(size_t idata = 0; idata < nADC; idata++) {
-	///> get the 'idata-th' ADC value
-	const unsigned short* adc = adcPointer + idata;
-	if(idata < i1) calbasesum +=  static_cast<unsigned long>(*adc); //added by Bryan Ramson
-	if(idata > i1+m1 && idata <= i2+i1+m1) calintsum += static_cast<unsigned long>(*adc); //added by Bryan Ramson
-	if(idata >= i1+m1+m2 && idata <= i1+2*m1+m2) calpeaksum += static_cast<unsigned int>(*adc); //added by Bryan Ramson
-	
-	maxadc = std::max(maxadc,*adc); //added by Bryan Ramson
-	if(maxadc == *adc) calpeaktime = idata; //added by Bryan Ramson
-	Waveform.push_back(*adc); //added by Jingbo
-	waveform_counter++;
-	
-	n_adc_counter_++;
-	adc_cumulative_ += (uint64_t)(*adc);
-	
-	///> Waveform 
-	hist->SetBinContent(idata+1,*adc);
-	
-	if (idata >= verb_adcs_) verb_values = false;
-	
-	verb_values = false; //don't print adc. Added by J.Wang
-	if(verb_values) {
-	  if(idata == 0&&verb_adcs_>0) std::cout << "Printing the " << nADC << " ADC values saved with the packet:" << std::endl;
-	  std::cout << *adc << " ";
-	}
+        ///> get the 'idata-th' ADC value
+        const unsigned short* adc = adcPointer + idata;
+        if(idata < i1) calbasesum +=  static_cast<unsigned long>(*adc); //added by Bryan Ramson
+        if(idata > i1+m1 && idata <= i2+i1+m1) calintsum += static_cast<unsigned long>(*adc); //added by Bryan Ramson
+        if(idata >= i1+m1+m2 && idata <= i1+2*m1+m2) calpeaksum += static_cast<unsigned int>(*adc); //added by Bryan Ramson
+        
+        maxadc = std::max(maxadc,*adc); //added by Bryan Ramson
+        if(maxadc == *adc) calpeaktime = idata; //added by Bryan Ramson
+        Waveform.push_back(*adc); //added by Jingbo
+        waveform_counter++;
+        
+        n_adc_counter_++;
+        adc_cumulative_ += (uint64_t)(*adc);
+        
+        ///> Waveform 
+        hist->SetBinContent(idata+1,*adc);
+        
+        if (idata >= verb_adcs_) verb_values = false;
+        
+        verb_values = false; //don't print adc. Added by J.Wang
+        if(verb_values) {
+          if(idata == 0&&verb_adcs_>0) std::cout << "Printing the " << nADC << " ADC values saved with the packet:" << std::endl;
+          std::cout << *adc << " ";
+        }
       }// idata
      
       // pedestal, area and peak (according to the Register table, the  SSP User Manual has i1 and i2 inverted)
@@ -914,57 +944,57 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       trig.peaksum = calpeaksum;
       
       if(verb_meta_) {
-	std::cout
-	  << "Channel:                            " << channel                   << std::endl
-	  << "Header:                             " << trig.header               << std::endl
-	  << "Length:                             " << trig.length               << std::endl
-	  << "Trigger type:                       " << trig.type                 << std::endl
-	  << "Status flags:                       " << trig.status_flags         << std::endl
-	  << "Header type:                        " << trig.header_type          << std::endl
-	  << "Trigger ID:                         " << trig.trig_id              << std::endl
-	  << "Module ID:                          " << trig.module_id            << std::endl
-	  << "Channel ID:                         " << trig.channel_id           << std::endl
-	  << "External timestamp (F mode):        "                              << std::endl
-	  << "  Sync delay:                       " << trig.timestamp_sync_delay << std::endl
-	  << "  Sync count:                       " << trig.timestamp_sync_count << std::endl
-	  << "External timestamp (NOvA mode):     " << trig.timestamp_nova       << std::endl
-	  << "Peak sum:                           " << trig.peaksum              << std::endl
-	  << "Peak time:                          " << trig.peaktime             << std::endl
-	  << "Prerise:                            " << trig.prerise              << std::endl
-	  << "Integrated sum:                     " << trig.intsum               << std::endl
-	  << "Baseline sum:                       " << trig.baselinesum          << std::endl
-	  << "CFD Timestamp interpolation points: " << trig.cfd_interpol[0]      << " " << trig.cfd_interpol[1] << " " << trig.cfd_interpol[2]   << " " << trig.cfd_interpol[3] << std::endl
-	  << "Internal interpolation point:       " << trig.internal_interpol    << std::endl
-	  << "Internal timestamp:                 " << trig.internal_timestamp   << std::endl
-	  << std::endl
-	  << "Pedestal                            " << pedestal                  << std::endl
-	  << "Area                                " << area                      << std::endl
-	  << "Peak heigth                         " << peak                      << std::endl
-	  << std::endl;
+        std::cout
+          << "Channel:                            " << channel                   << std::endl
+          << "Header:                             " << trig.header               << std::endl
+          << "Length:                             " << trig.length               << std::endl
+          << "Trigger type:                       " << trig.type                 << std::endl
+          << "Status flags:                       " << trig.status_flags         << std::endl
+          << "Header type:                        " << trig.header_type          << std::endl
+          << "Trigger ID:                         " << trig.trig_id              << std::endl
+          << "Module ID:                          " << trig.module_id            << std::endl
+          << "Channel ID:                         " << trig.channel_id           << std::endl
+          << "External timestamp (F mode):        "                              << std::endl
+          << "  Sync delay:                       " << trig.timestamp_sync_delay << std::endl
+          << "  Sync count:                       " << trig.timestamp_sync_count << std::endl
+          << "External timestamp (NOvA mode):     " << trig.timestamp_nova       << std::endl
+          << "Peak sum:                           " << trig.peaksum              << std::endl
+          << "Peak time:                          " << trig.peaktime             << std::endl
+          << "Prerise:                            " << trig.prerise              << std::endl
+          << "Integrated sum:                     " << trig.intsum               << std::endl
+          << "Baseline sum:                       " << trig.baselinesum          << std::endl
+          << "CFD Timestamp interpolation points: " << trig.cfd_interpol[0]      << " " << trig.cfd_interpol[1] << " " << trig.cfd_interpol[2]   << " " << trig.cfd_interpol[3] << std::endl
+          << "Internal interpolation point:       " << trig.internal_interpol    << std::endl
+          << "Internal timestamp:                 " << trig.internal_timestamp   << std::endl
+          << std::endl
+          << "Pedestal                            " << pedestal                  << std::endl
+          << "Area                                " << area                      << std::endl
+          << "Peak heigth                         " << peak                      << std::endl
+          << std::endl;
       }
       
       
       //      std::cout << evt.run() << "\t"                                                                                
-      //	<< evt.subRun() << "\t"                                                                                       
-      //	<< eventNumber << "\t"                                                                                        
-      //	<< trig.module_id << "\t"                                                                                     
-      //	<< trig.channel_id << "\t"
-	//<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].first << "\t"
-	//<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].second << "\t"
-	//	<< trig.type << "\t"                                                                                          
-	//	<< pedestal << "\t" << "\t"
-	//	<< peak << "\t"
-	//	<< area << "\t"
+      //        << evt.subRun() << "\t"                                                                                       
+      //        << eventNumber << "\t"                                                                                        
+      //        << trig.module_id << "\t"                                                                                     
+      //        << trig.channel_id << "\t"
+        //<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].first << "\t"
+        //<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].second << "\t"
+        //        << trig.type << "\t"                                                                                          
+        //        << pedestal << "\t" << "\t"
+        //        << peak << "\t"
+        //        << area << "\t"
       //      << calpeaktime << "\t"
       //        << calpeaksum << "\t"
       //        << trig.peaksum << "\t"
       //        << trig.internal_timestamp << "\t"
       //        << trig.peaktime << "\t"
-      //	<< trig.internal_timestamp/(150.0) << "\t" <<"\t"
-      //	<< intreftime_[ssp_map_[trig.module_id]]/(150.0) << "\t" << "\t"
-      //	<< (trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]])/(150.0) << "\t" <<"\t"
-      //	<< trig.timestamp_nova/(3*150.0) << "\t" << "\t"
-      //	<< (trig.timestamp_nova-allreftime)/(3*150) << std::endl;
+      //        << trig.internal_timestamp/(150.0) << "\t" <<"\t"
+      //        << intreftime_[ssp_map_[trig.module_id]]/(150.0) << "\t" << "\t"
+      //        << (trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]])/(150.0) << "\t" <<"\t"
+      //        << trig.timestamp_nova/(3*150.0) << "\t" << "\t"
+      //        << (trig.timestamp_nova-allreftime)/(3*150) << std::endl;
       
       //Fill diagnostic vectors for use at the end of the event
       coin_module_id.push_back(trig.module_id);
@@ -976,12 +1006,26 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       ///> increment the data pointer to the end of the current packet (to the start of the next packet header, if available)
       dataPointer+=nADC/2;
       
-      // fill waveforms, added by Jingbo
-      waveforms.emplace_back( Waveform );
-      
-      // fill the ophit and put it in hits
-      hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
-      
+      // Put waveform and ophit into collections
+      // Split into internal and external triggers if that has been set.
+      if (!fSplitTriggers) {
+        waveforms.emplace_back( Waveform );
+        hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+      }
+      else{
+        if (trig.type == 48 ) {
+          ext_waveforms.emplace_back( Waveform );
+          ext_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+        }
+        else if (trig.type == 16) {
+          int_waveforms.emplace_back( Waveform );
+          int_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+        }
+        else {
+          std::cerr << "Unknown trigger type " << trig.type << ", cannot assign to appropriate data product with SplitTriggers enabled." << std::endl;
+        }
+      }
+
       hist->Delete();
     
       ++packetsProcessed; // packets
@@ -994,9 +1038,18 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   n_event_packets_->Fill(allPacketsProcessed);
   
   endEvent(eventNumber);
-  
-  evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
-  evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel); 
+
+
+  if (!fSplitTriggers) {
+    evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
+    evt.put(std::make_unique<decltype(hits)>(     std::move(hits)),      fOutputDataLabel);
+  }
+  else {
+    evt.put(std::make_unique<decltype(ext_waveforms)>(std::move(ext_waveforms)), fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(ext_hits)>(     std::move(ext_hits)),      fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_waveforms)>(std::move(int_waveforms)), fIntTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_hits)>(     std::move(int_hits)),      fIntTrigOutputLabel);
+  }
 }
 
 
@@ -1007,11 +1060,10 @@ recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned 
   unsigned short     OpChannel   = channel;         ///< Derived Optical channel
   unsigned long      FirstSample = trig.timestamp_nova/3;
   double             TimeStamp   = ((double)FirstSample)/(NOvAClockFrequency); ///< first sample experiment time in microseconds
-  
-  //auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
-  double peakTime = ((double) trig.peaktime) * (100.0/15.0); //ProtoDUNE clockspeed hardcode hack-Bryan Ramson//ts->OpticalClock().TickPeriod(); // microseconds
-  double width = ((double)i1)*(100.0/15.0); //ProtoDUNE clockspeed hardcode hack-Bryan Ramson //* ts->OpticalClock().TickPeriod(); // microseconds
-  //std::cout << ts->OpticalClock().TickPeriod() << " " << ts->OpticalClock().TickPeriod() << std::endl;
+
+  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
+  double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
   double pedestal = ( (double) trig.baselinesum ) / ( (double) i1 );
   double area =     ( (double) trig.intsum      ) - pedestal * ( (double) i2 );
   double peak =     ( (double) trig.peaksum     ) / ( (double) m1 ) - pedestal;
