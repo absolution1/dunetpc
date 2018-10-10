@@ -71,7 +71,14 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& lhs, const IndexRange& ir) {
-  lhs << ir.name << ": [" << ir.begin << ", " << ir.end << ")";
+  lhs << ir.name << ": ";
+  if ( ir.size() == 0 ) {
+    lhs << "<empty>";
+  } else if ( ir.size() == 1 ) {
+    lhs << ir.begin;
+  } else {
+    lhs << "[" << ir.begin << ", " << ir.end << ")";
+  }
   bool first = true;
   for ( std::string lab : ir.labels ) {
     if ( first ) first = false;

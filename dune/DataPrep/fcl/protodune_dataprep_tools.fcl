@@ -7,6 +7,10 @@
 data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
 data.pd_ClockUnit: "Mtick"
 data.pd_TriggerClockRate: 50000000.0
+data.pd_Tick0: 500
+
+tools.tickRanges.plotTicks.begin: 4000
+tools.tickRanges.plotTicks.end:   5000
 
 ################################################################################
 # Channel mapping.
@@ -36,7 +40,7 @@ tools.pd_onlineChannelMapByFemb: {
 
 tools.channelRanges: {
   tool_type: ProtoDuneChannelRanges
-  LogLevel: 1
+  LogLevel: 0
   ExtraRanges: ""
 }
 
@@ -122,20 +126,21 @@ tools.rawAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
+  Title: "Raw ADC collection view. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
@@ -143,20 +148,21 @@ tools.rawAdcDetectorPlotInd1: {
   LogLevel: 1
   WireAngle: 0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
+  Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
@@ -164,20 +170,21 @@ tools.rawAdcDetectorPlotInd2: {
   LogLevel: 1
   WireAngle: -0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold:  20
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
+  Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -187,20 +194,21 @@ tools.preparedAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.preparedAdcDetectorPlotInd1: {
@@ -208,20 +216,21 @@ tools.preparedAdcDetectorPlotInd1: {
   LogLevel: 1
   WireAngle: 0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.preparedAdcDetectorPlotInd2: {
@@ -229,20 +238,21 @@ tools.preparedAdcDetectorPlotInd2: {
   LogLevel: 1
   WireAngle: -0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold: 5
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%. Trigger %TRIG%."
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -262,7 +272,7 @@ pdcht_template: {
   ChannelLinePattern: []
   Palette: 1026
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
-  HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL%"
+  HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL%. Trigger %TRIG%."
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -275,7 +285,7 @@ tools.pdcht_All.ChannelRanges: [all]
 tools.pdcht_All.ChannelLinePattern: [0]
 
 # Add location for the remaining plots.
-pdcht_template.HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+pdcht_template.HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%) Trigger %TRIG%"
 
 # One plot for each TPS (APA).
 tools.pdcht_Apas: @local::pdcht_template
@@ -288,6 +298,10 @@ tools.pdcht_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
 tools.pdcht_ZPlanes.ChannelLineModulus: 2560
 tools.pdcht_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# Plot APA3z (where the beam enters).
+tools.pdcht_Apa3z: @local::tools.pdcht_Zplanes
+tools.pdcht_Apa3z.ChannelRanges: [tpp0z]
 
 # One plot for each C-plane. C is the cryostat-side collection plane.
 tools.pdcht_Cplanes: @local::tools.pdcht_Zplanes

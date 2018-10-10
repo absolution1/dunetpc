@@ -11,9 +11,10 @@
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
 //   Tick0 - Tick used ast t = 0 for drift calculations.
 //   DriftSpeed - Drift speed in cm/tick.
-//   XMin, XMax - Limits for the drift coordinate
-//   ZMin, ZMax - Limits for the wire coordinate
+//   XMin, XMax - Plot limits for the drift coordinate
+//   ZMin, ZMax - Plot limits for the wire coordinate
 //   SignalThreshold - Signals in a channel-tick bin above this value are plotted
+//   ShowAllTicks - If true, ticks outside the nominal drift volume are displayed.
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
 //   ShowWires - Also show anode wires on the plot.
@@ -113,6 +114,7 @@ private:
   float          m_ZMin;
   float          m_ZMax;
   float          m_SignalThreshold;
+  float          m_ShowAllTicks;
   Index          m_FirstTick;
   Index          m_LastTick;
   bool           m_ShowWires;

@@ -206,7 +206,7 @@
    <fraction n="0.05" ref="fibrous_glass"/>
   </material>
 
-  <!-- Copied from prorotdune_v4.gdml -->
+  <!-- Copied from protodune_v4.gdml -->
   <material name="foam_protoDUNEdp">
    <D value="0.135" unit="g/cm3"/>
    <composite n="17" ref="carbon"/>
@@ -12194,7 +12194,7 @@
 
   <physvol>
    <volumeref ref="volLEMs"/>
-   <position name="posLEMs" unit="cm" x="-25.25" y="0" z="0"/>
+   <position name="posLEMs" unit="cm" x="-25.2" y="0" z="0"/>
 
   </physvol>
     </volume>

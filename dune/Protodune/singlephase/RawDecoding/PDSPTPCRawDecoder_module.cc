@@ -102,6 +102,13 @@ private:
   bool          _rce_check_buffer_size;
   size_t        _rce_buffer_size_checklimit;
 
+  // flags for attempting to fix FEMB 302's misaligned data
+
+  bool          _rce_fix302;
+  int           _rce_fix302_StepSize;
+  int           _rce_fix302_NTicksMax;
+  int           _rce_fix302_MedianSmoothRadius;
+
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
   bool          _felix_enforce_exact_crate_number;
@@ -147,6 +154,7 @@ private:
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _fix302(raw::RawDigit::ADCvector_t &adcvec, float median);  // method to try to adjust FEMB 302's data by looking at ADC values
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
 
@@ -168,6 +176,11 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
 
+  _rce_fix302 = p.get<bool>("RCEFIX302",true);
+  _rce_fix302_StepSize = p.get<int>("RCEFIX302StepSize",20);
+  _rce_fix302_NTicksMax = p.get<int>("RCEFIX302NTicksMax",150);
+  _rce_fix302_MedianSmoothRadius = p.get<int>("RCEFIX302MedianSmoothRadius",10);
+
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
   _felix_input_noncontainer_instance = p.get<std::string>("FELIXRawDataNonContainerInstance","FELIX");
@@ -188,7 +201,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _full_channel_count = p.get<unsigned int>("FullChannelCount", 15360);
   _enforce_same_tick_count = p.get<bool>("EnforceSameTickCount",false);
   _enforce_full_tick_count = p.get<bool>("EnforceFullTickCount",false);
-  _full_tick_count = p.get<unsigned int>("FullTickCount",10000);
+  _full_tick_count = p.get<unsigned int>("FullTickCount",6000);
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
@@ -677,6 +690,18 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  float sigma=0;
 	  computeMedianSigma(v_adc,median,sigma);
 
+	  if (_rce_fix302 && crateNumber == 3 && slotNumber == 3 && fiberNumber == 2)
+	    {
+	      // if we don't have a full tick count, pad out the rest with the last value (no steps)
+	      while (v_adc.size()<_full_tick_count)
+       	        {
+		  v_adc.push_back(v_adc.back());
+		}
+	      _fix302(v_adc,median);
+	    }
+
+	  auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
+
 	  raw::Compress_t cflag=raw::kNone;
 	  if (_compress_Huffman)
 	    {
@@ -684,7 +709,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      raw::Compress(v_adc,cflag);
 	    }
 	  // here n_ticks is the uncompressed size as required by the constructor
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
+	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
 	  raw_digit.SetPedestal(median,sigma);
 	  raw_digits.push_back(raw_digit);  
 
@@ -1149,5 +1174,72 @@ void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, fl
   //     sigma = ((float) (p1s - m1s))/2.0;
   //   }
 }
+
+bool PDSPTPCRawDecoder::_fix302(raw::RawDigit::ADCvector_t &adcvec, float median)
+{
+  int vsize = adcvec.size();
+  if (vsize <= _rce_fix302_NTicksMax +  _rce_fix302_MedianSmoothRadius + 1) { return false; }
+  int lowtick = vsize - _rce_fix302_NTicksMax - 1;
+  int ishift = 0;
+
+  //std::cout << "In fix302: array size, lowtick " << vsize << " " << lowtick << std::endl;
+
+  // do a median smooth of the data in nticksmax to get a better idea of where the edge is.
+
+  std::vector<int> smoothed;
+
+  for (int i=lowtick; i<vsize; ++i)
+    {
+      std::vector<int> medwindow;
+      for (int j = -_rce_fix302_MedianSmoothRadius; j<= _rce_fix302_MedianSmoothRadius; ++j)
+	{
+	  if (i+j<vsize)
+	    {
+	      medwindow.push_back(adcvec.at(i+j));
+	    }
+	  else
+	    {
+	      medwindow.push_back(medwindow.back());
+	    }
+	}
+      std::sort(medwindow.begin(),medwindow.end());
+      smoothed.push_back(medwindow.at(_rce_fix302_MedianSmoothRadius));
+      //std::cout << "Median smooth: " << i << " " << adcvec[i] << " " << smoothed.back() << std::endl;
+    }
+
+
+  int biggeststep = 0;
+  for (unsigned int i=1; i<smoothed.size(); ++i)
+    {
+      int diff = std::abs( smoothed[i] -  smoothed[i-1] );
+      if (diff > biggeststep)
+	{
+	  biggeststep = diff;
+	  ishift = smoothed.size() - i;
+	}
+    }
+  if (biggeststep < _rce_fix302_StepSize) ishift = 0;
+
+
+  if (ishift != 0)
+    {
+      //std::cout << "Candidate step: " << ishift << std::endl;
+      for (int itick = vsize - ishift; itick != 0; --itick)
+	{
+	  adcvec[itick+ishift-1] = adcvec[itick-1];
+	}
+	
+      for (int itick = 0; itick < ishift; ++itick)   // back-fill missing ADC values with the median pedestal
+	{
+	  adcvec[itick] = median;
+	}
+    }
+
+  // idiot check -- zero out the adc values and see if it ends up in the right place.
+  //for (size_t itick=0; itick<adcvec.size(); ++itick) adcvec[itick] = 0;
+
+  return true;
+}
+
 
 DEFINE_ART_MODULE(PDSPTPCRawDecoder)
