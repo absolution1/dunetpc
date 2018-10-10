@@ -31,7 +31,6 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchau = 800;
   Index nchav = 800;
   Index nchaz = 480;
-  bool isEven = true;  // Even TPS is beam right
   Index apaIdx[ntps] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
   string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
   insertLen("all", 0, ntps*nchaApa, "All", "", "");
@@ -51,8 +50,8 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     Index chv0 = chu0 + nchau;
     Index chx10 = chv0 + nchav;
     Index chx20 = chx10 + nchaz;
-    Index chz0 = isEven ? chx20 : chx10;
-    Index chc0 = isEven ? chx10 : chx20;
+    Index chz0 = chx20;
+    Index chc0 = chx10;
     insertLen(stpp + "u", chu0, nchau, "TPC plane " + sitps + "u", sloc, labApa);
     insertLen(sapa + "u", chu0, nchau, "APA plane " + siapa + "u", sloc);
     insertLen(stpp + "v", chv0, nchav, "TPC plane " + sitps + "v", sloc, labApa);
@@ -64,9 +63,9 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     Index fchu0 = chu0;
     Index fchv0 = chv0;
     Index fchx0 = chx10;
-    Index ifmbu = isEven ? 11 :  1;
-    Index ifmbv = isEven ? 20 : 10;
-    Index ifmbx = isEven ? 20 : 10;
+    Index ifmbu = 11;
+    Index ifmbv = 20;
+    Index ifmbx = 20;
     // Loop over FEMBS in offline order.
     for ( Index ifmbOff=0; ifmbOff<20; ++ifmbOff ) {
       ostringstream ssnamu;
@@ -89,11 +88,10 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
       ifmbv -= 1;
       if ( ifmbv == 0 ) ifmbv = 20;
       if ( ifmbOff < 9 )       ifmbx -= 1;
-      else if ( ifmbOff == 9 ) ifmbx = isEven ? 1 : 11;
-      else                      ifmbx += 1;
+      else if ( ifmbOff == 9 ) ifmbx = 1;
+      else                     ifmbx += 1;
       
     }
-    isEven = ! isEven;
   }
   if ( m_ExtraRanges.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance();
@@ -116,8 +114,8 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
     IndexRange rout = m_pExtraRanges->get(nam);
     if ( rout.isValid() ) return rout;
   }
-  // Special handling for online wire specifier fembAFFVII
-  // We look up FEMB block fembAFFV and pick the channel corresponding to II,
+  // Special handling for online wire specifier fembAFFVCC
+  // We look up FEMB block fembAFFV and pick the channel corresponding to CC,
   if ( nam.size() == 10 && nam.substr(0,4) == "femb" ) {
     IndexRange fbran = get(nam.substr(0,8));
     Index ifchmax = 0;
@@ -134,18 +132,14 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
         istringstream ssapa(nam.substr(4,1));
         int iapa = 0;
         ssapa >> iapa;
-        bool beamLeft = iapa >= 4 && iapa <=6;
-        bool beamRigh = iapa >= 1 && iapa <=3;
         istringstream ssfmb(nam.substr(5,2));
         int ifmb = 0;
         ssfmb >> ifmb;
         bool sideTpc = ifmb >=  1 && ifmb <= 10;
         bool sideCry = ifmb >= 11 && ifmb <= 20;
-        if      ( beamLeft && sideTpc ) dirSame = true;
-        else if ( beamLeft && sideCry ) dirSame = false;
-        else if ( beamRigh && sideTpc ) dirSame = false;
-        else if ( beamRigh && sideCry ) dirSame = true;
-        else                            ifchmax = 0;
+        if ( sideTpc )      dirSame = false;
+        else if ( sideCry ) dirSame = true;
+        else                ifchmax = 0;
       }
       if ( ifchmax != fbran.size() ) {
         cout << myname << "WARNING: FEMB block has unexpected size: "
