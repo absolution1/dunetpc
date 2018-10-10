@@ -1051,10 +1051,10 @@ recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned 
   unsigned short     OpChannel   = channel;         ///< Derived Optical channel
   unsigned long      FirstSample = trig.timestamp_nova/3;
   double             TimeStamp   = ((double)FirstSample)/(NOvAClockFrequency); ///< first sample experiment time in microseconds
-  
-  //auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
-  double peakTime = ((double) trig.peaktime) * (100.0/15.0); //ProtoDUNE clockspeed hardcode hack-Bryan Ramson//ts->OpticalClock().TickPeriod(); // microseconds
-  double width = ((double)i1)*(100.0/15.0); //ProtoDUNE clockspeed hardcode hack-Bryan Ramson //* ts->OpticalClock().TickPeriod(); // microseconds
+
+  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+  double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
+  double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
   //std::cout << ts->OpticalClock().TickPeriod() << " " << ts->OpticalClock().TickPeriod() << std::endl;
   double pedestal = ( (double) trig.baselinesum ) / ( (double) i1 );
   double area =     ( (double) trig.intsum      ) - pedestal * ( (double) i2 );
