@@ -9,7 +9,7 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Common/Assns.h"
 
-//#include "dune/DuneObj/CalibTreeRecord.h"
+#include "dune/DuneObj/CalibTreeRecord.h"
 #include "dune/DuneObj/OpDetDivRec.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Hit.h"
@@ -17,6 +17,7 @@
 #include "lardataobj/RawData/OpDetWaveform.h"
 //#include <bitset>
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/DuneObj/ProtoDUNETimeStamp.h"
 
 #include <vector>
 #include <map>

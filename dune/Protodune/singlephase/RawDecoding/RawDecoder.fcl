@@ -26,7 +26,8 @@ felix_raw_decoder:
   ExpectContainerFragments: true
 }
 
-# configuration for combined TPC Raw Decoder module
+# configuration for combined TPC Raw Decoder module. Supersedes the RCE and FELIX
+# raw decoder modules listed above.
 
 pdsp_tpc_raw_decoder:
 {
@@ -44,6 +45,11 @@ pdsp_tpc_raw_decoder:
   RCEHexDump: false
   RCECheckBufferSize: true
   RCEBufferSizeCheckLimit: 10000000
+
+  RCEFIX302:                         true   # do an ADC-value based fix for the FEMB 302 data misalignment
+  RCEFIX302StepSize:                 40     # minimum number of ADC counts to define a step
+  RCEFIX302NTicksMax:                150    # maximum number of ticks to slide waveform
+  RCEFIX302MedianSmoothRadius:       10     # median smooth radius in ticks to find edge    
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
@@ -108,18 +114,19 @@ ssp_raw_decoder:
   UseChannelMap: "false"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: false
+  verbose_metadata: "false"
   verbose_adcs: 0
 
   number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
-  SSP_m2: 10   # (unused in the code)
-  SSP_i1: 500  # samples used to calculate pedestal
-  SSP_i2: 500  # samples used to calculate peak height
+  SSP_m2: 10   # samples used to calculate integral
+  SSP_i1: 40  # samples used to calculate pedestal
+  SSP_i2: 1200  # samples used to calculate peak height
 
-  NOvAClockFrequency: 64.0 # MHz
+  NOvAClockFrequency: 150.0 # MHz
   SPESize: 25
+ 
 }
 
 ctb_raw_decoder:

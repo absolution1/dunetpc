@@ -26,6 +26,7 @@ simple_plugin(AdcChannelDumper   "tool"
 
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -108,6 +109,12 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(SubtractBaseline   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service
                 art_Framework_Services_Registry
@@ -118,6 +125,11 @@ simple_plugin(VintageDeconvoluter   "tool"
              )
 
 simple_plugin(AdcUnderflowFlagger   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(FclStickyCodeFlagger   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

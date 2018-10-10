@@ -182,8 +182,8 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
-$SteelSupport_x  =  100;
-$SteelSupport_y  =  50;
+$SteelSupport_x  =  50;
+$SteelSupport_y  =  100;
 $SteelSupport_z  =  100; 
 $FoamPadding     =  80;  # only 2 layers ???
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
@@ -193,16 +193,36 @@ $FracMassOfAir   =  1 - $FracMassOfSteel;
 $SpaceSteelSupportToWall    = 100;
 $SpaceSteelSupportToCeiling = 100;
 
-$DetEncWidth   =    $Cryostat_x
-                  + 2*($SteelSupport_x + $FoamPadding) + 2*$SpaceSteelSupportToWall;
-$DetEncHeight  =    $Cryostat_y
-                  + 2*($SteelSupport_y + $FoamPadding) + $SpaceSteelSupportToCeiling;
-$DetEncLength  =    $Cryostat_z
+$DetEncX  =    $Cryostat_x
+                  + 2*($SteelSupport_x + $FoamPadding) + $SpaceSteelSupportToCeiling;
+
+$DetEncY  =    $Cryostat_y
+                  + 2*($SteelSupport_y + $FoamPadding) + 2*$SpaceSteelSupportToWall;
+
+$DetEncZ  =    $Cryostat_z
                   + 2*($SteelSupport_z + $FoamPadding) + 2*$SpaceSteelSupportToWall;
 
-$posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
+$posCryoInDetEnc_x = - $DetEncX/2 + $SteelSupport_x + $FoamPadding + $Cryostat_x/2;
 
-$RockThickness = 3000;
+$RockThickness = 4000;
+
+  # We want the world origin to be vertically centered on active TPC
+  # This is to be added to the x and y position of every volume in volWorld
+
+$OriginXSet =  $DetEncX/2.0
+              -$SteelSupport_x
+              -$FoamPadding
+              -$SteelThickness
+              -$xLArBuffer
+              -$driftTPCActive/2.0;
+
+$OriginYSet =   $DetEncY/2.0
+              - $SpaceSteelSupportToWall
+              - $SteelSupport_y
+              - $FoamPadding
+              - $SteelThickness
+              - $yLArBuffer
+              - $widthTPCActive/2.0;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -210,44 +230,25 @@ $RockThickness = 3000;
   # dead LAr on the edge of the TPC)
   # This is to be added to the z position of every volume in volWorld
 
-$OriginZSet =   $DetEncLength/2.0 
+$OriginZSet =   $DetEncZ/2.0 
               - $SpaceSteelSupportToWall
               - $SteelSupport_z
               - $FoamPadding
               - $SteelThickness
-              - $zLArBuffer;
+              - $zLArBuffer
               - $borderCRM;
-
-  # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
-
-$OriginYSet =   $DetEncHeight/2.0
-              - $SteelSupport_y
-              - $FoamPadding
-              - $SteelThickness
-              - $yLArBuffer
-              - $widthTPCActive/2.0;
-
-$OriginXSet =  $DetEncWidth/2.0
-              -$SpaceSteelSupportToWall
-              -$SteelSupport_x
-              -$FoamPadding
-              -$SteelThickenss
-              -$xLArBuffer
-              -$driftTPCActive/2.0;
-
 
 ##################################################################
 ############## Field Cage Parameters ###############
 
 $FieldShaperLongTubeLength =  $lengthTPCActive;
 $FieldShaperShortTubeLength =  $widthTPCActive;
-$FieldShaperInnerRadious = 1.485;
-$FieldShaperOuterRadious = 1.685;
+$FieldShaperInnerRadius = 1.485;
+$FieldShaperOuterRadius = 1.685;
 $FieldShaperTorRad = 1.69;
 
-$FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadious+ 2*$FieldShaperTorRad;
-$FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadious+ 2*$FieldShaperTorRad;
+$FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
+$FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 
 $FieldShaperSeparation = 5.0;
 $NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
@@ -339,7 +340,7 @@ print DEF <<EOF;
 
 -->
 
-   <position name="posCryoInDetEnc"     unit="cm" x="0" y="$posCryoInDetEnc_y" z="0"/>
+   <position name="posCryoInDetEnc"     unit="cm" x="$posCryoInDetEnc_x" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
@@ -466,6 +467,7 @@ print TPC <<EOF;
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
     </volume>
 EOF
 
@@ -491,11 +493,11 @@ print TPC <<EOF;
       <solidref ref="CRMVPlane"/>
 EOF
 
-if ($wires_on==1) # add wires to Z plane
+if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
 for($i=0;$i<$nChannelsViewPerCRM;++$i)
 {
-my $ypos = -0.5 * $TPCActive_y + $i*$wirePitch + 0.5*$padWidth;
+my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitch + 0.5*$padWidth;
 
 print TPC <<EOF;
     <physvol>
@@ -516,12 +518,12 @@ print TPC <<EOF;
 EOF
 
 
-if ($wires_on==1) # add wires to X plane
+if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
 {
 for($i=0;$i<$nChannelsViewPerCRM;++$i)
 {
 
-my $zpos = -0.5 * $TPCActive_z + $i*$wirePitch + 0.5*$padWidth;
+my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitch + 0.5*$padWidth;
 print TPC <<EOF;
     <physvol>
      <volumeref ref="volTPCWireZ"/>
@@ -572,7 +574,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="@{[$posTPCActive[0]+0.015]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="@{[$posTPCActive[0]+$padWidth]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
@@ -614,9 +616,9 @@ EOF
 
 print FieldCage <<EOF;
 <solids>
-     <torus name="FieldShaperCorner" rmin="$FieldShaperInnerRadious" rmax="$FieldShaperOuterRadious" rtor="$FieldShaperTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
-     <tube name="FieldShaperLongtube" rmin="$FieldShaperInnerRadious" rmax="$FieldShaperOuterRadious" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
-     <tube name="FieldShaperShorttube" rmin="$FieldShaperInnerRadious" rmax="$FieldShaperOuterRadious" z="$FieldShaperShortTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <torus name="FieldShaperCorner" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" rtor="$FieldShaperTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperShorttube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperShortTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
 
     <union name="FSunion1">
       <first ref="FieldShaperLongtube"/>
@@ -705,10 +707,10 @@ print ExtractionGrid <<EOF;
 EOF
 
 #GroundGrid SOLIDS
-$ExtractionGridRadious = 0.05;
+$ExtractionGridRadius = 0.05;
 $ExtractionGridPitch = 0.3;
 
-$ExtractionGridSizeX = 2*$ExtractionGridRadious;
+$ExtractionGridSizeX = 2*$ExtractionGridRadius;
 $ExtractionGridSizeY = $widthTPCActive;
 $ExtractionGridSizeZ = $lengthTPCActive;
 
@@ -716,8 +718,8 @@ $ExtractionGridSizeZ = $lengthTPCActive;
 print ExtractionGrid <<EOF;
 
 <solids>
-      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadious" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
-     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="$ExtractionGridSizeY" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
+      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadius" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="@{[$ExtractionGridSizeY]}" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
 </solids>
 
 EOF
@@ -834,7 +836,7 @@ EOF
 
 #GroundGrid SOLIDS
 $GroundGridSizeX = $FieldShaperWidth+2;
-$GroundGridSizeY = 2*$FieldShaperOuterRadious+1;
+$GroundGridSizeY = 2*$FieldShaperOuterRadius+1;
 $GroundGridSizeZ = $FieldShaperLength+2;
 
 $GroundGridInnerStructureLength = $widthTPCActive-1;
@@ -847,7 +849,7 @@ $GroundGridInnerStructureNumberOfBarsLat = int($widthTPCActive/$GroundGridInnerS
 #print "number of bars $GroundGridInnerStructureNumberOfBars";
 
 $GroundGridInnerStructureNumberOfCablesPerInnerSquare = 5.0;
-$GroundGridInnerStructureCableRadious = 0.1;
+$GroundGridInnerStructureCableRadius = 0.1;
 $GroundGridInnerStructureCableSeparation = $GroundGridInnerStructureSeparation/($GroundGridInnerStructureNumberOfCablesPerInnerSquare+1);
 
 print GroundGrid <<EOF;
@@ -856,7 +858,7 @@ print GroundGrid <<EOF;
      <box name="GroundGridInnerBox" x="@{[$GroundGridInnerStructureWidth]}" y="$GroundGridInnerStructureHeight" z="@{[$GroundGridInnerStructureLength]}" lunit="cm"/>    
      <box name="GroundGridInnerBoxLat" x="@{[$GroundGridInnerStructureWidth]}" y="$GroundGridInnerStructureHeight" z="@{[$GroundGridInnerStructureLengthLat]}" lunit="cm"/>    
 
-     <tube name="GroundGridCable" rmin="0" rmax="$GroundGridInnerStructureCableRadious" z="@{[$GroundGridInnerStructureLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+     <tube name="GroundGridCable" rmin="0" rmax="$GroundGridInnerStructureCableRadius" z="@{[$GroundGridInnerStructureLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
 
 <box name="GroundGridModule" x="@{[$GroundGridSizeX]}" y="$GroundGridSizeY"    z="@{[$GroundGridSizeZ]}" lunit="cm"/>
 
@@ -893,7 +895,7 @@ print GroundGrid <<EOF;
 
   <physvol>
    <volumeref ref="volGGunion"/>
-   <position name="posGGunion" unit="cm" x="@{[0.5*$GroundGridSizeX-0.5*$FieldShaperOuterRadious-1]}" y="@{[0.0]}" z="@{[0.0]}"/>
+   <position name="posGGunion" unit="cm" x="@{[0.5*$GroundGridSizeX-0.5*$FieldShaperOuterRadius-1]}" y="@{[0.0]}" z="@{[0.0]}"/>
   </physvol>
 
 EOF
@@ -1128,7 +1130,7 @@ EOF
   if ( $LEMs_switch eq "on" )
   {
 
-$posLEMsX = -0.5*$HeightGaseousAr+0.5-0.5*$LEMsSizeX;
+$posLEMsX = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeX;
 $posLEMsY = 0;
 $posLEMsZ = 0;
 
@@ -1193,29 +1195,30 @@ EOF
     }
 }
 
+#The +50 in the x positions must depend on some other parameter
   if ( $FieldCage_switch eq "on" ) {
     for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
 $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
 	print CRYO <<EOF;
   <physvol>
      <volumeref ref="volFieldShaper"/>
-     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
      <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
   </physvol>
 EOF
     }
   }
 
-$GroundGridPosX=-$Argon_x/2 + 47.5;
-$GroundGridPosX=-$OriginXSet+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - 80;
+$GroundGridPosX=-$OriginXSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - 80;
 $GroundGridPosY=0;
+$GroundGridPosZ=0;
 
   if ( $GroundGrid_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[$GroundGridPosY]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[$GroundGridPosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="90" />
   </physvol>
 
@@ -1223,14 +1226,15 @@ EOF
 
   }
 
-$CathodePosX=-$OriginXSet+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation;
+$CathodePosX=-$OriginXSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation;
 $CathodePosY=0;
+$CathodePosZ=0;
   if ( $Cathode_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[$CathodePosY]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[$CathodePosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="90" />
   </physvol>
 
@@ -1317,9 +1321,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="$DetEncWidth"
-      y="$DetEncHeight"
-      z="$DetEncLength"/>
+      x="$DetEncX"
+      y="$DetEncY"
+      z="$DetEncZ"/>
 
 </solids>
 EOF
@@ -1398,9 +1402,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$RockThickness]}" 
-      y="@{[$DetEncHeight+2*$RockThickness]}" 
-      z="@{[$DetEncLength+2*$RockThickness]}"/>
+      x="@{[$DetEncX+2*$RockThickness]}" 
+      y="@{[$DetEncY+2*$RockThickness]}" 
+      z="@{[$DetEncZ+2*$RockThickness]}"/>
 </solids>
 EOF
 
@@ -1413,7 +1417,7 @@ print WORLD <<EOF;
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="$OriginXSet" y="$OriginYSet" z="@{[$OriginZSet-10]}"/>
+	<position name="posDetEnclosure" unit="cm" x="$OriginXSet" y="$OriginYSet" z="$OriginZSet"/>
       </physvol>
 
     </volume>
@@ -1509,7 +1513,7 @@ print "CRM active area    : $widthCRM_active x $lengthCRM_active\n";
 print "CRM total area     : $widthCRM x $lengthCRM\n";
 print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
-print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
+print "Detector enclosure : $DetEncX x $DetEncY x $DetEncZ\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
 print "Field Cage         : $FieldCage_switch \n";
 print "Cathode            : $Cathode_switch \n";;

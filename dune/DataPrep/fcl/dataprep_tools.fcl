@@ -42,6 +42,7 @@ tools.adcStringBuilder: {
   ChannelWidth: 5
   CountWidth: 4
   FembWidth: 3
+  TriggerWidth: 2
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -52,6 +53,7 @@ tools.adcPlotRaw: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 
@@ -63,6 +65,7 @@ tools.adcPlotPrepared: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 
@@ -74,11 +77,12 @@ tools.adcPlotRawDist: {
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
+  PlotFileName: ""
   HistManager: ""
 }
 
 # Fit ADC distribution to get pedestal.
-tools.adcPedestalFit: {
+tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   FitRmsMin:  1.0
@@ -283,6 +287,14 @@ tools.adcSampleFiller: {
 tools.adcVintageDeconvoluter: {
   tool_type: VintageDeconvoluter
   LogLevel: 1
+}
+
+# Subtract baseline after deconvolution
+tools.adcSubtractBaseline: {
+  tool_type: SubtractBaseline
+  LogLevel: 1
+  BaseSampleBins: 32
+  BaseVarCut: 5.
 }
 
 # Find one ADC signals that includes all samples.

@@ -59,6 +59,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ZMin(ps.get<float>("ZMin")),
   m_ZMax(ps.get<float>("ZMax")),
   m_SignalThreshold(ps.get<float>("SignalThreshold")),
+  m_ShowAllTicks(ps.get<bool>("ShowAllTicks")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_ShowWires(ps.get<bool>("ShowWires")),
@@ -87,6 +88,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             ZMin: " << m_ZMin << " cm" << endl;
     cout << myname << "             ZMax: " << m_ZMax << " cm" << endl;
     cout << myname << "  SignalThreshold: " << m_SignalThreshold << endl;
+    cout << myname << "     ShowAllTicks: " << m_ShowAllTicks << endl;
     cout << myname << "        FirstTick: " << m_FirstTick << endl;
     cout << myname << "         LastTick: " << m_LastTick << endl;
     cout << myname << "        ShowWires: " << m_ShowWires << endl;
@@ -243,6 +245,8 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
   for ( auto ient=rng.first; ient!=rng.second; ++ient) {
     const WireSelector::WireInfo& win = *(ient->second);
     float z = win.z;
+    float x1 = win.x1();
+    float x2 = win.x2();
     float driftVelocity = win.driftSign()*m_DriftSpeed;
     Index isam1 = 0;
     Index isam2 = nsam;
@@ -254,6 +258,10 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
       float sig = isRaw ? acd.raw[isam] - acd.pedestal : acd.samples[isam];
       if ( sig > m_SignalThreshold ) {
         float x = win.x + driftVelocity*(isam - m_Tick0);
+        if ( ! m_ShowAllTicks ) {
+          if ( x < x1 ) continue;
+          if ( x > x2 ) continue;
+        }
         Index ipt = pg->GetN();
         pg->SetPoint(ipt, xsign*x, z);
         if ( m_LogLevel >= 4 ) {

@@ -189,6 +189,20 @@ cet_test(test_AdcSampleFiller
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_FclStickyCodeFlagger
+  SOURCES
+    test_FclStickyCodeFlagger.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcKeepAllSignalFinder
   SOURCES
     test_AdcKeepAllSignalFinder.cxx

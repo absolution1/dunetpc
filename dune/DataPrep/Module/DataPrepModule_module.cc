@@ -219,8 +219,9 @@ void DataPrepModule::produce(art::Event& evt) {
   // Fetch the event time.
   Timestamp beginTime = evt.time();
 
-  // Fetch the timing clock.
+  // Fetch the trigger and timing clock.
   string m_TimingProducer = "timingrawdecoder";
+  AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
   if ( true ) {
     art::Handle<std::vector<raw::RDTimeStamp>> htims;
@@ -237,6 +238,15 @@ void DataPrepModule::produce(art::Event& evt) {
       const raw::RDTimeStamp& tim = htims->at(0);
       cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
       timingClock = tim.GetTimeStamp();
+      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+      trigFlag = tim.GetFlags();
+      cout << myname << "Trigger flag: " << trigFlag << " (";
+      bool isBeam = trigFlag == 0xc;
+      bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
+      if ( isBeam ) cout << "Beam";
+      else if ( isFake ) cout << "Fake";
+      else cout << "Unexpected";
+      cout << ")" << endl;
     }
   }
 
@@ -273,13 +283,18 @@ void DataPrepModule::produce(art::Event& evt) {
     cout << endl;
     if ( m_LogLevel >= 3 ) cout << myname << "Reading raw digits for producer, name: " << m_DigitProducer << ", " << m_DigitName << endl;
     // July 2018. ProtoDUNE real data has zero in high field and unix time in low field.
-    if ( beginTime.timeHigh() == 0 ) {
-      unsigned int itim = beginTime.timeLow();
-      TTimeStamp rtim(itim);
+    if ( beginTime.timeLow() == 0 ) {
+      cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
+    } else {
+      unsigned int itim = beginTime.timeHigh();
+      unsigned int itimrem = 0;
+      if ( itim == 0 ) {
+        itimrem = itim;
+        itim = beginTime.timeLow();
+      }
+      TTimeStamp rtim(itim, itimrem);
       string stim = string(rtim.AsString("s")) + " UTC";
       cout << myname << "Real data event time: " << itim << " (" << stim << ")" << endl;
-    } else {
-      cout << myname << "Sim data event time: " << DuneTimeConverter::toString(beginTime) << endl;
     }
   }
   if ( m_LogLevel >= 3 ) {
@@ -375,6 +390,7 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembChannel = fembChannel;
     }
     acd.triggerClock = timingClock;
+    acd.trigger = trigFlag;
     acd.metadata["ndigi"] = ndigi;
     ++nkeep;
   }

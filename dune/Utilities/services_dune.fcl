@@ -9,6 +9,7 @@
 #include "databaseutil_dune.fcl"
 #include "backtrackerservice.fcl"
 #include "particleinventoryservice.fcl"
+#include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
 #include "photpropservices_dune.fcl"
@@ -155,10 +156,9 @@ dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3
 # services is workspace g4 fhicl file.
 
 dunefddphase_simulation_services.LArPropertiesService.ScintYield: 24000
-dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 0.0287
+dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 1
 dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-
-
+dunefddphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.12 # including TPB from arxiv 1807.07123
 
 
 
@@ -172,7 +172,7 @@ dunedphase3x1x1_services: {
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
  Geometry:                       @local::dphase3x1x1_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
@@ -193,7 +193,7 @@ dunedphase3x1x1_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
@@ -231,8 +231,8 @@ dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "NeutronTrackingCut" ]
 dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 24000
 dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 0.2 # ScintPreScale: 2.87e-2
-dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 1
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 1
+dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.2
 
 ############################
 ### protoDUNE dual phase ###

@@ -17,6 +17,7 @@
 #define IndexRange_H
 
 #include <string>
+#include <iostream>
 
 class IndexRange {
 
@@ -65,7 +66,26 @@ public:
     if ( ilab >= labels.size() ) return "";
     return labels[ilab];
   }
+  bool contains(Index ival) const { return ival >= begin && ival < end; }
   
 };
+
+std::ostream& operator<<(std::ostream& lhs, const IndexRange& ir) {
+  lhs << ir.name << ": ";
+  if ( ir.size() == 0 ) {
+    lhs << "<empty>";
+  } else if ( ir.size() == 1 ) {
+    lhs << ir.begin;
+  } else {
+    lhs << "[" << ir.begin << ", " << ir.end << ")";
+  }
+  bool first = true;
+  for ( std::string lab : ir.labels ) {
+    if ( first ) first = false;
+    else lhs << ",";
+    lhs << " " << lab;
+  }
+  return lhs;
+}
 
 #endif

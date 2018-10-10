@@ -51,4 +51,33 @@ unsigned int protoana::ProtoDUNEShowerUtils::GetNumberRecoShowerHits(const recob
 
 }
 
+// Get the PCAxis object from the reco shower
+std::vector<const recob::PCAxis*> protoana::ProtoDUNEShowerUtils::GetRecoShowerPCAxis(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const{
+
+  auto recoShowers = evt.getValidHandle<std::vector<recob::Shower> >(showerModule);
+  art::FindManyP<recob::PCAxis> findPCA(recoShowers,evt,showerModule);
+
+  // Currently get shower ID = -999 from Pandora. If this happens, we'll need to loop over the showers instead
+  int actualIndex = shower.ID();
+  if(shower.ID() < 0){
+    for(unsigned int s = 0; s < recoShowers->size(); ++s){
+      const recob::Shower thisShower = (*recoShowers)[s];
+      // Can't compare actual objects so look at a property
+      if(fabs(thisShower.Length() - shower.Length()) < 1e-5){
+        actualIndex = s;
+        continue;
+      }
+    }
+  }
+
+  std::vector<const recob::PCAxis*> pcaVec;
+  for(auto const pca : findPCA.at(actualIndex)){
+    pcaVec.push_back(pca.get());
+  }
+
+  return pcaVec;
+}
+
+
+
 

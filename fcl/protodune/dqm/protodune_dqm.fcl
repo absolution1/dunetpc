@@ -12,21 +12,25 @@
 # The tools write many large files for each event and so this
 # is typically run with a small number of events.
 
-tools.tickRanges.plotTicks.begin: 3000
-tools.tickRanges.plotTicks.end:   4000
+# Uncomment and set these values to change the tick range in the
+# channel-tick plots.
+#tools.tickRanges.plotTicks.begin: 3000
+#tools.tickRanges.plotTicks.end:   4000
 
 services.RawDigitPrepService.AdcChannelToolNames: [
   "digitReader",
-  "adcPedestalFit", 
+  "pd_adcPedestalFit", 
   "pdtps_adcChannelPedestalPlotter",
-  "pdtps_adcChannelPedestalRmsPlotter",
+  "pdtps_adcChannelPedestalNoisePlotter",
   "pdtps_adcChannelPedestalOrfPlotter",
   "pdtps_adcChannelPedestalPeakBinExcessPlotter",
+  "pdtps_adcChannelPedestalRawRmsPlotter",
+  "pdtps_adcChannelPedestalRawTailPlotter",
   "pdcht_All",
   "pdcht_Apas",
   "pdcht_Zplanes",
   "pdcht_Cplanes",
   "pdcht_Iplanes",
   "rawAdcDetectorPlotColl",
-  "pd_evtview"
+  "pd_evtviewNfemb"
 ]
