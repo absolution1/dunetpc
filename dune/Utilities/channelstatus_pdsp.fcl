@@ -1,0 +1,28 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+pdsp_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+     4111,
+     4112,
+    11842
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+  ]
+
+}
+
+END_PROLOG
