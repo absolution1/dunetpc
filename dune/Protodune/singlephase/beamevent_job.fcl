@@ -104,7 +104,6 @@ physics.producers.beamevent.TOF1:               "XBTF022687"
 physics.producers.beamevent.TOF2:               "XBTF022716"
 
 physics.producers.beamevent.CKov1:               "XCET022713"
-#physics.producers.beamevent.CKov1:               ""
 physics.producers.beamevent.CKov2:               "XCET022716"
 
 physics.producers.beamevent.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
@@ -113,3 +112,4 @@ physics.producers.beamevent.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET
 
 physics.producers.beamevent.MatchToTPC:           "false"
 physics.producers.beamevent.Unmatched:            "true"
+physics.producers.beamevent.ForceNewFetch:        "false"

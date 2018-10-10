@@ -3,6 +3,8 @@ BEGIN_PROLOG
 proto_beamcounter:
 {
   module_type:          "BeamCounter"
+
+  TextOutputDir:        "/pnfs/dune/scratch/users/calcuttj/Beam/"
 }
 
 END_PROLOG

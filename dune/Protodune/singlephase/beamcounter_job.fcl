@@ -56,3 +56,7 @@ physics:
  end_paths:         [ ana ]
 }
 
+
+#For operation: edit this line
+physics.analyzers.beamcounter.TextOutputDir: "/dune/app/users/calcuttj/larsoft/srcs/dunetpc/dune/Protodune/singlephase/" 
+

@@ -28,7 +28,9 @@
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNETimeStamp.h"
-#include <bitset>
+
+#include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <utility>
 #include <algorithm>
@@ -64,8 +66,10 @@ public:
 
   // Selected optional functions.
   void beginJob() override;
+  void endJob()   override;
   
   void GetCTBInfo(art::Event const &);
+  void PrepareFile();
   
 private:
   TTree * fOutTree;
@@ -81,10 +85,21 @@ private:
   int runNum;
   int subRunNum;
 
+  std::string OutputFileName;
+  std::ofstream OutputFile;
+
+  std::string fTextOutputDir;
+ 
+  bool opened = false;
+
+  int total_triggers = 0;
+  
 };
 
-proto::BeamCounter::BeamCounter(fhicl::ParameterSet const & p) : EDAnalyzer(p)
-{}
+proto::BeamCounter::BeamCounter(fhicl::ParameterSet const & p) : 
+  EDAnalyzer(p),
+  fTextOutputDir( p.get< std::string >( "TextOutputDir" ) ) 
+  {}
 
 //Gets the Timing and CTB raw-decoded info.
 //Finds the triggers, and looks for a valid trigger word
@@ -210,10 +225,31 @@ void proto::BeamCounter::analyze(art::Event const & e)
    
   GetCTBInfo(e);
 
+  if( !opened ) PrepareFile();
+
   // Write out the to tree
   fOutTree->Fill();
+
+  if(BITrigger == 1) total_triggers++;
 }
 
+void proto::BeamCounter::PrepareFile(){
+  OutputFileName = "ProtoDUNE_CTB_info_"; 
+  std::string meta = std::to_string(runNum) + "_" + std::to_string(subRunNum) + ".txt";
+  OutputFileName += meta;
+ 
+  OutputFile.open(fTextOutputDir + "/" + OutputFileName, std::ofstream::out | std::ofstream::trunc);
+  
+  std::cout << "Opened output text file" << std::endl;
+  std::cout << fTextOutputDir + "/" + OutputFileName << std::endl << std::endl;
+  opened = true;
+}
+
+void proto::BeamCounter::endJob(){
+   OutputFile << total_triggers;
+
+   OutputFile.close();
+}
 
 void proto::BeamCounter::beginJob()
 {

@@ -77,6 +77,7 @@ namespace beam
       void              AddTOFChan(int theChan){ TOFChan.push_back(theChan); };
       std::pair< double, double > GetTOF0(size_t);
       std::pair< double, double > GetTOF1(size_t);
+      double            GetTOF( size_t );
       int               GetTOFChan(size_t);
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
@@ -85,14 +86,27 @@ namespace beam
       recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
       size_t            GetNBeamTracks(){return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
+      void              ClearBeamTracks(){ Tracks.clear(); };
 
       void              SetActiveTrigger(size_t theTrigger){ activeTrigger = theTrigger; isMatched = true; };
       bool              CheckIsMatched(){ return isMatched; };
+      void              SetUnmatched(){ isMatched = false; };
       size_t            GetActiveTrigger(){ return activeTrigger; };
 
       void              AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
       size_t            GetNRecoBeamMomenta() { return RecoBeamMomenta.size(); };
       double            GetRecoBeamMomentum( size_t i ){ return RecoBeamMomenta[i]; };  
+      void              ClearRecoBeamMomenta() { RecoBeamMomenta.clear(); }; 
+
+      void              SetBITrigger(int theTrigger){ BITrigger = theTrigger; };
+      int               GetBITrigger(){ return BITrigger; };
+      
+      void              SetSpillStart(double theSpillStart){ SpillStart = theSpillStart; };
+      double            GetSpillStart(){ return SpillStart; };
+
+      void              SetSpillOffset(double theSpillOffset){ SpillOffset = theSpillOffset; };
+      double            GetSpillOffset(){ return SpillOffset; };
+
     private:
 
       //Time of a coincidence between 2 TOFs
@@ -123,6 +137,10 @@ namespace beam
       bool   isMatched = false;
 
       std::vector< double > RecoBeamMomenta;
+
+      int BITrigger;
+      double SpillStart;
+      double SpillOffset;
   };
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
@@ -332,63 +350,7 @@ namespace beam
     }
     return fiberMonitors[FBMName].size();
   }
-  
   /////////////////////////////////
-
-
-  ////////////Cerenkov Access
-  
-/*  inline short ProtoDUNEBeamEvent::GetCKov0Status(){
-    return CKov0.trigger;                
-  }
-
-  inline short ProtoDUNEBeamEvent::GetCKov1Status(size_t nTrigger){
-    if( (nTrigger >= CKov1.size()) ){
-      std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
-      return -1;
-    }
-    
-    return CKov1[nTrigger].trigger;                
-  }
-
-  inline double ProtoDUNEBeamEvent::GetCKov0Time(size_t nTrigger){
-    if( (nTrigger >= CKov0.size()) ){
-      std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
-      return -1.;
-    }
-    
-    return CKov0[nTrigger].timeStamp;                
-  }
-
-  inline double ProtoDUNEBeamEvent::GetCKov1Time(size_t nTrigger){
-    if( (nTrigger >= CKov1.size()) ){
-      std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
-      return -1.;
-    }
-    
-    return CKov1[nTrigger].timeStamp;                
-  }
-
-  inline double ProtoDUNEBeamEvent::GetCKov0Pressure(size_t nTrigger){
-    if( (nTrigger >= CKov0.size()) ){
-      std::cout << "Please input index in range [0," << CKov0.size() - 1 << "]" << std::endl;
-      return -1.;
-    }
-    
-    return CKov0[nTrigger].pressure;                
-  }
-
-  inline double ProtoDUNEBeamEvent::GetCKov1Pressure(size_t nTrigger){
-    if( (nTrigger >= CKov1.size()) ){
-      std::cout << "Please input index in range [0," << CKov1.size() - 1 << "]" << std::endl;
-      return -1.;
-    }
-    
-    return CKov1[nTrigger].pressure;                
-  }
-  */
-  /////////////////////////////////
-
 
   ////////////TOF Access
   inline std::pair< double, double > ProtoDUNEBeamEvent::GetTOF0(size_t nTrigger){
@@ -417,17 +379,17 @@ namespace beam
 
     return TOFChan[nTrigger];
   }
+
+  inline double ProtoDUNEBeamEvent::GetTOF(size_t nTrigger){
+    if( (nTrigger >= TOF1.size()) ){
+      std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
+      return -1;
+    }
+
+    return (TOF1[nTrigger].first - TOF0[nTrigger].first + 1.e-9*(TOF1[nTrigger].second - TOF0[nTrigger].second));
+  }
   /////////////////////////////////
 
-  /*
-      std::vector< long long int > TOF1;
-      std::vector< long long int > TOF2;
-
-      //Set of Cerenkov detectors
-      //
-      std::vector< CKov > CKov1;
-      std::vector< CKov > CKov2;
-  */
 }
 
 
