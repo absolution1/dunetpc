@@ -106,6 +106,8 @@ private:
   double signalToNoiseCnt[12];
   unsigned int signalToNoiseClsCnt[12];
   
+  TH1F *fLife;
+  TH2F *fLifeVTPC;
   TH1F *fLifeInv;
   TH1F *fFracSelHits;
   TH1F *fChiDOF;
@@ -123,6 +125,7 @@ private:
 
   TH1F *fAmplitudes;
   TH1F *fNoise;
+  TH1F *fNoiseWide;
 
 };
 
@@ -144,6 +147,10 @@ void nlana::SPLifetime::beginJob()
   // Implementation of optional member function here.
   
   art::ServiceHandle<art::TFileService> tfs;
+  fLife = tfs->make<TH1F>("Life","Electron Lifetime for all APAs", 50, 0, 15);
+  setHistTitles(fLife,"Cluster Electron Lifetime [ms]", "Clusters / Bin");
+  fLifeVTPC = tfs->make<TH2F>("LifeVTPC","Electron Lifetime v. APA", 6,0.5,6.5,50, 0, 15.);
+  setHistTitles(fLifeVTPC,"","Cluster Electron Lifetime [ms]");
   fLifeInv = tfs->make<TH1F>("LifeInv","LifeInv", 50, 0, 1);
   fFracSelHits = tfs->make<TH1F>("FracSelHits","FracSelHits", 50, 0, 1);
   fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 80);
@@ -169,17 +176,20 @@ void nlana::SPLifetime::beginJob()
   fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. APA", 6,0.5,6.5,500,0.,10.);
   setHistTitles(fDriftTimeVTPC,"","Cluster Drift Time [ms]");
 
-  fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 1000, 0.,10000.);
+  fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 400, 0.,200);
   setHistTitles(fSNR,"Signal to Noise Ratio", "Hits / Bin");
-  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. APA", 6,0.5,6.5,1000,0.,10000.);
+  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. APA", 6,0.5,6.5,400,0.,200.);
   setHistTitles(fSNRVTPC,"TPC Number","Signal to Noise Ratio");
 
-  fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 2000, 0.,4000.);
+  fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 4100, 0.,4100.);
   setHistTitles(fAmplitudes,"Hit Amplitude [ADC]", "Hits / Bin");
-  fNoise = tfs->make<TH1F>("Noise","Wire Noise", 2000, 0.,5.);
+  fNoise = tfs->make<TH1F>("Noise","Wire Noise < 10 ADC", 2000, 0.,10.);
   setHistTitles(fNoise,"RMS Noise [ADC]", "Hit Wires / Bin");
+  fNoiseWide = tfs->make<TH1F>("NoiseWide","Wire Noise", 2000, 0.,1000.);
+  setHistTitles(fNoiseWide,"RMS Noise [ADC]", "Hit Wires / Bin");
 
   for(size_t apa = 0; apa < 6; ++apa){
+    fLifeVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
     fDriftTimeVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
     fSNRVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
   }
@@ -302,12 +312,12 @@ void nlana::SPLifetime::endJob()
   //// summary json file
   // fn should be like run003907_0001_purity_summary.json
   std::string summary_filename = identifierNoDL+"_purity_summary.json";
-  std::string filelist_filename = identifierNoDL+"_FileList.json";
+  std::string filelist_filename = identifierNoDL+"_purity_FileList.json";
 
   std::ofstream summaryfile;
   summaryfile.open(summary_filename);
   summaryfile << "[\n  {\n    \"run\": \"" << identifierDL << "\",\n"
-              << "    \"Type\": \"purity\"\n  }\n]";
+              << "    \"Type\": \"purity\"\n  }\n]\n";
   summaryfile.close();
 
   // file list json file
@@ -335,7 +345,84 @@ void nlana::SPLifetime::endJob()
   fDriftTimeVTPC->SetTitle(originalTitle.c_str());
   filelistfile << imageFileName;
 
-  filelistfile << "\"\n    }\n  }\n]";
+  filelistfile << "\",\n";
+
+  // Now e lifetime
+  filelistfile << "      \"Purity\": \"";
+  imageFileName = "purity_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fLife->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  canvas->SetLogz(false);
+  imageFileName = "purityVTPC_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fLifeVTPC->SetStats(false);
+  fLifeVTPC->GetXaxis()->SetLabelSize(0.050);
+  fLifeVTPC->Draw("colz");
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName;
+  canvas->SetLogz();
+
+  filelistfile << "\",\n";
+
+  // Now SNR
+  filelistfile << "      \"SNR\": \"";
+  imageFileName = "snr_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  canvas->SetLogy(true);
+  fSNR->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  canvas->SetLogy(false);
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "snrVTPC_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fSNRVTPC->SetStats(false);
+  fSNRVTPC->GetXaxis()->SetLabelSize(0.050);
+  fSNRVTPC->Draw("colz");
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  canvas->SetLogy(true);
+  imageFileName = "noise_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fNoise->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "noiseWide_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fNoiseWide->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "amplitude_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  fAmplitudes->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "amplitude_zoom_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  originalTitle = fAmplitudes->GetTitle();
+  fAmplitudes->SetTitle((originalTitle+" From 0 to 500 ADC").c_str());
+  fAmplitudes->GetXaxis()->SetRangeUser(0,500);
+  fAmplitudes->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName;
+  canvas->SetLogy(false);
+
+  filelistfile << "\"\n    }\n  }\n]\n";
   filelistfile.close();
   delete canvas;
 
@@ -528,6 +615,8 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     bigLifeInv[tpc] += lifeInv;
     bigLifeInvErr[tpc] += lifeInv * lifeInv;
     fLifeInv->Fill(lifeInv);
+    fLife->Fill(1./lifeInv);
+    fLifeVTPC->Fill(tpcMapping.at(tpc),1./lifeInv);
     
     double selHits = 0;
     for(auto& hcnt : cnt) selHits += hcnt;
@@ -585,6 +674,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       ++signalToNoiseCnt[tpc];
       fAmplitudes->Fill(hit->PeakAmplitude());
       fNoise->Fill(pedRMS);
+      fNoiseWide->Fill(pedRMS);
       fSNR->Fill(snr);
       fSNRVTPC->Fill(tpcMapping.at(tpc),snr);
 //      aveSN += sn;
