@@ -50,7 +50,7 @@ protodune_detectorclocks.G4RefTime:            -250. # G4 time [us] where electr
 protodune_detectorclocks.TriggerOffsetTPC:  -250. # Time [us] for TPC readout start w.r.t. trigger time (500 ticks)
 protodune_detectorclocks.FramePeriod:       1600. # Frame period [us]
 protodune_detectorclocks.ClockSpeedTPC:        2. # TPC clock speed in MHz
-protodune_detectorclocks.ClockSpeedOptical:  128. # Optical clock speed in MHz
+protodune_detectorclocks.ClockSpeedOptical:  150. # Optical clock speed in MHz
 protodune_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 protodune_detectorclocks.DefaultTrigTime:     250. # Default trigger time [us].
 protodune_detectorclocks.DefaultBeamTime:     250. # Default beam time [us].
