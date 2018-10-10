@@ -129,6 +129,10 @@ ssp_raw_decoder:
  
 }
 
+ssp_raw_decoder_split: @local::ssp_raw_decoder
+ssp_raw_decoder_split.SplitTriggers: true
+
+
 ctb_raw_decoder:
 {
   module_type: "PDSPCTBRawDecoder"
