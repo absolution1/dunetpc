@@ -28,6 +28,9 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "cetlib_except/exception.h"
+
+#include <regex>
 
 #include <fstream>
 #include <sstream>
@@ -249,44 +252,71 @@ void nlana::SPLifetime::endJob()
   canvas->SetBottomMargin(0.13);
   canvas->SetRightMargin(0.12);
   std::string imageFileName;
-  // Try to get rid of directory and .root extension
-  std::string infilenameStripped = fInFilename;
+
+  // Get filename in format p3s wants
+  // "run": "run003907_0001_dl05",
+  unsigned runNum = lastRun;
+  unsigned fileNum = 1;
+  unsigned dlNum = 5;
   if (fIsRealData)
   {
-    size_t slashPos = infilenameStripped.find_last_of("/");
-    if (slashPos != std::string::npos)
+    static const std::string patternString = "run(\\d+)_(\\d+)_dl(\\d+)";
+    static const std::regex pattern(patternString);
+    std::smatch patternMatches;
+    const bool foundMatch = std::regex_search(fInFilename,patternMatches,pattern);
+    if(foundMatch)
     {
-      infilenameStripped = infilenameStripped.substr(slashPos+1,std::string::npos); // get rid of directory
+      std::cout << "filename: " << fInFilename << " match: " << patternMatches[0] << " run: " << patternMatches[1] << " file: " << patternMatches[2] << " dl: " << patternMatches[3] << std::endl;
+      runNum = std::stoi(patternMatches[1]);
+      fileNum = std::stoi(patternMatches[2]);
+      dlNum = std::stoi(patternMatches[3]);
     }
-    infilenameStripped = infilenameStripped.substr(0, infilenameStripped.find_last_of(".")); // get rid of .root
-  }
-  else
-  {
-    // "run": "run003907_0001_dl05",
-    std::stringstream infilenamefake;
-    infilenamefake << "run";
-    infilenamefake << std::setfill('0') << std::setw(6) << lastRun;
-    infilenamefake << std::setw(0) << '_';
-    infilenamefake << std::setw(4) << 1;
-    infilenamefake << std::setw(0) << "_dl";
-    infilenamefake << std::setw(2) << 5;
-    infilenameStripped = infilenamefake.str();
+    else
+    {
+      //throw cet::exception("InputFilenameError")
+      //  <<"Couldn't parse input filename: '"<<fInFilename<<"' with regex '"<<patternString<<"'";
+      std::cout <<"Error: couldn't parse input filename: '"<<fInFilename<<"' with regex '"<<patternString<<"'\n";
+    }
   }
 
-  // summary json file
+  std::stringstream infileNameStrStream;
+  infileNameStrStream << "run";
+  infileNameStrStream << std::setfill('0') << std::setw(6) << runNum;
+  infileNameStrStream << std::setw(0) << '_';
+  infileNameStrStream << std::setw(4) << fileNum;
+  const std::string identifierNoDL = infileNameStrStream.str();
+  infileNameStrStream << std::setw(0) << "_dl";
+  infileNameStrStream << std::setw(2) << dlNum;
+  const std::string identifierDL = infileNameStrStream.str();
+
+  std::cout << "identifierDL: " << identifierDL << std::endl;
+  std::cout << "identifierNoDL: " << identifierNoDL << std::endl;
+
+  //std::string identifierBase = infilenameStripped;
+  //identifierBase.erase(identifierBase.rfind("_dl"));
+  //std::cout << "identifierBase: '"<<identifierBase<<"'";
+  //std::string dlStr = infilenameStripped;
+  //dlStr.erase(0,dlStr.rfind("_dl")+3);
+  //std::cout << "dlStr: '"<<dlStr<<"'";
+
+  //// summary json file
+  // fn should be like run003907_0001_purity_summary.json
+  std::string summary_filename = identifierNoDL+"_purity_summary.json";
+  std::string filelist_filename = identifierNoDL+"_FileList.json";
+
   std::ofstream summaryfile;
-  summaryfile.open("summary_purity.json");
-  summaryfile << "[\n  {\n    \"run\": \"" << infilenameStripped << "\",\n"
+  summaryfile.open(summary_filename);
+  summaryfile << "[\n  {\n    \"run\": \"" << identifierDL << "\",\n"
               << "    \"Type\": \"purity\"\n  }\n]";
   summaryfile.close();
 
   // file list json file
   std::ofstream filelistfile;
-  filelistfile.open("purity_FileList.json");
+  filelistfile.open(filelist_filename);
   filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\",\n    \"Files\": {\n      \"Cluster Drift Time\": \"";
 
   imageFileName = "driftVTPC_";
-  imageFileName += infilenameStripped;
+  imageFileName += identifierNoDL;
   imageFileName += ".png";
   fDriftTimeVTPC->SetStats(false);
   fDriftTimeVTPC->GetXaxis()->SetLabelSize(0.050);
@@ -295,7 +325,7 @@ void nlana::SPLifetime::endJob()
   filelistfile << imageFileName<<",";
 
   imageFileName = "driftVTPC_zoom_";
-  imageFileName += infilenameStripped;
+  imageFileName += identifierNoDL;
   imageFileName += ".png";
   std::string originalTitle = fDriftTimeVTPC->GetTitle();
   fDriftTimeVTPC->SetTitle((originalTitle+" From 0 to 4 ms").c_str());
