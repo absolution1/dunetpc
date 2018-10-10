@@ -355,22 +355,22 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
   //Search at and above time given with nRetries
   //Will later search below, just in case the event time is actually greater than
   for(newTime = time; newTime < time + nRetry; ++newTime){
-    std::cout << "Trying to grab from folder: " << name << std::endl;
-    std::cout << "At Time: " << newTime << std::endl;    
-    try{
-      theResult = bfp->GetNamedVector(newTime, name);
-      std::cout << "Successfully fetched" << std::endl;
-      prev_fetch_time = newTime;
-      return theResult;
-    }
+//    std::cout << "Trying to grab from folder: " << name << std::endl;
+//    std::cout << "At Time: " << newTime << std::endl;    
+      try{
+        theResult = bfp->GetNamedVector(newTime, name);
+        std::cout << "Successfully fetched" << std::endl;
+        prev_fetch_time = newTime;
+        return theResult;
+      }
     catch(std::exception e){
-      std::cout << "Could not fetch with time " << newTime << std::endl;      
+//      std::cout << "Could not fetch with time " << newTime << std::endl;      
     }
   }
   //Now search below
   for(newTime = time - 1; newTime > time - nRetry - 1; --newTime){
-    std::cout << "Trying to grab from folder: " << name << std::endl;
-    std::cout << "At Time: " << newTime << std::endl;    
+//    std::cout << "Trying to grab from folder: " << name << std::endl;
+//    std::cout << "At Time: " << newTime << std::endl;    
     try{
       theResult = bfp->GetNamedVector(newTime, name);
       std::cout << "Successfully fetched" << std::endl;
@@ -378,7 +378,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
       return theResult;
     }
     catch(std::exception e){
-      std::cout << "Could not fetch with time " << newTime << std::endl;      
+//      std::cout << "Could not fetch with time " << newTime << std::endl;      
     }
   }
   
@@ -811,7 +811,7 @@ void proto::BeamEvent::produce(art::Event & e)
 
         //////ANALYSIS SECTION
         // Loop over the number of TOF counter readouts (i.e. GetNT0())
-        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
+/*        for(size_t ip = 0; ip < beamevt->GetNT0(); ++ip){
           std::cout <<   beamevt->GetT0(ip).first << " " <<   beamevt->GetT0(ip).second << " "  
             	  << beamevt->GetTOF0(ip).first << " " << beamevt->GetTOF0(ip).second << " " 
             	  << beamevt->GetTOF1(ip).first << " " << beamevt->GetTOF1(ip).second << " " 
@@ -833,6 +833,8 @@ void proto::BeamEvent::produce(art::Event & e)
           //Reset
           matchedNom = 0;
         }
+
+*/        
 /*
           ////Tracking and momentum section
           MakeTrack(ip);
@@ -1172,12 +1174,12 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         std::cout << "TOF1A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
         std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
 
-        double delta_sec = the_gen_sec - temp_sec;
+        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
 //        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
-        if( ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
+        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
@@ -1189,7 +1191,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF1BTime[iT2].first;
         double temp_ns  = unorderedTOF1BTime[iT2].second;
 
-        double delta_sec = the_gen_sec - temp_sec;
+        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
         std::cout << "TOF1B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
@@ -1197,7 +1199,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
 //        if(!found_TOF1 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
-        if( !found_TOF1  && ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
+        if( !found_TOF1  && ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
@@ -1213,7 +1215,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF2ATime[iT2].first;
         double temp_ns  = unorderedTOF2ATime[iT2].second;
 
-        double delta_sec = the_gen_sec - temp_sec;
+        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
         std::cout << "TOF2A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
@@ -1221,7 +1223,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
 //        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
-        if( ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
+        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
@@ -1233,7 +1235,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double temp_sec = unorderedTOF2BTime[iT2].first;
         double temp_ns  = unorderedTOF2BTime[iT2].second;
 
-        double delta_sec = the_gen_sec - temp_sec;
+        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
         std::cout << "TOF2B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
@@ -1241,7 +1243,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
 //        if(!found_TOF2 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
-        if( !found_TOF2 && ( delta_sec + delta_ns < 500. ) && ( (the_gen_sec + the_gen_ns) > (temp_sec + temp_ns) ) ){
+        if( !found_TOF2 && ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
           std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
@@ -1393,10 +1395,10 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
   std::cout << "Data: " << data.size() << std::endl;
 
-  // If the number of counts is larger than the data we have
-  // we bail (without an error???)
-  if(counts[1] > data.size()){
-    return;
+  // If the number of counts is larger than the number of general triggers
+  // make note
+  if(counts[1] > beamevt->GetNT0()){
+    std::cout << "WARNING MISMATCH " << counts[1] << " " << beamevt->GetNT0() << std::endl;
   }
   
   beam::FBM fbm;
@@ -1410,8 +1412,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     leftOvers.push_back(lo);
   }
  
-  //Skipping anything > 500, the data seems to be corrupted now
-  for(size_t i = 0; (i < counts[1] && i < 500); ++i){      
+  for(size_t i = 0; i < counts[1]; ++i){      
 //      std::cout << "Count: " << i << std::endl;
     
     for(int j = 0; j < 10; ++j){
@@ -1429,23 +1430,30 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 //      std::cout << "Skipping bad time" << std::endl;
       continue;
     } 
-    fbm.timeStamp = fbm.timeData[0]*8.;  // Timestamp is 8x the timeData value
+
+    // Timestamp is in units of sec + 8ns ticks
+    fbm.timeStamp = fbm.timeData[3] + fbm.timeData[2]*8.e-9;  
     
     //Go through the valid Good Particles, and emplace the FBM 
 //    std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
-      // std::cout << "\t" << fbm.timeStamp << " " << beamevt->GetT0(*ip) << std::endl;
+//       std::cout.precision(dbl::max_digits10);
+//       std::cout << "\t" << fbm.timeStamp  - fOffsetTAI<< " " << beamevt->GetFullT0(*ip) << std::endl;
+//       std::cout.precision(dbl::max_digits10);
+//       std::cout << "\t" << beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI)  << std::endl;
 
-      // Compute the time delta between the timeStamp and the T0, see if it's less than 5000
+      // Compute the time delta between the timeStamp and the T0, see if it's less than 500ns away
 //      std::cout << fbm.timeStamp << " " << beamevt->GetFullT0(*ip) << std::endl;
-      if( fabs(fbm.timeStamp - beamevt->GetT0(*ip).second) < 5000./*e-9*/){
+      if( fabs(beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) < 1000.e-9
+       /*&& (beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) > 0.*/     ){
+
 	if(beamevt->GetFBM(name, *ip).ID != -1){
 	  std::cout << "Warning: Replacing non-dummy FBM at "
 		    << name << " " << *ip << std::endl;
 	} 
 	
-//	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
+	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
 	beamevt->ReplaceFBMTrigger(name, fbm, *ip);
 	leftOvers.erase(ip);
 	break;
