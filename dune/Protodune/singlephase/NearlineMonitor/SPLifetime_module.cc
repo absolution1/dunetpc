@@ -45,6 +45,7 @@
 #include "TCanvas.h"
 
 #define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
+#define appendToHistTitle(hist,str) hist->SetTitle((std::string(hist->GetTitle())+std::string(str)).c_str());
 
 //// apa = tpcMapping[tpc]
 const std::array<size_t,13> tpcMapping = {{0,4,1,0,0,5,2,0,0,6,3,0,0}};
@@ -301,6 +302,7 @@ void nlana::SPLifetime::endJob()
 
   std::cout << "identifierDL: " << identifierDL << std::endl;
   std::cout << "identifierNoDL: " << identifierNoDL << std::endl;
+  const std::string identifierTitle = " " + identifierDL;
 
   //std::string identifierBase = infilenameStripped;
   //identifierBase.erase(identifierBase.rfind("_dl"));
@@ -328,6 +330,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "driftVTPC_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fDriftTimeVTPC,identifierTitle);
   fDriftTimeVTPC->SetStats(false);
   fDriftTimeVTPC->GetXaxis()->SetLabelSize(0.050);
   fDriftTimeVTPC->Draw("colz");
@@ -352,6 +355,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "purity_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fLife,identifierTitle);
   fLife->Draw();
   canvas->SaveAs(imageFileName.c_str());
   filelistfile << imageFileName<<",";
@@ -360,6 +364,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "purityVTPC_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fLifeVTPC,identifierTitle);
   fLifeVTPC->SetStats(false);
   fLifeVTPC->GetXaxis()->SetLabelSize(0.050);
   fLifeVTPC->Draw("colz");
@@ -375,6 +380,8 @@ void nlana::SPLifetime::endJob()
   imageFileName += identifierNoDL;
   imageFileName += ".png";
   canvas->SetLogy(true);
+  appendToHistTitle(fSNR,identifierTitle);
+  fLife->Draw();
   fSNR->Draw();
   canvas->SaveAs(imageFileName.c_str());
   canvas->SetLogy(false);
@@ -383,6 +390,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "snrVTPC_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fSNRVTPC,identifierTitle);
   fSNRVTPC->SetStats(false);
   fSNRVTPC->GetXaxis()->SetLabelSize(0.050);
   fSNRVTPC->Draw("colz");
@@ -393,6 +401,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "noise_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fNoise,identifierTitle);
   fNoise->Draw();
   canvas->SaveAs(imageFileName.c_str());
   filelistfile << imageFileName<<",";
@@ -400,6 +409,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "noiseWide_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fNoiseWide,identifierTitle);
   fNoiseWide->Draw();
   canvas->SaveAs(imageFileName.c_str());
   filelistfile << imageFileName<<",";
@@ -407,6 +417,7 @@ void nlana::SPLifetime::endJob()
   imageFileName = "amplitude_";
   imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fAmplitudes,identifierTitle);
   fAmplitudes->Draw();
   canvas->SaveAs(imageFileName.c_str());
   filelistfile << imageFileName<<",";
