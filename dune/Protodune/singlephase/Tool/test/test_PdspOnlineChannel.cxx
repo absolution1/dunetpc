@@ -85,7 +85,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Check some good values." << endl;
-  for ( Index ichaOff : { 0, 102, 1234, 2560, 15359 } ) {
+  for ( Index ichaOff : { 0, 102, 1234, 2560, 8480, 15359 } ) {
     Index ichaOn = cma->get(ichaOff);
     cout << myname << ichaOff << " --> " << ichaOn << endl;
     assert( ichaOff != badIndex );

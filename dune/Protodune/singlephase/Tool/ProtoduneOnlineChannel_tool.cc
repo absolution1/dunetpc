@@ -183,9 +183,6 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
   } else if ( ipla == 2 ) {
     ifmbApa = 19 - ifmbApa;
   }
-  // Beam left, rotate FEMBs by 10.
-  bool beamLeft = iapa/2 != (iapa+1)/2;
-  if ( beamLeft ) ifmbApa = (ifmbApa + 10) % 20;
   // Get the FEMB number in protoDune (0-119)
   Index ifmbDet = 20*iapa + ifmbApa;
   // Get the wire number in the FEMB.
