@@ -56,6 +56,33 @@ std::vector<short> frugal_pedestal_sigkill(const std::vector<short>& raw_in,
     return ped;
 }
 
+std::vector<short> frugal_iqr(const std::vector<short>& raw_in,
+                              const std::vector<short>& median,
+                              const int ncontig)
+{
+    std::vector<short> iqr(raw_in.size(), 0);
+
+    int runningDiffLo=0;
+    int runningDiffHi=0;
+
+    short quartileLo=median[0]-1;
+    short quartileHi=median[0]+1;
+
+    for(size_t i=0; i<raw_in.size(); ++i){
+        short s=raw_in[i]; // The current sample
+        short m=median[i];
+
+        if(s<m)
+            do_frugal_update(quartileLo, runningDiffLo, s, ncontig);
+        if(s>m)
+            do_frugal_update(quartileHi, runningDiffHi, s, ncontig);
+
+        iqr[i]=quartileHi-quartileLo;
+    }
+
+    return iqr;
+}
+
 std::vector<short> frugal_pedestal(const std::vector<short>& raw_in,
                                    const int ncontig)
 {
