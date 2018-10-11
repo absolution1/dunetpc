@@ -3,6 +3,21 @@
 
 #include <vector>
 
+void do_frugal_update(short& median, int& runningDiff, const short sample, const int ncontig)
+{
+    if(sample>median) ++runningDiff;
+    if(sample<median) --runningDiff;
+    
+    if(runningDiff > ncontig){
+        ++median;
+        runningDiff=0;
+    }
+    if(runningDiff < -1*ncontig){
+        --median;
+        runningDiff=0;
+    }
+}
+
 std::vector<short> frugal_pedestal_sigkill(const std::vector<short>& raw_in,
                                            const int lookahead, const int threshold,
                                            const int ncontig)
@@ -29,18 +44,7 @@ std::vector<short> frugal_pedestal_sigkill(const std::vector<short>& raw_in,
         }
         // Do the frugal streaming if we're not in a hit
         if(updating){
-            if(s>median) ++runningDiff;
-            if(s<median) --runningDiff;
-
-            if(runningDiff > ncontig){
-                ++median;
-                runningDiff=0;
-            }
-            if(runningDiff < -1*ncontig){
-                --median;
-                runningDiff=0;
-            }
-
+            do_frugal_update(median, runningDiff, s, ncontig);
         }
         ped[i]=median;
     }
@@ -62,17 +66,7 @@ std::vector<short> frugal_pedestal(const std::vector<short>& raw_in,
     for(size_t i=0; i<raw_in.size(); ++i){
         short s=raw_in[i]; // The current sample
 
-        if(s>median) ++runningDiff;
-        if(s<median) --runningDiff;
-
-        if(runningDiff > ncontig){
-            ++median;
-            runningDiff=0;
-        }
-        if(runningDiff < -1*ncontig){
-            --median;
-            runningDiff=0;
-        }
+        do_frugal_update(median, runningDiff, s, ncontig);
 
         ped[i]=median;
     }
