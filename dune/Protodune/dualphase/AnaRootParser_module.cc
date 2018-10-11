@@ -4097,8 +4097,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   // * photons
   art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
-//  std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
-  evt.getByLabel(fLArG4ModuleLabel, photonHandle);
+  //std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
+  if(fSavePhotonInfo) evt.getByLabel(fLArG4ModuleLabel, photonHandle);
 //    art::fill_ptr_vector(photonlist, photonHandle);
 
   // * hits
@@ -4263,17 +4263,20 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       } // for particles
 
       // counting photons
-      for ( auto const& pmt : (*photonHandle) )
+      if(fSavePhotonInfo)
       {
-        std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
-
-        for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+        for ( auto const& pmt : (*photonHandle) )
         {
-          for(int i = 0; i < itphoton->second ; i++)
+          std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+          for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
           {
-	    nPhotons++;
-	  }
-	}
+            for(int i = 0; i < itphoton->second ; i++)
+            {
+	          nPhotons++;
+	        }
+          }
+	    }
       }
 
 
@@ -5940,26 +5943,26 @@ if (fSaveTrackInfo) {
 
 
       //Photon particles information
-      if (fSavePhotonInfo){
-	int photoncounter=0;
-        for ( auto const& pmt : (*photonHandle) )
-        {
-          std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
-
-          for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
-          {
-            for(int iphotonatthistime = 0; iphotonatthistime < itphoton->second ; iphotonatthistime++)
+          if (fSavePhotonInfo){
+        int photoncounter=0;
+            for ( auto const& pmt : (*photonHandle) )
             {
-	      fData->photons_time[photoncounter]=itphoton->first;
-	      fData->photons_channel[photoncounter]=pmt.OpChannel;
-	      photoncounter++;
-	    }
-	  }
-        }
-	fData->numberofphotons=photoncounter;
-      }
+              std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
 
-      //Generator particles information
+              for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+              {
+                for(int iphotonatthistime = 0; iphotonatthistime < itphoton->second ; iphotonatthistime++)
+                {
+              fData->photons_time[photoncounter]=itphoton->first;
+              fData->photons_channel[photoncounter]=pmt.OpChannel;
+              photoncounter++;
+            }
+          }
+            }
+        fData->numberofphotons=photoncounter;
+          }
+
+          //Generator particles information
       if (fSaveGeneratorInfo){
         const sim::ParticleList& plist = pi_serv->ParticleList();
 
