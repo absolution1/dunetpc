@@ -941,6 +941,7 @@ void proto::BeamEvent::produce(art::Event & e)
     prev_beamevt = *beamevt;
     prev_beamevt.ClearBeamTracks();
     prev_beamevt.ClearRecoBeamMomenta();
+    prev_beamevt.SetUnmatched();
 
   }
   //Start of a new spill, but the first event was 
@@ -1170,10 +1171,233 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
  //   fXTOF2BTree->Fill();
   }
 
+  for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
+    
+//    bool found_TOF1 = false;
+//    bool found_TOF2 = false;
+
+    bool found_TOF = false;
+
+    double the_gen_sec = unorderedGenTrigTime[iT].first;
+    double the_gen_ns = unorderedGenTrigTime[iT].second;
+
+    double the_TOF1_sec = -1.;
+    double the_TOF2_sec = -1.;
+    double the_TOF1_ns = -1.;
+    double the_TOF2_ns = -1.;
+
+    //bool TOF1A_passed = false;
+    //bool TOF1B_passed = false;
+    //bool TOF2A_passed = false;
+    //bool TOF2B_passed = false;
+
+    //1A2A = 0; 1B2A = 1, 1A2B = 2,  1B2B = 3
+    //Add 1 for 1B, add 2 for 2B
+    int channel = 0;
+
+    for(size_t iT1A = 0; iT1A < unorderedTOF1ATime.size(); ++iT1A){
+      double TOF1A_sec = unorderedTOF1ATime[iT1A].first;
+      double TOF1A_ns = unorderedTOF1ATime[iT1A].second;
+
+      double delta_1A = 1.e9*(the_gen_sec - TOF1A_sec) + the_gen_ns - TOF1A_ns;
+      if(delta_1A < 0.){
+       // std::cout << "Passed TOF1A" << std::endl;
+        //TOF1A_passed = true;
+        break;
+      }
+
+      if( delta_1A > 500. ) continue;     
+
+      //If here, then 0 < delta_1A < 500ns
+      //Check the TOF2 times. 
+      
+      for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
+        double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
+        double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
+
+        double delta = 1.e9*(TOF2A_sec - TOF1A_sec) + TOF2A_ns - TOF1A_ns;
+        
+        //Overtaken 1A
+        if(delta < 0.){
+          continue; 
+        }
+
+        if( delta > 500. ){
+          break;
+        }
+        else{
+
+          //If here, then TOF1 is within 500 ns below TOF2
+
+          std::cout << "Found matching TOF2A and TOF1A" << std::endl;
+          found_TOF = true;
+
+          the_TOF2_sec = TOF2A_sec;
+          the_TOF2_ns  = TOF2A_ns;
+
+          the_TOF1_sec = TOF1A_sec;
+          the_TOF1_ns  = TOF1A_ns;
+
+          channel = 0;
+
+          break;
+        }       
+      }
+
+      if(!found_TOF){
+        for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
+          double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
+          double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
+
+          double delta = 1.e9*(TOF2B_sec - TOF1A_sec) + TOF2B_ns - TOF1A_ns;
+          
+          //Overtaken 1A
+          if(delta < 0.){
+            continue;
+          }
+
+          if( delta > 500. ){
+            break;
+          }
+          else{
+            //If here, then TOF1 is within 500 ns below TOF2
+
+            std::cout << "Found matching TOF2B and TOF1A" << std::endl;
+            found_TOF = true;
+
+            the_TOF2_sec = TOF2B_sec;
+            the_TOF2_ns  = TOF2B_ns;
+  
+            the_TOF1_sec = TOF1A_sec;
+            the_TOF1_ns  = TOF1A_ns;
+
+            channel = 2;
+
+            break;
+          }       
+        }
+      }
+
+      if(found_TOF) break;
+    }
+
+    //Now check 1B with 2A and 2B
+    if(!found_TOF){
+      
+      for(size_t iT1B = 0; iT1B < unorderedTOF1BTime.size(); ++iT1B){
+        double TOF1B_sec = unorderedTOF1BTime[iT1B].first;
+        double TOF1B_ns = unorderedTOF1BTime[iT1B].second;
+
+        double delta_1B = 1.e9*(the_gen_sec - TOF1B_sec) + the_gen_ns - TOF1B_ns;
+        if(delta_1B < 0.){
+         // std::cout << "Passed TOF1B" << std::endl;
+          //TOF1B_passed = true;
+          break;
+        }
+
+        if( delta_1B > 500. ) continue;     
+
+        //If here, then 0 < delta_1B < 500ns
+        //Check the TOF2 times. 
+        
+        for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
+          double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
+          double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
+
+          double delta = 1.e9*(TOF2A_sec - TOF1B_sec) + TOF2A_ns - TOF1B_ns;
+          
+          //Overtaken 1B
+          if(delta < 0.){
+            continue;
+          }
+
+          if( delta > 500. ){
+            break;
+          }
+          else{
+
+            //If here, then TOF1 is within 500 ns below TOF2
+
+            std::cout << "Found matching TOF2A and TOF1B" << std::endl;
+            found_TOF = true;
+
+            the_TOF2_sec = TOF2A_sec;
+            the_TOF2_ns  = TOF2A_ns;
+
+            the_TOF1_sec = TOF1B_sec;
+            the_TOF1_ns  = TOF1B_ns;
+
+            channel = 1;
+
+            break;
+          }       
+        }
+
+        if(!found_TOF){
+          for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
+            double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
+            double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
+
+            double delta = 1.e9*(TOF2B_sec - TOF1B_sec) + TOF2B_ns - TOF1B_ns;
+            
+            //Overtaken 1B
+            if(delta < 0.){
+              continue;
+            }
+
+            if( delta > 500. ){
+              break;
+            }
+            else{
+              //If here, then TOF1 is within 500 ns below TOF2
+
+              std::cout << "Found matching TOF2B and TOF1B" << std::endl;
+              found_TOF = true;
+
+              the_TOF2_sec = TOF2B_sec;
+              the_TOF2_ns  = TOF2B_ns;
+  
+              the_TOF1_sec = TOF1B_sec;
+              the_TOF1_ns  = TOF1B_ns;
+
+              channel = 3;
+
+              break;
+            }       
+          }
+        }
+        
+        if(found_TOF) break;
+      }    
+    }
+
+    if(found_TOF){
+      //Convert from TAI to UTC at this point
+
+      std::cout << "Adding matched tof" << std::endl;
+
+      beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+      beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
+      beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
+      beamevt->AddTOFChan(channel);        
+    }
+    else{
+      //Add dummy
+
+      std::cout << "Adding unmatched tof" << std::endl;
+
+      beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+      beamevt->AddTOF0Trigger(std::make_pair(0., 0.));
+      beamevt->AddTOF1Trigger(std::make_pair(0., 0.));
+      beamevt->AddTOFChan(-1);        
+    }
+
+  }
+
   //Go through the unordered TOF triggers
   //Look for coincidences between TOF1 and TOF2
   //There should only be one match between A and B
-  for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
+/*  for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
 
  //   std::cout << "Matching for TOF" << std::endl;
 
@@ -1329,7 +1553,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
       }
 
     }
-  }
+  }*/
 }
 // END BeamEvent::parseXTOF
 ////////////////////////
@@ -1510,7 +1734,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 		    << name << " " << *ip << std::endl;
 	} 
 	
-	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
+//	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
 	beamevt->ReplaceFBMTrigger(name, fbm, *ip);
 	leftOvers.erase(ip);
 	break;
