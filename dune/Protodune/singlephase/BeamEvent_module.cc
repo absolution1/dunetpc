@@ -95,9 +95,11 @@ public:
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
   double MomentumCosTheta(double, double, double);
+
   void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
   void GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
+
   double GetPosition(std::string, int);
   TVector3 ProjectToTPC(TVector3, TVector3);
   double GetPairedPosition(std::string, size_t);
@@ -110,10 +112,7 @@ public:
   void  parsePairedStraightXBPF(uint64_t);
 
   void  parseXTOF(uint64_t);
-  void  parseXTOFUnmatched(uint64_t);
   void  parseXCET(uint64_t);
-
-  void  InitXCETInfo(beam::ProtoDUNEBeamEvent *);
 
   template<class T> 
   T FetchWithRetries(uint64_t, std::string, int);
@@ -571,9 +570,6 @@ void proto::BeamEvent::GetSpillInfo(art::Event & e){
           
     std::cout << std::endl;           
           
-//    PrevStart = SpillStart;           
-    //prevEnd   = SpillEnd;    
-
 }
 
 void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
@@ -605,10 +601,6 @@ bool proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
     
     //GenTrig = sec + 1.e-9*ns portions
     double GenTrigTime = beamevt->GetT0(iT).first + 1.e-09*beamevt->GetT0(iT).second;
-
-    //Fix the offset from TAI -> UTC
-    //It's already fixed now
-  //  GenTrigTime -= fOffsetTAI;
 
     //HLTTime in 50MHz ticks
     double HLTTime = 2.e-08*HLTTS;
@@ -763,26 +755,13 @@ void proto::BeamEvent::produce(art::Event & e)
         // 
         // fUnmatched flag is for the case that the TOF monitors 
         // were experiencing technical difficulty
-        if(!fUnmatched){
-          try{
-            parseXTOF(fetch_time);
-          }
-          catch(std::exception e){
-            std::cout << "COULD NOT GET INFO" << std::endl;
-            std::cout << "SKIPPING EVENT" << std::endl;
-            //break;
-          }
+        try{
+          parseXTOF(fetch_time);
         }
-        else{
-          std::cout << "PLACING DUMMIES" << std::endl << std::endl;
-          try{
-            parseXTOFUnmatched(fetch_time);
-          }
-          catch(std::exception e){
-            std::cout << "COULD NOT GET INFO" << std::endl;
-            std::cout << "SKIPPING EVENT" << std::endl;
-            //break;
-          }
+        catch(std::exception e){
+          std::cout << "COULD NOT GET INFO" << std::endl;
+          std::cout << "SKIPPING EVENT" << std::endl;
+          //break;
         }
         std::cout << std::endl;
 
@@ -1394,216 +1373,8 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
   }
 
-  //Go through the unordered TOF triggers
-  //Look for coincidences between TOF1 and TOF2
-  //There should only be one match between A and B
-/*  for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
-
- //   std::cout << "Matching for TOF" << std::endl;
-
-    bool found_TOF1 = false;
-    bool found_TOF2 = false;
-
-    double the_gen_sec = unorderedGenTrigTime[iT].first;
-    double the_gen_ns = unorderedGenTrigTime[iT].second;
-
-    double the_TOF1_sec = -1.;
-    double the_TOF2_sec = -1.;
-    double the_TOF1_ns = -1.;
-    double the_TOF2_ns = -1.;
-
-    bool TOF1A_passed = false;
-    bool TOF1B_passed = false;
-    bool TOF2A_passed = false;
-    bool TOF2B_passed = false;
-
-    //1A2A = 0; 1B2A = 1, 1A2B = 2,  1B2B = 3
-    //Add 1 for 1B, add 2 for 2B
-    int channel = 0;
-
-    //Technically out of bounds of the vectors, but it simplifies things
-    //Iterate through TOF1s, look for matching trigger
-    //First in A, then in B. 
-    for(size_t iT2 = 0; iT2 < 4000; ++iT2){
-      if (iT2 < unorderedTOF1ATime.size() && !found_TOF1 && !TOF1A_passed){
-
-        double temp_sec = unorderedTOF1ATime[iT2].first;
-        double temp_ns  = unorderedTOF1ATime[iT2].second;
-
- //       std::cout << "TOF1A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
- //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
-
-        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
-        double delta_ns = the_gen_ns - temp_ns;
-
- //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
-
-        if(delta_ns + delta_sec < 0.){
- //         std::cout << "Passed TOF1A" << std::endl;
-          TOF1A_passed = true;
-        }
-
-        //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
- //         std::cout << "FOUND" << std::endl;
-          found_TOF1 = true; 
-          the_TOF1_sec = temp_sec;
-          the_TOF1_ns  = temp_ns;
-        }
-      }
-      if (iT2 < unorderedTOF1BTime.size() && !found_TOF1  && !TOF1B_passed){
-
-        double temp_sec = unorderedTOF1BTime[iT2].first;
-        double temp_ns  = unorderedTOF1BTime[iT2].second;
-
-        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
-        double delta_ns = the_gen_ns - temp_ns;
-
- //       std::cout << "TOF1B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
- //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
- //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
-
-        if(delta_ns + delta_sec < 0.){
- //         std::cout << "Passed TOF1B" << std::endl;
-          TOF1B_passed = true;
-        }
-
-        //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
- //         std::cout << "FOUND" << std::endl;
-          found_TOF1 = true; 
-          the_TOF1_sec = temp_sec;
-          the_TOF1_ns  = temp_ns;
-
-          channel++;
-        }
-      }
-    
-      //Now look through the timestamps in scintillator 2    
-      if (iT2 < unorderedTOF2ATime.size() && !found_TOF2  && !TOF2A_passed){
-
-        double temp_sec = unorderedTOF2ATime[iT2].first;
-        double temp_ns  = unorderedTOF2ATime[iT2].second;
-
-        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
-        double delta_ns = the_gen_ns - temp_ns;
-
- //       std::cout << "TOF2A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
- //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
- //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
-
-        if(delta_ns + delta_sec < 0.){
- //         std::cout << "Passed TOF2A" << std::endl;
-          TOF2A_passed = true;
-        }
-
-
-        //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
- //         std::cout << "FOUND" << std::endl;
-          found_TOF2 = true; 
-          the_TOF2_sec = temp_sec;
-          the_TOF2_ns  = temp_ns;
-        }
-      }
-      if (iT2 < unorderedTOF2BTime.size() && !found_TOF2  && !TOF2B_passed){
-
-        double temp_sec = unorderedTOF2BTime[iT2].first;
-        double temp_ns  = unorderedTOF2BTime[iT2].second;
-
-        double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
-        double delta_ns = the_gen_ns - temp_ns;
-
- //       std::cout << "TOF2B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
- //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
- //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
-
-        if(delta_ns + delta_sec < 0.){
- //         std::cout << "Passed TOF2B" << std::endl;
-          TOF2B_passed = true;
-        }
-        
-        //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
- //         std::cout << "FOUND" << std::endl;
-          found_TOF2 = true; 
-          the_TOF2_sec = temp_sec;
-          the_TOF2_ns  = temp_ns;
-
-          channel += 2;
-        }
-      }
-
-      if(found_TOF1 && found_TOF2){
- //       std::cout << "Found matching TOF " << the_gen_ns << " " << the_TOF1_ns << " " << the_TOF2_ns << std::endl;
- //       std::cout << "Found matching TOF " << the_gen_sec << " " << the_TOF1_sec << " " << the_TOF2_sec << std::endl;
- //       std::cout << std::endl;
-
-        //Convert from TAI to UTC at this point
-        beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
-        beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
-        beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
-        beamevt->AddTOFChan(channel);        
-        break;
-      }
-
-      if(TOF1A_passed && TOF1B_passed && TOF2A_passed && TOF2B_passed){
-        std::cout << "PASSED ALL" << std::endl;
-        break;
-      }
-
-    }
-  }*/
 }
 // END BeamEvent::parseXTOF
-////////////////////////
-
-void proto::BeamEvent::parseXTOFUnmatched(uint64_t time){
-  std::cout << "Getting General trigger info " << std::endl;
-  std::vector<double> coarseGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
-  std::vector<double> fracGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
-  std::vector<double> acqStampGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
-  std::vector<double> secondsGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:seconds[]",fNRetries); 
-  std::vector<double> timestampCountGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount",fNRetries); 
-  std::cout << "Size of coarse,frac: " << coarseGeneralTrigger.size() << " " << fracGeneralTrigger.size() << std::endl; 
-
-  std::cout <<"Size of acqStamp: " << acqStampGeneralTrigger.size() << std::endl;
-  std::cout <<"Size of seconds: " << secondsGeneralTrigger.size() << std::endl;
-  std::cout << "Size of counts: " << timestampCountGeneralTrigger.size() << std::endl;
-  std::cout << "timestampCounts: " << timestampCountGeneralTrigger[0] << std::endl;
-  matchedNom = int(timestampCountGeneralTrigger[0]);
-  
-  double low = acqStampGeneralTrigger[1];
-  uint32_t low32 = (uint32_t)low;
-  std::bitset<64> lowbits = low32;
-
-  double high = acqStampGeneralTrigger[0];
-  uint32_t high32 = (uint32_t)high;
-  std::bitset<64> highbits = high32;
-
-  highbits = highbits << 32;
-  std::bitset<64> joinedbits = highbits ^ lowbits;
-
-  acqTime = joinedbits.to_ullong() / 1000000000.; 
-
-  std::vector<std::pair<double,double>> unorderedGenTrigTime;
-
-  for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-//    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
- //   std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
-    fGenTrigCoarse = coarseGeneralTrigger[i];
-    fGenTrigFrac = fracGeneralTrigger[i];
-
-    //2*i + 1 because the format is weird
-    fGenTrigSec = secondsGeneralTrigger[2*i + 1];
-    unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
-
-    if (fGenTrigFrac == 0.0) break;
-    beamevt->AddT0(std::make_pair(fGenTrigSec - fOffsetTAI, (fGenTrigCoarse*8. + fGenTrigFrac/512.)));
- //   fGenTrigTree->Fill();
-  }
-}
-// END BeamEvent::parseXTOFUnmatched
 ////////////////////////
 
 void proto::BeamEvent::parseXCET(uint64_t time){
