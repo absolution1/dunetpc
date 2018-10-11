@@ -43,6 +43,7 @@ outputs:
 {
   out1:
   {
+    outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*" ]
     compressionLevel: 1
     module_type: RootOutput
     fileName: "%ifb_decode.root"
