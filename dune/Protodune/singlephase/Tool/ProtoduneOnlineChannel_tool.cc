@@ -165,8 +165,6 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
   }
   // Get the APA.
   Index iapa = chanOff/2560;
-  bool beamLeft = iapa & 1;
-  bool beamRight = ! beamLeft;
   // Get the channel in the apa.
   Index ichApa = chanOff%2560;
   // Get the plane (ipla) and wire number in the plane (ichPla).
@@ -179,16 +177,16 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
   // Get the FEMB # in the detector ifmbDet.
   Index ifmbApa = ichPla/nwirFemb[ipla];
   if ( ipla == 0 ) {
-    if ( beamRight ) ifmbApa = (ifmbApa + 10) % 20;
+    ifmbApa = (ifmbApa + 10) % 20;
   } else if ( ipla == 1 ) {
     ifmbApa = 19 - ifmbApa;
-    if ( beamLeft ) ifmbApa = (ifmbApa + 10) % 20;
   } else if ( ipla == 2 ) {
-    if ( beamLeft ) ifmbApa = 9 - ifmbApa;
-    else ifmbApa = 19 - ifmbApa;
-  } else {
-    if ( beamLeft ) ifmbApa += 10;
+    ifmbApa = 19 - ifmbApa;
   }
+  // Beam left, rotate FEMBs by 10.
+  bool beamLeft = iapa/2 != (iapa+1)/2;
+  if ( beamLeft ) ifmbApa = (ifmbApa + 10) % 20;
+  // Get the FEMB number in protoDune (0-119)
   Index ifmbDet = 20*iapa + ifmbApa;
   // Get the wire number in the FEMB.
   Index iwchFemb = ichPla % nwirFemb[ipla];  // Wire number in the plane and FEMB.

@@ -77,8 +77,6 @@ Index PdspOnlineChannel::get(Index chanOff) const {
                              15, 14, 13, 12, 11};
     Index jfmb = 5*kcon + kwib;
     Index kfmb = ifmb[jfmb] - 1;
-    // 10oct2018: Beam left APAs have readouts rotated by 10 FEMBs.
-    if ( kapa > 3 ) kfmb = (kfmb + 10)%20;
     chanOn = 2560*kapa + 128*kfmb + kchf;
   }
   return chanOn;
