@@ -110,6 +110,26 @@ physics.producers.beamevent.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF
 physics.producers.beamevent.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamevent.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
+#Flag to skip comparing the location of 
+#tracks in beam to tracks in TPC
+#
+#might get rid of and relegate to post
+#processing
 physics.producers.beamevent.MatchToTPC:           "false"
-physics.producers.beamevent.Unmatched:            "true"
+
+#Flag to skip matching TOFs to GeneralTrigger
+physics.producers.beamevent.Unmatched:            "false"
+
+#Should we grab from the folders each time?
 physics.producers.beamevent.ForceNewFetch:        "false"
+
+#Do we want to match in time between
+#beamline and tpc?
+physics.producers.beamevent.MatchTime:            "true"
+
+#Option to get info from database
+#even if we don't have a good
+#trigger from the BI to CTB 
+#or if we are getting invalid Spill Times
+physics.producers.beamevent.ForceRead:            "false"
+

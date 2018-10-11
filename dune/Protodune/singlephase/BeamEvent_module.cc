@@ -201,6 +201,7 @@ private:
   std::vector<recob::Track*> theTracks;
   long long int eventTime;
   double SpillStart;
+  ULong_t SpillStart_alt;
   double PrevStart;
   double SpillEnd;
   double SpillOffset;
@@ -310,6 +311,8 @@ private:
   bool   fMatchToTPC;
   bool   fUnmatched;
   bool   fForceNewFetch;
+  bool   fMatchTime;
+  bool   fForceRead;
 
   double fTimingCalibration;
   double fCalibrationTolerance;
@@ -543,15 +546,18 @@ void proto::BeamEvent::GetSpillInfo(art::Event & e){
     auto PDTStamp = PDTStampVec[0];            
           
     UInt_t    ver        = PDTStamp.getVersion();   
-    ULong64_t RunStart   = PDTStamp.getLastRunStart();            
+    double RunStart   = 2.e-8*PDTStamp.getLastRunStart();            
     SpillStart = 2.e-8*PDTStamp.getLastSpillStart();          
     SpillEnd   = 2.e-8*PDTStamp.getLastSpillEnd();            
+    SpillStart_alt = PDTStamp.getLastSpillStart();
+    std::cout << PDTStamp.getLastSpillStart() << " " << SpillStart_alt << std::endl;
           
+    std::cout.precision(dbl::max_digits10);
     std::cout << "Version:     " << ver        << std::endl;      
     std::cout << "Run:         " << RunStart   << std::endl;      
           
-    std::cout << "Spill Start: " << std::setw(15) << 1.e-9*SpillStart <<  std::endl;      
-    std::cout << "Spill End:   " << std::setw(15) << 1.e-9*SpillEnd   <<  std::endl;      
+    std::cout << "Spill Start: " << SpillStart <<  std::endl;      
+    std::cout << "Spill End:   " << SpillEnd   <<  std::endl;      
           
     std::cout << std::endl;           
           
@@ -679,16 +685,24 @@ void proto::BeamEvent::produce(art::Event & e)
 
   validTimeStamp = GetRawDecoderInfo(e);
   std::cout << std::endl;
+
+  //Get Spill Information
+  //This stores Spill Start, Spill End, 
+  //And Prev Spill Start
+  GetSpillInfo(e);
+
+  if(~SpillStart_alt == 0ul){
+    std::cout << "Invalid Spill Start time! Skipping Event" << std::endl << std::endl;
+  }
    
   //Check if we have a valid beam trigger
   //If not, just place an empty beamevt
   //and move on
-  if(validTimeStamp){
-
-    //Get Spill Information
-    //This stores Spill Start, Spill End, 
-    //And Prev Spill Start
-    GetSpillInfo(e);
+  //
+  //Also check if we've gotten good spill info
+  //
+  //Or if we're forcing to read out the Beamline Info
+  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
 
 
     // Read in and cache the beam bundle folder for a specific time
@@ -779,133 +793,163 @@ void proto::BeamEvent::produce(art::Event & e)
         parsePairedXBPF(fetch_time);
         parsePairedStraightXBPF(fetch_time);
         parseXCET(fetch_time);
+   
+        //Set PrevStart to SpillStart here
+        //so that we don't skip in the case 
+        //the first event in the spill did not
+        //a good beamline trigger
+        PrevStart = SpillStart;
 
       }
       else{
         std::cout << "Same spill. Reusing beamevt info" << std::endl << std::endl;
+        std::cout << prev_beamevt.GetNT0() << std::endl;
         *beamevt = prev_beamevt;
+        std::cout << beamevt->GetNT0() << std::endl;;
       }
 
       std::cout << "NGoodParticles: " << beamevt->GetNT0()            << std::endl;
       std::cout << "NTOF0: "          << beamevt->GetNTOF0Triggers()  << std::endl;
       std::cout << "NTOF1: "          << beamevt->GetNTOF1Triggers()  << std::endl;
       std::cout << "acqTime: "        << acqTime                      << std::endl;
-      std::cout << "NXBPF: " << beamevt->GetNFBMTriggers(fDevices[0]) << std::endl;
+      std::cout << "NXBPF: "          << beamevt->GetNFBMTriggers(fDevices[0]) << std::endl;
 
 
-      //Now do the matching in Time:
-      //Get the conversion from the ProtoDUNE Timing system
-      //To the one in the SPS.
-      //
-      TimeIn(e, fetch_time);
-      std::cout << "SpillOffset " << SpillOffset << std::endl;
-      bool matched = MatchBeamToTPC(e, fetch_time);
-      std::cout << matched << std::endl;
-      if( beamevt->CheckIsMatched() ){
-        std::pair<double,double> theTime = beamevt->GetT0(beamevt->GetActiveTrigger());
-        ActiveTriggerTime = theTime.first + theTime.second*1.e-9;
-        std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       
 
-        MakeTrack( beamevt->GetActiveTrigger() );
-        for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
-          beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
-          
-          auto thisTrack = theTracks[iTrack]; 
-          const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
-          trackX->clear(); 
-          trackY->clear(); 
-          trackZ->clear(); 
-          std::cout << "npositison: " << theTraj.NPoints() << std::endl;
-          for(auto const & pos : theTraj.Trajectory().Positions()){
-            std::cout << pos.X() << " " << pos.Y() << " " << pos.Z() << std::endl;
-            trackX->push_back(pos.X());
-            trackY->push_back(pos.Y());
-            trackZ->push_back(pos.Z());
-          }
-
-          fTrackTree->Fill();
-        }
-        std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl << std::endl;
-
-        //Momentum
-        //First, try getting the current from the magnet in IFBeam
-        std::cout << "Trying to get the current" << std::endl;
-        try{
-          current = FetchWithRetries< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
-          std::cout << "Current: " << current[0] << std::endl;
-    
-          MomentumSpec( beamevt->GetActiveTrigger() ); 
-          std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
-        }
-        catch(std::exception e){
-          std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
-        }
-        
-      }
-     
-     
-      //Analyze reconstructed tracks if flag enabled
-      //
-      if(fMatchToTPC){
-
-        auto const TrackHandle = e.getValidHandle< std::vector< recob::Track > >("pandoraTrack");
-        std::vector<recob::Track> TrackVec(*TrackHandle);                   
-        std::cout << "Got " << TrackVec.size()  << " Tracks" << std::endl;
-
-        //Go through the reco tracks.
-        //Skip any that aren't "close" to the beam window
-        //"Close": X < 0, Y > 000, Z < 100
+      if( fMatchTime ){
+   
+        //Now do the matching in Time:
+        //Get the conversion from the ProtoDUNE Timing system
+        //To the one in the SPS.
         //
-        for(size_t iTrack = 0; iTrack < TrackVec.size(); ++iTrack){
-          const recob::Track & TPCTrack = TrackVec[iTrack];
-          const recob::Trajectory & theTraj = TPCTrack.Trajectory().Trajectory();
-          std::cout << "Start of Track " << iTrack << ": " 
-                     << theTraj.Positions()[0].X() << " " 
-                     << theTraj.Positions()[0].Y() << " " 
-                     << theTraj.Positions()[0].Z() << std::endl;
-          if( (theTraj.Positions()[0].X() < 0.) && (theTraj.Positions()[0].Y() > 000.) && (theTraj.Positions()[0].Z() < 100.) ){
-            std::cout << "Found potential beam track" << std::endl;
-      
-            //Go through all of the tracks grabbed from the beam
-            //
-            for(size_t iBeam = 0; iBeam < beamevt->GetNBeamTracks(); ++iBeam){
-              const recob::Track & beamTrack = beamevt->GetBeamTrack(iBeam);
-              const recob::Trajectory & beamTraj = beamTrack.Trajectory().Trajectory();
-              std::cout << "\tStart of Track " << iBeam << ": " 
-                        << beamTraj.Positions()[2].X()  << " " 
-                        << beamTraj.Positions()[2].Y()  << " " 
-                        << beamTraj.Positions()[2].Z()  << std::endl;
+        TimeIn(e, fetch_time);
+        std::cout << "SpillOffset " << SpillOffset << std::endl;
+        bool matched = MatchBeamToTPC(e, fetch_time);
 
-              fBeamPosX = beamTraj.Positions()[2].X();
-              fBeamPosY = beamTraj.Positions()[2].Y();
-              fBeamPosZ = beamTraj.Positions()[2].Z();
-              fTrackPosX = theTraj.Positions()[2].X();
-              fTrackPosY = theTraj.Positions()[2].Y();
-              fTrackPosZ = theTraj.Positions()[2].Z();
 
-              fDeltaX = fTrackPosX - fBeamPosX;
-              fDeltaY = fTrackPosY - fBeamPosY;
-              fDeltaZ = fTrackPosZ - fBeamPosZ;
+        std::cout << matched << std::endl;
+        if( beamevt->CheckIsMatched() ){
+          std::pair<double,double> theTime = beamevt->GetT0(beamevt->GetActiveTrigger());
+          ActiveTriggerTime = theTime.first + theTime.second*1.e-9;
+          std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       
 
-              fDeltaXHist->Fill( fDeltaX );
-              fDeltaYHist->Fill( fDeltaY );
-              fDeltaZHist->Fill( fDeltaZ );
-
-              fDeltaXYHist->Fill( fDeltaX, fDeltaY ); 
-              fDeltaYZHist->Fill( fDeltaY, fDeltaZ ); 
-              fDeltaZXHist->Fill( fDeltaZ, fDeltaX ); 
-
-              trackNum = iTrack;
-              beamNum = iBeam;
-
-              fDeltaTree->Fill();
-
+          MakeTrack( beamevt->GetActiveTrigger() );
+          for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
+            beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
+            
+            auto thisTrack = theTracks[iTrack]; 
+            const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
+            trackX->clear(); 
+            trackY->clear(); 
+            trackZ->clear(); 
+            std::cout << "npositison: " << theTraj.NPoints() << std::endl;
+            for(auto const & pos : theTraj.Trajectory().Positions()){
+              std::cout << pos.X() << " " << pos.Y() << " " << pos.Z() << std::endl;
+              trackX->push_back(pos.X());
+              trackY->push_back(pos.Y());
+              trackZ->push_back(pos.Z());
             }
-          }
-        }   
-      }
 
+            fTrackTree->Fill();
+          }
+          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl << std::endl;
+
+          //Momentum
+          //First, try getting the current from the magnet in IFBeam
+          std::cout << "Trying to get the current" << std::endl;
+          try{
+            current = FetchWithRetries< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            std::cout << "Current: " << current[0] << std::endl;
+    
+            MomentumSpec( beamevt->GetActiveTrigger() ); 
+            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
+          }
+          catch(std::exception e){
+            std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
+          }
+          
+        }
+     
+     
+        //Analyze reconstructed tracks if flag enabled
+        //
+        if(fMatchToTPC){
+
+          auto const TrackHandle = e.getValidHandle< std::vector< recob::Track > >("pandoraTrack");
+          std::vector<recob::Track> TrackVec(*TrackHandle);                   
+          std::cout << "Got " << TrackVec.size()  << " Tracks" << std::endl;
+
+          //Go through the reco tracks.
+          //Skip any that aren't "close" to the beam window
+          //"Close": X < 0, Y > 000, Z < 100
+          //
+          for(size_t iTrack = 0; iTrack < TrackVec.size(); ++iTrack){
+            const recob::Track & TPCTrack = TrackVec[iTrack];
+            const recob::Trajectory & theTraj = TPCTrack.Trajectory().Trajectory();
+            std::cout << "Start of Track " << iTrack << ": " 
+                       << theTraj.Positions()[0].X() << " " 
+                       << theTraj.Positions()[0].Y() << " " 
+                       << theTraj.Positions()[0].Z() << std::endl;
+            if( (theTraj.Positions()[0].X() < 0.) && (theTraj.Positions()[0].Y() > 000.) && (theTraj.Positions()[0].Z() < 100.) ){
+              std::cout << "Found potential beam track" << std::endl;
+        
+              //Go through all of the tracks grabbed from the beam
+              //
+              for(size_t iBeam = 0; iBeam < beamevt->GetNBeamTracks(); ++iBeam){
+                const recob::Track & beamTrack = beamevt->GetBeamTrack(iBeam);
+                const recob::Trajectory & beamTraj = beamTrack.Trajectory().Trajectory();
+                std::cout << "\tStart of Track " << iBeam << ": " 
+                          << beamTraj.Positions()[2].X()  << " " 
+                          << beamTraj.Positions()[2].Y()  << " " 
+                          << beamTraj.Positions()[2].Z()  << std::endl;
+
+                fBeamPosX = beamTraj.Positions()[2].X();
+                fBeamPosY = beamTraj.Positions()[2].Y();
+                fBeamPosZ = beamTraj.Positions()[2].Z();
+                fTrackPosX = theTraj.Positions()[2].X();
+                fTrackPosY = theTraj.Positions()[2].Y();
+                fTrackPosZ = theTraj.Positions()[2].Z();
+
+                fDeltaX = fTrackPosX - fBeamPosX;
+                fDeltaY = fTrackPosY - fBeamPosY;
+                fDeltaZ = fTrackPosZ - fBeamPosZ;
+
+                fDeltaXHist->Fill( fDeltaX );
+                fDeltaYHist->Fill( fDeltaY );
+                fDeltaZHist->Fill( fDeltaZ );
+
+                fDeltaXYHist->Fill( fDeltaX, fDeltaY ); 
+                fDeltaYZHist->Fill( fDeltaY, fDeltaZ ); 
+                fDeltaZXHist->Fill( fDeltaZ, fDeltaX ); 
+
+                trackNum = iTrack;
+                beamNum = iBeam;
+
+                fDeltaTree->Fill();
+
+              }
+            }
+          }   
+        }
+
+
+      }
     }
+
+    //Pass beamevt to the next event;
+    //Erase the Track and Reco Momentum info
+    prev_beamevt = *beamevt;
+    prev_beamevt.ClearBeamTracks();
+    prev_beamevt.ClearRecoBeamMomenta();
+
+  }
+  //Start of a new spill, but the first event was 
+  //Not a beam trigger. In this case, it would not
+  //have been filled with info in the block above
+  //So let's make it empty so we aren't putting 
+  //old spill info in the new event
+  if(!validTimeStamp && PrevStart != SpillStart){
+    prev_beamevt = *beamevt;   
   }
   
   beamevt->SetBITrigger(BITrigger);
@@ -915,11 +959,6 @@ void proto::BeamEvent::produce(art::Event & e)
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
 
-  //Pass beamevt to the next event;
-  //Erase the Track and Reco Momentum info
-  prev_beamevt = *beamevt;
-  prev_beamevt.ClearBeamTracks();
-  prev_beamevt.ClearRecoBeamMomenta();
   delete beamevt;
   e.put(std::move(beamData));
  
@@ -927,7 +966,6 @@ void proto::BeamEvent::produce(art::Event & e)
   fOutTree->Fill();
  
   prev_event_time = eventTime; 
-  PrevStart = SpillStart;
   theTracks.clear();
   current.clear();
   if(usedEventTime) fMultipleTimes.clear();
@@ -1019,21 +1057,15 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   
   double low = acqStampGeneralTrigger[1];
   uint32_t low32 = (uint32_t)low;
-  std::cout << low << " " << low32 << std::endl;
   std::bitset<64> lowbits = low32;
-  std::cout << lowbits << std::endl;
 
   double high = acqStampGeneralTrigger[0];
   uint32_t high32 = (uint32_t)high;
-  std::cout << high << " " << high32 << std::endl;
   std::bitset<64> highbits = high32;
-  std::cout << highbits << std::endl;
 
   highbits = highbits << 32;
-  std::cout << highbits << std::endl;
   std::bitset<64> joinedbits = highbits ^ lowbits;
 
-  std::cout << joinedbits.to_ullong() << std::endl;
   acqTime = joinedbits.to_ullong() / 1000000000.; 
 
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
@@ -1067,16 +1099,10 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   std::vector<std::pair<double,double>> unorderedTOF2ATime;
   std::vector<std::pair<double,double>> unorderedTOF2BTime;
 
-/*
-    std::cout << "SECONDS!!" << std::endl;
-    for(size_t i = 0; i < secondsGeneralTrigger.size(); ++i){
-      std::cout << secondsGeneralTrigger[i] << std::endl;
-    }
-*/
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
-    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
+//    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+//    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
     fGenTrigCoarse = coarseGeneralTrigger[i];
     fGenTrigFrac = fracGeneralTrigger[i];
 
@@ -1090,11 +1116,13 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
  // for(size_t i = 0; i < coarseTOF1A.size(); ++i){
-    std::cout << "TOF1A " << i << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
+ //   std::cout << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
     fXTOF1ACoarse = coarseTOF1A[i];
     fXTOF1AFrac = fracTOF1A[i];
     fXTOF1ASec = secondsTOF1A[2*i + 1];
-//    if(fXTOF1ASec < eventTime) break; 
+
+    if(fXTOF1ASec < secondsTOF1A[1]) break; 
+
     if (fXTOF1ACoarse == 0.0 && fXTOF1AFrac == 0.0 && fXTOF1ASec == 0.0) break;
     unorderedTOF1ATime.push_back(std::make_pair(fXTOF1ASec, (fXTOF1ACoarse*8. + fXTOF1AFrac/512.)) );
  //   fXTOF1ATree->Fill();
@@ -1102,11 +1130,13 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
  // for(size_t i = 0; i < coarseTOF1B.size(); ++i){
-    std::cout << "TOF1B " << i << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
+ //   std::cout << "TOF1B " << i << " " << secondsTOF1B[2*i+1] << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
     fXTOF1BCoarse = coarseTOF1B[i];
     fXTOF1BFrac = fracTOF1B[i];
     fXTOF1BSec = secondsTOF1B[2*i + 1];
-//    if(fXTOF1BSec < eventTime) break;
+
+    if(fXTOF1BSec < secondsTOF1B[1]) break; 
+
     if (fXTOF1BCoarse == 0.0 && fXTOF1BFrac == 0.0 && fXTOF1BSec == 0.0) break;
     unorderedTOF1BTime.push_back(std::make_pair(fXTOF1BSec, (fXTOF1BCoarse*8. + fXTOF1BFrac/512.)) );
  //   fXTOF1BTree->Fill();
@@ -1114,11 +1144,13 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
  // for(size_t i = 0; i < coarseTOF2A.size(); ++i){
-    std::cout << "TOF2A " << i << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
+ //   std::cout << "TOF2A " << i << " " << secondsTOF2A[2*i+1] << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
     fXTOF2ACoarse = coarseTOF2A[i];
     fXTOF2AFrac = fracTOF2A[i];
     fXTOF2ASec = secondsTOF2A[2*i + 1];
-//    if(fXTOF2ASec < eventTime) break;
+
+    if(fXTOF2ASec < secondsTOF2A[1]) break; 
+
     if (fXTOF2ACoarse == 0.0 && fXTOF2AFrac == 0.0 && fXTOF2ASec == 0.0) break;
     unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
  //   fXTOF2ATree->Fill();
@@ -1126,11 +1158,13 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
  // for(size_t i = 0; i < coarseTOF2B.size(); ++i){
-    std::cout << "TOF2B " << i << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
+ //   std::cout << "TOF2B " << i << " " << secondsTOF2B[2*i+1] << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
     fXTOF2BCoarse = coarseTOF2B[i];
     fXTOF2BFrac = fracTOF2B[i];
     fXTOF2BSec = secondsTOF2B[2*i + 1];
-//    if(fXTOF2BSec < eventTime) break;
+
+    if(fXTOF2BSec < secondsTOF2B[1]) break; 
+
     if (fXTOF2BCoarse == 0.0 && fXTOF2BFrac == 0.0 && fXTOF2BSec == 0.0) break;
     unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
  //   fXTOF2BTree->Fill();
@@ -1140,6 +1174,9 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   //Look for coincidences between TOF1 and TOF2
   //There should only be one match between A and B
   for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
+
+ //   std::cout << "Matching for TOF" << std::endl;
+
     bool found_TOF1 = false;
     bool found_TOF2 = false;
 
@@ -1151,6 +1188,11 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     double the_TOF1_ns = -1.;
     double the_TOF2_ns = -1.;
 
+    bool TOF1A_passed = false;
+    bool TOF1B_passed = false;
+    bool TOF2A_passed = false;
+    bool TOF2B_passed = false;
+
     //1A2A = 0; 1B2A = 1, 1A2B = 2,  1B2B = 3
     //Add 1 for 1B, add 2 for 2B
     int channel = 0;
@@ -1159,27 +1201,33 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     //Iterate through TOF1s, look for matching trigger
     //First in A, then in B. 
     for(size_t iT2 = 0; iT2 < 4000; ++iT2){
-      if (iT2 < unorderedTOF1ATime.size()){
+      if (iT2 < unorderedTOF1ATime.size() && !found_TOF1 && !TOF1A_passed){
 
         double temp_sec = unorderedTOF1ATime[iT2].first;
         double temp_ns  = unorderedTOF1ATime[iT2].second;
 
-        std::cout << "TOF1A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
-        std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "TOF1A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
+ //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
 
         double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
+ //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
+
+        if(delta_ns + delta_sec < 0.){
+ //         std::cout << "Passed TOF1A" << std::endl;
+          TOF1A_passed = true;
+        }
+
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-//        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
         if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
-          std::cout << "FOUND" << std::endl;
+ //         std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
           the_TOF1_ns  = temp_ns;
         }
       }
-      if (iT2 < unorderedTOF1BTime.size()){
+      if (iT2 < unorderedTOF1BTime.size() && !found_TOF1  && !TOF1B_passed){
 
         double temp_sec = unorderedTOF1BTime[iT2].first;
         double temp_ns  = unorderedTOF1BTime[iT2].second;
@@ -1187,13 +1235,18 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
-        std::cout << "TOF1B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
-        std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "TOF1B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
+ //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
+
+        if(delta_ns + delta_sec < 0.){
+ //         std::cout << "Passed TOF1B" << std::endl;
+          TOF1B_passed = true;
+        }
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-//        if(!found_TOF1 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
-        if( !found_TOF1  && ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
-          std::cout << "FOUND" << std::endl;
+        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
+ //         std::cout << "FOUND" << std::endl;
           found_TOF1 = true; 
           the_TOF1_sec = temp_sec;
           the_TOF1_ns  = temp_ns;
@@ -1203,7 +1256,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
       }
     
       //Now look through the timestamps in scintillator 2    
-      if (iT2 < unorderedTOF2ATime.size()){
+      if (iT2 < unorderedTOF2ATime.size() && !found_TOF2  && !TOF2A_passed){
 
         double temp_sec = unorderedTOF2ATime[iT2].first;
         double temp_ns  = unorderedTOF2ATime[iT2].second;
@@ -1211,19 +1264,25 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
-        std::cout << "TOF2A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
-        std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "TOF2A: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
+ //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
+
+        if(delta_ns + delta_sec < 0.){
+ //         std::cout << "Passed TOF2A" << std::endl;
+          TOF2A_passed = true;
+        }
+
 
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-//        if( (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500.  && the_gen_ns >= temp_ns){
         if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
-          std::cout << "FOUND" << std::endl;
+ //         std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
           the_TOF2_ns  = temp_ns;
         }
       }
-      if (iT2 < unorderedTOF2BTime.size()){
+      if (iT2 < unorderedTOF2BTime.size() && !found_TOF2  && !TOF2B_passed){
 
         double temp_sec = unorderedTOF2BTime[iT2].first;
         double temp_ns  = unorderedTOF2BTime[iT2].second;
@@ -1231,13 +1290,18 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double delta_sec = (the_gen_sec - temp_sec)*1.e9; //convert into ns
         double delta_ns = the_gen_ns - temp_ns;
 
-        std::cout << "TOF2B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
-        std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "TOF2B: " << the_gen_ns << " " << temp_ns << " " << the_gen_ns - temp_ns << std::endl;
+ //       std::cout << "\t" << the_gen_sec << " " << temp_sec << " " << the_gen_sec - temp_sec << std::endl;
+ //       std::cout << "\n\t" << delta_sec + delta_ns << std::endl << std::endl;
+
+        if(delta_ns + delta_sec < 0.){
+ //         std::cout << "Passed TOF2B" << std::endl;
+          TOF2B_passed = true;
+        }
         
         //Match the seconds, look for ns portions 0.ns < diff < 500.ns        
-//        if(!found_TOF2 &&  (the_gen_sec == temp_sec) && (the_gen_ns - temp_ns) < 500. && the_gen_ns >= temp_ns){
-        if( !found_TOF2 && ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
-          std::cout << "FOUND" << std::endl;
+        if( ( delta_sec + delta_ns < 500. ) && ( delta_sec + delta_ns > 0. ) ){
+ //         std::cout << "FOUND" << std::endl;
           found_TOF2 = true; 
           the_TOF2_sec = temp_sec;
           the_TOF2_ns  = temp_ns;
@@ -1247,14 +1311,20 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
       }
 
       if(found_TOF1 && found_TOF2){
-        std::cout << "Found matching TOF " << the_gen_ns << " " << the_TOF1_ns << " " << the_TOF2_ns << std::endl;
-        std::cout << "Found matching TOF " << the_gen_sec << " " << the_TOF1_sec << " " << the_TOF2_sec << std::endl;
+ //       std::cout << "Found matching TOF " << the_gen_ns << " " << the_TOF1_ns << " " << the_TOF2_ns << std::endl;
+ //       std::cout << "Found matching TOF " << the_gen_sec << " " << the_TOF1_sec << " " << the_TOF2_sec << std::endl;
+ //       std::cout << std::endl;
 
         //Convert from TAI to UTC at this point
         beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
         beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
         beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
         beamevt->AddTOFChan(channel);        
+        break;
+      }
+
+      if(TOF1A_passed && TOF1B_passed && TOF2A_passed && TOF2B_passed){
+        std::cout << "PASSED ALL" << std::endl;
         break;
       }
 
@@ -1281,28 +1351,22 @@ void proto::BeamEvent::parseXTOFUnmatched(uint64_t time){
   
   double low = acqStampGeneralTrigger[1];
   uint32_t low32 = (uint32_t)low;
-  std::cout << low << " " << low32 << std::endl;
   std::bitset<64> lowbits = low32;
-  std::cout << lowbits << std::endl;
 
   double high = acqStampGeneralTrigger[0];
   uint32_t high32 = (uint32_t)high;
-  std::cout << high << " " << high32 << std::endl;
   std::bitset<64> highbits = high32;
-  std::cout << highbits << std::endl;
 
   highbits = highbits << 32;
-  std::cout << highbits << std::endl;
   std::bitset<64> joinedbits = highbits ^ lowbits;
 
-  std::cout << joinedbits.to_ullong() << std::endl;
   acqTime = joinedbits.to_ullong() / 1000000000.; 
 
   std::vector<std::pair<double,double>> unorderedGenTrigTime;
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
-    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
+//    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+ //   std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
     fGenTrigCoarse = coarseGeneralTrigger[i];
     fGenTrigFrac = fracGeneralTrigger[i];
 
@@ -1353,15 +1417,15 @@ void proto::BeamEvent::parseXCET(uint64_t time){
 
   beam::CKov CKov1Status, CKov2Status;
 
-  double triggerTime = beamevt->GetT0( beamevt->GetActiveTrigger() ).first;
-  triggerTime += 1.e-9*beamevt->GetT0( beamevt->GetActiveTrigger() ).second;
+//  double triggerTime = beamevt->GetT0( beamevt->GetActiveTrigger() ).first;
+//  triggerTime += 1.e-9*beamevt->GetT0( beamevt->GetActiveTrigger() ).second;
 
-  CKov1Status.timeStamp = triggerTime;
+//  CKov1Status.timeStamp = triggerTime;
   CKov1Status.pressure  = CKov1Pressure;
   CKov1Status.trigger   = C1;
   beamevt->SetCKov0( CKov1Status );
 
-  CKov2Status.timeStamp = triggerTime;
+//  CKov2Status.timeStamp = triggerTime;
   CKov2Status.pressure  = CKov2Pressure;
   CKov2Status.trigger   = C2;
   beamevt->SetCKov1( CKov2Status );
@@ -1916,6 +1980,8 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fMatchToTPC          = p.get<bool>("MatchToTPC");
   fUnmatched           = p.get<bool>("Unmatched");
   fForceNewFetch       = p.get<bool>("ForceNewFetch");
+  fMatchTime           = p.get<bool>("MatchTime");
+  fForceRead           = p.get<bool>("ForceRead");
 
 
   fTimingCalibration      = p.get<double>("TimingCalibration");
