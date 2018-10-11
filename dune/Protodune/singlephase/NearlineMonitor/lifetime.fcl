@@ -7,6 +7,12 @@ proto_lifetime:
   ClusterModuleLabel:   "trajcluster"
   ChgCuts:              [ 0.5, 1.3 ]
   ChiCut:               5
+  TicksPerBin:          200 # 200 ticks * 0.5 us/tick = 0.1 ms
+  MinBins:              5 # sets min length of cluster = MinBins*TicksPerBin
+  MinHits:              100 # sets width of cluster in z direction
+  MinDTickSNR:          500 # set width of cluster in x direction
+  MinDWireSNR:          300 # set width of cluster in z direction
+  MinHitsSNR:           300 # related to MinDWireSNR
   DebugCluster:         -1
 }
 

@@ -23,7 +23,7 @@ dunefddphase_detectorclocks.G4RefTime:            0.  # G4 time [us] where elect
 dunefddphase_detectorclocks.TriggerOffsetTPC:     0.  # Time [us] for TPC readout start w.r.t. trigger time
 dunefddphase_detectorclocks.FramePeriod:       8000.  # Frame period [us]
 dunefddphase_detectorclocks.ClockSpeedTPC:        2.5 # TPC clock speed in MHz
-dunefddphase_detectorclocks.ClockSpeedOptical:   65.  # Optical clock speed in MHz
+dunefddphase_detectorclocks.ClockSpeedOptical:   250.  # Optical clock speed in MHz
 dunefddphase_detectorclocks.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
 dunefddphase_detectorclocks.DefaultTrigTime:      0.  # Default trigger time [us].
 dunefddphase_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
