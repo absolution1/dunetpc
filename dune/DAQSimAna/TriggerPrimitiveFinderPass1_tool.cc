@@ -7,48 +7,12 @@
 // from cetlib version v3_02_00.
 ////////////////////////////////////////////////////////////////////////
 
-#include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Utilities/ToolMacros.h"
-#include "fhiclcpp/ParameterSet.h"
-
-#include "dune/DAQSimAna/TriggerPrimitiveFinderTool.h"
+#include "dune/DAQSimAna/TriggerPrimitiveFinderPass1.h"
 
 #include "dune/DAQSimAna/AlgParts.h"
 
 #include <algorithm> // for std::transform
 
-class TriggerPrimitiveFinderPass1 : public TriggerPrimitiveFinderTool {
-public:
-  explicit TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p);
-  // The compiler-generated destructor is fine for non-base
-  // classes without bare pointers or other resource use.
-
-    virtual std::vector<TriggerPrimitiveFinderTool::Hit>
-    findHits(const std::vector<unsigned int>& channel_numbers, 
-             const std::vector<std::vector<short>>& collection_samples);
-    
-
-protected:
-    std::vector<short> downSample(const std::vector<short>& orig);
-    std::vector<short> pedestalSubtract(const std::vector<short>& orig);
-    std::vector<short> filter(const std::vector<short>& orig);
-    void hitFinding(const std::vector<short>& waveform, std::vector<TriggerPrimitiveFinderTool::Hit>& hits, int channel);
-
-private:
-    unsigned int m_threshold;
-
-    bool m_useSignalKill;
-    short m_signalKillLookahead;
-    short m_signalKillThreshold;
-    short m_signalKillNContig;
-
-    short m_frugalNContig;
-
-    bool m_doFiltering;
-
-    unsigned int m_downsampleFactor;
-    std::vector<short> m_filterTaps;
-};
 
 
 TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet const & p)
@@ -62,7 +26,8 @@ TriggerPrimitiveFinderPass1::TriggerPrimitiveFinderPass1(fhicl::ParameterSet con
       m_downsampleFactor(p.get<unsigned int>("DownsampleFactor", 1)),
       // Default filter taps calculated by:
       //  np.round(scipy.signal.firwin(7, 0.1)*100)
-      m_filterTaps(p.get<std::vector<short>>("FilterCoeffs", {2,  9, 23, 31, 23,  9,  2}))
+      m_filterTaps(p.get<std::vector<short>>("FilterCoeffs", {2,  9, 23, 31, 23,  9,  2})),
+      m_multiplier(std::accumulate(m_filterTaps.begin(), m_filterTaps.end(), 0))
 
 // Initialize member data here.
 {
@@ -79,14 +44,14 @@ std::vector<short> TriggerPrimitiveFinderPass1::downSample(const std::vector<sho
     }
     else{
         std::vector<short> waveform;
-        for(size_t i=0; i<waveformOrig.size(); i+=m_downsampleFactor){
-            waveform.push_back(waveformOrig[i]);
+        for(size_t i=0; i<orig.size(); i+=m_downsampleFactor){
+            waveform.push_back(orig[i]);
         }
         return waveform;
     }
 }
 
-std::vector<short> TriggerPrimitiveFinderPass1::pedestalSubtract(const std::vector<short>& waveform)
+std::vector<short> TriggerPrimitiveFinderPass1::findPedestal(const std::vector<short>& waveform)
 {
     //---------------------------------------------
     // Pedestal subtraction
@@ -97,12 +62,7 @@ std::vector<short> TriggerPrimitiveFinderPass1::pedestalSubtract(const std::vect
                                 m_signalKillThreshold,
                                 m_signalKillNContig) :
         frugal_pedestal(waveform, m_frugalNContig);
-
-    std::vector<short> pedsub(waveform.size(), 0);
-    for(size_t i=0; i<pedsub.size(); ++i){
-        pedsub[i]=waveform[i]-pedestal[i];
-    }
-    return pedsub;
+    return pedestal;
 }
 
 std::vector<short> TriggerPrimitiveFinderPass1::filter(const std::vector<short>& pedsub)
@@ -110,13 +70,17 @@ std::vector<short> TriggerPrimitiveFinderPass1::filter(const std::vector<short>&
     //---------------------------------------------
     // Filtering
     //---------------------------------------------
+    const size_t ntaps=m_filterTaps.size();
+    const short* taps=m_filterTaps.data();
+
+
     std::vector<short> filtered(m_doFiltering ? 
                                 apply_fir_filter(pedsub, ntaps, taps) :
                                 pedsub);
     if(!m_doFiltering){
         std::transform(filtered.begin(), filtered.end(),
                        filtered.begin(), 
-                       [=](short a) { return a*multiplier; });
+                       [=](short a) { return a*m_multiplier; });
     }
     return filtered;
 }
@@ -132,10 +96,10 @@ TriggerPrimitiveFinderPass1::hitFinding(const std::vector<short>& waveform,
     bool is_hit=false;
     bool was_hit=false;
     TriggerPrimitiveFinderTool::Hit hit(channel, 0, 0, 0);
-    for(size_t isample=0; isample<filtered.size()-1; ++isample){
+    for(size_t isample=0; isample<waveform.size()-1; ++isample){
         // if(ich>11510) std::cout << isample << " " << std::flush;
         int sample_time=isample*m_downsampleFactor;
-        short adc=filtered[isample];
+        short adc=waveform[isample];
         is_hit=adc>(short)m_threshold;
         if(is_hit && !was_hit){
             // We just started a hit. Set the start time
@@ -149,7 +113,7 @@ TriggerPrimitiveFinderPass1::hitFinding(const std::vector<short>& waveform,
         }
         if(!is_hit && was_hit){
             // The hit is over. Push it to the output vector
-            hit.charge/=multiplier;
+            hit.charge/=m_multiplier;
             hits.push_back(hit);
         }
         was_hit=is_hit;
@@ -168,15 +132,17 @@ TriggerPrimitiveFinderPass1::findHits(const std::vector<unsigned int>& channel_n
     // for(int i=0; i<10; ++i) std::cout << collection_samples[0][i] << " ";
     // std::cout << std::endl;
 
-    const size_t ntaps=m_filterTaps.size();
-    const short* taps=m_filterTaps.data();
-    const int multiplier=std::accumulate(m_filterTaps.begin(), m_filterTaps.end(), 0);
-
     for(size_t ich=0; ich<collection_samples.size(); ++ich){
         const std::vector<short>& waveformOrig=collection_samples[ich];
 
         std::vector<short> waveform=downSample(waveformOrig);
-        std::vector<short> pedsub=pedestalSubtract(waveform);
+
+        std::vector<short> pedestal=findPedestal(waveform);
+        std::vector<short> pedsub(waveform.size(), 0);
+        for(size_t i=0; i<pedsub.size(); ++i){
+            pedsub[i]=waveform[i]-pedestal[i];
+        }
+
         std::vector<short> filtered=filter(pedsub);
         hitFinding(filtered, hits, channel_numbers[ich]);
     }
