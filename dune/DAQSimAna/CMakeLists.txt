@@ -29,12 +29,18 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
-  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
+  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderPass2_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
   )
 
 simple_plugin(TriggerPrimitiveFinderPass1 "tool"
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
+)
+
+simple_plugin(TriggerPrimitiveFinderPass2 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+  dune_DAQSimAna_TriggerPrimitiveFinderPass1_tool
 )
 
 simple_plugin(TriggerPrimitiveFinderTemplate "tool"
