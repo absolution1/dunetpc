@@ -14,10 +14,19 @@ pdsp_channel_status: {
 
   # list of bad channels:
   BadChannels:   [
-     4111, # Inactive FE
+    # CE group: Inactive FE
+     4111,
      4112,
     11842,
- # Broken connection
+    # CE group: Broken connection
+        1,
+      400,
+      401,
+      800,
+      801,
+      876,
+     1200,
+     2961,
      5321,
      5363,
      6132,
@@ -43,7 +52,9 @@ pdsp_channel_status: {
     12756,
     12801,
     13001,
-    13081
+    13081,
+    # CE group: good.
+        2
   ]
 
   # list of bad noisy channels:

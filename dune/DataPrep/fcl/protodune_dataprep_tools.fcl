@@ -12,6 +12,9 @@ data.pd_Tick0: 500
 tools.tickRanges.plotTicks.begin: 4000
 tools.tickRanges.plotTicks.end:   5000
 
+tools.tickRanges.plotAllTicks.begin: 0
+tools.tickRanges.plotAllTicks.end:   0
+
 ################################################################################
 # Channel mapping.
 ################################################################################
@@ -314,6 +317,15 @@ tools.pdcht_Iplanes.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
                                     tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
 tools.pdcht_Iplanes.ChannelLineModulus: 40
 tools.pdcht_Iplanes.ChannelLinePattern: [0]
+
+# Plot APA3u (where the beam enters).
+tools.pdcht_Apa3u: @local::tools.pdcht_Iplanes
+tools.pdcht_Apa3u.ChannelRanges: [tpp0u]
+
+# Plot APA3v (where the beam enters).
+tools.pdcht_Apa3v: @local::tools.pdcht_Iplanes
+tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
+
 
 ################################################################################
 # ADC channel metric plotters.
