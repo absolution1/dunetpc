@@ -129,6 +129,11 @@ simple_plugin(AdcUnderflowFlagger   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(FclStickyCodeFlagger   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcKeepAllSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

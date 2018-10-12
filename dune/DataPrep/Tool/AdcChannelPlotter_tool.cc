@@ -38,6 +38,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_HistTitle(ps.get<string>("HistTitle")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
+  m_PlotSamMin(ps.get<Index>("PlotSamMin")),
+  m_PlotSamMax(ps.get<Index>("PlotSamMax")),
   m_HistManager(ps.get<string>("HistManager")),
   m_phm(nullptr) {
   const string myname = "AdcChannelPlotter::ctor: ";
@@ -71,6 +73,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "     HistTitle: " << m_HistTitle << endl;
     cout << myname << "  RootFileName: " << m_RootFileName << endl;
     cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "    PlotSamMin: " << m_PlotSamMin << endl;
+    cout << myname << "    PlotSamMax: " << m_PlotSamMax << endl;
     cout << myname << "   HistManager: " << m_HistManager << endl;
   }
 }
@@ -113,7 +117,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.raw[isam];
         ph->SetBinContent(isam+1, sig);
-        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+        if ( isam >= m_PlotSamMin && isam < m_PlotSamMax ) {
           if ( sig < sigMin ) sigMin = sig;
           if ( sig > sigMax ) sigMax = sig;
         }
@@ -135,7 +139,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.raw[isam];
         ph->Fill(sig);
-        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+        if ( isam >= m_PlotSamMin && isam < m_PlotSamMax ) {
           if ( sig < sigMin ) sigMin = sig;
           if ( sig > sigMax ) sigMax = sig;
         }
@@ -159,7 +163,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.samples[isam];
         ph->SetBinContent(isam+1, sig);
-        if ( isam >= m_plotSamMin && isam < m_plotSamMax ) {
+        if ( isam >= m_PlotSamMin && isam < m_PlotSamMax ) {
           if ( sig < sigMin ) sigMin = sig;
           if ( sig > sigMax ) sigMax = sig;
         }
@@ -232,7 +236,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           man.split(nx,ny);
           for ( Index ipad=0; ipad<nplt; ++ipad ) {
             man.man(ipad)->addHorizontalModLines(64);
-            man.man(ipad)->setRangeX(m_plotSamMin, m_plotSamMax);
+            man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
           }
           pfnames[type] = nameReplace(m_PlotFileName, acd, type);
         }

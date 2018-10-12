@@ -26,7 +26,7 @@ felix_raw_decoder:
   ExpectContainerFragments: true
 }
 
-# configuration for combined TPC Raw Decoder module.  Supersedes the RCE and FELIX
+# configuration for combined TPC Raw Decoder module. Supersedes the RCE and FELIX
 # raw decoder modules listed above.
 
 pdsp_tpc_raw_decoder:
@@ -104,24 +104,34 @@ ssp_raw_decoder:
 
   module_type: "SSPRawDecoder"
   RawDataLabel: "daq"
-  OutputDataLabel: "daq"
+   
+  SplitTriggers: false           # If true, split into external and internal trigger data products
+  OutputDataLabel: "daq"         # Used if SplitTriggers = false
+  ExtTrigOutputLabel: "external" # Used if SplitTriggers = true
+  IntTrigOutputLabel: "internal" # Used if SPlitTriggers = true
+   
 #  UseChannelMap: "true"
   UseChannelMap: "false"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: false
+  verbose_metadata: "false"
   verbose_adcs: 0
 
   number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
-  SSP_m2: 10   # (unused in the code)
-  SSP_i1: 500  # samples used to calculate pedestal
-  SSP_i2: 500  # samples used to calculate peak height
+  SSP_m2: 10   # samples used to calculate integral
+  SSP_i1: 40  # samples used to calculate pedestal
+  SSP_i2: 1200  # samples used to calculate peak height
 
-  NOvAClockFrequency: 64.0 # MHz
+  NOvAClockFrequency: 150.0 # MHz
   SPESize: 25
+ 
 }
+
+ssp_raw_decoder_split: @local::ssp_raw_decoder
+ssp_raw_decoder_split.SplitTriggers: true
+
 
 ctb_raw_decoder:
 {

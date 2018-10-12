@@ -54,6 +54,8 @@ tools.adcPlotRaw: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
   HistManager: ""
 }
 
@@ -66,6 +68,8 @@ tools.adcPlotPrepared: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
   HistManager: ""
 }
 
@@ -78,6 +82,8 @@ tools.adcPlotRawDist: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
   HistManager: ""
 }
 

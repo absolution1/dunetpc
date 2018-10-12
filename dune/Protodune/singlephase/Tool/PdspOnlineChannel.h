@@ -36,7 +36,7 @@
 // It is expected that FEMB ordering will be used most often so that
 //     KAPA = chanOn/2560    identifies APAs (TPC sets) as indicated above
 //     FEMB = chanOn/128     is a global FEMB identifier
-//     KFMB = chanOn % 128   is the channe # in the FEMB
+//     KFMB = chanOn % 128   is thel channe # in the FEMB
 //
 // Configuration parameters:
 //   LogLevel - 0=silent, 1=init messages, 2=message every call

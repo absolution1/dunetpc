@@ -15,6 +15,8 @@
 //   RootFileName: If non-blank, histograms are written to this file.
 //                 File is opened in UPDATE mode.
 //   PlotFileName: Name of the file to which plots should be saved.
+//   PlotSamMin: Min tick for plots.
+//   PlotSamMax: Max tick for plots.
 //   HistManager: Name of the tool that manages the histograms. Obsolete.
 //                If blank, they are owned by the file or the current Root directory.
 // The following subsitutions are made in the names:
@@ -59,11 +61,9 @@ private:
   Name m_HistTitle;
   Name m_RootFileName;
   Name m_PlotFileName;
+  Index m_PlotSamMin;      // Tick range to plot.
+  Index m_PlotSamMax;
   Name m_HistManager;
-
-  // Derived/fixed data.
-  Index m_plotSamMin = 0;      // Tick range to plot.
-  Index m_plotSamMax = 1000;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;

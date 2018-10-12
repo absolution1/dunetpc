@@ -1,0 +1,38 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+pdsp_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+     4111, # Inactive FE
+     4112,
+    11842,
+    10800, # Broken connection
+    11024,
+    11457,
+    11459,
+    11463,
+    11469,
+    11517,
+    11669,
+    11679,
+    12756
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+  ]
+
+}
+
+END_PROLOG

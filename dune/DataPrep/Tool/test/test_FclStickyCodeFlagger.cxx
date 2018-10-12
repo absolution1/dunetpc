@@ -1,9 +1,9 @@
-// test_AdcChannelPlotter.cxx
+// test_FclStickyCodeFlagger.cxx
 //
 // David Adams
 // April 2017
 //
-// Test AdcChannelPlotter.
+// Test FclStickyCodeFlagger.
 
 #include <string>
 #include <iostream>
@@ -19,11 +19,12 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using fhicl::ParameterSet;
+using Index = unsigned int;
 
 //**********************************************************************
 
-int test_AdcChannelPlotter(bool useExistingFcl =false) {
-  const string myname = "test_AdcChannelPlotter: ";
+int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
+  const string myname = "test_FclStickyCodeFlagger: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -31,23 +32,19 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_AdcChannelPlotter.fcl";
+  string fclfile = "test_FclStickyCodeFlagger.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
-    fout << "tools.mytool: {" << endl;
-    fout << "  tool_type: AdcChannelPlotter" << endl;
-    fout << "  LogLevel: 1" << endl;
-    fout << "  HistTypes: [\"raw\", \"rawdist\", \"prepared\"]" << endl;
-    fout << "  HistName: \"adc%TYPE%_%EVENT%_%CHAN%\"" << endl;
-    fout << "  HistTitle: \"ADC %TYPE% event %EVENT% channel %CHAN%\"" << endl;
-    fout << "  RootFileName: \"adcplot.root\"" << endl;
-    fout << "  PlotFileName: \"adcsigs.png\"" << endl;
-    fout << "  PlotSamMin: 0" << endl;
-    fout << "  PlotSamMax: 100" << endl;
-    fout << "  HistManager: \"\"" << endl;
-    fout << "  MaxSample: 80" << endl;
+    fout << "tools: {" << endl;
+    fout << "  mytool: {" << endl;
+    fout << "    tool_type: FclStickyCodeFlagger" << endl;
+    fout << "    LogLevel: 3" << endl;
+    fout << "    StickyCode: 8" << endl;
+    fout << "    StickyCodes: {" << endl;
+    fout << "      chan002: [105, 110]" << endl;
+    fout << "    }" << endl;
+    fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -60,7 +57,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() >= 1 );
+  assert( tm.toolNames().size() == 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -68,10 +65,8 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
   assert( padv != nullptr );
 
   cout << myname << line << endl;
-  cout << myname << "Create data and call too." << endl;
+  cout << myname << "Create data and call tool." << endl;
   AdcIndex nevt = 2;
-  string lab = "plane 3u";
-  float peds[10] = {701.1, 711.2, 733.3, 690.4, 688.5, 703.6, 720.7, 720.8, 695.9, 702.0};
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
@@ -81,31 +76,26 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
-      float ped = peds[icha];
+      float ped = 100.0;
       data.run = 101;
       data.subRun = 23;
       data.event = ievt;
       data.channel = icha;
       data.pedestal = ped;
-      for ( AdcIndex itic=0; itic<100; ++itic ) {
-        float xadc = ped + rand()%20 - 10.0;
-        AdcIndex iticeff = itic - 3*icha;
-        if ( iticeff > 20 && iticeff < 40 ) xadc +=600;
-        AdcCount iadc = xadc;
+      for ( AdcIndex itic=0; itic<20; ++itic ) {
+        AdcCount iadc = ped + itic;
         data.raw.push_back(iadc);
-        data.flags.push_back(0);
-        data.samples.push_back(iadc - ped);
-        data.signal.push_back(xadc - ped > 300.0 );
       }
-      AdcIndex tp = 10*ievt + 60 - 2.3*icha;
-      AdcIndex tm = tp - 8;
-      data.raw[tp] += 100;
-      data.samples[tp] += 100;
-      data.raw[tm] -= 100;
-      data.samples[tm] -= 100;
-      data.flags[tm] = 4;
-      data.roisFromSignal();
-      assert( padv->view(datamap[icha]) == 0 );
+      DataMap dm = padv->update(datamap[icha]);
+      assert( dm == 0 );
+      dm.print();
+      if ( data.channel == 2 ) {
+        for ( Index isam=0; isam<data.raw.size(); ++isam ) {
+          cout << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
+          if ( data.raw[isam] == 105 || data.raw[isam] == 110 ) assert( data.flags[isam] == 8 );
+          else assert( data.flags[isam] == 0 );
+        }
+      }
     }
   }
 
@@ -127,7 +117,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_AdcChannelPlotter(useExistingFcl);
+  return test_FclStickyCodeFlagger(useExistingFcl);
 }
 
 //**********************************************************************
