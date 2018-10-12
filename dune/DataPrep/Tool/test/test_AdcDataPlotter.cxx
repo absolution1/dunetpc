@@ -48,6 +48,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "            DataType: 0" << endl;
     fout << "            LogLevel: 2" << endl;
     fout << "           TickRange: \"myTicks\"" << endl;
+    fout << "           TickRebin: 1" << endl;
     fout << "       ChannelRanges: []" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
