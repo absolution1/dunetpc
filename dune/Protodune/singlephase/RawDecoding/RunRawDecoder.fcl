@@ -26,7 +26,7 @@ physics:
   {
 
     timingrawdecoder: @local::timing_raw_decoder   
-    ssprawdecoder: @local::ssp_raw_decoder  
+    ssprawdecoder: @local::ssp_raw_decoder_split
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
     ctbrawdecoder: @local::ctb_raw_decoder
   }
