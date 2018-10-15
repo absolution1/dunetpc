@@ -24,7 +24,6 @@
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
-//#include "dune/BeamData/ProtoDUNEBeamSpill/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -80,7 +79,7 @@ public:
   void endSubRun(art::SubRun & sr) override;
 
 
-  std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
+  //std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   uint64_t joinHighLow(double,double);
 
   TVector3 ConvertProfCoordinates(double x, double y, double z, double zOffset);
@@ -307,8 +306,6 @@ private:
   double fNP04FrontZ;  
   double fBeamX, fBeamY, fBeamZ;
 
-  bool   fMatchToTPC;
-  bool   fUnmatched;
   bool   fForceNewFetch;
   bool   fMatchTime;
   bool   fForceRead;
@@ -752,9 +749,6 @@ void proto::BeamEvent::produce(art::Event & e)
 
         // Parse the Time of Flight Counter data for the list
         // of times that we are using
-        // 
-        // fUnmatched flag is for the case that the TOF monitors 
-        // were experiencing technical difficulty
         try{
           parseXTOF(fetch_time);
         }
@@ -848,70 +842,6 @@ void proto::BeamEvent::produce(art::Event & e)
           }
           
         }
-     
-     
-        //Analyze reconstructed tracks if flag enabled
-        //
-        if(fMatchToTPC){
-
-          auto const TrackHandle = e.getValidHandle< std::vector< recob::Track > >("pandoraTrack");
-          std::vector<recob::Track> TrackVec(*TrackHandle);                   
-          std::cout << "Got " << TrackVec.size()  << " Tracks" << std::endl;
-
-          //Go through the reco tracks.
-          //Skip any that aren't "close" to the beam window
-          //"Close": X < 0, Y > 000, Z < 100
-          //
-          for(size_t iTrack = 0; iTrack < TrackVec.size(); ++iTrack){
-            const recob::Track & TPCTrack = TrackVec[iTrack];
-            const recob::Trajectory & theTraj = TPCTrack.Trajectory().Trajectory();
-            std::cout << "Start of Track " << iTrack << ": " 
-                       << theTraj.Positions()[0].X() << " " 
-                       << theTraj.Positions()[0].Y() << " " 
-                       << theTraj.Positions()[0].Z() << std::endl;
-            if( (theTraj.Positions()[0].X() < 0.) && (theTraj.Positions()[0].Y() > 000.) && (theTraj.Positions()[0].Z() < 100.) ){
-              std::cout << "Found potential beam track" << std::endl;
-        
-              //Go through all of the tracks grabbed from the beam
-              //
-              for(size_t iBeam = 0; iBeam < beamevt->GetNBeamTracks(); ++iBeam){
-                const recob::Track & beamTrack = beamevt->GetBeamTrack(iBeam);
-                const recob::Trajectory & beamTraj = beamTrack.Trajectory().Trajectory();
-                std::cout << "\tStart of Track " << iBeam << ": " 
-                          << beamTraj.Positions()[2].X()  << " " 
-                          << beamTraj.Positions()[2].Y()  << " " 
-                          << beamTraj.Positions()[2].Z()  << std::endl;
-
-                fBeamPosX = beamTraj.Positions()[2].X();
-                fBeamPosY = beamTraj.Positions()[2].Y();
-                fBeamPosZ = beamTraj.Positions()[2].Z();
-                fTrackPosX = theTraj.Positions()[2].X();
-                fTrackPosY = theTraj.Positions()[2].Y();
-                fTrackPosZ = theTraj.Positions()[2].Z();
-
-                fDeltaX = fTrackPosX - fBeamPosX;
-                fDeltaY = fTrackPosY - fBeamPosY;
-                fDeltaZ = fTrackPosZ - fBeamPosZ;
-
-                fDeltaXHist->Fill( fDeltaX );
-                fDeltaYHist->Fill( fDeltaY );
-                fDeltaZHist->Fill( fDeltaZ );
-
-                fDeltaXYHist->Fill( fDeltaX, fDeltaY ); 
-                fDeltaYZHist->Fill( fDeltaY, fDeltaZ ); 
-                fDeltaZXHist->Fill( fDeltaZ, fDeltaX ); 
-
-                trackNum = iTrack;
-                beamNum = iBeam;
-
-                fDeltaTree->Fill();
-
-              }
-            }
-          }   
-        }
-
-
       }
     }
 
@@ -935,6 +865,7 @@ void proto::BeamEvent::produce(art::Event & e)
   beamevt->SetBITrigger(BITrigger);
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
+  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
 
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
@@ -1091,7 +1022,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
 
     if (fGenTrigFrac == 0.0) break;
-//    fGenTrigTree->Fill();
+    fGenTrigTree->Fill();
   }
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
@@ -1105,7 +1036,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     if (fXTOF1ACoarse == 0.0 && fXTOF1AFrac == 0.0 && fXTOF1ASec == 0.0) break;
     unorderedTOF1ATime.push_back(std::make_pair(fXTOF1ASec, (fXTOF1ACoarse*8. + fXTOF1AFrac/512.)) );
- //   fXTOF1ATree->Fill();
+    fXTOF1ATree->Fill();
   }
     
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
@@ -1119,7 +1050,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     if (fXTOF1BCoarse == 0.0 && fXTOF1BFrac == 0.0 && fXTOF1BSec == 0.0) break;
     unorderedTOF1BTime.push_back(std::make_pair(fXTOF1BSec, (fXTOF1BCoarse*8. + fXTOF1BFrac/512.)) );
- //   fXTOF1BTree->Fill();
+    fXTOF1BTree->Fill();
   }
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
@@ -1133,7 +1064,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     if (fXTOF2ACoarse == 0.0 && fXTOF2AFrac == 0.0 && fXTOF2ASec == 0.0) break;
     unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
- //   fXTOF2ATree->Fill();
+    fXTOF2ATree->Fill();
   }  
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
@@ -1147,7 +1078,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     if (fXTOF2BCoarse == 0.0 && fXTOF2BFrac == 0.0 && fXTOF2BSec == 0.0) break;
     unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
- //   fXTOF2BTree->Fill();
+    fXTOF2BTree->Fill();
   }
 
   for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
@@ -1972,8 +1903,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fBeamY               = p.get<double>("BeamY");
   fBeamZ               = p.get<double>("BeamZ");
 
-  fMatchToTPC          = p.get<bool>("MatchToTPC");
-  fUnmatched           = p.get<bool>("Unmatched");
   fForceNewFetch       = p.get<bool>("ForceNewFetch");
   fMatchTime           = p.get<bool>("MatchTime");
   fForceRead           = p.get<bool>("ForceRead");
@@ -2010,7 +1939,7 @@ uint64_t proto::BeamEvent::joinHighLow(double high, double low){
   return joinedbits.to_ullong(); 
 }
 
-std::bitset<sizeof(long)*CHAR_BIT> proto::BeamEvent::toBinary(long num){
+/*std::bitset<sizeof(long)*CHAR_BIT> proto::BeamEvent::toBinary(long num){
    
   std::bitset<sizeof(double)*CHAR_BIT> mybits(num);  
   std::bitset<32> upper, lower;
@@ -2022,6 +1951,7 @@ std::bitset<sizeof(long)*CHAR_BIT> proto::BeamEvent::toBinary(long num){
 
   return mybits;
 }
+*/
 
 TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, double zOffset){
   double off = fNP04FrontZ - zOffset;

@@ -110,15 +110,6 @@ physics.producers.beamevent.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF
 physics.producers.beamevent.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
 physics.producers.beamevent.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
-#Flag to skip comparing the location of 
-#tracks in beam to tracks in TPC
-#
-#might get rid of and relegate to post
-#processing
-physics.producers.beamevent.MatchToTPC:           "false"
-
-#Flag to skip matching TOFs to GeneralTrigger
-physics.producers.beamevent.Unmatched:            "false"
 
 #Should we grab from the folders each time?
 physics.producers.beamevent.ForceNewFetch:        "false"

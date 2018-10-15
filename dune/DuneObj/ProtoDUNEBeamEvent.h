@@ -107,12 +107,20 @@ namespace beam
       void              SetSpillOffset(double theSpillOffset){ SpillOffset = theSpillOffset; };
       double            GetSpillOffset(){ return SpillOffset; };
 
+      void              SetCTBTimestamp(double theCTBTimestamp){ CTBTimestamp = theCTBTimestamp; };
+      double            GetCTBTimestamp(){ return CTBTimestamp; };
+
     private:
 
       //Time of a coincidence between 2 TOFs
       //Signalling a good particle
       //
       std::vector<std::pair<double,double>> t0;
+
+      //Timestamp from the CTB signaling a 
+      //Good particle signal was received
+      //
+      double CTBTimestamp;
 
       //Set of FBMs
       //Indices: [Monitor in beam]['event' in monitor]
@@ -294,6 +302,11 @@ namespace beam
 
     return lower;
   }
+
+
+//  inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
+//    return std::bitset<32>( (uint32_t(num)) );
+//  }
 
 
   inline short ProtoDUNEBeamEvent::GetFiberStatus(std::string FBMName, size_t nTrigger, size_t iFiber){
