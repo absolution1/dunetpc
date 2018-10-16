@@ -1360,7 +1360,8 @@ namespace dune {
 
       std::string fRawDigitModuleLabel;
       std::string fHitsModuleLabel;
-      std::string fLArG4ModuleLabel;
+      std::string fPhotonPropS1ModuleLabel;
+      std::string fElecDriftModuleLabel;
       std::string fCalDataModuleLabel;
       std::string fGenieGenModuleLabel;
       std::string fCryGenModuleLabel;
@@ -3858,7 +3859,8 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fRawDigitModuleLabel         (pset.get< std::string >("RawDigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
-  fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
+  fPhotonPropS1ModuleLabel  (pset.get< std::string >("PhotonPropS1ModuleLabel")     ),
+  fElecDriftModuleLabel     (pset.get< std::string >("ElecDriftModuleLabel")     ),
   fCalDataModuleLabel       (pset.get< std::string >("CalDataModuleLabel")      ),
   fGenieGenModuleLabel      (pset.get< std::string >("GenieGenModuleLabel")     ),
   fCryGenModuleLabel        (pset.get< std::string >("CryGenModuleLabel")       ),
@@ -4098,7 +4100,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // * photons
   art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
   //std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
-  if(fSavePhotonInfo) evt.getByLabel(fLArG4ModuleLabel, photonHandle);
+  if(fSavePhotonInfo) evt.getByLabel(fPhotonPropS1ModuleLabel, photonHandle);
 //    art::fill_ptr_vector(photonlist, photonHandle);
 
   // * hits
@@ -4412,11 +4414,11 @@ if (fSaveShowerInfo) {
 
 std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
 if (fSaveAuxDetInfo){
-  evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
+  evt.getView(fElecDriftModuleLabel, fAuxDetSimChannels);
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
+if (fIsMC && fSaveGeantInfo){  evt.getView(fElecDriftModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
