@@ -1,19 +1,18 @@
-#ifndef BEAMDATA_PROTODUNEBEAMEVENT_H
-#define BEAMDATA_PROTODUNEBEAMEVENT_H
+#ifndef BEAMDATA_PROTODUNEBEAMSPILL_H
+#define BEAMDATA_PROTODUNEBEAMSPILL_H
 
 #include <vector>
 #include <bitset>
 #include <iostream>
 #include <map>
 #include "lardataobj/RecoBase/Track.h"
-#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 
 namespace beam
 {
   
   //Fiber Beam Monitor
   //
-/*  struct FBM{
+  struct FBM{
 
     //Bitmap for hit fibers in the monitor
 //    std::bitset<192> fibers;
@@ -37,13 +36,13 @@ namespace beam
     double pressure;
     double timeStamp;
   };
-*/
 
 
-  class ProtoDUNEBeamEvent{
+
+  class ProtoDUNEBeamSpill{
     public:
-      ProtoDUNEBeamEvent();
-      ~ProtoDUNEBeamEvent();
+      ProtoDUNEBeamSpill();
+      ~ProtoDUNEBeamSpill();
 
       void              InitFBMs(std::vector<std::string>);
       std::pair< double, double >  GetT0(size_t);
@@ -152,9 +151,9 @@ namespace beam
       double SpillOffset;
   };
 
-  inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
+  inline const std::vector< recob::Track > & ProtoDUNEBeamSpill::GetBeamTracks() const { return Tracks; }
   
-  inline std::pair< double, double > ProtoDUNEBeamEvent::GetT0(size_t trigger){
+  inline std::pair< double, double > ProtoDUNEBeamSpill::GetT0(size_t trigger){
     if( trigger > t0.size() - 1 ){
       std::cout << "Error. Trigger out of bunds" << std::endl;
       return std::make_pair(-1.,-1.);
@@ -163,7 +162,7 @@ namespace beam
     return t0[trigger];
   }
 
-  inline double ProtoDUNEBeamEvent::GetFullT0(size_t trigger){
+  inline double ProtoDUNEBeamSpill::GetFullT0(size_t trigger){
     if( trigger > t0.size() - 1 ){
       std::cout << "Error. Trigger out of bunds" << std::endl;
       return -1.;
@@ -172,12 +171,12 @@ namespace beam
     return t0[trigger].first + 1.e-9*t0[trigger].second;
   }
 
-  inline void ProtoDUNEBeamEvent::AddT0(std::pair< double, double > theT0){
+  inline void ProtoDUNEBeamSpill::AddT0(std::pair< double, double > theT0){
     t0.push_back(theT0);
   }
 
   ////////////Fiber Monitor Access
-  inline FBM ProtoDUNEBeamEvent::GetFBM(std::string FBMName, size_t theTrigger){
+  inline FBM ProtoDUNEBeamSpill::GetFBM(std::string FBMName, size_t theTrigger){
     FBM dummy; 
     dummy.ID = -1;
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
@@ -197,7 +196,7 @@ namespace beam
     return fiberMonitors[FBMName].at(theTrigger); 
   }
 
-  inline void ProtoDUNEBeamEvent::AddFBMTrigger(std::string FBMName, FBM theFBM){
+  inline void ProtoDUNEBeamSpill::AddFBMTrigger(std::string FBMName, FBM theFBM){
 //    if( (FBMName > (nFBMs - 1) ) ){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Error FBM not found" << std::endl;
@@ -221,7 +220,7 @@ namespace beam
     }
   }
 
-  inline void ProtoDUNEBeamEvent::ReplaceFBMTrigger(std::string FBMName, FBM theFBM, size_t theTrigger){
+  inline void ProtoDUNEBeamSpill::ReplaceFBMTrigger(std::string FBMName, FBM theFBM, size_t theTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Error FBM not found" << std::endl;
         
@@ -242,7 +241,7 @@ namespace beam
 
   }
 
-  inline void ProtoDUNEBeamEvent::DecodeFibers(std::string FBMName, size_t nTrigger){
+  inline void ProtoDUNEBeamSpill::DecodeFibers(std::string FBMName, size_t nTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return;
@@ -262,7 +261,7 @@ namespace beam
     }
   }
 
-  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, size_t nTrigger, double OffsetTAI){
+  inline double ProtoDUNEBeamSpill::DecodeFiberTime(std::string FBMName, size_t nTrigger, double OffsetTAI){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "FBM not found in list" << std::endl;
       return -1.;
@@ -279,7 +278,7 @@ namespace beam
     return fiberMonitors[FBMName][nTrigger].timeData[3] - OffsetTAI + fiberMonitors[FBMName][nTrigger].timeData[2]*8.e-9;
   }
 
-  inline std::array<double,4> ProtoDUNEBeamEvent::ReturnTriggerAndTime(std::string FBMName, size_t nTrigger){
+  inline std::array<double,4> ProtoDUNEBeamSpill::ReturnTriggerAndTime(std::string FBMName, size_t nTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "FBM not found in list" << std::endl;
       return {{-1.,-1.,-1.,-1.}};
@@ -292,7 +291,7 @@ namespace beam
     return {{fiberMonitors[FBMName][nTrigger].timeData[0], fiberMonitors[FBMName][nTrigger].timeData[1], fiberMonitors[FBMName][nTrigger].timeData[2], fiberMonitors[FBMName][nTrigger].timeData[3]}};
   }
 
-  inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
+  inline std::bitset<32> ProtoDUNEBeamSpill::toBinary(double num){
     std::bitset<64> mybits( (long(num)) );
     std::bitset<32> upper, lower;
     for(int i = 0; i < 32; ++i){
@@ -305,12 +304,12 @@ namespace beam
   }
 
 
-//  inline std::bitset<32> ProtoDUNEBeamEvent::toBinary(double num){
+//  inline std::bitset<32> ProtoDUNEBeamSpill::toBinary(double num){
 //    return std::bitset<32>( (uint32_t(num)) );
 //  }
 
 
-  inline short ProtoDUNEBeamEvent::GetFiberStatus(std::string FBMName, size_t nTrigger, size_t iFiber){
+  inline short ProtoDUNEBeamSpill::GetFiberStatus(std::string FBMName, size_t nTrigger, size_t iFiber){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -326,7 +325,7 @@ namespace beam
     return fiberMonitors[FBMName][nTrigger].fibers[iFiber];
   }
 
-  inline std::vector<short> ProtoDUNEBeamEvent::GetActiveFibers(std::string FBMName, size_t nTrigger){
+  inline std::vector<short> ProtoDUNEBeamSpill::GetActiveFibers(std::string FBMName, size_t nTrigger){
     std::vector<short> active;
 
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
@@ -345,7 +344,7 @@ namespace beam
     return active;
   }
 
-  inline double ProtoDUNEBeamEvent::GetFiberTime(std::string FBMName, size_t nTrigger){
+  inline double ProtoDUNEBeamSpill::GetFiberTime(std::string FBMName, size_t nTrigger){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -357,7 +356,7 @@ namespace beam
     return fiberMonitors[FBMName][nTrigger].timeStamp;
   }
 
-  inline size_t ProtoDUNEBeamEvent::GetNFBMTriggers(std::string FBMName){
+  inline size_t ProtoDUNEBeamSpill::GetNFBMTriggers(std::string FBMName){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Please input monitor in range [0," << fiberMonitors.size() - 1 << "]" << std::endl;
       return -1;          
@@ -367,7 +366,7 @@ namespace beam
   /////////////////////////////////
 
   ////////////TOF Access
-  inline std::pair< double, double > ProtoDUNEBeamEvent::GetTOF0(size_t nTrigger){
+  inline std::pair< double, double > ProtoDUNEBeamSpill::GetTOF0(size_t nTrigger){
     if( (nTrigger >= TOF0.size()) ){
       std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
       return std::make_pair(-1.,-1.);
@@ -376,7 +375,7 @@ namespace beam
     return TOF0[nTrigger];
   }
 
-  inline std::pair< double, double > ProtoDUNEBeamEvent::GetTOF1(size_t nTrigger){
+  inline std::pair< double, double > ProtoDUNEBeamSpill::GetTOF1(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
       return std::make_pair(-1.,-1.);
@@ -385,7 +384,7 @@ namespace beam
     return TOF1[nTrigger];
   }
 
-  inline int ProtoDUNEBeamEvent::GetTOFChan(size_t nTrigger){
+  inline int ProtoDUNEBeamSpill::GetTOFChan(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
       return -1;
@@ -394,7 +393,7 @@ namespace beam
     return TOFChan[nTrigger];
   }
 
-  inline double ProtoDUNEBeamEvent::GetTOF(size_t nTrigger){
+  inline double ProtoDUNEBeamSpill::GetTOF(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
       return -1;

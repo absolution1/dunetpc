@@ -81,12 +81,16 @@
  <class name="beam::CKov"/>
  <class name="beam::FBM"/>
  <class name="std::map<string,std::vector<beam::FBM>>"/>
-<!-- <class name="std::vector<beam::CKov>"/> -->
  <class name="std::vector<beam::FBM>"/>
 
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
  <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
  <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
+
+ <class name="art::Ptr<beam::ProtoDUNEBeamSpill>" />
+ <class name="std::vector<beam::ProtoDUNEBeamSpill>"  />
+ <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamSpill> >" />
+
 
  <class name="dune::ProtoDUNETimeStamp"/> 
  <enum name="dune::ProtoDUNETimingCommand"/> 

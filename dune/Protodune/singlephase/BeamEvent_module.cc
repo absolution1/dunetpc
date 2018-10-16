@@ -25,6 +25,7 @@
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNETimeStamp.h"
@@ -316,6 +317,9 @@ private:
 
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
+
+  beam::ProtoDUNEBeamSpill * beamspill;
+  beam::ProtoDUNEBeamSpill prev_beamspill;
 
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
