@@ -1,0 +1,25 @@
+# stickycodes_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Sticky codes for protoDUNE single phase.
+
+BEGIN_PROLOG
+
+tools.pdsp_sticky_codes_ped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 3
+  StickyCode: 11
+  StickyCodes: {
+    chan02333: [920, 960]
+  }
+}
+
+tools.pdsp_sticky_codes_notped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 3
+  StickyCode: 12
+  StickyCodes: {
+  }
+}
