@@ -240,19 +240,22 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     DataMap res = view(acd);
     if ( doPlots ) {
       for ( string type : m_HistTypes ) {
+        bool isRaw = type == "raw";
         if ( mans.find(type) == mans.end() ) {
           TPadManipulator& man = mans[type];
           man.setCanvasSize(1400, 1000);
-          if ( type == "raw" || type == "prepared" ) {
+          man.addAxis();
+          if ( isRaw || type == "prepared" ) {
             man.split(nx,ny);
             for ( Index ipad=0; ipad<nplt; ++ipad ) {
-              man.man(ipad)->addHorizontalModLines(64);
+              if ( isRaw) man.man(ipad)->addHorizontalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
             }
             nplts[type] = nx*ny;
           } else if ( type == "rawdist" ) {
             man.split(ndx, ndy);
             for ( Index ipad=0; ipad<ndplt; ++ipad ) {
+              man.man(ipad)->addVerticalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSigMin, m_PlotSigMax);
             }
             nplts[type] = ndx*ndy;
@@ -265,12 +268,16 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         TH1* ph = res.getHist(type);
         TPadManipulator& man = *mans[type].man(iplt);
         man.add(ph, "hist", false);
-        if ( type == "raw" ) {
+        if ( type == "raw" || type == "prepared" ) {
           float ymin = m_PlotSigMin;
           float ymax = m_PlotSigMax;
           if ( m_PlotSigOpt == "pedestal" ) {
-            ymin += acd.pedestal;
-            ymax += acd.pedestal;
+            if ( type == "raw" ) {
+              ymin += acd.pedestal;
+              ymax += acd.pedestal;
+            } else {
+              cout << myname << "Invalid raw PlotSigOpt = " << m_PlotSigOpt << ". Using fixed." << endl;
+            }
           } else if ( m_PlotSigOpt == "full" ) {
             Index dSigMin = m_PlotSigMin;
             Index gSigMin = res.getFloat("plotSigMin_" + type);
@@ -284,7 +291,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             ymin = gSigMin;
             ymax = gSigMax;
           } else if ( m_PlotSigOpt != "fixed" ) {
-            cout << myname << "Invalid raw PlotSigOpt = " << m_PlotSigOpt << ". Using fixed." << endl;
+            cout << myname << "Invalid " << type << " PlotSigOpt = " << m_PlotSigOpt << ". Using fixed." << endl;
           }
           man.setRangeY(ymin, ymax);
           man.add(ptxt);

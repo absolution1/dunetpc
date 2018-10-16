@@ -69,7 +69,8 @@ tools.pd_adcPedestalFit: {
 # Sticky code mitigation.
 tools.pdsp_adcMitigate: {
   tool_type: AdcCodeMitigator
-  FixedFlags: []
+  LogLevel: 1
+  FixFlags: []
   InterpolateFlags: [8, 9, 10, 11, 12]
   SkipFlags: []
 }

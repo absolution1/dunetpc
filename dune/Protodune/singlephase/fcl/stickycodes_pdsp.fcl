@@ -5,20 +5,22 @@
 #
 # Sticky codes for protoDUNE single phase.
 
-BEGIN_PROLOG
-
 tools.pdsp_sticky_codes_ped: {
   tool_type: FclStickyCodeFlagger
-  LogLevel: 3
+  LogLevel: 1
   StickyCode: 11
   StickyCodes: {
-    chan02333: [920, 960]
+    # femb306v
+    chan01396: [2431, 2443]
+    # femb306z
+    chan02330: [1023]
+    chan02333: [960]
   }
 }
 
 tools.pdsp_sticky_codes_notped: {
   tool_type: FclStickyCodeFlagger
-  LogLevel: 3
+  LogLevel: 1
   StickyCode: 12
   StickyCodes: {
   }
