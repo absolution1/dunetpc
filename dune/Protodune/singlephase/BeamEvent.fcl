@@ -1,8 +1,8 @@
 BEGIN_PROLOG
 
-proto_beamana:
+proto_beamevent:
 {
-  module_type:          "BeamAna"
+  module_type:          "BeamEvent"
   LoadFromDB: true
   URLStr:                 ""
   OutputLabel:         "BeamEvent"
@@ -39,6 +39,23 @@ proto_beamana:
   Devices:        ["XBPF022701","XBPF022702"]
 
 
+  #For tracking###################
+  FirstUpstream:    "XBPF022707"
+  SecondUpstream:   "XBPF022708"
+  FirstDownstream:  "XBPF022716"
+  SecondDownstream: "XBPF022717"
+  ################################
+
+  #For Momentum Spectrometry######
+  FirstBPROF1:  "XBPF022697"
+  SecondBPROF1: "XBPF022698"
+  BPROF2:       "XBPF022701"
+  BPROF3:       "XBPF022702"
+  #Nominal beam bend (mrad)
+  BeamBend:     .12003
+  ################################
+
+
   RotateMonitorXZ:   -10.3
   RotateMonitorYZ:    11.7
 
@@ -52,6 +69,13 @@ proto_beamana:
   BeamY: 461.06
   BeamZ: -196.11
 
+# Current TAI Offset in [sec]  
+  OffsetTAI: 37
+
+# Timing Offset [sec] 
+# HLT - GenTrig - (PDTS_spill - BI_spill)
+  TimingCalibration: -0.09515150
+  CalibrationTolerance: 1.e-6 
 }
 
 END_PROLOG
