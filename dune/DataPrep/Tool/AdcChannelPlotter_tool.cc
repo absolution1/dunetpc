@@ -40,6 +40,9 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_PlotSamMin(ps.get<Index>("PlotSamMin")),
   m_PlotSamMax(ps.get<Index>("PlotSamMax")),
+  m_PlotSigOpt(ps.get<string>("PlotSigOpt")),
+  m_PlotSigMin(ps.get<float>("PlotSigMin")),
+  m_PlotSigMax(ps.get<float>("PlotSigMax")),
   m_HistManager(ps.get<string>("HistManager")),
   m_phm(nullptr) {
   const string myname = "AdcChannelPlotter::ctor: ";
@@ -75,6 +78,9 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "  PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "    PlotSamMin: " << m_PlotSamMin << endl;
     cout << myname << "    PlotSamMax: " << m_PlotSamMax << endl;
+    cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
+    cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
+    cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
     cout << myname << "   HistManager: " << m_HistManager << endl;
   }
 }
@@ -208,13 +214,17 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   DataMap resall;
   bool doPlots = m_PlotFileName.size();
   Index nx = 1;
-  Index ny = 0;
-  Index iplt = 0;
+  Index ny = 8;
+  Index nplt = nx*ny;
+  Index ndx = 4;
+  Index ndy = 4;
+  Index ndplt = ndx*ndy;
   using ManMap = std::map<string, TPadManipulator>;
   using NameMap = std::map<string, string>;
+  using IndexMap = std::map<string, Index>;
   ManMap mans;
-  if ( doPlots ) ny = 8;  // For now 8 histos/plot
-  Index nplt = nx*ny;
+  IndexMap iplts;
+  IndexMap nplts;
   NameMap pfnames;
   std::vector<TLatex*> labs;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
@@ -229,47 +239,78 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     const AdcChannelData& acd = iacd.second;
     DataMap res = view(acd);
     if ( doPlots ) {
-      if ( mans.size() == 0 ) {
-        for ( string type : m_HistTypes ) {
+      for ( string type : m_HistTypes ) {
+        if ( mans.find(type) == mans.end() ) {
           TPadManipulator& man = mans[type];
           man.setCanvasSize(1400, 1000);
-          man.split(nx,ny);
-          for ( Index ipad=0; ipad<nplt; ++ipad ) {
-            man.man(ipad)->addHorizontalModLines(64);
-            man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
+          if ( type == "raw" || type == "prepared" ) {
+            man.split(nx,ny);
+            for ( Index ipad=0; ipad<nplt; ++ipad ) {
+              man.man(ipad)->addHorizontalModLines(64);
+              man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
+            }
+            nplts[type] = nx*ny;
+          } else if ( type == "rawdist" ) {
+            man.split(ndx, ndy);
+            for ( Index ipad=0; ipad<ndplt; ++ipad ) {
+              man.man(ipad)->setRangeX(m_PlotSigMin, m_PlotSigMax);
+            }
+            nplts[type] = ndx*ndy;
           }
           pfnames[type] = nameReplace(m_PlotFileName, acd, type);
+          iplts[type] = 0;
         }
-      }
-      for ( string type : m_HistTypes ) {
+        Index& iplt = iplts[type];
+        Index nplt = nplts[type];
         TH1* ph = res.getHist(type);
         TPadManipulator& man = *mans[type].man(iplt);
         man.add(ph, "hist", false);
         if ( type == "raw" ) {
-          Index dSigMin = 100;
-          Index gSigMin = res.getFloat("plotSigMin_" + type);
-          Index gSigMax = res.getFloat("plotSigMax_" + type) + 0.999;
-          if ( gSigMax - gSigMin < dSigMin ) {
-            while ( gSigMax - gSigMin < dSigMin ) {
-              if ( gSigMin > 0 ) --gSigMin;
-              if ( gSigMax - gSigMin < dSigMin ) ++gSigMax;
+          float ymin = m_PlotSigMin;
+          float ymax = m_PlotSigMax;
+          if ( m_PlotSigOpt == "pedestal" ) {
+            ymin += acd.pedestal;
+            ymax += acd.pedestal;
+          } else if ( m_PlotSigOpt == "full" ) {
+            Index dSigMin = m_PlotSigMin;
+            Index gSigMin = res.getFloat("plotSigMin_" + type);
+            Index gSigMax = res.getFloat("plotSigMax_" + type) + 0.999;
+            if ( gSigMax - gSigMin < dSigMin ) {
+              while ( gSigMax - gSigMin < dSigMin ) {
+                if ( gSigMin > 0 ) --gSigMin;
+                if ( gSigMax - gSigMin < dSigMin ) ++gSigMax;
+              }
             }
-            man.setRangeY(gSigMin, gSigMax);
+            ymin = gSigMin;
+            ymax = gSigMax;
+          } else if ( m_PlotSigOpt != "fixed" ) {
+            cout << myname << "Invalid raw PlotSigOpt = " << m_PlotSigOpt << ". Using fixed." << endl;
+          }
+          man.setRangeY(ymin, ymax);
+          man.add(ptxt);
+        } else if ( type == "rawdist" ) {
+          if ( m_PlotSigOpt == "fixed" ) {
+            float xmin = m_PlotSigMin;
+            float xmax = m_PlotSigMax;
+            man.setRangeX(xmin, xmax);
+          } else if ( m_PlotSigOpt == "pedestal" ) {
+            float xmin = acd.pedestal + m_PlotSigMin;
+            float xmax = acd.pedestal + m_PlotSigMax;
+            man.setRangeX(xmin, xmax);
+          } else if ( m_PlotSigOpt != "full" ) {
+            cout << myname << "Invalid rawdist PlotSigOpt = " << m_PlotSigOpt << ". Using full." << endl;
           }
         }
-        man.add(ptxt);
-      }
-      if ( ++iplt >= nplt ) {
-        for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
-        mans.clear();
-        pfnames.clear();
-        iplt = 0;
+        if ( ++iplt >= nplt ) {
+          for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
+          mans.erase(type);
+          pfnames.erase(type);
+        }
       }
     }
   }
-  if ( mans.size() ) {
-    for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
-  }
+  // Print any left over (i.e. partial) plots.
+  for ( ManMap::value_type& iman : mans ) iman.second.print(pfnames[iman.first]);
   for ( TLatex* ptxt : labs ) delete ptxt;
   return resall;
 }
