@@ -3,7 +3,7 @@ BEGIN_PROLOG
 crt_raw_decoder:
 {
   module_type: "CRTRawDecoder"
-  RawDataTag: "daq:CRTContainer"
+  RawDataTag: "daq:ContainerCRT"
   LookForContainer: true
 }
 
