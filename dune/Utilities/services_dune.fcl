@@ -17,6 +17,7 @@
 #include "opticaldetectorservices_dune.fcl"
 #include "channelmapping_dune.fcl"
 #include "channelstatus_dune.fcl"
+#include "channelstatus_pdsp.fcl"
 #include "pedestals_dune.fcl"
 #include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
@@ -370,7 +371,7 @@ protodune_data_services: {
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
- ChannelStatusService:         @local::dunefd_channel_status
+ ChannelStatusService:         @local::pdsp_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
 }
 

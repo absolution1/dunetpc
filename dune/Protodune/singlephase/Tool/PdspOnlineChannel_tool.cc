@@ -77,6 +77,9 @@ Index PdspOnlineChannel::get(Index chanOff) const {
                              15, 14, 13, 12, 11};
     Index jfmb = 5*kcon + kwib;
     Index kfmb = ifmb[jfmb] - 1;
+    // Beam left, rotate FEMBs by 10.
+    bool beamLeft = kapa/2 != (kapa+1)/2;
+    if ( beamLeft ) kfmb = (kfmb + 10) % 20;
     chanOn = 2560*kapa + 128*kfmb + kchf;
   }
   return chanOn;

@@ -9,7 +9,7 @@ process_name: OpDetReco
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_data_reco_hist.root" }
+  TFileService: { fileName: "protodune_optical_waveforms_hist.root" }
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   message:      @local::standard_info 
@@ -23,18 +23,6 @@ source:
   maxEvents : 1000
 }
 
-
-outputs:
-{
-   out1:
-   {
-      module_type: RootOutput
-      fileName:    "protodune_optical_data_reco.root"
-      
-      # Drop the raw data and just keep the decoded and reconstructed data
-      outputCommands: [ "keep *", "drop artdaq::Fragments_*_*_*" ]
-   }
-}
 
 physics:
 {
@@ -57,13 +45,14 @@ physics:
    opflashanaInternal:  @local::standard_opflashana
    opflashanaExternal:  @local::standard_opflashana
  }
- produceIt: [ssprawdecoder, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
- analyzeIt: [opflashanaInternal, opflashanaExternal]
- #analyzeIt: [opdigianaInternal, opdigianaExternal] 
+ #produceIt: [ssprawdecoder, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
+ produceIt: [ssprawdecoder]
+ #analyzeIt: [opflashanaInternal, opflashanaExternal]
+ analyzeIt: [opdigianaInternal, opdigianaExternal] 
 
    
  #define the output stream, there could be more than one if using filters 
- stream1:  [ out1 ]
+ #stream1:  [ out1 ]
 
  #trigger_paths is a keyword and contains the paths that modify the art::event, 
  #ie filters and producers
@@ -71,7 +60,8 @@ physics:
 
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
  #ie analyzers and output streams.  these all run simultaneously
- end_paths:     [analyzeIt, stream1]  
+ end_paths:     [analyzeIt]  
+ #end_paths:     [analyzeIt, stream1]  
 }
 
 physics.analyzers.opdigianaInternal.InputModule:  "ssprawdecoder"

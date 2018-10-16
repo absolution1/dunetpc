@@ -1,0 +1,72 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+pdsp_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+    # CE group: Inactive FE
+     4111,
+     4112,
+    11842,
+    # CE group: Broken connection
+        1,
+      400,
+      401,
+      800,
+      801,
+      876,
+     1200,
+     2961,
+     5321,
+     5363,
+     6132,
+     7058,
+     7295,
+     7680,
+     7681,
+     8328,
+     8480,
+     9282,
+     9283,
+     9736,
+     9854,
+    10800,
+    11024,
+    11457,
+    11459,
+    11463,
+    11469,
+    11517,
+    11669,
+    11679,
+    12756,
+    12801,
+    13001,
+    13081,
+    # CE group: ENC > 2000e
+     4410,
+    # CE group: good.
+        2
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+    # CE group: ENC > 2000e
+     9569,
+    # CE group: sticky.
+     2318
+  ]
+
+}
+
+END_PROLOG

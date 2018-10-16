@@ -33,6 +33,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_DataType(ps.get<int>("DataType")),
   m_TickRange(ps.get<string>("TickRange")),
+  m_TickRebin(ps.get<Index>("TickRebin")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
@@ -100,6 +101,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "              LogLevel: " << m_LogLevel << endl;
     cout << myname << "              DataType: " << m_DataType << endl;
     cout << myname << "             TickRange: " << descTickRange << endl;
+    cout << myname << "             TickRebin: " << m_TickRebin << endl;
     cout << myname << "       ChannelRanges: [";
     bool first = true;
     for ( const IndexRange& ran : m_crs ) {
@@ -299,6 +301,15 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         ph->SetBinContent(ibin, sig);
       }
+    }
+    // Rebin.
+    if ( m_TickRebin > 1 ) {
+      TH2* ph0 = ph;
+      ph = ph0->RebinX(m_TickRebin, ph->GetName());
+      ph->SetDirectory(nullptr);
+      delete ph0;
+      ph->Scale(1.0/m_TickRebin);
+      ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     }
     // Save the original color map.
     RootPalette oldPalette;

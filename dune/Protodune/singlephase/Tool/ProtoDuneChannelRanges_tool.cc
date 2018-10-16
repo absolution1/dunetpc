@@ -135,11 +135,11 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
         istringstream ssfmb(nam.substr(5,2));
         int ifmb = 0;
         ssfmb >> ifmb;
-        bool sideTpc = ifmb >=  1 && ifmb <= 10;
-        bool sideCry = ifmb >= 11 && ifmb <= 20;
-        if ( sideTpc )      dirSame = false;
-        else if ( sideCry ) dirSame = true;
-        else                ifchmax = 0;
+        bool beamL = ifmb >=  1 && ifmb <= 10;
+        bool beamR = ifmb >= 11 && ifmb <= 20;
+        if ( beamL )      dirSame = false;
+        else if ( beamR ) dirSame = true;
+        else              ifchmax = 0;
       }
       if ( ifchmax != fbran.size() ) {
         cout << myname << "WARNING: FEMB block has unexpected size: "

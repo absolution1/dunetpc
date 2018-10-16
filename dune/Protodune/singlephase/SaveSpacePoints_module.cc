@@ -22,6 +22,8 @@
 #include "lardataobj/RecoBase/PointCharge.h"
 #include "lardataobj/RecoBase/Track.h"
 
+#include "lardataobj/RawData/RDTimeStamp.h"
+
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
 // ROOT includes
@@ -56,12 +58,14 @@ private:
   const art::InputTag fSpacePointModuleLabel;
   const art::InputTag fBeamModuleLabel;
   const art::InputTag fTrackModuleLabel;
+  const art::InputTag fTimeDecoderModuleLabel;
 
   TTree *fTree;
   // Run information
   int run;
   int subrun;
   int event;
+  int trigger;
   double evttime;
 
   // space point information
@@ -88,7 +92,8 @@ proto::SaveSpacePoints::SaveSpacePoints(fhicl::ParameterSet const & p)
   EDAnalyzer(p),
   fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
   fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
-  fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel"))
+  fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
+  fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel"))
 {}
 
 void proto::SaveSpacePoints::analyze(art::Event const & evt)
@@ -118,6 +123,17 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   beamDirx.clear();
   beamDiry.clear();
   beamDirz.clear();
+
+  // Access the trigger information
+  trigger = 8;
+  art::ValidHandle<std::vector<raw::RDTimeStamp>> timeStamps = evt.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeDecoderModuleLabel);
+
+  // Check that we have good information
+  if(timeStamps.isValid() && timeStamps->size() == 1){
+    // Access the trigger information. Beam trigger flag = 0xc
+    const raw::RDTimeStamp& timeStamp = timeStamps->at(0);
+    if(timeStamp.GetFlags() == 0xc) trigger = 12;
+  }
 
   art::Handle< std::vector<recob::SpacePoint> > spsHandle;
   std::vector< art::Ptr<recob::SpacePoint> > sps;
@@ -183,6 +199,7 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("run",&run,"run/I");
   fTree->Branch("subrun",&subrun,"subrun/I");
   fTree->Branch("event",&event,"event/I");
+  fTree->Branch("trigger",&trigger,"trigger/I");
   fTree->Branch("evttime",&evttime,"evttime/D");
   fTree->Branch("vx",&vx);
   fTree->Branch("vy",&vy);
