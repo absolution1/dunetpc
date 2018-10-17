@@ -90,22 +90,19 @@ public:
   uint64_t GetRawDecoderInfo(art::Event &);
   void TimeIn(art::Event &, uint64_t);
   void GetSpillInfo(art::Event &);
-  bool MatchBeamToTPC(art::Event &, uint64_t);
+  void MatchBeamToTPC(art::Event &, uint64_t);
+  void SetBeamEvent(); 
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
   double MomentumCosTheta(double, double, double);
-
-  void GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
-  void GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
-  void GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time);
 
   double GetPosition(std::string, int);
   TVector3 ProjectToTPC(TVector3, TVector3);
   double GetPairedPosition(std::string, size_t);
   TVector3 TranslateDeviceToDetector(TVector3);
  
-  void  InitXBPFInfo(beam::ProtoDUNEBeamEvent *);
+  void  InitXBPFInfo(beam::ProtoDUNEBeamSpill *);
   void  parseGeneralXBPF(std::string, uint64_t, size_t);
   void  parseXBPF(uint64_t);
   void  parsePairedXBPF(uint64_t);
@@ -595,13 +592,13 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
     SpillOffset = SpillStart - acqStampMBPL;
 }
 
-bool proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
+void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
 
   std::cout << "Matching in time between Beamline and TPC!!!" << std::endl; 
-  for(size_t iT = 0; iT < beamevt->GetNT0(); ++iT){
+  for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
     
     //GenTrig = sec + 1.e-9*ns portions
-    double GenTrigTime = beamevt->GetT0(iT).first + 1.e-09*beamevt->GetT0(iT).second;
+    double GenTrigTime = beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second;
 
     //HLTTime in 50MHz ticks
     double HLTTime = 2.e-08*HLTTS;
@@ -614,20 +611,96 @@ bool proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
       std::cout << "FOUND MATCHING TIME!!!" << std::endl;
 
 
-      beamevt->SetActiveTrigger( iT ); 
-      return true;
+      beamspill->SetActiveTrigger( iT ); 
+      beamevt->SetActiveTrigger( iT );
+      beamevt->SetT0( beamspill->GetT0( iT ) );
+      std::cout << "Set event T0: " << beamevt->GetFullT0() << std::endl;;
+      return;
     }
   }
 
   std::cout << "Could not find matching time " << std::endl << std::endl;
-  beamevt->SetUnmatched();
-  return false;
+  beamspill->SetUnmatched();
+}
+
+void proto::BeamEvent::SetBeamEvent(){
+  if( !beamspill->CheckIsMatched() ){
+    std::cout << "Error: art Event is unmatched to Beam Spill " << std::endl;
+    return;
+  }
+
+  std::cout << "Setting beam event for matched event" << std::endl;
+
+  size_t activeTrigger = beamspill->GetActiveTrigger();
+  beamevt->SetActiveTrigger( activeTrigger );
+  
+  std::cout << "SetActiveTrigger " << beamevt->GetActiveTrigger() << std::endl;
+
+  beamevt->SetT0( beamspill->GetT0( activeTrigger ) );
+
+  std::cout << "Set T0  " << beamevt->GetFullT0() << std::endl << std::endl; 
+
+
+  std::cout << "Setting FBM statuses" << std::endl;
+
+  for( size_t i = 0; i < fDevices.size(); ++i){
+    std::string theName = fDevices[i];
+    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
+    std::cout << "beamevt monitor " << theName << " has "
+              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
+  }
+  for( size_t i = 0; i < fPairedDevices.size(); ++i){
+    std::string theName = fPairedDevices[i].first;
+    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
+
+    std::cout << "beamevt monitor " << theName << " has "
+              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
+
+    theName = fPairedDevices[i].second;
+    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
+    std::cout << "beamevt monitor " << theName << " has "
+              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
+  }
+  for( size_t i = 0; i < fPairedStraightDevices.size(); ++i){
+    std::string theName = fPairedStraightDevices[i].first;
+    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
+    std::cout << "beamevt monitor " << theName << " has "
+              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
+
+    theName = fPairedStraightDevices[i].second;
+    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
+    std::cout << "beamevt monitor " << theName << " has "
+              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
+  }
+  std::cout << std::endl;
+
+  std::cout << "Setting TOF info for beamevt " << std::endl;
+  beamevt->SetTOF0Trigger( beamspill->GetTOF0( activeTrigger ) );
+  beamevt->SetTOF1Trigger( beamspill->GetTOF1( activeTrigger ) );
+  beamevt->SetTOFChan(  beamspill->GetTOFChan( activeTrigger ) );
+  std::cout << "beamevt has TOF " << beamevt->GetTOF() 
+            << " and TOFChan "    << beamevt->GetTOFChan() << std::endl << std::endl;
+
+
+  std::cout << "Finished adding info to beamevt " << std::endl << std::endl;
+
+
+  std::cout << "Setting Cerenkov info" << std::endl;
+  beam::CKov theCKov = beamspill->GetCKov0();
+  theCKov.trigger = C1;
+  beamevt->SetCKov0( theCKov );
+  std::cout << "C0: " << beamevt->GetCKov0Status() << std::endl;
+
+  theCKov = beamspill->GetCKov1();
+  theCKov.trigger = C2;
+  beamevt->SetCKov1( theCKov );
+  std::cout << "C1: " << beamevt->GetCKov1Status() << std::endl;
 }
 
 ////////////////////////
 // Producer Method (reads in the event and derives values)
-void proto::BeamEvent::produce(art::Event & e)
-{
+void proto::BeamEvent::produce(art::Event & e){
+
   //Reset 
   acqTime = 0;
   acqStampMBPL = 0;
@@ -672,6 +745,7 @@ void proto::BeamEvent::produce(art::Event & e)
    
   // Create a new beam event (note the "new" here)  
   beamevt = new beam::ProtoDUNEBeamEvent();
+  beamspill = new beam::ProtoDUNEBeamSpill();
 
   // Get the coordinate system conversions
   BeamMonitorBasisVectors();
@@ -748,7 +822,7 @@ void proto::BeamEvent::produce(art::Event & e)
       //
       //Can be overridden with a flag from the fcl
       if(PrevStart != SpillStart || fForceNewFetch){
-        std::cout << "New spill or forced new fetch. Getting new beamevt info" << std::endl << std::endl;
+        std::cout << "New spill or forced new fetch. Getting new beamspill info" << std::endl << std::endl;
 
 
         // Parse the Time of Flight Counter data for the list
@@ -765,7 +839,7 @@ void proto::BeamEvent::produce(art::Event & e)
 
         // Parse the Beam postion counter information for the list
         // of time that we are using
-        InitXBPFInfo(beamevt);
+        InitXBPFInfo(beamspill);
         parseXBPF(fetch_time);
         parsePairedXBPF(fetch_time);
         parsePairedStraightXBPF(fetch_time);
@@ -779,17 +853,17 @@ void proto::BeamEvent::produce(art::Event & e)
 
       }
       else{
-        std::cout << "Same spill. Reusing beamevt info" << std::endl << std::endl;
-        std::cout << prev_beamevt.GetNT0() << std::endl;
-        *beamevt = prev_beamevt;
-        std::cout << beamevt->GetNT0() << std::endl;;
+        std::cout << "Same spill. Reusing beamspill info" << std::endl << std::endl;
+        std::cout << prev_beamspill.GetNT0() << std::endl;
+        *beamspill = prev_beamspill;
+        std::cout << beamspill->GetNT0() << std::endl;;
       }
 
-      std::cout << "NGoodParticles: " << beamevt->GetNT0()            << std::endl;
-      std::cout << "NTOF0: "          << beamevt->GetNTOF0Triggers()  << std::endl;
-      std::cout << "NTOF1: "          << beamevt->GetNTOF1Triggers()  << std::endl;
+      std::cout << "NGoodParticles: " << beamspill->GetNT0()            << std::endl;
+      std::cout << "NTOF0: "          << beamspill->GetNTOF0Triggers()  << std::endl;
+      std::cout << "NTOF1: "          << beamspill->GetNTOF1Triggers()  << std::endl;
       std::cout << "acqTime: "        << acqTime                      << std::endl;
-      std::cout << "NXBPF: "          << beamevt->GetNFBMTriggers(fDevices[0]) << std::endl;
+      std::cout << "NXBPF: "          << beamspill->GetNFBMTriggers(fDevices[0]) << std::endl;
 
 
 
@@ -801,18 +875,20 @@ void proto::BeamEvent::produce(art::Event & e)
         //
         TimeIn(e, fetch_time);
         std::cout << "SpillOffset " << SpillOffset << std::endl;
-        bool matched = MatchBeamToTPC(e, fetch_time);
+        MatchBeamToTPC(e, fetch_time);
 
 
-        std::cout << matched << std::endl;
-        if( beamevt->CheckIsMatched() ){
-          std::pair<double,double> theTime = beamevt->GetT0(beamevt->GetActiveTrigger());
+        if( beamspill->CheckIsMatched() ){
+          std::pair<double,double> theTime = beamspill->GetT0(beamspill->GetActiveTrigger());
           ActiveTriggerTime = theTime.first + theTime.second*1.e-9;
-          std::cout << "Trigger: " << beamevt->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       
+          std::cout << "Trigger: " << beamspill->GetActiveTrigger() << " " << ActiveTriggerTime << std::endl << std::endl;       
+        
+          //Pass the information to the beamevent
+          SetBeamEvent();
 
-          MakeTrack( beamevt->GetActiveTrigger() );
+          MakeTrack( beamspill->GetActiveTrigger() );
           for(size_t iTrack = 0; iTrack < theTracks.size(); ++iTrack){    
-            beamevt->AddBeamTrack( *(theTracks[iTrack]) ); 
+            beamspill->AddBeamTrack( *(theTracks[iTrack]) ); 
             
             auto thisTrack = theTracks[iTrack]; 
             const recob::TrackTrajectory & theTraj = thisTrack->Trajectory();
@@ -829,7 +905,8 @@ void proto::BeamEvent::produce(art::Event & e)
 
             fTrackTree->Fill();
           }
-          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam event" << std::endl << std::endl;
+          std::cout << "Added " << beamspill->GetNBeamTracks() << " tracks to the beam spill" << std::endl << std::endl;
+          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
 
           //Momentum
           //First, try getting the current from the magnet in IFBeam
@@ -838,7 +915,8 @@ void proto::BeamEvent::produce(art::Event & e)
             current = FetchWithRetries< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
             std::cout << "Current: " << current[0] << std::endl;
     
-            MomentumSpec( beamevt->GetActiveTrigger() ); 
+            MomentumSpec( beamspill->GetActiveTrigger() ); 
+            std::cout << "Got NRecoBeamMomenta: " << beamspill->GetNRecoBeamMomenta() << std::endl << std::endl;
             std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
           }
           catch(std::exception e){
@@ -847,14 +925,15 @@ void proto::BeamEvent::produce(art::Event & e)
           
         }
       }
+
     }
 
-    //Pass beamevt to the next event;
+    //Pass beamspill to the next event;
     //Erase the Track and Reco Momentum info
-    prev_beamevt = *beamevt;
-    prev_beamevt.ClearBeamTracks();
-    prev_beamevt.ClearRecoBeamMomenta();
-    prev_beamevt.SetUnmatched();
+    prev_beamspill = *beamspill;
+    prev_beamspill.ClearBeamTracks();
+    prev_beamspill.ClearRecoBeamMomenta();
+    prev_beamspill.SetUnmatched();
 
   }
   //Start of a new spill, but the first event was 
@@ -863,7 +942,7 @@ void proto::BeamEvent::produce(art::Event & e)
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
   if(!validTimeStamp && PrevStart != SpillStart){
-    prev_beamevt = *beamevt;   
+    prev_beamspill = *beamspill;   
   }
   
   beamevt->SetBITrigger(BITrigger);
@@ -876,6 +955,8 @@ void proto::BeamEvent::produce(art::Event & e)
 
   delete beamevt;
   e.put(std::move(beamData));
+
+  delete beamspill;
  
   // Write out the to tree
   fOutTree->Fill();
@@ -888,7 +969,7 @@ void proto::BeamEvent::produce(art::Event & e)
 // END BeamEvent::produce
 ////////////////////////
 
-void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamEvent * beamevt){
+void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
   // Places a dummy trigger vector for each device
 
   // Make a vector the names of each of the devices being readout
@@ -943,13 +1024,12 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamEvent * beamevt){
     monitors.push_back(name);
   }
 
-//  beamevt->InitFBMs(nDev);
   std::cout << "Initializing monitors";
   for(size_t id = 0; id < nDev; ++id){
     std::cout << " " << monitors.at(id);
   }
   std::cout << std::endl;
-  beamevt->InitFBMs(monitors);
+  beamspill->InitFBMs(monitors);
 }
 // END BeamEvent::InitXBPFInfo
 ////////////////////////
@@ -1290,20 +1370,20 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
       std::cout << "Adding matched tof" << std::endl;
 
-      beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
-      beamevt->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
-      beamevt->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
-      beamevt->AddTOFChan(channel);        
+      beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+      beamspill->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
+      beamspill->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
+      beamspill->AddTOFChan(channel);        
     }
     else{
       //Add dummy
 
       std::cout << "Adding unmatched tof" << std::endl;
 
-      beamevt->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
-      beamevt->AddTOF0Trigger(std::make_pair(0., 0.));
-      beamevt->AddTOF1Trigger(std::make_pair(0., 0.));
-      beamevt->AddTOFChan(-1);        
+      beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+      beamspill->AddTOF0Trigger(std::make_pair(0., 0.));
+      beamspill->AddTOF1Trigger(std::make_pair(0., 0.));
+      beamspill->AddTOFChan(-1);        
     }
 
   }
@@ -1347,18 +1427,14 @@ void proto::BeamEvent::parseXCET(uint64_t time){
 
   beam::CKov CKov1Status, CKov2Status;
 
-//  double triggerTime = beamevt->GetT0( beamevt->GetActiveTrigger() ).first;
-//  triggerTime += 1.e-9*beamevt->GetT0( beamevt->GetActiveTrigger() ).second;
-
-//  CKov1Status.timeStamp = triggerTime;
   CKov1Status.pressure  = CKov1Pressure;
   CKov1Status.trigger   = C1;
-  beamevt->SetCKov0( CKov1Status );
+  beamspill->SetCKov0( CKov1Status );
 
-//  CKov2Status.timeStamp = triggerTime;
+
   CKov2Status.pressure  = CKov2Pressure;
   CKov2Status.trigger   = C2;
-  beamevt->SetCKov1( CKov2Status );
+  beamspill->SetCKov1( CKov2Status );
 
 }
 // END BeamEvent::parseXCET
@@ -1384,8 +1460,8 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 
   // If the number of counts is larger than the number of general triggers
   // make note
-  if(counts[1] > beamevt->GetNT0()){
-    std::cout << "WARNING MISMATCH " << counts[1] << " " << beamevt->GetNT0() << std::endl;
+  if(counts[1] > beamspill->GetNT0()){
+    std::cout << "WARNING MISMATCH " << counts[1] << " " << beamspill->GetNT0() << std::endl;
   }
   
   beam::FBM fbm;
@@ -1395,7 +1471,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   //Shouldn't be, but just to be safe...
   //Helps cut down on time
   std::vector<size_t> leftOvers;      
-  for(size_t lo = 0; lo < beamevt->GetNT0(); ++lo){
+  for(size_t lo = 0; lo < beamspill->GetNT0(); ++lo){
     leftOvers.push_back(lo);
   }
  
@@ -1422,26 +1498,26 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     fbm.timeStamp = fbm.timeData[3] + fbm.timeData[2]*8.e-9;  
     
     //Go through the valid Good Particles, and emplace the FBM 
-//    std::cout << "Checking " << beamevt->GetNT0() << " triggers " << leftOvers.size() << std::endl;
+//    std::cout << "Checking " << beamspill->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
 //       std::cout.precision(dbl::max_digits10);
-//       std::cout << "\t" << fbm.timeStamp  - fOffsetTAI<< " " << beamevt->GetFullT0(*ip) << std::endl;
+//       std::cout << "\t" << fbm.timeStamp  - fOffsetTAI<< " " << beamspill->GetFullT0(*ip) << std::endl;
 //       std::cout.precision(dbl::max_digits10);
-//       std::cout << "\t" << beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI)  << std::endl;
+//       std::cout << "\t" << beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI)  << std::endl;
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 500ns away
-//      std::cout << fbm.timeStamp << " " << beamevt->GetFullT0(*ip) << std::endl;
-      if( fabs(beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) < 1000.e-9
-       /*&& (beamevt->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) > 0.*/     ){
+//      std::cout << fbm.timeStamp << " " << beamspill->GetFullT0(*ip) << std::endl;
+      if( fabs(beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) < 1000.e-9
+       /*&& (beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) > 0.*/     ){
 
-	if(beamevt->GetFBM(name, *ip).ID != -1){
+	if(beamspill->GetFBM(name, *ip).ID != -1){
 	  std::cout << "Warning: Replacing non-dummy FBM at "
 		    << name << " " << *ip << std::endl;
 	} 
 	
 //	 std::cout << "Replacing at timestamp " << fbm.timeStamp << std::endl;
-	beamevt->ReplaceFBMTrigger(name, fbm, *ip);
+	beamspill->ReplaceFBMTrigger(name, fbm, *ip);
 	leftOvers.erase(ip);
 	break;
       } 
@@ -1450,26 +1526,26 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 //    std::cout << std::endl;
   } 
 
-  for(size_t i = 0; i < beamevt->GetNFBMTriggers(name); ++i){
-    beamevt->DecodeFibers(name,i);
+  for(size_t i = 0; i < beamspill->GetNFBMTriggers(name); ++i){
+    beamspill->DecodeFibers(name,i);
 //    std::cout << name << " at time: "
-//	      << beamevt->DecodeFiberTime(name, i) << " has active fibers: ";
-//    for(size_t iFiber = 0; iFiber < beamevt->GetActiveFibers(name,i).size(); ++iFiber){
-//      std::cout << beamevt->GetActiveFibers(name, i)[iFiber] << " ";
+//	      << beamspill->DecodeFiberTime(name, i) << " has active fibers: ";
+//    for(size_t iFiber = 0; iFiber < beamspill->GetActiveFibers(name,i).size(); ++iFiber){
+//      std::cout << beamspill->GetActiveFibers(name, i)[iFiber] << " ";
 //    }
 //    std::cout << std::endl;
  /*   
-    *fActiveFibers[name] = beamevt->GetActiveFibers(name,i);
-    fProfTime[name] = beamevt->DecodeFiberTime(name, i, fOffsetTAI);
-    std::cout << beamevt->ReturnTriggerAndTime(name,i)[0] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[1] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[2] << " "
-	      << beamevt->ReturnTriggerAndTime(name,i)[3] << std::endl;
+    *fActiveFibers[name] = beamspill->GetActiveFibers(name,i);
+    fProfTime[name] = beamspill->DecodeFiberTime(name, i, fOffsetTAI);
+    std::cout << beamspill->ReturnTriggerAndTime(name,i)[0] << " "
+	      << beamspill->ReturnTriggerAndTime(name,i)[1] << " "
+	      << beamspill->ReturnTriggerAndTime(name,i)[2] << " "
+	      << beamspill->ReturnTriggerAndTime(name,i)[3] << std::endl;
 
-    fProfTrigger1[name] = beamevt->ReturnTriggerAndTime(name,i)[0];
-    fProfTrigger2[name] = beamevt->ReturnTriggerAndTime(name,i)[1];
-    fProfTime1[name] = beamevt->ReturnTriggerAndTime(name,i)[2];
-    fProfTime2[name] = beamevt->ReturnTriggerAndTime(name,i)[3];
+    fProfTrigger1[name] = beamspill->ReturnTriggerAndTime(name,i)[0];
+    fProfTrigger2[name] = beamspill->ReturnTriggerAndTime(name,i)[1];
+    fProfTime1[name] = beamspill->ReturnTriggerAndTime(name,i)[2];
+    fProfTime2[name] = beamspill->ReturnTriggerAndTime(name,i)[3];
     fProfTree[name]->Fill(); 
 */
     
@@ -1994,19 +2070,19 @@ void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
   
-  std::cout << "Making Track for time: " << beamevt->GetFullT0(theTrigger) << std::endl;
+  std::cout << "Making Track for time: " << beamspill->GetFullT0(theTrigger) << std::endl;
 
   //Get the active fibers from the upstream tracking XBPF
-  std::vector<short> firstUpstreamFibers  = beamevt->GetActiveFibers(firstUpstreamName, theTrigger);
-  std::vector<short> secondUpstreamFibers = beamevt->GetActiveFibers(secondUpstreamName, theTrigger);
+  std::vector<short> firstUpstreamFibers  = beamspill->GetActiveFibers(firstUpstreamName, theTrigger);
+  std::vector<short> secondUpstreamFibers = beamspill->GetActiveFibers(secondUpstreamName, theTrigger);
 
-  std::cout << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers at time " << beamevt->GetFiberTime(firstUpstreamName,theTrigger) << std::endl;
+  std::cout << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers at time " << beamspill->GetFiberTime(firstUpstreamName,theTrigger) << std::endl;
   for(size_t i = 0; i < firstUpstreamFibers.size(); ++i){
     std::cout << firstUpstreamFibers[i] << " ";
   }
   std::cout << std::endl;
 
-  std::cout << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers at time " << beamevt->GetFiberTime(secondUpstreamName,theTrigger) << std::endl;
+  std::cout << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers at time " << beamspill->GetFiberTime(secondUpstreamName,theTrigger) << std::endl;
   for(size_t i = 0; i < secondUpstreamFibers.size(); ++i){
     std::cout << secondUpstreamFibers[i] << " ";
   }
@@ -2014,16 +2090,16 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
   //////////////////////////////////////////////
 
   //Get the active fibers from the downstream tracking XBPF
-  std::vector<short> firstDownstreamFibers = beamevt->GetActiveFibers(firstDownstreamName, theTrigger);
-  std::vector<short> secondDownstreamFibers = beamevt->GetActiveFibers(secondDownstreamName, theTrigger);
+  std::vector<short> firstDownstreamFibers = beamspill->GetActiveFibers(firstDownstreamName, theTrigger);
+  std::vector<short> secondDownstreamFibers = beamspill->GetActiveFibers(secondDownstreamName, theTrigger);
 
-  std::cout << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers at time " << beamevt->GetFiberTime(firstDownstreamName,theTrigger) << std::endl;
+  std::cout << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers at time " << beamspill->GetFiberTime(firstDownstreamName,theTrigger) << std::endl;
   for(size_t i = 0; i < firstDownstreamFibers.size(); ++i){
     std::cout << firstDownstreamFibers[i] << " ";
   }
   std::cout << std::endl;
 
-  std::cout << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers at time " << beamevt->GetFiberTime(secondDownstreamName,theTrigger) << std::endl;
+  std::cout << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers at time " << beamspill->GetFiberTime(secondDownstreamName,theTrigger) << std::endl;
   for(size_t i = 0; i < secondDownstreamFibers.size(); ++i){
     std::cout << secondDownstreamFibers[i] << " ";
   }
@@ -2170,6 +2246,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
       recob::Track * tempTrack = new recob::Track(thePoints, theMomenta, dummy, mom, 1);      
       theTracks.push_back(tempTrack);
+      beamevt->AddBeamTrack( *tempTrack );
     }
   }
 
@@ -2177,7 +2254,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
 void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   
-  std::cout << "Doing momentum spectrometry for trigger " << beamevt->GetFullT0(theTrigger) << std::endl;
+  std::cout << "Doing momentum spectrometry for trigger " << beamspill->GetFullT0(theTrigger) << std::endl;
 
   //Get the active fibers from the upstream tracking XBPF
   std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 
@@ -2186,10 +2263,10 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   std::string BPROF1Name;
 
   if (firstBPROF1Type == "horiz" && secondBPROF1Type == "vert"){
-    BPROF1Fibers = beamevt->GetActiveFibers(firstBPROF1, theTrigger);
+    BPROF1Fibers = beamspill->GetActiveFibers(firstBPROF1, theTrigger);
     BPROF1Name = firstBPROF1;
 
-    std::cout << firstBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(firstBPROF1,theTrigger) << std::endl;
+    std::cout << firstBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamspill->GetFiberTime(firstBPROF1,theTrigger) << std::endl;
     for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
       std::cout << BPROF1Fibers[i] << " ";
     }
@@ -2197,10 +2274,10 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 
   }
   else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
-    BPROF1Fibers = beamevt->GetActiveFibers(secondBPROF1, theTrigger);
+    BPROF1Fibers = beamspill->GetActiveFibers(secondBPROF1, theTrigger);
     BPROF1Name = secondBPROF1;
 
-    std::cout << secondBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(secondBPROF1,theTrigger) << std::endl;
+    std::cout << secondBPROF1 << " has " << BPROF1Fibers.size() << " active fibers at time " << beamspill->GetFiberTime(secondBPROF1,theTrigger) << std::endl;
     for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
       std::cout << BPROF1Fibers[i] << " ";
     }
@@ -2244,12 +2321,12 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 
   //BPROF2////
   //
-  std::vector<short>  BPROF2Fibers = beamevt->GetActiveFibers(BPROF2, theTrigger);
+  std::vector<short>  BPROF2Fibers = beamspill->GetActiveFibers(BPROF2, theTrigger);
   if( (BPROF2Fibers.size() < 1) ){
     std::cout << "Warning, at least one empty Beam Profiler. Not checking momentum" << std::endl;
     return;
   }
-  std::cout << BPROF2 << " has " << BPROF2Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(BPROF2,theTrigger) << std::endl;
+  std::cout << BPROF2 << " has " << BPROF2Fibers.size() << " active fibers at time " << beamspill->GetFiberTime(BPROF2,theTrigger) << std::endl;
   for(size_t i = 0; i < BPROF2Fibers.size(); ++i){
     std::cout << BPROF2Fibers[i] << " ";
   }
@@ -2273,12 +2350,12 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 
   //BPROF3////
   //
-  std::vector<short>  BPROF3Fibers = beamevt->GetActiveFibers(BPROF3, theTrigger);
+  std::vector<short>  BPROF3Fibers = beamspill->GetActiveFibers(BPROF3, theTrigger);
   if( (BPROF3Fibers.size() < 1) ){
     std::cout << "Warning, at least one empty Beam Profiler. Not checking momentum" << std::endl;
     return;
   }
-  std::cout << BPROF3 << " has " << BPROF3Fibers.size() << " active fibers at time " << beamevt->GetFiberTime(BPROF3,theTrigger) << std::endl;
+  std::cout << BPROF3 << " has " << BPROF3Fibers.size() << " active fibers at time " << beamspill->GetFiberTime(BPROF3,theTrigger) << std::endl;
   for(size_t i = 0; i < BPROF3Fibers.size(); ++i){
     std::cout << BPROF3Fibers[i] << " ";
   }
@@ -2314,6 +2391,7 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
     std::cout << "Filling Cut Momentum Spectrum" << std::endl;
     fCutMomentum->Fill(momentum);
 
+    beamspill->AddRecoBeamMomentum(momentum);
     beamevt->AddRecoBeamMomentum(momentum);
   }
 
@@ -2433,169 +2511,6 @@ double proto::BeamEvent::MomentumCosTheta(double X1, double X2, double X3){
     double cosTheta = numTerm/denom;
   
   return cosTheta;
-}
-
-//Gets info from FBMs matching in time
-void proto::BeamEvent::GetPairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time){
-
-  //This method goes through the paired FBMs and gets 2D hits in their profile that match in time
-  //to the input time and fills 2D histograms. 
-  //If there are any missing triggers in a pair, then it skips filling the respective hist
-  //
-  //Need to figure out what to do with multiple active fibers
-
-  std::map<std::string, std::vector<size_t> > goodTriggers;
-  for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
-    std::string name = fPairedDevices[ip].first;
-    std::vector<size_t> triggers;
-//    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-//        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        triggers.push_back(itN);
-      }
-    }
-    goodTriggers[name] = triggers;
-
-    name = fPairedDevices[ip].second;
-    triggers.clear();
-//    std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-//        std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        triggers.push_back(itN);
-      }
-    }
-    goodTriggers[name] = triggers;
-  }
-   
-  for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
-    std::string nameOne = fPairedDevices[ip].first;
-    std::string nameTwo = fPairedDevices[ip].second;
-
-    size_t triggerSizeOne = goodTriggers[nameOne].size();
-    size_t triggerSizeTwo = goodTriggers[nameTwo].size();
-
-    if(triggerSizeOne < 1){
-//      std::cout << "Missing trigger for " << nameOne << std::endl;
-    }
-    if(triggerSizeTwo < 1){
-//      std::cout << "Missing trigger for " << nameTwo << std::endl;
-    }
-
-    if(triggerSizeOne > 0 && triggerSizeTwo > 0){
-      //std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
-      size_t triggerOne = goodTriggers[nameOne][0];
-      size_t triggerTwo = goodTriggers[nameTwo][0];
-      fBeamProf2D[ip]->Fill(beamevt.GetActiveFibers(nameOne,triggerOne)[0], beamevt.GetActiveFibers(nameTwo,triggerTwo)[0]);
-    }
-  }
-
-}
-
-void proto::BeamEvent::GetPairedStraightFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time){
-
-  //This method goes through the paired FBMs and gets 2D hits in their profile that match in time
-  //to the input time and fills 2D histograms. 
-  //If there are any missing triggers in a pair, then it skips filling the respective hist
-  //
-  //Need to figure out what to do with multiple active fibers
-
-  std::map<std::string, std::vector<size_t> > goodTriggers;
-  for(size_t ip = 0; ip < fPairedStraightDevices.size(); ++ip){
-    std::string name = fPairedStraightDevices[ip].first;
-    std::vector<size_t> triggers;
-    //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        triggers.push_back(itN);
-      }
-    }
-    goodTriggers[name] = triggers;
-
-    name = fPairedStraightDevices[ip].second;
-    triggers.clear();
-    //std::cout << ip << " " << name << " " << fPairedStraightDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        triggers.push_back(itN);
-      }
-    }
-    goodTriggers[name] = triggers;
-  }
-   
-  for(size_t ip = 0; ip < fPairedStraightDevices.size(); ++ip){
-    std::string nameOne = fPairedStraightDevices[ip].first;
-    std::string nameTwo = fPairedStraightDevices[ip].second;
-
-    size_t triggerSizeOne = goodTriggers[nameOne].size();
-    size_t triggerSizeTwo = goodTriggers[nameTwo].size();
-
-    if(triggerSizeOne < 1){
-      //std::cout << "Missing trigger for " << nameOne << std::endl;
-    }
-    if(triggerSizeTwo < 1){
-      //std::cout << "Missing trigger for " << nameTwo << std::endl;
-    }
-
-    if(triggerSizeOne > 0 && triggerSizeTwo > 0){
-      //std::cout << "Found good triggers for " << nameOne << " " << nameTwo << std::endl;
-      size_t triggerOne = goodTriggers[nameOne][0];
-      size_t triggerTwo = goodTriggers[nameTwo][0];
-      fBeamProf2D[ip]->Fill(beamevt.GetActiveFibers(nameOne,triggerOne)[0], beamevt.GetActiveFibers(nameTwo,triggerTwo)[0]);
-    }
-  }
-
-}
-
-void proto::BeamEvent::GetUnpairedFBMInfo(beam::ProtoDUNEBeamEvent beamevt, double Time){
-  //This method goes through the unpaired devices, as well as the paired devices individually
-  //and gets the info that matches to the inputted time
-  //
-  //Currently allows for multiple fibers in an event
-
-
-  //Going through paired devices individually
-  for(size_t ip = 0; ip < fPairedDevices.size(); ++ip){
-    std::string name = fPairedDevices[ip].first;
-    //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
-	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
-	} 
-      }
-    }
-
-    name = fPairedDevices[ip].second;
-    //std::cout << ip << " " << name << " " << fPairedDevices[ip].second << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
-	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
-	} 
-      }
-    }
-  }
-
-  //Now going through unpaired
-  for(size_t id = 0; id < fDevices.size(); ++id){
-    std::string name = fDevices[id];
-    //std::cout << id << " " << name << " " << fDevices[id] << std::endl;
-    for(size_t itN = 0; itN < beamevt.GetNFBMTriggers(name); ++itN){
-      if ( ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time) < fTolerance ) && ( (beamevt.DecodeFiberTime(name, itN, fOffsetTAI ) - Time)     >= 0 ) ){
-        //std::cout << "Found Good Time " << name << " " << beamevt.DecodeFiberTime(name, itN ) << std::endl;
-        for(size_t iFiber = 0; iFiber < beamevt.GetActiveFibers(name,itN).size(); ++iFiber){
-	  fBeamProf1D[name]->Fill(beamevt.GetActiveFibers(name, itN)[iFiber]);
-	} 
-      }
-    }
-  }
-
 }
 
 TVector3 proto::BeamEvent::ProjectToTPC(TVector3 firstPoint, TVector3 secondPoint){

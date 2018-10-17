@@ -64,6 +64,10 @@ namespace beam
 
       void              SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
       void              SetCKov1(CKov theCKov){ CKov1 = theCKov; };
+      CKov              GetCKov0(){ return CKov0; }; 
+      CKov              GetCKov1(){ return CKov1; };
+
+
       short             GetCKov0Status(){ return CKov0.trigger; };
       short             GetCKov1Status(){ return CKov1.trigger; };
       double            GetCKov0Time(){ return CKov0.timeStamp; };
