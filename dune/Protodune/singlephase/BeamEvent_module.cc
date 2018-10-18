@@ -587,11 +587,11 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
     double HLTTime = 2.e-08*HLTTS;
     double diff = HLTTime - GenTrigTime - SpillOffset;
     std::cout.precision(dbl::max_digits10);
-    std::cout << GenTrigTime << " " << HLTTime << " " << diff << " " << fTimingCalibration << std::endl << std::endl;
+//    std::cout << GenTrigTime << " " << HLTTime << " " << diff << " " << fTimingCalibration << std::endl << std::endl;
 
   
     if( ( fTimingCalibration - fCalibrationTolerance < diff ) && (fTimingCalibration + fCalibrationTolerance > diff) ){
-      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+//      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
 
 
       beamspill->SetActiveTrigger( iT ); 
@@ -1142,7 +1142,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
           //If here, then TOF1 is within 500 ns below TOF2
 
-          std::cout << "Found matching TOF2A and TOF1A" << std::endl;
+//          std::cout << "Found matching TOF2A and TOF1A" << std::endl;
           found_TOF = true;
 
           the_TOF2_sec = TOF2A_sec;
@@ -1175,7 +1175,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
           else{
             //If here, then TOF1 is within 500 ns below TOF2
 
-            std::cout << "Found matching TOF2B and TOF1A" << std::endl;
+//            std::cout << "Found matching TOF2B and TOF1A" << std::endl;
             found_TOF = true;
 
             the_TOF2_sec = TOF2B_sec;
@@ -1231,7 +1231,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
             //If here, then TOF1 is within 500 ns below TOF2
 
-            std::cout << "Found matching TOF2A and TOF1B" << std::endl;
+//            std::cout << "Found matching TOF2A and TOF1B" << std::endl;
             found_TOF = true;
 
             the_TOF2_sec = TOF2A_sec;
@@ -1264,7 +1264,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
             else{
               //If here, then TOF1 is within 500 ns below TOF2
 
-              std::cout << "Found matching TOF2B and TOF1B" << std::endl;
+//              std::cout << "Found matching TOF2B and TOF1B" << std::endl;
               found_TOF = true;
 
               the_TOF2_sec = TOF2B_sec;
@@ -1287,7 +1287,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     if(found_TOF){
       //Convert from TAI to UTC at this point
 
-      std::cout << "Adding matched tof" << std::endl;
+//      std::cout << "Adding matched tof" << std::endl;
 
       beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
       beamspill->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
@@ -1297,7 +1297,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     else{
       //Add dummy
 
-      std::cout << "Adding unmatched tof" << std::endl;
+//      std::cout << "Adding unmatched tof" << std::endl;
 
       beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
       beamspill->AddTOF0Trigger(std::make_pair(0., 0.));
@@ -1754,8 +1754,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
 
 uint64_t proto::BeamEvent::joinHighLow(double high, double low){
 
-  std::cout << "%%% Joining high and low %%%" << std::endl;
-
   uint32_t low32 = (uint32_t)low;
   std::bitset<64> lowbits = low32;
 
@@ -1764,15 +1762,6 @@ uint64_t proto::BeamEvent::joinHighLow(double high, double low){
 
   highbits = highbits << 32;
   std::bitset<64> joinedbits = highbits ^ lowbits;
-
-  std::cout << low << " " << low32 << std::endl;
-  std::cout << lowbits << std::endl;
-
-  std::cout << high << " " << high32 << std::endl;
-  std::cout << highbits << std::endl;
-
-  std::cout << joinedbits.to_ullong() << std::endl;
-  std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;
 
   return joinedbits.to_ullong(); 
 }
