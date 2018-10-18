@@ -244,12 +244,12 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         if ( mans.find(type) == mans.end() ) {
           TPadManipulator& man = mans[type];
           man.setCanvasSize(1400, 1000);
-          man.addAxis();
           if ( isRaw || type == "prepared" ) {
             man.split(nx,ny);
             for ( Index ipad=0; ipad<nplt; ++ipad ) {
               if ( isRaw) man.man(ipad)->addHorizontalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
+              man.addAxis();
             }
             nplts[type] = nx*ny;
           } else if ( type == "rawdist" ) {
@@ -257,6 +257,9 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             for ( Index ipad=0; ipad<ndplt; ++ipad ) {
               man.man(ipad)->addVerticalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSigMin, m_PlotSigMax);
+              man.man(ipad)->showUnderflow();
+              man.man(ipad)->showOverflow();
+              man.addAxis();
             }
             nplts[type] = ndx*ndy;
           }
