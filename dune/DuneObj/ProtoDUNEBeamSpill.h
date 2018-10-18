@@ -26,6 +26,9 @@ namespace beam
     
     //ID (position in beamline?) of monitor
     int ID;
+
+    std::vector<short> active;
+    bool decoded;
   };
 
   //Cerenkov Threshold Detector
@@ -254,6 +257,9 @@ namespace beam
       std::cout << "Please input trigger in range [0," << fiberMonitors[FBMName].size() - 1 << "]" << std::endl;
       return;
     }
+
+    //This always clears the currently active fibers in the FBM.
+    fiberMonitors[FBMName][nTrigger].active.clear();
     
     for(int iSet = 0; iSet < 6; ++iSet){
       
@@ -261,8 +267,11 @@ namespace beam
 
       for(int  iFiber = 0; iFiber < 32; ++iFiber){      
         fiberMonitors[FBMName][nTrigger].fibers[iSet*32 + iFiber] = theseFibers[iFiber];
+        if(theseFibers[iFiber]) fiberMonitors[FBMName][nTrigger].active.push_back(iSet*32 + iFiber);        
       }
     }
+
+    fiberMonitors[FBMName][nTrigger].decoded = true;
   }
 
   inline double ProtoDUNEBeamSpill::DecodeFiberTime(std::string FBMName, size_t nTrigger, double OffsetTAI){
