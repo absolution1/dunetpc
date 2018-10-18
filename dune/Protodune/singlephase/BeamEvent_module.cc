@@ -104,8 +104,6 @@ public:
   void  InitXBPFInfo(beam::ProtoDUNEBeamSpill *);
   void  parseGeneralXBPF(std::string, uint64_t, size_t);
   void  parseXBPF(uint64_t);
-  void  parsePairedXBPF(uint64_t);
-  void  parsePairedStraightXBPF(uint64_t);
 
   void  parseXTOF(uint64_t);
   void  parseXCET(uint64_t);
@@ -254,8 +252,6 @@ private:
   double      fBeamBend;
 
   std::vector< std::string > fDevices;
-  std::vector< std::pair<std::string, std::string> > fPairedDevices;
-  std::vector< std::pair<std::string, std::string> > fPairedStraightDevices;
   std::map<std::string, std::string > fDeviceTypes;
   std::map< std::string, double > fFiberDimension;
 
@@ -636,29 +632,6 @@ void proto::BeamEvent::SetBeamEvent(){
     std::cout << "beamevt monitor " << theName << " has "
               << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
   }
-  for( size_t i = 0; i < fPairedDevices.size(); ++i){
-    std::string theName = fPairedDevices[i].first;
-    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
-
-    std::cout << "beamevt monitor " << theName << " has "
-              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
-
-    theName = fPairedDevices[i].second;
-    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
-    std::cout << "beamevt monitor " << theName << " has "
-              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
-  }
-  for( size_t i = 0; i < fPairedStraightDevices.size(); ++i){
-    std::string theName = fPairedStraightDevices[i].first;
-    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
-    std::cout << "beamevt monitor " << theName << " has "
-              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
-
-    theName = fPairedStraightDevices[i].second;
-    beamevt->SetFBMTrigger( theName, beamspill->GetFBM(theName, activeTrigger) );    
-    std::cout << "beamevt monitor " << theName << " has "
-              << beamevt->GetActiveFibers( theName ).size() << " active Fibers" << std::endl;
-  }
   std::cout << std::endl;
 
   std::cout << "Setting TOF info for beamevt " << std::endl;
@@ -828,8 +801,6 @@ void proto::BeamEvent::produce(art::Event & e){
         // of time that we are using
         InitXBPFInfo(beamspill);
         parseXBPF(fetch_time);
-        parsePairedXBPF(fetch_time);
-        parsePairedStraightXBPF(fetch_time);
         parseXCET(fetch_time);
    
         //Set PrevStart to SpillStart here
@@ -970,39 +941,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
     // Put the current device name on the list
     monitors.push_back(name);
     nDev++;
-  }
-
-  for(size_t id = 0; id < fPairedStraightDevices.size(); ++id){
-
-    std::string name = fPairedStraightDevices[id].first;
-    std::cout << fXBPFPrefix + name << std::endl;
-
-    std::cout << nDev << std::endl;
-    nDev++;
-    monitors.push_back(name);
-
-    name = fPairedStraightDevices[id].second;
-    std::cout << fXBPFPrefix + name << std::endl;
-    monitors.push_back(name);
-    std::cout << nDev << std::endl;
-    nDev++;
-  }
-
-  for(size_t id = 0; id < fPairedDevices.size(); ++id){
-
-    std::string name = fPairedDevices[id].first;
-    std::cout << fXBPFPrefix + name << std::endl;
-
-    std::cout << nDev << std::endl;
-    nDev++;
-    monitors.push_back(name);
-
-    name = fPairedDevices[id].second;
-    std::cout << fXBPFPrefix + name << std::endl;
-
-    std::cout << nDev << std::endl;
-    nDev++;
-    monitors.push_back(name);
   }
 
   std::cout << "Initializing monitors";
@@ -1546,37 +1484,6 @@ void proto::BeamEvent::parseXBPF(uint64_t time){
 // END BeamEvent::parseXBFP
 ////////////////////////
 
-////////////////////////
-// 
-void proto::BeamEvent::parsePairedXBPF(uint64_t time){
-  for(size_t d = 0; d < fPairedDevices.size(); ++d){
-    std::string name = fPairedDevices[d].first;
-    std::cout <<"Device: " << name << std::endl;
-      parseGeneralXBPF(name, time, d);
-
-    name = fPairedDevices[d].second;
-    std::cout <<"Device: " << name << std::endl;
-        parseGeneralXBPF(name, time, d);
-  }
-}
-// END BeamEvent::parsePairedXBFP
-////////////////////////
-
-////////////////////////
-// 
-void proto::BeamEvent::parsePairedStraightXBPF(uint64_t time){
-  for(size_t d = 0; d < fPairedStraightDevices.size(); ++d){
-    std::string name = fPairedStraightDevices[d].first;
-    std::cout <<"Device: " << name << std::endl;
-        parseGeneralXBPF(name, time, d);
-
-    name = fPairedStraightDevices[d].second;
-    std::cout <<"Device: " << name << std::endl;
-        parseGeneralXBPF(name, time, d);
-  }
-}
-// END BeamEvent::parsePairedStrightXBFP
-////////////////////////
 
 void proto::BeamEvent::beginJob()
 {
@@ -1679,115 +1586,6 @@ void proto::BeamEvent::beginJob()
   fMatchedTriggers->Branch("Chan", &matchedChan);
   fMatchedTriggers->Branch("NominalTriggers", &matchedNom);
 
-  for(size_t i = 0; i < fPairedDevices.size(); ++i){
-    std::string name = "BeamProf2D_" + fPairedDevices[i].first + "_" + fPairedDevices[i].second;
-    std::string title = fPairedDevices[i].first + ", " + fPairedDevices[i].second;
-    fBeamProf2D.push_back( tfs->make<TH2F>(name.c_str(),title.c_str(),192,0,192,192,0,192) );
-
-    name = "BeamProf1D_" + fPairedDevices[i].first;
-    title = fPairedDevices[i].first;
-    fBeamProf1D[fPairedDevices[i].first] = ( tfs->make<TH1F>(name.c_str(),title.c_str(),192,0,192) );
-
-    name = "BeamProf1D_" + fPairedDevices[i].second;
-    title = fPairedDevices[i].second;
-    fBeamProf1D[fPairedDevices[i].second] = ( tfs->make<TH1F>(name.c_str(),title.c_str(),192,0,192) );
-    
-    name = "Fibers_" + fPairedDevices[i].first;
-    fActiveFibers[fPairedDevices[i].first] = new std::vector<short>;
-
-    fProfTime[fPairedDevices[i].first] = 0.;
-    fProfTrigger1[fPairedDevices[i].first] = 0.;
-    fProfTrigger2[fPairedDevices[i].first] = 0.;
-    fProfTime1[fPairedDevices[i].first] = 0.;
-    fProfTime2[fPairedDevices[i].first] = 0.;
-
-    matchedXBPF[fPairedDevices[i].first] = 0.;
-    fMatchedTriggers->Branch((fPairedDevices[i].first).c_str(), &matchedXBPF[fPairedDevices[i].first]);
-
-
-    fProfTree[fPairedDevices[i].first] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
-    fProfTree[fPairedDevices[i].first]->Branch("time", &fProfTime[fPairedDevices[i].first]);
-    fProfTree[fPairedDevices[i].first]->Branch("fibers", &fActiveFibers[fPairedDevices[i].first]);
-    fProfTree[fPairedDevices[i].first]->Branch("trigger_1", &fProfTrigger1[fPairedDevices[i].first]);
-    fProfTree[fPairedDevices[i].first]->Branch("trigger_2", &fProfTrigger2[fPairedDevices[i].first]);
-    fProfTree[fPairedDevices[i].first]->Branch("time_1", &fProfTime1[fPairedDevices[i].first]);
-    fProfTree[fPairedDevices[i].first]->Branch("time_2", &fProfTime2[fPairedDevices[i].first]);
-
-    name = "Fibers_" + fPairedDevices[i].second;
-    fActiveFibers[fPairedDevices[i].second] = new std::vector<short>;
-
-    fProfTime[fPairedDevices[i].second] = 0.;
-    fProfTrigger1[fPairedDevices[i].second] = 0.;
-    fProfTrigger2[fPairedDevices[i].second] = 0.;
-    fProfTime1[fPairedDevices[i].second] = 0.;
-    fProfTime2[fPairedDevices[i].second] = 0.;
-
-    matchedXBPF[fPairedDevices[i].second] = 0.;
-    fMatchedTriggers->Branch((fPairedDevices[i].second).c_str(), &matchedXBPF[fPairedDevices[i].second]);
-
-    fProfTree[fPairedDevices[i].second] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
-    fProfTree[fPairedDevices[i].second]->Branch("time", &fProfTime[fPairedDevices[i].second]);
-    fProfTree[fPairedDevices[i].second]->Branch("fibers", &fActiveFibers[fPairedDevices[i].second]);
-    fProfTree[fPairedDevices[i].second]->Branch("trigger_1", &fProfTrigger1[fPairedDevices[i].second]);
-    fProfTree[fPairedDevices[i].second]->Branch("trigger_2", &fProfTrigger2[fPairedDevices[i].second]);
-    fProfTree[fPairedDevices[i].second]->Branch("time_1", &fProfTime1[fPairedDevices[i].second]);
-    fProfTree[fPairedDevices[i].second]->Branch("time_2", &fProfTime2[fPairedDevices[i].second]);
-  }
-
-  for(size_t i = 0; i < fPairedStraightDevices.size(); ++i){
-    std::string name = "BeamProf2D_" + fPairedStraightDevices[i].first + "_" + fPairedStraightDevices[i].second;
-    std::string title = fPairedStraightDevices[i].first + ", " + fPairedStraightDevices[i].second;
-    fBeamProf2D.push_back( tfs->make<TH2F>(name.c_str(),title.c_str(),192,0,192,192,0,192) );
-
-    name = "BeamProf1D_" + fPairedStraightDevices[i].first;
-    title = fPairedStraightDevices[i].first;
-    fBeamProf1D[fPairedStraightDevices[i].first] = ( tfs->make<TH1F>(name.c_str(),title.c_str(),192,0,192) );
-
-    name = "BeamProf1D_" + fPairedStraightDevices[i].second;
-    title = fPairedStraightDevices[i].second;
-    fBeamProf1D[fPairedStraightDevices[i].second] = ( tfs->make<TH1F>(name.c_str(),title.c_str(),192,0,192) );
-    
-    name = "Fibers_" + fPairedStraightDevices[i].first;
-    fActiveFibers[fPairedStraightDevices[i].first] = new std::vector<short>;
-
-    fProfTime[fPairedStraightDevices[i].first] = 0.;
-    fProfTrigger1[fPairedStraightDevices[i].first] = 0.;
-    fProfTrigger2[fPairedStraightDevices[i].first] = 0.;
-    fProfTime1[fPairedStraightDevices[i].first] = 0.;
-    fProfTime2[fPairedStraightDevices[i].first] = 0.;
-
-    matchedXBPF[fPairedStraightDevices[i].first] = 0.;
-    fMatchedTriggers->Branch((fPairedStraightDevices[i].first).c_str(), &matchedXBPF[fPairedStraightDevices[i].first]);
-
-    fProfTree[fPairedStraightDevices[i].first] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
-    fProfTree[fPairedStraightDevices[i].first]->Branch("time", &fProfTime[fPairedStraightDevices[i].first]);
-    fProfTree[fPairedStraightDevices[i].first]->Branch("fibers", &fActiveFibers[fPairedStraightDevices[i].first]);
-    fProfTree[fPairedStraightDevices[i].first]->Branch("trigger_1", &fProfTrigger1[fPairedStraightDevices[i].first]);
-    fProfTree[fPairedStraightDevices[i].first]->Branch("trigger_2", &fProfTrigger2[fPairedStraightDevices[i].first]);
-    fProfTree[fPairedStraightDevices[i].first]->Branch("time_1", &fProfTime1[fPairedStraightDevices[i].first]);
-    fProfTree[fPairedStraightDevices[i].first]->Branch("time_2", &fProfTime2[fPairedStraightDevices[i].first]);
-
-    name = "Fibers_" + fPairedStraightDevices[i].second;
-    fActiveFibers[fPairedStraightDevices[i].second] = new std::vector<short>;
-
-    fProfTime[fPairedStraightDevices[i].second] = 0.;
-    fProfTrigger1[fPairedStraightDevices[i].second] = 0.;
-    fProfTrigger2[fPairedStraightDevices[i].second] = 0.;
-    fProfTime1[fPairedStraightDevices[i].second] = 0.;
-    fProfTime2[fPairedStraightDevices[i].second] = 0.;
-
-    matchedXBPF[fPairedStraightDevices[i].second] = 0.;
-    fMatchedTriggers->Branch((fPairedStraightDevices[i].second).c_str(), &matchedXBPF[fPairedStraightDevices[i].second]);
-
-    fProfTree[fPairedStraightDevices[i].second] = ( tfs->make<TTree>(name.c_str(), "XBPF") );
-    fProfTree[fPairedStraightDevices[i].second]->Branch("time", &fProfTime[fPairedStraightDevices[i].second]);
-    fProfTree[fPairedStraightDevices[i].second]->Branch("fibers", &fActiveFibers[fPairedStraightDevices[i].second]);
-    fProfTree[fPairedStraightDevices[i].second]->Branch("trigger_1", &fProfTrigger1[fPairedStraightDevices[i].second]);
-    fProfTree[fPairedStraightDevices[i].second]->Branch("trigger_2", &fProfTrigger2[fPairedStraightDevices[i].second]);
-    fProfTree[fPairedStraightDevices[i].second]->Branch("time_1", &fProfTime1[fPairedStraightDevices[i].second]);
-    fProfTree[fPairedStraightDevices[i].second]->Branch("time_2", &fProfTime2[fPairedStraightDevices[i].second]);
-  }
-
   for(size_t i = 0; i < fDevices.size(); ++i){
     std::string name = "BeamProf1D_" + fDevices[i];
     std::string title = fDevices[i];
@@ -1883,8 +1681,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
 
   fDevices     = p.get< std::vector< std::string > >("Devices");    
-  fPairedDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedDevices");
-  fPairedStraightDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedStraightDevices");   
 
   //For Tracking/////
   firstUpstreamName    = p.get< std::string >("FirstUpstream");

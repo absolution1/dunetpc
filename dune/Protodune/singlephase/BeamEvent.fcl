@@ -56,11 +56,15 @@ proto_beamevent:
                  ["XBPF022716","horiz"],
                  ["XBPF022717","vert"]]
 
-  PairedStraightDevices: [["XBPF022707", "XBPF022708"],
-                          ["XBPF022716", "XBPF022717"]]
-
-  PairedDevices:  [["XBPF022697","XBPF022698"]]
-  Devices:        ["XBPF022701","XBPF022702"]
+         
+  Devices:        ["XBPF022697",
+                   "XBPF022698",
+                   "XBPF022701",
+                   "XBPF022702",
+                   "XBPF022707",
+                   "XBPF022708",
+                   "XBPF022716",
+                   "XBPF022717"]
 
 
   #For tracking###################
