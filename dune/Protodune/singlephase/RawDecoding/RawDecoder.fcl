@@ -34,6 +34,9 @@ pdsp_tpc_raw_decoder:
   module_type: "PDSPTPCRawDecoder"
   OutputDataLabel: "daq"
 
+  APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
+                      # an emtpy list decodes them all
+
   RCERawDataLabel: "daq"
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
