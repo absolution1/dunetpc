@@ -1,7 +1,8 @@
 #include "services_dune.fcl"
-#include "BeamAna.fcl"
+#include "BeamEvent.fcl"
+#include "RawDecoding/RunRawDecoder.fcl"
 
-process_name: BeamAna
+process_name: BeamEvent
 
 services:
 {
@@ -22,7 +23,7 @@ services:
   ChannelStatusService:         @local::dunefd_channel_status
 
   TFileService: { #closeFileFast: true
-                  fileName: "beamana_hist.root" 
+                  fileName: "beamevent_hist.root" #can be overridden by '-T'
                 }
   IFBeam:            {}
 }
@@ -33,9 +34,7 @@ source:
 {
   module_type: RootInput
   maxEvents: -1
-#  fileNames: ["/pnfs/dune/tape_backed/dunepro/mcc10/mc/full-reconstructed/02/04/87/92/mcc10_protodune_beam_p7GeV_cosmics_3ms_15_20171229T015257_merged0.root"]
-  #fileNames: ["/pnfs/dune/tape_backed/dunepro/protodune/np04/beam/detector/None/raw/04/98/89/04/np04_raw_run004140_0004_dl1.root"]  
-  #fileNames: ["RawDecoding/RawDecoder.root"]
+  #fileNames: [""]
 }
 
 outputs:
@@ -43,9 +42,8 @@ outputs:
  out1:
   {
     module_type: RootOutput
-    fileName:    "beam_ana.root" #default file name, can override from command line with -o or --output
-#    outputCommands: []
-    dataTier:   "reconstructed"
+    fileName:    "beam_event.root" #default file name, can override from command line with -o or --output
+    dataTier:    "reconstructed"
     
   }
 }
@@ -54,27 +52,23 @@ physics:
 {
  producers:
  {
-  beamana:          @local::proto_beamana
+  timingrawdecoder: @local::timing_raw_decoder
+  ctbrawdecoder:    @local::ctb_raw_decoder
+  beamevent:          @local::proto_beamevent
  }
 
- produce:  [ beamana ]
+ produce:  [ timingrawdecoder, ctbrawdecoder, beamevent ]
  stream1: [ out1 ]
 
  trigger_paths:     [ produce ]
  end_paths:         [ stream1 ]
 }
 
-#physics.producers.beamana.FixedTime:            1535414422    
-#physics.producers.beamana.FixedTime:             1535540435        
-#physics.producers.beamana.FixedTime:             1536253221
-#physics.producers.beamana.FixedTime:             1536229335
-#physics.producers.beamana.FixedTime:             1536598824
-physics.producers.beamana.ValidWindow:           100
-#physics.producers.beamana.DummyEventTime:        1.1682e+08
-physics.producers.beamana.Tolerance:           10000
+physics.producers.beamevent.ValidWindow:           100
+physics.producers.beamevent.Tolerance:           1000000
 
 
-physics.producers.beamana.Coordinates:         [["XBPF022697",[0,0,0]],
+physics.producers.beamevent.Coordinates:         [["XBPF022697",[0,0,0]],
                                                 ["XBPF022698",[0,0,0]],
                                                 ["XBPF022701",[0,0,1]],
                                                 ["XBPF022702",[0,0,2]],
@@ -83,7 +77,7 @@ physics.producers.beamana.Coordinates:         [["XBPF022697",[0,0,0]],
                                                 ["XBPF022716",[-27.173, 421.445, -800]],
                                                 ["XBPF022717",[-27.173, 421.445, -800]]]
 
-physics.producers.beamana.Rotations:           [["XBPF022697",[0,0,1]],
+physics.producers.beamevent.Rotations:           [["XBPF022697",[0,0,1]],
                                                 ["XBPF022698",[0,0,1]],
                                                 ["XBPF022701",[0,0,1]],
                                                 ["XBPF022702",[0,0,1]],
@@ -93,7 +87,7 @@ physics.producers.beamana.Rotations:           [["XBPF022697",[0,0,1]],
                                                 ["XBPF022717",[0,0,0]]]
 
 
-physics.producers.beamana.Dimension:           [["XBPF022697",1],
+physics.producers.beamevent.Dimension:           [["XBPF022697",1],
                                                 ["XBPF022698",1],
                                                 ["XBPF022701",1],
                                                 ["XBPF022702",1],
@@ -102,24 +96,31 @@ physics.producers.beamana.Dimension:           [["XBPF022697",1],
                                                 ["XBPF022716",1],
                                                 ["XBPF022717",1]]
 
-physics.producers.beamana.GlobalDetCoords:    [0.,0.,0.]
-physics.producers.beamana.DetRotation:        [0.,0.,0.]
+physics.producers.beamevent.GlobalDetCoords:    [0.,0.,0.]
+physics.producers.beamevent.DetRotation:        [0.,0.,0.]
 
 
-physics.producers.beamana.TOF1:               "XBTF022687"
-physics.producers.beamana.TOF2:               "XBTF022716"
+physics.producers.beamevent.TOF1:               "XBTF022687"
+physics.producers.beamevent.TOF2:               "XBTF022716"
 
-physics.producers.beamana.CKov1:               "XCET022713"
-physics.producers.beamana.CKov2:               "XCET022716"
+physics.producers.beamevent.CKov1:               "XCET022713"
+physics.producers.beamevent.CKov2:               "XCET022716"
 
-physics.producers.beamana.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
-physics.producers.beamana.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
-physics.producers.beamana.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
-
-
+physics.producers.beamevent.XBPFPrefix:              "dip/acc/NORTH/NP04/BI/XBPF/"                                                
+physics.producers.beamevent.XTOFPrefix:              "dip/acc/NORTH/NP04/BI/XTOF/"
+physics.producers.beamevent.XCETPrefix:              "dip/acc/NORTH/NP04/BI/XCET/"
 
 
-#physics.producers.beamana.MultipleTimes:            [1536253221
-#,1536253242
-#,1536253264
-#,1536253329]
+#Should we grab from the folders each time?
+physics.producers.beamevent.ForceNewFetch:        "false"
+
+#Do we want to match in time between
+#beamline and tpc?
+physics.producers.beamevent.MatchTime:            "true"
+
+#Option to get info from database
+#even if we don't have a good
+#trigger from the BI to CTB 
+#or if we are getting invalid Spill Times
+physics.producers.beamevent.ForceRead:            "false"
+

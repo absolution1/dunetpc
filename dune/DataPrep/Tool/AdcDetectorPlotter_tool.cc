@@ -108,7 +108,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   WireSelector& sel = getState()->sel;
   sel.selectWireAngle(m_WireAngle);
   sel.selectTpcSets(m_ShowTpcSets);
-  for ( Index itps : m_ShowTpcSets ) sel.selectTpcSet(itps);
+  //for ( Index itps : m_ShowTpcSets ) sel.selectTpcSet(itps);
   const WireSelector::WireInfoVector& wdat = sel.fillData();
   const WireSelector::WireInfoMap& wmap = sel.fillDataMap();
   const WireSelector::WireSummary& wsum = sel.fillWireSummary();

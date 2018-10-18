@@ -128,6 +128,7 @@ tools.preparedAdcPlotter: {
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
@@ -146,6 +147,7 @@ tools.signalAdcPlotter: {
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
@@ -164,6 +166,7 @@ tools.rawAdcPlotter: {
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200

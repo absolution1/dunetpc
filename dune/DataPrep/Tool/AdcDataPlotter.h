@@ -11,8 +11,7 @@
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
 //               If blank or not defined, the full range is used.
-//   FirstTick - First tick number to display
-//   LastTick - Last+1 tick number to display
+//   TickRebin - If > 1, histo bins include this # ticks.
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "" or "data" plots all channels in data with label "All data".
@@ -90,6 +89,7 @@ private:
   int            m_LogLevel;
   int            m_DataType;
   std::string    m_TickRange;
+  Index          m_TickRebin;
   NameVector     m_ChannelRanges;
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
