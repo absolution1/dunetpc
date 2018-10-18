@@ -100,7 +100,6 @@ public:
   double GetPosition(std::string, int);
   TVector3 ProjectToTPC(TVector3, TVector3);
   double GetPairedPosition(std::string, size_t);
-  TVector3 TranslateDeviceToDetector(TVector3);
  
   void  InitXBPFInfo(beam::ProtoDUNEBeamSpill *);
   void  parseGeneralXBPF(std::string, uint64_t, size_t);
@@ -236,16 +235,10 @@ private:
   TVector3 fBMBasisZ;
 
   // Declare member data here.
-  //bool fLoadFromDB; // unused
   double  fTimeWindow;
-  double fTolerance;
-  std::string fCSVFileName;
   std::string fBundleName;
   std::string fOutputLabel;
-  std::string fInputLabel;
-  double fDummyEventTime;
   std::string fURLStr;
-  double fValidWindow;
   uint64_t fFixedTime;
   std::vector< uint64_t > fMultipleTimes;
 
@@ -264,11 +257,6 @@ private:
   std::vector< std::pair<std::string, std::string> > fPairedDevices;
   std::vector< std::pair<std::string, std::string> > fPairedStraightDevices;
   std::map<std::string, std::string > fDeviceTypes;
-//  std::vector< std::array<double, 3> > fCoordinates; 
-  std::map< std::string, std::array<double,3> > fCoordinates;
-  std::map< std::string, std::array<double, 3> > fRotations;
-  TVector3 fGlobalDetCoords;
-  std::array<double,3> fDetRotation;
   std::map< std::string, double > fFiberDimension;
 
   int fNRetries;
@@ -322,7 +310,6 @@ private:
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
 
   art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
-//  art::Handle< std::vector<raw::ctb::pdspctb> > CTBHandle;
 
   uint64_t validTimeStamp;
 
@@ -364,7 +351,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "Trying to grab from folder: " << name << std::endl;
 //    std::cout << "At Time: " << newTime << std::endl;    
       try{
-        theResult = bfp->GetNamedVector(newTime, name);
+        theResult = (T)bfp->GetNamedVector(newTime, name);
         std::cout << "Successfully fetched" << std::endl;
         prev_fetch_time = newTime;
         return theResult;
@@ -378,7 +365,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "Trying to grab from folder: " << name << std::endl;
 //    std::cout << "At Time: " << newTime << std::endl;    
     try{
-      theResult = bfp->GetNamedVector(newTime, name);
+      theResult = (T)bfp->GetNamedVector(newTime, name);
       std::cout << "Successfully fetched" << std::endl;
       prev_fetch_time = newTime;
       return theResult;
@@ -391,7 +378,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
   //Try a final time. Let it crash if it doesn't work
   std::cout << "Trying a final time to grab from folder: " << name << std::endl;
   std::cout << "At time: " << newTime << std::endl;
-  theResult = bfp->GetNamedVector(newTime, name);
+  theResult = (T)bfp->GetNamedVector(newTime, name);
   std::cout << "Successfully fetched" << std::endl;
   std::cout << std::endl;
   return theResult; 
@@ -979,8 +966,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
   for(size_t id = 0; id < fDevices.size(); ++id){
     std::string name = fDevices[id];
     std::cout << fXBPFPrefix + fDevices[id] << std::endl;
-    std::cout << "At: "      << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
-    std::cout << "Rotated: " << fRotations[name][0]   << " " << fRotations[name][1]   << " " << fRotations[name][2]   << std::endl;
 
     // Put the current device name on the list
     monitors.push_back(name);
@@ -991,7 +976,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
     std::string name = fPairedStraightDevices[id].first;
     std::cout << fXBPFPrefix + name << std::endl;
-    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     std::cout << nDev << std::endl;
     nDev++;
@@ -999,7 +983,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
     name = fPairedStraightDevices[id].second;
     std::cout << fXBPFPrefix + name << std::endl;
-    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
     monitors.push_back(name);
     std::cout << nDev << std::endl;
     nDev++;
@@ -1009,7 +992,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
     std::string name = fPairedDevices[id].first;
     std::cout << fXBPFPrefix + name << std::endl;
-    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     std::cout << nDev << std::endl;
     nDev++;
@@ -1017,7 +999,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
     name = fPairedDevices[id].second;
     std::cout << fXBPFPrefix + name << std::endl;
-    std::cout << "At: " << fCoordinates[name][0] << " " << fCoordinates[name][1] << " " << fCoordinates[name][2] << std::endl;
 
     std::cout << nDev << std::endl;
     nDev++;
@@ -1895,14 +1876,11 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   // Implementation of optional member function here.
   fBundleName  = p.get<std::string>("BundleName");
   fOutputLabel = p.get<std::string>("OutputLabel");
-  fInputLabel  = p.get<std::string>("InputLabel");
   fURLStr      = p.get<std::string>("URLStr");
   fNRetries    = p.get<int>("NRetries");
-  fValidWindow = p.get<double>("ValidWindow");
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
   fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
-  fTolerance   = p.get<double>("Tolerance");
 
   fDevices     = p.get< std::vector< std::string > >("Devices");    
   fPairedDevices = p.get< std::vector< std::pair<std::string, std::string> > >("PairedDevices");
@@ -1932,25 +1910,10 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
   fDeviceTypes  = std::map<std::string, std::string>(tempTypes.begin(), tempTypes.end() );
 
-  //Location of Device 
-  std::vector< std::pair<std::string, std::array<double,3> > > tempCoords = p.get<std::vector< std::pair<std::string, std::array<double,3> > > >("Coordinates");
-  fCoordinates = std::map<std::string, std::array<double,3> >(tempCoords.begin(), tempCoords.end());
-//  fCoordinates = p.get< std::vector< std::array<double,3> > >("Coordinates");
-
-  //Rotation of Device
-  std::vector< std::pair<std::string, std::array<double,3> > > tempRots = p.get< std::vector< std::pair<std::string, std::array<double,3> > > >("Rotations"); 
-  fRotations = std::map<std::string, std::array<double,3> >(tempRots.begin(), tempRots.end());
-//  fRotations   = p.get< std::vector< std::array<double,3> > >("Rotations"); 
-
   //Deminsion of Fibers
   std::vector< std::pair<std::string, double> > tempFiberDims = p.get< std::vector<std::pair<std::string,double> > >("Dimension");
   fFiberDimension = std::map<std::string, double>(tempFiberDims.begin(), tempFiberDims.end());
-//  fFiberDimension = p.get< std::vector<double> >("Dimension");
 
-  std::array<double,3> detCoords = p.get<std::array<double,3>>("GlobalDetCoords");
-  fGlobalDetCoords = TVector3(detCoords[0],detCoords[1],detCoords[2]);
-
-  fDetRotation = p.get<std::array<double,3>>("DetRotation");
   
   //XTOF devices 
   fTOF1 = p.get< std::string >("TOF1");
@@ -1968,7 +1931,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fXBPFPrefix      = p.get<std::string>("XBPFPrefix");
   fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
   fXCETPrefix      = p.get<std::string>("XCETPrefix");
-  fDummyEventTime = p.get<double>("DummyEventTime");
 
 
   //New parameters to match Leigh's
@@ -2018,20 +1980,6 @@ uint64_t proto::BeamEvent::joinHighLow(double high, double low){
 
   return joinedbits.to_ullong(); 
 }
-
-/*std::bitset<sizeof(long)*CHAR_BIT> proto::BeamEvent::toBinary(long num){
-   
-  std::bitset<sizeof(double)*CHAR_BIT> mybits(num);  
-  std::bitset<32> upper, lower;
-  for(int i = 0; i < 32; ++i){
-    lower[i] = mybits[i];
-    upper[i] = mybits[i + 32];   
-  }
-  if(upper.any()) std::cout << "WARNING: NONZERO HALF" << std::endl;
-
-  return mybits;
-}
-*/
 
 TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, double zOffset){
   double off = fNP04FrontZ - zOffset;
@@ -2533,18 +2481,6 @@ double proto::BeamEvent::GetPosition(std::string deviceName, int fiberIdx){
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
   double pos = size*(96 - fiberIdx) - size/2.;
   return pos;
-}
-
-TVector3 proto::BeamEvent::TranslateDeviceToDetector(TVector3 globalDeviceCoords){
-  //fGlobalDetCoords given by fcl
-  //Translate position of device w.r.t. Detector
-  TVector3 inDetCoords = globalDeviceCoords - fGlobalDetCoords;
-   
-  //Rotate into detector coordinates
-  inDetCoords.RotateX(fDetRotation[0]);
-  inDetCoords.RotateY(fDetRotation[1]);
-  inDetCoords.RotateZ(fDetRotation[2]);
-  return inDetCoords;
 }
 
 
