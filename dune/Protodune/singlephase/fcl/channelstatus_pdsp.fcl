@@ -64,7 +64,35 @@ pdsp_channel_status: {
     # CE group: ENC > 2000e
      9569,
     # CE group: sticky.
-     2318
+     2318,
+    # DLA sticky
+    # femb311u
+        4,
+    # femb313u
+       94,
+    # femb302u
+      442,
+      447,
+      453,
+      455,
+      456,
+      472,
+      477,
+    # femb304u
+      571,
+      573,
+    # femb302v
+     1534,
+     1539,
+     1546,
+    # femb315x
+     1864,
+    # femb302x
+     2135,
+     2146,
+     2158,
+     2161,
+     2169
   ]
 
 }

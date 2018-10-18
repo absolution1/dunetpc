@@ -31,8 +31,38 @@ tools.pdsp_sticky_codes_ped: {
     chan00462: [2239]
     chan00465: [2431]
     chan00471: [2495]
+    # femb303u
+    # femb304u
+    chan00520: [2368]
+    # femb305u
+    # femb306u
+    # femb307u
+    # femb308u
+    chan00719: [2367]
+    # femb309u
+    chan00720: [2367]
+    # femb310u
+    # femb311u
+    # femb312u
+    # femb313u
+    # femb314u
+    # femb315u
+    # femb315v
+    # femb314v
+    # femb313v
+    # femb312v
+    # femb311v
+    # femb310v
+    # femb309v
+    chan01247: [2305, 2330]
+    chan01255: [2304, 2309, 2310, 2311, 2313, 2330]
+    # femb308v
+    # femb307v
     # femb306v
     chan01396: [2431, 2443]
+    # femb305v
+    # femb304v
+    # femb303v
     # femb302v
     chan01520: [2303]
     chan01536: [2303]
@@ -50,11 +80,56 @@ tools.pdsp_sticky_codes_ped: {
     chan01555: [2431]
     chan01557: [2367]
     chan01558: [2303]
-    # femb300z
+    # femb315x
+    chan01865: [1023]
+    # femb314x
+    # femb313x
+    # femb312x
+    # femb311x
+    chan01996: [ 965,  966]
+    chan02015: [ 960]
+    chan02017: [ 960]
+    # femb301x
     chan02109: [ 896]
-    # femb306z
+    # femb302x
+    chan02128: [1023]
+    chan02130: [1023]
+    chan02131: [ 959]
+    chan02133: [ 959]
+    chan02135: [ 959]
+    chan02136: [1017, 1023]
+    chan02137: [ 952,  959]
+    chan02140: [ 952,  959]
+    chan02141: [ 952,  959]
+    chan02142: [ 959]
+    chan02143: [ 959]
+    chan02145: [ 959]
+    chan02147: [ 959]
+    chan02148: [1023]
+    chan02149: [ 959]
+    chan02150: [ 991]
+    chan02151: [ 959]
+    chan02152: [ 895]
+    chan02153: [ 959]
+    chan02153: [ 959]
+    chan02159: [ 895]
+    chan02162: [ 959]
+    chan02175: [ 959]
+    # femb303x
+    # femb304x
+    # femb305x
+    chan02289: [ 895]
+    chan02291: [ 960]
+    chan02298: [ 966]
+    chan02306: [1036]
+    chan02318: [1023]
+    # femb306x
     chan02330: [1023]
     chan02333: [ 960]
+    # femb308x
+    chan02461: [ 960,  961]
+    # femb309x
+    # femb310v
   }
 }
 
