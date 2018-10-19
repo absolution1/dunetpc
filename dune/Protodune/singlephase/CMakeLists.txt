@@ -36,7 +36,7 @@ art_make( MODULE_LIBRARIES
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			
+      ProtoDUNEAnaUtils			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 )

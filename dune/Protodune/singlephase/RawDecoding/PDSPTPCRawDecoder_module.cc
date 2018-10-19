@@ -78,6 +78,8 @@ private:
 
   // configuration parameters
 
+  std::vector<int> _apas_to_decode;
+
   std::string   _rce_input_label; 
   std::string   _rce_input_container_instance;
   std::string   _rce_input_noncontainer_instance;
@@ -164,6 +166,8 @@ private:
 
 PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
 {
+  std::vector<int> emptyivec;
+  _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
   _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
@@ -509,6 +513,25 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
+
+      size_t adsiz = _apas_to_decode.size();
+      bool apafound = true;  // default if no vector to test against
+      if (adsiz)
+	{
+	  apafound = false;
+	  for (unsigned int j=0; j<adsiz; ++j)
+	    {
+	      if ((int) crateNumber == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+		{
+		  apafound = true;
+		  break;
+		}
+	    }
+	}
+      if (!apafound) 
+	{
+	  return false;
+	}
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
 	{
@@ -893,6 +916,25 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // decode this one later 
+
+  size_t adsiz = _apas_to_decode.size();
+  bool apafound = true;  // default if no vector to test against
+  if (adsiz)
+    {
+      apafound = false;
+      for (unsigned int j=0; j<adsiz; ++j)
+	{
+	  if ((int) crate == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+	    {
+	      apafound = true;
+	      break;
+	    }
+	}
+    }
+  if (!apafound) 
+    {
+      return false;
+    }
 
   if (crate == 0 || crate > 6 || slot > 4) 
     {

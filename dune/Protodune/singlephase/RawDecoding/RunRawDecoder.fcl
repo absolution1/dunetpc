@@ -3,6 +3,9 @@
 #This is the default configuration file
 #include "RawDecoder.fcl"
 
+#This is for parsing beam info
+#include "BeamEvent.fcl"
+
 services:
 {
   #message:              @local::dune_message_services_prod_debug
@@ -17,6 +20,8 @@ services:
    fileName:  "RunRawDecoderTFile.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
+ 
+  IFBeam:            {}
 
 }
 
@@ -29,11 +34,13 @@ physics:
     ssprawdecoder: @local::ssp_raw_decoder_split
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
     ctbrawdecoder: @local::ctb_raw_decoder
+    beamevent:     @local::proto_beamevent
+
   }
 
   #Create path to run module
   #add ctbrawdecoder when it is tested
-  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, ctbrawdecoder ] 
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, ctbrawdecoder, beamevent ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
   end_paths: [ output ]
