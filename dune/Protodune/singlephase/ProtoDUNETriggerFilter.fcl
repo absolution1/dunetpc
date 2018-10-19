@@ -2,7 +2,26 @@ BEGIN_PROLOG
 
 proto_beam_filter:
 {
+
   module_type:            "ProtoDUNETriggerFilter"
+
+  TimingLabel:     "timingrawdecoder"
+  TimingInstance:  "daq"
+  TriggerLabel:    "ctbrawdecoder"
+  TriggerInstance: "daq"
+
+  BeamTrigBool:    false            # use ProtoDUNEDataUtils.IsBeamTrigger only to select events
+
+  TimingFlagSelectList:  [ 0xc ]    # 0xc = beam, 0x8 = cosmic.  Empty list selects everything
+                                    # selection is an OR of tests on all entries in the list.
+				    # all bits in each entry must be set in order for the test to match.
+				    # example:  0xc in this list matches data trigger flag bits 0xf but not 0x8.
+				    # example:  0x8 in this list matches data trigger flag bits 0xc.
+  TimingFlagDeselectList:  [ ]      # deselect events passing similar logic on this list, even if they were
+                                    # selected with the select list above.
+				    # If both the select list and the deselect list are empty, all events are selected.
+				    # If just the select list is empty, then all events are selected except those deselected.
+
 }
 
 END_PROLOG
