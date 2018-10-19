@@ -18,15 +18,15 @@ namespace beam
      ~ProtoDUNEBeamEvent(){};
 
       const std::pair< double, double >  & GetT0() const{ return t0;};
-
-      double            GetFullT0() { return t0.first + 1.e-9*t0.second; };
-      void              SetT0(std::pair< double, double > theT0){ t0 = theT0; };
+      void                                 DecodeT0(){fullT0 = t0.first + 1.e-9*t0.second;};
+      const double &                       GetFullT0() const { return fullT0; };
+      void                                 SetT0(std::pair< double, double > theT0){ t0 = theT0; DecodeT0();};
      
-      const FBM       & GetFBM(std::string) const;
+      const FBM &       GetFBM(std::string) const;
       void              SetFBMTrigger(std::string, FBM); 
 
       void                       DecodeFibers(std::string);
-      double                     DecodeFiberTime(std::string, double);
+//      double                     DecodeFiberTime(std::string, double);
       const short              & GetFiberStatus(std::string, size_t) const;
       const std::vector<short> & GetActiveFibers(std::string) const;
       const double             & GetFiberTime(std::string) const; 
@@ -34,56 +34,66 @@ namespace beam
 
       void                       SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
       void                       SetCKov1(CKov theCKov){ CKov1 = theCKov; };
-      const short             & GetCKov0Status() const{ return CKov0.trigger; };
-      const short             & GetCKov1Status() const{ return CKov1.trigger; };
-      const double            & GetCKov0Time() const{ return CKov0.timeStamp; };
-      const double            & GetCKov1Time() const{ return CKov1.timeStamp; };
-      const double            & GetCKov0Pressure() const{ return CKov0.pressure; };
-      const double            & GetCKov1Pressure() const{ return CKov1.pressure; };
+      const short  &             GetCKov0Status() const{ return CKov0.trigger; };
+      const short  &             GetCKov1Status() const{ return CKov1.trigger; };
+      const double &             GetCKov0Time() const{ return CKov0.timeStamp; };
+      const double &             GetCKov1Time() const{ return CKov1.timeStamp; };
+      const double &             GetCKov0Pressure() const{ return CKov0.pressure; };
+      const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
 
-      void              SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT; };
-      void              SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT; }; 
-      void              SetTOFChan    ( int theChan )                 { TOFChan = theChan; };
+      void SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT; DecodeTOF0(); };
+      void SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT; DecodeTOF1(); }; 
+      void SetTOFChan    ( int theChan )                 { TOFChan = theChan; };
+      void DecodeTOF0(){ fullTOF0 = TOF0.first + 1.e-9*TOF0.second; };
+      void DecodeTOF1(){ fullTOF1 = TOF1.first + 1.e-9*TOF1.second; };
+//      void DecodeTOF0(){ fullTOF0 = 1e9*TOF0.first + TOF0.second; };
+//      void DecodeTOF1(){ fullTOF1 = 1e9*TOF1.first + TOF1.second; };
+      const double &  GetFullTOF0() const{ return fullTOF0; };
+      const double &  GetFullTOF1() const{ return fullTOF1; };
 
       const std::pair< double, double > & GetTOF0() const { return TOF0; };
       const std::pair< double, double > & GetTOF1() const { return TOF1; };
 
-       double  GetFullTOF0()  { return TOF0.first + 1.e-9*TOF0.second; };
-       double  GetFullTOF1()  { return TOF1.first + 1.e-9*TOF1.second; };
+      
 
-       double             GetTOF() { return ( (TOF1.first  - TOF0.first) 
+
+      void DecodeTOF(){ theTOF =  ( (TOF1.first  - TOF0.first) 
                                  + 1.e-9 * (TOF1.second - TOF0.second) ); };
 
-      const int               & GetTOFChan() const{ return TOFChan; };
+      const double &            GetTOF() const { return theTOF; };
+      const int &               GetTOFChan() const{ return TOFChan; };
 
-      void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
-      const recob::Track      & GetBeamTrack(size_t i) const{ return Tracks.at(i);};
-       size_t             GetNBeamTracks() {return Tracks.size();}
+      void                                AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
+      const recob::Track &                GetBeamTrack(size_t i) const{ return Tracks.at(i);};
+      size_t                              GetNBeamTracks() {return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
-      void              ClearBeamTracks(){ Tracks.clear(); };
+      void                                ClearBeamTracks(){ Tracks.clear(); };
 
       void              SetActiveTrigger(size_t theTrigger){ activeTrigger = theTrigger; isMatched = true; };
-      bool              CheckIsMatched(){ return isMatched; };
+      const bool &      CheckIsMatched()const { return isMatched; };
       void              SetUnmatched(){ isMatched = false; };
-      const size_t            & GetActiveTrigger() const{ return activeTrigger; };
+      const size_t &    GetActiveTrigger() const{ return activeTrigger; };
 
-      void              AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
-       size_t             GetNRecoBeamMomenta()                     { return RecoBeamMomenta.size(); };
-      const double            & GetRecoBeamMomentum( size_t i ) const          { return RecoBeamMomenta.at(i); };  
-      void              ClearRecoBeamMomenta()                   { RecoBeamMomenta.clear(); }; 
+      void                          AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
+      const std::vector< double > & GetRecoBeamMomenta() const               { return RecoBeamMomenta;};
+      size_t                        GetNRecoBeamMomenta()                    { return RecoBeamMomenta.size(); };
+      const double &                GetRecoBeamMomentum( size_t i ) const    { return RecoBeamMomenta.at(i); };  
+      void                          ClearRecoBeamMomenta()                   { RecoBeamMomenta.clear(); }; 
 
       void              SetBITrigger(int theTrigger){ BITrigger = theTrigger; };
-      const int               & GetBITrigger() const{ return BITrigger; };
+      const int &        GetBITrigger() const{ return BITrigger; };
       
       void              SetSpillStart(double theSpillStart){ SpillStart = theSpillStart; };
-      const double            & GetSpillStart() const{ return SpillStart; };
+      const double &    GetSpillStart() const{ return SpillStart; };
 
       void              SetSpillOffset(double theSpillOffset){ SpillOffset = theSpillOffset; };
-      const double            & GetSpillOffset() const{ return SpillOffset; };
+      const double &    GetSpillOffset() const{ return SpillOffset; };
 
       void              SetCTBTimestamp(double theCTBTimestamp){ CTBTimestamp = theCTBTimestamp; };
-      const double            & GetCTBTimestamp() const{ return CTBTimestamp; };
+      const double &    GetCTBTimestamp() const{ return CTBTimestamp; };
+
+
 
     private:
 
@@ -92,6 +102,9 @@ namespace beam
       //Known as 'GeneralTrigger'
       //
       std::pair<double,double> t0;
+      double fullT0;
+      double fullTOF0;
+      double fullTOF1;
 
       //Timestamp from the CTB signaling a 
       //Good particle signal was received
@@ -107,6 +120,7 @@ namespace beam
       std::pair< double, double > TOF0;
       std::pair< double, double > TOF1;
       int TOFChan;
+      double theTOF;
 
       //Set of Cerenkov detectors
       //
@@ -123,6 +137,7 @@ namespace beam
       int BITrigger;
       double SpillStart;
       double SpillOffset;
+
   };
 
   inline ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){ 
@@ -182,16 +197,10 @@ namespace beam
     fiberMonitors[FBMName].decoded = true;
   }
 
-  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, double OffsetTAI){
-  /*
-    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
-      std::cout << "FBM " << FBMName << " not found in list" << std::endl;
-      return -1.;
-    }
-  */
+/*  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, double OffsetTAI){
     return fiberMonitors[FBMName].timeData[3] - OffsetTAI + fiberMonitors[FBMName].timeData[2]*8.e-9;
   }
-
+*/
 
   inline const short & ProtoDUNEBeamEvent::GetFiberStatus(std::string FBMName, size_t iFiber) const{
 /*    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){

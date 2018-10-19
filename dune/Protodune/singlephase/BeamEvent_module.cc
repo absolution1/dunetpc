@@ -426,15 +426,18 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
 
      
       if (theType == 2){
-        std::cout << "Found the High Level Trigger" << std::endl;
         
+        std::cout << "Found the High Level Trigger" << std::endl;
+
+       
         HLTWord = theWord;
         HLTTS = theTS;
-        
+
         //The High Level Trigger consists of 8 bits
         //HLT7 -> HLT0
         std::bitset<8> theHLT(theWord);
         std::cout << "High Level Trigger: " << theHLT << std::endl;
+
         
         //HLT5 corresponds to excluding Low Level Triggers
         //from the Beamline
@@ -637,6 +640,7 @@ void proto::BeamEvent::SetBeamEvent(){
   std::cout << "Setting TOF info for beamevt " << std::endl;
   beamevt->SetTOF0Trigger( beamspill->GetTOF0( activeTrigger ) );
   beamevt->SetTOF1Trigger( beamspill->GetTOF1( activeTrigger ) );
+  beamevt->DecodeTOF();
   beamevt->SetTOFChan(  beamspill->GetTOFChan( activeTrigger ) );
   std::cout << "beamevt has TOF " << beamevt->GetTOF() 
             << " and TOFChan "    << beamevt->GetTOFChan() << std::endl << std::endl;
@@ -864,7 +868,7 @@ void proto::BeamEvent::produce(art::Event & e){
             fTrackTree->Fill();
           }
           std::cout << "Added " << beamspill->GetNBeamTracks() << " tracks to the beam spill" << std::endl << std::endl;
-          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
+//          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
 
           //Momentum
           //First, try getting the current from the magnet in IFBeam
@@ -875,7 +879,7 @@ void proto::BeamEvent::produce(art::Event & e){
     
             MomentumSpec( beamspill->GetActiveTrigger() ); 
             std::cout << "Got NRecoBeamMomenta: " << beamspill->GetNRecoBeamMomenta() << std::endl << std::endl;
-            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
+//            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
           }
           catch(std::exception e){
             std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
