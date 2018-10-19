@@ -370,6 +370,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
       for (auto const& cont : *cont_frags)
 	{
 	  //std::cout << "RCE container fragment size bytes: " << cont.sizeBytes() << std::endl; 
+	  bool process_flag = true;
 	  if (cont.sizeBytes() < _rce_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_rce_frags )
@@ -377,22 +378,27 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(cont_frags);
 		  return false;
 		}
 	      if ( _drop_small_rce_frags )
 		{ 
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
 		  _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  artdaq::ContainerFragment cont_frag(cont);
-	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+	  if (process_flag)
 	    {
-	      if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+	      artdaq::ContainerFragment cont_frag(cont);
+	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+		{
+		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+		}
 	    }
 	}
+      evt.removeCachedProduct(cont_frags);
     }
 
   //noncontainer frags
@@ -418,6 +424,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 
       for(auto const& frag: *frags)
 	{
+	  bool process_flag = true;
 	  if (frag.sizeBytes() < _rce_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_rce_frags )
@@ -425,19 +432,24 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+                  evt.removeCachedProduct(frags);
 		  return false;
 		}
 	      if ( _drop_small_rce_frags )
 		{ 
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
 	          _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
 
-	  if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	  if (process_flag)
+	    {
+	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	    }
 	}
+      evt.removeCachedProduct(frags);
     }
 
   //LOG_INFO("_processRCE")
@@ -781,6 +793,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
     
       for (auto const& cont : *cont_frags)
 	{
+	  bool process_flag = true;
 	  if (cont.sizeBytes() < _felix_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_felix_frags )
@@ -788,22 +801,27 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(cont_frags);
 		  return false;
 		}
 	      if ( _drop_small_felix_frags )
 		{ 
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
 		  _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  artdaq::ContainerFragment cont_frag(cont);
-	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+	  if (process_flag)
 	    {
-	      if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	      artdaq::ContainerFragment cont_frag(cont);
+	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+		{
+		  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+		}
 	    }
 	}
+      evt.removeCachedProduct(cont_frags);
     }
 
   // noncontainer frags
@@ -826,6 +844,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 
       for(auto const& frag: *frags)
 	{
+	  bool process_flag = true;
 	  if (frag.sizeBytes() < _felix_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_felix_frags )
@@ -833,18 +852,23 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(frags);
 		  return false;
 		}
 	      if ( _drop_small_felix_frags )
 		{ 
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
 	          _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	  if (process_flag)
+	    {
+	      if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	    }
 	}
+      evt.removeCachedProduct(frags);
     }
 
 
