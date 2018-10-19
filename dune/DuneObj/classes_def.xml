@@ -62,7 +62,16 @@
  <class name="sim::Chan_Phot"/>
  <class name="std::vector<sim::Chan_Phot>"/>
 
- <class name="beam::ProtoDUNEBeamEvent" ClassVersion="17" > 
+ <class name="beam::ProtoDUNEBeamEvent" ClassVersion="26" > 
+  <version ClassVersion="26" checksum="2175822882"/>
+  <version ClassVersion="25" checksum="1037920570"/>
+  <version ClassVersion="24" checksum="2024287272"/>
+  <version ClassVersion="23" checksum="539365433"/>
+  <version ClassVersion="22" checksum="3355369171"/>
+  <version ClassVersion="21" checksum="3826802943"/>
+  <version ClassVersion="20" checksum="423527008"/>
+  <version ClassVersion="19" checksum="414782339"/>
+  <version ClassVersion="18" checksum="1131692464"/>
   <version ClassVersion="17" checksum="3614427223"/>
   <version ClassVersion="16" checksum="934009290"/>
   <version ClassVersion="15" checksum="3770485694"/>
@@ -73,12 +82,17 @@
  <class name="beam::CKov"/>
  <class name="beam::FBM"/>
  <class name="std::map<string,std::vector<beam::FBM>>"/>
- <class name="std::vector<beam::CKov>"/>
+ <class name="std::map<string,beam::FBM>"/>
  <class name="std::vector<beam::FBM>"/>
 
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
  <class name="std::vector<beam::ProtoDUNEBeamEvent>"  />
  <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamEvent> >" />
+
+ <class name="art::Ptr<beam::ProtoDUNEBeamSpill>" />
+ <class name="std::vector<beam::ProtoDUNEBeamSpill>"  />
+ <class name="art::Wrapper<std::vector<beam::ProtoDUNEBeamSpill> >" />
+
 
  <class name="dune::ProtoDUNETimeStamp"/> 
  <enum name="dune::ProtoDUNETimingCommand"/> 
