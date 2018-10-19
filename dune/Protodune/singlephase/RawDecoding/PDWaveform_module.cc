@@ -174,7 +174,7 @@ namespace pd_monitor {
     PDchanRMS = tFileService->make<TH2F>("RMS vs. Channel","RMS vs. Channel",288,0.,288.,100,0.,10.);
     PDchanRMSwide = tFileService->make<TH2F>("Coarse RMS vs. Channel","Coarse RMS vs. Channel",288,0.,288.,100,0.,100.);
     PDchanFFT = tFileService->make<TH2F>("FFTFreq vs. Channel","FFTFreq vs. Channel",288,0.,288.,1000,0.,75.);
-    PDCalibInt = tFileService->make<TH2D>("Integral_cal_int","Integral Calibration by Channel",288,0,288.,1000000,0.0,1000000.0);
+    PDCalibInt = tFileService->make<TH2D>("Integral_cal_int","Integral Calibration by Channel",288,0,288.,100000,0.0,1000000.0);
     PDtrigs = tFileService->make<TH1I>("Triggers vs. Channel","Triggers vs. Channel",288.,0.,288.);
     PDPEDhist = tFileService->make<TH1F>("Pedestal vs. Channel","Pedestal vs. Channel",288.,0.,288.);
     PDchanThres = tFileService->make<TH1F>("Threshold vs. Channel","Threshold vs. Channel",288,0.,288.);
@@ -189,7 +189,7 @@ namespace pd_monitor {
       PDchanPEDRough[i] = tFileService->make<TH2F>(Form("ped_calc_trace_chan_%d",i),
 						   Form("Wave Form Fraction for Pedestal %d",i),40.,0.,40.,1000.,1500.,2500.); 
       PDchanWaveInt[i] = tFileService->make<TH1D>(Form("wave_intgerals_pedsub_chan_%d",i),
-						  Form("Pedestal Subtracted Wave Integrals Channel %d",i),1000000,0.0,1000000.0); 
+						  Form("Pedestal Subtracted Wave Integrals Channel %d",i),100000,0.0,1000000.0); 
     }
   }
   
