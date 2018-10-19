@@ -8,12 +8,12 @@
 // ////////////////////////////////////////////
 
 
-#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 
 namespace beam
 {
-  ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){}
-  void ProtoDUNEBeamEvent::InitFBMs(std::vector<std::string> monitors){
+  ProtoDUNEBeamSpill::ProtoDUNEBeamSpill(){}
+  void ProtoDUNEBeamSpill::InitFBMs(std::vector<std::string> monitors){
     nFBMs = monitors.size();
     std::cout << "Got " << nFBMs << " monitors and " << t0.size() << " good particles" << std::endl;
     FBM dummyFBM;
@@ -27,5 +27,5 @@ namespace beam
       fiberMonitors[monitors[i]] = dummyVec;
     }
   }
-  ProtoDUNEBeamEvent::~ProtoDUNEBeamEvent(){}
+  ProtoDUNEBeamSpill::~ProtoDUNEBeamSpill(){}
 }     
