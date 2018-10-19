@@ -130,6 +130,7 @@ private:
   TH2D * trig_adc_time_;
   TH2D * hit_map_;
   TH2D * coincidence_map_;
+  TH2D * heat_map_;
 
   // m1, m2, i1, i2
   double m1,m2,i1,i2;
@@ -502,6 +503,8 @@ private:
   // more parameters from the FCL file
   int fragment;
 
+  int smooth;
+  
   std::vector<raw::OpDetWaveform> waveforms; 
   std::vector<raw::OpDetWaveform> ext_waveforms;
   std::vector<raw::OpDetWaveform> int_waveforms;
@@ -602,6 +605,7 @@ void dune::SSPRawDecoder::setRootObjects(){
   n_event_packets_ = tFileService->make<TH1D>("ssp_n_event_packets","SSP: n_event_packets",960,-0.5,959.5);  
   frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
   hit_map_ = tFileService->make<TH2D>("hit_map_","hit_map_",12,0,12,20,0,20);
+  heat_map_ = tFileService->make<TH2D>("heat_map_","heat_map_",12,0,12,20,0,20);
   coincidence_map_ = tFileService->make<TH2D>("coincidence_map","coincidence_map",12,0,12,20,0,20);
   trig_ref_time_ = tFileService->make<TH1D>("trig_ref_time_","trig_ref_time_",3750,0,ext_trig_samp_time);
   trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
@@ -759,7 +763,8 @@ void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
       trig_ref_time_->Fill(coin_int_time[i]);                                
       trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
       trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
-      hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
+      hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);
+      heat_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second,coin_adc_peak[i]);
       for(size_t j=0;j<i;j++){
         if(abs(coin_int_time[i]-coin_int_time[j]) < diff_time){
           coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
@@ -931,7 +936,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
           std::cout << *adc << " ";
         }
       }// idata
-     
+
       // pedestal, area and peak (according to the Register table, the  SSP User Manual has i1 and i2 inverted)
       double pedestal = calbasesum / ((double)i1);    
       double area = calintsum-(pedestal*i2);
@@ -972,30 +977,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
           << "Peak heigth                         " << peak                      << std::endl
           << std::endl;
       }
-      
-      
-      //      std::cout << evt.run() << "\t"                                                                                
-      //        << evt.subRun() << "\t"                                                                                       
-      //        << eventNumber << "\t"                                                                                        
-      //        << trig.module_id << "\t"                                                                                     
-      //        << trig.channel_id << "\t"
-        //<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].first << "\t"
-        //<< phys_map_[std::make_pair(trig.module_id,trig.channel_id)].second << "\t"
-        //        << trig.type << "\t"                                                                                          
-        //        << pedestal << "\t" << "\t"
-        //        << peak << "\t"
-        //        << area << "\t"
-      //      << calpeaktime << "\t"
-      //        << calpeaksum << "\t"
-      //        << trig.peaksum << "\t"
-      //        << trig.internal_timestamp << "\t"
-      //        << trig.peaktime << "\t"
-      //        << trig.internal_timestamp/(150.0) << "\t" <<"\t"
-      //        << intreftime_[ssp_map_[trig.module_id]]/(150.0) << "\t" << "\t"
-      //        << (trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]])/(150.0) << "\t" <<"\t"
-      //        << trig.timestamp_nova/(3*150.0) << "\t" << "\t"
-      //        << (trig.timestamp_nova-allreftime)/(3*150) << std::endl;
-      
+            
       //Fill diagnostic vectors for use at the end of the event
       coin_module_id.push_back(trig.module_id);
       coin_channel_id.push_back(trig.channel_id);

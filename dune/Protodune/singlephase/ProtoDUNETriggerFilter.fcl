@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+proto_beam_filter:
+{
+  module_type:            "ProtoDUNETriggerFilter"
+}
+
+END_PROLOG

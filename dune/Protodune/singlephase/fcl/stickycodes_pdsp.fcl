@@ -1,0 +1,165 @@
+# stickycodes_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Sticky codes for protoDUNE single phase.
+
+tools.pdsp_sticky_codes_ped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 1
+  StickyCode: 11
+  StickyCodes: {
+    # femb310u
+    # femb311u
+    # femb312u
+    # femb313u
+    # femb314u
+    # femb315u
+    # femb316u
+    chan00215: [2200]
+    chan00232: [2458]
+    chan00237: [2303]
+    # femb317u
+    # femb318u
+    # femb319u
+    # femb320u
+    # femb301u
+    chan00418: [2367]
+    chan00426: [2433, 2452, 2456]
+    # femb302u
+    chan00440: [2495, 2527]
+    chan00441: [2559]
+    #chan00442: [2431]    # Always stuck at this value!
+    chan00443: [2368, 2383]
+    chan00444: [2367, 2431]
+    chan00446: [2559]
+    chan00448: [2431, 2432, 2495]
+    chan00451: [2431, 2432, 2488, 2495]
+    chan00452: [2303, 2307, 2335]
+    chan00455: []   # Low off scale
+    chan00456: [2303, 2304, 2333, 2337]
+    chan00458: [2335]
+    chan00459: [2367, 2424, 2431]
+    chan00461: [2495]
+    chan00462: [2239]
+    chan00465: [2431]
+    chan00471: [2495]
+    # femb303u
+    # femb304u
+    chan00520: [2368]
+    # femb305u
+    # femb306u
+    # femb307u
+    # femb308u
+    chan00719: [2367]
+    # femb309u
+    chan00720: [2367]
+    # femb320v
+    chan00821: [2303]
+    # femb319v
+    # femb318v
+    # femb317v
+    chan00923: [2304, 2320, 2324]
+    chan00951: [2304]
+    # femb316v
+    # femb315v
+    # femb314v
+    # femb313v
+    # femb312v
+    # femb311v
+    # femb310v
+    # femb309v
+    chan01247: [2305, 2330]
+    chan01255: [2304, 2309, 2310, 2311, 2313, 2330]
+    # femb308v
+    # femb307v
+    # femb306v
+    chan01396: [2431, 2443]
+    # femb305v
+    # femb304v
+    # femb303v
+    # femb302v
+    chan01520: [2303]
+    chan01536: [2303]
+    chan01537: [2303]
+    chan01538: [2303]
+    chan01540: [2296, 2303]
+    chan01541: [2431, 2495]
+    chan01542: [2240, 2303]
+    chan01543: [2303]
+    chan01544: [2303]
+    chan01545: [2367]
+    chan01548: [2423, 2424, 2425, 2431]
+    chan01549: [2303]
+    chan01552: [2367]
+    chan01555: [2431]
+    chan01557: [2367]
+    chan01558: [2303]
+    # femb320x
+    chan01625: [1088]
+    chan01632: [ 831, 895, 960, 1024]
+    # femb319x
+    # femb318x
+    chan01729: [ 895]
+    # femb317x
+    # femb315x
+    chan01865: [1023]
+    # femb314x
+    # femb313x
+    # femb312x
+    # femb311x
+    chan01996: [ 965,  966]
+    chan02015: [ 960]
+    chan02017: [ 960]
+    # femb301x
+    chan02109: [ 896]
+    # femb302x
+    chan02128: [1023]
+    chan02130: [1023]
+    chan02131: [ 959]
+    chan02133: [ 959]
+    chan02135: [ 959]
+    chan02136: [1017, 1023]
+    chan02137: [ 952,  959]
+    chan02140: [ 952,  959]
+    chan02141: [ 952,  959]
+    chan02142: [ 959]
+    chan02143: [ 959]
+    chan02145: [ 959]
+    chan02147: [ 959]
+    chan02148: [1023]
+    chan02149: [ 959]
+    chan02150: [ 991]
+    chan02151: [ 959]
+    chan02152: [ 895]
+    chan02153: [ 959]
+    chan02153: [ 959]
+    chan02159: [ 895]
+    chan02162: [ 959]
+    chan02175: [ 959]
+    # femb303x
+    # femb304x
+    # femb305x
+    chan02289: [ 895]
+    chan02291: [ 960]
+    chan02298: [ 966]
+    chan02306: [1036]
+    chan02318: [1023]
+    # femb306x
+    chan02330: [1023]
+    chan02333: [ 960]
+    # femb308x
+    chan02461: [ 960,  961]
+    # femb309x
+    # femb310v
+  }
+}
+
+tools.pdsp_sticky_codes_notped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 1
+  StickyCode: 12
+  StickyCodes: {
+  }
+}
