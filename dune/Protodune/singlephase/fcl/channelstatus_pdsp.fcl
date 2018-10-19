@@ -55,8 +55,37 @@ pdsp_channel_status: {
     13081,
     # CE group: ENC > 2000e
      4410,
+    #-----
+    # CE group excessive sticky
+    #femb318x
+     1719,
+    #-----
     # CE group: good.
-        2
+    # femb311
+        2,
+    #-----
+    # These 16 channels are an intermitently bad ASIC.
+    # Matt W. 19oct2018.
+    # femb316u
+      200,
+      202,
+      204,
+      206,
+      208,
+    # femb316v
+      991,
+      993,
+      995,
+      997,
+      999,
+    # femb316x
+     1829,
+     1831,
+     1833,
+     1835,
+     1837,
+     1839
+    #-----
   ]
 
   # list of bad noisy channels:
@@ -87,6 +116,7 @@ pdsp_channel_status: {
      1546,
     # femb315x
      1864,
+     #1864,  # acceptable??
     # femb302x
      2135,
      2146,

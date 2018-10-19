@@ -10,6 +10,20 @@ tools.pdsp_sticky_codes_ped: {
   LogLevel: 1
   StickyCode: 11
   StickyCodes: {
+    # femb310u
+    # femb311u
+    # femb312u
+    # femb313u
+    # femb314u
+    # femb315u
+    # femb316u
+    chan00215: [2200]
+    chan00232: [2458]
+    chan00237: [2303]
+    # femb317u
+    # femb318u
+    # femb319u
+    # femb320u
     # femb301u
     chan00418: [2367]
     chan00426: [2433, 2452, 2456]
@@ -41,12 +55,14 @@ tools.pdsp_sticky_codes_ped: {
     chan00719: [2367]
     # femb309u
     chan00720: [2367]
-    # femb310u
-    # femb311u
-    # femb312u
-    # femb313u
-    # femb314u
-    # femb315u
+    # femb320v
+    chan00821: [2303]
+    # femb319v
+    # femb318v
+    # femb317v
+    chan00923: [2304, 2320, 2324]
+    chan00951: [2304]
+    # femb316v
     # femb315v
     # femb314v
     # femb313v
@@ -80,6 +96,13 @@ tools.pdsp_sticky_codes_ped: {
     chan01555: [2431]
     chan01557: [2367]
     chan01558: [2303]
+    # femb320x
+    chan01625: [1088]
+    chan01632: [ 831, 895, 960, 1024]
+    # femb319x
+    # femb318x
+    chan01729: [ 895]
+    # femb317x
     # femb315x
     chan01865: [1023]
     # femb314x
