@@ -125,14 +125,14 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   beamDirz.clear();
 
   // Access the trigger information
-  trigger = 8;
+  trigger = -1;
   art::ValidHandle<std::vector<raw::RDTimeStamp>> timeStamps = evt.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeDecoderModuleLabel);
 
   // Check that we have good information
   if(timeStamps.isValid() && timeStamps->size() == 1){
     // Access the trigger information. Beam trigger flag = 0xc
     const raw::RDTimeStamp& timeStamp = timeStamps->at(0);
-    if(timeStamp.GetFlags() == 0xc) trigger = 12;
+    trigger = timeStamp.GetFlags();
   }
 
   art::Handle< std::vector<recob::SpacePoint> > spsHandle;

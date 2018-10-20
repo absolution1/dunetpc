@@ -12,7 +12,7 @@ proto_beam_filter:
 
   BeamTrigBool:    false            # use ProtoDUNEDataUtils.IsBeamTrigger only to select events
 
-  TimingFlagSelectList:  [ 0xc ]    # 0xc = beam, 0x8 = cosmic.  Empty list selects everything
+  TimingFlagSelectList:  [ 0xc ]    # 0xc = beam, 0x8 = cosmic, 0xd = CRT. Empty list selects everything
                                     # selection is an OR of tests on all entries in the list.
 				    # all bits in each entry must be set in order for the test to match.
 				    # example:  0xc in this list matches data trigger flag bits 0xf but not 0x8.
