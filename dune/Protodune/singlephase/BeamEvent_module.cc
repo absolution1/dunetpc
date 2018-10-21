@@ -444,10 +444,12 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
           //from the Beamline
           //So return 0, we'll skip this event
           if (theHLT[5]) {         
+            noHLT = false;
             std::cout << "HLT 5 activated. Excluding beam events. Skipping this event" << std::endl;
             break;
           }
           else if (theHLT[0] && (theHLT.count() == 1)) {
+            noHLT = false;
             std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl
                       << "Skipping this Event." << std::endl;
             break;
@@ -511,6 +513,9 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
           std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
     
           fCKovHist->Fill(C1 + 2*C2);
+
+          //This means the beamline wasn't triggered
+          if(!BITrigger) return 0;
     
           return HLTTS;
 
