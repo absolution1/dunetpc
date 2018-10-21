@@ -18,18 +18,18 @@ namespace beam
      ~ProtoDUNEBeamEvent(){};
 
       const std::pair< double, double >  & GetT0() const{ return t0;};
-      void                                 DecodeT0(){fullT0 = t0.first + 1.e-9*t0.second;};
-      const double &                       GetFullT0() const { return fullT0; };
-      void                                 SetT0(std::pair< double, double > theT0){ t0 = theT0; DecodeT0();};
+      const double & GetT0Sec()  const { return t0.first; };
+      const double & GetT0Nano() const { return t0.second; };
+      void                                 SetT0(std::pair< double, double > theT0){ t0 = theT0;};
      
       const FBM &       GetFBM(std::string) const;
       void              SetFBMTrigger(std::string, FBM); 
 
       void                       DecodeFibers(std::string);
-//      double                     DecodeFiberTime(std::string, double);
       const short              & GetFiberStatus(std::string, size_t) const;
       const std::vector<short> & GetActiveFibers(std::string) const;
       const double             & GetFiberTime(std::string) const; 
+
       std::bitset<32>    toBinary(double num){return std::bitset<32>( (uint32_t(num)) );}; 
 
       void                       SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
@@ -42,24 +42,21 @@ namespace beam
       const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
 
-      void SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT; DecodeTOF0(); };
-      void SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT; DecodeTOF1(); }; 
+      void SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT;};
+      void SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT;}; 
       void SetTOFChan    ( int theChan )                 { TOFChan = theChan; };
-      void DecodeTOF0(){ fullTOF0 = TOF0.first + 1.e-9*TOF0.second; };
-      void DecodeTOF1(){ fullTOF1 = TOF1.first + 1.e-9*TOF1.second; };
-//      void DecodeTOF0(){ fullTOF0 = 1e9*TOF0.first + TOF0.second; };
-//      void DecodeTOF1(){ fullTOF1 = 1e9*TOF1.first + TOF1.second; };
-      const double &  GetFullTOF0() const{ return fullTOF0; };
-      const double &  GetFullTOF1() const{ return fullTOF1; };
 
       const std::pair< double, double > & GetTOF0() const { return TOF0; };
+      const double & GetTOF0Sec()  const { return TOF0.first; };
+      const double & GetTOF0Nano() const { return TOF0.second; };
+
       const std::pair< double, double > & GetTOF1() const { return TOF1; };
+      const double & GetTOF1Sec()  const { return TOF1.first; };
+      const double & GetTOF1Nano() const { return TOF1.second; };
 
-      
-
-
-      void DecodeTOF(){ theTOF =  ( (TOF1.first  - TOF0.first) 
-                                 + 1.e-9 * (TOF1.second - TOF0.second) ); };
+     
+      void DecodeTOF(){ theTOF = ( (TOF1.first  - TOF0.first ) * 1.e9 
+                                 + (TOF1.second - TOF0.second) ); };
 
       const double &            GetTOF() const { return theTOF; };
       const int &               GetTOFChan() const{ return TOFChan; };
@@ -102,9 +99,6 @@ namespace beam
       //Known as 'GeneralTrigger'
       //
       std::pair<double,double> t0;
-      double fullT0;
-      double fullTOF0;
-      double fullTOF1;
 
       //Timestamp from the CTB signaling a 
       //Good particle signal was received
@@ -197,10 +191,6 @@ namespace beam
     fiberMonitors[FBMName].decoded = true;
   }
 
-/*  inline double ProtoDUNEBeamEvent::DecodeFiberTime(std::string FBMName, double OffsetTAI){
-    return fiberMonitors[FBMName].timeData[3] - OffsetTAI + fiberMonitors[FBMName].timeData[2]*8.e-9;
-  }
-*/
 
   inline const short & ProtoDUNEBeamEvent::GetFiberStatus(std::string FBMName, size_t iFiber) const{
 /*    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
