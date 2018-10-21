@@ -175,7 +175,10 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
   if (evt.getByLabel(fBeamModuleLabel, pdbeamHandle))
     art::fill_ptr_vector(beaminfo, pdbeamHandle);
-  
+  else{
+    std::cout<<"No beam information from "<<fBeamModuleLabel<<std::endl;
+  }
+
   if (beaminfo.size()){
     auto & tracks = beaminfo[0]->GetBeamTracks();
     for (size_t i = 0; i<tracks.size(); ++i){

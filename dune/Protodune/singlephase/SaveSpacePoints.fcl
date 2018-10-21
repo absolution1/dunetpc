@@ -4,7 +4,7 @@ proto_savesps:
 {
   module_type:            "SaveSpacePoints"
   SpacePointModuleLabel:  "reco3d"
-  BeamModuleLabel:        "beamana"
+  BeamModuleLabel:        "beamevent"
   TrackModuleLabel:       "pandoraTrack"
   TimeDecoderModuleLabel: "timingrawdecoder:daq"
 }
