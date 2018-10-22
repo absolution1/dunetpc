@@ -18,6 +18,7 @@
 //c++ includes
 #include <unordered_map> 
 #include <string>
+#include <iostream> //TODO: Remove me
 
 namespace CRT
 {
@@ -31,8 +32,10 @@ namespace CRT
   {
     public:
       
-      OnlinePlotter(TFS& tfs): fFileService(tfs), fWholeJobPlots(tfs->mkdir("PerJob")), fRunStartTime(std::numeric_limits<uint64_t>::max()), 
-                               fRunStopTime(0), fStartTotalTime(std::numeric_limits<uint64_t>::max()), fRunCounter(0),
+      OnlinePlotter(TFS& tfs, const double tickLength = 16): fFileService(tfs), fWholeJobPlots(tfs->mkdir("PerJob")), 
+                                                             fRunStartTime(std::numeric_limits<uint64_t>::max()), 
+                                                             fRunStopTime(0), fStartTotalTime(std::numeric_limits<uint64_t>::max()), 
+                                                             fRunCounter(0),
                                                               fModuleToUSB ({{0, 13}, 
                                                                              {1, 13},
                                                                              {2, 13},
@@ -64,7 +67,7 @@ namespace CRT
                                                                              {28, 3},
                                                                              {29, 3},
                                                                              {30, 3},
-                                                                             {31, 3}})
+                                                                             {31, 3}}), fClockTicksToNs(tickLength)
       {
          //TODO: Get unordered_mapping from module to USB from some parameter passed to constructor
          //TODO: Get tick length from parameter passed to constructor
@@ -72,7 +75,7 @@ namespace CRT
 
       virtual ~OnlinePlotter()
       {
-        const auto deltaT = (fRunStopTime - fStartTotalTime)*16*1.e-9;
+        const auto deltaT = (fRunStopTime - fStartTotalTime)*fClockTicksToNs*1.e-9;
         if(deltaT > 0)
         {
           fWholeJobPlots.fMeanRate->Scale(1./deltaT);
@@ -83,11 +86,15 @@ namespace CRT
       void ReactEndRun(const std::string& /*fileName*/)
       {
         //Scale all rate histograms here with total elapsed time in run
-        const auto deltaT = (fRunStopTime-fRunStartTime)*1e-9*16.; //Convert ticks from timestamp into seconds
+        const auto deltaT = (fRunStopTime-fRunStartTime)*1e-9*fClockTicksToNs; //Convert ticks from timestamp into seconds
                                                                    //TODO: Use tick length from constructor
-        const auto totalDeltaTInSeconds = (fRunStopTime - fStartTotalTime)*16*1.e-9; //TODO: replace with tick length from constructor
+        const auto totalDeltaTInSeconds = (fRunStopTime - fStartTotalTime)*fClockTicksToNs*1.e-9; //TODO: replace with tick length from constructor
         if(deltaT > 0) 
         {
+          //TODO: Remove cout for LArSoft compatibility
+          std::cout << "Elapsed time for this run is " << deltaT << " seconds.  Total elapsed time is " << totalDeltaTInSeconds << " seconds.\n";
+          std::cout << "Beginning of all time was " << (uint64_t)(fStartTotalTime*fClockTicksToNs*1.e-9) << ", beginning of run was " 
+                    << (uint64_t)(fRunStartTime*fClockTicksToNs*1.e-9) << ", and end of run was " << (uint64_t)(fRunStopTime*fClockTicksToNs*1.e-9) << "\n";
           const auto timeInv = 1./deltaT;
           fCurrentRunPlots->fMeanRate->Scale(timeInv); 
           fCurrentRunPlots->fMeanRatePerBoard->Scale(timeInv);
@@ -132,7 +139,7 @@ namespace CRT
 
       void ReactBeginRun(const std::string& /*fileName*/)
       {
-        //const uint64_t totalDeltaTInSeconds = (fRunStopTime - fStartTotalTime)*16*1.e-9; //TODO: replace with tick length from constructor
+        //const uint64_t totalDeltaTInSeconds = (fRunStopTime - fStartTotalTime)*fClockTicksToNs*1.e-9; //TODO: replace with tick length from constructor
         fCurrentRunPlots.reset(new PerRunPlots(fFileService->mkdir("Run"+std::to_string(++fRunCounter)))); 
         //TODO: The above directory name is not guaranteed to be unique, and art::TFileDirectory's only mechanism for 
         //      reacting to that situation seems to be catching a cet::exception from whenver the internal cd() method is 
@@ -148,18 +155,22 @@ namespace CRT
         for(const auto& trigger: triggers)
         {
           const auto timestamp = trigger.Timestamp();
+          if(timestamp > 1e16)
           {
             //Update time bounds based on this timestamp
             if(timestamp < fRunStartTime) 
             {
+              //std::cout << "fRunStartTime=" << fRunStartTime << " is >= " << timestamp << ", so setting fRunStartTime.\n";
               fRunStartTime = timestamp;
             }
             if(timestamp > fRunStopTime) 
             {
+              //std::cout << "fRunStopTime=" << fRunStopTime << " is <= " << timestamp << ", so setting fRunStopTime.\n";
               fRunStopTime = timestamp;
             }
             if(timestamp < fStartTotalTime) 
             {
+              //std::cout << "fStartTotalTime=" << fStartTotalTime << " is >= " << timestamp << ", so setting fStartTotalTime.\n";
               fStartTotalTime = timestamp;
             }
 
@@ -178,7 +189,7 @@ namespace CRT
             }
             fCurrentRunPlots->fMeanRatePerBoard->Fill(module);
             fWholeJobPlots.fMeanRatePerBoard->Fill(module);
-          } //TODO: Used to be if UNIX timestamp is > 0.  Now, I'm not sure that makes sense.
+          } //If UNIX timestamp is not 0
         }
       }
 
@@ -195,13 +206,22 @@ namespace CRT
         PerRunPlots(DIRECTORY&& dir): fDir(dir)
         {
           fMeanRate = dir.template make<TH2D>("MeanRate", "Mean Rates;Channel;Module;Rate", 64, 0, 64, 32, 0, 32);
+          fMeanRate->SetStats(false);
 
           fMeanADC = dir.template make<TProfile2D>("MeanADC", "Mean ADC Values;Channel;Module;Rate [Hz]", 64, 0, 64, 32, 0, 32, 0., 4096);
+          fMeanADC->SetStats(false);
 
           fMeanRatePerBoard = dir.template make<TH1D>("MeanRateBoard", "Mean Rate per Board;Board;Rate [Hz]", 
                                                        32, 0, 32);
           fMeanADCPerBoard = dir.template make<TProfile>("MeanADCBoard", "Mean ADC Value per Board;Board;ADC",
                                                          32, 0, 32);
+        }
+
+        ~PerRunPlots()
+        {
+          fMeanRate->SetMinimum(0);
+          //fMeanRate->SetMaximum(60); //TODO: Maybe tune this one day.  When using the board reader, it really depends 
+                                       //      on the trigger rate.  
         }
 
         DIRECTORY fDir; //Directory for the current run where these plots are kept
@@ -239,6 +259,7 @@ namespace CRT
 
       //Configuration parameters
       std::unordered_map<unsigned int, unsigned int> fModuleToUSB; //Mapping from module number to USB
+      const double fClockTicksToNs; //Length of a clock tick in nanoseconds
   };
 }
 

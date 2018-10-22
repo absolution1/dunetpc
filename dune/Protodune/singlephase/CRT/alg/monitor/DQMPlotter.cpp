@@ -10,6 +10,9 @@
 //crt-core includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
+//crt-alg includes
+#include "dunetpc/dune/Protodune/singlephase/CRT/alg/geom/Geometry.h"
+
 //ROOT includes
 #include "TDirectory.h"
 #include "TH1D.h"
@@ -21,19 +24,6 @@
 
 //TODO: Remove me
 #include <iostream>
-
-//Hash function I want to use below
-namespace
-{
-  struct hash
-  {
-    size_t operator ()(const CRT::Trigger& trigger) const
-    {
-      return trigger.Channel()/4ul; //Return Trigger's frame.  4 modules per frame.  This has nothing to do with frame numbers on cables!
-    }
-  };
-}
-
 namespace CRT
 {
   template <class TFS> 
@@ -46,8 +36,9 @@ namespace CRT
   {
     public:
       
-      DQMPlotter(TFS& tfs, const double timeTickSize): fFileService(tfs), fFirstTime(std::numeric_limits<uint64_t>::max()), 
-                                                       fTickSize(timeTickSize)
+      DQMPlotter(TFS& tfs, const double timeTickSize, std::unique_ptr<CRT::Geometry>&& geom): fFileService(tfs), 
+                                                                                              fFirstTime(std::numeric_limits<uint64_t>::max()), 
+                                                                                              fTickSize(timeTickSize), fGeom(std::move(geom))
       {
         fTimestamps = fFileService->template make<TH1D>("timestamps", "Timestamps for All Modules;Timestamp;Triggers", 300, 6.592522e18, 6.592525e18); //Trigger automatic binning?
         fTriggerDeltaT = fFileService->template make<TH1D>("triggerDeltaT", "Time Difference Between Two Triggers on Any Channel;"
@@ -60,12 +51,6 @@ namespace CRT
 
         fEventLength = fFileService->template make<TH1D>("EventLength", "Time Ticks Between Earliest and Latest Triggers;#DeltaT [ticks];Events", 
                                                          100, 0, 100);
-        for(size_t module = 0; module < 32; ++module) //TODO: 32 is the number of modules in the CRT.  Replace it with  
-                                                      //      some more descriptive constant.
-        {
-          const auto name = "module"+std::to_string(module);
-          fModules.emplace_back(fFileService->mkdir(name));
-        }
       }
 
       virtual ~DQMPlotter() = default; //All pointers kept by this class are owned 
@@ -74,7 +59,6 @@ namespace CRT
       
       void AnalyzeEvent(const std::vector<CRT::Trigger>& triggers) //Make plots from CRT::Triggers
       {
-        std::cout << "New event with " << triggers.size() << " Triggers.\n";
         const auto end = triggers.cend();
         auto prev = end;
 
@@ -94,8 +78,7 @@ namespace CRT
         //Map from Trigger to times in frame along each axis.  First element is first 2 Triggers (alternates x and y), and second element is 
         //second 2 triggers (alternates y and x).  What the "first" element means is different between frames, but it is consistent within a 
         //frame.  
-        ::hash toFrame;
-        std::map<size_t, std::pair<std::vector<uint64_t>, std::vector<uint64_t>>> frameToOverlapTimes; 
+        std::map<CRT::FrameID, std::map<CRT::PlaneID, std::vector<uint64_t>>> moduleToOverlapTimes; 
         uint64_t earliest = std::numeric_limits<uint64_t>::max(), latest = 1e16;
         for(auto iter = triggers.cbegin(); iter != end; ++iter)
         { 
@@ -107,24 +90,21 @@ namespace CRT
             fTriggerDeltaT->Fill(trigger.Timestamp()-prev->Timestamp());
           }
 
-          const auto id = trigger.Channel();
-          auto& module = fModules[id]; 
-
-          //Plot times of Triggers that overlap with this one, then add this Trigger's time to its frame
-          const auto frameNumber = toFrame(trigger);
-          const bool isFirst = (trigger.Channel()%4)/2ul; //Integer division determines whether this Trigger is in "first pair" of modules in its frame
-          auto& frame = frameToOverlapTimes[frameNumber];
-          const auto& overlaps = isFirst?frame.second:frame.first;
-          auto& ownAxis = isFirst?frame.first:frame.second;
-          std::cout << "Comparing module " << trigger.Channel() << " from frame " << frameNumber << " to " 
-                    << overlaps.size() << " overlaps at time " << trigger.Timestamp() << ".  Its own axis has " << ownAxis.size() 
-                    << " Triggers already.\n";
-          for(const auto& time: overlaps) 
+          //Find the plots for this Module
+          const auto moduleID = fGeom->ModuleID(trigger.Channel());
+          std::cout << "Looking for plots for module " << trigger.Channel() << "\n";
+          auto found = fModules.find(moduleID);
+          if(found == fModules.end())
           {
-            module.fDeltaTOverlap->Fill(trigger.Timestamp()-time); 
+            std::cout << "Adding directory for module " << trigger.Channel() << "\n";
+            found = fModules.emplace(moduleID, ModulePlots<decltype(fFileService->mkdir("test"))>(fFileService->mkdir("module"+std::to_string(trigger.Channel())))).first;
           }
-          ownAxis.push_back(trigger.Timestamp());
+          auto& module = found->second;
 
+          //Keep track of times of overlaps in this event
+          moduleToOverlapTimes[moduleID][moduleID].push_back(trigger.Timestamp());
+
+          //Keep track of earliest and latest Trigger times in the event
           if(trigger.Timestamp() > 1e16 && trigger.Timestamp() < earliest) earliest = trigger.Timestamp();
           if(trigger.Timestamp() > latest) latest = trigger.Timestamp();
           
@@ -168,6 +148,30 @@ namespace CRT
         } //For each Trigger
 
         if(triggers.size() > 1) fEventLength->Fill(latest-earliest);
+
+        //Fill overlap histograms
+        for(const auto& trigger: triggers)
+        {
+          const auto thisTime = trigger.Timestamp();
+          const auto& id = fGeom->ModuleID(trigger.Channel());
+
+          //Find the plots for this module if any
+          auto found = fModules.find(id); 
+          if(found == fModules.end()) continue; 
+          auto& plots = found->second;
+
+          const auto& frame = moduleToOverlapTimes[id];
+          const auto thisPlane = frame.find(id);
+          for(auto plane = frame.begin(); plane != frame.end(); ++plane)
+          {
+            if(plane != thisPlane) //TODO: I know that there will always be exactly 2 orientations for the CRT, 
+                                   //      so maybe I should use some dedicated keyed container with a complement() 
+                                   //      function here.  
+            {
+              for(const auto& time: plane->second) plots.fDeltaTOverlap->Fill(thisTime-time); 
+            } //If this is not the plane of the current Trigger
+          } //For each plane in this Trigger's frame
+        } //For each Trigger in this event
       }
 
     private:
@@ -206,7 +210,7 @@ namespace CRT
 
       //TODO: It seems like I only need fFileService for this decltype declaration.  Otherwise, I could move from a class template to 
       //      just a function template for the constructor.
-      std::vector<ModulePlots<decltype(fFileService->mkdir("test"))>> fModules; //A group of plots for each module
+      std::map<CRT::ModuleID, ModulePlots<decltype(fFileService->mkdir("test"))>> fModules; //A group of plots for each module
       TH1D* fTimestamps; //Plot of timestampts for all Triggers
       TH1D* fTriggerDeltaT; //Time difference between any Trigger and its' neighbor within an event.  
       TH1D* fTriggerTime; //Elapsed time before each Trigger was detected
@@ -216,6 +220,7 @@ namespace CRT
       //Keep track of elapsed time since earliest Trigger
       uint64_t fFirstTime; //First timestamp of any Trigger in first event.
       const double fTickSize; //Size of a time tick in seconds
+      std::unique_ptr<CRT::Geometry> fGeom; //Handle to geometrical description of CRT
   };
 }
 

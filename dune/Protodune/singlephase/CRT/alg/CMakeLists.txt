@@ -1,3 +1,5 @@
 add_subdirectory(monitor)
 #add_subdirectory(toROOT)
 #add_subdirectory(plot)
+add_subdirectory(util)
+add_subdirectory(geom)

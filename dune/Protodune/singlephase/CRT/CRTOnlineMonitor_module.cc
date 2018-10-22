@@ -24,6 +24,7 @@
 
 //CRT includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/alg/monitor/OnlinePlotter.cpp"
+#include "dunetpc/dune/Protodune/singlephase/CRT/alg/util/FlatDirectory.cpp"
 
 //c++ includes
 #include <memory> //For std::unique_ptr
@@ -55,8 +56,9 @@ private:
 
   // Use the PIMPL idiom to weaken coupling between this module and the 
   // OnlinePlotter source code.  
-  std::unique_ptr<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>> fPlotter; //Algorithm that makes online monitoring plots 
-                                                                                       //from CRT::Triggers
+  using dir_t = CRT::FlatDirectory<art::ServiceHandle<art::TFileService>>;
+  std::unique_ptr<CRT::OnlinePlotter<std::shared_ptr<dir_t>>> fPlotter; //Algorithm that makes online monitoring plots 
+                                                                        //from CRT::Triggers
 
   art::InputTag fCRTLabel; //The name of the module that created the CRT::Triggers this module will read
 };
@@ -92,15 +94,14 @@ void CRTOnlineMonitor::analyze(art::Event const & e)
 void CRTOnlineMonitor::beginJob()
 {
   // Implementation of optional member function here.
-  art::ServiceHandle<art::TFileService> tfs;
-  fPlotter = std::make_unique<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>>(tfs);
-  fPlotter->ReactBeginRun("");
+  onFileClose();
 }
 
 void CRTOnlineMonitor::onFileClose()
 {
   art::ServiceHandle<art::TFileService> tfs;
-  fPlotter.reset(new CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>(tfs));
+  auto dirPtr = std::shared_ptr<dir_t>(new dir_t(tfs));
+  fPlotter.reset(new CRT::OnlinePlotter<std::shared_ptr<dir_t>>(dirPtr));
   fPlotter->ReactBeginRun("");
 }
 

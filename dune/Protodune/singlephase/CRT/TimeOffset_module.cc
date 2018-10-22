@@ -27,10 +27,13 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 
 //CRT includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/monitor/OnlinePlotter.cpp"
+#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //lardataobj includes
 #include "lardataobj/RawData/RDTimeStamp.h"
+
+//ROOT includes
+#include "TH1D.h"
 
 namespace CRT {
   class TimeOffset;
