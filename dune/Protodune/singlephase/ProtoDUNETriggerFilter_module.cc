@@ -80,18 +80,17 @@ namespace filt{
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::filter: ";
 
-    if (fBeamTrigBool)
-      {
-	// The ProtoDUNE data utility tells us if we have a beam trigger
-	protoana::ProtoDUNEDataUtils dataUtil;
-	return dataUtil.IsBeamTrigger(evt);
-      }
+    if ( fBeamTrigBool ) {
+      // The ProtoDUNE data utility tells us if we have a beam trigger
+      protoana::ProtoDUNEDataUtils dataUtil;
+      return dataUtil.IsBeamTrigger(evt);
+    }
 
     bool keep = true;
 
     bool checkTriggerFlag = fTimingFlagSelectList.size() || fTimingFlagDeselectList.size();
 
-    if ( checkTriggerFlag ) {
+    if ( keep && checkTriggerFlag ) {
       // Fetch the trigger and timing clock.
       art::Handle<std::vector<raw::RDTimeStamp>> htims;
       evt.getByLabel(fTimingLabel, fTimingInstance, htims);
@@ -103,7 +102,7 @@ namespace filt{
       } else if (  htims->size() != 1 ) {
         std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
         for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
-	  std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
+          std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
         }
       } else {
         const raw::RDTimeStamp& tim = htims->at(0);
@@ -111,37 +110,21 @@ namespace filt{
         // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
         unsigned int trigFlag = tim.GetFlags();
 
-        bool selectflagresult = false;
-        if ( fTimingFlagSelectList.size() )
-	  {
-	    for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
-	      {
-	        if ( (trigFlag & fTimingFlagSelectList.at(i)) == fTimingFlagSelectList.at(i))  // require exact match of all bits in selection list 
-		  {
-		    selectflagresult = true;
-		    break;
-		  }
-	      }
-	  }
-        else
-	  {
-	    selectflagresult = true;
-	  }
+        // If TimingFlagSelectList has entries, the trigger flag must be there.
+        if ( fTimingFlagSelectList.size() ) {
+          keep = false;
+          for ( unsigned int flg : fTimingFlagSelectList ) {
+            if ( keep ) break;
+            if ( flg == trigFlag) keep = true;
+          }
+        }
   
-        bool deselectflagresult = false;
-        if (fTimingFlagDeselectList.size())
-	  {
-	    for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
-	      {
-	        if ( (trigFlag & fTimingFlagDeselectList.at(i)) ==  fTimingFlagDeselectList.at(i))  // require exact match of all bits in selection list 
-		  {
-		    deselectflagresult = true;
-		    break;
-		  }
-	      }
-	  }
+        // The trigger flag must not be in TimingFlagDeselectList.
+        for ( unsigned int flg : fTimingFlagDeselectList ) {
+          if ( ! keep ) break;
+          if ( flg == trigFlag ) keep = false;
+        }
   
-        keep = selectflagresult && (! deselectflagresult);
       }
     }
 
