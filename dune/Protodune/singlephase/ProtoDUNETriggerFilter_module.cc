@@ -117,7 +117,7 @@ namespace filt{
 	{
 	  for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
 	    {
-	      if ( (trigFlag & fTimingFlagSelectList.at(i)) == fTimingFlagSelectList.at(i))  // require exact match of all bits in selection list 
+	      if ( trigFlag == fTimingFlagSelectList.at(i))  // require exact match of the value (not trigger bits but an enum)
 		{
 		  selectflagresult = true;
 		  break;
@@ -134,7 +134,7 @@ namespace filt{
 	{
 	  for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
 	    {
-	      if ( (trigFlag & fTimingFlagDeselectList.at(i)) ==  fTimingFlagDeselectList.at(i))  // require exact match of all bits in selection list 
+	      if ( trigFlag == fTimingFlagDeselectList.at(i))  // require exact match of the value (not trigger bits but an enum)
 		{
 		  deselectflagresult = true;
 		  break;
