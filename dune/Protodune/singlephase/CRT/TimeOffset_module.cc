@@ -36,6 +36,35 @@ namespace CRT {
   class TimeOffset;
 }
 
+namespace 
+{
+  //Helper struct to reuse code.  
+  //Keep track of the minimum and maximum values 
+  //passed to operator().
+  template <class COMPARABLE> //COMPARABLE is any assignable type for which operator < and operator > are defined
+  struct limits
+  {
+    limits(): fMin(std::numeric_limits<COMPARABLE>::max()), fMax(std::numeric_limits<COMPARABLE>::min()) {}
+    ~limits() = default;
+
+    void operator()(const COMPARABLE& comp)
+    {
+      if(comp < fMin) fMin = comp;
+      if(comp > fMax) fMax = comp;
+    }
+
+    //TODO: Return a const reference instead for types 
+    //      that cannot be trivially copied?
+    inline COMPARABLE min() const { return fMin; }
+    inline COMPARABLE max() const { return fMax; }
+    inline COMPARABLE range() const { return fMax - fMin; }
+
+    private:
+      COMPARABLE fMin; //Minimum value seen
+      COMPARABLE fMax; //Maximum value seen
+  };
+}
+
 class CRT::TimeOffset : public art::EDAnalyzer {
 public:
   explicit TimeOffset(fhicl::ParameterSet const & p);
@@ -52,7 +81,7 @@ public:
   void analyze(art::Event const & e) override;
 
   // Selected optional functions.
-  void beginJob() override;
+  //void beginJob() override;
 
 private:
 
@@ -69,19 +98,32 @@ private:
   const art::InputTag fCRTLabel; //Instance of CRT::Triggers to read
   const art::InputTag fTimestampLabel; //Instance of RDTimeStamps to read 
 
+  // Common plotting parameters.  Could become FHICL parameters 
+  // if I'm editing them enough. 
+  const int fNIntervalBins; 
+  const double fIntervalMin;
+  const double fIntervalMax;
+
   // Plots that may be produced for each input file depending on 
   // how TFileService is configured.  All pointers are observer 
   // pointers to objects owned by a TDirectory that is managed 
   // by a TFileService.  
   TH1D* fTimestampMinusCRT; // Time difference between each RDTimeStamp 
                             // and CRT::Trigger
+  TH1D* fEarliestDeltaT; // Time difference between earliest CRT::Trigger 
+                         // and earliest RDTimeStamp in each Event.
+  TH1D* fCRTDeltaT; // Differences in timestamps of earliest and latest 
+                    // CRT::Triggers in each Event.  
 };
 
 CRT::TimeOffset::TimeOffset(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
   fCRTLabel(p.get<art::InputTag>("CRTLabel", "crt")), 
-  fTimestampLabel(p.get<art::InputTag>("TimestampLabel"))
+  fTimestampLabel(p.get<art::InputTag>("TimestampLabel")),
+  fNIntervalBins(500),
+  fIntervalMin(0),
+  fIntervalMax(125000)
 {
   // Tell "scheduler" which data products this module needs as input
   consumes<std::vector<CRT::Trigger>>(fCRTLabel);
@@ -101,8 +143,11 @@ void CRT::TimeOffset::onFileClose()
   ss << fTimestampLabel;
 
   art::ServiceHandle<art::TFileService> tfs;
-  fTimestampMinusCRT = tfs->make<TH1D>("TimestampMinusCRT", (std::string("Time Difference Between CRT and ")+ss.str()+";Pairs;Time [ticks]").c_str(), 
-                                       1000, -125000, 125000); //125000 is width of the DAQ readout window 
+  fTimestampMinusCRT = tfs->make<TH1D>("TimestampMinusCRT", (std::string("Time Difference Between CRT and ")+ss.str()+";Time [ticks];").c_str(), 
+                                       2*fNIntervalBins, -fIntervalMax, fIntervalMax); 
+  fEarliestDeltaT = tfs->make<TH1D>("EarliestDeltaT", "Time Difference Between Earliest CRT::Trigger and Earliest RDTimestamp;Time [ticks];", 
+                                    2*fNIntervalBins, -fIntervalMax, fIntervalMax);
+  fCRTDeltaT = tfs->make<TH1D>("CRTDeltaT", "Range of CRT Timestamps;Time [ticks];Events", fNIntervalBins, fIntervalMin, fIntervalMax);
 }
 
 void CRT::TimeOffset::analyze(art::Event const & e)
@@ -116,18 +161,27 @@ void CRT::TimeOffset::analyze(art::Event const & e)
     const auto& crtHandle = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
     const auto& timeHandle = e.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimestampLabel);
 
+    using timestamp_t = decltype(crtHandle->begin()->Timestamp());
+    ::limits<timestamp_t> crtLimits, rawLimits;
     for(const auto& trigger: *crtHandle)
     {
       //Fill plots for all combinations of a CRT::Trigger and an RDTimeStamp
+      const auto& crtTime = trigger.Timestamp();
       for(const auto& time: *timeHandle)
       {
-        fTimestampMinusCRT->Fill(time.GetTimeStamp() - trigger.Timestamp());
+        const auto& rawTime = time.GetTimeStamp();
+        fTimestampMinusCRT->Fill(rawTime - crtTime);
+        rawLimits(rawTime);
       } //For each RDTimeStamp from fTimestampLabel
 
-      //TODO: Fill plots for this CRT::Trigger
+      // Fill plots for this CRT::Trigger
+      crtLimits(crtTime);
     } //For each CRT::Trigger from fCRTLabel
+
+    fEarliestDeltaT->Fill(rawLimits.min()-crtLimits.min());
+    fCRTDeltaT->Fill(crtLimits.range());
   }
-  catch(const cet::exception& e)
+  catch(const cet::exception& e) //Don't crash the whole job if this module doesn't find the data products it needs.  
   {
     mf::LogWarning("Product not found") << "Failed to find one of the data products that "
                                         << "CRT::TimeOffset needs to make timing plots.  "
@@ -136,12 +190,8 @@ void CRT::TimeOffset::analyze(art::Event const & e)
   }
 }
 
-//TODO: Decide which plots to create and write file change callback
-
-void CRT::TimeOffset::beginJob()
+/*void CRT::TimeOffset::beginJob()
 {
-  //TODO: Set up file chance callback here?
-  //TODO: Call file change callback here to create plots for first time.  
-}
+}*/
 
 DEFINE_ART_MODULE(CRT::TimeOffset)
