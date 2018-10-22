@@ -30,7 +30,6 @@ namespace filt{
     std::string fTimingInstance;
     std::string fTriggerLabel;
     std::string fTriggerInstance;
-    bool fBeamTrigBool;
 
   };
 
@@ -39,7 +38,6 @@ namespace filt{
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::ctor: ";
     fLogLevel = pset.get<unsigned int>("LogLevel");
-    fBeamTrigBool = pset.get<bool>("BeamTrigBool",false);  // just use Leigh's beam selector
     std::vector<unsigned int> defaulttriglist;
     defaulttriglist.push_back(0xc);
     fTimingFlagSelectList = pset.get<std::vector<unsigned int> >("TimingFlagSelectList",defaulttriglist);
@@ -80,80 +78,50 @@ namespace filt{
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::filter: ";
 
-    if (fBeamTrigBool)
-      {
-	// The ProtoDUNE data utility tells us if we have a beam trigger
-	protoana::ProtoDUNEDataUtils dataUtil;
-	return dataUtil.IsBeamTrigger(evt);
+    bool keep = true;
+
+    bool checkTriggerFlag = fTimingFlagSelectList.size() || fTimingFlagDeselectList.size();
+
+    if ( keep && checkTriggerFlag ) {
+      // Fetch the trigger and timing clock.
+      art::Handle<std::vector<raw::RDTimeStamp>> htims;
+      evt.getByLabel(fTimingLabel, fTimingInstance, htims);
+      //art::Handle<std::vector<raw::ctb::pdspctb> > hctb;
+      //evt.getByLabel(fTriggerLabel, fTriggerInstance, hctb);
+
+      if ( ! htims.isValid() ) {
+        std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
+      } else if (  htims->size() != 1 ) {
+        std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
+        for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
+          std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
+        }
+      } else {
+        const raw::RDTimeStamp& tim = htims->at(0);
+
+        // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+        unsigned int trigFlag = tim.GetFlags();
+
+        // If TimingFlagSelectList has entries, the trigger flag must be there.
+        if ( fTimingFlagSelectList.size() ) {
+          keep = false;
+          for ( unsigned int flg : fTimingFlagSelectList ) {
+            if ( keep ) break;
+            if ( flg == trigFlag) keep = true;
+          }
+        }
+  
+        // The trigger flag must not be in TimingFlagDeselectList.
+        for ( unsigned int flg : fTimingFlagDeselectList ) {
+          if ( ! keep ) break;
+          if ( flg == trigFlag ) keep = false;
+        }
+  
       }
-
-    bool result = false;
-
-    // Fetch the trigger and timing clock.
-
-    art::Handle<std::vector<raw::RDTimeStamp>> htims;
-    evt.getByLabel(fTimingLabel, fTimingInstance, htims);
-
-    art::Handle<std::vector<raw::ctb::pdspctb> > hctb;
-    evt.getByLabel(fTriggerLabel, fTriggerInstance, hctb);
-
-    // using the ctb triggers is not yet implemented
-
-    if ( ! htims.isValid() ) {
-      std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
-    } else if (  htims->size() != 1 ) {
-      std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
-      for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
-	std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
-      }
-    } else {
-      const raw::RDTimeStamp& tim = htims->at(0);
-
-      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
-      unsigned int trigFlag = tim.GetFlags();
-
-      bool selectflagresult = false;
-      if ( fTimingFlagSelectList.size() )
-	{
-	  for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
-	    {
-	      if ( trigFlag == fTimingFlagSelectList.at(i))  // require exact match of the value (not trigger bits but an enum)
-		{
-		  selectflagresult = true;
-		  break;
-		}
-	    }
-	}
-      else
-	{
-	  selectflagresult = true;
-	}
-
-      bool deselectflagresult = false;
-      if (fTimingFlagDeselectList.size())
-	{
-	  for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
-	    {
-	      if ( trigFlag == fTimingFlagDeselectList.at(i))  // require exact match of the value (not trigger bits but an enum)
-		{
-		  deselectflagresult = true;
-		  break;
-		}
-	    }
-	}
-
-      result = selectflagresult && (! deselectflagresult);
-
-      // select everything if we have empty input vectors
-
-      if (fTimingFlagSelectList.size() == 0 && fTimingFlagDeselectList.size() == 0)
-	{
-	  result = true;
-	}
     }
 
-    if ( fLogLevel >=2 ) std::cout << myname << "Returning " << (result ? "true" : "false") << endl;
-    return result;
+    if ( fLogLevel >=2 ) std::cout << myname << (keep ? "Keep" : "Reject") << "ing event." << endl;
+    return keep;
 
   }
 
