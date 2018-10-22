@@ -79,7 +79,10 @@ namespace beam
       void                          ClearRecoBeamMomenta()                   { RecoBeamMomenta.clear(); }; 
 
       void              SetBITrigger(int theTrigger){ BITrigger = theTrigger; };
-      const int &        GetBITrigger() const{ return BITrigger; };
+      const int &       GetBITrigger() const{ return BITrigger; };
+
+      void              SetTimingTrigger(int theTrigger){ TimingTrigger = theTrigger; };
+      const int &       GetTimingTrigger() const{ return TimingTrigger; };
       
       void              SetSpillStart(double theSpillStart){ SpillStart = theSpillStart; };
       const double &    GetSpillStart() const{ return SpillStart; };
@@ -87,8 +90,11 @@ namespace beam
       void              SetSpillOffset(double theSpillOffset){ SpillOffset = theSpillOffset; };
       const double &    GetSpillOffset() const{ return SpillOffset; };
 
-      void              SetCTBTimestamp(double theCTBTimestamp){ CTBTimestamp = theCTBTimestamp; };
-      const double &    GetCTBTimestamp() const{ return CTBTimestamp; };
+      void              SetCTBTimestamp(long long theCTBTimestamp){ CTBTimestamp = theCTBTimestamp; };
+      const long long & GetCTBTimestamp() const{ return CTBTimestamp; };
+
+      void              SetRDTimestamp(long long theRDTimestamp){ RDTimestamp = theRDTimestamp; };
+      const long long & GetRDTimestamp() const{ return RDTimestamp; };
 
 
 
@@ -103,7 +109,8 @@ namespace beam
       //Timestamp from the CTB signaling a 
       //Good particle signal was received
       //
-      double CTBTimestamp;
+      long long CTBTimestamp;
+      long long RDTimestamp;
 
       //Set of FBMs
       //Indices: [Monitor in beam]
@@ -129,6 +136,7 @@ namespace beam
       std::vector< double > RecoBeamMomenta;
 
       int BITrigger;
+      int TimingTrigger;
       double SpillStart;
       double SpillOffset;
 

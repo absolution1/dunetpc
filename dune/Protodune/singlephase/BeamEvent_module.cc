@@ -200,6 +200,7 @@ private:
   double SpillOffset;
   double ActiveTriggerTime;
   long long RDTSTime;
+  int RDTSTrigger;
   std::vector< double > * GenTriggers;
 
   double acqTime;
@@ -397,16 +398,17 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     std::cout << "High: " << RDTS.GetTimeStamp_High() << std::endl;
     std::cout << "Low: " << RDTS.GetTimeStamp_Low() << std::endl; 
 
-    std::bitset<64> high = RDTS.GetTimeStamp_High();
-    std::bitset<64> low  = RDTS.GetTimeStamp_Low();
+    uint64_t high = RDTS.GetTimeStamp_High();
+    uint64_t low  = RDTS.GetTimeStamp_Low();
+
     high = high << 32; 
-    std::bitset<64> joined = (high ^ low);
+    uint64_t joined = (high | low);
 
-    std::cout << "Join: " << (joined).to_ullong() << std::endl;
-    std::cout << "Join: " << 2.e-8 * (joined).to_ullong() << std::endl;
+    std::cout << "Raw Decoder Timestamp: " << joined << std::endl;
 
-    RDTSTime = joined.to_ullong(); 
-
+    RDTSTime = joined;
+    RDTSTrigger = RDTS.GetFlags();
+    std::cout << "Trigger: " << RDTSTrigger << std::endl; 
   }
 
   auto const CTBHandle = e.getValidHandle< std::vector< raw::ctb::pdspctb > >("ctbrawdecoder:daq");
@@ -595,17 +597,57 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
   for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
     
     //GenTrig = sec + 1.e-9*ns portions
-    double GenTrigTime = beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second;
+//    double GenTrigTime = beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second;
+//    std::cout << "Gen: " << beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second << std::endl;
+    double GenTrigSec  = beamspill->GetT0(iT).first;
+    double GenTrigNano = beamspill->GetT0(iT).second;
+//    std::cout << "GenTrig: " << GenTrigSec << " " << GenTrigNano << std::endl;
 
+/*
     //HLTTime in 50MHz ticks
     double HLTTime = 2.e-08*HLTTS;
-    double diff = HLTTime - GenTrigTime - SpillOffset;
-    std::cout.precision(dbl::max_digits10);
-//    std::cout << GenTrigTime << " " << HLTTime << " " << diff << " " << fTimingCalibration << std::endl << std::endl;
+    std::cout << "HLTTS: " << HLTTS << std::endl;
+    std::cout << "HLT: " << 2.e-08*HLTTS << std::endl;
 
+    //Separates seconds portion of the ticks 
+    //From the nanoseconds
+    long long HLTTickSec = (HLTTS * 2) / (int)(TMath::Power(10,8));
+    HLTTickSec = HLTTickSec * (int)(TMath::Power(10,8)) / 2;
+    long long HLTTickNano = HLTTS - HLTTickSec;
+
+    //Units are 20 nanoseconds ticks
+    double HLTTimeSec  = 20.e-9 * HLTTickSec;
+    double HLTTimeNano = 20.    * HLTTickNano;
+
+    std::cout << "HLT: " << HLTTimeSec << " " << HLTTimeNano << std::endl;
+
+    double diffSec = HLTTimeSec - GenTrigSec - SpillOffset;
+    double diffNano = 1.e-09*(HLTTimeNano - GenTrigNano);
+    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
+*/
+
+    //Separates seconds portion of the ticks 
+    //From the nanoseconds
+    long long RDTSTickSec = (RDTSTime * 2) / (int)(TMath::Power(10,8));
+    RDTSTickSec = RDTSTickSec * (int)(TMath::Power(10,8)) / 2;
+    long long RDTSTickNano = RDTSTime - RDTSTickSec;
+
+    //Units are 20 nanoseconds ticks
+    double RDTSTimeSec  = 20.e-9 * RDTSTickSec;
+    double RDTSTimeNano = 20.    * RDTSTickNano;
+
+ //   std::cout << "RDTS: " << RDTSTimeSec << " " << RDTSTimeNano << std::endl;
+
+    double diffSec = RDTSTimeSec - GenTrigSec - SpillOffset;
+    double diffNano = 1.e-09*(RDTSTimeNano - GenTrigNano);
+//    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
+
+    double diff = diffSec + diffNano; 
+//    std::cout << diff << std::endl;
   
     if( ( fTimingCalibration - fCalibrationTolerance < diff ) && (fTimingCalibration + fCalibrationTolerance > diff) ){
-//      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+      std::cout << "diff: " << diff << std::endl;
 
 
       beamspill->SetActiveTrigger( iT ); 
@@ -688,17 +730,18 @@ void proto::BeamEvent::produce(art::Event & e){
   cycleStampMBPL = 0;
   HLTWord = 0;
   HLTTS = 0;
-  BeamOn     = -1;
-  BITrigger  = -1;
-  Upstream   = -1;
-  C1         = -1;
-  C2         = -1;
-  BP1        = -1;
-  BP2        = -1;
-  BP3        = -1;
-  BP4        = -1; 
-  SpillStart = -1;
-  SpillEnd   = -1;
+  BeamOn      = -1;
+  BITrigger   = -1;
+  RDTSTrigger = -1;
+  Upstream    = -1;
+  C1          = -1;
+  C2          = -1;
+  BP1         = -1;
+  BP2         = -1;
+  BP3         = -1;
+  BP4         = -1; 
+  SpillStart  = -1;
+  SpillEnd    = -1;
   SpillOffset = -1;
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
@@ -750,7 +793,8 @@ void proto::BeamEvent::produce(art::Event & e){
   //Also check if we've gotten good spill info
   //
   //Or if we're forcing to read out the Beamline Info
-  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
+//  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
+  if( ( (RDTSTrigger == 12) && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
 
 
     // Read in and cache the beam bundle folder for a specific time
@@ -920,15 +964,20 @@ void proto::BeamEvent::produce(art::Event & e){
   //have been filled with info in the block above
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
-  if(!validTimeStamp && PrevStart != SpillStart){
+//  if(!validTimeStamp && PrevStart != SpillStart){
+
+  if( RDTSTrigger != 12 && PrevStart != SpillStart){
     prev_beamspill = *beamspill;   
   }
   
   beamevt->SetBITrigger(BITrigger);
+  beamevt->SetTimingTrigger(RDTSTrigger);
   SetCKovInfo();
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
-  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
+//  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
+  beamevt->SetCTBTimestamp( HLTTS );
+  beamevt->SetRDTimestamp( RDTSTime );
 
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
@@ -990,18 +1039,10 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   std::cout << "timestampCounts: " << timestampCountGeneralTrigger[0] << std::endl;
   matchedNom = int(timestampCountGeneralTrigger[0]);
   
-  double low = acqStampGeneralTrigger[1];
-  uint32_t low32 = (uint32_t)low;
-  std::bitset<64> lowbits = low32;
-
-  double high = acqStampGeneralTrigger[0];
-  uint32_t high32 = (uint32_t)high;
-  std::bitset<64> highbits = high32;
-
-  highbits = highbits << 32;
-  std::bitset<64> joinedbits = highbits ^ lowbits;
-
-  acqTime = joinedbits.to_ullong() / 1000000000.; 
+  uint64_t low = (uint64_t)acqStampGeneralTrigger[1];
+  uint64_t high = (uint64_t)acqStampGeneralTrigger[0];
+  high = high << 32;
+  acqTime = ( high | low ) / 1000000000.; 
 
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
   std::vector<double> coarseTOF1A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);

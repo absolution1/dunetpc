@@ -102,7 +102,8 @@ proto_beamevent:
 
 # Timing Offset [sec] 
 # HLT - GenTrig - (PDTS_spill - BI_spill)
-  TimingCalibration: -0.09515150
+#  TimingCalibration: -0.09515150
+  TimingCalibration: -0.095151040
   CalibrationTolerance: 1.e-6 
 
 #Should we grab from the folders each time?
