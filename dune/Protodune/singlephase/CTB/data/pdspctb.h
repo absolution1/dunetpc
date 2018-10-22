@@ -71,9 +71,9 @@ namespace raw {
       const std::vector<raw::ctb::Misc>&        GetMiscs() const;
       const std::vector<raw::ctb::WordIndex>&   GetIndexes() const;
 
-      const std::vector<raw::ctb::Trigger>            GetHLTriggers() const;
-      const std::vector<raw::ctb::Trigger>            GetLLTriggers() const;
-      const std::vector<raw::ctb::ChStatus>           GetChStatusAfterHLTs() const;
+      const std::vector<raw::ctb::Trigger>&            GetHLTriggers() const;
+      const std::vector<raw::ctb::Trigger>&            GetLLTriggers() const;
+      const std::vector<raw::ctb::ChStatus>&           GetChStatusAfterHLTs() const;
 
       size_t  GetNTriggers() const;   
       size_t  GetNChStatuses() const; 
@@ -109,7 +109,7 @@ const std::vector<raw::ctb::Feedback>&      raw::ctb::pdspctb::GetFeedbacks()  c
 const std::vector<raw::ctb::Misc>&          raw::ctb::pdspctb::GetMiscs()      const { return fMiscs; }
 const std::vector<raw::ctb::WordIndex>&     raw::ctb::pdspctb::GetIndexes()    const { return fIndexes; }
 
-const std::vector<raw::ctb::Trigger>       raw::ctb::pdspctb::GetHLTriggers()  const
+const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetHLTriggers()  const
 { 
   std::vector<raw::ctb::Trigger> HLTriggers;
   for (size_t i=0; i<fTriggers.size(); ++i)
@@ -119,12 +119,12 @@ const std::vector<raw::ctb::Trigger>       raw::ctb::pdspctb::GetHLTriggers()  c
 	  HLTriggers.push_back(fTriggers.at(i));
 	}
     }
-  return HLTriggers;
+  return std::move(HLTriggers);
 }
 
 // for each HLT, find the next entry
 
-const std::vector<raw::ctb::ChStatus>     raw::ctb::pdspctb::GetChStatusAfterHLTs() const
+const std::vector<raw::ctb::ChStatus>&     raw::ctb::pdspctb::GetChStatusAfterHLTs() const
 {
   std::vector<raw::ctb::ChStatus> chs;
   raw::ctb::ChStatus emptychstat;
@@ -175,10 +175,10 @@ const std::vector<raw::ctb::ChStatus>     raw::ctb::pdspctb::GetChStatusAfterHLT
 	    }
 	}
     }
-  return chs;
+  return std::move(chs);
 }
 
-const std::vector<raw::ctb::Trigger>       raw::ctb::pdspctb::GetLLTriggers()  const
+const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetLLTriggers()  const
 {
   std::vector<raw::ctb::Trigger> LLTriggers;
   for (size_t i=0; i<fTriggers.size(); ++i)
@@ -188,7 +188,7 @@ const std::vector<raw::ctb::Trigger>       raw::ctb::pdspctb::GetLLTriggers()  c
 	  LLTriggers.push_back(fTriggers.at(i));
 	}
     }
-  return LLTriggers;
+  return std::move(LLTriggers);
 }
 
 size_t  raw::ctb::pdspctb::GetNTriggers()   const { return fTriggers.size(); }
