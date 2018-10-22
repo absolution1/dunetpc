@@ -30,7 +30,6 @@ namespace filt{
     std::string fTimingInstance;
     std::string fTriggerLabel;
     std::string fTriggerInstance;
-    bool fBeamTrigBool;
 
   };
 
@@ -39,7 +38,6 @@ namespace filt{
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::ctor: ";
     fLogLevel = pset.get<unsigned int>("LogLevel");
-    fBeamTrigBool = pset.get<bool>("BeamTrigBool",false);  // just use Leigh's beam selector
     std::vector<unsigned int> defaulttriglist;
     defaulttriglist.push_back(0xc);
     fTimingFlagSelectList = pset.get<std::vector<unsigned int> >("TimingFlagSelectList",defaulttriglist);
@@ -79,12 +77,6 @@ namespace filt{
     using std::cout;
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::filter: ";
-
-    if ( fBeamTrigBool ) {
-      // The ProtoDUNE data utility tells us if we have a beam trigger
-      protoana::ProtoDUNEDataUtils dataUtil;
-      return dataUtil.IsBeamTrigger(evt);
-    }
 
     bool keep = true;
 

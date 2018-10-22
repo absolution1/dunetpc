@@ -22,7 +22,6 @@ pdsp_trigfilter_all: {
   TimingInstance:  "daq"
   TriggerLabel:    "ctbrawdecoder"
   TriggerInstance: "daq"
-  BeamTrigBool:    false
   TimingFlagSelectList: []         # List of triggers to accept (empty for all)
   TimingFlagDeselectList: []       # List of trigger for which event should be rejected.
 }
