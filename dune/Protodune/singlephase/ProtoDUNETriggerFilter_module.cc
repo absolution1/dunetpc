@@ -87,73 +87,66 @@ namespace filt{
 	return dataUtil.IsBeamTrigger(evt);
       }
 
-    bool result = false;
+    bool keep = true;
 
-    // Fetch the trigger and timing clock.
+    bool checkTriggerFlag = fTimingFlagSelectList.size() || fTimingFlagDeselectList.size();
 
-    art::Handle<std::vector<raw::RDTimeStamp>> htims;
-    evt.getByLabel(fTimingLabel, fTimingInstance, htims);
+    if ( checkTriggerFlag ) {
+      // Fetch the trigger and timing clock.
+      art::Handle<std::vector<raw::RDTimeStamp>> htims;
+      evt.getByLabel(fTimingLabel, fTimingInstance, htims);
+      //art::Handle<std::vector<raw::ctb::pdspctb> > hctb;
+      //evt.getByLabel(fTriggerLabel, fTriggerInstance, hctb);
 
-    art::Handle<std::vector<raw::ctb::pdspctb> > hctb;
-    evt.getByLabel(fTriggerLabel, fTriggerInstance, hctb);
+      if ( ! htims.isValid() ) {
+        std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
+      } else if (  htims->size() != 1 ) {
+        std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
+        for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
+	  std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
+        }
+      } else {
+        const raw::RDTimeStamp& tim = htims->at(0);
 
-    // using the ctb triggers is not yet implemented
+        // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+        unsigned int trigFlag = tim.GetFlags();
 
-    if ( ! htims.isValid() ) {
-      std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
-    } else if (  htims->size() != 1 ) {
-      std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
-      for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
-	std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
+        bool selectflagresult = false;
+        if ( fTimingFlagSelectList.size() )
+	  {
+	    for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
+	      {
+	        if ( (trigFlag & fTimingFlagSelectList.at(i)) == fTimingFlagSelectList.at(i))  // require exact match of all bits in selection list 
+		  {
+		    selectflagresult = true;
+		    break;
+		  }
+	      }
+	  }
+        else
+	  {
+	    selectflagresult = true;
+	  }
+  
+        bool deselectflagresult = false;
+        if (fTimingFlagDeselectList.size())
+	  {
+	    for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
+	      {
+	        if ( (trigFlag & fTimingFlagDeselectList.at(i)) ==  fTimingFlagDeselectList.at(i))  // require exact match of all bits in selection list 
+		  {
+		    deselectflagresult = true;
+		    break;
+		  }
+	      }
+	  }
+  
+        keep = selectflagresult && (! deselectflagresult);
       }
-    } else {
-      const raw::RDTimeStamp& tim = htims->at(0);
-
-      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
-      unsigned int trigFlag = tim.GetFlags();
-
-      bool selectflagresult = false;
-      if ( fTimingFlagSelectList.size() )
-	{
-	  for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
-	    {
-	      if ( (trigFlag & fTimingFlagSelectList.at(i)) == fTimingFlagSelectList.at(i))  // require exact match of all bits in selection list 
-		{
-		  selectflagresult = true;
-		  break;
-		}
-	    }
-	}
-      else
-	{
-	  selectflagresult = true;
-	}
-
-      bool deselectflagresult = false;
-      if (fTimingFlagDeselectList.size())
-	{
-	  for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
-	    {
-	      if ( (trigFlag & fTimingFlagDeselectList.at(i)) ==  fTimingFlagDeselectList.at(i))  // require exact match of all bits in selection list 
-		{
-		  deselectflagresult = true;
-		  break;
-		}
-	    }
-	}
-
-      result = selectflagresult && (! deselectflagresult);
-
-      // select everything if we have empty input vectors
-
-      if (fTimingFlagSelectList.size() == 0 && fTimingFlagDeselectList.size() == 0)
-	{
-	  result = true;
-	}
     }
 
-    if ( fLogLevel >=2 ) std::cout << myname << "Returning " << (result ? "true" : "false") << endl;
-    return result;
+    if ( fLogLevel >=2 ) std::cout << myname << (keep ? "Keep" : "Reject") << "ing event." << endl;
+    return keep;
 
   }
 
