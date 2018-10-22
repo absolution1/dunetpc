@@ -92,6 +92,7 @@ public:
   void GetSpillInfo(art::Event &);
   void MatchBeamToTPC(art::Event &, uint64_t);
   void SetBeamEvent(); 
+  void SetCKovInfo(); 
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
@@ -464,8 +465,9 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     }
 
     if(noHLT){
-      //This should never happen but...
-      std::cout << "Error! No High Level Trigger Found!" << std::endl;
+      //This happens sometimes
+      //Just skip the event
+      std::cout << "No High Level Trigger Found! Skipping Event" << std::endl;
       return 0;
     }
     else{
@@ -618,9 +620,25 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
   beamspill->SetUnmatched();
 }
 
+void proto::BeamEvent::SetCKovInfo(){
+
+  std::cout << "Setting Cerenkov info" << std::endl;
+  beam::CKov theCKov = beamspill->GetCKov0();
+  theCKov.trigger = C1;
+  beamevt->SetCKov0( theCKov );
+  std::cout << "C0: " << beamevt->GetCKov0Status() << std::endl;
+
+  theCKov = beamspill->GetCKov1();
+  theCKov.trigger = C2;
+  beamevt->SetCKov1( theCKov );
+  std::cout << "C1: " << beamevt->GetCKov1Status() << std::endl;
+
+}
+
 void proto::BeamEvent::SetBeamEvent(){
+
   if( !beamspill->CheckIsMatched() ){
-    std::cout << "Error: art Event is unmatched to Beam Spill " << std::endl;
+    std::cout << "art Event is unmatched to Beam Spill " << std::endl;
     return;
   }
 
@@ -658,16 +676,6 @@ void proto::BeamEvent::SetBeamEvent(){
   std::cout << "Finished adding info to beamevt " << std::endl << std::endl;
 
 
-  std::cout << "Setting Cerenkov info" << std::endl;
-  beam::CKov theCKov = beamspill->GetCKov0();
-  theCKov.trigger = C1;
-  beamevt->SetCKov0( theCKov );
-  std::cout << "C0: " << beamevt->GetCKov0Status() << std::endl;
-
-  theCKov = beamspill->GetCKov1();
-  theCKov.trigger = C2;
-  beamevt->SetCKov1( theCKov );
-  std::cout << "C1: " << beamevt->GetCKov1Status() << std::endl;
 }
 
 ////////////////////////
@@ -917,16 +925,15 @@ void proto::BeamEvent::produce(art::Event & e){
   }
   
   beamevt->SetBITrigger(BITrigger);
+  SetCKovInfo();
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
   beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
 
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
-
-  delete beamevt;
   e.put(std::move(beamData));
-
+  delete beamevt;
   delete beamspill;
  
   // Write out the to tree
