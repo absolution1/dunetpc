@@ -23,8 +23,9 @@ namespace filt{
 
   private:
 
-    std::vector<unsigned int> fTimingFlagSel;
-    std::vector<unsigned int> fTimingFlagDeSel;
+    unsigned int fLogLevel;
+    std::vector<unsigned int> fTimingFlagSelectList;
+    std::vector<unsigned int> fTimingFlagDeselectList;
     std::string fTimingLabel;
     std::string fTimingInstance;
     std::string fTriggerLabel;
@@ -33,22 +34,51 @@ namespace filt{
 
   };
 
-  ProtoDUNETriggerFilter::ProtoDUNETriggerFilter::ProtoDUNETriggerFilter(fhicl::ParameterSet const & pset)
-  {
+  ProtoDUNETriggerFilter::ProtoDUNETriggerFilter::ProtoDUNETriggerFilter(fhicl::ParameterSet const & pset) {
+    using std::cout;
+    using std::endl;
+    const std::string myname = "ProtoDUNETriggerFilter::ctor: ";
+    fLogLevel = pset.get<unsigned int>("LogLevel");
     fBeamTrigBool = pset.get<bool>("BeamTrigBool",false);  // just use Leigh's beam selector
     std::vector<unsigned int> defaulttriglist;
     defaulttriglist.push_back(0xc);
-    fTimingFlagSel = pset.get<std::vector<unsigned int> >("TimingFlagSelectList",defaulttriglist);
+    fTimingFlagSelectList = pset.get<std::vector<unsigned int> >("TimingFlagSelectList",defaulttriglist);
     std::vector<unsigned int> emptylist;
-    fTimingFlagDeSel = pset.get<std::vector<unsigned int> >("TimingFlagDeselectList",emptylist);
+    fTimingFlagDeselectList = pset.get<std::vector<unsigned int> >("TimingFlagDeselectList",emptylist);
 
     fTimingLabel = pset.get<std::string>("TimingLabel","timingrawdecoder");
     fTimingInstance = pset.get<std::string>("TimingInstance","daq");
     fTriggerLabel = pset.get<std::string>("TriggerLabel","ctbrawdecoder");
     fTriggerInstance = pset.get<std::string>("TriggerInstance","daq");
+    if ( fLogLevel >= 1 ) {
+      cout << myname << "         LogLevel: " << fLogLevel << endl;
+      cout << "       TimingFlagSelectList: [";
+      bool first = true;
+      for ( unsigned int flg : fTimingFlagSelectList ) {
+        if ( first ) first = false;
+        else cout << ", ";
+        cout << flg;
+      }
+      cout << "]" << endl;
+      cout << "     TimingFlagDeselectList: [";
+      first = true;
+      for ( unsigned int flg : fTimingFlagDeselectList ) {
+        if ( first ) first = false;
+        else cout << ", ";
+        cout << flg;
+      }
+      cout << "]" << endl;
+      cout << myname << "      TimingLabel: " << fTimingLabel << endl;
+      cout << myname << "   TimingInstance: " << fTimingLabel << endl;
+      cout << myname << "     TriggerLabel: " << fTriggerLabel << endl;
+      cout << myname << "  TriggerInstance: " << fTriggerLabel << endl;
+    }
   }
 
-  bool ProtoDUNETriggerFilter::filter(art::Event & evt){
+  bool ProtoDUNETriggerFilter::filter(art::Event & evt) {
+    using std::cout;
+    using std::endl;
+    const std::string myname = "ProtoDUNETriggerFilter::filter: ";
 
     if (fBeamTrigBool)
       {
@@ -60,8 +90,6 @@ namespace filt{
     bool result = false;
 
     // Fetch the trigger and timing clock.
-
-    std::string myname = "PDSPTriggerFilter_module.cc: ";
 
     art::Handle<std::vector<raw::RDTimeStamp>> htims;
     evt.getByLabel(fTimingLabel, fTimingInstance, htims);
@@ -81,16 +109,15 @@ namespace filt{
     } else {
       const raw::RDTimeStamp& tim = htims->at(0);
 
-      //timingClock = tim.GetTimeStamp();
       // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
-      //trigFlag = tim.GetFlags();
+      unsigned int trigFlag = tim.GetFlags();
 
       bool selectflagresult = false;
-      if (fTimingFlagSel.size())
+      if ( fTimingFlagSelectList.size() )
 	{
-	  for (size_t i=0; i<fTimingFlagSel.size(); ++i)
+	  for (size_t i=0; i<fTimingFlagSelectList.size(); ++i)
 	    {
-	      if ( (tim.GetFlags() & fTimingFlagSel.at(i)) == fTimingFlagSel.at(i))  // require exact match of all bits in selection list 
+	      if ( (trigFlag & fTimingFlagSelectList.at(i)) == fTimingFlagSelectList.at(i))  // require exact match of all bits in selection list 
 		{
 		  selectflagresult = true;
 		  break;
@@ -103,11 +130,11 @@ namespace filt{
 	}
 
       bool deselectflagresult = false;
-      if (fTimingFlagDeSel.size())
+      if (fTimingFlagDeselectList.size())
 	{
-	  for (size_t i=0; i<fTimingFlagDeSel.size(); ++i)
+	  for (size_t i=0; i<fTimingFlagDeselectList.size(); ++i)
 	    {
-	      if ( (tim.GetFlags() & fTimingFlagDeSel.at(i)) ==  fTimingFlagDeSel.at(i))  // require exact match of all bits in selection list 
+	      if ( (trigFlag & fTimingFlagDeselectList.at(i)) ==  fTimingFlagDeselectList.at(i))  // require exact match of all bits in selection list 
 		{
 		  deselectflagresult = true;
 		  break;
@@ -119,23 +146,14 @@ namespace filt{
 
       // select everything if we have empty input vectors
 
-      if (fTimingFlagSel.size() == 0 && fTimingFlagDeSel.size() == 0)
+      if (fTimingFlagSelectList.size() == 0 && fTimingFlagDeselectList.size() == 0)
 	{
 	  result = true;
 	}
-
-      // tim.GetFlags is 0xc if beam.  
-      //std::cout << myname << "Trigger flag: " << trigFlag << " (";
-      //bool isBeam = trigFlag == 0xc;
-      //bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
-      //if ( isBeam ) std::cout << "Beam";
-      //else if ( isFake ) std::cout << "Fake";
-      //else std::cout << "Unexpected";
-      //std::cout << ")" << std::endl;
     }
 
+    if ( fLogLevel >=2 ) std::cout << myname << "Returning " << (result ? "true" : "false") << endl;
     return result;
-
 
   }
 

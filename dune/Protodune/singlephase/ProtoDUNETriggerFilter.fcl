@@ -5,6 +5,7 @@ proto_beam_filter:
 
   module_type:            "ProtoDUNETriggerFilter"
 
+  DebugLevel:      1
   TimingLabel:     "timingrawdecoder"
   TimingInstance:  "daq"
   TriggerLabel:    "ctbrawdecoder"
