@@ -25,7 +25,8 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_ChannelWidth(ps.get<Index>("ChannelWidth")),
   m_CountWidth(ps.get<Index>("CountWidth")),
   m_FembWidth(ps.get<Index>("FembWidth")),
-  m_TriggerWidth(ps.get<Index>("TriggerWidth")) {
+  m_TriggerWidth(ps.get<Index>("TriggerWidth")),
+  m_TrigNames(ps.get<NameVector>("TrigNames")) {
   const string myname = "StandardAdcChannelStringTool::ctor: ";
   m_reps[0] = "RUN";
   m_reps[1] = "SUBRUN";
@@ -64,6 +65,16 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
     cout << myname << "    CountWidth: " << m_CountWidth << endl;
     cout << myname << "     FembWidth: " << m_CountWidth << endl;
     cout << myname << "  TriggerWidth: " << m_TriggerWidth << endl;
+    cout << myname << "     TrigNames: [" << endl;
+    Index icnt = 0;
+    for ( Name tnam : m_TrigNames ) {
+      if ( icnt ) {
+        cout << ", ";
+        if ( (icnt/10)*10 == icnt ) cout << "\n" << myname << "                 ";
+      }
+      cout << tnam;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -73,12 +84,13 @@ string StandardAdcChannelStringTool::
 build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   const string myname = "StandardAdcChannelStringTool::build: ";
   // First replace the indices (run, event, ....)
+  Index itrig = acd.trigger;
   Index vals[m_nrep] = {acd.run, acd.subRun, acd.event, acd.channel,
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
                         Index(dm.getInt("chan2")),
                         acd.fembID,
-                        acd.trigger};
+                        itrig};
   bool isBad[m_nrep] = {
     acd.run     == AdcChannelData::badIndex,
     acd.subRun  == AdcChannelData::badIndex,
@@ -148,6 +160,15 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   sman.replace("% ((SUNIT))%", sunitSpOptWrapped);
   sman.replace("%[SUNIT]%", sunitBarred);
   sman.replace("% [SUNIT]%", sunitSpBarred);
+  // Next replace trigger name.
+  if ( sout.find("%TRIGNAME") != string::npos ) {
+    Index ntrn = m_TrigNames.size();
+    Index itrn = itrig < ntrn ? itrig : ntrn - 1;
+    Name strig = m_TrigNames[itrn];
+    sman.replace("%TRIGNAME%", strig);
+    if ( strig.size() ) strig[0] = std::toupper(strig[0]);
+    sman.replace("%TRIGNAMECAP%", strig);
+  }
   if ( m_LogLevel >= 2 ) cout << myname << spat << " --> " << sout << endl;
   return sout;
 }
