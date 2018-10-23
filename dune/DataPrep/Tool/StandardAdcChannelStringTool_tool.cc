@@ -163,8 +163,11 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   // Next replace trigger name.
   if ( sout.find("%TRIGNAME") != string::npos ) {
     Index ntrn = m_TrigNames.size();
-    Index itrn = itrig < ntrn ? itrig : ntrn - 1;
-    Name strig = m_TrigNames[itrn];
+    Name strig = "undefined";
+    if ( ntrn ) {
+      Index itrn = itrig < ntrn ? itrig : ntrn - 1;
+      strig = m_TrigNames[itrn];
+    }
     sman.replace("%TRIGNAME%", strig);
     if ( strig.size() ) strig[0] = std::toupper(strig[0]);
     sman.replace("%TRIGNAMECAP%", strig);
