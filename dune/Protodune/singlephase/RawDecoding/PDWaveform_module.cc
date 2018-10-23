@@ -116,7 +116,6 @@ namespace pd_monitor {
     TH2F* PDchanRawPerTrace[288]; //OpDetWaveForm raw persistence traces per channel
     TH2F* PDchanPEDRough[288]; //Pedastal value histogram per channel
     TH1D* PDchanWaveInt[288]; //Waveform integrations per channel
-    TH1D* PDchanWaveIntPre[288]; //Waveform integrations prebeam per channel
     TH1I* PDtrigs; // Number of triggers
     TH1F* PDPEDhist; //Calculated Pedestal of Each Channel
     TH1F* PDchanThres; // Calculated Threshold of Each Channel
