@@ -150,6 +150,7 @@ tools.preparedAdcPlotter: {
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -169,6 +170,7 @@ tools.signalAdcPlotter: {
   Palette: 1026
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Signal ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -188,6 +190,7 @@ tools.rawAdcPlotter: {
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
