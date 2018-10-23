@@ -297,6 +297,9 @@ private:
   double fCalibrationTolerance;
   double fOffsetTAI;
 
+  int    fOffsetCTBtoRDTS;
+  int    fToleranceCTBtoRDTS;
+
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
 
@@ -349,7 +352,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "At Time: " << newTime << std::endl;    
       try{
         theResult = (T)bfp->GetNamedVector(newTime, name);
-        std::cout << "Successfully fetched" << std::endl;
+        std::cout << "Successfully fetched " << newTime << std::endl;
         prev_fetch_time = newTime;
         return theResult;
       }
@@ -363,7 +366,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "At Time: " << newTime << std::endl;    
     try{
       theResult = (T)bfp->GetNamedVector(newTime, name);
-      std::cout << "Successfully fetched" << std::endl;
+      std::cout << "Successfully fetched " << newTime << std::endl;
       prev_fetch_time = newTime;
       return theResult;
     }
@@ -376,7 +379,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
   std::cout << "Trying a final time to grab from folder: " << name << std::endl;
   std::cout << "At time: " << newTime << std::endl;
   theResult = (T)bfp->GetNamedVector(newTime, name);
-  std::cout << "Successfully fetched" << std::endl;
+    std::cout << "Successfully fetched" << std::endl;
   std::cout << std::endl;
   return theResult; 
 }
@@ -426,10 +429,16 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
       ULong64_t theWord  = ctbTrig.trigger_word;
       ULong64_t theTS    = ctbTrig.timestamp;
       std::cout.precision(21);
-
+        
      
       if (theType == 2 ){
-        if( RDTSTime - (long long)theTS > 22 && RDTSTime - (long long)theTS < 26 ){
+
+        long long deltaCTBtoRDTS = RDTSTime - (long long)theTS;        
+
+        std::cout << "Type 2. deltaT: " << deltaCTBtoRDTS << std::endl;
+
+        if( deltaCTBtoRDTS <= (fOffsetCTBtoRDTS + fToleranceCTBtoRDTS) 
+        &&  deltaCTBtoRDTS >= (fOffsetCTBtoRDTS - fToleranceCTBtoRDTS) ){
         
           std::cout << "Found the High Level Trigger" << std::endl;
        
@@ -448,13 +457,12 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
           //So return 0, we'll skip this event
           if (theHLT[5]) {         
             noHLT = false;
-            std::cout << "HLT 5 activated. Excluding beam events. Skipping this event" << std::endl;
+            std::cout << "HLT 5 activated. This is a Beam-Excluded event." << std::endl;
             break;
           }
           else if (theHLT[0] && (theHLT.count() == 1)) {
             noHLT = false;
-            std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl
-                      << "Skipping this Event." << std::endl;
+            std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl;
             break;
           }
           else{
@@ -469,7 +477,7 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     if(noHLT){
       //This happens sometimes
       //Just skip the event
-      std::cout << "No High Level Trigger Found! Skipping Event" << std::endl;
+      std::cout << "No High Level Trigger Found!" << std::endl;
       return 0;
     }
     else{
@@ -596,35 +604,8 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
   std::cout << "Matching in time between Beamline and TPC!!!" << std::endl; 
   for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
     
-    //GenTrig = sec + 1.e-9*ns portions
-//    double GenTrigTime = beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second;
-//    std::cout << "Gen: " << beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second << std::endl;
     double GenTrigSec  = beamspill->GetT0(iT).first;
     double GenTrigNano = beamspill->GetT0(iT).second;
-//    std::cout << "GenTrig: " << GenTrigSec << " " << GenTrigNano << std::endl;
-
-/*
-    //HLTTime in 50MHz ticks
-    double HLTTime = 2.e-08*HLTTS;
-    std::cout << "HLTTS: " << HLTTS << std::endl;
-    std::cout << "HLT: " << 2.e-08*HLTTS << std::endl;
-
-    //Separates seconds portion of the ticks 
-    //From the nanoseconds
-    long long HLTTickSec = (HLTTS * 2) / (int)(TMath::Power(10,8));
-    HLTTickSec = HLTTickSec * (int)(TMath::Power(10,8)) / 2;
-    long long HLTTickNano = HLTTS - HLTTickSec;
-
-    //Units are 20 nanoseconds ticks
-    double HLTTimeSec  = 20.e-9 * HLTTickSec;
-    double HLTTimeNano = 20.    * HLTTickNano;
-
-    std::cout << "HLT: " << HLTTimeSec << " " << HLTTimeNano << std::endl;
-
-    double diffSec = HLTTimeSec - GenTrigSec - SpillOffset;
-    double diffNano = 1.e-09*(HLTTimeNano - GenTrigNano);
-    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
-*/
 
     //Separates seconds portion of the ticks 
     //From the nanoseconds
@@ -639,8 +620,9 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
  //   std::cout << "RDTS: " << RDTSTimeSec << " " << RDTSTimeNano << std::endl;
 
     double diffSec = RDTSTimeSec - GenTrigSec - SpillOffset;
+    std::cout << "RDTSTimeSec - GenTrigSec " << RDTSTimeSec - GenTrigSec << std::endl;
     double diffNano = 1.e-09*(RDTSTimeNano - GenTrigNano);
-//    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
+    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
 
     double diff = diffSec + diffNano; 
 //    std::cout << diff << std::endl;
@@ -816,8 +798,10 @@ void proto::BeamEvent::produce(art::Event & e){
     }
     //Use time of event
     else{
-      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
-      fMultipleTimes.push_back(uint64_t(eventTime));
+//      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
+//      fMultipleTimes.push_back(uint64_t(eventTime));
+      std::cout <<" Using Event Time: " << uint64_t( RDTSTime * 2.e-8 ) << std::endl;
+      fMultipleTimes.push_back( uint64_t( RDTSTime * 2.e-8 ) );
       usedEventTime = true;
     } 
 
@@ -857,7 +841,6 @@ void proto::BeamEvent::produce(art::Event & e){
         }
         catch(std::exception e){
           std::cout << "COULD NOT GET INFO" << std::endl;
-          std::cout << "SKIPPING EVENT" << std::endl;
           //break;
         }
         std::cout << std::endl;
@@ -1811,20 +1794,21 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
   fOffsetTAI              = p.get<double>("OffsetTAI");
 
+  fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
+  fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
+
 }
 
 uint64_t proto::BeamEvent::joinHighLow(double high, double low){
 
-  uint32_t low32 = (uint32_t)low;
-  std::bitset<64> lowbits = low32;
+  uint64_t low64 = (uint64_t)low;
 
-  uint32_t high32 = (uint32_t)high;
-  std::bitset<64> highbits = high32;
+  uint64_t high64 = (uint64_t)high;
 
-  highbits = highbits << 32;
-  std::bitset<64> joinedbits = highbits ^ lowbits;
+  high64 = high64 << 32;
+  uint64_t joined = high64 | low64;
 
-  return joinedbits.to_ullong(); 
+  return joined; 
 }
 
 TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, double zOffset){
