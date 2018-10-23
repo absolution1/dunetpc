@@ -54,36 +54,30 @@ int test_AcdWireReader(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_AcdWireReader.fcl";
-  if ( ! useExistingFcl ) {
+  if (useExistingFcl) {
+    cout << myname << "Using existing top-level FCL." << endl;
+    ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
+  } else {
     cout << myname << "Creating top-level FCL." << endl;
     // To convert digit to wire, use the DUNE fcl for 35-ton reco.
     // Disable noise removal and deconvolution because these make it difficult
     // to predict the result.
-    ofstream fout(fclfile.c_str());
-    fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services: @local::dune35tdata_reco_services" << endl;
-    fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
-    fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
-    fout << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
-    fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
+    std::stringstream config;
+    config << "#include \"services_dune.fcl\"" << endl;
+    config << "services: @local::dune35tdata_reco_services" << endl;
+    config << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
+    config << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
+    config << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
+    config << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
     // Need the standard tool to read channel data from a digit.
-    fout << "#include \"dataprep_tools.fcl\"" << endl;
+    config << "#include \"dataprep_tools.fcl\"" << endl;
     // Build local wire reader.
-    fout << "tools.mytool: {" << endl;
-    fout << "  tool_type: AcdWireReader" << endl;
-    fout << "  LogLevel: 2" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
-    cout << myname << "Using existing top-level FCL." << endl;
+    config << "tools.mytool: {" << endl;
+    config << "  tool_type: AcdWireReader" << endl;
+    config << "  LogLevel: 2" << endl;
+    config << "}" << endl;
+    ArtServiceHelper::load_services(config);
   }
-
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  assert( ash.addServices(fclfile, true) == 0 );
-  assert( ash.loadServices() == 1 );
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
@@ -142,7 +136,7 @@ int test_AcdWireReader(bool useExistingFcl =false) {
                     << newacd.signal[isig] << ")" << endl;
     assert(sigequal(acd.samples[isig], newacd.samples[isig]));
   }
-  cout << myname << "NROI: " << wires[0].SignalROI().size() << " " 
+  cout << myname << "NROI: " << wires[0].SignalROI().size() << " "
                  << acd.rois.size() << " " << newacd.rois.size() << endl;
   assert( newacd.rois.size() == acd.rois.size() );
 

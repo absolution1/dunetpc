@@ -39,7 +39,9 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_PdspOnlineChannel.fcl";
-  if ( ! useExistingFcl ) {
+  if (useExistingFcl) {
+    cout << myname << "Using existing top-level FCL." << endl;
+  } else {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "#include \"PdspChannelMapService.fcl\"" << endl;
@@ -56,8 +58,6 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
-  } else {
-    cout << myname << "Using existing top-level FCL." << endl;
   }
 
   cout << myname << line << endl;
@@ -68,13 +68,8 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
   tm.print();
   assert( tm.toolNames().size() >= 1 );
 
-  // Load services with the service helper.
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  assert( ash.addServices(fclfile, true) == 0 );
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  std::ifstream config{fclfile};
+  ArtServiceHelper::load_services(config);
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -116,7 +111,7 @@ int test_PdspOnlineChannel(bool useExistingFcl =false) {
       cout << "  " << offlineChannel[ichaOn] << endl;
       cout << "  " << ichaOff << endl;
       assert( false );
-    } 
+    }
     assert( onlineCounts[ichaOn] == 0 );
     onlineCounts[ichaOn] += 1;
     offlineChannel[ichaOn] = ichaOff;

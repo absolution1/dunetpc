@@ -9,10 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
-#include "dune/ArtSupport/ArtServiceHelper.h"
 #include "TH1F.h"
 
 #undef NDEBUG
@@ -60,14 +58,6 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
   tm.print();
   assert( tm.toolNames().size() >= 1 );
 
-  // Load services with the service helper.
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  assert( ash.addServices(fclfile, true) == 0 );
-  assert( ash.loadServices() == 1 );
-  ash.print();
-
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
   auto cma = tm.getPrivate<IndexMapTool>("mytool");
@@ -108,7 +98,7 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
       cout << "  " << offlineChannel[ichaOn] << endl;
       cout << "  " << ichaOff << endl;
       assert( false );
-    } 
+    }
     assert( onlineCounts[ichaOn] == 0 );
     onlineCounts[ichaOn] += 1;
     offlineChannel[ichaOn] = ichaOff;

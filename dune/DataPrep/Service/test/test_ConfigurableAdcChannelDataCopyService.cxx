@@ -42,32 +42,15 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_ConfigurableAdcChannelDataCopyService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "services.AdcChannelDataCopyService: {" << endl;
-  fout << "  service_provider: ConfigurableAdcChannelDataCopyService" << endl;
-  fout << "  LogLevel:              " << a_LogLevel << endl;
-  fout << "  CopyChannel: true" << endl;
-  fout << "  CopyPedestal: true" << endl;
-  fout << "  CopySamples: true" << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-    cout << myname << line << endl;
-    cout << myname << "Add ADC mitigation service." << endl;
-    assert( ash.addService("AdcChannelDataCopyService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  std::ostringstream oss;
+  oss << "services.AdcChannelDataCopyService: {" << endl;
+  oss << "  service_provider: ConfigurableAdcChannelDataCopyService" << endl;
+  oss << "  LogLevel:              " << a_LogLevel << endl;
+  oss << "  CopyChannel: true" << endl;
+  oss << "  CopyPedestal: true" << endl;
+  oss << "  CopySamples: true" << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   AdcChannel channel = 123;
   AdcSignal pedestal = 123.45;
