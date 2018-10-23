@@ -92,6 +92,7 @@ public:
   void GetSpillInfo(art::Event &);
   void MatchBeamToTPC(art::Event &, uint64_t);
   void SetBeamEvent(); 
+  void SetCKovInfo(); 
 
   void MakeTrack(size_t);
   void MomentumSpec(size_t);
@@ -139,7 +140,6 @@ private:
   TTree * fXTOF1BTree;
   TTree * fXTOF2ATree;
   TTree * fXTOF2BTree;
-  TTree * fXBTF022702Tree;
   TTree * fMatchedTriggers;
 
   TH1F  * fDeltaXHist;
@@ -184,10 +184,10 @@ private:
   double fXTOF1ASec;
   double fXTOF1BSec;
   double fXTOF2ASec;
+  std::vector<double>* diff2A;
+  std::vector<double>* diff2B;
   double fXTOF2BSec;
 
-  double fXBTF022702Frac;
-  double fXBTF022702Coarse; 
   TH1F * fTOFHist;
   TH1F * fCKovHist;
   recob::Track * theTrack;
@@ -199,7 +199,8 @@ private:
   double SpillEnd;
   double SpillOffset;
   double ActiveTriggerTime;
-  double RDTSTime;
+  long long RDTSTime;
+  int RDTSTrigger;
   std::vector< double > * GenTriggers;
 
   double acqTime;
@@ -296,6 +297,9 @@ private:
   double fCalibrationTolerance;
   double fOffsetTAI;
 
+  int    fOffsetCTBtoRDTS;
+  int    fToleranceCTBtoRDTS;
+
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
 
@@ -348,7 +352,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "At Time: " << newTime << std::endl;    
       try{
         theResult = (T)bfp->GetNamedVector(newTime, name);
-        std::cout << "Successfully fetched" << std::endl;
+        std::cout << "Successfully fetched " << newTime << std::endl;
         prev_fetch_time = newTime;
         return theResult;
       }
@@ -362,7 +366,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
 //    std::cout << "At Time: " << newTime << std::endl;    
     try{
       theResult = (T)bfp->GetNamedVector(newTime, name);
-      std::cout << "Successfully fetched" << std::endl;
+      std::cout << "Successfully fetched " << newTime << std::endl;
       prev_fetch_time = newTime;
       return theResult;
     }
@@ -375,7 +379,7 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
   std::cout << "Trying a final time to grab from folder: " << name << std::endl;
   std::cout << "At time: " << newTime << std::endl;
   theResult = (T)bfp->GetNamedVector(newTime, name);
-  std::cout << "Successfully fetched" << std::endl;
+    std::cout << "Successfully fetched" << std::endl;
   std::cout << std::endl;
   return theResult; 
 }
@@ -397,16 +401,17 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     std::cout << "High: " << RDTS.GetTimeStamp_High() << std::endl;
     std::cout << "Low: " << RDTS.GetTimeStamp_Low() << std::endl; 
 
-    std::bitset<64> high = RDTS.GetTimeStamp_High();
-    std::bitset<64> low  = RDTS.GetTimeStamp_Low();
+    uint64_t high = RDTS.GetTimeStamp_High();
+    uint64_t low  = RDTS.GetTimeStamp_Low();
+
     high = high << 32; 
-    std::bitset<64> joined = (high ^ low);
+    uint64_t joined = (high | low);
 
-    std::cout << "Join: " << (joined).to_ullong() << std::endl;
-    std::cout << "Join: " << 2.e-8 * (joined).to_ullong() << std::endl;
+    std::cout << "Raw Decoder Timestamp: " << joined << std::endl;
 
-    RDTSTime = 2.e-8 * joined.to_ullong(); 
-
+    RDTSTime = joined;
+    RDTSTrigger = RDTS.GetFlags();
+    std::cout << "Trigger: " << RDTSTrigger << std::endl; 
   }
 
   auto const CTBHandle = e.getValidHandle< std::vector< raw::ctb::pdspctb > >("ctbrawdecoder:daq");
@@ -423,94 +428,113 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
       uint32_t  theType  = ctbTrig.word_type;
       ULong64_t theWord  = ctbTrig.trigger_word;
       ULong64_t theTS    = ctbTrig.timestamp;
-
+      std::cout.precision(21);
+        
      
-      if (theType == 2){
-        std::cout << "Found the High Level Trigger" << std::endl;
+      if (theType == 2 ){
+
+        long long deltaCTBtoRDTS = RDTSTime - (long long)theTS;        
+
+        std::cout << "Type 2. deltaT: " << deltaCTBtoRDTS << std::endl;
+
+        if( deltaCTBtoRDTS <= (fOffsetCTBtoRDTS + fToleranceCTBtoRDTS) 
+        &&  deltaCTBtoRDTS >= (fOffsetCTBtoRDTS - fToleranceCTBtoRDTS) ){
         
-        HLTWord = theWord;
-        HLTTS = theTS;
-        
-        //The High Level Trigger consists of 8 bits
-        //HLT7 -> HLT0
-        std::bitset<8> theHLT(theWord);
-        std::cout << "High Level Trigger: " << theHLT << std::endl;
-        
-        //HLT5 corresponds to excluding Low Level Triggers
-        //from the Beamline
-        //So return 0, we'll skip this event
-        if (theHLT[5]) {         
-          std::cout << "HLT 5 activated. Excluding beam events. Skipping this event" << std::endl;
-          break;
-        }
-        else if (theHLT[0] && (theHLT.count() == 1)) {
-          std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl
-                    << "Skipping this Event." << std::endl;
-          break;
-        }
-        else{
-          noHLT = false;
-          std::cout << "Found valid beam event." << std::endl;
-          break;
+          std::cout << "Found the High Level Trigger" << std::endl;
+       
+          HLTWord = theWord;
+          HLTTS = theTS;
+          std::cout << HLTTS << std::endl;
+
+          //The High Level Trigger consists of 8 bits
+          //HLT7 -> HLT0
+          std::bitset<8> theHLT(theWord);
+          std::cout << "High Level Trigger: " << theHLT << std::endl;
+
+          
+          //HLT5 corresponds to excluding Low Level Triggers
+          //from the Beamline
+          //So return 0, we'll skip this event
+          if (theHLT[5]) {         
+            noHLT = false;
+            std::cout << "HLT 5 activated. This is a Beam-Excluded event." << std::endl;
+            break;
+          }
+          else if (theHLT[0] && (theHLT.count() == 1)) {
+            noHLT = false;
+            std::cout << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << std::endl;
+            break;
+          }
+          else{
+            noHLT = false;
+            std::cout << "Found valid beam event." << std::endl;
+            break;
+          }
         }
       }       
     }
 
     if(noHLT){
-      //This should never happen but...
-      std::cout << "Error! No High Level Trigger Found!" << std::endl;
+      //This happens sometimes
+      //Just skip the event
+      std::cout << "No High Level Trigger Found!" << std::endl;
       return 0;
     }
     else{
 
       //Now check the channel statuses        
       std::cout << "ChStatuses: " << CTB.GetNChStatuses() << std::endl;
-      raw::ctb::ChStatus theStatus = CTB.GetChStatuse(0);
-      
-      uint32_t the_beam_hi    = theStatus.beam_hi; 
-      uint32_t the_beam_lo    = theStatus.beam_lo; 
-      ULong64_t the_timestamp = theStatus.timestamp; 
-      
-      std::cout << "Timestamp : " << the_timestamp << std::endl;
-      if( the_timestamp > ULong64_t(HLTTS) ){
-        std::cout << "Found Channel status > HLT timestamp. Skipping" << std::endl;
-//        continue;
-      }
+      for(size_t iStat = 0; iStat < CTB.GetNChStatuses(); ++ iStat){
+        raw::ctb::ChStatus theStatus = CTB.GetChStatuse(iStat);
 
-      std::cout << "beam_hi   : " << std::bitset<5>(the_beam_hi) << std::endl; 
-      std::cout << "beam_lo   : " << std::bitset<4>(the_beam_lo) << std::endl; 
-
-      std::bitset<4> beam_lo(the_beam_lo);
-      std::bitset<5> beam_hi(the_beam_hi);
-
-      BeamOn     =  beam_lo[0];
-      BITrigger  =  beam_lo[1];
-      Upstream   =  beam_lo[2];
-      C1         =  beam_lo[3];
-      C2         =  beam_hi[0];
-      BP1        =  beam_hi[1];
-      BP2        =  beam_hi[2];
-      BP3        =  beam_hi[3];
-      BP4        =  beam_hi[4];
-
-
-      std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
-      std::cout << "Beam On:    " << BeamOn    << std::endl
-                << "BI Trigger: " << BITrigger << std::endl
-                << "Upstream:   " << Upstream  << std::endl
-                << "C1:         " << C1        << std::endl
-                << "C2:         " << C2        << std::endl
-                << "BP1:        " << BP1       << std::endl
-                << "BP2:        " << BP2       << std::endl
-                << "BP3:        " << BP3       << std::endl
-                << "BP4:        " << BP4       << std::endl;
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
-
-      fCKovHist->Fill(C1 + 2*C2);
-
-      return HLTTS;
-    }
+        uint32_t the_beam_hi    = theStatus.beam_hi; 
+        uint32_t the_beam_lo    = theStatus.beam_lo; 
+        long long the_timestamp = theStatus.timestamp; 
+        
+        std::cout << "Timestamp : " << the_timestamp << std::endl;
+        int delta = HLTTS - the_timestamp;
+        if( delta < 2 && delta >= 0 ){
+          std::cout << "Found Channel status matching  HLT timestamp" << std::endl;
+          std::cout << "beam_hi   : " << std::bitset<5>(the_beam_hi) << std::endl; 
+          std::cout << "beam_lo   : " << std::bitset<4>(the_beam_lo) << std::endl; 
     
+          std::bitset<4> beam_lo(the_beam_lo);
+          std::bitset<5> beam_hi(the_beam_hi);
+    
+          BeamOn     =  beam_lo[0];
+          BITrigger  =  beam_lo[1];
+          Upstream   =  beam_lo[2];
+          C1         =  beam_lo[3];
+          C2         =  beam_hi[0];
+          BP1        =  beam_hi[1];
+          BP2        =  beam_hi[2];
+          BP3        =  beam_hi[3];
+          BP4        =  beam_hi[4];
+    
+    
+          std::cout << "%%%%Decoding the beam channels%%%" << std::endl;
+          std::cout << "Beam On:    " << BeamOn    << std::endl
+                    << "BI Trigger: " << BITrigger << std::endl
+                    << "Upstream:   " << Upstream  << std::endl
+                    << "C1:         " << C1        << std::endl
+                    << "C2:         " << C2        << std::endl
+                    << "BP1:        " << BP1       << std::endl
+                    << "BP2:        " << BP2       << std::endl
+                    << "BP3:        " << BP3       << std::endl
+                    << "BP4:        " << BP4       << std::endl;
+          std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl << std::endl;        
+    
+          fCKovHist->Fill(C1 + 2*C2);
+
+          //This means the beamline wasn't triggered
+          if(!BITrigger) return 0;
+    
+          return HLTTS;
+
+        }
+      }
+      return 0;
+    }
   }
   std::cout << "Error! Invalid CTB Handle!" << std::endl;
   std::cout << std::endl;
@@ -580,24 +604,38 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
   std::cout << "Matching in time between Beamline and TPC!!!" << std::endl; 
   for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
     
-    //GenTrig = sec + 1.e-9*ns portions
-    double GenTrigTime = beamspill->GetT0(iT).first + 1.e-09*beamspill->GetT0(iT).second;
+    double GenTrigSec  = beamspill->GetT0(iT).first;
+    double GenTrigNano = beamspill->GetT0(iT).second;
 
-    //HLTTime in 50MHz ticks
-    double HLTTime = 2.e-08*HLTTS;
-    double diff = HLTTime - GenTrigTime - SpillOffset;
-    std::cout.precision(dbl::max_digits10);
-//    std::cout << GenTrigTime << " " << HLTTime << " " << diff << " " << fTimingCalibration << std::endl << std::endl;
+    //Separates seconds portion of the ticks 
+    //From the nanoseconds
+    long long RDTSTickSec = (RDTSTime * 2) / (int)(TMath::Power(10,8));
+    RDTSTickSec = RDTSTickSec * (int)(TMath::Power(10,8)) / 2;
+    long long RDTSTickNano = RDTSTime - RDTSTickSec;
 
+    //Units are 20 nanoseconds ticks
+    double RDTSTimeSec  = 20.e-9 * RDTSTickSec;
+    double RDTSTimeNano = 20.    * RDTSTickNano;
+
+ //   std::cout << "RDTS: " << RDTSTimeSec << " " << RDTSTimeNano << std::endl;
+
+    double diffSec = RDTSTimeSec - GenTrigSec - SpillOffset;
+    std::cout << "RDTSTimeSec - GenTrigSec " << RDTSTimeSec - GenTrigSec << std::endl;
+    double diffNano = 1.e-09*(RDTSTimeNano - GenTrigNano);
+    std::cout << "diff: " << diffSec << " " << diffNano << std::endl;
+
+    double diff = diffSec + diffNano; 
+//    std::cout << diff << std::endl;
   
     if( ( fTimingCalibration - fCalibrationTolerance < diff ) && (fTimingCalibration + fCalibrationTolerance > diff) ){
-//      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+      std::cout << "FOUND MATCHING TIME!!!" << std::endl;
+      std::cout << "diff: " << diff << std::endl;
 
 
       beamspill->SetActiveTrigger( iT ); 
       beamevt->SetActiveTrigger( iT );
       beamevt->SetT0( beamspill->GetT0( iT ) );
-      std::cout << "Set event T0: " << beamevt->GetFullT0() << std::endl;;
+      std::cout << "Set event T0: " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << std::endl;;
       return;
     }
   }
@@ -606,9 +644,25 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
   beamspill->SetUnmatched();
 }
 
+void proto::BeamEvent::SetCKovInfo(){
+
+  std::cout << "Setting Cerenkov info" << std::endl;
+  beam::CKov theCKov = beamspill->GetCKov0();
+  theCKov.trigger = C1;
+  beamevt->SetCKov0( theCKov );
+  std::cout << "C0: " << beamevt->GetCKov0Status() << std::endl;
+
+  theCKov = beamspill->GetCKov1();
+  theCKov.trigger = C2;
+  beamevt->SetCKov1( theCKov );
+  std::cout << "C1: " << beamevt->GetCKov1Status() << std::endl;
+
+}
+
 void proto::BeamEvent::SetBeamEvent(){
+
   if( !beamspill->CheckIsMatched() ){
-    std::cout << "Error: art Event is unmatched to Beam Spill " << std::endl;
+    std::cout << "art Event is unmatched to Beam Spill " << std::endl;
     return;
   }
 
@@ -621,7 +675,7 @@ void proto::BeamEvent::SetBeamEvent(){
 
   beamevt->SetT0( beamspill->GetT0( activeTrigger ) );
 
-  std::cout << "Set T0  " << beamevt->GetFullT0() << std::endl << std::endl; 
+  std::cout << "Set T0  " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << std::endl << std::endl; 
 
 
   std::cout << "Setting FBM statuses" << std::endl;
@@ -637,6 +691,7 @@ void proto::BeamEvent::SetBeamEvent(){
   std::cout << "Setting TOF info for beamevt " << std::endl;
   beamevt->SetTOF0Trigger( beamspill->GetTOF0( activeTrigger ) );
   beamevt->SetTOF1Trigger( beamspill->GetTOF1( activeTrigger ) );
+  beamevt->DecodeTOF();
   beamevt->SetTOFChan(  beamspill->GetTOFChan( activeTrigger ) );
   std::cout << "beamevt has TOF " << beamevt->GetTOF() 
             << " and TOFChan "    << beamevt->GetTOFChan() << std::endl << std::endl;
@@ -645,16 +700,6 @@ void proto::BeamEvent::SetBeamEvent(){
   std::cout << "Finished adding info to beamevt " << std::endl << std::endl;
 
 
-  std::cout << "Setting Cerenkov info" << std::endl;
-  beam::CKov theCKov = beamspill->GetCKov0();
-  theCKov.trigger = C1;
-  beamevt->SetCKov0( theCKov );
-  std::cout << "C0: " << beamevt->GetCKov0Status() << std::endl;
-
-  theCKov = beamspill->GetCKov1();
-  theCKov.trigger = C2;
-  beamevt->SetCKov1( theCKov );
-  std::cout << "C1: " << beamevt->GetCKov1Status() << std::endl;
 }
 
 ////////////////////////
@@ -667,20 +712,21 @@ void proto::BeamEvent::produce(art::Event & e){
   cycleStampMBPL = 0;
   HLTWord = 0;
   HLTTS = 0;
-  BeamOn     = -1;
-  BITrigger  = -1;
-  Upstream   = -1;
-  C1         = -1;
-  C2         = -1;
-  BP1        = -1;
-  BP2        = -1;
-  BP3        = -1;
-  BP4        = -1; 
-  SpillStart = -1;
-  SpillEnd   = -1;
+  BeamOn      = -1;
+  BITrigger   = -1;
+  RDTSTrigger = -1;
+  Upstream    = -1;
+  C1          = -1;
+  C2          = -1;
+  BP1         = -1;
+  BP2         = -1;
+  BP3         = -1;
+  BP4         = -1; 
+  SpillStart  = -1;
+  SpillEnd    = -1;
   SpillOffset = -1;
   ActiveTriggerTime = -1;
-  RDTSTime   = -1;
+  RDTSTime   = 0;
   GenTriggers->clear();
 
   bool usedEventTime = false;
@@ -729,7 +775,8 @@ void proto::BeamEvent::produce(art::Event & e){
   //Also check if we've gotten good spill info
   //
   //Or if we're forcing to read out the Beamline Info
-  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
+//  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
+  if( ( (RDTSTrigger == 12) && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
 
 
     // Read in and cache the beam bundle folder for a specific time
@@ -751,8 +798,10 @@ void proto::BeamEvent::produce(art::Event & e){
     }
     //Use time of event
     else{
-      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
-      fMultipleTimes.push_back(uint64_t(eventTime));
+//      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
+//      fMultipleTimes.push_back(uint64_t(eventTime));
+      std::cout <<" Using Event Time: " << uint64_t( RDTSTime * 2.e-8 ) << std::endl;
+      fMultipleTimes.push_back( uint64_t( RDTSTime * 2.e-8 ) );
       usedEventTime = true;
     } 
 
@@ -792,7 +841,6 @@ void proto::BeamEvent::produce(art::Event & e){
         }
         catch(std::exception e){
           std::cout << "COULD NOT GET INFO" << std::endl;
-          std::cout << "SKIPPING EVENT" << std::endl;
           //break;
         }
         std::cout << std::endl;
@@ -864,7 +912,7 @@ void proto::BeamEvent::produce(art::Event & e){
             fTrackTree->Fill();
           }
           std::cout << "Added " << beamspill->GetNBeamTracks() << " tracks to the beam spill" << std::endl << std::endl;
-          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
+//          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
 
           //Momentum
           //First, try getting the current from the magnet in IFBeam
@@ -875,7 +923,7 @@ void proto::BeamEvent::produce(art::Event & e){
     
             MomentumSpec( beamspill->GetActiveTrigger() ); 
             std::cout << "Got NRecoBeamMomenta: " << beamspill->GetNRecoBeamMomenta() << std::endl << std::endl;
-            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
+//            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
           }
           catch(std::exception e){
             std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
@@ -899,21 +947,25 @@ void proto::BeamEvent::produce(art::Event & e){
   //have been filled with info in the block above
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
-  if(!validTimeStamp && PrevStart != SpillStart){
+//  if(!validTimeStamp && PrevStart != SpillStart){
+
+  if( RDTSTrigger != 12 && PrevStart != SpillStart){
     prev_beamspill = *beamspill;   
   }
   
   beamevt->SetBITrigger(BITrigger);
+  beamevt->SetTimingTrigger(RDTSTrigger);
+  SetCKovInfo();
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
-  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
+//  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
+  beamevt->SetCTBTimestamp( HLTTS );
+  beamevt->SetRDTimestamp( RDTSTime );
 
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
-
-  delete beamevt;
   e.put(std::move(beamData));
-
+  delete beamevt;
   delete beamspill;
  
   // Write out the to tree
@@ -956,6 +1008,7 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
 void proto::BeamEvent::parseXTOF(uint64_t time){
   std::cout << "Getting General trigger info " << std::endl;
+//  std::vector<long int> coarseGenTrigLongInt = FetchWithRetries< std::vector<long int> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
   std::vector<double> coarseGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
   std::vector<double> fracGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
   std::vector<double> acqStampGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
@@ -969,18 +1022,10 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   std::cout << "timestampCounts: " << timestampCountGeneralTrigger[0] << std::endl;
   matchedNom = int(timestampCountGeneralTrigger[0]);
   
-  double low = acqStampGeneralTrigger[1];
-  uint32_t low32 = (uint32_t)low;
-  std::bitset<64> lowbits = low32;
-
-  double high = acqStampGeneralTrigger[0];
-  uint32_t high32 = (uint32_t)high;
-  std::bitset<64> highbits = high32;
-
-  highbits = highbits << 32;
-  std::bitset<64> joinedbits = highbits ^ lowbits;
-
-  acqTime = joinedbits.to_ullong() / 1000000000.; 
+  uint64_t low = (uint64_t)acqStampGeneralTrigger[1];
+  uint64_t high = (uint64_t)acqStampGeneralTrigger[0];
+  high = high << 32;
+  acqTime = ( high | low ) / 1000000000.; 
 
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
   std::vector<double> coarseTOF1A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);
@@ -1007,7 +1052,6 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   std::cout << "Size of coarse,frac: " << coarseTOF2B.size() << " " << fracTOF2B.size() << std::endl; 
 
   std::vector<std::pair<double,double>> unorderedGenTrigTime;
-  std::vector<std::pair<double,double>> unorderedXBTF022702Time;
   std::vector<std::pair<double,double>> unorderedTOF1ATime;
   std::vector<std::pair<double,double>> unorderedTOF1BTime;
   std::vector<std::pair<double,double>> unorderedTOF2ATime;
@@ -1017,11 +1061,12 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
 //    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
 //    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
-    fGenTrigCoarse = coarseGeneralTrigger[i];
-    fGenTrigFrac = fracGeneralTrigger[i];
 
     //2*i + 1 because the format is weird
-    fGenTrigSec = secondsGeneralTrigger[2*i + 1];
+    fGenTrigSec    = secondsGeneralTrigger[2*i + 1];
+    fGenTrigCoarse = coarseGeneralTrigger[i];
+    fGenTrigFrac   = fracGeneralTrigger[i];
+
     unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
 
     if (fGenTrigFrac == 0.0) break;
@@ -1032,8 +1077,8 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
  // for(size_t i = 0; i < coarseTOF1A.size(); ++i){
  //   std::cout << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
     fXTOF1ACoarse = coarseTOF1A[i];
-    fXTOF1AFrac = fracTOF1A[i];
-    fXTOF1ASec = secondsTOF1A[2*i + 1];
+    fXTOF1AFrac   = fracTOF1A[i];
+    fXTOF1ASec    = secondsTOF1A[2*i + 1];
 
     if(fXTOF1ASec < secondsTOF1A[1]) break; 
 
@@ -1046,8 +1091,8 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
  // for(size_t i = 0; i < coarseTOF1B.size(); ++i){
  //   std::cout << "TOF1B " << i << " " << secondsTOF1B[2*i+1] << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
     fXTOF1BCoarse = coarseTOF1B[i];
-    fXTOF1BFrac = fracTOF1B[i];
-    fXTOF1BSec = secondsTOF1B[2*i + 1];
+    fXTOF1BFrac   = fracTOF1B[i];
+    fXTOF1BSec    = secondsTOF1B[2*i + 1];
 
     if(fXTOF1BSec < secondsTOF1B[1]) break; 
 
@@ -1060,27 +1105,38 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
  // for(size_t i = 0; i < coarseTOF2A.size(); ++i){
  //   std::cout << "TOF2A " << i << " " << secondsTOF2A[2*i+1] << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
     fXTOF2ACoarse = coarseTOF2A[i];
-    fXTOF2AFrac = fracTOF2A[i];
-    fXTOF2ASec = secondsTOF2A[2*i + 1];
+    fXTOF2AFrac   = fracTOF2A[i];
+    fXTOF2ASec    = secondsTOF2A[2*i + 1];
 
     if(fXTOF2ASec < secondsTOF2A[1]) break; 
 
     if (fXTOF2ACoarse == 0.0 && fXTOF2AFrac == 0.0 && fXTOF2ASec == 0.0) break;
     unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
+
+    if(diff2A->size()) diff2A->clear();
+    for(size_t j = 0; j < timestampCountGeneralTrigger[0]; ++j){
+      diff2A->push_back( 1.e9*(unorderedTOF2ATime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2ATime.back().second - unorderedGenTrigTime[j].second) );
+    }
+    
     fXTOF2ATree->Fill();
+
   }  
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
  // for(size_t i = 0; i < coarseTOF2B.size(); ++i){
  //   std::cout << "TOF2B " << i << " " << secondsTOF2B[2*i+1] << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
     fXTOF2BCoarse = coarseTOF2B[i];
-    fXTOF2BFrac = fracTOF2B[i];
-    fXTOF2BSec = secondsTOF2B[2*i + 1];
+    fXTOF2BFrac   = fracTOF2B[i];
+    fXTOF2BSec    = secondsTOF2B[2*i + 1];
 
     if(fXTOF2BSec < secondsTOF2B[1]) break; 
 
     if (fXTOF2BCoarse == 0.0 && fXTOF2BFrac == 0.0 && fXTOF2BSec == 0.0) break;
     unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
+    if(diff2B->size()) diff2B->clear();
+    for(size_t j = 0; j < timestampCountGeneralTrigger[0]; ++j){
+      diff2B->push_back( 1.e9*(unorderedTOF2BTime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2BTime.back().second - unorderedGenTrigTime[j].second) );
+    }
     fXTOF2BTree->Fill();
   }
 
@@ -1379,7 +1435,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 
   // If the number of counts is larger than the number of general triggers
   // make note
-  if(counts[1] > beamspill->GetNT0()){
+  if(counts[1] != beamspill->GetNT0()){
     std::cout << "WARNING MISMATCH " << counts[1] << " " << beamspill->GetNT0() << std::endl;
   }
   
@@ -1415,20 +1471,21 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 
     // Timestamp is in units of sec + 8ns ticks
     fbm.timeStamp = fbm.timeData[3] + fbm.timeData[2]*8.e-9;  
+//    std::cout << fbm.timeData[3] << " " << fbm.timeData[2]*8.e-9 << " " << fbm.timeData[1] << " " << 8.e-9*fbm.timeData[0] << std::endl;
     
     //Go through the valid Good Particles, and emplace the FBM 
 //    std::cout << "Checking " << beamspill->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
-//       std::cout.precision(dbl::max_digits10);
-//       std::cout << "\t" << fbm.timeStamp  - fOffsetTAI<< " " << beamspill->GetFullT0(*ip) << std::endl;
-//       std::cout.precision(dbl::max_digits10);
-//       std::cout << "\t" << beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI)  << std::endl;
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 500ns away
-//      std::cout << fbm.timeStamp << " " << beamspill->GetFullT0(*ip) << std::endl;
-      if( fabs(beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) < 1000.e-9
-       /*&& (beamspill->GetFullT0(*ip) - (fbm.timeStamp - fOffsetTAI) ) > 0.*/     ){
+
+      double delta = (beamspill->GetT0Sec(*ip)  - (fbm.timeData[3] - fOffsetTAI) );
+      delta += 1.e-9*( beamspill->GetT0Nano(*ip) - 8.*fbm.timeData[2] ); 
+
+//      std::cout << beamspill->GetT0Sec(*ip) << " " << beamspill->GetT0Nano(*ip)*1.e-9 << " " << delta << std::endl;
+
+      if( delta < -1.e-7 && delta > -10.e-7 ){
 
 	if(beamspill->GetFBM(name, *ip).ID != -1){
 	  std::cout << "Warning: Replacing non-dummy FBM at "
@@ -1445,29 +1502,16 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 //    std::cout << std::endl;
   } 
 
+  if( leftOvers.size() ){
+    std::cout << "Warning! Could not match to Good Particles: " << std::endl;
+    for( size_t ip = 0; ip < leftOvers.size(); ++ip){
+      std::cout << leftOvers[ip] << " ";
+    }
+    std::cout << std::endl;
+  }
+
   for(size_t i = 0; i < beamspill->GetNFBMTriggers(name); ++i){
     beamspill->DecodeFibers(name,i);
-//    std::cout << name << " at time: "
-//	      << beamspill->DecodeFiberTime(name, i) << " has active fibers: ";
-//    for(size_t iFiber = 0; iFiber < beamspill->GetActiveFibers(name,i).size(); ++iFiber){
-//      std::cout << beamspill->GetActiveFibers(name, i)[iFiber] << " ";
-//    }
-//    std::cout << std::endl;
- /*   
-    *fActiveFibers[name] = beamspill->GetActiveFibers(name,i);
-    fProfTime[name] = beamspill->DecodeFiberTime(name, i, fOffsetTAI);
-    std::cout << beamspill->ReturnTriggerAndTime(name,i)[0] << " "
-	      << beamspill->ReturnTriggerAndTime(name,i)[1] << " "
-	      << beamspill->ReturnTriggerAndTime(name,i)[2] << " "
-	      << beamspill->ReturnTriggerAndTime(name,i)[3] << std::endl;
-
-    fProfTrigger1[name] = beamspill->ReturnTriggerAndTime(name,i)[0];
-    fProfTrigger2[name] = beamspill->ReturnTriggerAndTime(name,i)[1];
-    fProfTime1[name] = beamspill->ReturnTriggerAndTime(name,i)[2];
-    fProfTime2[name] = beamspill->ReturnTriggerAndTime(name,i)[3];
-    fProfTree[name]->Fill(); 
-*/
-    
   } 
 
 }
@@ -1631,15 +1675,15 @@ void proto::BeamEvent::beginJob()
   fXTOF2ATree->Branch("coarse", &fXTOF2ACoarse);
   fXTOF2ATree->Branch("frac", &fXTOF2AFrac);
   fXTOF2ATree->Branch("sec", &fXTOF2ASec);
+  diff2A = new std::vector<double>();
+  fXTOF2ATree->Branch("diff2A", &diff2A);
 
   fXTOF2BTree = tfs->make<TTree>("TOF2B","");
   fXTOF2BTree->Branch("coarse", &fXTOF2BCoarse);
   fXTOF2BTree->Branch("frac", &fXTOF2BFrac);
   fXTOF2BTree->Branch("sec", &fXTOF2BSec);
-
-  fXBTF022702Tree = tfs->make<TTree>("XBTF022702","");
-  fXBTF022702Tree->Branch("coarse", &fXBTF022702Coarse);
-  fXBTF022702Tree->Branch("frac", &fXBTF022702Frac);
+  diff2B = new std::vector<double>();
+  fXTOF2BTree->Branch("diff2B", &diff2B);
 
 
 }
@@ -1750,20 +1794,21 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
   fOffsetTAI              = p.get<double>("OffsetTAI");
 
+  fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
+  fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
+
 }
 
 uint64_t proto::BeamEvent::joinHighLow(double high, double low){
 
-  uint32_t low32 = (uint32_t)low;
-  std::bitset<64> lowbits = low32;
+  uint64_t low64 = (uint64_t)low;
 
-  uint32_t high32 = (uint32_t)high;
-  std::bitset<64> highbits = high32;
+  uint64_t high64 = (uint64_t)high;
 
-  highbits = highbits << 32;
-  std::bitset<64> joinedbits = highbits ^ lowbits;
+  high64 = high64 << 32;
+  uint64_t joined = high64 | low64;
 
-  return joinedbits.to_ullong(); 
+  return joined; 
 }
 
 TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, double zOffset){
@@ -1803,7 +1848,7 @@ void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
   
-  std::cout << "Making Track for time: " << beamspill->GetFullT0(theTrigger) << std::endl;
+  std::cout << "Making Track for time: " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << std::endl;
 
   //Get the active fibers from the upstream tracking XBPF
   std::vector<short> firstUpstreamFibers  = beamspill->GetActiveFibers(firstUpstreamName, theTrigger);
@@ -1987,7 +2032,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
 void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   
-  std::cout << "Doing momentum spectrometry for trigger " << beamspill->GetFullT0(theTrigger) << std::endl;
+  std::cout << "Doing momentum spectrometry for trigger " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << std::endl;
 
   //Get the active fibers from the upstream tracking XBPF
   std::string firstBPROF1Type    = fDeviceTypes[firstBPROF1]; 

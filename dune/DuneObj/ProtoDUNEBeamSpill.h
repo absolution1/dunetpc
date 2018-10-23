@@ -49,7 +49,8 @@ namespace beam
 
       void              InitFBMs(std::vector<std::string>);
       std::pair< double, double >  GetT0(size_t);
-      double            GetFullT0(size_t);
+      double            GetT0Sec(size_t);
+      double            GetT0Nano(size_t);
       size_t            GetNT0(){return t0.size();};
       void              AddT0(std::pair< double, double >);
      
@@ -83,7 +84,11 @@ namespace beam
       void              AddTOF1Trigger( std::pair<double,double> theT){ TOF1.push_back(theT); }; 
       void              AddTOFChan(int theChan){ TOFChan.push_back(theChan); };
       std::pair< double, double > GetTOF0(size_t);
+      double                      GetTOF0Sec(size_t);
+      double                      GetTOF0Nano(size_t);
       std::pair< double, double > GetTOF1(size_t);
+      double                      GetTOF1Sec(size_t);
+      double                      GetTOF1Nano(size_t);
       double            GetTOF( size_t );
       int               GetTOFChan(size_t);
       int               GetNTOF0Triggers(){ return TOF0.size(); };
@@ -169,13 +174,22 @@ namespace beam
     return t0[trigger];
   }
 
-  inline double ProtoDUNEBeamSpill::GetFullT0(size_t trigger){
+  inline double ProtoDUNEBeamSpill::GetT0Sec(size_t trigger){
     if( trigger > t0.size() - 1 ){
       std::cout << "Error. Trigger out of bunds" << std::endl;
       return -1.;
     }
 
-    return t0[trigger].first + 1.e-9*t0[trigger].second;
+    return t0[trigger].first;
+  }
+
+  inline double ProtoDUNEBeamSpill::GetT0Nano(size_t trigger){
+    if( trigger > t0.size() - 1 ){
+      std::cout << "Error. Trigger out of bunds" << std::endl;
+      return -1.;
+    }
+
+    return t0[trigger].second;
   }
 
   inline void ProtoDUNEBeamSpill::AddT0(std::pair< double, double > theT0){
@@ -388,6 +402,24 @@ namespace beam
     return TOF0[nTrigger];
   }
 
+  inline double ProtoDUNEBeamSpill::GetTOF0Sec(size_t nTrigger){
+    if( (nTrigger >= TOF0.size()) ){
+      std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+
+    return TOF0[nTrigger].first;
+  }
+
+  inline double ProtoDUNEBeamSpill::GetTOF0Nano(size_t nTrigger){
+    if( (nTrigger >= TOF0.size()) ){
+      std::cout << "Please input index in range [0," << TOF0.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+
+    return TOF0[nTrigger].second;
+  }
+
   inline std::pair< double, double > ProtoDUNEBeamSpill::GetTOF1(size_t nTrigger){
     if( (nTrigger >= TOF1.size()) ){
       std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
@@ -395,6 +427,24 @@ namespace beam
     }
 
     return TOF1[nTrigger];
+  }
+
+  inline double ProtoDUNEBeamSpill::GetTOF1Sec(size_t nTrigger){
+    if( (nTrigger >= TOF1.size()) ){
+      std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+
+    return TOF1[nTrigger].first;
+  }
+
+  inline double ProtoDUNEBeamSpill::GetTOF1Nano(size_t nTrigger){
+    if( (nTrigger >= TOF1.size()) ){
+      std::cout << "Please input index in range [0," << TOF1.size() - 1 << "]" << std::endl;
+      return -1.;
+    }
+
+    return TOF1[nTrigger].second;
   }
 
   inline int ProtoDUNEBeamSpill::GetTOFChan(size_t nTrigger){

@@ -12,9 +12,6 @@ data.pd_Tick0: 500
 tools.tickRanges.plotTicks.begin: 4000
 tools.tickRanges.plotTicks.end:   5000
 
-tools.tickRanges.plotAllTicks.begin: 0
-tools.tickRanges.plotAllTicks.end:   0
-
 ################################################################################
 # Channel mapping.
 ################################################################################
@@ -72,7 +69,8 @@ tools.pd_adcPedestalFit: {
 # Sticky code mitigation.
 tools.pdsp_adcMitigate: {
   tool_type: AdcCodeMitigator
-  FixedFlags: []
+  LogLevel: 1
+  FixFlags: []
   InterpolateFlags: [8, 9, 10, 11, 12]
   SkipFlags: []
 }
