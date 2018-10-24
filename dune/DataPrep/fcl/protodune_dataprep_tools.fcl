@@ -150,6 +150,7 @@ tools.rawAdcDetectorPlotColl: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC collection view. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
@@ -172,6 +173,7 @@ tools.rawAdcDetectorPlotInd1: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
@@ -194,6 +196,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -218,6 +221,7 @@ tools.preparedAdcDetectorPlotColl: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.preparedAdcDetectorPlotInd1: {
@@ -240,6 +244,7 @@ tools.preparedAdcDetectorPlotInd1: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.preparedAdcDetectorPlotInd2: {
@@ -262,6 +267,7 @@ tools.preparedAdcDetectorPlotInd2: {
   ShowTpcSets: []
   ShowGrid: true
   Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%. %TRIGNAMECAP% trigger."
+  PlotTitle: "%UTCTIME2%"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 

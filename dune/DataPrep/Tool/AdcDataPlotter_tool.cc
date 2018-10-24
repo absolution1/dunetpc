@@ -347,6 +347,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       man.add(pptl);
     }
     man.print(ofname);
+    delete pptl;
     if ( 0 ) {
       string line;
       cout << myname;
