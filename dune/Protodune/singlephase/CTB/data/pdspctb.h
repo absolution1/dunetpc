@@ -71,6 +71,10 @@ namespace raw {
       const std::vector<raw::ctb::Misc>&        GetMiscs() const;
       const std::vector<raw::ctb::WordIndex>&   GetIndexes() const;
 
+      const std::vector<raw::ctb::Trigger>&            GetHLTriggers() const;
+      const std::vector<raw::ctb::Trigger>&            GetLLTriggers() const;
+      const std::vector<raw::ctb::ChStatus>&           GetChStatusAfterHLTs() const;
+
       size_t  GetNTriggers() const;   
       size_t  GetNChStatuses() const; 
       size_t  GetNFeedbacks() const;  
@@ -104,6 +108,88 @@ const std::vector<raw::ctb::ChStatus>&      raw::ctb::pdspctb::GetChStatuses() c
 const std::vector<raw::ctb::Feedback>&      raw::ctb::pdspctb::GetFeedbacks()  const { return fFeedbacks; }
 const std::vector<raw::ctb::Misc>&          raw::ctb::pdspctb::GetMiscs()      const { return fMiscs; }
 const std::vector<raw::ctb::WordIndex>&     raw::ctb::pdspctb::GetIndexes()    const { return fIndexes; }
+
+const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetHLTriggers()  const
+{ 
+  std::vector<raw::ctb::Trigger> HLTriggers;
+  for (size_t i=0; i<fTriggers.size(); ++i)
+    {
+      if (fTriggers.at(i).word_type == 2)
+	{
+	  HLTriggers.push_back(fTriggers.at(i));
+	}
+    }
+  return std::move(HLTriggers);
+}
+
+// for each HLT, find the next entry
+
+const std::vector<raw::ctb::ChStatus>&     raw::ctb::pdspctb::GetChStatusAfterHLTs() const
+{
+  std::vector<raw::ctb::ChStatus> chs;
+  raw::ctb::ChStatus emptychstat;
+  emptychstat.word_type = 0;
+  emptychstat.pds = 0;
+  emptychstat.crt = 0;
+  emptychstat.beam_hi = 0;
+  emptychstat.beam_lo = 0;
+  emptychstat.timestamp = 0;
+
+  for (size_t i=0; i<fTriggers.size(); ++i)
+    {
+      if (fTriggers.at(i).word_type == 2)
+	{
+	  // find this HL trigger word in the indexes vector.  Assume the next entry is a chstatus
+
+	  for (size_t j=0; j<fIndexes.size(); ++j)
+	    {
+	      if (fIndexes.at(j).word_type == 2 && fIndexes.at(j).index == i)
+		{
+		  size_t kstatindex = j;
+		  if (kstatindex > 0)
+		    {
+		      kstatindex --;  // it's the word before the HLT that has the chstat
+		      if (fIndexes.at(kstatindex).word_type == 3)
+			{
+			  size_t kstat = fIndexes.at(kstatindex).index;
+		      
+			  if (kstat < fChStatuses.size())
+			    {
+			      chs.push_back(fChStatuses.at(kstat));
+			    }
+			  else
+			    {
+			      chs.push_back(emptychstat);
+			    }
+			}
+		      else
+			{
+			  chs.push_back(emptychstat);
+			}
+		    }
+		  else
+		    {
+		      chs.push_back(emptychstat);
+		    }
+		}
+	    }
+	}
+    }
+  return std::move(chs);
+}
+
+const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetLLTriggers()  const
+{
+  std::vector<raw::ctb::Trigger> LLTriggers;
+  for (size_t i=0; i<fTriggers.size(); ++i)
+    {
+      if (fTriggers.at(i).word_type == 1)
+	{
+	  LLTriggers.push_back(fTriggers.at(i));
+	}
+    }
+  return std::move(LLTriggers);
+}
 
 size_t  raw::ctb::pdspctb::GetNTriggers()   const { return fTriggers.size(); }
 size_t  raw::ctb::pdspctb::GetNChStatuses() const { return fChStatuses.size(); }

@@ -33,6 +33,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_DataType(ps.get<int>("DataType")),
   m_TickRange(ps.get<string>("TickRange")),
+  m_TickRebin(ps.get<Index>("TickRebin")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
@@ -41,6 +42,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
+  m_PlotTitle(ps.get<string>("PlotTitle")),
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
@@ -100,6 +102,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "              LogLevel: " << m_LogLevel << endl;
     cout << myname << "              DataType: " << m_DataType << endl;
     cout << myname << "             TickRange: " << descTickRange << endl;
+    cout << myname << "             TickRebin: " << m_TickRebin << endl;
     cout << myname << "       ChannelRanges: [";
     bool first = true;
     for ( const IndexRange& ran : m_crs ) {
@@ -133,6 +136,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             Palette: " << m_Palette << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "           PlotTitle: " << m_PlotTitle << endl;
     cout << myname << "           PlotSizeX: " << m_PlotSizeX << endl;
     cout << myname << "           PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
@@ -214,6 +218,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     dm.setInt("chan2", acdChanLast-1);
     string   hname = nameReplace(    m_HistName, acdFirst, ran);
     string   htitl = nameReplace(   m_HistTitle, acdFirst, ran);
+    string   ptitl = nameReplace(   m_PlotTitle, acdFirst, ran);
     string  ofname = nameReplace(m_PlotFileName, acdFirst, ran);
     string ofrname = nameReplace(m_RootFileName, acdFirst, ran);
     string szunits = "(ADC counts)";
@@ -300,6 +305,15 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         ph->SetBinContent(ibin, sig);
       }
     }
+    // Rebin.
+    if ( m_TickRebin > 1 ) {
+      TH2* ph0 = ph;
+      ph = ph0->RebinX(m_TickRebin, ph->GetName());
+      ph->SetDirectory(nullptr);
+      delete ph0;
+      ph->Scale(1.0/m_TickRebin);
+      ph->GetZaxis()->SetRangeUser(-zmax, zmax);
+    }
     // Save the original color map.
     RootPalette oldPalette;
     RootPalette::set(m_Palette);
@@ -323,6 +337,14 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
           man.addHorizontalLine(icha, 1.0, 3);
         }
       }
+    }
+    TLatex* pptl = nullptr;
+    if ( ptitl.size() ) {
+      pptl = new TLatex(0.01, 0.015, ptitl.c_str());
+      pptl->SetNDC();
+      pptl->SetTextFont(42);
+      pptl->SetTextSize(0.035);
+      man.add(pptl);
     }
     man.print(ofname);
     if ( 0 ) {

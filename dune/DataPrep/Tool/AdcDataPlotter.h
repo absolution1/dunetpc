@@ -11,8 +11,7 @@
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
 //               If blank or not defined, the full range is used.
-//   FirstTick - First tick number to display
-//   LastTick - Last+1 tick number to display
+//   TickRebin - If > 1, histo bins include this # ticks.
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "" or "data" plots all channels in data with label "All data".
@@ -25,7 +24,8 @@
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//   HistTitle - Histogram title
+//   HistTitle - Histogram title (appears above histogram)
+//   PlotTitle - Plot title (appears below histogram an only on plots)
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
@@ -34,7 +34,7 @@
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
-// For the title and file names, the following sustitutions are made:
+// For the title and file names, substitutions are made with adcStringBuilder, e.g.
 //     %RUN%    --> run number
 //     %SUBRUN% --> subrun number
 //     %EVENT%  --> event number
@@ -90,6 +90,7 @@ private:
   int            m_LogLevel;
   int            m_DataType;
   std::string    m_TickRange;
+  Index          m_TickRebin;
   NameVector     m_ChannelRanges;
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
@@ -99,6 +100,7 @@ private:
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
+  std::string    m_PlotTitle;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   std::string    m_PlotFileName;

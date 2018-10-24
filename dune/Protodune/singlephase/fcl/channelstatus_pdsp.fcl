@@ -1,0 +1,130 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+pdsp_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+    # CE group: Inactive FE
+     4111,
+     4112,
+    11842,
+    # CE group: Broken connection
+        1,
+      400,
+      401,
+      800,
+      801,
+      876,
+     1200,
+     2961,
+     5321,
+     5363,
+     6132,
+     7058,
+     7295,
+     7680,
+     7681,
+     8328,
+     8480,
+     9282,
+     9283,
+     9736,
+     9854,
+    10800,
+    11024,
+    11457,
+    11459,
+    11463,
+    11469,
+    11517,
+    11669,
+    11679,
+    12756,
+    12801,
+    13001,
+    13081,
+    # CE group: ENC > 2000e
+     4410,
+    #-----
+    # CE group excessive sticky
+    #femb318x
+     1719,
+    #-----
+    # CE group: good.
+    # femb311
+        2,
+    #-----
+    # These 16 channels are an intermitently bad ASIC.
+    # Matt W. 19oct2018.
+    # femb316u
+      200,
+      202,
+      204,
+      206,
+      208,
+    # femb316v
+      991,
+      993,
+      995,
+      997,
+      999,
+    # femb316x
+     1829,
+     1831,
+     1833,
+     1835,
+     1837,
+     1839
+    #-----
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+    # CE group: ENC > 2000e
+     9569,
+    # CE group: sticky.
+     2318,
+    # DLA sticky
+    # femb311u
+        4,
+    # femb313u
+       94,
+    # femb302u
+      442,
+      447,
+      453,
+      455,
+      456,
+      472,
+      477,
+    # femb304u
+      571,
+      573,
+    # femb302v
+     1534,
+     1539,
+     1546,
+    # femb315x
+     1864,
+     #1864,  # acceptable??
+    # femb302x
+     2135,
+     2146,
+     2158,
+     2161,
+     2169
+  ]
+
+}
+
+END_PROLOG

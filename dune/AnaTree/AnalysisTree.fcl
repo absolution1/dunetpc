@@ -62,15 +62,21 @@ protodune_analysistree:   @local::dune35t_analysistree
 protodune_analysistree.CryGenModuleLabel: "cosmicgenerator"
 protodune_analysistree.ProtoGenModuleLabel: "generator"
 protodune_analysistree.SaveProtoInfo: true
-protodune_analysistree.TrackModuleLabel: [ "pmtrack", "pandoraTrack", "pmtrajfit" ]
-protodune_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pandoracalo", "pmtrajfitcalo" ]
-protodune_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pandorapid", "pmtrajfitpid" ]
-protodune_analysistree.FlashT0FinderLabel: [ "", "", "" ]
-protodune_analysistree.MCT0FinderLabel:   [ "", "", "" ]
-protodune_analysistree.CosmicTaggerAssocLabel:  [ "", "", "" ]
-protodune_analysistree.ContainmentTaggerAssocLabel: [ "", "", "" ]
-protodune_analysistree.FlashMatchAssocLabel: [ "", "", "" ]
+protodune_analysistree.TrackModuleLabel: [ "pmtrack", "pandoraTrack" ]
+protodune_analysistree.CalorimetryModuleLabel: [ "pmtrackcalo", "pandoracalo" ]
+protodune_analysistree.ParticleIDModuleLabel:       [ "pmtrackpid", "pandorapid" ]
+protodune_analysistree.FlashT0FinderLabel: [ "", "" ]
+protodune_analysistree.MCT0FinderLabel:   [ "", "" ]
+protodune_analysistree.CosmicTaggerAssocLabel:  [ "", "" ]
+protodune_analysistree.ContainmentTaggerAssocLabel: [ "", "" ]
+protodune_analysistree.FlashMatchAssocLabel: [ "", "" ]
 protodune_analysistree.SaveShowerInfo:  false
+protodune_analysistree.SaveCryInfo: false
+protodune_analysistree.VertexModuleLabel: [ "linecluster", "pmtrack", "pandora" ]
+
+protodune_analysistree_data: @local::protodune_analysistree
+protodune_analysistree_data.SaveGeantInfo: false
+protodune_analysistree_data.SaveProtoInfo: false
 
 dune10kt_analysistree: @local::dune35t_analysistree
 dune10kt_analysistree.PandoraNuVertexModuleLabel: "pandora"

@@ -3,29 +3,25 @@
 #This is the default configuration file
 #include "RawDecoder.fcl"
 
+#This is for parsing beam info
+#include "BeamEvent.fcl"
+
 services:
 {
   #message:              @local::dune_message_services_prod_debug
 
   TimeTracker:       {}
-  RandomNumberGenerator: {} 
-#  FileCatalogMetadata:  @local::art_file_catalog_mc
-  ExptGeoHelperInterface:       @local::dune_geometry_helper
-  Geometry:                     @local::protodune_geo
-  DetectorClocksService:        @local::dunefd_detectorclocks
-  DetectorPropertiesService:    @local::protodune_detproperties
-  LArPropertiesService:         @local::dunefd_properties
-  LArFFT:                       @local::dunefd_larfft  
-  DatabaseUtil:                 @local::dunefd_database
-  ChannelStatusService:         @local::dunefd_channel_status
-#  ChannelGroupService:          @local::changroup_apa
-  PdspChannelMapService:        @local::pdspchannelmap
+  RandomNumberGenerator: {}
+
+  @table::protodune_rawdecoding_services
 
   TFileService: { 
    closeFileFast: true  # default
    fileName:  "RunRawDecoderTFile.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
+ 
+  IFBeam:            {}
 
 }
 
@@ -35,27 +31,27 @@ physics:
   {
 
     timingrawdecoder: @local::timing_raw_decoder   
-    ssprawdecoder: @local::ssp_raw_decoder  
+    ssprawdecoder: @local::ssp_raw_decoder_split
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
     crtrawdecoder: @local::crt_raw_decoder
     ctbrawdecoder: @local::ctb_raw_decoder
+    beamevent:     @local::proto_beamevent
+
   }
 
   #Create path to run module
   #add ctbrawdecoder when it is tested
-  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, crtrawdecoder, ctbrawdecoder ] 
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, crtrawdecoder, ctbrawdecoder, beamevent ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
   end_paths: [ output ]
-}
-
-#services: {
-#}
+} 	     
 
 outputs:
 {
   out1:
   {
+    outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*" ]
     compressionLevel: 1
     module_type: RootOutput
     fileName: "%ifb_decode.root"

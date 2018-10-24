@@ -19,10 +19,9 @@ using NameVector = std::vector<string>;
 
 //**********************************************************************
 
-DuneToolManager* DuneToolManager::instance(string a_fclname) {
+DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
   const string myname = "DuneToolManager::instance: ";
-  const int dbg = 0;
-  if ( dbg > 0 ) cout << myname << "Called with " << a_fclname << endl;
+  if ( dbg >= 2 ) cout << myname << "Called with " << a_fclname << endl;
   static string fclname;
   static std::unique_ptr<DuneToolManager> pins;
   if ( !pins ) {
@@ -34,7 +33,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname) {
       ssftmp << "tmpproc" << pid << ".tmp";
       string sftmp = ssftmp.str();
       ostringstream sscom;
-      sscom << "ps -fp " << pid << " >" << sftmp;
+      sscom << "ps -fwwp " << pid << " >" << sftmp;
       string scom = sscom.str();
       system(scom.c_str());
       ifstream fin(sftmp.c_str());
@@ -46,7 +45,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname) {
       string line = longline.substr(iposCom);
       scom = "rm " + sftmp;
       system(scom.c_str());
-      cout << myname << "Taking fcl name from command line: " << line << endl;
+      if ( dbg >= 1 ) cout << myname << "Taking fcl name from command line: " << line << endl;
       // Split command line into words.
       NameVector words;
       bool newWord = true;
@@ -79,7 +78,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname) {
       }
     }
     if ( fclname.size() ) {
-      cout << myname << "Configuration file: " << fclname << endl;
+      if ( dbg >= 1 ) cout << myname << "Configuration file: " << fclname << endl;
       pins.reset(new DuneToolManager(fclname));
     }
   } else {

@@ -33,12 +33,16 @@ felix_raw_decoder:
   ExpectContainerFragments: true
 }
 
-# configuration for combined TPC Raw Decoder module
+# configuration for combined TPC Raw Decoder module. Supersedes the RCE and FELIX
+# raw decoder modules listed above.
 
 pdsp_tpc_raw_decoder:
 {
   module_type: "PDSPTPCRawDecoder"
   OutputDataLabel: "daq"
+
+  APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
+                      # an emtpy list decodes them all
 
   RCERawDataLabel: "daq"
   RCERawDataContainerInstance: "ContainerTPC"
@@ -51,6 +55,14 @@ pdsp_tpc_raw_decoder:
   RCEHexDump: false
   RCECheckBufferSize: true
   RCEBufferSizeCheckLimit: 10000000
+
+  RCEFIX302:                         true   # do an ADC-value based fix for the FEMB 302 data misalignment
+  RCEFIX302StepSize:                 40     # minimum number of ADC counts to define a step
+  RCEFIX302NTicksMax:                150    # maximum number of ticks to slide waveform
+  RCEFIX302MedianSmoothRadius:       10     # median smooth radius in ticks to find edge    
+
+  RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
+  RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
   FELIXRawDataLabel: "daq"
   FELIXRawDataContainerInstance: "ContainerFELIX"
@@ -105,24 +117,34 @@ ssp_raw_decoder:
 
   module_type: "SSPRawDecoder"
   RawDataLabel: "daq"
-  OutputDataLabel: "daq"
+   
+  SplitTriggers: false           # If true, split into external and internal trigger data products
+  OutputDataLabel: "daq"         # Used if SplitTriggers = false
+  ExtTrigOutputLabel: "external" # Used if SplitTriggers = true
+  IntTrigOutputLabel: "internal" # Used if SPlitTriggers = true
+   
 #  UseChannelMap: "true"
   UseChannelMap: "false"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: false
+  verbose_metadata: "false"
   verbose_adcs: 0
 
   number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
-  SSP_m2: 10   # (unused in the code)
-  SSP_i1: 500  # samples used to calculate pedestal
-  SSP_i2: 500  # samples used to calculate peak height
+  SSP_m2: 10   # samples used to calculate integral
+  SSP_i1: 40  # samples used to calculate pedestal
+  SSP_i2: 1200  # samples used to calculate peak height
 
-  NOvAClockFrequency: 64.0 # MHz
+  NOvAClockFrequency: 150.0 # MHz
   SPESize: 25
+ 
 }
+
+ssp_raw_decoder_split: @local::ssp_raw_decoder
+ssp_raw_decoder_split.SplitTriggers: true
+
 
 ctb_raw_decoder:
 {

@@ -525,7 +525,7 @@ void AdcEventViewer::displayGraphs() const {
       pg->SetMarkerStyle(2);
       if ( gin.xmax > gin.xmin ) pg->GetXaxis()->SetRangeUser(gin.xmin, gin.xmax);
       if ( gin.ymax > gin.ymin ) pg->GetYaxis()->SetRangeUser(gin.ymin, gin.ymax);
-      TPadManipulator man;
+      TPadManipulator man(1400, 500);
       man.add(pg, "P");
       string sttl = gin.ylab + " vs. " + gin.xlab + sttlSuf;
       man.setTitle(sttl.c_str());

@@ -78,6 +78,8 @@ private:
 
   // configuration parameters
 
+  std::vector<int> _apas_to_decode;
+
   std::string   _rce_input_label; 
   std::string   _rce_input_container_instance;
   std::string   _rce_input_noncontainer_instance;
@@ -101,6 +103,18 @@ private:
   bool          _rce_hex_dump;
   bool          _rce_check_buffer_size;
   size_t        _rce_buffer_size_checklimit;
+
+  // flags for attempting to fix FEMB 302's misaligned data
+
+  bool          _rce_fix302;
+  int           _rce_fix302_StepSize;
+  int           _rce_fix302_NTicksMax;
+  int           _rce_fix302_MedianSmoothRadius;
+
+  // flags for attempting to fix FEMB 110's misaligned data
+
+  bool          _rce_fix110;
+  unsigned int  _rce_fix110_nticks;
 
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
@@ -147,6 +161,7 @@ private:
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _fix302(raw::RawDigit::ADCvector_t &adcvec, float median);  // method to try to adjust FEMB 302's data by looking at ADC values
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
 
@@ -156,6 +171,8 @@ private:
 
 PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
 {
+  std::vector<int> emptyivec;
+  _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
   _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
@@ -167,6 +184,18 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_hex_dump = p.get<bool>("RCEHexDump",false);  
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
+
+  // parameters to steer the FEMB 302 band-aid
+
+  _rce_fix302 = p.get<bool>("RCEFIX302",true);
+  _rce_fix302_StepSize = p.get<int>("RCEFIX302StepSize",20);
+  _rce_fix302_NTicksMax = p.get<int>("RCEFIX302NTicksMax",150);
+  _rce_fix302_MedianSmoothRadius = p.get<int>("RCEFIX302MedianSmoothRadius",10);
+
+  // parameters to steer the FEMB 110 band-aid
+
+  _rce_fix110 = p.get<bool>("RCEFIX110",true);
+  _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -188,7 +217,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _full_channel_count = p.get<unsigned int>("FullChannelCount", 15360);
   _enforce_same_tick_count = p.get<bool>("EnforceSameTickCount",false);
   _enforce_full_tick_count = p.get<bool>("EnforceFullTickCount",false);
-  _full_tick_count = p.get<unsigned int>("FullTickCount",10000);
+  _full_tick_count = p.get<unsigned int>("FullTickCount",6000);
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 
@@ -353,6 +382,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
       for (auto const& cont : *cont_frags)
 	{
 	  //std::cout << "RCE container fragment size bytes: " << cont.sizeBytes() << std::endl; 
+	  bool process_flag = true;
 	  if (cont.sizeBytes() < _rce_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_rce_frags )
@@ -360,22 +390,27 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(cont_frags);
 		  return false;
 		}
 	      if ( _drop_small_rce_frags )
 		{ 
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
 		  _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  artdaq::ContainerFragment cont_frag(cont);
-	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+	  if (process_flag)
 	    {
-	      if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+	      artdaq::ContainerFragment cont_frag(cont);
+	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+		{
+		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+		}
 	    }
 	}
+      evt.removeCachedProduct(cont_frags);
     }
 
   //noncontainer frags
@@ -401,6 +436,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 
       for(auto const& frag: *frags)
 	{
+	  bool process_flag = true;
 	  if (frag.sizeBytes() < _rce_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_rce_frags )
@@ -408,19 +444,24 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+                  evt.removeCachedProduct(frags);
 		  return false;
 		}
 	      if ( _drop_small_rce_frags )
 		{ 
 		  LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
 	          _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
 
-	  if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	  if (process_flag)
+	    {
+	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	    }
 	}
+      evt.removeCachedProduct(frags);
     }
 
   //LOG_INFO("_processRCE")
@@ -496,6 +537,25 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
+
+      size_t adsiz = _apas_to_decode.size();
+      bool apafound = true;  // default if no vector to test against
+      if (adsiz)
+	{
+	  apafound = false;
+	  for (unsigned int j=0; j<adsiz; ++j)
+	    {
+	      if ((int) crateNumber == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+		{
+		  apafound = true;
+		  break;
+		}
+	    }
+	}
+      if (!apafound) 
+	{
+	  return false;
+	}
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
 	{
@@ -639,16 +699,32 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  //if(i==0 && i_ch ==0) std::cout<<" ADCs for the the 100 ticks in the 1st channel of the 1st RCE "<<std::endl;
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
+
 	  v_adc.clear();
-	  for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+
+	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
 	    {
-	      v_adc.push_back(adcs[i_tick]);
+	      for (size_t i_tick = 0; i_tick < n_ticks-_rce_fix110_nticks; i_tick++)
+		{
+		  v_adc.push_back(adcs[i_tick+_rce_fix110_nticks]);
+		}
+	      for (size_t i_tick=0; i_tick<_rce_fix110_nticks; ++i_tick)
+		{
+		  v_adc.push_back(v_adc.back());
+		}
+	      
+	    }
+	  else
+	    {
+	      for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+		{
+		  v_adc.push_back(adcs[i_tick]);
+		}
 	    }
 	  adcs += n_ticks;
 
 	  ch_counter++;
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
 	  if (offlineChannel < _duplicate_channel_checklist_size)
 	    {
@@ -677,6 +753,18 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  float sigma=0;
 	  computeMedianSigma(v_adc,median,sigma);
 
+	  if (_rce_fix302 && crateNumber == 3 && slotNumber == 3 && fiberNumber == 2)
+	    {
+	      // if we don't have a full tick count, pad out the rest with the last value (no steps)
+	      while (v_adc.size()<_full_tick_count)
+       	        {
+		  v_adc.push_back(v_adc.back());
+		}
+	      _fix302(v_adc,median);
+	    }
+
+	  auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
+
 	  raw::Compress_t cflag=raw::kNone;
 	  if (_compress_Huffman)
 	    {
@@ -684,7 +772,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      raw::Compress(v_adc,cflag);
 	    }
 	  // here n_ticks is the uncompressed size as required by the constructor
-	  raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
+	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
 	  raw_digit.SetPedestal(median,sigma);
 	  raw_digits.push_back(raw_digit);  
 
@@ -733,6 +821,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
     
       for (auto const& cont : *cont_frags)
 	{
+	  bool process_flag = true;
 	  if (cont.sizeBytes() < _felix_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_felix_frags )
@@ -740,22 +829,27 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(cont_frags);
 		  return false;
 		}
 	      if ( _drop_small_felix_frags )
 		{ 
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
 		  _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  artdaq::ContainerFragment cont_frag(cont);
-	  for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+	  if (process_flag)
 	    {
-	      if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	      artdaq::ContainerFragment cont_frag(cont);
+	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+		{
+		  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+		}
 	    }
 	}
+      evt.removeCachedProduct(cont_frags);
     }
 
   // noncontainer frags
@@ -778,6 +872,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 
       for(auto const& frag: *frags)
 	{
+	  bool process_flag = true;
 	  if (frag.sizeBytes() < _felix_frag_small_size)
 	    {
 	      if ( _drop_events_with_small_felix_frags )
@@ -785,18 +880,23 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
 		  _discard_data = true; 
 	          _DiscardedCorruptData = true;
+		  evt.removeCachedProduct(frags);
 		  return false;
 		}
 	      if ( _drop_small_felix_frags )
 		{ 
 		  LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
 	          _DiscardedCorruptData = true;
-		  return false;
+		  process_flag = false;
 		}
               _KeptCorruptData = true;
 	    }
-	  if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	  if (process_flag)
+	    {
+	      if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
+	    }
 	}
+      evt.removeCachedProduct(frags);
     }
 
 
@@ -868,6 +968,25 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // decode this one later 
+
+  size_t adsiz = _apas_to_decode.size();
+  bool apafound = true;  // default if no vector to test against
+  if (adsiz)
+    {
+      apafound = false;
+      for (unsigned int j=0; j<adsiz; ++j)
+	{
+	  if ((int) crate == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+	    {
+	      apafound = true;
+	      break;
+	    }
+	}
+    }
+  if (!apafound) 
+    {
+      return false;
+    }
 
   if (crate == 0 || crate > 6 || slot > 4) 
     {
@@ -1149,5 +1268,72 @@ void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, fl
   //     sigma = ((float) (p1s - m1s))/2.0;
   //   }
 }
+
+bool PDSPTPCRawDecoder::_fix302(raw::RawDigit::ADCvector_t &adcvec, float median)
+{
+  int vsize = adcvec.size();
+  if (vsize <= _rce_fix302_NTicksMax +  _rce_fix302_MedianSmoothRadius + 1) { return false; }
+  int lowtick = vsize - _rce_fix302_NTicksMax - 1;
+  int ishift = 0;
+
+  //std::cout << "In fix302: array size, lowtick " << vsize << " " << lowtick << std::endl;
+
+  // do a median smooth of the data in nticksmax to get a better idea of where the edge is.
+
+  std::vector<int> smoothed;
+
+  for (int i=lowtick; i<vsize; ++i)
+    {
+      std::vector<int> medwindow;
+      for (int j = -_rce_fix302_MedianSmoothRadius; j<= _rce_fix302_MedianSmoothRadius; ++j)
+	{
+	  if (i+j<vsize)
+	    {
+	      medwindow.push_back(adcvec.at(i+j));
+	    }
+	  else
+	    {
+	      medwindow.push_back(medwindow.back());
+	    }
+	}
+      std::sort(medwindow.begin(),medwindow.end());
+      smoothed.push_back(medwindow.at(_rce_fix302_MedianSmoothRadius));
+      //std::cout << "Median smooth: " << i << " " << adcvec[i] << " " << smoothed.back() << std::endl;
+    }
+
+
+  int biggeststep = 0;
+  for (unsigned int i=1; i<smoothed.size(); ++i)
+    {
+      int diff = std::abs( smoothed[i] -  smoothed[i-1] );
+      if (diff > biggeststep)
+	{
+	  biggeststep = diff;
+	  ishift = smoothed.size() - i;
+	}
+    }
+  if (biggeststep < _rce_fix302_StepSize) ishift = 0;
+
+
+  if (ishift != 0)
+    {
+      //std::cout << "Candidate step: " << ishift << std::endl;
+      for (int itick = vsize - ishift; itick != 0; --itick)
+	{
+	  adcvec[itick+ishift-1] = adcvec[itick-1];
+	}
+	
+      for (int itick = 0; itick < ishift; ++itick)   // back-fill missing ADC values with the median pedestal
+	{
+	  adcvec[itick] = median;
+	}
+    }
+
+  // idiot check -- zero out the adc values and see if it ends up in the right place.
+  //for (size_t itick=0; itick<adcvec.size(); ++itick) adcvec[itick] = 0;
+
+  return true;
+}
+
 
 DEFINE_ART_MODULE(PDSPTPCRawDecoder)

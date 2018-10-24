@@ -23,7 +23,7 @@ dunefddphase_detectorclocks.G4RefTime:            0.  # G4 time [us] where elect
 dunefddphase_detectorclocks.TriggerOffsetTPC:     0.  # Time [us] for TPC readout start w.r.t. trigger time
 dunefddphase_detectorclocks.FramePeriod:       8000.  # Frame period [us]
 dunefddphase_detectorclocks.ClockSpeedTPC:        2.5 # TPC clock speed in MHz
-dunefddphase_detectorclocks.ClockSpeedOptical:   65.  # Optical clock speed in MHz
+dunefddphase_detectorclocks.ClockSpeedOptical:   250.  # Optical clock speed in MHz
 dunefddphase_detectorclocks.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
 dunefddphase_detectorclocks.DefaultTrigTime:      0.  # Default trigger time [us].
 dunefddphase_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
@@ -50,9 +50,12 @@ protodune_detectorclocks.G4RefTime:            -250. # G4 time [us] where electr
 protodune_detectorclocks.TriggerOffsetTPC:  -250. # Time [us] for TPC readout start w.r.t. trigger time (500 ticks)
 protodune_detectorclocks.FramePeriod:       1600. # Frame period [us]
 protodune_detectorclocks.ClockSpeedTPC:        2. # TPC clock speed in MHz
-protodune_detectorclocks.ClockSpeedOptical:  128. # Optical clock speed in MHz
+protodune_detectorclocks.ClockSpeedOptical:  150. # Optical clock speed in MHz
 protodune_detectorclocks.ClockSpeedTrigger:   16. # Trigger clock speed in MHz
 protodune_detectorclocks.DefaultTrigTime:     250. # Default trigger time [us].
 protodune_detectorclocks.DefaultBeamTime:     250. # Default beam time [us].
+
+dunedphase3x1x1_detectorclocks: @local::dunefddphase_detectorclocks
+dunedphase3x1x1_detectorclocks.ClockSpeedOptical:  250. # Optical clock speed in MHz
 
 END_PROLOG

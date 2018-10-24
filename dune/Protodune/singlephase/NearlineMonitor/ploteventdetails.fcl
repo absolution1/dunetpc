@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+proto_ploteventdetails:
+{
+  module_type:          "PlotEventDetails"
+  ParticleProducerLabel:   "pandora"
+  TrackProducerLabel:   "pandoraTrack"
+  ShowerProducerLabel:   "pandoraShower"
+
+  LongTrackThreshold: 100.
+}
+
+END_PROLOG
