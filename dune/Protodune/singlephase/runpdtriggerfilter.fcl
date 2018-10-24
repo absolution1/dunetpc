@@ -61,5 +61,5 @@ physics:
  end_paths:     [ stream1 ]  
 }
 #physics.filters.filter.TimingFlagSelectList: [0x8]  #cosmic
-physics.filters.filter.TimingFlagSelectList: [0xc]  #beam
+#physics.filters.filter.TimingFlagSelectList: [0xc]  #beam
 #physics.filters.filter.TimingFlagSelectList: [0xd]  #CRT

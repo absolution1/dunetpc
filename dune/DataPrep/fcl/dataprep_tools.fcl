@@ -44,6 +44,9 @@ tools.adcStringBuilder: {
   CountWidth: 4
   FembWidth: 3
   TriggerWidth: 2
+  TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
+               "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
+              "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -147,6 +150,7 @@ tools.preparedAdcPlotter: {
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -166,6 +170,7 @@ tools.signalAdcPlotter: {
   Palette: 1026
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Signal ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -185,6 +190,7 @@ tools.rawAdcPlotter: {
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"

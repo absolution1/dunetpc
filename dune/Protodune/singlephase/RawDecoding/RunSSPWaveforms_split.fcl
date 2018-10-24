@@ -38,7 +38,7 @@ physics: {
       SSP_Corr_Chan_1: 0 #correlation channel 1
       SSP_Corr_Chan_2: 1 #correlation channel 2
       SSP_calib_win: 15 #calibration integration window length for internal triggers
-      SSP_smoothing: 50 #moving average based smoothing window length (0 means no smoothing)
+      SSP_smoothing: 10 #moving average based smoothing window length (0 means no smoothing)
       SSP_wfm_verbose: 0
       PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
       
@@ -59,7 +59,7 @@ physics: {
       SSP_Corr_Chan_2: 1 #correlation channel 2
       SSP_calib_win: 15 #calibration integration window length for internal triggers
       SSP_wfm_verbose: 0
-      SSP_smoothing: 50 #moving average based smoothing window length (0 means no smoothing)
+      SSP_smoothing: 10 #moving average based smoothing window length (0 means no smoothing)
       PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
       
       SelectEvents: [ produce ]

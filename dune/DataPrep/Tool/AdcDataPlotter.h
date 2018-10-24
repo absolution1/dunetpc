@@ -24,7 +24,8 @@
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//   HistTitle - Histogram title
+//   HistTitle - Histogram title (appears above histogram)
+//   PlotTitle - Plot title (appears below histogram an only on plots)
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
@@ -99,6 +100,7 @@ private:
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
+  std::string    m_PlotTitle;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   std::string    m_PlotFileName;

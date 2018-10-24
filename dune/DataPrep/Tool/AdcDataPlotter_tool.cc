@@ -42,6 +42,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_Palette(ps.get<int>("Palette")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
+  m_PlotTitle(ps.get<string>("PlotTitle")),
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
@@ -135,6 +136,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             Palette: " << m_Palette << endl;
     cout << myname << "            HistName: " << m_HistName << endl;
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
+    cout << myname << "           PlotTitle: " << m_PlotTitle << endl;
     cout << myname << "           PlotSizeX: " << m_PlotSizeX << endl;
     cout << myname << "           PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
@@ -216,6 +218,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     dm.setInt("chan2", acdChanLast-1);
     string   hname = nameReplace(    m_HistName, acdFirst, ran);
     string   htitl = nameReplace(   m_HistTitle, acdFirst, ran);
+    string   ptitl = nameReplace(   m_PlotTitle, acdFirst, ran);
     string  ofname = nameReplace(m_PlotFileName, acdFirst, ran);
     string ofrname = nameReplace(m_RootFileName, acdFirst, ran);
     string szunits = "(ADC counts)";
@@ -335,7 +338,16 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
       }
     }
+    TLatex* pptl = nullptr;
+    if ( ptitl.size() ) {
+      pptl = new TLatex(0.01, 0.015, ptitl.c_str());
+      pptl->SetNDC();
+      pptl->SetTextFont(42);
+      pptl->SetTextSize(0.030);
+      man.add(pptl);
+    }
     man.print(ofname);
+    delete pptl;
     if ( 0 ) {
       string line;
       cout << myname;

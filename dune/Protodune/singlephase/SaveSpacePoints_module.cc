@@ -84,6 +84,12 @@ private:
   std::vector<double> beamDiry;
   std::vector<double> beamDirz;
 
+  std::vector<double> beamMomentum;
+
+  double tof;
+  short ckov0status;
+  short ckov1status;
+
 };
 
 
@@ -123,6 +129,7 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   beamDirx.clear();
   beamDiry.clear();
   beamDirz.clear();
+  beamMomentum.clear();
 
   // Access the trigger information
   trigger = -1;
@@ -179,16 +186,37 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
     std::cout<<"No beam information from "<<fBeamModuleLabel<<std::endl;
   }
 
+  tof = -1;
+  ckov0status = -1;
+  ckov1status = -1;
   if (beaminfo.size()){
-    auto & tracks = beaminfo[0]->GetBeamTracks();
-    for (size_t i = 0; i<tracks.size(); ++i){
-      //std::cout<<i<<" "<<tracks[i].NPoints()<<std::endl;
-      beamPosx.push_back(tracks[i].End().X());
-      beamPosy.push_back(tracks[i].End().Y());
-      beamPosz.push_back(tracks[i].End().Z());
-      beamDirx.push_back(tracks[i].StartDirection().X());
-      beamDiry.push_back(tracks[i].StartDirection().Y());
-      beamDirz.push_back(tracks[i].StartDirection().Z());
+    if (beaminfo[0]->GetTimingTrigger() == 12){
+      if (beaminfo[0]->CheckIsMatched()){
+        //Get TOF info
+        if (beaminfo[0]->GetTOFChan() != -1){//if TOFChan == -1, then there was not a successful match, if it's 0, 1, 2, or 3, then there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
+          tof = beaminfo[0]->GetTOF();
+        }
+        //Get beam particle trajectory info
+        auto & tracks = beaminfo[0]->GetBeamTracks();
+        for (size_t i = 0; i<tracks.size(); ++i){
+          beamPosx.push_back(tracks[i].End().X());
+          beamPosy.push_back(tracks[i].End().Y());
+          beamPosz.push_back(tracks[i].End().Z());
+          beamDirx.push_back(tracks[i].StartDirection().X());
+          beamDiry.push_back(tracks[i].StartDirection().Y());
+          beamDirz.push_back(tracks[i].StartDirection().Z());
+        }
+        //Get reconstructed beam momentum info
+        auto & beammom = beaminfo[0]->GetRecoBeamMomenta();
+        for (size_t i = 0; i<beammom.size(); ++i){
+          beamMomentum.push_back(beammom[i]);
+        }
+      }
+    }
+    if (beaminfo[0]->GetBITrigger() == 1){
+      //Get CKov status
+      ckov0status = beaminfo[0]->GetCKov0Status();
+      ckov1status = beaminfo[0]->GetCKov1Status();
     }
   }
 
@@ -215,6 +243,10 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("beamDirx",&beamDirx);
   fTree->Branch("beamDiry",&beamDiry);
   fTree->Branch("beamDirz",&beamDirz);
+  fTree->Branch("beamMomentum",&beamMomentum);
+  fTree->Branch("tof", &tof, "tof/D");
+  fTree->Branch("ckov0status", &ckov0status, "ckov0status/S");
+  fTree->Branch("ckov1status", &ckov1status, "ckov1status/S");
 }
 
 DEFINE_ART_MODULE(proto::SaveSpacePoints)
