@@ -219,7 +219,6 @@ private:
   int BP4;
 
   uint64_t prev_fetch_time;
-  long long int prev_event_time;
 
   int eventNum;
   int runNum;
@@ -775,7 +774,6 @@ void proto::BeamEvent::produce(art::Event & e){
   //Also check if we've gotten good spill info
   //
   //Or if we're forcing to read out the Beamline Info
-//  if( (validTimeStamp && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
   if( ( (RDTSTrigger == 12) && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
 
 
@@ -912,7 +910,6 @@ void proto::BeamEvent::produce(art::Event & e){
             fTrackTree->Fill();
           }
           std::cout << "Added " << beamspill->GetNBeamTracks() << " tracks to the beam spill" << std::endl << std::endl;
-//          std::cout << "Added " << beamevt->GetNBeamTracks() << " tracks to the beam evt" << std::endl << std::endl;
 
           //Momentum
           //First, try getting the current from the magnet in IFBeam
@@ -923,7 +920,6 @@ void proto::BeamEvent::produce(art::Event & e){
     
             MomentumSpec( beamspill->GetActiveTrigger() ); 
             std::cout << "Got NRecoBeamMomenta: " << beamspill->GetNRecoBeamMomenta() << std::endl << std::endl;
-//            std::cout << "Got NRecoBeamMomenta: " << beamevt->GetNRecoBeamMomenta() << std::endl << std::endl;
           }
           catch(std::exception e){
             std::cout << "Could not get the current from the magnet. Skipping spectrometry" << std::endl;
@@ -947,7 +943,6 @@ void proto::BeamEvent::produce(art::Event & e){
   //have been filled with info in the block above
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
-//  if(!validTimeStamp && PrevStart != SpillStart){
 
   if( RDTSTrigger != 12 && PrevStart != SpillStart){
     prev_beamspill = *beamspill;   
@@ -958,7 +953,6 @@ void proto::BeamEvent::produce(art::Event & e){
   SetCKovInfo();
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
-//  beamevt->SetCTBTimestamp( (validTimeStamp == 0 ? -1. : 2.e-8*validTimeStamp ) );
   beamevt->SetCTBTimestamp( HLTTS );
   beamevt->SetRDTimestamp( RDTSTime );
 
@@ -971,7 +965,6 @@ void proto::BeamEvent::produce(art::Event & e){
   // Write out the to tree
   fOutTree->Fill();
  
-  prev_event_time = eventTime; 
   theTracks.clear();
   current.clear();
   if(usedEventTime) fMultipleTimes.clear();
