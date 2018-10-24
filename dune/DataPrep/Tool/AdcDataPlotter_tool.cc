@@ -343,7 +343,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       pptl = new TLatex(0.01, 0.015, ptitl.c_str());
       pptl->SetNDC();
       pptl->SetTextFont(42);
-      pptl->SetTextSize(0.035);
+      pptl->SetTextSize(0.030);
       man.add(pptl);
     }
     man.print(ofname);

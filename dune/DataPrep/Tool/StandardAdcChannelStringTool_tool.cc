@@ -4,6 +4,7 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include <iostream>
 #include <iomanip>
+#include "TTimeStamp.h"
 
 using std::string;
 using std::cout;
@@ -171,6 +172,32 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
     sman.replace("%TRIGNAME%", strig);
     if ( strig.size() ) strig[0] = std::toupper(strig[0]);
     sman.replace("%TRIGNAMECAP%", strig);
+  }
+  // Next replace time name.
+  string spatpre = "%UTCTIME";
+  string::size_type ipos = sout.find(spatpre);
+  if ( ipos != string::npos ) {
+    time_t tim = acd.time;
+    int rem = acd.timerem;
+    int remMax = 1000000000;
+    if ( std::abs(rem) >= remMax ) rem = 0;
+    // Hndle rem < 0. Never happens?
+    if ( rem < 0 ) {
+      tim -= 1;
+      rem = remMax - rem;
+    }
+    TTimeStamp ts(tim, rem);
+    string stimpre = ts.AsString("s");
+    sman.replace(spatpre + "%", stimpre);
+    string srem = std::to_string(rem);
+    while ( srem.size() < 9 ) srem = "0" + srem;
+    for ( Index ndig=0; ndig<10; ++ndig ) {
+      string sdig = std::to_string(ndig);
+      string spat = spatpre + std::to_string(ndig) + "%";
+      string stim = stimpre;
+      if ( ndig ) stim += "." + srem.substr(0, ndig);
+      sman.replace(spat, stim);
+    }
   }
   if ( m_LogLevel >= 2 ) cout << myname << spat << " --> " << sout << endl;
   return sout;
