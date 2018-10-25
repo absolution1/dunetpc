@@ -49,8 +49,8 @@ namespace filt{
     fTriggerLabel = pset.get<std::string>("TriggerLabel","ctbrawdecoder");
     fTriggerInstance = pset.get<std::string>("TriggerInstance","daq");
     if ( fLogLevel >= 1 ) {
-      cout << myname << "         LogLevel: " << fLogLevel << endl;
-      cout << "       TimingFlagSelectList: [";
+      cout << myname << "                LogLevel: " << fLogLevel << endl;
+      cout << myname << "    TimingFlagSelectList: [";
       bool first = true;
       for ( unsigned int flg : fTimingFlagSelectList ) {
         if ( first ) first = false;
@@ -58,7 +58,7 @@ namespace filt{
         cout << flg;
       }
       cout << "]" << endl;
-      cout << "     TimingFlagDeselectList: [";
+      cout << myname << "  TimingFlagDeselectList: [";
       first = true;
       for ( unsigned int flg : fTimingFlagDeselectList ) {
         if ( first ) first = false;
@@ -66,10 +66,10 @@ namespace filt{
         cout << flg;
       }
       cout << "]" << endl;
-      cout << myname << "      TimingLabel: " << fTimingLabel << endl;
-      cout << myname << "   TimingInstance: " << fTimingLabel << endl;
-      cout << myname << "     TriggerLabel: " << fTriggerLabel << endl;
-      cout << myname << "  TriggerInstance: " << fTriggerLabel << endl;
+      cout << myname << "             TimingLabel: " << fTimingLabel << endl;
+      cout << myname << "          TimingInstance: " << fTimingInstance << endl;
+      cout << myname << "            TriggerLabel: " << fTriggerLabel << endl;
+      cout << myname << "         TriggerInstance: " << fTriggerInstance << endl;
     }
   }
 
