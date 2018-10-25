@@ -208,11 +208,11 @@ namespace dune {
           Float_t hittrky[10000];
           Float_t hittrkz[10000];
 
-	  Float_t hittrklocaltrackdirectionx[10000];
-	  Float_t hittrklocaltrackdirectiony[10000];
-	  Float_t hittrklocaltrackdirectionz[10000];
-	  Float_t hittrklocaltrackdirectiontheta[10000];
-	  Float_t hittrklocaltrackdirectionphi[10000];
+          Float_t hittrklocaltrackdirectionx[10000];
+          Float_t hittrklocaltrackdirectiony[10000];
+          Float_t hittrklocaltrackdirectionz[10000];
+          Float_t hittrklocaltrackdirectiontheta[10000];
+          Float_t hittrklocaltrackdirectionphi[10000];
 
           Float_t hittrkpitchC[10000];
 
@@ -224,7 +224,7 @@ namespace dune {
           Short_t hittrkwire[10000];
           Float_t hittrkpeakT[10000];
           Float_t hittrkchargeintegral[10000];
-	  Float_t hittrkph[10000];
+          Float_t hittrkph[10000];
           Float_t hittrkchargesum[10000];
           Float_t hittrkstarT[10000];
           Float_t hittrkendT[10000];
@@ -277,7 +277,7 @@ namespace dune {
           TrackData_t<Float_t> trkchi2PerNDF;        // length along trajectory.
           TrackData_t<Float_t> trkNDF;        // length along trajectory.
           TrackData_t<Float_t> trklen;        // length along trajectory.
-	  TrackData_t<Float_t> trklenstraightline; // shortest distance betweem start and end point of track
+          TrackData_t<Float_t> trklenstraightline; // shortest distance betweem start and end point of track
           TrackData_t<Float_t> trkmomrange;    // track momentum from range using CSDA tables
           TrackData_t<Float_t> trkmommschi2;   // track momentum from multiple scattering Chi2 method
           TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
@@ -496,11 +496,11 @@ namespace dune {
         tdAuxDet = 0x01,
         tdCry = 0x02,
         tdGenie = 0x04,
-	tdPhotons = 0x08,
+        tdPhotons = 0x08,
         tdGenerator = 0x10,
         tdGeant = 0x20,
-	tdGeantInAV = 0x40,
-	tdGeantTrajectory = 0x80,
+        tdGeantInAV = 0x40,
+        tdGeantTrajectory = 0x80,
         tdHit = 0x100,
         tdTrack = 0x200,
         tdVertex = 0x400,
@@ -510,7 +510,7 @@ namespace dune {
         tdMCtrk  = 0x4000,
         tdCluster = 0x8000,
         tdRawDigit = 0x10000,
-	tdRecobWire = 0x20000,
+        tdRecobWire = 0x20000,
         tdPandoraNuVertex = 0x40000,
         tdPFParticle = 0x80000,
         tdCount = 0x100000,
@@ -628,24 +628,24 @@ namespace dune {
       Short_t nuvtxpdg[kMaxVertices];
 
       //Cluster Information
-      Short_t nclusters;				      //number of clusters in a given event
-      Short_t clusterId[kMaxClusters];		      //ID of this cluster
-      Short_t clusterView[kMaxClusters];	      //which plane this cluster belongs to
-      Int_t   cluster_isValid[kMaxClusters];	      //is this cluster valid? will have a value of -1 if it is not valid
-      Float_t cluster_StartCharge[kMaxClusters];	       //charge on the first wire of the cluster in ADC
-      Float_t cluster_StartAngle[kMaxClusters];	      //starting angle of the cluster
-      Float_t cluster_EndCharge[kMaxClusters];	      //charge on the last wire of the cluster in ADC
-      Float_t cluster_EndAngle[kMaxClusters];	      //ending angle of the cluster
-      Float_t cluster_Integral[kMaxClusters];	      //returns the total charge of the cluster from hit shape in ADC
+      Short_t nclusters;                                      //number of clusters in a given event
+      Short_t clusterId[kMaxClusters];                //ID of this cluster
+      Short_t clusterView[kMaxClusters];              //which plane this cluster belongs to
+      Int_t   cluster_isValid[kMaxClusters];          //is this cluster valid? will have a value of -1 if it is not valid
+      Float_t cluster_StartCharge[kMaxClusters];               //charge on the first wire of the cluster in ADC
+      Float_t cluster_StartAngle[kMaxClusters];       //starting angle of the cluster
+      Float_t cluster_EndCharge[kMaxClusters];        //charge on the last wire of the cluster in ADC
+      Float_t cluster_EndAngle[kMaxClusters];         //ending angle of the cluster
+      Float_t cluster_Integral[kMaxClusters];         //returns the total charge of the cluster from hit shape in ADC
       Float_t cluster_IntegralAverage[kMaxClusters];    //average charge of the cluster hits in ADC
-      Float_t cluster_SummedADC[kMaxClusters];	      //total charge of the cluster from signal ADC counts
+      Float_t cluster_SummedADC[kMaxClusters];        //total charge of the cluster from signal ADC counts
       Float_t cluster_SummedADCaverage[kMaxClusters];   //average signal ADC counts of the cluster hits.
       Float_t cluster_MultipleHitDensity[kMaxClusters]; //Density of wires in the cluster with more than one hit.
-      Float_t cluster_Width[kMaxClusters];	      //cluster width in ? units
-      Short_t cluster_NHits[kMaxClusters];	      //Number of hits in the cluster
-      Short_t cluster_StartWire[kMaxClusters];	      //wire coordinate of the start of the cluster
-      Short_t cluster_StartTick[kMaxClusters];	      //tick coordinate of the start of the cluster in time ticks
-      Short_t cluster_EndWire[kMaxClusters];	      //wire coordinate of the end of the cluster
+      Float_t cluster_Width[kMaxClusters];            //cluster width in ? units
+      Short_t cluster_NHits[kMaxClusters];            //Number of hits in the cluster
+      Short_t cluster_StartWire[kMaxClusters];        //wire coordinate of the start of the cluster
+      Short_t cluster_StartTick[kMaxClusters];        //tick coordinate of the start of the cluster in time ticks
+      Short_t cluster_EndWire[kMaxClusters];          //wire coordinate of the end of the cluster
       Short_t cluster_EndTick[kMaxClusters];            //tick coordinate of the end of the cluster in time ticks
       //Cluster cosmic tagging information
       //    Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
@@ -906,23 +906,23 @@ namespace dune {
       //MC Shower information
       Int_t     no_mcshowers;                         //number of MC Showers in this event.
       //MC Shower particle information
-      std::vector<Int_t>       mcshwr_origin;	    //MC Shower origin information.
-      std::vector<Int_t>       mcshwr_pdg;	    //MC Shower particle PDG code.
+      std::vector<Int_t>       mcshwr_origin;       //MC Shower origin information.
+      std::vector<Int_t>       mcshwr_pdg;          //MC Shower particle PDG code.
       std::vector<Int_t>       mcshwr_TrackId;        //MC Shower particle G4 track ID.
-      std::vector<std::string> mcshwr_Process;	    //MC Shower particle's creation process.
-      std::vector<Float_t>     mcshwr_startX;	    //MC Shower particle G4 startX
-      std::vector<Float_t>     mcshwr_startY;	    //MC Shower particle G4 startY
-      std::vector<Float_t>     mcshwr_startZ;	    //MC Shower particle G4 startZ
-      std::vector<Float_t>     mcshwr_endX;	    //MC Shower particle G4 endX
-      std::vector<Float_t>     mcshwr_endY;	    //MC Shower particle G4 endY
-      std::vector<Float_t>     mcshwr_endZ;	    //MC Shower particle G4 endZ
-      std::vector<Float_t>    mcshwr_CombEngX;	    //MC Shower Combined energy deposition information, Start Point X Position.
-      std::vector<Float_t>    mcshwr_CombEngY;	    //MC Shower Combined energy deposition information, Start Point Y Position.
-      std::vector<Float_t>    mcshwr_CombEngZ;	    //MC Shower Combined energy deposition information, Start Point Z Position.
-      std::vector<Float_t>     mcshwr_CombEngPx;	    //MC Shower Combined energy deposition information, Momentum X direction.
-      std::vector<Float_t>     mcshwr_CombEngPy;	    //MC Shower Combined energy deposition information, Momentum X direction.
-      std::vector<Float_t>     mcshwr_CombEngPz;	    //MC Shower Combined energy deposition information, Momentum X direction.
-      std::vector<Float_t>     mcshwr_CombEngE;	    //MC Shower Combined energy deposition information, Energy
+      std::vector<std::string> mcshwr_Process;      //MC Shower particle's creation process.
+      std::vector<Float_t>     mcshwr_startX;       //MC Shower particle G4 startX
+      std::vector<Float_t>     mcshwr_startY;       //MC Shower particle G4 startY
+      std::vector<Float_t>     mcshwr_startZ;       //MC Shower particle G4 startZ
+      std::vector<Float_t>     mcshwr_endX;         //MC Shower particle G4 endX
+      std::vector<Float_t>     mcshwr_endY;         //MC Shower particle G4 endY
+      std::vector<Float_t>     mcshwr_endZ;         //MC Shower particle G4 endZ
+      std::vector<Float_t>    mcshwr_CombEngX;      //MC Shower Combined energy deposition information, Start Point X Position.
+      std::vector<Float_t>    mcshwr_CombEngY;      //MC Shower Combined energy deposition information, Start Point Y Position.
+      std::vector<Float_t>    mcshwr_CombEngZ;      //MC Shower Combined energy deposition information, Start Point Z Position.
+      std::vector<Float_t>     mcshwr_CombEngPx;            //MC Shower Combined energy deposition information, Momentum X direction.
+      std::vector<Float_t>     mcshwr_CombEngPy;            //MC Shower Combined energy deposition information, Momentum X direction.
+      std::vector<Float_t>     mcshwr_CombEngPz;            //MC Shower Combined energy deposition information, Momentum X direction.
+      std::vector<Float_t>     mcshwr_CombEngE;     //MC Shower Combined energy deposition information, Energy
       std::vector<Float_t>     mcshwr_dEdx;           //MC Shower dEdx, MeV/cm
       std::vector<Float_t>     mcshwr_StartDirX;      //MC Shower Direction of begining of shower, X direction
       std::vector<Float_t>     mcshwr_StartDirY;      //MC Shower Direction of begining of shower, Y direction
@@ -936,9 +936,9 @@ namespace dune {
       std::vector<Float_t>     mcshwr_MotherstartX;    //MC Shower's mother  G4 startX .
       std::vector<Float_t>     mcshwr_MotherstartY;    //MC Shower's mother  G4 startY .
       std::vector<Float_t>     mcshwr_MotherstartZ;    //MC Shower's mother  G4 startZ .
-      std::vector<Float_t>     mcshwr_MotherendX;	     //MC Shower's mother  G4 endX   .
-      std::vector<Float_t>     mcshwr_MotherendY;	     //MC Shower's mother  G4 endY   .
-      std::vector<Float_t>     mcshwr_MotherendZ;	     //MC Shower's mother  G4 endZ   .
+      std::vector<Float_t>     mcshwr_MotherendX;            //MC Shower's mother  G4 endX   .
+      std::vector<Float_t>     mcshwr_MotherendY;            //MC Shower's mother  G4 endY   .
+      std::vector<Float_t>     mcshwr_MotherendZ;            //MC Shower's mother  G4 endZ   .
       //MC Shower ancestor information
       std::vector<Int_t>       mcshwr_Ancestorpdg;       //MC Shower's ancestor PDG code.
       std::vector<Int_t>       mcshwr_AncestorTrkId;     //MC Shower's ancestor G4 track ID.
@@ -953,13 +953,13 @@ namespace dune {
       //MC track information
       Int_t     no_mctracks;                         //number of MC tracks in this event.
       //MC track particle information
-      std::vector<Int_t>       mctrk_origin;	    //MC track origin information.
-      std::vector<Int_t>       mctrk_pdg;	    //MC track particle PDG code.
+      std::vector<Int_t>       mctrk_origin;        //MC track origin information.
+      std::vector<Int_t>       mctrk_pdg;           //MC track particle PDG code.
       std::vector<Int_t>       mctrk_TrackId;        //MC track particle G4 track ID.
-      std::vector<std::string> mctrk_Process;	    //MC track particle's creation process.
-      std::vector<Float_t>     mctrk_startX;	    //MC track particle G4 startX
-      std::vector<Float_t>     mctrk_startY;	    //MC track particle G4 startY
-      std::vector<Float_t>     mctrk_startZ;	    //MC track particle G4 startZ
+      std::vector<std::string> mctrk_Process;       //MC track particle's creation process.
+      std::vector<Float_t>     mctrk_startX;        //MC track particle G4 startX
+      std::vector<Float_t>     mctrk_startY;        //MC track particle G4 startY
+      std::vector<Float_t>     mctrk_startZ;        //MC track particle G4 startZ
       std::vector<Float_t>     mctrk_endX;		//MC track particle G4 endX
       std::vector<Float_t>     mctrk_endY;		//MC track particle G4 endY
       std::vector<Float_t>     mctrk_endZ;		//MC track particle G4 endZ
@@ -981,9 +981,9 @@ namespace dune {
       std::vector<Float_t>     mctrk_MotherstartX;    //MC Track's mother  G4 startX .
       std::vector<Float_t>     mctrk_MotherstartY;    //MC Track's mother  G4 startY .
       std::vector<Float_t>     mctrk_MotherstartZ;    //MC Track's mother  G4 startZ .
-      std::vector<Float_t>     mctrk_MotherendX;	     //MC Track's mother  G4 endX   .
-      std::vector<Float_t>     mctrk_MotherendY;	     //MC Track's mother  G4 endY   .
-      std::vector<Float_t>     mctrk_MotherendZ;	     //MC Track's mother  G4 endZ   .
+      std::vector<Float_t>     mctrk_MotherendX;             //MC Track's mother  G4 endX   .
+      std::vector<Float_t>     mctrk_MotherendY;             //MC Track's mother  G4 endY   .
+      std::vector<Float_t>     mctrk_MotherendZ;             //MC Track's mother  G4 endZ   .
       //MC Track ancestor information
       std::vector<Int_t>       mctrk_Ancestorpdg;       //MC Track's ancestor PDG code.
       std::vector<Int_t>       mctrk_AncestorTrkId;     //MC Track's ancestor G4 track ID.
@@ -3854,7 +3854,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fTree(nullptr),
   //  fPOT(nullptr),
 
-  fLogLevel	            (pset.get< short >("LogLevel")        ),
+  fLogLevel                 (pset.get< short >("LogLevel")        ),
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fRawDigitModuleLabel         (pset.get< std::string >("RawDigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
@@ -3881,30 +3881,30 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")),
-  fIsMC                	    (pset.get< bool >("IsMC", false)),
+  fIsMC                     (pset.get< bool >("IsMC", false)),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
-  fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)),
-  fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)),
-  fSavePhotonInfo	    (pset.get< bool >("SavePhotonInfo", false)),
-  fSaveGeneratorInfo	    (pset.get< bool >("SaveGeneratorInfo", false)),
-  fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
-  fSaveGeantInAVInfo	    (pset.get< bool >("SaveGeantInAVInfo", false)),
+  fSaveGenieInfo            (pset.get< bool >("SaveGenieInfo", false)),
+  fSaveProtoInfo            (pset.get< bool >("SaveProtoInfo", false)),
+  fSavePhotonInfo           (pset.get< bool >("SavePhotonInfo", false)),
+  fSaveGeneratorInfo        (pset.get< bool >("SaveGeneratorInfo", false)),
+  fSaveGeantInfo            (pset.get< bool >("SaveGeantInfo", false)),
+  fSaveGeantInAVInfo        (pset.get< bool >("SaveGeantInAVInfo", false)),
   fSaveGeantTrajectoryInfo  (pset.get< bool >("SaveGeantTrajectoryInfo", false)),
-  fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
-  fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
-  fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
-  fSaveRawDigitInfo	    (pset.get< bool >("SaveRawDigitInfo", false)),
-  fSaveRecobWireInfo	    (pset.get< bool >("SaveRecobWireInfo", false)),
-  fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)),
-  fSaveVertexInfo	    (pset.get< bool >("SaveVertexInfo", false)),
-  fSaveClusterInfo	    (pset.get< bool >("SaveClusterInfo", false)),
+  fSaveMCShowerInfo         (pset.get< bool >("SaveMCShowerInfo", false)),
+  fSaveMCTrackInfo          (pset.get< bool >("SaveMCTrackInfo", false)),
+  fSaveHitInfo              (pset.get< bool >("SaveHitInfo", false)),
+  fSaveRawDigitInfo         (pset.get< bool >("SaveRawDigitInfo", false)),
+  fSaveRecobWireInfo        (pset.get< bool >("SaveRecobWireInfo", false)),
+  fSaveTrackInfo            (pset.get< bool >("SaveTrackInfo", false)),
+  fSaveVertexInfo           (pset.get< bool >("SaveVertexInfo", false)),
+  fSaveClusterInfo          (pset.get< bool >("SaveClusterInfo", false)),
   fSavePandoraNuVertexInfo  (pset.get< bool >("SavePandoraNuVertexInfo", false)),
   fSaveFlashInfo            (pset.get< bool >("SaveFlashInfo", false)),
   fSaveExternCounterInfo    (pset.get< bool >("SaveExternCounterInfo", false)),
   fSaveShowerInfo           (pset.get< bool >("SaveShowerInfo", false)),
-  fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
+  fSavePFParticleInfo       (pset.get< bool >("SavePFParticleInfo", false)),
   fCosmicTaggerAssocLabel   (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
   fContainmentTaggerAssocLabel  (pset.get<std::vector< std::string > >("ContainmentTaggerAssocLabel") ),
   fFlashMatchAssocLabel     (pset.get<std::vector< std::string > >("FlashMatchAssocLabel") ),
@@ -4247,13 +4247,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       {
         const simb::MCParticle* pPart = (itPart++)->second;
         if (!pPart)
-	{
+        {
           throw art::Exception(art::errors::LogicError)
             << "GEANT particle #" << iPart << " returned a null pointer";
         }
         nGEANTtrajectorysteps += pPart->NumberTrajectoryPoints();
 
-	if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
+        if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
 
         TLorentzVector mcstart, mcend;
         unsigned int pstarti, pendi;
@@ -4273,10 +4273,10 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
           {
             for(int i = 0; i < itphoton->second ; i++)
             {
-	          nPhotons++;
-	        }
+                  nPhotons++;
+                }
           }
-	    }
+            }
       }
 
 
@@ -4496,7 +4496,7 @@ if (fSaveRecobWireInfo){
       {
         fData->recoW_Tick[RecoWTick] = j+range.begin_index();
         fData->recoW_ADC[RecoWTick] = signal.at(j);
-	RecoWTick++;
+        RecoWTick++;
       }
       fData->recoW_NTicks[i] += NTicksInThisROI;
     }
@@ -4575,7 +4575,7 @@ if (fSaveHitInfo){
 
         std::cout << "Spacepoint in x for hit" << i << ": " << fmsp.at(i)[0]->XYZ()[0] << std::endl;
         //  fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
-          //	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
+          //        fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
         }
         else std::cout << "No spacepoint for this hit" << std::endl;
       }
@@ -4681,7 +4681,7 @@ if (fSaveHitInfo){
       if (fmtk.isValid()){
         if (fmtk.at(i).size()!=0){
           fData->hit_trkid[i] = fmtk.at(i)[0]->ID();
-          //	    fData->hit_trkKey[i] = fmtk.at(i)[0].key();
+          //        fData->hit_trkKey[i] = fmtk.at(i)[0].key();
 
         }
         else
@@ -4700,7 +4700,7 @@ if (fSaveHitInfo){
       if (fmcl.isValid()){
         if (fmcl.at(i).size()!=0){
           fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
-          //	    fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
+          //        fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
         }
         else
           fData->hit_clusterid[i] = -1;
@@ -5034,9 +5034,9 @@ if (fSaveTrackInfo) {
     int planenumtemp = calostemp[ical]->PlaneID().Plane;
     if (planenumtemp<0||planenumtemp>2) continue;
     //For now make the second argument as 13 for muons.
-    //	    const size_t NHitsTemp = calostemp[ical] -> dEdx().size();
-    //	    TrackerData.NHitsInAllTracks+=(int) NHitsTemp;
-    //	    fData->NHitsInAllTracks+=(int) NHitsTemp;
+    //      const size_t NHitsTemp = calostemp[ical] -> dEdx().size();
+    //      TrackerData.NHitsInAllTracks+=(int) NHitsTemp;
+    //      fData->NHitsInAllTracks+=(int) NHitsTemp;
     } // for calorimetry info
     } // if has calorimetry info
     }//loop over tracks
@@ -5197,40 +5197,40 @@ if (fSaveTrackInfo) {
         TrackerData.trkstartdirectiony[iTrk]	= dir_start.Y();
         TrackerData.trkstartdirectionz[iTrk]	= dir_start.Z();
 
-	if(fLogLevel == 2)
-	{
-	  std::cout << std::endl;
-	  std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
-	  std::cout << "end.X(): " << end.X() << "\t" << "end.Y(): " << end.Y() << "\t" << "end.Z(): " << end.Z() << std::endl;
-	  std::cout << "dir_start.X(): " << dir_start.X() << "\t" << "dir_start.Y(): " << dir_start.Y() << "\t" << "dir_start.Z(): " << dir_start.Z() << std::endl;
-	  std::cout << "dir_end.X(): " << dir_end.X() << "\t" << "dir_end.Y(): " << dir_end.Y() << "\t" << "dir_end.Z(): " << dir_end.Z() << std::endl;
-	  std::cout << "dir_start_flipped.Theta(): " << (180.0/3.14159)*dir_start_flipped.Theta() << "\t" << "dir_start_flipped.Phi(): " << (180.0/3.14159)*dir_start_flipped.Phi() << std::endl;
-	  std::cout << "dir_end_flipped.Theta(): " << (180.0/3.14159)*dir_end_flipped.Theta() << "\t" << "dir_end_flipped.Phi(): " << (180.0/3.14159)*dir_end_flipped.Phi() << std::endl;
-	  std::cout << std::endl;
-	}
+        if(fLogLevel == 2)
+        {
+          std::cout << std::endl;
+          std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
+          std::cout << "end.X(): " << end.X() << "\t" << "end.Y(): " << end.Y() << "\t" << "end.Z(): " << end.Z() << std::endl;
+          std::cout << "dir_start.X(): " << dir_start.X() << "\t" << "dir_start.Y(): " << dir_start.Y() << "\t" << "dir_start.Z(): " << dir_start.Z() << std::endl;
+          std::cout << "dir_end.X(): " << dir_end.X() << "\t" << "dir_end.Y(): " << dir_end.Y() << "\t" << "dir_end.Z(): " << dir_end.Z() << std::endl;
+          std::cout << "dir_start_flipped.Theta(): " << (180.0/3.14159)*dir_start_flipped.Theta() << "\t" << "dir_start_flipped.Phi(): " << (180.0/3.14159)*dir_start_flipped.Phi() << std::endl;
+          std::cout << "dir_end_flipped.Theta(): " << (180.0/3.14159)*dir_end_flipped.Theta() << "\t" << "dir_end_flipped.Phi(): " << (180.0/3.14159)*dir_end_flipped.Phi() << std::endl;
+          std::cout << std::endl;
+        }
 
-        TrackerData.trkendtheta[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Theta();
-        TrackerData.trkendphi[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Phi();
-        TrackerData.trkenddirectionx[iTrk] 	  = dir_end.X();
-        TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
-        TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
+        TrackerData.trkendtheta[iTrk]     = (180.0/3.14159)*dir_end_flipped.Theta();
+        TrackerData.trkendphi[iTrk]       = (180.0/3.14159)*dir_end_flipped.Phi();
+        TrackerData.trkenddirectionx[iTrk]        = dir_end.X();
+        TrackerData.trkenddirectiony[iTrk]        = dir_end.Y();
+        TrackerData.trkenddirectionz[iTrk]        = dir_end.Z();
 
-        TrackerData.trkthetaxz[iTrk]  	     = theta_xz;
-        TrackerData.trkthetayz[iTrk]  	     = theta_yz;
-        TrackerData.trkmom[iTrk]	     = mom;
-	TrackerData.trkchi2PerNDF[iTrk]	     = track.Chi2PerNdof();
-	TrackerData.trkNDF[iTrk]	     = track.Ndof();
-        TrackerData.trklen[iTrk]	     = tlen;
+        TrackerData.trkthetaxz[iTrk]         = theta_xz;
+        TrackerData.trkthetayz[iTrk]         = theta_yz;
+        TrackerData.trkmom[iTrk]             = mom;
+        TrackerData.trkchi2PerNDF[iTrk]      = track.Chi2PerNdof();
+        TrackerData.trkNDF[iTrk]             = track.Ndof();
+        TrackerData.trklen[iTrk]             = tlen;
         TrackerData.trklenstraightline[iTrk] = sqrt(pow(pos.X()-end.X(),2) + pow(pos.Y()-end.Y(),2) + pow(pos.Z()-end.Z(),2));
-        TrackerData.trkmomrange[iTrk] 	     = trkm.GetTrackMomentum(tlen,13);
-        TrackerData.trkmommschi2[iTrk]	     = trkm.GetMomentumMultiScatterChi2(ptrack);
-        TrackerData.trkmommsllhd[iTrk]	     = trkm.GetMomentumMultiScatterLLHD(ptrack);
+        TrackerData.trkmomrange[iTrk]        = trkm.GetTrackMomentum(tlen,13);
+        TrackerData.trkmommschi2[iTrk]       = trkm.GetMomentumMultiScatterChi2(ptrack);
+        TrackerData.trkmommsllhd[iTrk]       = trkm.GetMomentumMultiScatterLLHD(ptrack);
 
         //uBoone MCS
         res = fMCSFitter.fitMcs(*ptrack);
-        TrackerData.trkmommscmic[iTrk]	  = res.bestMomentum();
-        TrackerData.trkmommscfwd[iTrk]	  = res.fwdMomentum();
-        TrackerData.trkmommscbwd[iTrk]	  = res.bwdMomentum();
+        TrackerData.trkmommscmic[iTrk]    = res.bestMomentum();
+        TrackerData.trkmommscfwd[iTrk]    = res.fwdMomentum();
+        TrackerData.trkmommscbwd[iTrk]    = res.bwdMomentum();
         TrackerData.trkmommscllfwd[iTrk]  = res.fwdLogLikelihood();
         TrackerData.trkmommscllbwd[iTrk]  = res.bwdLogLikelihood();
 
@@ -5336,82 +5336,82 @@ if (fSaveTrackInfo) {
         art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle[iTracker], evt, "pmtrack");
 
 //      if (fmthm.isValid()){
-	auto vhit = fmthm.at(iTrk);
-	auto vmeta = fmthm.data(iTrk);
+        auto vhit = fmthm.at(iTrk);
+        auto vmeta = fmthm.data(iTrk);
 
         TrackerData.NHitsPerTrack[iTrk] = vhit.size();
-      	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
+        art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
 
-	int NHitsView0 = 0;
-	int NHitsView1 = 0;
+        int NHitsView0 = 0;
+        int NHitsView1 = 0;
 
-	if(fLogLevel == 2)
-	{
-	  std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
-	  std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
-	  std::cout << "vhit.size(): " << vhit.size() << std::endl;
-	  std::cout << "vmeta.size(): " << vmeta.size() << std::endl;
-	  std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
-	}
+        if(fLogLevel == 2)
+        {
+          std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
+          std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
+          std::cout << "vhit.size(): " << vhit.size() << std::endl;
+          std::cout << "vmeta.size(): " << vmeta.size() << std::endl;
+          std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
+        }
 
-  	  for (unsigned int h = 0; h < vhit.size(); h++)
-  	  {
-	    //corrected pitch
-  	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
-  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(h);
-  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint(h);
-  	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
-
-
-	    TrackerData.hittrklocaltrackdirectionx[HitIterator2] = dir.X();
-	    TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
-	    TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
+          for (unsigned int h = 0; h < vhit.size(); h++)
+          {
+            //corrected pitch
+            double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
+            const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(h);
+            const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint(h);
+            double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
 
 
-	    //XYZ
-	    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
-	    TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
-	    TrackerData.hittrky[HitIterator2] = sptv[0]->XYZ()[1];
-	    TrackerData.hittrkz[HitIterator2] = sptv[0]->XYZ()[2];
+            TrackerData.hittrklocaltrackdirectionx[HitIterator2] = dir.X();
+            TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
+            TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
 
-      	    TVector3 dir_hit_flipped;
+
+            //XYZ
+            std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+            TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
+            TrackerData.hittrky[HitIterator2] = sptv[0]->XYZ()[1];
+            TrackerData.hittrkz[HitIterator2] = sptv[0]->XYZ()[2];
+
+            TVector3 dir_hit_flipped;
             dir_hit_flipped.SetXYZ(dir.Z(), dir.Y(), dir.X());
 
-	    TrackerData.hittrklocaltrackdirectiontheta[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Theta();
-	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
+            TrackerData.hittrklocaltrackdirectiontheta[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Theta();
+            TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
 
-	    //dx
-    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
-    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+            //dx
+            if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+            if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
 
-	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
+            TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
-	    if(fLogLevel == 2)
-	    {
-	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
-	      std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
-	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
-	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
-	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
-	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
-	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
-	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
-	    }
+            if(fLogLevel == 2)
+            {
+              std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
+              std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
+              std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
+              std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
+              std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
+              std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
+              std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
+              std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
+            }
 
-	    //hit variables
-	    TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
-	    TrackerData.hittrktpc[HitIterator2] = vhit[h]->WireID().TPC;
-	    TrackerData.hittrkview[HitIterator2] = vhit[h]->WireID().Plane;
-	    TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
-	    TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
-	    TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
-	    TrackerData.hittrkph[HitIterator2] = vhit[h]->PeakAmplitude();
-	    TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
-	    TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
-	    TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
-	    TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
-	    TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
-	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
+            //hit variables
+            TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
+            TrackerData.hittrktpc[HitIterator2] = vhit[h]->WireID().TPC;
+            TrackerData.hittrkview[HitIterator2] = vhit[h]->WireID().Plane;
+            TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
+            TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
+            TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
+            TrackerData.hittrkph[HitIterator2] = vhit[h]->PeakAmplitude();
+            TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
+            TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
+            TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
+            TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
+            TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
+            TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
 
       //quantities from backtracker are different from the real value in MC
       if( fIsMC )
@@ -5423,16 +5423,16 @@ if (fSaveTrackInfo) {
 
             HitIterator2++;
 
-	    if(vhit[h]->WireID().Plane == 0) NHitsView0++;
-	    if(vhit[h]->WireID().Plane == 1) NHitsView1++;
-	  }
+            if(vhit[h]->WireID().Plane == 0) NHitsView0++;
+            if(vhit[h]->WireID().Plane == 1) NHitsView1++;
+          }
         TrackerData.ntrkhitsperview[iTrk][0] = NHitsView0;
         TrackerData.ntrkhitsperview[iTrk][1] = NHitsView1;
 
 //      }
 
 /*
-	std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
+        std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
       for(size_t itp = 0; itp < tracklist[iTracker][iTrk]->NumberTrajectoryPoints(); ++itp)
       {
         const TVector3& pos = tracklist[iTracker][iTrk]->LocationAtPoint(itp);
@@ -5445,20 +5445,20 @@ if (fSaveTrackInfo) {
 //
 /*
       art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
-	for (size_t h = 0; h < vhit.size(); ++h)
-	{
-	  std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+        for (size_t h = 0; h < vhit.size(); ++h)
+        {
+          std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
 
-	  for (size_t j = 0; j < sptv.size(); ++j)
-	  {
-	    std::cout << "sptv[j]->XYZ()[0]: " << sptv[j]->XYZ()[0] << std::endl;
-	    std::cout << "sptv[j]->XYZ()[1]: " << sptv[j]->XYZ()[1] << std::endl;
-	    std::cout << "sptv[j]->XYZ()[2]: " << sptv[j]->XYZ()[2] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[0]: " << sptv[j]->ErrXYZ()[0] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[1]: " << sptv[j]->ErrXYZ()[1] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[2]: " << sptv[j]->ErrXYZ()[2] << std::endl;
-	  }
-	}
+          for (size_t j = 0; j < sptv.size(); ++j)
+          {
+            std::cout << "sptv[j]->XYZ()[0]: " << sptv[j]->XYZ()[0] << std::endl;
+            std::cout << "sptv[j]->XYZ()[1]: " << sptv[j]->XYZ()[1] << std::endl;
+            std::cout << "sptv[j]->XYZ()[2]: " << sptv[j]->XYZ()[2] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[0]: " << sptv[j]->ErrXYZ()[0] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[1]: " << sptv[j]->ErrXYZ()[1] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[2]: " << sptv[j]->ErrXYZ()[2] << std::endl;
+          }
+        }
 */
 //
 
@@ -5476,7 +5476,7 @@ if (fSaveTrackInfo) {
             << TrackerData.GetMaxPlanesPerTrack(iTrk) << " stored in tree";
         }
 
-        //	  for (size_t ical = 0; ical<calos.size(); ++ical){
+        //        for (size_t ical = 0; ical<calos.size(); ++ical){
         for (size_t ical = calos.size() - 1; ical <= 1 ; --ical){  //reverse order so that we access info on plane 0 (which is view 0 in real life) first
           if (!calos[ical]) continue;
           if (!calos[ical]->PlaneID().isValid) continue;
@@ -5520,7 +5520,7 @@ if (fSaveTrackInfo) {
         } // for calorimetry info
 
 
-	//best plane
+        //best plane
         if(TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][1] && TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
         else if(TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
         else if(TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
@@ -5749,7 +5749,7 @@ if (fSaveTrackInfo) {
             // always accompany each other. Other generators (e.g., MARLEY) may
             // create simb::MCTruth objects without corresponding simb::MCFlux
             // objects. -- S. Gardiner
-            /*	    if (find_mcflux.isValid()) {
+            /*      if (find_mcflux.isValid()) {
                     auto flux_maybe_ref = find_mcflux.at(iList);
                     if (flux_maybe_ref.isValid()) {
                     auto flux_ref = flux_maybe_ref.ref();
@@ -5832,9 +5832,9 @@ if (fSaveTrackInfo) {
             imcshwr != mcshowerh->end(); ++imcshwr) {
           const sim::MCShower& mcshwr = *imcshwr;
           fData->mcshwr_origin[shwr]          = mcshwr.Origin();
-          fData->mcshwr_pdg[shwr]	      = mcshwr.PdgCode();
-          fData->mcshwr_TrackId[shwr]	      = mcshwr.TrackID();
-          fData->mcshwr_Process[shwr]	      = mcshwr.Process();
+          fData->mcshwr_pdg[shwr]             = mcshwr.PdgCode();
+          fData->mcshwr_TrackId[shwr]         = mcshwr.TrackID();
+          fData->mcshwr_Process[shwr]         = mcshwr.Process();
           fData->mcshwr_startX[shwr]          = mcshwr.Start().X();
           fData->mcshwr_startY[shwr]          = mcshwr.Start().Y();
           fData->mcshwr_startZ[shwr]          = mcshwr.Start().Z();
@@ -5891,9 +5891,9 @@ if (fSaveTrackInfo) {
           TLorentzVector tpcstart, tpcend, tpcmom;
           double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
           fData->mctrk_origin[trk]          = mctrk.Origin();
-          fData->mctrk_pdg[trk]	            = mctrk.PdgCode();
-          fData->mctrk_TrackId[trk]	    = mctrk.TrackID();
-          fData->mctrk_Process[trk]	    = mctrk.Process();
+          fData->mctrk_pdg[trk]             = mctrk.PdgCode();
+          fData->mctrk_TrackId[trk]         = mctrk.TrackID();
+          fData->mctrk_Process[trk]         = mctrk.Process();
           fData->mctrk_startX[trk]          = mctrk.Start().X();
           fData->mctrk_startY[trk]          = mctrk.Start().Y();
           fData->mctrk_startZ[trk]          = mctrk.Start().Z();
@@ -5981,8 +5981,8 @@ if (fSaveTrackInfo) {
           if (iPart < fData->GetMaxGeneratorparticles()) {
 
             std::string pri("primary");
-	    if( pPart->Mother() == 0 && pPart->Process() == pri )
-	    {
+            if( pPart->Mother() == 0 && pPart->Process() == pri )
+            {
               fData->TrackId[generator_particle]=pPart->TrackId();
               fData->pdg[generator_particle]=pPart->PdgCode();
               fData->status[generator_particle] = pPart->StatusCode();
@@ -5997,12 +5997,12 @@ if (fSaveTrackInfo) {
               fData->StartPointz[generator_particle]=pPart->Vz();
               fData->StartT[generator_particle] = pPart->T();
 
-      	      TVector3 momentum_start_flipped;
+              TVector3 momentum_start_flipped;
               momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
 
-	      fData->theta[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
-	      fData->phi[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
-	    }
+              fData->theta[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+              fData->phi[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+            }
             ++generator_particle;
           }
           else if (iPart == fData->GetMaxGeneratorparticles()) {
@@ -6061,17 +6061,17 @@ if (fSaveTrackInfo) {
             bool isActive = plen != 0;
 
 //            TLorentzVector mcstartdrifted, mcenddrifted;
-//	      unsigned int pstartdriftedi, penddriftedi;
+//            unsigned int pstartdriftedi, penddriftedi;
 //            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 //            bool isDrifted = plendrifted!= 0;
 
-	    if(fLogLevel == 3)
-	    {
-	      std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
-	      std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
-	      std::cout << "pPart->PdgCode():" << pPart->PdgCode() << std::endl;
-	      std::cout << std::endl;
-	    }
+            if(fLogLevel == 3)
+            {
+              std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
+              std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
+              std::cout << "pPart->PdgCode():" << pPart->PdgCode() << std::endl;
+              std::cout << std::endl;
+            }
 
 
             fData->process_primary[geant_particle] = int(isPrimary);
@@ -6096,16 +6096,16 @@ if (fSaveTrackInfo) {
             fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
             fData->EndT[geant_particle] = pPart->EndT();
 
-	    fData->NTrajectoryPointsPerParticle[geant_particle] = pPart->NumberTrajectoryPoints();
+            fData->NTrajectoryPointsPerParticle[geant_particle] = pPart->NumberTrajectoryPoints();
 
-	    //fData->theta[geant_particle] = pPart->Momentum().Theta();
-	    //fData->phi[geant_particle] = pPart->Momentum().Phi();
-	    //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
-      	    TVector3 momentum_start_flipped;
+            //fData->theta[geant_particle] = pPart->Momentum().Theta();
+            //fData->phi[geant_particle] = pPart->Momentum().Phi();
+            //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+            TVector3 momentum_start_flipped;
             momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
 
-	    fData->theta[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
-	    fData->phi[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+            fData->theta[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+            fData->phi[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
 
             fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
             fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
@@ -6121,8 +6121,8 @@ if (fSaveTrackInfo) {
 
             if (isActive && fSaveGeantInAVInfo){
               fData->pathlen_tpcAV[active]  = plen;
-	      fData->TrackId_tpcAV[active] =  pPart->TrackId();
-	      fData->PDGCode_tpcAV[active] = pPart->PdgCode();
+              fData->TrackId_tpcAV[active] =  pPart->TrackId();
+              fData->PDGCode_tpcAV[active] = pPart->PdgCode();
 
               fData->StartPointx_tpcAV[active] = mcstart.X();
               fData->StartPointy_tpcAV[active] = mcstart.Y();
@@ -6143,10 +6143,10 @@ if (fSaveTrackInfo) {
               fData->EndPy_tpcAV[active] = pPart->Py(pendi);
               fData->EndPz_tpcAV[active] = pPart->Pz(pendi);
 
-	      //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
-      	      TVector3 momentum_start_tpcAv_flipped;
+              //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+              TVector3 momentum_start_tpcAv_flipped;
               momentum_start_tpcAv_flipped.SetXYZ(pPart->Pz(pstarti), pPart->Py(pstarti), pPart->Px(pstarti));
-      	      TVector3 momentum_end_tpcAv_flipped;
+              TVector3 momentum_end_tpcAv_flipped;
               momentum_end_tpcAv_flipped.SetXYZ(pPart->Pz(pendi), pPart->Py(pendi), pPart->Px(pendi));
 
               fData->thetastart_tpcAV[active] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Theta();
@@ -6155,7 +6155,7 @@ if (fSaveTrackInfo) {
               fData->thetaend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Theta();
               fData->phiend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Phi();
 
-	      active++;
+              active++;
             }
 
 /*
@@ -6303,13 +6303,13 @@ if (fSaveTrackInfo) {
         const sim::ParticleList& plist = pi_serv->ParticleList();
         sim::ParticleList::const_iterator itPart = plist.begin(),
           pend = plist.end(); // iterator to pairs (track id, particle)
-	int trajpointcounter = 0;
+        int trajpointcounter = 0;
 
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
-	{
+        {
           const simb::MCParticle* pPart = (itPart++)->second;
           if (!pPart)
-	  {
+          {
             throw art::Exception(art::errors::LogicError)
               << "GEANT particle #" << iPart << " returned a null pointer";
           }
@@ -6320,47 +6320,47 @@ if (fSaveTrackInfo) {
             const TLorentzVector& trajpointPosition= pPart->Position(trajpoint);
             //const TLorentzVector& trajpointMomentum= pPart->Momentum(trajpoint);
 
-	    fData->TrajTrackId[trajpointcounter] = pPart->TrackId();
-	    fData->TrajPDGCode[trajpointcounter] = pPart->PdgCode();
+            fData->TrajTrackId[trajpointcounter] = pPart->TrackId();
+            fData->TrajPDGCode[trajpointcounter] = pPart->PdgCode();
 
-	    fData->TrajX[trajpointcounter] = trajpointPosition.X();
-	    fData->TrajY[trajpointcounter] = trajpointPosition.Y();
-	    fData->TrajZ[trajpointcounter] = trajpointPosition.Z();
-	    fData->TrajT[trajpointcounter] = pPart->T(trajpoint);
-	    fData->TrajE[trajpointcounter] = pPart->E(trajpoint);
-	    fData->TrajP[trajpointcounter] = pPart->P(trajpoint);
-	    fData->TrajPx[trajpointcounter] = pPart->Px(trajpoint);
-	    fData->TrajPy[trajpointcounter] = pPart->Py(trajpoint);
-	    fData->TrajPz[trajpointcounter] = pPart->Pz(trajpoint);
+            fData->TrajX[trajpointcounter] = trajpointPosition.X();
+            fData->TrajY[trajpointcounter] = trajpointPosition.Y();
+            fData->TrajZ[trajpointcounter] = trajpointPosition.Z();
+            fData->TrajT[trajpointcounter] = pPart->T(trajpoint);
+            fData->TrajE[trajpointcounter] = pPart->E(trajpoint);
+            fData->TrajP[trajpointcounter] = pPart->P(trajpoint);
+            fData->TrajPx[trajpointcounter] = pPart->Px(trajpoint);
+            fData->TrajPy[trajpointcounter] = pPart->Py(trajpoint);
+            fData->TrajPz[trajpointcounter] = pPart->Pz(trajpoint);
 
-      	    TVector3 trajpointMomentum_flipped;
+            TVector3 trajpointMomentum_flipped;
             trajpointMomentum_flipped.SetXYZ(pPart->Pz(trajpoint), pPart->Py(trajpoint), pPart->Px(trajpoint));
 
             fData->TrajTheta[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Theta();
             fData->TrajPhi[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Phi();
 
-	    if(fLogLevel == 4)
-	    {
-	    std::cout << std::endl;
-	    std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
-	    std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajT[trajpointcounter]: " << fData->TrajT[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajE[trajpointcounter]: " << fData->TrajE[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajP[trajpointcounter]: " << fData->TrajP[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPx[trajpointcounter]: " << fData->TrajPx[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPy[trajpointcounter]: " << fData->TrajPy[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPz[trajpointcounter]: " << fData->TrajPz[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajTheta[trajpointcounter]: " << fData->TrajTheta[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPhi[trajpointcounter]: " << fData->TrajPhi[trajpointcounter] << std::endl;
-	    }
+            if(fLogLevel == 4)
+            {
+            std::cout << std::endl;
+            std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
+            std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajT[trajpointcounter]: " << fData->TrajT[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajE[trajpointcounter]: " << fData->TrajE[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajP[trajpointcounter]: " << fData->TrajP[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPx[trajpointcounter]: " << fData->TrajPx[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPy[trajpointcounter]: " << fData->TrajPy[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPz[trajpointcounter]: " << fData->TrajPz[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajTheta[trajpointcounter]: " << fData->TrajTheta[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPhi[trajpointcounter]: " << fData->TrajPhi[trajpointcounter] << std::endl;
+            }
 
-	    trajpointcounter++;
-	  }
+            trajpointcounter++;
+          }
         } // for particles
 
-	fData->geant_trajectory_size = trajpointcounter;
+        fData->geant_trajectory_size = trajpointcounter;
 
       }// if (fSaveGeantTrajectoryInfo)
 
@@ -6709,17 +6709,17 @@ if (fSaveTrackInfo) {
 
     //......................................................................
     int dune::AnaRootParser::CountHits(const art::Event&    evt,
-                              	       const art::InputTag& which,
+                                       const art::InputTag& which,
                                        unsigned int         cryostat,
-                              	       unsigned int         tpc,
-                              	       unsigned int         plane)
+                                       unsigned int         tpc,
+                                       unsigned int         plane)
     {
       std::vector<const recob::Hit*> temp;
       int NumberOfHitsBeforeThisPlane=0;
       evt.getView(which, temp);   //temp.size() = total number of hits for this event (number of all hits in all Cryostats, TPC's, planes and wires)
       for(size_t t = 0; t < temp.size(); ++t){
-	if( temp[t]->WireID().Cryostat == cryostat&& temp[t]->WireID().TPC == tpc && temp[t]->WireID().Plane == plane ) break;
-	NumberOfHitsBeforeThisPlane++;
+        if( temp[t]->WireID().Cryostat == cryostat&& temp[t]->WireID().TPC == tpc && temp[t]->WireID().Plane == plane ) break;
+        NumberOfHitsBeforeThisPlane++;
       }
       return NumberOfHitsBeforeThisPlane;
     }
