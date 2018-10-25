@@ -1074,7 +1074,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-//    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
 //    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
 
     //2*i + 1 because the format is weird
@@ -1084,13 +1084,12 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
 
-    if (fGenTrigFrac == 0.0) break;
+    if (fGenTrigCoarse == 0.0 && fGenTrigFrac == 0.0 && fGenTrigSec == 0.0) break;
     fGenTrigTree->Fill();
   }
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
- // for(size_t i = 0; i < coarseTOF1A.size(); ++i){
- //   std::cout << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] << " " <<  fracTOF1A[i]/512. << std::endl;
+    std::cout << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] +  fracTOF1A[i]/512. << std::endl;
     fXTOF1ACoarse = coarseTOF1A[i];
     fXTOF1AFrac   = fracTOF1A[i];
     fXTOF1ASec    = secondsTOF1A[2*i + 1];
@@ -1103,8 +1102,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   }
     
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
- // for(size_t i = 0; i < coarseTOF1B.size(); ++i){
- //   std::cout << "TOF1B " << i << " " << secondsTOF1B[2*i+1] << " "  << 8.*coarseTOF1B[i] << " " <<  fracTOF1B[i]/512. << std::endl;
+    std::cout << "TOF1B " << i << " " << secondsTOF1B[2*i+1] << " "  << 8.*coarseTOF1B[i] + fracTOF1B[i]/512. << std::endl;
     fXTOF1BCoarse = coarseTOF1B[i];
     fXTOF1BFrac   = fracTOF1B[i];
     fXTOF1BSec    = secondsTOF1B[2*i + 1];
@@ -1117,8 +1115,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   }
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
- // for(size_t i = 0; i < coarseTOF2A.size(); ++i){
- //   std::cout << "TOF2A " << i << " " << secondsTOF2A[2*i+1] << " "  << 8.*coarseTOF2A[i] << " " <<  fracTOF2A[i]/512. << std::endl;
+    std::cout << "TOF2A " << i << " " << secondsTOF2A[2*i+1] << " "  << 8.*coarseTOF2A[i] +  fracTOF2A[i]/512. << std::endl;
     fXTOF2ACoarse = coarseTOF2A[i];
     fXTOF2AFrac   = fracTOF2A[i];
     fXTOF2ASec    = secondsTOF2A[2*i + 1];
@@ -1138,8 +1135,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   }  
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
- // for(size_t i = 0; i < coarseTOF2B.size(); ++i){
- //   std::cout << "TOF2B " << i << " " << secondsTOF2B[2*i+1] << " "  << 8.*coarseTOF2B[i] << " " <<  fracTOF2B[i]/512. << std::endl;
+    std::cout << "TOF2B " << i << " " << secondsTOF2B[2*i+1] << " "  << 8.*coarseTOF2B[i] +  fracTOF2B[i]/512. << std::endl;
     fXTOF2BCoarse = coarseTOF2B[i];
     fXTOF2BFrac   = fracTOF2B[i];
     fXTOF2BSec    = secondsTOF2B[2*i + 1];
