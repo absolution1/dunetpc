@@ -17,7 +17,7 @@ BEGIN_PROLOG
 # Keep all triggers.
 pdsp_trigfilter_all: {
   module_type:            "ProtoDUNETriggerFilter"
-  DebugLevel:      1  # 2 shows accept/reject for every event
+  LogLevel:        1  # 2 shows accept/reject for every event
   TimingLabel:     "timingrawdecoder"
   TimingInstance:  "daq"
   TriggerLabel:    "ctbrawdecoder"
