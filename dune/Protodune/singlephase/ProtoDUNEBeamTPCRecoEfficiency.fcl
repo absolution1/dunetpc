@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+protodune_beam_tpcreco: {
+  module_type: "ProtoDUNEBeamTPCRecoEfficiency"
+  ParticleLabel: "pandora"
+}
+
+END_PROLOG
