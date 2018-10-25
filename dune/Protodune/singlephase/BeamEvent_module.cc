@@ -110,7 +110,10 @@ public:
   void  parseXCET(uint64_t);
 
   template<class T> 
-  T FetchWithRetries(uint64_t, std::string, int);
+  T FetchWithRetries(long long, std::string, int);
+  
+  template<class T> 
+  T FetchWithRetriesDown(long long, std::string, int);
    
 private:
   
@@ -195,6 +198,7 @@ private:
   long long int eventTime;
   double SpillStart;
   ULong_t SpillStart_alt;
+  bool SpillStartValid;
   double PrevStart;
   double SpillEnd;
   double SpillOffset;
@@ -205,7 +209,6 @@ private:
 
   double acqTime;
   double acqStampMBPL;
-  double cycleStampMBPL;
   int HLTWord;
   long long int HLTTS;
   int BeamOn;
@@ -218,7 +221,6 @@ private:
   int BP3;
   int BP4;
 
-  uint64_t prev_fetch_time;
 
   int eventNum;
   int runNum;
@@ -339,20 +341,19 @@ proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
 ////////////////////////
 // Fetch Method
 template <class T> 
-T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry){
+T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry){
   T theResult;
   
   std::cout << std::endl;
-  uint64_t newTime;
+  long long newTime;
   //Search at and above time given with nRetries
   //Will later search below, just in case the event time is actually greater than
   for(newTime = time; newTime < time + nRetry; ++newTime){
-//    std::cout << "Trying to grab from folder: " << name << std::endl;
-//    std::cout << "At Time: " << newTime << std::endl;    
+    std::cout << "Trying to grab from folder: " << name << std::endl;
+    std::cout << "At Time: " << newTime << std::endl;    
       try{
         theResult = (T)bfp->GetNamedVector(newTime, name);
         std::cout << "Successfully fetched " << newTime << std::endl;
-        prev_fetch_time = newTime;
         return theResult;
       }
     catch(std::exception e){
@@ -361,12 +362,45 @@ T proto::BeamEvent::FetchWithRetries(uint64_t time, std::string name, int nRetry
   }
   //Now search below
   for(newTime = time - 1; newTime > time - nRetry - 1; --newTime){
-//    std::cout << "Trying to grab from folder: " << name << std::endl;
-//    std::cout << "At Time: " << newTime << std::endl;    
+    std::cout << "Trying to grab from folder: " << name << std::endl;
+    std::cout << "At Time: " << newTime << std::endl;    
     try{
       theResult = (T)bfp->GetNamedVector(newTime, name);
       std::cout << "Successfully fetched " << newTime << std::endl;
-      prev_fetch_time = newTime;
+      return theResult;
+    }
+    catch(std::exception e){
+//      std::cout << "Could not fetch with time " << newTime << std::endl;      
+    }
+  }
+  
+  //Try a final time. Let it crash if it doesn't work
+  std::cout << "Trying a final time to grab from folder: " << name << std::endl;
+  std::cout << "At time: " << newTime << std::endl;
+  theResult = (T)bfp->GetNamedVector(newTime, name);
+    std::cout << "Successfully fetched" << std::endl;
+  std::cout << std::endl;
+  return theResult; 
+}
+// END FetchWithRetries
+////////////////////////
+
+////////////////////////
+// Fetch Method
+template <class T> 
+T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry){
+  T theResult;
+  
+  std::cout << std::endl;
+  long long newTime;
+
+  //Now search below
+  for(newTime = time; newTime > time - nRetry - 1; --newTime){
+    std::cout << "Trying to grab from folder: " << name << std::endl;
+    std::cout << "At Time: " << newTime << std::endl;    
+    try{
+      theResult = (T)bfp->GetNamedVector(newTime, name);
+      std::cout << "Successfully fetched " << newTime << std::endl;
       return theResult;
     }
     catch(std::exception e){
@@ -553,7 +587,13 @@ void proto::BeamEvent::GetSpillInfo(art::Event & e){
     SpillStart = 2.e-8*PDTStamp.getLastSpillStart();          
     SpillEnd   = 2.e-8*PDTStamp.getLastSpillEnd();            
     SpillStart_alt = PDTStamp.getLastSpillStart();
-    std::cout << PDTStamp.getLastSpillStart() << " " << SpillStart_alt << std::endl;
+
+
+    if( 0ul == ~(SpillStart_alt) ) SpillStartValid = false;
+    else SpillStartValid = true;
+
+
+    std::cout << PDTStamp.getLastSpillStart() << " " << SpillStart_alt << " " << SpillStartValid << std::endl;
           
     std::cout.precision(dbl::max_digits10);
     std::cout << "Version:     " << ver        << std::endl;      
@@ -564,15 +604,6 @@ void proto::BeamEvent::GetSpillInfo(art::Event & e){
           
     std::cout << std::endl;           
           
-    if( SpillEnd > SpillStart ){      
-      std::cout << "Outside of spill" << std::endl; 
-      std::cout << "End - Start: "    << SpillEnd - SpillStart << std::endl;        
-    }     
-    else{ 
-      std::cout << "Within a spill" << std::endl;   
-    }     
-          
-    std::cout << std::endl;           
           
 }
 
@@ -580,22 +611,18 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
 
     std::cout << "Attempting to Time In" << std::endl;   
 
-    /////Now look at the cycleStamp and acqStamp coming out of IFBeam
-    std::vector<double> acqStamp = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]",fNRetries); 
-    std::vector<double> cycleStamp = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:cycleStamp[]",fNRetries); 
+    /////Now look at the acqStamp coming out of IFBeam
+    std::vector<double> acqStamp = FetchWithRetriesDown< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]",fNRetries); 
 
     acqStampMBPL   = 1.e-9 * joinHighLow(acqStamp[0],   acqStamp[1]); 
-    cycleStampMBPL = 1.e-9 * joinHighLow(cycleStamp[0], cycleStamp[1]);
 
     std::cout << "%%%IFBeam%%%" << std::endl;
     std::cout << std::setw(15) << acqStampMBPL*1.e-9   << std::endl;
-    std::cout << std::setw(15) << cycleStampMBPL*1.e-9 << std::endl;
-
     std::cout << std::endl;
-
 
     //Assign the calibration offset
     SpillOffset = SpillStart - acqStampMBPL;
+    
 }
 
 void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
@@ -708,7 +735,6 @@ void proto::BeamEvent::produce(art::Event & e){
   //Reset 
   acqTime = 0;
   acqStampMBPL = 0;
-  cycleStampMBPL = 0;
   HLTWord = 0;
   HLTTS = 0;
   BeamOn      = -1;
@@ -763,10 +789,7 @@ void proto::BeamEvent::produce(art::Event & e){
   //And Prev Spill Start
   GetSpillInfo(e);
 
-  if(~SpillStart_alt == 0ul){
-    std::cout << "Invalid Spill Start time! Skipping Event" << std::endl << std::endl;
-  }
-   
+  
   //Check if we have a valid beam trigger
   //If not, just place an empty beamevt
   //and move on
@@ -774,7 +797,7 @@ void proto::BeamEvent::produce(art::Event & e){
   //Also check if we've gotten good spill info
   //
   //Or if we're forcing to read out the Beamline Info
-  if( ( (RDTSTrigger == 12) && ( 0ul != ~(SpillStart_alt) ) ) || fForceRead ){
+  if( ( (RDTSTrigger == 12) && (SpillStartValid) ) || fForceRead ){
 
 
     // Read in and cache the beam bundle folder for a specific time
@@ -798,8 +821,8 @@ void proto::BeamEvent::produce(art::Event & e){
     else{
 //      std::cout <<" Using Event Time: " << uint64_t(eventTime) << std::endl;
 //      fMultipleTimes.push_back(uint64_t(eventTime));
-      std::cout <<" Using Event Time: " << uint64_t( RDTSTime * 2.e-8 ) << std::endl;
-      fMultipleTimes.push_back( uint64_t( RDTSTime * 2.e-8 ) );
+      std::cout <<" Using Event Time: " << uint64_t( RDTSTime * 2e-8 ) << std::endl;
+      fMultipleTimes.push_back( uint64_t( RDTSTime * 2e-8 ) );
       usedEventTime = true;
     } 
 
@@ -810,14 +833,7 @@ void proto::BeamEvent::produce(art::Event & e){
     // Loop over the different particle times 
     for(size_t it = 0; it < fMultipleTimes.size(); ++it){
       std::cout << "Time: " << fMultipleTimes[it] << std::endl;
-      uint64_t fetch_time;
-      if( abs( (long long)(fMultipleTimes[it]) - (long long)(prev_fetch_time) ) < 18 ){
-        fetch_time = prev_fetch_time;
-      }
-      else{
-        fetch_time = fMultipleTimes[it];
-      }
-     
+      uint64_t fetch_time = fMultipleTimes[it];
 
       //Check if we are still using the same spill information.
       //
@@ -827,8 +843,11 @@ void proto::BeamEvent::produce(art::Event & e){
       //If it's the same spill then just pass the old BeamEvent
       //Object. Its 'active trigger' info will be updated below
       //
+      //Also: Check if the SpillStart is invalid. If so, 
+      //Fetch from the database
+      //
       //Can be overridden with a flag from the fcl
-      if(PrevStart != SpillStart || fForceNewFetch){
+      if( PrevStart != SpillStart || fForceNewFetch){
         std::cout << "New spill or forced new fetch. Getting new beamspill info" << std::endl << std::endl;
 
 
@@ -915,7 +934,7 @@ void proto::BeamEvent::produce(art::Event & e){
           //First, try getting the current from the magnet in IFBeam
           std::cout << "Trying to get the current" << std::endl;
           try{
-            current = FetchWithRetries< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            current = FetchWithRetriesDown< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
             std::cout << "Current: " << current[0] << std::endl;
     
             MomentumSpec( beamspill->GetActiveTrigger() ); 
@@ -944,7 +963,10 @@ void proto::BeamEvent::produce(art::Event & e){
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
 
-  if( RDTSTrigger != 12 && PrevStart != SpillStart){
+  //No need to pass info if the SpillStart is invalid.
+  //If the next event has a valid spill start, it will be in a 
+  //'new spill' and will fetch.
+  if( RDTSTrigger != 12 && ( PrevStart != SpillStart ) ){
     prev_beamspill = *beamspill;   
   }
   
@@ -1590,7 +1612,6 @@ void proto::BeamEvent::beginJob()
   acqTime = 0;
   fOutTree->Branch("acqTime",        &acqTime);
   fOutTree->Branch("acqStampMBPL",   &acqStampMBPL);
-  fOutTree->Branch("cycleStampMBPL", &cycleStampMBPL);
   HLTWord = 0;
   HLTTS = 0;
   fOutTree->Branch("HLTWord",     &HLTWord);
