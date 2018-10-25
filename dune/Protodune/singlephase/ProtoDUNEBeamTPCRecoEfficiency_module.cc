@@ -21,7 +21,7 @@ namespace protoana{
   public:
     explicit ProtoDUNEBeamTPCRecoEfficiency(fhicl::ParameterSet const & pset);
     virtual ~ProtoDUNEBeamTPCRecoEfficiency() {};
-    void analyze(art::Event const &evt);
+    void analyze(art::Event const &evt) override;
     virtual void endJob() override;
   private:
     std::string fParticleLabel;
