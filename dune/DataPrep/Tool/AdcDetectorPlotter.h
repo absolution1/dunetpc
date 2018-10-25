@@ -21,7 +21,8 @@
 //   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
 //   ShowTpcSets - If not empty, only show wires and cathodes for these TPC sets.
 //   ShowGrid - Also show (Root default) grid.
-//   Title - Title for the plot.
+//   Title - Title at top of plot (part of graph)
+//   PlotTitle - Plot title (appears in lower left corner)
 //   FileName - Name for output plot file.
 //              If blank, no file is written.
 //              Existing file with the same name is replaced.
@@ -52,6 +53,7 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/Geometry/WireSelector.h"
 #include <memory>
+#include "TLatex.h"
 
 namespace geo {
   class GeometryCore;
@@ -66,6 +68,7 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using TPadManipulatorPtr = std::unique_ptr<TPadManipulator>;
+  using TLatexPtr = std::unique_ptr<TLatex>;
 
   class State {
   public:
@@ -79,6 +82,7 @@ public:
     WireSelector sel;
     TPadManipulatorPtr ppad;
     std::string ofname;
+    TLatexPtr pttl = nullptr;
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -122,6 +126,7 @@ private:
   IndexVector    m_ShowTpcSets;
   bool           m_ShowGrid;
   std::string    m_Title;
+  std::string    m_PlotTitle;
   std::string    m_FileName;
 
   StatePtr m_state;

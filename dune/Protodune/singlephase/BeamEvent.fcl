@@ -100,9 +100,15 @@ proto_beamevent:
 # Current TAI Offset in [sec]  
   OffsetTAI: 37
 
+# CTB/Timing Timestamp offset  
+# Searching Offset + Tolerance <= diff >= Offset - Tolerance
+  OffsetCTBtoRDTS: 23  
+  ToleranceCTBtoRDTS: 2
+
 # Timing Offset [sec] 
 # HLT - GenTrig - (PDTS_spill - BI_spill)
-  TimingCalibration: -0.09515150
+#  TimingCalibration: -0.09515150
+  TimingCalibration: -0.095151040
   CalibrationTolerance: 1.e-6 
 
 #Should we grab from the folders each time?

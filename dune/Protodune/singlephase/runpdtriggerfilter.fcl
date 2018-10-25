@@ -9,7 +9,7 @@ services:
   TimeTracker:       {}
 #  RandomNumberGenerator: {} #ART native random number generator
 #  message:      @local::standard_warning
-#  user:         @local::argoneut_services 	     
+#  user:         @local::argoneut_services
 }
 
 
@@ -37,16 +37,11 @@ outputs:
 physics:
 {
 
- producers:
- {
+ producers: { }
+
+ filters: {
+  filter:  @local::pdsp_trigfilter_beam
  }
-
- filters:
- {
-  filter:  @local::proto_beam_filter
- }
-
-
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
@@ -66,5 +61,5 @@ physics:
  end_paths:     [ stream1 ]  
 }
 #physics.filters.filter.TimingFlagSelectList: [0x8]  #cosmic
-physics.filters.filter.TimingFlagSelectList: [0xc]  #beam
+#physics.filters.filter.TimingFlagSelectList: [0xc]  #beam
 #physics.filters.filter.TimingFlagSelectList: [0xd]  #CRT

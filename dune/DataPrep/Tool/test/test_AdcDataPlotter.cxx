@@ -57,6 +57,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "             Palette: 1026" << endl;
     fout << "            HistName: \"hadc\"" << endl;
     fout << "           HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "           PlotTitle: \"Run %RUN% event %EVENT% xyx UTC\"" << endl;
     fout << "        PlotFileName: \"myplot-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
