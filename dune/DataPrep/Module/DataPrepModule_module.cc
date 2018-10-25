@@ -25,6 +25,7 @@
 //             WireName - Name for the output wire container.
 //   IntermediateStates - Names of intermediate states to record.
 //             DoGroups - Process channels in groups.
+//       BeamEventLabel - Label for the BeamEvent data product. If blank, it is not used.
 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDProducer.h"
@@ -41,6 +42,7 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TTimeStamp.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
 using std::cout;
 using std::endl;
@@ -79,6 +81,7 @@ private:
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
   bool m_DoGroups = false;
+  std::string m_BeamEventLabel;
   AdcChannel m_KeepChannelBegin =0;
   AdcChannel m_KeepChannelEnd =0;
   AdcChannelVector m_SkipChannels;
@@ -127,11 +130,12 @@ DataPrepModule::~DataPrepModule() { }
 
 void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   const string myname = "DataPrepModule::reconfigure: ";
-  m_LogLevel   = pset.get<int>("LogLevel");
-  m_DigitLabel = pset.get<std::string>("DigitLabel", "daq");
-  m_WireName   = pset.get<std::string>("WireName", "");
-  m_DoAssns    = pset.get<bool>("DoAssns");
-  m_DoGroups   = pset.get<bool>("DoGroups");
+  m_LogLevel       = pset.get<int>("LogLevel");
+  m_DigitLabel     = pset.get<std::string>("DigitLabel", "daq");
+  m_WireName       = pset.get<std::string>("WireName", "");
+  m_DoAssns        = pset.get<bool>("DoAssns");
+  m_DoGroups       = pset.get<bool>("DoGroups");
+  m_BeamEventLabel = pset.get<string>("BeamEventLabel");
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
   pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
@@ -162,6 +166,7 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "             WireName: " << m_WireName << endl;
     cout << myname << "              DoAssns: " << m_DoAssns << endl;
     cout << myname << "             DoGroups: " << m_DoGroups << endl;
+    cout << myname << "       BeamEventLabel: " << m_BeamEventLabel << endl;
     cout << myname << "   IntermediateStates: [";
     int count = 0;
     for ( string sname : m_IntermediateStates ) cout << (count++ == 0 ? "" : " ") << sname;
@@ -301,6 +306,38 @@ void DataPrepModule::produce(art::Event& evt) {
     cout << myname << "Event time high, low: " << beginTime.timeHigh() << ", " << beginTime.timeLow() << endl;
   }
 
+  // Fetch beam information
+  float beamTof = 0.0;    // Time of flight.
+  if ( m_BeamEventLabel.size() ) {
+    art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
+    std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
+    if ( evt.getByLabel(m_BeamEventLabel, pdbeamHandle) ) {
+      art::fill_ptr_vector(beaminfo, pdbeamHandle);
+      if ( beaminfo.size() == 0 ) {
+        cout << myname << "Beam event vector is empty." << endl;
+      } else {
+        if ( beaminfo.size() > 1 ) {
+          cout << myname << "WARNING: Beam event vector has size " << beaminfo.size() << endl;
+        }
+        AdcIndex beamTrigFlag = beaminfo[0]->GetTimingTrigger();
+        if ( beamTrigFlag != trigFlag ) {
+          cout << myname << "Beam event and timing trigger flags differ: " << beamTrigFlag << " != " << trigFlag << endl;
+        } else if ( beamTrigFlag != 12 ) {
+          cout << myname << "Beam event trigger is not beam: it is " << beamTrigFlag << endl;
+        } else if ( ! beaminfo[0]->CheckIsMatched() ) {
+          cout << myname << "Beam event is not matched." << endl;
+        } else if ( beaminfo[0]->GetTOFChan() == -1 ) {
+          cout << myname << "Beam event index does not indicate match." << endl;
+        } else {
+          beamTof = beaminfo[0]->GetTOF();
+          cout << myname << "Beam event TOF: " << beamTof << endl;
+        }
+      }
+    } else {
+      cout << myname << "Beam event data product not found: " << m_BeamEventLabel << endl;
+    }
+  }
+            
   // Read in the digits. 
   art::Handle<std::vector<raw::RawDigit>> hdigits;
   evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
@@ -394,6 +431,9 @@ void DataPrepModule::produce(art::Event& evt) {
     acd.triggerClock = timingClock;
     acd.trigger = trigFlag;
     acd.metadata["ndigi"] = ndigi;
+    if ( m_BeamEventLabel.size() ) {
+      acd.metadata["beamTof"] = beamTof;
+    }
     ++nkeep;
   }
 

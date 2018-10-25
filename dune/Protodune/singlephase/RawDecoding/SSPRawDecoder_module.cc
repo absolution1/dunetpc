@@ -503,7 +503,7 @@ private:
   // more parameters from the FCL file
   int fragment;
 
-  int smooth;
+  //int smooth; // unused
   
   std::vector<raw::OpDetWaveform> waveforms; 
   std::vector<raw::OpDetWaveform> ext_waveforms;
