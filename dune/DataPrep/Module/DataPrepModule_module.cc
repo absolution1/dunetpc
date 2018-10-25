@@ -324,13 +324,14 @@ void DataPrepModule::produce(art::Event& evt) {
           cout << myname << "Beam event and timing trigger flags differ: " << beamTrigFlag << " != " << trigFlag << endl;
         } else if ( beamTrigFlag != 12 ) {
           cout << myname << "Beam event trigger is not beam: it is " << beamTrigFlag << endl;
-        } else if ( ! beaminfo[0]->CheckIsMatched() ) {
-          cout << myname << "Beam event is not matched." << endl;
+        //} else if ( ! beaminfo[0]->CheckIsMatched() ) {
+        //  cout << myname << "Beam event is not matched." << endl;
         } else if ( beaminfo[0]->GetTOFChan() == -1 ) {
           cout << myname << "Beam event index does not indicate match." << endl;
         } else {
+          int beamChan = beaminfo[0]->GetTOFChan();
           beamTof = beaminfo[0]->GetTOF();
-          cout << myname << "Beam event TOF: " << beamTof << endl;
+          cout << myname << "Beam event TOF[" << beamChan << "]: " << beamTof << endl;
         }
       }
     } else {
