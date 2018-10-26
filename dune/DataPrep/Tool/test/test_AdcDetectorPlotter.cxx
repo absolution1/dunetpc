@@ -71,6 +71,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    ShowTpcSets: []" << endl;
     fout << "    ShowGrid: true" << endl;
     fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "    PlotTitle: \"%UTCTIME2\"" << endl;
     fout << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "}" << endl;
     fout.close();

@@ -3,25 +3,49 @@ BEGIN_PROLOG
 proto_beamevent:
 {
   module_type:          "BeamEvent"
-  LoadFromDB: true
   URLStr:                 ""
   OutputLabel:         "BeamEvent"
-  InputLabel:         "ctbrawdecoder"
+
   NRetries:             5
   TimeWindow: 25  # width of time window in seconds
-  CSVFileName: ""
   BundleName: "DUNE_CERN_SEP2018"
-  DummyEventTime: 1.5000e+08
+
+  ##########################
+  #Warning: Only for testing
+  #
+  # Any items in Multiple or
+  # nonzero Fixed time
+  # Tells the code to override 
+  # the event time and grab 
+  # from the database with 
+  # these specific times
+  ##########################
   MultipleTimes: [] 
-  FixedTime:     0.#Tells the code to use event time
-#  Devices:       []
+  FixedTime:     0.
+
   Coordinates:   [] 
-  Dimension:     []
-  XBPFPrefix:        ""
-  XTOFPrefix:        ""
-  XCETPrefix:        ""
-  GlobalDetCoords: []
-  DetRotation:     []
+  Dimension:         [["XBPF022697",1],
+                      ["XBPF022698",1],
+                      ["XBPF022701",1],
+                      ["XBPF022702",1],
+                      ["XBPF022707",1],
+                      ["XBPF022708",1],
+                      ["XBPF022716",1],
+                      ["XBPF022717",1]]
+
+  XBPFPrefix:         "dip/acc/NORTH/NP04/BI/XBPF/"
+  XTOFPrefix:         "dip/acc/NORTH/NP04/BI/XTOF/"
+  XCETPrefix:         "dip/acc/NORTH/NP04/BI/XCET/"
+
+
+  TOF1:               "XBTF022687"
+  TOF2:               "XBTF022716"
+                                   
+  CKov1:              "XCET022713"
+  CKov2:              "XCET022716"
+
+#  GlobalDetCoords: []
+#  DetRotation:     []
 
   DeviceTypes:  [["XBPF022697","horiz"],
                  ["XBPF022698","vert"],
@@ -32,11 +56,15 @@ proto_beamevent:
                  ["XBPF022716","horiz"],
                  ["XBPF022717","vert"]]
 
-  PairedStraightDevices: [["XBPF022707", "XBPF022708"],
-                          ["XBPF022716", "XBPF022717"]]
-
-  PairedDevices:  [["XBPF022697","XBPF022698"]]
-  Devices:        ["XBPF022701","XBPF022702"]
+         
+  Devices:        ["XBPF022697",
+                   "XBPF022698",
+                   "XBPF022701",
+                   "XBPF022702",
+                   "XBPF022707",
+                   "XBPF022708",
+                   "XBPF022716",
+                   "XBPF022717"]
 
 
   #For tracking###################
@@ -72,10 +100,32 @@ proto_beamevent:
 # Current TAI Offset in [sec]  
   OffsetTAI: 37
 
+# CTB/Timing Timestamp offset  
+# Searching Offset + Tolerance <= diff >= Offset - Tolerance
+  OffsetCTBtoRDTS: 23  
+  ToleranceCTBtoRDTS: 2
+
 # Timing Offset [sec] 
 # HLT - GenTrig - (PDTS_spill - BI_spill)
-  TimingCalibration: -0.09515150
+#  TimingCalibration: -0.09515150
+  TimingCalibration: -0.095151040
   CalibrationTolerance: 1.e-6 
+
+#Should we grab from the folders each time?
+  ForceNewFetch:        "false"
+
+#Do we want to match in time between
+#beamline and tpc?
+  MatchTime:            "true"
+
+#Option to get info from database
+#even if we don't have a good
+#trigger from the BI to CTB 
+#or if we are getting invalid Spill Times
+  ForceRead:            "false"
+
+
+
 }
 
 END_PROLOG

@@ -12,9 +12,6 @@ data.pd_Tick0: 500
 tools.tickRanges.plotTicks.begin: 4000
 tools.tickRanges.plotTicks.end:   5000
 
-tools.tickRanges.plotAllTicks.begin: 0
-tools.tickRanges.plotAllTicks.end:   0
-
 ################################################################################
 # Channel mapping.
 ################################################################################
@@ -72,10 +69,22 @@ tools.pd_adcPedestalFit: {
 # Sticky code mitigation.
 tools.pdsp_adcMitigate: {
   tool_type: AdcCodeMitigator
-  FixedFlags: []
+  LogLevel: 1
+  FixFlags: []
   InterpolateFlags: [8, 9, 10, 11, 12]
   SkipFlags: []
 }
+
+# Timing mitigation.
+# Adjust the timing for FEMB 302 (aka femb 1)
+tools.pdsp_timingMitigate: {
+  tool_type: AdcTimingMitigator
+  LogLevel: 1
+  SamplingRatio: 0.9995
+  SamplingOffset: 3
+  FEMBs: [1]
+}
+
 
 ################################################################################
 # Event metrics.
@@ -151,7 +160,8 @@ tools.rawAdcDetectorPlotColl: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC collection view. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Raw ADC collection view"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
@@ -173,7 +183,8 @@ tools.rawAdcDetectorPlotInd1: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Raw ADC induction view 1"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
@@ -195,7 +206,8 @@ tools.rawAdcDetectorPlotInd2: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Raw ADC induction view 2"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -219,7 +231,8 @@ tools.preparedAdcDetectorPlotColl: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Prepared ADC collection view"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.preparedAdcDetectorPlotInd1: {
@@ -241,7 +254,8 @@ tools.preparedAdcDetectorPlotInd1: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Prepared ADC induction view 1"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.preparedAdcDetectorPlotInd2: {
@@ -263,7 +277,8 @@ tools.preparedAdcDetectorPlotInd2: {
   ShowCathode: true
   ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%. Trigger %TRIG%."
+  Title: "Prepared ADC induction view 2"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -284,7 +299,8 @@ pdcht_template: {
   ChannelLinePattern: []
   Palette: 1026
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
-  HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL%. Trigger %TRIG%."
+  HistTitle: "Raw ADC"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -297,7 +313,7 @@ tools.pdcht_All.ChannelRanges: [all]
 tools.pdcht_All.ChannelLinePattern: [0]
 
 # Add location for the remaining plots.
-pdcht_template.HistTitle: "Raw ADC for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%) Trigger %TRIG%"
+pdcht_template.HistTitle: "Raw ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 
 # One plot for each TPS (APA).
 tools.pdcht_Apas: @local::pdcht_template
@@ -334,6 +350,32 @@ tools.pdcht_Apa3u.ChannelRanges: [tpp0u]
 tools.pdcht_Apa3v: @local::tools.pdcht_Iplanes
 tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
 
+# As above but for prepared data.
+
+pdchtp_template: @local::pdcht_template
+pdchtp_template.DataType: 0
+pdchtp_template.HistName: "hadcprp_%CRNAME%_run%0RUN%_evt%0EVENT%"
+pdchtp_template. HistTitle: "Prepared ADC"
+pdchtp_template.PlotFileName: "adcprp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# One plot for the full detector.
+tools.pdchtp_All: @local::pdchtp_template
+tools.pdchtp_All.ChannelRanges: [all]
+tools.pdchtp_All.ChannelLinePattern: [0]
+
+# Add location for the remaining plots.
+pdchtp_template.HistTitle: "Prepared ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+
+# One plot for each Z-plane. Z is the TPC-side collection plane.
+tools.pdchtp_Zplanes: @local::pdchtp_template
+tools.pdchtp_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
+tools.pdchtp_ZPlanes.ChannelLineModulus: 2560
+tools.pdchtp_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
+                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# Plot APA3z (where the beam enters).
+tools.pdchtp_Apa3z: @local::tools.pdchtp_Zplanes
+tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 
 ################################################################################
 # ADC channel metric plotters.
