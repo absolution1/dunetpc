@@ -49,7 +49,7 @@ pdsp_tpc_raw_decoder:
   RCECheckBufferSize: true
   RCEBufferSizeCheckLimit: 10000000
 
-  RCEFIX302:                         true   # do an ADC-value based fix for the FEMB 302 data misalignment
+  RCEFIX302:                         false  # do an ADC-value based fix for the FEMB 302 data misalignment
   RCEFIX302StepSize:                 40     # minimum number of ADC counts to define a step
   RCEFIX302NTicksMax:                150    # maximum number of ticks to slide waveform
   RCEFIX302MedianSmoothRadius:       10     # median smooth radius in ticks to find edge    
