@@ -48,6 +48,7 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     fout << "    CountWidth:   6" << endl;
     fout << "    FembWidth:    3" << endl;
     fout << "    TriggerWidth: 2" << endl;
+    fout << "    TrigNames: [unknown]" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

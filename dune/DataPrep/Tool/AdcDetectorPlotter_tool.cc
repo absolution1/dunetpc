@@ -67,6 +67,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ShowTpcSets(ps.get<IndexVector>("ShowTpcSets")),
   m_ShowGrid(ps.get<bool>("ShowGrid")),
   m_Title(ps.get<string>("Title")),
+  m_PlotTitle(ps.get<string>("PlotTitle")),
   m_FileName(ps.get<string>("FileName")),
   m_state(new State) {
   const string myname = "AdcDetectorPlotter::ctor: ";
@@ -103,6 +104,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << "]" << endl;
     cout << myname << "         ShowGrid: " << m_ShowGrid << endl;
     cout << myname << "            Title: " << m_Title << endl;
+    cout << myname << "        PlotTitle: " << m_PlotTitle << endl;
     cout << myname << "         FileName: " << m_FileName << endl;
   }
   WireSelector& sel = getState()->sel;
@@ -162,6 +164,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 2 ) cout << myname << "  Starting new event." << endl;
     initializeState(state, acdFirst);
     string sttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_Title);
+    string spttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_PlotTitle);
     state.ofname = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_FileName);
     // Create graph.
     state.ppad.reset(new TPadManipulator(npadx, npady));
@@ -195,6 +198,14 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
         pgc->SetPoint(iwin, xsign*(win.x + win.driftMax), win.z);
       }
       state.ppad->add(pgc, "P");
+    }
+    // Add lower left label.
+    if ( spttl.size() ) {
+      state.pttl.reset(new TLatex(0.01, 0.015, spttl.c_str()));
+      state.pttl->SetNDC();
+      state.pttl->SetTextFont(42);
+      state.pttl->SetTextSize(0.030);
+      state.ppad->add(state.pttl.get());
     }
   }
   ++state.jobCount;

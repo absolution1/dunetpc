@@ -335,6 +335,7 @@ producer_adcprep: {
   WireName:                  ""
   DoAssns:                 true
   DoGroups:                true
+  BeamEventLabel:            ""
   IntermediateStates:        []
 }
 

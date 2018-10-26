@@ -111,6 +111,11 @@ private:
   int           _rce_fix302_NTicksMax;
   int           _rce_fix302_MedianSmoothRadius;
 
+  // flags for attempting to fix FEMB 110's misaligned data
+
+  bool          _rce_fix110;
+  unsigned int  _rce_fix110_nticks;
+
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
   bool          _felix_enforce_exact_crate_number;
@@ -180,10 +185,17 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
 
+  // parameters to steer the FEMB 302 band-aid
+
   _rce_fix302 = p.get<bool>("RCEFIX302",true);
   _rce_fix302_StepSize = p.get<int>("RCEFIX302StepSize",20);
   _rce_fix302_NTicksMax = p.get<int>("RCEFIX302NTicksMax",150);
   _rce_fix302_MedianSmoothRadius = p.get<int>("RCEFIX302MedianSmoothRadius",10);
+
+  // parameters to steer the FEMB 110 band-aid
+
+  _rce_fix110 = p.get<bool>("RCEFIX110",true);
+  _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -687,16 +699,32 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  //if(i==0 && i_ch ==0) std::cout<<" ADCs for the the 100 ticks in the 1st channel of the 1st RCE "<<std::endl;
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
+
 	  v_adc.clear();
-	  for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+
+	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
 	    {
-	      v_adc.push_back(adcs[i_tick]);
+	      for (size_t i_tick = 0; i_tick < n_ticks-_rce_fix110_nticks; i_tick++)
+		{
+		  v_adc.push_back(adcs[i_tick+_rce_fix110_nticks]);
+		}
+	      for (size_t i_tick=0; i_tick<_rce_fix110_nticks; ++i_tick)
+		{
+		  v_adc.push_back(v_adc.back());
+		}
+	      
+	    }
+	  else
+	    {
+	      for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+		{
+		  v_adc.push_back(adcs[i_tick]);
+		}
 	    }
 	  adcs += n_ticks;
 
 	  ch_counter++;
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
 	  if (offlineChannel < _duplicate_channel_checklist_size)
 	    {
