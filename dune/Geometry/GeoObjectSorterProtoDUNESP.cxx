@@ -19,7 +19,7 @@ namespace
   template <class ITERATOR>
   void SortInSpiral(const ITERATOR begin, const ITERATOR end)
   {
-    const auto center = std::accumulate(begin, end, geo::Vector_t(0., 0., 0.), [](geo::Vector_t sum, const auto& geo) 
+    const auto center = std::accumulate(begin, end, geo::Vector_t(0., 0., 0.), [](geo::Vector_t sum, const auto geo) 
                                                                                { return sum+geo->GetCenter(); });
 
     const geo::Vector_t vertical(0., 1., 0.);
@@ -27,7 +27,7 @@ namespace
     //Sort by angle between vector from center of all AuxDetGeos to center of each AuxDetGeo 
     //and vertical unit vector.  If this is really a bottleneck, one could probably write some 
     //multi-return-statement version that's more efficient.  
-    std::sort(begin, end, [&center, &vertical](const auto& first, const auto& second)
+    std::sort(begin, end, [&center, &vertical](const auto first, const auto second)
                           {
                             const auto firstVec = first->GetCenter()-center;
                             const auto secondVec = second->GetCenter()-center;
@@ -41,8 +41,11 @@ namespace
   template <class ITERATOR>
   ITERATOR FindFirstDownstream(const ITERATOR begin, const ITERATOR end, const double zTolerance)
   {
-    ITERATOR prev = end;
-    for(auto geo = begin; geo != end; ++geo)
+    if(begin == end) return end; //In a container of size 1, there is no way to use this algorithm to 
+                                 //find out whether this range contains an upstream or a downstream volume
+
+    ITERATOR prev = begin;
+    for(auto geo = std::next(begin); geo != end; ++geo)
     {
       if(fabs(((*geo)->GetCenter() - (*prev)->GetCenter()).Z()) > zTolerance) return geo;
       prev = geo;
