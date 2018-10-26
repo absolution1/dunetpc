@@ -77,7 +77,7 @@ tools.pdsp_adcMitigate: {
 
 # Timing mitigation.
 # Adjust the timing for FEMB 302 (aka femb 1)
-tools.pdsp_timingMitigator: {
+tools.pdsp_timingMitigate: {
   tool_type: AdcTimingMitigator
   LogLevel: 1
   SamplingRatio: 0.9995
