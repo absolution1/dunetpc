@@ -114,6 +114,9 @@ adcnr_dunedphase3x1x1: {
   Flatten:                              true
   FlattenExtrapolate:			false
   LowPassFlt:                           false
+  LowPassFltSecondPass:                 false
+  LowPassFltFCut:                       0.5
+  LowPassFltExpo:                       8
 }
 
 #***********************************************************************
