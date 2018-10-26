@@ -75,6 +75,17 @@ tools.pdsp_adcMitigate: {
   SkipFlags: []
 }
 
+# Timing mitigation.
+# Adjust the timing for FEMB 302 (aka femb 1)
+tools.pdsp_timingMitigator: {
+  tool_type: AdcTimingMitigator
+  LogLevel: 1
+  SamplingRatio: 0.9995
+  SamplingOffset: 3
+  FEMBs: [1]
+}
+
+
 ################################################################################
 # Event metrics.
 ################################################################################
@@ -339,6 +350,32 @@ tools.pdcht_Apa3u.ChannelRanges: [tpp0u]
 tools.pdcht_Apa3v: @local::tools.pdcht_Iplanes
 tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
 
+# As above but for prepared data.
+
+pdchtp_template: @local::pdcht_template
+pdchtp_template.DataType: 0
+pdchtp_template.HistName: "hadcprp_%CRNAME%_run%0RUN%_evt%0EVENT%"
+pdchtp_template. HistTitle: "Prepared ADC"
+pdchtp_template.PlotFileName: "adcprp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# One plot for the full detector.
+tools.pdchtp_All: @local::pdchtp_template
+tools.pdchtp_All.ChannelRanges: [all]
+tools.pdchtp_All.ChannelLinePattern: [0]
+
+# Add location for the remaining plots.
+pdchtp_template.HistTitle: "Prepared ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+
+# One plot for each Z-plane. Z is the TPC-side collection plane.
+tools.pdchtp_Zplanes: @local::pdchtp_template
+tools.pdchtp_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
+tools.pdchtp_ZPlanes.ChannelLineModulus: 2560
+tools.pdchtp_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
+                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# Plot APA3z (where the beam enters).
+tools.pdchtp_Apa3z: @local::tools.pdchtp_Zplanes
+tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 
 ################################################################################
 # ADC channel metric plotters.
