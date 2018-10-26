@@ -42,7 +42,7 @@ DataMap AdcTimingMitigator::update(AdcChannelData& acd) const {
   const string myname = "AdcTimingMitigator::update: ";
   DataMap ret;
   if ( m_fembSet.count(acd.fembID) == 0 ) {
-    if ( m_LogLevel >= 3 ) {
+    if ( m_LogLevel >= 2 ) {
       cout << myname << "Skipping channel " << acd.channel << " in FEMB " << acd.fembID << endl;
     }
     return ret;

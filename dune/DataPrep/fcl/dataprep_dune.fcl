@@ -340,6 +340,7 @@ producer_adcprep: {
   DoGroups:                true
   BeamEventLabel:            ""
   IntermediateStates:        []
+  OnlineChannelMapTool:  pd_onlineChannelMapByFemb
 }
 
 #***********************************************************************
