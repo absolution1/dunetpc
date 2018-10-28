@@ -247,8 +247,10 @@ void DataPrepModule::produce(art::Event& evt) {
       trigFlag = tim.GetFlags();
       cout << myname << "Trigger flag: " << trigFlag << " (";
       bool isBeam = trigFlag == 0xc;
+      bool isCrt = trigFlag == 13;
       bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
       if ( isBeam ) cout << "Beam";
+      else if ( isCrt ) cout << "CRT";
       else if ( isFake ) cout << "Fake";
       else cout << "Unexpected";
       cout << ")" << endl;
