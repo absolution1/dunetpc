@@ -522,7 +522,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
        outfilename += frag.fragmentID();
        outfilename+=".fragment";
        rce.save(outfilename.Data());
-       std::cout << "Saved an RCE fragment " << rce.size() << " " << outfilename << std::endl;
+       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
     }
 
 
