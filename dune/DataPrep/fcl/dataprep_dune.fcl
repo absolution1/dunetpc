@@ -338,6 +338,7 @@ producer_adcprep: {
   WireName:                  ""
   DoAssns:                 true
   DoGroups:                true
+  ChannelRanges:             []
   BeamEventLabel:            ""
   IntermediateStates:        []
   OnlineChannelMapTool:  pd_onlineChannelMapByFemb
