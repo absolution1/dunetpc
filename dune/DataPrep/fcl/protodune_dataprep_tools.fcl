@@ -289,12 +289,13 @@ tools.preparedAdcDetectorPlotInd2: {
 pdcht_template: {
   tool_type: AdcDataPlotter
   LogLevel: 1
-  DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  DataType: 1      # 0 for prepared, 1 for raw-pedestal, 2 is signal
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 50
+  EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: []
   Palette: 1026
@@ -353,7 +354,8 @@ tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
 # As above but for prepared data.
 
 pdchtp_template: @local::pdcht_template
-pdchtp_template.DataType: 0
+pdchtp_template.DataType: 2
+pdchtp_template.MaxSignal: 50
 pdchtp_template.HistName: "hadcprp_%CRNAME%_run%0RUN%_evt%0EVENT%"
 pdchtp_template. HistTitle: "Prepared ADC"
 pdchtp_template.PlotFileName: "adcprp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -372,6 +374,17 @@ tools.pdchtp_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
 tools.pdchtp_ZPlanes.ChannelLineModulus: 2560
 tools.pdchtp_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
                                           2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# One plot for each C-plane. C is the cryostat-side collection plane.
+tools.pdchtp_Cplanes: @local::tools.pdchtp_Zplanes
+tools.pdchtp_Cplanes.ChannelRanges: [tpp0c, tpp1c, tpp2c, tpp3c, tpp4c, tpp5c]
+
+# One plot for each induction plane.
+tools.pdchtp_Iplanes: @local::pdchtp_template
+tools.pdchtp_Iplanes.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
+                                    tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
+tools.pdcht_Iplanes.ChannelLineModulus: 40
+tools.pdcht_Iplanes.ChannelLinePattern: [0]
 
 # Plot APA3z (where the beam enters).
 tools.pdchtp_Apa3z: @local::tools.pdchtp_Zplanes
