@@ -67,7 +67,7 @@ DataMap AdcTimingMitigator::update(AdcChannelData& acd) const {
     if ( xj > 0.0 ) {
       Index i1 = xj;
       Index i2 = i1 + 1;
-      if ( i2 > acd.samples.size() ) break;
+      if ( i2 >= acd.samples.size() ) break;
       double y1 = acd.samples[i1];
       double y2 = acd.samples[i2];
       yj = (y2 - y1)*(xj - i1) + y1;

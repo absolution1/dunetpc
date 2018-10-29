@@ -21,6 +21,11 @@
 //                     Values should be zero (empty array) for undistorted plots
 //   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   EmptyColor - If >=0, empty bins are drawn in this color (See TAttColor).
+//                Otherwise empty bins are drawn with value zero.
+//                Bins may be empty if a channel is nor processed, if a tick out of range
+//                or a tick is not selected (outside ROI) for DataType 2.
+//                EmptyColor is not used when rebinning.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
@@ -95,6 +100,7 @@ private:
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
+  Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   int            m_Palette;
