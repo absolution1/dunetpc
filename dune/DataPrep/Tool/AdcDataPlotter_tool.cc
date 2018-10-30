@@ -244,7 +244,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     // Set flag indicating we want to show empty bins with the color m_EmptyColor.
     // We initialize all bins below zmin and fill with zmin where the value would be lower.
     // We do not attempt this this where rebinning is done.
-    bool colorEmptyBins = m_EmptyColor >= 0 && m_TickRebin <= 1;
+    //bool colorEmptyBins = m_EmptyColor >= 0 && m_TickRebin <= 1;
+    bool colorEmptyBins = m_TickRebin <= 1;
     // Create histogram.
     TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanBegin, chanEnd);
     ph->SetDirectory(nullptr);
@@ -256,12 +257,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     ph->SetContour(40);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
-    if ( m_EmptyColor >= 0 ) {
+    //if ( m_EmptyColor >= 0 ) {
       for ( Index icha=1; icha<=nchan; ++icha ) {
         Index ibin0 = (ntick+2)*icha + 1;
         for ( Index ibin=ibin0; ibin<ibin0+ntick; ++ibin ) ph->SetBinContent(ibin, zempty);
       }
-    }
+    //}
     // Fill histogram.
     for ( AdcChannel chan=chanDataBegin; chan<chanDataEnd; ++chan ) {
       unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
