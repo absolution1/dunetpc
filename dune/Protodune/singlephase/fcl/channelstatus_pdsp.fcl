@@ -63,6 +63,14 @@ pdsp_channel_status: {
     # CE group: good.
     # femb311
         2,
+     3541,  # femb516u, signal near zero half the time (5803-81)
+     3543,  # femb516u, signal near zero half the time (5803-81)
+     3661,  # femb513u, most signal near zero (5803-81)
+     3663,  # femb513u, most signal near zero (5803-81)
+     4061,  # femb503u, most signal near zero (5803-81)
+     4063,  # femb503u, most signal near zero (5803-81)
+     4141,  # femb501u, signal near zero half the time (5803-81)
+     4143,  # femb501u, signal sometimes near zero (5803-81)
     #-----
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
@@ -122,7 +130,11 @@ pdsp_channel_status: {
      2146,
      2158,
      2161,
-     2169
+     2169,
+    # femb513u
+     2674,  # 2-value pedestal
+   # femb518u
+     2833   # Noisy adc pedestal
   ]
 
 }
