@@ -10,6 +10,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -37,6 +39,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
   m_EmptyColor(ps.get<double>("EmptyColor")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
@@ -48,7 +51,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
-  m_pOnlineChannelMapTool(nullptr) {
+  m_pOnlineChannelMapTool(nullptr),
+  m_pChannelStatusProvider(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
@@ -95,6 +99,14 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
           cout << myname << "WARNING: Channel range not found: " << crn << endl;
         }
       }
+    }
+  }
+  // Fetch the channel status service.
+  if ( m_SkipBadChannels ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel mapping service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
     }
   }
   // Display configuration.
@@ -251,21 +263,16 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       }
     }
     // Fill histogram.
-    const bool doZero = false;
     for ( AdcChannel chan=chanDataBegin; chan<chanDataEnd; ++chan ) {
       unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
       AdcChannelDataMap::const_iterator iacd = acds.find(chan);
-      if ( iacd == acds.end() ) {
-        if ( doZero ) {
-          if ( m_LogLevel >= 3 ) cout << myname << "Filling channel-tick histogram with zero for channel " << chan << endl;
-          unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
-          for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) ph->SetBinContent(ibin, 0.0);
-        } else {
-          if ( m_LogLevel >= 3 ) cout << myname << "Not filling channel-tick histogram for channel " << chan << endl;
-        }
+      if ( iacd == acds.end() ) continue;
+      const AdcChannelData& acd = iacd->second;
+      if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
+           m_pChannelStatusProvider->IsBad(acd.channel) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
         continue;
       }
-      const AdcChannelData& acd = iacd->second;
       const AdcSignalVector& sams = acd.samples;
       const AdcFilterVector& keep = acd.signal;
       const AdcCountVector& raw = acd.raw;

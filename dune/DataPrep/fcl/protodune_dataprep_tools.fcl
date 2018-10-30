@@ -295,6 +295,7 @@ pdcht_template: {
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 50
+  SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: []
@@ -356,6 +357,7 @@ tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
 pdchtp_template: @local::pdcht_template
 pdchtp_template.DataType: 2
 pdchtp_template.MaxSignal: 50
+pdchtp_template.SkipBadChannels: true
 pdchtp_template.HistName: "hadcprp_%CRNAME%_run%0RUN%_evt%0EVENT%"
 pdchtp_template. HistTitle: "Prepared ADC"
 pdchtp_template.PlotFileName: "adcprp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"

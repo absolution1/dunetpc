@@ -145,6 +145,7 @@ tools.preparedAdcPlotter: {
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
@@ -166,6 +167,7 @@ tools.signalAdcPlotter: {
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
@@ -187,6 +189,7 @@ tools.rawAdcPlotter: {
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]

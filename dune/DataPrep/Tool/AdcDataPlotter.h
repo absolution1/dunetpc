@@ -21,6 +21,7 @@
 //                     Values should be zero (empty array) for undistorted plots
 //   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   SkipBadChannels - If true, skip channels flagged as bad.
 //   EmptyColor - If >=0, empty bins are drawn in this color (See TAttColor).
 //                Otherwise empty bins are drawn with value zero.
 //                Bins may be empty if a channel is nor processed, if a tick out of range
@@ -70,6 +71,9 @@
 class AdcChannelStringTool;
 class IndexMapTool;
 class IndexRangeTool;
+namespace lariov {
+  class ChannelStatusProvider;
+}
 
 class AdcDataPlotter : AdcChannelTool {
 
@@ -100,6 +104,7 @@ private:
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
+  bool           m_SkipBadChannels;
   Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
@@ -118,9 +123,10 @@ private:
   // Channel ranges.
   IndexRangeVector m_crs;
 
-  // Client tools.
+  // Client tools and services.
   const AdcChannelStringTool* m_adcStringBuilder;
   const IndexMapTool* m_pOnlineChannelMapTool;
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
