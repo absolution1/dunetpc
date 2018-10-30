@@ -69,7 +69,8 @@ private:
   std::vector<double> GaussJordanSolv(std::vector< std::vector<long double> > matrix) const;
 
   // Configuration parameters.
-  bool fDoTwoPassFilter, fCoherent32, fCoherent16, fLowPassFlt, fFlatten, fFlattenExtrapolate;
+  bool fDoTwoPassFilter, fCoherent32, fCoherent16, fLowPassFlt, fLowPassFltSecondPass, fFlatten, fFlattenExtrapolate;
+  float fLowPassFltFCut, fLowPassFltExpo;
   std::vector< size_t > fCoherent32Groups;
   std::vector< size_t > fCoherent16Groups;
   std::vector< float > fLowPassCoeffs;

@@ -40,6 +40,7 @@ services.RawDigitPrepService.AdcChannelToolNames: [
     "adcSampleFiller",            # Subtract pedestal, trivial calibration
     "pdsp_sticky_codes_ped",      # Flag sticky codes
     "pdsp_adcMitigate",           # Mitigate sticky codes
+    "pdsp_timingMitigate",        # Mitigate FEMB302 timing
     "adcVintageDeconvoluter",     # Deconvolute
     "adcThresholdSignalFinder"    # Build ROIs
 ]
@@ -59,3 +60,6 @@ services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
 
 # Use channel service for data
 services.ChannelStatusService: @local::pdsp_channel_status
+
+# Use channel map service for data
+services.PdspChannelMapService:        @local::pdspchannelmap

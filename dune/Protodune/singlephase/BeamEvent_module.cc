@@ -90,7 +90,8 @@ public:
   uint64_t GetRawDecoderInfo(art::Event &);
   void TimeIn(art::Event &, uint64_t);
   void GetSpillInfo(art::Event &);
-  void MatchBeamToTPC(art::Event &, uint64_t);
+  void MatchBeamToTPC();
+  void MatchS11ToGen();
   void SetBeamEvent(); 
   void SetCKovInfo(); 
 
@@ -109,11 +110,17 @@ public:
   void  parseXTOF(uint64_t);
   void  parseXCET(uint64_t);
 
-  template<class T> 
-  T FetchWithRetries(long long, std::string, int);
-  
-  template<class T> 
-  T FetchWithRetriesDown(long long, std::string, int);
+
+  void getS11Info();
+
+  //template<class T> 
+  //T FetchWithRetries(long long, std::string, int);
+  //
+  //template<class T> 
+  //T FetchWithRetriesDown(long long, std::string, int);
+
+  std::vector<double> FetchWithRetries(long long, std::string, int);
+  std::vector<double> FetchWithRetriesDown(long long, std::string, int);
    
 private:
   
@@ -204,6 +211,12 @@ private:
   double SpillOffset;
   double ActiveTriggerTime;
   long long RDTSTime;
+  double RDTSTimeSec;
+  double PrevRDTSTimeSec;  
+  double RDTSTimeNano; 
+
+  double s11Sec, s11Nano;
+
   int RDTSTrigger;
   std::vector< double > * GenTriggers;
 
@@ -298,6 +311,11 @@ private:
   double fCalibrationTolerance;
   double fOffsetTAI;
 
+  double fS11DiffUpper; 
+  double fS11DiffLower; 
+  double fRDTSToS11Upper; 
+  double fRDTSToS11Lower; 
+
   int    fOffsetCTBtoRDTS;
   int    fToleranceCTBtoRDTS;
 
@@ -340,9 +358,10 @@ proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
 
 ////////////////////////
 // Fetch Method
-template <class T> 
-T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry){
-  T theResult;
+//template <class T> 
+//T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry){
+std::vector<double> proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry){
+  std::vector<double> theResult;
   
   std::cout << std::endl;
   long long newTime;
@@ -352,12 +371,12 @@ T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetr
     std::cout << "Trying to grab from folder: " << name << std::endl;
     std::cout << "At Time: " << newTime << std::endl;    
       try{
-        theResult = (T)bfp->GetNamedVector(newTime, name);
+        theResult = bfp->GetNamedVector(newTime, name);
         std::cout << "Successfully fetched " << newTime << std::endl;
         return theResult;
       }
     catch(std::exception e){
-//      std::cout << "Could not fetch with time " << newTime << std::endl;      
+      std::cout << "Could not fetch with time " << newTime << std::endl;      
     }
   }
   //Now search below
@@ -365,7 +384,7 @@ T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetr
     std::cout << "Trying to grab from folder: " << name << std::endl;
     std::cout << "At Time: " << newTime << std::endl;    
     try{
-      theResult = (T)bfp->GetNamedVector(newTime, name);
+      theResult = bfp->GetNamedVector(newTime, name);
       std::cout << "Successfully fetched " << newTime << std::endl;
       return theResult;
     }
@@ -377,7 +396,7 @@ T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetr
   //Try a final time. Let it crash if it doesn't work
   std::cout << "Trying a final time to grab from folder: " << name << std::endl;
   std::cout << "At time: " << newTime << std::endl;
-  theResult = (T)bfp->GetNamedVector(newTime, name);
+  theResult = bfp->GetNamedVector(newTime, name);
     std::cout << "Successfully fetched" << std::endl;
   std::cout << std::endl;
   return theResult; 
@@ -387,9 +406,10 @@ T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetr
 
 ////////////////////////
 // Fetch Method
-template <class T> 
-T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry){
-  T theResult;
+//template <class T> 
+//T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry){
+std::vector<double> proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry){
+  std::vector<double> theResult;
   
   std::cout << std::endl;
   long long newTime;
@@ -399,7 +419,7 @@ T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int n
     std::cout << "Trying to grab from folder: " << name << std::endl;
     std::cout << "At Time: " << newTime << std::endl;    
     try{
-      theResult = (T)bfp->GetNamedVector(newTime, name);
+      theResult = bfp->GetNamedVector(newTime, name);
       std::cout << "Successfully fetched " << newTime << std::endl;
       return theResult;
     }
@@ -411,7 +431,7 @@ T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int n
   //Try a final time. Let it crash if it doesn't work
   std::cout << "Trying a final time to grab from folder: " << name << std::endl;
   std::cout << "At time: " << newTime << std::endl;
-  theResult = (T)bfp->GetNamedVector(newTime, name);
+  theResult = bfp->GetNamedVector(newTime, name);
     std::cout << "Successfully fetched" << std::endl;
   std::cout << std::endl;
   return theResult; 
@@ -445,6 +465,17 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     RDTSTime = joined;
     RDTSTrigger = RDTS.GetFlags();
     std::cout << "Trigger: " << RDTSTrigger << std::endl; 
+
+    //Separates seconds portion of the ticks 
+    //From the nanoseconds
+    long long RDTSTickSec = (RDTSTime * 2) / (int)(TMath::Power(10,8));
+    RDTSTickSec = RDTSTickSec * (int)(TMath::Power(10,8)) / 2;
+    long long RDTSTickNano = RDTSTime - RDTSTickSec;
+  
+    //Units are 20 nanoseconds ticks
+    RDTSTimeSec  = 20.e-9 * RDTSTickSec;
+    RDTSTimeNano = 20.    * RDTSTickNano;
+
   }
 
   auto const CTBHandle = e.getValidHandle< std::vector< raw::ctb::pdspctb > >("ctbrawdecoder:daq");
@@ -612,7 +643,7 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
     std::cout << "Attempting to Time In" << std::endl;   
 
     /////Now look at the acqStamp coming out of IFBeam
-    std::vector<double> acqStamp = FetchWithRetriesDown< std::vector<double> >(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]",fNRetries); 
+    std::vector<double> acqStamp = FetchWithRetriesDown(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]",fNRetries); 
 
     acqStampMBPL   = 1.e-9 * joinHighLow(acqStamp[0],   acqStamp[1]); 
 
@@ -625,7 +656,36 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
     
 }
 
-void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
+void proto::BeamEvent::MatchS11ToGen(){
+  
+  std::cout << "Matching S11 To Gen" << std::endl;
+  for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
+    double GenTrigSec  = beamspill->GetT0(iT).first;
+    double GenTrigNano = beamspill->GetT0(iT).second;
+
+    double diff = GenTrigSec - s11Sec;
+    diff += 1.e-9*(GenTrigNano - s11Nano);
+    //std::cout << iT << " " << diff  << std::endl;
+
+    if( fS11DiffLower < diff && diff < fS11DiffUpper ){
+      std::cout << "Found matching S11 and GenTrig!" << std::endl;
+      std::cout << "diff: " << diff << std::endl;
+
+      beamspill->SetActiveTrigger( iT ); 
+      beamevt->SetActiveTrigger( iT );
+      beamevt->SetT0( beamspill->GetT0( iT ) );
+//      std::cout << "Found at: " << iT << std::endl;
+//      std::cout << "Previous Active Trigger: " << beamspill->GetActiveTrigger() << std::endl;
+//      std::cout << "Set event T0: " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << std::endl;
+      return;
+    }
+  }
+  std::cout << "Could not find matching time " << std::endl << std::endl;
+  beamspill->SetUnmatched();
+}
+
+
+void proto::BeamEvent::MatchBeamToTPC(){
 
   std::cout << "Matching in time between Beamline and TPC!!!" << std::endl; 
   for(size_t iT = 0; iT < beamspill->GetNT0(); ++iT){
@@ -661,7 +721,7 @@ void proto::BeamEvent::MatchBeamToTPC(art::Event & e, uint64_t time){
       beamspill->SetActiveTrigger( iT ); 
       beamevt->SetActiveTrigger( iT );
       beamevt->SetT0( beamspill->GetT0( iT ) );
-      std::cout << "Set event T0: " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << std::endl;;
+      std::cout << "Set event T0: " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << std::endl;
       return;
     }
   }
@@ -750,6 +810,10 @@ void proto::BeamEvent::produce(art::Event & e){
   SpillStart  = -1;
   SpillEnd    = -1;
   SpillOffset = -1;
+
+  s11Nano     = -1.;
+  s11Sec      = -1.;
+
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
   GenTriggers->clear();
@@ -783,6 +847,9 @@ void proto::BeamEvent::produce(art::Event & e){
 
   validTimeStamp = GetRawDecoderInfo(e);
   std::cout << std::endl;
+  
+
+
 
   //Get Spill Information
   //This stores Spill Start, Spill End, 
@@ -797,12 +864,13 @@ void proto::BeamEvent::produce(art::Event & e){
   //Also check if we've gotten good spill info
   //
   //Or if we're forcing to read out the Beamline Info
-  if( ( (RDTSTrigger == 12) && (SpillStartValid) ) || fForceRead ){
+  if( ( (RDTSTrigger == 12) /*&& (SpillStartValid)*/ ) || fForceRead ){
 
 
     // Read in and cache the beam bundle folder for a specific time
     bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
     std::cerr << "%%%%%%%%%% Got beam folder %%%%%%%%%%" << std::endl << std::endl;
+ 
 
 
     //Use multiple times provided to fcl
@@ -843,13 +911,13 @@ void proto::BeamEvent::produce(art::Event & e){
       //If it's the same spill then just pass the old BeamEvent
       //Object. Its 'active trigger' info will be updated below
       //
-      //Also: Check if the SpillStart is invalid. If so, 
-      //Fetch from the database
+      //Also: Check if the SpillStart is invalid. If the RDTSTime is  
+      //Greater than 5, it's in a new spill, so fetch again
       //
       //Can be overridden with a flag from the fcl
-      if( PrevStart != SpillStart || fForceNewFetch){
+      if( ( ( PrevStart != SpillStart) || ( !SpillStartValid && ( abs(RDTSTimeSec - PrevRDTSTimeSec) > 5 ) ) )
+      || fForceNewFetch){
         std::cout << "New spill or forced new fetch. Getting new beamspill info" << std::endl << std::endl;
-
 
         // Parse the Time of Flight Counter data for the list
         // of times that we are using
@@ -873,6 +941,7 @@ void proto::BeamEvent::produce(art::Event & e){
         //the first event in the spill did not
         //a good beamline trigger
         PrevStart = SpillStart;
+        PrevRDTSTimeSec = RDTSTimeSec;
 
       }
       else{
@@ -896,9 +965,16 @@ void proto::BeamEvent::produce(art::Event & e){
         //Get the conversion from the ProtoDUNE Timing system
         //To the one in the SPS.
         //
-        TimeIn(e, fetch_time);
-        std::cout << "SpillOffset " << SpillOffset << std::endl;
-        MatchBeamToTPC(e, fetch_time);
+
+        if(SpillStartValid){
+          TimeIn(e, fetch_time);
+          std::cout << "SpillOffset " << SpillOffset << std::endl;
+          MatchBeamToTPC();
+        }
+        else{
+          getS11Info(); 
+          MatchS11ToGen();
+        }
 
 
         if( beamspill->CheckIsMatched() ){
@@ -934,7 +1010,7 @@ void proto::BeamEvent::produce(art::Event & e){
           //First, try getting the current from the magnet in IFBeam
           std::cout << "Trying to get the current" << std::endl;
           try{
-            current = FetchWithRetriesDown< std::vector<double> >(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
+            current = FetchWithRetriesDown(fetch_time, "dip/acc/NORTH/NP04/POW/MBPL022699:current",fNRetries);
             std::cout << "Current: " << current[0] << std::endl;
     
             MomentumSpec( beamspill->GetActiveTrigger() ); 
@@ -963,10 +1039,10 @@ void proto::BeamEvent::produce(art::Event & e){
   //So let's make it empty so we aren't putting 
   //old spill info in the new event
 
-  //No need to pass info if the SpillStart is invalid.
-  //If the next event has a valid spill start, it will be in a 
-  //'new spill' and will fetch.
-  if( RDTSTrigger != 12 && ( PrevStart != SpillStart ) ){
+  //Or. If this was not a beam trigger, and the RDTSTime
+  //Comes from a new spill while the SpillStart was invalid, pass it. 
+  else if( ( ( PrevStart != SpillStart ) || ( !SpillStartValid && ( abs(RDTSTimeSec - PrevRDTSTimeSec) > 5 ) ) ) 
+    && RDTSTrigger != 12 ){
     prev_beamspill = *beamspill;   
   }
   
@@ -1020,15 +1096,59 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 // END BeamEvent::InitXBPFInfo
 ////////////////////////
 
+void proto::BeamEvent::getS11Info(){
+  std::cout << "Getting S11 Info " << std::endl;
+  uint64_t time = uint64_t( RDTSTime * 2e-8 );
+  std::vector<double> coarseS11  = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]",fNRetries);
+  std::vector<double> fracS11    = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:frac[]",fNRetries); 
+  std::vector<double> secondsS11 = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:seconds[]",fNRetries); 
+  std::vector<double> timestampCountS11 = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:timestampCount",fNRetries); 
+  
+  int s11Count = (int)timestampCountS11[0];
+
+  std::cout << "Found " << s11Count << " returned signals" << std::endl;
+
+  //Separates seconds portion of the ticks 
+  //From the nanoseconds
+  long long RDTSTickSec = (RDTSTime * 2) / (int)(TMath::Power(10,8));
+  RDTSTickSec = RDTSTickSec * (int)(TMath::Power(10,8)) / 2;
+  long long RDTSTickNano = RDTSTime - RDTSTickSec;
+
+  //Units are 20 nanoseconds ticks
+  double RDTSTimeSec  = 20.e-9 * RDTSTickSec;
+  double RDTSTimeNano = 20.    * RDTSTickNano;
+
+
+  for(int i = 0; i < s11Count; ++i){
+    double nano = 8.*coarseS11[i] + fracS11[i]/512.;
+
+    double diffSec = secondsS11[2*i + 1] - RDTSTimeSec - fOffsetTAI;
+    double diffNano = nano - RDTSTimeNano;
+
+    //std::cout << i << " " << secondsS11[2*i + 1] << " " << RDTSTimeSec << std::endl;
+    //std::cout << "\t" << nano << " " << RDTSTimeNano << std::endl;
+    std::cout << i << " diffSec " << diffSec << std::endl; 
+    std::cout << i << " diffNano " << diffNano << std::endl; 
+
+    double diff = diffSec + 1.e-9*diffNano;
+    if( fRDTSToS11Lower < diff && diff < fRDTSToS11Upper ){
+      std::cout << "FOUND Match between S11 and RDTS" << std::endl;  
+      s11Nano = nano;
+      s11Sec  = secondsS11[2*i + 1] - fOffsetTAI;
+      break;
+    }
+  }
+
+}
+
 
 void proto::BeamEvent::parseXTOF(uint64_t time){
   std::cout << "Getting General trigger info " << std::endl;
-//  std::vector<long int> coarseGenTrigLongInt = FetchWithRetries< std::vector<long int> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
-  std::vector<double> coarseGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
-  std::vector<double> fracGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
-  std::vector<double> acqStampGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
-  std::vector<double> secondsGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:seconds[]",fNRetries); 
-  std::vector<double> timestampCountGeneralTrigger = FetchWithRetries< std::vector<double> >(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount",fNRetries); 
+  std::vector<double> coarseGeneralTrigger = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:coarse[]",fNRetries);
+  std::vector<double> fracGeneralTrigger = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:frac[]",fNRetries); 
+  std::vector<double> acqStampGeneralTrigger = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:acqStamp[]",fNRetries); 
+  std::vector<double> secondsGeneralTrigger = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:seconds[]",fNRetries); 
+  std::vector<double> timestampCountGeneralTrigger = FetchWithRetries(time, "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount",fNRetries); 
   std::cout << "Size of coarse,frac: " << coarseGeneralTrigger.size() << " " << fracGeneralTrigger.size() << std::endl; 
 
   std::cout <<"Size of acqStamp: " << acqStampGeneralTrigger.size() << std::endl;
@@ -1043,27 +1163,27 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   acqTime = ( high | low ) / 1000000000.; 
 
   std::cout << "Getting TOF1A info: " << fTOF1 << std::endl;
-  std::vector<double> coarseTOF1A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);
-  std::vector<double> fracTOF1A =   FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":frac[]",fNRetries);
-  std::vector<double> secondsTOF1A =   FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1A + ":seconds[]",fNRetries);
+  std::vector<double> coarseTOF1A = FetchWithRetries(time, fXTOFPrefix + fTOF1A + ":coarse[]",fNRetries);
+  std::vector<double> fracTOF1A =   FetchWithRetries(time, fXTOFPrefix + fTOF1A + ":frac[]",fNRetries);
+  std::vector<double> secondsTOF1A =   FetchWithRetries(time, fXTOFPrefix + fTOF1A + ":seconds[]",fNRetries);
   std::cout << "Size of coarse,frac: " << coarseTOF1A.size() << " " << fracTOF1A.size() << std::endl; 
 
   std::cout << "Getting TOF1B info: " << fTOF1 << std::endl;
-  std::vector<double> coarseTOF1B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1B + ":coarse[]",fNRetries);
-  std::vector<double> fracTOF1B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1B + ":frac[]",fNRetries);
-  std::vector<double> secondsTOF1B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF1B + ":seconds[]",fNRetries);
+  std::vector<double> coarseTOF1B = FetchWithRetries(time, fXTOFPrefix + fTOF1B + ":coarse[]",fNRetries);
+  std::vector<double> fracTOF1B = FetchWithRetries(time, fXTOFPrefix + fTOF1B + ":frac[]",fNRetries);
+  std::vector<double> secondsTOF1B = FetchWithRetries(time, fXTOFPrefix + fTOF1B + ":seconds[]",fNRetries);
   std::cout << "Size of coarse,frac: " << coarseTOF1B.size() << " " << fracTOF1B.size() << std::endl; 
 
   std::cout << "Getting TOF2A info: " << fTOF2 << std::endl;
-  std::vector<double> coarseTOF2A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2A + ":coarse[]",fNRetries);
-  std::vector<double> fracTOF2A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2A + ":frac[]",fNRetries);
-  std::vector<double> secondsTOF2A = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2A + ":seconds[]",fNRetries);
+  std::vector<double> coarseTOF2A = FetchWithRetries(time, fXTOFPrefix + fTOF2A + ":coarse[]",fNRetries);
+  std::vector<double> fracTOF2A = FetchWithRetries(time, fXTOFPrefix + fTOF2A + ":frac[]",fNRetries);
+  std::vector<double> secondsTOF2A = FetchWithRetries(time, fXTOFPrefix + fTOF2A + ":seconds[]",fNRetries);
   std::cout << "Size of coarse,frac: " << coarseTOF2A.size() << " " << fracTOF2A.size() << std::endl; 
 
   std::cout << "Getting TOF2B info: " << fTOF2 << std::endl;
-  std::vector<double> coarseTOF2B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2B + ":coarse[]",fNRetries);
-  std::vector<double> fracTOF2B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2B + ":frac[]",fNRetries);
-  std::vector<double> secondsTOF2B = FetchWithRetries< std::vector<double> >(time, fXTOFPrefix + fTOF2B + ":seconds[]",fNRetries);
+  std::vector<double> coarseTOF2B = FetchWithRetries(time, fXTOFPrefix + fTOF2B + ":coarse[]",fNRetries);
+  std::vector<double> fracTOF2B = FetchWithRetries(time, fXTOFPrefix + fTOF2B + ":frac[]",fNRetries);
+  std::vector<double> secondsTOF2B = FetchWithRetries(time, fXTOFPrefix + fTOF2B + ":seconds[]",fNRetries);
   std::cout << "Size of coarse,frac: " << coarseTOF2B.size() << " " << fracTOF2B.size() << std::endl; 
 
   std::vector<std::pair<double,double>> unorderedGenTrigTime;
@@ -1074,7 +1194,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
 
   for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
-//    std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
+    //std::cout << i << " " << secondsGeneralTrigger[2*i + 1] << " "  << 8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512. << std::endl;
 //    std::cout << "\t" << std::setw(15) << secondsGeneralTrigger[2*i + 1] + 1.e-9*(8.*coarseGeneralTrigger[i] + fracGeneralTrigger[i]/512.) << std::endl;
 
     //2*i + 1 because the format is weird
@@ -1382,9 +1502,9 @@ void proto::BeamEvent::parseXCET(uint64_t time){
   if(fCKov1 != ""){  
     std::cout << "Getting CKov1 info: " << fCKov1 << std::endl;
 
-    std::vector< double > countsTrigCKov1 = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov1 + ":countsTrig",fNRetries);
-    std::vector< double > countsCKov1     = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov1 + ":counts",fNRetries);
-    std::vector< double > pressureCKov1   = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov1 + ":pressure",fNRetries);
+    std::vector< double > countsTrigCKov1 = FetchWithRetries(time, fXCETPrefix + fCKov1 + ":countsTrig",fNRetries);
+    std::vector< double > countsCKov1     = FetchWithRetries(time, fXCETPrefix + fCKov1 + ":counts",fNRetries);
+    std::vector< double > pressureCKov1   = FetchWithRetries(time, fXCETPrefix + fCKov1 + ":pressure",fNRetries);
     std::cout << "countsTrig: " << countsTrigCKov1[0] << std::endl; 
     std::cout << "counts: "     << countsCKov1[0] << std::endl;
     std::cout << "pressure: "   << pressureCKov1[0] << std::endl;
@@ -1398,9 +1518,9 @@ void proto::BeamEvent::parseXCET(uint64_t time){
   if(fCKov2 != ""){
     std::cout << "Getting CKov2 info: " << fCKov2 << std::endl;
 
-    std::vector< double > countsTrigCKov2 = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov2 + ":countsTrig",fNRetries);
-    std::vector< double > countsCKov2     = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov2 + ":counts",fNRetries);
-    std::vector< double > pressureCKov2   = FetchWithRetries< std::vector< double > >(time, fXCETPrefix + fCKov2 + ":pressure",fNRetries);
+    std::vector< double > countsTrigCKov2 = FetchWithRetries(time, fXCETPrefix + fCKov2 + ":countsTrig",fNRetries);
+    std::vector< double > countsCKov2     = FetchWithRetries(time, fXCETPrefix + fCKov2 + ":counts",fNRetries);
+    std::vector< double > pressureCKov2   = FetchWithRetries(time, fXCETPrefix + fCKov2 + ":pressure",fNRetries);
     std::cout << "countsTrig: " << countsTrigCKov2[0] << std::endl; 
     std::cout << "counts: "     << countsCKov2[0] << std::endl;
     std::cout << "pressure: "   << pressureCKov2[0] << std::endl;
@@ -1434,14 +1554,14 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
 
   // Retrieve the number of counts in the BPF
   std::vector<double> counts;
-  counts = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
+  counts = FetchWithRetries(time, fXBPFPrefix + name + ":countsRecords[]",fNRetries);
   std::cout << "Counts: " << counts.size() << std::endl;
   for(size_t i = 0; i < counts.size(); ++i){
     std::cout << counts[i] << std::endl;
   }
 
   std::vector<double> data;
-  data = FetchWithRetries< std::vector<double> >(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
+  data = FetchWithRetries(time, fXBPFPrefix + name + ":eventsData[]",fNRetries);
   std::cout << "Data: " << data.size() << std::endl;
 
   // If the number of counts is larger than the number of general triggers
@@ -1803,6 +1923,12 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fTimingCalibration      = p.get<double>("TimingCalibration");
   fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
   fOffsetTAI              = p.get<double>("OffsetTAI");
+
+  fS11DiffUpper           = p.get<double>("S11DiffUpper");
+  fS11DiffLower           = p.get<double>("S11DiffLower");
+
+  fRDTSToS11Upper         = p.get<double>("RDTSToS11Upper");
+  fRDTSToS11Lower         = p.get<double>("RDTSToS11Lower");
 
   fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
   fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");

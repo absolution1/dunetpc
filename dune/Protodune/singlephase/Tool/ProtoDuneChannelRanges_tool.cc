@@ -50,8 +50,9 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     Index chv0 = chu0 + nchau;
     Index chx10 = chv0 + nchav;
     Index chx20 = chx10 + nchaz;
-    Index chz0 = chx20;
-    Index chc0 = chx10;
+    bool beamRight = 2*(itps/2) == itps;
+    Index chz0 = beamRight ? chx20 : chx10;
+    Index chc0 = beamRight ? chx10 : chx20;
     insertLen(stpp + "u", chu0, nchau, "TPC plane " + sitps + "u", sloc, labApa);
     insertLen(sapa + "u", chu0, nchau, "APA plane " + siapa + "u", sloc);
     insertLen(stpp + "v", chv0, nchav, "TPC plane " + sitps + "v", sloc, labApa);
