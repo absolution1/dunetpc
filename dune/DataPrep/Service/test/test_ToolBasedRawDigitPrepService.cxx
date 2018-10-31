@@ -21,6 +21,8 @@
 #undef NDEBUG
 #include <cassert>
 
+#include "TH1.h"
+
 using std::string;
 using std::cout;
 using std::endl;
@@ -324,6 +326,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
+  TH1::AddDirectory(false);
   return test_ToolBasedRawDigitPrepService(useExistingFcl);
 }
 

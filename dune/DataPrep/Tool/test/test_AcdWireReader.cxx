@@ -62,7 +62,7 @@ int test_AcdWireReader(bool useExistingFcl =false) {
     // To convert digit to wire, use the DUNE fcl for 35-ton reco.
     // Disable noise removal and deconvolution because these make it difficult
     // to predict the result.
-    std::stringstream config;
+    std::ofstream config{fclfile};
     config << "#include \"services_dune.fcl\"" << endl;
     config << "services: @local::dune35tdata_reco_services" << endl;
     config << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
@@ -76,12 +76,17 @@ int test_AcdWireReader(bool useExistingFcl =false) {
     config << "  tool_type: AcdWireReader" << endl;
     config << "  LogLevel: 2" << endl;
     config << "}" << endl;
-    ArtServiceHelper::load_services(config);
   }
 
+  // We explicitly initialize the DuneToolManager first so that the
+  // above configuration wins.  If we load the services first, then a
+  // default services configuration is loaded, and the one for this
+  // test is ignored.
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
   DuneToolManager* ptm = DuneToolManager::instance(fclfile);
+  ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
+
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
