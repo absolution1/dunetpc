@@ -37,10 +37,9 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
   string fclfile = "test_VintageDeconvoluter.fcl";
   if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
-    ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
   } else {
     cout << myname << "Creating top-level FCL." << endl;
-    std::stringstream config;
+    std::ofstream config{fclfile};
     config << "#include \"services_dune.fcl\"" << endl;
     //config << "services: @local::protodune_reco_services" << endl;
     config << "services: @local::dune35t_services" << endl;
@@ -50,8 +49,8 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
     config << "    LogLevel: 1" << endl;
     config << "  }" << endl;
     config << "}" << endl;
-    ArtServiceHelper::load_services(config);
   }
+  ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;

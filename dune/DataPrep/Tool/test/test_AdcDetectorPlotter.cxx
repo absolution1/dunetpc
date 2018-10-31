@@ -45,10 +45,9 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   string gname = "protodune_geo";
   if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
-    ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
   } else {
     cout << myname << "Creating top-level FCL." << endl;
-    std::stringstream config;
+    std::ofstream config{fclfile};
     config << "#include \"geometry_dune.fcl\"" << endl;
     config << "services.Geometry:                   @local::" + gname << endl;
     config << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
@@ -75,8 +74,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     config << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
     config << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
     config << "}" << endl;
-    ArtServiceHelper::load_services(config);
   }
+  ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
 
   cout << myname << line << endl;
   cout << myname << "Get Geometry service." << endl;
