@@ -24,7 +24,10 @@
 //           DigitLabel - Full label for the input digit container, e.g. daq
 //             WireName - Name for the output wire container.
 //   IntermediateStates - Names of intermediate states to record.
-//             DoGroups - Process channels in groups.
+//             DoGroups - Process channels in groups obtained from ChannelGroupService
+//                        if ChannelRanges is empty.
+//        ChannelRanges - Process channels in groups corresponding to these range names.
+//                        The range for each name is obtained from the tool channelRanges.
 //       BeamEventLabel - Label for the BeamEvent data product. If blank, it is not used.
 
 #include "art/Framework/Core/ModuleMacros.h" 
@@ -38,6 +41,7 @@
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/ChannelGroupService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
+#include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/DuneTimeConverter.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TTimeStamp.h"
@@ -60,6 +64,10 @@ class DataPrepModule : public art::EDProducer {
 
 public:
     
+  using Index = unsigned int;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
+
   // Ctor.
   explicit DataPrepModule(fhicl::ParameterSet const& pset); 
 
@@ -81,6 +89,7 @@ private:
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
   bool m_DoGroups = false;
+  NameVector m_ChannelRanges;
   std::string m_BeamEventLabel;
   AdcChannel m_KeepChannelBegin =0;
   AdcChannel m_KeepChannelEnd =0;
@@ -135,6 +144,7 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_WireName       = pset.get<std::string>("WireName", "");
   m_DoAssns        = pset.get<bool>("DoAssns");
   m_DoGroups       = pset.get<bool>("DoGroups");
+  m_ChannelRanges  = pset.get<NameVector>("ChannelRanges");
   m_BeamEventLabel = pset.get<string>("BeamEventLabel");
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
@@ -166,6 +176,14 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "             WireName: " << m_WireName << endl;
     cout << myname << "              DoAssns: " << m_DoAssns << endl;
     cout << myname << "             DoGroups: " << m_DoGroups << endl;
+    cout << myname << "        ChannelRanges: [";
+    bool first = true;
+    for ( Name rnam : m_ChannelRanges ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << rnam;
+    }
+    cout << "]" << endl;
     cout << myname << "       BeamEventLabel: " << m_BeamEventLabel << endl;
     cout << myname << "   IntermediateStates: [";
     int count = 0;
@@ -175,7 +193,7 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "      KeepChannelBegin: " << m_KeepChannelBegin << endl;
     cout << myname << "        KeepChannelEnd: " << m_KeepChannelEnd << endl;
     cout << myname << "          SkipChannels: " << "{";
-    bool first = true;
+    first = true;
     for ( AdcChannel ich : m_SkipChannels ) {
       if ( first ) first = false;
       else cout << ", ";
@@ -443,7 +461,34 @@ void DataPrepModule::produce(art::Event& evt) {
   // Create a vector of data maps with an entry for each group.
   unsigned int nproc = 0;
   vector<AdcChannelDataMap> datamaps;
-  if ( m_DoGroups ) {
+  if ( m_ChannelRanges.size() ) {
+    const IndexRangeTool* pcrt = nullptr;
+    string errmsg;
+    DuneToolManager* ptm = DuneToolManager::instance();
+    if ( ptm == nullptr ) {
+      errmsg = "Tool manager not found.";
+    } else {
+      pcrt = ptm->getShared<IndexRangeTool>("channelRanges");
+      if ( pcrt == nullptr ) errmsg = "Unable to find IndexRangeTool with name channelRanges.";
+    }
+    if ( pcrt == nullptr ) {
+      cout << myname << "ERROR: IndexRangeTool not found: channelRanges" << endl;
+    } else {
+      for ( Name crn : m_ChannelRanges ) {
+        IndexRange ran = pcrt->get(crn);
+        if ( ran.isValid() ) {
+          datamaps.emplace_back();
+          AdcChannelDataMap& datamap = datamaps.back();
+          for ( Index icha=ran.begin; icha<ran.end; ++icha ) {
+            datamap.emplace(icha, move(fulldatamap[icha]));
+            ++nproc;
+          }
+        } else {
+          cout << myname << "WARNING: Channel range not found: " << crn << endl;
+        }
+      }
+    }
+  } else if ( m_DoGroups ) {
     if ( m_pChannelGroupService == nullptr ) {
       mf::LogError("DataPrepModule") << "Channel group service not found." << endl;
       return;

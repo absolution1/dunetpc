@@ -10,6 +10,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -37,6 +39,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
+  m_EmptyColor(ps.get<double>("EmptyColor")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_Palette(ps.get<int>("Palette")),
@@ -47,7 +51,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
-  m_pOnlineChannelMapTool(nullptr) {
+  m_pOnlineChannelMapTool(nullptr),
+  m_pChannelStatusProvider(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
@@ -96,6 +101,14 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       }
     }
   }
+  // Fetch the channel status service.
+  if ( m_SkipBadChannels ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel mapping service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
+    }
+  }
   // Display configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -124,6 +137,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
            << m_pOnlineChannelMapTool << endl;
     }
     cout << myname << "             MaxSignal: " << m_MaxSignal << endl;
+    cout << myname << "            EmptyColor: " << m_EmptyColor << endl;
     cout << myname << "    ChannelLineModulus: " << m_ChannelLineModulus << endl;
     cout << myname << "    ChannelLinePattern: {";
     first = true;
@@ -227,6 +241,11 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( szunits.find(" ") != string::npos ) szunits = "(" + szunits + ")";
     }
     htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
+    // Set flag indicating we want to show empty bins with the color m_EmptyColor.
+    // We initialize all bins below zmin and fill with zmin where the value would be lower.
+    // We do not attempt this this where rebinning is done.
+    //bool colorEmptyBins = m_EmptyColor >= 0 && m_TickRebin <= 1;
+    bool colorEmptyBins = m_TickRebin <= 1;
     // Create histogram.
     TH2* ph = new TH2F(hname.c_str(), htitl.c_str(), ntick, tick1, tick2, nchan, chanBegin, chanEnd);
     ph->SetDirectory(nullptr);
@@ -234,24 +253,27 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
     double zmax = m_MaxSignal;
     if ( zmax <= 0.0 ) zmax = 100.0;
+    double zmin = -zmax;
     ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     ph->SetContour(40);
+    double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
+    //if ( m_EmptyColor >= 0 ) {
+      for ( Index icha=1; icha<=nchan; ++icha ) {
+        Index ibin0 = (ntick+2)*icha + 1;
+        for ( Index ibin=ibin0; ibin<ibin0+ntick; ++ibin ) ph->SetBinContent(ibin, zempty);
+      }
+    //}
     // Fill histogram.
-    const bool doZero = false;
     for ( AdcChannel chan=chanDataBegin; chan<chanDataEnd; ++chan ) {
       unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
       AdcChannelDataMap::const_iterator iacd = acds.find(chan);
-      if ( iacd == acds.end() ) {
-        if ( doZero ) {
-          if ( m_LogLevel >= 3 ) cout << myname << "Filling channel-tick histogram with zero for channel " << chan << endl;
-          unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
-          for ( Tick isam=tick1; isam<tick2; ++isam, ++ibin ) ph->SetBinContent(ibin, 0.0);
-        } else {
-          if ( m_LogLevel >= 3 ) cout << myname << "Not filling channel-tick histogram for channel " << chan << endl;
-        }
+      if ( iacd == acds.end() ) continue;
+      const AdcChannelData& acd = iacd->second;
+      if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
+           m_pChannelStatusProvider->IsBad(acd.channel) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
         continue;
       }
-      const AdcChannelData& acd = iacd->second;
       const AdcSignalVector& sams = acd.samples;
       const AdcFilterVector& keep = acd.signal;
       const AdcCountVector& raw = acd.raw;
@@ -280,7 +302,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       bool subtractOffset = tickOffset < 0;
       for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
         bool haveSam = true;
-      if ( subtractOffset ) haveSam = itck >= dsam;
+        if ( subtractOffset ) haveSam = itck >= dsam;
         float sig = 0.0;
         if ( haveSam ) {
           Index isam = itck;
@@ -298,11 +320,13 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
             if ( isam < raw.size() ) sig = raw[isam] - ped;
           } else if ( isSig ) {
             if ( isam < sams.size() && isam < keep.size() && keep[isam] ) sig = sams[isam];
+            else haveSam = false;
           } else {
             cout << myname << "Fill failed for bin " << ibin << endl;
           }
         }
-        ph->SetBinContent(ibin, sig);
+        if ( colorEmptyBins && sig < zmin ) sig = zmin;
+        if ( haveSam ) ph->SetBinContent(ibin, sig);
       }
     }
     // Rebin.
@@ -326,7 +350,11 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
     man.addAxis();
-    man.setFrameFillColor(ppal->colorVector()[0]);
+    // Root uses the frame color for underflows.
+    // If we are coloring empty bins, we use that color.
+    // If not, we use the color for the first (lowest) bin.
+    int frameColor = colorEmptyBins ? m_EmptyColor : ppal->colorVector()[0];
+    man.setFrameFillColor(frameColor);   // Otherwise Root uses white for underflows
     if ( m_ChannelLineModulus ) {
       for ( Index icha : m_ChannelLinePattern ) {
         man.addHorizontalModLines(m_ChannelLineModulus, icha);
