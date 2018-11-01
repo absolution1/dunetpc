@@ -77,6 +77,20 @@ pdsp_channel_status: {
      4383,  # femb516x, very sticky pedestal
      4385,  # femb516x, very sticky pedestal
      4387,  # femb516x, very sticky pedestal
+     4521,  # femb513x, very sticky pedestal
+     4523,  # femb513x, very sticky pedestal
+     4525,  # femb513x, very sticky pedestal
+     4527,  # femb513x, very sticky pedestal
+     4529,  # femb513x, very sticky pedestal
+     4531,  # femb513x, very sticky pedestal
+     4652,  # femb501x, very sticky pedestal
+     4656,  # femb501x, very sticky pedestal
+     4660,  # femb501x, very sticky pedestal
+     4748,  # femb503x, very sticky pedestal
+     4750,  # femb503x, very sticky pedestal
+     4754,  # femb503x, very sticky pedestal
+     4756,  # femb503x, very sticky pedestal
+     4758,  # femb503x, very sticky pedestal
     #-----
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
@@ -142,7 +156,13 @@ pdsp_channel_status: {
    # femb518u
      2833,  # Noisy adc pedestal
    # femb516x
-     4377   # Pedestal very sticky
+     4377,  # Pedestal very sticky
+   # femb503x
+     4654,  # sticky pedestal
+     4658,  # sticky pedestal
+     4662,  # sticky pedestal
+   # femb503x
+     4752   # sticky pedestal
   ]
 
 }

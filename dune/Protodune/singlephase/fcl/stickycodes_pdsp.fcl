@@ -210,7 +210,7 @@ tools.pdsp_sticky_codes_ped: {
     chan04092: [2303]
     chan04111: [2241]
     # femb501v  (2 channels bad)
-    # femb520x
+    # femb520x (TPC side)
     chan04173: [ 960]
     # femb519x
     # femb518x
@@ -226,6 +226,30 @@ tools.pdsp_sticky_codes_ped: {
     chan04426: [ 896,  897]
     # femb514x
     chan04456: [ 896]
+    # femb513x (6 bad)
+    # femb512x
+    # femb511x
+    # femb501x (3 bad, 3 noisy, cryo side)
+    chan04642: [ 959]
+    # femb502x
+    chan04688: [ 895]
+    # femb503x (5 bad, 1 noisy)
+    # femb504x
+    chan04808: [ 968,  969]
+    chan04814: [1024]
+    chan04816: [ 960,  974]
+    # femb505x
+    # femb506x
+    chan04892: [ 961]
+    chan04917: [ 896]
+    # femb507x
+    chan04942: [ 960]
+    # femb508x
+    chan04980: [ 960, 961]
+    chan04990: [ 960]
+    # femb509x
+    # femb510x
+    chan05119: [ 960]
   }
 }
 
