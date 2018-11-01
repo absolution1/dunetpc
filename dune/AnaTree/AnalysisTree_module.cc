@@ -273,8 +273,8 @@ namespace dune {
       TrackData_t<Float_t> trkpidmvapr;   // particle MVA value for proton PID
       TrackData_t<Short_t> trkpidbestplane; // this is defined as the plane with most hits
 
-          TrackData_t<Short_t> trkhasPFParticle; // whether this belongs to a PFParticle
-          TrackData_t<Short_t> trkPFParticleID;  // if hasPFParticle, its ID
+	  TrackData_t<Short_t> trkhasPFParticle; // whether this belongs to a PFParticle
+	  TrackData_t<Short_t> trkPFParticleID;  // if hasPFParticle, its ID
 
       /// Creates an empty tracker data structure
       TrackDataStruct(): MaxTracks(0) { Clear(); }
@@ -308,8 +308,8 @@ namespace dune {
       VertexData_t<Float_t> vtxy;     // y position.
       VertexData_t<Float_t> vtxz;     // z position.
 
-          VertexData_t<Short_t> vtxhasPFParticle; // whether this belongs to a PFParticle
-          VertexData_t<Short_t> vtxPFParticleID;  // if hasPFParticle, its ID
+	  VertexData_t<Short_t> vtxhasPFParticle; // whether this belongs to a PFParticle
+	  VertexData_t<Short_t> vtxPFParticleID;  // if hasPFParticle, its ID
 
       VertexDataStruct(): MaxVertices(0) { Clear(); }
       VertexDataStruct(size_t maxVertices): MaxVertices(maxVertices) { Clear(); }
@@ -465,33 +465,33 @@ namespace dune {
 
     enum DataBits_t: unsigned int {
       tdAuxDet = 0x01,
-        tdCry = 0x02,
-        tdGenie = 0x04,
-        tdGeant = 0x08,
-        tdHit = 0x10,
-        tdTrack = 0x20,
-        tdVertex = 0x40,
-        tdFlash = 0x80,
-        tdShower = 0x100,
-        tdMCshwr = 0x200,
-        tdMCtrk  = 0x400,
-        tdCluster = 0x800,
-        tdRawDigit = 0x1000,
+	tdCry = 0x02,
+	tdGenie = 0x04,
+	tdGeant = 0x08,
+	tdHit = 0x10,
+	tdTrack = 0x20,
+	tdVertex = 0x40,
+	tdFlash = 0x80,
+	tdShower = 0x100,
+	tdMCshwr = 0x200,
+	tdMCtrk  = 0x400,
+	tdCluster = 0x800,
+	tdRawDigit = 0x1000,
         tdPandoraNuVertex = 0x2000,
-        tdPFParticle = 0x4000,
-        tdCount = 0x8000,
+	tdPFParticle = 0x4000,
+	tdCount = 0x8000,
   tdProto = 0x10000,
   tdSpacePoint = 0x20000,
   tdCnn = 0x40000,
-        tdDefault = 0
-        }; // DataBits_t
+	tdDefault = 0
+	}; // DataBits_t
 
     /*    /// information from the run
-          struct RunData_t {
-          public:
-          RunData_t() { Clear(); }
-          void Clear() {}
-          }; // struct RunData_t
+	  struct RunData_t {
+	  public:
+	  RunData_t() { Clear(); }
+	  void Clear() {}
+	  }; // struct RunData_t
     */
     /// information from the subrun
     struct SubRunData_t {
@@ -567,24 +567,24 @@ namespace dune {
     Short_t nuvtxpdg[kMaxVertices];
 
     //Cluster Information
-    Short_t nclusters;                                //number of clusters in a given event
-    Short_t clusterId[kMaxClusters];                  //ID of this cluster
-    Short_t clusterView[kMaxClusters];                //which plane this cluster belongs to
-    Int_t   cluster_isValid[kMaxClusters];            //is this cluster valid? will have a value of -1 if it is not valid
-    Float_t cluster_StartCharge[kMaxClusters];         //charge on the first wire of the cluster in ADC
-    Float_t cluster_StartAngle[kMaxClusters];         //starting angle of the cluster
-    Float_t cluster_EndCharge[kMaxClusters];          //charge on the last wire of the cluster in ADC
-    Float_t cluster_EndAngle[kMaxClusters];           //ending angle of the cluster
-    Float_t cluster_Integral[kMaxClusters];           //returns the total charge of the cluster from hit shape in ADC
+    Short_t nclusters;				      //number of clusters in a given event
+    Short_t clusterId[kMaxClusters];		      //ID of this cluster
+    Short_t clusterView[kMaxClusters];		      //which plane this cluster belongs to
+    Int_t   cluster_isValid[kMaxClusters];	      //is this cluster valid? will have a value of -1 if it is not valid
+    Float_t cluster_StartCharge[kMaxClusters];	       //charge on the first wire of the cluster in ADC
+    Float_t cluster_StartAngle[kMaxClusters];	      //starting angle of the cluster
+    Float_t cluster_EndCharge[kMaxClusters];	      //charge on the last wire of the cluster in ADC
+    Float_t cluster_EndAngle[kMaxClusters];	      //ending angle of the cluster
+    Float_t cluster_Integral[kMaxClusters];	      //returns the total charge of the cluster from hit shape in ADC
     Float_t cluster_IntegralAverage[kMaxClusters];    //average charge of the cluster hits in ADC
-    Float_t cluster_SummedADC[kMaxClusters];          //total charge of the cluster from signal ADC counts
+    Float_t cluster_SummedADC[kMaxClusters];	      //total charge of the cluster from signal ADC counts
     Float_t cluster_SummedADCaverage[kMaxClusters];   //average signal ADC counts of the cluster hits.
     Float_t cluster_MultipleHitDensity[kMaxClusters]; //Density of wires in the cluster with more than one hit.
-    Float_t cluster_Width[kMaxClusters];              //cluster width in ? units
-    Short_t cluster_NHits[kMaxClusters];              //Number of hits in the cluster
-    Short_t cluster_StartWire[kMaxClusters];          //wire coordinate of the start of the cluster
-    Short_t cluster_StartTick[kMaxClusters];          //tick coordinate of the start of the cluster in time ticks
-    Short_t cluster_EndWire[kMaxClusters];            //wire coordinate of the end of the cluster
+    Float_t cluster_Width[kMaxClusters];	      //cluster width in ? units
+    Short_t cluster_NHits[kMaxClusters];	      //Number of hits in the cluster
+    Short_t cluster_StartWire[kMaxClusters];	      //wire coordinate of the start of the cluster
+    Short_t cluster_StartTick[kMaxClusters];	      //tick coordinate of the start of the cluster in time ticks
+    Short_t cluster_EndWire[kMaxClusters];	      //wire coordinate of the end of the cluster
     Short_t cluster_EndTick[kMaxClusters];            //tick coordinate of the end of the cluster in time ticks
     //Cluster cosmic tagging information
     Short_t cluncosmictags_tagger[kMaxClusters];      //No. of cosmic tags associated to this cluster
@@ -679,15 +679,15 @@ namespace dune {
     Float_t  mupare_flux[kMaxTruth];      //Muon neutrino parent energy (GeV)
 
     Int_t    tgen_flux[kMaxTruth];        //Parent generation in cascade. (1 = primary proton,
-                                          //2=particles produced by proton interaction, 3 = particles
-                                          //produced by interactions of the 2's, ...
+    					  //2=particles produced by proton interaction, 3 = particles
+					  //produced by interactions of the 2's, ...
     Int_t    tgptype_flux[kMaxTruth];     //Type of particle that created a particle flying of the target
     Float_t  tgppx_flux[kMaxTruth];       //X Momentum of a particle, that created a particle that flies
-                                          //off the target, at the interaction point. (GeV)
+    					  //off the target, at the interaction point. (GeV)
     Float_t  tgppy_flux[kMaxTruth];       //Y Momentum of a particle, that created a particle that flies
-                                          //off the target, at the interaction point. (GeV)
+					  //off the target, at the interaction point. (GeV)
     Float_t  tgppz_flux[kMaxTruth];       //Z Momentum of a particle, that created a particle that flies
-                                          //off the target, at the interaction point. (GeV)
+					  //off the target, at the interaction point. (GeV)
     Float_t  tprivx_flux[kMaxTruth];      //Primary particle interaction vertex X (cm)
     Float_t  tprivy_flux[kMaxTruth];      //Primary particle interaction vertex Y (cm)
     Float_t  tprivz_flux[kMaxTruth];      //Primary particle interaction vertex Z (cm)
@@ -827,23 +827,23 @@ namespace dune {
     //MC Shower information
     Int_t     no_mcshowers;                         //number of MC Showers in this event.
     //MC Shower particle information
-    std::vector<Int_t>       mcshwr_origin;         //MC Shower origin information.
-    std::vector<Int_t>       mcshwr_pdg;            //MC Shower particle PDG code.
+    std::vector<Int_t>       mcshwr_origin;	    //MC Shower origin information.
+    std::vector<Int_t>       mcshwr_pdg;	    //MC Shower particle PDG code.
     std::vector<Int_t>       mcshwr_TrackId;        //MC Shower particle G4 track ID.
-    std::vector<std::string> mcshwr_Process;        //MC Shower particle's creation process.
-    std::vector<Float_t>     mcshwr_startX;         //MC Shower particle G4 startX
-    std::vector<Float_t>     mcshwr_startY;         //MC Shower particle G4 startY
-    std::vector<Float_t>     mcshwr_startZ;         //MC Shower particle G4 startZ
-    std::vector<Float_t>     mcshwr_endX;           //MC Shower particle G4 endX
-    std::vector<Float_t>     mcshwr_endY;           //MC Shower particle G4 endY
-    std::vector<Float_t>     mcshwr_endZ;           //MC Shower particle G4 endZ
-    std::vector<Float_t>    mcshwr_CombEngX;        //MC Shower Combined energy deposition information, Start Point X Position.
-    std::vector<Float_t>    mcshwr_CombEngY;        //MC Shower Combined energy deposition information, Start Point Y Position.
-    std::vector<Float_t>    mcshwr_CombEngZ;        //MC Shower Combined energy deposition information, Start Point Z Position.
-    std::vector<Float_t>     mcshwr_CombEngPx;      //MC Shower Combined energy deposition information, Momentum X direction.
-    std::vector<Float_t>     mcshwr_CombEngPy;      //MC Shower Combined energy deposition information, Momentum X direction.
-    std::vector<Float_t>     mcshwr_CombEngPz;      //MC Shower Combined energy deposition information, Momentum X direction.
-    std::vector<Float_t>     mcshwr_CombEngE;       //MC Shower Combined energy deposition information, Energy
+    std::vector<std::string> mcshwr_Process;	    //MC Shower particle's creation process.
+    std::vector<Float_t>     mcshwr_startX;	    //MC Shower particle G4 startX
+    std::vector<Float_t>     mcshwr_startY;	    //MC Shower particle G4 startY
+    std::vector<Float_t>     mcshwr_startZ;	    //MC Shower particle G4 startZ
+    std::vector<Float_t>     mcshwr_endX;	    //MC Shower particle G4 endX
+    std::vector<Float_t>     mcshwr_endY;	    //MC Shower particle G4 endY
+    std::vector<Float_t>     mcshwr_endZ;	    //MC Shower particle G4 endZ
+    std::vector<Float_t>    mcshwr_CombEngX;	    //MC Shower Combined energy deposition information, Start Point X Position.
+    std::vector<Float_t>    mcshwr_CombEngY;	    //MC Shower Combined energy deposition information, Start Point Y Position.
+    std::vector<Float_t>    mcshwr_CombEngZ;	    //MC Shower Combined energy deposition information, Start Point Z Position.
+    std::vector<Float_t>     mcshwr_CombEngPx;	    //MC Shower Combined energy deposition information, Momentum X direction.
+    std::vector<Float_t>     mcshwr_CombEngPy;	    //MC Shower Combined energy deposition information, Momentum X direction.
+    std::vector<Float_t>     mcshwr_CombEngPz;	    //MC Shower Combined energy deposition information, Momentum X direction.
+    std::vector<Float_t>     mcshwr_CombEngE;	    //MC Shower Combined energy deposition information, Energy
     std::vector<Float_t>     mcshwr_dEdx;           //MC Shower dEdx, MeV/cm
     std::vector<Float_t>     mcshwr_StartDirX;      //MC Shower Direction of begining of shower, X direction
     std::vector<Float_t>     mcshwr_StartDirY;      //MC Shower Direction of begining of shower, Y direction
@@ -857,9 +857,9 @@ namespace dune {
     std::vector<Float_t>     mcshwr_MotherstartX;    //MC Shower's mother  G4 startX .
     std::vector<Float_t>     mcshwr_MotherstartY;    //MC Shower's mother  G4 startY .
     std::vector<Float_t>     mcshwr_MotherstartZ;    //MC Shower's mother  G4 startZ .
-    std::vector<Float_t>     mcshwr_MotherendX;      //MC Shower's mother  G4 endX   .
-    std::vector<Float_t>     mcshwr_MotherendY;      //MC Shower's mother  G4 endY   .
-    std::vector<Float_t>     mcshwr_MotherendZ;      //MC Shower's mother  G4 endZ   .
+    std::vector<Float_t>     mcshwr_MotherendX;	     //MC Shower's mother  G4 endX   .
+    std::vector<Float_t>     mcshwr_MotherendY;	     //MC Shower's mother  G4 endY   .
+    std::vector<Float_t>     mcshwr_MotherendZ;	     //MC Shower's mother  G4 endZ   .
     //MC Shower ancestor information
     std::vector<Int_t>       mcshwr_Ancestorpdg;       //MC Shower's ancestor PDG code.
     std::vector<Int_t>       mcshwr_AncestorTrkId;     //MC Shower's ancestor G4 track ID.
@@ -874,13 +874,13 @@ namespace dune {
     //MC track information
     Int_t     no_mctracks;                         //number of MC tracks in this event.
     //MC track particle information
-    std::vector<Int_t>       mctrk_origin;          //MC track origin information.
-    std::vector<Int_t>       mctrk_pdg;     //MC track particle PDG code.
+    std::vector<Int_t>       mctrk_origin;	    //MC track origin information.
+    std::vector<Int_t>       mctrk_pdg;	    //MC track particle PDG code.
     std::vector<Int_t>       mctrk_TrackId;        //MC track particle G4 track ID.
-    std::vector<std::string> mctrk_Process;         //MC track particle's creation process.
-    std::vector<Float_t>     mctrk_startX;          //MC track particle G4 startX
-    std::vector<Float_t>     mctrk_startY;          //MC track particle G4 startY
-    std::vector<Float_t>     mctrk_startZ;          //MC track particle G4 startZ
+    std::vector<std::string> mctrk_Process;	    //MC track particle's creation process.
+    std::vector<Float_t>     mctrk_startX;	    //MC track particle G4 startX
+    std::vector<Float_t>     mctrk_startY;	    //MC track particle G4 startY
+    std::vector<Float_t>     mctrk_startZ;	    //MC track particle G4 startZ
     std::vector<Float_t>     mctrk_endX;		//MC track particle G4 endX
     std::vector<Float_t>     mctrk_endY;		//MC track particle G4 endY
     std::vector<Float_t>     mctrk_endZ;		//MC track particle G4 endZ
@@ -902,9 +902,9 @@ namespace dune {
     std::vector<Float_t>     mctrk_MotherstartX;    //MC Track's mother  G4 startX .
     std::vector<Float_t>     mctrk_MotherstartY;    //MC Track's mother  G4 startY .
     std::vector<Float_t>     mctrk_MotherstartZ;    //MC Track's mother  G4 startZ .
-    std::vector<Float_t>     mctrk_MotherendX;       //MC Track's mother  G4 endX   .
-    std::vector<Float_t>     mctrk_MotherendY;       //MC Track's mother  G4 endY   .
-    std::vector<Float_t>     mctrk_MotherendZ;       //MC Track's mother  G4 endZ   .
+    std::vector<Float_t>     mctrk_MotherendX;	     //MC Track's mother  G4 endX   .
+    std::vector<Float_t>     mctrk_MotherendY;	     //MC Track's mother  G4 endY   .
+    std::vector<Float_t>     mctrk_MotherendZ;	     //MC Track's mother  G4 endZ   .
     //MC Track ancestor information
     std::vector<Int_t>       mctrk_Ancestorpdg;       //MC Track's ancestor PDG code.
     std::vector<Int_t>       mctrk_AncestorTrkId;     //MC Track's ancestor G4 track ID.
@@ -1003,7 +1003,7 @@ namespace dune {
 
     /// Constructor; clears all fields
     AnalysisTreeDataStruct(size_t nTrackers = 0, size_t nVertexAlgos = 0,
-                           std::vector<std::string> const& ShowerAlgos = {}):
+			   std::vector<std::string> const& ShowerAlgos = {}):
       bits(tdDefault)
     { SetTrackers(nTrackers); SetVertexAlgos(nVertexAlgos); SetShowerAlgos(ShowerAlgos); Clear(); }
 
@@ -1066,12 +1066,12 @@ namespace dune {
 
     /// Connect this object with a tree
     void SetAddresses(
-                      TTree* pTree,
-                      std::vector<std::string> const& trackers,
-                      std::vector<std::string> const& vertexalgos,
-                      std::vector<std::string> const& showeralgos,
-                      bool isCosmics
-                      );
+		      TTree* pTree,
+		      std::vector<std::string> const& trackers,
+		      std::vector<std::string> const& vertexalgos,
+		      std::vector<std::string> const& showeralgos,
+		      bool isCosmics
+		      );
 
 
     /// Returns the number of trackers for which data structures are allocated
@@ -1114,22 +1114,22 @@ namespace dune {
       void operator()
       (std::string name, void* address, std::string leaflist /*, int bufsize = 32000 */)
       {
-        if (!pTree) return;
-        TBranch* pBranch = pTree->GetBranch(name.c_str());
-        if (!pBranch) {
-          pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
-          LOG_DEBUG("AnalysisTreeStructure")
-            << "Creating branch '" << name << " with leaf '" << leaflist << "'";
-        }
-        else if (pBranch->GetAddress() != address) {
-          pBranch->SetAddress(address);
-          LOG_DEBUG("AnalysisTreeStructure")
-            << "Reassigning address to branch '" << name << "'";
-        }
-        else {
-          LOG_DEBUG("AnalysisTreeStructure")
-            << "Branch '" << name << "' is fine";
-        }
+	if (!pTree) return;
+	TBranch* pBranch = pTree->GetBranch(name.c_str());
+	if (!pBranch) {
+	  pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
+	  LOG_DEBUG("AnalysisTreeStructure")
+	    << "Creating branch '" << name << " with leaf '" << leaflist << "'";
+	}
+	else if (pBranch->GetAddress() != address) {
+	  pBranch->SetAddress(address);
+	  LOG_DEBUG("AnalysisTreeStructure")
+	    << "Reassigning address to branch '" << name << "'";
+	}
+	else {
+	  LOG_DEBUG("AnalysisTreeStructure")
+	    << "Branch '" << name << "' is fine";
+	}
       } // operator()
       void operator()
       (std::string name, void* address, const std::stringstream& leaflist /*, int bufsize = 32000 */)
@@ -1142,23 +1142,23 @@ namespace dune {
       template <typename T>
       void operator() (std::string name, std::vector<T>& data)
       {
-        // overload for a generic object expressed directly by reference
-        // (as opposed to a generic object expressed by a pointer or
-        // to a simple leaf sequence specification);
-        // TTree::Branch(name, T* obj, Int_t bufsize, splitlevel) and
-        // TTree::SetObject() are used.
-        if (!pTree) return;
-        TBranch* pBranch = pTree->GetBranch(name.c_str());
-        if (!pBranch) {
-          pTree->Branch(name.c_str(), &data);
-          // ROOT needs a TClass definition for T in order to create a branch,
-          // se we are sure that at this point the TClass exists
-          LOG_DEBUG("AnalysisTreeStructure")
-            << "Creating object branch '" << name
-            << " with " << TClass::GetClass(typeid(T))->ClassName();
-        }
-        else if
-          (*(reinterpret_cast<std::vector<T>**>(pBranch->GetAddress())) != &data)
+	// overload for a generic object expressed directly by reference
+	// (as opposed to a generic object expressed by a pointer or
+	// to a simple leaf sequence specification);
+	// TTree::Branch(name, T* obj, Int_t bufsize, splitlevel) and
+	// TTree::SetObject() are used.
+	if (!pTree) return;
+	TBranch* pBranch = pTree->GetBranch(name.c_str());
+	if (!pBranch) {
+	  pTree->Branch(name.c_str(), &data);
+	  // ROOT needs a TClass definition for T in order to create a branch,
+	  // se we are sure that at this point the TClass exists
+	  LOG_DEBUG("AnalysisTreeStructure")
+	    << "Creating object branch '" << name
+	    << " with " << TClass::GetClass(typeid(T))->ClassName();
+	}
+	else if
+	  (*(reinterpret_cast<std::vector<T>**>(pBranch->GetAddress())) != &data)
           {
             // when an object is provided directly, the address of the object
             // is assigned in TBranchElement::fObject (via TObject::SetObject())
@@ -1169,10 +1169,10 @@ namespace dune {
             LOG_DEBUG("AnalysisTreeStructure")
               << "Reassigning object to branch '" << name << "'";
           }
-        else {
-          LOG_DEBUG("AnalysisTreeStructure")
-            << "Branch '" << name << "' is fine";
-        }
+	else {
+	  LOG_DEBUG("AnalysisTreeStructure")
+	    << "Branch '" << name << "' is fine";
+	}
       } // operator()
       //@}
     }; // class BranchCreator
@@ -1318,34 +1318,34 @@ namespace dune {
     void CreateData(bool bClearData = false)
     {
       if (!fData) {
-        fData.reset
-          (new AnalysisTreeDataStruct(GetNTrackers(), GetNVertexAlgos(), GetShowerAlgos()));
-        fData->SetBits(AnalysisTreeDataStruct::tdCry,    !fSaveCryInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdGenie,  !fSaveGenieInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdProto,  !fSaveProtoInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdGeant,  !fSaveGeantInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdMCshwr, !fSaveMCShowerInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdHit,    !fSaveHitInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdFlash,  !fSaveFlashInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdCount,  !fSaveExternCounterInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdShower, !fSaveShowerInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdCluster,!fSaveClusterInfo);
+	fData.reset
+	  (new AnalysisTreeDataStruct(GetNTrackers(), GetNVertexAlgos(), GetShowerAlgos()));
+	fData->SetBits(AnalysisTreeDataStruct::tdCry,    !fSaveCryInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdGenie,  !fSaveGenieInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdProto,  !fSaveProtoInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdGeant,  !fSaveGeantInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdMCshwr, !fSaveMCShowerInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdMCtrk,  !fSaveMCTrackInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdHit,    !fSaveHitInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdRawDigit,    !fSaveRawDigitInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdFlash,  !fSaveFlashInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdCount,  !fSaveExternCounterInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdShower, !fSaveShowerInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdCluster,!fSaveClusterInfo);
         fData->SetBits(AnalysisTreeDataStruct::tdPandoraNuVertex,!fSavePandoraNuVertexInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdTrack,  !fSaveTrackInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdVertex, !fSaveVertexInfo);
-        fData->SetBits(AnalysisTreeDataStruct::tdAuxDet, !fSaveAuxDetInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdTrack,  !fSaveTrackInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdVertex, !fSaveVertexInfo);
+	fData->SetBits(AnalysisTreeDataStruct::tdAuxDet, !fSaveAuxDetInfo);
         fData->SetBits(AnalysisTreeDataStruct::tdPFParticle, !fSavePFParticleInfo);
   fData->SetBits(AnalysisTreeDataStruct::tdSpacePoint, !fSaveSpacePointSolverInfo);
   fData->SetBits(AnalysisTreeDataStruct::tdCnn, !fSaveCnnInfo);
       }
       else {
-        fData->SetTrackers(GetNTrackers());
-        fData->SetVertexAlgos(GetNVertexAlgos());
-        fData->SetShowerAlgos(GetShowerAlgos());
+	fData->SetTrackers(GetNTrackers());
+	fData->SetVertexAlgos(GetNVertexAlgos());
+	fData->SetShowerAlgos(GetShowerAlgos());
 
-        if (bClearData) fData->Clear();
+	if (bClearData) fData->Clear();
       }
     } // CreateData()
 
@@ -1354,7 +1354,7 @@ namespace dune {
     {
       CheckData(__func__); CheckTree(__func__);
       fData->SetAddresses
-        (fTree, fTrackModuleLabel, fVertexModuleLabel, fShowerModuleLabel, isCosmics);
+	(fTree, fTrackModuleLabel, fVertexModuleLabel, fShowerModuleLabel, isCosmics);
     } // SetAddresses()
 
     /// Sets the addresses of all the tree branches of the specified tracking algo,
@@ -1363,12 +1363,12 @@ namespace dune {
     {
       CheckData(__func__); CheckTree(__func__);
       if (iTracker >= fData->GetNTrackers()) {
-        throw art::Exception(art::errors::LogicError)
-          << "AnalysisTree::SetTrackerAddresses(): no tracker #" << iTracker
-          << " (" << fData->GetNTrackers() << " available)";
+	throw art::Exception(art::errors::LogicError)
+	  << "AnalysisTree::SetTrackerAddresses(): no tracker #" << iTracker
+	  << " (" << fData->GetNTrackers() << " available)";
       }
       fData->GetTrackerData(iTracker)
-        .SetAddresses(fTree, fTrackModuleLabel[iTracker], isCosmics);
+	.SetAddresses(fTree, fTrackModuleLabel[iTracker], isCosmics);
     } // SetTrackerAddresses()
 
 
@@ -1376,12 +1376,12 @@ namespace dune {
     {
       CheckData(__func__); CheckTree(__func__);
       if (iVertexAlg >= fData->GetNVertexAlgos()) {
-        throw art::Exception(art::errors::LogicError)
-          << "AnalysisTree::SetVertexAddresses(): no vertex alg #" << iVertexAlg
-          << " (" << fData->GetNVertexAlgos() << " available)";
+	throw art::Exception(art::errors::LogicError)
+	  << "AnalysisTree::SetVertexAddresses(): no vertex alg #" << iVertexAlg
+	  << " (" << fData->GetNVertexAlgos() << " available)";
       }
       fData->GetVertexData(iVertexAlg)
-        .SetAddresses(fTree, fVertexModuleLabel[iVertexAlg], isCosmics);
+	.SetAddresses(fTree, fVertexModuleLabel[iVertexAlg], isCosmics);
     } // SetVertexAddresses()
 
     /// Sets the addresses of all the tree branches of the specified shower algo,
@@ -1390,9 +1390,9 @@ namespace dune {
     {
       CheckData(__func__); CheckTree(__func__);
       if (iShower >= fData->GetNShowerAlgos()) {
-        throw art::Exception(art::errors::LogicError)
-          << "AnalysisTree::SetShowerAddresses(): no shower algo #" << iShower
-          << " (" << fData->GetNShowerAlgos() << " available)";
+	throw art::Exception(art::errors::LogicError)
+	  << "AnalysisTree::SetShowerAddresses(): no shower algo #" << iShower
+	  << " (" << fData->GetNShowerAlgos() << " available)";
       }
       fData->GetShowerData(iShower).SetAddresses(fTree);
     } // SetShowerAddresses()
@@ -1416,29 +1416,29 @@ namespace dune {
     {
       if (fData) return;
       throw art::Exception(art::errors::LogicError)
-        << "AnalysisTree::" << caller << ": no data";
+	<< "AnalysisTree::" << caller << ": no data";
     } // CheckData()
     /// Helper function: throws if no tree is available
     void CheckTree(std::string caller) const
     {
       if (fTree) return;
       throw art::Exception(art::errors::LogicError)
-        << "AnalysisTree::" << caller << ": no tree";
+	<< "AnalysisTree::" << caller << ": no tree";
     } // CheckData()
 
     /// Stores the information of shower in slot iShower of showerData
     void FillShower(
-                    AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-                    size_t iShower, recob::Shower const& showers, const bool fSavePFParticleInfo,
+		    AnalysisTreeDataStruct::ShowerDataStruct& showerData,
+		    size_t iShower, recob::Shower const& showers, const bool fSavePFParticleInfo,
             const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
-                    ) const;
+		    ) const;
 
     /// Stores the information of all showers into showerData
     void FillShowers(
-                     AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-                     std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
+		     AnalysisTreeDataStruct::ShowerDataStruct& showerData,
+		     std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
              const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
-                     ) const;
+		     ) const;
 
   }; // class dune::AnalysisTree
 } // namespace dune
@@ -1642,8 +1642,8 @@ void dune::AnalysisTreeDataStruct::TrackDataStruct::Clear() {
 
 
 void dune::AnalysisTreeDataStruct::TrackDataStruct::SetAddresses(
-                                                                       TTree* pTree, std::string tracker, bool isCosmics
-                                                                       ) {
+								       TTree* pTree, std::string tracker, bool isCosmics
+								       ) {
   if (MaxTracks == 0) return; // no tracks, no tree!
 
   dune::AnalysisTreeDataStruct::BranchCreator CreateBranch(pTree);
@@ -1900,8 +1900,8 @@ void dune::AnalysisTreeDataStruct::VertexDataStruct::Clear() {
 }
 
 void dune::AnalysisTreeDataStruct::VertexDataStruct::SetAddresses(
-                                                                        TTree* pTree, std::string alg, bool isCosmics
-                                                                        ) {
+									TTree* pTree, std::string alg, bool isCosmics
+									) {
   if (MaxVertices == 0) return; // no tracks, no tree!
 
   dune::AnalysisTreeDataStruct::BranchCreator CreateBranch(pTree);
@@ -2565,9 +2565,9 @@ void dune::AnalysisTreeDataStruct::ClearLocalData() {
   //   of the same type (C++ is not python yet), using pointers to avoid copy;
   for (AuxDetMCData_t<Float_t>* cont: {
       &entryX, &entryY, &entryZ, &entryT,
-        &exitX , &exitY , &exitZ, &exitT, &exitPx, &exitPy, &exitPz,
-        &CombinedEnergyDep
-        })
+	&exitX , &exitY , &exitZ, &exitT, &exitPx, &exitPy, &exitPz,
+	&CombinedEnergyDep
+	})
     {
       // this auto is BoxedArray<Float_t>
       for (auto& partInfo: *cont) FillWith(partInfo, -99999.);
@@ -2852,12 +2852,12 @@ void dune::AnalysisTreeDataStruct::ResizeSpacePointSolver(int nSpacePoints) {
 
 
 void dune::AnalysisTreeDataStruct::SetAddresses(
-                                                      TTree* pTree,
-                                                      const std::vector<std::string>& trackers,
-                                                      const std::vector<std::string>& vertexalgos,
-                                                      const std::vector<std::string>& showeralgos,
-                                                      bool isCosmics
-                                                      ) {
+						      TTree* pTree,
+						      const std::vector<std::string>& trackers,
+						      const std::vector<std::string>& vertexalgos,
+						      const std::vector<std::string>& showeralgos,
+						      bool isCosmics
+						      ) {
   BranchCreator CreateBranch(pTree);
 
   CreateBranch("run",&run,"run/I");
@@ -3271,8 +3271,8 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     // if fSaveGeantInfo is not set to true, show an error message and quit!
     if (!hasGeantInfo()){
       throw art::Exception(art::errors::Configuration)
-        << "Saving Auxiliary detector information requies saving GEANT information, "
-        <<"please set fSaveGeantInfo flag to true in your fhicl file and rerun.\n";
+	<< "Saving Auxiliary detector information requies saving GEANT information, "
+	<<"please set fSaveGeantInfo flag to true in your fhicl file and rerun.\n";
     }
     std::ostringstream sstr;
     sstr << "[" << kMaxAuxDets << "]";
@@ -3291,7 +3291,7 @@ void dune::AnalysisTreeDataStruct::SetAddresses(
     CreateBranch("AuxDetExitPy", exitPy,   "AuxDetExitPy[geant_list_size]" + MaxAuxDetIndexStr + "/F");
     CreateBranch("AuxDetExitPz", exitPz,   "AuxDetExitPz[geant_list_size]" + MaxAuxDetIndexStr + "/F");
     CreateBranch("CombinedEnergyDep", CombinedEnergyDep,
-                 "CombinedEnergyDep[geant_list_size]" + MaxAuxDetIndexStr + "/F");
+		 "CombinedEnergyDep[geant_list_size]" + MaxAuxDetIndexStr + "/F");
   } // if hasAuxDetector
 
   if(hasSpacePointSolverInfo()) {
@@ -3353,21 +3353,21 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
-  fSaveGenieInfo            (pset.get< bool >("SaveGenieInfo", false)),
-  fSaveProtoInfo            (pset.get< bool >("SaveProtoInfo", false)),
-  fSaveGeantInfo            (pset.get< bool >("SaveGeantInfo", false)),
-  fSaveMCShowerInfo         (pset.get< bool >("SaveMCShowerInfo", false)),
-  fSaveMCTrackInfo          (pset.get< bool >("SaveMCTrackInfo", false)),
-  fSaveHitInfo              (pset.get< bool >("SaveHitInfo", false)),
-  fSaveRawDigitInfo                 (pset.get< bool >("SaveRawDigitInfo", false)),
-  fSaveTrackInfo            (pset.get< bool >("SaveTrackInfo", false)),
-  fSaveVertexInfo           (pset.get< bool >("SaveVertexInfo", false)),
-  fSaveClusterInfo          (pset.get< bool >("SaveClusterInfo", false)),
+  fSaveGenieInfo	    (pset.get< bool >("SaveGenieInfo", false)),
+  fSaveProtoInfo	    (pset.get< bool >("SaveProtoInfo", false)),
+  fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
+  fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
+  fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
+  fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
+  fSaveRawDigitInfo	            (pset.get< bool >("SaveRawDigitInfo", false)),
+  fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)),
+  fSaveVertexInfo	    (pset.get< bool >("SaveVertexInfo", false)),
+  fSaveClusterInfo	    (pset.get< bool >("SaveClusterInfo", false)),
   fSavePandoraNuVertexInfo        (pset.get< bool >("SavePandoraNuVertexInfo", false)),
   fSaveFlashInfo            (pset.get< bool >("SaveFlashInfo", false)),
   fSaveExternCounterInfo            (pset.get< bool >("SaveExternCounterInfo", false)),
   fSaveShowerInfo            (pset.get< bool >("SaveShowerInfo", false)),
-  fSavePFParticleInfo       (pset.get< bool >("SavePFParticleInfo", false)),
+  fSavePFParticleInfo	    (pset.get< bool >("SavePFParticleInfo", false)),
   fSaveSpacePointSolverInfo (pset.get< bool >("SaveSpacePointSolverInfo", false)),
   fSaveCnnInfo              (pset.get< bool >("SaveCnnInfo", false)),
   fCosmicTaggerAssocLabel  (pset.get<std::vector< std::string > >("CosmicTaggerAssocLabel") ),
@@ -3384,7 +3384,7 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
   if (fSaveAuxDetInfo == true) fSaveGeantInfo = true;
   if (fSaveRawDigitInfo == true) fSaveHitInfo = true;
   mf::LogInfo("AnalysisTree") << "Configuration:"
-                              << "\n  UseBuffers: " << std::boolalpha << fUseBuffer
+			      << "\n  UseBuffers: " << std::boolalpha << fUseBuffer
     ;
   if (GetNTrackers() > kMaxTrackers) {
     throw art::Exception(art::errors::Configuration)
@@ -3454,10 +3454,10 @@ dune::AnalysisTree::AnalysisTree(fhicl::ParameterSet const& pset) :
     if( center[2] + tpcDim[2] > ActiveBounds[5] ) ActiveBounds[5] = center[2] + tpcDim[2];
   } // for all TPC
   std::cout << "Active Boundaries: "
-            << "\n\tx: " << ActiveBounds[0] << " to " << ActiveBounds[1]
-            << "\n\ty: " << ActiveBounds[2] << " to " << ActiveBounds[3]
-            << "\n\tz: " << ActiveBounds[4] << " to " << ActiveBounds[5]
-            << std::endl;
+	    << "\n\tx: " << ActiveBounds[0] << " to " << ActiveBounds[1]
+	    << "\n\ty: " << ActiveBounds[2] << " to " << ActiveBounds[3]
+	    << "\n\tz: " << ActiveBounds[4] << " to " << ActiveBounds[5]
+	    << std::endl;
 } // dune::AnalysisTree::AnalysisTree()
 
 //-------------------------------------------------
@@ -3663,8 +3663,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     for(size_t mcl = 0; mcl < allmclists.size(); ++mcl){
       art::Handle< std::vector<simb::MCTruth> > mclistHandle = allmclists[mcl];
       for(size_t m = 0; m < mclistHandle->size(); ++m){
-        art::Ptr<simb::MCTruth> mct(mclistHandle, m);
-        if (mct->Origin() == simb::kCosmicRay) isCosmics = true;
+	art::Ptr<simb::MCTruth> mct(mclistHandle, m);
+	if (mct->Origin() == simb::kCosmicRay) isCosmics = true;
       }
     }
     if (fSaveCaloCosmics) isCosmics = false; //override to save calo info
@@ -3696,8 +3696,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // looking at all of them; so we waste some memory here
     } // if have MC truth
     LOG_DEBUG("AnalysisTree") << "Expected "
-                              << nGEANTparticles << " GEANT particles, "
-                              << nGeniePrimaries << " GENIE particles";
+			      << nGEANTparticles << " GEANT particles, "
+			      << nGeniePrimaries << " GENIE particles";
   } // if MC
 
   // SpacePointSolver information
@@ -3785,23 +3785,23 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     for (art::InputTag ShowerInputTag: fShowerModuleLabel) {
       art::Handle<std::vector<recob::Shower>> ShowerHandle;
       if (!evt.getByLabel(ShowerInputTag, ShowerHandle)) {
-        showerList.push_back(nullptr);
-        if (!bIgnoreMissingShowers) {
-          throw art::Exception(art::errors::ProductNotFound)
-            << "Showers with input tag '" << ShowerInputTag.encode()
-            << "' were not found in the event."
-            " If you really know what you are doing,"
-            " set AnalysisTree's configuration parameter IgnoreMissingShowers"
-            " to \"true\"; the lack of any shower set will be tolerated,"
-            " and the shower list in the corresponding event will be set to"
-            " a list of one shower, with an invalid ID.\n";
-        } // if bIgnoreMissingShowers
-        else {
-          // this message is more alarming than strictly necessary; by design.
-          mf::LogError("AnalysisTree")
-            << "No showers found for input tag '" << ShowerInputTag.encode()
-            << "' ; FILLING WITH FAKE DATA AS FOR USER'S REQUEST";
-        }
+	showerList.push_back(nullptr);
+	if (!bIgnoreMissingShowers) {
+	  throw art::Exception(art::errors::ProductNotFound)
+	    << "Showers with input tag '" << ShowerInputTag.encode()
+	    << "' were not found in the event."
+	    " If you really know what you are doing,"
+	    " set AnalysisTree's configuration parameter IgnoreMissingShowers"
+	    " to \"true\"; the lack of any shower set will be tolerated,"
+	    " and the shower list in the corresponding event will be set to"
+	    " a list of one shower, with an invalid ID.\n";
+	} // if bIgnoreMissingShowers
+	else {
+	  // this message is more alarming than strictly necessary; by design.
+	  mf::LogError("AnalysisTree")
+	    << "No showers found for input tag '" << ShowerInputTag.encode()
+	    << "' ; FILLING WITH FAKE DATA AS FOR USER'S REQUEST";
+	}
       }
 
       else showerList.push_back(ShowerHandle.product());
@@ -3866,7 +3866,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // got this error? consider increasing kMaxHits
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << NHits
-                                          << " hits, only kMaxHits=" << kMaxHits << " stored in tree";
+					  << " hits, only kMaxHits=" << kMaxHits << " stored in tree";
     }
     for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
       fData->hit_channel[i] = hitlist[i]->Channel();
@@ -3887,10 +3887,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       //extracting hit true XYZ from simIDEs
       if (isMC){
         std::vector<const sim::IDE*> ides;
-        try{
+      	try{
           ides= bt_serv->HitToSimIDEs_Ps(hitlist[i]);
-        }
-        catch(...){}
+      	}
+      	catch(...){}
           if (ides.size()>0){
             std::vector<double> xyz = bt_serv->SimIDEsToXYZ(ides);
             fData->hit_trueX[i] = xyz[0];
@@ -3898,74 +3898,74 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         }
 
       /*
-        for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
+	for (unsigned int it=0; it<fTrackModuleLabel.size();++it){
         art::FindManyP<recob::Track> fmtk(hitListHandle,evt,fTrackModuleLabel[it]);
         if (fmtk.at(i).size()!=0){
-        hit_trkid[it][i] = fmtk.at(i)[0]->ID();
+	hit_trkid[it][i] = fmtk.at(i)[0]->ID();
         }
         else
-        hit_trkid[it][i] = 0;
-        }
+	hit_trkid[it][i] = 0;
+	}
       */
 
       if (fSaveRawDigitInfo){
-        //Hit to RawDigit information
-        art::FindManyP<raw::RawDigit> fmrd(hitListHandle,evt,fHitsModuleLabel);
-        if (hitlist[i]->WireID().Plane==2)
-          {
-            int dataSize = fmrd.at(i)[0]->Samples();
-            short ped = fmrd.at(i)[0]->GetPedestal();
+	//Hit to RawDigit information
+	art::FindManyP<raw::RawDigit> fmrd(hitListHandle,evt,fHitsModuleLabel);
+	if (hitlist[i]->WireID().Plane==2)
+	  {
+	    int dataSize = fmrd.at(i)[0]->Samples();
+	    short ped = fmrd.at(i)[0]->GetPedestal();
 
-            std::vector<short> rawadc(dataSize);
-            raw::Uncompress(fmrd.at(i)[0]->ADCs(), rawadc, fmrd.at(i)[0]->Compression());
-            int t0 = hitlist[i]->PeakTime() - 3*(hitlist[i]->RMS());
-            if (t0<0) t0 = 0;
-            int t1 = hitlist[i]->PeakTime() + 3*(hitlist[i]->RMS());
-            if (t1>=dataSize) t1 = dataSize-1;
-            fData->rawD_ph[i] = -1;
-            fData->rawD_peakT[i] = -1;
-            for (int j = t0; j<=t1; ++j){
-              if (rawadc[j]-ped>fData->rawD_ph[i]){
-                fData->rawD_ph[i] = rawadc[j]-ped;
-                fData->rawD_peakT[i] = j;
-              }
-            }
-            fData->rawD_charge[i] = 0;
-            fData->rawD_fwhh[i] = 0;
-            double mean_t = 0.0;
-            double mean_t2 = 0.0;
-            for (int j = t0; j<=t1; ++j){
-              if (rawadc[j]-ped>=0.5*fData->rawD_ph[i]){
-                ++fData->rawD_fwhh[i];
-              }
-              if (rawadc[j]-ped>=0.1*fData->rawD_ph[i]){
-                fData->rawD_charge[i] += rawadc[j]-ped;
-                mean_t += (double)j*(rawadc[j]-ped);
-                mean_t2 += (double)j*(double)j*(rawadc[j]-ped);
-              }
-            }
-            mean_t/=fData->rawD_charge[i];
-            mean_t2/=fData->rawD_charge[i];
-            fData->rawD_rms[i] = sqrt(mean_t2-mean_t*mean_t);
-          }
+	    std::vector<short> rawadc(dataSize);
+	    raw::Uncompress(fmrd.at(i)[0]->ADCs(), rawadc, fmrd.at(i)[0]->Compression());
+	    int t0 = hitlist[i]->PeakTime() - 3*(hitlist[i]->RMS());
+	    if (t0<0) t0 = 0;
+	    int t1 = hitlist[i]->PeakTime() + 3*(hitlist[i]->RMS());
+	    if (t1>=dataSize) t1 = dataSize-1;
+	    fData->rawD_ph[i] = -1;
+	    fData->rawD_peakT[i] = -1;
+	    for (int j = t0; j<=t1; ++j){
+	      if (rawadc[j]-ped>fData->rawD_ph[i]){
+		fData->rawD_ph[i] = rawadc[j]-ped;
+		fData->rawD_peakT[i] = j;
+	      }
+	    }
+	    fData->rawD_charge[i] = 0;
+	    fData->rawD_fwhh[i] = 0;
+	    double mean_t = 0.0;
+	    double mean_t2 = 0.0;
+	    for (int j = t0; j<=t1; ++j){
+	      if (rawadc[j]-ped>=0.5*fData->rawD_ph[i]){
+		++fData->rawD_fwhh[i];
+	      }
+	      if (rawadc[j]-ped>=0.1*fData->rawD_ph[i]){
+		fData->rawD_charge[i] += rawadc[j]-ped;
+		mean_t += (double)j*(rawadc[j]-ped);
+		mean_t2 += (double)j*(double)j*(rawadc[j]-ped);
+	      }
+	    }
+	    mean_t/=fData->rawD_charge[i];
+	    mean_t2/=fData->rawD_charge[i];
+	    fData->rawD_rms[i] = sqrt(mean_t2-mean_t*mean_t);
+	  }
       } // Save RawDigitInfo
 
       if (!evt.isRealData()&&!isCosmics){
-        fData -> hit_nelec[i] = 0;
-        fData -> hit_energy[i] = 0;
-        const sim::SimChannel* chan = 0;
-        for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
-          if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
-        }
-        if (chan){
+	fData -> hit_nelec[i] = 0;
+	fData -> hit_energy[i] = 0;
+	const sim::SimChannel* chan = 0;
+	for(size_t sc = 0; sc < fSimChannels.size(); ++sc){
+	  if(fSimChannels[sc]->Channel() == hitlist[i]->Channel()) chan = fSimChannels[sc];
+	}
+	if (chan){
     for(auto const& mapitr : chan->TDCIDEMap()){
-            // loop over the vector of IDE objects.
+	    // loop over the vector of IDE objects.
       for(auto const& ide : mapitr.second){
-              fData -> hit_nelec[i] += ide.numElectrons;
-              fData -> hit_energy[i] += ide.energy;
-            }
-          }
-        }
+	      fData -> hit_nelec[i] += ide.numElectrons;
+	      fData -> hit_energy[i] += ide.energy;
+	    }
+	  }
+	}
       }
     } // Loop over hits
 
@@ -3974,13 +3974,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       art::FindManyP<recob::Track> fmtk(hitListHandle,evt,fTrackModuleLabel[0]);
       for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
         if (fmtk.isValid()){
-          if (fmtk.at(i).size()!=0){
-            fData->hit_trkid[i] = fmtk.at(i)[0]->ID();
-            fData->hit_trkKey[i] = fmtk.at(i)[0].key();
+	  if (fmtk.at(i).size()!=0){
+	    fData->hit_trkid[i] = fmtk.at(i)[0]->ID();
+	    fData->hit_trkKey[i] = fmtk.at(i)[0].key();
 
-          }
-          else
-            fData->hit_trkid[i] = -1;
+	  }
+	  else
+	    fData->hit_trkid[i] = -1;
         }
       }
     }
@@ -3996,7 +3996,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         if (fmcl.isValid() && fmcl.at(i).size()!=0){
           fData->hit_clusterid[i] = fmcl.at(i)[0]->ID();
           fData->hit_clusterKey[i] = fmcl.at(i)[0].key();
-          // std::cout << "ClusterID " <<
+          // std::cout << "ClusterID " << 
         }
         if(fmsp.isValid() && fmsp.at(i).size()!=0){
           fData->hit_spacepointid[i] = fmsp.at(i)[0]->ID();
@@ -4024,7 +4024,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // got this error? consider increasing kMaxClusters
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << nprim
-                                          << " nu neutrino vertices, only kMaxVertices=" << kMaxVertices << " stored in tree";
+					  << " nu neutrino vertices, only kMaxVertices=" << kMaxVertices << " stored in tree";
     }
 
     fData->nnuvtx = nprim;
@@ -4033,22 +4033,22 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     for (unsigned int n = 0; n < particleVector.size(); ++n) {
       const art::Ptr<recob::PFParticle> particle = particleVector.at(n);
       if(particle->IsPrimary()) {
-        lar_pandora::PFParticlesToVertices::const_iterator vIter = particlesToVertices.find(particle);
-        if (particlesToVertices.end() != vIter) {
-          const lar_pandora::VertexVector &vertexVector = vIter->second;
-          if (!vertexVector.empty()) {
-            if (vertexVector.size() == 1) {
-              const art::Ptr<recob::Vertex> vertex = *(vertexVector.begin());
-              double xyz[3] = {0.0, 0.0, 0.0} ;
-              vertex->XYZ(xyz);
-              fData->nuvtxx[iv] = xyz[0];
-              fData->nuvtxy[iv] = xyz[1];
-              fData->nuvtxz[iv] = xyz[2];
-              fData->nuvtxpdg[iv] = particle->PdgCode();
-              iv++;
-            }
-          }
-        }
+	lar_pandora::PFParticlesToVertices::const_iterator vIter = particlesToVertices.find(particle);
+	if (particlesToVertices.end() != vIter) {
+	  const lar_pandora::VertexVector &vertexVector = vIter->second;
+	  if (!vertexVector.empty()) {
+	    if (vertexVector.size() == 1) {
+	      const art::Ptr<recob::Vertex> vertex = *(vertexVector.begin());
+	      double xyz[3] = {0.0, 0.0, 0.0} ;
+	      vertex->XYZ(xyz);
+	      fData->nuvtxx[iv] = xyz[0];
+	      fData->nuvtxy[iv] = xyz[1];
+	      fData->nuvtxz[iv] = xyz[2];
+	      fData->nuvtxpdg[iv] = particle->PdgCode();
+	      iv++;
+	    }
+	  }
+	}
       }
     }
   } // save PandoraNuVertexInfo
@@ -4060,7 +4060,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // got this error? consider increasing kMaxClusters
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << NClusters
-                                          << " clusters, only kMaxClusters=" << kMaxClusters << " stored in tree";
+					  << " clusters, only kMaxClusters=" << kMaxClusters << " stored in tree";
     }
     for(unsigned int ic=0; ic<NClusters;++ic){//loop over clusters
       art::Ptr<recob::Cluster> clusterholder(clusterListHandle, ic);
@@ -4087,13 +4087,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       //Cosmic Tagger information for cluster
       art::FindManyP<anab::CosmicTag> fmcct(clusterListHandle,evt,fCosmicClusterTaggerAssocLabel);
       if (fmcct.isValid()){
-        fData->cluncosmictags_tagger[ic]     = fmcct.at(ic).size();
-        if (fmcct.at(ic).size()>0){
-          if(fmcct.at(ic).size()>1)
-            std::cerr << "\n Warning : more than one cosmic tag per cluster in module! assigning the first tag to the cluster" << fCosmicClusterTaggerAssocLabel;
-          fData->clucosmicscore_tagger[ic] = fmcct.at(ic).at(0)->CosmicScore();
-          fData->clucosmictype_tagger[ic] = fmcct.at(ic).at(0)->CosmicType();
-        }
+	fData->cluncosmictags_tagger[ic]     = fmcct.at(ic).size();
+	if (fmcct.at(ic).size()>0){
+	  if(fmcct.at(ic).size()>1)
+	    std::cerr << "\n Warning : more than one cosmic tag per cluster in module! assigning the first tag to the cluster" << fCosmicClusterTaggerAssocLabel;
+	  fData->clucosmicscore_tagger[ic] = fmcct.at(ic).at(0)->CosmicScore();
+	  fData->clucosmictype_tagger[ic] = fmcct.at(ic).at(0)->CosmicType();
+	}
       }
     }//end loop over clusters
   }//end fSaveClusterInfo
@@ -4153,11 +4153,11 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // got this error? consider increasing kMaxHits
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << NFlashes
-                                          << " flashes, only kMaxFlashes=" << kMaxFlashes << " stored in tree";
+					  << " flashes, only kMaxFlashes=" << kMaxFlashes << " stored in tree";
     }
 
     std::sort(flashlist.begin(), flashlist.end(), recob::OpFlashPtrSortByPE);
-
+    
     for (size_t i = 0; i < NFlashes && i < kMaxFlashes ; ++i){//loop over hits
       fData->flash_time[i]       = flashlist[i]->Time();
       fData->flash_pe[i]         = flashlist[i]->TotalPE();
@@ -4175,7 +4175,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // got this error? consider increasing kMaxHits
       // (or ask for a redesign using vectors)
       mf::LogError("AnalysisTree:limits") << "event has " << NExternCounts
-                                          << " External Counters, only kMaxExternCounts=" << kMaxExternCounts << " stored in tree";
+					  << " External Counters, only kMaxExternCounts=" << kMaxExternCounts << " stored in tree";
     }
     for (size_t i = 0; i < NExternCounts && i < kMaxExternCounts ; ++i){//loop over hits
       fData->externcounts_time[i] = countlist[i]->GetTrigTime();
@@ -4330,21 +4330,21 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       art::Handle< std::vector<recob::Shower> > showerHandle = showerListHandle[iShowerAlgo];
 
       if (pShowers){
-        FillShowers(ShowerData, *pShowers, fSavePFParticleInfo, showerIDtoPFParticleIDMap);
+	FillShowers(ShowerData, *pShowers, fSavePFParticleInfo, showerIDtoPFParticleIDMap);
 
-        if(fMVAPIDShowerModuleLabel[iShowerAlgo].size()){
-          art::FindOneP<anab::MVAPIDResult> fmvapid(showerHandle, evt, fMVAPIDShowerModuleLabel[iShowerAlgo]);
-          if(fmvapid.isValid()){
-            for(unsigned int iShower=0;iShower<showerHandle->size();++iShower){
-              const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iShower);
-              ShowerData.shwr_pidmvamu[iShower] = pid->mvaOutput.at("muon");
-              ShowerData.shwr_pidmvae[iShower] = pid->mvaOutput.at("electron");
-              ShowerData.shwr_pidmvapich[iShower] = pid->mvaOutput.at("pich");
-              ShowerData.shwr_pidmvaphoton[iShower] = pid->mvaOutput.at("photon");
-              ShowerData.shwr_pidmvapr[iShower] = pid->mvaOutput.at("proton");
-            }
-          } // fmvapid.isValid()
-        }
+	if(fMVAPIDShowerModuleLabel[iShowerAlgo].size()){
+	  art::FindOneP<anab::MVAPIDResult> fmvapid(showerHandle, evt, fMVAPIDShowerModuleLabel[iShowerAlgo]);
+	  if(fmvapid.isValid()){
+	    for(unsigned int iShower=0;iShower<showerHandle->size();++iShower){
+	      const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iShower);
+	      ShowerData.shwr_pidmvamu[iShower] = pid->mvaOutput.at("muon");
+	      ShowerData.shwr_pidmvae[iShower] = pid->mvaOutput.at("electron");
+	      ShowerData.shwr_pidmvapich[iShower] = pid->mvaOutput.at("pich");
+	      ShowerData.shwr_pidmvaphoton[iShower] = pid->mvaOutput.at("photon");
+	      ShowerData.shwr_pidmvapr[iShower] = pid->mvaOutput.at("proton");
+	    }
+	  } // fmvapid.isValid()
+	}
       }
       else ShowerData.MarkMissing(fTree); // tree should reflect lack of data
     } // for iShowerAlgo
@@ -4370,8 +4370,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         // got this error? it might be a bug,
         // since we are supposed to have allocated enough space to fit all tracks
         mf::LogError("AnalysisTree:limits") << "event has " << NTracks
-                                            << " " << fTrackModuleLabel[iTracker] << " tracks, only "
-                                            << TrackerData.GetMaxTracks() << " stored in tree";
+					    << " " << fTrackModuleLabel[iTracker] << " tracks, only "
+					    << TrackerData.GetMaxTracks() << " stored in tree";
       }
 
       //call the track momentum algorithm that gives you momentum based on track range
@@ -4383,21 +4383,21 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         //save t0 from reconstructed flash track matching for every track
         art::FindManyP<anab::T0> fmt0(trackListHandle[iTracker],evt,fFlashT0FinderLabel[iTracker]);
         if (fmt0.isValid()){
-          if(fmt0.at(iTrk).size()>0){
-            if(fmt0.at(iTrk).size()>1)
-              std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the track" << fFlashT0FinderLabel[iTracker];
-            TrackerData.trkflashT0[iTrk] = fmt0.at(iTrk).at(0)->Time();
-          }
+	  if(fmt0.at(iTrk).size()>0){
+	    if(fmt0.at(iTrk).size()>1)
+	      std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the track" << fFlashT0FinderLabel[iTracker];
+	    TrackerData.trkflashT0[iTrk] = fmt0.at(iTrk).at(0)->Time();
+	  }
         }
 
-        //save t0 from reconstructed flash track matching for every track
+	//save t0 from reconstructed flash track matching for every track
         art::FindManyP<anab::T0> fmmct0(trackListHandle[iTracker],evt,fMCT0FinderLabel[iTracker]);
         if (fmmct0.isValid()){
-          if(fmmct0.at(iTrk).size()>0){
-            if(fmmct0.at(iTrk).size()>1)
-              std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the cluster" << fMCT0FinderLabel[iTracker];
-            TrackerData.trktrueT0[iTrk] = fmmct0.at(iTrk).at(0)->Time();
-          }
+	  if(fmmct0.at(iTrk).size()>0){
+	    if(fmmct0.at(iTrk).size()>1)
+	      std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the cluster" << fMCT0FinderLabel[iTracker];
+	    TrackerData.trktrueT0[iTrk] = fmmct0.at(iTrk).at(0)->Time();
+	  }
         }
 
         //Cosmic Tagger information
@@ -4432,9 +4432,9 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           if (fmbfm.at(iTrk).size()>0){
             if(fmbfm.at(iTrk).size()>1)
               std::cerr << "\n Warning : more than one cosmic tag per track in module! assigning the first tag to the track" << fFlashMatchAssocLabel[iTracker];
-            TrackerData.trkcosmicscore_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicScore();
-            TrackerData.trkcosmictype_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicType();
-            //std::cout<<"\n"<<evt.event()<<"\t"<<iTrk<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicScore()<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicType();
+	    TrackerData.trkcosmicscore_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicScore();
+	    TrackerData.trkcosmictype_flashmatch[iTrk] = fmbfm.at(iTrk).at(0)->CosmicType();
+	    //std::cout<<"\n"<<evt.event()<<"\t"<<iTrk<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicScore()<<"\t"<<fmbfm.at(iTrk).at(0)->CosmicType();
           }
         }
 
@@ -4495,26 +4495,26 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           TrackerData.trkstartx[iTrk]             = pos.X();
           TrackerData.trkstarty[iTrk]             = pos.Y();
           TrackerData.trkstartz[iTrk]             = pos.Z();
-          TrackerData.trkstartd[iTrk]             = dpos;
-          TrackerData.trkendx[iTrk]               = end.X();
-          TrackerData.trkendy[iTrk]               = end.Y();
-          TrackerData.trkendz[iTrk]               = end.Z();
-          TrackerData.trkendd[iTrk]               = dend;
-          TrackerData.trktheta[iTrk]              = dir_start.Theta();
-          TrackerData.trkphi[iTrk]                = dir_start.Phi();
-          TrackerData.trkstartdcosx[iTrk]         = dir_start.X();
-          TrackerData.trkstartdcosy[iTrk]         = dir_start.Y();
-          TrackerData.trkstartdcosz[iTrk]         = dir_start.Z();
-          TrackerData.trkenddcosx[iTrk]           = dir_end.X();
-          TrackerData.trkenddcosy[iTrk]           = dir_end.Y();
-          TrackerData.trkenddcosz[iTrk]           = dir_end.Z();
-          TrackerData.trkthetaxz[iTrk]            = theta_xz;
-          TrackerData.trkthetayz[iTrk]            = theta_yz;
-          TrackerData.trkmom[iTrk]                = mom;
-          TrackerData.trklen[iTrk]                = tlen;
-          TrackerData.trkmomrange[iTrk]           = trkm.GetTrackMomentum(tlen,13);
-          //TrackerData.trkmommschi2[iTrk]        = trkm.GetMomentumMultiScatterChi2(ptrack);
-          //TrackerData.trkmommsllhd[iTrk]        = trkm.GetMomentumMultiScatterLLHD(ptrack);
+          TrackerData.trkstartd[iTrk]		  = dpos;
+          TrackerData.trkendx[iTrk]		  = end.X();
+          TrackerData.trkendy[iTrk]		  = end.Y();
+          TrackerData.trkendz[iTrk]		  = end.Z();
+          TrackerData.trkendd[iTrk]		  = dend;
+          TrackerData.trktheta[iTrk]		  = dir_start.Theta();
+          TrackerData.trkphi[iTrk]		  = dir_start.Phi();
+          TrackerData.trkstartdcosx[iTrk]	  = dir_start.X();
+          TrackerData.trkstartdcosy[iTrk]	  = dir_start.Y();
+          TrackerData.trkstartdcosz[iTrk]	  = dir_start.Z();
+          TrackerData.trkenddcosx[iTrk] 	  = dir_end.X();
+          TrackerData.trkenddcosy[iTrk] 	  = dir_end.Y();
+          TrackerData.trkenddcosz[iTrk] 	  = dir_end.Z();
+          TrackerData.trkthetaxz[iTrk]  	  = theta_xz;
+          TrackerData.trkthetayz[iTrk]  	  = theta_yz;
+          TrackerData.trkmom[iTrk]		  = mom;
+          TrackerData.trklen[iTrk]		  = tlen;
+          TrackerData.trkmomrange[iTrk] 	  = trkm.GetTrackMomentum(tlen,13);
+          //TrackerData.trkmommschi2[iTrk]	  = trkm.GetMomentumMultiScatterChi2(ptrack);
+          //TrackerData.trkmommsllhd[iTrk]	  = trkm.GetMomentumMultiScatterLLHD(ptrack);
 
           if (fSavePFParticleInfo) {
             auto mapIter = trackIDtoPFParticleIDMap.find(TrackID);
@@ -4529,204 +4529,204 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
         } // if we have trajectory
 
-        // find vertices associated with this track
-        /*
-          art::FindMany<recob::Vertex> fmvtx(trackListHandle[iTracker], evt, fVertexModuleLabel[iTracker]);
-          if(fmvtx.isValid()) {
-          std::vector<const recob::Vertex*> verts = fmvtx.at(iTrk);
-          // should have two at most
-          for(size_t ivx = 0; ivx < verts.size(); ++ivx) {
+	// find vertices associated with this track
+	/*
+	  art::FindMany<recob::Vertex> fmvtx(trackListHandle[iTracker], evt, fVertexModuleLabel[iTracker]);
+	  if(fmvtx.isValid()) {
+	  std::vector<const recob::Vertex*> verts = fmvtx.at(iTrk);
+	  // should have two at most
+	  for(size_t ivx = 0; ivx < verts.size(); ++ivx) {
           verts[ivx]->XYZ(xyz);
           // find the vertex in TrackerData to get the index
           short theVtx = -1;
           for(short jvx = 0; jvx < TrackerData.nvtx; ++jvx) {
-          if(TrackerData.vtx[jvx][2] == xyz[2]) {
-          theVtx = jvx;
-          break;
-          }
+	  if(TrackerData.vtx[jvx][2] == xyz[2]) {
+	  theVtx = jvx;
+	  break;
+	  }
           } // jvx
           // decide if it should be assigned to the track Start or End.
           // A simple dz test should suffice
           if(fabs(xyz[2] - TrackerData.trkstartz[iTrk]) <
-          fabs(xyz[2] - TrackerData.trkendz[iTrk])) {
-          TrackerData.trksvtxid[iTrk] = theVtx;
+	  fabs(xyz[2] - TrackerData.trkendz[iTrk])) {
+	  TrackerData.trksvtxid[iTrk] = theVtx;
           } else {
-          TrackerData.trkevtxid[iTrk] = theVtx;
+	  TrackerData.trkevtxid[iTrk] = theVtx;
           }
-          } // vertices
-          } // fmvtx.isValid()
-        */
+	  } // vertices
+	  } // fmvtx.isValid()
+	*/
 
 
-        /* //commented out because now have several Vertices
-           Float_t minsdist = 10000;
-           Float_t minedist = 10000;
-           for (int ivx = 0; ivx < NVertices && ivx < kMaxVertices; ++ivx){
-           Float_t sdist = sqrt(pow(TrackerData.trkstartx[iTrk]-VertexData.vtxx[ivx],2)+
-           pow(TrackerData.trkstarty[iTrk]-VertexData.vtxy[ivx],2)+
-           pow(TrackerData.trkstartz[iTrk]-VertexData.vtxz[ivx],2));
-           Float_t edist = sqrt(pow(TrackerData.trkendx[iTrk]-VertexData.vtxx[ivx],2)+
-           pow(TrackerData.trkendy[iTrk]-VertexData.vtxy[ivx],2)+
-           pow(TrackerData.trkendz[iTrk]-VertexData.vtxz[ivx],2));
-           if (sdist<minsdist){
-           minsdist = sdist;
-           if (minsdist<10) TrackerData.trksvtxid[iTrk] = ivx;
-           }
-           if (edist<minedist){
-           minedist = edist;
-           if (minedist<10) TrackerData.trkevtxid[iTrk] = ivx;
-           }
-           }*/
+	/* //commented out because now have several Vertices
+	   Float_t minsdist = 10000;
+	   Float_t minedist = 10000;
+	   for (int ivx = 0; ivx < NVertices && ivx < kMaxVertices; ++ivx){
+	   Float_t sdist = sqrt(pow(TrackerData.trkstartx[iTrk]-VertexData.vtxx[ivx],2)+
+	   pow(TrackerData.trkstarty[iTrk]-VertexData.vtxy[ivx],2)+
+	   pow(TrackerData.trkstartz[iTrk]-VertexData.vtxz[ivx],2));
+	   Float_t edist = sqrt(pow(TrackerData.trkendx[iTrk]-VertexData.vtxx[ivx],2)+
+	   pow(TrackerData.trkendy[iTrk]-VertexData.vtxy[ivx],2)+
+	   pow(TrackerData.trkendz[iTrk]-VertexData.vtxz[ivx],2));
+	   if (sdist<minsdist){
+	   minsdist = sdist;
+	   if (minsdist<10) TrackerData.trksvtxid[iTrk] = ivx;
+	   }
+	   if (edist<minedist){
+	   minedist = edist;
+	   if (minedist<10) TrackerData.trkevtxid[iTrk] = ivx;
+	   }
+	   }*/
 
-        // find particle ID info
-        art::FindMany<anab::ParticleID> fmpid(trackListHandle[iTracker], evt, fParticleIDModuleLabel[iTracker]);
-        if(fmpid.isValid()) {
-          std::vector<const anab::ParticleID*> pids = fmpid.at(iTrk);
-          //if(pids.size() > 1) {
+	// find particle ID info
+	art::FindMany<anab::ParticleID> fmpid(trackListHandle[iTracker], evt, fParticleIDModuleLabel[iTracker]);
+	if(fmpid.isValid()) {
+	  std::vector<const anab::ParticleID*> pids = fmpid.at(iTrk);
+	  //if(pids.size() > 1) {
           //mf::LogError("AnalysisTree:limits")
-          //<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-          //<< " has " << pids.size()
-          //<< " set of ParticleID variables. Only one stored in the tree";
-          //}
-          for (size_t ipid = 0; ipid < pids.size(); ++ipid){
-            if (!pids[ipid]->PlaneID().isValid) continue;
-            int planenum = pids[ipid]->PlaneID().Plane;
-            if (planenum<0||planenum>2) continue;
-            TrackerData.trkpidpdg[iTrk][planenum] = pids[ipid]->Pdg();
-            TrackerData.trkpidchi[iTrk][planenum] = pids[ipid]->MinChi2();
-            TrackerData.trkpidchipr[iTrk][planenum] = pids[ipid]->Chi2Proton();
-            TrackerData.trkpidchika[iTrk][planenum] = pids[ipid]->Chi2Kaon();
-            TrackerData.trkpidchipi[iTrk][planenum] = pids[ipid]->Chi2Pion();
-            TrackerData.trkpidchimu[iTrk][planenum] = pids[ipid]->Chi2Muon();
-            TrackerData.trkpidpida[iTrk][planenum] = pids[ipid]->PIDA();
-          }
-        } // fmpid.isValid()
-        if(fMVAPIDTrackModuleLabel[iTracker].size()){
-          art::FindOneP<anab::MVAPIDResult> fmvapid(trackListHandle[iTracker], evt, fMVAPIDTrackModuleLabel[iTracker]);
-          if(fmvapid.isValid()) {
-            const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iTrk);
-            TrackerData.trkpidmvamu[iTrk] = pid->mvaOutput.at("muon");
-            TrackerData.trkpidmvae[iTrk] = pid->mvaOutput.at("electron");
-            TrackerData.trkpidmvapich[iTrk] = pid->mvaOutput.at("pich");
-            TrackerData.trkpidmvaphoton[iTrk] = pid->mvaOutput.at("photon");
-            TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("proton");
-          } // fmvapid.isValid()
-        }
-        art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
-        if (fmcal.isValid()){
-          std::vector<const anab::Calorimetry*> calos = fmcal.at(iTrk);
-          if (calos.size() > TrackerData.GetMaxPlanesPerTrack(iTrk)) {
-            // if you get this message, there is probably a bug somewhere since
-            // the calorimetry planes should be 3.
-            mf::LogError("AnalysisTree:limits")
-              << "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-              << " has " << calos.size() << " planes for calorimetry , only "
-              << TrackerData.GetMaxPlanesPerTrack(iTrk) << " stored in tree";
-          }
-          for (size_t ical = 0; ical<calos.size(); ++ical){
-            if (!calos[ical]) continue;
-            if (!calos[ical]->PlaneID().isValid) continue;
-            int planenum = calos[ical]->PlaneID().Plane;
-            if (planenum<0||planenum>2) continue;
-            TrackerData.trkke[iTrk][planenum]    = calos[ical]->KineticEnergy();
-            TrackerData.trkrange[iTrk][planenum] = calos[ical]->Range();
-            //For now make the second argument as 13 for muons.
-            TrackerData.trkpitchc[iTrk][planenum]= calos[ical] -> TrkPitchC();
-            const size_t NHits = calos[ical] -> dEdx().size();
-            TrackerData.ntrkhits[iTrk][planenum] = (int) NHits;
-            if (NHits > TrackerData.GetMaxHitsPerTrack(iTrk, planenum)) {
-              // if you get this error, you'll have to increase kMaxTrackHits
-              mf::LogError("AnalysisTree:limits")
-                << "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
-                << " has " << NHits << " hits on calorimetry plane #" << planenum
-                <<", only "
-                << TrackerData.GetMaxHitsPerTrack(iTrk, planenum) << " stored in tree";
-            }
-            if (!isCosmics){
-              for(size_t iTrkHit = 0; iTrkHit < NHits && iTrkHit < TrackerData.GetMaxHitsPerTrack(iTrk, planenum); ++iTrkHit) {
-                TrackerData.trkdedx[iTrk][planenum][iTrkHit]  = (calos[ical] -> dEdx())[iTrkHit];
-                TrackerData.trkdqdx[iTrk][planenum][iTrkHit]  = (calos[ical] -> dQdx())[iTrkHit];
-                TrackerData.trkresrg[iTrk][planenum][iTrkHit] = (calos[ical] -> ResidualRange())[iTrkHit];
-                TrackerData.trktpc[iTrk][planenum][iTrkHit]   = (calos[ical] -> PlaneID()).TPC;
-                const auto& TrkPos = (calos[ical] -> XYZ())[iTrkHit];
-                auto& TrkXYZ = TrackerData.trkxyz[iTrk][planenum][iTrkHit];
-                TrkXYZ[0] = TrkPos.X();
-                TrkXYZ[1] = TrkPos.Y();
-                TrkXYZ[2] = TrkPos.Z();
-              } // for track hits
-            }
-          } // for calorimetry info
-          if(TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
-          else if(TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
-          else if(TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
-          else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
-          else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0]) TrackerData.trkpidbestplane[iTrk] = 2;
-          else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
-          else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 2;
+	  //<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
+	  //<< " has " << pids.size()
+	  //<< " set of ParticleID variables. Only one stored in the tree";
+	  //}
+	  for (size_t ipid = 0; ipid < pids.size(); ++ipid){
+	    if (!pids[ipid]->PlaneID().isValid) continue;
+	    int planenum = pids[ipid]->PlaneID().Plane;
+	    if (planenum<0||planenum>2) continue;
+	    TrackerData.trkpidpdg[iTrk][planenum] = pids[ipid]->Pdg();
+	    TrackerData.trkpidchi[iTrk][planenum] = pids[ipid]->MinChi2();
+	    TrackerData.trkpidchipr[iTrk][planenum] = pids[ipid]->Chi2Proton();
+	    TrackerData.trkpidchika[iTrk][planenum] = pids[ipid]->Chi2Kaon();
+	    TrackerData.trkpidchipi[iTrk][planenum] = pids[ipid]->Chi2Pion();
+	    TrackerData.trkpidchimu[iTrk][planenum] = pids[ipid]->Chi2Muon();
+	    TrackerData.trkpidpida[iTrk][planenum] = pids[ipid]->PIDA();
+	  }
+	} // fmpid.isValid()
+	if(fMVAPIDTrackModuleLabel[iTracker].size()){
+	  art::FindOneP<anab::MVAPIDResult> fmvapid(trackListHandle[iTracker], evt, fMVAPIDTrackModuleLabel[iTracker]);
+	  if(fmvapid.isValid()) {
+	    const art::Ptr<anab::MVAPIDResult> pid = fmvapid.at(iTrk);
+	    TrackerData.trkpidmvamu[iTrk] = pid->mvaOutput.at("muon");
+	    TrackerData.trkpidmvae[iTrk] = pid->mvaOutput.at("electron");
+	    TrackerData.trkpidmvapich[iTrk] = pid->mvaOutput.at("pich");
+	    TrackerData.trkpidmvaphoton[iTrk] = pid->mvaOutput.at("photon");
+	    TrackerData.trkpidmvapr[iTrk] = pid->mvaOutput.at("proton");
+	  } // fmvapid.isValid()
+	}
+	art::FindMany<anab::Calorimetry> fmcal(trackListHandle[iTracker], evt, fCalorimetryModuleLabel[iTracker]);
+	if (fmcal.isValid()){
+	  std::vector<const anab::Calorimetry*> calos = fmcal.at(iTrk);
+	  if (calos.size() > TrackerData.GetMaxPlanesPerTrack(iTrk)) {
+	    // if you get this message, there is probably a bug somewhere since
+	    // the calorimetry planes should be 3.
+	    mf::LogError("AnalysisTree:limits")
+	      << "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
+	      << " has " << calos.size() << " planes for calorimetry , only "
+	      << TrackerData.GetMaxPlanesPerTrack(iTrk) << " stored in tree";
+	  }
+	  for (size_t ical = 0; ical<calos.size(); ++ical){
+	    if (!calos[ical]) continue;
+	    if (!calos[ical]->PlaneID().isValid) continue;
+	    int planenum = calos[ical]->PlaneID().Plane;
+	    if (planenum<0||planenum>2) continue;
+	    TrackerData.trkke[iTrk][planenum]    = calos[ical]->KineticEnergy();
+	    TrackerData.trkrange[iTrk][planenum] = calos[ical]->Range();
+	    //For now make the second argument as 13 for muons.
+	    TrackerData.trkpitchc[iTrk][planenum]= calos[ical] -> TrkPitchC();
+	    const size_t NHits = calos[ical] -> dEdx().size();
+	    TrackerData.ntrkhits[iTrk][planenum] = (int) NHits;
+	    if (NHits > TrackerData.GetMaxHitsPerTrack(iTrk, planenum)) {
+	      // if you get this error, you'll have to increase kMaxTrackHits
+	      mf::LogError("AnalysisTree:limits")
+		<< "the " << fTrackModuleLabel[iTracker] << " track #" << iTrk
+		<< " has " << NHits << " hits on calorimetry plane #" << planenum
+		<<", only "
+		<< TrackerData.GetMaxHitsPerTrack(iTrk, planenum) << " stored in tree";
+	    }
+	    if (!isCosmics){
+	      for(size_t iTrkHit = 0; iTrkHit < NHits && iTrkHit < TrackerData.GetMaxHitsPerTrack(iTrk, planenum); ++iTrkHit) {
+		TrackerData.trkdedx[iTrk][planenum][iTrkHit]  = (calos[ical] -> dEdx())[iTrkHit];
+		TrackerData.trkdqdx[iTrk][planenum][iTrkHit]  = (calos[ical] -> dQdx())[iTrkHit];
+		TrackerData.trkresrg[iTrk][planenum][iTrkHit] = (calos[ical] -> ResidualRange())[iTrkHit];
+		TrackerData.trktpc[iTrk][planenum][iTrkHit]   = (calos[ical] -> PlaneID()).TPC;
+		const auto& TrkPos = (calos[ical] -> XYZ())[iTrkHit];
+		auto& TrkXYZ = TrackerData.trkxyz[iTrk][planenum][iTrkHit];
+		TrkXYZ[0] = TrkPos.X();
+		TrkXYZ[1] = TrkPos.Y();
+		TrkXYZ[2] = TrkPos.Z();
+	      } // for track hits
+	    }
+	  } // for calorimetry info
+	  if(TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][0] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
+	  else if(TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
+	  else if(TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
+	  else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
+	  else if(TrackerData.ntrkhits[iTrk][2] == TrackerData.ntrkhits[iTrk][1] && TrackerData.ntrkhits[iTrk][2] > TrackerData.ntrkhits[iTrk][0]) TrackerData.trkpidbestplane[iTrk] = 2;
+	  else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] > TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
+	  else if(TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][0] && TrackerData.ntrkhits[iTrk][1] == TrackerData.ntrkhits[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 2;
 
-          // FIXME - Do i want to add someway to work out the best TPC???....
-        } // if has calorimetry info
+	  // FIXME - Do i want to add someway to work out the best TPC???....
+	} // if has calorimetry info
 
-        //track truth information
-        if (isMC){
-          //get the hits on each plane
-          art::FindManyP<recob::Hit>      fmht(trackListHandle[iTracker], evt, fTrackModuleLabel[iTracker]);
-          std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(iTrk);
-          std::vector< art::Ptr<recob::Hit> > hits[kNplanes];
+	//track truth information
+	if (isMC){
+	  //get the hits on each plane
+	  art::FindManyP<recob::Hit>      fmht(trackListHandle[iTracker], evt, fTrackModuleLabel[iTracker]);
+	  std::vector< art::Ptr<recob::Hit> > allHits = fmht.at(iTrk);
+	  std::vector< art::Ptr<recob::Hit> > hits[kNplanes];
 
-          for(size_t ah = 0; ah < allHits.size(); ++ah){
-            if (/* allHits[ah]->WireID().Plane >= 0 && */ // always true
-                allHits[ah]->WireID().Plane <  3){
-              hits[allHits[ah]->WireID().Plane].push_back(allHits[ah]);
-            }
-          }
-          for (size_t ipl = 0; ipl < 3; ++ipl){
-            double maxe = 0;
-            HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
-            //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
-            if (TrackerData.trkidtruth[iTrk][ipl]>0){
-              const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
-              TrackerData.trkorigin[iTrk][ipl] = mc->Origin();
-              const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(TrackerData.trkidtruth[iTrk][ipl]);
-              double tote = 0;
-              const std::vector<const sim::IDE*> vide=bt_serv->TrackIdToSimIDEs_Ps(TrackerData.trkidtruth[iTrk][ipl]);
-              for (auto ide: vide) {
-                tote += ide->energy;
-              }
-              TrackerData.trkpdgtruth[iTrk][ipl] = particle->PdgCode();
-              TrackerData.trkefftruth[iTrk][ipl] = maxe/(tote/kNplanes); //tote include both induction and collection energies
-              //std::cout<<"\n"<<trkpdgtruth[iTracker][iTrk][ipl]<<"\t"<<trkefftruth[iTracker][iTrk][ipl];
-            }
-          }
+	  for(size_t ah = 0; ah < allHits.size(); ++ah){
+	    if (/* allHits[ah]->WireID().Plane >= 0 && */ // always true
+		allHits[ah]->WireID().Plane <  3){
+	      hits[allHits[ah]->WireID().Plane].push_back(allHits[ah]);
+	    }
+	  }
+	  for (size_t ipl = 0; ipl < 3; ++ipl){
+	    double maxe = 0;
+	    HitsPurity(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
+	    //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
+	    if (TrackerData.trkidtruth[iTrk][ipl]>0){
+	      const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
+	      TrackerData.trkorigin[iTrk][ipl] = mc->Origin();
+	      const simb::MCParticle *particle = pi_serv->TrackIdToParticle_P(TrackerData.trkidtruth[iTrk][ipl]);
+	      double tote = 0;
+	      const std::vector<const sim::IDE*> vide=bt_serv->TrackIdToSimIDEs_Ps(TrackerData.trkidtruth[iTrk][ipl]);
+	      for (auto ide: vide) {
+		tote += ide->energy;
+	      }
+	      TrackerData.trkpdgtruth[iTrk][ipl] = particle->PdgCode();
+	      TrackerData.trkefftruth[iTrk][ipl] = maxe/(tote/kNplanes); //tote include both induction and collection energies
+	      //std::cout<<"\n"<<trkpdgtruth[iTracker][iTrk][ipl]<<"\t"<<trkefftruth[iTracker][iTrk][ipl];
+	    }
+	  }
 
-          double maxe = 0;
-          HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
-          if (TrackerData.trkg4id[iTrk]>0){
-            const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
-            TrackerData.trkorig[iTrk] = mc->Origin();
-          }
-          if (allHits.size()){
-            std::vector<art::Ptr<recob::Hit> > all_hits;
-            art::Handle<std::vector<recob::Hit> > hithandle;
-            float totenergy = 0;
-            if (evt.get(allHits[0].id(), hithandle)){
-              art::fill_ptr_vector(all_hits, hithandle);
-              for(size_t h = 0; h < all_hits.size(); ++h){
+	  double maxe = 0;
+	  HitsPurity(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+	  if (TrackerData.trkg4id[iTrk]>0){
+	    const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
+	    TrackerData.trkorig[iTrk] = mc->Origin();
+	  }
+	  if (allHits.size()){
+	    std::vector<art::Ptr<recob::Hit> > all_hits;
+	    art::Handle<std::vector<recob::Hit> > hithandle;
+	    float totenergy = 0;
+	    if (evt.get(allHits[0].id(), hithandle)){
+	      art::fill_ptr_vector(all_hits, hithandle);
+	      for(size_t h = 0; h < all_hits.size(); ++h){
 
-                art::Ptr<recob::Hit> hit = all_hits[h];
-                std::vector<sim::IDE*> ides;
-                //bt_serv->HitToSimIDEs(hit,ides);
-                std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+		art::Ptr<recob::Hit> hit = all_hits[h];
+		std::vector<sim::IDE*> ides;
+		//bt_serv->HitToSimIDEs(hit,ides);
+		std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
 
-                for(size_t e = 0; e < eveIDs.size(); ++e){
-                  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
-                  if (eveIDs[e].trackID==TrackerData.trkg4id[iTrk]) totenergy += eveIDs[e].energy;
-                }
-              }
-            }
-            if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
-          }
-        }//end if (isMC)
+		for(size_t e = 0; e < eveIDs.size(); ++e){
+		  //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
+		  if (eveIDs[e].trackID==TrackerData.trkg4id[iTrk]) totenergy += eveIDs[e].energy;
+		}
+	      }
+	    }
+	    if (totenergy) TrackerData.trkcompleteness[iTrk] = maxe/totenergy;
+	  }
+	}//end if (isMC)
       }//end loop over track
     }//end loop over track module labels
   }// end (fSaveTrackInfo)
@@ -4751,17 +4751,17 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       // this creates the tree branches in case they are not there yet
       SetVertexAddresses(iVertexAlg);
       if (NVertices > VertexData.GetMaxVertices()) {
-        // got this error? it might be a bug,
-        // since we are supposed to have allocated enough space to fit all tracks
-        mf::LogError("AnalysisTree:limits") << "event has " << NVertices
-                                            << " " << fVertexModuleLabel[iVertexAlg] << " tracks, only "
-                                            << VertexData.GetMaxVertices() << " stored in tree";
+	// got this error? it might be a bug,
+	// since we are supposed to have allocated enough space to fit all tracks
+	mf::LogError("AnalysisTree:limits") << "event has " << NVertices
+					    << " " << fVertexModuleLabel[iVertexAlg] << " tracks, only "
+					    << VertexData.GetMaxVertices() << " stored in tree";
       }
 
       for (size_t i = 0; i < NVertices && i < kMaxVertices ; ++i){//loop over hits
-            VertexData.vtxId[i] = vertexlist[iVertexAlg][i]->ID();
-            Double_t xyz[3] = {};
-            vertexlist[iVertexAlg][i] -> XYZ(xyz);
+	    VertexData.vtxId[i] = vertexlist[iVertexAlg][i]->ID();
+	    Double_t xyz[3] = {};
+	    vertexlist[iVertexAlg][i] -> XYZ(xyz);
         VertexData.vtxx[i] = xyz[0];
         VertexData.vtxy[i] = xyz[1];
         VertexData.vtxz[i] = xyz[2];
@@ -4809,10 +4809,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         fData->cry_Py[iPartc]=partc.Py();
         fData->cry_Pz[iPartc]=partc.Pz();
         fData->cry_P[iPartc]=partc.P();
-        fData->cry_StartPointx[iPartc] = partc.Vx();
-        fData->cry_StartPointy[iPartc] = partc.Vy();
-        fData->cry_StartPointz[iPartc] = partc.Vz();
-        fData->cry_StartPointt[iPartc] = partc.T();
+	fData->cry_StartPointx[iPartc] = partc.Vx();
+	fData->cry_StartPointy[iPartc] = partc.Vy();
+	fData->cry_StartPointz[iPartc] = partc.Vz();
+	fData->cry_StartPointt[iPartc] = partc.T();
         fData->cry_status_code[iPartc]=partc.StatusCode();
         fData->cry_mass[iPartc]=partc.Mass();
         fData->cry_trackID[iPartc]=partc.TrackId();
@@ -4846,230 +4846,230 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
     fData->mcevts_truth = mclist.size();
     if (fData->mcevts_truth > 0){//at least one mc record
       if (fSaveGenieInfo){
-        int neutrino_i = 0;
-        for(unsigned int iList = 0; (iList < mclist.size()) && (neutrino_i < kMaxTruth) ; ++iList){
-          if (mclist[iList]->NeutrinoSet()){
-            fData->nuPDG_truth[neutrino_i]  = mclist[iList]->GetNeutrino().Nu().PdgCode();
-            fData->ccnc_truth[neutrino_i]   = mclist[iList]->GetNeutrino().CCNC();
-            fData->mode_truth[neutrino_i]   = mclist[iList]->GetNeutrino().Mode();
-            fData->Q2_truth[neutrino_i]     = mclist[iList]->GetNeutrino().QSqr();
-            fData->W_truth[neutrino_i]      = mclist[iList]->GetNeutrino().W();
-            fData->X_truth[neutrino_i]      = mclist[iList]->GetNeutrino().X();
-            fData->Y_truth[neutrino_i]      = mclist[iList]->GetNeutrino().Y();
-            fData->hitnuc_truth[neutrino_i] = mclist[iList]->GetNeutrino().HitNuc();
-            fData->enu_truth[neutrino_i]    = mclist[iList]->GetNeutrino().Nu().E();
-            fData->nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
-            fData->nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
-            fData->nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
-            if (mclist[iList]->GetNeutrino().Nu().P()){
-              fData->nu_dcosx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Px()/mclist[iList]->GetNeutrino().Nu().P();
-              fData->nu_dcosy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Py()/mclist[iList]->GetNeutrino().Nu().P();
-              fData->nu_dcosz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Pz()/mclist[iList]->GetNeutrino().Nu().P();
-            }
-            fData->lep_mom_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().P();
-            if (mclist[iList]->GetNeutrino().Lepton().P()){
-              fData->lep_dcosx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Px()/mclist[iList]->GetNeutrino().Lepton().P();
-              fData->lep_dcosy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Py()/mclist[iList]->GetNeutrino().Lepton().P();
-              fData->lep_dcosz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Pz()/mclist[iList]->GetNeutrino().Lepton().P();
-            }
+	int neutrino_i = 0;
+	for(unsigned int iList = 0; (iList < mclist.size()) && (neutrino_i < kMaxTruth) ; ++iList){
+	  if (mclist[iList]->NeutrinoSet()){
+	    fData->nuPDG_truth[neutrino_i]  = mclist[iList]->GetNeutrino().Nu().PdgCode();
+	    fData->ccnc_truth[neutrino_i]   = mclist[iList]->GetNeutrino().CCNC();
+	    fData->mode_truth[neutrino_i]   = mclist[iList]->GetNeutrino().Mode();
+	    fData->Q2_truth[neutrino_i]     = mclist[iList]->GetNeutrino().QSqr();
+	    fData->W_truth[neutrino_i]      = mclist[iList]->GetNeutrino().W();
+	    fData->X_truth[neutrino_i]      = mclist[iList]->GetNeutrino().X();
+	    fData->Y_truth[neutrino_i]      = mclist[iList]->GetNeutrino().Y();
+	    fData->hitnuc_truth[neutrino_i] = mclist[iList]->GetNeutrino().HitNuc();
+	    fData->enu_truth[neutrino_i]    = mclist[iList]->GetNeutrino().Nu().E();
+	    fData->nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
+	    fData->nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
+	    fData->nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
+	    if (mclist[iList]->GetNeutrino().Nu().P()){
+	      fData->nu_dcosx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Px()/mclist[iList]->GetNeutrino().Nu().P();
+	      fData->nu_dcosy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Py()/mclist[iList]->GetNeutrino().Nu().P();
+	      fData->nu_dcosz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Pz()/mclist[iList]->GetNeutrino().Nu().P();
+	    }
+	    fData->lep_mom_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().P();
+	    if (mclist[iList]->GetNeutrino().Lepton().P()){
+	      fData->lep_dcosx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Px()/mclist[iList]->GetNeutrino().Lepton().P();
+	      fData->lep_dcosy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Py()/mclist[iList]->GetNeutrino().Lepton().P();
+	      fData->lep_dcosz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Lepton().Pz()/mclist[iList]->GetNeutrino().Lepton().P();
+	    }
 
-            //flux information
-            //
+	    //flux information
+	    //
             // Double-check that a simb::MCFlux object is associated with the
             // current simb::MCTruth object. For GENIE events, these should
             // always accompany each other. Other generators (e.g., MARLEY) may
             // create simb::MCTruth objects without corresponding simb::MCFlux
             // objects. -- S. Gardiner
-            if (find_mcflux.isValid()) {
+	    if (find_mcflux.isValid()) {
               auto flux_maybe_ref = find_mcflux.at(iList);
               if (flux_maybe_ref.isValid()) {
                 auto flux_ref = flux_maybe_ref.ref();
-                fData->vx_flux[neutrino_i]        = flux_ref.fvx;
-                fData->vy_flux[neutrino_i]        = flux_ref.fvy;
-                fData->vz_flux[neutrino_i]        = flux_ref.fvz;
-                fData->pdpx_flux[neutrino_i]      = flux_ref.fpdpx;
-                fData->pdpy_flux[neutrino_i]      = flux_ref.fpdpy;
-                fData->pdpz_flux[neutrino_i]      = flux_ref.fpdpz;
-                fData->ppdxdz_flux[neutrino_i]    = flux_ref.fppdxdz;
-                fData->ppdydz_flux[neutrino_i]    = flux_ref.fppdydz;
-                fData->pppz_flux[neutrino_i]      = flux_ref.fpppz;
+	        fData->vx_flux[neutrino_i]        = flux_ref.fvx;
+	        fData->vy_flux[neutrino_i]        = flux_ref.fvy;
+	        fData->vz_flux[neutrino_i]        = flux_ref.fvz;
+	        fData->pdpx_flux[neutrino_i]      = flux_ref.fpdpx;
+	        fData->pdpy_flux[neutrino_i]      = flux_ref.fpdpy;
+	        fData->pdpz_flux[neutrino_i]      = flux_ref.fpdpz;
+	        fData->ppdxdz_flux[neutrino_i]    = flux_ref.fppdxdz;
+	        fData->ppdydz_flux[neutrino_i]    = flux_ref.fppdydz;
+	        fData->pppz_flux[neutrino_i]      = flux_ref.fpppz;
 
-                fData->ptype_flux[neutrino_i]      = flux_ref.fptype;
-                fData->ppvx_flux[neutrino_i]       = flux_ref.fppvx;
-                fData->ppvy_flux[neutrino_i]       = flux_ref.fppvy;
-                fData->ppvz_flux[neutrino_i]       = flux_ref.fppvz;
-                fData->muparpx_flux[neutrino_i]    = flux_ref.fmuparpx;
-                fData->muparpy_flux[neutrino_i]    = flux_ref.fmuparpy;
-                fData->muparpz_flux[neutrino_i]    = flux_ref.fmuparpz;
-                fData->mupare_flux[neutrino_i]     = flux_ref.fmupare;
+	        fData->ptype_flux[neutrino_i]      = flux_ref.fptype;
+	        fData->ppvx_flux[neutrino_i]       = flux_ref.fppvx;
+	        fData->ppvy_flux[neutrino_i]       = flux_ref.fppvy;
+	        fData->ppvz_flux[neutrino_i]       = flux_ref.fppvz;
+	        fData->muparpx_flux[neutrino_i]    = flux_ref.fmuparpx;
+	        fData->muparpy_flux[neutrino_i]    = flux_ref.fmuparpy;
+	        fData->muparpz_flux[neutrino_i]    = flux_ref.fmuparpz;
+	        fData->mupare_flux[neutrino_i]     = flux_ref.fmupare;
 
-                fData->tgen_flux[neutrino_i]     = flux_ref.ftgen;
-                fData->tgptype_flux[neutrino_i]  = flux_ref.ftgptype;
-                fData->tgppx_flux[neutrino_i]    = flux_ref.ftgppx;
-                fData->tgppy_flux[neutrino_i]    = flux_ref.ftgppy;
-                fData->tgppz_flux[neutrino_i]    = flux_ref.ftgppz;
-                fData->tprivx_flux[neutrino_i]   = flux_ref.ftprivx;
-                fData->tprivy_flux[neutrino_i]   = flux_ref.ftprivy;
-                fData->tprivz_flux[neutrino_i]   = flux_ref.ftprivz;
+	        fData->tgen_flux[neutrino_i]     = flux_ref.ftgen;
+	        fData->tgptype_flux[neutrino_i]  = flux_ref.ftgptype;
+	        fData->tgppx_flux[neutrino_i]    = flux_ref.ftgppx;
+	        fData->tgppy_flux[neutrino_i]    = flux_ref.ftgppy;
+	        fData->tgppz_flux[neutrino_i]    = flux_ref.ftgppz;
+	        fData->tprivx_flux[neutrino_i]   = flux_ref.ftprivx;
+	        fData->tprivy_flux[neutrino_i]   = flux_ref.ftprivy;
+	        fData->tprivz_flux[neutrino_i]   = flux_ref.ftprivz;
 
-                fData->dk2gen_flux[neutrino_i]   = flux_ref.fdk2gen;
-                fData->gen2vtx_flux[neutrino_i]   = flux_ref.fgen2vtx;
+	        fData->dk2gen_flux[neutrino_i]   = flux_ref.fdk2gen;
+	        fData->gen2vtx_flux[neutrino_i]   = flux_ref.fgen2vtx;
 
-                fData->tpx_flux[neutrino_i]    = flux_ref.ftpx;
-                fData->tpy_flux[neutrino_i]    = flux_ref.ftpy;
-                fData->tpz_flux[neutrino_i]    = flux_ref.ftpz;
-                fData->tptype_flux[neutrino_i] = flux_ref.ftptype;
+	        fData->tpx_flux[neutrino_i]    = flux_ref.ftpx;
+	        fData->tpy_flux[neutrino_i]    = flux_ref.ftpy;
+	        fData->tpz_flux[neutrino_i]    = flux_ref.ftpz;
+	        fData->tptype_flux[neutrino_i] = flux_ref.ftptype;
               } // flux_maybe_ref.isValid()
             } // find_mcflux.isValid()
-            neutrino_i++;
-          }//mclist is NeutrinoSet()
-        }//loop over mclist
+	    neutrino_i++;
+	  }//mclist is NeutrinoSet()
+	}//loop over mclist
 
-        if (mctruth->NeutrinoSet()){
-          //genie particles information
-          fData->genie_no_primaries = mctruth->NParticles();
+	if (mctruth->NeutrinoSet()){
+	  //genie particles information
+	  fData->genie_no_primaries = mctruth->NParticles();
 
-          size_t StoreParticles = std::min((size_t) fData->genie_no_primaries, fData->GetMaxGeniePrimaries());
-          if (fData->genie_no_primaries > (int) StoreParticles) {
-            // got this error? it might be a bug,
-            // since the structure should have enough room for everything
-            mf::LogError("AnalysisTree:limits") << "event has "
-                                                << fData->genie_no_primaries << " MC particles, only "
-                                                << StoreParticles << " stored in tree";
-          }
-          for(size_t iPart = 0; iPart < StoreParticles; ++iPart){
-            const simb::MCParticle& part(mctruth->GetParticle(iPart));
-            fData->genie_primaries_pdg[iPart]=part.PdgCode();
-            fData->genie_Eng[iPart]=part.E();
-            fData->genie_Px[iPart]=part.Px();
-            fData->genie_Py[iPart]=part.Py();
-            fData->genie_Pz[iPart]=part.Pz();
-            fData->genie_P[iPart]=part.P();
-            fData->genie_status_code[iPart]=part.StatusCode();
-            fData->genie_mass[iPart]=part.Mass();
-            fData->genie_trackID[iPart]=part.TrackId();
-            fData->genie_ND[iPart]=part.NumberDaughters();
-            fData->genie_mother[iPart]=part.Mother();
-          } // for particle
-          //const simb::MCNeutrino& nu(mctruth->GetNeutrino());
-        } //if neutrino set
+	  size_t StoreParticles = std::min((size_t) fData->genie_no_primaries, fData->GetMaxGeniePrimaries());
+	  if (fData->genie_no_primaries > (int) StoreParticles) {
+	    // got this error? it might be a bug,
+	    // since the structure should have enough room for everything
+	    mf::LogError("AnalysisTree:limits") << "event has "
+						<< fData->genie_no_primaries << " MC particles, only "
+						<< StoreParticles << " stored in tree";
+	  }
+	  for(size_t iPart = 0; iPart < StoreParticles; ++iPart){
+	    const simb::MCParticle& part(mctruth->GetParticle(iPart));
+	    fData->genie_primaries_pdg[iPart]=part.PdgCode();
+	    fData->genie_Eng[iPart]=part.E();
+	    fData->genie_Px[iPart]=part.Px();
+	    fData->genie_Py[iPart]=part.Py();
+	    fData->genie_Pz[iPart]=part.Pz();
+	    fData->genie_P[iPart]=part.P();
+	    fData->genie_status_code[iPart]=part.StatusCode();
+	    fData->genie_mass[iPart]=part.Mass();
+	    fData->genie_trackID[iPart]=part.TrackId();
+	    fData->genie_ND[iPart]=part.NumberDaughters();
+	    fData->genie_mother[iPart]=part.Mother();
+	  } // for particle
+	  //const simb::MCNeutrino& nu(mctruth->GetNeutrino());
+	} //if neutrino set
       }// end (fSaveGenieInfo)
 
       //Extract MC Shower information and fill the Shower branches
       if (fSaveMCShowerInfo){
-        fData->no_mcshowers = nMCShowers;
-        size_t shwr = 0;
-        for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();
-            imcshwr != mcshowerh->end(); ++imcshwr) {
-          const sim::MCShower& mcshwr = *imcshwr;
-          fData->mcshwr_origin[shwr]          = mcshwr.Origin();
-          fData->mcshwr_pdg[shwr]             = mcshwr.PdgCode();
-          fData->mcshwr_TrackId[shwr]         = mcshwr.TrackID();
-          fData->mcshwr_Process[shwr]         = mcshwr.Process();
-          fData->mcshwr_startX[shwr]          = mcshwr.Start().X();
-          fData->mcshwr_startY[shwr]          = mcshwr.Start().Y();
-          fData->mcshwr_startZ[shwr]          = mcshwr.Start().Z();
-          fData->mcshwr_endX[shwr]            = mcshwr.End().X();
-          fData->mcshwr_endY[shwr]            = mcshwr.End().Y();
-          fData->mcshwr_endZ[shwr]            = mcshwr.End().Z();
-          if (mcshwr.DetProfile().E()!= 0){
-            fData->mcshwr_isEngDeposited[shwr] = 1;
-            fData->mcshwr_CombEngX[shwr]        = mcshwr.DetProfile().X();
-            fData->mcshwr_CombEngY[shwr]        = mcshwr.DetProfile().Y();
-            fData->mcshwr_CombEngZ[shwr]        = mcshwr.DetProfile().Z();
-            fData->mcshwr_CombEngPx[shwr]       = mcshwr.DetProfile().Px();
-            fData->mcshwr_CombEngPy[shwr]       = mcshwr.DetProfile().Py();
-            fData->mcshwr_CombEngPz[shwr]       = mcshwr.DetProfile().Pz();
-            fData->mcshwr_CombEngE[shwr]        = mcshwr.DetProfile().E();
-            fData->mcshwr_dEdx[shwr]            = mcshwr.dEdx();
-            fData->mcshwr_StartDirX[shwr]       = mcshwr.StartDir().X();
-            fData->mcshwr_StartDirY[shwr]       = mcshwr.StartDir().Y();
-            fData->mcshwr_StartDirZ[shwr]       = mcshwr.StartDir().Z();
-          }
-          else
-            fData->mcshwr_isEngDeposited[shwr] = 0;
-          fData->mcshwr_Motherpdg[shwr]       = mcshwr.MotherPdgCode();
-          fData->mcshwr_MotherTrkId[shwr]     = mcshwr.MotherTrackID();
-          fData->mcshwr_MotherProcess[shwr]   = mcshwr.MotherProcess();
-          fData->mcshwr_MotherstartX[shwr]    = mcshwr.MotherStart().X();
-          fData->mcshwr_MotherstartY[shwr]    = mcshwr.MotherStart().Y();
-          fData->mcshwr_MotherstartZ[shwr]    = mcshwr.MotherStart().Z();
-          fData->mcshwr_MotherendX[shwr]      = mcshwr.MotherEnd().X();
-          fData->mcshwr_MotherendY[shwr]      = mcshwr.MotherEnd().Y();
-          fData->mcshwr_MotherendZ[shwr]      = mcshwr.MotherEnd().Z();
-          fData->mcshwr_Ancestorpdg[shwr]     = mcshwr.AncestorPdgCode();
-          fData->mcshwr_AncestorTrkId[shwr]   = mcshwr.AncestorTrackID();
-          fData->mcshwr_AncestorProcess[shwr] = mcshwr.AncestorProcess();
-          fData->mcshwr_AncestorstartX[shwr]  = mcshwr.AncestorStart().X();
-          fData->mcshwr_AncestorstartY[shwr]  = mcshwr.AncestorStart().Y();
-          fData->mcshwr_AncestorstartZ[shwr]  = mcshwr.AncestorStart().Z();
-          fData->mcshwr_AncestorendX[shwr]    = mcshwr.AncestorEnd().X();
-          fData->mcshwr_AncestorendY[shwr]    = mcshwr.AncestorEnd().Y();
-          fData->mcshwr_AncestorendZ[shwr]    = mcshwr.AncestorEnd().Z();
-          ++shwr;
-        }
-        fData->mcshwr_Process.resize(shwr);
-        fData->mcshwr_MotherProcess.resize(shwr);
-        fData->mcshwr_AncestorProcess.resize(shwr);
+	fData->no_mcshowers = nMCShowers;
+	size_t shwr = 0;
+	for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();
+	    imcshwr != mcshowerh->end(); ++imcshwr) {
+    	  const sim::MCShower& mcshwr = *imcshwr;
+	  fData->mcshwr_origin[shwr]          = mcshwr.Origin();
+    	  fData->mcshwr_pdg[shwr]	      = mcshwr.PdgCode();
+    	  fData->mcshwr_TrackId[shwr]	      = mcshwr.TrackID();
+    	  fData->mcshwr_Process[shwr]	      = mcshwr.Process();
+    	  fData->mcshwr_startX[shwr]          = mcshwr.Start().X();
+    	  fData->mcshwr_startY[shwr]          = mcshwr.Start().Y();
+    	  fData->mcshwr_startZ[shwr]          = mcshwr.Start().Z();
+    	  fData->mcshwr_endX[shwr]            = mcshwr.End().X();
+    	  fData->mcshwr_endY[shwr]            = mcshwr.End().Y();
+    	  fData->mcshwr_endZ[shwr]            = mcshwr.End().Z();
+	  if (mcshwr.DetProfile().E()!= 0){
+	    fData->mcshwr_isEngDeposited[shwr] = 1;
+	    fData->mcshwr_CombEngX[shwr]        = mcshwr.DetProfile().X();
+	    fData->mcshwr_CombEngY[shwr]        = mcshwr.DetProfile().Y();
+	    fData->mcshwr_CombEngZ[shwr]        = mcshwr.DetProfile().Z();
+	    fData->mcshwr_CombEngPx[shwr]       = mcshwr.DetProfile().Px();
+	    fData->mcshwr_CombEngPy[shwr]       = mcshwr.DetProfile().Py();
+	    fData->mcshwr_CombEngPz[shwr]       = mcshwr.DetProfile().Pz();
+	    fData->mcshwr_CombEngE[shwr]        = mcshwr.DetProfile().E();
+	    fData->mcshwr_dEdx[shwr]            = mcshwr.dEdx();
+	    fData->mcshwr_StartDirX[shwr]       = mcshwr.StartDir().X();
+	    fData->mcshwr_StartDirY[shwr]       = mcshwr.StartDir().Y();
+	    fData->mcshwr_StartDirZ[shwr]       = mcshwr.StartDir().Z();
+	  }
+	  else
+	    fData->mcshwr_isEngDeposited[shwr] = 0;
+    	  fData->mcshwr_Motherpdg[shwr]       = mcshwr.MotherPdgCode();
+    	  fData->mcshwr_MotherTrkId[shwr]     = mcshwr.MotherTrackID();
+    	  fData->mcshwr_MotherProcess[shwr]   = mcshwr.MotherProcess();
+	  fData->mcshwr_MotherstartX[shwr]    = mcshwr.MotherStart().X();
+    	  fData->mcshwr_MotherstartY[shwr]    = mcshwr.MotherStart().Y();
+    	  fData->mcshwr_MotherstartZ[shwr]    = mcshwr.MotherStart().Z();
+    	  fData->mcshwr_MotherendX[shwr]      = mcshwr.MotherEnd().X();
+    	  fData->mcshwr_MotherendY[shwr]      = mcshwr.MotherEnd().Y();
+    	  fData->mcshwr_MotherendZ[shwr]      = mcshwr.MotherEnd().Z();
+    	  fData->mcshwr_Ancestorpdg[shwr]     = mcshwr.AncestorPdgCode();
+    	  fData->mcshwr_AncestorTrkId[shwr]   = mcshwr.AncestorTrackID();
+    	  fData->mcshwr_AncestorProcess[shwr] = mcshwr.AncestorProcess();
+	  fData->mcshwr_AncestorstartX[shwr]  = mcshwr.AncestorStart().X();
+    	  fData->mcshwr_AncestorstartY[shwr]  = mcshwr.AncestorStart().Y();
+    	  fData->mcshwr_AncestorstartZ[shwr]  = mcshwr.AncestorStart().Z();
+    	  fData->mcshwr_AncestorendX[shwr]    = mcshwr.AncestorEnd().X();
+    	  fData->mcshwr_AncestorendY[shwr]    = mcshwr.AncestorEnd().Y();
+    	  fData->mcshwr_AncestorendZ[shwr]    = mcshwr.AncestorEnd().Z();
+    	  ++shwr;
+	}
+	fData->mcshwr_Process.resize(shwr);
+	fData->mcshwr_MotherProcess.resize(shwr);
+	fData->mcshwr_AncestorProcess.resize(shwr);
       }//End if (fSaveMCShowerInfo){
 
       //Extract MC Track information and fill the Shower branches
       if (fSaveMCTrackInfo){
-        fData->no_mctracks = nMCTracks;
-        size_t trk = 0;
-        for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
-          const sim::MCTrack& mctrk = *imctrk;
-          TLorentzVector tpcstart, tpcend, tpcmom;
-          double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
-          fData->mctrk_origin[trk]          = mctrk.Origin();
-          fData->mctrk_pdg[trk]             = mctrk.PdgCode();
-          fData->mctrk_TrackId[trk]         = mctrk.TrackID();
-          fData->mctrk_Process[trk]         = mctrk.Process();
-          fData->mctrk_startX[trk]          = mctrk.Start().X();
-          fData->mctrk_startY[trk]          = mctrk.Start().Y();
-          fData->mctrk_startZ[trk]          = mctrk.Start().Z();
-          fData->mctrk_endX[trk]            = mctrk.End().X();
-          fData->mctrk_endY[trk]            = mctrk.End().Y();
-          fData->mctrk_endZ[trk]            = mctrk.End().Z();
-          fData->mctrk_Motherpdg[trk]       = mctrk.MotherPdgCode();
-          fData->mctrk_MotherTrkId[trk]     = mctrk.MotherTrackID();
-          fData->mctrk_MotherProcess[trk]   = mctrk.MotherProcess();
-          fData->mctrk_MotherstartX[trk]    = mctrk.MotherStart().X();
-          fData->mctrk_MotherstartY[trk]    = mctrk.MotherStart().Y();
-          fData->mctrk_MotherstartZ[trk]    = mctrk.MotherStart().Z();
-          fData->mctrk_MotherendX[trk]      = mctrk.MotherEnd().X();
-          fData->mctrk_MotherendY[trk]      = mctrk.MotherEnd().Y();
-          fData->mctrk_MotherendZ[trk]      = mctrk.MotherEnd().Z();
-          fData->mctrk_Ancestorpdg[trk]     = mctrk.AncestorPdgCode();
-          fData->mctrk_AncestorTrkId[trk]   = mctrk.AncestorTrackID();
-          fData->mctrk_AncestorProcess[trk] = mctrk.AncestorProcess();
-          fData->mctrk_AncestorstartX[trk]  = mctrk.AncestorStart().X();
-          fData->mctrk_AncestorstartY[trk]  = mctrk.AncestorStart().Y();
-          fData->mctrk_AncestorstartZ[trk]  = mctrk.AncestorStart().Z();
-          fData->mctrk_AncestorendX[trk]    = mctrk.AncestorEnd().X();
-          fData->mctrk_AncestorendY[trk]    = mctrk.AncestorEnd().Y();
-          fData->mctrk_AncestorendZ[trk]    = mctrk.AncestorEnd().Z();
+	fData->no_mctracks = nMCTracks;
+	size_t trk = 0;
+	for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
+    	  const sim::MCTrack& mctrk = *imctrk;
+	  TLorentzVector tpcstart, tpcend, tpcmom;
+	  double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
+	  fData->mctrk_origin[trk]          = mctrk.Origin();
+    	  fData->mctrk_pdg[trk]	            = mctrk.PdgCode();
+    	  fData->mctrk_TrackId[trk]	    = mctrk.TrackID();
+    	  fData->mctrk_Process[trk]	    = mctrk.Process();
+    	  fData->mctrk_startX[trk]          = mctrk.Start().X();
+    	  fData->mctrk_startY[trk]          = mctrk.Start().Y();
+    	  fData->mctrk_startZ[trk]          = mctrk.Start().Z();
+    	  fData->mctrk_endX[trk]            = mctrk.End().X();
+    	  fData->mctrk_endY[trk]            = mctrk.End().Y();
+    	  fData->mctrk_endZ[trk]            = mctrk.End().Z();
+	  fData->mctrk_Motherpdg[trk]       = mctrk.MotherPdgCode();
+    	  fData->mctrk_MotherTrkId[trk]     = mctrk.MotherTrackID();
+    	  fData->mctrk_MotherProcess[trk]   = mctrk.MotherProcess();
+	  fData->mctrk_MotherstartX[trk]    = mctrk.MotherStart().X();
+    	  fData->mctrk_MotherstartY[trk]    = mctrk.MotherStart().Y();
+    	  fData->mctrk_MotherstartZ[trk]    = mctrk.MotherStart().Z();
+    	  fData->mctrk_MotherendX[trk]      = mctrk.MotherEnd().X();
+    	  fData->mctrk_MotherendY[trk]      = mctrk.MotherEnd().Y();
+    	  fData->mctrk_MotherendZ[trk]      = mctrk.MotherEnd().Z();
+    	  fData->mctrk_Ancestorpdg[trk]     = mctrk.AncestorPdgCode();
+    	  fData->mctrk_AncestorTrkId[trk]   = mctrk.AncestorTrackID();
+    	  fData->mctrk_AncestorProcess[trk] = mctrk.AncestorProcess();
+	  fData->mctrk_AncestorstartX[trk]  = mctrk.AncestorStart().X();
+    	  fData->mctrk_AncestorstartY[trk]  = mctrk.AncestorStart().Y();
+    	  fData->mctrk_AncestorstartZ[trk]  = mctrk.AncestorStart().Z();
+    	  fData->mctrk_AncestorendX[trk]    = mctrk.AncestorEnd().X();
+    	  fData->mctrk_AncestorendY[trk]    = mctrk.AncestorEnd().Y();
+    	  fData->mctrk_AncestorendZ[trk]    = mctrk.AncestorEnd().Z();
 
-          fData->mctrk_len_drifted[trk]       = plen;
+	  fData->mctrk_len_drifted[trk]       = plen;
 
-          if (plen != 0){
-            fData->mctrk_startX_drifted[trk] = tpcstart.X();
-            fData->mctrk_startY_drifted[trk] = tpcstart.Y();
-            fData->mctrk_startZ_drifted[trk] = tpcstart.Z();
-            fData->mctrk_endX_drifted[trk]   = tpcend.X();
-            fData->mctrk_endY_drifted[trk]   = tpcend.Y();
-            fData->mctrk_endZ_drifted[trk]   = tpcend.Z();
-            fData->mctrk_p_drifted[trk]      = tpcmom.Vect().Mag();
-            fData->mctrk_px_drifted[trk]     = tpcmom.X();
-            fData->mctrk_py_drifted[trk]     = tpcmom.Y();
-            fData->mctrk_pz_drifted[trk]     = tpcmom.Z();
-          }
-          ++trk;
-        }
+	  if (plen != 0){
+	    fData->mctrk_startX_drifted[trk] = tpcstart.X();
+	    fData->mctrk_startY_drifted[trk] = tpcstart.Y();
+	    fData->mctrk_startZ_drifted[trk] = tpcstart.Z();
+	    fData->mctrk_endX_drifted[trk]   = tpcend.X();
+	    fData->mctrk_endY_drifted[trk]   = tpcend.Y();
+	    fData->mctrk_endZ_drifted[trk]   = tpcend.Z();
+	    fData->mctrk_p_drifted[trk]      = tpcmom.Vect().Mag();
+	    fData->mctrk_px_drifted[trk]     = tpcmom.X();
+	    fData->mctrk_py_drifted[trk]     = tpcmom.Y();
+	    fData->mctrk_pz_drifted[trk]     = tpcmom.Z();
+	  }
+    	  ++trk;
+	}
 
-        fData->mctrk_Process.resize(trk);
-        fData->mctrk_MotherProcess.resize(trk);
-        fData->mctrk_AncestorProcess.resize(trk);
+	fData->mctrk_Process.resize(trk);
+	fData->mctrk_MotherProcess.resize(trk);
+	fData->mctrk_AncestorProcess.resize(trk);
       }//End if (fSaveMCTrackInfo){
 
 
@@ -5085,10 +5085,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         sim::ParticleList::const_iterator itPart = plist.begin(),
           pend = plist.end(); // iterator to pairs (track id, particle)
 
-        // helper map track ID => index
-        std::map<int, size_t> TrackIDtoIndex;
-        std::vector<int> gpdg;
-        std::vector<int> gmother;
+	// helper map track ID => index
+	std::map<int, size_t> TrackIDtoIndex;
+	std::vector<int> gpdg;
+	std::vector<int> gmother;
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart){
           const simb::MCParticle* pPart = (itPart++)->second;
           if (!pPart) {
@@ -5097,214 +5097,214 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           }
 
           //++geant_particle;
-          bool isPrimary = pPart->Process() == pri;
-          int TrackID = pPart->TrackId();
-          TrackIDtoIndex.emplace(TrackID, iPart);
-          gpdg.push_back(pPart->PdgCode());
-          gmother.push_back(pPart->Mother());
+	  bool isPrimary = pPart->Process() == pri;
+	  int TrackID = pPart->TrackId();
+	  TrackIDtoIndex.emplace(TrackID, iPart);
+	  gpdg.push_back(pPart->PdgCode());
+	  gmother.push_back(pPart->Mother());
           if (iPart < fData->GetMaxGEANTparticles()) {
-            if (pPart->E()<fG4minE&&(!isPrimary)) continue;
-            if (isPrimary) ++primary;
+	    if (pPart->E()<fG4minE&&(!isPrimary)) continue;
+	    if (isPrimary) ++primary;
 
-            TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
-            unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
-            double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
-            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
+	    TLorentzVector mcstart, mcend, mcstartdrifted, mcenddrifted;
+	    unsigned int pstarti, pendi, pstartdriftedi, penddriftedi; //mcparticle indices for starts and ends in tpc or drifted volumes
+	    double plen = length(*pPart, mcstart, mcend, pstarti, pendi);
+	    double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 
-            bool isActive = plen != 0;
-            bool isDrifted = plendrifted!= 0;
-            if (plen) ++active;
+	    bool isActive = plen != 0;
+	    bool isDrifted = plendrifted!= 0;
+	    if (plen) ++active;
 
-            fData->process_primary[geant_particle] = int(isPrimary);
-            fData->processname[geant_particle]= pPart->Process();
-            fData->Mother[geant_particle]=pPart->Mother();
-            fData->TrackId[geant_particle]=TrackID;
-            fData->pdg[geant_particle]=pPart->PdgCode();
-            fData->status[geant_particle] = pPart->StatusCode();
-            fData->Eng[geant_particle]=pPart->E();
-            fData->EndE[geant_particle]=pPart->EndE();
-            fData->Mass[geant_particle]=pPart->Mass();
-            fData->Px[geant_particle]=pPart->Px();
-            fData->Py[geant_particle]=pPart->Py();
-            fData->Pz[geant_particle]=pPart->Pz();
-            fData->P[geant_particle]=pPart->Momentum().Vect().Mag();
-            fData->StartPointx[geant_particle]=pPart->Vx();
-            fData->StartPointy[geant_particle]=pPart->Vy();
-            fData->StartPointz[geant_particle]=pPart->Vz();
-            fData->StartT[geant_particle] = pPart->T();
-            fData->EndPointx[geant_particle]=pPart->EndPosition()[0];
-            fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
-            fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
-            fData->EndT[geant_particle] = pPart->EndT();
-            fData->theta[geant_particle] = pPart->Momentum().Theta();
-            fData->phi[geant_particle] = pPart->Momentum().Phi();
-            fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
-            fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
-            fData->pathlen[geant_particle]  = plen;
-            fData->pathlen_drifted[geant_particle]  = plendrifted;
-            fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
-            fData->inTPCActive[geant_particle] = int(isActive);
-            fData->inTPCDrifted[geant_particle] = int(isDrifted);
-            art::Ptr<simb::MCTruth> const& mc_truth = pi_serv->ParticleToMCTruth_P(pPart);
-            if (mc_truth){
-              fData->origin[geant_particle] = mc_truth->Origin();
-              fData->MCTruthIndex[geant_particle] = mc_truth.key();
-            }
-            if (isActive){
-              fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
-              fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
-              fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
-              fData->StartT_tpcAV[geant_particle] = mcstart.T();
-              fData->StartE_tpcAV[geant_particle] = pPart->E(pstarti);
-              fData->StartP_tpcAV[geant_particle] = pPart->P(pstarti);
-              fData->StartPx_tpcAV[geant_particle] = pPart->Px(pstarti);
-              fData->StartPy_tpcAV[geant_particle] = pPart->Py(pstarti);
-              fData->StartPz_tpcAV[geant_particle] = pPart->Pz(pstarti);
-              fData->EndPointx_tpcAV[geant_particle] = mcend.X();
-              fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
-              fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
-              fData->EndT_tpcAV[geant_particle] = mcend.T();
-              fData->EndE_tpcAV[geant_particle] = pPart->E(pendi);
-              fData->EndP_tpcAV[geant_particle] = pPart->P(pendi);
-              fData->EndPx_tpcAV[geant_particle] = pPart->Px(pendi);
-              fData->EndPy_tpcAV[geant_particle] = pPart->Py(pendi);
-              fData->EndPz_tpcAV[geant_particle] = pPart->Pz(pendi);
-            }
-            if (isDrifted){
-              fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
-              fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
-              fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
-              fData->StartT_drifted[geant_particle] = mcstartdrifted.T();
-              fData->StartE_drifted[geant_particle] = pPart->E(pstartdriftedi);
-              fData->StartP_drifted[geant_particle] = pPart->P(pstartdriftedi);
-              fData->StartPx_drifted[geant_particle] = pPart->Px(pstartdriftedi);
-              fData->StartPy_drifted[geant_particle] = pPart->Py(pstartdriftedi);
-              fData->StartPz_drifted[geant_particle] = pPart->Pz(pstartdriftedi);
-              fData->EndPointx_drifted[geant_particle] = mcenddrifted.X();
-              fData->EndPointy_drifted[geant_particle] = mcenddrifted.Y();
-              fData->EndPointz_drifted[geant_particle] = mcenddrifted.Z();
-              fData->EndT_drifted[geant_particle] = mcenddrifted.T();
-              fData->EndE_drifted[geant_particle] = pPart->E(penddriftedi);
-              fData->EndP_drifted[geant_particle] = pPart->P(penddriftedi);
-              fData->EndPx_drifted[geant_particle] = pPart->Px(penddriftedi);
-              fData->EndPy_drifted[geant_particle] = pPart->Py(penddriftedi);
-              fData->EndPz_drifted[geant_particle] = pPart->Pz(penddriftedi);
-            }
+	    fData->process_primary[geant_particle] = int(isPrimary);
+	    fData->processname[geant_particle]= pPart->Process();
+	    fData->Mother[geant_particle]=pPart->Mother();
+	    fData->TrackId[geant_particle]=TrackID;
+	    fData->pdg[geant_particle]=pPart->PdgCode();
+	    fData->status[geant_particle] = pPart->StatusCode();
+	    fData->Eng[geant_particle]=pPart->E();
+	    fData->EndE[geant_particle]=pPart->EndE();
+	    fData->Mass[geant_particle]=pPart->Mass();
+	    fData->Px[geant_particle]=pPart->Px();
+	    fData->Py[geant_particle]=pPart->Py();
+	    fData->Pz[geant_particle]=pPart->Pz();
+	    fData->P[geant_particle]=pPart->Momentum().Vect().Mag();
+	    fData->StartPointx[geant_particle]=pPart->Vx();
+	    fData->StartPointy[geant_particle]=pPart->Vy();
+	    fData->StartPointz[geant_particle]=pPart->Vz();
+	    fData->StartT[geant_particle] = pPart->T();
+	    fData->EndPointx[geant_particle]=pPart->EndPosition()[0];
+	    fData->EndPointy[geant_particle]=pPart->EndPosition()[1];
+	    fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
+	    fData->EndT[geant_particle] = pPart->EndT();
+	    fData->theta[geant_particle] = pPart->Momentum().Theta();
+	    fData->phi[geant_particle] = pPart->Momentum().Phi();
+	    fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
+	    fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
+	    fData->pathlen[geant_particle]  = plen;
+	    fData->pathlen_drifted[geant_particle]  = plendrifted;
+	    fData->NumberDaughters[geant_particle]=pPart->NumberDaughters();
+	    fData->inTPCActive[geant_particle] = int(isActive);
+	    fData->inTPCDrifted[geant_particle] = int(isDrifted);
+	    art::Ptr<simb::MCTruth> const& mc_truth = pi_serv->ParticleToMCTruth_P(pPart);
+	    if (mc_truth){
+	      fData->origin[geant_particle] = mc_truth->Origin();
+	      fData->MCTruthIndex[geant_particle] = mc_truth.key();
+	    }
+	    if (isActive){
+	      fData->StartPointx_tpcAV[geant_particle] = mcstart.X();
+	      fData->StartPointy_tpcAV[geant_particle] = mcstart.Y();
+	      fData->StartPointz_tpcAV[geant_particle] = mcstart.Z();
+	      fData->StartT_tpcAV[geant_particle] = mcstart.T();
+	      fData->StartE_tpcAV[geant_particle] = pPart->E(pstarti);
+	      fData->StartP_tpcAV[geant_particle] = pPart->P(pstarti);
+	      fData->StartPx_tpcAV[geant_particle] = pPart->Px(pstarti);
+	      fData->StartPy_tpcAV[geant_particle] = pPart->Py(pstarti);
+	      fData->StartPz_tpcAV[geant_particle] = pPart->Pz(pstarti);
+	      fData->EndPointx_tpcAV[geant_particle] = mcend.X();
+	      fData->EndPointy_tpcAV[geant_particle] = mcend.Y();
+	      fData->EndPointz_tpcAV[geant_particle] = mcend.Z();
+	      fData->EndT_tpcAV[geant_particle] = mcend.T();
+	      fData->EndE_tpcAV[geant_particle] = pPart->E(pendi);
+	      fData->EndP_tpcAV[geant_particle] = pPart->P(pendi);
+	      fData->EndPx_tpcAV[geant_particle] = pPart->Px(pendi);
+	      fData->EndPy_tpcAV[geant_particle] = pPart->Py(pendi);
+	      fData->EndPz_tpcAV[geant_particle] = pPart->Pz(pendi);
+	    }
+	    if (isDrifted){
+	      fData->StartPointx_drifted[geant_particle] = mcstartdrifted.X();
+	      fData->StartPointy_drifted[geant_particle] = mcstartdrifted.Y();
+	      fData->StartPointz_drifted[geant_particle] = mcstartdrifted.Z();
+	      fData->StartT_drifted[geant_particle] = mcstartdrifted.T();
+	      fData->StartE_drifted[geant_particle] = pPart->E(pstartdriftedi);
+	      fData->StartP_drifted[geant_particle] = pPart->P(pstartdriftedi);
+	      fData->StartPx_drifted[geant_particle] = pPart->Px(pstartdriftedi);
+	      fData->StartPy_drifted[geant_particle] = pPart->Py(pstartdriftedi);
+	      fData->StartPz_drifted[geant_particle] = pPart->Pz(pstartdriftedi);
+	      fData->EndPointx_drifted[geant_particle] = mcenddrifted.X();
+	      fData->EndPointy_drifted[geant_particle] = mcenddrifted.Y();
+	      fData->EndPointz_drifted[geant_particle] = mcenddrifted.Z();
+	      fData->EndT_drifted[geant_particle] = mcenddrifted.T();
+	      fData->EndE_drifted[geant_particle] = pPart->E(penddriftedi);
+	      fData->EndP_drifted[geant_particle] = pPart->P(penddriftedi);
+	      fData->EndPx_drifted[geant_particle] = pPart->Px(penddriftedi);
+	      fData->EndPy_drifted[geant_particle] = pPart->Py(penddriftedi);
+	      fData->EndPz_drifted[geant_particle] = pPart->Pz(penddriftedi);
+	    }
 
-            //access auxiliary detector parameters
+	    //access auxiliary detector parameters
             if (fSaveAuxDetInfo) {
               unsigned short nAD = 0; // number of cells that particle hit
 
               // find deposit of this particle in each of the detector cells
               for (const sim::AuxDetSimChannel* c: fAuxDetSimChannels) {
 
-                // find if this cell has a contribution (IDE) from this particle,
-                // and which one
-                const std::vector<sim::AuxDetIDE>& setOfIDEs = c->AuxDetIDEs();
-                // using a C++ "lambda" function here; this one:
-                // - sees only TrackID from the current scope
-                // - takes one parameter: the AuxDetIDE to be tested
-                // - returns if that IDE belongs to the track we are looking for
-                std::vector<sim::AuxDetIDE>::const_iterator iIDE
-                  = std::find_if(
-                                 setOfIDEs.begin(), setOfIDEs.end(),
-                                 [TrackID](const sim::AuxDetIDE& IDE){ return IDE.trackID == TrackID; }
-                                 );
-                if (iIDE == setOfIDEs.end()) continue;
+        	// find if this cell has a contribution (IDE) from this particle,
+        	// and which one
+        	const std::vector<sim::AuxDetIDE>& setOfIDEs = c->AuxDetIDEs();
+        	// using a C++ "lambda" function here; this one:
+        	// - sees only TrackID from the current scope
+        	// - takes one parameter: the AuxDetIDE to be tested
+        	// - returns if that IDE belongs to the track we are looking for
+        	std::vector<sim::AuxDetIDE>::const_iterator iIDE
+        	  = std::find_if(
+				 setOfIDEs.begin(), setOfIDEs.end(),
+				 [TrackID](const sim::AuxDetIDE& IDE){ return IDE.trackID == TrackID; }
+				 );
+        	if (iIDE == setOfIDEs.end()) continue;
 
-                // now iIDE points to the energy released by the track #i (TrackID)
+        	// now iIDE points to the energy released by the track #i (TrackID)
 
-                // look for IDE with matching trackID
-                // find trackIDs stored in setOfIDEs with the same trackID, but negative,
-                // this is an untracked particle who's energy should be added as deposited by this original trackID
-                float totalE = 0.; // total energy deposited around by the GEANT particle in this cell
-                for(const auto& adtracks: setOfIDEs) {
-                  if( fabs(adtracks.trackID) == TrackID )
-                    totalE += adtracks.energyDeposited;
-                } // for
+		// look for IDE with matching trackID
+		// find trackIDs stored in setOfIDEs with the same trackID, but negative,
+		// this is an untracked particle who's energy should be added as deposited by this original trackID
+		float totalE = 0.; // total energy deposited around by the GEANT particle in this cell
+		for(const auto& adtracks: setOfIDEs) {
+		  if( fabs(adtracks.trackID) == TrackID )
+		    totalE += adtracks.energyDeposited;
+		} // for
 
-                // fill the structure
-                if (nAD < kMaxAuxDets) {
-                  fData->AuxDetID[geant_particle][nAD] = c->AuxDetID();
-                  fData->entryX[geant_particle][nAD]   = iIDE->entryX;
-                  fData->entryY[geant_particle][nAD]   = iIDE->entryY;
-                  fData->entryZ[geant_particle][nAD]   = iIDE->entryZ;
-                  fData->entryT[geant_particle][nAD]   = iIDE->entryT;
-                  fData->exitX[geant_particle][nAD]    = iIDE->exitX;
-                  fData->exitY[geant_particle][nAD]    = iIDE->exitY;
-                  fData->exitZ[geant_particle][nAD]    = iIDE->exitZ;
-                  fData->exitT[geant_particle][nAD]    = iIDE->exitT;
-                  fData->exitPx[geant_particle][nAD]   = iIDE->exitMomentumX;
-                  fData->exitPy[geant_particle][nAD]   = iIDE->exitMomentumY;
-                  fData->exitPz[geant_particle][nAD]   = iIDE->exitMomentumZ;
-                  fData->CombinedEnergyDep[geant_particle][nAD] = totalE;
-                }
-                ++nAD;
-              } // for aux det sim channels
-              fData->NAuxDets[geant_particle] = nAD;
+		// fill the structure
+		if (nAD < kMaxAuxDets) {
+		  fData->AuxDetID[geant_particle][nAD] = c->AuxDetID();
+		  fData->entryX[geant_particle][nAD]   = iIDE->entryX;
+		  fData->entryY[geant_particle][nAD]   = iIDE->entryY;
+		  fData->entryZ[geant_particle][nAD]   = iIDE->entryZ;
+		  fData->entryT[geant_particle][nAD]   = iIDE->entryT;
+		  fData->exitX[geant_particle][nAD]    = iIDE->exitX;
+		  fData->exitY[geant_particle][nAD]    = iIDE->exitY;
+		  fData->exitZ[geant_particle][nAD]    = iIDE->exitZ;
+		  fData->exitT[geant_particle][nAD]    = iIDE->exitT;
+		  fData->exitPx[geant_particle][nAD]   = iIDE->exitMomentumX;
+		  fData->exitPy[geant_particle][nAD]   = iIDE->exitMomentumY;
+		  fData->exitPz[geant_particle][nAD]   = iIDE->exitMomentumZ;
+		  fData->CombinedEnergyDep[geant_particle][nAD] = totalE;
+		}
+		++nAD;
+	      } // for aux det sim channels
+	      fData->NAuxDets[geant_particle] = nAD;
 
-              if (nAD > kMaxAuxDets) {
-                // got this error? consider increasing kMaxAuxDets
-                mf::LogError("AnalysisTree:limits")
-                  << "particle #" << iPart
-                  << " touches " << nAD << " auxiliary detector cells, only "
-                  << kMaxAuxDets << " of them are saved in the tree";
-              } // if too many detector cells
-            } // if (fSaveAuxDetInfo)
+	      if (nAD > kMaxAuxDets) {
+		// got this error? consider increasing kMaxAuxDets
+		mf::LogError("AnalysisTree:limits")
+		  << "particle #" << iPart
+		  << " touches " << nAD << " auxiliary detector cells, only "
+		  << kMaxAuxDets << " of them are saved in the tree";
+	      } // if too many detector cells
+	    } // if (fSaveAuxDetInfo)
 
-            ++geant_particle;
-          }
-          else if (iPart == fData->GetMaxGEANTparticles()) {
-            // got this error? it might be a bug,
-            // since the structure should have enough room for everything
-            mf::LogError("AnalysisTree:limits") << "event has "
-                                                << plist.size() << " MC particles, only "
-                                                << fData->GetMaxGEANTparticles() << " will be stored in tree";
-          }
-        } // for particles
+	    ++geant_particle;
+	  }
+	  else if (iPart == fData->GetMaxGEANTparticles()) {
+	    // got this error? it might be a bug,
+	    // since the structure should have enough room for everything
+	    mf::LogError("AnalysisTree:limits") << "event has "
+						<< plist.size() << " MC particles, only "
+						<< fData->GetMaxGEANTparticles() << " will be stored in tree";
+	  }
+	} // for particles
 
-        fData->geant_list_size_in_tpcAV = active;
-        fData->no_primaries = primary;
-        fData->geant_list_size = geant_particle;
-        fData->processname.resize(geant_particle);
-        LOG_DEBUG("AnalysisTree")
-          << "Counted "
-          << fData->geant_list_size << " GEANT particles ("
-          << fData->geant_list_size_in_tpcAV << " in AV), "
-          << fData->no_primaries << " primaries, "
-          << fData->genie_no_primaries << " GENIE particles";
+	fData->geant_list_size_in_tpcAV = active;
+	fData->no_primaries = primary;
+	fData->geant_list_size = geant_particle;
+	fData->processname.resize(geant_particle);
+	LOG_DEBUG("AnalysisTree")
+	  << "Counted "
+	  << fData->geant_list_size << " GEANT particles ("
+	  << fData->geant_list_size_in_tpcAV << " in AV), "
+	  << fData->no_primaries << " primaries, "
+	  << fData->genie_no_primaries << " GENIE particles";
 
-        FillWith(fData->MergedId, 0);
+	FillWith(fData->MergedId, 0);
 
-        // for each particle, consider all the direct ancestors with the same
-        // PDG ID, and mark them as belonging to the same "group"
-        // (having the same MergedId)
-        /* turn off for now
-           int currentMergedId = 1;
-           for(size_t iPart = 0; iPart < geant_particle; ++iPart){
-           // if the particle already belongs to a group, don't bother
-           if (fData->MergedId[iPart]) continue;
-           // the particle starts its own group
-           fData->MergedId[iPart] = currentMergedId;
-           int currentMotherTrackId = fData->Mother[iPart];
-           while (currentMotherTrackId > 0) {
-           if (TrackIDtoIndex.find(currentMotherTrackId)==TrackIDtoIndex.end()) break;
-           size_t gindex = TrackIDtoIndex[currentMotherTrackId];
-           if (gindex<0||gindex>=plist.size()) break;
-           // if the mother particle is of a different type,
-           // don't bother with iPart ancestry any further
-           if (gpdg[gindex]!=fData->pdg[iPart]) break;
-           if (TrackIDtoIndex.find(currentMotherTrackId)!=TrackIDtoIndex.end()){
-           size_t igeantMother = TrackIDtoIndex[currentMotherTrackId];
-           if (igeantMother>=0&&igeantMother<geant_particle){
-           fData->MergedId[igeantMother] = currentMergedId;
-           }
-           }
-           currentMotherTrackId = gmother[gindex];
-           }
-           ++currentMergedId;
-           }// for merging check
-        */
+	// for each particle, consider all the direct ancestors with the same
+	// PDG ID, and mark them as belonging to the same "group"
+	// (having the same MergedId)
+	/* turn off for now
+	   int currentMergedId = 1;
+	   for(size_t iPart = 0; iPart < geant_particle; ++iPart){
+	   // if the particle already belongs to a group, don't bother
+	   if (fData->MergedId[iPart]) continue;
+	   // the particle starts its own group
+	   fData->MergedId[iPart] = currentMergedId;
+	   int currentMotherTrackId = fData->Mother[iPart];
+	   while (currentMotherTrackId > 0) {
+	   if (TrackIDtoIndex.find(currentMotherTrackId)==TrackIDtoIndex.end()) break;
+	   size_t gindex = TrackIDtoIndex[currentMotherTrackId];
+	   if (gindex<0||gindex>=plist.size()) break;
+	   // if the mother particle is of a different type,
+	   // don't bother with iPart ancestry any further
+	   if (gpdg[gindex]!=fData->pdg[iPart]) break;
+	   if (TrackIDtoIndex.find(currentMotherTrackId)!=TrackIDtoIndex.end()){
+	   size_t igeantMother = TrackIDtoIndex[currentMotherTrackId];
+	   if (igeantMother>=0&&igeantMother<geant_particle){
+	   fData->MergedId[igeantMother] = currentMergedId;
+	   }
+	   }
+	   currentMotherTrackId = gmother[gindex];
+	   }
+	   ++currentMergedId;
+	   }// for merging check
+	*/
       } // if (fSaveGeantInfo)
 
       // Now we have the GEANT info, see if we can match the protoDUNE generator particles
@@ -5320,7 +5320,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
           } // End GEANT loop
         } // End protoDUNE generator loop
       } // End ProtoDUNE generator if statement
-
+      
     }//if (mcevts_truth)
   }//if (isMC){
   fData->taulife = detprop->ElectronLifetime();
@@ -5342,12 +5342,12 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
     size_t iTracker = 0;
     for (auto tracker = fData->TrackData.cbegin();
-         tracker != fData->TrackData.cend(); ++tracker, ++iTracker
-         ) {
+	 tracker != fData->TrackData.cend(); ++tracker, ++iTracker
+	 ) {
       logStream
-        << "\n -> " << tracker->ntracks << " " << fTrackModuleLabel[iTracker]
-        << " tracks (" << tracker->GetMaxTracks() << ")"
-        ;
+	<< "\n -> " << tracker->ntracks << " " << fTrackModuleLabel[iTracker]
+	<< " tracks (" << tracker->GetMaxTracks() << ")"
+	;
       for (int iTrk = 0; iTrk < tracker->ntracks; ++iTrk) {
         logStream << "\n    [" << iTrk << "] "<< tracker->ntrkhits[iTrk][0];
         for (size_t ipl = 1; ipl < tracker->GetMaxPlanesPerTrack(iTrk); ++ipl)
@@ -5371,9 +5371,9 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
 
 void dune::AnalysisTree::FillShower( AnalysisTreeDataStruct::ShowerDataStruct& showerData, size_t iShower,
-                                     recob::Shower const& shower, const bool fSavePFParticleInfo,
-                                     const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
-                                     ) const {
+				     recob::Shower const& shower, const bool fSavePFParticleInfo,
+				     const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
+				     ) const {
 
   showerData.showerID[iShower]        = shower.ID();
   showerData.shwr_bestplane[iShower]  = shower.best_plane();
@@ -5414,9 +5414,9 @@ void dune::AnalysisTree::FillShower( AnalysisTreeDataStruct::ShowerDataStruct& s
 
 
 void dune::AnalysisTree::FillShowers( AnalysisTreeDataStruct::ShowerDataStruct& showerData,
-                                      std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
-                                      const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
-                                      ) const {
+				      std::vector<recob::Shower> const& showers, const bool fSavePFParticleInfo,
+				      const std::map<Short_t, Short_t> &showerIDtoPFParticleIDMap
+				      ) const {
 
   const size_t NShowers = showers.size();
 
@@ -5436,8 +5436,8 @@ void dune::AnalysisTree::FillShowers( AnalysisTreeDataStruct::ShowerDataStruct& 
     // got this error? it might be a bug,
     // since we are supposed to have allocated enough space to fit all showers
     mf::LogError("AnalysisTree:limits") << "event has " << NShowers
-                                        << " " << showerData.Name() << " showers, only "
-                                        << showerData.GetMaxShowers() << " stored in tree";
+					<< " " << showerData.Name() << " showers, only "
+					<< showerData.GetMaxShowers() << " stored in tree";
   }
 
   //
@@ -5511,12 +5511,12 @@ double dune::AnalysisTree::bdist(const TVector3& pos)
   /*
   std::cout << "\n" << std::endl;
   std::cout << "-"<<ActiveBounds[0]<<" + "<<pos.X()<< " = " << d1 << "\n"
-            <<      ActiveBounds[1]<<" - "<<pos.X()<< " = " << d2 << "\n"
-            << "-"<<ActiveBounds[2]<<" + "<<pos.Y()<< " = " << d3 << "\n"
-            <<      ActiveBounds[3]<<" - "<<pos.Y()<< " = " << d4 << "\n"
-            << "-"<<ActiveBounds[4]<<" + "<<pos.Z()<< " = " << d5 << "\n"
-            <<      ActiveBounds[5]<<" - "<<pos.Z()<< " = " << d6 << "\n"
-            << "And the Minimum is " << result << std::endl;
+	    <<      ActiveBounds[1]<<" - "<<pos.X()<< " = " << d2 << "\n"
+	    << "-"<<ActiveBounds[2]<<" + "<<pos.Y()<< " = " << d3 << "\n"
+	    <<      ActiveBounds[3]<<" - "<<pos.Y()<< " = " << d4 << "\n"
+	    << "-"<<ActiveBounds[4]<<" + "<<pos.Z()<< " = " << d5 << "\n"
+	    <<      ActiveBounds[5]<<" - "<<pos.Z()<< " = " << d6 << "\n"
+	    << "And the Minimum is " << result << std::endl;
   */
   return result;
 }
@@ -5561,8 +5561,8 @@ double dune::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVe
   for(auto step: mctrack) {
     // check if the particle is inside a TPC
     if (step.X() >= ActiveBounds[0] && step.X() <= ActiveBounds[1] &&
-        step.Y() >= ActiveBounds[2] && step.Y() <= ActiveBounds[3] &&
-        step.Z() >= ActiveBounds[4] && step.Z() <= ActiveBounds[5] ){
+	step.Y() >= ActiveBounds[2] && step.Y() <= ActiveBounds[3] &&
+	step.Z() >= ActiveBounds[4] && step.Z() <= ActiveBounds[5] ){
       // Doing some manual shifting to account for
       // an interaction not occuring with the beam dump
       // we will reconstruct an x distance different from
@@ -5573,13 +5573,13 @@ double dune::AnalysisTree::driftedLength(const sim::MCTrack& mctrack, TLorentzVe
 
       TLorentzVector pos(newX,step.Y(),step.Z(),step.T());
       if(first){
-        tpcstart = pos;
-        tpcmom = step.Momentum();
-        first = false;
+	tpcstart = pos;
+	tpcmom = step.Momentum();
+	first = false;
       }
       else {
-        disp -= pos.Vect();
-        result += disp.Mag();
+	disp -= pos.Vect();
+	result += disp.Mag();
       }
       disp = pos.Vect();
       tpcend = pos;
@@ -5613,8 +5613,8 @@ double dune::AnalysisTree::driftedLength(const simb::MCParticle& p, TLorentzVect
   for(unsigned int i = 0; i < p.NumberTrajectoryPoints(); ++i) {
     // check if the particle is inside a TPC
     if (p.Vx(i) >= ActiveBounds[0] && p.Vx(i) <= ActiveBounds[1] &&
-        p.Vy(i) >= ActiveBounds[2] && p.Vy(i) <= ActiveBounds[3] &&
-        p.Vz(i) >= ActiveBounds[4] && p.Vz(i) <= ActiveBounds[5]){
+	p.Vy(i) >= ActiveBounds[2] && p.Vy(i) <= ActiveBounds[3] &&
+	p.Vz(i) >= ActiveBounds[4] && p.Vz(i) <= ActiveBounds[5]){
       // Doing some manual shifting to account for
       // an interaction not occuring with the beam dump
       // we will reconstruct an x distance different from
@@ -5624,13 +5624,13 @@ double dune::AnalysisTree::driftedLength(const simb::MCParticle& p, TLorentzVect
       if (newX < xrange[0] || newX > xrange[1]) continue;
       TLorentzVector pos(newX,p.Vy(i),p.Vz(i),p.T());
       if(first){
-        start = pos;
-        starti=i;
-        first = false;
+	start = pos;
+	starti=i;
+	first = false;
       }
       else {
-        disp -= pos.Vect();
-        result += disp.Mag();
+	disp -= pos.Vect();
+	result += disp.Mag();
       }
       disp = pos.Vect();
       end = pos;
@@ -5651,12 +5651,12 @@ double dune::AnalysisTree::length(const simb::MCParticle& p, TLorentzVector& sta
     // check if the particle is inside a TPC
     if (p.Vx(i) >= ActiveBounds[0] && p.Vx(i) <= ActiveBounds[1] && p.Vy(i) >= ActiveBounds[2] && p.Vy(i) <= ActiveBounds[3] && p.Vz(i) >= ActiveBounds[4] && p.Vz(i) <= ActiveBounds[5]){
       if(first){
-        start = p.Position(i);
-        first = false;
-        starti = i;
+	start = p.Position(i);
+	first = false;
+	starti = i;
       }else{
-        disp -= p.Position(i).Vect();
-        result += disp.Mag();
+	disp -= p.Position(i).Vect();
+	result += disp.Mag();
       }
       disp = p.Position(i).Vect();
       end = p.Position(i);

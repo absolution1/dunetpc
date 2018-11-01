@@ -85,13 +85,13 @@ namespace dune{
     void beginRun(const art::Run& run);
     void analyze(const art::Event& evt);
     void reset();
-
+    
   private:
     TTree* fEventTree;
-    Int_t    run;
-    Int_t    subrun;
+    Int_t    run;                  
+    Int_t    subrun;               
     Int_t    event;
-    Double_t evttime;
+    Double_t evttime; 
     Int_t    year_month_date;
     Int_t    hour_min_sec;
     Int_t    cross_trks;
@@ -107,7 +107,7 @@ namespace dune{
     Float_t trkendy[kMaxTracks];
     Float_t trkendz[kMaxTracks];
     Float_t trklen[kMaxTracks];
-    Int_t    TrkID[kMaxTracks];
+    Int_t    TrkID[kMaxTracks]; 
     Float_t  trkstartcosxyz[kMaxTracks][3];
     Float_t  trkendcosxyz[kMaxTracks][3];
     Int_t    ntrkhits[kMaxTracks][3];
@@ -122,7 +122,7 @@ namespace dune{
     std::string fCalorimetryModuleLabel;
     bool  fSaveCaloInfo;
     bool  fSaveTrackInfo;
-  };
+  }; 
 
   //========================================================================
   XYZcalibration::XYZcalibration(fhicl::ParameterSet const& pset) :
@@ -135,7 +135,7 @@ namespace dune{
   {
     if (fSaveTrackInfo == false) fSaveCaloInfo = false;
   }
-
+ 
   //========================================================================
   XYZcalibration::~XYZcalibration(){
   }
@@ -180,7 +180,7 @@ namespace dune{
   }
 
   //========================================================================
-  void XYZcalibration::endJob(){
+  void XYZcalibration::endJob(){     
 
   }
 
@@ -195,17 +195,17 @@ namespace dune{
   //========================================================================
 
   void XYZcalibration::analyze( const art::Event& evt){
-    reset();
-
+    reset();  
+     
     art::Handle< std::vector<recob::Track> > trackListHandle;
-    art::Handle< std::vector<recob::PFParticle> > PFPListHandle;
-
+    art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
+   
     std::vector<art::Ptr<recob::Track> > tracklist;
     std::vector<art::Ptr<recob::PFParticle> > pfplist;
-
+  
     if(evt.getByLabel(fTrackModuleLabel,trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
     if(evt.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
-
+  
     art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
     art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, evt ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,evt,"pandoraTrack");
@@ -217,41 +217,41 @@ namespace dune{
     art::Timestamp ts = evt.time();
     TTimeStamp tts(ts.timeHigh(), ts.timeLow());
     evttime=tts.AsDouble();
-
+     
     UInt_t year=0;
     UInt_t month=0;
     UInt_t day=0;
-
+     
     year_month_date=tts.GetDate(kTRUE,0,&year,&month,&day);
-
+     
     UInt_t hour=0;
     UInt_t min=0;
     UInt_t sec=0;
-
+     
     hour_min_sec=tts.GetTime(kTRUE,0,&hour,&min,&sec);
-
+  
     cross_trks=0;
     stopping_trks=0;
     all_trks=0;
-
+  
     size_t NTracks = tracklist.size();
     for(size_t i=0; i<NTracks;++i){
       art::Ptr<recob::Track> ptrack(trackListHandle, i);
       if(fTrackModuleLabel=="pandoraTrack"){
-        std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(i);
-        if(!pfps.size()) continue;
-        std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
-        if(!t0s.size()) continue;
-        //auto t0 = t0s.at(0);
-        // double t_zero=t0->Time();
+	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(i);
+	if(!pfps.size()) continue;
+	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
+	if(!t0s.size()) continue;
+	//auto t0 = t0s.at(0);
+	// double t_zero=t0->Time();
       }
       if(fTrackModuleLabel=="pmtrack"){
-        std::vector<art::Ptr<anab::T0>> T0s=fmT0.at(i);
-        if(T0s.size()==0)
-          continue;
+	std::vector<art::Ptr<anab::T0>> T0s=fmT0.at(i);
+	if(T0s.size()==0)
+	  continue;
       }
       all_trks++;
-      std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
+      std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);     
 
       const recob::Track& track = *ptrack;
       TVector3 pos, dir_start, dir_end, end;
@@ -280,28 +280,28 @@ namespace dune{
       trkendcosxyz[cross_trks-1][0]=dir_end.X();
       trkendcosxyz[cross_trks-1][1]=dir_end.Y();
       trkendcosxyz[cross_trks-1][2]=dir_end.Z();
-
+				   
       for(size_t ical = 0; ical<calos.size(); ++ical){
-        if(!calos[ical]) continue;
-        if(!calos[ical]->PlaneID().isValid) continue;
-        int planenum = calos[ical]->PlaneID().Plane;
-        if(planenum<0||planenum>2) continue;
-        const size_t NHits = calos[ical] -> dEdx().size();
-        ntrkhits[cross_trks-1][planenum]=int(NHits);
-        for(size_t iHit = 0; iHit < NHits; ++iHit){
-          const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
-          trkdqdx[cross_trks-1][planenum][iHit]=(calos[ical] -> dQdx())[iHit];
-          trkdedx[cross_trks-1][planenum][iHit]=(calos[ical] -> dEdx())[iHit];
-          trkresrange[cross_trks-1][planenum][iHit]=(calos[ical]->ResidualRange())[iHit];
-          trkhitx[cross_trks-1][planenum][iHit]=TrkPos.X();
-          trkhity[cross_trks-1][planenum][iHit]=TrkPos.Y();
-          trkhitz[cross_trks-1][planenum][iHit]=TrkPos.Z();
-        } // loop over iHit..
+	if(!calos[ical]) continue;
+	if(!calos[ical]->PlaneID().isValid) continue;
+	int planenum = calos[ical]->PlaneID().Plane;
+	if(planenum<0||planenum>2) continue;
+	const size_t NHits = calos[ical] -> dEdx().size();
+	ntrkhits[cross_trks-1][planenum]=int(NHits);
+	for(size_t iHit = 0; iHit < NHits; ++iHit){
+	  const auto& TrkPos = (calos[ical] -> XYZ())[iHit];
+	  trkdqdx[cross_trks-1][planenum][iHit]=(calos[ical] -> dQdx())[iHit];
+	  trkdedx[cross_trks-1][planenum][iHit]=(calos[ical] -> dEdx())[iHit];
+	  trkresrange[cross_trks-1][planenum][iHit]=(calos[ical]->ResidualRange())[iHit];
+	  trkhitx[cross_trks-1][planenum][iHit]=TrkPos.X();
+	  trkhity[cross_trks-1][planenum][iHit]=TrkPos.Y();
+	  trkhitz[cross_trks-1][planenum][iHit]=TrkPos.Z();
+	} // loop over iHit..
       } // loop over ical 2 nd time...
     } // loop over trks...
     fEventTree->Fill();
   } // end of analyze function
-
+	   
   /////////////////// Defintion of reset function ///////////
   void XYZcalibration::reset(){
     run = -9999;
@@ -326,7 +326,7 @@ namespace dune{
       xprojectedlen[i]=-9999;
       trkstartcosxyz[i][0]=-9999;
       trkstartcosxyz[i][1]=-9999;
-      trkstartcosxyz[i][2]=-9999;
+      trkstartcosxyz[i][2]=-9999; 
       trkendcosxyz[i][0]=-9999;
       trkendcosxyz[i][1]=-9999;
       trkendcosxyz[i][2]=-9999;
@@ -334,18 +334,18 @@ namespace dune{
       ntrkhits[i][1] = -9999;
       ntrkhits[i][2] = -9999;
       for(int j=0; j<3; j++){
-        for(int k=0; k<3000; k++){
-          trkdqdx[i][j][k]=-9999;
-          trkdedx[i][j][k]=-9999;
-          trkresrange[i][j][k]=-9999;
-          trkhitx[i][j][k]=-9999;
-          trkhity[i][j][k]=-9999;
-          trkhitz[i][j][k]=-9999;
-        }
+	for(int k=0; k<3000; k++){
+	  trkdqdx[i][j][k]=-9999;
+	  trkdedx[i][j][k]=-9999;
+	  trkresrange[i][j][k]=-9999;
+	  trkhitx[i][j][k]=-9999;
+	  trkhity[i][j][k]=-9999;
+	  trkhitz[i][j][k]=-9999;
+	}
       }
     }
   }
-  //////////////////////// End of definition ///////////////
-
+  //////////////////////// End of definition ///////////////	
+	  
   DEFINE_ART_MODULE(XYZcalibration)
 }
