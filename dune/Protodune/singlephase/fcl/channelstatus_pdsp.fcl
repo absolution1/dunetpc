@@ -15,8 +15,8 @@ pdsp_channel_status: {
   # list of bad channels:
   BadChannels:   [
     # CE group: Inactive FE
-     4111,
-     4112,
+     4411,
+     4412,
     11842,
     # CE group: Broken connection
         1,
@@ -59,6 +59,7 @@ pdsp_channel_status: {
     # CE group excessive sticky
     #femb318x
      1719,
+     4410,
     #-----
     # CE group: good.
     # femb311
@@ -71,6 +72,11 @@ pdsp_channel_status: {
      4063,  # femb503u, most signal near zero (5803-81)
      4141,  # femb501u, signal near zero half the time (5803-81)
      4143,  # femb501u, signal sometimes near zero (5803-81)
+     4379,  # femb516x, very sticky pedestal
+     4381,  # femb516x, very sticky pedestal
+     4383,  # femb516x, very sticky pedestal
+     4385,  # femb516x, very sticky pedestal
+     4387,  # femb516x, very sticky pedestal
     #-----
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
@@ -134,7 +140,9 @@ pdsp_channel_status: {
     # femb513u
      2674,  # 2-value pedestal
    # femb518u
-     2833   # Noisy adc pedestal
+     2833,  # Noisy adc pedestal
+   # femb516x
+     4377   # Pedestal very sticky
   ]
 
 }

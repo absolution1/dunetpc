@@ -210,6 +210,22 @@ tools.pdsp_sticky_codes_ped: {
     chan04092: [2303]
     chan04111: [2241]
     # femb501v  (2 channels bad)
+    # femb520x
+    chan04173: [ 960]
+    # femb519x
+    # femb518x
+    chan04260: [ 895,  896]
+    chan04261: [ 959]
+    chan04264: [ 895]
+    chan04269: [1023]
+    chan04274: [ 895]
+    # femb517x
+    chan04336: [ 960,  961]
+    # femb516x (5 bad, 1 noisy)
+    # femb515x
+    chan04426: [ 896,  897]
+    # femb514x
+    chan04456: [ 896]
   }
 }
 
