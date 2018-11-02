@@ -33,9 +33,9 @@ dunefd_signalshapingservice: {
   IndVFieldRespAmp:  1.0
 
   CorrectRC: false
-  URCTime: 3
-  VRCTime: 3
-  ColRCTime: 1
+  URCTime: 3.3
+  VRCTime: 3.3
+  ColRCTime: 1.1
   URCFrac: 0.4
   VRCFrac: 0.4
   ColRCFrac: 0.4
