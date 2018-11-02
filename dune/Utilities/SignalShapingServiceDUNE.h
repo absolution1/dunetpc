@@ -127,13 +127,20 @@ private:
   TH1D *fFilterHist[3];    			///< Histogram used to hold the collection filter, hardcoded for the time being
 
   bool   fCorrectRC;                            ///<  true if we are to add the RC time correction
-  double fURCTime;                              ///<  RC time constant for U-plane wires in milliseconds.
-  double fURCFrac;                              ///<  scale factor on undershoot correction
-  double fVRCTime;                              ///<  RC time constant for V-plane wires in milliseconds.
-  double fVRCFrac;                              ///<  scale factor on undershoot correction
-  double fCRCTime;                              ///<  RC time constant for Collection-plane wires in milliseconds.
-  double fCRCFrac;                              ///<  scale factor on undershoot correction
+  double fURCTime1;                              ///<  RC time constant for U-plane wires in milliseconds.
+  double fURCFrac1;                              ///<  scale factor on undershoot correction
+  double fVRCTime1;                              ///<  RC time constant for V-plane wires in milliseconds.
+  double fVRCFrac1;                              ///<  scale factor on undershoot correction
+  double fCRCTime1;                              ///<  RC time constant for Collection-plane wires in milliseconds.
+  double fCRCFrac1;                              ///<  scale factor on undershoot correction
     
+  double fURCTime2;                              ///<  RC time constant for U-plane wires in milliseconds.
+  double fURCFrac2;                              ///<  scale factor on undershoot correction
+  double fVRCTime2;                              ///<  RC time constant for V-plane wires in milliseconds.
+  double fVRCFrac2;                              ///<  scale factor on undershoot correction
+  double fCRCTime2;                              ///<  RC time constant for Collection-plane wires in milliseconds.
+  double fCRCFrac2;                              ///<  scale factor on undershoot correction
+
   // Following attributes hold the convolution and deconvolution kernels
   util::SignalShaping fColSignalShaping;
   util::SignalShaping fIndUSignalShaping;
@@ -148,10 +155,15 @@ private:
   std::vector<double> fElectResponse;
 
   // RC response -- separate for U, V, and Collection
+  // two components
 
-  std::vector<double> fColRCResponse;
-  std::vector<double> fURCResponse;
-  std::vector<double> fVRCResponse;
+  std::vector<double> fColRCResponse1;
+  std::vector<double> fURCResponse1;
+  std::vector<double> fVRCResponse1;
+
+  std::vector<double> fColRCResponse2;
+  std::vector<double> fURCResponse2;
+  std::vector<double> fVRCResponse2;
 
 
   // Filters.

@@ -57,12 +57,19 @@ void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset
   fIndVFieldRespAmp = pset.get<double>("IndVFieldRespAmp");
   
   fCorrectRC = pset.get<bool>("CorrectRC");
-  fURCTime = pset.get<double>("URCTime");
-  fVRCTime = pset.get<double>("VRCTime");
-  fCRCTime = pset.get<double>("ColRCTime");
-  fURCFrac = pset.get<double>("URCFrac");
-  fVRCFrac = pset.get<double>("VRCFrac");
-  fCRCFrac = pset.get<double>("ColRCFrac");
+  fURCTime1 = pset.get<double>("URCTime1");
+  fVRCTime1 = pset.get<double>("VRCTime1");
+  fCRCTime1 = pset.get<double>("ColRCTime1");
+  fURCFrac1 = pset.get<double>("URCFrac1");
+  fVRCFrac1 = pset.get<double>("VRCFrac1");
+  fCRCFrac1 = pset.get<double>("ColRCFrac1");
+
+  fURCTime2 = pset.get<double>("URCTime2");
+  fVRCTime2 = pset.get<double>("VRCTime2");
+  fCRCTime2 = pset.get<double>("ColRCTime2");
+  fURCFrac2 = pset.get<double>("URCFrac2");
+  fVRCFrac2 = pset.get<double>("VRCFrac2");
+  fCRCFrac2 = pset.get<double>("ColRCFrac2");
 
   fDeconNorm = pset.get<double>("DeconNorm");
   fADCPerPCAtLowestASICGain = pset.get<double>("ADCPerPCAtLowestASICGain");
@@ -379,7 +386,8 @@ void util::SignalShapingServiceDUNE::init()
     fColSignalShaping.AddResponseFunction(fElectResponse);
     if (fCorrectRC)
       {
-	fColSignalShaping.AddResponseFunction(fColRCResponse);
+	fColSignalShaping.AddResponseFunction(fColRCResponse1);
+	fColSignalShaping.AddResponseFunction(fColRCResponse2);
       }
     fColSignalShaping.save_response();
     fColSignalShaping.set_normflag(false);
@@ -391,7 +399,8 @@ void util::SignalShapingServiceDUNE::init()
     fIndUSignalShaping.AddResponseFunction(fElectResponse);
     if (fCorrectRC)
       {
-	fIndUSignalShaping.AddResponseFunction(fURCResponse);
+	fIndUSignalShaping.AddResponseFunction(fURCResponse1);
+	fIndUSignalShaping.AddResponseFunction(fURCResponse2);
       }
     fIndUSignalShaping.save_response();
     fIndUSignalShaping.set_normflag(false);
@@ -403,7 +412,8 @@ void util::SignalShapingServiceDUNE::init()
     fIndVSignalShaping.AddResponseFunction(fElectResponse);
     if (fCorrectRC)
       {
-	fIndVSignalShaping.AddResponseFunction(fVRCResponse);
+	fIndVSignalShaping.AddResponseFunction(fVRCResponse1);
+	fIndVSignalShaping.AddResponseFunction(fVRCResponse2);
       }
     fIndVSignalShaping.save_response();
     fIndVSignalShaping.set_normflag(false);
@@ -563,27 +573,43 @@ void util::SignalShapingServiceDUNE::SetRCResponse()
 
   int nticks = fft->FFTSize();
   std::vector<double> time(nticks,0.);
-  fColRCResponse.resize(nticks, 0.);
-  fURCResponse.resize(nticks, 0.);
-  fVRCResponse.resize(nticks, 0.);
+  fColRCResponse1.resize(nticks, 0.);
+  fURCResponse1.resize(nticks, 0.);
+  fVRCResponse1.resize(nticks, 0.);
+
+  fColRCResponse2.resize(nticks, 0.);
+  fURCResponse2.resize(nticks, 0.);
+  fVRCResponse2.resize(nticks, 0.);
 
   double x0 = 0.25/((double) nticks);   // each tick is half a microsecond.  This is the bin center of the first bin
 
   for (int i=0;i<nticks;i++)
     {
       double x = ((double) i + 0.5)/2.0;
-      double ucontent = -fURCFrac/2./(1000*fURCTime) * exp(-(x-x0)/(1000.*fURCTime)); // RC time in units of ms
-      double vcontent = -fVRCFrac/2./(1000*fVRCTime) * exp(-(x-x0)/(1000.*fVRCTime)); // RC time in units of ms
-      double colcontent = -fCRCFrac/2./(1000*fCRCTime) * exp(-(x-x0)/(1000.*fCRCTime)); // RC time in units of ms
+      double ucontent1 = -fURCFrac1/2./(1000*fURCTime1) * exp(-(x-x0)/(1000.*fURCTime1)); // RC time in units of ms
+      double vcontent1 = -fVRCFrac1/2./(1000*fVRCTime1) * exp(-(x-x0)/(1000.*fVRCTime1)); // RC time in units of ms
+      double colcontent1 = -fCRCFrac1/2./(1000*fCRCTime1) * exp(-(x-x0)/(1000.*fCRCTime1)); // RC time in units of ms
+
+      double ucontent2 = -fURCFrac2/2./(1000*fURCTime2) * exp(-(x-x0)/(1000.*fURCTime2)); // RC time in units of ms
+      double vcontent2 = -fVRCFrac2/2./(1000*fVRCTime2) * exp(-(x-x0)/(1000.*fVRCTime2)); // RC time in units of ms
+      double colcontent2 = -fCRCFrac2/2./(1000*fCRCTime2) * exp(-(x-x0)/(1000.*fCRCTime2)); // RC time in units of ms
       if (i==0)
 	{
-	  ucontent += 1;
-	  vcontent += 1;
-	  colcontent += 1;
+	  ucontent1 += 1;
+	  vcontent1 += 1;
+	  colcontent1 += 1;
+
+	  ucontent2 += 1;
+	  vcontent2 += 1;
+	  colcontent2 += 1;
 	}
-      fColRCResponse[i] = colcontent;
-      fURCResponse[i]   = ucontent;
-      fVRCResponse[i]   = vcontent;
+      fColRCResponse1[i] = colcontent1;
+      fURCResponse1[i]   = ucontent1;
+      fVRCResponse1[i]   = vcontent1;
+
+      fColRCResponse2[i] = colcontent2;
+      fURCResponse2[i]   = ucontent2;
+      fVRCResponse2[i]   = vcontent2;
     }
 }
 
