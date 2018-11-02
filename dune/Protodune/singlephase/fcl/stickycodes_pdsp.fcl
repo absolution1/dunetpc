@@ -287,6 +287,37 @@ tools.pdsp_sticky_codes_ped: {
     # femb209u
     chan05851: [2495]
     # femb210u
+    # femb220v
+    chan05941: [2239, 2240]
+    # femb219v
+    # femb218v
+    chan06000: [2367]
+    chan06006: [2370, 2371, 2372]
+    chan06008: [2367]
+    chan06009: [2343, 2344, 2345]
+    chan06017: [2367]
+    # femb217v
+    chan06055: [2367]
+    # femb216v
+    # femb215v
+    chan06137: [2240, 2260]
+    # femb214v
+    # femb213v
+    # femb212v
+    chan06277: [2320, 2322]
+    # femb211v
+    # femb210v
+    chan06333: [2239]
+    # femb209v
+    # femb208v
+    # femb207v
+    # femb206v
+    # femb205v
+    # femb204v
+    chan06590: [2304, 2305]
+    # femb203v
+    # femb202v
+    # femb201v
     # femb220x
     chan06765: [ 960]
     # femb219x
