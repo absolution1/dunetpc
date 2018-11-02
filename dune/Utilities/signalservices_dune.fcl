@@ -32,6 +32,14 @@ dunefd_signalshapingservice: {
   IndUFieldRespAmp:  1.0
   IndVFieldRespAmp:  1.0
 
+  CorrectRC: false
+  URCTime: 3
+  VRCTime: 3
+  ColRCTime: 1
+  URCFrac: 0.4
+  VRCFrac: 0.4
+  ColRCFrac: 0.4
+
   FieldResponseTOffset: [-32.5e3, -32.5e3, -32.5e3] # in ns, time offset of field response shape
   CalibResponseTOffset: [0.0, 0.0, 0.0] # in ns time offset to align all three planes
 

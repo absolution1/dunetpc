@@ -87,6 +87,7 @@ private:
   // Calculate response functions.
   void SetFieldResponse();
   void SetElectResponse(double shapingtime, double gain);
+  void SetRCResponse();
 
   // Calculate filter functions.
   void SetFilters();
@@ -124,6 +125,14 @@ private:
   TF1* fIndVFieldFunc;      			///< Parameterized induction field shape function.
   TH1F *fFieldResponseHist[3];                ///< Histogram used to hold the field response, hardcoded for the time being
   TH1D *fFilterHist[3];    			///< Histogram used to hold the collection filter, hardcoded for the time being
+
+  bool   fCorrectRC;                            ///<  true if we are to add the RC time correction
+  double fURCTime;                              ///<  RC time constant for U-plane wires in milliseconds.
+  double fURCFrac;                              ///<  scale factor on undershoot correction
+  double fVRCTime;                              ///<  RC time constant for V-plane wires in milliseconds.
+  double fVRCFrac;                              ///<  scale factor on undershoot correction
+  double fCRCTime;                              ///<  RC time constant for Collection-plane wires in milliseconds.
+  double fCRCFrac;                              ///<  scale factor on undershoot correction
     
   // Following attributes hold the convolution and deconvolution kernels
   util::SignalShaping fColSignalShaping;
@@ -137,6 +146,13 @@ private:
 
   // Electronics response.
   std::vector<double> fElectResponse;
+
+  // RC response -- separate for U, V, and Collection
+
+  std::vector<double> fColRCResponse;
+  std::vector<double> fURCResponse;
+  std::vector<double> fVRCResponse;
+
 
   // Filters.
   std::vector<TComplex> fColFilter;
