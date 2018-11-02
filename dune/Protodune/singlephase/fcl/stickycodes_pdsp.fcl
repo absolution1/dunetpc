@@ -250,6 +250,85 @@ tools.pdsp_sticky_codes_ped: {
     # femb509x
     # femb510x
     chan05119: [ 960]
+    # femb211u
+    # femb212u
+    # femb213u
+    # femb214u
+    chan05267: [2431]
+    chan05277: [2368, 2369]
+    # femb215u
+    # femb216u (1 bad channel)
+    # femb217u
+    chan05379: [2384]
+    # femb218u
+    chan05420: [2431, 2482]
+    chan05421: [2303]
+    chan05423: [2303, 2330]
+    chan05424: [2367]
+    chan05425: [2303]
+    chan05427: [2239]
+    chan05430: [2431]
+    chan05434: [2367]
+    chan05438: [2431]
+    # femb219u
+    chan05441: [2623, 2625, 2627]
+    # femb220u
+    # femb201u
+    # femb202u
+    # femb203u
+    # femb204u
+    # femb205u
+    chan05695: [2561, 2565, 2567, 2574, 2575]
+    chan05701: [2559]
+    chan05718: [2437, 2438, 2439]
+    # femb206u
+    # femb207u
+    # femb208u
+    # femb209u
+    chan05851: [2495]
+    # femb210u
+    # femb220x
+    chan06765: [ 960]
+    # femb219x
+    # femb218x
+    chan06819: [ 959, 1007, 1008, 1016, 1017]
+    chan06821: [ 959,  960]
+    chan06827: [ 959,  960]
+    chan06829: [1023]
+    # femb217x
+    # femb216x
+    chan06931: [ 959]
+    # femb215x
+    chan06997: [1088]
+    # femb201x
+    #.. chan07200 # No signal (space charge offset?)
+    #.. chan07201 # No signal (space charge offset?)
+    chan07202: [ 961]
+    #.. chan07220 # Pedestal stuck on 980
+    # femb202x
+    chan07251: [ 959]
+    chan07271: [ 960]
+    chan07279: [ 959]
+    # femb203x
+    chan07334: [ 895]
+    # femb204x
+    # femb205x
+    chan07406: [ 960,  961]
+    chan07407: [ 959,  960]
+    # femb206x
+    chan07443: [ 959,  960]
+    # femb207x
+    chan07500: [ 959,  960]
+    chan07500: [ 897,  898]
+    chan07510: [ 1088, 1089, 1090]
+    # femb208x
+    # chan07551: # bad
+    chan07578: [ 896]
+    chan07582: [ 959, 1024]
+    # femb209x
+    # femb210x
+    chan07635: [ 960]
+    chan07675: [ 895]
   }
 }
 
