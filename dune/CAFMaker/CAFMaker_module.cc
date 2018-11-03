@@ -65,6 +65,7 @@ namespace dunemva {
       explicit CAFMaker(fhicl::ParameterSet const& pset);
       virtual ~CAFMaker();
       void beginJob() override;
+      void endJob() override;
       void beginSubRun(const art::SubRun& sr) override;
       void endSubRun(const art::SubRun& sr) override;
       void reconfigure(fhicl::ParameterSet const& pset) /*override*/;
@@ -86,6 +87,7 @@ namespace dunemva {
       float fOscPro;
       double fWeight;
       TTree* fTree;  
+      TTree* fMetaTree;
 
       // Get reweight knobs from fhicl file -- no hard-coded shifts
       int fNwgt[knShifts];
@@ -101,6 +103,7 @@ namespace dunemva {
       double fEv, fQ2, fW, fX, fY, fNuMomX, fNuMomY, fNuMomZ, fLepMomX, fLepMomY, fLepMomZ, fLepE, fLepNuAngle;
       // True particle counts
       int nP, nN, nPip, nPim, nPi0, nKp, nKm, nK0, nEM, nOtherHad, nNucleus, nUNKNOWN;
+      double eP, eN, ePip, ePim, ePi0, eOther;
 
       // Reco information
       double fErecoNue;
@@ -128,7 +131,6 @@ namespace dunemva {
 
       double fRegCVNNueE;
 
-    //int meta_run, meta_subrun;
       double meta_pot;
 
       systtools::provider_list_t fSystProviders;
@@ -178,7 +180,8 @@ namespace dunemva {
   {
 
     art::ServiceHandle<art::TFileService> tfs;
-    fTree =tfs->make<TTree>("caf", "caf");
+    fTree = tfs->make<TTree>("caf", "caf");
+    fMetaTree = tfs->make<TTree>("meta", "meta");
 
     // book-keeping
     fTree->Branch("run",         &fRun,        "run/I");
@@ -220,6 +223,13 @@ namespace dunemva {
     fTree->Branch("niother",   &nOtherHad,  "niother/I");
     fTree->Branch("nNucleus",  &nNucleus,   "nNucleus/I");
     fTree->Branch("nUNKNOWN",  &nUNKNOWN,   "nUNKNOWN/I");
+    fTree->Branch("eP",        &eP,         "eP/D");
+    fTree->Branch("eN",        &eN,         "eN/D");
+    fTree->Branch("ePip",      &ePip,       "ePip/D");
+    fTree->Branch("ePim",      &ePim,       "ePim/D");
+    fTree->Branch("ePi0",      &ePi0,       "ePi0/D");
+    fTree->Branch("eOther",    &eOther,     "eOther/D");
+
 
     // Reco variables
     fTree->Branch("mvaresult",   &fMVAResult,  "mvaresult/D");
@@ -263,7 +273,7 @@ namespace dunemva {
     fTree->Branch("LongestTrackContNumu",  &fLongestTrackContNumu, "LongestTrackContNumu/I");
     fTree->Branch("TrackMomMethodNumu",    &fTrackMomMethodNumu,   "TrackMomMethodNumu/I");
 
-    fTree->Branch("totpot",       &meta_pot,       "totpot/D");
+    fMetaTree->Branch("pot", &meta_pot, "pot/D");
 
     // make DUNErw variables
     for( auto &sp : fSystProviders ) {
@@ -286,14 +296,15 @@ namespace dunemva {
       }
     }
 
+    meta_pot = 0.;
+
   }
 
   //------------------------------------------------------------------------------
   void CAFMaker::beginSubRun(const art::SubRun& sr)
   {
     art::Handle< sumdata::POTSummary > pots;
-    if( sr.getByLabel("generator",pots) ) meta_pot = pots->totpot;
-    else meta_pot = -1.;
+    if( sr.getByLabel("generator",pots) ) meta_pot += pots->totpot;
   }
 
   //------------------------------------------------------------------------------
@@ -473,22 +484,53 @@ namespace dunemva {
       nNucleus  = 0;
       nUNKNOWN  = 0;
 
+      eP = 0.;
+      eN = 0.;
+      ePip = 0.;
+      ePim = 0.;
+      ePi0 = 0.;
+      eOther = 0.;
+
       for( int p = 0; p < truth[i]->NParticles(); p++ ) {
         if( truth[i]->GetParticle(p).StatusCode() == genie::kIStHadronInTheNucleus ) {
 
           int pdg = truth[i]->GetParticle(p).PdgCode();
-          if     ( pdg == genie::kPdgProton ) nP++;
-          else if( pdg == genie::kPdgNeutron ) nN++;
-          else if( pdg == genie::kPdgPiP ) nPip++;
-          else if( pdg == genie::kPdgPiM ) nPim++;
-          else if( pdg == genie::kPdgPi0 ) nPi0++;
-          else if( pdg == genie::kPdgKP ) nKp++;
-          else if( pdg == genie::kPdgKM ) nKm++;
-          else if( pdg == genie::kPdgK0 || pdg == genie::kPdgAntiK0 || pdg == genie::kPdgK0L || pdg == genie::kPdgK0S ) nK0++;
-          else if( pdg == genie::kPdgGamma ) nEM++;
-          else if( genie::pdg::IsHadron(pdg) ) nOtherHad++; // charm mesons, strange and charm baryons, antibaryons, etc.
-          else if( genie::pdg::IsIon(pdg) ) nNucleus++;
-          else nUNKNOWN++;
+          double ke = truth[i]->GetParticle(p).E() - truth[i]->GetParticle(p).Mass();
+          if     ( pdg == genie::kPdgProton ) {
+            nP++;
+            eP += ke;
+          } else if( pdg == genie::kPdgNeutron ) {
+            nN++;
+            eN += ke;
+          } else if( pdg == genie::kPdgPiP ) {
+            nPip++;
+            ePip += ke;
+          } else if( pdg == genie::kPdgPiM ) {
+            nPim++;
+            ePim += ke;
+          } else if( pdg == genie::kPdgPi0 ) {
+            nPi0++;
+            ePi0 += ke;
+          } else if( pdg == genie::kPdgKP ) {
+            nKp++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgKM ) {
+            nKm++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgK0 || pdg == genie::kPdgAntiK0 || pdg == genie::kPdgK0L || pdg == genie::kPdgK0S ) {
+            nK0++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgGamma ) {
+            nEM++;
+            eOther += ke;
+          } else if( genie::pdg::IsHadron(pdg) ) {
+            nOtherHad++; // charm mesons, strange and charm baryons, antibaryons, etc.
+            eOther += ke;
+          } else if( genie::pdg::IsIon(pdg) ) {
+            nNucleus++;
+          } else {
+            nUNKNOWN++;
+          }
 
         }
       }
@@ -531,6 +573,11 @@ namespace dunemva {
 
   //------------------------------------------------------------------------------
   void CAFMaker::endSubRun(const art::SubRun& sr){
+  }
+
+  void CAFMaker::endJob()
+  {
+    fMetaTree->Fill();
   }
 
   DEFINE_ART_MODULE(CAFMaker)
