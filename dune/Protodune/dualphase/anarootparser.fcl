@@ -10,7 +10,8 @@ data_3x1x1_anarootparser:
 
  RawDigitModuleLabel:           "daq"
  HitsModuleLabel:             	"linecluster"
- LArGeantModuleLabel:         	"largeant"
+ PhotonPropS1ModuleLabel:       "largeant"
+ ElecDriftModuleLabel:         	"largeant"
  CalDataModuleLabel:          	"caldata"
  GenieGenModuleLabel:         	"generator"
  CryGenModuleLabel:           	"generator"

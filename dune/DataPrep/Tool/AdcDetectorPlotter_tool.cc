@@ -9,6 +9,8 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -59,6 +61,8 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ZMin(ps.get<float>("ZMin")),
   m_ZMax(ps.get<float>("ZMax")),
   m_SignalThreshold(ps.get<float>("SignalThreshold")),
+  m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
+  m_ShowAllTicks(ps.get<bool>("ShowAllTicks")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
   m_ShowWires(ps.get<bool>("ShowWires")),
@@ -66,7 +70,9 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ShowTpcSets(ps.get<IndexVector>("ShowTpcSets")),
   m_ShowGrid(ps.get<bool>("ShowGrid")),
   m_Title(ps.get<string>("Title")),
+  m_PlotTitle(ps.get<string>("PlotTitle")),
   m_FileName(ps.get<string>("FileName")),
+  m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcDetectorPlotter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -74,6 +80,13 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  if ( m_SkipBadChannels ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
+    }
   }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -87,6 +100,8 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             ZMin: " << m_ZMin << " cm" << endl;
     cout << myname << "             ZMax: " << m_ZMax << " cm" << endl;
     cout << myname << "  SignalThreshold: " << m_SignalThreshold << endl;
+    cout << myname << "  SkipBadChannels: " << (m_SkipBadChannels ? "true" : "false") << endl;
+    cout << myname << "     ShowAllTicks: " << m_ShowAllTicks << endl;
     cout << myname << "        FirstTick: " << m_FirstTick << endl;
     cout << myname << "         LastTick: " << m_LastTick << endl;
     cout << myname << "        ShowWires: " << m_ShowWires << endl;
@@ -101,12 +116,13 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << "]" << endl;
     cout << myname << "         ShowGrid: " << m_ShowGrid << endl;
     cout << myname << "            Title: " << m_Title << endl;
+    cout << myname << "        PlotTitle: " << m_PlotTitle << endl;
     cout << myname << "         FileName: " << m_FileName << endl;
   }
   WireSelector& sel = getState()->sel;
   sel.selectWireAngle(m_WireAngle);
   sel.selectTpcSets(m_ShowTpcSets);
-  for ( Index itps : m_ShowTpcSets ) sel.selectTpcSet(itps);
+  //for ( Index itps : m_ShowTpcSets ) sel.selectTpcSet(itps);
   const WireSelector::WireInfoVector& wdat = sel.fillData();
   const WireSelector::WireInfoMap& wmap = sel.fillDataMap();
   const WireSelector::WireSummary& wsum = sel.fillWireSummary();
@@ -160,6 +176,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 2 ) cout << myname << "  Starting new event." << endl;
     initializeState(state, acdFirst);
     string sttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_Title);
+    string spttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_PlotTitle);
     state.ofname = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_FileName);
     // Create graph.
     state.ppad.reset(new TPadManipulator(npadx, npady));
@@ -194,6 +211,14 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       }
       state.ppad->add(pgc, "P");
     }
+    // Add lower left label.
+    if ( spttl.size() ) {
+      state.pttl.reset(new TLatex(0.01, 0.015, spttl.c_str()));
+      state.pttl->SetNDC();
+      state.pttl->SetTextFont(42);
+      state.pttl->SetTextSize(0.030);
+      state.ppad->add(state.pttl.get());
+    }
   }
   ++state.jobCount;
   ++state.reportCount;
@@ -212,7 +237,14 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Fill graph.
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
-    addChannel(iacd.second, xsign);
+    const AdcChannelData acd = iacd.second;
+    if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
+         m_pChannelStatusProvider->IsBad(acd.channel) ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
+    } else {
+      if ( m_LogLevel >= 3 ) cout << myname << "Adding channel " << acd.channel << endl;
+      addChannel(acd, xsign);
+    }
   }
   if ( state.ppad->graph()->GetN() == 0 ) {
     cout << myname << "Graph has no points. Adding one to avoid root exception." << endl;
@@ -243,6 +275,8 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
   for ( auto ient=rng.first; ient!=rng.second; ++ient) {
     const WireSelector::WireInfo& win = *(ient->second);
     float z = win.z;
+    float x1 = win.x1();
+    float x2 = win.x2();
     float driftVelocity = win.driftSign()*m_DriftSpeed;
     Index isam1 = 0;
     Index isam2 = nsam;
@@ -254,6 +288,10 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
       float sig = isRaw ? acd.raw[isam] - acd.pedestal : acd.samples[isam];
       if ( sig > m_SignalThreshold ) {
         float x = win.x + driftVelocity*(isam - m_Tick0);
+        if ( ! m_ShowAllTicks ) {
+          if ( x < x1 ) continue;
+          if ( x > x2 ) continue;
+        }
         Index ipt = pg->GetN();
         pg->SetPoint(ipt, xsign*x, z);
         if ( m_LogLevel >= 4 ) {

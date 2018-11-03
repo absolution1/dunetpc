@@ -4,6 +4,7 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include <iostream>
 #include <iomanip>
+#include "TTimeStamp.h"
 
 using std::string;
 using std::cout;
@@ -24,7 +25,9 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_EventWidth(ps.get<Index>("EventWidth")),
   m_ChannelWidth(ps.get<Index>("ChannelWidth")),
   m_CountWidth(ps.get<Index>("CountWidth")),
-  m_FembWidth(ps.get<Index>("FembWidth")) {
+  m_FembWidth(ps.get<Index>("FembWidth")),
+  m_TriggerWidth(ps.get<Index>("TriggerWidth")),
+  m_TrigNames(ps.get<NameVector>("TrigNames")) {
   const string myname = "StandardAdcChannelStringTool::ctor: ";
   m_reps[0] = "RUN";
   m_reps[1] = "SUBRUN";
@@ -34,6 +37,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_reps[5] = "CHAN1";
   m_reps[6] = "CHAN2";
   m_reps[7] = "FEMB";
+  m_reps[8] = "TRIG";
   m_wids[0] = m_RunWidth;
   m_wids[1] = m_SubRunWidth;
   m_wids[2] = m_EventWidth;
@@ -42,6 +46,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_wids[5] = m_ChannelWidth;
   m_wids[6] = m_ChannelWidth;
   m_wids[7] = m_FembWidth;
+  m_wids[8] = m_TriggerWidth;
   m_bads[0] = "RunNotFound";
   m_bads[1] = "SubRunNotFound";
   m_bads[2] = "EventNotFound";
@@ -50,6 +55,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
   m_bads[5] = "Channel1NotFound";
   m_bads[6] = "Channel2NotFound";
   m_bads[7] = "FembNotFound";
+  m_bads[8] = "TriggerNotFound";
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
@@ -59,6 +65,17 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
     cout << myname << "  ChannelWidth: " << m_ChannelWidth << endl;
     cout << myname << "    CountWidth: " << m_CountWidth << endl;
     cout << myname << "     FembWidth: " << m_CountWidth << endl;
+    cout << myname << "  TriggerWidth: " << m_TriggerWidth << endl;
+    cout << myname << "     TrigNames: [" << endl;
+    Index icnt = 0;
+    for ( Name tnam : m_TrigNames ) {
+      if ( icnt ) {
+        cout << ", ";
+        if ( (icnt/10)*10 == icnt ) cout << "\n" << myname << "                 ";
+      }
+      cout << tnam;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -68,11 +85,13 @@ string StandardAdcChannelStringTool::
 build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   const string myname = "StandardAdcChannelStringTool::build: ";
   // First replace the indices (run, event, ....)
+  Index itrig = acd.trigger;
   Index vals[m_nrep] = {acd.run, acd.subRun, acd.event, acd.channel,
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
                         Index(dm.getInt("chan2")),
-                        acd.fembID};
+                        acd.fembID,
+                        itrig};
   bool isBad[m_nrep] = {
     acd.run     == AdcChannelData::badIndex,
     acd.subRun  == AdcChannelData::badIndex,
@@ -82,6 +101,7 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
     !dm.haveInt("chan1"),
     !dm.haveInt("chan2"),
     acd.fembID  == AdcChannelData::badIndex,
+    acd.trigger == AdcChannelData::badIndex
   };
   string sout = spat;
   for ( Index irep=0; irep<m_nrep; ++irep ) {
@@ -141,6 +161,44 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   sman.replace("% ((SUNIT))%", sunitSpOptWrapped);
   sman.replace("%[SUNIT]%", sunitBarred);
   sman.replace("% [SUNIT]%", sunitSpBarred);
+  // Next replace trigger name.
+  if ( sout.find("%TRIGNAME") != string::npos ) {
+    Index ntrn = m_TrigNames.size();
+    Name strig = "undefined";
+    if ( ntrn ) {
+      Index itrn = itrig < ntrn ? itrig : ntrn - 1;
+      strig = m_TrigNames[itrn];
+    }
+    sman.replace("%TRIGNAME%", strig);
+    if ( strig.size() ) strig[0] = std::toupper(strig[0]);
+    sman.replace("%TRIGNAMECAP%", strig);
+  }
+  // Next replace time name.
+  string spatpre = "%UTCTIME";
+  string::size_type ipos = sout.find(spatpre);
+  if ( ipos != string::npos ) {
+    time_t tim = acd.time;
+    int rem = acd.timerem;
+    int remMax = 1000000000;
+    if ( std::abs(rem) >= remMax ) rem = 0;
+    // Hndle rem < 0. Never happens?
+    if ( rem < 0 ) {
+      tim -= 1;
+      rem = remMax - rem;
+    }
+    TTimeStamp ts(tim, rem);
+    string stimpre = ts.AsString("s");
+    sman.replace(spatpre + "%", stimpre);
+    string srem = std::to_string(rem);
+    while ( srem.size() < 9 ) srem = "0" + srem;
+    for ( Index ndig=0; ndig<10; ++ndig ) {
+      string sdig = std::to_string(ndig);
+      string spat = spatpre + std::to_string(ndig) + "%";
+      string stim = stimpre;
+      if ( ndig ) stim += "." + srem.substr(0, ndig);
+      sman.replace(spat, stim);
+    }
+  }
   if ( m_LogLevel >= 2 ) cout << myname << spat << " --> " << sout << endl;
   return sout;
 }

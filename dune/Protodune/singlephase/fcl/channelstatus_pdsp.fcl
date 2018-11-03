@@ -1,0 +1,191 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+pdsp_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+    # CE group: Inactive FE
+     4411,
+     4412,
+    11842,
+    # CE group: Broken connection
+        1,
+      400,
+      401,
+      800,
+      801,
+      876,
+     1200,
+     2961,
+     5321,
+     5363,
+     6132,
+     7058,
+     7295,
+     7680,
+     7681,
+     8328,
+     8480,
+     9282,
+     9283,
+     9736,
+     9854,
+    10800,
+    11024,
+    11457,
+    11459,
+    11463,
+    11469,
+    11517,
+    11669,
+    11679,
+    12756,
+    12801,
+    13001,
+    13081,
+    # CE group: ENC > 2000e
+     4410,
+    #-----
+    # CE group excessive sticky
+    #femb318x
+     1719,
+     4410,
+     5125,  # femb211u35
+     7551,  # femb208x33
+     7190,  # femb211x39
+     7194,  # femb211x43
+    #-----
+    # CE group: good.
+    # femb311
+        2,
+     3541,  # femb516u, signal near zero half the time (5803-81)
+     3543,  # femb516u, signal near zero half the time (5803-81)
+     3661,  # femb513u, most signal near zero (5803-81)
+     3663,  # femb513u, most signal near zero (5803-81)
+     4061,  # femb503u, most signal near zero (5803-81)
+     4063,  # femb503u, most signal near zero (5803-81)
+     4141,  # femb501u, signal near zero half the time (5803-81)
+     4143,  # femb501u, signal sometimes near zero (5803-81)
+     4379,  # femb516x, very sticky pedestal
+     4381,  # femb516x, very sticky pedestal
+     4383,  # femb516x, very sticky pedestal
+     4385,  # femb516x, very sticky pedestal
+     4387,  # femb516x, very sticky pedestal
+     4521,  # femb513x, very sticky pedestal
+     4523,  # femb513x, very sticky pedestal
+     4525,  # femb513x, very sticky pedestal
+     4527,  # femb513x, very sticky pedestal
+     4529,  # femb513x, very sticky pedestal
+     4531,  # femb513x, very sticky pedestal
+     4652,  # femb501x, very sticky pedestal
+     4656,  # femb501x, very sticky pedestal
+     4660,  # femb501x, very sticky pedestal
+     4748,  # femb503x, very sticky pedestal
+     4750,  # femb503x, very sticky pedestal
+     4754,  # femb503x, very sticky pedestal
+     4756,  # femb503x, very sticky pedestal
+     4758,  # femb503x, very sticky pedestal
+     5361,  # femb503x39, no signal
+    #-----
+    # These 16 channels are an intermitently bad ASIC.
+    # Matt W. 19oct2018.
+    # femb316u
+      200,
+      202,
+      204,
+      206,
+      208,
+    # femb316v
+      991,
+      993,
+      995,
+      997,
+      999,
+    # femb316x
+     1829,
+     1831,
+     1833,
+     1835,
+     1837,
+     1839
+    #-----
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+    # CE group: ENC > 2000e
+     9569,
+    # CE group: sticky.
+     2318,
+    # DLA sticky
+    # femb311u
+        4,
+    # femb313u
+       94,
+    # femb302u
+      442,
+      447,
+      453,
+      455,
+      456,
+      472,
+      477,
+    # femb304u
+      571,
+      573,
+    # femb302v
+     1534,
+     1539,
+     1546,
+    # femb315x
+     1864,
+     #1864,  # acceptable??
+    # femb302x
+     2135,
+     2146,
+     2158,
+     2161,
+     2169,
+    # femb513u
+     2674,  # 2-value pedestal
+   # femb518u
+     2833,  # Noisy adc pedestal
+   # femb516x
+     4377,  # Pedestal very sticky
+   # femb503x
+     4654,  # sticky pedestal
+     4658,  # sticky pedestal
+     4662,  # sticky pedestal
+   # femb503x
+     4752,  # sticky pedestal
+   # femb214u
+     5271,  # sticky pedestal
+   # femb217u
+     5377,  # sticky pedestal
+   # femb218u
+     5400,  # sticky pedestal
+     5423,  # sticky pedestal
+   # femb201x
+     7220, # Pedestal stuck on 980
+   # femb203x
+     7334, # Pedestal stuck on 980,981
+   # femb204x
+     7347, # Pedestal stuck on 979
+   # femb207x
+     7396, # Sticky pedestal
+     99999
+  ]
+
+}
+
+END_PROLOG

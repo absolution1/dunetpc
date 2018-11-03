@@ -26,6 +26,9 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fCoherent32 = pset.get<bool>("Coherent32");
     fCoherent16 = pset.get<bool>("Coherent16");
     fLowPassFlt = pset.get<bool>("LowPassFlt");
+    fLowPassFltSecondPass = pset.get<bool>("LowPassFltSecondPass");
+    fLowPassFltFCut = pset.get<float>("LowPassFltFCut");
+    fLowPassFltExpo = pset.get<float>("LowPassFltExpo");
     fFlatten = pset.get<bool>("Flatten");
     fFlattenExtrapolate = pset.get<bool>("FlattenExtrapolate");
     fCoherent32Groups = pset.get<std::vector<size_t>>("Coherent32Groups");
@@ -61,11 +64,10 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
 
     fLowPassCoeffs.resize(fFFT->FFTSize() / 2 + 1);
 
-    const float fcut = 0.5; // [MHz]
     for (size_t i = 0; i < fLowPassCoeffs.size(); ++i)
     {
         float f = 0.0015 * i; // [MHz]
-        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fcut, 8));
+        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fLowPassFltFCut, fLowPassFltExpo));
     }
 }
 //**********************************************************************
@@ -109,6 +111,8 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
       removeHighFreq(tempdatamap);
     }
 
+
+
     if (fFlatten)
     {
       removeSlopePolynomial(tempdatamap);
@@ -140,8 +144,6 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     m_pROIBuilderToolCNR->update(acd);
     }
 
-
-
     //copy the ROI found in tempdatampa to datamap
     AdcChannelDataMap::iterator ittempdatamap = tempdatamap.begin();
     for (auto & entry : datamap)
@@ -154,6 +156,11 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     }
 
     //Second pass
+
+    if (fLowPassFltSecondPass)
+    {
+      removeHighFreq(datamap);
+    }
 
     if (fFlatten)
     {

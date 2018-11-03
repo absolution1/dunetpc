@@ -43,6 +43,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 
 namespace protoana {
   class BeamExample;
@@ -102,6 +103,7 @@ void protoana::BeamExample::beginJob()
 void protoana::BeamExample::analyze(art::Event const & evt)
 {
 
+  bool beamTriggerEvent = false;
   // If this event is MC then we can check what the true beam particle is
   if(!evt.isRealData()){
     // Get the truth utility to help us out
@@ -114,6 +116,14 @@ void protoana::BeamExample::analyze(art::Event const & evt)
     const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
     if(geantGoodParticle != 0x0){
       std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+    }
+  }
+  else{
+    // For data we can see if this event comes from a beam trigger
+    protoana::ProtoDUNEDataUtils dataUtil;
+    beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
+    if(beamTriggerEvent){
+      std::cout << "This data event has a beam trigger" << std::endl;
     }
   }
 

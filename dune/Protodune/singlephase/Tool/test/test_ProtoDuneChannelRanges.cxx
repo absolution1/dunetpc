@@ -32,7 +32,7 @@ using IndexVector = std::vector<Index>;
 
 //**********************************************************************
 
-int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
+int test_ProtoDuneChannelRanges(bool useExistingFcl =false, int show =1) {
   const string myname = "test_ProtoDuneChannelRanges: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -117,7 +117,7 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
   }
   assert( nbad == 0 );
 
-  bool showFembBlocks = true;
+  bool showFembBlocks = show > 1;
   if ( showFembBlocks ) {
     cout << myname << line << endl;
     cout << myname << "Fetching FEMB block ranges." << endl;
@@ -134,7 +134,7 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
             cout << myname << "Invalid range: " << nam << endl;
             ++nbad;
           } else {
-             cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
+            cout << myname << setw(10) << ir.name << setw(20) << ir.rangeString()
                  << " " << ir.label();
             for ( Index ilab=1; ilab<ir.labels.size(); ++ilab ) cout << ", " << ir.label(ilab);
             for ( Index icha=ir.begin; icha<ir.end; ++icha ) chk[icha] += 1;
@@ -164,17 +164,22 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
+  int show = 1;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [keepFCL] [RUN]" << endl;
+      cout << "Usage: " << argv[0] << " [keepFCL] [SHOW]" << endl;
       cout << "  If keepFCL = true, existing FCL file is used." << endl;
-      cout << "  If RUN is nonzero, the data for that run are displayed." << endl;
+      cout << "  SHOW > 1 also shows the 480 FEMB blocks." << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_ProtoDuneChannelRanges(useExistingFcl);
+  if ( argc > 2 ) {
+    string sarg(argv[2]);
+    show = std::stoi(sarg);
+  }
+  return test_ProtoDuneChannelRanges(useExistingFcl, show);
 }
 
 //**********************************************************************

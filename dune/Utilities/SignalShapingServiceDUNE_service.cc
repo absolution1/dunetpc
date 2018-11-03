@@ -56,6 +56,21 @@ void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset
   fIndUFieldRespAmp = pset.get<double>("IndUFieldRespAmp");
   fIndVFieldRespAmp = pset.get<double>("IndVFieldRespAmp");
   
+  fCorrectRC = pset.get<bool>("CorrectRC");
+  fURCTime1 = pset.get<double>("URCTime1");
+  fVRCTime1 = pset.get<double>("VRCTime1");
+  fCRCTime1 = pset.get<double>("ColRCTime1");
+  fURCFrac1 = pset.get<double>("URCFrac1");
+  fVRCFrac1 = pset.get<double>("VRCFrac1");
+  fCRCFrac1 = pset.get<double>("ColRCFrac1");
+
+  fURCTime2 = pset.get<double>("URCTime2");
+  fVRCTime2 = pset.get<double>("VRCTime2");
+  fCRCTime2 = pset.get<double>("ColRCTime2");
+  fURCFrac2 = pset.get<double>("URCFrac2");
+  fVRCFrac2 = pset.get<double>("VRCFrac2");
+  fCRCFrac2 = pset.get<double>("ColRCFrac2");
+
   fDeconNorm = pset.get<double>("DeconNorm");
   fADCPerPCAtLowestASICGain = pset.get<double>("ADCPerPCAtLowestASICGain");
   fASICGainInMVPerFC = pset.get<std::vector<double> >("ASICGainInMVPerFC");
@@ -361,10 +376,19 @@ void util::SignalShapingServiceDUNE::init()
     SetFieldResponse();
     SetElectResponse(fShapeTimeConst.at(2),fASICGainInMVPerFC.at(2));
 
+    // calculate RC response
+
+    SetRCResponse();
+
     // Configure convolution kernels.
 
     fColSignalShaping.AddResponseFunction(fColFieldResponse);
     fColSignalShaping.AddResponseFunction(fElectResponse);
+    if (fCorrectRC)
+      {
+	fColSignalShaping.AddResponseFunction(fColRCResponse1);
+	fColSignalShaping.AddResponseFunction(fColRCResponse2);
+      }
     fColSignalShaping.save_response();
     fColSignalShaping.set_normflag(false);
     //fColSignalShaping.SetPeakResponseTime(0.);
@@ -373,6 +397,11 @@ void util::SignalShapingServiceDUNE::init()
 
     fIndUSignalShaping.AddResponseFunction(fIndUFieldResponse);
     fIndUSignalShaping.AddResponseFunction(fElectResponse);
+    if (fCorrectRC)
+      {
+	fIndUSignalShaping.AddResponseFunction(fURCResponse1);
+	fIndUSignalShaping.AddResponseFunction(fURCResponse2);
+      }
     fIndUSignalShaping.save_response();
     fIndUSignalShaping.set_normflag(false);
     //fIndUSignalShaping.SetPeakResponseTime(0.);
@@ -381,6 +410,11 @@ void util::SignalShapingServiceDUNE::init()
 
     fIndVSignalShaping.AddResponseFunction(fIndVFieldResponse);
     fIndVSignalShaping.AddResponseFunction(fElectResponse);
+    if (fCorrectRC)
+      {
+	fIndVSignalShaping.AddResponseFunction(fVRCResponse1);
+	fIndVSignalShaping.AddResponseFunction(fVRCResponse2);
+      }
     fIndVSignalShaping.save_response();
     fIndVSignalShaping.set_normflag(false);
     //fIndVSignalShaping.SetPeakResponseTime(0.);
@@ -525,6 +559,58 @@ void util::SignalShapingServiceDUNE::SetFieldResponse()
    }
    
    return;
+}
+
+// utime, vtime, and coltime are in msec
+
+void util::SignalShapingServiceDUNE::SetRCResponse()
+{
+
+  art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<util::LArFFT> fft;
+
+  LOG_DEBUG("SignalShapingDUNE") << "Setting DUNE RC electronics response";
+
+  int nticks = fft->FFTSize();
+  std::vector<double> time(nticks,0.);
+  fColRCResponse1.resize(nticks, 0.);
+  fURCResponse1.resize(nticks, 0.);
+  fVRCResponse1.resize(nticks, 0.);
+
+  fColRCResponse2.resize(nticks, 0.);
+  fURCResponse2.resize(nticks, 0.);
+  fVRCResponse2.resize(nticks, 0.);
+
+  double x0 = 0.25/((double) nticks);   // each tick is half a microsecond.  This is the bin center of the first bin
+
+  for (int i=0;i<nticks;i++)
+    {
+      double x = ((double) i + 0.5)/2.0;
+      double ucontent1 = -fURCFrac1/2./(1000*fURCTime1) * exp(-(x-x0)/(1000.*fURCTime1)); // RC time in units of ms
+      double vcontent1 = -fVRCFrac1/2./(1000*fVRCTime1) * exp(-(x-x0)/(1000.*fVRCTime1)); // RC time in units of ms
+      double colcontent1 = -fCRCFrac1/2./(1000*fCRCTime1) * exp(-(x-x0)/(1000.*fCRCTime1)); // RC time in units of ms
+
+      double ucontent2 = -fURCFrac2/2./(1000*fURCTime2) * exp(-(x-x0)/(1000.*fURCTime2)); // RC time in units of ms
+      double vcontent2 = -fVRCFrac2/2./(1000*fVRCTime2) * exp(-(x-x0)/(1000.*fVRCTime2)); // RC time in units of ms
+      double colcontent2 = -fCRCFrac2/2./(1000*fCRCTime2) * exp(-(x-x0)/(1000.*fCRCTime2)); // RC time in units of ms
+      if (i==0)
+	{
+	  ucontent1 += 1;
+	  vcontent1 += 1;
+	  colcontent1 += 1;
+
+	  ucontent2 += 1;
+	  vcontent2 += 1;
+	  colcontent2 += 1;
+	}
+      fColRCResponse1[i] = colcontent1;
+      fURCResponse1[i]   = ucontent1;
+      fVRCResponse1[i]   = vcontent1;
+
+      fColRCResponse2[i] = colcontent2;
+      fURCResponse2[i]   = ucontent2;
+      fVRCResponse2[i]   = vcontent2;
+    }
 }
 
 void util::SignalShapingServiceDUNE::SetElectResponse(double shapingtime, double gain)

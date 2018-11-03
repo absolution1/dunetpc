@@ -33,7 +33,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
       ssftmp << "tmpproc" << pid << ".tmp";
       string sftmp = ssftmp.str();
       ostringstream sscom;
-      sscom << "ps -fp " << pid << " >" << sftmp;
+      sscom << "ps -fwwp " << pid << " >" << sftmp;
       string scom = sscom.str();
       system(scom.c_str());
       ifstream fin(sftmp.c_str());

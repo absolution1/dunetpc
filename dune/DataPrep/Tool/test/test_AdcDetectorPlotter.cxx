@@ -63,6 +63,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    ZMin:  -20.0" << endl;
     fout << "    ZMax:  720.0" << endl;
     fout << "    SignalThreshold: 10" << endl;
+    fout << "    SkipBadChannels: false" << endl;
+    fout << "    ShowAllTicks: false" << endl;
     fout << "    FirstTick: 0" << endl;
     fout << "     LastTick: 0" << endl;
     fout << "    ShowWires: true" << endl;
@@ -70,6 +72,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     fout << "    ShowTpcSets: []" << endl;
     fout << "    ShowGrid: true" << endl;
     fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "    PlotTitle: \"%UTCTIME2\"" << endl;
     fout << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "}" << endl;
     fout.close();

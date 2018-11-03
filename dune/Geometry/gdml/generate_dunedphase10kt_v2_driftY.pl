@@ -1054,7 +1054,7 @@ EOF
    <position name="posallpmtcoat" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
- <physvol name="volOpDetSensitiveCoat">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
   <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>
@@ -1133,7 +1133,7 @@ EOF
   {
 
 $posLEMsX = 0;
-$posLEMsY = -0.5*$HeightGaseousAr+0.5-0.5*$LEMsSizeY;
+$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
 $posLEMsZ = 0;
 
       print CRYO <<EOF;
