@@ -136,7 +136,7 @@ void dune::TimingRawDecoder::setRootObjects(){
   fHTimestampDelta = tFileService->make<TH1I>("TimestampDelta","Timing Timestamp Delta", 100, 0, 1e3);
   fHTimestampDelta->GetXaxis()->SetTitle("Delta Timestamp (ms)");
 
-  fHTrigType = tFileService->make<TH1I>("TrigType","Timing trigger type", 10, 0, 10);
+  fHTrigType = tFileService->make<TH1I>("TrigType","Timing trigger type", 20, -0.5, 19.5);
   fHTrigType->GetXaxis()->SetTitle("Trigger type");
 
 

@@ -15,8 +15,8 @@ pdsp_channel_status: {
   # list of bad channels:
   BadChannels:   [
     # CE group: Inactive FE
-     4111,
-     4112,
+     4411,
+     4412,
     11842,
     # CE group: Broken connection
         1,
@@ -34,6 +34,7 @@ pdsp_channel_status: {
      7295,
      7680,
      7681,
+     8080,
      8328,
      8480,
      9282,
@@ -59,10 +60,50 @@ pdsp_channel_status: {
     # CE group excessive sticky
     #femb318x
      1719,
+     4410,
+     5125,  # femb211u35
+     7551,  # femb208x33
+     7190,  # femb211x39
+     7194,  # femb211x43
+     7918,  # femb616u02, sticky pedestal (three peaks)
     #-----
     # CE group: good.
     # femb311
         2,
+     3541,  # femb516u, signal near zero half the time (5803-81)
+     3543,  # femb516u, signal near zero half the time (5803-81)
+     3661,  # femb513u, most signal near zero (5803-81)
+     3663,  # femb513u, most signal near zero (5803-81)
+     4061,  # femb503u, most signal near zero (5803-81)
+     4063,  # femb503u, most signal near zero (5803-81)
+     4141,  # femb501u, signal near zero half the time (5803-81)
+     4143,  # femb501u, signal sometimes near zero (5803-81)
+     4379,  # femb516x, very sticky pedestal
+     4381,  # femb516x, very sticky pedestal
+     4383,  # femb516x, very sticky pedestal
+     4385,  # femb516x, very sticky pedestal
+     4387,  # femb516x, very sticky pedestal
+     4521,  # femb513x, very sticky pedestal
+     4523,  # femb513x, very sticky pedestal
+     4525,  # femb513x, very sticky pedestal
+     4527,  # femb513x, very sticky pedestal
+     4529,  # femb513x, very sticky pedestal
+     4531,  # femb513x, very sticky pedestal
+     4652,  # femb501x, very sticky pedestal
+     4656,  # femb501x, very sticky pedestal
+     4660,  # femb501x, very sticky pedestal
+     4748,  # femb503x, very sticky pedestal
+     4750,  # femb503x, very sticky pedestal
+     4754,  # femb503x, very sticky pedestal
+     4756,  # femb503x, very sticky pedestal
+     4758,  # femb503x, very sticky pedestal
+     5361,  # femb503x39, no signal
+     8501,  # femb620v, very sticky pedestal
+     8503,  # femb620v, very sticky pedestal
+     8821,  # femb612v, very sticky pedestal
+     8823,  # femb612v, very sticky pedestal
+     9261,  # femb601v, very sticky pedestal
+     9263,  # femb601v, very sticky pedestal
     #-----
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
@@ -122,7 +163,37 @@ pdsp_channel_status: {
      2146,
      2158,
      2161,
-     2169
+     2169,
+    # femb513u
+     2674,  # 2-value pedestal
+   # femb518u
+     2833,  # Noisy adc pedestal
+   # femb516x
+     4377,  # Pedestal very sticky
+   # femb503x
+     4654,  # sticky pedestal
+     4658,  # sticky pedestal
+     4662,  # sticky pedestal
+   # femb503x
+     4752,  # sticky pedestal
+   # femb214u
+     5271,  # sticky pedestal
+   # femb217u
+     5377,  # sticky pedestal
+   # femb218u
+     5400,  # sticky pedestal
+     5423,  # sticky pedestal
+   # femb201x
+     7220, # Pedestal stuck on 980
+   # femb203x
+     7334, # Pedestal stuck on 980,981
+   # femb204x
+     7347, # Pedestal stuck on 979
+   # femb207x
+     7396, # Sticky pedestal
+   # femb607x
+     8341, # Sticky pedestal
+     99999
   ]
 
 }

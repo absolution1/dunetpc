@@ -21,6 +21,9 @@ art_make(BASENAME_ONLY
   lardata_Utilities
   larcorealg_Geometry
   nusimdata_SimulationBase
+  lardataobj_RawData
+  dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+  dune_DuneObj
   larsim_MCCheater_PhotonBackTrackerService_service           
   larsim_MCCheater_BackTrackerService_service           
   larsim_MCCheater_ParticleInventoryService_service

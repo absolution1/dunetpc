@@ -9,6 +9,8 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "larcore/Geometry/Geometry.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TColor.h"
@@ -59,6 +61,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_ZMin(ps.get<float>("ZMin")),
   m_ZMax(ps.get<float>("ZMax")),
   m_SignalThreshold(ps.get<float>("SignalThreshold")),
+  m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
   m_ShowAllTicks(ps.get<bool>("ShowAllTicks")),
   m_FirstTick(ps.get<unsigned long>("FirstTick")),
   m_LastTick(ps.get<unsigned long>("LastTick")),
@@ -69,6 +72,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_Title(ps.get<string>("Title")),
   m_PlotTitle(ps.get<string>("PlotTitle")),
   m_FileName(ps.get<string>("FileName")),
+  m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcDetectorPlotter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -76,6 +80,13 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  if ( m_SkipBadChannels ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
+    }
   }
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -89,6 +100,7 @@ AdcDetectorPlotter::AdcDetectorPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "             ZMin: " << m_ZMin << " cm" << endl;
     cout << myname << "             ZMax: " << m_ZMax << " cm" << endl;
     cout << myname << "  SignalThreshold: " << m_SignalThreshold << endl;
+    cout << myname << "  SkipBadChannels: " << (m_SkipBadChannels ? "true" : "false") << endl;
     cout << myname << "     ShowAllTicks: " << m_ShowAllTicks << endl;
     cout << myname << "        FirstTick: " << m_FirstTick << endl;
     cout << myname << "         LastTick: " << m_LastTick << endl;
@@ -225,7 +237,14 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Fill graph.
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
-    addChannel(iacd.second, xsign);
+    const AdcChannelData acd = iacd.second;
+    if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
+         m_pChannelStatusProvider->IsBad(acd.channel) ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
+    } else {
+      if ( m_LogLevel >= 3 ) cout << myname << "Adding channel " << acd.channel << endl;
+      addChannel(acd, xsign);
+    }
   }
   if ( state.ppad->graph()->GetN() == 0 ) {
     cout << myname << "Graph has no points. Adding one to avoid root exception." << endl;

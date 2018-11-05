@@ -153,6 +153,274 @@ tools.pdsp_sticky_codes_ped: {
     chan02461: [ 960,  961]
     # femb309x
     # femb310v
+    # femb511u
+    # femb512u
+    # femb513u
+    # femb514u
+    # femb515u
+    # femb516u
+    # femb517u
+    chan02806: [2367]
+    # femb518u
+    chan02863: [2431]
+    chan02867: [2559]
+    chan02873: [2623]
+    chan02875: [2369]
+    chan02876: [2303]
+    chan02877: [2303]
+    chan02878: [2303]
+    # femb519u
+    # femb520u
+    chan02928: [2367]
+    # femb501u
+    # femb502u
+    # femb503u
+    # femb504u
+    # femb505u
+    chan03159: [2367, 2373, 2375]
+    # femb506u
+    # femb507u
+    # femb508u
+    # femb509u
+    # femb510u
+    # femb520v
+    # femb519v
+    chan03405: [2303, 2311]
+    # femb518v
+    chan03449: [2303]
+    chan03456: [2303]
+    # femb517v
+    # femb516v  (2 channels bad)
+    # femb515v
+    # femb514v
+    # femb513v  (2 channels bad)
+    # femb512v
+    # femb511v
+    # femb510v
+    chan03789: [2239]
+    # femb509v
+    # femb508v
+    # femb507v
+    # femb506v
+    # femb505v
+    chan03999: [2368]
+    # femb504v
+    # femb503v  (2 channels bad)
+    # femb502v
+    chan04092: [2303]
+    chan04111: [2241]
+    # femb501v  (2 channels bad)
+    # femb520x (TPC side)
+    chan04173: [ 960]
+    # femb519x
+    # femb518x
+    chan04260: [ 895,  896]
+    chan04261: [ 959]
+    chan04264: [ 895]
+    chan04269: [1023]
+    chan04274: [ 895]
+    # femb517x
+    chan04336: [ 960,  961]
+    # femb516x (5 bad, 1 noisy)
+    # femb515x
+    chan04426: [ 896,  897]
+    # femb514x
+    chan04456: [ 896]
+    # femb513x (6 bad)
+    # femb512x
+    # femb511x
+    # femb501x (3 bad, 3 noisy, cryo side)
+    chan04642: [ 959]
+    # femb502x
+    chan04688: [ 895]
+    # femb503x (5 bad, 1 noisy)
+    # femb504x
+    chan04808: [ 968,  969]
+    chan04814: [1024]
+    chan04816: [ 960,  974]
+    # femb505x
+    # femb506x
+    chan04892: [ 961]
+    chan04917: [ 896]
+    # femb507x
+    chan04942: [ 960]
+    # femb508x
+    chan04980: [ 960, 961]
+    chan04990: [ 960]
+    # femb509x
+    # femb510x
+    chan05119: [ 960]
+    # femb211u
+    # femb212u
+    # femb213u
+    # femb214u
+    chan05267: [2431]
+    chan05277: [2368, 2369]
+    # femb215u
+    # femb216u (1 bad channel)
+    # femb217u
+    chan05379: [2384]
+    # femb218u
+    chan05420: [2431, 2482]
+    chan05421: [2303]
+    chan05423: [2303, 2330]
+    chan05424: [2367]
+    chan05425: [2303]
+    chan05427: [2239]
+    chan05430: [2431]
+    chan05434: [2367]
+    chan05438: [2431]
+    # femb219u
+    chan05441: [2623, 2625, 2627]
+    # femb220u
+    # femb201u
+    # femb202u
+    # femb203u
+    # femb204u
+    # femb205u
+    chan05695: [2561, 2565, 2567, 2574, 2575]
+    chan05701: [2559]
+    chan05718: [2437, 2438, 2439]
+    # femb206u
+    # femb207u
+    # femb208u
+    # femb209u
+    chan05851: [2495]
+    # femb210u
+    # femb220v
+    chan05941: [2239, 2240]
+    # femb219v
+    # femb218v
+    chan06000: [2367]
+    chan06006: [2370, 2371, 2372]
+    chan06008: [2367]
+    chan06009: [2343, 2344, 2345]
+    chan06017: [2367]
+    # femb217v
+    chan06055: [2367]
+    # femb216v
+    # femb215v
+    chan06137: [2240, 2260]
+    # femb214v
+    # femb213v
+    # femb212v
+    chan06277: [2320, 2322]
+    # femb211v
+    # femb210v
+    chan06333: [2239]
+    # femb209v
+    # femb208v
+    # femb207v
+    # femb206v
+    # femb205v
+    # femb204v
+    chan06590: [2304, 2305]
+    # femb203v
+    # femb202v
+    # femb201v
+    # femb220x
+    chan06765: [ 960]
+    # femb219x
+    # femb218x
+    chan06819: [ 959, 1007, 1008, 1016, 1017]
+    chan06821: [ 959,  960]
+    chan06827: [ 959,  960]
+    chan06829: [1023]
+    # femb217x
+    # femb216x
+    chan06931: [ 959]
+    # femb215x
+    chan06997: [1088]
+    # femb201x
+    #.. chan07200 # No signal (space charge offset?)
+    #.. chan07201 # No signal (space charge offset?)
+    chan07202: [ 961]
+    #.. chan07220 # Pedestal stuck on 980
+    # femb202x
+    chan07251: [ 959]
+    chan07271: [ 960]
+    chan07279: [ 959]
+    # femb203x
+    chan07334: [ 895]
+    # femb204x
+    # femb205x
+    chan07406: [ 960,  961]
+    chan07407: [ 959,  960]
+    # femb206x
+    chan07443: [ 959,  960]
+    # femb207x
+    chan07500: [ 959,  960]
+    chan07500: [ 897,  898]
+    chan07510: [ 1088, 1089, 1090]
+    # femb208x
+    # chan07551: # bad
+    chan07578: [ 896]
+    chan07582: [ 959, 1024]
+    # femb209x
+    # femb210x
+    chan07635: [ 960]
+    chan07675: [ 895]
+    # femb611u (2 bad)
+    chan07699: [2367, 2432]
+    # femb612u
+    # femb613u
+    chan07790: [2431, 2432, 2433, 2495]
+    # femb614u
+    # femb615u
+    # femb616u (1 bad)
+    chan07891: [2495, 2519, 2520, 2524, 2536]
+    # femb617u
+    # femb618u
+    # femb619u
+    # femb620u
+    # femb601u
+    chan08111: [2559, 2560, 2563, 2564]
+    # femb602u
+    chan08138: [2367]
+    # femb603u
+    chan08172: [2368, 2375]
+    # femb604u
+    chan08207: [2303]
+    # femb605u
+    # femb606u
+    chan08290: [2495]
+    # femb607u
+    chan08320: [2303]
+    chan08341: [2431, 2432]
+    # femb608u
+    chan08365: [2305]
+    chan08377: [2495, 2496, 2498, 2536, 2544]
+    # femb609u
+    # femb610u
+    # femb620v (3 bad)
+    chan08494: [2303]
+    # femb619v
+    chan08551: [2495]
+    # femb618v
+    # femb617v
+    # femb616v
+    # femb615v
+    # femb614v
+    # femb613v
+    # femb612v (2 bad)
+    # femb611v
+    # femb610v
+    # femb609v
+    # femb608v
+    # femb607v
+    chan09000: [2303]
+    # femb606v
+    # femb605v
+    chan09081: [2240, 2241, 2245]
+    chan09099: [2304, 2310]
+    chan09108: [2501, 2502, 2503]
+    # femb604v
+    # femb603v
+    chan09166: [2111, 2175, 2176]
+    # femb602v
+    chan09213: [2496]
+    # femb601v (2 bad)
+    chan09274: [2432, 2433, 2434]
   }
 }
 

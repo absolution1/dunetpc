@@ -11,6 +11,8 @@
 
 #include "art/Framework/Principal/Event.h"
 
+#include <set>
+
 namespace protoana {
 
   class ProtoDUNEDataUtils {
@@ -22,6 +24,9 @@ namespace protoana {
 
     /// Access trigger information
     bool IsBeamTrigger(art::Event const & evt) const;
+
+    /// Get number of active fembs in an APA
+    int GetNActiveFembsForAPA(art::Event const & evt, int apa) const;
 
   private:
 

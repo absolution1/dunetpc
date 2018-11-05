@@ -52,6 +52,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "       ChannelRanges: []" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
+    fout << "     SkipBadChannels: false" << endl;
     fout << "          EmptyColor: 18" << endl;
     fout << "  ChannelLineModulus:  4" << endl;
     fout << "  ChannelLinePattern:  [1]" << endl;
