@@ -34,6 +34,7 @@ pdsp_channel_status: {
      7295,
      7680,
      7681,
+     8080,
      8328,
      8480,
      9282,
@@ -64,6 +65,7 @@ pdsp_channel_status: {
      7551,  # femb208x33
      7190,  # femb211x39
      7194,  # femb211x43
+     7918,  # femb616u02, sticky pedestal (three peaks)
     #-----
     # CE group: good.
     # femb311
@@ -96,6 +98,12 @@ pdsp_channel_status: {
      4756,  # femb503x, very sticky pedestal
      4758,  # femb503x, very sticky pedestal
      5361,  # femb503x39, no signal
+     8501,  # femb620v, very sticky pedestal
+     8503,  # femb620v, very sticky pedestal
+     8821,  # femb612v, very sticky pedestal
+     8823,  # femb612v, very sticky pedestal
+     9261,  # femb601v, very sticky pedestal
+     9263,  # femb601v, very sticky pedestal
     #-----
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
@@ -183,6 +191,8 @@ pdsp_channel_status: {
      7347, # Pedestal stuck on 979
    # femb207x
      7396, # Sticky pedestal
+   # femb607x
+     8341, # Sticky pedestal
      99999
   ]
 

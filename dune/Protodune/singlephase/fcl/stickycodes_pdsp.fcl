@@ -360,6 +360,67 @@ tools.pdsp_sticky_codes_ped: {
     # femb210x
     chan07635: [ 960]
     chan07675: [ 895]
+    # femb611u (2 bad)
+    chan07699: [2367, 2432]
+    # femb612u
+    # femb613u
+    chan07790: [2431, 2432, 2433, 2495]
+    # femb614u
+    # femb615u
+    # femb616u (1 bad)
+    chan07891: [2495, 2519, 2520, 2524, 2536]
+    # femb617u
+    # femb618u
+    # femb619u
+    # femb620u
+    # femb601u
+    chan08111: [2559, 2560, 2563, 2564]
+    # femb602u
+    chan08138: [2367]
+    # femb603u
+    chan08172: [2368, 2375]
+    # femb604u
+    chan08207: [2303]
+    # femb605u
+    # femb606u
+    chan08290: [2495]
+    # femb607u
+    chan08320: [2303]
+    chan08341: [2431, 2432]
+    # femb608u
+    chan08365: [2305]
+    chan08377: [2495, 2496, 2498, 2536, 2544]
+    # femb609u
+    # femb610u
+    # femb620v (3 bad)
+    chan08494: [2303]
+    # femb619v
+    chan08551: [2495]
+    # femb618v
+    # femb617v
+    # femb616v
+    # femb615v
+    # femb614v
+    # femb613v
+    # femb612v (2 bad)
+    # femb611v
+    # femb610v
+    # femb609v
+    # femb608v
+    # femb607v
+    chan09000: [2303]
+    # femb606v
+    # femb605v
+    chan09081: [2240, 2241, 2245]
+    chan09099: [2304, 2310]
+    chan09108: [2501, 2502, 2503]
+    # femb604v
+    # femb603v
+    chan09166: [2111, 2175, 2176]
+    # femb602v
+    chan09213: [2496]
+    # femb601v (2 bad)
+    chan09274: [2432, 2433, 2434]
   }
 }
 
