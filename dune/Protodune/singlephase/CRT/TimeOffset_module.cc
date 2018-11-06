@@ -117,6 +117,7 @@ private:
                          // and earliest RDTimeStamp in each Event.
   TH1D* fCRTDeltaT; // Differences in timestamps of earliest and latest 
                     // CRT::Triggers in each Event.  
+  TH1D* fMinDeltaT; // Difference between timestamps of CRT::Trigger and RDTimestamp that are closest in time.
 };
 
 CRT::TimeOffset::TimeOffset(fhicl::ParameterSet const & p)
@@ -151,6 +152,7 @@ void CRT::TimeOffset::onFileClose()
   fEarliestDeltaT = tfs->make<TH1D>("EarliestDeltaT", "Time Difference Between Earliest CRT::Trigger and Earliest RDTimestamp;Time [ticks];", 
                                     2*fNIntervalBins, -fIntervalMax, fIntervalMax);
   fCRTDeltaT = tfs->make<TH1D>("CRTDeltaT", "Range of CRT Timestamps;Time [ticks];Events", fNIntervalBins, fIntervalMin, fIntervalMax);
+  fMinDeltaT = tfs->make<TH1D>("MinDeltaT", "Minimum Time Difference Between a CRT::Trigger and any RDTimestamp;Time [ticks];", 601, -100, 500);
 }
 
 void CRT::TimeOffset::analyze(art::Event const & e)
@@ -164,17 +166,20 @@ void CRT::TimeOffset::analyze(art::Event const & e)
     const auto& crtHandle = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
     const auto& timeHandle = e.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimestampLabel);
 
-    using timestamp_t = decltype(crtHandle->begin()->Timestamp());
+    using timestamp_t = int64_t; //Make sure timestamp differences are signed
     ::limits<timestamp_t> crtLimits, rawLimits;
+    timestamp_t minAbsDeltaT = std::numeric_limits<timestamp_t>::max();
     for(const auto& trigger: *crtHandle)
     {
       //Fill plots for all combinations of a CRT::Trigger and an RDTimeStamp
-      const auto& crtTime = trigger.Timestamp();
+      const timestamp_t& crtTime = trigger.Timestamp();
       for(const auto& time: *timeHandle)
       {
-        const auto& rawTime = time.GetTimeStamp();
-        fTimestampMinusCRT->Fill(rawTime - crtTime);
+        const timestamp_t& rawTime = time.GetTimeStamp();
+        const auto deltaT = rawTime - crtTime;
+        fTimestampMinusCRT->Fill(deltaT);
         rawLimits(rawTime);
+        if(labs(deltaT) < labs(minAbsDeltaT)) minAbsDeltaT = deltaT;
       } //For each RDTimeStamp from fTimestampLabel
 
       // Fill plots for this CRT::Trigger
@@ -183,6 +188,7 @@ void CRT::TimeOffset::analyze(art::Event const & e)
 
     fEarliestDeltaT->Fill(rawLimits.min()-crtLimits.min());
     fCRTDeltaT->Fill(crtLimits.range());
+    fMinDeltaT->Fill(minAbsDeltaT);
   }
   catch(const cet::exception& e) //Don't crash the whole job if this module doesn't find the data products it needs.  
   {
