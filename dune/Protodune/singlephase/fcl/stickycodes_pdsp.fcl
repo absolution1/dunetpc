@@ -10,7 +10,6 @@ tools.pdsp_sticky_codes_ped: {
   LogLevel: 1
   StickyCode: 11
   StickyCodes: {
-    # femb310u
     # femb311u
     # femb312u
     # femb313u
@@ -55,6 +54,7 @@ tools.pdsp_sticky_codes_ped: {
     chan00719: [2367]
     # femb309u
     chan00720: [2367]
+    # femb310u
     # femb320v
     chan00821: [2303]
     # femb319v
@@ -104,6 +104,7 @@ tools.pdsp_sticky_codes_ped: {
     chan01729: [ 895]
     # femb317x
     # femb315x
+    chan01864: [ 959]
     chan01865: [1023]
     # femb314x
     # femb313x
