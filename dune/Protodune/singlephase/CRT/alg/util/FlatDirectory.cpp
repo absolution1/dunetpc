@@ -11,6 +11,7 @@
 
 //c++ includes
 #include <memory> //For std::shared_ptr
+#include <string> //For std::string
 
 #ifndef CRT_FLATDIRECTORY_CPP
 #define CRT_FLATDIRECTORY_CPP
