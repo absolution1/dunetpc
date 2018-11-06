@@ -61,7 +61,7 @@
 // Maximum number of beam particles to save
 const int NMAXBEAMPARTICLES = 10;
 const int NMAXDAUGTHERS = 20;
-const int NMAXGRANDDAUGTHERS = 20;
+// unused const int NMAXGRANDDAUGTHERS = 20;
 const int NMAXT0S = 10;
 
 namespace protoana {
