@@ -40,9 +40,9 @@ public:
     // Required functions.
     void analyze(art::Event const& e) override;
 
-    void beginJob();
+    void beginJob() override;
 
-    void endJob() { m_tree->Write(); }
+    void endJob() override { m_tree->Write(); }
 private:
     // The module name of the raw digits we're reading in
     std::string m_inputTag;
