@@ -11,8 +11,6 @@
 // LArSoft libraries
 
 //LArSoft includes
-#include "dune/OpticalDetector/OpFlashSort.h"
-
 #include "larcore/Geometry/Geometry.h"
 
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
@@ -24,7 +22,6 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/Simulation/sim.h"
@@ -87,15 +84,19 @@ public:
 private:
 
   void ResetVariables();
-  void FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap, 
+  void FillMyMaps  ( std::map< int, simb::MCParticle> &MyMap,
                      art::FindManyP<simb::MCParticle> Assn,
-                     art::ValidHandle< std::vector<simb::MCTruth> > Hand,
+                     art::Handle< std::vector<simb::MCTruth> > Hand,
                      std::map<int, int>* indexMap=nullptr);
   PType WhichParType( int TrID );
   bool  InMyMap     ( int TrID, std::map< int, simb::MCParticle> ParMap );
   void FillTruth(const art::FindManyP<simb::MCParticle> Assn,
-                 const art::ValidHandle<std::vector<simb::MCTruth>>& Hand,
+                 const art::Handle<std::vector<simb::MCTruth>>& Hand,
                  const PType type) ;
+  void SaveNeighbourADC(int channel,
+                        art::Handle< std::vector<raw::RawDigit> >rawDigitsVecHandle,
+                        std::set<int> badChannels,
+                        recob::Hit const& hits);
 
   void SaveIDEs(art::Event const & evt);
 
@@ -106,7 +107,6 @@ private:
   std::string fRawDigitLabel;
   std::string fHitLabel;
   std::string fCalDataModuleLabel;
-  std::string fOpFlashModuleLabel;
   std::string fOpHitModuleLabel;
 
   std::string fGEANTLabel;
@@ -128,30 +128,31 @@ private:
 
   bool fSaveNeighbourADCs;
   bool fSaveIDEs;
-  
+  bool fSaveTruth;
+  bool fSaveTPC;
+  bool fSavePDS;
+
   TTree* fSNAnaTree;
 
   int Run;
   int SubRun;
   int Event;
-  
+
   int NTotHit   ;
   int NColHit   ;
   int NIndHit   ;
   int NHitNoBT  ;
-  int NFlash    ;
-  int NFlashNoBT;
 
   std::vector<int>                  Hit_View                 ;
   std::vector<int>                  Hit_Size                 ;
   std::vector<int>                  Hit_TPC                  ;
   std::vector<int>                  Hit_Chan                 ;
-  std::vector<double>               Hit_X_start              ;                  
-  std::vector<double>               Hit_Y_start              ;                  
-  std::vector<double>               Hit_Z_start              ;                  
-  std::vector<double>               Hit_X_end                ;                  
-  std::vector<double>               Hit_Y_end                ;                  
-  std::vector<double>               Hit_Z_end                ;                  
+  std::vector<double>               Hit_X_start              ;
+  std::vector<double>               Hit_Y_start              ;
+  std::vector<double>               Hit_Z_start              ;
+  std::vector<double>               Hit_X_end                ;
+  std::vector<double>               Hit_Y_end                ;
+  std::vector<double>               Hit_Z_end                ;
   std::vector<float>                Hit_Time                 ;
   std::vector<float>                Hit_RMS                  ;
   std::vector<float>                Hit_SADC                 ;
@@ -162,12 +163,12 @@ private:
   std::vector<int>                  Hit_True_TrackID         ;
   std::vector<float>                Hit_True_EvEnergy        ;
   std::vector<int>                  Hit_True_MarleyIndex     ;
-  std::vector<float>                Hit_True_X               ;                  
-  std::vector<float>                Hit_True_Y               ;                  
-  std::vector<float>                Hit_True_Z               ;                  
-  std::vector<float>                Hit_True_Energy          ;             
+  std::vector<float>                Hit_True_X               ;
+  std::vector<float>                Hit_True_Y               ;
+  std::vector<float>                Hit_True_Z               ;
+  std::vector<float>                Hit_True_Energy          ;
   std::vector<float>                Hit_True_nElec           ;
-  std::vector<int>                  Hit_True_nIDEs           ; 
+  std::vector<int>                  Hit_True_nIDEs           ;
   std::vector<int>                  Hit_AdjM5SADC            ;
   std::vector<int>                  Hit_AdjM2SADC            ;
   std::vector<int>                  Hit_AdjM1SADC            ;
@@ -181,30 +182,20 @@ private:
   std::vector<int>                  Hit_AdjP2Chan            ;
   std::vector<int>                  Hit_AdjP5Chan            ;
 
-  std::vector<int>                  PDS_Flash_FlashID        ;
-  std::vector<float>                PDS_Flash_YCenter        ;
-  std::vector<float>                PDS_Flash_ZCenter        ;
-  std::vector<float>                PDS_Flash_YWidth         ;
-  std::vector<float>                PDS_Flash_ZWidth         ;
-  std::vector<float>                PDS_Flash_Time           ;
-  std::vector<float>                PDS_Flash_TimeWidth      ;
-  std::vector<float>                PDS_Flash_TotalPE        ;
-  std::vector<float>                PDS_Flash_True_Distance  ;
-  std::vector<float>                PDS_Flash_True_GenType   ;
-
-  std::vector<int> 	            PDS_OpHit_OpChannel      ;
+  std::vector<int>                  PDS_OpHit_OpChannel      ;
   std::vector<double>               PDS_OpHit_X              ;
-  std::vector<double> 	            PDS_OpHit_Y              ;
-  std::vector<double> 	            PDS_OpHit_Z              ;
-  std::vector<double> 	            PDS_OpHit_PeakTimeAbs    ;
-  std::vector<double> 	            PDS_OpHit_PeakTime       ;
+  std::vector<double>               PDS_OpHit_Y              ;
+  std::vector<double>               PDS_OpHit_Z              ;
+  std::vector<double>               PDS_OpHit_PeakTimeAbs    ;
+  std::vector<double>               PDS_OpHit_PeakTime       ;
   std::vector<unsigned short>       PDS_OpHit_Frame          ;
   std::vector<double>               PDS_OpHit_Width          ;
-  std::vector<double> 	            PDS_OpHit_Area           ;
-  std::vector<double> 	            PDS_OpHit_Amplitude      ;
-  std::vector<double> 	            PDS_OpHit_PE             ;
-  std::vector<double> 	            PDS_OpHit_FastToTotal    ;
+  std::vector<double>               PDS_OpHit_Area           ;
+  std::vector<double>               PDS_OpHit_Amplitude      ;
+  std::vector<double>               PDS_OpHit_PE             ;
+  std::vector<double>               PDS_OpHit_FastToTotal    ;
   std::vector<int>                  PDS_OpHit_True_GenType   ;
+  std::vector<int>                  PDS_OpHit_True_Index     ;
   std::vector<double>               PDS_OpHit_True_Energy    ;
   std::vector<int>                  PDS_OpHit_True_TrackID   ;
   std::vector<int>                  PDS_OpHit_True_GenTypeAll;
@@ -235,13 +226,13 @@ private:
   std::vector<float>                True_Diry                ;
   std::vector<float>                True_Dirz                ;
   std::vector<float>                True_Time                ;
-                                    
-  std::vector<int> 	            True_Bck_Mode            ;
+
+  std::vector<int>                  True_Bck_Mode            ;
   std::vector<double>               True_Bck_VertX           ;
-  std::vector<double> 	            True_Bck_VertY           ;
-  std::vector<double> 	            True_Bck_VertZ           ;
-  std::vector<double> 	            True_Bck_Time            ;
-  std::vector<double> 	            True_Bck_Energy          ;
+  std::vector<double>               True_Bck_VertY           ;
+  std::vector<double>               True_Bck_VertZ           ;
+  std::vector<double>               True_Bck_Time            ;
+  std::vector<double>               True_Bck_Energy          ;
   std::vector<int>                  True_Bck_PDG             ;
   std::vector<int>                  True_Bck_ID              ;
 
@@ -269,7 +260,6 @@ private:
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   art::ServiceHandle<cheat::PhotonBackTrackerService> pbt_serv;
 
-  bool fSaveTruth;
 };
 
 SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
@@ -280,10 +270,9 @@ SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
 
 void SNAna::reconfigure(fhicl::ParameterSet const & p)
 {
-  fRawDigitLabel      = p.get<std::string>("RawDigitLabel"     );  
+  fRawDigitLabel      = p.get<std::string>("RawDigitLabel"     );
   fHitLabel           = p.get<std::string>("HitLabel"          );
   fCalDataModuleLabel = p.get<std::string>("CalDataModuleLabel");
-  fOpFlashModuleLabel = p.get<std::string>("OpFlashModuleLabel");
   fOpHitModuleLabel   = p.get<std::string>("OpHitModuleLabel"  );
 
   fGEANTLabel = p.get<std::string> ("GEANT4Label"  );
@@ -297,15 +286,17 @@ void SNAna::reconfigure(fhicl::ParameterSet const & p)
   fRdonLabel  = p.get<std::string> ("RadonLabel"   );
   fAr42Label  = p.get<std::string> ("Argon42Label" );
 
-  fSaveNeighbourADCs = p.get<bool> ("SaveNeighbourADCs");
-  fSaveTruth = p.get<bool>("SaveTruth");
-  fSaveIDEs  = p.get<bool>("SaveIDEs");
+  fSaveNeighbourADCs = p.get<bool> ("SaveNeighbourADCs",0);
+  fSaveTruth = p.get<bool>("SaveTruth",0);
+  fSaveIDEs  = p.get<bool>("SaveIDEs",0);
+  fSaveTPC   = p.get<bool>("SaveTPC",1);
+  fSavePDS   = p.get<bool>("SavePDS",1);
 
   std::cout << "Reconfigured " << this->processName() << " with "
             << " SaveNeighbourADCs: " << std::boolalpha << fSaveNeighbourADCs
             << " SaveTruth: " << std::boolalpha << fSaveTruth
             << " SaveIDEs: " << std::boolalpha << fSaveIDEs << std::endl;
-} 
+}
 
 
 void SNAna::ResetVariables()
@@ -317,7 +308,7 @@ void SNAna::ResetVariables()
   Ar42Parts.clear();
 
   Run = SubRun = Event = -1;
-  
+
   TotGen_Marl = TotGen_APA  = TotGen_CPA  = TotGen_Ar39 = 0;
   TotGen_Neut = TotGen_Kryp = TotGen_Plon = TotGen_Rdon = 0;
   TotGen_Ar42 = 0;
@@ -326,19 +317,17 @@ void SNAna::ResetVariables()
   NColHit    = 0;
   NIndHit    = 0;
   NHitNoBT   = 0;
-  NFlash     = 0;
-  NFlashNoBT = 0;
 
   Hit_View                 .clear();
   Hit_Size                 .clear();
   Hit_TPC                  .clear();
   Hit_Chan                 .clear();
-  Hit_X_start              .clear();                  
-  Hit_Y_start              .clear();                  
-  Hit_Z_start              .clear();                  
-  Hit_X_end                .clear();                  
-  Hit_Y_end                .clear();                  
-  Hit_Z_end                .clear();                  
+  Hit_X_start              .clear();
+  Hit_Y_start              .clear();
+  Hit_Z_start              .clear();
+  Hit_X_end                .clear();
+  Hit_Y_end                .clear();
+  Hit_Z_end                .clear();
   Hit_Time                 .clear();
   Hit_RMS                  .clear();
   Hit_SADC                 .clear();
@@ -355,30 +344,19 @@ void SNAna::ResetVariables()
   Hit_True_Energy          .clear();
   Hit_True_nElec           .clear();
   Hit_True_nIDEs           .clear();
-  
+
   Hit_AdjM5SADC            .clear();
   Hit_AdjM2SADC            .clear();
   Hit_AdjM1SADC            .clear();
   Hit_AdjP1SADC            .clear();
   Hit_AdjP2SADC            .clear();
   Hit_AdjP5SADC            .clear();
-  Hit_AdjM5Chan            .clear();                  
-  Hit_AdjM2Chan            .clear();                  
-  Hit_AdjM1Chan            .clear();                  
-  Hit_AdjP1Chan            .clear();             
+  Hit_AdjM5Chan            .clear();
+  Hit_AdjM2Chan            .clear();
+  Hit_AdjM1Chan            .clear();
+  Hit_AdjP1Chan            .clear();
   Hit_AdjP2Chan            .clear();
-  Hit_AdjP5Chan            .clear(); 
-
-  PDS_Flash_FlashID        .clear();
-  PDS_Flash_YCenter        .clear();
-  PDS_Flash_ZCenter        .clear();
-  PDS_Flash_YWidth         .clear();
-  PDS_Flash_ZWidth         .clear();
-  PDS_Flash_Time           .clear();
-  PDS_Flash_TimeWidth      .clear();
-  PDS_Flash_TotalPE        .clear();
-  PDS_Flash_True_Distance  .clear();
-  PDS_Flash_True_GenType   .clear();
+  Hit_AdjP5Chan            .clear();
 
   PDS_OpHit_OpChannel      .clear();
   PDS_OpHit_X              .clear();
@@ -393,6 +371,7 @@ void SNAna::ResetVariables()
   PDS_OpHit_PE             .clear();
   PDS_OpHit_FastToTotal    .clear();
   PDS_OpHit_True_GenType   .clear();
+  PDS_OpHit_True_Index     .clear();
   PDS_OpHit_True_Energy    .clear();
   PDS_OpHit_True_TrackID   .clear();
   PDS_OpHit_True_GenTypeAll.clear();
@@ -451,7 +430,7 @@ void SNAna::beginJob()
 
 
   fSNAnaTree = tfs->make<TTree>("SNSimTree","SN simulation analysis tree");
- 
+
   fSNAnaTree->Branch("Run"       , &Run       , "Run/I"       );
   fSNAnaTree->Branch("SubRun"    , &SubRun    , "SubRun/I"    );
   fSNAnaTree->Branch("Event"     , &Event     , "Event/I"     );
@@ -459,80 +438,73 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("NColHit"   , &NColHit   , "NColHits/I"  );
   fSNAnaTree->Branch("NIndHit"   , &NIndHit   , "NIndHits/I"  );
   fSNAnaTree->Branch("NHitNoBT"  , &NHitNoBT  , "NHitNoBT/I"  );
-  fSNAnaTree->Branch("NFlash"    , &NFlash    , "NFlash/I"    );
-  fSNAnaTree->Branch("NFlashNoBT", &NFlashNoBT, "NFlashNoBT/I");
 
-  fSNAnaTree->Branch("Hit_View"                 , &Hit_View                 );
-  fSNAnaTree->Branch("Hit_Size"                 , &Hit_Size                 );
-  fSNAnaTree->Branch("Hit_TPC"                  , &Hit_TPC                  );
-  fSNAnaTree->Branch("Hit_Chan"                 , &Hit_Chan                 );
-  fSNAnaTree->Branch("Hit_X_start"              , &Hit_X_start              );
-  fSNAnaTree->Branch("Hit_Y_start"              , &Hit_Y_start              );
-  fSNAnaTree->Branch("Hit_Z_start"              , &Hit_Z_start              );
-  fSNAnaTree->Branch("Hit_X_end"                , &Hit_X_end                );
-  fSNAnaTree->Branch("Hit_Y_end"                , &Hit_Y_end                );
-  fSNAnaTree->Branch("Hit_Z_end"                , &Hit_Z_end                );
-  fSNAnaTree->Branch("Hit_Time"                 , &Hit_Time                 );
-  fSNAnaTree->Branch("Hit_RMS"                  , &Hit_RMS                  );
-  fSNAnaTree->Branch("Hit_SADC"                 , &Hit_SADC                 );
-  fSNAnaTree->Branch("Hit_Int"                  , &Hit_Int                  );
-  fSNAnaTree->Branch("Hit_Peak"                 , &Hit_Peak                 );
-  fSNAnaTree->Branch("Hit_True_GenType"         , &Hit_True_GenType         );
-  fSNAnaTree->Branch("Hit_True_MainTrID"        , &Hit_True_MainTrID        );
-  fSNAnaTree->Branch("Hit_True_TrackID"         , &Hit_True_TrackID         );
-  fSNAnaTree->Branch("Hit_True_EvEnergy"        , &Hit_True_EvEnergy        );
-  fSNAnaTree->Branch("Hit_True_MarleyIndex"     , &Hit_True_MarleyIndex     );
-  fSNAnaTree->Branch("Hit_True_X"               , &Hit_True_X               );
-  fSNAnaTree->Branch("Hit_True_Y"               , &Hit_True_Y               );
-  fSNAnaTree->Branch("Hit_True_Z"               , &Hit_True_Z               );
-  fSNAnaTree->Branch("Hit_True_Energy"          , &Hit_True_Energy          );
-  fSNAnaTree->Branch("Hit_True_nElec"           , &Hit_True_nElec           );
-  fSNAnaTree->Branch("Hit_True_nIDEs"           , &Hit_True_nIDEs           );
-  
-  fSNAnaTree->Branch("Hit_AdjM5SADC"            , &Hit_AdjM5SADC            );
-  fSNAnaTree->Branch("Hit_AdjM2SADC"            , &Hit_AdjM2SADC            );
-  fSNAnaTree->Branch("Hit_AdjM1SADC"            , &Hit_AdjM1SADC            );
-  fSNAnaTree->Branch("Hit_AdjP1SADC"            , &Hit_AdjP1SADC            );
-  fSNAnaTree->Branch("Hit_AdjP2SADC"            , &Hit_AdjP2SADC            );
-  fSNAnaTree->Branch("Hit_AdjP5SADC"            , &Hit_AdjP5SADC            );
-  fSNAnaTree->Branch("Hit_AdjM5Chan"            , &Hit_AdjM5Chan            );
-  fSNAnaTree->Branch("Hit_AdjM2Chan"            , &Hit_AdjM2Chan            );
-  fSNAnaTree->Branch("Hit_AdjM1Chan"            , &Hit_AdjM1Chan            );
-  fSNAnaTree->Branch("Hit_AdjP1Chan"            , &Hit_AdjP1Chan            );
-  fSNAnaTree->Branch("Hit_AdjP2Chan"            , &Hit_AdjP2Chan            );
-  fSNAnaTree->Branch("Hit_AdjP5Chan"            , &Hit_AdjP5Chan            );
-  
-  fSNAnaTree->Branch("PDS_Flash_FlashID"        , &PDS_Flash_FlashID        );
-  fSNAnaTree->Branch("PDS_Flash_YCenter"        , &PDS_Flash_YCenter        );
-  fSNAnaTree->Branch("PDS_Flash_ZCenter"        , &PDS_Flash_ZCenter        );
-  fSNAnaTree->Branch("PDS_Flash_YWidth"         , &PDS_Flash_YWidth         );
-  fSNAnaTree->Branch("PDS_Flash_ZWidth"         , &PDS_Flash_ZWidth         );
-  fSNAnaTree->Branch("PDS_Flash_Time"           , &PDS_Flash_Time           );
-  fSNAnaTree->Branch("PDS_Flash_TimeWidth"      , &PDS_Flash_TimeWidth      );
-  fSNAnaTree->Branch("PDS_Flash_TotalPE"        , &PDS_Flash_TotalPE        );
-  fSNAnaTree->Branch("PDS_Flash_True_Distance"  , &PDS_Flash_True_Distance  );
-  fSNAnaTree->Branch("PDS_Flash_True_GenType"   , &PDS_Flash_True_GenType   );
-  
-  fSNAnaTree->Branch("PDS_OpHit_OpChannel"      , &PDS_OpHit_OpChannel      );
-  fSNAnaTree->Branch("PDS_OpHit_X"              , &PDS_OpHit_X              );
-  fSNAnaTree->Branch("PDS_OpHit_Y"              , &PDS_OpHit_Y              );
-  fSNAnaTree->Branch("PDS_OpHit_Z"              , &PDS_OpHit_Z              );
-  fSNAnaTree->Branch("PDS_OpHit_PeakTimeAbs"    , &PDS_OpHit_PeakTimeAbs    );
-  fSNAnaTree->Branch("PDS_OpHit_PeakTime"       , &PDS_OpHit_PeakTime       );
-  fSNAnaTree->Branch("PDS_OpHit_Frame"          , &PDS_OpHit_Frame          );
-  fSNAnaTree->Branch("PDS_OpHit_Width"          , &PDS_OpHit_Width          );
-  fSNAnaTree->Branch("PDS_OpHit_Area"           , &PDS_OpHit_Area           );
-  fSNAnaTree->Branch("PDS_OpHit_Amplitude"      , &PDS_OpHit_Amplitude      );
-  fSNAnaTree->Branch("PDS_OpHit_PE"             , &PDS_OpHit_PE             );
-  fSNAnaTree->Branch("PDS_OpHit_FastToTotal"    , &PDS_OpHit_FastToTotal    );
-  fSNAnaTree->Branch("PDS_OpHit_True_GenType"   , &PDS_OpHit_True_GenType   );
-  fSNAnaTree->Branch("PDS_OpHit_True_Energy"    , &PDS_OpHit_True_Energy    );
-  fSNAnaTree->Branch("PDS_OpHit_True_TrackID"   , &PDS_OpHit_True_TrackID   );
-  fSNAnaTree->Branch("PDS_OpHit_True_GenTypeAll", &PDS_OpHit_True_GenTypeAll);
-  fSNAnaTree->Branch("PDS_OpHit_True_EnergyAll" , &PDS_OpHit_True_EnergyAll );
-  fSNAnaTree->Branch("PDS_OpHit_True_TrackIDAll", &PDS_OpHit_True_TrackIDAll);
-  fSNAnaTree->Branch("PDS_OpHit_True_IndexAll"  , &PDS_OpHit_True_IndexAll  );
-  
+  if (fSaveTPC) {
+    fSNAnaTree->Branch("Hit_View"                 , &Hit_View                 );
+    fSNAnaTree->Branch("Hit_Size"                 , &Hit_Size                 );
+    fSNAnaTree->Branch("Hit_TPC"                  , &Hit_TPC                  );
+    fSNAnaTree->Branch("Hit_Chan"                 , &Hit_Chan                 );
+    fSNAnaTree->Branch("Hit_X_start"              , &Hit_X_start              );
+    fSNAnaTree->Branch("Hit_Y_start"              , &Hit_Y_start              );
+    fSNAnaTree->Branch("Hit_Z_start"              , &Hit_Z_start              );
+    fSNAnaTree->Branch("Hit_X_end"                , &Hit_X_end                );
+    fSNAnaTree->Branch("Hit_Y_end"                , &Hit_Y_end                );
+    fSNAnaTree->Branch("Hit_Z_end"                , &Hit_Z_end                );
+    fSNAnaTree->Branch("Hit_Time"                 , &Hit_Time                 );
+    fSNAnaTree->Branch("Hit_RMS"                  , &Hit_RMS                  );
+    fSNAnaTree->Branch("Hit_SADC"                 , &Hit_SADC                 );
+    fSNAnaTree->Branch("Hit_Int"                  , &Hit_Int                  );
+    fSNAnaTree->Branch("Hit_Peak"                 , &Hit_Peak                 );
+    fSNAnaTree->Branch("Hit_True_GenType"         , &Hit_True_GenType         );
+    fSNAnaTree->Branch("Hit_True_MainTrID"        , &Hit_True_MainTrID        );
+    fSNAnaTree->Branch("Hit_True_TrackID"         , &Hit_True_TrackID         );
+    fSNAnaTree->Branch("Hit_True_EvEnergy"        , &Hit_True_EvEnergy        );
+    fSNAnaTree->Branch("Hit_True_MarleyIndex"     , &Hit_True_MarleyIndex     );
+    fSNAnaTree->Branch("Hit_True_X"               , &Hit_True_X               );
+    fSNAnaTree->Branch("Hit_True_Y"               , &Hit_True_Y               );
+    fSNAnaTree->Branch("Hit_True_Z"               , &Hit_True_Z               );
+    fSNAnaTree->Branch("Hit_True_Energy"          , &Hit_True_Energy          );
+    fSNAnaTree->Branch("Hit_True_nElec"           , &Hit_True_nElec           );
+    fSNAnaTree->Branch("Hit_True_nIDEs"           , &Hit_True_nIDEs           );
+  }
+
+  if (fSaveNeighbourADCs) {
+    fSNAnaTree->Branch("Hit_AdjM5SADC"            , &Hit_AdjM5SADC            );
+    fSNAnaTree->Branch("Hit_AdjM2SADC"            , &Hit_AdjM2SADC            );
+    fSNAnaTree->Branch("Hit_AdjM1SADC"            , &Hit_AdjM1SADC            );
+    fSNAnaTree->Branch("Hit_AdjP1SADC"            , &Hit_AdjP1SADC            );
+    fSNAnaTree->Branch("Hit_AdjP2SADC"            , &Hit_AdjP2SADC            );
+    fSNAnaTree->Branch("Hit_AdjP5SADC"            , &Hit_AdjP5SADC            );
+    fSNAnaTree->Branch("Hit_AdjM5Chan"            , &Hit_AdjM5Chan            );
+    fSNAnaTree->Branch("Hit_AdjM2Chan"            , &Hit_AdjM2Chan            );
+    fSNAnaTree->Branch("Hit_AdjM1Chan"            , &Hit_AdjM1Chan            );
+    fSNAnaTree->Branch("Hit_AdjP1Chan"            , &Hit_AdjP1Chan            );
+    fSNAnaTree->Branch("Hit_AdjP2Chan"            , &Hit_AdjP2Chan            );
+    fSNAnaTree->Branch("Hit_AdjP5Chan"            , &Hit_AdjP5Chan            );
+  }
+
+  if (fSavePDS) {
+    fSNAnaTree->Branch("PDS_OpHit_OpChannel"      , &PDS_OpHit_OpChannel      );
+    fSNAnaTree->Branch("PDS_OpHit_X"              , &PDS_OpHit_X              );
+    fSNAnaTree->Branch("PDS_OpHit_Y"              , &PDS_OpHit_Y              );
+    fSNAnaTree->Branch("PDS_OpHit_Z"              , &PDS_OpHit_Z              );
+    fSNAnaTree->Branch("PDS_OpHit_PeakTimeAbs"    , &PDS_OpHit_PeakTimeAbs    );
+    fSNAnaTree->Branch("PDS_OpHit_PeakTime"       , &PDS_OpHit_PeakTime       );
+    fSNAnaTree->Branch("PDS_OpHit_Frame"          , &PDS_OpHit_Frame          );
+    fSNAnaTree->Branch("PDS_OpHit_Width"          , &PDS_OpHit_Width          );
+    fSNAnaTree->Branch("PDS_OpHit_Area"           , &PDS_OpHit_Area           );
+    fSNAnaTree->Branch("PDS_OpHit_Amplitude"      , &PDS_OpHit_Amplitude      );
+    fSNAnaTree->Branch("PDS_OpHit_PE"             , &PDS_OpHit_PE             );
+    fSNAnaTree->Branch("PDS_OpHit_FastToTotal"    , &PDS_OpHit_FastToTotal    );
+    fSNAnaTree->Branch("PDS_OpHit_True_GenType"   , &PDS_OpHit_True_GenType   );
+    fSNAnaTree->Branch("PDS_OpHit_True_Energy"    , &PDS_OpHit_True_Energy    );
+    fSNAnaTree->Branch("PDS_OpHit_True_TrackID"   , &PDS_OpHit_True_TrackID   );
+    fSNAnaTree->Branch("PDS_OpHit_True_GenTypeAll", &PDS_OpHit_True_GenTypeAll);
+    fSNAnaTree->Branch("PDS_OpHit_True_EnergyAll" , &PDS_OpHit_True_EnergyAll );
+    fSNAnaTree->Branch("PDS_OpHit_True_TrackIDAll", &PDS_OpHit_True_TrackIDAll);
+    fSNAnaTree->Branch("PDS_OpHit_True_IndexAll"  , &PDS_OpHit_True_IndexAll  );
+  }
+
   fSNAnaTree->Branch("True_VertexChan"          , &True_VertexChan          );
   fSNAnaTree->Branch("True_Nu_Type"             , &True_Nu_Type             );
   fSNAnaTree->Branch("True_Nu_Lep_Type"         , &True_Nu_Lep_Type         );
@@ -556,7 +528,7 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("True_Diry"                , &True_Diry                );
   fSNAnaTree->Branch("True_Dirz"                , &True_Dirz                );
   fSNAnaTree->Branch("True_Time"                , &True_Time                );
-  
+
   fSNAnaTree->Branch("True_Bck_Mode"            , &True_Bck_Mode            );
   fSNAnaTree->Branch("True_Bck_VertX"           , &True_Bck_VertX           );
   fSNAnaTree->Branch("True_Bck_VertY"           , &True_Bck_VertY           );
@@ -567,14 +539,16 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("True_Bck_ID"              , &True_Bck_ID              );
 
   // IDEs
-  fSNAnaTree->Branch( "NTotIDEs"                , &NTotIDEs  , "NTotIDEs/I" );
-  fSNAnaTree->Branch("IDEChannel"               , &IDEChannel               );
-  fSNAnaTree->Branch("IDEStartTime"             , &IDEStartTime             );
-  fSNAnaTree->Branch("IDEEndTime"               , &IDEEndTime               );
-  fSNAnaTree->Branch("IDEEnergy"                , &IDEEnergy                );
-  fSNAnaTree->Branch("IDEElectrons"             , &IDEElectrons             );
-  fSNAnaTree->Branch("IDEParticle"              , &IDEParticle              );
-  
+  if(fSaveIDEs) {
+    fSNAnaTree->Branch("NTotIDEs"                 , &NTotIDEs  , "NTotIDEs/I" );
+    fSNAnaTree->Branch("IDEChannel"               , &IDEChannel               );
+    fSNAnaTree->Branch("IDEStartTime"             , &IDEStartTime             );
+    fSNAnaTree->Branch("IDEEndTime"               , &IDEEndTime               );
+    fSNAnaTree->Branch("IDEEnergy"                , &IDEEnergy                );
+    fSNAnaTree->Branch("IDEElectrons"             , &IDEElectrons             );
+    fSNAnaTree->Branch("IDEParticle"              , &IDEParticle              );
+  }
+
   fSNAnaTree->Branch("TotGen_Marl", &TotGen_Marl, "TotGen_Marl/I");
   fSNAnaTree->Branch("TotGen_APA" , &TotGen_APA , "TotGen_APA/I" );
   fSNAnaTree->Branch("TotGen_CPA" , &TotGen_CPA , "TotGen_CPA/I" );
@@ -585,14 +559,14 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("TotGen_Rdon", &TotGen_Rdon, "TotGen_Rdon/I");
   fSNAnaTree->Branch("TotGen_Ar42", &TotGen_Ar42, "TotGen_Ar42/I");
 
-  
-} 
+
+}
 
 
 void SNAna::analyze(art::Event const & evt)
 {
   ResetVariables();
- 
+
   Run    = evt.run();
   SubRun = evt.subRun();
   Event  = evt.event();
@@ -601,135 +575,153 @@ void SNAna::analyze(art::Event const & evt)
   auto const* geo = lar::providerFrom<geo::Geometry>();
   auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
-  //GET THE RECO HITS.
-  auto reco_hits = evt.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
-
   //LIFT OUT THE MARLEY PARTICLES.
-  auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
-  art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
-  FillMyMaps( MarlParts, MarlAssn, MarlTrue, &trkIDToMarleyIndex );
+  //auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
+  art::Handle< std::vector<simb::MCTruth> > MarlTrue;
+  if(evt.getByLabel(fMARLLabel, MarlTrue)) {
+    art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
+    FillMyMaps( MarlParts, MarlAssn, MarlTrue, &trkIDToMarleyIndex );
+    TotGen_Marl = MarlParts.size();
+    double Px_(0), Py_(0), Pz_(0), Pnorm(1);
 
-  TotGen_Marl = MarlParts.size();
+    for(size_t i = 0; i < MarlTrue->size(); i++)
+    {
+      True_Nu_Type    .push_back(MarlTrue->at(i).GetNeutrino().Nu().PdgCode());
+      True_Nu_Lep_Type.push_back(MarlTrue->at(i).GetNeutrino().Lepton().PdgCode());
+      True_Mode       .push_back(MarlTrue->at(i).GetNeutrino().Mode());
+      True_CCNC       .push_back(MarlTrue->at(i).GetNeutrino().CCNC());
+      True_Target     .push_back(MarlTrue->at(i).GetNeutrino().Target());
+      True_HitNucleon .push_back(MarlTrue->at(i).GetNeutrino().HitNuc());
+      True_VertX      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vx());
+      True_VertY      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vy());
+      True_VertZ      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vz());
+      True_ENu_Lep    .push_back(MarlTrue->at(i).GetNeutrino().Lepton().E());
+      True_ENu        .push_back(MarlTrue->at(i).GetNeutrino().Nu().E());
+      True_Px         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Px());
+      True_Py         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Py());
+      True_Pz         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Pz());
+      Pnorm = std::sqrt(Px_*Px_+Py_*Py_+Pz_*Pz_);
+      double Px = Px_/Pnorm;
+      double Py = Py_/Pnorm;
+      double Pz = Pz_/Pnorm;
+      True_Dirx.push_back(Px);
+      True_Diry.push_back(Py);
+      True_Dirz.push_back(Pz);
+      True_Time.push_back(MarlTrue->at(i).GetNeutrino().Lepton().T());
 
-  //SUPERNOVA TRUTH.
-  art::FindManyP<sim::SupernovaTruth> SNTruth(MarlTrue, evt, fMARLLabel);
-
-  double Px_(0), Py_(0), Pz_(0), Pnorm(1);
- 
-  for(size_t i = 0; i < MarlTrue->size(); i++)
-  {
-    True_Nu_Type    .push_back(MarlTrue->at(i).GetNeutrino().Nu().PdgCode());
-    True_Nu_Lep_Type.push_back(MarlTrue->at(i).GetNeutrino().Lepton().PdgCode()); 
-    True_Mode       .push_back(MarlTrue->at(i).GetNeutrino().Mode());
-    True_CCNC       .push_back(MarlTrue->at(i).GetNeutrino().CCNC());
-    True_Target     .push_back(MarlTrue->at(i).GetNeutrino().Target());
-    True_HitNucleon .push_back(MarlTrue->at(i).GetNeutrino().HitNuc());
-    True_VertX      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vx()); 
-    True_VertY      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vy()); 
-    True_VertZ      .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Vz()); 
-    True_ENu_Lep    .push_back(MarlTrue->at(i).GetNeutrino().Lepton().E());
-    True_ENu        .push_back(MarlTrue->at(i).GetNeutrino().Nu().E());
-    True_Px         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Px());
-    True_Py         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Py());
-    True_Pz         .push_back(MarlTrue->at(i).GetNeutrino().Lepton().Pz());
-    Pnorm = std::sqrt(Px_*Px_+Py_*Py_+Pz_*Pz_);
-    double Px = Px_/Pnorm;
-    double Py = Py_/Pnorm;
-    double Pz = Pz_/Pnorm;
-    True_Dirx.push_back(Px);
-    True_Diry.push_back(Py);
-    True_Dirz.push_back(Pz);
-    True_Time.push_back(MarlTrue->at(i).GetNeutrino().Lepton().T());
-    for (size_t j = 0; j < SNTruth.at(i).size(); j++) 
-    {
-      const sim::SupernovaTruth ThisTr = (*SNTruth.at(i).at(j));
-      True_MarlTime  .push_back(ThisTr.SupernovaTime);
-      True_MarlWeight.push_back(ThisTr.Weight);
-      True_MarlSample.push_back(ThisTr.SamplingMode);
-    }
-  }
-
-  for(size_t i=0; i<True_VertX.size(); ++i) {
-    bool caught = false;
-    double Vertex[3] = {True_VertX[i],
-                        True_VertY[i],
-                        True_VertZ[i]};
-    geo::WireID WireID;
-    geo::PlaneID Plane(geo->FindTPCAtPosition(Vertex),geo::kZ);
-    try
-    {
-      WireID = geo->NearestWireID(Vertex, Plane);
-    }
-    catch(...)
-    {
-      caught = true;
-    }
-    if(caught==true)
-    {
-      True_VertexChan.push_back(-1); 
-    }
-    else
-    {
-      True_VertexChan.push_back(geo->PlaneWireToChannel(WireID));
+      try {
+        art::FindManyP<sim::SupernovaTruth> SNTruth(MarlTrue, evt, fMARLLabel);
+        for (size_t j = 0; j < SNTruth.at(i).size(); j++) {
+          const sim::SupernovaTruth ThisTr = (*SNTruth.at(i).at(j));
+          True_MarlTime  .push_back(ThisTr.SupernovaTime);
+          True_MarlWeight.push_back(ThisTr.Weight);
+          True_MarlSample.push_back(ThisTr.SamplingMode);
+        }
+      } catch (...) {
+        std::cout << "Didnt find SN truth (few things wont available):" << std::endl;
+        std::cout << " - MarlTime  " << std::endl;
+        std::cout << " - MarlWeight" << std::endl;
+        std::cout << " - MarlSample" << std::endl;
+      }
     }
 
-    //CM/MICROSECOND.
-    double drift_velocity = detp->DriftVelocity(detp->Efield(),detp->Temperature());
-    //CM/TICK
-    drift_velocity = drift_velocity*0.5;
-    True_VertexT.push_back(True_VertX.back()/drift_velocity);
-  }
+    for(size_t i=0; i<True_VertX.size(); ++i) {
+      bool caught = false;
+      double Vertex[3] = {True_VertX[i],
+                          True_VertY[i],
+                          True_VertZ[i]};
+      geo::WireID WireID;
+      geo::PlaneID Plane(geo->FindTPCAtPosition(Vertex),geo::kZ);
+      try
+      {
+        WireID = geo->NearestWireID(Vertex, Plane);
+      }
+      catch(...)
+      {
+        caught = true;
+      }
+      if(caught==true)
+      {
+        True_VertexChan.push_back(-1);
+      }
+      else
+      {
+        True_VertexChan.push_back(geo->PlaneWireToChannel(WireID));
+      }
 
-  auto APATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fAPALabel);
-  art::FindManyP<simb::MCParticle> APAAssn(APATrue,evt,fGEANTLabel);
-  FillMyMaps( APAParts, APAAssn, APATrue );
-  TotGen_APA = APAParts.size();
-
-  auto CPATrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fCPALabel);
-  art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
-  FillMyMaps( CPAParts, CPAAssn, CPATrue );
-  TotGen_CPA = CPAParts.size();
-  
-  auto Ar39True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr39Label);
-  art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
-  FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
-  TotGen_Ar39 = Ar39Parts.size();
-
-  auto NeutTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fNeutLabel);
-  art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
-  FillMyMaps( NeutParts, NeutAssn, NeutTrue );
-  TotGen_Neut = NeutParts.size();
-
-  auto KrypTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fKrypLabel);
-  art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
-  FillMyMaps( KrypParts, KrypAssn, KrypTrue );
-  TotGen_Kryp = KrypParts.size();
-
-  auto PlonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fPlonLabel);
-  art::FindManyP<simb::MCParticle> PlonAssn(PlonTrue,evt,fGEANTLabel);
-  FillMyMaps( PlonParts, PlonAssn, PlonTrue );
-  TotGen_Plon = PlonParts.size();
-
-  auto RdonTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fRdonLabel);
-  art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
-  FillMyMaps( RdonParts, RdonAssn, RdonTrue );
-  TotGen_Rdon = RdonParts.size();
-
-  auto Ar42True = evt.getValidHandle<std::vector<simb::MCTruth> >(fAr42Label);
-  art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
-  FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
-  TotGen_Ar42 = Ar42Parts.size();
-
-  if(fSaveTruth){
+      //CM/MICROSECOND.
+      double drift_velocity = detp->DriftVelocity(detp->Efield(),detp->Temperature());
+      //CM/TICK
+      drift_velocity = drift_velocity*0.5;
+      True_VertexT.push_back(True_VertX.back()/drift_velocity);
+    }
+    if (fSaveTruth)
       FillTruth(MarlAssn, MarlTrue, kMarl);
-      FillTruth(APAAssn , APATrue , kAPA );
-      FillTruth(CPAAssn , CPATrue , kCPA );
-      FillTruth(Ar39Assn, Ar39True, kAr39);
-      FillTruth(NeutAssn, NeutTrue, kNeut);
-      FillTruth(KrypAssn, KrypTrue, kKryp);
-      FillTruth(PlonAssn, PlonTrue, kPlon);
-      FillTruth(RdonAssn, RdonTrue, kRdon);
-      FillTruth(Ar42Assn, Ar42True, kAr42);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > APATrue;
+  if(evt.getByLabel(fAPALabel, APATrue)) {
+    art::FindManyP<simb::MCParticle> APAAssn(APATrue,evt,fGEANTLabel);
+    FillMyMaps( APAParts, APAAssn, APATrue );
+    TotGen_APA = APAParts.size();
+    if(fSaveTruth) FillTruth(APAAssn , APATrue , kAPA );
+
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > CPATrue;
+  if(evt.getByLabel(fCPALabel, CPATrue)) {
+    art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
+    FillMyMaps( CPAParts, CPAAssn, CPATrue );
+    TotGen_CPA = CPAParts.size();
+    if(fSaveTruth) FillTruth(CPAAssn , CPATrue , kCPA );
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > Ar39True;
+  if(evt.getByLabel(fAr39Label, Ar39True)) {
+    art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
+    FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
+    TotGen_Ar39 = Ar39Parts.size();
+    if(fSaveTruth) FillTruth(Ar39Assn, Ar39True, kAr39);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > NeutTrue;
+  if(evt.getByLabel(fNeutLabel, NeutTrue)) {
+    art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
+    FillMyMaps( NeutParts, NeutAssn, NeutTrue );
+    TotGen_Neut = NeutParts.size();
+    if(fSaveTruth) FillTruth(NeutAssn, NeutTrue, kNeut);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > KrypTrue;
+  if(evt.getByLabel(fKrypLabel, KrypTrue)) {
+    art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
+    FillMyMaps( KrypParts, KrypAssn, KrypTrue );
+    TotGen_Kryp = KrypParts.size();
+    if(fSaveTruth) FillTruth(KrypAssn, KrypTrue, kKryp);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > PlonTrue;
+  if(evt.getByLabel(fPlonLabel, PlonTrue)) {
+    art::FindManyP<simb::MCParticle> PlonAssn(PlonTrue,evt,fGEANTLabel);
+    FillMyMaps( PlonParts, PlonAssn, PlonTrue );
+    TotGen_Plon = PlonParts.size();
+    if(fSaveTruth) FillTruth(PlonAssn, PlonTrue, kPlon);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > RdonTrue;
+  if(evt.getByLabel(fRdonLabel, RdonTrue)) {
+    art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
+    FillMyMaps( RdonParts, RdonAssn, RdonTrue );
+    TotGen_Rdon = RdonParts.size();
+    if(fSaveTruth) FillTruth(RdonAssn, RdonTrue, kRdon);
+  }
+
+  art::Handle< std::vector<simb::MCTruth> > Ar42True;
+  if(evt.getByLabel(fAr42Label, Ar42True)) {
+    art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
+    FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
+    TotGen_Ar42 = Ar42Parts.size();
+    if(fSaveTruth) FillTruth(Ar42Assn, Ar42True, kAr42);
   }
 
   std::vector<simb::MCParticle> allTruthParts;
@@ -749,452 +741,344 @@ void SNAna::analyze(art::Event const & evt)
     allTruthParts.push_back(it.second);
   for(auto& it: Ar42Parts)
     allTruthParts.push_back(it.second);
-  
+
   std::map<PType, std::map< int, simb::MCParticle >&> PTypeToMap{
-      {kMarl, MarlParts},
-      {kAPA,  APAParts },
-      {kCPA,  CPAParts },
-      {kAr39, Ar39Parts},
-      {kAr42, Ar42Parts},
-      {kNeut, NeutParts},
-      {kKryp, KrypParts},
-      {kPlon, PlonParts},
-      {kRdon, RdonParts}
+    {kMarl, MarlParts},
+    {kAPA,  APAParts },
+    {kCPA,  CPAParts },
+    {kAr39, Ar39Parts},
+    {kAr42, Ar42Parts},
+    {kNeut, NeutParts},
+    {kKryp, KrypParts},
+    {kPlon, PlonParts},
+    {kRdon, RdonParts}
   };
-  
+
   std::map<PType,std::set<int>> PTypeToTrackID;
 
   for(auto const& it : PTypeToMap){
-      const PType p=it.first;
-      auto const& m=it.second;
-      for(auto const& it2 : m){
-        trkIDToPType.insert(std::make_pair(it2.first, p));
-        PTypeToTrackID[p].insert(it2.first);
-      }
+    const PType p=it.first;
+    auto const& m=it.second;
+    for(auto const& it2 : m){
+      trkIDToPType.insert(std::make_pair(it2.first, p));
+      PTypeToTrackID[p].insert(it2.first);
+    }
   }
 
   std::cout << "THE EVENTS NUMBER IS: " << Event << std::endl;
 
-  std::vector< recob::Hit > ColHits_Marl;
-  std::vector< recob::Hit > ColHits_CPA ;
-  std::vector< recob::Hit > ColHits_APA ;
-  std::vector< recob::Hit > ColHits_Ar39;
-  std::vector< recob::Hit > ColHits_Neut;
-  std::vector< recob::Hit > ColHits_Kryp;
-  std::vector< recob::Hit > ColHits_Plon;
-  std::vector< recob::Hit > ColHits_Rdon;
-  std::vector< recob::Hit > ColHits_Oth ;
-  std::vector< recob::Hit > ColHits_Ar42;
+  if (fSaveTPC) {
+    art::Handle< std::vector<recob::Hit> >    reco_hits         ;
+    art::Handle< std::vector<recob::Wire> >   wireVecHandle     ;
+    art::Handle< std::vector<raw::RawDigit> > rawDigitsVecHandle;
+    if(evt.getByLabel(fHitLabel,           reco_hits         ) &&
+       evt.getByLabel(fCalDataModuleLabel, wireVecHandle     ) &&
+       evt.getByLabel(fRawDigitLabel,      rawDigitsVecHandle)) {
+      std::vector< recob::Hit > ColHits_Marl;
+      std::vector< recob::Hit > ColHits_CPA ;
+      std::vector< recob::Hit > ColHits_APA ;
+      std::vector< recob::Hit > ColHits_Ar39;
+      std::vector< recob::Hit > ColHits_Neut;
+      std::vector< recob::Hit > ColHits_Kryp;
+      std::vector< recob::Hit > ColHits_Plon;
+      std::vector< recob::Hit > ColHits_Rdon;
+      std::vector< recob::Hit > ColHits_Oth ;
+      std::vector< recob::Hit > ColHits_Ar42;
 
-  NTotHit = reco_hits->size();
-  int colHitCount(0);
-  int LoopHits = NTotHit;
+      NTotHit = reco_hits->size();
+      int colHitCount(0);
+      int LoopHits = NTotHit;
 
-  for(int hit = 0; hit < LoopHits; ++hit) 
-  {
-    recob::Hit const& ThisHit = reco_hits->at(hit);  
-    if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
-      ++NIndHit;
-    } else { 
-      ++NColHit;
-    }
-  }
-  art::Handle< std::vector<recob::Wire> > wireVecHandle;
-  art::Handle< std::vector<raw::RawDigit> > rawDigitsVecHandle;
-  evt.getByLabel(fCalDataModuleLabel, wireVecHandle);
-  evt.getByLabel(fRawDigitLabel, rawDigitsVecHandle);
-
-
-  // Fill a set of the channels that we don't want to consider in the
-  // adjacent-channel loop below. Do it here once so we don't have to
-  // re-do it for every single hit
-  // std::cout << "Building \"bad\" channel set" << std::endl;
-  std::set<int> badChannels;
-  for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
-  {
-      int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
-      std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
-
-      if (adjacentwire.size() < 1 || adjacentwire[0].Plane == geo::kU ||
-          adjacentwire[0].Plane == geo::kV){
-          badChannels.insert(rawWireChannel);
-      }
-  }
-  // std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
-
-  for(int hit = 0; hit < LoopHits; ++hit) 
-  {
-    recob::Hit const& ThisHit = reco_hits->at(hit);  
-
-    if (ThisHit.View() == 2) {
-    std::vector< sim::TrackIDE > ThisHitIDE; 
-    //GETTING HOLD OF THE SIM::IDEs.
-    std::vector<const sim::IDE*> ThisSimIDE;
-    try
-    {
-        // HitToTrackIDEs opens a specific window around the hit. I want a
-        // wider one, because the filtering can delay the hit. So this bit
-        // is a copy of HitToTrackIDEs from the backtracker, with some
-        // modification
-        const double start = ThisHit.PeakTime()-20;
-        const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
-        ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
-        
-        // ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
-    }
-    catch(...)
-    {
-        // std::cout << "FIRST CATCH" << std::endl;
-        firstCatch++;
-        try
-        {
-            ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
-        }
-        catch(...)
-        {
-            // std::cout << "SECOND CATCH" << std::endl; 
-            secondCatch++;
-            continue;
-        }
-        continue;
-    }
-
-    // Get the simIDEs.
-    try
-    {
-        ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
-    }
-    catch(...)
-    {
-        // std::cout << "THIRD CATCH" << std::endl; 
-        thirdCatch++;
-        continue;
-    }
-    
-    Hit_View.push_back(ThisHit.View());
-    Hit_Size.push_back(ThisHit.EndTick() - ThisHit.StartTick());
-    Hit_TPC .push_back(ThisHit.WireID().TPC);
-    int channel = ThisHit.Channel();
-    Hit_Chan.push_back(channel);
-
-    if(fSaveNeighbourADCs){
-        Hit_AdjM5SADC.push_back(0);
-        Hit_AdjM2SADC.push_back(0);
-        Hit_AdjM1SADC.push_back(0);
-        Hit_AdjP1SADC.push_back(0);
-        Hit_AdjP2SADC.push_back(0);
-        Hit_AdjP5SADC.push_back(0);
-        Hit_AdjM5Chan.push_back(0);
-        Hit_AdjM2Chan.push_back(0);
-        Hit_AdjM1Chan.push_back(0);
-        Hit_AdjP1Chan.push_back(0);
-        Hit_AdjP2Chan.push_back(0);
-        Hit_AdjP5Chan.push_back(0);
-   
-
-        // A vector for us to uncompress the rawdigits into. Create it
-        // outside the loop here so that we only have to allocate it once
-        raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[0].Samples());
-
-        std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
-        for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
-        {
-            int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
-            const int chanDiff=rawWireChannel-channel;
-            if(abs(chanDiff)!=1 && abs(chanDiff)!=2 && abs(chanDiff)!=5) continue;
-
-            if(badChannels.find(rawWireChannel)!=badChannels.end()) continue;
-
-            switch(chanDiff)
-            {
-            case -5:
-                Hit_AdjM5SADC[colHitCount] = 0;
-                Hit_AdjM5Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjM5SADC[colHitCount]+=ADCs[i];
-                break;
-            case -2:
-                Hit_AdjM2SADC[colHitCount] = 0;
-                Hit_AdjM2Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjM2SADC[colHitCount]+=ADCs[i];
-                break;
-            case -1:
-                Hit_AdjM1SADC[colHitCount] = 0;
-                Hit_AdjM1Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjM1SADC[colHitCount]+=ADCs[i];
-                break;
-            case  1:
-                Hit_AdjP1SADC[colHitCount] = 0;
-                Hit_AdjP1Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjP1SADC[colHitCount]+=ADCs[i];
-                break;
-            case  2:
-                Hit_AdjP2SADC[colHitCount] = 0;
-                Hit_AdjP2Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjP2SADC[colHitCount]+=ADCs[i];
-                break;
-            case  5:
-                Hit_AdjP5SADC[colHitCount] = 0;
-                Hit_AdjP5Chan[colHitCount] = rawWireChannel;
-                raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
-                                (*rawDigitsVecHandle)[i].Compression());
-                for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
-                    Hit_AdjP5SADC[colHitCount]+=ADCs[i];
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
-
-    double wire_start[3] = {0,0,0};
-    double wire_end[3] = {0,0,0};
-    auto& wgeo = geo->WireIDToWireGeo(ThisHit.WireID());
-    wgeo.GetStart(wire_start);
-    wgeo.GetEnd(wire_end);
-    //std::cout << "start x " << wire_start[0] << " - y " << wire_start[1] << " - y " << wire_start[2] << std::endl;
-    //std::cout << "end   x " << wire_end  [0] << " - y " << wire_end  [1] << " - y " << wire_end  [2] << std::endl;
-    Hit_X_start.push_back(wire_start[0]);
-    Hit_Y_start.push_back(wire_start[1]);
-    Hit_Z_start.push_back(wire_start[2]);    
-    Hit_X_end  .push_back(wire_end[0]);
-    Hit_Y_end  .push_back(wire_end[1]);
-    Hit_Z_end  .push_back(wire_end[2]);    
-    Hit_Time   .push_back(ThisHit.PeakTime());
-    Hit_RMS    .push_back(ThisHit.RMS());
-    Hit_SADC   .push_back(ThisHit.SummedADC());
-    Hit_Int    .push_back(ThisHit.Integral());
-    Hit_Peak   .push_back(ThisHit.PeakAmplitude());
-    Hit_True_nIDEs.push_back(ThisHitIDE.size());
-
-    if(ThisHitIDE.size()==0)
-      NHitNoBT++;
-
-    //WHICH PARTICLE CONTRIBUTED MOST TO THE HIT.
-    double TopEFrac = -DBL_MAX;
-
-    Hit_True_EvEnergy.push_back(0);
-    Hit_True_MainTrID.push_back(0);
-    for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
-      Hit_True_TrackID.push_back(ThisHitIDE[ideL].trackID);
-      for (size_t ipart=0; ipart<allTruthParts.size(); ++ipart) {
-
-        if (allTruthParts[ipart].TrackId() == ThisHitIDE[ideL].trackID) {
-          Hit_True_EvEnergy.at(colHitCount) += allTruthParts[ipart].E();
-        }
-      }
-      if (ThisHitIDE[ideL].energyFrac > TopEFrac) {
-        TopEFrac = ThisHitIDE[ideL].energyFrac;
-        Hit_True_MainTrID.at(colHitCount) = ThisHitIDE[ideL].trackID;
-
-      }
-    }
-
-    PType ThisPType      = WhichParType(Hit_True_MainTrID.at(colHitCount));
-    Hit_True_GenType.push_back(ThisPType);
-
-    int thisMarleyIndex=-1;
-    int MainTrID=Hit_True_MainTrID.at(colHitCount);
-    if(ThisPType==kMarl && MainTrID!=0){
-        auto const it=trkIDToMarleyIndex.find(MainTrID);
-        if(it==trkIDToMarleyIndex.end()){
-            std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
-        }
-        else{
-            thisMarleyIndex=it->second;
-        }
-    }
-    Hit_True_MarleyIndex.push_back(thisMarleyIndex);
-
-    if(Hit_True_MainTrID[colHitCount] == -1)
-    {
-      Hit_True_X     .push_back(-1);
-      Hit_True_Y     .push_back(-1);
-      Hit_True_Z     .push_back(-1);
-      Hit_True_Energy.push_back(-1);
-      Hit_True_nElec .push_back(-1);
-    }
-    else
-    {
-      for(unsigned int i = 0; i < ThisSimIDE.size(); i++)
+      for(int hit = 0; hit < LoopHits; ++hit)
       {
-        if(ThisSimIDE.at(i)->trackID==Hit_True_MainTrID[colHitCount])
-        {
-          Hit_True_X     .push_back(ThisSimIDE.at(i)->x           );
-          Hit_True_Y     .push_back(ThisSimIDE.at(i)->y           );
-          Hit_True_Z     .push_back(ThisSimIDE.at(i)->z           );
-          Hit_True_Energy.push_back(ThisSimIDE.at(i)->energy      );
-          Hit_True_nElec .push_back(ThisSimIDE.at(i)->numElectrons);
-          break;
+        recob::Hit const& ThisHit = reco_hits->at(hit);
+        if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
+          ++NIndHit;
+        } else {
+          ++NColHit;
         }
       }
-    }
-    
-    if      (ThisPType == 0) { ColHits_Oth .push_back( ThisHit ); }
-    else if (ThisPType == 1) { ColHits_Marl.push_back( ThisHit ); }
-    else if (ThisPType == 2) { ColHits_APA .push_back( ThisHit ); }
-    else if (ThisPType == 3) { ColHits_CPA .push_back( ThisHit ); }
-    else if (ThisPType == 4) { ColHits_Ar39.push_back( ThisHit ); }
-    else if (ThisPType == 5) { ColHits_Neut.push_back( ThisHit ); }
-    else if (ThisPType == 6) { ColHits_Kryp.push_back( ThisHit ); }
-    else if (ThisPType == 7) { ColHits_Plon.push_back( ThisHit ); }
-    else if (ThisPType == 8) { ColHits_Rdon.push_back( ThisHit ); }
-    else if (ThisPType == 9) { ColHits_Ar42.push_back( ThisHit ); }
-
-    colHitCount++;
-    }
-  } 
 
 
-  // Get flashes from event
-  art::Handle< std::vector< recob::OpFlash > > FlashHandle;
-  std::vector<art::Ptr<recob::OpFlash> > flashlist;
-  if (evt.getByLabel(fOpFlashModuleLabel, FlashHandle)) {
-    art::fill_ptr_vector(flashlist, FlashHandle);
-    std::sort(flashlist.begin(), flashlist.end(), recob::OpFlashPtrSortByPE);
+      // Fill a set of the channels that we don't want to consider in the
+      // adjacent-channel loop below. Do it here once so we don't have to
+      // re-do it for every single hit
+      std::set<int> badChannels;
+      for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
+      {
+        int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
+        std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
 
-  // Get assosciations between flashes and hits
-    art::FindManyP<recob::OpHit> Opt_Assns (flashlist, evt, fOpFlashModuleLabel);
-
-    for(size_t i = 0; i < flashlist.size(); ++i)
-    {
-        // Get OpFlash and associated hits
-        recob::OpFlash TheFlash = *flashlist[i];
-        std::vector< art::Ptr<recob::OpHit> > matchedHits = Opt_Assns.at(i);
-        std::vector<double> Purities;
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kMarl], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAPA ], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kCPA ], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr39], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kNeut], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kKryp], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kPlon], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kRdon], matchedHits));
-        Purities.push_back(pbt_serv->OpHitCollectionPurity(PTypeToTrackID[kAr42], matchedHits));
-        double maxPur = (*max_element(Purities.begin(),Purities.end()));
-        double minPur = (*min_element(Purities.begin(),Purities.end()));
-        int gen=0;
-        if (maxPur != minPur)  {
-            for (size_t i=0; i<Purities.size(); ++i) {
-                if (maxPur==Purities[i])
-                    break;
-                gen++;
-            }
+        if (adjacentwire.size() < 1 || adjacentwire[0].Plane == geo::kU ||
+            adjacentwire[0].Plane == geo::kV){
+          badChannels.insert(rawWireChannel);
         }
-        // Put flash info into variables
-        PDS_Flash_FlashID        .push_back(i);
-        PDS_Flash_YCenter        .push_back(TheFlash.YCenter());
-        PDS_Flash_ZCenter        .push_back(TheFlash.ZCenter());
-        PDS_Flash_YWidth         .push_back(TheFlash.YWidth());
-        PDS_Flash_ZWidth         .push_back(TheFlash.ZWidth());
-        PDS_Flash_Time           .push_back(TheFlash.Time());
-        PDS_Flash_TimeWidth      .push_back(TheFlash.TimeWidth());
-        PDS_Flash_TotalPE        .push_back(TheFlash.TotalPE());
-        PDS_Flash_True_Distance  .push_back(TMath::Sqrt(TMath::Power(True_VertY.back()-TheFlash.YCenter(),2)+TMath::Power(True_VertZ.back()-TheFlash.ZCenter(),2)));
-        PDS_Flash_True_GenType   .push_back(gen);
-        Purities.clear();
+      }
+      // std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
+
+      for(int hit = 0; hit < LoopHits; ++hit)
+      {
+        recob::Hit const& ThisHit = reco_hits->at(hit);
+
+        if (ThisHit.View() == 2) {
+          std::vector< sim::TrackIDE > ThisHitIDE;
+          //GETTING HOLD OF THE SIM::IDEs.
+          std::vector<const sim::IDE*> ThisSimIDE;
+          try
+          {
+            // HitToTrackIDEs opens a specific window around the hit. I want a
+            // wider one, because the filtering can delay the hit. So this bit
+            // is a copy of HitToTrackIDEs from the backtracker, with some
+            // modification
+            const double start = ThisHit.PeakTime()-20;
+            const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
+            ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
+
+            // ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+          }
+          catch(...)
+          {
+            // std::cout << "FIRST CATCH" << std::endl;
+            firstCatch++;
+            try
+            {
+              ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+            }
+            catch(...)
+            {
+              // std::cout << "SECOND CATCH" << std::endl;
+              secondCatch++;
+              continue;
+            }
+            continue;
+          }
+
+          // Get the simIDEs.
+          try
+          {
+            ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+          }
+          catch(...)
+          {
+            // std::cout << "THIRD CATCH" << std::endl;
+            thirdCatch++;
+            continue;
+          }
+
+          Hit_View.push_back(ThisHit.View());
+          Hit_Size.push_back(ThisHit.EndTick() - ThisHit.StartTick());
+          Hit_TPC .push_back(ThisHit.WireID().TPC);
+          int channel = ThisHit.Channel();
+          Hit_Chan.push_back(channel);
+
+          if(fSaveNeighbourADCs)
+            SaveNeighbourADC(channel,rawDigitsVecHandle, badChannels, ThisHit);
+
+          double wire_start[3] = {0,0,0};
+          double wire_end[3] = {0,0,0};
+          auto& wgeo = geo->WireIDToWireGeo(ThisHit.WireID());
+          wgeo.GetStart(wire_start);
+          wgeo.GetEnd(wire_end);
+          Hit_X_start.push_back(wire_start[0]);
+          Hit_Y_start.push_back(wire_start[1]);
+          Hit_Z_start.push_back(wire_start[2]);
+          Hit_X_end  .push_back(wire_end[0]);
+          Hit_Y_end  .push_back(wire_end[1]);
+          Hit_Z_end  .push_back(wire_end[2]);
+          Hit_Time   .push_back(ThisHit.PeakTime());
+          Hit_RMS    .push_back(ThisHit.RMS());
+          Hit_SADC   .push_back(ThisHit.SummedADC());
+          Hit_Int    .push_back(ThisHit.Integral());
+          Hit_Peak   .push_back(ThisHit.PeakAmplitude());
+          Hit_True_nIDEs.push_back(ThisHitIDE.size());
+
+          if(ThisHitIDE.size()==0)
+            NHitNoBT++;
+
+          //WHICH PARTICLE CONTRIBUTED MOST TO THE HIT.
+          double TopEFrac = -DBL_MAX;
+
+          Hit_True_EvEnergy.push_back(0);
+          Hit_True_MainTrID.push_back(0);
+          for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
+            Hit_True_TrackID.push_back(ThisHitIDE[ideL].trackID);
+            for (size_t ipart=0; ipart<allTruthParts.size(); ++ipart) {
+
+              if (allTruthParts[ipart].TrackId() == ThisHitIDE[ideL].trackID) {
+                Hit_True_EvEnergy.at(colHitCount) += allTruthParts[ipart].E();
+              }
+            }
+            if (ThisHitIDE[ideL].energyFrac > TopEFrac) {
+              TopEFrac = ThisHitIDE[ideL].energyFrac;
+              Hit_True_MainTrID.at(colHitCount) = ThisHitIDE[ideL].trackID;
+
+            }
+          }
+
+          PType ThisPType = WhichParType(Hit_True_MainTrID.at(colHitCount));
+          Hit_True_GenType.push_back(ThisPType);
+
+          int thisMarleyIndex=-1;
+          int MainTrID=Hit_True_MainTrID.at(colHitCount);
+          if(ThisPType==kMarl && MainTrID!=0){
+            auto const it=trkIDToMarleyIndex.find(MainTrID);
+            if(it==trkIDToMarleyIndex.end()){
+              std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+            }
+            else{
+              thisMarleyIndex=it->second;
+            }
+          }
+          Hit_True_MarleyIndex.push_back(thisMarleyIndex);
+
+          if(Hit_True_MainTrID[colHitCount] == -1)
+          {
+            Hit_True_X     .push_back(-1);
+            Hit_True_Y     .push_back(-1);
+            Hit_True_Z     .push_back(-1);
+            Hit_True_Energy.push_back(-1);
+            Hit_True_nElec .push_back(-1);
+          }
+          else
+          {
+            for(unsigned int i = 0; i < ThisSimIDE.size(); i++)
+            {
+              if(ThisSimIDE.at(i)->trackID==Hit_True_MainTrID[colHitCount])
+              {
+                Hit_True_X     .push_back(ThisSimIDE.at(i)->x           );
+                Hit_True_Y     .push_back(ThisSimIDE.at(i)->y           );
+                Hit_True_Z     .push_back(ThisSimIDE.at(i)->z           );
+                Hit_True_Energy.push_back(ThisSimIDE.at(i)->energy      );
+                Hit_True_nElec .push_back(ThisSimIDE.at(i)->numElectrons);
+                break;
+              }
+            }
+          }
+
+          if      (ThisPType == 0) { ColHits_Oth .push_back( ThisHit ); }
+          else if (ThisPType == 1) { ColHits_Marl.push_back( ThisHit ); }
+          else if (ThisPType == 2) { ColHits_APA .push_back( ThisHit ); }
+          else if (ThisPType == 3) { ColHits_CPA .push_back( ThisHit ); }
+          else if (ThisPType == 4) { ColHits_Ar39.push_back( ThisHit ); }
+          else if (ThisPType == 5) { ColHits_Neut.push_back( ThisHit ); }
+          else if (ThisPType == 6) { ColHits_Kryp.push_back( ThisHit ); }
+          else if (ThisPType == 7) { ColHits_Plon.push_back( ThisHit ); }
+          else if (ThisPType == 8) { ColHits_Rdon.push_back( ThisHit ); }
+          else if (ThisPType == 9) { ColHits_Ar42.push_back( ThisHit ); }
+
+          colHitCount++;
+        }
+      }
+      std::cerr << "Total of:" << std::endl;
+      std::cerr << " - Othe : " << ColHits_Oth.size() << " col plane hits " << std::endl;
+      std::cerr << " - Marl : " << TotGen_Marl << " true parts\t| " << ColHits_Marl.size() << " col plane hits" << std::endl;
+      std::cerr << " - APA  : " << TotGen_APA  << " true parts\t| " << ColHits_APA .size() << " col plane hits" << std::endl;
+      std::cerr << " - CPA  : " << TotGen_CPA  << " true parts\t| " << ColHits_CPA .size() << " col plane hits" << std::endl;
+      std::cerr << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << ColHits_Ar39.size() << " col plane hits" << std::endl;
+      std::cerr << " - Neut : " << TotGen_Neut << " true parts\t| " << ColHits_Neut.size() << " col plane hits" << std::endl;
+      std::cerr << " - Kryp : " << TotGen_Kryp << " true parts\t| " << ColHits_Kryp.size() << " col plane hits" << std::endl;
+      std::cerr << " - Plon : " << TotGen_Plon << " true parts\t| " << ColHits_Plon.size() << " col plane hits" << std::endl;
+      std::cerr << " - Rdon : " << TotGen_Rdon << " true parts\t| " << ColHits_Rdon.size() << " col plane hits" << std::endl;
+      std::cerr << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << ColHits_Ar42.size() << " col plane hits" << std::endl;
+    } else {
+      mf::LogWarning("SNAnaModule") << "Requested to save wire hits, but cannot load any wire hits";
     }
   }
-  else {
-    mf::LogWarning("SNAnaModule") << "Cannot load any flashes";
-  }
 
+  if (fSavePDS) {
 
+    art::Handle< std::vector< recob::OpHit > > OpHitHandle;
+    std::vector<art::Ptr<recob::OpHit> > ophitlist;
+    std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
 
-  art::Handle< std::vector< recob::OpHit > > OpHitHandle;
-  std::vector<art::Ptr<recob::OpHit> > ophitlist;
-  std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
-  if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
-    art::fill_ptr_vector(ophitlist, OpHitHandle);
+    if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
+      art::fill_ptr_vector(ophitlist, OpHitHandle);
 
-  std::cout << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
+      std::cout << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
 
-  for(size_t i = 0; i < ophitlist.size(); ++i)
-  {
-      std::vector<sim::TrackSDP> vec_tracksdp = pbt_serv->OpHitToTrackSDPs(ophitlist.at(i));
-      PType gen = kUnknown;
+      for(size_t i = 0; i < ophitlist.size(); ++i)
+      {
+        std::vector<sim::TrackSDP> vec_tracksdp = pbt_serv->OpHitToTrackSDPs(ophitlist.at(i));
+        PType gen = kUnknown;
 
-      std::sort(vec_tracksdp.begin(), vec_tracksdp.end(),
-                [](const sim::TrackSDP& a, const sim::TrackSDP& b) -> bool { return a.energyFrac > b.energyFrac; });
-    
-      for (size_t iSDP=0; iSDP<vec_tracksdp.size(); ++iSDP) {
+        std::sort(vec_tracksdp.begin(), vec_tracksdp.end(),
+                  [](const sim::TrackSDP& a, const sim::TrackSDP& b) -> bool { return a.energyFrac > b.energyFrac; });
+
+        for (size_t iSDP=0; iSDP<vec_tracksdp.size(); ++iSDP) {
           PDS_OpHit_True_TrackIDAll.push_back(vec_tracksdp[iSDP].trackID);
           PDS_OpHit_True_GenTypeAll.push_back(WhichParType(vec_tracksdp[iSDP].trackID));
           PDS_OpHit_True_EnergyAll .push_back(vec_tracksdp[iSDP].energy);
           PDS_OpHit_True_IndexAll  .push_back((int)i);
-      }
-      if (vec_tracksdp.size()>0){
+        }
+
+        if (vec_tracksdp.size()>0){
+          int MainTrID = vec_tracksdp[0].trackID;
           PDS_OpHit_True_TrackID.push_back(vec_tracksdp[0].trackID);
-          PDS_OpHit_True_GenType.push_back(WhichParType(vec_tracksdp[0].trackID));
+          gen = WhichParType(vec_tracksdp[0].trackID);
+          PDS_OpHit_True_GenType.push_back(gen);
+          int thisMarleyIndex;
+          if(gen==kMarl && MainTrID!=0){
+            auto const it=trkIDToMarleyIndex.find(MainTrID);
+            if(it==trkIDToMarleyIndex.end()){
+              std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+            }
+            else{
+              thisMarleyIndex=it->second;
+            }
+          }
+          PDS_OpHit_True_Index  .push_back(thisMarleyIndex);
           PDS_OpHit_True_Energy .push_back(vec_tracksdp[0].energy);
-      } else {
+        } else {
           PDS_OpHit_True_TrackID.push_back(-1);
           PDS_OpHit_True_GenType.push_back(kUnknown);
           PDS_OpHit_True_Energy .push_back(-1);
+        }
+
+        map_of_ophit[gen].push_back(ophitlist.at(i));
+
+        double xyz_optdet[3]={0,0,0};
+        double xyz_world [3]={0,0,0};
+
+        geo->OpDetGeoFromOpChannel(ophitlist[i]->OpChannel()).LocalToWorld(xyz_optdet,xyz_world);
+        PDS_OpHit_OpChannel   .push_back(ophitlist[i]->OpChannel());
+        PDS_OpHit_X           .push_back(xyz_world[0]);
+        PDS_OpHit_Y           .push_back(xyz_world[1]);
+        PDS_OpHit_Z           .push_back(xyz_world[2]);
+        PDS_OpHit_PeakTimeAbs .push_back(ophitlist[i]->PeakTimeAbs());
+        PDS_OpHit_PeakTime    .push_back(ophitlist[i]->PeakTime());
+        PDS_OpHit_Frame       .push_back(ophitlist[i]->Frame());
+        PDS_OpHit_Width       .push_back(ophitlist[i]->Width());
+        PDS_OpHit_Area        .push_back(ophitlist[i]->Area());
+        PDS_OpHit_Amplitude   .push_back(ophitlist[i]->Amplitude());
+        PDS_OpHit_PE          .push_back(ophitlist[i]->PE());
+        PDS_OpHit_FastToTotal .push_back(ophitlist[i]->FastToTotal());
       }
-
-      map_of_ophit[gen].push_back(ophitlist.at(i));
-    
-      double xyz_optdet[3]={0,0,0};
-      double xyz_world [3]={0,0,0};
-    
-      geo->OpDetGeoFromOpChannel(ophitlist[i]->OpChannel()).LocalToWorld(xyz_optdet,xyz_world);
-      PDS_OpHit_OpChannel   .push_back(ophitlist[i]->OpChannel());  
-      PDS_OpHit_X           .push_back(xyz_world[0]);  
-      PDS_OpHit_Y           .push_back(xyz_world[1]);  
-      PDS_OpHit_Z           .push_back(xyz_world[2]);  
-      PDS_OpHit_PeakTimeAbs .push_back(ophitlist[i]->PeakTimeAbs());
-      PDS_OpHit_PeakTime    .push_back(ophitlist[i]->PeakTime());   
-      PDS_OpHit_Frame       .push_back(ophitlist[i]->Frame());      
-      PDS_OpHit_Width       .push_back(ophitlist[i]->Width());      
-      PDS_OpHit_Area        .push_back(ophitlist[i]->Area());       
-      PDS_OpHit_Amplitude   .push_back(ophitlist[i]->Amplitude());  
-      PDS_OpHit_PE          .push_back(ophitlist[i]->PE());         
-      PDS_OpHit_FastToTotal .push_back(ophitlist[i]->FastToTotal());
-     
+      std::cerr << "Total of:" << std::endl;
+      std::cerr << " - Othe : " << map_of_ophit[kUnknown].size() << " opt hits" << std::endl;
+      std::cerr << " - Marl : " << TotGen_Marl << " true parts\t| " << map_of_ophit[kMarl].size() << " opt hits" << std::endl;
+      std::cerr << " - APA  : " << TotGen_APA  << " true parts\t| " << map_of_ophit[kAPA] .size() << " opt hits" << std::endl;
+      std::cerr << " - CPA  : " << TotGen_CPA  << " true parts\t| " << map_of_ophit[kCPA] .size() << " opt hits" << std::endl;
+      std::cerr << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << map_of_ophit[kAr39].size() << " opt hits" << std::endl;
+      std::cerr << " - Neut : " << TotGen_Neut << " true parts\t| " << map_of_ophit[kNeut].size() << " opt hits" << std::endl;
+      std::cerr << " - Kryp : " << TotGen_Kryp << " true parts\t| " << map_of_ophit[kKryp].size() << " opt hits" << std::endl;
+      std::cerr << " - Plon : " << TotGen_Plon << " true parts\t| " << map_of_ophit[kPlon].size() << " opt hits" << std::endl;
+      std::cerr << " - Rdon : " << TotGen_Rdon << " true parts\t| " << map_of_ophit[kRdon].size() << " opt hits" << std::endl;
+      std::cerr << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << map_of_ophit[kAr42].size() << " opt hits" << std::endl;
+    }
+    else {
+      mf::LogWarning("SNAnaModule") << "Requested to save optical hits, but cannot load any ophits";
+    }
   }
-
-  }
-  else {
-    mf::LogWarning("SNAnaModule") << "Cannot load any ophits";
-  }
-
 
   if(fSaveIDEs) SaveIDEs(evt);
 
-  std::cerr << "Total of:" << std::endl;
-  std::cerr << " - Othe : " << ColHits_Oth.size() << " col plane hits\t| " << map_of_ophit[kUnknown].size() << " opt hits" << std::endl;
-  std::cerr << " - Marl : " << TotGen_Marl << " true parts\t| " << ColHits_Marl.size() << " col plane hits\t|" << map_of_ophit[kMarl].size() << " opt hits" << std::endl;
-  std::cerr << " - APA  : " << TotGen_APA  << " true parts\t| " << ColHits_APA .size() << " col plane hits\t|" << map_of_ophit[kAPA] .size() << " opt hits" << std::endl;
-  std::cerr << " - CPA  : " << TotGen_CPA  << " true parts\t| " << ColHits_CPA .size() << " col plane hits\t|" << map_of_ophit[kCPA] .size() << " opt hits" << std::endl;
-  std::cerr << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << ColHits_Ar39.size() << " col plane hits\t|" << map_of_ophit[kAr39].size() << " opt hits" << std::endl;
-  std::cerr << " - Neut : " << TotGen_Neut << " true parts\t| " << ColHits_Neut.size() << " col plane hits\t|" << map_of_ophit[kNeut].size() << " opt hits" << std::endl;
-  std::cerr << " - Kryp : " << TotGen_Kryp << " true parts\t| " << ColHits_Kryp.size() << " col plane hits\t|" << map_of_ophit[kKryp].size() << " opt hits" << std::endl;
-  std::cerr << " - Plon : " << TotGen_Plon << " true parts\t| " << ColHits_Plon.size() << " col plane hits\t|" << map_of_ophit[kPlon].size() << " opt hits" << std::endl;
-  std::cerr << " - Rdon : " << TotGen_Rdon << " true parts\t| " << ColHits_Rdon.size() << " col plane hits\t|" << map_of_ophit[kRdon].size() << " opt hits" << std::endl; 
-  std::cerr << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << ColHits_Ar42.size() << " col plane hits\t|" << map_of_ophit[kAr42].size() << " opt hits" << std::endl; 
-  
+
   std::cout << "True_Bck_Mode.size() " << True_Bck_Mode.size() << std::endl;
   fSNAnaTree->Fill();
-} 
+}
 
 void SNAna::FillTruth(const art::FindManyP<simb::MCParticle> Assn,
-                      const art::ValidHandle<std::vector<simb::MCTruth>>& Hand,
+                      const art::Handle<std::vector<simb::MCTruth>>& Hand,
                       const PType type) {
 
   for(size_t i1=0; i1<Hand->size(); ++i1) {
@@ -1208,26 +1092,14 @@ void SNAna::FillTruth(const art::FindManyP<simb::MCParticle> Assn,
       True_Bck_Energy.push_back(ThisPar.E());
       True_Bck_PDG   .push_back(ThisPar.PdgCode());
       True_Bck_ID    .push_back(ThisPar.TrackId());
-      // if(True_Bck_Mode.back() == kRdon) {
-      //   std::cout << ThisPar.TrackId() << std::endl;
-      //   std::cout << " True_Bck_Mode   " << True_Bck_Mode  .back() << std::endl;
-      //   std::cout << " True_Bck_VertX  " << True_Bck_VertX .back() << std::endl;
-      //   std::cout << " True_Bck_VertY  " << True_Bck_VertY .back() << std::endl;
-      //   std::cout << " True_Bck_VertZ  " << True_Bck_VertZ .back() << std::endl;
-      //   std::cout << " True_Bck_Time   " << True_Bck_Time  .back() << std::endl;
-      //   std::cout << " True_Bck_Energy " << True_Bck_Energy.back() << std::endl;
-      //   std::cout << " True_Bck_PDG    " << True_Bck_PDG   .back() << std::endl;
-      //   std::cout << " True_Bck_ID     " << True_Bck_ID    .back() << std::endl;
-      // }
-    } 
+    }
   }
 }
 
-void SNAna::FillMyMaps(std::map< int, simb::MCParticle> &MyMap, 
+void SNAna::FillMyMaps(std::map< int, simb::MCParticle> &MyMap,
                        art::FindManyP<simb::MCParticle> Assn,
-                       art::ValidHandle< std::vector<simb::MCTruth> > Hand,
-                       std::map<int, int>* indexMap)
-{
+                       art::Handle< std::vector<simb::MCTruth> > Hand,
+                       std::map<int, int>* indexMap) {
   for ( size_t L1=0; L1 < Hand->size(); ++L1 ) {
     for ( size_t L2=0; L2 < Assn.at(L1).size(); ++L2 ) {
       const simb::MCParticle ThisPar = (*Assn.at(L1).at(L2));
@@ -1264,93 +1136,182 @@ bool SNAna::InMyMap( int TrID, std::map< int, simb::MCParticle> ParMap )
 //......................................................
 void SNAna::SaveIDEs(art::Event const & evt)
 {
-    auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
-    art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
-    std::map<int, const simb::MCTruth*> idToTruth;
-    for(size_t i=0; i<allParticles->size(); ++i){
-        const simb::MCParticle& particle=allParticles->at(i);
-        const std::vector<const simb::MCTruth*> truths=assn.at(i);
-        if(truths.size()==1){
-            idToTruth[particle.TrackId()]=truths[0];
-        }
-        else{
-            mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
-            idToTruth[particle.TrackId()]=nullptr;
-        }
+  auto allParticles = evt.getValidHandle<std::vector<simb::MCParticle> >(fGEANTLabel);
+  art::FindMany<simb::MCTruth> assn(allParticles,evt,fGEANTLabel);
+  std::map<int, const simb::MCTruth*> idToTruth;
+  for(size_t i=0; i<allParticles->size(); ++i){
+    const simb::MCParticle& particle=allParticles->at(i);
+    const std::vector<const simb::MCTruth*> truths=assn.at(i);
+    if(truths.size()==1){
+      idToTruth[particle.TrackId()]=truths[0];
+    }
+    else{
+      mf::LogDebug("DAQSimAna") << "Particle " << particle.TrackId() << " has " << truths.size() << " truths";
+      idToTruth[particle.TrackId()]=nullptr;
+    }
+  }
+
+  // Get the SimChannels so we can see where the actual energy depositions were
+  auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
+
+  for(auto&& simch: simchs){
+    // We only care about collection channels
+    if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
+
+    // The IDEs record energy depositions at every tick, but
+    // mostly we have several depositions at contiguous times. So
+    // we're going to save just one output IDE for each contiguous
+    // block of hits on a channel. Each item in vector is a list
+    // of (TDC, IDE*) for contiguous-in-time IDEs
+    std::vector<std::vector<std::pair<int, const sim::IDE*> > > contigIDEs;
+    int prevTDC=0;
+    for (const auto& TDCinfo: simch.TDCIDEMap()) {
+      // Do we need to start a new group of IDEs? Yes if this is
+      // the first IDE in this channel. Yes if this IDE is not
+      // contiguous with the previous one
+      if(contigIDEs.empty() || TDCinfo.first-prevTDC>5){
+        contigIDEs.push_back(std::vector<std::pair<int, const sim::IDE*> >());
+      }
+      std::vector<std::pair<int, const sim::IDE*> >& currentIDEs=contigIDEs.back();
+
+      // Add all the current tick's IDEs to the list
+      for (const sim::IDE& ide: TDCinfo.second) {
+        currentIDEs.push_back(std::make_pair(TDCinfo.first, &ide));
+      }
+      prevTDC=TDCinfo.first;
     }
 
-    // Get the SimChannels so we can see where the actual energy depositions were
-    auto& simchs=*evt.getValidHandle<std::vector<sim::SimChannel>>("largeant");
-
-    for(auto&& simch: simchs){
-        // We only care about collection channels
-        if(geo->SignalType(simch.Channel())!=geo::kCollection) continue;
-
-        // The IDEs record energy depositions at every tick, but
-        // mostly we have several depositions at contiguous times. So
-        // we're going to save just one output IDE for each contiguous
-        // block of hits on a channel. Each item in vector is a list
-        // of (TDC, IDE*) for contiguous-in-time IDEs
-        std::vector<std::vector<std::pair<int, const sim::IDE*> > > contigIDEs;
-        int prevTDC=0;
-        for (const auto& TDCinfo: simch.TDCIDEMap()) {
-            // Do we need to start a new group of IDEs? Yes if this is
-            // the first IDE in this channel. Yes if this IDE is not
-            // contiguous with the previous one
-            if(contigIDEs.empty() || TDCinfo.first-prevTDC>5){
-                contigIDEs.push_back(std::vector<std::pair<int, const sim::IDE*> >());
-            }
-            std::vector<std::pair<int, const sim::IDE*> >& currentIDEs=contigIDEs.back();
-            
-            // Add all the current tick's IDEs to the list
-            for (const sim::IDE& ide: TDCinfo.second) {
-                currentIDEs.push_back(std::make_pair(TDCinfo.first, &ide));
-            }
-            prevTDC=TDCinfo.first;
+    for(auto const& contigs : contigIDEs){
+      float energy=0;
+      float electrons=0;
+      int startTime=99999;
+      int endTime=0;
+      std::map<PType, float> ptypeToEnergy;
+      for(auto const& timeide : contigs){
+        const int tdc=timeide.first;
+        startTime=std::min(tdc, startTime);
+        endTime=std::max(tdc, endTime);
+        const sim::IDE& ide=*timeide.second;
+        const float thisEnergy=ide.energy;
+        const PType thisPType=WhichParType(std::abs(ide.trackID));
+        energy+=thisEnergy;
+        electrons+=ide.numElectrons;
+        ptypeToEnergy[thisPType]+=thisEnergy;
+      }
+      float bestEnergy=0;
+      PType bestPType=kUnknown;
+      for(auto const& it : ptypeToEnergy){
+        if(it.second>bestEnergy){
+          bestEnergy=it.second;
+          bestPType=it.first;
         }
+      }
+      // Ignore anything past the end of the readout window
+      if(startTime<4492){
+        IDEChannel.push_back(simch.Channel());
+        IDEStartTime.push_back(startTime);
+        IDEEndTime.push_back(endTime);
+        IDEEnergy.push_back(energy);
+        IDEElectrons.push_back(electrons);
+        IDEParticle.push_back(bestPType);
+      }
+    } // loop over our compressed IDEs
+  } // loop over SimChannels
+}
 
-        for(auto const& contigs : contigIDEs){
-            float energy=0;
-            float electrons=0;
-            int startTime=99999;
-            int endTime=0;
-            std::map<PType, float> ptypeToEnergy;
-            for(auto const& timeide : contigs){
-                const int tdc=timeide.first;
-                startTime=std::min(tdc, startTime);
-                endTime=std::max(tdc, endTime);
-                const sim::IDE& ide=*timeide.second;
-                const float thisEnergy=ide.energy;
-                const PType thisPType=WhichParType(std::abs(ide.trackID));
-                energy+=thisEnergy;
-                electrons+=ide.numElectrons;
-                ptypeToEnergy[thisPType]+=thisEnergy;
-            }
-            float bestEnergy=0;
-            PType bestPType=kUnknown;
-            for(auto const& it : ptypeToEnergy){
-                if(it.second>bestEnergy){
-                    bestEnergy=it.second;
-                    bestPType=it.first;
-                }
-            }
-            // Ignore anything past the end of the readout window
-            if(startTime<4492){
-                IDEChannel.push_back(simch.Channel());
-                IDEStartTime.push_back(startTime);
-                IDEEndTime.push_back(endTime);
-                IDEEnergy.push_back(energy);
-                IDEElectrons.push_back(electrons);
-                IDEParticle.push_back(bestPType);
-            }
-        } // loop over our compressed IDEs
-    } // loop over SimChannels
+
+void SNAna::SaveNeighbourADC(int channel,
+                             art::Handle< std::vector<raw::RawDigit> >rawDigitsVecHandle,
+                             std::set<int>badChannels,
+                             recob::Hit const& ThisHit) {
+
+  Hit_AdjM5SADC.push_back(0);
+  Hit_AdjM2SADC.push_back(0);
+  Hit_AdjM1SADC.push_back(0);
+  Hit_AdjP1SADC.push_back(0);
+  Hit_AdjP2SADC.push_back(0);
+  Hit_AdjP5SADC.push_back(0);
+  Hit_AdjM5Chan.push_back(0);
+  Hit_AdjM2Chan.push_back(0);
+  Hit_AdjM1Chan.push_back(0);
+  Hit_AdjP1Chan.push_back(0);
+  Hit_AdjP2Chan.push_back(0);
+  Hit_AdjP5Chan.push_back(0);
+  int colHitCount = Hit_AdjM1Chan.size()-1;
+
+  // A vector for us to uncompress the rawdigits into. Create it
+  // outside the loop here so that we only have to allocate it once
+  raw::RawDigit::ADCvector_t ADCs((*rawDigitsVecHandle)[0].Samples());
+
+  std::vector<geo::WireID> wids = geo->ChannelToWire(channel);
+  for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
+  {
+    int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
+    const int chanDiff=rawWireChannel-channel;
+    if(abs(chanDiff)!=1 && abs(chanDiff)!=2 && abs(chanDiff)!=5) continue;
+
+    if(badChannels.find(rawWireChannel)!=badChannels.end()) continue;
+
+    switch(chanDiff)
+    {
+    case -5:
+      Hit_AdjM5SADC[colHitCount] = 0;
+      Hit_AdjM5Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjM5SADC[colHitCount]+=ADCs[i];
+      break;
+    case -2:
+      Hit_AdjM2SADC[colHitCount] = 0;
+      Hit_AdjM2Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjM2SADC[colHitCount]+=ADCs[i];
+      break;
+    case -1:
+      Hit_AdjM1SADC[colHitCount] = 0;
+      Hit_AdjM1Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjM1SADC[colHitCount]+=ADCs[i];
+      break;
+    case  1:
+      Hit_AdjP1SADC[colHitCount] = 0;
+      Hit_AdjP1Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjP1SADC[colHitCount]+=ADCs[i];
+      break;
+    case  2:
+      Hit_AdjP2SADC[colHitCount] = 0;
+      Hit_AdjP2Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjP2SADC[colHitCount]+=ADCs[i];
+      break;
+    case  5:
+      Hit_AdjP5SADC[colHitCount] = 0;
+      Hit_AdjP5Chan[colHitCount] = rawWireChannel;
+      raw::Uncompress((*rawDigitsVecHandle)[i].ADCs(), ADCs,
+                      (*rawDigitsVecHandle)[i].Compression());
+      for(int i=ThisHit.StartTick(); i<=ThisHit.EndTick();++i)
+        Hit_AdjP5SADC[colHitCount]+=ADCs[i];
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 
 void SNAna::endJob()
 {
-  std::cout << firstCatch << " " << secondCatch << " " << thirdCatch << std::endl; 
+  std::cout << firstCatch << " " << secondCatch << " " << thirdCatch << std::endl;
 }
 
 DEFINE_ART_MODULE(SNAna)

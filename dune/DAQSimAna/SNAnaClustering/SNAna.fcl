@@ -7,12 +7,14 @@ standard_snana:
   RawDigitLabel:	"daq"           #String for the process that made the raw digits
   HitLabel:		"hitfd"         #String for the process that made the reco hits
   CalDataModuleLabel:   "caldata"
-  OpFlashModuleLabel:   "opflash"  
   OpHitModuleLabel:     "ophit"
 
-  SaveNeighbourADCs:    true
-  SaveTruth:            true
+  SaveNeighbourADCs:    false
+  SaveTruth:            false # save all the generated particle
   SaveIDEs:             false
+  SaveTPC:              true
+  SavePDS:              true
+
 
   GEANT4Label:   "largeant"    # The label for the process which ran GEANT4
   MARLEYLabel:   "marley"      # The label for the process which produced MARLEY events

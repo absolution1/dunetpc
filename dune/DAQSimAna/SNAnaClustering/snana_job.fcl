@@ -6,7 +6,7 @@ process_name: SNAna
 services:
 {
   @table::dunefd_services
-  TFileService:          { fileName: "SNAna.root" }
+  TFileService:          { fileName: "SNAna_hist.root" }
   TimeTracker:           {}
   MemoryTracker:         {}
   RandomNumberGenerator: {} #ART native random number generator
@@ -39,4 +39,6 @@ source:
 #physics.analyzers.snanafasth.HitLabel: "fasthit20"
 #physics.analyzers.snanafasth.HitLabel: "fasthit25"
 #physics.analyzers.snanafasth.HitLabel: "fasthit30"
-physics.analyzers.snanagaushit.HitLabel: "gaushit"	
+physics.analyzers.snanagaushit.HitLabel: "gaushit"
+#physics.analyzers.snanagaushit.OpHitModuleLabel: "ophitSNR45cm0100Hz4snrNonRefl"
+
