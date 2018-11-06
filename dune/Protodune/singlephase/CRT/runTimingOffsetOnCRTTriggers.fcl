@@ -51,4 +51,4 @@ physics:
   end_paths:     [ ana ]
 }
 
-timing.SelectEvents: [triggersAllowed] #Select only events triggered because of CRT activity.  
+physics.analyzers.timing.SelectEvents: [triggersAllowed] #Select only events triggered because of CRT activity.  
