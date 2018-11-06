@@ -119,10 +119,9 @@ namespace CRT
   {
     CRT::Fragment frag(artFrag);
                                                                                                                                                    
-    //TODO: Remove me
     LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
-    //frag.print_header();
-    //frag.hexdump();
+    /*frag.print_header();
+    frag.print_hits();*/
                                                                                                                                                    
     std::vector<CRT::Hit> hits;
                                                                                                                                                    
