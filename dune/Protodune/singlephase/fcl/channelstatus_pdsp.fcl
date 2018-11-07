@@ -15,53 +15,51 @@ pdsp_channel_status: {
   # list of bad channels:
   BadChannels:   [
     # CE group: Inactive FE
-     4411,
-     4412,
-     9990,
-    11842,
+     4411,  # femb515x12
+     4412,  # femb515x13
+     9990,  # femb605x10
+    11842,  # femb120x03
     # CE group: Broken connection
-        1,
-      400,
-      401,
-      800,
-      801,
-      876,
-     1200,
-     2961,
-     5321,
-     5363,
-     6132,
-     7058,
-     7295,
-     7680,
-     7681,
-     8080,
-     8328,
-     8480,
-     9282,
-     9283,
-     9736,
-     9854,
-    10800,
-    11024,
-    11457,
-    11459,
-    11463,
-    11469,
-    11517,
-    11669,
-    11679,
-    12756,
-    12801,
-    13001,
-    13081,
+        1,  # femb311u39
+      400,  # femb301u40
+      401,  # femb301u39
+      800,  # femb320v01
+      801,  # femb320v02
+      876,  # femb319v37
+     1200,  # femb310v01
+     2961,  # femb501u39
+     5321,  # femb216u39
+     5363,  # femb217u37
+     6132,  # femb215v13
+     7058,  # femb213x03
+     7295,  # femb202x01
+     7681,  # femb611u39
+     8080,  # femb601u40
+     8328,  # femb607u32
+     8480,  # femb620v01
+     9282,  # femb620x03
+     9283,  # femb620x04
+     9736,  # femb611x25
+     9854,  # femb602x02
+    10800,  # femb105u40
+    11024,  # femb110u16
+    11457,  # femb110v18
+    11459,  # femb110v20
+    11463,  # femb110v24
+    11469,  # femb110v30
+    11517,  # femb109v38
+    11669,  # femb105v30
+    11679,  # femb105v40
+    12756,  # femb110x44
+    12801,  # femb411u39
+    13001,  # femb416u39
+    13081,  # femb418u39
     # CE group: ENC > 2000e
-     4410,
+     4410,  # femb515x11
     #-----
     # CE group excessive sticky
     #femb318x
-     1719,
-     4410,
+     1719,  # femb318x24
      5125,  # femb211u35
      7551,  # femb208x33
      7190,  # femb211x39
@@ -71,17 +69,19 @@ pdsp_channel_status: {
     # CE group: good.
     # femb311
         2,  # femb311u38, no signal
+     7680,  # femb611u40: No signal in 5308-76, end wire
+     5361,  # femb217u39, no signal
         4,  # femb311u36, very sticky pedestal 5308-76
      1632,  # femb320x33, very sticky pedestal 5308-76
      2169,  # femb302x07, Mostly stuck on one bad code, 5308-76
-     3541,  # femb516u, signal near zero half the time (5308-81)
-     3543,  # femb516u, signal near zero half the time (5308-81)
-     3661,  # femb513u, most signal near zero (5308-81)
-     3663,  # femb513u, most signal near zero (5308-81)
-     4061,  # femb503u, most signal near zero (5308-81)
-     4063,  # femb503u, most signal near zero (5308-81)
-     4141,  # femb501u, signal near zero half the time (5308-81)
-     4143,  # femb501u, signal sometimes near zero (5308-81)
+     3541,  # femb516v22, very sticky--signal near zero half the time (5308-81)
+     3543,  # femb516v24, very sticky--signal near zero half the time (5308-81)
+     3661,  # femb513v22, most signal near zero (5308-81)
+     3663,  # femb513v24, most signal near zero (5308-81)
+     4061,  # femb503v22, most signal near zero (5308-81)
+     4063,  # femb503v24, most signal near zero (5308-81)
+     4141,  # femb501v22, signal near zero half the time (5308-81)
+     4143,  # femb501v24, signal sometimes near zero (5308-81)
      4377,  # femb516x26, very sticky pedestal
      4379,  # femb516x28, very sticky pedestal
      4381,  # femb516x30, very sticky pedestal
@@ -106,7 +106,6 @@ pdsp_channel_status: {
      4754,  # femb503x30, very sticky pedestal
      4756,  # femb503x28, very sticky pedestal
      4758,  # femb503x26, very sticky pedestal
-     5361,  # femb503x39, no signal
      8501,  # femb620v22, very sticky pedestal
      8503,  # femb620v24, very sticky pedestal
      8821,  # femb612v22, very sticky pedestal
@@ -138,17 +137,17 @@ pdsp_channel_status: {
     # These 16 channels are an intermitently bad ASIC.
     # Matt W. 19oct2018.
     # femb316u
-      200,
-      202,
-      204,
-      206,
-      208,
+      200,   # femb316u40
+      202,   # femb316u38
+      204,   # femb316u36
+      206,   # femb316u34
+      208,   # femb316u32
     # femb316v
-      991,
-      993,
-      995,
-      997,
-      999,
+      991,   # femb316v32
+      993,   # femb316v34
+      995,   # femb316v36
+      997,   # femb316v38
+      999,   # femb316v40
     # femb316x
      1829,   # femb316x38
      1831,   # femb316x40
