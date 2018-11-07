@@ -115,14 +115,14 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
 
         //get original calorimetry information
         //double                Kin_En     = calo->KineticEnergy();
-        std::vector<double>   vdEdx      = calo->dEdx();
-        std::vector<double>   vdQdx      = calo->dQdx();
-        std::vector<double>   vresRange  = calo->ResidualRange();
-        std::vector<double>   deadwire   = calo->DeadWireResRC();
-        double                Trk_Length = calo->Range();
-        std::vector<double>   fpitch     = calo->TrkPitchVec();
-        std::vector<TVector3> vXYZ       = calo->XYZ();
-        geo::PlaneID          planeID    = calo->PlaneID();
+        std::vector<float>   vdEdx      = calo->dEdx();
+        std::vector<float>   vdQdx      = calo->dQdx();
+        std::vector<float>   vresRange  = calo->ResidualRange();
+        std::vector<float>   deadwire   = calo->DeadWireResRC();
+        float                Trk_Length = calo->Range();
+        std::vector<float>   fpitch     = calo->TrkPitchVec();
+        const auto&          vXYZ       = calo->XYZ();
+        geo::PlaneID         planeID    = calo->PlaneID();
 
         //make sure the vectors are of the same size
         if (vdEdx.size()!=vXYZ.size()||
