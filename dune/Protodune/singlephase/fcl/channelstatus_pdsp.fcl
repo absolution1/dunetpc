@@ -158,10 +158,8 @@ pdsp_channel_status: {
      1833,   # femb316x42
      1835,   # femb316x44
      1837,   # femb316x46
-     1839,   # femb316x48
+     1839    # femb316x48
     #-----
-
-    99999
   ]
 
   # list of bad noisy channels:
@@ -226,8 +224,7 @@ pdsp_channel_status: {
    # femb207x
      7396, # Sticky pedestal
    # femb607x
-     8341, # Sticky pedestal
-     99999
+     8341 # Sticky pedestal
   ]
 
 }
