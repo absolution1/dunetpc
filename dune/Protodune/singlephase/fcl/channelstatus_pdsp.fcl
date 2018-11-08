@@ -55,7 +55,7 @@ pdsp_channel_status: {
     13001,  # femb416u39
     13081,  # femb418u39
     # CE group: ENC > 2000e
-     4410,  # femb515x11
+     4410,  # femb515x11: High noise, no signal 5008-76
     #-----
     # CE group excessive sticky
     #femb318x
@@ -132,6 +132,10 @@ pdsp_channel_status: {
      9782,  # femb601x36, very sticky pedestal
     10102,  # femb608x42, mostly stuck on one code
     10189,  # femb609x03, mostly stuck on one code
+    11902,  # femb119x15, stuck on two classic codes
+    12324,  # femb101x44, stuck on many classic codes
+    12333,  # femb101x35, stuck on many classic codes
+    12744,  # femb109x08, stuck on many classic codes
 
     #-----
     # These 16 channels are an intermitently bad ASIC.

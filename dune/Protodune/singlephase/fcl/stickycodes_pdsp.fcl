@@ -443,6 +443,7 @@ tools.pdsp_sticky_codes_ped: {
     chan09731: [ 959]
     chan09739: [1088, 1089]
     # femb611x
+    # femb601x
     # femb602x
     chan09810: [ 960]
     chan09831: [1025]
@@ -463,6 +464,48 @@ tools.pdsp_sticky_codes_ped: {
     chan10124: [ 895,  960]
     # femb609x (1 bad)
     # femb610x
+    # femb120x (1 bad)
+    # femb119x (1 bad)
+    chan11922: [ 969]
+    # femb118x
+    # femb117x
+    chan12008: [ 960]
+    # femb116x
+    chan12046: [ 831]
+    chan12052: [ 831, 896]
+    # femb115x
+    chan12093: [1023, 1024, 1025, 1026]
+    chan12094: [ 897]
+    chan12105: [1024, 1025]
+    # femb114x
+    chan12162: [ 896]
+    # femb113x
+    # femb112x
+    chan12252: [ 831]
+    # femb111x
+    chan12297: [1088]
+    chan12306: [ 961]
+    chan12308: [ 895, 897]
+    # femb101x
+    chan12357: [ 960]
+    # femb102x
+    chan12382: [ 895, 959, 1024]
+    chan12407: [ 831, 896]
+    # femb103x
+    chan12426: [1024, 1025, 1034, 1035]
+    # femb104x
+    # femb105x
+    chan12546: [1024, 1030, 1031, 1032]
+    chan12550: [ 902]
+    chan12558: [ 959, 1023]
+    # femb106x
+    chan12581: [ 895]
+    chan12592: [ 960]
+    # femb107x
+    # femb108x
+    # femb109x (1 bad)
+    chan12729: [ 897, 898]
+    # femb110x (1 bad)
   }
 }
 
