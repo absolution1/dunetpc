@@ -132,6 +132,8 @@ pdsp_channel_status: {
      9782,  # femb601x36, very sticky pedestal
     10102,  # femb608x42, mostly stuck on one code
     10189,  # femb609x03, mostly stuck on one code
+    10697,  # femb102u23, mostly stuck on a few classic codes
+    10907,  # femb107u13, mostly stuck on one code
     11902,  # femb119x15, stuck on two classic codes
     12324,  # femb101x44, stuck on many classic codes
     12333,  # femb101x35, stuck on many classic codes

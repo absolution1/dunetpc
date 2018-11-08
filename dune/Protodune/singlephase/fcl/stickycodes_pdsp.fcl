@@ -10,6 +10,7 @@ tools.pdsp_sticky_codes_ped: {
   LogLevel: 1
   StickyCode: 11
   StickyCodes: {
+    ##### APA 3 #####
     # femb311u
     # femb312u
     # femb313u
@@ -154,6 +155,7 @@ tools.pdsp_sticky_codes_ped: {
     chan02461: [ 960,  961]
     # femb309x
     # femb310v
+    ##### APA 5 #####
     # femb511u
     # femb512u
     # femb513u
@@ -251,6 +253,7 @@ tools.pdsp_sticky_codes_ped: {
     # femb509x
     # femb510x
     chan05119: [ 960]
+    ##### APA 2 #####
     # femb211u
     # femb212u
     # femb213u
@@ -361,6 +364,7 @@ tools.pdsp_sticky_codes_ped: {
     # femb210x
     chan07635: [ 960]
     chan07675: [ 895]
+    ##### APA 6 #####
     # femb611u (2 bad)
     chan07699: [2367, 2432]
     # femb612u
@@ -464,6 +468,42 @@ tools.pdsp_sticky_codes_ped: {
     chan10124: [ 895,  960]
     # femb609x (1 bad)
     # femb610x
+    ##### APA 1 #####
+    # femb111u
+    chan10241: [2495, 2496, 2497, 2498, 2499, 2500, 2501, 2502]
+    chan10242: [2175]
+    chan10273: [2367, 2368]
+    chan10278: [2239]
+    # femb112u
+    # femb113u
+    chan10339: [2303, 2304, 2305, 2306, 2307]
+    # femb114u
+    # femb115u
+    # femb116u
+    chan10459: [2175]
+    # femb117u
+    # femb118u
+    chan10529: [2303]
+    # femb119u
+    chan10560: [2240, 2241, 2242]
+    chan10575: [2462, 2463, 2464, 2465, 2466, 2467, 2468]
+    # femb120u
+    # femb101u
+    # femb102u
+    chan10686: [2175, 2176, 2177]
+    chan10689: [2431]
+    # femb103u
+    chan10721: [2495]
+    # femb104u
+    # femb105u (1 bad)
+    chan10835: [2495]
+    # femb106u
+    # femb107u (1 bad)
+    #chan10907: [2239]  # Flagged as bad
+    # femb108u
+    # femb109u
+    # femb110u (1 bad)
+    chan11019: [2175, 2176, 2182, 2183]
     # femb120x (1 bad)
     # femb119x (1 bad)
     chan11922: [ 969]
