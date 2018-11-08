@@ -248,7 +248,6 @@ private:
   std::map<std::string, std::string > fDeviceTypes;
   std::map< std::string, double > fFiberDimension;
 
-  int fNRetries;
 
   // Names of the CERN Beam Devices
   // Names have the form of a prefix + device
@@ -1675,10 +1674,8 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fURLStr      = p.get<std::string>("URLStr");
   fBFEpsilon   = p.get<double>("BFEpsilon");
   fIFBeamDebug = p.get<int>("IFBeamDebug");
-  fNRetries    = p.get<int>("NRetries");
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
-  //fMultipleTimes = p.get< std::vector<uint64_t> >("MultipleTimes");
 
   fDevices     = p.get< std::vector< std::string > >("Devices");    
 

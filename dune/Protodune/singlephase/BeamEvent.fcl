@@ -9,11 +9,11 @@ proto_beamevent:
   IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
 
-  FetchOffset:         0
-  SpillFetchOffset:    0
+  FetchOffset:         5
+  SpillFetchOffset:    -5
 
   NRetries:             5
-  TimeWindow: 60  # width of time window in seconds
+  TimeWindow: 120  # width of time window in seconds
   BundleName: "DUNE_CERN_SEP2018"
 
   ##########################
