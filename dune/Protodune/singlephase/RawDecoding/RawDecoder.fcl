@@ -1,5 +1,12 @@
 BEGIN_PROLOG
 
+crt_raw_decoder:
+{
+  module_type: "CRTRawDecoder"
+  RawDataTag: "daq:ContainerCRT"
+  LookForContainer: true
+}
+
 timing_raw_decoder:
 {
   module_type: "TimingRawDecoder"

@@ -176,7 +176,7 @@ tools.rawAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Raw ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -200,7 +200,7 @@ tools.rawAdcDetectorPlotInd1: {
   ShowGrid: true
   Title: "Raw ADC induction view 1"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -224,7 +224,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Raw ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
 # Prepared data.
@@ -344,7 +344,7 @@ tools.pdcht_Apas.ChannelLinePattern: [800, 1600, 2080]
 # One plot for each Z-plane. Z is the TPC-side collection plane.
 tools.pdcht_Zplanes: @local::pdcht_template
 tools.pdcht_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
-tools.pdcht_ZPlanes.ChannelLineModulus: 2560
+tools.pdcht_Zplanes.ChannelLineModulus: 2560
 tools.pdcht_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
 
@@ -392,7 +392,7 @@ pdchtp_template.HistTitle: "Prepared ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 # One plot for each Z-plane. Z is the TPC-side collection plane.
 tools.pdchtp_Zplanes: @local::pdchtp_template
 tools.pdchtp_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
-tools.pdchtp_ZPlanes.ChannelLineModulus: 2560
+tools.pdchtp_Zplanes.ChannelLineModulus: 2560
 tools.pdchtp_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
                                           2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
 
@@ -403,9 +403,9 @@ tools.pdchtp_Cplanes.ChannelRanges: [tpp0c, tpp1c, tpp2c, tpp3c, tpp4c, tpp5c]
 # One plot for each induction plane.
 tools.pdchtp_Iplanes: @local::pdchtp_template
 tools.pdchtp_Iplanes.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
-                                    tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
-tools.pdcht_Iplanes.ChannelLineModulus: 40
-tools.pdcht_Iplanes.ChannelLinePattern: [0]
+                                     tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
+tools.pdchtp_Iplanes.ChannelLineModulus: 40
+tools.pdchtp_Iplanes.ChannelLinePattern: [0]
 
 # Plot APA3z (where the beam enters).
 tools.pdchtp_Apa3z: @local::tools.pdchtp_Zplanes

@@ -6,9 +6,6 @@
 //Include header
 #include "plot/ChannelView.h"
 
-//Include some utilities for dealing with CRT::Triggers from Core
-#include "util/CRTID.h"
-
 namespace CRT
 {
   //I own fPad.  Delete it in destructor.
@@ -26,21 +23,26 @@ namespace CRT
   {
   }
 
-  void ChannelView::Fill(const ChannelID& channel)
+  void ChannelView::Fill(const size_t module, const size_t channel, const double weight)
   {
     //I could add "utility" processing here so that all derived classes benefit from it
-    doFill(channel);
+    doFill(module, channel, weight);
   }
 
-  void ChannelView::SetValue(const ChannelID& channel, const double value)
+  void ChannelView::SetValue(const size_t module, const size_t channel, const double value)
   {
     //I could add "utility" processing here so that all derived classes benefit from it
-    doSetValue(channel, value);
+    doSetValue(module, channel, value);
   }
 
   void ChannelView::Draw(const char* option)
   {
     fPad->cd();
     doDraw(option);
+  }
+
+  void ChannelView::Reset(const char* option)
+  {
+    doReset(option);
   }
 }

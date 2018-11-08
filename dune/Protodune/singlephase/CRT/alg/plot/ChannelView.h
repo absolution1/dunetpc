@@ -17,8 +17,6 @@
 
 namespace CRT
 {
-  class ChannelID;
-
   class ChannelView
   {
     public:
@@ -29,15 +27,15 @@ namespace CRT
       virtual ~ChannelView();
 
       //Public interface.  Private implementation below.
-      void Fill(const ChannelID& channel);
-      void SetValue(const ChannelID& channel, const double value);
+      void Fill(const size_t module, const size_t channel, const double weight=1.0);
+      void SetValue(const size_t module, const size_t channel, const double value);
       void Draw(const char* option);
       void Reset(const char* option);
 
     protected:
       //Implement the following methods in a base class to use this interface.
-      virtual void doFill(const ChannelID& channel) = 0; //Add a module-channel pair to histogram
-      virtual void doSetValue(const ChannelID& channel, const double value) = 0; //Set histogram value for a module-channel 
+      virtual void doFill(const size_t module, const size_t channel, const double weight) = 0; //Add a module-channel pair to histogram
+      virtual void doSetValue(const size_t module, const size_t channel, const double value) = 0; //Set histogram value for a module-channel 
                                                                                  //pair.  Lets histogram be used as a graph.
       virtual void doDraw(const char* option) = 0; //Queue whatever graphical object(s) are doing the drawing to draw on next update.  
       virtual void doReset(const char* option) = 0; //Reset statistical contents of model that keeps track of bin values
@@ -45,6 +43,8 @@ namespace CRT
       //Since I am planning to hard-code number of CRTs for now, put it all in one place so that I can maintain that decision in one place
       static constexpr size_t NModules = 32;
       static constexpr size_t ChannelsPerModule = 64;
+
+      TPad* GetMainPad() { return fPad.get(); } //Provide derived classes with observer pointer access to fPad
 
     private:
       template <class T>
