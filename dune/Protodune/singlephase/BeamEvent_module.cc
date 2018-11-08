@@ -12,8 +12,6 @@
 
 /*///////////////////////////////////////////////////////////////////////
  To-Do: 
-       * Now that we're setting the epsilon of the beamfolder,
-         we can get rid of my hacky 'FetchWithRetries' functions
 
        * Need to save all momenta combinations to the beamevt
 
@@ -24,8 +22,13 @@
        * Make print statements prettier
 
        * Fix the tracking portion with real values for monitor positions
+       !!! Do after the fact? !!! 
 
        * Make TOF matching more robust. Perhaps search 'downward'
+
+       * Pass the S11 and Spill Offset to the next events in the same spill.
+         - Does this need to be added to the data product? Probably not. just
+           store in memory
        
 */////////////////////////////////////////////////////////////////////////
 
@@ -137,15 +140,6 @@ public:
 
 
   void getS11Info(uint64_t);
-
-  //template<class T> 
-  //T FetchWithRetries(long long, std::string, int);
-  //
-  //template<class T> 
-  //T FetchWithRetriesDown(long long, std::string, int);
-
-  std::vector<double> FetchWithRetries(long long, std::string, int, long long & );
-  std::vector<double> FetchWithRetriesDown(long long, std::string, int, long long &);
 
   std::vector<double> FetchAndReport(long long, std::string);
    
@@ -303,6 +297,7 @@ private:
   double fCalibrationTolerance;
   double fOffsetTAI;
   int    fFetchOffset;
+  int    fSpillFetchOffset;
 
   double fS11DiffUpper; 
   double fS11DiffLower; 
@@ -366,79 +361,6 @@ std::vector<double> proto::BeamEvent::FetchAndReport(long long time, std::string
   return theResult;
 }
 
-////////////////////////
-// Fetch Method
-//template <class T> 
-//T proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry){
-std::vector<double> proto::BeamEvent::FetchWithRetries(long long time, std::string name, int nRetry, long long & returned_fetch_time){
-  std::vector<double> theResult;
-  
-  LOG_INFO("BeamEvent") << "\n";
-  long long newTime;
-  //Search at and above time given with nRetries
-  //Will later search below, just in case the event time is actually greater than
-  for(newTime = time; newTime < time + nRetry; ++newTime){
-    LOG_INFO("BeamEvent") << "Trying to grab from folder: " << name << "\n";
-    LOG_INFO("BeamEvent") << "At Time: " << newTime << "\n";    
-      try{
-        theResult = bfp->GetNamedVector(newTime, name);
-        LOG_INFO("BeamEvent") << "Successfully fetched " << newTime << "\n";
-        returned_fetch_time = newTime;
-        return theResult;
-      }
-    catch(std::exception e){
-      LOG_INFO("BeamEvent") << "Could not fetch with time " << newTime << "\n";      
-    }
-  }
-
-  //Try a final time. Let it crash if it doesn't work
-  LOG_INFO("BeamEvent") << "Trying a final time to grab from folder: " << name << "\n";
-  LOG_INFO("BeamEvent") << "At time: " << newTime << "\n";
-  theResult = bfp->GetNamedVector(newTime, name);
-    LOG_INFO("BeamEvent") << "Successfully fetched" << "\n";
-  returned_fetch_time = newTime;
-  LOG_INFO("BeamEvent") << "\n";
-  return theResult; 
-}
-// END FetchWithRetries
-////////////////////////
-
-////////////////////////
-// Fetch Method
-//template <class T> 
-//T proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry){
-std::vector<double> proto::BeamEvent::FetchWithRetriesDown(long long time, std::string name, int nRetry, long long & returned_fetch_time){
-  std::vector<double> theResult;
-  
-  LOG_INFO("BeamEvent") << "\n";
-  long long newTime;
-
-  //Now search below
-  for(newTime = time; newTime > time - nRetry - 1; --newTime){
-    LOG_INFO("BeamEvent") << "Trying to grab from folder: " << name << "\n";
-    LOG_INFO("BeamEvent") << "At Time: " << newTime << "\n";    
-    try{
-      theResult = bfp->GetNamedVector(newTime, name);
-      LOG_INFO("BeamEvent") << "Successfully fetched " << newTime << "\n";
-      returned_fetch_time = newTime;
-      return theResult;
-    }
-    catch(std::exception e){
-//      LOG_INFO("BeamEvent") << "Could not fetch with time " << newTime << "\n";      
-    }
-  }
-  
-  //Try a final time. Let it crash if it doesn't work
-  LOG_INFO("BeamEvent") << "Trying a final time to grab from folder: " << name << "\n";
-  LOG_INFO("BeamEvent") << "At time: " << newTime << "\n";
-  theResult = bfp->GetNamedVector(newTime, name);
-  returned_fetch_time = newTime;
-  LOG_INFO("BeamEvent") << "Successfully fetched" << "\n";
-  LOG_INFO("BeamEvent") << "\n";
-  return theResult; 
-}
-// END FetchWithRetries
-////////////////////////
 
 
 //Gets the Timing and CTB raw-decoded info.
@@ -853,7 +775,7 @@ void proto::BeamEvent::produce(art::Event & e){
 
     //Start getting beam event info
     uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 ) + fFetchOffset;
-    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 );
+    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 ) + fSpillFetchOffset;
     LOG_INFO("BeamEvent") << "RDTSTime: " <<  uint64_t( RDTSTime * 2e-8 ) << "\n";
 
     //Check if we are still using the same spill information.
@@ -1106,7 +1028,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
   }
   catch(std::exception e){
-    LOG_WARNING("BeamEvent") << "Could get GeneralTrigger information!!" << "\n";
+    LOG_WARNING("BeamEvent") << "Could not get GeneralTrigger information!!" << "\n";
     gotGeneralTrigger = false;
     return;
   }
@@ -1155,7 +1077,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     gotTOFs = true;
   }
   catch(std::exception e){
-    LOG_WARNING("BeamEvent") << "Could get TOF information!!" << "\n";
+    LOG_WARNING("BeamEvent") << "Could not get TOF information!!" << "\n";
     gotTOFs = false;
   }
 
@@ -1829,6 +1751,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fOffsetTAI              = p.get<double>("OffsetTAI");
 
   fFetchOffset            = p.get<int>("FetchOffset");
+  fSpillFetchOffset       = p.get<int>("SpillFetchOffset");
 
   fS11DiffUpper           = p.get<double>("S11DiffUpper");
   fS11DiffLower           = p.get<double>("S11DiffLower");

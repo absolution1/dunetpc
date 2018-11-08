@@ -9,7 +9,8 @@ proto_beamevent:
   IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
 
-  FetchOffset:         5
+  FetchOffset:         0
+  SpillFetchOffset:    0
 
   NRetries:             5
   TimeWindow: 60  # width of time window in seconds
