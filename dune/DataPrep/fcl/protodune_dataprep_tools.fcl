@@ -85,6 +85,19 @@ tools.pdsp_timingMitigate: {
   FEMBs: [1]
 }
 
+# Subtract baseline after deconvolution
+tools.adcCorrectUndershoot: {
+  tool_type: UndershootCorr
+  LogLevel: 1
+  CorrectFlag: [ false, false, true]             # U, V, and Collection
+  TDecayConst: [ 0.99955, 0.99955, 0.99955 ]     # numbers so far tuned for collection plane
+  FSubConst:   [ 0.0005,  0.0005,  0.0005 ]      # and copied for U and V
+  LCA:         [ 1980,    1980,    1980 ]
+  LCB:         [ -0.08277,  -0.08277, -0.08277  ]
+  LCC:         [ -2043.65, -2043.65 , -2043.65 ]
+  LCD:         [ 1.03, 1.03,  1.03 ]
+}
+
 
 ################################################################################
 # Event metrics.
