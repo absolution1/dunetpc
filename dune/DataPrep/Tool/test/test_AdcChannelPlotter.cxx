@@ -50,6 +50,8 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
     fout << "  PlotSigOpt: full" << endl;
     fout << "  PlotSigMin:   0" << endl;
     fout << "  PlotSigMax:   0" << endl;
+    fout << "  ColorBad:   0" << endl;
+    fout << "  ColorNoisy: 0" << endl;
     fout << "  HistManager: \"\"" << endl;
     fout << "  MaxSample: 80" << endl;
     fout << "}" << endl;

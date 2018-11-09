@@ -103,7 +103,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   }
   // Fetch the channel status service.
   if ( m_SkipBadChannels ) {
-    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel mapping service." << endl;
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
     if ( m_pChannelStatusProvider == nullptr ) {
       cout << myname << "WARNING: Channel status provider not found." << endl;

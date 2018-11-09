@@ -16,11 +16,14 @@ art_make(BASENAME_ONLY
   ${ART_UTILITIES}
   ${MF_MESSAGELOGGER}
   cetlib cetlib_except
-  larpandoraobj
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry
   nusimdata_SimulationBase
+  lardataobj_RawData
+  lardataobj_Simulation
+  dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+  dune_DuneObj
   larsim_MCCheater_PhotonBackTrackerService_service           
   larsim_MCCheater_BackTrackerService_service           
   larsim_MCCheater_ParticleInventoryService_service

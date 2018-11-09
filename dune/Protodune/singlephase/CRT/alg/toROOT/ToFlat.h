@@ -15,7 +15,7 @@
 #include "TTree.h"
 
 //crt-core includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "persistency/CRTTrigger.h"
 
 //c++ includes
 #include <iostream>
