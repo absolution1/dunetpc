@@ -331,6 +331,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             cout << myname << "Invalid rawdist PlotSigOpt = " << m_PlotSigOpt << ". Using full." << endl;
           }
         }
+        man.addAxis();
         if ( ++iplt >= nplt ) {
           for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
           mans.erase(type);
