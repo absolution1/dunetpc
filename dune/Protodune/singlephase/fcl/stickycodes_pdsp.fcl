@@ -499,6 +499,7 @@ tools.pdsp_sticky_codes_ped: {
     chan10835: [2495]
     # femb106u
     # femb107u (1 bad)
+    chan10897: [2303]
     #chan10907: [2239]  # Flagged as bad
     # femb108u
     # femb109u
