@@ -499,11 +499,45 @@ tools.pdsp_sticky_codes_ped: {
     chan10835: [2495]
     # femb106u
     # femb107u (1 bad)
+    chan10897: [2303]
     #chan10907: [2239]  # Flagged as bad
     # femb108u
     # femb109u
     # femb110u (1 bad)
     chan11019: [2175, 2176, 2182, 2183]
+    # femb120v
+    # femb119v
+    chan11091: [2240]
+    chan11096: [2352, 2353, 2359]
+    # femb118v
+    chan11140: [2328]
+    # femb117v
+    # femb116v (1 bad)
+    # femb115v (1 bad)
+    # femb114v
+    # femb113v
+    chan11284: [2320, 2325]
+    # femb112v
+    chan11394: [2239, 2240]
+    # femb111v
+    # femb110v
+    chan11472: [2303]
+    # femb109v
+    chan11491: [2112, 2113, 2114]
+    # femb108v
+    # femb107v
+    # femb106v
+    # femb105v
+    # femb104v
+    # femb103v
+    chan11741: [2368]
+    chan11746: [2367, 2368]
+    # femb102v
+    chan11773: [2112, 2136, 2137]
+    # femb101v
+    chan11814: [2367]
+    chan11821: [2175, 2240]
+    chan11825: [2304, 2308]
     # femb120x (1 bad)
     # femb119x (1 bad)
     chan11922: [ 969]

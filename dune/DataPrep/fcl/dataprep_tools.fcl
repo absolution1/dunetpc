@@ -63,6 +63,8 @@ tools.adcPlotRaw: {
   PlotSigOpt: pedestal
   PlotSigMin:  100
   PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
@@ -80,6 +82,8 @@ tools.adcPlotPrepared: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
@@ -97,6 +101,8 @@ tools.adcPlotRawDist: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
