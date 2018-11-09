@@ -148,7 +148,7 @@ float protoana::ProtoDUNEPFParticleUtils::GetBeamCosmicScore(const recob::PFPart
 
   std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
 
-  std::string search = "BeamScore";
+  std::string search = "TestBeamScore";
   if(mdMap.find(search) != mdMap.end()){
     return mdMap.at(search);
   }

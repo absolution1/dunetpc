@@ -22,6 +22,7 @@ art_make(BASENAME_ONLY
   larcorealg_Geometry
   nusimdata_SimulationBase
   lardataobj_RawData
+  lardataobj_Simulation
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
   dune_DuneObj
   larsim_MCCheater_PhotonBackTrackerService_service           
