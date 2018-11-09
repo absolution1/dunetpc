@@ -2,10 +2,19 @@ BEGIN_PROLOG
 
 standard_snana:
 {
-  module_type:		  SNAna
+  module_type:		SNAna
 
-  RawDigitLabel:	"daq"		       #String for the process that made the raw digits
-  HitLabel:		    "hitfd"       #String for the process that made the reco hits
+  RawDigitLabel:	"daq"           #String for the process that made the raw digits
+  HitLabel:		"hitfd"         #String for the process that made the reco hits
+  CalDataModuleLabel:   "caldata"
+  OpHitModuleLabel:     "ophit"
+
+  SaveNeighbourADCs:    false
+  SaveTruth:            false # save all the generated particle
+  SaveIDEs:             false
+  SaveTPC:              true
+  SavePDS:              true
+
 
   GEANT4Label:   "largeant"    # The label for the process which ran GEANT4
   MARLEYLabel:   "marley"      # The label for the process which produced MARLEY events
