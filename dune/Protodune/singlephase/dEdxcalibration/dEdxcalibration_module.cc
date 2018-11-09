@@ -320,11 +320,10 @@ namespace dune{
       all_trks++;
  std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);
       const recob::Track& track = *ptrack;
-      TVector3 pos, dir_start, dir_end, end;
-      pos = track.Vertex();
-      dir_start = track.VertexDirection();
-      dir_end   = track.EndDirection();
-      end = track.End();
+      auto pos = track.Vertex<TVector3>();
+      auto dir_start = track.VertexDirection<TVector3>();
+      auto dir_end   = track.EndDirection<TVector3>();
+      auto end = track.End();
       double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
       double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());     
       float starty=pos.Y();
@@ -408,11 +407,10 @@ namespace dune{
       for(size_t k=0;k<NTracks;++k){
 	art::Ptr<recob::Track> ptrack_k(trackListHandle, k);
 	const recob::Track& track_k = *ptrack_k;
-	TVector3 pos_k, dir_pos_k, dir_end_k, end_k;
-	pos_k = track_k.Vertex();
-	dir_pos_k= track_k.VertexDirection();
-	dir_end_k   = track_k.EndDirection();
-	end_k = track_k.End();
+	auto pos_k = track_k.Vertex();
+	auto dir_pos_k= track_k.VertexDirection();
+	auto dir_end_k   = track_k.EndDirection();
+	auto end_k = track_k.End();
 	if(k==i) continue;
 	if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<30||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<30)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.97||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.97||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.97||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.97)) break;
 	if((std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(endz-pos_k.Z())+pos_k.Y()-endy)<50||std::abs(((end_k.Y()-pos_k.Y())/(end_k.Z()-pos_k.Z()))*(startz-pos_k.Z())+pos_k.Y()-starty)<50)&&(std::abs(endcosx*dir_pos_k.X()+endcosy*dir_pos_k.Y()+endcosz*dir_pos_k.Z())>0.998||std::abs(startcosx*dir_pos_k.X()+startcosy*dir_pos_k.Y()+startcosz*dir_pos_k.Z())>0.998||std::abs(endcosx*dir_end_k.X()+endcosy*dir_end_k.Y()+endcosz*dir_end_k.Z())>0.998||std::abs(startcosx*dir_end_k.X()+startcosy*dir_end_k.Y()+startcosz*dir_end_k.Z())>0.998)) break;

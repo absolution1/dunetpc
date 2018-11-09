@@ -5162,10 +5162,10 @@ if (fSaveTrackInfo) {
       else {   //use the normal methods for other kinds of tracks
         ntraj = track.NumberTrajectoryPoints();
         if (ntraj > 0) {
-          pos       = track.Vertex();
-          dir_start = track.VertexDirection();
-          dir_end   = track.EndDirection();
-          end       = track.End();
+          pos       = track.Vertex<TVector3>();
+          dir_start = track.VertexDirection<TVector3>();
+          dir_end   = track.EndDirection<TVector3>();
+          end       = track.End<TVector3>();
 
           dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
           dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
@@ -5360,8 +5360,8 @@ if (fSaveTrackInfo) {
   	  {
 	    //corrected pitch
   	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
-  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(h);
-  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint(h);
+  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint<TVector3>(h);
+  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint<TVector3>(h);
   	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
 
 
@@ -6567,17 +6567,7 @@ if (fSaveTrackInfo) {
     // Length of reconstructed track, trajectory by trajectory.
     double dune::AnaRootParser::length(const recob::Track& track)
     {
-      double result = 0.;
-      TVector3 disp = track.LocationAtPoint(0);
-      int n = track.NumberTrajectoryPoints();
-
-      for(int i = 1; i < n; ++i) {
-        const TVector3& pos = track.LocationAtPoint(i);
-        disp -= pos;
-        result += disp.Mag();
-        disp = pos;
-      }
-      return result;
+      return track.Length();
     }
 
 
