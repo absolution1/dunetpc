@@ -5,10 +5,9 @@
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/Track.h"
-
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/Vertex.h"
 
 protoana::ProtoDUNEPFParticleUtils::ProtoDUNEPFParticleUtils(){
 
@@ -148,7 +147,7 @@ float protoana::ProtoDUNEPFParticleUtils::GetBeamCosmicScore(const recob::PFPart
 
   std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
 
-  std::string search = "BeamScore";
+  std::string search = "TestBeamScore";
   if(mdMap.find(search) != mdMap.end()){
     return mdMap.at(search);
   }
@@ -194,9 +193,9 @@ const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParti
   // Get the particles
   auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
   // And their meta data
-  const art::FindManyP<larpandoraobj::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
+  const art::FindManyP<recob::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
 
-  const larpandoraobj::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
+  const recob::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
 
   return metaData.GetPropertiesMap();
 }

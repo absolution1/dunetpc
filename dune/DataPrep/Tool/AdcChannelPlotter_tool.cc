@@ -6,6 +6,8 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -43,6 +45,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotSigOpt(ps.get<string>("PlotSigOpt")),
   m_PlotSigMin(ps.get<float>("PlotSigMin")),
   m_PlotSigMax(ps.get<float>("PlotSigMax")),
+  m_ColorBad(ps.get<Index>("ColorBad")),
+  m_ColorNoisy(ps.get<Index>("ColorNoisy")),
   m_HistManager(ps.get<string>("HistManager")),
   m_phm(nullptr) {
   const string myname = "AdcChannelPlotter::ctor: ";
@@ -62,6 +66,16 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  if ( m_ColorBad || m_ColorNoisy ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
+      m_ColorBad = 0;
+      m_ColorNoisy = 0;
+    }
+  }
+
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "     HistTypes: [";
@@ -182,6 +196,12 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     if ( ph == nullptr ) continue;
     ph->SetStats(0);
     ph->SetLineWidth(2);
+    if ( m_ColorBad && m_pChannelStatusProvider->IsBad(acd.channel) ) {
+      ph->SetLineColor(m_ColorBad);
+    }
+    if ( m_ColorNoisy && m_pChannelStatusProvider->IsNoisy(acd.channel) ) {
+      ph->SetLineColor(m_ColorNoisy);
+    }
     bool resManage = m_phm == nullptr;
     if ( ! resManage ) {
       int rstat = m_phm->manage(ph);
@@ -311,6 +331,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             cout << myname << "Invalid rawdist PlotSigOpt = " << m_PlotSigOpt << ". Using full." << endl;
           }
         }
+        man.addAxis();
         if ( ++iplt >= nplt ) {
           for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
           mans.erase(type);

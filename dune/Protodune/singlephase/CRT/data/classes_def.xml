@@ -20,6 +20,7 @@
   <class name="std::vector<CRT::Trigger>"/>
   <class name="std::vector<CRT::Hit>"/>
   <class name="art::Wrapper<std::vector<CRT::Trigger>>"/>
+  <class name="art::Wrapper<CRT::Trigger>"/>
 
   <!-- Actual ART class template instantiations using CRT::Trigger -->
   <class name="art::Assns<sim::AuxDetSimChannel, CRT::Trigger, void>" />  

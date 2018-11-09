@@ -1,0 +1,19 @@
+# ProtoDUNEFembFilter.fcl
+#
+# owen.goodwin@postgrad.manchester.ac.uk
+# November 2018
+#
+# Configurations for the protoDUNE femb filter module.
+#
+
+
+BEGIN_PROLOG
+
+# Keep all triggers.
+pdsp_fembfilter_all: {
+  module_type:            "ProtoDUNEFembFilter"
+  LogLevel:        1  # 2 shows accept/reject for every event
+}
+
+  
+END_PROLOG

@@ -3,11 +3,17 @@ BEGIN_PROLOG
 proto_beamevent:
 {
   module_type:          "BeamEvent"
-  URLStr:                 ""
+  URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
+#  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
+  BFEpsilon:           5.
+  IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
 
+  FetchOffset:         5
+  SpillFetchOffset:    -5
+
   NRetries:             5
-  TimeWindow: 25  # width of time window in seconds
+  TimeWindow: 120  # width of time window in seconds
   BundleName: "DUNE_CERN_SEP2018"
 
   ##########################
@@ -114,8 +120,8 @@ proto_beamevent:
   S11DiffUpper: -.55e-6
   S11DiffLower: -.75e-6
 
-  RDTSToS11Upper: 50000.e-9
-  RDTSToS11Lower: -50000.e-9
+  RDTSToS11Upper: 500000.e-9
+  RDTSToS11Lower: -500000.e-9
 
 #Should we grab from the folders each time?
   ForceNewFetch:        "false"
@@ -130,7 +136,9 @@ proto_beamevent:
 #or if we are getting invalid Spill Times
   ForceRead:            "false"
 
-
+  SaveOutTree:   "false"
+  DebugTOFs:     "false"
+  DebugMomentum: "false"
 
 }
 
