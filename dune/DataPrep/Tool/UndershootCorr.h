@@ -1,13 +1,19 @@
 ////////////////////////////////////////////////////////////////////////
 // UndershootCorr.h
 //
-// Tool to preform subtract baseline using linear interpolation between 
-// regions defined by the datasize and fBaseSampleBins
+// Tool to correct undershoot induced by AC-coupled front-end electronics
+//  It implements a time-domain removal with a fit for the pedestal and charge
+//  deposited before the event starts.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   BaseSampleBins - 
-//   BaseVarCut -
+//     CorrectFlag:  switch per plane to turn the correction on and off
+//     TDecayConst:  constant used to decay accumulated charge sum on each tick.  csum *= TDecayConst on each tick and then
+//                   new charge is accumulated after pedestal subtraction
+//     FSubConst:    fraction of the accumulated charge to subtract from the next tick's data
+//     LCA, LCB, LCC, LCD:  Linear combination coefficients to translate from slope and intercept of a linear fit
+//                   to the underhsoot-corrected waveform with zero initial charge and pedesal offset to get the
+//                   fit initial charge and pedestal offset.
 //
 /////////////////////////////////////////////////////////////////////////
 #ifndef UndershootCorr_H
@@ -32,7 +38,7 @@ private:
 
   // Configuration data.
   int            m_LogLevel;
-  std::vector<bool>          m_CorrectFlag;   // 0: U, 1: V, 2: Collection
+  std::vector<bool>           m_CorrectFlag;   // 0: U, 1: V, 2: Collection
   std::vector<double>         m_TDecayConst;
   std::vector<double>         m_FSubConst;
   std::vector<double>         m_LCA;
