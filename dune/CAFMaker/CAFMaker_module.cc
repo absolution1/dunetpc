@@ -291,12 +291,11 @@ namespace dunemva {
       for( systtools::SystMetaData::iterator itMeta = metaData.begin(); itMeta != metaData.end(); ++itMeta ) {      
         systtools::SystParamHeader head = *itMeta;
         std::string name = head.prettyName;
-        std::string wgt_var = head.isWeightSystematicVariation ? "wgt" : "var";
         unsigned int parId = head.systParamId;
         std::cout << "Adding reweight branch " << parId << " for " << name << " with " << head.paramVariations.size() << " shifts" << std::endl;
         fTree->Branch( Form("%s_nshifts", name.c_str()), &fNwgt[parId], Form("%s_nshifts/I", name.c_str()) );
-        fTree->Branch( Form("%s_cv%s", name.c_str(),wgt_var.c_str()), &fCvWgts[parId], Form("%s_cv%s/D", name.c_str(),wgt_var.c_str()) );
-        fTree->Branch( Form("%s_%s", wgt_var.c_str(),name.c_str()), fWgts[parId], Form("%s_%s[%s_nshifts]/D", wgt_var.c_str(),name.c_str(), name.c_str()) );
+        fTree->Branch( Form("%s_cvwgt", name.c_str()), &fCvWgts[parId], Form("%s_cvwgt/D", name.c_str()) );
+        fTree->Branch( Form("wgt_%s", name.c_str()), fWgts[parId], Form("wgt_%s[%s_nshifts]/D", name.c_str(), name.c_str()) );
       }
     }
 
@@ -555,31 +554,30 @@ namespace dunemva {
       }
 
       // Reweighting variables
+      //systtools::ScrubUnityEventResponses(er);
 
-      // struct VarAndCVResponse {
-      //   systtools::paramId_t pid;
-      //   double CV_response;
+      // struct ParamResponses { 
+      //   paramId_t pid;
       //   std::vector<double> responses;
-      // };
-      // typedef std::vector<VarAndCVResponse> event_unit_response_w_cv_t;
-      //
-      // typedef std::vector<event_unit_response_w_cv_t> EventAndCVResponse; 
+      // }
+      // typedef std::vector<ParamResponses> event_unit_response_t;
+      // typedef std::vector<event_unit_response_t> EventResponse;
 
       for( auto &sp : fSystProviders ) {
-        std::unique_ptr<systtools::EventAndCVResponse> syst_resp = sp->GetEventVariationAndCVResponse(evt);
+        std::unique_ptr<systtools::EventResponse> syst_resp = sp->GetEventResponse(evt);
         if( !syst_resp ) {
           std::cout << "[ERROR]: Got nullptr systtools::EventResponse from provider "
                     << sp->GetFullyQualifiedName();
           continue;
         }
 
-        for( systtools::EventAndCVResponse::const_iterator itResp = syst_resp->begin(); itResp != syst_resp->end(); ++itResp ) {
-          systtools::event_unit_response_w_cv_t const &resp = *itResp;
-          for( systtools::event_unit_response_w_cv_t::const_iterator it = resp.begin(); it != resp.end(); ++it ) {
-            fNwgt[it->pid] = it->responses.size();
-            fCvWgts[it->pid] = it->CV_response;
-            for( unsigned int i = 0; i < it->responses.size(); ++i ) {
-              fWgts[it->pid][i] = it->responses[i];
+        for( systtools::EventResponse::iterator itResp = syst_resp->begin(); itResp != syst_resp->end(); ++itResp ) {
+          systtools::event_unit_response_t resp = *itResp;
+          for( systtools::event_unit_response_t::iterator it = resp.begin(); it != resp.end(); ++it ) {
+            fNwgt[(*it).pid] = (*it).responses.size();
+            //fCvWgts[(*it).pid] = (*it).CV_weight;
+            for( unsigned int i = 0; i < (*it).responses.size(); ++i ) {
+              fWgts[(*it).pid][i] = (*it).responses[i];
             }
           }
         }
