@@ -154,7 +154,7 @@ tools.pdsp_sticky_codes_ped: {
     # femb308x
     chan02461: [ 960,  961]
     # femb309x
-    # femb310v
+    # femb310x
     ##### APA 5 #####
     # femb511u
     # femb512u
@@ -653,6 +653,7 @@ tools.pdsp_sticky_codes_ped: {
     # femb417x
     chan14579: [ 960]
     # femb416x
+    chan14621: [ 960]
     # femb415x
     chan14640: [1019, 1024]
     # femb414x
