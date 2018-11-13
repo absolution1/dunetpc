@@ -51,8 +51,9 @@ simple_plugin(PDWaveform "module"
                          ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                          ${MF_MESSAGELOGGER}
 			 dune_Geometry
-                         ${CETLIB}
+			 ${CETLIB}
                          ${ROOT_BASIC_LIB_LIST}
+			 ${ROOT_SPECTRUM}
                          BASENAME_ONLY
 )
 

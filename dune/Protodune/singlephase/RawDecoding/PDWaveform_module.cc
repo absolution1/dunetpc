@@ -53,6 +53,7 @@
 #include "TH1I.h"
 #include "TH1D.h"
 #include "TAxis.h"
+#include "TSpectrum.h"
 
 // C++ Includes
 #include <map>
@@ -93,12 +94,16 @@ namespace pd_monitor {
     
     std::string fSSPInput;
     std::string fSSPInstance;
-    unsigned int fSSP_m1=10,fSSP_m2=10,fSSP_i1=40,fSSP_i2=1200,fSSP_readout_pretrigger=50,fSSP_disc_width=20;
+    int fSSP_m1=10,fSSP_m2=10,fSSP_i1=40,fSSP_i2=1200,fSSP_readout_pretrigger=50,fSSP_disc_width=20, fSSP_win=20;
     unsigned int fSSP_wfm_verbose=0,fPDwaveform_fft=0;
-    unsigned int fSSP_corrchan1=205, fSSP_corrchan2=134, fSSP_win=20;
+    unsigned int fSSP_corrchan1=205, fSSP_corrchan2=134; 
     unsigned int fSSP_smoothing=0;
+    float fSSP_rarenum=3.0;
+    float fSSP_peak_sense=0.5;
+    
+    unsigned int fSSP_nump=10;
+    unsigned int fSSP_peak=1;
 
-   
     bool fIsSSP;
     
     art::ServiceHandle<geo::Geometry> fGeom;
@@ -119,6 +124,7 @@ namespace pd_monitor {
     TH1I* PDtrigs; // Number of triggers
     TH1F* PDPEDhist; //Calculated Pedestal of Each Channel
     TH1F* PDchanThres; // Calculated Threshold of Each Channel
+    //TH2D* PDchanCurPeak[288]; //Current vs. Peak of each channel
     // Add PDchanMax,PDchanMin?
     
   }; 
@@ -133,19 +139,24 @@ namespace pd_monitor {
     fSSPInstance    = p.get< std::string >("SSPInstanceName");
     
     //Try this, reconfigure fhicl settings
-    fSSP_m1=p.get<unsigned int>("SSP_m1");
-    fSSP_m2=p.get<unsigned int>("SSP_m2");
-    fSSP_i1=p.get<unsigned int>("SSP_i1");
-    fSSP_i2=p.get<unsigned int>("SSP_i2");
-    fSSP_disc_width=p.get<unsigned int>("SSP_disc_width");
-    fSSP_readout_pretrigger=p.get<unsigned int>("SSP_readout_pretrigger");
+    fSSP_m1=p.get<int>("SSP_m1");
+    fSSP_m2=p.get<int>("SSP_m2");
+    fSSP_i1=p.get<int>("SSP_i1");
+    fSSP_i2=p.get<int>("SSP_i2");
+    fSSP_disc_width=p.get<int>("SSP_disc_width");
+    fSSP_readout_pretrigger=p.get<int>("SSP_readout_pretrigger");
     fSSP_wfm_verbose=p.get<unsigned int>("SSP_wfm_verbose");
     fPDwaveform_fft=p.get<unsigned int>("PDwaveform_fft");
     fSSP_corrchan1=p.get<unsigned int>("SSP_Corr_Chan_1");
     fSSP_corrchan2=p.get<unsigned int>("SSP_Corr_Chan_2");
-    fSSP_win=p.get<unsigned int>("SSP_calib_win");
+    fSSP_win=p.get<int>("SSP_calib_win");
+    
     fSSP_smoothing=p.get<unsigned int>("SSP_smoothing");
-
+    fSSP_rarenum=p.get<float>("SSP_rare_num");
+    fSSP_nump=p.get<unsigned int>("SSP_nump");
+    fSSP_peak_sense=p.get<float>("SSP_peak_sense");
+    fSSP_peak=p.get<unsigned int>("SSP_peak");
+    
     if( fSSP_wfm_verbose ){
       std::cout << " fSSP_m1=" << fSSP_m1 <<std::endl;
       std::cout << " fSSP_m2=" << fSSP_m2 <<std::endl;
@@ -187,8 +198,10 @@ namespace pd_monitor {
 						      Form("Pedestal Substracted Persistence Traces Channel %d",i),2000.,0.,2000.,1000.,0.,2000.); 
       PDchanPEDRough[i] = tFileService->make<TH2F>(Form("ped_calc_trace_chan_%d",i),
 						   Form("Wave Form Fraction for Pedestal %d",i),40.,0.,40.,1000.,1500.,2500.); 
-      PDchanWaveInt[i] = tFileService->make<TH1D>(Form("wave_intgerals_pedsub_chan_%d",i),
+      PDchanWaveInt[i] = tFileService->make<TH1D>(Form("wave_integrals_pedsub_chan_%d",i),
 						  Form("Pedestal Subtracted Wave Integrals Channel %d",i),100000,0.0,1000000.0); 
+      //PDchanCurPeak[i] = tFileService->make<TH2D>(Form("current_peak_%d",i),
+      // PDchanCurPeak[i]					  Form("current_peak_%d",i),1500,0.0,1500.0,10000,0.0,10000.0);
     }
   }
   
@@ -238,15 +251,16 @@ namespace pd_monitor {
       long int ADCval,sum=0,sum2=0,N=0,ADCMax=0;
       double sumthres=0,sumpedsub=0;
       int nBins = PDdigit.size();
+      int nfound = 0;
       TH1F WfmHist("Waveform","Waveform",nBins,0,nBins), 
 	WfmFFT("WfmFFT","WfmFFT",nBins,0,nBins);
-     
-      long int presum=0,postsum=0;
+      TH1D *htemp = new TH1D("htemp","htemp",nBins,0,nBins);
+      /*long int presum=0,postsum=0;
       long int runavg;
       unsigned int forwin, backwin;
       std::vector< long int > smoothwave;
       
-      if(fSSP_smoothing){
+            if(fSSP_smoothing){
 	if(fSSP_smoothing%2==0){
 	  forwin = fSSP_smoothing/2;
 	  backwin = fSSP_smoothing/2;
@@ -276,11 +290,19 @@ namespace pd_monitor {
 	    smoothwave.push_back(runavg/fSSP_smoothing);
 	  }
 	}
-      }
+	}*/
 
+      if(fSSP_smoothing){
+	for (size_t i = 0; i < PDdigit.size(); i++) htemp->SetBinContent(i+1,PDdigit.at(i));
+	htemp->Smooth(fSSP_smoothing);
+      }
       for (size_t i = 0; i < PDdigit.size(); i++) {
-	ADCval = PDdigit.at(i);
-	if(fSSP_smoothing) ADCval = smoothwave[i];
+	if(fSSP_smoothing) ADCval = htemp->GetBinContent(i+1);
+	else {
+	  ADCval = PDdigit.at(i);
+	  if(fSSP_peak) htemp->SetBinContent(i+1,ADCval);
+	}
+	
 	PDchanRawPerTrace[CurChannel]->Fill(i+1,ADCval);
 	ADCMax=std::max(ADCMax,ADCval);
 	N=N+1;
@@ -289,23 +311,58 @@ namespace pd_monitor {
 	sum2+=ADCval*ADCval;
 	PDchanPED->Fill(CurChannel,ADCval); 
 
-	if(i < fSSP_i1) {
+	if(i < static_cast<unsigned int>(fSSP_i1)) {
 	  PDchanPEDRough[CurChannel]->Fill(i+1,ADCval);
-	  sumthres+=ADCval;
+	  sumthres += ADCval;
 	}
 	
-	if(i > fSSP_i1) {
-	  sumpedsub+=(ADCval-(sumthres/static_cast<float>(fSSP_i1)));
-	  PDchanCorPerTrace[CurChannel]->Fill(i+1,(ADCval-(sumthres/static_cast<float>(fSSP_i1))));
-	}
+	
+	if(i > static_cast<unsigned int>(fSSP_i1)) PDchanCorPerTrace[CurChannel]->Fill(i+1,(ADCval-(sumthres/static_cast<float>(fSSP_i1))));
+	
       }
-     
-      
+    
+      if(fSSP_peak){
+	TSpectrum *peakloc = new TSpectrum(fSSP_nump);
+	nfound = peakloc->Search(htemp,fSSP_rarenum,"",fSSP_peak_sense);
+	double *peaks = peakloc->GetPositionX();
+	
+	
+	for(int j=0;j<nfound;j++){
+	  bool goodpeak = true; 
+	  for(int k=0;k<nfound;k++){
+	    int peakpos1 = htemp->GetXaxis()->FindBin(peaks[j]);
+	    int peakpos2 = htemp->GetXaxis()->FindBin(peaks[k]);
+	    if((TMath::Abs(peakpos1-peakpos2)<fSSP_win) && (k!=j)){
+	      if((htemp->GetBinContent(htemp->GetXaxis()->FindBin(peaks[j])) < htemp->GetBinContent(htemp->GetXaxis()->FindBin(peaks[k]))) && (fSSP_peak==1)) goodpeak=false; 
+	      if(fSSP_peak==2) goodpeak=false;
+	    }
+	    if((peakpos1 < (fSSP_i1+fSSP_disc_width))|| (peakpos1 > (nBins-fSSP_win))) goodpeak = false; 
+	    if(!goodpeak) break;
+	  }
+	  
+	  if(goodpeak){
+	    sumpedsub=0;
+	    int intbin = htemp->GetXaxis()->FindBin(peaks[j]);
+	    std::vector <int> base;
+	    for(int l=intbin-static_cast<int>(fSSP_disc_width)-static_cast<int>(fSSP_i1);l<intbin-static_cast<int>(fSSP_disc_width);l++) base.push_back(htemp->GetBinContent(l));
+	    double basemean = TMath::Mean(base.begin(),base.end());
+	    double basestddev = TMath::StdDev(base.begin(),base.end());
+	    base.clear();
+	    if(((basemean+(fSSP_rarenum*basestddev)) < (htemp->GetBinContent(intbin))) && (basestddev < 4.0)) for(int m=intbin-static_cast<int>(fSSP_disc_width);m<intbin+fSSP_win;m++) sumpedsub += (htemp->GetBinContent(m))-basemean;
+	    if(sumpedsub>1) {
+	      PDchanWaveInt[CurChannel]->Fill(sumpedsub);
+	      PDCalibInt->Fill(CurChannel,sumpedsub);
+	      //PDchanCurPeak[CurChannel]->Fill(htemp->GetBinContent(intbin)-basemean,sumpedsub);
+	    }
+	  }
+	}
+	htemp->Delete();
+      }
+	  
       float mean = (float)sum/(float)N;
       float rms = sqrt((float)sum2/(float)N - mean*mean );
       //std::cout <<"ADC Sum: " << sum << std::endl;
-      PDchanWaveInt[CurChannel]->Fill(sumpedsub);
-      PDCalibInt->Fill(CurChannel,sumpedsub);
+      
       PDchanMean->Fill(CurChannel,mean);
       PDchanMax->Fill(CurChannel,ADCMax);
       float thres = sumthres/static_cast<float>(fSSP_i1);
