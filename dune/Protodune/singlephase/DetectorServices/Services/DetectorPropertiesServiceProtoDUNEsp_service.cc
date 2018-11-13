@@ -1,14 +1,12 @@
 ////////////////////////////////////////////////////////////////////////
 //
-//  \file DetectorPropertiesProtoDUNEsp_service.cc
-// 
+//  \file DetectorProperties_service.cc
+//
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
 // LArSoft includes
-#include "dunetpc/dune/Protodune/singlephase/DetectorServices/DetectorPropertiesServiceProtoDUNEsp.h"
-
-
-#include "lardata/DetectorInfoServices/LArPropertiesService.h"
+#include "DetectorPropertiesServiceProtoDUNEsp.h"
+#include "lardataalg/DetectorInfo/LArProperties.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
@@ -20,19 +18,15 @@
 // Art includes
 #include "art/Framework/IO/Root/RootDB/SQLite3Wrapper.h"
 #include "fhiclcpp/make_ParameterSet.h"
-namespace ldp{
+namespace detinfo{
   //--------------------------------------------------------------------
-  DetectorPropertiesServiceProtoDUNEsp::DetectorPropertiesServiceProtoDUNEsp
+  DetectorPropertiesServiceStandard::DetectorPropertiesServiceStandard
     (fhicl::ParameterSet const& pset, art::ActivityRegistry &reg)
-      : fInheritNumberTimeSamples(pset.get<bool>("InheritNumberTimeSamples", false)),
-        fUseDatabaseForMC(pset.get<bool>("UseDatabaseForMC", false))
+    : fInheritNumberTimeSamples(pset.get<bool>("InheritNumberTimeSamples", false))
   {
-    fGotElectronLifetimeFromDB = false;
     // Register for callbacks.
-    reg.sPostOpenFile.watch    (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
-    reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preProcessEvent);
-    reg.sPreBeginRun.watch     (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
-    
+    reg.sPostOpenFile.watch    (this, &DetectorPropertiesServiceStandard::postOpenFile);
+    reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceStandard::preProcessEvent);
 /*
     // obtain the required dependency service providers and create our own
     const geo::GeometryCore* geo = lar::providerFrom<geo::Geometry>();
@@ -41,15 +35,15 @@ namespace ldp{
     
     const detinfo::DetectorClocks* clks = lar::providerFrom<detinfo::DetectorClocksService>();
     
-    fProp = std::make_unique<detinfo::DetectorPropertiess>(pset,geo,lp,clks);
-*/
-    fProp = std::make_unique<ldp::DetectorPropertiesProtoDUNEsp>(pset,
+    fProp = std::make_unique<detinfo::DetectorPropertiesStandard>(pset,geo,lp,clks);
+    */
+    fProp = std::make_unique<detinfo::DetectorPropertiesStandard>(pset,
       lar::extractProviders<
-      geo::Geometry, 
-      detinfo::LArPropertiesService,
-      detinfo::DetectorClocksService
-      >(),
-      std::set<std::string>({ "InheritNumberTimeSamples", "UseDatabaseForMC" })
+        geo::Geometry, 
+        detinfo::LArPropertiesService,
+        detinfo::DetectorClocksService
+        >(),
+        std::set<std::string>({ "InheritNumberTimeSamples" })
       );
     
     // at this point we need and expect the provider to be fully configured
@@ -60,7 +54,7 @@ namespace ldp{
     
   }
   //--------------------------------------------------------------------
-  void DetectorPropertiesServiceProtoDUNEsp::reconfigure(fhicl::ParameterSet const& p)
+  void DetectorPropertiesServiceStandard::reconfigure(fhicl::ParameterSet const& p)
   {
     fProp->ValidateAndConfigure(p, { "InheritNumberTimeSamples" });
     
@@ -69,22 +63,14 @@ namespace ldp{
     return;
   }
   //-------------------------------------------------------------
-  void DetectorPropertiesServiceProtoDUNEsp::preProcessEvent(const art::Event& evt)
+  void DetectorPropertiesServiceStandard::preProcessEvent(const art::Event& evt)
   {
     // Make sure TPC Clock is updated with TimeService (though in principle it shouldn't change
     fProp->UpdateClocks(lar::providerFrom<detinfo::DetectorClocksService>());
-    // don't get elifetime from database if we don't want to use it for MC
-    if (!evt.isRealData() && !fUseDatabaseForMC) return;
-    
-    if (!fGotElectronLifetimeFromDB) {
-      fProp->Update(evt.run());
-      fGotElectronLifetimeFromDB = true;
-    }
-    
   }
   //--------------------------------------------------------------------
   //  Callback called after input file is opened.
-  void DetectorPropertiesServiceProtoDUNEsp::postOpenFile(const std::string& filename)
+  void DetectorPropertiesServiceStandard::postOpenFile(const std::string& filename)
   {
     // Use this method to figure out whether to inherit configuration
     // parameters from previous jobs.
@@ -124,7 +110,7 @@ namespace ldp{
           fhicl::ParameterSet ps;
           fhicl::make_ParameterSet(reinterpret_cast<char const *>(sqlite3_column_text(stmt, 0)), ps);
           // Is this a DetectorPropertiesService parameter set?
-          bool psok = isDetectorPropertiesServiceProtoDUNEsp(ps);
+          bool psok = isDetectorPropertiesServiceStandard(ps);
           if(psok) {
             // Check NumberTimeSamples
             //            if(fInheritNumberTimeSamples) {
@@ -150,7 +136,7 @@ namespace ldp{
         if(// fInheritNumberTimeSamples && 
            nNumberTimeSamples != 0 && 
            iNumberTimeSamples != fProp->NumberTimeSamples()) {
-          mf::LogInfo("DetectorPropertiesServiceProtoDUNEsp")
+          mf::LogInfo("DetectorPropertiesServiceStandard")
             << "Overriding configuration parameter NumberTimeSamples using historical value.\n"
             << "  Configured value:        " << fProp->NumberTimeSamples() << "\n"
             << "  Historical (used) value: " << iNumberTimeSamples << "\n";
@@ -169,7 +155,7 @@ namespace ldp{
   //--------------------------------------------------------------------
   //  Determine whether a parameter set is a DetectorPropertiesService configuration.
   
-  bool DetectorPropertiesServiceProtoDUNEsp::isDetectorPropertiesServiceProtoDUNEsp
+  bool DetectorPropertiesServiceStandard::isDetectorPropertiesServiceStandard
     (const fhicl::ParameterSet& ps) const
   {
     // This method uses heuristics to determine whether the parameter
@@ -178,7 +164,7 @@ namespace ldp{
     
     return 
          (ps.get<std::string>("service_type", "") == "DetectorPropertiesService")
-      && (ps.get<std::string>("service_provider", "") == "DetectorPropertiesServiceProtoDUNEsp")
+      && (ps.get<std::string>("service_provider", "") == "DetectorPropertiesServiceStandard")
       ;
 #if 0
     // old heuristics here:
@@ -197,4 +183,4 @@ namespace ldp{
 #endif // 0
   }
 } // namespace detinfo
-DEFINE_ART_SERVICE_INTERFACE_IMPL(ldp::DetectorPropertiesServiceProtoDUNEsp, detinfo::DetectorPropertiesService)
+DEFINE_ART_SERVICE_INTERFACE_IMPL(detinfo::DetectorPropertiesServiceStandard, detinfo::DetectorPropertiesService)
