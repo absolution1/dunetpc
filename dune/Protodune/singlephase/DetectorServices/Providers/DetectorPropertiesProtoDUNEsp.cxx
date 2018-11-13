@@ -24,15 +24,15 @@ namespace {
   inline T sqr(T v) { return v*v; }
   
 } // local namespace
-namespace detinfo{
+namespace spdp{
   //--------------------------------------------------------------------
-  DetectorPropertiesStandard::DetectorPropertiesStandard() :
+  DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp() :
     fLP(0), fClocks(0), fGeo(0)
   {
   }
   
   //--------------------------------------------------------------------
-  DetectorPropertiesStandard::DetectorPropertiesStandard(fhicl::ParameterSet const& pset,
+  DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
                                          const geo::GeometryCore* geo,
                                          const detinfo::LArProperties* lp,
                                          const detinfo::DetectorClocks* c,
@@ -54,11 +54,11 @@ namespace detinfo{
   }
     
   //--------------------------------------------------------------------
-  DetectorPropertiesStandard::DetectorPropertiesStandard(fhicl::ParameterSet const& pset,
+  DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
                                          providers_type providers,
                                          std::set<std::string> const& ignore_params /* = {} */
                                          ):
-    DetectorPropertiesStandard(pset,
+    DetectorPropertiesProtoDUNEsp(pset,
       providers.get<geo::GeometryCore>(),
       providers.get<detinfo::LArProperties>(),
       providers.get<detinfo::DetectorClocks>(),
@@ -67,13 +67,13 @@ namespace detinfo{
     {}
   
   //--------------------------------------------------------------------
-  bool DetectorPropertiesStandard::Update(uint64_t) 
+  bool DetectorPropertiesProtoDUNEsp::Update(uint64_t) 
   {
     DoUpdateClocks();
     return true;
   }
   //--------------------------------------------------------------------
-  bool DetectorPropertiesStandard::UpdateClocks(const detinfo::DetectorClocks* clks) 
+  bool DetectorPropertiesProtoDUNEsp::UpdateClocks(const detinfo::DetectorClocks* clks) 
   {
     fClocks = clks;
     
@@ -83,20 +83,20 @@ namespace detinfo{
   }
   
   //------------------------------------------------------------
-  double DetectorPropertiesStandard::ConvertTDCToTicks(double tdc) const
+  double DetectorPropertiesProtoDUNEsp::ConvertTDCToTicks(double tdc) const
   {
     return fClocks->TPCTDC2Tick(tdc);
   }
   
   //--------------------------------------------------------------
-  double DetectorPropertiesStandard::ConvertTicksToTDC(double ticks) const
+  double DetectorPropertiesProtoDUNEsp::ConvertTicksToTDC(double ticks) const
   {
     return fClocks->TPCTick2TDC(ticks);
   }
   
  
   //--------------------------------------------------------------------
-  void DetectorPropertiesStandard::Configure(Configuration_t const& config) {
+  void DetectorPropertiesProtoDUNEsp::Configure(Configuration_t const& config) {
     
     fEfield                     = config.Efield();
     fElectronlifetime           = config.Electronlifetime();
@@ -121,8 +121,8 @@ namespace detinfo{
   } // DetectorPropertiesStandard::Configure()
   
   //--------------------------------------------------------------------
-  DetectorPropertiesStandard::Configuration_t
-  DetectorPropertiesStandard::ValidateConfiguration(
+  DetectorPropertiesProtoDUNEsp::Configuration_t
+  DetectorPropertiesProtoDUNEsp::ValidateConfiguration(
     fhicl::ParameterSet const& p,
     std::set<std::string> const& ignore_params /* = {} */
   ) {
@@ -137,7 +137,7 @@ namespace detinfo{
   } // DetectorPropertiesStandard::ValidateConfiguration()
   
   //--------------------------------------------------------------------
-  void DetectorPropertiesStandard::ValidateAndConfigure(
+  void DetectorPropertiesProtoDUNEsp::ValidateAndConfigure(
     fhicl::ParameterSet const& p,
     std::set<std::string> const& ignore_params /* = {} */
   ) {
@@ -146,7 +146,7 @@ namespace detinfo{
   
   
   //------------------------------------------------------------------------------------//
-  void DetectorPropertiesStandard::Setup(providers_type providers) {
+  void DetectorPropertiesProtoDUNEsp::Setup(providers_type providers) {
     
     SetGeometry(providers.get<geo::GeometryCore>());
     SetLArProperties(providers.get<detinfo::LArProperties>());
@@ -158,7 +158,7 @@ namespace detinfo{
   
   
   //------------------------------------------------------------------------------------//
-  double DetectorPropertiesStandard::Efield(unsigned int planegap) const
+  double DetectorPropertiesProtoDUNEsp::Efield(unsigned int planegap) const
   {
     if(planegap >= fEfield.size())
       throw cet::exception("DetectorPropertiesStandard") << "requesting Electric field in a plane gap that is not defined\n";
@@ -168,7 +168,7 @@ namespace detinfo{
   
   
   //------------------------------------------------
-  double DetectorPropertiesStandard::Density(double temperature) const
+  double DetectorPropertiesProtoDUNEsp::Density(double temperature) const
   {
     // Default temperature use internal value.
     if(temperature == 0.)
@@ -197,7 +197,7 @@ namespace detinfo{
   // Material parameters (stored in larproperties.fcl) are taken from
   // pdg web site http://pdg.lbl.gov/AtomicNuclearProperties/
   //
-  double DetectorPropertiesStandard::Eloss(double mom, double mass, double tcut) const
+  double DetectorPropertiesProtoDUNEsp::Eloss(double mom, double mass, double tcut) const
   {
     // Some constants.
   
@@ -247,7 +247,7 @@ namespace detinfo{
   } // DetectorPropertiesStandard::Eloss()
   
   //----------------------------------------------------------------------------------
-  double DetectorPropertiesStandard::ElossVar(double mom, double mass) const
+  double DetectorPropertiesProtoDUNEsp::ElossVar(double mom, double mass) const
   {
     // Some constants.
   
@@ -266,7 +266,7 @@ namespace detinfo{
     return result;
   } // DetectorPropertiesStandard::ElossVar()
   //------------------------------------------------------------------------------------//
-  double DetectorPropertiesStandard::DriftVelocity(double efield, double temperature) const {
+  double DetectorPropertiesProtoDUNEsp::DriftVelocity(double efield, double temperature) const {
   // Drift Velocity as a function of Electric Field and LAr Temperature
   // from : W. Walkowiak, NIM A 449 (2000) 288-294
   //
@@ -344,7 +344,7 @@ namespace detinfo{
   //  dQdX in electrons/cm, charge (amplitude or integral obtained) divided by
   //         effective pitch for a given 3D track.
   // returns dEdX in MeV/cm
-  double DetectorPropertiesStandard::BirksCorrection(double dQdx) const
+  double DetectorPropertiesProtoDUNEsp::BirksCorrection(double dQdx) const
   {
     // Correction for charge quenching using parameterization from
     // S.Amoruso et al., NIM A 523 (2004) 275
@@ -362,7 +362,7 @@ namespace detinfo{
   
   //----------------------------------------------------------------------------------
   // Modified Box model correction 
-  double DetectorPropertiesStandard::ModBoxCorrection(double dQdx) const
+  double DetectorPropertiesProtoDUNEsp::ModBoxCorrection(double dQdx) const
   {
     // Modified Box model correction has better behavior than the Birks
     // correction at high values of dQ/dx.
@@ -378,7 +378,7 @@ namespace detinfo{
   }
   
   //------------------------------------------------------------------------------------//
-  int  DetectorPropertiesStandard::TriggerOffset()     const 
+  int  DetectorPropertiesProtoDUNEsp::TriggerOffset()     const 
   {
     return fTPCClock.Ticks(fClocks->TriggerOffsetTPC() * -1.);
   }
@@ -396,7 +396,7 @@ namespace detinfo{
   // Take an X coordinate, and convert to a number of ticks, the
   // charge deposit occured at t=0
  
-  double DetectorPropertiesStandard::ConvertXToTicks(double X, int p, int t, int c) const
+  double DetectorPropertiesProtoDUNEsp::ConvertXToTicks(double X, int p, int t, int c) const
   {
     return (X / (fXTicksCoefficient * fDriftDirection.at(c).at(t)) +  fXTicksOffsets.at(c).at(t).at(p) );
   }
@@ -405,13 +405,13 @@ namespace detinfo{
   // Take a cooridnate in ticks, and convert to an x position
   // assuming event deposit occured at t=0
  
-  double  DetectorPropertiesStandard::ConvertTicksToX(double ticks, int p, int t, int c) const
+  double  DetectorPropertiesProtoDUNEsp::ConvertTicksToX(double ticks, int p, int t, int c) const
   {
     return (ticks - fXTicksOffsets.at(c).at(t).at(p)) * fXTicksCoefficient * fDriftDirection.at(c).at(t);  
   }
   
   //--------------------------------------------------------------------
-  void DetectorPropertiesStandard::CheckIfConfigured() const
+  void DetectorPropertiesProtoDUNEsp::CheckIfConfigured() const
   {
     if (!fGeo) throw cet::exception(__FUNCTION__) << "Geometry is uninitialized!";
     if (!fLP) throw cet::exception(__FUNCTION__) << "LArPropertiesStandard is uninitialized!";
@@ -422,7 +422,7 @@ namespace detinfo{
   //--------------------------------------------------------------------
   // Recalculte x<-->ticks conversion parameters from detector constants
   
-  void DetectorPropertiesStandard::CalculateXTicksParams()
+  void DetectorPropertiesProtoDUNEsp::CalculateXTicksParams()
   {
     CheckIfConfigured();
     
@@ -525,25 +525,25 @@ For plane = 0, t offset is pitch/Coeff[1] - (pitch+xyz[0])/Coeff[0]
   }
   //--------------------------------------------------------------------
   // Get scale factor for x<-->ticks
-  double DetectorPropertiesStandard::GetXTicksCoefficient(int t, int c) const
+  double DetectorPropertiesProtoDUNEsp::GetXTicksCoefficient(int t, int c) const
   {
     return fXTicksCoefficient * fDriftDirection.at(c).at(t);
   }
   //--------------------------------------------------------------------
   // Get scale factor for x<-->ticks
-  double DetectorPropertiesStandard::GetXTicksCoefficient() const
+  double DetectorPropertiesProtoDUNEsp::GetXTicksCoefficient() const
   {
     return fXTicksCoefficient;
   }
   //--------------------------------------------------------------------
   //  Get offset for x<-->ticks
-  double DetectorPropertiesStandard::GetXTicksOffset(int p, int t, int c) const
+  double DetectorPropertiesProtoDUNEsp::GetXTicksOffset(int p, int t, int c) const
   {
     return fXTicksOffsets.at(c).at(t).at(p);        
   }
   
   //--------------------------------------------------------------------
-  std::string DetectorPropertiesStandard::CheckTimeOffsetConfigurationAfterSetup
+  std::string DetectorPropertiesProtoDUNEsp::CheckTimeOffsetConfigurationAfterSetup
     () const
   {
     
@@ -586,7 +586,7 @@ For plane = 0, t offset is pitch/Coeff[1] - (pitch+xyz[0])/Coeff[0]
   } // DetectorPropertiesStandard::CheckTimeOffsetConfigurationAfterSetup()
   
   //--------------------------------------------------------------------
-  void DetectorPropertiesStandard::CheckConfigurationAfterSetup() const {
+  void DetectorPropertiesProtoDUNEsp::CheckConfigurationAfterSetup() const {
     
     std::string errors;
     
@@ -600,7 +600,7 @@ For plane = 0, t offset is pitch/Coeff[1] - (pitch+xyz[0])/Coeff[0]
   } // DetectorPropertiesStandard::CheckConfigurationAfterSetup()
   
   //--------------------------------------------------------------------
-  void DetectorPropertiesStandard::DoUpdateClocks() 
+  void DetectorPropertiesProtoDUNEsp::DoUpdateClocks() 
   {
     CalculateXTicksParams();
   }

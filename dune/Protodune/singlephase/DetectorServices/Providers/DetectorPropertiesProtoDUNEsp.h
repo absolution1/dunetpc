@@ -8,14 +8,15 @@
 // Separation of service from Detector info class:
 // jpaley@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef DETINFO_DETECTORPROPERTIESSTD_H
-#define DETINFO_DETECTORPROPERTIESSTD_H
+#ifndef DETINFO_DETECTORPROPERTIES_PROTODUNESP_H
+#define DETINFO_DETECTORPROPERTIES_PROTODUNESP_H
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/CoreUtils/ProviderPack.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
 #include "lardataalg/DetectorInfo/DetectorClocks.h"
-#include "lardataalg/DetectorInfo/DetectorProperties.h"
+//#include "lardataalg/DetectorInfo/DetectorProperties.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Sequence.h"
@@ -25,9 +26,9 @@
 // C/C++ standard libraries
 #include <set>
 ///General LArSoft Utilities
-namespace detinfo{
+namespace spdp{
   
-  class DetectorPropertiesStandard : public DetectorProperties {
+  class DetectorPropertiesProtoDUNEsp : public detinfo::DetectorProperties {
     public:
       /// List of service providers we depend on
       using providers_type = lar::ProviderPack<
@@ -113,8 +114,8 @@ namespace detinfo{
       
       }; // Configuration_t
  
-      DetectorPropertiesStandard();
-      DetectorPropertiesStandard(fhicl::ParameterSet const& pset, 
+      DetectorPropertiesProtoDUNEsp();
+      DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset, 
                          const geo::GeometryCore* geo,
                          const detinfo::LArProperties* lp,
                          const detinfo::DetectorClocks* c,
@@ -129,11 +130,11 @@ namespace detinfo{
        *        tolerated
        * @see Setup()
        */
-      DetectorPropertiesStandard(fhicl::ParameterSet const& pset,
+      DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
                          providers_type providers,
                          std::set<std::string> const& ignore_params = {});
-      DetectorPropertiesStandard(DetectorPropertiesStandard const&) = delete;
-      virtual ~DetectorPropertiesStandard() = default;
+      DetectorPropertiesProtoDUNEsp(DetectorPropertiesProtoDUNEsp const&) = delete;
+      virtual ~DetectorPropertiesProtoDUNEsp() = default;
       
       /**
        * @brief Configures the provider, first validating the configuration

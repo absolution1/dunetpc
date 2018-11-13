@@ -6,19 +6,20 @@
 //  jpaley@fnal.gov
 //
 ////////////////////////////////////////////////////////////////////////
-#ifndef DETECTORPROPERTIESSERVICESTANDARD_H
-#define DETECTORPROPERTIESSERVICESTANDARD_H
+#ifndef DETECTORPROPERTIESSERVICEPROTODUNESP_H
+#define DETECTORPROPERTIESSERVICEPROTODUNESP_H
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Atom.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Run.h"
+#include "art/Framework/Principal/Event.h"
 //#include "lardataalg/DetectorInfo/DetectorPropertiesStandard.h"
 #include "dune/Protodune/singlephase/DetectorServices/Providers/DetectorPropertiesProtoDUNEsp.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 ///General LArSoft Utilities
-namespace detinfo{
+namespace spdp{
   
   /**
    * @brief "Standard" implementation of DetectorProperties service
@@ -51,7 +52,7 @@ namespace detinfo{
    * 
    */
   
-  class DetectorPropertiesServiceStandard : public DetectorPropertiesService {
+  class DetectorPropertiesServiceProtoDUNEsp : public detinfo::DetectorPropertiesService {
     public:
       
       // the following is currently not used for validation,
@@ -66,7 +67,7 @@ namespace detinfo{
         };
         
         // provider configuration
-        detinfo::DetectorPropertiesStandard::Configuration_t ProviderConfiguration;
+        spdp::DetectorPropertiesProtoDUNEsp::Configuration_t ProviderConfiguration;
         
       }; // ServiceConfiguration_t
       
@@ -74,7 +75,7 @@ namespace detinfo{
       // this enables art to print the configuration help:
       using Parameters = art::ServiceTable<ServiceConfiguration_t>;
       
-      DetectorPropertiesServiceStandard(fhicl::ParameterSet const& pset,
+      DetectorPropertiesServiceProtoDUNEsp(fhicl::ParameterSet const& pset,
                                 art::ActivityRegistry& reg);
       virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
       void   preProcessEvent(const art::Event& evt);
@@ -83,14 +84,14 @@ namespace detinfo{
       virtual const provider_type* provider() const override { return fProp.get();}
       
     private:
-      std::unique_ptr<detinfo::DetectorPropertiesStandard> fProp;
+      std::unique_ptr<spdp::DetectorPropertiesProtoDUNEsp> fProp;
       fhicl::ParameterSet   fPS;       ///< Original parameter set.
       
       bool fInheritNumberTimeSamples; ///< Flag saying whether to inherit NumberTimeSamples
       
-      bool isDetectorPropertiesServiceStandard(const fhicl::ParameterSet& ps) const;
+      bool isDetectorPropertiesServiceProtoDUNEsp(const fhicl::ParameterSet& ps) const;
       
     }; // class DetectorPropertiesService
 } //namespace detinfo
-DECLARE_ART_SERVICE_INTERFACE_IMPL(detinfo::DetectorPropertiesServiceStandard, detinfo::DetectorPropertiesService, LEGACY)
+DECLARE_ART_SERVICE_INTERFACE_IMPL(spdp::DetectorPropertiesServiceProtoDUNEsp, detinfo::DetectorPropertiesService, LEGACY)
 #endif // DETECTORPROPERTIESSERVICESTANDARD_H
