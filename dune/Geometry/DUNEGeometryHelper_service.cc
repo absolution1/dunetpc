@@ -111,9 +111,13 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
              || ( detectorName.find("protolbne") != std::string::npos ) ) {
       fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
 
+    // iceberg
+    } else if ( detectorName.find("iceberg") != std::string::npos ) {
+      fChannelMap = std::make_shared<geo::ChannelMapStandardAlg>(pset);
+
     // LArND
     } else if ( detectorName.find("larnd") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ChannelMapStandardAlg>(pset);
+      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
     }
     else {
       throw cet::exception("DUNEGeometryHelper") << "Unsupported detector: '" << detectorName << "'\n";
