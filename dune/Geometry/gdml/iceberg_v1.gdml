@@ -28251,7 +28251,7 @@
         <volumeref ref="volAPAFrameYSide"/>
         <position name="posAPAFrameYSideNeg-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 - 115.4125/2 + 10.16/2"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28259,7 +28259,7 @@
         <volumeref ref="volAPAFrameYSide"/>
         <position name="posAPAFrameYSidePos-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 + 115.4125/2 - 10.16/2"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28267,7 +28267,7 @@
         <volumeref ref="volAPAFrameZSide"/>
         <position name="posAPAFrameZSidePos-0" unit="cm" 
 	x="0" 
-	y="-25.714375 + 180/2 - 10.16/2" 
+	y="-24.285625 + 180/2 - 10.16/2" 
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28275,7 +28275,7 @@
         <volumeref ref="volAPAFrameZSide"/>
         <position name="posAPAFrameZSideNeg-0" unit="cm" 
 	x="0" 
-	y="-25.714375  - 180/2 + 10.16/2" 
+	y="-24.285625  - 180/2 + 10.16/2" 
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28292,7 +28292,7 @@
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg-Vup-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 - 115.4125/2 - (0+.5)*(0.3175)"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28300,7 +28300,7 @@
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg-Uup-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 - 115.4125/2 - (1+.5)*(0.3175)"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28309,7 +28309,7 @@
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg-Vdown-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 + 115.4125/2 + (0+.5)*(0.3175)"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28317,7 +28317,7 @@
         <volumeref ref="volG10BoardYSideCenterSeg"/>
         <position name="posG10BoardYSideCenterSeg-Udown-0" unit="cm" 
 	x="0" 
-	y="-25.714375" 
+	y="-24.285625" 
 	z="0 + 115.4125/2 + (1+.5)*(0.3175)"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28326,7 +28326,7 @@
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg-Z-0" unit="cm" 
 	x="0" 
-	y="64.444375" 
+	y="-114.444375" 
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28334,7 +28334,7 @@
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg-V-0" unit="cm" 
 	x="0" 
-	y="64.761875" 
+	y="-114.761875" 
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28342,7 +28342,7 @@
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg-U-0" unit="cm" 
 	x="0" 
-	y="65.079375" 
+	y="-115.079375" 
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -28350,7 +28350,7 @@
         <volumeref ref="volG10BoardZSideCenterSeg"/>
         <position name="posG10BoardZSideCenterSeg-Grid-0" unit="cm" 
 	x="0" 
-	y="65.396875"
+	y="-115.396875"
 	z="0"/> 
         <rotationref ref="rIdentity"/>
       </physvol>

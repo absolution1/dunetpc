@@ -1501,7 +1501,8 @@ if ($tpc_on==1) {
 		$CPA_x        =  $APACenter_x  +  $CPAToAPA;
 
 
-		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		#place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, 1);  # top readout hack for iceberg
 		place_OpDets($APACenter_x, $APACenter_y, $APACenter_z, $apa_i);
 		$tpc_0 = 2*$apa_i+0;
 		$tpc_1 = 2*$apa_i+1;
@@ -1573,7 +1574,8 @@ EOF
 		$CPA_1_x      =  $APACenter_x  +  $CPAToAPA;
 
 
-		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		# place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, 1);  # top readout hack for iceberg
 		place_OpDets($APACenter_x, $APACenter_y, $APACenter_z, $apa_i);
 
 		$tpc_0 = 2*$apa_i+0;
