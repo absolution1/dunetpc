@@ -1584,7 +1584,7 @@ EOF
 
 		$rot_0       = "rPlus180AboutY";
 		$rot_1       = "rIdentity";
-		if($j == 0)           { $rot_0 = "rPlus180AboutXPlus180AboutY"; 
+		if($j != 0)           { $rot_0 = "rPlus180AboutXPlus180AboutY";   #hack for iceberg
 					$rot_1 = "rPlus180AboutX"; } #put the readout end at the bottom for bottom APAs
 		
 print CRYO <<EOF;

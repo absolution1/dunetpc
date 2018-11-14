@@ -28442,7 +28442,7 @@
 	  x="0 - 5.0661/2 - 101.443/2" 
 	  y="-25" 
 	  z="0"/> 
-        <rotationref ref="rPlus180AboutXPlus180AboutY"/>
+        <rotationref ref="rPlus180AboutY"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPCInner"/>
@@ -28450,7 +28450,7 @@
 	  x="0 + 5.0661/2 + 101.443/2" 
 	  y="-25"
 	  z="0"/>
-        <rotationref ref="rPlus180AboutX"/>
+        <rotationref ref="rIdentity"/>
       </physvol>
 
       <physvol>
