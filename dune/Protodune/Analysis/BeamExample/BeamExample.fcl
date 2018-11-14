@@ -1,3 +1,5 @@
+#include protodunedatautils.fcl
+
 BEGIN_PROLOG
 
 proto_beam_example:
@@ -9,6 +11,7 @@ proto_beam_example:
    PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
    Verbose:                 false
+   DataUtils: @local::standard_protodunedatautils
 }
 
 END_PROLOG

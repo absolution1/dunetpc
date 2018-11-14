@@ -1,0 +1,17 @@
+#include protodunedatautils.fcl
+
+BEGIN_PROLOG
+
+standard_protodunebeamlinefilter:
+{
+   module_type:          "ProtoDUNEBeamlineFilter"
+   NominalBeamMomentum:  2.0
+   IsElectron:           false
+   IsPion:               true
+   IsKaon:               false
+   IsProton:             false
+   AndParticles:         true
+   DataUtils:            @local::standard_protodunedatautils
+}
+
+END_PROLOG

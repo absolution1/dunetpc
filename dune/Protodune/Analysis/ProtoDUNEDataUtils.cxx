@@ -7,13 +7,25 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-protoana::ProtoDUNEDataUtils::ProtoDUNEDataUtils(){
-
+protoana::ProtoDUNEDataUtils::ProtoDUNEDataUtils(fhicl::ParameterSet const& p){
+  this->reconfigure(p);
 }
 
 protoana::ProtoDUNEDataUtils::~ProtoDUNEDataUtils(){
 
+}
+
+void protoana::ProtoDUNEDataUtils::reconfigure(fhicl::ParameterSet const& p){
+  fTimingTag = p.get<art::InputTag>("TimingTag");
+  fBeamEventTag = p.get<art::InputTag>("BeamEventTag");
+
+  fTOFDistance = p.get<float>("TOFDistance"); // meters
+  fMomentumScaleFactor = p.get<float>("MomentumScaleFactor"); 
+  fMomentumOffset = p.get<float>("MomentumOffset"); // GeV/c
+  fTOFScaleFactor = p.get<float>("TOFScaleFactor");
+  fTOFOffset = p.get<float>("TOFOffset"); // ns
 }
 
 // Access the trigger information to see if this is a beam trigger
@@ -24,7 +36,7 @@ bool protoana::ProtoDUNEDataUtils::IsBeamTrigger(art::Event const & evt) const{
   // Accessing the trigger information as done in DataPrepModule
   // The information is stored in the time stamps
   art::Handle<std::vector<raw::RDTimeStamp>> timeStamps;
-  evt.getByLabel("timingrawdecoder","daq",timeStamps);
+  evt.getByLabel(fTimingTag,timeStamps);
 
   // Return false if we have no time stamps
   if(!timeStamps.isValid()) return isBeam;
@@ -73,3 +85,132 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
 
 }
 // ----------------------------------------------------------------------------
+bool protoana::ProtoDUNEDataUtils::IsGoodBeamlineTrigger(art::Event const & evt) const{
+  return true;
+}
+
+std::vector<double> protoana::ProtoDUNEDataUtils::GetBeamlineMass(art::Event const & evt) const{
+  std::vector<double> tofs;
+  std::vector<double> momenta;
+  std::vector<double> result;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tofs.push_back(beamEvent.GetTOF());
+    for(size_t iMom=0; iMom < beamEvent.GetNRecoBeamMomenta(); iMom++)
+    {
+      momenta.push_back(beamEvent.GetRecoBeamMomentum(iMom));
+    }
+  }
+  for(const auto & tof : tofs)
+  {
+    for(const auto & momentum : momenta)
+    {
+        double massSquared = std::pow(momentum*fMomentumScaleFactor-fMomentumOffset,2) 
+                    * ((tof*fTOFScaleFactor-fTOFOffset)/(fTOFDistance/2.99e8*1e9) - 1.);
+        double mass = std::sqrt(massSquared);
+        result.push_back(mass);
+    }
+  }
+  return result;
+}
+
+protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovParticleID(art::Event const & evt, const float beamEnergyGeV, const bool strict) const{
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  int CKov0Status = -5;
+  int CKov1Status = -5;
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    CKov0Status = beamEvent.GetCKov0Status();
+    CKov1Status = beamEvent.GetCKov1Status();
+  }
+  if (!strict && (CKov0Status < 0 || CKov1Status < 0))
+  {
+    protoana::PossibleParticleCands result = {true,true,true,true,true};
+    return result;
+  }
+  if (beamEnergyGeV < 1.5)
+  {
+    if(CKov0Status == 1)
+    {
+      protoana::PossibleParticleCands result = {true,false,false,false,false};
+      return result;
+    }
+    else
+    {
+      protoana::PossibleParticleCands result = {false,true,true,true,true};
+      return result;
+    }
+  }
+  else
+  {
+      protoana::PossibleParticleCands result = {true,false,false,false,false};
+      return result;
+  }
+}
+
+protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(art::Event const & evt, const float beamEnergyGeV) const{
+  if (beamEnergyGeV >= 2.5 || beamEnergyGeV <= 0.9)
+  {
+    protoana::PossibleParticleCands result = {true,true,true,true,true};
+    return result;
+  }
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  float TOF = -9e7;
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    TOF = beamEvent.GetTOF();
+  }
+  if (beamEnergyGeV < 1.5)
+  {
+    if (TOF < 175.)
+    {
+      protoana::PossibleParticleCands result = {true,true,true,true,false};
+      return result;
+    }
+    else
+    {
+      protoana::PossibleParticleCands result = {false,false,false,false,true};
+      return result;
+    }
+  }
+  else // is 2 GeV
+  {
+    if (TOF < 160.)
+    {
+      protoana::PossibleParticleCands result = {true,true,true,true,false};
+      return result;
+    }
+    else
+    {
+      protoana::PossibleParticleCands result = {false,false,false,false,true};
+      return result;
+    }
+  }
+}
+
+protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetBeamlineParticleID(art::Event const & evt, const float beamEnergyGeV) const {
+  const auto tof = GetTOFParticleID(evt,beamEnergyGeV);
+  const auto chkov = GetCherenkovParticleID(evt,beamEnergyGeV);
+  return tof && chkov;
+}
