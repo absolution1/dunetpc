@@ -359,9 +359,10 @@ $OriginYSet             =       $DetEncHeight/2
                               - $APAphys_y
                               - $APAGap_y/2;
 
-if($protoDune==1){ # bring the origin to the bottom of the APAs for protoDUNE
+#if($protoDune==1){ # bring the origin to the bottom of the APAs for protoDUNE
+# change for iceberg 
     $OriginYSet = $OriginYSet + $APAphys_y + $APAGap_y/2;
-}
+#}
 
 $OriginXSet             =     0; # centered for now
 

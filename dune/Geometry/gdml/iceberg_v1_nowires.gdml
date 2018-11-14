@@ -948,7 +948,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="0" y="34.085625" z="58.02375"/>
+	<position name="posDetEnclosure" unit="cm" x="0" y="215.714375" z="58.02375"/>
       </physvol>
 
     </volume>
