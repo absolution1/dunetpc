@@ -73,7 +73,7 @@ namespace raw {
 
       const std::vector<raw::ctb::Trigger>&            GetHLTriggers() const;
       const std::vector<raw::ctb::Trigger>&            GetLLTriggers() const;
-      const std::vector<raw::ctb::ChStatus>&           GetChStatusAfterHLTs() const;
+      const std::vector<raw::ctb::ChStatus>            GetChStatusAfterHLTs() const;
 
       size_t  GetNTriggers() const;   
       size_t  GetNChStatuses() const; 
@@ -124,7 +124,7 @@ const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetHLTriggers()  
 
 // for each HLT, find the next entry
 
-const std::vector<raw::ctb::ChStatus>&     raw::ctb::pdspctb::GetChStatusAfterHLTs() const
+const std::vector<raw::ctb::ChStatus>     raw::ctb::pdspctb::GetChStatusAfterHLTs() const
 {
   std::vector<raw::ctb::ChStatus> chs;
   raw::ctb::ChStatus emptychstat;
@@ -175,7 +175,7 @@ const std::vector<raw::ctb::ChStatus>&     raw::ctb::pdspctb::GetChStatusAfterHL
 	    }
 	}
     }
-  return std::move(chs);
+  return chs;
 }
 
 const std::vector<raw::ctb::Trigger>&       raw::ctb::pdspctb::GetLLTriggers()  const
