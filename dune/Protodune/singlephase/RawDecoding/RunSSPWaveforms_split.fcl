@@ -10,7 +10,7 @@ services: {
   
   TFileService: { 
    closeFileFast: true  # default
-   fileName:  "RunRawDecoderTFile.root"
+   fileName:  "%ifb_rawanal_tfile.root"
    tmpDir: "<parent-path-of-filename>"
   }
 }
@@ -40,10 +40,10 @@ physics: {
       PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
 
       SSP_peak: 1 #Peak finding for integrator setting, 0 means no integration, 1 means loose finding (takes multipeak forms), 2 means strict (peaks must be by themselves and have clear baselines)
-      SSP_smoothing: 0 #Basic 353 waveform smoothing (Root standard for 1D histos, 0 means no smoothing)
+      SSP_smoothing: 10 #Basic 353 waveform smoothing (Root standard for 1D histos, 0 means no smoothing)
       SSP_rare_num: 3.0 #number of standard deviations from base peaks must be to be found
-      SSP_peak_sense: 0.5 #(0-1), sets how sensitive peak finder is to finding peaks
-      SSP_nump: 100 #Max number of peaks allowed for waveform
+      SSP_peak_sense: 0.3 #(0-1), sets how sensitive peak finder is to finding peaks
+      SSP_nump: 10 #Max number of peaks allowed for waveform
       SSP_disc_width: 10 #discrimination window width
       SSP_calib_win: 250 #calibration integration window length for internal triggers
             
@@ -65,10 +65,10 @@ physics: {
       PDwaveform_fft: 0 #only really usefule for underbiased, so allow turn off
 
       SSP_peak: 1 #Peak finding for integrator setting, 0 means no integration, 1 means loose finding (takes multipeak forms), 2 means strict (peaks must be by themselves and have clear baselines)
-      SSP_smoothing: 0 #Basic 353 waveform smoothing (Root standard for 1D histos, 0 means no smoothing)
+      SSP_smoothing: 10 #Basic 353 waveform smoothing (Root standard for 1D histos, 0 means no smoothing)
       SSP_rare_num: 3.0 #number of standard deviations from base peaks must be to be found
-      SSP_peak_sense: 0.5 #(0-1), sets how sensitive peak finder is to finding peaks
-      SSP_nump: 100 #Max number of peaks allowed for waveform
+      SSP_peak_sense: 0.3 #(0-1), sets how sensitive peak finder is to finding peaks
+      SSP_nump: 10 #Max number of peaks allowed for waveform
       SSP_disc_width: 10 #discrimination window width
       SSP_calib_win: 250 #calibration integration window length for internal triggers
       SelectEvents: [ produce ]

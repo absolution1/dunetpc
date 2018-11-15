@@ -359,9 +359,10 @@ $OriginYSet             =       $DetEncHeight/2
                               - $APAphys_y
                               - $APAGap_y/2;
 
-if($protoDune==1){ # bring the origin to the bottom of the APAs for protoDUNE
+#if($protoDune==1){ # bring the origin to the bottom of the APAs for protoDUNE
+# change for iceberg 
     $OriginYSet = $OriginYSet + $APAphys_y + $APAGap_y/2;
-}
+#}
 
 $OriginXSet             =     0; # centered for now
 
@@ -1501,7 +1502,8 @@ if ($tpc_on==1) {
 		$CPA_x        =  $APACenter_x  +  $CPAToAPA;
 
 
-		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		#place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, 1);  # top readout hack for iceberg
 		place_OpDets($APACenter_x, $APACenter_y, $APACenter_z, $apa_i);
 		$tpc_0 = 2*$apa_i+0;
 		$tpc_1 = 2*$apa_i+1;
@@ -1573,7 +1575,8 @@ EOF
 		$CPA_1_x      =  $APACenter_x  +  $CPAToAPA;
 
 
-		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		# place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
+		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, 1);  # top readout hack for iceberg
 		place_OpDets($APACenter_x, $APACenter_y, $APACenter_z, $apa_i);
 
 		$tpc_0 = 2*$apa_i+0;
@@ -1582,7 +1585,7 @@ EOF
 
 		$rot_0       = "rPlus180AboutY";
 		$rot_1       = "rIdentity";
-		if($j == 0)           { $rot_0 = "rPlus180AboutXPlus180AboutY"; 
+		if($j != 0)           { $rot_0 = "rPlus180AboutXPlus180AboutY";   #hack for iceberg
 					$rot_1 = "rPlus180AboutX"; } #put the readout end at the bottom for bottom APAs
 		
 print CRYO <<EOF;
