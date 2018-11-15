@@ -38,6 +38,7 @@ simple_plugin(SSPRawDecoder "module"
                         BASENAME_ONLY
 )
 
+#[[
 simple_plugin(PDWaveform "module"
                          lardataobj_RawData
                          lardataobj_RecoBase
@@ -56,6 +57,7 @@ simple_plugin(PDWaveform "module"
 			 ${ROOT_SPECTRUM}
                          BASENAME_ONLY
 )
+]]
 
 include_directories( "$ENV{DUNEPDSPRCE_INC}" ) 
 cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
