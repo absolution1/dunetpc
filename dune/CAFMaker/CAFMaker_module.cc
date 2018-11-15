@@ -91,6 +91,7 @@ namespace dunemva {
 
       // Get reweight knobs from fhicl file -- no hard-coded shifts
       int fNwgt[knShifts];
+      double fCvWgts[knShifts];
       double fWgts[knShifts][kmaxRwgts];
 
       // CAF variables
@@ -104,6 +105,7 @@ namespace dunemva {
       // True particle counts
       int nP, nN, nPip, nPim, nPi0, nKp, nKm, nK0, nEM, nOtherHad, nNucleus, nUNKNOWN;
       double eP, eN, ePip, ePim, ePi0, eOther;
+      double vtx_x, vtx_y, vtx_z;
 
       // Reco information
       double fErecoNue;
@@ -132,6 +134,7 @@ namespace dunemva {
       double fRegCVNNueE;
 
       double meta_pot;
+      int meta_run, meta_subrun, meta_version;
 
       systtools::provider_list_t fSystProviders;
 
@@ -230,6 +233,10 @@ namespace dunemva {
     fTree->Branch("ePi0",      &ePi0,       "ePi0/D");
     fTree->Branch("eOther",    &eOther,     "eOther/D");
 
+    // vertex position
+    fTree->Branch("vtx_x",   &vtx_x,    "vtx_x/D");
+    fTree->Branch("vtx_y",   &vtx_y,    "vtx_y/D");
+    fTree->Branch("vtx_z",   &vtx_z,    "vtx_z/D");
 
     // Reco variables
     fTree->Branch("mvaresult",   &fMVAResult,  "mvaresult/D");
@@ -274,6 +281,9 @@ namespace dunemva {
     fTree->Branch("TrackMomMethodNumu",    &fTrackMomMethodNumu,   "TrackMomMethodNumu/I");
 
     fMetaTree->Branch("pot", &meta_pot, "pot/D");
+    fMetaTree->Branch("run", &meta_run, "run/I");
+    fMetaTree->Branch("subrun", &meta_subrun, "subrun/I");
+    fMetaTree->Branch("version", &meta_version, "version/I");
 
     // make DUNErw variables
     for( auto &sp : fSystProviders ) {
@@ -284,6 +294,7 @@ namespace dunemva {
         unsigned int parId = head.systParamId;
         std::cout << "Adding reweight branch " << parId << " for " << name << " with " << head.paramVariations.size() << " shifts" << std::endl;
         fTree->Branch( Form("%s_nshifts", name.c_str()), &fNwgt[parId], Form("%s_nshifts/I", name.c_str()) );
+        fTree->Branch( Form("%s_cvwgt", name.c_str()), &fCvWgts[parId], Form("%s_cvwgt/D", name.c_str()) );
         fTree->Branch( Form("wgt_%s", name.c_str()), fWgts[parId], Form("wgt_%s[%s_nshifts]/D", name.c_str(), name.c_str()) );
       }
     }
@@ -291,13 +302,14 @@ namespace dunemva {
     // initialize weight variables -- some won't ever be set
     for( int i = 0; i < knShifts; ++i ) {
       fNwgt[i] = 0;
+      fCvWgts[i] = 1.;
       for( int j = 0; j < kmaxRwgts; ++j ) {
         fWgts[i][j] = 0.;
       }
     }
 
     meta_pot = 0.;
-
+    meta_version = 1;
   }
 
   //------------------------------------------------------------------------------
@@ -335,6 +347,8 @@ namespace dunemva {
     fRun = evt.id().run();
     fSubrun = evt.id().subRun();
     fEvent = evt.id().event();
+    meta_run = fRun;
+    meta_subrun = fSubrun;
 
     if( !pidin.failedToGet() ) {
       fMVAResult = pidin->pid;
@@ -458,6 +472,10 @@ namespace dunemva {
       fNuMomY   = truth[i]->GetNeutrino().Nu().Momentum().Y();
       fNuMomZ   = truth[i]->GetNeutrino().Nu().Momentum().Z();
 
+      vtx_x     = truth[i]->GetNeutrino().Lepton().Vx();
+      vtx_y     = truth[i]->GetNeutrino().Lepton().Vy();
+      vtx_z     = truth[i]->GetNeutrino().Lepton().Vz();
+
       //Lepton stuff
       fLepPDG     = truth[i]->GetNeutrino().Lepton().PdgCode();
       fLepMomX    = truth[i]->GetNeutrino().Lepton().Momentum().X();
@@ -557,6 +575,7 @@ namespace dunemva {
           systtools::event_unit_response_t resp = *itResp;
           for( systtools::event_unit_response_t::iterator it = resp.begin(); it != resp.end(); ++it ) {
             fNwgt[(*it).pid] = (*it).responses.size();
+            //fCvWgts[(*it).pid] = (*it).CV_weight;
             for( unsigned int i = 0; i < (*it).responses.size(); ++i ) {
               fWgts[(*it).pid][i] = (*it).responses[i];
             }

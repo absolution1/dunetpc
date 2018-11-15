@@ -154,7 +154,7 @@ tools.pdsp_sticky_codes_ped: {
     # femb308x
     chan02461: [ 960,  961]
     # femb309x
-    # femb310v
+    # femb310x
     ##### APA 5 #####
     # femb511u
     # femb512u
@@ -580,6 +580,116 @@ tools.pdsp_sticky_codes_ped: {
     # femb109x (1 bad)
     chan12729: [ 897, 898]
     # femb110x (1 bad)
+    ##### APA 4 #####
+    # femb411u (1 bad)
+    chan12831: [2523]
+    # femb412u
+    chan12846: [2176, 2183, 2192]
+    # femb413u
+    # femb414u
+    chan12923: [2444, 2461]
+    # femb415u
+    chan12979: [2239, 2240]
+    # femb416u (1 bad)
+    # femb417u
+    chan13055: [2431]
+    # femb418u (1 bad)
+    # femb419u
+    # femb420u
+    # femb401u
+    chan13204: [2240]
+    # femb402u
+    chan13263: [2368]
+    # femb403u
+    chan13285: [2303, 2367, 2368]
+    chan13317: [2368]
+    # femb404u
+    chan13321: [2559]
+    # femb405u (1 bad)
+    chan13389: [2495]
+    # femb406u
+    chan13410: [2559, 2560]
+    chan13426: [2240, 2241]
+    chan13433: [2328]
+    # femb407u
+    chan13479: [2431, 2432]
+    # femb408u
+    chan13481: [2566, 2567]
+    chan13515: [2303]
+    # femb409u
+    # femb410u
+    # femb420v
+    # femb419v
+    # femb418v
+    chan13708: [2304]
+    # femb417v
+    chan13739: [2373]
+    chan13749: [2176]
+    # femb416v
+    # femb415v
+    chan13829: [2431]
+    # femb414v
+    # femb413v
+    # femb412v
+    chan13929: [2176, 2177]
+    # femb411v
+    # femb410v
+    # femb409v
+    # femb408v
+    # femb407v
+    # femb406v
+    chan14192: [2367, 2368]
+    # femb405v
+    # femb404v
+    # femb403v
+    # femb402v
+    # femb401v
+    chan14367: [2303]
+    # femb420x
+    chan14419: [ 960]
+    chan14439: [ 895]
+    # femb419x
+    # femb418x
+    # femb417x
+    chan14579: [ 960]
+    # femb416x
+    chan14621: [ 960]
+    # femb415x
+    chan14640: [1019, 1024]
+    # femb414x
+    # femb413x
+    chan14740: [ 896]
+    chan14763: [ 960]
+    chan14765: [ 959,  960]
+    chan14769: [ 960]
+    # femb412x
+    # femb411x
+    # femb401x
+    chan14911: [ 960]
+    # femb402x
+    # femb403x
+    chan14980: [ 960]
+    # femb404x
+    chan15030: [ 895]
+    chan15035: [ 959]
+    # femb405x
+    chan15084: [ 896]
+    # femb406x
+    chan15124: [ 960]
+    chan15134: [ 960]
+    chan15143: [ 895]
+    # femb407x
+    chan15182: [ 960]
+    chan15183: [ 960]
+    chan15208: [ 895]
+    # femb408x
+    # femb409x
+    chan15268: [ 895]
+    chan15272: [ 959]
+    # femb410x
+    chan15316: [ 959,  960]
+    chan15338: [ 961]
+    chan15343: [ 960,  961]
   }
 }
 

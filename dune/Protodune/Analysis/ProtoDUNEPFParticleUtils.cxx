@@ -193,9 +193,9 @@ const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParti
   // Get the particles
   auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
   // And their meta data
-  const art::FindManyP<recob::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
+  const art::FindManyP<larpandoraobj::PFParticleMetadata> findMetaData(pfParticles,evt,particleLabel);
 
-  const recob::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
+  const larpandoraobj::PFParticleMetadata metaData = *((findMetaData.at(particle.Self())).at(0));
 
   return metaData.GetPropertiesMap();
 }

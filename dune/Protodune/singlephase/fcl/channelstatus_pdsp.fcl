@@ -140,6 +140,7 @@ pdsp_channel_status: {
     12324,  # femb101x44, stuck on many classic codes
     12333,  # femb101x35, stuck on many classic codes
     12744,  # femb109x08, stuck on many classic codes
+    13363,  # femb405u37, very noisy, nosignal 5308-76-4800
 
     #-----
     # These 16 channels are an intermitently bad ASIC.
