@@ -10,7 +10,7 @@ services: {
   
   TFileService: { 
    closeFileFast: true  # default
-   fileName:  "RunRawDecoderTFile.root"
+   fileName:  "%ifb_rawanal_tfile.root"
    tmpDir: "<parent-path-of-filename>"
   }
 }
