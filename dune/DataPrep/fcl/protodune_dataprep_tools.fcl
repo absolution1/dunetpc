@@ -490,7 +490,7 @@ tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN
 tools.pdtps_adcChannelPedestalNoisePlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalNoisePlotter.Metric: pedestalRms
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricMax: 14
-tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%STATUS%_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricLabel: "Pedestal noise [ADC counts]"
 tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -499,7 +499,7 @@ tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME
 tools.pdtps_adcChannelPedestalOrfPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalOrfPlotter.Metric: "fitPedFractionLow+fitPedFractionHigh"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedfracout_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedfracout_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricLabel: "Out-of-range fraction"
 tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -508,7 +508,7 @@ tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_ru
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedpeakexc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedpeakexc_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -526,7 +526,7 @@ tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNA
 tools.pdtps_adcChannelPedestalRawTailPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRawTailPlotter.Metric: rawTailFraction
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricMax: 0.5
-tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_%STATUS%_rawtail_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -578,13 +578,24 @@ tools.pdwz_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_wp_pedpea
 # 26sep2018 dla: Set phase to 1. It appears protoDUNE has been using this
 # phase up til now and will presumably keep it.
 # If not, we will have to start using run data.
-tools.pd_tickOffset: {
+tools.pd_tickOffset_sep26: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
   TpcTickPhase: 1
   Unit: tick
   RunDataTool: ""
 }
+
+# 15nov2018 dla: It appears the phase is 23 for the pulser runs taken Oct 25.
+tools.pd_tickOffset_oct25: {
+  tool_type: TimingRawDecoderOffsetTool
+  LogLevel: 1
+  TpcTickPhase: 23
+  Unit: tick
+  RunDataTool: ""
+}
+
+tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {
