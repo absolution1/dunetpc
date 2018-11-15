@@ -586,11 +586,11 @@ tools.pd_tickOffset_sep26: {
   RunDataTool: ""
 }
 
-# 15nov2018 dla: It appears the phase is 24 for the pulser runs taken Oct 25.
+# 15nov2018 dla: It appears the phase is 23 for the pulser runs taken Oct 25.
 tools.pd_tickOffset_oct25: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
-  TpcTickPhase: 24
+  TpcTickPhase: 23
   Unit: tick
   RunDataTool: ""
 }
