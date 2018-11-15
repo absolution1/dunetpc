@@ -15,10 +15,6 @@
 
        * Need to save all momenta combinations to the beamevt
 
-       * Need to save the current of the magnet to the beamevt
-         so we can do any offline fixes to the momentum reconstruction
-         !!! Requires change to the ProtoDUNEBeamEvent class !!!
-
        * Make print statements prettier
 
        * Fix the tracking portion with real values for monitor positions
@@ -311,6 +307,9 @@ private:
 
   beam::ProtoDUNEBeamSpill * beamspill;
   beam::ProtoDUNEBeamSpill prev_beamspill;
+
+  long long cache_start = -1;
+  long long cache_end   = -1;
 
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
@@ -700,6 +699,9 @@ void proto::BeamEvent::SetBeamEvent(){
             << " and TOFChan "    << beamevt->GetTOFChan() << "\n";
 
 
+  beamevt->SetMagnetCurrent( beamspill->GetMagnetCurrent() );
+  LOG_INFO("BeamEvent") << "beamevt has Magnet Current " << beamevt->GetMagnetCurrent() << "\n";
+
   LOG_INFO("BeamEvent") << "Finished adding info to beamevt " << "\n";
 
 
@@ -793,6 +795,18 @@ void proto::BeamEvent::produce(art::Event & e){
     || fForceNewFetch){
       LOG_INFO("BeamEvent") << "New spill or forced new fetch. Getting new beamspill info" << "\n";
 
+      //Testing: printing out cache start and end 
+      if( (long long)fetch_time > cache_end ){ 
+        cache_start = ( fetch_time / 60 ) * 60;
+        cache_end   = cache_start + (long long)fTimeWindow;
+        LOG_INFO("BeamEvent") << "Setting new cache\n"; 
+      }
+
+      LOG_INFO("BeamEvent") << "cache_start: " << cache_start << "\n";
+      LOG_INFO("BeamEvent") << "cache_end: "   << cache_end << "\n";
+      LOG_INFO("BeamEvent") << "fetch_time: "  << fetch_time << "\n";
+      
+
       // Parse the Time of Flight Counter data for the list
       // of times that we are using
       parseXTOF(fetch_time);
@@ -812,6 +826,8 @@ void proto::BeamEvent::produce(art::Event & e){
         current = FetchAndReport(fetch_time_down, "dip/acc/NORTH/NP04/POW/MBPL022699:current");
         gotCurrent = true;
         LOG_INFO("BeamEvent") << "Current: " << current[0] << "\n";
+
+        beamspill->SetMagnetCurrent(current[0]);
       }
       catch( std::exception e){
         LOG_WARNING("BeamEvent") << "Could not get magnet current\n";
@@ -1633,6 +1649,7 @@ void proto::BeamEvent::beginJob()
 
   bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
   LOG_INFO("BeamEvent") << "%%%%%%%%%% Got beam folder %%%%%%%%%%\n"; 
+  LOG_INFO("BeamEvent") << "%%%%%%%%%% Setting TimeWindow: " << fTimeWindow << " %%%%%%%%%%\n";
 
   bfp->set_epsilon( fBFEpsilon );
   LOG_INFO("BeamEvent") << "%%%%%%%%%% Set beam epislon " << fBFEpsilon << " %%%%%%%%%%\n";
@@ -2116,12 +2133,11 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   X3 = -1.*GetPosition(BPROF3, strippedFibers[0])/1.E3; 
   ////////////
   
-  double cosTheta = MomentumCosTheta(X1,X2,X3);
-  double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
-  beamevt->AddRecoBeamMomentum(momentum);
-  LOG_INFO("BeamEvent") << "Momentum: " << momentum << "\n"; 
-
   if( (BPROF1Fibers.size() == 1) && (BPROF2Fibers.size() == 1) && (BPROF3Fibers.size() == 1) ){
+    double cosTheta = MomentumCosTheta(X1,X2,X3);
+    double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
+
+
     LOG_INFO("BeamEvent") << "Filling Cut Momentum Spectrum" << "\n";
     if( fDebugMomentum ) fCutMomentum->Fill(momentum);
   }
@@ -2165,7 +2181,7 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
         double momentum_full = 299792458*LB/(1.E9 * acos(cosTheta_full));
         if( fDebugMomentum ) fFullMomentum->Fill(momentum_full);
 
-        //NEED TO MOVE BEAMEVENT HERE EVENTUALLY
+        beamevt->AddRecoBeamMomentum(momentum_full);
 
         if (i3 < BPROF3Fibers.size() - 1){
           if (BPROF3Fibers[i3] == (BPROF3Fibers[i3 + 1] - 1)){
