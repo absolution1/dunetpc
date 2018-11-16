@@ -31,6 +31,7 @@ namespace filt{
     void beginJob();
 
   private:
+    protoana::ProtoDUNEDataUtils fDataUtils;
 
     unsigned int fLogLevel;
     bool fRequireBeamsideFembsOnly;
@@ -40,7 +41,9 @@ namespace filt{
 
   };
 
-  ProtoDUNEFembFilter::ProtoDUNEFembFilter::ProtoDUNEFembFilter(fhicl::ParameterSet const & pset) {
+  ProtoDUNEFembFilter::ProtoDUNEFembFilter::ProtoDUNEFembFilter(fhicl::ParameterSet const & pset):
+    fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
+  {
 
     fLogLevel = pset.get<unsigned int>("LogLevel");
     fRequireBeamsideFembsOnly = pset.get<bool>("RequireBeamsideFembsOnly");
@@ -95,14 +98,12 @@ namespace filt{
     
     bool keep = true;
     // Helper utility functions
-    protoana::ProtoDUNEDataUtils dataUtil;
-    //ProtoDUNEDataUtils dataUtil;
 
     fTotalEvents->Fill(1); //count total events
     for (auto APA = checkedAPAs.begin(); APA != checkedAPAs.end(); ++APA){ //loop through beam side APAs
       //std::cout<<"APA:"<<*APA<<std::endl;
-      //std::cout<<dataUtil.GetNActiveFembsForAPA(evt, *APA)<<std::endl;
-      if (dataUtil.GetNActiveFembsForAPA(evt, *APA)!=20){ //check if APA has all 20 fembs active
+      //std::cout<<fDataUtils.GetNActiveFembsForAPA(evt, *APA)<<std::endl;
+      if (fDataUtils.GetNActiveFembsForAPA(evt, *APA)!=20){ //check if APA has all 20 fembs active
 
         if (fLogLevel >=2) std::cout<<"Missing FEMBs on APA: "<<*APA<<std::endl; 
         keep=false; //if not remove event

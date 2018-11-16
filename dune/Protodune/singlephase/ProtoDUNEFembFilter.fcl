@@ -6,6 +6,7 @@
 # Configurations for the protoDUNE femb filter module.
 #
 
+#include protodunedatautils.fcl
 
 BEGIN_PROLOG
 
@@ -21,6 +22,7 @@ pdsp_fembfilter_beamside: {
   module_type:            "ProtoDUNEFembFilter"
   RequireBeamsideFembsOnly : "true"
   LogLevel:        1  # 2 shows accept/reject for every event
+  DataUtils:       @local::standard_protodunedatautils
 }
 
   
