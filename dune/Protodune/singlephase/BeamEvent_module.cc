@@ -308,8 +308,8 @@ private:
   beam::ProtoDUNEBeamSpill * beamspill;
   beam::ProtoDUNEBeamSpill prev_beamspill;
 
-  long long cache_start = -1;
-  long long cache_end   = -1;
+  uint64_t cache_start = 0;
+  uint64_t cache_end   = 0;
 
   std::unique_ptr<ifbeam_ns::BeamFolder> bfp;
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
@@ -775,6 +775,7 @@ void proto::BeamEvent::produce(art::Event & e){
   if( ( (RDTSTrigger == 12) ) || fForceRead ){
 
     //Start getting beam event info
+    std::cout << "Testing fetching time: " << RDTSTime * 2.e-8 << std::endl;
     uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 ) + fFetchOffset;
     uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 ) + fSpillFetchOffset;
     LOG_INFO("BeamEvent") << "RDTSTime: " <<  uint64_t( RDTSTime * 2e-8 ) << "\n";
@@ -796,16 +797,75 @@ void proto::BeamEvent::produce(art::Event & e){
       LOG_INFO("BeamEvent") << "New spill or forced new fetch. Getting new beamspill info" << "\n";
 
       //Testing: printing out cache start and end 
-      if( (long long)fetch_time > cache_end ){ 
-        cache_start = ( fetch_time / 60 ) * 60;
-        cache_end   = cache_start + (long long)fTimeWindow;
-        LOG_INFO("BeamEvent") << "Setting new cache\n"; 
-      }
-
+      cache_start = bfp->GetCacheStartTime();
+      cache_end   = bfp->GetCacheEndTime();
       LOG_INFO("BeamEvent") << "cache_start: " << cache_start << "\n";
       LOG_INFO("BeamEvent") << "cache_end: "   << cache_end << "\n";
       LOG_INFO("BeamEvent") << "fetch_time: "  << fetch_time << "\n";
       
+      if(cache_start > 0 && cache_end > 0){
+
+        //Needs to be checked for both cases: fetch_time in and out of cache
+        if( (fetch_time - 5) < cache_start ){
+          LOG_INFO("BeamEvent") << "Start of spill info might exist below cache\n" 
+                                << "Trying to get updated cache\n";
+          try{        
+            std::vector< double > cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");
+            std::cout << "stamp: " << cache_test[0] << std::endl;
+          }
+          catch( std::exception e ){
+            LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
+          }
+          cache_start = bfp->GetCacheStartTime();
+          cache_end   = bfp->GetCacheEndTime();
+          LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
+          LOG_INFO("BeamEvent") << "new cache_end: "   << cache_end << "\n";
+
+        }
+
+        //Need only be checked if fetch_time in cache.
+        //If it's out, then +5 will be picked up when it is fetched
+        else if( (fetch_time >= cache_start && fetch_time < cache_end ) &&   ( (fetch_time + 5) >= cache_end ) ){
+          LOG_INFO("BeamEvent") << "End of spill info might exist above cache\n" 
+                                << "Trying to get updated cache\n";
+          try{        
+            //If this is successfully fetched, the cache start should be above the 
+            //Spill start info.
+            std::vector< double > cache_test = FetchAndReport( (fetch_time + 5), "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount");
+            std::cout << "count: " << cache_test[0] << std::endl;
+            cache_start = bfp->GetCacheStartTime();
+            cache_end   = bfp->GetCacheEndTime();
+            LOG_INFO("BeamEvent") << "interim cache_start: " << cache_start << "\n";
+            LOG_INFO("BeamEvent") << "interim cache_end: "   << cache_end << "\n";
+
+            //So I'll fill the cach again from the lower end
+            cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");  
+            std::cout << "stamp: " << cache_test[0] << std::endl;
+            cache_start = bfp->GetCacheStartTime();
+            cache_end   = bfp->GetCacheEndTime();
+            LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
+            LOG_INFO("BeamEvent") << "new cache_end: "   << cache_end << "\n";
+          }
+          catch( std::exception e ){
+            LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
+          }
+        }
+      }      
+      else{
+        //First event, let's check the spill start info
+        LOG_INFO("BeamEvent") << "First Event: Priming cache\n";
+        try{        
+          std::vector< double > cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");
+          std::cout << "stamp: " << cache_test[0] << std::endl;
+        }
+        catch( std::exception e ){
+          LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
+        }
+        cache_start = bfp->GetCacheStartTime();
+        cache_end   = bfp->GetCacheEndTime();
+        LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
+        LOG_INFO("BeamEvent") << "new cache_end: "   << cache_end << "\n";
+      }
 
       // Parse the Time of Flight Counter data for the list
       // of times that we are using
