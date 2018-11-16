@@ -15,7 +15,7 @@
 #include "larcorealg/CoreUtils/ProviderPack.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
 #include "lardataalg/DetectorInfo/DetectorClocks.h"
-//#include "lardataalg/DetectorInfo/DetectorProperties.h"
+#include "lardataalg/DetectorInfo/DetectorProperties.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
