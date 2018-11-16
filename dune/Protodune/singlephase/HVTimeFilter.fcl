@@ -1,4 +1,4 @@
-# ProtoDUNEFembFilter.fcl
+# HVTimeFilter.fcl
 #
 # owen.goodwin@postgrad.manchester.ac.uk
 # November 2018
@@ -12,10 +12,11 @@ BEGIN_PROLOG
 # Keep all triggers.
 HVfilter: {
   module_type:            "HVTimeFilter"
-  DateRangeLow: 20181011
+  DateRangeLow: 20181017
   TimeRangeLow: 230101
-  DateRangeHigh: 20181030
+  DateRangeHigh: 20181017
   TimeRangeHigh: 101010
+  TimeRanges: [[101011,200000],[101012,201812],[000000,101012]]  #need date ranges toom
 }
 
   

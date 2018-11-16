@@ -53,7 +53,9 @@ namespace filter {
                 UInt_t fDateRangeLow; 
                 UInt_t fTimeRangeLow; 
                 UInt_t fDateRangeHigh; 
-                UInt_t fTimeRangeHigh; 
+                UInt_t fTimeRangeHigh;
+
+                std::vector<std::pair<UInt_t,UInt_t>> fTimeRanges; 
 
                 long long RDTSTime;
                 double RDTSTimeSec;
@@ -71,7 +73,11 @@ void filter::HVTimeFilter::reconfigure(fhicl::ParameterSet const& p) {
         fTimeRangeLow   = p.get<UInt_t>("TimeRangeLow", 0);   // HHMMSS
         fDateRangeHigh  = p.get<UInt_t>("DateRangeHigh", 0);  // YYYYMMDD
         fTimeRangeHigh  = p.get<UInt_t>("TimeRangeHigh", 0);  // HHMMSS
-}
+        fTimeRanges  = p.get<std::vector <std::pair<UInt_t,UInt_t >>>("TimeRanges");
+
+ }  
+
+
 filter::HVTimeFilter::HVTimeFilter(fhicl::ParameterSet const& pset) {
         this->reconfigure(pset);
 }
@@ -115,101 +121,95 @@ uint64_t filter::HVTimeFilter::GetRawDecoderInfo(art::Event & e){
 }
 
 bool filter::HVTimeFilter::filter(art::Event &evt) {   
-        // Check that input date is in correct format
-        
-        if (fDateRangeHigh > 99999999 || fDateRangeLow > 99999999) {
-                std::cout << "Warning: please provide date in format YYYYMMDD, event time "
-                          << "filter returning false." << std::endl; 
-                return false;
-        }
-        if (fDateRangeHigh > 0 && fDateRangeHigh < 10000000) {
-                std::cout << "Warning: please provide date in format YYYYMMDD, event time "
-                          << "filter returning false." << std::endl; 
-                return false;
-        }
-        if (fDateRangeLow > 0 && fDateRangeLow < 10000000) {
-                std::cout << "Warning: please provide date in format YYYYMMDD, event time "
-                          << "filter returning false." << std::endl; 
-                return false;
-        }
-        // Check that input times are in correct format
-        if (fTimeRangeHigh > 999999 || fTimeRangeLow > 999999) {
-                std::cout << "Warning: please provide time in format HHMMSS, event time "
-                          << "filter returning false.1" << std::endl; 
-                return false;
 
-        }
-        //no idea what this is supposed to be doing!! will reject any times before 10am
-        // 
-        // if (fTimeRangeHigh > 0 && fTimeRangeHigh < 100000) {
-        //         std::cout << "Warning: please provide time in format HHMMSS, event time "
-        //                   << "filter returning false.2" << std::endl; 
-        //         return false;
-        // }
-        // if (fTimeRangeLow > 0 && fTimeRangeLow < 100000) {
-        //         std::cout << "Warning: please provide time in format HHMMSS, event time "
-        //                   << "filter returning false.3" << std::endl; 
-        //         return false;
-        // }
-        // Event time
-        //art::Timestamp evtTime = evt.time();
         TTimeStamp * evtTTS;
         evtTTS = new TTimeStamp(GetRawDecoderInfo(evt));
         // if (evtTime.timeHigh() == 0) { evtTTS = new TTimeStamp(evtTime.timeLow()); }
         // else { evtTTS = new TTimeStamp(evtTime.timeHigh(), evtTime.timeLow()); }
         std::cout << "Event time:  " << evtTTS -> AsString() << std::endl;
         // Requested time range lower end
-        TTimeStamp * ttsLow(nullptr); 
-        if (fDateRangeLow != 0) {
-                if (fTimeRangeLow != 0) { 
-                        ttsLow = new TTimeStamp(fDateRangeLow, fTimeRangeLow, 0u); 
-                }
-                else { 
-                        ttsLow = new TTimeStamp(fDateRangeLow, 0u, 0u); 
-                        std::cout << "Warning: No start time given for event time filter, "
-                                  << "assuming 00:00:00" << std::endl;
-                }
-        }
-        // Requested time range higher end
-        TTimeStamp * ttsHigh(nullptr);
-        if (fDateRangeHigh != 0) {
-                if (fTimeRangeHigh != 0) { 
-                        ttsHigh = new TTimeStamp(fDateRangeHigh, fTimeRangeHigh, 0u); 
-                }
-                else { 
-                        std::cout << "Warning: No end time given for event time filter, assuming "
-                                  << "23:59:59" << std::endl;
-                        ttsHigh = new TTimeStamp(fDateRangeHigh, 235959u, 0u); 
-                }
-        }
-        // Filter decision
-        std::cout << "Lower Limit:  " << ttsLow -> AsString() << std::endl;
-        std::cout << "Upper Limit:  " << ttsHigh -> AsString() << std::endl;
-        if (ttsLow == nullptr && ttsHigh == nullptr) {
-                std::cout << "Warning: No date range requested for event time filter, "
-                          << "returning false." << std::endl;
-                return false;
-        } 
-        else if (ttsLow == nullptr) {
-                std::cout << "Warning: No lower limit requested for event time filter, "
-                          << "taking all events before " << ttsHigh -> AsString() 
-                          << std::endl;
-                if (evtTTS -> GetSec() < ttsHigh -> GetSec()) { return true; }
-                else { return false;}
-        } 
-        else if (ttsHigh == nullptr) {
-                std::cout << "Warning: No lower limit requested for event time filter, "
-                          << "taking all events after " << ttsLow -> AsString() 
-                          << std::endl;
-                if (evtTTS -> GetSec() > ttsLow -> GetSec()) { return true; }
-                else { return false;}
-        } 
 
-        else { 
+        for (auto TimeRange : fTimeRanges){ //loop through beam side APAs
+
+            fTimeRangeLow=TimeRange.first;
+            fTimeRangeHigh=TimeRange.second;
+
+
+                        // Check that input date is in correct format
             
-                if (evtTTS -> GetSec() > ttsLow -> GetSec() && 
-                    evtTTS -> GetSec() < ttsHigh -> GetSec()) { return true; }
-                else { return false; }
-        }
+            if (fDateRangeHigh > 99999999 || fDateRangeLow > 99999999) {
+                    std::cout << "Warning: please provide date in format YYYYMMDD, event time "
+                              << "filter returning false." << std::endl; 
+                    return false;
+            }
+            if (fDateRangeHigh > 0 && fDateRangeHigh < 10000000) {
+                    std::cout << "Warning: please provide date in format YYYYMMDD, event time "
+                              << "filter returning false." << std::endl; 
+                    return false;
+            }
+            if (fDateRangeLow > 0 && fDateRangeLow < 10000000) {
+                    std::cout << "Warning: please provide date in format YYYYMMDD, event time "
+                              << "filter returning false." << std::endl; 
+                    return false;
+            }
+            // Check that input times are in correct format
+            if (fTimeRangeHigh > 999999 || fTimeRangeLow > 999999) {
+                    std::cout << "Warning: please provide time in format HHMMSS, event time "
+                              << "filter returning false.1" << std::endl; 
+                    return false;
+
+            }
+            //no idea what this is supposed to be doing!! will reject any times before 10am
+            // 
+            // if (fTimeRangeHigh > 0 && fTimeRangeHigh < 100000) {
+            //         std::cout << "Warning: please provide time in format HHMMSS, event time "
+            //                   << "filter returning false.2" << std::endl; 
+            //         return false;
+            // }
+            // if (fTimeRangeLow > 0 && fTimeRangeLow < 100000) {
+            //         std::cout << "Warning: please provide time in format HHMMSS, event time "
+            //                   << "filter returning false.3" << std::endl; 
+            //         return false;
+            // }
+            // Event time
+            //art::Timestamp evtTime = evt.time();
+
+
+                // all the checking he dies then ask if its in the correct range
+
+                        TTimeStamp * ttsLow(nullptr); 
+            if (fDateRangeLow != 0) {
+                    if (fTimeRangeLow != 0) { 
+                            ttsLow = new TTimeStamp(fDateRangeLow, fTimeRangeLow, 0u); 
+                    }
+                    else { 
+                            ttsLow = new TTimeStamp(fDateRangeLow, 0u, 0u); 
+                            std::cout << "Warning: No start time given for event time filter, "
+                                      << "assuming 00:00:00" << std::endl;
+                    }
+            }
+            // Requested time range higher end
+            TTimeStamp * ttsHigh(nullptr);
+            if (fDateRangeHigh != 0) {
+                    if (fTimeRangeHigh != 0) { 
+                            ttsHigh = new TTimeStamp(fDateRangeHigh, fTimeRangeHigh, 0u); 
+                    }
+                    else { 
+                            std::cout << "Warning: No end time given for event time filter, assuming "
+                                      << "23:59:59" << std::endl;
+                            ttsHigh = new TTimeStamp(fDateRangeHigh, 235959u, 0u); 
+                    }
+            }
+            // Filter decision
+            std::cout << "Lower Limit:  " << ttsLow -> AsString() << std::endl;
+            std::cout << "Upper Limit:  " << ttsHigh -> AsString() << std::endl;
+    
+                
+            if (evtTTS -> GetSec() > ttsLow -> GetSec() && 
+                evtTTS -> GetSec() < ttsHigh -> GetSec()) { return false; }
+                    
+
+    }
+    return true;    //need this to stop the get to end error make sure to check this is working as intended
 }
  DEFINE_ART_MODULE(filter::HVTimeFilter) 
