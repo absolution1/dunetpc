@@ -1,4 +1,4 @@
-#include protodunedatautils.fcl
+#include "protodunedatautils.fcl"
 
 BEGIN_PROLOG
 

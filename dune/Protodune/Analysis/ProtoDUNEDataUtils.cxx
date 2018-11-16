@@ -143,7 +143,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
     protoana::PossibleParticleCands result = {true,true,true,true,true};
     return result;
   }
-  if (beamEnergyGeV < 1.5)
+  if (beamEnergyGeV < 2.5)
   {
     if(CKov0Status == 1)
     {
@@ -156,15 +156,46 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       return result;
     }
   }
-  else
+  else if (beamEnergyGeV < 3.5)
   {
+    if(CKov0Status == 1 && CKov1Status == 1) // electron
+    {
       protoana::PossibleParticleCands result = {true,false,false,false,false};
       return result;
+    }
+    else if(CKov0Status == 1) // pi/mu
+    {
+      protoana::PossibleParticleCands result = {false,true,true,false,false};
+      return result;
+    }
+    else // kaon/proton
+    {
+      protoana::PossibleParticleCands result = {false,false,false,true,true};
+      return result;
+    }
+  }
+  else // 6 and 7 GeV
+  {
+    if(CKov0Status == 1 && CKov1Status == 1) // electron/muon/pion
+    {
+      protoana::PossibleParticleCands result = {true,true,true,false,false};
+      return result;
+    }
+    else if(CKov0Status == 1) // kaon
+    {
+      protoana::PossibleParticleCands result = {false,false,false,true,false};
+      return result;
+    }
+    else // proton
+    {
+      protoana::PossibleParticleCands result = {false,false,false,false,true};
+      return result;
+    }
   }
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(art::Event const & evt, const float beamEnergyGeV) const{
-  if (beamEnergyGeV >= 2.5 || beamEnergyGeV <= 0.9)
+  if (beamEnergyGeV >= 2.5)
   {
     protoana::PossibleParticleCands result = {true,true,true,true,true};
     return result;
@@ -183,7 +214,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(a
   }
   if (beamEnergyGeV < 1.5)
   {
-    if (TOF < 175.)
+    if (TOF < 170.)
     {
       protoana::PossibleParticleCands result = {true,true,true,true,false};
       return result;

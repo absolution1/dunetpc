@@ -6,7 +6,7 @@
 # Configurations for the protoDUNE femb filter module.
 #
 
-#include protodunedatautils.fcl
+#include "protodunedatautils.fcl"
 
 BEGIN_PROLOG
 

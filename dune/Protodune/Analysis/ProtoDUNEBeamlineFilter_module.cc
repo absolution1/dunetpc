@@ -87,18 +87,18 @@ void protoana::ProtoDUNEBeamlineFilter::beginJob() {
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineFilter::reconfigure(fhicl::ParameterSet const& pset){
   fNominalBeamMomentum = pset.get<float>("NominalBeamMomentum"); // GeV/c
-  fIsElectron = pset.get<float>("IsElectron");
-  fIsMuon = pset.get<float>("IsMuon");
-  fIsPion = pset.get<float>("IsPion");
-  fIsKaon = pset.get<float>("IsKaon");
-  fIsProton = pset.get<float>("IsProton");
-  fAndParticles = pset.get<float>("AndParticles");
+  fIsElectron = pset.get<bool>("IsElectron");
+  fIsMuon = pset.get<bool>("IsMuon");
+  fIsPion = pset.get<bool>("IsPion");
+  fIsKaon = pset.get<bool>("IsKaon");
+  fIsProton = pset.get<bool>("IsProton");
+  fAndParticles = pset.get<bool>("AndParticles");
 }
 
 //-----------------------------------------------------------------------
 bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
 
-  auto possibleParts = fDataUtils.GetBeamlineParticleID(evt,fNominalBeamMomentum);
+  const auto possibleParts = fDataUtils.GetBeamlineParticleID(evt,fNominalBeamMomentum);
   if(fAndParticles)
   {
     if(fIsElectron && !possibleParts.electron) return false;

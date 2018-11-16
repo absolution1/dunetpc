@@ -93,7 +93,7 @@ protoana::BeamExample::BeamExample(fhicl::ParameterSet const & p)
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose")),
-  dataUtil(p.get<fhicl::ParameterSet>("fDataUtils"))
+  dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
 {
 
 }
