@@ -44,7 +44,7 @@ physics:
  }
   filters:
  {
- filter:   @local::pdsp_fembfilter_all
+ filter:   @local::pdsp_fembfilter_beamside
 
   }
 
