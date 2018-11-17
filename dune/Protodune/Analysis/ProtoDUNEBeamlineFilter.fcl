@@ -68,7 +68,6 @@ standard_protodunebeamlinefilter_Electron_1GeV.IsMuon:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsPion:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsKaon:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsProton:   false
-standard_protodunebeamlinefilter_Electron_1GeV.DataUtils.StrictTOF: false # we don't care if TOF works if we have both CKov's
 
 standard_protodunebeamlinefilter_Electron_0p3GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_0p3GeV.NominalBeamMomentum: 0.3
