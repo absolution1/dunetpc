@@ -61,4 +61,5 @@ physics:
 }
 
 
-
+#physics.filters.filter.DataUtils.StrictTOF: false
+#physics.filters.filter.DataUtils.StrictCherenkov: false

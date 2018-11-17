@@ -141,14 +141,22 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
     CKov0Status = beamEvent.GetCKov0Status();
     CKov1Status = beamEvent.GetCKov1Status();
   }
-  if (!fStrictCherenkov && (CKov0Status < 0 || CKov1Status < 0))
+  if (CKov0Status < 0 || CKov1Status < 0)
   {
-    protoana::PossibleParticleCands result = {true,true,true,true,true};
-    return result;
+    if (fStrictCherenkov)
+    {
+      protoana::PossibleParticleCands result = {false,false,false,false,false};
+      return result;
+    }
+    else
+    {
+      protoana::PossibleParticleCands result = {true,true,true,true,true};
+      return result;
+    }
   }
   if (beamEnergyGeV < 2.5)
   {
-    if(CKov0Status == 1)
+    if(CKov1Status == 1)
     {
       protoana::PossibleParticleCands result = {true,false,false,false,false};
       return result;
@@ -166,7 +174,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,false,false,false,false};
       return result;
     }
-    else if(CKov0Status == 1) // pi/mu
+    else if(CKov1Status == 1) // pi/mu
     {
       protoana::PossibleParticleCands result = {false,true,true,false,false};
       return result;
@@ -184,7 +192,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,true,true,false,false};
       return result;
     }
-    else if(CKov0Status == 1) // kaon
+    else if(CKov1Status == 1) // kaon
     {
       protoana::PossibleParticleCands result = {false,false,false,true,false};
       return result;
@@ -260,14 +268,15 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(a
 protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetBeamlineParticleID(art::Event const & evt, const float beamEnergyGeV) const {
   const auto tof = GetTOFParticleID(evt,beamEnergyGeV);
   const auto chkov = GetCherenkovParticleID(evt,beamEnergyGeV);
-  return tof && chkov;
+  auto result = tof && chkov;
+  result.electron = chkov.electron; // disregard tof for electrons
+  return result;
 }
 
-const std::tuple<double,double,int,int,int> protoana::ProtoDUNEDataUtils::GetBeamlineVars(art::Event const & evt) const {
+const std::tuple<double,double,int,int> protoana::ProtoDUNEDataUtils::GetBeamlineVars(art::Event const & evt) const {
 
   double momentum = -99999.;
   double tof = -99999.;
-  int tofChannel = -99999.;
   int ckov0 = -99999.;
   int ckov1 = -99999.;
 
@@ -288,16 +297,18 @@ const std::tuple<double,double,int,int,int> protoana::ProtoDUNEDataUtils::GetBea
         momentum = beamEvent.GetRecoBeamMomentum(0);
     }
   }
-  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1);
+  return std::make_tuple(momentum, tof, ckov0, ckov1);
 }
 
-const std::tuple<double,double,int,int,int,int,int,bool> protoana::ProtoDUNEDataUtils::GetBeamlineVarsAndStatus(art::Event const & evt) const {
+const std::tuple<double,double,int,int,int,double,double,int,int,bool> protoana::ProtoDUNEDataUtils::GetBeamlineVarsAndStatus(art::Event const & evt) const {
 
   double momentum = -99999.;
   double tof = -99999.;
   int tofChannel = -99999.;
   int ckov0 = -99999.;
   int ckov1 = -99999.;
+  double ckov0Pressure = -99999.;
+  double ckov1Pressure = -99999.;
   int timingTrigger = -99999.;
   int BITrigger = -99999.;
   bool areBIAndTimingMatched = false;
@@ -312,8 +323,11 @@ const std::tuple<double,double,int,int,int,int,int,bool> protoana::ProtoDUNEData
   {
     const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
     tof = beamEvent.GetTOF();
+    tofChannel = beamEvent.GetTOFChan();
     ckov0 = beamEvent.GetCKov0Status();
     ckov1 = beamEvent.GetCKov1Status();
+    ckov0Pressure = beamEvent.GetCKov0Pressure();
+    ckov1Pressure = beamEvent.GetCKov1Pressure();
     timingTrigger = beamEvent.GetTimingTrigger();
     BITrigger = beamEvent.GetBITrigger();
     areBIAndTimingMatched = beamEvent.CheckIsMatched();
@@ -323,6 +337,6 @@ const std::tuple<double,double,int,int,int,int,int,bool> protoana::ProtoDUNEData
     }
     break;
   }
-  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1, timingTrigger, BITrigger, areBIAndTimingMatched);
+  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1, ckov0Pressure, ckov1Pressure, timingTrigger, BITrigger, areBIAndTimingMatched);
 }
 

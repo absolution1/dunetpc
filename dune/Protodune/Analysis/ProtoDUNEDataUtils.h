@@ -86,14 +86,14 @@ namespace protoana {
 
     /**
      *  Get reconstructed beamline momentum (in GeV/c), tof (in ns), and
-     *  flags for the tofChannel and ckov's. Will be < 0 if invalid.
+     *  flags for if the ckov's fired. Will be < 0 if invalid.
      *
      *  C++ structured binding, so call like:
-     *  const auto [momentum, tof, tofChannel,ckov0,ckov1] = dataUtils.GetBeamlineInformation(e);
+     *  const auto [momentum, tof, ckov0, ckov1] = dataUtils.GetBeamlineInformation(e);
      *
      *  then you have the normal float momentum, int ckov0 variables, etc. in the current scope.
      */
-    const std::tuple<double,double,int,int,int> GetBeamlineVars(art::Event const & evt) const;
+    const std::tuple<double,double,int,int> GetBeamlineVars(art::Event const & evt) const;
 
     /**
      *  Get reconstructed beamline momentum (in GeV/c), tof (in ns),
@@ -104,11 +104,12 @@ namespace protoana {
      *  All values will be < 0 if invalid.
      *
      *  C++ structured binding, so call like:
-     *  const auto [momentum, tof, tofChannel,ckov0,ckov1,timingTrigger,BITrigger,areBIAndTimingMatched] = dataUtils.GetBeamlineInformation(e);
+     *  const auto [momentum, tof, tofChannel,ckov0,ckov1,ckov0Pressure,ckov1Pressure,timingTrigger,BITrigger,areBIAndTimingMatched] = dataUtils.GetBeamlineInformation(e);
      *
-     *  then you have the normal float momentum, int ckov0 variables, etc. in the current scope.
+     *  then you have the normal float momentum, int ckov0 variables, etc. in the current scope. You can use (void) variable; lines
+     *  to get rid of unused var warnings.
      */
-    const std::tuple<double,double,int,int,int,int,int,bool> GetBeamlineVarsAndStatus(art::Event const & evt) const;
+    const std::tuple<double,double,int,int,int,double,double,int,int,bool> GetBeamlineVarsAndStatus(art::Event const & evt) const;
 
   private:
 

@@ -68,6 +68,10 @@ private:
   TH1F* fCKov0Pass;
   TH1F* fCKov1All;
   TH1F* fCKov1Pass;
+  TH1F* fCKov0PressureAll;
+  TH1F* fCKov0PressurePass;
+  TH1F* fCKov1PressureAll;
+  TH1F* fCKov1PressurePass;
   TH1F* fCKovAll;
   TH1F* fCKovPass;
   TH1F* fMassAll;
@@ -107,6 +111,10 @@ void protoana::ProtoDUNEBeamlineFilter::beginJob() {
   fCKov0Pass = tfs->make<TH1F>("CKov0Pass", "Cherenkov 0 for Passing Events", 3,-1,2);
   fCKov1All = tfs->make<TH1F>("CKov1All", "Cherenkov 1 for All Events", 3,-1,2);
   fCKov1Pass = tfs->make<TH1F>("CKov1Pass", "Cherenkov 1 for Passing Events", 3,-1,2);
+  fCKov0PressureAll = tfs->make<TH1F>("CKov0PressureAll", "Cherenkov 0 Pressure for All Events", 100,0,10);
+  fCKov0PressurePass = tfs->make<TH1F>("CKov0PressurePass", "Cherenkov 0 Pressure for Passing Events", 100,0,10);
+  fCKov1PressureAll = tfs->make<TH1F>("CKov1PressureAll", "Cherenkov 1 Pressure for All Events", 100,0,10);
+  fCKov1PressurePass = tfs->make<TH1F>("CKov1PressurePass", "Cherenkov 1 Pressure for Passing Events", 100,0,10);
   fCKovAll = tfs->make<TH1F>("CKovAll", "Both Cherenkovs for All Events", 5,-1,4);
   fCKovPass = tfs->make<TH1F>("CKovPass", "Both Cherenkovs for Passing Events", 5,-1,4);
   fMassAll = tfs->make<TH1F>("MassAll", "Beamline Particle Mass for All Events", 200,0,5);
@@ -173,11 +181,7 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     if (possibleParts.proton)   fPossiblePartsPass->Fill(4);
   }
 
-  const auto [momentum, tof, tofChannel,ckov0,ckov1,timingTrigger,BITrigger,areBIAndTimingMatched] = fDataUtils.GetBeamlineVarsAndStatus(evt);
-  mf::LogWarning("protoana::ProtoDUNEBeamlineFilter::filter") << "momentum: " << momentum << " GeV/c, TOF: "<<tof 
-                << " ns, tofChannel: " << tofChannel << " cherenkov 0: " << ckov0 << " cherenkov 1: " << ckov1
-                << " timingTrigger: "<<timingTrigger<<" BITrigger: "<<BITrigger
-                << " BIAndTimingMatched: "<<areBIAndTimingMatched;
+  const auto [momentum,tof,tofChannel,ckov0,ckov1,ckov0Pressure,ckov1Pressure,timingTrigger,BITrigger,areBIAndTimingMatched] = fDataUtils.GetBeamlineVarsAndStatus(evt);
   fMomentumAll->Fill(momentum);
   if(result) fMomentumPass->Fill(momentum);
   fTOFAll->Fill(momentum);
@@ -189,9 +193,13 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
   if(result) fCKov0Pass->Fill(ckov0);
   fCKov1All->Fill(ckov1);
   if(result) fCKov1Pass->Fill(ckov1);
+  fCKov0PressureAll->Fill(ckov0Pressure);
+  if(result) fCKov0PressurePass->Fill(ckov0Pressure);
+  fCKov1PressureAll->Fill(ckov1);
+  if(result) fCKov1PressurePass->Fill(ckov1Pressure);
 
   int ckov = -1;
-  if (ckov0 && ckov1 >=0)
+  if (ckov0 >=0 && ckov1 >=0)
   {
     ckov = ckov0;
     ckov += (ckov1 << 1);
@@ -199,10 +207,16 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
   fCKovAll->Fill(ckov);
   if(result) fCKovPass->Fill(ckov);
 
+  mf::LogInfo("protoana::ProtoDUNEBeamlineFilter::filter") << "pass: " << result << "momentum: " << momentum << " GeV/c, TOF: "<<tof 
+                << " ns, tofChannel: " << tofChannel << " cherenkov 0: " << ckov0 << " cherenkov 1: " << ckov1
+                << " ckov0Pressure: " << ckov0Pressure 
+                << " ckov1Pressure: " << ckov1Pressure 
+                << " timingTrigger: "<<timingTrigger<<" BITrigger: "<<BITrigger
+                << " BIAndTimingMatched: "<<areBIAndTimingMatched;
   std::vector<double> masses = fDataUtils.GetBeamlineMass(evt);
   for (const auto& mass: masses)
   {
-    mf::LogWarning("protoana::ProtoDUNEBeamlineFilter::filter") << "mass: " << mass << " GeV/c^2";
+    mf::LogInfo("protoana::ProtoDUNEBeamlineFilter::filter") << "mass: " << mass << " GeV/c^2";
    fMassAll->Fill(mass);
    if(result) fMassPass->Fill(mass);
   }
