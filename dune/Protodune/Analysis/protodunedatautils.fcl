@@ -5,6 +5,10 @@ standard_protodunedatautils:
 {
    TimingTag:               "timingrawdecoder:daq"  
    BeamEventTag:            "beamevent"
+
+   StrictTOF:               true # strict/permissive on events with invalid TOF data
+   StrictCherenkov:         true # strict/permissive on events with invalid Cherenkov data
+
    TOFDistance:             28.6 # meters
    MomentumScaleFactor:     1.
    MomentumOffset:          0. # GeV/c

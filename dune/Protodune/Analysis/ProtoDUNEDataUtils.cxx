@@ -21,6 +21,9 @@ void protoana::ProtoDUNEDataUtils::reconfigure(fhicl::ParameterSet const& p){
   fTimingTag = p.get<art::InputTag>("TimingTag");
   fBeamEventTag = p.get<art::InputTag>("BeamEventTag");
 
+  fStrictTOF = p.get<bool>("StrictTOF");
+  fStrictCherenkov = p.get<bool>("StrictCherenkov");
+
   fTOFDistance = p.get<float>("TOFDistance"); // meters
   fMomentumScaleFactor = p.get<float>("MomentumScaleFactor"); 
   fMomentumOffset = p.get<float>("MomentumOffset"); // GeV/c
@@ -123,7 +126,7 @@ std::vector<double> protoana::ProtoDUNEDataUtils::GetBeamlineMass(art::Event con
   return result;
 }
 
-protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovParticleID(art::Event const & evt, const float beamEnergyGeV, const bool strict) const{
+protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovParticleID(art::Event const & evt, const float beamEnergyGeV) const{
   std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
   auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
   if(beamHand.isValid())
@@ -138,7 +141,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
     CKov0Status = beamEvent.GetCKov0Status();
     CKov1Status = beamEvent.GetCKov1Status();
   }
-  if (!strict && (CKov0Status < 0 || CKov1Status < 0))
+  if (!fStrictCherenkov && (CKov0Status < 0 || CKov1Status < 0))
   {
     protoana::PossibleParticleCands result = {true,true,true,true,true};
     return result;
@@ -210,7 +213,21 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(a
   for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
   {
     const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    if (!beamEvent.CheckIsMatched())
+    {
+      if(fStrictTOF)
+      {
+        protoana::PossibleParticleCands result = {false,false,false,false,false};
+        return result;
+      }
+      else
+      {
+        protoana::PossibleParticleCands result = {true,true,true,true,true};
+        return result;
+      }
+    }
     TOF = beamEvent.GetTOF();
+    break;
   }
   if (beamEnergyGeV < 1.5)
   {
@@ -245,3 +262,67 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetBeamlineParticl
   const auto chkov = GetCherenkovParticleID(evt,beamEnergyGeV);
   return tof && chkov;
 }
+
+const std::tuple<double,double,int,int,int> protoana::ProtoDUNEDataUtils::GetBeamlineVars(art::Event const & evt) const {
+
+  double momentum = -99999.;
+  double tof = -99999.;
+  int tofChannel = -99999.;
+  int ckov0 = -99999.;
+  int ckov1 = -99999.;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tof = beamEvent.GetTOF();
+    ckov0 = beamEvent.GetCKov0Status();
+    ckov1 = beamEvent.GetCKov1Status();
+    if (beamEvent.GetNRecoBeamMomenta() > 0)
+    {
+        momentum = beamEvent.GetRecoBeamMomentum(0);
+    }
+  }
+  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1);
+}
+
+const std::tuple<double,double,int,int,int,int,int,bool> protoana::ProtoDUNEDataUtils::GetBeamlineVarsAndStatus(art::Event const & evt) const {
+
+  double momentum = -99999.;
+  double tof = -99999.;
+  int tofChannel = -99999.;
+  int ckov0 = -99999.;
+  int ckov1 = -99999.;
+  int timingTrigger = -99999.;
+  int BITrigger = -99999.;
+  bool areBIAndTimingMatched = false;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tof = beamEvent.GetTOF();
+    ckov0 = beamEvent.GetCKov0Status();
+    ckov1 = beamEvent.GetCKov1Status();
+    timingTrigger = beamEvent.GetTimingTrigger();
+    BITrigger = beamEvent.GetBITrigger();
+    areBIAndTimingMatched = beamEvent.CheckIsMatched();
+    if (beamEvent.GetNRecoBeamMomenta() > 0)
+    {
+        momentum = beamEvent.GetRecoBeamMomentum(0);
+    }
+    break;
+  }
+  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1, timingTrigger, BITrigger, areBIAndTimingMatched);
+}
+

@@ -68,9 +68,8 @@ namespace protoana {
      * detectors fired, sets the particle types this could possibly be to true in the
      * returned PossibleParticleCands object
      *
-     * if strict is false and Cherenkov data is invalid, will return true for all particle types
      */
-    PossibleParticleCands GetCherenkovParticleID(art::Event const & evt, const float beamEnergyGeV, const bool strict=true) const;
+    PossibleParticleCands GetCherenkovParticleID(art::Event const & evt, const float beamEnergyGeV) const;
     /**
      * Based on the energy of a given run, the beamline momentum, 
      * and time of flight, sets the particle types this could 
@@ -85,10 +84,39 @@ namespace protoana {
      */
     PossibleParticleCands GetBeamlineParticleID(art::Event const & evt, const float beamEnergyGeV) const;
 
+    /**
+     *  Get reconstructed beamline momentum (in GeV/c), tof (in ns), and
+     *  flags for the tofChannel and ckov's. Will be < 0 if invalid.
+     *
+     *  C++ structured binding, so call like:
+     *  const auto [momentum, tof, tofChannel,ckov0,ckov1] = dataUtils.GetBeamlineInformation(e);
+     *
+     *  then you have the normal float momentum, int ckov0 variables, etc. in the current scope.
+     */
+    const std::tuple<double,double,int,int,int> GetBeamlineVars(art::Event const & evt) const;
+
+    /**
+     *  Get reconstructed beamline momentum (in GeV/c), tof (in ns),
+     *  flags for the tofChannel and ckov's. Also the timing trigger (12 means beam),
+     *  the beam instrumentation trigger (1 means beam trigger), and whether
+     *  the timing and beam instrumentation triggers are matched.
+     *
+     *  All values will be < 0 if invalid.
+     *
+     *  C++ structured binding, so call like:
+     *  const auto [momentum, tof, tofChannel,ckov0,ckov1,timingTrigger,BITrigger,areBIAndTimingMatched] = dataUtils.GetBeamlineInformation(e);
+     *
+     *  then you have the normal float momentum, int ckov0 variables, etc. in the current scope.
+     */
+    const std::tuple<double,double,int,int,int,int,int,bool> GetBeamlineVarsAndStatus(art::Event const & evt) const;
+
   private:
 
     art::InputTag fTimingTag;
     art::InputTag fBeamEventTag;
+
+    bool fStrictTOF;
+    bool fStrictCherenkov;
 
     float fTOFDistance; // meters
     float fMomentumScaleFactor;
