@@ -27,7 +27,14 @@ CRTSimValidation_standard:
 CRTOnlineMonitor_standard:
 {
   module_type: "CRTOnlineMonitor"
-  CRTLabel: "crt"
+  CRTLabel: "crtrawdecoder"
+}
+
+CRTTimeOffset_standard:
+{
+  module_type: "TimeOffset"
+  CRTLabel: "crtrawdecoder"
+  TimestampLabel: "timingrawdecoder:daq"
 }
 
 END_PROLOG

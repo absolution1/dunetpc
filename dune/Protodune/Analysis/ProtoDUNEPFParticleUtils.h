@@ -11,15 +11,15 @@
 #include <map>
 #include <string>
 
-#include "lardataobj/RecoBase/PFParticle.h"
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/SpacePoint.h"
-#include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Track.h"
 #include "art/Framework/Principal/Event.h"
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
 
 #include "TVector3.h"
 

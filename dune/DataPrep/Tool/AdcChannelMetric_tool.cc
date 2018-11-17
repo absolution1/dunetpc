@@ -7,7 +7,10 @@
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/LineColors.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH1F.h"
 #include "TGraph.h"
 #include "TCanvas.h"
@@ -21,6 +24,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 using std::vector;
+using TGraphVector = std::vector<TGraph*>;
 
 //**********************************************************************
 // local definitiions.
@@ -44,7 +48,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
-  m_RootFileName(ps.get<Name>("RootFileName")) {
+  m_RootFileName(ps.get<Name>("RootFileName")),
+  m_useStatus(false) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -75,6 +80,15 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  m_useStatus = m_HistName.find("%STATUS%") != string::npos;
+  if ( m_useStatus ) {
+    if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
+    m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    if ( m_pChannelStatusProvider == nullptr ) {
+      cout << myname << "WARNING: Channel status provider not found." << endl;
+      m_useStatus = false;
+    }
   }
   // Display the configuration.
   if ( m_LogLevel ) {
@@ -178,13 +192,28 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
   ph->SetStats(0);
   ph->GetXaxis()->SetTitle("Channel");
   ph->GetYaxis()->SetTitle(slaby.c_str());
-  TGraph* pg = new TGraph;
-  pg->SetName(hname.c_str());
-  pg->SetTitle(htitl.c_str());
-  pg->SetMarkerStyle(2);
-  pg->SetMarkerColor(602);
-  pg->GetXaxis()->SetTitle("Channel");
-  pg->GetYaxis()->SetTitle(slaby.c_str());
+  unsigned int ngraph = m_useStatus ? 4 : 1;
+  NameVector statNames = {"All", "Good", "Bad", "Noisy"};
+  LineColors lc;
+  std::vector<int> statCols = {lc.blue(), lc.green(), lc.red(), lc.brown()};
+  TGraphVector graphs(ngraph, nullptr);
+  for ( Index igra=0; igra<ngraph; ++igra ) {
+    string gname = hname;
+    string gtitl = htitl;
+    StringManipulator smanName(gname);
+    smanName.replace("%STATUS%", statNames[igra]);
+    StringManipulator smanTitl(gtitl);
+    smanTitl.replace("%STATUS%", statNames[igra]);
+    graphs[igra] = new TGraph;
+    TGraph* pg = graphs[igra];
+    pg->SetName(gname.c_str());
+    pg->SetTitle(gtitl.c_str());
+    pg->SetMarkerStyle(2);
+    pg->SetMarkerColor(statCols[igra]);
+    pg->GetXaxis()->SetTitle("Channel");
+    pg->GetYaxis()->SetTitle(slaby.c_str());
+  }
+  TGraph* pgAll = graphs[0];
   Index nfill = 0;
   float val = 0.0;
   Name sunits;
@@ -205,7 +234,13 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
       if ( val < m_MetricMin ) gval = m_MetricMin;
       if ( val > m_MetricMax ) gval = m_MetricMax;
     }
-    pg->SetPoint(pg->GetN(), icha, gval);
+    pgAll->SetPoint(pgAll->GetN(), icha, gval);
+    if ( m_useStatus ) {
+      TGraph* pgStat = graphs[1];
+      if      ( m_pChannelStatusProvider->IsBad(acd.channel) )   pgStat = graphs[2];
+      else if ( m_pChannelStatusProvider->IsNoisy(acd.channel) ) pgStat = graphs[3];
+      pgStat->SetPoint(pgStat->GetN(), icha, gval);
+    }
     ++nfill;
   }
   if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
@@ -214,7 +249,13 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     //man.add(ph, "hist");
     //man.add(ph, "axis");
-    man.add(pg, "P");
+    man.add(pgAll, "P");
+    if ( m_useStatus ) {
+      for ( int igra : {1, 3, 2} ) {
+        TGraph* pgra = graphs[igra];
+        if ( pgra->GetN() ) man.add(pgra, "P");
+      }
+    }
     man.addAxis();
     if ( m_ChannelLineModulus ) {
       for ( Index icha : m_ChannelLinePattern ) {
