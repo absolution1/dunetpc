@@ -1,3 +1,5 @@
+#include "ProtoDUNEDataUtils.fcl"
+
 BEGIN_PROLOG
 
 proto_AnalTree:
@@ -10,6 +12,7 @@ proto_AnalTree:
    PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
    Verbose:                 false
+   DataUtils:               @local::standard_protodunedatautils
 }
 
 END_PROLOG

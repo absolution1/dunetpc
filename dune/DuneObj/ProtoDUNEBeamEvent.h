@@ -63,7 +63,7 @@ namespace beam
 
       void                                AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       const recob::Track &                GetBeamTrack(size_t i) const{ return Tracks.at(i);};
-      size_t                              GetNBeamTracks() {return Tracks.size();}
+      size_t                              GetNBeamTracks() const{return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
       void                                ClearBeamTracks(){ Tracks.clear(); };
 
@@ -74,7 +74,7 @@ namespace beam
 
       void                          AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
       const std::vector< double > & GetRecoBeamMomenta() const               { return RecoBeamMomenta;};
-      size_t                        GetNRecoBeamMomenta()                    { return RecoBeamMomenta.size(); };
+      size_t                        GetNRecoBeamMomenta() const              { return RecoBeamMomenta.size(); };
       const double &                GetRecoBeamMomentum( size_t i ) const    { return RecoBeamMomenta.at(i); };  
       void                          ClearRecoBeamMomenta()                   { RecoBeamMomenta.clear(); }; 
 
@@ -95,6 +95,10 @@ namespace beam
 
       void              SetRDTimestamp(long long theRDTimestamp){ RDTimestamp = theRDTimestamp; };
       const long long & GetRDTimestamp() const{ return RDTimestamp; };
+
+      void              SetMagnetCurrent(double theMagnetCurrent){ MagnetCurrent = theMagnetCurrent; };
+      const double &    GetMagnetCurrent() const{ return MagnetCurrent; };
+
 
 
 
@@ -139,6 +143,8 @@ namespace beam
       int TimingTrigger;
       double SpillStart;
       double SpillOffset;
+
+      double MagnetCurrent;
 
   };
 

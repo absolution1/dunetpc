@@ -221,6 +221,7 @@ private:
 protoana::ProtoDUNEAnalTree::ProtoDUNEAnalTree(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
+  dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
   fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
   fCalorimetryTag(p.get<std::string>("CalorimetryTag")),
   fTrackerTag(p.get<std::string>("TrackerTag")),

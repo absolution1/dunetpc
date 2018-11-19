@@ -126,6 +126,9 @@ proto_beamevent:
 #Should we grab from the folders each time?
   ForceNewFetch:        "false"
 
+#Should we force matching with S11? (just for testing)
+  ForceMatchS11:        "false"
+
 #Do we want to match in time between
 #beamline and tpc?
   MatchTime:            "true"

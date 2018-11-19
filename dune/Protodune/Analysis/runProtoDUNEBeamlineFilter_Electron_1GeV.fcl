@@ -1,19 +1,19 @@
 #include "services_dune.fcl"
-#include "ProtoDUNEFembFilter.fcl"
+#include "ProtoDUNEBeamlineFilter.fcl"
 
 
 
-process_name: FembFilter
+process_name: BeamFilter
 
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "Filter_hist.root" }
+  TFileService: { fileName: "BeamlineFilter_hist.root" }
   TimeTracker:       {}
   MemoryTracker:     {}
   RandomNumberGenerator: {} #ART native random number generator
   message:              @local::dune_message_services_prod_debug
-  FileCatalogMetadata:  @local::art_file_catalog_mc
+  FileCatalogMetadata:  @local::art_file_catalog_data
                         @table::protodune_services
 }
 
@@ -44,7 +44,7 @@ physics:
  }
   filters:
  {
- filter:   @local::pdsp_fembfilter_beamside
+ filter:   @local::standard_protodunebeamlinefilter_Electron_1GeV
 
   }
 
@@ -60,5 +60,7 @@ physics:
  end_paths:     [ stream1 ]  
 }
 
-services.PdspChannelMapService:        @local::pdspchannelmap
-physics.filters.filter.LogLevel:        2
+
+
+#physics.filters.filter.DataUtils.StrictTOF: false
+#physics.filters.filter.DataUtils.StrictCherenkov: false

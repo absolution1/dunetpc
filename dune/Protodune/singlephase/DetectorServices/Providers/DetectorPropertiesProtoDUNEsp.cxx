@@ -70,6 +70,10 @@ namespace spdp{
   bool DetectorPropertiesProtoDUNEsp::Update(uint64_t) 
   {
     DoUpdateClocks();
+    auto const *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
+    double rawHV = tpchv->GetValue("NP04_DCS_01:Heinz_I", t);
+    double rawCurr = tpchv->GetValue("NP04_DCS_01:Heinz_V",t);
+    std::cout<<rawHV<<std::endl;
     return true;
   }
   //--------------------------------------------------------------------

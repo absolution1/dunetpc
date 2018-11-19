@@ -296,10 +296,10 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( getState().sumHistTemplates.size() == 0 ) {
       cout << myname << "  No summary histograms" << endl;
     } else {
-      cout << myname << "         SumHists: [" << endl;
+      cout << myname << "         SumHists:" << endl;
       for ( const HistInfoMap::value_type& ish : getState().sumHistTemplates ) {
         const HistInfo& hin = ish.second;
-        cout << myname << "                     ";
+        cout << myname << "                   ";
         cout << hin.ph->GetName() << "(" << hin.varx;
         if ( hin.vary.size() ) cout << "," << hin.vary;
         cout << ")";
@@ -308,19 +308,20 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         }
         cout << endl;
       }
-      cout << myname << "]" << endl;
     }
     if ( getState().chanSumHists.size() == 0 ) {
       cout << myname << "  No channel summary histograms" << endl;
     } else {
-      cout << myname << "   ChanSumHists: [" << endl;
+      cout << myname << "     ChanSumHists:" << endl;
       for ( HistMap::value_type ihst : getState().chanSumHists ) {
         TH1* ph = ihst.second;
-        cout << myname << "     " << ph->GetName() << endl;
+        cout << myname << "                 " << ph->GetName() << endl;
       }
     }
     cout << myname << "      RunDataTool: \"" << m_RunDataTool << "\" @ "
          << m_pRunDataTool << endl;
+    cout << myname << "   TickOffsetTool: \"" << m_TickOffsetTool << "\" @ "
+         << m_pTickOffsetTool << endl;
   }
   if ( m_LogLevel >=2 ) cout << myname << "End constructing tool." << endl;
 }
@@ -468,6 +469,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     float x2 = histRelativeTick ? isam2 - isam1 : isam2;
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
     ph->SetDirectory(nullptr);
+    //ph->Sumw2();  // Likelihood fit needs weights.
     ph->SetStats(0);
     ph->SetLineWidth(2);
     unsigned int ibin = 0;
@@ -530,6 +532,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       pfinit->SetLineStyle(2);
       string fopt = "0";
       fopt = "WWB";
+      //fopt = "LWB";  // Use likelihood fit to include empty bins. Do we want this here?
       if ( dbg < 3 ) fopt += "Q";
       int fstat = quietHistFit(ph, pf, fopt.c_str());
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
@@ -896,7 +899,8 @@ void AdcRoiViewer::fitSumHists() const {
         pf = new TF1(fname.c_str(), fname.c_str());
       }
       if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      int fstat = quietHistFit(ph, pf, "WWQ");
+      //int fstat = quietHistFit(ph, pf, "WWQ");
+      int fstat = quietHistFit(ph, pf, "LWB");
       if ( fstat != 0 ) {
         cout << myname << "  WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
         ph->GetListOfFunctions()->Clear();   // Otherwise we may get a crash when we try to view saved copy of histo
