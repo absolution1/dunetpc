@@ -13,16 +13,12 @@
 /*///////////////////////////////////////////////////////////////////////
  To-Do: 
 
-       * Need to save all momenta combinations to the beamevt
-
-       * Make print statements prettier
-
        * Fix the tracking portion with real values for monitor positions
        !!! Do after the fact? !!! 
 
        * Make TOF matching more robust. Perhaps search 'downward'
 
-       * Pass the S11 and Spill Offset to the next events in the same spill.
+       * Pass the Spill Offset to the next events in the same spill.
          - Does this need to be added to the data product? Probably not. just
            store in memory
        
@@ -176,6 +172,7 @@ private:
   double SpillStart;
   ULong_t SpillStart_alt;
   bool SpillStartValid;
+  bool acqStampValid;
   double PrevStart;
   double SpillEnd;
   double SpillOffset;
@@ -279,6 +276,7 @@ private:
   bool   fForceNewFetch;
   bool   fMatchTime;
   bool   fForceRead;
+  bool   fForceMatchS11;
 
   bool   fSaveOutTree;
   bool   fDebugTOFs;
@@ -562,6 +560,14 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
     try{
       std::vector<double> acqStamp = FetchAndReport(time, "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]"); 
 
+      if( acqStamp[0] < 300000000.0 ){
+        LOG_INFO("BeamEvent") << "Warning: MBPL Spill Start is low " << acqStamp[0] 
+                              << "\nWill need to time in with S11\n";
+
+        acqStampValid = false;                              
+      }
+      else{ acqStampValid = true; }
+
       acqStampMBPL   = 1.e-9 * joinHighLow(acqStamp[0],   acqStamp[1]); 
       std::cout.precision(dbl::max_digits10);
       std::cout << "MBPL: " << acqStampMBPL << std::endl;
@@ -802,64 +808,47 @@ void proto::BeamEvent::produce(art::Event & e){
       LOG_INFO("BeamEvent") << "cache_start: " << cache_start << "\n";
       LOG_INFO("BeamEvent") << "cache_end: "   << cache_end << "\n";
       LOG_INFO("BeamEvent") << "fetch_time: "  << fetch_time << "\n";
-      
+     
+      //Not the first event
       if(cache_start > 0 && cache_end > 0){
 
-        //Needs to be checked for both cases: fetch_time in and out of cache
-        if( (fetch_time - 5) < cache_start ){
-          LOG_INFO("BeamEvent") << "Start of spill info might exist below cache\n" 
-                                << "Trying to get updated cache\n";
-          try{        
-            std::vector< double > cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");
-            std::cout << "stamp: " << cache_test[0] << std::endl;
-          }
-          catch( std::exception e ){
-            LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
-          }
+        //So try filling the cache first with the 'possible' end of spill time
+        //then the lower spill time.
+        //
+        //This is done so that the cache essentially reshuffles where it starts and ends
+        //
+        //All the checking is done internal to the FillCache method
+        //
+        //Note: I'm using a loose definition of the start and end of spills
+        //      It's really just the maximum and minimum possible vales of those times
+        //      since it's not possible to know for certain in any given event. 
+        //      (The info does exist in the raw decoder info, but it's not always 
+        //       present, so I'm just opting for this)
+        try{        
+          bfp->FillCache( fetch_time + 5 );
+          cache_start = bfp->GetCacheStartTime();
+          cache_end   = bfp->GetCacheEndTime();
+          LOG_INFO("BeamEvent") << "interim cache_start: " << cache_start << "\n";
+          LOG_INFO("BeamEvent") << "interim cache_end: "   << cache_end << "\n";
+
+          bfp->FillCache( fetch_time - 5 );
           cache_start = bfp->GetCacheStartTime();
           cache_end   = bfp->GetCacheEndTime();
           LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
           LOG_INFO("BeamEvent") << "new cache_end: "   << cache_end << "\n";
-
         }
-
-        //Need only be checked if fetch_time in cache.
-        //If it's out, then +5 will be picked up when it is fetched
-        else if( (fetch_time >= cache_start && fetch_time < cache_end ) &&   ( (fetch_time + 5) >= cache_end ) ){
-          LOG_INFO("BeamEvent") << "End of spill info might exist above cache\n" 
-                                << "Trying to get updated cache\n";
-          try{        
-            //If this is successfully fetched, the cache start should be above the 
-            //Spill start info.
-            std::vector< double > cache_test = FetchAndReport( (fetch_time + 5), "dip/acc/NORTH/NP04/BI/XBTF/GeneralTrigger:timestampCount");
-            std::cout << "count: " << cache_test[0] << std::endl;
-            cache_start = bfp->GetCacheStartTime();
-            cache_end   = bfp->GetCacheEndTime();
-            LOG_INFO("BeamEvent") << "interim cache_start: " << cache_start << "\n";
-            LOG_INFO("BeamEvent") << "interim cache_end: "   << cache_end << "\n";
-
-            //So I'll fill the cach again from the lower end
-            cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");  
-            std::cout << "stamp: " << cache_test[0] << std::endl;
-            cache_start = bfp->GetCacheStartTime();
-            cache_end   = bfp->GetCacheEndTime();
-            LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
-            LOG_INFO("BeamEvent") << "new cache_end: "   << cache_end << "\n";
-          }
-          catch( std::exception e ){
-            LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
-          }
+        catch( std::exception e ){
+          LOG_INFO("BeamEvent") << "Could not fill cache\n"; 
         }
       }      
       else{
-        //First event, let's check the spill start info
+        //First event, let's get the start of spill info 
         LOG_INFO("BeamEvent") << "First Event: Priming cache\n";
         try{        
-          std::vector< double > cache_test = FetchAndReport( (fetch_time - 5), "dip/acc/NORTH/NP04/POW/MBPL022699:acqStamp[]");
-          std::cout << "stamp: " << cache_test[0] << std::endl;
+          bfp->FillCache( fetch_time - 5 );
         }
         catch( std::exception e ){
-          LOG_INFO("BeamEvent") << "Could not get cache test\n"; 
+          LOG_INFO("BeamEvent") << "Could not fill cache\n"; 
         }
         cache_start = bfp->GetCacheStartTime();
         cache_end   = bfp->GetCacheEndTime();
@@ -922,14 +911,31 @@ void proto::BeamEvent::produce(art::Event & e){
       //To the one in the SPS.
       //
 
-      if(SpillStartValid){
+      if(SpillStartValid && !fForceMatchS11){
         TimeIn(e, fetch_time_down);
         LOG_INFO("BeamEvent") << "SpillOffset " << SpillOffset << "\n";
         
         //If not successfully timed in, 
         //Oh well. It won't cause a crash
         //But it won't be matched. 
-        MatchBeamToTPC();
+        //
+        //Additionally, check if the MBPL timestamp is valid,
+        //There are some instances in the database of it being abnormally low
+        //If so, then just do the S11 matching
+        if( acqStampValid ){
+          MatchBeamToTPC();
+        }
+        else{
+          try{
+            getS11Info(fetch_time); 
+          }
+          catch( std::exception e ){
+            LOG_WARNING("BeamEvent") << "Could not get S11 Info\n";
+          }
+
+          //Again, it won't crash, but it won't match          
+          MatchS11ToGen();
+        }
       }
       else{
         try{
@@ -1582,6 +1588,12 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     //Go through the valid Good Particles, and emplace the FBM 
  //   std::cout << "Checking " << beamspill->GetNT0() << " triggers " << leftOvers.size() << std::endl;
 
+    std::cout.precision(dbl::max_digits10);
+    std::cout << "Time: " << 8.*fbm.timeData[2] << " " << fbm.timeData[3] - fOffsetTAI << std::endl;
+    for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
+      std::cout << *ip << " " << beamspill->GetT0Nano(*ip) << " " << beamspill->GetT0Sec(*ip) << std::endl;
+    }
+
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 500ns away
@@ -1818,6 +1830,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fForceNewFetch       = p.get<bool>("ForceNewFetch");
   fMatchTime           = p.get<bool>("MatchTime");
   fForceRead           = p.get<bool>("ForceRead");
+  fForceMatchS11       = p.get<bool>("ForceMatchS11");
 
 
   fTimingCalibration      = p.get<double>("TimingCalibration");
