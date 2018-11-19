@@ -130,6 +130,19 @@ simple_plugin(SubtractBaseline   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(UndershootCorr   "tool"
+              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Utilities canvas
+                        ${CETLIB_LIBS}
+                        ${MF_MESSAGELOGGER}
+                        ${ROOT_BASIC_LIB_LIST}
+             )
 
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service
