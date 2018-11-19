@@ -693,7 +693,8 @@ int AdcTickModViewer::makeTickModPlots(Index& nplot) const {
   if ( m_plotMin || m_plotMax ) {
     IndexVector tkmsMin;
     IndexVector tkmsMax;
-    int idel1 = npad/2;
+    //int idel1 = npad/2;
+    int idel1 = 0.4*npad;
     idel1 *= -1;
     int idel2 = idel1 + npad;
     if ( npad > ntkm ) {

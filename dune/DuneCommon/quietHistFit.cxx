@@ -8,7 +8,7 @@
 int quietHistFit(TH1* ph, std::string fname, std::string fopt) {
   // Block Root info message for new Canvas produced in fit.
   int levelSave = gErrorIgnoreLevel;
-  gErrorIgnoreLevel = 1001;
+  gErrorIgnoreLevel = 1002;
   // Block non-default (e.g. art) from handling the Root "error".
   // We switch to the Root default handler while making the call to Print.
   ErrorHandlerFunc_t pehSave = nullptr;
@@ -25,7 +25,7 @@ int quietHistFit(TH1* ph, std::string fname, std::string fopt) {
 int quietHistFit(TH1* ph, TF1* pf, std::string fopt) {
   // Block Root info message for new Canvas produced in fit.
   int levelSave = gErrorIgnoreLevel;
-  gErrorIgnoreLevel = 1001;
+  gErrorIgnoreLevel = 1002;
   // Block non-default (e.g. art) from handling the Root "error".
   // We switch to the Root default handler while making the call to Print.
   ErrorHandlerFunc_t pehSave = nullptr;
