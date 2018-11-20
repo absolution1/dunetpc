@@ -108,7 +108,9 @@ std::vector<double> protoana::ProtoDUNEDataUtils::GetBeamlineMass(art::Event con
   {
     const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
     tofs.push_back(beamEvent.GetTOF());
-    for(size_t iMom=0; iMom < beamEvent.GetNRecoBeamMomenta(); iMom++)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    for(size_t iMom=0; iMom < beamMomenta.size(); iMom++)
     {
       momenta.push_back(beamEvent.GetRecoBeamMomentum(iMom));
     }
@@ -292,7 +294,9 @@ const std::tuple<double,double,int,int> protoana::ProtoDUNEDataUtils::GetBeamlin
     tof = beamEvent.GetTOF();
     ckov0 = beamEvent.GetCKov0Status();
     ckov1 = beamEvent.GetCKov1Status();
-    if (beamEvent.GetNRecoBeamMomenta() > 0)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
     {
         momentum = beamEvent.GetRecoBeamMomentum(0);
     }
@@ -331,7 +335,9 @@ const std::tuple<double,double,int,int,int,double,double,int,int,bool> protoana:
     timingTrigger = beamEvent.GetTimingTrigger();
     BITrigger = beamEvent.GetBITrigger();
     areBIAndTimingMatched = beamEvent.CheckIsMatched();
-    if (beamEvent.GetNRecoBeamMomenta() > 0)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
     {
         momentum = beamEvent.GetRecoBeamMomentum(0);
     }
