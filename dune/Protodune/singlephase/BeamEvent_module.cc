@@ -279,6 +279,9 @@ private:
   int    fOffsetCTBtoRDTS;
   int    fToleranceCTBtoRDTS;
 
+  double fDownstreamToGenTrig;
+  double fUpstreamToDownstream;
+
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
 
@@ -1256,7 +1259,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
         double delta_2A = 1.e9*(the_gen_sec - TOF2A_sec) + the_gen_ns - TOF2A_ns;
 
         if( delta_2A < 0. ) break;
-        else if( delta_2A > 50. ) continue;
+        else if( delta_2A > fDownstreamToGenTrig ) continue;
 
         //if here, 0. < delta < 50ns
         std::cout << "Found match 2A to Gen" << std::endl;
@@ -1268,7 +1271,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
           double delta = 1.e9*( TOF2A_sec - TOF1A_sec ) + TOF2A_ns - TOF1A_ns;
 
           if( delta < 0. ) break;
-          else if( delta > 0. && delta < 500.){
+          else if( delta > 0. && delta < fUpstreamToDownstream){
             std::cout << "Found match 1A to 2A " << delta << std::endl;
 
             found_TOF = true;
@@ -1288,7 +1291,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
           double delta = 1.e9*( TOF2A_sec - TOF1B_sec ) + TOF2A_ns - TOF1B_ns;
 
           if( delta < 0. ) break;
-          else if( delta > 0. && delta < 500.){
+          else if( delta > 0. && delta < fUpstreamToDownstream){
             std::cout << "Found match 1B to 2A " << delta << std::endl;
 
             found_TOF = true;
@@ -1312,7 +1315,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
 
         if( delta_2B < 0. ) break;
-        else if( delta_2B > 50. ) continue;
+        else if( delta_2B > fDownstreamToGenTrig ) continue;
 
         //if here, 0. < delta < 50ns
         std::cout << "Found match 2B to Gen" << std::endl;
@@ -1325,7 +1328,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
 
           if( delta < 0. ) break;
-          else if( delta > 0. && delta < 500.){
+          else if( delta > 0. && delta < fUpstreamToDownstream){
             std::cout << "Found match 1A to 2B " << delta << std::endl;
 
             found_TOF = true;
@@ -1346,7 +1349,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
           
           if( delta < 0. ) break;
-          else if( delta > 0. && delta < 500.){
+          else if( delta > 0. && delta < fUpstreamToDownstream){
             std::cout << "Found match 1B to 2B " << delta << std::endl;
 
             found_TOF = true;
@@ -1756,6 +1759,9 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
 
   fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
   fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
+
+  fDownstreamToGenTrig    = p.get<double>("DownstreamToGenTrig");
+  fUpstreamToDownstream   = p.get<double>("UpstreamToDownstream");
 
   fSaveOutTree            = p.get<bool>("SaveOutTree");
   fDebugMomentum          = p.get<bool>("DebugMomentum");

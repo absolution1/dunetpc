@@ -143,6 +143,15 @@ proto_beamevent:
   DebugTOFs:     "false"
   DebugMomentum: "false"
 
+#Tolerance for matching between Downstream scintillator modules 
+#and coincidence signal (GeneralTrigger)
+#units of ns
+  DownstreamToGenTrig:  50.
+
+#Tolerance for matching between Upstream and Downstream scintillator modules 
+#units of ns
+  UpstreamToDownstream:  500.
+
 }
 
 END_PROLOG
