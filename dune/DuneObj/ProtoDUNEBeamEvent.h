@@ -41,22 +41,10 @@ namespace beam
       const double &             GetCKov0Pressure() const{ return CKov0.pressure; };
       const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
-
-      void SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT;};
-      void SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT;}; 
-      void SetTOFChan    ( int theChan )                 { TOFChan = theChan; };
-
-      const std::pair< double, double > & GetTOF0() const { return TOF0; };
-      const double & GetTOF0Sec()  const { return TOF0.first; };
-      const double & GetTOF0Nano() const { return TOF0.second; };
-
-      const std::pair< double, double > & GetTOF1() const { return TOF1; };
-      const double & GetTOF1Sec()  const { return TOF1.first; };
-      const double & GetTOF1Nano() const { return TOF1.second; };
-
-     
-      void DecodeTOF(){ theTOF = ( (TOF1.first  - TOF0.first ) * 1.e9 
-                                 + (TOF1.second - TOF0.second) ); };
+      void DecodeTOF(){ 
+        theTOF = MultipleTOFs[0]; 
+        TOFChan = MultipleTOFChans[0];
+      };
 
       const double &            GetTOF() const { return theTOF; };
       const int &               GetTOFChan() const{ return TOFChan; };
@@ -132,8 +120,6 @@ namespace beam
 
       //Set of TOF detectors
       //
-      std::pair< double, double > TOF0;
-      std::pair< double, double > TOF1;
       int TOFChan;
       double theTOF;
 
