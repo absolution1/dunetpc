@@ -32,7 +32,7 @@
 //
 // Summary histograms
 // ------------------
-// Summary histograms show the number of ROIs is bins of some ROI variable such
+// Summary histograms show the number of ROIs in bins of some ROI variable such
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
@@ -127,6 +127,7 @@
 class AdcChannelStringTool;
 class RunDataTool;
 class TimeOffsetTool;
+class TH1;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -137,7 +138,9 @@ public:
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name, TH1*>;
+  using HistVectorMap = std::map<Name, HistVector>;
   using NameMap = std::map<Name, Name>;
+  using NameVectorMap = std::map<Name, NameVector>;
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
 
@@ -148,6 +151,8 @@ public:
     TH1* ph = nullptr;
     Name varx;
     Name vary;
+    Name fitName;
+    Name plotName;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
@@ -159,15 +164,20 @@ public:
     // Summary histogram templates.
     HistInfoMap sumHistTemplates;
     // Summary histograms.
-    HistMap sumHists;
+    HistMap sumHists;            // Histograms indexed by histogram name.
+    HistVectorMap sumPlotHists;  // Histograms for each plot indexed by plot template name.
+    NameMap sumFitNames;         // Fit name for each plotted histogram indexed by hist name.
+    NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
+                                 // The first file name is used for plots with multiple hists.
     // Channel summary histograms.
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
     NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
     NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
     ~State();
-    // Fetch the summary histogram for a histogram name.
-    TH1* getSumHist(Name hname);
+    // Fetch properties indexed by a histogram name.
+    TH1* getSumHist(Name hnam);
+    Name getSumFitName(Name hnam) const;
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
@@ -209,8 +219,10 @@ public:
   // Fill the channel summary histograms.
   void fillChanSumHists() const;
 
-  // Write the summary histograms to the summary Root file.
+  // Write the summary histograms to the summary Root files
+  // and summary plots to the plot files.
   void writeSumHists() const;
+  void writeSumPlots() const;
   void writeChanSumHists() const;
 
 private:
