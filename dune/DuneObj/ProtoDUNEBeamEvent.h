@@ -61,9 +61,19 @@ namespace beam
       const double &            GetTOF() const { return theTOF; };
       const int &               GetTOFChan() const{ return TOFChan; };
 
+      const std::vector< double > & GetTOFs() const { return MultipleTOFs; };
+      const std::vector< int >    & GetTOFChans() const { return MultipleTOFChans; };
+      const std::vector< size_t > & GetUpstreamTriggers() const { return UpstreamTriggers; };
+      const std::vector< size_t > & GetDownstreamTriggers() const { return DownstreamTriggers; };
+
+      void GetTOFs              (std::vector< double > theContent ) {  MultipleTOFs = theContent; };
+      void GetTOFChans          (std::vector< int >    theContent ) {  MultipleTOFChans = theContent; };
+      void GetUpstreamTriggers  (std::vector< size_t > theContent ) {  UpstreamTriggers = theContent; };
+      void GetDownstreamTriggers(std::vector< size_t > theContent ) {  DownstreamTriggers = theContent; };
+
       void                                AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       const recob::Track &                GetBeamTrack(size_t i) const{ return Tracks.at(i);};
-      size_t                              GetNBeamTracks() const{return Tracks.size();}
+      size_t                              GetNBeamTracks() {return Tracks.size();}
       const std::vector< recob::Track > & GetBeamTracks() const;
       void                                ClearBeamTracks(){ Tracks.clear(); };
 
@@ -74,7 +84,7 @@ namespace beam
 
       void                          AddRecoBeamMomentum( double theMomentum ){ RecoBeamMomenta.push_back( theMomentum ); };
       const std::vector< double > & GetRecoBeamMomenta() const               { return RecoBeamMomenta;};
-      size_t                        GetNRecoBeamMomenta() const              { return RecoBeamMomenta.size(); };
+      size_t                        GetNRecoBeamMomenta()                    { return RecoBeamMomenta.size(); };
       const double &                GetRecoBeamMomentum( size_t i ) const    { return RecoBeamMomenta.at(i); };  
       void                          ClearRecoBeamMomenta()                   { RecoBeamMomenta.clear(); }; 
 
@@ -126,6 +136,11 @@ namespace beam
       std::pair< double, double > TOF1;
       int TOFChan;
       double theTOF;
+
+      std::vector< double > MultipleTOFs;
+      std::vector< int > MultipleTOFChans;
+      std::vector< size_t > UpstreamTriggers;
+      std::vector< size_t > DownstreamTriggers;
 
       //Set of Cerenkov detectors
       //

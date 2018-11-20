@@ -12,16 +12,7 @@
 
 /*///////////////////////////////////////////////////////////////////////
  To-Do: 
-
-       * Fix the tracking portion with real values for monitor positions
-       !!! Do after the fact? !!! 
-
        * Make TOF matching more robust. Perhaps search 'downward'
-
-       * Pass the Spill Offset to the next events in the same spill.
-         - Does this need to be added to the data product? Probably not. just
-           store in memory
-       
 */////////////////////////////////////////////////////////////////////////
 
 
@@ -1185,6 +1176,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   }
 
   if( gotTOFs ){
+
     for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
 //      LOG_INFO("BeamEvent") << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] +  fracTOF1A[i]/512. << "\n";
       fXTOF1ACoarse = coarseTOF1A[i];
@@ -1250,6 +1242,29 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     }
   }
 
+  //To be used in matching
+  LOG_INFO("BeamEvent") << "NGenTrigs: " << timestampCountGeneralTrigger[0] << " NTOF2s: " << unorderedTOF2ATime.size() + unorderedTOF2BTime.size() << "\n";
+
+  std::vector<size_t> leftOver2A;      
+  for(size_t lo = 0; lo < unorderedTOF2ATime.size(); ++lo){
+    leftOver2A.push_back(lo);
+  }
+
+  std::vector<size_t> leftOver2B;      
+  for(size_t lo = 0; lo < unorderedTOF2BTime.size(); ++lo){
+    leftOver2B.push_back(lo);
+  }
+
+  std::vector<size_t> leftOver1A;      
+  for(size_t lo = 0; lo < unorderedTOF1ATime.size(); ++lo){
+    leftOver1A.push_back(lo);
+  }
+
+  std::vector<size_t> leftOver1B;      
+  for(size_t lo = 0; lo < unorderedTOF1BTime.size(); ++lo){
+    leftOver1B.push_back(lo);
+  }
+
 
   for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
     
@@ -1267,42 +1282,35 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     //Add 1 for 1B, add 2 for 2B
     int channel = 0;
 
+    std::vector< double > possibleTOF; 
+    std::vector< int >    possibleTOFChan; 
+    std::vector< size_t > UpstreamTriggers;
+    std::vector< size_t > DownstreamTriggers;
+
     if( gotTOFs ){
-      for(size_t iT1A = 0; iT1A < unorderedTOF1ATime.size(); ++iT1A){
-        double TOF1A_sec = unorderedTOF1ATime[iT1A].first;
-        double TOF1A_ns = unorderedTOF1ATime[iT1A].second;
+      std::cout << "Gen: " << the_gen_sec << " " << the_gen_ns << std::endl;
 
-        double delta_1A = 1.e9*(the_gen_sec - TOF1A_sec) + the_gen_ns - TOF1A_ns;
-        if(delta_1A < 0.){
-         // LOG_INFO("BeamEvent") << "Passed TOF1A" << "\n";
-          //TOF1A_passed = true;
-          break;
-        }
+      //First check 2A
+      for(std::vector<size_t>::iterator ip2A = leftOver2A.begin(); ip2A != leftOver2A.end(); ++ip2A){
+        double TOF2A_sec = unorderedTOF2ATime[*ip2A].first;
+        double TOF2A_ns  = unorderedTOF2ATime[*ip2A].second;         
+        double delta_2A = 1.e9*(the_gen_sec - TOF2A_sec) + the_gen_ns - TOF2A_ns;
 
-        if( delta_1A > 500. ) continue;     
+        if( delta_2A < 0. ) break;
+        else if( delta_2A > 50. ) continue;
 
-        //If here, then 0 < delta_1A < 500ns
-        //Check the TOF2 times. 
-        
-        for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
-          double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
-          double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
+        //if here, 0. < delta < 50ns
+        std::cout << "Found match 2A to Gen" << std::endl;
 
-          double delta = 1.e9*(TOF2A_sec - TOF1A_sec) + TOF2A_ns - TOF1A_ns;
-          
-          //Overtaken 1A
-          if(delta < 0.){
-            continue; 
-          }
+        //So check 1A and 1B
+        for(std::vector<size_t>::iterator ip1A = leftOver1A.begin(); ip1A != leftOver1A.end(); ++ip1A){
+          double TOF1A_sec = unorderedTOF1ATime[*ip1A].first;
+          double TOF1A_ns  = unorderedTOF1ATime[*ip1A].second;         
+          double delta = 1.e9*( TOF2A_sec - TOF1A_sec ) + TOF2A_ns - TOF1A_ns;
 
-          if( delta > 500. ){
-            break;
-          }
-          else{
-
-            //If here, then TOF1 is within 500 ns below TOF2
-
-//            LOG_INFO("BeamEvent") << "Found matching TOF2A and TOF1A" << "\n";
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < 500.){
+            std::cout << "Found match 1A to 2A " << delta << std::endl;
             found_TOF = true;
 
             the_TOF2_sec = TOF2A_sec;
@@ -1313,85 +1321,22 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
             channel = k1A2A;
 
-            break;
-          }       
-        }
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
 
-        if(!found_TOF){
-          for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
-            double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
-            double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
-
-            double delta = 1.e9*(TOF2B_sec - TOF1A_sec) + TOF2B_ns - TOF1A_ns;
-            
-            //Overtaken 1A
-            if(delta < 0.){
-              continue;
-            }
-
-            if( delta > 500. ){
-              break;
-            }
-            else{
-              //If here, then TOF1 is within 500 ns below TOF2
-
-//              LOG_INFO("BeamEvent") << "Found matching TOF2B and TOF1A" << "\n";
-              found_TOF = true;
-
-              the_TOF2_sec = TOF2B_sec;
-              the_TOF2_ns  = TOF2B_ns;
-  
-              the_TOF1_sec = TOF1A_sec;
-              the_TOF1_ns  = TOF1A_ns;
-
-              channel = k1A2B;
-
-              break;
-            }       
+            UpstreamTriggers.push_back( *ip1A );
+            DownstreamTriggers.push_back( *ip2A );
           }
+          else continue; 
         }
+          for(std::vector<size_t>::iterator ip1B = leftOver1B.begin(); ip1B != leftOver1B.end(); ++ip1B){
+            double TOF1B_sec = unorderedTOF1BTime[*ip1B].first;
+            double TOF1B_ns  = unorderedTOF1BTime[*ip1B].second;         
+            double delta = 1.e9*( TOF2A_sec - TOF1B_sec ) + TOF2A_ns - TOF1B_ns;
 
-        if(found_TOF) break;
-      }
-
-      //Now check 1B with 2A and 2B
-      if(!found_TOF){
-        
-        for(size_t iT1B = 0; iT1B < unorderedTOF1BTime.size(); ++iT1B){
-          double TOF1B_sec = unorderedTOF1BTime[iT1B].first;
-          double TOF1B_ns = unorderedTOF1BTime[iT1B].second;
-
-          double delta_1B = 1.e9*(the_gen_sec - TOF1B_sec) + the_gen_ns - TOF1B_ns;
-          if(delta_1B < 0.){
-           // LOG_INFO("BeamEvent") << "Passed TOF1B" << "\n";
-            //TOF1B_passed = true;
-            break;
-          }
-
-          if( delta_1B > 500. ) continue;     
-
-          //If here, then 0 < delta_1B < 500ns
-          //Check the TOF2 times. 
-          
-          for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
-            double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
-            double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
-
-            double delta = 1.e9*(TOF2A_sec - TOF1B_sec) + TOF2A_ns - TOF1B_ns;
-            
-            //Overtaken 1B
-            if(delta < 0.){
-              continue;
-            }
-
-            if( delta > 500. ){
-              break;
-            }
-            else{
-
-              //If here, then TOF1 is within 500 ns below TOF2
-
-//              LOG_INFO("BeamEvent") << "Found matching TOF2A and TOF1B" << "\n";
+            if( delta < 0. ) break;
+            else if( delta > 0. && delta < 500.){
+              std::cout << "Found match 1B to 2A " << delta << std::endl;
               found_TOF = true;
 
               the_TOF2_sec = TOF2A_sec;
@@ -1402,64 +1347,110 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
               channel = k1B2A;
 
-              break;
-            }       
-          }
+              possibleTOF.push_back( delta ); 
+              possibleTOFChan.push_back( channel );
 
-          if(!found_TOF){
-            for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
-              double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
-              double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
-
-              double delta = 1.e9*(TOF2B_sec - TOF1B_sec) + TOF2B_ns - TOF1B_ns;
-              
-              //Overtaken 1B
-              if(delta < 0.){
-                continue;
-              }
-
-              if( delta > 500. ){
-                break;
-              }
-              else{
-                //If here, then TOF1 is within 500 ns below TOF2
-
-//                LOG_INFO("BeamEvent") << "Found matching TOF2B and TOF1B" << "\n";
-                found_TOF = true;
-
-                the_TOF2_sec = TOF2B_sec;
-                the_TOF2_ns  = TOF2B_ns;
-  
-                the_TOF1_sec = TOF1B_sec;
-                the_TOF1_ns  = TOF1B_ns;
-
-                channel = k1B2B;
-
-                break;
-              }       
+              UpstreamTriggers.push_back( *ip1B );
+              DownstreamTriggers.push_back( *ip2A );
             }
+            else continue; 
           }
-          
-          if(found_TOF) break;
-        }    
       }
+
+        //Then check 2B if 2A not found
+      for(std::vector<size_t>::iterator ip2B = leftOver2B.begin(); ip2B != leftOver2B.end(); ++ip2B){
+        double TOF2B_sec = unorderedTOF2BTime[*ip2B].first;
+        double TOF2B_ns  = unorderedTOF2BTime[*ip2B].second;         
+        double delta_2B = 1.e9*(the_gen_sec - TOF2B_sec) + the_gen_ns - TOF2B_ns;
+
+
+        if( delta_2B < 0. ) break;
+        else if( delta_2B > 50. ) continue;
+
+        //if here, 0. < delta < 50ns
+        std::cout << "Found match 2B to Gen" << std::endl;
+
+        //So check 1A and 1B
+        for(std::vector<size_t>::iterator ip1A = leftOver1A.begin(); ip1A != leftOver1A.end(); ++ip1A){
+          double TOF1A_sec = unorderedTOF1ATime[*ip1A].first;
+          double TOF1A_ns  = unorderedTOF1ATime[*ip1A].second;         
+          double delta = 1.e9*( TOF2B_sec - TOF1A_sec ) + TOF2B_ns - TOF1A_ns;
+
+
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < 500.){
+            std::cout << "Found match 1A to 2B " << delta << std::endl;
+            found_TOF = true;
+
+            the_TOF2_sec = TOF2B_sec;
+            the_TOF2_ns  = TOF2B_ns;
+
+            the_TOF1_sec = TOF1A_sec;
+            the_TOF1_ns  = TOF1A_ns;
+
+            channel = k1A2B;
+
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
+
+            UpstreamTriggers.push_back( *ip1A );
+            DownstreamTriggers.push_back( *ip2B );
+          }
+          else continue; 
+        }
+        if( !found_TOF ){
+          for(std::vector<size_t>::iterator ip1B = leftOver1B.begin(); ip1B != leftOver1B.end(); ++ip1B){
+            double TOF1B_sec = unorderedTOF1BTime[*ip1B].first;
+            double TOF1B_ns  = unorderedTOF1BTime[*ip1B].second;         
+            double delta = 1.e9*( TOF2B_sec - TOF1B_sec ) + TOF2B_ns - TOF1B_ns;
+
+          
+            if( delta < 0. ) break;
+            else if( delta > 0. && delta < 500.){
+              std::cout << "Found match 1B to 2B " << delta << std::endl;
+              found_TOF = true;
+
+              the_TOF2_sec = TOF2B_sec;
+              the_TOF2_ns  = TOF2B_ns;
+
+              the_TOF1_sec = TOF1B_sec;
+              the_TOF1_ns  = TOF1B_ns;
+
+              channel = k1B2B;
+
+              possibleTOF.push_back( delta ); 
+              possibleTOFChan.push_back( channel );
+
+              UpstreamTriggers.push_back( *ip1B );
+              DownstreamTriggers.push_back( *ip2B );
+            }
+            else continue;
+          }
+        }
+      }
+
+      std::cout << "Found " << possibleTOF.size() << " matched TOFs" << std::endl;
+      for( size_t im = 0; im < possibleTOF.size(); ++im){
+        std::cout << possibleTOF[im] << " " << possibleTOFChan[im] << " " << UpstreamTriggers[im] << " " << DownstreamTriggers[im] << std::endl;
+      }
+      std::cout << std::endl;
+
+
     }
 
+    beamspill->AddMultipleTOFs( possibleTOF );
+    beamspill->AddMultipleTOFChans( possibleTOFChan );
+    beamspill->AddUpstreamTriggers( UpstreamTriggers );
+    beamspill->AddDownstreamTriggers( DownstreamTriggers );
+
+
     if(found_TOF){
-      //Convert from TAI to UTC at this point
-
-//      LOG_INFO("BeamEvent") << "Adding matched tof" << "\n";
-
       beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
       beamspill->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
       beamspill->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
       beamspill->AddTOFChan(channel);        
     }
     else{
-      //Add dummy
-
-//      LOG_INFO("BeamEvent") << "Adding unmatched tof" << "\n";
-
       beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
       beamspill->AddTOF0Trigger(std::make_pair(0., 0.));
       beamspill->AddTOF1Trigger(std::make_pair(0., 0.));
