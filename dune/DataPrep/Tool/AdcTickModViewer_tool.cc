@@ -934,7 +934,7 @@ int AdcTickModViewer::plotPhaseGraphs() const {
     pman->add(pg->Clone(), "P");
     pman->addAxis();
     pman->setRangeX(xmin, xmax);
-    if ( m_varPhase ) pman->setRangeY(0, npha);
+    if ( m_varPhase ) pman->setRangeY(-1, npha);
     pman->setGridX();
     pman->setGridY();
     // Print the plot.

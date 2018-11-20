@@ -9,7 +9,8 @@
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
 #include "dune/Geometry/DuneApaChannelMapAlg.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-#include "dune/Geometry/GeoObjectSorterAPA.h"
+//#include "dune/Geometry/GeoObjectSorterAPA.h"
+#include "dune/Geometry/GeoObjectSorterProtoDUNESP.h"
 
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
@@ -38,7 +39,7 @@ namespace geo {
     : DuneApaChannelMapAlg(p), 
       fMaxOpChannel(0), fNOpChannels(0)
   {
-    fSorter = new GeoObjectSorterAPA(p);
+    fSorter = new GeoObjectSorterProtoDUNESP(p); //GeoObjectSorterAPA(p);
   }
 
 

@@ -9,7 +9,7 @@
 //Author: Andrew Olivier aolivier@ur.rochester.edu
 
 //local includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/toROOT/ToFlat.h"
+#include "toROOT/ToFlat.h"
 
 namespace CRT
 {

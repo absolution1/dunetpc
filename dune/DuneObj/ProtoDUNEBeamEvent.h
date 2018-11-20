@@ -96,6 +96,10 @@ namespace beam
       void              SetRDTimestamp(long long theRDTimestamp){ RDTimestamp = theRDTimestamp; };
       const long long & GetRDTimestamp() const{ return RDTimestamp; };
 
+      void              SetMagnetCurrent(double theMagnetCurrent){ MagnetCurrent = theMagnetCurrent; };
+      const double &    GetMagnetCurrent() const{ return MagnetCurrent; };
+
+
 
 
     private:
@@ -139,6 +143,8 @@ namespace beam
       int TimingTrigger;
       double SpillStart;
       double SpillOffset;
+
+      double MagnetCurrent;
 
   };
 

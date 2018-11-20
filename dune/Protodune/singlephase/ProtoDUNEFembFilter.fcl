@@ -9,9 +9,17 @@
 
 BEGIN_PROLOG
 
-# Keep all triggers.
+# Require all fembs.
 pdsp_fembfilter_all: {
   module_type:            "ProtoDUNEFembFilter"
+  RequireBeamsideFembsOnly : "false"
+  LogLevel:        1  # 2 shows accept/reject for every event
+}
+
+#req
+pdsp_fembfilter_beamside: {
+  module_type:            "ProtoDUNEFembFilter"
+  RequireBeamsideFembsOnly : "true"
   LogLevel:        1  # 2 shows accept/reject for every event
 }
 

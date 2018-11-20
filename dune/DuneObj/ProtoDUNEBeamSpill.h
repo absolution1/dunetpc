@@ -122,6 +122,10 @@ namespace beam
       void              SetCTBTimestamp(double theCTBTimestamp){ CTBTimestamp = theCTBTimestamp; };
       double            GetCTBTimestamp(){ return CTBTimestamp; };
 
+      void              SetMagnetCurrent(double theMagnetCurrent){ MagnetCurrent = theMagnetCurrent; };
+      double            GetMagnetCurrent(){ return MagnetCurrent; };
+
+
     private:
 
       //Time of a coincidence between 2 TOFs
@@ -161,6 +165,8 @@ namespace beam
       int BITrigger;
       double SpillStart;
       double SpillOffset;
+
+      double MagnetCurrent;
   };
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamSpill::GetBeamTracks() const { return Tracks; }
