@@ -66,10 +66,10 @@ namespace beam
       const std::vector< size_t > & GetUpstreamTriggers() const { return UpstreamTriggers; };
       const std::vector< size_t > & GetDownstreamTriggers() const { return DownstreamTriggers; };
 
-      void GetTOFs              (std::vector< double > theContent ) {  MultipleTOFs = theContent; };
-      void GetTOFChans          (std::vector< int >    theContent ) {  MultipleTOFChans = theContent; };
-      void GetUpstreamTriggers  (std::vector< size_t > theContent ) {  UpstreamTriggers = theContent; };
-      void GetDownstreamTriggers(std::vector< size_t > theContent ) {  DownstreamTriggers = theContent; };
+      void SetTOFs              (std::vector< double > theContent ) {  MultipleTOFs = theContent; };
+      void SetTOFChans          (std::vector< int >    theContent ) {  MultipleTOFChans = theContent; };
+      void SetUpstreamTriggers  (std::vector< size_t > theContent ) {  UpstreamTriggers = theContent; };
+      void SetDownstreamTriggers(std::vector< size_t > theContent ) {  DownstreamTriggers = theContent; };
 
       void                                AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       const recob::Track &                GetBeamTrack(size_t i) const{ return Tracks.at(i);};
