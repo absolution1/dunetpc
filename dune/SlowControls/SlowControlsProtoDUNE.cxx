@@ -107,7 +107,7 @@ bool slowctrls::SlowControlsProtoDUNE::Update(float ts)
 
 //------------------------------------------------
 double slowctrls::SlowControlsProtoDUNE::GetValue(std::string& chanId,
-						  float ts)
+						  float ts) 
 {
   if (fNameToIdMap.empty()) {
     mf::LogError("SlowControlsProtoDUNE") << "No slow controls channels defined!";

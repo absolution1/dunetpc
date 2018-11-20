@@ -14,6 +14,7 @@
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
 // Art includes
 #include "fhiclcpp/make_ParameterSet.h"
 // C/C++ libraries
@@ -67,13 +68,27 @@ namespace spdp{
     {}
   
   //--------------------------------------------------------------------
-  bool DetectorPropertiesProtoDUNEsp::Update(uint64_t) 
+  bool DetectorPropertiesProtoDUNEsp::Update(uint64_t)
   {
     DoUpdateClocks();
-    auto const *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
-    double rawHV = tpchv->GetValue("NP04_DCS_01:Heinz_I", t);
-    double rawCurr = tpchv->GetValue("NP04_DCS_01:Heinz_V",t);
-    std::cout<<rawHV<<std::endl;
+
+
+    // const auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
+
+    // float t = 1542662093;
+    // std::string name="NP04_DCS_01:Heinz_V";
+    // double rawHV = tpchv->GetValue(name, t);
+    // std::cout<<rawHV<<std::endl;
+
+  
+    // const auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
+    //slowctrls::SlowControls* tpchv_copy = tpchv;
+    // float t = 1542662093;
+    // double rawHV = tpchv->GetValue("NP04_DCS_01:Heinz_V", t);
+    
+    // //double rawCurr = tpchv->GetValue("NP04_DCS_01:Heinz_V",t);
+    // std::cout<<rawHV<<std::endl;
+    //std::cout<<rawCurr<<std::endl;
     return true;
   }
   //--------------------------------------------------------------------

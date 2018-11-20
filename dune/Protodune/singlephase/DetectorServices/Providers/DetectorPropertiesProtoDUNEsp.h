@@ -17,6 +17,7 @@
 #include "lardataalg/DetectorInfo/DetectorClocks.h"
 #include "lardataalg/DetectorInfo/DetectorProperties.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "dune/SlowControlsServices/TPCHVServiceProtoDUNE.h"
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Sequence.h"
@@ -168,7 +169,7 @@ namespace spdp{
         fhicl::ParameterSet const& p,
         std::set<std::string> const& ignore_params = {}
         );
-      bool Update(uint64_t ts);
+      bool Update(uint64_t ts); 
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
       /**
