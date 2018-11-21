@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_protodunebeamlineutils:
+{
+   BeamEventTag:            "beamevent"
+}
+
+END_PROLOG
