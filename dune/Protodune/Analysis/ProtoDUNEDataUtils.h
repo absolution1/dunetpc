@@ -125,6 +125,11 @@ namespace protoana {
     float fTOFScaleFactor;
     float fTOFOffset; // ns
 
+    std::vector<float> fTOFElectronCuts; // ns
+    std::vector<float> fTOFMuonCuts; // ns
+    std::vector<float> fTOFPionCuts; // ns
+    std::vector<float> fTOFKaonCuts; // ns
+    std::vector<float> fTOFProtonCuts; // ns
   };
 
 }
