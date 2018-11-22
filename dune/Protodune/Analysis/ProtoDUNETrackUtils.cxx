@@ -106,4 +106,24 @@ unsigned int protoana::ProtoDUNETrackUtils::GetNumberRecoTrackHits(const recob::
 
 }
 
+// Get the PID from a given track
+std::vector<anab::ParticleID> protoana::ProtoDUNETrackUtils::GetRecoTrackPID(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string pidModule) const{
 
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+  std::vector<anab::ParticleID> pidvec;
+
+  try{
+    const art::FindManyP<anab::ParticleID> findPID(recoTracks,evt,pidModule);
+    std::vector<art::Ptr<anab::ParticleID>> thePID = findPID.at(track.ID());
+  
+    for( auto pid : thePID){
+      pidvec.push_back(*pid);
+    }
+  }
+  catch(...){
+    std::cerr << "No track PID object found... returning empty vector" << std::endl;
+  }
+
+  return pidvec;
+
+}
