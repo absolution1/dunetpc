@@ -55,6 +55,8 @@
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
 //     fit: Name of function used to fit the distribution, e.g. "gaus"
+//    plot: Name of file where plot should be created. E.g. myvar%CHAN%.png
+//    pwid: Plot only includes region of this width around the peak.
 // If xmin < xmax and xmin > 0, the range will have width xmin centered on the median
 // value for the first event. If xmax > 0, the lower edge is rounded to that value.
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
@@ -143,6 +145,7 @@ public:
   using NameVectorMap = std::map<Name, NameVector>;
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
+  using FloatMap = std::map<Name, float>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -153,6 +156,7 @@ public:
     Name vary;
     Name fitName;
     Name plotName;
+    float plotWidth;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
@@ -169,6 +173,7 @@ public:
     NameMap sumFitNames;         // Fit name for each plotted histogram indexed by hist name.
     NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
                                  // The first file name is used for plots with multiple hists.
+    FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
     // Channel summary histograms.
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
@@ -178,6 +183,8 @@ public:
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
     Name getSumFitName(Name hnam) const;
+    Name getSumPlotName(Name hnam) const;
+    float getSumPlotWidth(Name hnam) const;
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
