@@ -1816,48 +1816,48 @@ void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
   
-  LOG_DEBUG("BeamEvent") << "Making Track for time: " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << "\n";
+  LOG_INFO("BeamEvent") << "Making Track for time: " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << "\n";
 
   //Get the active fibers from the upstream tracking XBPF
   std::vector<short> firstUpstreamFibers  = beamspill->GetActiveFibers(firstUpstreamName, theTrigger);
   std::vector<short> secondUpstreamFibers = beamspill->GetActiveFibers(secondUpstreamName, theTrigger);
 
-  LOG_DEBUG("BeamEvent") << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers"<< "\n";
+  LOG_INFO("BeamEvent") << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers"<< "\n";
   for(size_t i = 0; i < firstUpstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << firstUpstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << firstUpstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
 
-  LOG_DEBUG("BeamEvent") << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < secondUpstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << secondUpstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << secondUpstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
   //////////////////////////////////////////////
 
   //Get the active fibers from the downstream tracking XBPF
   std::vector<short> firstDownstreamFibers = beamspill->GetActiveFibers(firstDownstreamName, theTrigger);
   std::vector<short> secondDownstreamFibers = beamspill->GetActiveFibers(secondDownstreamName, theTrigger);
 
-  LOG_DEBUG("BeamEvent") << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < firstDownstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << firstDownstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << firstDownstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
 
-  LOG_DEBUG("BeamEvent") << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < secondDownstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << secondDownstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << secondDownstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
   //////////////////////////////////////////////
 
   if( (firstUpstreamFibers.size() < 1) || (secondUpstreamFibers.size() < 1) || (firstDownstreamFibers.size() < 1) || (secondDownstreamFibers.size() < 1) ){
-    LOG_DEBUG("BeamEvent") << "Warning, at least one empty Beam Profiler. Not making track" << "\n";
+    LOG_INFO("BeamEvent") << "Warning, at least one empty Beam Profiler. Not making track" << "\n";
     return;
   }
 /*  else if( (firstUpstreamFibers.size() > 5) || (secondUpstreamFibers.size() > 5) || (firstDownstreamFibers.size() > 5) || (secondDownstreamFibers.size() > 5) ){
-    LOG_DEBUG("BeamEvent") << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not making track" << "\n";
+    LOG_INFO("BeamEvent") << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not making track" << "\n";
     return;
   }*/
 
@@ -1874,7 +1874,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
   std::vector< TVector3 > downstreamPositions; 
   
   //Pair the upstream fibers together
-  LOG_DEBUG("BeamEvent") << "Upstream" << "\n";
+  LOG_INFO("BeamEvent") << "Upstream" << "\n";
   for(size_t iF1 = 0; iF1 < firstUpstreamFibers.size(); ++iF1){
     
     size_t firstFiber = firstUpstreamFibers[iF1];
@@ -1882,7 +1882,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondUpstreamFibers.size(); ++iF2){
       size_t secondFiber = secondUpstreamFibers[iF2];
 
-      LOG_DEBUG("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
+      LOG_INFO("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
       upstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondUpstreamFibers.size() - 1){
@@ -1903,24 +1903,24 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       double xPos = GetPosition(firstUpstreamName, thePair.first);
       double yPos = GetPosition(secondUpstreamName, thePair.second);
       
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       upstreamPositions.push_back( posInDet );
     }
     else if(firstUpstreamType == "vert" && secondUpstreamType == "horiz"){
       double yPos = GetPosition(firstUpstreamName, thePair.first);
       double xPos = GetPosition(secondUpstreamName, thePair.second);
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
 
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       upstreamPositions.push_back( posInDet );
     }
 
   }
   
-  LOG_DEBUG("BeamEvent") << "Downstream" << "\n";
+  LOG_INFO("BeamEvent") << "Downstream" << "\n";
   //Pair the downstream fibers together
   for(size_t iF1 = 0; iF1 < firstDownstreamFibers.size(); ++iF1){
     
@@ -1929,7 +1929,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondDownstreamFibers.size(); ++iF2){
       size_t secondFiber = secondDownstreamFibers[iF2];
 
-      LOG_DEBUG("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
+      LOG_INFO("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
       downstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondDownstreamFibers.size() - 1){
@@ -1950,18 +1950,18 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       double xPos = GetPosition(firstDownstreamName, thePair.first);
       double yPos = GetPosition(secondDownstreamName, thePair.second);
 
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       downstreamPositions.push_back( posInDet );
     }
     else if(firstDownstreamType == "vert" && secondDownstreamType == "horiz"){
       double yPos = GetPosition(firstDownstreamName, thePair.first);
       double xPos = GetPosition(secondDownstreamName, thePair.second);
 
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       downstreamPositions.push_back( posInDet );
     }
 
