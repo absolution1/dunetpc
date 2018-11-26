@@ -75,8 +75,15 @@ void protoana::ProtoDUNEBeamlineReco::reconfigure(fhicl::ParameterSet const& pse
 void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
 
   std::vector< recob::Track > tracks = fBeamlineUtils.MakeTracks( evt );
-
   std::cout << "Got " << tracks.size() << " tracks" << std::endl;
+
+  std::vector< double > momenta = fBeamlineUtils.MomentumSpec( evt );
+  std::cout << "Got " << momenta.size() << " reconstructed momenta" << std::endl;
+  for( size_t i = 0; i < momenta.size(); ++i ){
+    std::cout << "\t" << momenta[i] << std::endl;
+  }
+  std::cout << std::endl;
+
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}

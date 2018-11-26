@@ -35,6 +35,8 @@ namespace protoana {
     void reconfigure(fhicl::ParameterSet const &pset);
 
     void GetFibers( art::Event const & evt); 
+    void GetCurrent( art::Event const & evt);
+
     std::vector< recob::Track> MakeTracks( art::Event const & evt);
 
     double   GetPosition( short );
@@ -43,13 +45,16 @@ namespace protoana {
     void     RotateMonitorVector(TVector3&);
     TVector3 ProjectToTPC(TVector3, TVector3);
 
-//    const std::vector< recob::Track > & GetTracks() const { return Tracks; };
+    std::vector< double > MomentumSpec( art::Event const & evt);
+    double MomentumCosTheta( double, double, double );
 
   private:
 
     art::InputTag fBeamEventTag;
 
     std::map< std::string, std::vector< short > > ActiveFibers;
+
+    double Current;
     
     //std::vector< recob::Track > Tracks;
 
@@ -92,6 +97,16 @@ namespace protoana {
     double fSecondTrackingProfZ;
     double fNP04FrontZ;  
     double fBeamX, fBeamY, fBeamZ;
+
+
+    double fBeamBend;
+    double L1, L2, L3;
+
+    //Hardware Parameters for magnetic field stuff
+    double mag_P1 = 5.82044830e-3;
+    double mag_P2 = 0.;
+    double mag_P3 = -4.68880000e-6;
+    double mag_P4 = 324.573967;
 
 
   };

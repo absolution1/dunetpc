@@ -13,6 +13,21 @@ protoana::ProtoDUNEBeamlineUtils::~ProtoDUNEBeamlineUtils(){
 
 }
 
+void protoana::ProtoDUNEBeamlineUtils::GetCurrent( art::Event const & evt ){
+
+  auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  if( beamHandle.isValid()){
+    art::fill_ptr_vector(beamVec, beamHandle);
+  }
+
+  //Should just have one
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
+
+  Current = beamEvent.GetMagnetCurrent();
+}
+
 void protoana::ProtoDUNEBeamlineUtils::GetFibers( art::Event const & evt ){
  
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
@@ -181,6 +196,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
 void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p){
   fBeamEventTag = p.get<art::InputTag>("BeamEventTag");
 
+  //Tracking parameters
   fBeamX = p.get<double>("BeamX");
   fBeamY = p.get<double>("BeamY");
   fBeamZ = p.get<double>("BeamZ");
@@ -191,7 +207,16 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
   fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
   fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
   fNP04FrontZ          = p.get<double>("NP04FrontZ");
+  ////////////////////////
 
+
+  //Momentum parameters
+  fBeamBend = p.get<double>("BeamBend");
+  L1 = p.get<double>("L1");
+  L2 = p.get<double>("L2");
+  L3 = p.get<double>("L3");
+  ///////////////////////
+  
 }
 
 double protoana::ProtoDUNEBeamlineUtils::GetPosition( short theFiber ){
@@ -247,3 +272,146 @@ TVector3 protoana::ProtoDUNEBeamlineUtils::ProjectToTPC(TVector3 firstPoint, TVe
   return lastPoint;
 }
 
+std::vector< double > protoana::ProtoDUNEBeamlineUtils::MomentumSpec( art::Event const & evt ){
+ 
+  GetCurrent( evt );
+ 
+  std::cout << "Got current: " << Current << std::endl;
+
+  std::vector< double > theMomenta;
+
+  if( Current < .000000001 ){
+    std::cout << "Warning! Low magnet current. Momentum spectrometry invalid. Returning empty momenta vector." << std::endl;
+    return theMomenta;
+  }
+
+
+
+  double LB = mag_P1*fabs(Current);
+  double deltaI = fabs(Current) - mag_P4;
+
+  if(deltaI>0) LB+= mag_P3*deltaI*deltaI;
+
+  //Get the active fibers from the upstream tracking XBPF
+  std::vector<short> BProf1Fibers = ActiveFibers.at(BProf1); 
+  std::vector<short> BProf2Fibers = ActiveFibers.at(BProf2); 
+  std::vector<short> BProf3Fibers = ActiveFibers.at(BProf3);
+
+
+  std::cout << BProf1 << " has " << BProf1Fibers.size() << " active fibers" << std::endl;
+  for(size_t i = 0; i < BProf1Fibers.size(); ++i){
+    std::cout << BProf1Fibers[i] << " ";
+  }
+  std::cout << std::endl;
+
+  std::cout << BProf2 << " has " << BProf2Fibers.size() << " active fibers" << std::endl;
+  for(size_t i = 0; i < BProf2Fibers.size(); ++i){
+    std::cout << BProf2Fibers[i] << " ";
+  }
+  std::cout << std::endl;
+
+  std::cout << BProf3 << " has " << BProf3Fibers.size() << " active fibers" << std::endl;
+  for(size_t i = 0; i < BProf3Fibers.size(); ++i){
+    std::cout << BProf3Fibers[i] << " ";
+  }
+  std::cout << std::endl;
+
+
+  if( (BProf1Fibers.size() < 1) || (BProf2Fibers.size() < 1) || (BProf3Fibers.size() < 1) ){
+    std::cout << "Warning, at least one empty Beam Profiler. Not checking momentum" << std::endl;
+    return theMomenta;
+  }
+
+
+  std::cout << "Getting all trio-wise hits" << std::endl;
+  std::cout << "N1,N2,N3 " << BProf1Fibers.size()
+            << " "         << BProf2Fibers.size() 
+            << " "         << BProf3Fibers.size() << std::endl;
+
+  for(size_t i1 = 0; i1 < BProf1Fibers.size(); ++i1){
+
+    double x1,x2,x3;
+
+    x1 = -1.*GetPosition(BProf1Fibers[i1])/1.E3;
+
+    if (i1 < BProf1Fibers.size() - 1){
+      if (BProf1Fibers[i1] == (BProf1Fibers[i1 + 1] - 1)){
+        //Add .5 mm
+        x1 += .0005;
+      }
+    }
+
+    for(size_t i2 = 0; i2 < BProf2Fibers.size(); ++i2){
+
+      x2 = -1.*GetPosition(BProf2Fibers[i2])/1.E3;
+
+      if (i2 < BProf2Fibers.size() - 1){
+        if (BProf2Fibers[i2] == (BProf2Fibers[i2 + 1] - 1)){
+          //Add .5 mm
+          x2 += .0005;
+        }
+      }
+
+      for(size_t i3 = 0; i3 < BProf3Fibers.size(); ++i3){
+
+        std::cout << "\t" << i1 << " " << i2 << " " << i3 << std::endl;
+
+        x3 = -1.*GetPosition(BProf3Fibers[i3])/1.E3;
+
+        if (i3 < BProf3Fibers.size() - 1){
+          if (BProf3Fibers[i3] == (BProf3Fibers[i3 + 1] - 1)){
+            //Add .5 mm
+            x3 += .0005;
+          }
+        }
+
+        double cosTheta = MomentumCosTheta(x1,x2,x3);        
+        double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
+
+        theMomenta.push_back(momentum);
+
+        if (i3 < BProf3Fibers.size() - 1){
+          if (BProf3Fibers[i3] == (BProf3Fibers[i3 + 1] - 1)){
+            //Skip the next
+            ++i3;
+          }
+        }
+        
+      }
+
+      if (i2 < BProf2Fibers.size() - 1){
+        if (BProf2Fibers[i2] == (BProf2Fibers[i2 + 1] - 1)){
+          //Skip the next
+          ++i2;
+        }
+      }
+    }
+
+    if (i1 < BProf1Fibers.size() - 1){
+      if (BProf1Fibers[i1] == (BProf1Fibers[i1 + 1] - 1)){
+        //Skip the next
+        ++i1;
+      }
+    }
+  }
+
+  return theMomenta;
+}
+
+double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2, double X3 ){
+  double a =  ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
+  a = a / (L3 - X3*sin(fBeamBend) - L2 + X2*sin(fBeamBend) );
+  a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - a;
+
+  double numTerm = (a - X1)*(L3 - L2)*tan(fBeamBend) + (a - X1)*(X3 - X2)*cos(fBeamBend) + L1*( (L3 - L2) - (X3 - X2)*sin(fBeamBend) );
+
+  double denomTerm1, denomTerm2, denom;
+  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
+  denomTerm2 = sqrt( TMath::Power( ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ),2)
+                   + TMath::Power( ( (L3 - L2)                - (X3 - X2)*sin(fBeamBend) ),2) );
+  denom = denomTerm1 * denomTerm2;
+
+  double cosTheta = numTerm/denom;
+
+  return cosTheta;
+}
