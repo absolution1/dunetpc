@@ -11,6 +11,11 @@
 #
 #  !!!NOTE!!!: the readout is on a positive Y
 ##################################################################################
+# Updates:
+# 26/11/2018 - j.soto@cern.ch - This updates are not included in the drift in X geometries!
+# Added Field Cage, Ground Grid, LEMS, Extraction Grid, Cathode and corrected the PMT positions.
+# All these new elements are included by default.
+##################################################################################
 
 
 #use warnings;
@@ -26,6 +31,12 @@ GetOptions( "help|h" => \$help,
 	    "wires|w:s" => \$wires);
 
 my $pmt_switch="on";
+my $FieldCage_switch="on";
+my $Cathode_switch="on";
+my $GroundGrid_switch="on";
+my $ExtractionGrid_switch="on";
+my $LEMs_switch="on";
+
 
 if ( defined $help )
 {
@@ -134,17 +145,6 @@ $Cryostat_y = $Argon_y + 2*$SteelThickness;
 $Cryostat_z = $Argon_z + 2*$SteelThickness;
 
 ##################################################################
-############## Parameters for PMTs ###############
-
-#pos in cm inside the cryostat X coordinate: 2.3cm from the ground grid
- @pmt_pos = ( ' x="0"  y="-46.06" z="-92.246"', #-92.246"', #PMT1 - negative base - direct coating #x="-50-4.5+5.5*2.54-1.27*2.54-2.3"
-              ' x="0"  y="-46.06" z="-46.123"', #-46.123"', #PMT2- negative base - plate
-              ' x="0"  y="-46.06" z="0"', #PMT3 - positive base - direct coating
-              ' x="0"  y="-46.06" z="46.123"', #46.123"', #PMT4 - positive base -  plate
-              ' x="0"  y="-46.06" z="92.246"'); #92.246"'); #PMT5 - negative base - direct coating
-
-
-##################################################################
 ############## DetEnc and World relevant parameters  #############
 
 $SteelSupport_x  =  0.6;
@@ -208,12 +208,56 @@ $OriginZSet =   $DetEncZ/2.0
 
 ##################################################################
 ############### Parameters for det elements ######################
+##################################################################
+############## Field Cage, Cathode and Ground Grid Parameters ###############
 
-# cathode plane
-#$Cathode_x = $widthTPCActive;
-#$Cathode_y = 1.0;
-#$Cathode_z = $lengthTPCActive;
+$FieldShaperLongTubeLength =  312.17;
+$FieldShaperShortTubeLength =  112.17;
+$FieldShaperInnerRadius = 1.485;
+$FieldShaperOuterRadius = 1.685;
+$FieldShaperTorRad = 1.69;
 
+$FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
+$FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
+
+$FieldShaperSeparation = 5.0;
+$NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
+
+$FieldCageSizeX = $FieldShaperWidth+2;
+$FieldCageSizeY = $FieldShaperSeparation*$NFieldShapers+2;
+$FieldCageSizeZ = $FieldShaperLength+2;
+
+$CathodeCableRadius=0.38;
+$CathodeCableSeparation=4;
+$CathodeCableLength=112.18;
+$CathodeNumberOfCables=76;
+
+$CathodeHeight=2*$FieldShaperOuterRadius+0.05;
+$CathodeLength=$FieldShaperLength+0.5;
+$CathodeWidth=$FieldShaperWidth+0.5;
+$CathodeGroundGridSeparation=20;
+$GroundPMTSeparation=1.727;
+
+
+$LEMsFFSSeparation=3.0;
+$FFSPositionHeight=$Argon_y/2-$HeightGaseousAr-$LEMsFFSSeparation+0.5;
+$CathodePositionHeight=$FFSPositionHeight-($NFieldShapers*$FieldShaperSeparation);
+$GroundGridPositionHeight=$CathodePositionHeight-$CathodeGroundGridSeparation;
+$PMTposHeight=$CathodePositionHeight-$CathodeGroundGridSeparation-$GroundPMTSeparation;
+$PMTposHeight=-65.114;
+
+#-$OriginYSet+(1+$i-$NFieldShapers*0.5)*$FieldShaperSeparation
+
+
+##################################################################
+############## Parameters for PMTs ###############
+
+#pos in cm inside the cryostat X coordinate: 2.3cm from the ground grid
+ @pmt_pos = ( " x=\"0\"  y=\"$PMTposHeight\" z=\"-92.246\"", #-92.246"', #PMT1 - negative base - direct coating #x="-50-4.5+5.5*2.54-1.27*2.54-2.3"
+              " x=\"0\"  y=\"$PMTposHeight\" z=\"-46.123\"", #-46.123"', #PMT2- negative base - plate
+              " x=\"0\"  y=\"$PMTposHeight\" z=\"0\"", #PMT3 - positive base - direct coating
+              " x=\"0\"  y=\"$PMTposHeight\" z=\"46.123\"", #46.123"', #PMT4 - positive base -  plate
+              " x=\"0\"  y=\"$PMTposHeight\" z=\"92.246\""); #92.246"'); #PMT5 - negative base - direct coating
 
 
 #+++++++++++++++++++++++++ End defining variables ++++++++++++++++++++++++++
@@ -511,6 +555,172 @@ EOF
 
 close(TPC);
 }
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_FieldCage +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_FieldCage {
+
+    $FieldCage = $basename."_FieldCage" . $suffix . ".gdml";
+    push (@gdmlFiles, $FieldCage);
+    $FieldCage = ">" . $FieldCage;
+    open(FieldCage) or die("Could not open file $FieldCage for writing");
+
+# The standard XML prefix and starting the gdml
+print FieldCage <<EOF;
+   <?xml version='1.0'?>
+   <gdml>
+EOF
+# The printing solids used in the Field Cage
+#print "lengthTPCActive      : $lengthTPCActive \n";
+#print "widthTPCActive       : $widthTPCActive \n";
+
+
+print FieldCage <<EOF;
+<solids>
+     <torus name="FieldShaperCorner" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" rtor="$FieldShaperTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperShorttube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperShortTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+
+    <union name="FSunion1">
+      <first ref="FieldShaperLongtube"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunion2">
+      <first ref="FSunion1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[+0.5*$FieldShaperLongTubeLength+$FieldShaperTorRad]}"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunion3">
+      <first ref="FSunion2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunion4">
+      <first ref="FSunion3"/>
+      <second ref="FieldShaperLongtube"/>
+   		<position name="esquinapos4" unit="cm" x="@{[-$FieldShaperShortTubeLength-2*$FieldShaperTorRad]}" y="0" z="0"/>
+    </union>
+
+    <union name="FSunion5">
+      <first ref="FSunion4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunion6">
+      <first ref="FSunion5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength-$FieldShaperTorRad]}"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolid">
+      <first ref="FSunion6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+</solids>
+
+EOF
+
+print FieldCage <<EOF;
+
+<structure>
+<volume name="volFieldShaper">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolid"/>
+</volume>
+</structure>
+
+EOF
+
+print FieldCage <<EOF;
+
+</gdml>
+EOF
+close(FieldCage);
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_Cathode +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_Cathode {
+
+    $Cathode = $basename."_Cathode" . $suffix . ".gdml";
+    push (@gdmlFiles, $Cathode);
+    $Cathode = ">" . $Cathode;
+    open(Cathode) or die("Could not open file $Cathode for writing");
+
+# The standard XML prefix and starting the gdml
+print Cathode <<EOF;
+   <?xml version='1.0'?>
+   <gdml>
+EOF
+
+print Cathode <<EOF;
+
+<solids>
+    <tube name="solCathodeCable" rmin="0" rmax="@{[$CathodeCableRadius]}" z="@{[$CathodeCableLength]}" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+    <box name="solCathode" x="@{[$CathodeWidth]}" y="@{[$CathodeHeight]}"    z="@{[$CathodeLength]}" lunit="cm"/>
+
+</solids>
+
+EOF
+
+print Cathode <<EOF;
+
+
+<structure>
+<volume name="volCathodeCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solCathodeCable"/>
+</volume>
+
+<volume name="volCathode">
+  <materialref ref="LAr"/>
+  <solidref ref="solCathode"/>
+
+  <physvol>
+   <volumeref ref="volFieldShaper"/>
+   <position name="posFS" unit="cm" x="@{[0.5*$FieldShaperShortTubeLength+$FieldShaperTorRad]}" y="@{[0]}" z="@{[0]}"/>
+  </physvol>
+EOF
+for($ii=0;$ii<$CathodeNumberOfCables;$ii++)
+{
+	print Cathode <<EOF;
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable$ii" unit="cm" x="@{[0]}" y="@{[0]}" z="@{[-0.5*$CathodeCableSeparation*$CathodeNumberOfCables+($ii)*$CathodeCableSeparation]}"/>
+   <rotation name="rotCC$ii" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+EOF
+
+}
+print Cathode <<EOF;
+</volume>
+</structure>
+
+EOF
+
+print Cathode <<EOF;
+
+</gdml>
+EOF
+close(Cathode);
+}
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_pmt +++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -612,17 +822,17 @@ sub gen_pmt {
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54+2.5"/>
   </physvol>
 
   <physvol name="volOpDetSensitive">
    <volumeref ref="volPMTplatecoat"/>
-   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7"/>
+   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7+2.5"/>
   </physvol>
 
   <physvol>
    <volumeref ref="vol_PMT_AcrylicPlate"/>
-   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5"/>
+   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5+2.5"/>
   </physvol>
  </volume>
 
@@ -632,12 +842,12 @@ sub gen_pmt {
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54+2.5"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)+2.5"/>
   </physvol>
 
  </volume>
@@ -645,6 +855,135 @@ sub gen_pmt {
 </structure>
 
 EOF
+}
+
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_ExtractionGrid +++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_ExtractionGrid {
+
+    $ExtractionGrid = $basename."_ExtractionGrid" . $suffix . ".gdml";
+    push (@gdmlFiles, $ExtractionGrid);
+    $ExtractionGrid = ">" . $ExtractionGrid;
+    open(ExtractionGrid) or die("Could not open file $ExtractionGrid for writing");
+
+# The standard XML prefix and starting the gdml
+print ExtractionGrid <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+$ExtractionGridRadius = 0.05;
+$ExtractionGridPitch = 0.3;
+
+$ExtractionGridSizeX = $widthTPCActive;
+$ExtractionGridSizeY = 2*$ExtractionGridRadius;
+$ExtractionGridSizeZ = $lengthTPCActive;
+
+
+print ExtractionGrid <<EOF;
+
+<solids>
+      <tube name="solExtractionGridCable" rmin="0" rmax="$ExtractionGridRadius" z="$ExtractionGridSizeZ" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="solExtractionGrid" x="@{[$ExtractionGridSizeX]}" y="@{[$ExtractionGridSizeY]}" z="@{[$ExtractionGridSizeZ]}" lunit="cm"/>
+</solids>
+
+EOF
+
+
+print ExtractionGrid <<EOF;
+
+<structure>
+
+<volume name="volExtractionGridCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solExtractionGridCable"/>
+</volume>
+
+<volume name="volExtractionGrid">
+  <materialref ref="LAr"/>
+  <solidref ref="solExtractionGrid"/>
+EOF
+
+for($ii=0;$ii<$$ExtractionGridSizeX;$ii=$ii+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCable$ii" unit="cm" x="@{[$ii-0.5*$ExtractionGridSizeX]}" y="0" z="0"/>
+   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
+{
+	print ExtractionGrid <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGridCable"/>
+   <position name="posExtractionGridCableLat$jj" unit="cm" x="0" y="0" z="@{[$jj-0.5*$ExtractionGridSizeZ]}"/>
+   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   </physvol>
+EOF
+ 
+}
+
+	print ExtractionGrid <<EOF;
+  
+  </volume>
+</structure>
+</gdml>
+EOF
+close(ExtractionGrid);
+}
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_LEMs +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_LEMs {
+
+
+    $LEMs = $basename."_LEMs" . $suffix . ".gdml";
+    push (@gdmlFiles, $LEMs);
+    $LEMs = ">" . $LEMs;
+    open(LEMs) or die("Could not open file $LEMs for writing");
+
+# The standard XML prefix and starting the gdml
+print LEMs <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+$LEMsSizeX=$widthTPCActive;
+$LEMsSizeY=0.1;
+$LEMsSizeZ=$lengthTPCActive;
+
+print LEMs <<EOF;
+
+<solids>
+     <box name="solLEMs" x="@{[$LEMsSizeX]}" y="$LEMsSizeY" z="@{[$LEMsSizeZ]}" lunit="cm"/>
+
+</solids>
+
+EOF
+print LEMs <<EOF;
+
+
+<structure>
+ <volume name="volLEMs">
+  <materialref ref="Copper_Beryllium_alloy25"/>
+  <solidref ref="solLEMs"/>
+ </volume>
+</structure>
+</gdml>
+EOF
+close(LEMs);
 }
 
 
@@ -706,6 +1045,22 @@ print CRYO <<EOF;
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
+EOF
+  if ( $LEMs_switch eq "on" )
+  {
+$posLEMsX = 0;
+$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
+$posLEMsZ = 0;
+
+      print CRYO <<EOF;
+      <physvol>
+      <volumeref ref="volLEMs"/>
+      <position name="posLEMs" unit="cm" x="$posLEMsX" y="$posLEMsY" z="$posLEMsZ"/>
+      </physvol>
+EOF
+  }
+
+      print CRYO <<EOF;
     </volume>
 
     <volume name="volCryostat">
@@ -771,6 +1126,62 @@ EOF
 
 
   }
+
+#The +50 in the y positions must depend on some other parameter
+  if ( $FieldCage_switch eq "on" ) {
+    for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
+$posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-1*(-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad)]}" y="@{[$FFSPositionHeight-$i*$FieldShaperSeparation]}" z="0" />
+     <rotation name="rotFS$i" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+EOF
+    }
+  }
+
+  if ( $Cathode_switch eq "on" ) {
+$posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volCathode"/>
+     <position name="posCathode" unit="cm"  x="@{[0]}" y="@{[$CathodePositionHeight]}" z="0" />
+     <rotation name="rotCath" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+EOF
+  }
+
+  if ( $GroundGrid_switch eq "on" ) {
+$posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volCathode"/>
+     <position name="posGroundGrid" unit="cm"  x="@{[0]}" y="@{[$GroundGridPositionHeight]}" z="0" />
+     <rotation name="rotGroundGrid" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+EOF
+  }
+
+  if ( $ExtractionGrid_switch eq "on" )
+  {
+
+$ExtractionGridX = 0;
+$ExtractionGridY = 0.5*$Argon_y-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeY;
+$ExtractionGridZ = 0;
+
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volExtractionGrid"/>
+   <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>
+
+  </physvol>
+EOF
+
+  }
+
+
 	print CRYO <<EOF;
  </volume>
 </structure>
@@ -1031,6 +1442,10 @@ print "PMTs               : $pmt_switch \n";
 
 # run the sub routines that generate the fragments
 if ( $pmt_switch eq "on" ) {  gen_pmt();	}
+if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
+if ( $Cathode_switch eq "on" ) {  gen_Cathode();	}
+if ( $ExtractionGrid_switch eq "on" ) {  gen_ExtractionGrid();	}
+if ( $LEMs_switch eq "on" ) {  gen_LEMs();	}
 
 
 gen_Define(); 	 # generates definitions at beginning of GDML
