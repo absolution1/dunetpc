@@ -21,6 +21,8 @@
 #include "dunetpc/dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 #include "dunetpc/dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
 
+#include "lardataobj/RecoBase/Track.h"
+
 
 namespace protoana{
   class ProtoDUNEBeamlineReco;
@@ -71,7 +73,10 @@ void protoana::ProtoDUNEBeamlineReco::reconfigure(fhicl::ParameterSet const& pse
 
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
-  fBeamlineUtils.GetFibers( evt );
+
+  std::vector< recob::Track > tracks = fBeamlineUtils.MakeTracks( evt );
+
+  std::cout << "Got " << tracks.size() << " tracks" << std::endl;
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}

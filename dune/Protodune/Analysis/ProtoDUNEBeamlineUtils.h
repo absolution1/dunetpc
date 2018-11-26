@@ -35,13 +35,15 @@ namespace protoana {
     void reconfigure(fhicl::ParameterSet const &pset);
 
     void GetFibers( art::Event const & evt); 
-    void MakeTracks( art::Event const & evt);
+    std::vector< recob::Track> MakeTracks( art::Event const & evt);
 
     double   GetPosition( short );
     TVector3 ConvertMonitorCoordinates( double, double, double, double );
     void     BeamMonitorBasisVectors();
     void     RotateMonitorVector(TVector3&);
+    TVector3 ProjectToTPC(TVector3, TVector3);
 
+//    const std::vector< recob::Track > & GetTracks() const { return Tracks; };
 
   private:
 
@@ -49,7 +51,7 @@ namespace protoana {
 
     std::map< std::string, std::vector< short > > ActiveFibers;
     
-    std::vector< recob::Track > Tracks;
+    //std::vector< recob::Track > Tracks;
 
     //Just to make it easier to go through all devices
     std::vector< std::string > AllDevices = { 

@@ -43,8 +43,10 @@ void protoana::ProtoDUNEBeamlineUtils::GetFibers( art::Event const & evt ){
   }
 }
 
-void protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::Event const & evt ){
+std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::Event const & evt ){
 
+  std::vector< recob::Track > tracks;
+ 
   //Load fibers 
   GetFibers( evt ); 
 
@@ -60,7 +62,7 @@ void protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::Event const & evt ){
 
   if( !all_good ){
     std::cout << "At least one empty monitor. Producing no track" << std::endl;
-    return;
+    return tracks;
   }
 
   //Convention: (Horiz, Vert)
@@ -92,6 +94,8 @@ void protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::Event const & evt ){
       if (HorizUpstreamFibers[iH] == (HorizUpstreamFibers[iH + 1] - 1)) ++iH;
     }    
   } 
+  
+  std::cout << "Upstream " << std::endl;
 
   for(size_t i = 0; i < UpstreamPairedFibers.size(); ++i){
     
@@ -105,10 +109,89 @@ void protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::Event const & evt ){
     std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
     UpstreamPositions.push_back( posInDet );
   }
+
+  for(size_t iH = 0; iH < HorizDownstreamFibers.size(); ++iH){
+
+    size_t HorizFiber = HorizDownstreamFibers[iH];
+
+    for(size_t iV = 0; iV < VertDownstreamFibers.size(); ++iV){
+      size_t VertFiber = VertDownstreamFibers[iV];
+
+      //LOG_DEBUG("BeamEvent") << "Paired: " << HorizFiber << " " << VertFiber << "\n"; 
+      std::cout << "Paired: " << HorizFiber << " " << VertFiber << std::endl; 
+      DownstreamPairedFibers.push_back(std::make_pair(HorizFiber, VertFiber));
+
+      //If there's 2 adjacent fibers. Skip the next. Could replace this with averaging the position
+      //todo later
+      if (iV < VertDownstreamFibers.size() - 1){
+        if (VertDownstreamFibers[iV] == (VertDownstreamFibers[iV + 1] - 1)) ++iV;
+      }    
+    }    
+
+    if (iH < HorizDownstreamFibers.size() - 1){
+      if (HorizDownstreamFibers[iH] == (HorizDownstreamFibers[iH + 1] - 1)) ++iH;
+    }    
+  } 
+  
+  std::cout << "Downstream " << std::endl;
+
+  for(size_t i = 0; i < DownstreamPairedFibers.size(); ++i){
+    
+    std::pair<short,short> thePair = DownstreamPairedFibers.at(i);
+ 
+    double xPos = GetPosition(thePair.first);
+    double yPos = GetPosition(thePair.second);
+    
+    std::cout << "normal " << xPos << " " << yPos << std::endl;
+    TVector3 posInDet = ConvertMonitorCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+    std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
+    DownstreamPositions.push_back( posInDet );
+  }
+
+  //Just for creating tracks
+  std::vector< std::vector<double> > dummy;
+  std::vector<double> mom(3, util::kBogusD);
+  ///  
+
+  for(size_t iU = 0; iU < UpstreamPositions.size(); ++iU){
+    for(size_t iD = 0; iD < DownstreamPositions.size(); ++iD){
+      std::vector<TVector3> thePoints;
+      thePoints.push_back(UpstreamPositions.at(iU));
+      thePoints.push_back(DownstreamPositions.at(iD));
+
+      //Now project the last point to the TPC face
+      thePoints.push_back( ProjectToTPC(thePoints[0],thePoints[1]) );    
+      std::cout << "Projected: " << thePoints.back().X() << " " << thePoints.back().Y() << " " << thePoints.back().Z() << std::endl;
+
+     
+      std::vector<TVector3> theMomenta;
+      //Just push back the unit vector for each point 
+      theMomenta.push_back( ( DownstreamPositions.at(iD) - UpstreamPositions.at(iU) ).Unit() );
+      theMomenta.push_back( ( DownstreamPositions.at(iD) - UpstreamPositions.at(iU) ).Unit() );
+      theMomenta.push_back( ( DownstreamPositions.at(iD) - UpstreamPositions.at(iU) ).Unit() );
+
+      recob::Track tempTrack(thePoints, theMomenta, dummy, mom, 1);     
+      tracks.push_back( tempTrack );
+    }    
+  }
+  
+  return tracks;
 }
 
 void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p){
   fBeamEventTag = p.get<art::InputTag>("BeamEventTag");
+
+  fBeamX = p.get<double>("BeamX");
+  fBeamY = p.get<double>("BeamY");
+  fBeamZ = p.get<double>("BeamZ");
+
+  fRotateMonitorXZ = p.get<double>("RotateMonitorXZ"); 
+  fRotateMonitorYZ = p.get<double>("RotateMonitorYZ"); 
+
+  fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
+  fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
+  fNP04FrontZ          = p.get<double>("NP04FrontZ");
+
 }
 
 double protoana::ProtoDUNEBeamlineUtils::GetPosition( short theFiber ){
@@ -151,3 +234,16 @@ void protoana::ProtoDUNEBeamlineUtils::RotateMonitorVector(TVector3 &vec){
   vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
   vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
 }
+
+
+TVector3 protoana::ProtoDUNEBeamlineUtils::ProjectToTPC(TVector3 firstPoint, TVector3 secondPoint){
+  TVector3 dR = (secondPoint - firstPoint);
+
+  double deltaZ = -1.*secondPoint.Z();
+  double deltaX = deltaZ * (dR.X() / dR.Z());
+  double deltaY = deltaZ * (dR.Y() / dR.Z());
+
+  TVector3 lastPoint = secondPoint + TVector3(deltaX, deltaY, deltaZ);
+  return lastPoint;
+}
+
