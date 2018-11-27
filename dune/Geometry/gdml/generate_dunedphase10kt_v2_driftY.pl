@@ -279,7 +279,14 @@ $FieldCageSizeZ = $FieldShaperLength+2;
 
 $HeightPMT = 37.0;
 $pmtNx=int(0.01*$widthTPCActive*sqrt($PMTDensity));
+$pmtDistanceX=$widthTPCActive/($pmtNx);
 $pmtNz=int(0.01*$lengthTPCActive*sqrt($PMTDensity));
+$pmtDistanceZ=$lengthTPCActive/($pmtNz);
+if($PMTDensity==1)
+{
+  $pmtDistanceX=100;
+  $pmtDistanceZ=100;
+}
 $pmtN = $pmtNx*$pmtNz; #keeping 1m2 density of pmts
 $posPMTy=0;
 
@@ -297,8 +304,9 @@ for($i=0;$i<$pmtNx;++$i)
 {
 	for($j=0;$j<$pmtNz;++$j)
 	{
-	$pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*100 + $i*100]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*100+$j*100]}\"";
-	$counter++;
+	 $pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*100 + $i*100]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*100+$j*100]}\"";
+	 $pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*$pmtDistanceZ + $i*$pmtDistanceX]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*$pmtDistanceZ+$j*$pmtDistanceZ]}\"";
+	 $counter++;
 	}	
 }
 print "Number of PMTs      : $counter (@{[$pmtNx]} x @{[$pmtNz]})\n";
