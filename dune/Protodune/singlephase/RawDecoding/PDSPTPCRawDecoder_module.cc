@@ -769,7 +769,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  raw_digit.SetPedestal(median,sigma);
 	  raw_digits.push_back(raw_digit);  
 
-	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp());
+	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
 	  timestamps.push_back(rdtimestamp);
 
 	  //associate the raw digit and the timestamp data products
@@ -1181,7 +1181,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     raw_digit.SetPedestal(median,sigma);
     raw_digits.push_back(raw_digit);
 
-    raw::RDTimeStamp rdtimestamp(felix.timestamp());
+    raw::RDTimeStamp rdtimestamp(felix.timestamp(),offlineChannel);
     timestamps.push_back(rdtimestamp);
 
     //associate the raw digit and the timestamp data products

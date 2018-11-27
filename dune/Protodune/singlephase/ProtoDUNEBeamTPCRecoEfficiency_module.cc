@@ -28,9 +28,13 @@ namespace protoana{
     unsigned int fBeamTriggers;
     unsigned int fBeamParticles;
 
+    ProtoDUNEDataUtils fDataUtils;
   };
 
-  ProtoDUNEBeamTPCRecoEfficiency::ProtoDUNEBeamTPCRecoEfficiency(fhicl::ParameterSet const & pset): EDAnalyzer(pset) {
+  ProtoDUNEBeamTPCRecoEfficiency::ProtoDUNEBeamTPCRecoEfficiency(fhicl::ParameterSet const & pset): 
+    EDAnalyzer(pset),
+    fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
+  {
     fParticleLabel = pset.get<std::string>("ParticleLabel");
     fBeamTriggers = 0;
     fBeamParticles = 0;
@@ -38,11 +42,10 @@ namespace protoana{
 
   void ProtoDUNEBeamTPCRecoEfficiency::analyze(art::Event const &evt) {
 
-    ProtoDUNEDataUtils dataUtil;
     ProtoDUNEPFParticleUtils pfpUtil;
 
     // Is this event from a beam trigger?
-    if(dataUtil.IsBeamTrigger(evt)){
+    if(fDataUtils.IsBeamTrigger(evt)){
       ++fBeamTriggers;
     }
 

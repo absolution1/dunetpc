@@ -17,7 +17,7 @@ services:
 
   TFileService: { 
    closeFileFast: true  # default
-   fileName:  "RunRawDecoderTFile.root"
+   fileName:  "%fd_raw_anal.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
  
@@ -33,6 +33,7 @@ physics:
     timingrawdecoder: @local::timing_raw_decoder   
     ssprawdecoder: @local::ssp_raw_decoder_split
     tpcrawdecoder: @local::pdsp_tpc_raw_decoder
+    crtrawdecoder: @local::crt_raw_decoder
     ctbrawdecoder: @local::ctb_raw_decoder
     beamevent:     @local::proto_beamevent
 
@@ -40,7 +41,7 @@ physics:
 
   #Create path to run module
   #add ctbrawdecoder when it is tested
-  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, ctbrawdecoder, beamevent ] 
+  produce: [ timingrawdecoder, ssprawdecoder, tpcrawdecoder, crtrawdecoder, ctbrawdecoder, beamevent ] 
   output: [ out1 ]
   trigger_paths : [ produce ]
   end_paths: [ output ]

@@ -41,25 +41,23 @@ namespace beam
       const double &             GetCKov0Pressure() const{ return CKov0.pressure; };
       const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
-
-      void SetTOF0Trigger( std::pair<double,double> theT){ TOF0 = theT;};
-      void SetTOF1Trigger( std::pair<double,double> theT){ TOF1 = theT;}; 
-      void SetTOFChan    ( int theChan )                 { TOFChan = theChan; };
-
-      const std::pair< double, double > & GetTOF0() const { return TOF0; };
-      const double & GetTOF0Sec()  const { return TOF0.first; };
-      const double & GetTOF0Nano() const { return TOF0.second; };
-
-      const std::pair< double, double > & GetTOF1() const { return TOF1; };
-      const double & GetTOF1Sec()  const { return TOF1.first; };
-      const double & GetTOF1Nano() const { return TOF1.second; };
-
-     
-      void DecodeTOF(){ theTOF = ( (TOF1.first  - TOF0.first ) * 1.e9 
-                                 + (TOF1.second - TOF0.second) ); };
+      void DecodeTOF(){ 
+        theTOF = MultipleTOFs[0]; 
+        TOFChan = MultipleTOFChans[0];
+      };
 
       const double &            GetTOF() const { return theTOF; };
       const int &               GetTOFChan() const{ return TOFChan; };
+
+      const std::vector< double > & GetTOFs() const { return MultipleTOFs; };
+      const std::vector< int >    & GetTOFChans() const { return MultipleTOFChans; };
+      const std::vector< size_t > & GetUpstreamTriggers() const { return UpstreamTriggers; };
+      const std::vector< size_t > & GetDownstreamTriggers() const { return DownstreamTriggers; };
+
+      void SetTOFs              (std::vector< double > theContent ) {  MultipleTOFs = theContent; };
+      void SetTOFChans          (std::vector< int >    theContent ) {  MultipleTOFChans = theContent; };
+      void SetUpstreamTriggers  (std::vector< size_t > theContent ) {  UpstreamTriggers = theContent; };
+      void SetDownstreamTriggers(std::vector< size_t > theContent ) {  DownstreamTriggers = theContent; };
 
       void                                AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       const recob::Track &                GetBeamTrack(size_t i) const{ return Tracks.at(i);};
@@ -96,6 +94,10 @@ namespace beam
       void              SetRDTimestamp(long long theRDTimestamp){ RDTimestamp = theRDTimestamp; };
       const long long & GetRDTimestamp() const{ return RDTimestamp; };
 
+      void              SetMagnetCurrent(double theMagnetCurrent){ MagnetCurrent = theMagnetCurrent; };
+      const double &    GetMagnetCurrent() const{ return MagnetCurrent; };
+
+
 
 
     private:
@@ -118,10 +120,13 @@ namespace beam
 
       //Set of TOF detectors
       //
-      std::pair< double, double > TOF0;
-      std::pair< double, double > TOF1;
       int TOFChan;
       double theTOF;
+
+      std::vector< double > MultipleTOFs;
+      std::vector< int > MultipleTOFChans;
+      std::vector< size_t > UpstreamTriggers;
+      std::vector< size_t > DownstreamTriggers;
 
       //Set of Cerenkov detectors
       //
@@ -139,6 +144,8 @@ namespace beam
       int TimingTrigger;
       double SpillStart;
       double SpillOffset;
+
+      double MagnetCurrent;
 
   };
 

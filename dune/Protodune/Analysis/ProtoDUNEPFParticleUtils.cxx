@@ -5,10 +5,9 @@
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
-#include "lardataobj/RecoBase/Vertex.h"
+#include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/Track.h"
-
-#include "larpandora/LArPandoraObjects/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/Vertex.h"
 
 protoana::ProtoDUNEPFParticleUtils::ProtoDUNEPFParticleUtils(){
 
@@ -148,7 +147,7 @@ float protoana::ProtoDUNEPFParticleUtils::GetBeamCosmicScore(const recob::PFPart
 
   std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
 
-  std::string search = "BeamScore";
+  std::string search = "TestBeamScore";
   if(mdMap.find(search) != mdMap.end()){
     return mdMap.at(search);
   }

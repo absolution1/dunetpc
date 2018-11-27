@@ -1,0 +1,79 @@
+
+BEGIN_PROLOG
+
+standard_protodunedatautils:
+{
+   TimingTag:               "timingrawdecoder:daq"  
+   BeamEventTag:            "beamevent"
+
+   StrictTOF:               true # strict/permissive on events with invalid TOF data
+   StrictCherenkov:         true # strict/permissive on events with invalid Cherenkov data
+
+   TOFDistance:             28.6 # meters
+   MomentumScaleFactor:     1.
+   MomentumOffset:          0. # GeV/c
+   TOFScaleFactor:          1.
+   TOFOffset:               59.6 # ns
+
+   ## TOF Cuts for GetTOFParticleID [min,max]
+   TOFElectronCuts:         [-1e3,1e3]
+   TOFMuonCuts:             [-1e3,160]
+   TOFPionCuts:             [-1e3,160]
+   TOFKaonCuts:             [-1e3,1e3]
+   TOFProtonCuts:           [160,1e3]
+
+}
+
+standard_protodunedatautils_0p3GeV:                 @local::standard_protodunedatautils
+standard_protodunedatautils_0p3GeV.TOFElectronCuts: [-1e3,1e3]
+standard_protodunedatautils_0p3GeV.TOFMuonCuts:     [-1e3,170]
+standard_protodunedatautils_0p3GeV.TOFPionCuts:     [-1e3,170]
+standard_protodunedatautils_0p3GeV.TOFKaonCuts:     [-1e3,1e3]
+standard_protodunedatautils_0p3GeV.TOFProtonCuts:   [170,1e3]
+
+standard_protodunedatautils_0p5GeV:                 @local::standard_protodunedatautils
+standard_protodunedatautils_0p5GeV.TOFElectronCuts: [-1e3,1e3]
+standard_protodunedatautils_0p5GeV.TOFMuonCuts:     [-1e3,170]
+standard_protodunedatautils_0p5GeV.TOFPionCuts:     [-1e3,170]
+standard_protodunedatautils_0p5GeV.TOFKaonCuts:     [-1e3,1e3]
+standard_protodunedatautils_0p5GeV.TOFProtonCuts:   [170,1e3]
+
+standard_protodunedatautils_1GeV:                   @local::standard_protodunedatautils
+standard_protodunedatautils_1GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunedatautils_1GeV.TOFMuonCuts:       [-1e3,170]
+standard_protodunedatautils_1GeV.TOFPionCuts:       [-1e3,170]
+standard_protodunedatautils_1GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunedatautils_1GeV.TOFProtonCuts:     [170,1e3]
+
+standard_protodunedatautils_2GeV:                   @local::standard_protodunedatautils
+standard_protodunedatautils_2GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunedatautils_2GeV.TOFMuonCuts:       [-1e3,160]
+standard_protodunedatautils_2GeV.TOFPionCuts:       [-1e3,160]
+standard_protodunedatautils_2GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunedatautils_2GeV.TOFProtonCuts:     [160,1e3]
+
+standard_protodunedatautils_3GeV:                   @local::standard_protodunedatautils
+standard_protodunedatautils_3GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunedatautils_3GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunedatautils_3GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunedatautils_3GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunedatautils_3GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunedatautils_3GeV.StrictTOF:         false
+
+standard_protodunedatautils_6GeV:                   @local::standard_protodunedatautils
+standard_protodunedatautils_6GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunedatautils_6GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunedatautils_6GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunedatautils_6GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunedatautils_6GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunedatautils_6GeV.StrictTOF:         false
+
+standard_protodunedatautils_7GeV:                   @local::standard_protodunedatautils
+standard_protodunedatautils_7GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunedatautils_7GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunedatautils_7GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunedatautils_7GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunedatautils_7GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunedatautils_7GeV.StrictTOF:         false
+
+END_PROLOG

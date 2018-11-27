@@ -4370,8 +4370,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
 
       //call the track momentum algorithm that gives you momentum based on track range
-      trkf::TrackMomentumCalculator trkm;
-      trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
+      // - Should the minimal track length be 50 cm?  The default of 100 has been used.
+      trkf::TrackMomentumCalculator trkm{/*100.*/};
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 

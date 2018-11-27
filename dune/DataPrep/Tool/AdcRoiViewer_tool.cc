@@ -4,11 +4,12 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/RunDataTool.h"
+#include "dune/DuneInterface/Tool/TimeOffsetTool.h"
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
 #include "dune/DuneCommon/StringManipulator.h"
-#include "dune/DuneInterface/Tool/TimeOffsetTool.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,6 +25,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::ostringstream;
+using std::istringstream;
 using fhicl::ParameterSet;
 
 using Index = AdcRoiViewer::Index;
@@ -32,6 +34,8 @@ using NameVector = std::vector<Name>;
 using ParameterSetVector = std::vector<ParameterSet>;
 using FloatVector = std::vector<float>;
 using IntVector = std::vector<int>;
+using ManVector = std::vector<TPadManipulator*>;
+using ManVectorMap = std::vector<Name, ManVector>;
 
 //**********************************************************************
 // Subclass methods.
@@ -61,6 +65,14 @@ TH1* AdcRoiViewer::State::getSumHist(Name hname) {
   HistMap::iterator ihst = sumHists.find(hname);
   if ( ihst == sumHists.end() ) return nullptr;
   return ihst->second;
+}
+
+//**********************************************************************
+
+Name AdcRoiViewer::State::getSumFitName(Name hnam) const {
+  NameMap::const_iterator ifit = sumFitNames.find(hnam);
+  if ( ifit == sumFitNames.end() ) return "";
+  return ifit->second;
 }
 
 //**********************************************************************
@@ -128,6 +140,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     }
   }
   // Build the summary template histograms.
+  // The summary histogram for each channel is created the first time it is encountered in th data.
   ParameterSetVector pshists = ps.get<ParameterSetVector>("SumHists");
   for ( const ParameterSet& psh : pshists ) {
     Name hvarx = psh.get<Name>("var");
@@ -151,6 +164,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     float xmax = psh.get<float>("xmax");
     Name sfit;
     psh.get_if_present("fit", sfit);
+    Name plotName;
+    psh.get_if_present("plot", plotName);
     Name xlab = hvarx;
     if      ( hvarx == "fitHeight"    ) xlab = "Fit height% [SUNIT]%";
     else if ( hvarx == "fitHeightNeg" ) xlab = "-(Fit height)% [SUNIT]%";
@@ -187,6 +202,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( hvary == "" ) {
       ph = new TH1F(hnam.c_str(), httl.c_str(), nbin, xmin, xmax);
       ph->GetYaxis()->SetTitle("# ROI");
+      ph->Sumw2();  // Needed for likelihood fit
     } else {
       int nbiny  = psh.get<int>("nbiny");
       float ymin = psh.get<float>("ymin");
@@ -198,17 +214,19 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xlab.c_str());
     // Add fit to template so it will be used for each child histogram.
-    if ( sfit.size() ) {
-      if ( m_LogLevel >= 1 ) cout << myname << "Adding fitter " << sfit
-                                  << " to hist template " << hnam << endl;
-      TF1* pf = new TF1(sfit.c_str(), sfit.c_str());
-      ph->GetListOfFunctions()->AddLast(pf);
-      ph->GetListOfFunctions()->SetOwner(kTRUE);
-    }
+    //if ( sfit.size() ) {
+    //  if ( m_LogLevel >= 1 ) cout << myname << "Adding fitter " << sfit
+    //                              << " to hist template " << hnam << endl;
+    //  TF1* pf = new TF1(sfit.c_str(), sfit.c_str());
+    //  ph->GetListOfFunctions()->AddLast(pf);
+    //  ph->GetListOfFunctions()->SetOwner(kTRUE);
+    //}
     HistInfo& hin = getState().sumHistTemplates[hnam];
     hin.ph = ph;
     hin.varx = hvarx;
     hin.vary = hvary;
+    hin.plotName = plotName;
+    hin.fitName = sfit;
   }
   // Fetch the channel ranges.
   ParameterSetVector pscrs = ps.get<ParameterSetVector>("ChannelRanges");
@@ -296,31 +314,31 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( getState().sumHistTemplates.size() == 0 ) {
       cout << myname << "  No summary histograms" << endl;
     } else {
-      cout << myname << "         SumHists: [" << endl;
+      cout << myname << "         SumHists:" << endl;
       for ( const HistInfoMap::value_type& ish : getState().sumHistTemplates ) {
         const HistInfo& hin = ish.second;
-        cout << myname << "                     ";
+        cout << myname << "                   ";
         cout << hin.ph->GetName() << "(" << hin.varx;
         if ( hin.vary.size() ) cout << "," << hin.vary;
         cout << ")";
-        if ( hin.ph->GetListOfFunctions()->GetEntries() ) {
-          cout << "-" << hin.ph->GetListOfFunctions()->At(0)->GetName();
-        }
+        if ( hin.fitName.size() ) cout << " fit=" << hin.fitName;
+        if ( hin.plotName.size() ) cout << " plot=" << hin.plotName;
         cout << endl;
       }
-      cout << myname << "]" << endl;
     }
     if ( getState().chanSumHists.size() == 0 ) {
       cout << myname << "  No channel summary histograms" << endl;
     } else {
-      cout << myname << "   ChanSumHists: [" << endl;
+      cout << myname << "     ChanSumHists:" << endl;
       for ( HistMap::value_type ihst : getState().chanSumHists ) {
         TH1* ph = ihst.second;
-        cout << myname << "     " << ph->GetName() << endl;
+        cout << myname << "                 " << ph->GetName() << endl;
       }
     }
     cout << myname << "      RunDataTool: \"" << m_RunDataTool << "\" @ "
          << m_pRunDataTool << endl;
+    cout << myname << "   TickOffsetTool: \"" << m_TickOffsetTool << "\" @ "
+         << m_pTickOffsetTool << endl;
   }
   if ( m_LogLevel >=2 ) cout << myname << "End constructing tool." << endl;
 }
@@ -330,10 +348,15 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 AdcRoiViewer::~AdcRoiViewer() {
   const string myname = "AdcRoiViewer::dtor: ";
   if ( m_LogLevel >= 1 ) cout << myname << "Exiting." << endl;
-  fitSumHists();
-  fillChanSumHists();
-  writeSumHists();
-  writeChanSumHists();
+  if ( getState().sumHists.size() ) {
+    fitSumHists();
+    writeSumHists();
+    writeSumPlots();
+  }
+  if ( getState().chanSumHists.size() ) {
+    fillChanSumHists();
+    writeChanSumHists();
+  }
 }
 
 //**********************************************************************
@@ -468,6 +491,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     float x2 = histRelativeTick ? isam2 - isam1 : isam2;
     TH1* ph = new TH1F(hnam.c_str(), httl.c_str(), isam2-isam1, x1, x2);
     ph->SetDirectory(nullptr);
+    //ph->Sumw2();  // Likelihood fit needs weights.
     ph->SetStats(0);
     ph->SetLineWidth(2);
     unsigned int ibin = 0;
@@ -530,6 +554,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       pfinit->SetLineStyle(2);
       string fopt = "0";
       fopt = "WWB";
+      //fopt = "LWB";  // Use likelihood fit to include empty bins. Do we want this here?
       if ( dbg < 3 ) fopt += "Q";
       int fstat = quietHistFit(ph, pf, fopt.c_str());
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
@@ -673,6 +698,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     tdat.subrun = acd.subRun;
     tdat.event = acd.event;
     tdat.channel = acd.channel;
+    tdat.triggerClock = acd.triggerClock;
     TimeOffsetTool::Offset off = m_pTickOffsetTool->offset(tdat);
     if ( off.isValid() ) {
       haveTickOffset = true;
@@ -700,6 +726,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     Name varx = hin0.varx;
     Name vary = hin0.vary;
     TH1* ph0 = hin0.ph;
+    Name fitName = hin0.fitName;
+    Name plotNameTemplate = hin0.plotName;
     FloatVector vals;
     IntVector ivals;
     if      ( varx == "fitHeight"    )     vals = dm.getFloatVector("roiFitHeights");
@@ -795,6 +823,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         cout << myname << "   nbin: " << nbin << endl;
         cout << myname << "   xmin: " << xmin << endl;
         cout << myname << "   xmax: " << xmax << endl;
+        cout << myname << "    fit: " << fitName << endl;
       }
       bool isTH2 = dynamic_cast<TH2*>(ph0);
       if ( ! isTH2 ) {
@@ -807,6 +836,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       ph->SetDirectory(nullptr);
       ph->SetStats(0);
+      ph->Sumw2();  // Needed for likelihood fit.
       ph->SetLineWidth(2);
       ph->GetXaxis()->SetTitle(xlab.c_str());
       ph->GetYaxis()->SetTitle(ylab.c_str());
@@ -816,6 +846,12 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         ph->GetListOfFunctions()->SetOwner(kTRUE);
       }
       getState().sumHists[hnam] = ph;
+      getState().sumFitNames[hnam] = fitName;
+      if ( plotNameTemplate.size() ) {
+        Name plotNameHist = AdcChannelStringTool::build(m_adcStringBuilder, acd, plotNameTemplate);
+        getState().sumPlotHists[plotNameTemplate].push_back(ph);
+        getState().sumPlotNames[hnam] = plotNameHist;
+      }
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
@@ -882,28 +918,60 @@ void AdcRoiViewer::fitSumHists() const {
                               << getState().sumHists.size() << "." << endl;
   for ( HistMap::value_type ihst : getState().sumHists ) {
     TH1* ph = ihst.second;
-    Index nfun = ph->GetListOfFunctions()->GetEntries();
-    if ( nfun ) {
-      Name fname = ph->GetListOfFunctions()->At(0)->GetName();
-      if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fname << endl;
+    string hnam = ph->GetName();
+    string fitName = getState().getSumFitName(hnam);
+    bool doGausSigmaSteps = false;
+    if ( fitName.size() ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
       TF1* pf = nullptr;
-      if ( fname == "gaus" ) {
+      if ( fitName.substr(0,4) == "gaus" ) {
         double mean = ph->GetMean();
         double sigma = ph->GetRMS();
         double height = ph->GetMaximum();
+        if ( fitName.size() > 4 ) {
+          istringstream ssin(fitName.substr(4));
+          ssin >> sigma;
+        }
         pf = gausTF1(height, mean, sigma);
+        doGausSigmaSteps = true;
       } else {
-        pf = new TF1(fname.c_str(), fname.c_str());
+        pf = new TF1(fitName.c_str(), fitName.c_str());
       }
       if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      int fstat = quietHistFit(ph, pf, "WWQ");
-      if ( fstat != 0 ) {
-        cout << myname << "  WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
-        ph->GetListOfFunctions()->Clear();   // Otherwise we may get a crash when we try to view saved copy of histo
-      } else {
-        if ( m_LogLevel >=4 ) cout << myname << "  Fit succeeded." << endl;
+      bool fitDone = false;
+      // For gaus fit, we try increasing ranges of sigma to try to ignore tails.
+      if ( doGausSigmaSteps ) {
+        double sigma = pf->GetParameter(2);
+        for ( int ifit=0; ifit<5; ++ifit ) {
+          if ( m_LogLevel >= 4 ) cout << myname << "  Doing constrained fit " << ifit
+                                      << " with sigma=" << sigma << endl;
+          TF1* pffix = dynamic_cast<TF1*>(pf->Clone("gausfix"));
+          double sigmax = 2.0*sigma;
+          double sigmin = 0.2*sigmax;
+          pffix->SetParameter(2, sigma);
+          pffix->SetParLimits(2, sigmin, sigmax);
+          int fstat = quietHistFit(ph, pf, "WWF");
+          double signew = pffix->GetParameter(2);
+          delete pffix;
+          bool atLimit = signew > 0.999*sigmax;
+          if ( fstat ==0 || !atLimit ) {
+            fitDone = true;
+            break;
+          }
+          sigma = sigmax;
+        }
       }
-      ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pf
+      if ( ! fitDone ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing unconstrained fit" << endl;
+        int fstat = quietHistFit(ph, pf, "LWB");
+        if ( fstat != 0 ) {
+          cout << myname << "  WARNING: Fit " << pf->GetName() << " of " << ph->GetName() << " returned " << fstat << endl;
+          ph->GetListOfFunctions()->Clear();   // Otherwise we may get a crash when we try to view saved copy of histo
+        } else {
+          if ( m_LogLevel >=4 ) cout << myname << "  Fit succeeded." << endl;
+        }
+        ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pf
+      }
       delete pf;
     }
   }
@@ -913,28 +981,84 @@ void AdcRoiViewer::fitSumHists() const {
 
 void AdcRoiViewer::writeSumHists() const {
   const string myname = "AdcRoiViewer::writeSumHists: ";
-  if ( m_SumRootFileName.size() == 0 ) return;
+  bool saveHist = m_SumRootFileName.size();
+  if ( ! saveHist ) return;
   if ( getState().sumHists.size() == 0 ) {
     cout << myname << "No summary histograms found." << endl;
     return;
   }
-  //AdcChannelData acd;
-  //Name ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_SumRootFileName);
-  Name ofrname = m_SumRootFileName;
   TDirectory* savdir = gDirectory;
+  Name ofrname = m_SumRootFileName;
   TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+  saveHist = pfile != nullptr && pfile->IsOpen();
+  if ( ! saveHist ) {
+    cout << myname << "ERROR: Unable to open output file " << ofrname << endl;
+    return;
+  }
   if ( m_LogLevel >= 1 ) cout << myname << "Writing summary histograms. Count is "
                               << getState().sumHists.size() << "." << endl;
   for ( HistMap::value_type ihst : getState().sumHists ) {
     TH1* ph = ihst.second;
     TH1* phnew = dynamic_cast<TH1*>(ph->Clone());
-    phnew->Write();
+    if ( saveHist ) phnew->Write();
     if ( m_LogLevel >= 2 ) cout << myname << "  Wrote " << phnew->GetName() << endl;
   }
-  if ( pfile != nullptr ) pfile->Close();
-  delete pfile;
+  pfile->Close();
   if ( m_LogLevel >= 1 ) cout << myname << "Closed summary histogram file " << ofrname << endl;
   savdir->cd();
+  delete pfile;
+}
+
+//**********************************************************************
+
+void AdcRoiViewer::writeSumPlots() const {
+  const string myname = "AdcRoiViewer::writeSumPlots: ";
+  Index npad = 0;
+  Index npadx = 2;
+  Index npady = 2;
+  Index wpadx = 1400;
+  Index wpady = 1000;
+  npad = npadx*npady;
+  Index nvec = getState().sumPlotHists.size();
+  if (  m_LogLevel >= 1 ) cout << myname << "Plotting " << nvec << " set"
+                               << (nvec == 1 ? "" : "s") << " of summary histograms " << endl;
+  for ( const HistVectorMap::value_type ihv : getState().sumPlotHists ) {
+    Name plotNameTemplate = ihv.first;
+    const HistVector& hsts = ihv.second;
+    TPadManipulator* pmantop = nullptr;
+    Index ipad = 0;
+    Name plotFileName;
+    for ( Index ihst=0; ihst<hsts.size(); ++ihst ) {
+      TH1* ph = hsts[ihst];
+      Name hnam = ph->GetName();
+      if ( pmantop == nullptr ) {
+        plotFileName = getState().sumPlotNames[hnam];
+        if ( plotFileName.size() == 0 ) {
+          cout << myname << "ERROR: Plot file name is not assigned for " << hnam << endl;
+          break;
+        }
+        ipad = 0;
+        pmantop = new TPadManipulator;
+        if ( npadx && npady ) pmantop->setCanvasSize(wpadx, wpady);
+        if ( npad > 1 ) pmantop->split(npadx, npady);
+        if (  m_LogLevel >= 2 ) cout << myname << "  Creating plots for " << plotFileName << endl;
+      }
+      if (  m_LogLevel >= 3 ) cout << myname << "    Plotting " << ph->GetName() << endl;
+      TPadManipulator* pman = pmantop->man(ipad);
+      pman->add(ph, "hist", false);
+      pman->addHistFun(0);
+      pman->showUnderflow();
+      pman->showOverflow();
+      ++ipad;
+      if ( ipad >= npad || ihst+1 >= hsts.size() ) {
+        if (  m_LogLevel >= 2 ) cout << myname << "  Writing " << plotFileName << endl;
+        pman->print(plotFileName);
+        delete pmantop;
+        pmantop = nullptr;
+        ipad = 0;
+      }
+    }
+  }
 }
 
 //**********************************************************************
@@ -1001,7 +1125,7 @@ void AdcRoiViewer::fillChanSumHists() const {
         }
         val = pf->GetParameter(ipar);
       } else {
-        cout << myname << "Invald variable type " << vartype << " for " << hnam << endl;
+        cout << myname << "Invalid variable type " << vartype << " for " << hnam << endl;
         break;
       }
       float dval = 0.0;

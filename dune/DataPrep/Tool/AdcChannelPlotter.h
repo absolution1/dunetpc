@@ -24,6 +24,8 @@
 //                  pedestal - Fixed range around pedestal (PlotSigMin+ped, PlotSigMax+ped)
 //   PlotSigMin: - Min for signal range. See PlotSigOpt.
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
+//   ColorBad - If nonzero, color for channels flagged bad.
+//   ColorNoisy - If nonzero, color for channels flagged noisy.
 //   HistManager: Name of the tool that manages the histograms. Obsolete.
 //                If blank, they are owned by the file or the current Root directory.
 // The following subsitutions are made in the names:
@@ -44,6 +46,10 @@
 
 class HistogramManager;
 class AdcChannelStringTool;
+namespace lariov {
+  class ChannelStatusProvider;
+}
+
 
 class AdcChannelPlotter : AdcChannelTool {
 
@@ -73,6 +79,8 @@ private:
   Name m_PlotSigOpt;
   float m_PlotSigMin;
   float m_PlotSigMax;
+  Index m_ColorBad;
+  Index m_ColorNoisy;
   Name m_HistManager;
 
   // ADC string tool.
@@ -80,6 +88,9 @@ private:
 
   // Histogram manager.
   HistogramManager* m_phm;
+
+  // Channel status provider.
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Name type) const;

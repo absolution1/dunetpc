@@ -85,6 +85,19 @@ tools.pdsp_timingMitigate: {
   FEMBs: [1]
 }
 
+# Subtract baseline after deconvolution
+tools.adcCorrectUndershoot: {
+  tool_type: UndershootCorr
+  LogLevel: 1
+  CorrectFlag: [ false, false, true]             # U, V, and Collection
+  TDecayConst: [ 0.99955, 0.99955, 0.99955 ]     # numbers so far tuned for collection plane
+  FSubConst:   [ 0.0005,  0.0005,  0.0005 ]      # and copied for U and V
+  LCA:         [ 1980,    1980,    1980 ]
+  LCB:         [ -0.08277,  -0.08277, -0.08277  ]
+  LCC:         [ -2043.65, -2043.65 , -2043.65 ]
+  LCD:         [ 1.03, 1.03,  1.03 ]
+}
+
 
 ################################################################################
 # Event metrics.
@@ -163,7 +176,7 @@ tools.rawAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Raw ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -187,7 +200,7 @@ tools.rawAdcDetectorPlotInd1: {
   ShowGrid: true
   Title: "Raw ADC induction view 1"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -211,7 +224,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Raw ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
 # Prepared data.
@@ -477,7 +490,7 @@ tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN
 tools.pdtps_adcChannelPedestalNoisePlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalNoisePlotter.Metric: pedestalRms
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricMax: 14
-tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%STATUS%_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricLabel: "Pedestal noise [ADC counts]"
 tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -486,7 +499,7 @@ tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME
 tools.pdtps_adcChannelPedestalOrfPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalOrfPlotter.Metric: "fitPedFractionLow+fitPedFractionHigh"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedfracout_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedfracout_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricLabel: "Out-of-range fraction"
 tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -495,7 +508,7 @@ tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_ru
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedpeakexc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedpeakexc_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -513,7 +526,7 @@ tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNA
 tools.pdtps_adcChannelPedestalRawTailPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRawTailPlotter.Metric: rawTailFraction
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricMax: 0.5
-tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_%STATUS%_rawtail_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -565,13 +578,24 @@ tools.pdwz_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_wp_pedpea
 # 26sep2018 dla: Set phase to 1. It appears protoDUNE has been using this
 # phase up til now and will presumably keep it.
 # If not, we will have to start using run data.
-tools.pd_tickOffset: {
+tools.pd_tickOffset_sep26: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
   TpcTickPhase: 1
   Unit: tick
   RunDataTool: ""
 }
+
+# 15nov2018 dla: It appears the phase is 23 for the pulser runs taken Oct 25.
+tools.pd_tickOffset_oct25: {
+  tool_type: TimingRawDecoderOffsetTool
+  LogLevel: 1
+  TpcTickPhase: 23
+  Unit: tick
+  RunDataTool: ""
+}
+
+tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {

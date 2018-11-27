@@ -36,7 +36,6 @@
 #include "lardataobj/RecoBase/Vertex.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/FlashMatch.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -564,5 +563,3 @@ namespace dune{
 	  
   DEFINE_ART_MODULE(dEdxcalibration)
 }
-
-
