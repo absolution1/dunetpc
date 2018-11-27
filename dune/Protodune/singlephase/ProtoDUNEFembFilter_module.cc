@@ -1,4 +1,4 @@
-// A module to filter out events with out full set of fembs (on beam side?)
+// A module to filter out events with inactive FEMBs
 // owen.goodwin@postgrad.manchester.ac.uk
 
 #include <iostream>
