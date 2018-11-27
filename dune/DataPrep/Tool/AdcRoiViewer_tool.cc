@@ -957,7 +957,7 @@ void AdcRoiViewer::fitSumHists() const {
           istringstream ssin(fitName.substr(4));
           ssin >> sigma0;
         }
-        pf = gausTF1(height0, mean0, sigma0);
+        pf = gausTF1(height0, mean0, sigma0, "sumgaus");
         doGausSigmaSteps = true;
       } else {
         pf = new TF1(fitName.c_str(), fitName.c_str());
@@ -970,7 +970,7 @@ void AdcRoiViewer::fitSumHists() const {
         double sigma = sigma0;
         double sigfac = 2.0;
         for ( int ifit=0; ifit<5; ++ifit ) {
-          TF1* pffix = gausTF1(height0, mean0, sigma);
+          TF1* pffix = gausTF1(height0, mean0, sigma, "sumgaus");
           double sigmax = 1.1*sigfac*sigma;
           double sigmin = 0.9*sigma/sigfac;
           if ( m_LogLevel >= 4 ) cout << myname << "  Doing constrained fit " << ifit
@@ -980,7 +980,7 @@ void AdcRoiViewer::fitSumHists() const {
           pffix->SetParLimits(2, sigmin, sigmax);
           pffix->SetParLimits(0, 0.1*height0, 2.0*height0);   // Don't let height go negative.
           string fopt = "WWS";
-          //string fopt = "L";
+          //string fopt = "LS";
           if ( m_LogLevel < 4 ) fopt += "Q"; 
           int fstat = quietHistFit(ph, pffix, fopt.c_str());
           double signew = pffix->GetParameter(2);
@@ -1103,18 +1103,34 @@ void AdcRoiViewer::writeSumPlots() const {
         pman->setRangeX(xmin, xmax);
       }
       NameVector labs;
-      labs.push_back("hello");
-      labs.push_back("you");
+      TF1* pffit = ph->GetFunction("sumgaus");
+      if ( pffit != nullptr ) {
+        double mean = pffit->GetParameter("Mean");
+        double sigm = pffit->GetParameter("Sigma");
+        double rat = mean == 0 ? 0.0 : sigm/mean;
+        ostringstream ssout;
+        ssout.precision(3);
+        ssout.setf(std::ios_base::fixed);
+        ssout << "Mean: " << mean;
+        labs.push_back(ssout.str());
+        ssout.str("");
+        ssout << "Sigma: " << sigm;
+        labs.push_back(ssout.str());
+        ssout.str("");
+        ssout << "Ratio: " << rat;
+        labs.push_back(ssout.str());
+      }
       double xlab = 0.70;
       double ylab = 0.80;
+      double dylab = 0.04;
       for ( Name lab : labs ) {
         TLatex* pptl = nullptr;
         pptl = new TLatex(xlab, ylab, lab.c_str());
         pptl->SetNDC();
         pptl->SetTextFont(42);
-        pptl->SetTextSize(0.030);
+        pptl->SetTextSize(dylab);
         pman->add(pptl);
-        ylab -= 0.035;
+        ylab -= 1.2*dylab;
       }
       ++ipad;
       if ( ipad >= npad || ihst+1 >= hsts.size() ) {
