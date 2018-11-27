@@ -34,10 +34,11 @@ public:
   explicit ProtoDUNEBeamlineReco(fhicl::ParameterSet const& pset);
   virtual ~ProtoDUNEBeamlineReco();
   
-  void beginJob();
+  virtual void beginJob() override;
+  virtual void endJob() override;
+
   void analyze(art::Event const & evt) override;
   void reconfigure(fhicl::ParameterSet const& pset);
-  void endJob();
   
 private:
   
