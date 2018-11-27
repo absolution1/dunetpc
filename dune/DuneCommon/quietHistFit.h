@@ -4,6 +4,10 @@
 // May 2018
 //
 // Call TF1::Fit after suppressing Root logging.
+//   ph - histogram to be fit
+//   fopt - Root fitting options
+//   Return value is fit status. Include "S" in fopt to get IsValid
+//   from the fit result pointer.
 
 #ifndef quietHistFit_H
 #define quietHistFit_H
