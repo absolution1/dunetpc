@@ -5,6 +5,7 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneInterface/Tool/TimeOffsetTool.h"
+#include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
@@ -133,6 +134,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
   m_SumRootFileName(ps.get<string>("SumRootFileName")),
   m_ChanSumRootFileName(ps.get<string>("ChanSumRootFileName")),
+  m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_state(new AdcRoiViewer::State)
 {
   const string myname = "AdcRoiViewer::ctor: ";
@@ -153,6 +155,12 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     m_pTickOffsetTool = ptm->getShared<TimeOffsetTool>(m_TickOffsetTool);
     if ( m_pTickOffsetTool == nullptr ) {
       cout << myname << "WARNING: Tick offset tool not found: " << m_TickOffsetTool << endl;
+    }
+  }
+  if ( m_ChannelRangeTool.size() ) {
+    m_pChannelRangeTool = ptm->getShared<IndexRangeTool>(m_ChannelRangeTool);
+    if ( m_pChannelRangeTool == nullptr ) {
+      cout << myname << "WARNING: Index range tool not found: " << m_ChannelRangeTool << endl;
     }
   }
   // Build the summary template histograms.
@@ -247,16 +255,6 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     hin.plotWidth = plotWidth;
     hin.fitName = sfit;
   }
-  // Fetch the channel ranges.
-  ParameterSetVector pscrs = ps.get<ParameterSetVector>("ChannelRanges");
-  for ( const ParameterSet& pscr : pscrs ) {
-    ChannelRange cr;
-    cr.name  = pscr.get<Name>("name");
-    cr.setLabel(pscr.get<Name>("label"));
-    cr.begin = pscr.get<Index>("begin");
-    cr.end   = pscr.get<Index>("end");
-    m_ChannelRanges[cr.name] = cr;
-  }
   // Build the channel summary histograms.
   ParameterSetVector pcshists = ps.get<ParameterSetVector>("ChanSumHists");
   for ( const ParameterSet& psh : pcshists ) {
@@ -270,25 +268,28 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
       continue;
     }
-    ChannelRangeMap::const_iterator icr = m_ChannelRanges.find(crname);
-    if ( icr == m_ChannelRanges.end() ) {
-      cout << myname << "ERROR: Summary histogram channel range not found: " << crname << endl;
+    if ( m_pChannelRangeTool == nullptr ) {
+      cout << myname << "ERROR: Channel range tool not found." << endl;
       continue;
     }
-    ChannelRange cr = icr->second;
+    IndexRange cr = m_pChannelRangeTool->get(crname);
+    if ( ! cr.isValid() ) {
+      cout << myname << "ERROR: Channel range " << crname << " not found." << endl;
+      continue;
+    }
     HistInfoMap::const_iterator ivh = getState().sumHistTemplates.find(vhnam);
     if ( ivh == getState().sumHistTemplates.end() || ivh->second.ph == nullptr ) {
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitPos"};
+    const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitSigma", "fitPos"};
     if ( std::find(valTypes.begin(), valTypes.end(), vtype) == valTypes.end() ) {
-      cout << myname << "ERROR: Summary histogram has invalid variable type: " << vtype << endl;
+      cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << vtype << endl;
       continue;
     }
     const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
     if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
-      cout << myname << "ERROR: Summary histogram has invalid error type: " << etype << endl;
+      cout << myname << "ERROR: Channel summary histogram has invalid error type: " << etype << endl;
       continue;
     }
     TH1* phval = ivh->second.ph;
@@ -1199,7 +1200,9 @@ void AdcRoiViewer::fillChanSumHists() const {
             cout << myname << "Unable to find find fit for sum hist " << hnam << endl;
           continue;
         }
-        Name spar = vartype.substr(3);
+        bool doRat = vartype.substr(3,3) == "rat";
+        string::size_type ipos = doRat ? 6 : 3;
+        Name spar = vartype.substr(ipos);
         int ipar = pf->GetParNumber(spar.c_str());
         if ( ipar < 0 ) {
           if ( m_LogLevel >= logthresh )
@@ -1207,6 +1210,10 @@ void AdcRoiViewer::fillChanSumHists() const {
           continue;
         }
         val = pf->GetParameter(ipar);
+        if ( doRat ) {
+          double mean = pf->GetParameter("Mean");
+          val *= (mean == 0.0 ? 0.0 : 1.0/mean);
+        }
       } else {
         cout << myname << "Invalid variable type " << vartype << " for " << hnam << endl;
         break;

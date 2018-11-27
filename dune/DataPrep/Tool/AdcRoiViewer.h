@@ -23,6 +23,7 @@
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
 //           SumHists - Array of summary histogram specifiers. See below.
 //      ChannelRanges - Ranges of channels for channel summary plots.
+//                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
 //        RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                      ROI is assigned a charge corresponding to the pulser setting.
@@ -74,6 +75,7 @@
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
+//              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
@@ -129,6 +131,7 @@
 class AdcChannelStringTool;
 class RunDataTool;
 class TimeOffsetTool;
+class IndexRangeTool;
 class TH1;
 
 class AdcRoiViewer : AdcChannelTool {
@@ -245,20 +248,23 @@ private:
   Name m_PulserChargeUnit;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
+  Name m_ChannelRangeTool ="channelRanges";
   Name m_RoiRootFileName;
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
-  ChannelRangeMap m_ChannelRanges;
+  NameVector m_ChannelRanges;
 
   // Derived from configuration.
+  ChannelRangeMap m_crmap;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 
   // Tools.
-  const AdcChannelStringTool* m_adcStringBuilder =nullptr;
-  const RunDataTool*          m_pRunDataTool     =nullptr;
-  const TimeOffsetTool*       m_pTickOffsetTool  =nullptr;
+  const AdcChannelStringTool* m_adcStringBuilder  =nullptr;
+  const RunDataTool*          m_pRunDataTool      =nullptr;
+  const TimeOffsetTool*       m_pTickOffsetTool   =nullptr;
+  const IndexRangeTool*       m_pChannelRangeTool =nullptr;
 
 };
 
