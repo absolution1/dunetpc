@@ -50,6 +50,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  PulserStepCharge: 0.0" << endl;
     fout << "  PulserDacOffset: 0.0" << endl;
     fout << "  PulserChargeUnit: \"\"" << endl;
+    fout << "  SumPlotPadX: 2" << endl;
+    fout << "  SumPlotPadY: 2" << endl;
     fout << "  RunDataTool: \"\"" << endl;
     fout << "  TickOffsetTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;
@@ -71,9 +73,6 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
          << " title:\"Fit width run %RUN% channel %CHAN%\""
          << " nbin:40 xmin:0 xmax:4.0 fit:gaus}" << endl;
     fout << "]" << endl;
-    fout << "tools.mytool2.ChannelRanges: [" << endl;
-    fout << "  {name:apa1x label:APA1x begin:250 end:270}" << endl;
-    fout << "]" << endl;
     fout << "tools.mytool2.ChanSumHists: [" << endl;
     fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
          <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x}," << endl;
@@ -84,6 +83,13 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "tools.mytool2.RoiRootFileName: \"\"" << endl;
     fout << "tools.mytool2.SumRootFileName: \"roisum.root\"" << endl;
     fout << "tools.mytool2.ChanSumRootFileName: \"roichan.root\"" << endl;
+    fout << "tools.channelRanges: {" << endl;
+    fout << "  tool_type: FclIndexRangeTool" << endl;
+    fout << "  LogLevel: 0" << endl;
+    fout << "  Ranges: [" << endl;
+    fout << "    {name:apa1x label:APA1x begin:250 end:270}" << endl;
+    fout << "  ]" << endl;
+    fout << "}" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;

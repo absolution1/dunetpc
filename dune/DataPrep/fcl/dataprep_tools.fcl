@@ -398,6 +398,7 @@ tools.adcRoiViewer: {
   RunDataTool: ""
   TickOffsetTool: ""
   SumHists: []
+  ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }
@@ -414,6 +415,7 @@ tools.adcRoiFitter: {
   RunDataTool: ""
   TickOffsetTool: ""
   SumHists: []
+  ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }

@@ -22,6 +22,8 @@
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
 //           SumHists - Array of summary histogram specifiers. See below.
+//        SumPlotPadX - Number of pad columns in summary plots.
+//        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
 //                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
@@ -246,6 +248,8 @@ private:
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
+  Index m_SumPlotPadX;
+  Index m_SumPlotPadY;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
   Name m_ChannelRangeTool ="channelRanges";

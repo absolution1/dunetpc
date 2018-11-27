@@ -129,6 +129,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
   m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
   m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
+  m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
+  m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
   m_TickOffsetTool(ps.get<string>("TickOffsetTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -332,6 +334,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "  PulserStepCharge: " << m_PulserStepCharge << endl;
     cout << myname << "   PulserDacOffset: " << m_PulserDacOffset << endl;
     cout << myname << "  PulserChargeUnit: " << m_PulserChargeUnit << endl;
+    cout << myname << "       SumPlotPadX: " << m_SumPlotPadX << endl;
+    cout << myname << "       SumPlotPadY: " << m_SumPlotPadY << endl;
     cout << myname << "   RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "   SumRootFileName: " << m_SumRootFileName << endl;
     if ( getState().sumHistTemplates.size() == 0 ) {
@@ -1056,8 +1060,8 @@ void AdcRoiViewer::writeSumHists() const {
 void AdcRoiViewer::writeSumPlots() const {
   const string myname = "AdcRoiViewer::writeSumPlots: ";
   Index npad = 0;
-  Index npadx = 2;
-  Index npady = 2;
+  Index npadx = m_SumPlotPadX;
+  Index npady = m_SumPlotPadY;
   Index wpadx = 1400;
   Index wpady = 1000;
   npad = npadx*npady;
