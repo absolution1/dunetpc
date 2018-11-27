@@ -56,6 +56,8 @@ private:
   TH1F* fBITriggerPass;
   TH1F* fBIAndTimingMatchAll;
   TH1F* fBIAndTimingMatchPass;
+  TH1F* fPossiblePartsTOF;
+  TH1F* fPossiblePartsCherenkov;
   TH1F* fPossiblePartsAll;
   TH1F* fPossiblePartsPass;
   TH1F* fMomentumAll;
@@ -99,6 +101,8 @@ void protoana::ProtoDUNEBeamlineFilter::beginJob() {
   fBITriggerPass = tfs->make<TH1F>("BITriggerPass", "Beam Instrumentation Trigger for Passing Events", 3,-1,1);
   fBIAndTimingMatchAll = tfs->make<TH1F>("BIAndTimingMatchAll", "Beam Instrumentation & Timing Triggers Match for All Events", 2,0,1);
   fBIAndTimingMatchPass = tfs->make<TH1F>("BIAndTimingMatchPass", "Beam Instrumentation & Timing Triggers Match for Passing Events", 2,0,1);
+  fPossiblePartsTOF = tfs->make<TH1F>("PossiblePartsTOF", "Possible TOF Particles for All Events", 5,0,5);
+  fPossiblePartsCherenkov = tfs->make<TH1F>("PossiblePartsCherenkov", "Possible Cherenkov Particles for All Events", 5,0,5);
   fPossiblePartsAll = tfs->make<TH1F>("PossiblePartsAll", "Possible Particles for All Events", 5,0,5);
   fPossiblePartsPass = tfs->make<TH1F>("PossiblePartsPass", "Possible Particles for Passing Events", 5,0,5);
   fMomentumAll = tfs->make<TH1F>("MomentumAll", "Momentum for All Events", 100,0,10);
@@ -146,7 +150,10 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     return false;
   }
 
-  const auto possibleParts = fDataUtils.GetBeamlineParticleID(evt,fNominalBeamMomentum);
+  const auto possiblePartsTOF = fDataUtils.GetTOFParticleID(evt,fNominalBeamMomentum);
+  const auto possiblePartsCherenkov = fDataUtils.GetCherenkovParticleID(evt,fNominalBeamMomentum);
+  auto possibleParts = possiblePartsTOF && possiblePartsCherenkov;
+  possibleParts.electron = possiblePartsCherenkov.electron; // don't care about TOF for electrons
   bool result = false;
   if(fAndParticles)
   {
@@ -166,6 +173,18 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     else if(fIsProton && possibleParts.proton) result = true;
     else result = false;
   }
+
+  if (possiblePartsTOF.electron) fPossiblePartsTOF->Fill(0);
+  if (possiblePartsTOF.muon)     fPossiblePartsTOF->Fill(1);
+  if (possiblePartsTOF.pion)     fPossiblePartsTOF->Fill(2);
+  if (possiblePartsTOF.kaon)     fPossiblePartsTOF->Fill(3);
+  if (possiblePartsTOF.proton)   fPossiblePartsTOF->Fill(4);
+
+  if (possiblePartsCherenkov.electron) fPossiblePartsCherenkov->Fill(0);
+  if (possiblePartsCherenkov.muon)     fPossiblePartsCherenkov->Fill(1);
+  if (possiblePartsCherenkov.pion)     fPossiblePartsCherenkov->Fill(2);
+  if (possiblePartsCherenkov.kaon)     fPossiblePartsCherenkov->Fill(3);
+  if (possiblePartsCherenkov.proton)   fPossiblePartsCherenkov->Fill(4);
 
   if (possibleParts.electron) fPossiblePartsAll->Fill(0);
   if (possibleParts.muon)     fPossiblePartsAll->Fill(1);
