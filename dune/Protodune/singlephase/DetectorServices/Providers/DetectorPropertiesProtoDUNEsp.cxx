@@ -73,15 +73,15 @@ namespace spdp{
     DoUpdateClocks();
 
 
-    // const auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
+    auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
 
-    // float t = 1542662093;
-    // std::string name="NP04_DCS_01:Heinz_V";
-    // double rawHV = tpchv->GetValue(name, t);
-    // std::cout<<rawHV<<std::endl;
+    float t = 1542662093;
+    std::string name="NP04_DCS_01:Heinz_V";
+    double rawHV = tpchv->GetValue(name, t);
+    std::cout<<rawHV<<std::endl;
 
   
-    // const auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
+    // auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
     //slowctrls::SlowControls* tpchv_copy = tpchv;
     // float t = 1542662093;
     // double rawHV = tpchv->GetValue("NP04_DCS_01:Heinz_V", t);
