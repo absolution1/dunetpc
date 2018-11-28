@@ -268,8 +268,6 @@ private:
   double fTimingCalibration;
   double fCalibrationTolerance;
   double fOffsetTAI;
-  int    fFetchOffset;
-  int    fSpillFetchOffset;
 
   double fS11DiffUpper; 
   double fS11DiffLower; 
@@ -557,6 +555,7 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
 
     }
     catch( std::exception e){
+      acqStampValid = false;
       LOG_WARNING("BeamEvent") << "Could not get Spill time to time in\n";
     }
     
@@ -767,8 +766,8 @@ void proto::BeamEvent::produce(art::Event & e){
 
     //Start getting beam event info
     std::cout << "Testing fetching time: " << RDTSTime * 2.e-8 << std::endl;
-    uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 ) + fFetchOffset;
-    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 ) + fSpillFetchOffset;
+    uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 );
+    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 );
     LOG_INFO("BeamEvent") << "RDTSTime: " <<  uint64_t( RDTSTime * 2e-8 ) << "\n";
 
     //Check if we are still using the same spill information.
@@ -1747,9 +1746,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fTimingCalibration      = p.get<double>("TimingCalibration");
   fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
   fOffsetTAI              = p.get<double>("OffsetTAI");
-
-  fFetchOffset            = p.get<int>("FetchOffset");
-  fSpillFetchOffset       = p.get<int>("SpillFetchOffset");
 
   fS11DiffUpper           = p.get<double>("S11DiffUpper");
   fS11DiffLower           = p.get<double>("S11DiffLower");
