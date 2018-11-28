@@ -23,7 +23,7 @@ namespace slowctrls{
       virtual ~TPCHVService() = default;
 
       virtual void   reconfigure(fhicl::ParameterSet const& pset) = 0;
-      virtual slowctrls::SlowControls* provider() const = 0;
+      virtual provider_type* provider() = 0;
 
       }; // class TPCHVService
     } //namespace slowctrl
