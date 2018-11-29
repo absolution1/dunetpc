@@ -1989,7 +1989,6 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 									 recob::tracking::convertCollToVector(theMomenta),
 									 recob::Track::Flags_t(thePoints.size()), false),
 						  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
-      theTracks.push_back(tempTrack);
       beamevt->AddBeamTrack( *tempTrack );
     }
   }
