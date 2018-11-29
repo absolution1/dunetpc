@@ -302,7 +302,7 @@ private:
 
   //Hardware Parameters for magnetic field stuff
   double mag_P1 = 5.82044830e-3;
-  double mag_P2 = 0.;
+  // unused double mag_P2 = 0.;
   double mag_P3 = -4.68880000e-6;
   double mag_P4 = 324.573967;
 
@@ -1963,11 +1963,6 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
   }
  
-  //Just for creating tracks
-  std::vector< std::vector<double> > dummy;
-  std::vector<double> mom(3, util::kBogusD);
-  /// 
-
   for(size_t iU = 0; iU < upstreamPositions.size(); ++iU){
     for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
       std::vector<TVector3> thePoints;
@@ -1986,7 +1981,10 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
-      recob::Track * tempTrack = new recob::Track(thePoints, theMomenta, dummy, mom, 1);      
+      recob::Track * tempTrack = new recob::Track(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
+									 recob::tracking::convertCollToVector(theMomenta),
+									 recob::Track::Flags_t(thePoints.size()), false),
+						  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
       beamevt->AddBeamTrack( *tempTrack );
     }
   }

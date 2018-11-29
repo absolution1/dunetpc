@@ -163,11 +163,6 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
     DownstreamPositions.push_back( posInDet );
   }
 
-  //Just for creating tracks
-  std::vector< std::vector<double> > dummy;
-  std::vector<double> mom(3, util::kBogusD);
-  ///  
-
   for(size_t iU = 0; iU < UpstreamPositions.size(); ++iU){
     for(size_t iD = 0; iD < DownstreamPositions.size(); ++iD){
       std::vector<TVector3> thePoints;
@@ -185,7 +180,10 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
       theMomenta.push_back( ( DownstreamPositions.at(iD) - UpstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( DownstreamPositions.at(iD) - UpstreamPositions.at(iU) ).Unit() );
 
-      recob::Track tempTrack(thePoints, theMomenta, dummy, mom, 1);     
+      recob::Track tempTrack(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
+						    recob::tracking::convertCollToVector(theMomenta),
+						    recob::Track::Flags_t(thePoints.size()), false),
+			     0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
       tracks.push_back( tempTrack );
     }    
   }
