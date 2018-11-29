@@ -33,7 +33,7 @@ namespace protoana {
     unsigned int GetNumberRecoSliceHits(const unsigned int sliceID, art::Event const &evt, const std::string sliceModule) const;
 
     // A map of all hits in each slice
-    std::map<unsigned int, std::vector<const recob::Hit*>> GetRecoSliceHitMap(art::Event const &evt, const std::string sliceModule) const;
+    const std::map<unsigned int, std::vector<const recob::Hit*>> GetRecoSliceHitMap(art::Event const &evt, const std::string sliceModule) const;
   
   private:
 

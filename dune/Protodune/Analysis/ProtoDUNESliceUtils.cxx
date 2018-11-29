@@ -53,7 +53,7 @@ unsigned int protoana::ProtoDUNESliceUtils::GetNumberRecoSliceHits(const unsigne
 }
 
 // Get a map of a slice number and all hits in the slice
-std::map<unsigned int, std::vector<const recob::Hit*>> protoana::ProtoDUNESliceUtils::GetRecoSliceHitMap(art::Event const &evt, const std::string sliceModule) const{
+const std::map<unsigned int, std::vector<const recob::Hit*>> protoana::ProtoDUNESliceUtils::GetRecoSliceHitMap(art::Event const &evt, const std::string sliceModule) const{
 
   auto recoSlices = evt.getValidHandle<std::vector<recob::Slice> >(sliceModule);
   std::map<unsigned int, std::vector<const recob::Hit*>> hitMap;

@@ -491,7 +491,7 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
   // to look for it. Pandora reconstructs slices containing one (or sometimes more) primary PFParticles. These
   // are tagged as either beam or cosmic for ProtoDUNE. This function automatically considers only those
   // PFParticles considered as primary
-  std::vector<recob::PFParticle*> pfParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+  std::vector<const recob::PFParticle*> pfParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
 
   // We can now look at these particles
   for(const recob::PFParticle* particle : pfParticles){
