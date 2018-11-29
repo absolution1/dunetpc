@@ -104,7 +104,7 @@ namespace protoana {
 
     //Hardware Parameters for magnetic field stuff
     double mag_P1 = 5.82044830e-3;
-    double mag_P2 = 0.;
+//    double mag_P2 = 0.;
     double mag_P3 = -4.68880000e-6;
     double mag_P4 = 324.573967;
 

@@ -10,14 +10,14 @@
 
 BEGIN_PROLOG
 
-# Require all fembs.
+# Require all fembs to be active.
 pdsp_fembfilter_all: {
   module_type:            "ProtoDUNEFembFilter"
   RequireBeamsideFembsOnly : "false"
   LogLevel:        1  # 2 shows accept/reject for every event
 }
 
-#req
+#require only fembs on beamside APAs to be active
 pdsp_fembfilter_beamside: {
   module_type:            "ProtoDUNEFembFilter"
   RequireBeamsideFembsOnly : "true"

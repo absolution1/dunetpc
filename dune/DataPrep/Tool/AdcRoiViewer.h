@@ -22,7 +22,10 @@
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
 //           SumHists - Array of summary histogram specifiers. See below.
+//        SumPlotPadX - Number of pad columns in summary plots.
+//        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
+//                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
 //        RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                      ROI is assigned a charge corresponding to the pulser setting.
@@ -55,6 +58,8 @@
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
 //     fit: Name of function used to fit the distribution, e.g. "gaus"
+//    plot: Name of file where plot should be created. E.g. myvar%CHAN%.png
+//    pwid: Plot only includes region of this width around the peak.
 // If xmin < xmax and xmin > 0, the range will have width xmin centered on the median
 // value for the first event. If xmax > 0, the lower edge is rounded to that value.
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
@@ -72,6 +77,7 @@
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
+//              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
@@ -127,6 +133,7 @@
 class AdcChannelStringTool;
 class RunDataTool;
 class TimeOffsetTool;
+class IndexRangeTool;
 class TH1;
 
 class AdcRoiViewer : AdcChannelTool {
@@ -143,6 +150,7 @@ public:
   using NameVectorMap = std::map<Name, NameVector>;
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
+  using FloatMap = std::map<Name, float>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -153,6 +161,7 @@ public:
     Name vary;
     Name fitName;
     Name plotName;
+    float plotWidth;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
@@ -169,6 +178,7 @@ public:
     NameMap sumFitNames;         // Fit name for each plotted histogram indexed by hist name.
     NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
                                  // The first file name is used for plots with multiple hists.
+    FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
     // Channel summary histograms.
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
@@ -178,6 +188,8 @@ public:
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
     Name getSumFitName(Name hnam) const;
+    Name getSumPlotName(Name hnam) const;
+    float getSumPlotWidth(Name hnam) const;
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
@@ -236,22 +248,27 @@ private:
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
+  Index m_SumPlotPadX;
+  Index m_SumPlotPadY;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
+  Name m_ChannelRangeTool ="channelRanges";
   Name m_RoiRootFileName;
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
-  ChannelRangeMap m_ChannelRanges;
+  NameVector m_ChannelRanges;
 
   // Derived from configuration.
+  ChannelRangeMap m_crmap;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 
   // Tools.
-  const AdcChannelStringTool* m_adcStringBuilder =nullptr;
-  const RunDataTool*          m_pRunDataTool     =nullptr;
-  const TimeOffsetTool*       m_pTickOffsetTool  =nullptr;
+  const AdcChannelStringTool* m_adcStringBuilder  =nullptr;
+  const RunDataTool*          m_pRunDataTool      =nullptr;
+  const TimeOffsetTool*       m_pTickOffsetTool   =nullptr;
+  const IndexRangeTool*       m_pChannelRangeTool =nullptr;
 
 };
 
