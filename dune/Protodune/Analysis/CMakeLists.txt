@@ -16,6 +16,7 @@ art_make(BASENAME_ONLY
   ${ART_UTILITIES}
   ${MF_MESSAGELOGGER}
   cetlib cetlib_except
+  fhiclcpp
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry

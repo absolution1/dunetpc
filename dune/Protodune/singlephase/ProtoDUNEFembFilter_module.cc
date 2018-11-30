@@ -1,4 +1,4 @@
-// A module to filter out events with out full set of fembs (on beam side?)
+// A module to filter out events with inactive FEMBs
 // owen.goodwin@postgrad.manchester.ac.uk
 
 #include <iostream>
@@ -31,20 +31,31 @@ namespace filt{
     void beginJob();
 
   private:
+    protoana::ProtoDUNEDataUtils fDataUtils;
 
     unsigned int fLogLevel;
+    bool fRequireBeamsideFembsOnly;
     
     TH1D* fSelectedEvents;
     TH1D* fTotalEvents;
 
   };
 
-  ProtoDUNEFembFilter::ProtoDUNEFembFilter::ProtoDUNEFembFilter(fhicl::ParameterSet const & pset) {
+  ProtoDUNEFembFilter::ProtoDUNEFembFilter::ProtoDUNEFembFilter(fhicl::ParameterSet const & pset):
+    fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
+  {
 
     fLogLevel = pset.get<unsigned int>("LogLevel");
-
+    fRequireBeamsideFembsOnly = pset.get<bool>("RequireBeamsideFembsOnly");
     if ( fLogLevel >= 1 ) {
       std::cout  << "                LogLevel: " << fLogLevel << std::endl;
+      if(fRequireBeamsideFembsOnly){
+        std::cout  << "Filtering events with inactive FEMBs on beamside APAs"<< std::endl;
+      }
+    
+      else{
+        std::cout  << "Filtering events with any inactive FEMBs"<< std::endl;
+      }
 
       }
     
@@ -60,23 +71,39 @@ namespace filt{
 
   bool ProtoDUNEFembFilter::filter(art::Event & evt) {
     std::vector<int> BeamsideAPAs;
+    std::vector<int> AllAPAs;
+    std::vector<int> checkedAPAs;
+
     // Add some elements to myIntVector
     BeamsideAPAs.push_back(0);
     BeamsideAPAs.push_back(2);
     BeamsideAPAs.push_back(4);
 
+    AllAPAs.push_back(0);
+    AllAPAs.push_back(1);
+    AllAPAs.push_back(2);
+    AllAPAs.push_back(3);
+    AllAPAs.push_back(4);
+    AllAPAs.push_back(5);
+
+
     const std::string myname = "ProtoDUNEFembFilter::filter: ";
 
+    if(fRequireBeamsideFembsOnly){
+      checkedAPAs=BeamsideAPAs;
+    }
+    else{
+      checkedAPAs=AllAPAs;
+    }
+    
     bool keep = true;
     // Helper utility functions
-    protoana::ProtoDUNEDataUtils dataUtil;
-    //ProtoDUNEDataUtils dataUtil;
 
     fTotalEvents->Fill(1); //count total events
-    for (auto APA = BeamsideAPAs.begin(); APA != BeamsideAPAs.end(); ++APA){ //loop through beam side APAs
+    for (auto APA = checkedAPAs.begin(); APA != checkedAPAs.end(); ++APA){ //loop through beam side APAs
       //std::cout<<"APA:"<<*APA<<std::endl;
-      //std::cout<<dataUtil.GetNActiveFembsForAPA(evt, *APA)<<std::endl;
-      if (dataUtil.GetNActiveFembsForAPA(evt, *APA)!=20){ //check if APA has all 20 fembs active
+      //std::cout<<fDataUtils.GetNActiveFembsForAPA(evt, *APA)<<std::endl;
+      if (fDataUtils.GetNActiveFembsForAPA(evt, *APA)!=20){ //check if APA has all 20 fembs active
 
         if (fLogLevel >=2) std::cout<<"Missing FEMBs on APA: "<<*APA<<std::endl; 
         keep=false; //if not remove event

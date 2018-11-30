@@ -17,7 +17,7 @@ services:
 
   TFileService: { 
    closeFileFast: true  # default
-   fileName:  "RunRawDecoderTFile.root"
+   fileName:  "%fd_raw_anal.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
  

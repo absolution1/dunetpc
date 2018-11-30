@@ -6,13 +6,23 @@
 # Configurations for the protoDUNE femb filter module.
 #
 
+#include "ProtoDUNEDataUtils.fcl"
 
 BEGIN_PROLOG
 
-# Keep all triggers.
+# Require all fembs to be active.
 pdsp_fembfilter_all: {
   module_type:            "ProtoDUNEFembFilter"
+  RequireBeamsideFembsOnly : "false"
   LogLevel:        1  # 2 shows accept/reject for every event
+}
+
+#require only fembs on beamside APAs to be active
+pdsp_fembfilter_beamside: {
+  module_type:            "ProtoDUNEFembFilter"
+  RequireBeamsideFembsOnly : "true"
+  LogLevel:        1  # 2 shows accept/reject for every event
+  DataUtils:       @local::standard_protodunedatautils
 }
 
   

@@ -13,6 +13,7 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/AnalysisBase/ParticleID.h"
 
 #include "art/Framework/Principal/Event.h"
 
@@ -35,6 +36,9 @@ namespace protoana {
     const std::vector<const recob::Hit*> GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
     /// Get the number of hits from a given reco track
     unsigned int GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
+    /// Get the PID from a given track
+    std::vector<anab::ParticleID> GetRecoTrackPID(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string pidModule) const;
+
   private:
 
 

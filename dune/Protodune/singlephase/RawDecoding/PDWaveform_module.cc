@@ -115,16 +115,16 @@ namespace pd_monitor {
     TH2F* PDchanPED; // Distribution of ALL ADC convertions in a waveform for each channel
     TH2F* PDchanMax; // Distribution of the max ADC count from each waveform
     TH2F* PDchanMaxPed; // Distribution of max ADC count from each waveform minus the pedestal
-    TH2D* PDCalibInt; // Channel integral calibration at a glance for internal triggers
-    TH2D* PDchanCorr; //Correlattion between two channels selected in the fhicl file
+    TH2F* PDCalibInt; // Channel integral calibration at a glance for internal triggers
+    TH2F* PDchanCorr; //Correlattion between two channels selected in the fhicl file
     TH2F* PDchanCorPerTrace[288]; //OpDetWaveForms after pedestal subtraction per channel
     TH2F* PDchanRawPerTrace[288]; //OpDetWaveForm raw persistence traces per channel
     TH2F* PDchanPEDRough[288]; //Pedastal value histogram per channel
-    TH1D* PDchanWaveInt[288]; //Waveform integrations per channel
+    TH1F* PDchanWaveInt[288]; //Waveform integrations per channel
     TH1I* PDtrigs; // Number of triggers
     TH1F* PDPEDhist; //Calculated Pedestal of Each Channel
     TH1F* PDchanThres; // Calculated Threshold of Each Channel
-    //TH2D* PDchanCurPeak[288]; //Current vs. Peak of each channel
+    TH2F* PDchanCurPeak[288]; //Current vs. Peak of each channel
     // Add PDchanMax,PDchanMin?
     
   }; 
@@ -184,11 +184,11 @@ namespace pd_monitor {
     PDchanRMS = tFileService->make<TH2F>("RMS vs. Channel","RMS vs. Channel",288,0.,288.,100,0.,10.);
     PDchanRMSwide = tFileService->make<TH2F>("Coarse RMS vs. Channel","Coarse RMS vs. Channel",288,0.,288.,100,0.,100.);
     PDchanFFT = tFileService->make<TH2F>("FFTFreq vs. Channel","FFTFreq vs. Channel",288,0.,288.,1000,0.,75.);
-    PDCalibInt = tFileService->make<TH2D>("Integral_cal_int","Integral Calibration by Channel",288,0,288.,100000,0.0,1000000.0);
+    PDCalibInt = tFileService->make<TH2F>("Integral_cal_int","Integral Calibration by Channel",288,0,288.,100000,0.0,1000000.0);
     PDtrigs = tFileService->make<TH1I>("Triggers vs. Channel","Triggers vs. Channel",288.,0.,288.);
     PDPEDhist = tFileService->make<TH1F>("Pedestal vs. Channel","Pedestal vs. Channel",288.,0.,288.);
     PDchanThres = tFileService->make<TH1F>("Threshold vs. Channel","Threshold vs. Channel",288,0.,288.);
-    PDchanCorr = tFileService->make<TH2D>(Form("ADCMax_chan%d_chan%d",fSSP_corrchan1,fSSP_corrchan2),
+    PDchanCorr = tFileService->make<TH2F>(Form("ADCMax_chan%d_chan%d",fSSP_corrchan1,fSSP_corrchan2),
 					  Form("ADCMax Channel %d vs. ADCMax Channel %d",fSSP_corrchan1,fSSP_corrchan2),4000,0.0,4000.0,4000,0.0,4000.0);
     
     for(int i=0;i<288;i++){
@@ -198,10 +198,10 @@ namespace pd_monitor {
 						      Form("Pedestal Substracted Persistence Traces Channel %d",i),2000.,0.,2000.,1000.,0.,2000.); 
       PDchanPEDRough[i] = tFileService->make<TH2F>(Form("ped_calc_trace_chan_%d",i),
 						   Form("Wave Form Fraction for Pedestal %d",i),40.,0.,40.,1000.,1500.,2500.); 
-      PDchanWaveInt[i] = tFileService->make<TH1D>(Form("wave_integrals_pedsub_chan_%d",i),
+      PDchanWaveInt[i] = tFileService->make<TH1F>(Form("wave_integrals_pedsub_chan_%d",i),
 						  Form("Pedestal Subtracted Wave Integrals Channel %d",i),100000,0.0,1000000.0); 
-      //PDchanCurPeak[i] = tFileService->make<TH2D>(Form("current_peak_%d",i),
-      // PDchanCurPeak[i]					  Form("current_peak_%d",i),1500,0.0,1500.0,10000,0.0,10000.0);
+      PDchanCurPeak[i] = tFileService->make<TH2F>(Form("current_peak_%d",i),
+						  Form("current_peak_%d",i),1500,0.0,1500.0,1000,0.0,10000.0);
     }
   }
   
@@ -254,7 +254,7 @@ namespace pd_monitor {
       int nfound = 0;
       TH1F WfmHist("Waveform","Waveform",nBins,0,nBins), 
 	WfmFFT("WfmFFT","WfmFFT",nBins,0,nBins);
-      TH1D *htemp = new TH1D("htemp","htemp",nBins,0,nBins);
+      TH1F *htemp = new TH1F("htemp","htemp",nBins,0,nBins);
       /*long int presum=0,postsum=0;
       long int runavg;
       unsigned int forwin, backwin;
@@ -352,7 +352,7 @@ namespace pd_monitor {
 	    if(sumpedsub>1) {
 	      PDchanWaveInt[CurChannel]->Fill(sumpedsub);
 	      PDCalibInt->Fill(CurChannel,sumpedsub);
-	      //PDchanCurPeak[CurChannel]->Fill(htemp->GetBinContent(intbin)-basemean,sumpedsub);
+	      PDchanCurPeak[CurChannel]->Fill(htemp->GetBinContent(intbin)-basemean,sumpedsub);
 	    }
 	  }
 	}
