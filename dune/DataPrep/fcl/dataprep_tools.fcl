@@ -397,6 +397,11 @@ tools.adcRoiViewer: {
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
+  MaxRoiPlots: 0
+  RoiPlotPadX: 4
+  RoiPlotPadY: 4
+  SumPlotPadX: 4
+  SumPlotPadY: 4
   SumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
@@ -414,6 +419,11 @@ tools.adcRoiFitter: {
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
+  MaxRoiPlots: 0
+  RoiPlotPadX: 4
+  RoiPlotPadY: 4
+  SumPlotPadX: 4
+  SumPlotPadY: 4
   SumHists: []
   ChannelRanges: []
   RoiRootFileName: ""

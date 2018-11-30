@@ -117,6 +117,14 @@ Name AdcRoiViewer::State::getChanSumHistErrorType(Name hnam) const {
 }
 
 //**********************************************************************
+
+Name AdcRoiViewer::State::getChanSumPlotName(Name hnam) const {
+  NameMap::const_iterator ihst = chanSumPlotNames.find(hnam);
+  if ( ihst == chanSumPlotNames.end() ) return nullptr;
+  return ihst->second;
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -129,6 +137,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
   m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
   m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
+  m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
+  m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
+  m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
@@ -205,25 +216,27 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         xlab = "Fit height gain [%((SUNIT))%/" + sden + "]";
       }
     }
-    else if ( hvarx == "fitWidth"     ) xlab = "Fit width [Ticks]";
-    else if ( hvarx == "fitPos"       ) xlab = "Fit position [Ticks]";
-    else if ( hvarx == "fitPosRem"    ) xlab = "Fit position tick remainder [Ticks]";
+    else if ( hvarx == "fitWidth"     ) xlab = "Fit width [Tick]";
+    else if ( hvarx == "fitPos"       ) xlab = "Fit position [Tick]";
+    else if ( hvarx == "fitPosRem"    ) xlab = "Fit position tick remainder [Tick]";
     else if ( hvarx == "fitPosPulser" )
-      xlab = "Fit position wrt pulser [Ticks]";
+      xlab = "Fit position wrt pulser [Tick]";
     else if ( hvarx == "fitToffPulser" )
-      xlab = "Offset fit position wrt pulser [Ticks]";
+      xlab = "Offset fit position wrt pulser [Tick]";
     else if ( hvarx == "fitToffPulserMod10" )
-      xlab = "mod_{10}(offset fit position wrt pulser) [Ticks]";
+      xlab = "mod_{10}(offset fit position wrt pulser) [Tick]";
     else if ( hvarx == "fitChiSquare" ) xlab = "Fit #chi^{2}";
     else if ( hvarx == "fitChiSquareDof" ) xlab = "Fit #chi^{2}/DOF";
     else if ( hvarx == "fitCSNorm" ) xlab = "Normalized fit #chi^{2}";
     else if ( hvarx == "fitCSNormDof" ) xlab = "Normalized fit #chi^{2}/DOF";
+    else if ( hvarx == "sigArea" ) xlab = "Area [%(SUNIT)%-Tick]";
+
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
     }
     Name ylab;
     if ( hvary.size() ) {
-      if ( hvary == "timingPhase" ) ylab = "Timing phase [Ticks]";
+      if ( hvary == "timingPhase" ) ylab = "Timing phase [Tick]";
       if ( hvary == "event" ) ylab = "Event";
     }
     TH1* ph = nullptr;
@@ -263,9 +276,10 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name hnam0   = psh.get<Name>("name");    // Name for this histogram
     Name httl0   = psh.get<Name>("title");   // Title for this histogram
     Name vhnam   = psh.get<Name>("valHist"); // Name of the template for the histogram used to fill
-    Name vtype   = psh.get<Name>("valType"); // Type of variable extracted from histogram
+    Name valType = psh.get<Name>("valType"); // Type of variable extracted from histogram
     Name etype   = psh.get<Name>("errType"); // Type of variable extracted from histogram
-    Name crname  = psh.get<Name>("cr");      // Name of the channel range for this histogram
+    Name crname0  = psh.get<Name>("cr");      // Name of the channel range for this histogram
+    Name plname  = psh.get<Name>("plot");    // Name of the plot file for this histogram
     if ( hnam0.size() == 0 ) {
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
       continue;
@@ -274,19 +288,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel range tool not found." << endl;
       continue;
     }
-    IndexRange cr = m_pChannelRangeTool->get(crname);
-    if ( ! cr.isValid() ) {
-      cout << myname << "ERROR: Channel range " << crname << " not found." << endl;
-      continue;
-    }
     HistInfoMap::const_iterator ivh = getState().sumHistTemplates.find(vhnam);
     if ( ivh == getState().sumHistTemplates.end() || ivh->second.ph == nullptr ) {
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"mean", "rms", "fitMean", "fitWidth", "fitSigma", "fitPos"};
-    if ( std::find(valTypes.begin(), valTypes.end(), vtype) == valTypes.end() ) {
-      cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << vtype << endl;
+    const NameVector valTypes = {"mean", "rms", "fitMean", "fitSigma"};
+    if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
+      cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
     }
     const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
@@ -296,34 +305,65 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     }
     TH1* phval = ivh->second.ph;
     Name valLabel = phval->GetXaxis()->GetTitle();
-    StringManipulator smhnam(hnam0);
-    smhnam.replace("%CRNAME%", cr.name);
-    smhnam.replace("%CRLABEL%", cr.label());
-    smhnam.replace("%CRLABEL1%", cr.label(1));
-    smhnam.replace("%CRLABEL2%", cr.label(2));
-    Name hnam = smhnam.string();
-    if ( getState().chanSumHists.find(hnam) != getState().chanSumHists.end() ) {
-      cout << myname << "ERROR: Duplicate channel summary histogram name: " << hnam << endl;
-      continue;
+    Name yttl = "Unknown";
+    if ( valType == "mean" ) {
+      yttl = "Mean of " + valLabel;
+    } else if ( valType == "rms" ) {
+      yttl = "RMS of " + valLabel;
+    } else if ( valType == "fitMean" ) {
+      yttl = "Fit mean of " + valLabel;
+    } else if ( valType == "fitSigma" ) {
+      yttl = "Fit sigma of " + valLabel;
     }
-    StringManipulator smttl(httl0);
-    smttl.replace("%CRNAME%", cr.name);
-    smttl.replace("%CRLABEL%", cr.label());
-    smttl.replace("%CRLABEL1%", cr.label(1));
-    smttl.replace("%CRLABEL2%", cr.label(2));
-    Name httl = smttl.string();
-    TH1* phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
-    phf->GetXaxis()->SetTitle("Channel");
-    phf->GetYaxis()->SetTitle(valLabel.c_str());
-    phf->SetDirectory(nullptr);
-    phf->SetStats(0);
-    phf->SetLineWidth(2);
-    phf->SetMarkerStyle(2);
-    getState().chanSumHists[hnam] = phf;
-    getState().chanSumHistTemplateNames[hnam] = vhnam;
-    getState().chanSumHistVariableTypes[hnam] = vtype;
-    getState().chanSumHistErrorTypes[hnam] = etype;
-  }
+    // Loop over channel ranges. Value "list" means all; otherwise just the one given.
+    NameVector crns;
+    if ( crname0 == "list" ) crns = m_ChannelRanges;
+    else crns.push_back(crname0);
+    for ( Name crname : crns ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Creating channel summary histograms for channel range " << crname << endl;
+      IndexRange cr = m_pChannelRangeTool->get(crname);
+      if ( ! cr.isValid() ) {
+        cout << myname << "ERROR: Channel range " << crname << " not found." << endl;
+        continue;
+      }
+      StringManipulator smhnam(hnam0);
+      smhnam.replace("%CRNAME%", cr.name);
+      smhnam.replace("%CRLABEL%", cr.label());
+      smhnam.replace("%CRLABEL1%", cr.label(1));
+      smhnam.replace("%CRLABEL2%", cr.label(2));
+      Name hnam = smhnam.string();
+      if ( getState().chanSumHists.find(hnam) != getState().chanSumHists.end() ) {
+        cout << myname << "ERROR: Duplicate channel summary histogram name: " << hnam << endl;
+        continue;
+      }
+      StringManipulator smttl(httl0);
+      smttl.replace("%CRNAME%", cr.name);
+      smttl.replace("%CRLABEL%", cr.label());
+      smttl.replace("%CRLABEL1%", cr.label(1));
+      smttl.replace("%CRLABEL2%", cr.label(2));
+      Name httl = smttl.string();
+      TH1* phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
+      phf->GetXaxis()->SetTitle("Channel");
+      phf->GetYaxis()->SetTitle(yttl.c_str());
+      phf->SetDirectory(nullptr);
+      phf->SetStats(0);
+      phf->SetLineWidth(2);
+      if ( etype == "none" ) phf->SetMarkerStyle(2);
+      else phf->SetMarkerStyle(0);  // Draw error bars instead of markers
+      StringManipulator smplt(plname);
+      smplt.replace("%HNAME%", hnam0);
+      smplt.replace("%CRNAME%", cr.name);
+      smplt.replace("%CRLABEL%", cr.label());
+      smplt.replace("%CRLABEL1%", cr.label(1));
+      smplt.replace("%CRLABEL2%", cr.label(2));
+      plname = smplt.string();
+      getState().chanSumHists[hnam] = phf;
+      getState().chanSumHistTemplateNames[hnam] = vhnam;
+      getState().chanSumHistVariableTypes[hnam] = valType;
+      getState().chanSumHistErrorTypes[hnam] = etype;
+      getState().chanSumPlotNames[hnam] = plname;
+    }  // End loop over channel ranges
+  }  // End loop over channel summmary histogram configurations
   // Display the configuration.
   if ( m_LogLevel>= 1 ) {
     cout << myname << "          LogLevel: " << m_LogLevel << endl;
@@ -334,6 +374,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "  PulserStepCharge: " << m_PulserStepCharge << endl;
     cout << myname << "   PulserDacOffset: " << m_PulserDacOffset << endl;
     cout << myname << "  PulserChargeUnit: " << m_PulserChargeUnit << endl;
+    cout << myname << "       MaxRoiPlots: " << m_MaxRoiPlots << endl;
+    cout << myname << "       RoiPlotPadX: " << m_RoiPlotPadX << endl;
+    cout << myname << "       RoiPlotPadY: " << m_RoiPlotPadY << endl;
     cout << myname << "       SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "       SumPlotPadY: " << m_SumPlotPadY << endl;
     cout << myname << "   RoiRootFileName: " << m_RoiRootFileName << endl;
@@ -383,6 +426,7 @@ AdcRoiViewer::~AdcRoiViewer() {
   if ( getState().chanSumHists.size() ) {
     fillChanSumHists();
     writeChanSumHists();
+    writeChanSumPlots();
   }
 }
 
@@ -496,7 +540,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     if ( dbg >=3 ) cout << myname << "  ROI " << nroi << "(raw " << iroiRaw << "): ["
                         << roi.first << ", " << roi.second << "]" << endl;
     ostringstream sshnam;
-    sshnam << "hroi_evt%EVENT%_chan%CHAN%_roi";
+    sshnam << "hroi_evt%0EVENT%_chan%0CHAN%_roi";
     if ( nroi < 100 ) sshnam << "0";
     if ( nroi <  10 ) sshnam << "0";
     sshnam << nroi;
@@ -600,6 +644,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       //delete pfinit;  This give error: list accessing deleted object
     }
   }
+  writeRoiPlots(roiHists, acd);
   res.setInt("roiEvent",   acd.event);
   res.setInt("roiRun",     acd.run);
   res.setInt("roiSubRun",  acd.subRun);
@@ -683,6 +728,52 @@ void AdcRoiViewer::writeRoiHists(const DataMapVector& dms, int dbg) const {
   if ( pfile != nullptr ) pfile->Close();
   delete pfile;
   savdir->cd();
+}
+
+//**********************************************************************
+
+void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& acd) const {
+  const string myname = "AdcRoiViewer::writeRoiPlots: ";
+  if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
+  Index npadx = m_RoiPlotPadX;
+  Index npady = m_RoiPlotPadY;
+  Index npad = npadx*npady;
+  if ( npad == 0 ) return;
+  Index wpadx = 1400;
+  Index wpady = 1000;
+  TPadManipulator* pmantop = nullptr;
+  Name plotFileName;
+  Index ipad = 0;
+  Index ihst = 0;
+  for ( TH1* ph : hsts ) {
+    if ( ph == nullptr ) continue;
+    Name hnam = ph->GetName();
+    if ( pmantop == nullptr ) {
+      plotFileName = hnam.substr(1) + ".png";  // Strip leading h from histogram name.
+      ipad = 0;
+      pmantop = new TPadManipulator;
+      pmantop->setCanvasSize(wpadx, wpady);
+      if ( npad > 1 ) pmantop->split(npadx, npady);
+      if (  m_LogLevel >= 3 ) cout << myname << "  Creating plots for " << plotFileName << endl;
+      if (  m_LogLevel >= 4 ) cout << myname << "    Plotting " << ph->GetName() << endl;
+    }
+    TPadManipulator* pman = pmantop->man(ipad);
+    pman->add(ph, "hist", false);
+    pman->addHistFun(0);
+    pman->addAxis();
+    pman->showUnderflow();
+    pman->showOverflow();
+    ++ipad;
+    if ( ipad >= npad || ++ihst >= hsts.size() ) {
+      if (  m_LogLevel >= 3 ) cout << myname << "  Writing " << plotFileName << endl;
+      pman->print(plotFileName);
+      delete pmantop;
+      pmantop = nullptr;
+      ipad = 0;
+      ++getState().nRoiPlot;
+      if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
+    }
+  }
 }
 
 //**********************************************************************
@@ -1093,7 +1184,7 @@ void AdcRoiViewer::writeSumPlots() const {
       TPadManipulator* pman = pmantop->man(ipad);
       pman->add(ph, "hist", false);
       if ( ph->GetListOfFunctions()->GetEntries() ) {
-        dynamic_cast<TF1*>(pman->hist()->GetListOfFunctions()->At(0))->SetNpx(2000);
+        //dynamic_cast<TF1*>(pman->hist()->GetListOfFunctions()->At(0))->SetNpx(2000);
         pman->addHistFun(0);
       }
       pman->addAxis();
@@ -1122,6 +1213,7 @@ void AdcRoiViewer::writeSumPlots() const {
         ssout << "Sigma: " << sigm;
         labs.push_back(ssout.str());
         ssout.str("");
+        ssout.precision(4);
         ssout << "Ratio: " << rat;
         labs.push_back(ssout.str());
       }
@@ -1295,6 +1387,27 @@ void AdcRoiViewer::writeChanSumHists() const {
   delete pfile;
   if ( m_LogLevel >= 1 ) cout << myname << "Closed summary histogram file " << ofrname << endl;
   savdir->cd();
+}
+
+//**********************************************************************
+
+void AdcRoiViewer::writeChanSumPlots() const {
+  const string myname = "AdcRoiViewer::writeChanSumPlots: ";
+  for ( HistMap::value_type ihst : getState().chanSumHists ) {
+    TH1* ph = ihst.second;
+    Name hnam = ph->GetName();
+    Name pnam = getState().getChanSumPlotName(hnam);
+    if ( pnam.size() == 0 ) continue;
+    if ( m_LogLevel >= 2 ) cout << myname << "Hist:Plot name: " << hnam << ":" << pnam << endl;
+    TPadManipulator* pman = new TPadManipulator(1400, 500);
+    pman->add(ph, "p", false);
+    pman->addAxis();
+    pman->showUnderflow();
+    pman->showOverflow();
+    if ( m_LogLevel >= 1 ) cout << myname << "Plotting channel summary " << pnam << endl;
+    pman->print(pnam);
+    delete pman;
+  }
 }
 
 //**********************************************************************
