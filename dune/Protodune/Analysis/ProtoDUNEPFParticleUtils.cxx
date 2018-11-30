@@ -335,14 +335,15 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
   const std::vector<art::Ptr<recob::Vertex>> vertices = findVertices.at(particle.Self());
 
   // What happens next depends on the type of event.
+  // Not primary    -> just use the pfparticle vertex
   // Shower objects -> just use the pfparticle vertex
   // Cosmics        -> use track start point
   // Beam           -> use track start point
 
 //  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
 
-  // Shower
-  if(!IsPFParticleTracklike(particle)){
+  // Non-primary particle or shower-like primary particle
+  if(!particle.isPrimary() || !IsPFParticleTracklike(particle)){
     if(vertices.size() != 0){
       const recob::Vertex* vtx = (vertices.at(0)).get();
       return TVector3(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
@@ -353,7 +354,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
     }
   }
   else{
-    // Cosmic or track-like beam particle
+    // Cosmic or track-like beam primary particle
   
     const recob::Track* track = GetPFParticleTrack(particle,evt,particleLabel,trackLabel);
 
@@ -386,8 +387,9 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
   // In this case we want to find the end of the track-like PFParticle
   // To do this, we need to access things via the track
 
+  // Showers have no secondary vertex
   if(!IsPFParticleTracklike(particle)){
-    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    std::cerr << "Shower-like PFParticles have no secondary vertex. Returning default TVector3" << std::endl;
     return TVector3();
   }
 
@@ -398,12 +400,12 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
     const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
     const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
 
-      // Return the most upstream point as some cases where the track is reversed...
+      // Return the most downstream point as some cases where the track is reversed...
       if(IsBeamParticle(particle,evt,particleLabel)){
         if(start.Z() > end.Z()) return start;
         else return end;
       }
-      // Return the highest point for cosmics
+      // Return the lowest point for cosmics
       else{
         if(start.Y() < end.Y()) return start;
         else return end;
@@ -411,7 +413,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
 
   }
   else{
-    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    std::cerr << "This track-like PFParticle has no associated track. Returning default TVector3" << std::endl;
     return TVector3();
   }
 
