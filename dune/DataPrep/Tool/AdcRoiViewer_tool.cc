@@ -137,7 +137,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
   m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
   m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
-  m_MaxRoiPlots(ps.get<Index>("MaxRoiPlots")),
+  m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
   m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
   m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
@@ -734,7 +734,7 @@ void AdcRoiViewer::writeRoiHists(const DataMapVector& dms, int dbg) const {
 
 void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& acd) const {
   const string myname = "AdcRoiViewer::writeRoiPlots: ";
-  if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= m_MaxRoiPlots ) return;
+  if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
   Index npadx = m_RoiPlotPadX;
   Index npady = m_RoiPlotPadY;
   Index npad = npadx*npady;
@@ -771,7 +771,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
       pmantop = nullptr;
       ipad = 0;
       ++getState().nRoiPlot;
-      if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= m_MaxRoiPlots ) return;
+      if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
     }
   }
 }

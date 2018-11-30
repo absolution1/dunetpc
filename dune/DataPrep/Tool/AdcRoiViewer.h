@@ -262,7 +262,7 @@ private:
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
-  Index m_MaxRoiPlots;
+  int m_MaxRoiPlots;
   Index m_RoiPlotPadX;
   Index m_RoiPlotPadY;
   Index m_SumPlotPadX;
