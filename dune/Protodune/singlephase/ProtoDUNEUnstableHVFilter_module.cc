@@ -59,8 +59,6 @@ namespace filter {
                 bool fDebug;
                 long long RDTSTime;
                 double RDTSTimeSec;
-                double PrevRDTSTimeSec;  
-                double RDTSTimeNano; 
                 int RDTSTrigger;
                 art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
 
@@ -151,7 +149,7 @@ bool filter::ProtoDUNEUnstableHVFilter::filter(art::Event &evt) {
             
             
             // Check that input times are in correct format
-            if (fTimeRangeHigh < 1000000000|| fTimeRangeHigh > 9999999999 || fTimeRangeLow < 1000000000|| fTimeRangeLow > 9999999999 ) {
+            if (fTimeRangeHigh < 1000000000 || fTimeRangeLow < 1000000000 ) {
                     std::cout << "Warning: please provide time in POSIX foramt, event time "
                               << "filter returning false." << std::endl; 
                     return false;
