@@ -468,7 +468,7 @@ void pdunedp::Purity::analyze(art::Event const & e){
       continue;
     }
 
-    TVector3 Start = (It->second).Vertex(); TVector3 End = (It->second).End();
+    TVector3 Start = (It->second).Vertex<TVector3>(); TVector3 End = (It->second).End<TVector3>();
     if(!IsCrossing(Start, End) && (TrackList.size() > 1)){
       //It is not crossing, let's see if it can be stitched to something else
       for(std::map<size_t, recob::Track >::iterator It2=TrackList.begin(); It2!=TrackList.end(); It2++){
@@ -604,27 +604,27 @@ bool pdunedp::Purity::StitchTracks(recob::Track Track1, recob::Track Track2, TVe
   bool Stitch = false;
 
   double Dx = sqrt(pow(Track1.End().X()-Track2.Vertex().X(),2) + pow(Track1.End().Y()-Track2.Vertex().Y(),2)+pow(Track1.End().Z()-Track2.Vertex().Z(),2));
-  double Angle= (180.0/3.14159)*Track1.EndDirection().Angle(Track2.VertexDirection());
+  double Angle= (180.0/3.14159)*Track1.EndDirection<TVector3>().Angle(Track2.VertexDirection<TVector3>());
   int Criteria = 1;
 
   if(Dx > sqrt(pow(Track1.End().X()-Track2.End().X(),2) + pow(Track1.End().Y()-Track2.End().Y(),2) + pow(Track1.End().Z()-Track2.End().Z(),2)))
 	{
 	    Dx= sqrt(pow(Track1.End().X()-Track2.End().X(),2) + pow(Track1.End().Y()-Track2.End().Y(),2) + pow(Track1.End().Z()-Track2.End().Z(),2));
-	    Angle = 180. - (180.0/3.14159)*Track1.EndDirection().Angle(Track2.EndDirection());
+	    Angle = 180. - (180.0/3.14159)*Track1.EndDirection<TVector3>().Angle(Track2.EndDirection<TVector3>());
 	    Criteria= 2;
 	 }
 
   if(Dx > sqrt(pow(Track1.Vertex().X()-Track2.End().X(),2) + pow(Track1.Vertex().Y()-Track2.End().Y(),2) + pow(Track1.Vertex().Z()-Track2.End().Z(),2)))
   {
 	    Dx = sqrt(pow(Track1.Vertex().X()-Track2.End().X(),2) + pow(Track1.Vertex().Y()-Track2.End().Y(),2) + pow(Track1.Vertex().Z()-Track2.End().Z(),2));
-	    Angle = (180.0/3.14159)*Track1.VertexDirection().Angle(Track2.EndDirection());
+	    Angle = (180.0/3.14159)*Track1.VertexDirection<TVector3>().Angle(Track2.EndDirection<TVector3>());
 	    Criteria = 3;
 	 }
 
   if(Dx > sqrt(pow(Track1.Vertex().X()-Track2.Vertex().X(),2) + pow(Track1.Vertex().Y()-Track2.Vertex().Y(),2) + pow(Track1.Vertex().Z()-Track2.Vertex().Z(),2)))
 	{
 	    Dx = sqrt(pow(Track1.Vertex().X()-Track2.Vertex().X(),2) + pow(Track1.Vertex().Y()-Track2.Vertex().Y(),2) + pow(Track1.Vertex().Z()-Track2.Vertex().Z(),2));
-	    Angle = 180. - (180.0/3.14159)*Track1.VertexDirection().Angle(Track2.VertexDirection());
+	    Angle = 180. - (180.0/3.14159)*Track1.VertexDirection<TVector3>().Angle(Track2.VertexDirection<TVector3>());
 	    Criteria = 4;
 	}
 
@@ -633,16 +633,16 @@ bool pdunedp::Purity::StitchTracks(recob::Track Track1, recob::Track Track2, TVe
     Stitch = true;
     switch (Criteria) {
       case 1:
-        Edge1 = Track1.Vertex(); Edge2 = Track2.End();
+        Edge1 = Track1.Vertex<TVector3>(); Edge2 = Track2.End<TVector3>();
         break;
       case 2:
-        Edge1 = Track1.Vertex(); Edge2 = Track2.Vertex();
+        Edge1 = Track1.Vertex<TVector3>(); Edge2 = Track2.Vertex<TVector3>();
         break;
       case 3:
-        Edge1 = Track1.End(); Edge2 = Track2.Vertex();
+        Edge1 = Track1.End<TVector3>(); Edge2 = Track2.Vertex<TVector3>();
         break;
       case 4:
-        Edge1 = Track1.End(); Edge2 = Track2.End();
+        Edge1 = Track1.End<TVector3>(); Edge2 = Track2.End<TVector3>();
         break;
       default:
         mf::LogError("pdunedp::Purity") << "Unknown error!";
@@ -792,7 +792,7 @@ void pdunedp::Purity::FindMipInfo(recob::Track mip, std::vector<art::Ptr<recob::
     double dQ = dQadc*fADCtoCharge;
     fTrk2InfoMap[fMipIndex][plane].emplace_back(idx, dx, dQ, wire);
 
-    TVector3 Dir = mip.Vertex() - mip.End();
+    TVector3 Dir = mip.Vertex<TVector3>() - mip.End<TVector3>();
     //Direction cosines of the track
     double CosX = 1./Dir.Unit().X();
     double CosY = 1./Dir.Unit().Y();

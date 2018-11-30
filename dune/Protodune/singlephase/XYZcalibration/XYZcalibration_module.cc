@@ -254,11 +254,10 @@ namespace dune{
       std::vector<art::Ptr<anab::Calorimetry>> calos=fmcal.at(i);     
 
       const recob::Track& track = *ptrack;
-      TVector3 pos, dir_start, dir_end, end;
-      pos = track.Vertex();
-      dir_start = track.VertexDirection();
-      dir_end   = track.EndDirection();
-      end = track.End();
+      auto pos = track.Vertex();
+      auto dir_start = track.VertexDirection();
+      auto dir_end   = track.EndDirection();
+      auto end = track.End();
       double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
       double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
       //deltaX->Fill(X);

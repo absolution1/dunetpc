@@ -1084,7 +1084,7 @@ void CTree35t::processRecoTracks( const art::Event& event )
         TClonesArray *Lposition = new TClonesArray("TLorentzVector", numberTrajectoryPoints); 
         // Read the position and momentum along this particle track
         for(unsigned int j=0; j<numberTrajectoryPoints; j++) {
-            new ((*Lposition)[j]) TLorentzVector(track->LocationAtPoint(j), 0);
+            new ((*Lposition)[j]) TLorentzVector(track->LocationAtPoint<TVector3>(j), 0);
         }
         fReco_trackPosition->Add(Lposition);
     }
