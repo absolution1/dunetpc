@@ -157,7 +157,7 @@ void util::SignalShapingServiceDUNEDPhase::init()
 		}
 
 		std::vector<double> eresp1meter, eresp3meter;
-    SetElectResponse(eresp1meter,eresp3meter)
+    SetElectResponse(eresp1meter,eresp3meter);
 		fColSignalShaping1Meter.AddResponseFunction(eresp1meter);
 		fColSignalShaping3Meter.AddResponseFunction(eresp3meter);
 
