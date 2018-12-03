@@ -133,13 +133,13 @@ dunedphase3x1x1_signalshapingservice: {
 
 protodunedphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
 protodunedphase_signalshapingservice.ASICmVperfC3Meter: 6.4
-protodunedphase_signalshapingservice.Collection3MeterShape:  "[1]/([0]-[1]) * ( exp(-(x)/[1]) - exp(-(x)/[2]) )" 	#IPNL preamp response
+protodunedphase_signalshapingservice.Collection3MeterShape:  "[0]/([0]-[1]) * ( exp(-(x)/[0]) - exp(-(x)/[1]) )" 	#IPNL preamp response
 protodunedphase_signalshapingservice.Collection3MeterParams: [2.83, 0.47]						#IPNL preamp response
 
 
 dunefddphase_signalshapingservice: @local::dunedphase3x1x1_signalshapingservice
 dunefddphase_signalshapingservice.ASICmVperfC3Meter: 6.4
-dunefddphase_signalshapingservice.Collection3MeterShape:  "[1]/([0]-[1]) * ( exp(-(x)/[1]) - exp(-(x)/[2]) )" 	#IPNL preamp response
+dunefddphase_signalshapingservice.Collection3MeterShape:  "[0]/([0]-[1]) * ( exp(-(x)/[0]) - exp(-(x)/[1]) )" 	#IPNL preamp response
 dunefddphase_signalshapingservice.Collection3MeterParams: [2.83, 0.47]						#IPNL preamp response
 
 
