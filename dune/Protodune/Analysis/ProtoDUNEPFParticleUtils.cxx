@@ -266,7 +266,7 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFPa
     for(const recob::Hit* h : pfpHits){
       // Loop through the hit collection from the slice
       for(unsigned int o = 0; o < hits.size(); ++o){
-        if(fabs(h->Integral() - hits[o]->Integral()) < 1e-5 && fabs(h->PeakTime() - hits[0]->PeakTime()) < 1e-5){
+        if(fabs(h->Integral() - hits[o]->Integral()) < 1e-5 && fabs(h->PeakTime() - hits[o]->PeakTime()) < 1e-5){
           hitUsed[o] = true;
           break;
         }
@@ -343,7 +343,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
 //  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
 
   // Non-primary particle or shower-like primary particle
-  if(!particle.isPrimary() || !IsPFParticleTracklike(particle)){
+  if(!particle.IsPrimary() || !IsPFParticleTracklike(particle)){
     if(vertices.size() != 0){
       const recob::Vertex* vtx = (vertices.at(0)).get();
       return TVector3(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
