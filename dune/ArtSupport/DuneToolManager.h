@@ -63,7 +63,7 @@ public:
   // The name is ignored once the tool manager is set.
   // if fclname is blank and the tool manager is not yet set, an attempt
   // is made to find the fcl name on the command line following "-c"..
-  static DuneToolManager* instance(std::string fclname ="");
+  static DuneToolManager* instance(std::string fclname ="", int dbg =1);
 
   // Ctor from FCL file name.
   explicit DuneToolManager(std::string fclname);
@@ -90,19 +90,25 @@ public:
   // Return a shared tool.
   template<class T>
   T* getShared(std::string name) {
+    std::string myname = "DuneToolManager::getShared: ";
     SharedToolMap::iterator itoo = m_sharedTools.find(name);
     if ( itoo != m_sharedTools.end() ) {
       SharedToolPtr& pent = itoo->second;
       TSharedToolEntry<T>* ptent = dynamic_cast<TSharedToolEntry<T>*>(pent.get());
       return ptent->get();
     }
-    fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
-    std::unique_ptr<T> ptoo = art::make_tool<T>(psTool);
-    TSharedToolEntry<T>* ptent(new TSharedToolEntry<T>(ptoo));
-    SharedToolEntry* pent = ptent;
-    //m_sharedTools[name] = pent;
-    m_sharedTools.emplace(name, pent);
-    return ptent->get();
+    if ( std::find(m_toolNames.begin(), m_toolNames.end(), name) != m_toolNames.end() ) {
+      fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
+      std::unique_ptr<T> ptoo = art::make_tool<T>(psTool);
+      TSharedToolEntry<T>* ptent(new TSharedToolEntry<T>(ptoo));
+      SharedToolEntry* pent = ptent;
+      //m_sharedTools[name] = pent;
+      m_sharedTools.emplace(name, pent);
+      return ptent->get();
+    } else {
+      std::cout << myname << "No such tool name: " << name << std::endl;
+      return nullptr;
+    }
   }
 
   // Return the list of available tool names.

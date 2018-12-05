@@ -24,6 +24,7 @@
 
 //CRT includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/alg/monitor/OnlinePlotter.cpp"
+#include "dunetpc/dune/Protodune/singlephase/CRT/alg/util/FlatDirectory.cpp"
 
 //c++ includes
 #include <memory> //For std::unique_ptr
@@ -49,13 +50,15 @@ public:
   void beginJob() override;
   void beginRun(art::Run const & r) override;
   void endRun(art::Run const & r) override;
+  void onFileClose();
 
 private:
 
   // Use the PIMPL idiom to weaken coupling between this module and the 
   // OnlinePlotter source code.  
-  std::unique_ptr<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>> fPlotter; //Algorithm that makes online monitoring plots 
-                                                                                       //from CRT::Triggers
+  using dir_t = CRT::FlatDirectory<art::ServiceHandle<art::TFileService>>;
+  std::unique_ptr<CRT::OnlinePlotter<std::shared_ptr<dir_t>>> fPlotter; //Algorithm that makes online monitoring plots 
+                                                                        //from CRT::Triggers
 
   art::InputTag fCRTLabel; //The name of the module that created the CRT::Triggers this module will read
 };
@@ -67,20 +70,39 @@ CRTOnlineMonitor::CRTOnlineMonitor(fhicl::ParameterSet const & p)
  // More initializers here.
 {
   consumes<std::vector<CRT::Trigger>>(fCRTLabel);
+
+  //Register callback to create new histograms for each file processed
+  art::ServiceHandle<art::TFileService> tfs;
+  tfs->registerFileSwitchCallback(this, &CRTOnlineMonitor::onFileClose);
 }
 
 void CRTOnlineMonitor::analyze(art::Event const & e)
 {
   // Implementation of required member function here.
-  const auto& triggers = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
-  fPlotter->AnalyzeEvent(*triggers);
+  try
+  {
+    const auto& triggers = e.getValidHandle<std::vector<CRT::Trigger>>(fCRTLabel);
+    fPlotter->AnalyzeEvent(*triggers);
+  }
+  catch(const cet::exception& e)
+  {
+    mf::LogWarning("MissingData") << "Caught exception when trying to find CRT::Triggers from label " << fCRTLabel << ":\n"
+                                  << e.what() << "\n";
+  }
 }
 
 void CRTOnlineMonitor::beginJob()
 {
   // Implementation of optional member function here.
+  onFileClose();
+}
+
+void CRTOnlineMonitor::onFileClose()
+{
   art::ServiceHandle<art::TFileService> tfs;
-  fPlotter = std::make_unique<CRT::OnlinePlotter<art::ServiceHandle<art::TFileService>>>(tfs);
+  auto dirPtr = std::shared_ptr<dir_t>(new dir_t(tfs));
+  fPlotter.reset(new CRT::OnlinePlotter<std::shared_ptr<dir_t>>(dirPtr));
+  fPlotter->ReactBeginRun("");
 }
 
 void CRTOnlineMonitor::beginRun(art::Run const & r)

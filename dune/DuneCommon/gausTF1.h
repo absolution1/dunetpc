@@ -11,6 +11,9 @@
 #define gausTF1_H
 
 #include "TF1.h"
+#include <string>
+
+using std::string;
 
 double gausFunction(double* x, double* pars) {
   double pos = x[0];
@@ -22,11 +25,13 @@ double gausFunction(double* x, double* pars) {
   return height*exp(-0.5*rat*rat);
 }
 
-TF1* gausTF1(double heightIn =0.0, double meanIn =0.0, double sigmaIn =0.0, std::string fname ="gaus") {
+TF1* gausTF1(double heightIn =0.0, double meanIn =0.0, double sigmaIn =0.0, std::string fname ="dunegaus") {
   double height = heightIn != 0.0 ? heightIn : 1.0;
   double sigma = sigmaIn > 0.0 ? sigmaIn : 1.0;
   double mean = meanIn;
-  TF1* pf = new TF1(fname.c_str(), gausFunction, -10, 10, 3);
+  string sform = "[0]*exp(-0.5*((x-[1])/[2])*((x-[1])/[2]))";
+  TF1* pf = new TF1(fname.c_str(), sform.c_str(), -10, 10);
+  //TF1* pf = new TF1(fname.c_str(), gausFunction, -10, 10, 3);
   pf->SetParName(0, "Height");
   pf->SetParName(1, "Mean");
   pf->SetParName(2, "Sigma");

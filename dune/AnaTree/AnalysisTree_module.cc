@@ -101,7 +101,7 @@
 #define MVA_LENGTH 4
 
 constexpr int kNplanes       = 3;     //number of wire planes
-constexpr int kMaxHits       = 40000; //maximum number of hits;
+constexpr int kMaxHits       = 100000; //maximum number of hits;
 constexpr int kMaxTrackHits  = 2000;  //maximum number of hits on a track
 constexpr int kMaxTrackers   = 15;    //number of trackers passed into fTrackModuleLabel
 constexpr int kMaxVertices   = 500;    //max number of 3D vertices
@@ -111,7 +111,7 @@ constexpr int kMaxFlashes      = 1000;   //maximum number of flashes
 constexpr int kMaxExternCounts = 1000;   //maximum number of External Counters
 constexpr int kMaxShowerHits   = 10000;  //maximum number of hits on a shower
 constexpr int kMaxTruth        = 10;     //maximum number of neutrino truth interactions
-constexpr int kMaxClusters     = 1000;   //maximum number of clusters;
+constexpr int kMaxClusters     = 2000;   //maximum number of clusters;
 
 constexpr int kMaxNDaughtersPerPFP = 10; //maximum number of daughters per PFParticle
 constexpr int kMaxNClustersPerPFP  = 10; //maximum number of clusters per PFParticle
@@ -3813,11 +3813,6 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   } // for shower input tag
 
 
-  // Find the simb::MCFlux objects corresponding to
-  // each simb::MCTruth object made by the generator with
-  // the label fGenieGenModuleLabel
-  art::FindOne<simb::MCFlux> find_mcflux(mctruthListHandle,
-    evt, fGenieGenModuleLabel);
 
   std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
   if (fSaveAuxDetInfo){
@@ -4375,8 +4370,8 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
       }
 
       //call the track momentum algorithm that gives you momentum based on track range
-      trkf::TrackMomentumCalculator trkm;
-      trkm.SetMinLength(100); //change the minimal track length requirement to 50 cm
+      // - Should the minimal track length be 50 cm?  The default of 100 has been used.
+      trkf::TrackMomentumCalculator trkm{/*100.*/};
 
       for(size_t iTrk=0; iTrk < NTracks; ++iTrk){//loop over tracks
 
@@ -4472,10 +4467,10 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
         else {   //use the normal methods for other kinds of tracks
           ntraj = track.NumberTrajectoryPoints();
           if (ntraj > 0) {
-            pos       = track.Vertex();
-            dir_start = track.VertexDirection();
-            dir_end   = track.EndDirection();
-            end       = track.End();
+            pos       = track.Vertex<TVector3>();
+            dir_start = track.VertexDirection<TVector3>();
+            dir_end   = track.EndDirection<TVector3>();
+            end       = track.End<TVector3>();
 
             tlen        = track.Length();
             if(track.NumberTrajectoryPoints() > 0)
@@ -4796,6 +4791,13 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
 
   //mc truth information
   if (isMC){
+
+    // Find the simb::MCFlux objects corresponding to
+    // each simb::MCTruth object made by the generator with
+    // the label fGenieGenModuleLabel
+    art::FindOne<simb::MCFlux> find_mcflux(mctruthListHandle,
+                                           evt, fGenieGenModuleLabel);
+
     if (fSaveCryInfo){
       //store cry (cosmic generator information)
       fData->mcevts_truthcry = mclistcry.size();
@@ -5524,17 +5526,7 @@ double dune::AnalysisTree::bdist(const TVector3& pos)
 // Length of reconstructed track, trajectory by trajectory.
 double dune::AnalysisTree::length(const recob::Track& track)
 {
-  double result = 0.;
-  TVector3 disp = track.LocationAtPoint(0);
-  int n = track.NumberTrajectoryPoints();
-
-  for(int i = 1; i < n; ++i) {
-    const TVector3& pos = track.LocationAtPoint(i);
-    disp -= pos;
-    result += disp.Mag();
-    disp = pos;
-  }
-  return result;
+  return track.Length();
 }
 
 

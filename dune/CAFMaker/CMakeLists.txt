@@ -118,6 +118,7 @@ simple_plugin(CAFMaker   "module"
                         systematicstools_interface
 			systematicstools_interpreters
 			systematicstools_utility
+                        CVNFunc
               BASENAME_ONLY
 )
 

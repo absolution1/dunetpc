@@ -10,7 +10,8 @@
 // IFMB is a global FEMB number 6*IAPA + IFMB_APA
 // where IAPA is the offline APA/TPS number and IFMB_APA
 // is the geometric FEMB number in the APA running clockwise
-// from TPC side to cryostat side.
+// from beam left upstream. This is the online numberin convention.
+// See https://wiki.dunescience.org/wiki/ProtoDUNE_geometry.
 //
 // ICHF is the channel number in the FEMB 8*ASIC + ICHA_ASIC.
 //

@@ -33,5 +33,12 @@ perl make_gdml.pl -i dune10kt_v2_1x2x6_nowires.gdml -o dune10kt_v2_1x2x6_nowires
 perl generate_dune10kt_v2.pl -o dune10kt_v2_1x2x6.gdml -k=2
 perl make_gdml.pl -i dune10kt_v2_1x2x6.gdml -o dune10kt_v2_1x2x6.gdml
 
+# ICEBERG, no wires
+perl generate_iceberg_v1.pl -o iceberg_v1_nowires.gdml -w=0
+perl make_gdml.pl -i iceberg_v1_nowires.gdml -o iceberg_v1_nowires.gdml
+# full geometry, with wires
+perl generate_iceberg_v1.pl -o iceberg_v1.gdml
+perl make_gdml.pl -i iceberg_v1.gdml -o iceberg_v1.gdml
+
 #This should also run deacrylify to make sure new geometries are consistent.
 . deacrylify10kt.sh

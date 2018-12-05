@@ -33,6 +33,8 @@
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
+//              If the name has the field "%STATUS%, then separate histograms are also
+//              made for bad, noisy and good (not bad or noisy) channels.
 //   HistTitle - Histogram title
 //   MetricLabel - Histogram lable for the metric axis
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
@@ -70,6 +72,9 @@
 #include <vector>
 
 class AdcChannelStringTool;
+namespace lariov {
+  class ChannelStatusProvider;
+}
 
 class AdcChannelMetric : AdcChannelTool {
 
@@ -118,8 +123,14 @@ private:
   // Channel ranges.
   IndexRangeVector m_crs;
   
+  // Flag indicating separate plots should be made based on status.
+  bool m_useStatus;
+
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
+
+  // Channel status provider.
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
   // Create the plot for one range.
   DataMap viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const;

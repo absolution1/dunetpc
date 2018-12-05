@@ -11,7 +11,8 @@
 # Tools to display ADC data.
 ################################################################################
 
-tools.tickRanges.plotTicks: { begin:3000  end:4000 labels:["Plot ticks"] }
+tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
+tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }
 
 ################################################################################
 # Dumpers.
@@ -42,6 +43,10 @@ tools.adcStringBuilder: {
   ChannelWidth: 5
   CountWidth: 4
   FembWidth: 3
+  TriggerWidth: 2
+  TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
+               "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
+              "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -53,6 +58,13 @@ tools.adcPlotRaw: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
+  PlotSigOpt: pedestal
+  PlotSigMin:  100
+  PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
@@ -65,6 +77,13 @@ tools.adcPlotPrepared: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
+  PlotSigOpt: full
+  PlotSigMin:    0
+  PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
@@ -77,6 +96,13 @@ tools.adcPlotRawDist: {
   HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
+  PlotSamMin:    0
+  PlotSamMax: 1000
+  PlotSigOpt: full
+  PlotSigMin:    0
+  PlotSigMax:    0
+  ColorBad:   633
+  ColorNoisy: 636
   HistManager: ""
 }
 
@@ -121,14 +147,18 @@ tools.preparedAdcPlotter: {
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
+  EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcprep_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -139,14 +169,18 @@ tools.signalAdcPlotter: {
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
+  EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Signal ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcsig_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -157,14 +191,18 @@ tools.rawAdcPlotter: {
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
   TickRange: plotTicks
+  TickRebin: 1
   ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 200
+  SkipBadChannels: false
+  EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 1026
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
+  PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
   PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
@@ -359,7 +397,13 @@ tools.adcRoiViewer: {
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
+  MaxRoiPlots: 0
+  RoiPlotPadX: 4
+  RoiPlotPadY: 4
+  SumPlotPadX: 4
+  SumPlotPadY: 4
   SumHists: []
+  ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }
@@ -375,7 +419,13 @@ tools.adcRoiFitter: {
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
+  MaxRoiPlots: 0
+  RoiPlotPadX: 4
+  RoiPlotPadY: 4
+  SumPlotPadX: 4
+  SumPlotPadY: 4
   SumHists: []
+  ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
 }

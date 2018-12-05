@@ -32,6 +32,26 @@ simple_plugin(SSPRawDecoder "module"
                         BASENAME_ONLY
 )
 
+#[[
+simple_plugin(PDWaveform "module"
+                         lardataobj_RawData
+                         lardataobj_RecoBase
+                         dune-raw-data_Overlays
+                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                         artdaq-core_Data
+                         ${ART_FRAMEWORK_CORE}
+                         ${ART_FRAMEWORK_PRINCIPAL}
+                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                         ${MF_MESSAGELOGGER}
+			 dune_Geometry
+			 ${CETLIB}
+                         ${ROOT_BASIC_LIB_LIST}
+			 ${ROOT_SPECTRUM}
+                         BASENAME_ONLY
+)
+]]
 
 include_directories( "$ENV{DUNEPDSPRCE_INC}" )
 cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
@@ -59,6 +79,7 @@ simple_plugin(FelixRawDecoder "module"
                         dune-raw-data_Overlays
                         artdaq-core_Data
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+			dune_Geometry
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -92,6 +113,7 @@ simple_plugin(PDSPTPCRawDecoder "module"
                         BASENAME_ONLY
 )
 
+# we are diabling this for art v3 - why?
 #simple_plugin(CRTRawDecoder "module"
 #                        dune-raw-data_Overlays
 #                        artdaq-core_Data

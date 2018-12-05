@@ -375,6 +375,68 @@
 
 
 
+     <torus name="FieldShaperCorner" rmin="1.485" rmax="1.685" rtor="1.69" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtube" rmin="1.485" rmax="1.685" z="312.17" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperShorttube" rmin="1.485" rmax="1.685" z="112.17" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+
+    <union name="FSunion1">
+      <first ref="FieldShaperLongtube"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="-1.69" y="0" z="156.085"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunion2">
+      <first ref="FSunion1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="-57.775" y="0" z="157.775"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunion3">
+      <first ref="FSunion2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="-113.86" y="0" z="156.085"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunion4">
+      <first ref="FSunion3"/>
+      <second ref="FieldShaperLongtube"/>
+   		<position name="esquinapos4" unit="cm" x="-115.55" y="0" z="0"/>
+    </union>
+
+    <union name="FSunion5">
+      <first ref="FSunion4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="-113.86" y="0" z="-156.085"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunion6">
+      <first ref="FSunion5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="-57.775" y="0" z="-157.775"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolid">
+      <first ref="FSunion6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="-1.69" y="0" z="-156.085"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+
+    <tube name="solCathodeCable" rmin="0" rmax="0.38" z="112.18" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+    <box name="solCathode" x="119.42" y="3.42"    z="319.42" lunit="cm"/>
+
+
+      <tube name="solExtractionGridCable" rmin="0" rmax="0.05" z="301" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <box name="solExtractionGrid" x="101" y="0.1" z="301" lunit="cm"/>
+
+     <box name="solLEMs" x="101" y="0.1" z="301" lunit="cm"/>
+
+
    <box name="CRM" lunit="cm" 
       x="101" 
       y="100.03" 
@@ -492,17 +554,17 @@
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54+2.5"/>
   </physvol>
 
   <physvol name="volOpDetSensitive">
    <volumeref ref="volPMTplatecoat"/>
-   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7"/>
+   <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.7+2.5"/>
   </physvol>
 
   <physvol>
    <volumeref ref="vol_PMT_AcrylicPlate"/>
-   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5"/>
+   <position name="pos_PMT_AcrylicPlate" unit="cm" x="0" y="0" z="1.27*2.54+2.5*2.54 + 1.5+2.5"/>
   </physvol>
  </volume>
 
@@ -512,16 +574,433 @@
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54+2.5"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)+2.5"/>
   </physvol>
 
  </volume>
 
+
+<volume name="volFieldShaper">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolid"/>
+</volume>
+
+<volume name="volCathodeCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solCathodeCable"/>
+</volume>
+
+<volume name="volCathode">
+  <materialref ref="LAr"/>
+  <solidref ref="solCathode"/>
+
+  <physvol>
+   <volumeref ref="volFieldShaper"/>
+   <position name="posFS" unit="cm" x="57.775" y="0" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable0" unit="cm" x="0" y="0" z="-152"/>
+   <rotation name="rotCC0" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable1" unit="cm" x="0" y="0" z="-148"/>
+   <rotation name="rotCC1" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable2" unit="cm" x="0" y="0" z="-144"/>
+   <rotation name="rotCC2" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable3" unit="cm" x="0" y="0" z="-140"/>
+   <rotation name="rotCC3" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable4" unit="cm" x="0" y="0" z="-136"/>
+   <rotation name="rotCC4" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable5" unit="cm" x="0" y="0" z="-132"/>
+   <rotation name="rotCC5" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable6" unit="cm" x="0" y="0" z="-128"/>
+   <rotation name="rotCC6" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable7" unit="cm" x="0" y="0" z="-124"/>
+   <rotation name="rotCC7" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable8" unit="cm" x="0" y="0" z="-120"/>
+   <rotation name="rotCC8" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable9" unit="cm" x="0" y="0" z="-116"/>
+   <rotation name="rotCC9" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable10" unit="cm" x="0" y="0" z="-112"/>
+   <rotation name="rotCC10" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable11" unit="cm" x="0" y="0" z="-108"/>
+   <rotation name="rotCC11" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable12" unit="cm" x="0" y="0" z="-104"/>
+   <rotation name="rotCC12" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable13" unit="cm" x="0" y="0" z="-100"/>
+   <rotation name="rotCC13" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable14" unit="cm" x="0" y="0" z="-96"/>
+   <rotation name="rotCC14" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable15" unit="cm" x="0" y="0" z="-92"/>
+   <rotation name="rotCC15" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable16" unit="cm" x="0" y="0" z="-88"/>
+   <rotation name="rotCC16" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable17" unit="cm" x="0" y="0" z="-84"/>
+   <rotation name="rotCC17" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable18" unit="cm" x="0" y="0" z="-80"/>
+   <rotation name="rotCC18" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable19" unit="cm" x="0" y="0" z="-76"/>
+   <rotation name="rotCC19" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable20" unit="cm" x="0" y="0" z="-72"/>
+   <rotation name="rotCC20" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable21" unit="cm" x="0" y="0" z="-68"/>
+   <rotation name="rotCC21" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable22" unit="cm" x="0" y="0" z="-64"/>
+   <rotation name="rotCC22" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable23" unit="cm" x="0" y="0" z="-60"/>
+   <rotation name="rotCC23" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable24" unit="cm" x="0" y="0" z="-56"/>
+   <rotation name="rotCC24" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable25" unit="cm" x="0" y="0" z="-52"/>
+   <rotation name="rotCC25" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable26" unit="cm" x="0" y="0" z="-48"/>
+   <rotation name="rotCC26" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable27" unit="cm" x="0" y="0" z="-44"/>
+   <rotation name="rotCC27" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable28" unit="cm" x="0" y="0" z="-40"/>
+   <rotation name="rotCC28" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable29" unit="cm" x="0" y="0" z="-36"/>
+   <rotation name="rotCC29" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable30" unit="cm" x="0" y="0" z="-32"/>
+   <rotation name="rotCC30" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable31" unit="cm" x="0" y="0" z="-28"/>
+   <rotation name="rotCC31" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable32" unit="cm" x="0" y="0" z="-24"/>
+   <rotation name="rotCC32" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable33" unit="cm" x="0" y="0" z="-20"/>
+   <rotation name="rotCC33" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable34" unit="cm" x="0" y="0" z="-16"/>
+   <rotation name="rotCC34" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable35" unit="cm" x="0" y="0" z="-12"/>
+   <rotation name="rotCC35" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable36" unit="cm" x="0" y="0" z="-8"/>
+   <rotation name="rotCC36" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable37" unit="cm" x="0" y="0" z="-4"/>
+   <rotation name="rotCC37" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable38" unit="cm" x="0" y="0" z="0"/>
+   <rotation name="rotCC38" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable39" unit="cm" x="0" y="0" z="4"/>
+   <rotation name="rotCC39" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable40" unit="cm" x="0" y="0" z="8"/>
+   <rotation name="rotCC40" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable41" unit="cm" x="0" y="0" z="12"/>
+   <rotation name="rotCC41" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable42" unit="cm" x="0" y="0" z="16"/>
+   <rotation name="rotCC42" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable43" unit="cm" x="0" y="0" z="20"/>
+   <rotation name="rotCC43" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable44" unit="cm" x="0" y="0" z="24"/>
+   <rotation name="rotCC44" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable45" unit="cm" x="0" y="0" z="28"/>
+   <rotation name="rotCC45" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable46" unit="cm" x="0" y="0" z="32"/>
+   <rotation name="rotCC46" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable47" unit="cm" x="0" y="0" z="36"/>
+   <rotation name="rotCC47" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable48" unit="cm" x="0" y="0" z="40"/>
+   <rotation name="rotCC48" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable49" unit="cm" x="0" y="0" z="44"/>
+   <rotation name="rotCC49" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable50" unit="cm" x="0" y="0" z="48"/>
+   <rotation name="rotCC50" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable51" unit="cm" x="0" y="0" z="52"/>
+   <rotation name="rotCC51" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable52" unit="cm" x="0" y="0" z="56"/>
+   <rotation name="rotCC52" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable53" unit="cm" x="0" y="0" z="60"/>
+   <rotation name="rotCC53" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable54" unit="cm" x="0" y="0" z="64"/>
+   <rotation name="rotCC54" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable55" unit="cm" x="0" y="0" z="68"/>
+   <rotation name="rotCC55" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable56" unit="cm" x="0" y="0" z="72"/>
+   <rotation name="rotCC56" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable57" unit="cm" x="0" y="0" z="76"/>
+   <rotation name="rotCC57" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable58" unit="cm" x="0" y="0" z="80"/>
+   <rotation name="rotCC58" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable59" unit="cm" x="0" y="0" z="84"/>
+   <rotation name="rotCC59" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable60" unit="cm" x="0" y="0" z="88"/>
+   <rotation name="rotCC60" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable61" unit="cm" x="0" y="0" z="92"/>
+   <rotation name="rotCC61" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable62" unit="cm" x="0" y="0" z="96"/>
+   <rotation name="rotCC62" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable63" unit="cm" x="0" y="0" z="100"/>
+   <rotation name="rotCC63" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable64" unit="cm" x="0" y="0" z="104"/>
+   <rotation name="rotCC64" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable65" unit="cm" x="0" y="0" z="108"/>
+   <rotation name="rotCC65" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable66" unit="cm" x="0" y="0" z="112"/>
+   <rotation name="rotCC66" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable67" unit="cm" x="0" y="0" z="116"/>
+   <rotation name="rotCC67" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable68" unit="cm" x="0" y="0" z="120"/>
+   <rotation name="rotCC68" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable69" unit="cm" x="0" y="0" z="124"/>
+   <rotation name="rotCC69" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable70" unit="cm" x="0" y="0" z="128"/>
+   <rotation name="rotCC70" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable71" unit="cm" x="0" y="0" z="132"/>
+   <rotation name="rotCC71" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable72" unit="cm" x="0" y="0" z="136"/>
+   <rotation name="rotCC72" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable73" unit="cm" x="0" y="0" z="140"/>
+   <rotation name="rotCC73" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable74" unit="cm" x="0" y="0" z="144"/>
+   <rotation name="rotCC74" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathodeCable"/>
+   <position name="posCathodeCable75" unit="cm" x="0" y="0" z="148"/>
+   <rotation name="rotCC75" unit="deg" x="0" y="90" z="0" /> 
+  </physvol>
+</volume>
+
+
+<volume name="volExtractionGridCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="solExtractionGridCable"/>
+</volume>
+
+<volume name="volExtractionGrid">
+  <materialref ref="LAr"/>
+  <solidref ref="solExtractionGrid"/>
+  
+  </volume>
+
+ <volume name="volLEMs">
+  <materialref ref="Copper_Beryllium_alloy25"/>
+  <solidref ref="solLEMs"/>
+ </volume>
 
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
@@ -6978,6 +7457,10 @@
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
+      <physvol>
+      <volumeref ref="volLEMs"/>
+      <position name="posLEMs" unit="cm" x="0" y="-24.85" z="0"/>
+      </physvol>
     </volume>
 
     <volume name="volCryostat">
@@ -6999,32 +7482,142 @@
   <physvol>
      <volumeref ref="volPMT_coated"/>
 
-   <position name="posPMT0" unit="cm"  x="0"  y="-46.06" z="-92.246"/>
+   <position name="posPMT0" unit="cm"  x="0"  y="-65.114" z="-92.246"/>
    <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
      <volumeref ref="volPMT_plate"/>
 
-   <position name="posPMT1" unit="cm"  x="0"  y="-46.06" z="-46.123"/>
+   <position name="posPMT1" unit="cm"  x="0"  y="-65.114" z="-46.123"/>
    <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
      <volumeref ref="volPMT_coated"/>
 
-   <position name="posPMT2" unit="cm"  x="0"  y="-46.06" z="0"/>
+   <position name="posPMT2" unit="cm"  x="0"  y="-65.114" z="0"/>
    <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
      <volumeref ref="volPMT_plate"/>
 
-   <position name="posPMT3" unit="cm"  x="0"  y="-46.06" z="46.123"/>
+   <position name="posPMT3" unit="cm"  x="0"  y="-65.114" z="46.123"/>
    <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
      <volumeref ref="volPMT_coated"/>
 
-   <position name="posPMT4" unit="cm"  x="0"  y="-46.06" z="92.246"/>
+   <position name="posPMT4" unit="cm"  x="0"  y="-65.114" z="92.246"/>
    <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper0" unit="cm"  x="57.775" y="65.75" z="0" />
+     <rotation name="rotFS0" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper1" unit="cm"  x="57.775" y="60.75" z="0" />
+     <rotation name="rotFS1" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper2" unit="cm"  x="57.775" y="55.75" z="0" />
+     <rotation name="rotFS2" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper3" unit="cm"  x="57.775" y="50.75" z="0" />
+     <rotation name="rotFS3" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper4" unit="cm"  x="57.775" y="45.75" z="0" />
+     <rotation name="rotFS4" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper5" unit="cm"  x="57.775" y="40.75" z="0" />
+     <rotation name="rotFS5" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper6" unit="cm"  x="57.775" y="35.75" z="0" />
+     <rotation name="rotFS6" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper7" unit="cm"  x="57.775" y="30.75" z="0" />
+     <rotation name="rotFS7" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper8" unit="cm"  x="57.775" y="25.75" z="0" />
+     <rotation name="rotFS8" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper9" unit="cm"  x="57.775" y="20.75" z="0" />
+     <rotation name="rotFS9" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper10" unit="cm"  x="57.775" y="15.75" z="0" />
+     <rotation name="rotFS10" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper11" unit="cm"  x="57.775" y="10.75" z="0" />
+     <rotation name="rotFS11" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper12" unit="cm"  x="57.775" y="5.75" z="0" />
+     <rotation name="rotFS12" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper13" unit="cm"  x="57.775" y="0.75" z="0" />
+     <rotation name="rotFS13" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper14" unit="cm"  x="57.775" y="-4.25" z="0" />
+     <rotation name="rotFS14" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper15" unit="cm"  x="57.775" y="-9.25" z="0" />
+     <rotation name="rotFS15" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper16" unit="cm"  x="57.775" y="-14.25" z="0" />
+     <rotation name="rotFS16" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper17" unit="cm"  x="57.775" y="-19.25" z="0" />
+     <rotation name="rotFS17" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper18" unit="cm"  x="57.775" y="-24.25" z="0" />
+     <rotation name="rotFS18" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volCathode"/>
+     <position name="posCathode" unit="cm"  x="0" y="-29.25" z="0" />
+     <rotation name="rotCath" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volCathode"/>
+     <position name="posGroundGrid" unit="cm"  x="0" y="-49.25" z="0" />
+     <rotation name="rotGroundGrid" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+   <volumeref ref="volExtractionGrid"/>
+   <position name="posExtractionGrid" unit="cm" x="0" y="67.7" z="0"/>
+
   </physvol>
  </volume>
 

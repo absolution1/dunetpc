@@ -309,6 +309,7 @@ int StickyCodeMetrics::evaluateMetrics() {
   if ( ! haveXlab ) ph->GetXaxis()->SetTitle("ADC count");
   if ( ! haveYlab ) ph->GetYaxis()->SetTitle("# samples");
   ph->SetDirectory(0);
+  ph->Sumw2();  // Likelihood fit wants histogram to be weighted
   ph->SetStats(0);
   ph->SetLineWidth(2);
   for ( Index iadc=binOffset; iadc<=idadc2; ++iadc ) {
@@ -334,9 +335,11 @@ int StickyCodeMetrics::evaluateMetrics() {
   pfinit->SetLineStyle(2);
   string fopt = "0";
   fopt = "WWBQ";
+  fopt = "LWBQ";  // Use likelihood fit to include empty bins
   // Block Root info message for new Canvas produced in fit.
   int levelSave = gErrorIgnoreLevel;
   gErrorIgnoreLevel = 1001;
+  gErrorIgnoreLevel = 2001;   // Block warnings in Fit
   // Block non-default (e.g. art) from handling the Root "error".
   // We switch to the Root default handler while making the call to Print.
   ErrorHandlerFunc_t pehSave = nullptr;

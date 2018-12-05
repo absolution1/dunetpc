@@ -1052,7 +1052,7 @@ EOF
    <position name="posallpmtcoat" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
- <physvol name="volOpDetSensitiveCoat">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
   <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>
@@ -1130,7 +1130,7 @@ EOF
   if ( $LEMs_switch eq "on" )
   {
 
-$posLEMsX = -0.5*$HeightGaseousAr+0.5-0.5*$LEMsSizeX;
+$posLEMsX = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeX;
 $posLEMsY = 0;
 $posLEMsZ = 0;
 
