@@ -26,6 +26,7 @@
 #include "dataprep_dune.fcl"
 #include "PdspChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
+#include "PhotonCalibratorProtoDUNESP.fcl"
 
 BEGIN_PROLOG
 
@@ -336,9 +337,9 @@ protodune_services: {
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
- BackTrackerService:                  @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
- PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
+ BackTrackerService:           @local::dunefd_backtrackerservice
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
@@ -358,6 +359,7 @@ protodune_rawdecoding_services: {
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
   PdspChannelMapService:        @local::pdspchannelmap
+  IPhotonCalibrator:            @local::protodunesp_photoncalibrator
 }
 
 protodune_data_services: {
