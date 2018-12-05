@@ -2,71 +2,73 @@ BEGIN_PROLOG
 
 data_3x1x1_anarootparser:
 { 
- module_type:                 	"dune/Protodune/dualphase/AnaRootParser"
+ module_type:                 		"dune/Protodune/dualphase/AnaRootParser"
 
- LogLevel:			0
+ LogLevel:				0
 
- EventsPerSubrun:             	335
+ EventsPerSubrun:             		335
 
- RawDigitModuleLabel:           "daq"
- HitsModuleLabel:             	"linecluster"
- PhotonPropS1ModuleLabel:       "largeant"
- ElecDriftModuleLabel:         	"largeant"
- CalDataModuleLabel:          	"caldata"
- GenieGenModuleLabel:         	"generator"
- CryGenModuleLabel:           	"generator"
- ProtoGenModuleLabel:           ""
- G4ModuleLabel:               	"largeant"
- TrackModuleLabel:            	[ "pmtrack" ]
- VertexModuleLabel:           	[ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
- PandoraNuVertexModuleLabel:  	""
- ClusterModuleLabel:          	"linecluster"
- OpFlashModuleLabel:          	"opflash"
- ExternalCounterModuleLabel:    "simcounter"
- MCShowerModuleLabel:         	""          # Don't have in the 35 ton....
- MCTrackModuleLabel:          	""          # Don't have in the 35 ton....
- CalorimetryModuleLabel:      	[ "pmtrackcalo" ]
- ParticleIDModuleLabel:       	[ "pmtrackpid" ]
- MVAPIDTrackModuleLabel:      	[ "", "", "", "" ]
- MVAPIDShowerModuleLabel:     	[ "", "", "", "" ]
- FlashT0FinderLabel:          	[ "" ]
- MCT0FinderLabel:             	[ "" ]
- ShowerModuleLabel:           	[ "emshower", "emshowerdc" ] ### , "mergeemshower3d", "mergeemshower3ddc" ] ## When we want to add back Dorota's showering.
- CosmicClusterTaggerAssocLabel: ""
- CosmicTaggerAssocLabel:      	[ "" ]
- ContainmentTaggerAssocLabel: 	[ "" ]
- FlashMatchAssocLabel:        	[ "" ]
- POTModuleLabel:              	""
+ RawDigitModuleLabel:           	"daq"
+ HitsModuleLabel:             		"linecluster"
+ PhotonPropS1ModuleLabel:       	"largeant"
+ ElecDriftModuleLabel:         		"largeant"
+ CalDataModuleLabel:          		"caldata"
+ GenieGenModuleLabel:         		"generator"
+ CryGenModuleLabel:           		"generator"
+ ProtoGenModuleLabel:           	""
+ G4ModuleLabel:               		"largeant"
+ SimEnergyDepositTPCActiveLabel:	"largeant:TPCActive"
+ TrackModuleLabel:            		[ "pmtrack" ]
+ VertexModuleLabel:           		[ "linecluster", "lineclusterdc", "pmtrack", "pmtrackdc", "pandora", "pandoradc" ]
+ PandoraNuVertexModuleLabel:  		""
+ ClusterModuleLabel:          		"linecluster"
+ OpFlashModuleLabel:          		"opflash"
+ ExternalCounterModuleLabel:   	 	"simcounter"
+ MCShowerModuleLabel:         		""          # Don't have in the 35 ton....
+ MCTrackModuleLabel:          		""          # Don't have in the 35 ton....
+ CalorimetryModuleLabel:      		[ "pmtrackcalo" ]
+ ParticleIDModuleLabel:       		[ "pmtrackpid" ]
+ MVAPIDTrackModuleLabel:      		[ "", "", "", "" ]
+ MVAPIDShowerModuleLabel:     		[ "", "", "", "" ]
+ FlashT0FinderLabel:          		[ "" ]
+ MCT0FinderLabel:             		[ "" ]
+ ShowerModuleLabel:           		[ "emshower", "emshowerdc" ] ### , "mergeemshower3d", "mergeemshower3ddc" ] ## When we want to add back Dorota's showering.
+ CosmicClusterTaggerAssocLabel: 	""
+ CosmicTaggerAssocLabel:      		[ "" ]
+ ContainmentTaggerAssocLabel: 		[ "" ]
+ FlashMatchAssocLabel:        		[ "" ]
+ POTModuleLabel:              		""
 
- IsMC:		               	false
- UseBuffers:               	false
- IgnoreMissingShowers:     	false
+ IsMC:		               		false
+ UseBuffers:               		false
+ IgnoreMissingShowers:     		false
 
-# SaveRecobWireInfo:		false
+# SaveRecobWireInfo:			false
 
- SaveAuxDetInfo:           	false
- SaveCryInfo:              	false
- SaveProtoInfo:            	false # ProtoDUNE specific
- SaveGenieInfo:            	false
- SavePhotonInfo:            	false
- SaveGeneratorInfo:            	false
- SaveGeantInfo:            	false
- SaveGeantInAVInfo:            	false
- SaveGeantTrajectoryInfo:	false
- SaveMCShowerInfo:         	false
- SaveMCTrackInfo:          	false
- SaveHitInfo:              	false
- SaveRawDigitInfo:         	false
- SaveRecobWireInfo:         	false
- SaveTrackInfo:            	false
- SaveVertexInfo:           	false 
- SavePandoraNuVertexInfo:  	false
- SaveClusterInfo:          	false
- SaveFlashInfo:            	false
- SaveExternCounterInfo:    	false
- SaveShowerInfo:  	   	false
- SaveCaloCosmics:          	false
- G4minE:                   	-1
+ SaveAuxDetInfo:           		false
+ SaveCryInfo:              		false
+ SaveProtoInfo:            		false # ProtoDUNE specific
+ SaveGenieInfo:            		false
+ SavePhotonInfo:            		false
+ SaveGeneratorInfo:            		false
+ SaveGeantInfo:            		false
+ SaveGeantInAVInfo:            		false
+ SaveGeantTrajectoryInfo:		false
+ SaveSimEnergyDepositTPCActiveInfo:	false
+ SaveMCShowerInfo:         		false
+ SaveMCTrackInfo:          		false
+ SaveHitInfo:              		false
+ SaveRawDigitInfo:         		false
+ SaveRecobWireInfo:         		false
+ SaveTrackInfo:            		false
+ SaveVertexInfo:           		false 
+ SavePandoraNuVertexInfo:  		false
+ SaveClusterInfo:          		false
+ SaveFlashInfo:            		false
+ SaveExternCounterInfo:    		false
+ SaveShowerInfo:  	   		false
+ SaveCaloCosmics:          		false
+ G4minE:                   		-1
  TrajMCSFitter : {
    pIdHypothesis: 13
    minNumSegments: 3

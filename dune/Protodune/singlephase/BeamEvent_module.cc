@@ -3,29 +3,8 @@
 // Plugin Type: producer (art v2_08_03)
 // File:        BeamEvent_module.cc
 //
-// Generated at Thu Nov  2 22:57:41 2017 by Jonathan Paley using cetskelgen
-// from cetlib version v3_01_01.
-//
-// Edited by Jake Calcutt
+// Written by Jake Calcutt (calcuttj@msu.edu)
 ////////////////////////////////////////////////////////////////////////
-
-
-/*///////////////////////////////////////////////////////////////////////
- To-Do: 
-
-       * Fix the tracking portion with real values for monitor positions
-       !!! Do after the fact? !!! 
-
-       * Make TOF matching more robust. Perhaps search 'downward'
-
-       * Pass the Spill Offset to the next events in the same spill.
-         - Does this need to be added to the data product? Probably not. just
-           store in memory
-       
-*/////////////////////////////////////////////////////////////////////////
-
-
-
 
 
 #include "art/Framework/Core/EDProducer.h"
@@ -289,8 +268,6 @@ private:
   double fTimingCalibration;
   double fCalibrationTolerance;
   double fOffsetTAI;
-  int    fFetchOffset;
-  int    fSpillFetchOffset;
 
   double fS11DiffUpper; 
   double fS11DiffLower; 
@@ -299,6 +276,9 @@ private:
 
   int    fOffsetCTBtoRDTS;
   int    fToleranceCTBtoRDTS;
+
+  double fDownstreamToGenTrig;
+  double fUpstreamToDownstream;
 
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
@@ -322,7 +302,7 @@ private:
 
   //Hardware Parameters for magnetic field stuff
   double mag_P1 = 5.82044830e-3;
-  double mag_P2 = 0.;
+  // unused double mag_P2 = 0.;
   double mag_P3 = -4.68880000e-6;
   double mag_P4 = 324.573967;
 
@@ -411,8 +391,6 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
       uint32_t  theType  = ctbTrig.word_type;
       ULong64_t theWord  = ctbTrig.trigger_word;
       ULong64_t theTS    = ctbTrig.timestamp;
-      //LOG_INFO("BeamEvent").precision(21);
-        
      
       if (theType == 2 ){
 
@@ -577,6 +555,7 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
 
     }
     catch( std::exception e){
+      acqStampValid = false;
       LOG_WARNING("BeamEvent") << "Could not get Spill time to time in\n";
     }
     
@@ -600,9 +579,6 @@ void proto::BeamEvent::MatchS11ToGen(){
       beamspill->SetActiveTrigger( iT ); 
       beamevt->SetActiveTrigger( iT );
       beamevt->SetT0( beamspill->GetT0( iT ) );
-//      LOG_INFO("BeamEvent") << "Found at: " << iT << "\n";
-//      LOG_INFO("BeamEvent") << "Previous Active Trigger: " << beamspill->GetActiveTrigger() << "\n";
-//      LOG_INFO("BeamEvent") << "Set event T0: " << beamevt->GetT0Sec() << " " << beamevt->GetT0Nano() << "\n";
       return;
     }
   }
@@ -628,8 +604,6 @@ void proto::BeamEvent::MatchBeamToTPC(){
     //Units are 20 nanoseconds ticks
     double RDTSTimeSec  = 20.e-9 * RDTSTickSec;
     double RDTSTimeNano = 20.    * RDTSTickNano;
-
- //   LOG_INFO("BeamEvent") << "RDTS: " << RDTSTimeSec << " " << RDTSTimeNano << "\n";
 
     double diffSec = RDTSTimeSec - GenTrigSec - SpillOffset;
     LOG_INFO("BeamEvent") << "RDTSTimeSec - GenTrigSec " << RDTSTimeSec - GenTrigSec << "\n";
@@ -697,10 +671,23 @@ void proto::BeamEvent::SetBeamEvent(){
   }
 
   LOG_INFO("BeamEvent") << "Setting TOF info for beamevt " << "\n";
-  beamevt->SetTOF0Trigger( beamspill->GetTOF0( activeTrigger ) );
-  beamevt->SetTOF1Trigger( beamspill->GetTOF1( activeTrigger ) );
+
+  beamevt->SetTOFs( beamspill->GetMultipleTOFs( activeTrigger ) );
+  beamevt->SetTOFChans( beamspill->GetMultipleTOFChans( activeTrigger ) );
+  beamevt->SetUpstreamTriggers( beamspill->GetUpstreamTriggers( activeTrigger ) );
+  beamevt->SetDownstreamTriggers( beamspill->GetDownstreamTriggers( activeTrigger ) );
   beamevt->DecodeTOF();
-  beamevt->SetTOFChan(  beamspill->GetTOFChan( activeTrigger ) );
+
+  const std::vector< double > & tofs = beamevt->GetTOFs();
+  const std::vector< int >    & chans = beamevt->GetTOFChans();
+
+  std::cout << "Beam event has " << tofs.size() << " matched TOFs " << std::endl;
+  for(size_t i = 0; i < tofs.size(); ++i){ std::cout << "\t" << tofs[i] << " " << chans[i] << std::endl; }
+
+  const double & tof = beamevt->GetTOF();
+  const int    & chan = beamevt->GetTOFChan();
+ 
+  std::cout << "With primary tof: " << tof << " " << chan << std::endl;
   LOG_INFO("BeamEvent") << "beamevt has TOF " << beamevt->GetTOF() 
             << " and TOFChan "    << beamevt->GetTOFChan() << "\n";
 
@@ -741,9 +728,6 @@ void proto::BeamEvent::produce(art::Event & e){
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
 
-//  bool usedEventTime = false;
-
-
   eventNum = e.event();
   runNum = e.run();
   subRunNum = e.subRun();
@@ -782,8 +766,8 @@ void proto::BeamEvent::produce(art::Event & e){
 
     //Start getting beam event info
     std::cout << "Testing fetching time: " << RDTSTime * 2.e-8 << std::endl;
-    uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 ) + fFetchOffset;
-    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 ) + fSpillFetchOffset;
+    uint64_t fetch_time = uint64_t( RDTSTime * 2e-8 );
+    uint64_t fetch_time_down = uint64_t( RDTSTime * 2e-8 );
     LOG_INFO("BeamEvent") << "RDTSTime: " <<  uint64_t( RDTSTime * 2e-8 ) << "\n";
 
     //Check if we are still using the same spill information.
@@ -886,7 +870,7 @@ void proto::BeamEvent::produce(art::Event & e){
       //Set PrevStart to SpillStart here
       //so that we don't skip in the case 
       //the first event in the spill did not
-      //a good beamline trigger
+      //have a good beamline trigger
       PrevStart = SpillStart;
       PrevRDTSTimeSec = RDTSTimeSec;
 
@@ -1033,8 +1017,6 @@ void proto::BeamEvent::InitXBPFInfo(beam::ProtoDUNEBeamSpill * beamspill){
 
 void proto::BeamEvent::getS11Info(uint64_t time){
   LOG_INFO("BeamEvent") << "Getting S11 Info " << "\n";
-//  uint64_t time = uint64_t( RDTSTime * 2e-8 + 5 );
-
 
   std::vector<double> coarseS11         = FetchAndReport(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:coarse[]");
   std::vector<double> fracS11           = FetchAndReport(time, "dip/acc/NORTH/NP04/BI/XBTF/S11:frac[]"); 
@@ -1062,8 +1044,6 @@ void proto::BeamEvent::getS11Info(uint64_t time){
     double diffSec = secondsS11[2*i + 1] - RDTSTimeSec - fOffsetTAI;
     double diffNano = nano - RDTSTimeNano;
 
-    //LOG_INFO("BeamEvent") << i << " " << secondsS11[2*i + 1] << " " << RDTSTimeSec << "\n";
-    //LOG_INFO("BeamEvent") << "\t" << nano << " " << RDTSTimeNano << "\n";
     LOG_INFO("BeamEvent") << i << " diffSec " << diffSec << "\n"; 
     LOG_INFO("BeamEvent") << i << " diffNano " << diffNano << "\n"; 
 
@@ -1185,6 +1165,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
   }
 
   if( gotTOFs ){
+
     for(size_t i = 0; i < timestampCountGeneralTrigger[0]; ++i){
 //      LOG_INFO("BeamEvent") << "TOF1A " << i << " " << secondsTOF1A[2*i+1] << " "  << 8.*coarseTOF1A[i] +  fracTOF1A[i]/512. << "\n";
       fXTOF1ACoarse = coarseTOF1A[i];
@@ -1250,7 +1231,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     }
   }
 
-
+  LOG_INFO("BeamEvent") << "NGenTrigs: " << timestampCountGeneralTrigger[0] << " NTOF2s: " << unorderedTOF2ATime.size() + unorderedTOF2BTime.size() << "\n";
   for(size_t iT = 0; iT < unorderedGenTrigTime.size(); ++iT){
     
     bool found_TOF = false;
@@ -1258,213 +1239,153 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     double the_gen_sec = unorderedGenTrigTime[iT].first;
     double the_gen_ns = unorderedGenTrigTime[iT].second;
 
-    double the_TOF1_sec = -1.;
-    double the_TOF2_sec = -1.;
-    double the_TOF1_ns = -1.;
-    double the_TOF2_ns = -1.;
-
     //1A2A = 0; 1B2A = 1, 1A2B = 2,  1B2B = 3
     //Add 1 for 1B, add 2 for 2B
     int channel = 0;
 
+    std::vector< double > possibleTOF; 
+    std::vector< int >    possibleTOFChan; 
+    std::vector< size_t > UpstreamTriggers;
+    std::vector< size_t > DownstreamTriggers;
+
     if( gotTOFs ){
-      for(size_t iT1A = 0; iT1A < unorderedTOF1ATime.size(); ++iT1A){
-        double TOF1A_sec = unorderedTOF1ATime[iT1A].first;
-        double TOF1A_ns = unorderedTOF1ATime[iT1A].second;
+      std::cout << "Gen: " << the_gen_sec << " " << the_gen_ns << std::endl;
 
-        double delta_1A = 1.e9*(the_gen_sec - TOF1A_sec) + the_gen_ns - TOF1A_ns;
-        if(delta_1A < 0.){
-         // LOG_INFO("BeamEvent") << "Passed TOF1A" << "\n";
-          //TOF1A_passed = true;
-          break;
-        }
+      //First check 2A
+      for(size_t ip2A = 0; ip2A < unorderedTOF2ATime.size(); ++ip2A){
+        double TOF2A_sec = unorderedTOF2ATime[ip2A].first;
+        double TOF2A_ns  = unorderedTOF2ATime[ip2A].second;         
+        double delta_2A = 1.e9*(the_gen_sec - TOF2A_sec) + the_gen_ns - TOF2A_ns;
 
-        if( delta_1A > 500. ) continue;     
+        if( delta_2A < 0. ) break;
+        else if( delta_2A > fDownstreamToGenTrig ) continue;
 
-        //If here, then 0 < delta_1A < 500ns
-        //Check the TOF2 times. 
-        
-        for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
-          double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
-          double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
+        //if here, 0. < delta < 50ns
+        std::cout << "Found match 2A to Gen" << std::endl;
 
-          double delta = 1.e9*(TOF2A_sec - TOF1A_sec) + TOF2A_ns - TOF1A_ns;
-          
-          //Overtaken 1A
-          if(delta < 0.){
-            continue; 
-          }
+        //So check 1A and 1B
+        for(size_t ip1A = 0; ip1A < unorderedTOF1ATime.size(); ++ip1A){
+          double TOF1A_sec = unorderedTOF1ATime[ip1A].first;
+          double TOF1A_ns  = unorderedTOF1ATime[ip1A].second;         
+          double delta = 1.e9*( TOF2A_sec - TOF1A_sec ) + TOF2A_ns - TOF1A_ns;
 
-          if( delta > 500. ){
-            break;
-          }
-          else{
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < fUpstreamToDownstream){
+            std::cout << "Found match 1A to 2A " << delta << std::endl;
 
-            //If here, then TOF1 is within 500 ns below TOF2
-
-//            LOG_INFO("BeamEvent") << "Found matching TOF2A and TOF1A" << "\n";
             found_TOF = true;
-
-            the_TOF2_sec = TOF2A_sec;
-            the_TOF2_ns  = TOF2A_ns;
-
-            the_TOF1_sec = TOF1A_sec;
-            the_TOF1_ns  = TOF1A_ns;
-
             channel = k1A2A;
 
-            break;
-          }       
-        }
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
 
-        if(!found_TOF){
-          for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
-            double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
-            double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
-
-            double delta = 1.e9*(TOF2B_sec - TOF1A_sec) + TOF2B_ns - TOF1A_ns;
-            
-            //Overtaken 1A
-            if(delta < 0.){
-              continue;
-            }
-
-            if( delta > 500. ){
-              break;
-            }
-            else{
-              //If here, then TOF1 is within 500 ns below TOF2
-
-//              LOG_INFO("BeamEvent") << "Found matching TOF2B and TOF1A" << "\n";
-              found_TOF = true;
-
-              the_TOF2_sec = TOF2B_sec;
-              the_TOF2_ns  = TOF2B_ns;
-  
-              the_TOF1_sec = TOF1A_sec;
-              the_TOF1_ns  = TOF1A_ns;
-
-              channel = k1A2B;
-
-              break;
-            }       
+            UpstreamTriggers.push_back( ip1A );
+            DownstreamTriggers.push_back( ip2A );
           }
+          else continue; 
         }
+        for(size_t ip1B = 0; ip1B < unorderedTOF1BTime.size(); ++ip1B){
+          double TOF1B_sec = unorderedTOF1BTime[ip1B].first;
+          double TOF1B_ns  = unorderedTOF1BTime[ip1B].second;         
+          double delta = 1.e9*( TOF2A_sec - TOF1B_sec ) + TOF2A_ns - TOF1B_ns;
 
-        if(found_TOF) break;
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < fUpstreamToDownstream){
+            std::cout << "Found match 1B to 2A " << delta << std::endl;
+
+            found_TOF = true;
+            channel = k1B2A;
+
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
+
+            UpstreamTriggers.push_back( ip1B );
+            DownstreamTriggers.push_back( ip2A );
+          }
+          else continue; 
+        }
       }
 
-      //Now check 1B with 2A and 2B
-      if(!found_TOF){
-        
-        for(size_t iT1B = 0; iT1B < unorderedTOF1BTime.size(); ++iT1B){
-          double TOF1B_sec = unorderedTOF1BTime[iT1B].first;
-          double TOF1B_ns = unorderedTOF1BTime[iT1B].second;
+      //Then check 2B 
+      for(size_t ip2B = 0; ip2B < unorderedTOF2BTime.size(); ++ip2B){
+        double TOF2B_sec = unorderedTOF2BTime[ip2B].first;
+        double TOF2B_ns  = unorderedTOF2BTime[ip2B].second;         
+        double delta_2B = 1.e9*(the_gen_sec - TOF2B_sec) + the_gen_ns - TOF2B_ns;
 
-          double delta_1B = 1.e9*(the_gen_sec - TOF1B_sec) + the_gen_ns - TOF1B_ns;
-          if(delta_1B < 0.){
-           // LOG_INFO("BeamEvent") << "Passed TOF1B" << "\n";
-            //TOF1B_passed = true;
-            break;
+
+        if( delta_2B < 0. ) break;
+        else if( delta_2B > fDownstreamToGenTrig ) continue;
+
+        //if here, 0. < delta < 50ns
+        std::cout << "Found match 2B to Gen" << std::endl;
+
+        //So check 1A and 1B
+        for(size_t ip1A = 0; ip1A < unorderedTOF1ATime.size(); ++ip1A){
+          double TOF1A_sec = unorderedTOF1ATime[ip1A].first;
+          double TOF1A_ns  = unorderedTOF1ATime[ip1A].second;         
+          double delta = 1.e9*( TOF2B_sec - TOF1A_sec ) + TOF2B_ns - TOF1A_ns;
+
+
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < fUpstreamToDownstream){
+            std::cout << "Found match 1A to 2B " << delta << std::endl;
+
+            found_TOF = true;
+            channel = k1A2B;
+
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
+
+            UpstreamTriggers.push_back( ip1A );
+            DownstreamTriggers.push_back( ip2B );
           }
+          else continue; 
+        }
+        for(size_t ip1B = 0; ip1B < unorderedTOF1BTime.size(); ++ip1B){
+          double TOF1B_sec = unorderedTOF1BTime[ip1B].first;
+          double TOF1B_ns  = unorderedTOF1BTime[ip1B].second;         
+          double delta = 1.e9*( TOF2B_sec - TOF1B_sec ) + TOF2B_ns - TOF1B_ns;
 
-          if( delta_1B > 500. ) continue;     
-
-          //If here, then 0 < delta_1B < 500ns
-          //Check the TOF2 times. 
           
-          for(size_t iT2A = 0; iT2A < unorderedTOF2ATime.size(); ++iT2A){
-            double TOF2A_sec = unorderedTOF2ATime[iT2A].first;
-            double TOF2A_ns = unorderedTOF2ATime[iT2A].second;
+          if( delta < 0. ) break;
+          else if( delta > 0. && delta < fUpstreamToDownstream){
+            std::cout << "Found match 1B to 2B " << delta << std::endl;
 
-            double delta = 1.e9*(TOF2A_sec - TOF1B_sec) + TOF2A_ns - TOF1B_ns;
-            
-            //Overtaken 1B
-            if(delta < 0.){
-              continue;
-            }
+            found_TOF = true;
+            channel = k1B2B;
 
-            if( delta > 500. ){
-              break;
-            }
-            else{
+            possibleTOF.push_back( delta ); 
+            possibleTOFChan.push_back( channel );
 
-              //If here, then TOF1 is within 500 ns below TOF2
-
-//              LOG_INFO("BeamEvent") << "Found matching TOF2A and TOF1B" << "\n";
-              found_TOF = true;
-
-              the_TOF2_sec = TOF2A_sec;
-              the_TOF2_ns  = TOF2A_ns;
-
-              the_TOF1_sec = TOF1B_sec;
-              the_TOF1_ns  = TOF1B_ns;
-
-              channel = k1B2A;
-
-              break;
-            }       
+            UpstreamTriggers.push_back( ip1B );
+            DownstreamTriggers.push_back( ip2B );
           }
-
-          if(!found_TOF){
-            for(size_t iT2B = 0; iT2B < unorderedTOF2BTime.size(); ++iT2B){
-              double TOF2B_sec = unorderedTOF2BTime[iT2B].first;
-              double TOF2B_ns = unorderedTOF2BTime[iT2B].second;
-
-              double delta = 1.e9*(TOF2B_sec - TOF1B_sec) + TOF2B_ns - TOF1B_ns;
-              
-              //Overtaken 1B
-              if(delta < 0.){
-                continue;
-              }
-
-              if( delta > 500. ){
-                break;
-              }
-              else{
-                //If here, then TOF1 is within 500 ns below TOF2
-
-//                LOG_INFO("BeamEvent") << "Found matching TOF2B and TOF1B" << "\n";
-                found_TOF = true;
-
-                the_TOF2_sec = TOF2B_sec;
-                the_TOF2_ns  = TOF2B_ns;
-  
-                the_TOF1_sec = TOF1B_sec;
-                the_TOF1_ns  = TOF1B_ns;
-
-                channel = k1B2B;
-
-                break;
-              }       
-            }
-          }
-          
-          if(found_TOF) break;
-        }    
+          else continue;
+        }
       }
+
+      std::cout << "Found " << possibleTOF.size() << " matched TOFs" << std::endl;
+      for( size_t im = 0; im < possibleTOF.size(); ++im){
+        std::cout << possibleTOF[im] << " " << possibleTOFChan[im] << " " << UpstreamTriggers[im] << " " << DownstreamTriggers[im] << std::endl;
+      }
+      std::cout << std::endl;
     }
 
-    if(found_TOF){
-      //Convert from TAI to UTC at this point
+    if( !found_TOF ){
 
-//      LOG_INFO("BeamEvent") << "Adding matched tof" << "\n";
+      LOG_INFO("BeamEvent") << "No matching TOFs found. Placing dummy\n";
 
-      beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
-      beamspill->AddTOF0Trigger(std::make_pair(the_TOF1_sec - fOffsetTAI, the_TOF1_ns));
-      beamspill->AddTOF1Trigger(std::make_pair(the_TOF2_sec - fOffsetTAI, the_TOF2_ns));
-      beamspill->AddTOFChan(channel);        
+      possibleTOF.push_back( 0. );
+      possibleTOFChan.push_back( -1 );
+      UpstreamTriggers.push_back(0);
+      DownstreamTriggers.push_back(0);
     }
-    else{
-      //Add dummy
 
-//      LOG_INFO("BeamEvent") << "Adding unmatched tof" << "\n";
-
-      beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
-      beamspill->AddTOF0Trigger(std::make_pair(0., 0.));
-      beamspill->AddTOF1Trigger(std::make_pair(0., 0.));
-      beamspill->AddTOFChan(-1);        
-    }
+    beamspill->AddT0(std::make_pair(the_gen_sec - fOffsetTAI, the_gen_ns));
+    beamspill->AddMultipleTOFs( possibleTOF );
+    beamspill->AddMultipleTOFChans( possibleTOFChan );
+    beamspill->AddUpstreamTriggers( UpstreamTriggers );
+    beamspill->AddDownstreamTriggers( DownstreamTriggers );
 
   }
 
@@ -1577,23 +1498,12 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
       continue;
     } 
 
-//    std::cout << "Replacing  " << i << std::endl;
-//    beamspill->ReplaceFBMTrigger(name, fbm, i);
-//    leftOvers.erase( std::find(leftOvers.begin(), leftOvers.end(), i ) );
-
-    // Timestamp is in units of sec + 8ns ticks
-//    fbm.timeStamp = fbm.timeData[3] + fbm.timeData[2]*8.e-9;  
-//    std::cout << fbm.timeData[3] << " " << fbm.timeData[2]*8.e-9 << " " << fbm.timeData[1] << " " << 8.e-9*fbm.timeData[0] << std::endl;
-    
-    //Go through the valid Good Particles, and emplace the FBM 
- //   std::cout << "Checking " << beamspill->GetNT0() << " triggers " << leftOvers.size() << std::endl;
-
-    std::cout.precision(dbl::max_digits10);
+/*    std::cout.precision(dbl::max_digits10);
     std::cout << "Time: " << 8.*fbm.timeData[2] << " " << fbm.timeData[3] - fOffsetTAI << std::endl;
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
       std::cout << *ip << " " << beamspill->GetT0Nano(*ip) << " " << beamspill->GetT0Sec(*ip) << std::endl;
     }
-
+*/
     for(std::vector<size_t>::iterator ip = leftOvers.begin(); ip != leftOvers.end(); ++ip){
 
       // Compute the time delta between the timeStamp and the T0, see if it's less than 500ns away
@@ -1837,9 +1747,6 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
   fOffsetTAI              = p.get<double>("OffsetTAI");
 
-  fFetchOffset            = p.get<int>("FetchOffset");
-  fSpillFetchOffset       = p.get<int>("SpillFetchOffset");
-
   fS11DiffUpper           = p.get<double>("S11DiffUpper");
   fS11DiffLower           = p.get<double>("S11DiffLower");
 
@@ -1848,6 +1755,9 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
 
   fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
   fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
+
+  fDownstreamToGenTrig    = p.get<double>("DownstreamToGenTrig");
+  fUpstreamToDownstream   = p.get<double>("UpstreamToDownstream");
 
   fSaveOutTree            = p.get<bool>("SaveOutTree");
   fDebugMomentum          = p.get<bool>("DebugMomentum");
@@ -1902,48 +1812,48 @@ void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
   
-  LOG_DEBUG("BeamEvent") << "Making Track for time: " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << "\n";
+  LOG_INFO("BeamEvent") << "Making Track for time: " << beamspill->GetT0Sec(theTrigger) << " " << beamspill->GetT0Nano(theTrigger) << "\n";
 
   //Get the active fibers from the upstream tracking XBPF
   std::vector<short> firstUpstreamFibers  = beamspill->GetActiveFibers(firstUpstreamName, theTrigger);
   std::vector<short> secondUpstreamFibers = beamspill->GetActiveFibers(secondUpstreamName, theTrigger);
 
-  LOG_DEBUG("BeamEvent") << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers"<< "\n";
+  LOG_INFO("BeamEvent") << firstUpstreamName << " has " << firstUpstreamFibers.size() << " active fibers"<< "\n";
   for(size_t i = 0; i < firstUpstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << firstUpstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << firstUpstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
 
-  LOG_DEBUG("BeamEvent") << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << secondUpstreamName << " has " << secondUpstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < secondUpstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << secondUpstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << secondUpstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
   //////////////////////////////////////////////
 
   //Get the active fibers from the downstream tracking XBPF
   std::vector<short> firstDownstreamFibers = beamspill->GetActiveFibers(firstDownstreamName, theTrigger);
   std::vector<short> secondDownstreamFibers = beamspill->GetActiveFibers(secondDownstreamName, theTrigger);
 
-  LOG_DEBUG("BeamEvent") << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << firstDownstreamName << " has " << firstDownstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < firstDownstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << firstDownstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << firstDownstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
 
-  LOG_DEBUG("BeamEvent") << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers" << "\n";
+  LOG_INFO("BeamEvent") << secondDownstreamName << " has " << secondDownstreamFibers.size() << " active fibers" << "\n";
   for(size_t i = 0; i < secondDownstreamFibers.size(); ++i){
-    LOG_DEBUG("BeamEvent") << secondDownstreamFibers[i] << " ";
+    LOG_INFO("BeamEvent") << secondDownstreamFibers[i] << " ";
   }
-  LOG_DEBUG("BeamEvent") << "\n";
+  LOG_INFO("BeamEvent") << "\n";
   //////////////////////////////////////////////
 
   if( (firstUpstreamFibers.size() < 1) || (secondUpstreamFibers.size() < 1) || (firstDownstreamFibers.size() < 1) || (secondDownstreamFibers.size() < 1) ){
-    LOG_DEBUG("BeamEvent") << "Warning, at least one empty Beam Profiler. Not making track" << "\n";
+    LOG_INFO("BeamEvent") << "Warning, at least one empty Beam Profiler. Not making track" << "\n";
     return;
   }
 /*  else if( (firstUpstreamFibers.size() > 5) || (secondUpstreamFibers.size() > 5) || (firstDownstreamFibers.size() > 5) || (secondDownstreamFibers.size() > 5) ){
-    LOG_DEBUG("BeamEvent") << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not making track" << "\n";
+    LOG_INFO("BeamEvent") << "Warning, too many (>5) active fibers in at least one Beam Profiler. Not making track" << "\n";
     return;
   }*/
 
@@ -1960,7 +1870,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
   std::vector< TVector3 > downstreamPositions; 
   
   //Pair the upstream fibers together
-  LOG_DEBUG("BeamEvent") << "Upstream" << "\n";
+  LOG_INFO("BeamEvent") << "Upstream" << "\n";
   for(size_t iF1 = 0; iF1 < firstUpstreamFibers.size(); ++iF1){
     
     size_t firstFiber = firstUpstreamFibers[iF1];
@@ -1968,7 +1878,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondUpstreamFibers.size(); ++iF2){
       size_t secondFiber = secondUpstreamFibers[iF2];
 
-      LOG_DEBUG("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
+      LOG_INFO("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
       upstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondUpstreamFibers.size() - 1){
@@ -1989,24 +1899,24 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       double xPos = GetPosition(firstUpstreamName, thePair.first);
       double yPos = GetPosition(secondUpstreamName, thePair.second);
       
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       upstreamPositions.push_back( posInDet );
     }
     else if(firstUpstreamType == "vert" && secondUpstreamType == "horiz"){
       double yPos = GetPosition(firstUpstreamName, thePair.first);
       double xPos = GetPosition(secondUpstreamName, thePair.second);
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
 
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       upstreamPositions.push_back( posInDet );
     }
 
   }
   
-  LOG_DEBUG("BeamEvent") << "Downstream" << "\n";
+  LOG_INFO("BeamEvent") << "Downstream" << "\n";
   //Pair the downstream fibers together
   for(size_t iF1 = 0; iF1 < firstDownstreamFibers.size(); ++iF1){
     
@@ -2015,7 +1925,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     for(size_t iF2 = 0; iF2 < secondDownstreamFibers.size(); ++iF2){
       size_t secondFiber = secondDownstreamFibers[iF2];
 
-      LOG_DEBUG("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
+      LOG_INFO("BeamEvent") << "Paired: " << firstFiber << " " << secondFiber << "\n"; 
       downstreamPairedFibers.push_back(std::make_pair(firstFiber, secondFiber));
 
       if (iF2 < secondDownstreamFibers.size() - 1){
@@ -2036,28 +1946,23 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       double xPos = GetPosition(firstDownstreamName, thePair.first);
       double yPos = GetPosition(secondDownstreamName, thePair.second);
 
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       downstreamPositions.push_back( posInDet );
     }
     else if(firstDownstreamType == "vert" && secondDownstreamType == "horiz"){
       double yPos = GetPosition(firstDownstreamName, thePair.first);
       double xPos = GetPosition(secondDownstreamName, thePair.second);
 
-      LOG_DEBUG("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
+      LOG_INFO("BeamEvent") << "normal " << xPos << " " << yPos <<  "\n";
       TVector3 posInDet = ConvertProfCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
-      LOG_DEBUG("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
+      LOG_INFO("BeamEvent") << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << "\n";
       downstreamPositions.push_back( posInDet );
     }
 
   }
  
-  //Just for creating tracks
-  std::vector< std::vector<double> > dummy;
-  std::vector<double> mom(3, util::kBogusD);
-  /// 
-
   for(size_t iU = 0; iU < upstreamPositions.size(); ++iU){
     for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
       std::vector<TVector3> thePoints;
@@ -2076,7 +1981,10 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
-      recob::Track * tempTrack = new recob::Track(thePoints, theMomenta, dummy, mom, 1);      
+      recob::Track * tempTrack = new recob::Track(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
+									 recob::tracking::convertCollToVector(theMomenta),
+									 recob::Track::Flags_t(thePoints.size()), false),
+						  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
       beamevt->AddBeamTrack( *tempTrack );
     }
   }

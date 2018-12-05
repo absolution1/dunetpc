@@ -29,6 +29,32 @@ void protoana::ProtoDUNEDataUtils::reconfigure(fhicl::ParameterSet const& p){
   fMomentumOffset = p.get<float>("MomentumOffset"); // GeV/c
   fTOFScaleFactor = p.get<float>("TOFScaleFactor");
   fTOFOffset = p.get<float>("TOFOffset"); // ns
+
+  fTOFElectronCuts = p.get<std::vector<float> >("TOFElectronCuts"); // ns
+  fTOFMuonCuts = p.get<std::vector<float> >("TOFMuonCuts"); // ns
+  fTOFPionCuts = p.get<std::vector<float> >("TOFPionCuts"); // ns
+  fTOFKaonCuts = p.get<std::vector<float> >("TOFKaonCuts"); // ns
+  fTOFProtonCuts = p.get<std::vector<float> >("TOFProtonCuts"); // ns
+  if(fTOFElectronCuts.size() != 2)
+  {
+    throw cet::exception("ProtoDUNEDataUtils")<< "TOFElectronCuts parameter needs to be a vector of size 2 not "<<fTOFElectronCuts.size();
+  }
+  if(fTOFMuonCuts.size() != 2)
+  {
+    throw cet::exception("ProtoDUNEDataUtils")<< "TOFMuonCuts parameter needs to be a vector of size 2 not "<<fTOFMuonCuts.size();
+  }
+  if(fTOFPionCuts.size() != 2)
+  {
+    throw cet::exception("ProtoDUNEDataUtils")<< "TOFPionCuts parameter needs to be a vector of size 2 not "<<fTOFPionCuts.size();
+  }
+  if(fTOFKaonCuts.size() != 2)
+  {
+    throw cet::exception("ProtoDUNEDataUtils")<< "TOFKaonCuts parameter needs to be a vector of size 2 not "<<fTOFKaonCuts.size();
+  }
+  if(fTOFProtonCuts.size() != 2)
+  {
+    throw cet::exception("ProtoDUNEDataUtils")<< "TOFProtonCuts parameter needs to be a vector of size 2 not "<<fTOFProtonCuts.size();
+  }
 }
 
 // Access the trigger information to see if this is a beam trigger
@@ -108,7 +134,9 @@ std::vector<double> protoana::ProtoDUNEDataUtils::GetBeamlineMass(art::Event con
   {
     const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
     tofs.push_back(beamEvent.GetTOF());
-    for(size_t iMom=0; iMom < beamEvent.GetNRecoBeamMomenta(); iMom++)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    for(size_t iMom=0; iMom < beamMomenta.size(); iMom++)
     {
       momenta.push_back(beamEvent.GetRecoBeamMomentum(iMom));
     }
@@ -206,18 +234,14 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(art::Event const & evt, const float beamEnergyGeV) const{
-  if (beamEnergyGeV >= 2.5)
-  {
-    protoana::PossibleParticleCands result = {true,true,true,true,true};
-    return result;
-  }
+  protoana::PossibleParticleCands result = {false,false,false,false};
   std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
   auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
   if(beamHand.isValid())
   {
     art::fill_ptr_vector(beamVec, beamHand);
   }
-  float TOF = -9e7;
+  float TOF = -1e6;
   for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
   {
     const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
@@ -225,44 +249,40 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetTOFParticleID(a
     {
       if(fStrictTOF)
       {
-        protoana::PossibleParticleCands result = {false,false,false,false,false};
+        result = {false,false,false,false,false};
         return result;
       }
       else
       {
-        protoana::PossibleParticleCands result = {true,true,true,true,true};
+        result = {true,true,true,true,true};
         return result;
       }
     }
     TOF = beamEvent.GetTOF();
     break;
   }
-  if (beamEnergyGeV < 1.5)
+  if(TOF >= fTOFElectronCuts.at(0) && TOF <= fTOFElectronCuts.at(1))
   {
-    if (TOF < 170.)
-    {
-      protoana::PossibleParticleCands result = {true,true,true,true,false};
-      return result;
-    }
-    else
-    {
-      protoana::PossibleParticleCands result = {false,false,false,false,true};
-      return result;
-    }
+    result.electron = true;
   }
-  else // is 2 GeV
+  if(TOF >= fTOFMuonCuts.at(0) && TOF <= fTOFMuonCuts.at(1))
   {
-    if (TOF < 160.)
-    {
-      protoana::PossibleParticleCands result = {true,true,true,true,false};
-      return result;
-    }
-    else
-    {
-      protoana::PossibleParticleCands result = {false,false,false,false,true};
-      return result;
-    }
+    result.muon = true;
   }
+  if(TOF >= fTOFPionCuts.at(0) && TOF <= fTOFPionCuts.at(1))
+  {
+    result.pion = true;
+  }
+  if(TOF >= fTOFKaonCuts.at(0) && TOF <= fTOFKaonCuts.at(1))
+  {
+    result.kaon = true;
+  }
+  if(TOF >= fTOFProtonCuts.at(0) && TOF <= fTOFProtonCuts.at(1))
+  {
+    result.proton = true;
+  }
+  
+  return result;
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetBeamlineParticleID(art::Event const & evt, const float beamEnergyGeV) const {
@@ -292,7 +312,9 @@ const std::tuple<double,double,int,int> protoana::ProtoDUNEDataUtils::GetBeamlin
     tof = beamEvent.GetTOF();
     ckov0 = beamEvent.GetCKov0Status();
     ckov1 = beamEvent.GetCKov1Status();
-    if (beamEvent.GetNRecoBeamMomenta() > 0)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
     {
         momentum = beamEvent.GetRecoBeamMomentum(0);
     }
@@ -331,7 +353,9 @@ const std::tuple<double,double,int,int,int,double,double,int,int,bool> protoana:
     timingTrigger = beamEvent.GetTimingTrigger();
     BITrigger = beamEvent.GetBITrigger();
     areBIAndTimingMatched = beamEvent.CheckIsMatched();
-    if (beamEvent.GetNRecoBeamMomenta() > 0)
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
     {
         momentum = beamEvent.GetRecoBeamMomentum(0);
     }

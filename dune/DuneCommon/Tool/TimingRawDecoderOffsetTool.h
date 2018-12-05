@@ -3,8 +3,11 @@
 // David Adams
 // June 2018
 //
-// Tool that reads the time offset from the text file written by
-// the protoDUNE TimingRawDecoder module.
+// Tool that calculates time offset using the timing clock received in an
+// argumment.
+//
+// An earlier version of this tool read the timing clock from a text file
+// written by the protoDUNE TimingRawDecoder module.
 // 
 // Parameters:
 //   LogLevel - Message logging level (0=none, 1=ctor, 2=each call, ...)

@@ -5,12 +5,9 @@ proto_beamevent:
   module_type:          "BeamEvent"
   URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
 #  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
-  BFEpsilon:           5.
+  BFEpsilon:           6.
   IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
-
-  FetchOffset:         5
-  SpillFetchOffset:    -5
 
   NRetries:             5
   TimeWindow: 120  # width of time window in seconds
@@ -142,6 +139,15 @@ proto_beamevent:
   SaveOutTree:   "false"
   DebugTOFs:     "false"
   DebugMomentum: "false"
+
+#Tolerance for matching between Downstream scintillator modules 
+#and coincidence signal (GeneralTrigger)
+#units of ns
+  DownstreamToGenTrig:  50.
+
+#Tolerance for matching between Upstream and Downstream scintillator modules 
+#units of ns
+  UpstreamToDownstream:  500.
 
 }
 

@@ -94,6 +94,16 @@ namespace beam
       int               GetNTOF0Triggers(){ return TOF0.size(); };
       int               GetNTOF1Triggers(){ return TOF1.size(); };
 
+      std::vector< double > GetMultipleTOFs( size_t i ){ return TOFs[i]; };
+      std::vector< int    > GetMultipleTOFChans( size_t i ){ return TOFChans[i]; };
+      std::vector< size_t > GetUpstreamTriggers( size_t i ){ return UpstreamTriggers[i]; };
+      std::vector< size_t > GetDownstreamTriggers( size_t i ){ return DownstreamTriggers[i]; };
+
+      void AddMultipleTOFs( std::vector< double > theTOFs){ TOFs.push_back( theTOFs ); };
+      void AddMultipleTOFChans( std::vector< int > theChans){ TOFChans.push_back( theChans ); };
+      void AddUpstreamTriggers( std::vector< size_t > theTriggers ){ UpstreamTriggers.push_back( theTriggers ); };
+      void AddDownstreamTriggers( std::vector< size_t > theTriggers ){ DownstreamTriggers.push_back( theTriggers ); };
+
       void              AddBeamTrack(recob::Track theTrack){ Tracks.push_back(theTrack);};
       recob::Track      GetBeamTrack(size_t i){ return Tracks[i];};
       size_t            GetNBeamTracks(){return Tracks.size();}
@@ -149,6 +159,12 @@ namespace beam
       std::vector< std::pair< double, double > > TOF0;
       std::vector< std::pair< double, double > > TOF1;
       std::vector< int > TOFChan;
+
+      //Possible combinations of TOFs
+      std::vector< std::vector< double > > TOFs;
+      std::vector< std::vector< int    > > TOFChans;
+      std::vector< std::vector< size_t > > UpstreamTriggers;
+      std::vector< std::vector< size_t > > DownstreamTriggers;
 
       //Set of Cerenkov detectors
       //
