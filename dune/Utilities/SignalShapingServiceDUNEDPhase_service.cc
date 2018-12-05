@@ -64,23 +64,20 @@ void util::SignalShapingServiceDUNEDPhase::reconfigure(const fhicl::ParameterSet
   {
     fCollection1MeterFunction->SetParameter(i, fCollection1MeterParams[i]);
   }
-  fCollection1MeterFunction->SetRange(0,fRespSamplingPeriod*1e-3);
 
   fCollection3MeterFunction = new TF1("fCollection3MeterFunction", fCollection3MeterShape.c_str());
   for(unsigned int i=0; i<fCollection3MeterParams.size(); ++i)
   {
     fCollection3MeterFunction->SetParameter(i, fCollection3MeterParams[i]);
   }
-  fCollection3MeterFunction->SetRange(0,fRespSamplingPeriod*1e-3);
 
   // amplifier noise in ADC
   fAmpENCADC            = fAmpENC * 1.60217657e-4 * fASICmVperfC1Meter * fADCpermV;
 
   // Construct parameterized collection filter function.
 
-  //LOG_DEBUG("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC = "<<fASICmVperfC1Meter;
-  mf::LogInfo("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC for 1 meter long readout channeks = "<<fASICmVperfC1Meter
-						<<"ASIC Gain in mV per fC for 3 meter long readout channeks = "<<fASICmVperfC3Meter
+  mf::LogInfo("SignalShapingServiceDUNEDPhase") <<"ASIC Gain in mV per fC for 1 meter long readout channels = "<<fASICmVperfC1Meter
+						<<"; ASIC Gain in mV per fC for 3 meter long readout channels = "<<fASICmVperfC3Meter
 						<<";  ADC conversion = "<<fADCpermV
 						<<";  Amplifier ENC = "<<fAmpENC
 						<<";  Amplifier ENC in ADC = "<<fAmpENCADC;
@@ -160,7 +157,7 @@ void util::SignalShapingServiceDUNEDPhase::init()
 		}
 
 		std::vector<double> eresp1meter, eresp3meter;
-    SetElectResponse(eresp1meter,eresp3meter); //Step 5 and 6
+    SetElectResponse(eresp1meter,eresp3meter);
 		fColSignalShaping1Meter.AddResponseFunction(eresp1meter);
 		fColSignalShaping3Meter.AddResponseFunction(eresp3meter);
 
@@ -174,11 +171,11 @@ void util::SignalShapingServiceDUNEDPhase::init()
     // rebin to appropriate sampling rate of readout
     // NOTE: could have done it from the start in the eresp calculation
     //       but implemented it like this for future flexibility
-    SetResponseSampling(); //Step 7
+    SetResponseSampling();
 
     // Calculate filter functions.
 
-    SetFilters(); //Step 8
+    SetFilters();
 
     // Configure deconvolution kernels.
     fColSignalShaping1Meter.AddFilterFunction(fColFilter);
@@ -313,13 +310,6 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
       element *= fASICmVperfC1Meter * 1.60217657e-4; //mV
       element *= fADCpermV;                    //ADC
     }
-//  std::cout << "ElecResp1Meter after normalization" << std::endl;
-//  std::cout << "tval_us" << "\t" << "fval" << std::endl;
-//  for(size_t i = 0; i <= ElecResp1Meter.size(); ++i)
-//  {
-//    std::cout << time[i] << "\t" << ElecResp1Meter[i] << std::endl;
-//  }
-
 
 
   ElecResp3Meter.resize(nticks, 0.);
@@ -348,12 +338,6 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
       element *= fASICmVperfC3Meter * 1.60217657e-4; //mV
       element *= fADCpermV;                    //ADC
     }
-//  std::cout << "ElecResp3Meter after normalization" << std::endl;
-//  std::cout << "tval_us" << "\t" << "fval" << std::endl;
-//  for(size_t i = 0; i <= ElecResp3Meter.size(); ++i)
-//  {
-//    std::cout << time[i] << "\t" << ElecResp3Meter[i] << std::endl;
-//  }
 
   return;
 

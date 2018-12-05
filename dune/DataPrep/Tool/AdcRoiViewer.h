@@ -191,6 +191,8 @@ public:
     NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
     NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
     NameMap chanSumPlotNames;          // Plot name indexed by chansum name
+    FloatMap chanSumPlotYMins;         // Min value of y for plot.
+    FloatMap chanSumPlotYMaxs;         // Max value of y for plot.
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);

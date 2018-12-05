@@ -35,6 +35,8 @@ namespace protoana {
 
   private:
 
+    /// If the shower.ID() isn't filled we must find the actual shower index ourselves
+    int GetShowerIndex(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
 
   };
 
