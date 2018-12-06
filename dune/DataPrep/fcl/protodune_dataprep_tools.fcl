@@ -73,6 +73,7 @@ tools.pdsp_adcMitigate: {
   FixFlags: []
   InterpolateFlags: [8, 9, 10, 11, 12]
   SkipFlags: []
+  FixedCurvThresh: 20.0
 }
 
 # Timing mitigation.

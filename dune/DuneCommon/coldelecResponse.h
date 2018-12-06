@@ -67,7 +67,7 @@ TF1* coldelecResponseTF1(double gainIn, double shapingIn, double t0, std::string
   bool havePars = gainIn > 0 && shaping > 0.0;
   //TF1* pf = new TF1(fname.c_str(), coldelecResponseFunction, t0, t0+10.0, 3, 1, false);
   TF1* pf = new TF1(fname.c_str(), coldelecResponseFunction, t0, t0+10.0*shaping, 3);
-  pf->SetParName(0, "Gain");
+  pf->SetParName(0, "Height");
   pf->SetParName(1, "Shaping");
   pf->SetParName(2, "T0");
   pf->SetParameter(0, gain);
