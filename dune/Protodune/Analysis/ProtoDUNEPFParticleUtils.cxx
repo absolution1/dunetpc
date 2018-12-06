@@ -1,11 +1,14 @@
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNESliceUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "canvas/Persistency/Common/FindOneP.h"
 
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
+#include "lardataobj/RecoBase/Slice.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Vertex.h"
 
@@ -33,19 +36,19 @@ unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPrimaryPFParticle(art:
   return nPrimary;
 }
 
-// Return a map of particles grouped by their reconstructed slice. Useful for finding slices with multiple particles
-std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const{
+// Helper to get slice maps and avoid duplicate code
+const std::map<unsigned int,std::vector<const recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::SliceMapHelper(art::Event const &evt, const std::string particleLabel, bool primaryOnly) const{
 
   // Get the particles
   auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
 
-  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
+  std::map<unsigned int, std::vector<const recob::PFParticle*>> sliceMap;
 
   for(unsigned int p = 0; p < pfParticles->size(); ++p){
-    recob::PFParticle* particle = const_cast<recob::PFParticle*>(&(pfParticles->at(p)));
+    const recob::PFParticle* particle = &(pfParticles->at(p));
 
     //  Only the primary particles have the slice association
-    if(!particle->IsPrimary()) continue;
+    if(primaryOnly && !particle->IsPrimary()) continue;
 
     unsigned int thisSlice = GetPFParticleSliceIndex(*particle,evt,particleLabel);
 
@@ -55,6 +58,20 @@ std::map<unsigned int,std::vector<recob::PFParticle*>> protoana::ProtoDUNEPFPart
   }
 
   return sliceMap;
+
+}
+
+// Return a map of primary particles grouped by their reconstructed slice. Useful for finding slices with multiple particles
+const std::map<unsigned int,std::vector<const recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const{
+
+  return SliceMapHelper(evt,particleLabel,true);
+
+}
+
+// Return a map of all particles grouped by their reconstructed slice. 
+const std::map<unsigned int,std::vector<const recob::PFParticle*>> protoana::ProtoDUNEPFParticleUtils::GetAllPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const{
+
+  return SliceMapHelper(evt,particleLabel,false);
 
 }
 
@@ -106,7 +123,7 @@ std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const 
 // Try to get the slice tagged as beam
 unsigned short protoana::ProtoDUNEPFParticleUtils::GetBeamSlice(art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
+  const std::map<unsigned int, std::vector<const recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
 
   for(auto slice : sliceMap){
     for(auto particle : slice.second){
@@ -120,51 +137,60 @@ unsigned short protoana::ProtoDUNEPFParticleUtils::GetBeamSlice(art::Event const
 
 }
 
-// Returns pointers for the PFParticles in a slice
-std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const{
+// Returns pointers for the primary PFParticles in a slice
+const std::vector<const recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
+  const std::map<unsigned int, std::vector<const recob::PFParticle*>> sliceMap = GetPFParticleSliceMap(evt,particleLabel);
   
   if(sliceMap.find(slice) != sliceMap.end()){
     return sliceMap.at(slice);
   }
   else{
-    return std::vector<recob::PFParticle*>();
+    return std::vector<const recob::PFParticle*>();
+  }
+
+}
+
+// Returns pointers for all PFParticles in a slice
+const std::vector<const recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetAllPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const{
+
+  const std::map<unsigned int, std::vector<const recob::PFParticle*>> sliceMap = GetAllPFParticleSliceMap(evt,particleLabel);
+
+  if(sliceMap.find(slice) != sliceMap.end()){
+    return sliceMap.at(slice);
+  }
+  else{
+    return std::vector<const recob::PFParticle*>();
   }
 
 }
 
 // Return the pointers for the PFParticles in the beam slice
-std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const{
+const std::vector<const recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const{
 
   unsigned short beamSlice = GetBeamSlice(evt,particleLabel);
-
   return GetPFParticlesFromSlice(beamSlice,evt,particleLabel);
 }
 
 // Access the BDT output used to decide if a slice is beam-like or cosmic-like
 float protoana::ProtoDUNEPFParticleUtils::GetBeamCosmicScore(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+  return FindFloatInMetaData(particle,evt,particleLabel,"TestBeamScore");
 
-  std::string search = "TestBeamScore";
-  if(mdMap.find(search) != mdMap.end()){
-    return mdMap.at(search);
-  }
-  else{
-//    std::cerr << "Object has no beam score... returning -999." << std::endl;
-    return -999.;
-  }
 }
 
 // Use the pandora metadata to tell us if this is a beam particle or not
 bool protoana::ProtoDUNEPFParticleUtils::IsBeamParticle(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+  return FindBoolInMetaData(particle,evt,particleLabel,"IsTestBeam");
 
-  // IsTestBeam only appears for beam particles
-  std::string search = "IsTestBeam";
-  if(mdMap.find(search) != mdMap.end()){
+}
+
+bool protoana::ProtoDUNEPFParticleUtils::FindBoolInMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string entry) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+  
+  if(mdMap.find(entry) != mdMap.end()){
     return true;
   }
   else{
@@ -173,19 +199,104 @@ bool protoana::ProtoDUNEPFParticleUtils::IsBeamParticle(const recob::PFParticle 
 
 }
 
+float protoana::ProtoDUNEPFParticleUtils::FindFloatInMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string entry) const{
+
+  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+  
+  if(mdMap.find(entry) != mdMap.end()){
+    return mdMap.at(entry);
+  }
+  else{
+    return -999.;
+  }
+
+}
+
+
+// Get the reconstructed slice associated with a particle
+const recob::Slice* protoana::ProtoDUNEPFParticleUtils::GetPFParticleSlice(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  // Perhaps we should use the associations to do this? 
+  auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindOneP<recob::Slice> findSlice(pfParticles,evt,particleLabel);
+
+  const recob::Slice* slice = findSlice.at(particle.Self()).get();
+
+  return slice;
+}
+
 // Get the reconstructed slice associated with a particle
 unsigned short protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
-
-  std::string search = "SliceIndex";
-  if(mdMap.find(search) != mdMap.end()){
-    return static_cast<unsigned short>(mdMap.at(search));
+  // Try to use slices if we can
+  try{
+    const recob::Slice* slice = GetPFParticleSlice(particle,evt,particleLabel);
+    return slice->ID();
   }
-  else{
+  // Otherwise fall back on metadata
+  catch(...){
+    std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+    std::string search = "SliceIndex";
+    if(mdMap.find(search) != mdMap.end()){
+      return static_cast<unsigned short>(mdMap.at(search));
+    }
+    else{
 //    std::cerr << "Object has no slice index... returning 9999" << std::endl;
-    return 9999;
+      return 9999;
+    }
   }
+
+}
+
+// Get all hits from a PFParticle's slice
+const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  // Use the slice utility to help us out 
+  protoana::ProtoDUNESliceUtils sliceUtil;
+  
+  unsigned short sliceIndex = GetPFParticleSliceIndex(particle,evt,particleLabel);
+  const std::vector<const recob::Hit*> hits = sliceUtil.GetRecoSliceHits(sliceIndex,evt,particleLabel);
+
+  return hits;
+}
+
+// Get hits from a PFParticle's slice that are not associated to any PFParticle
+const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceUnassociatedHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  unsigned short sliceNumber = GetPFParticleSliceIndex(particle,evt,particleLabel);
+  const std::vector<const recob::Hit*> hits = GetPFParticleSliceHits(particle,evt,particleLabel);
+
+  std::vector<bool> hitUsed(hits.size(),false);
+  std::vector<const recob::Hit*> unassocHits;
+
+  // We need to iterate through the PFParticles in this slice and get their hits
+  const std::vector<const recob::PFParticle*> slicePFPs = GetAllPFParticlesFromSlice(sliceNumber,evt,particleLabel);
+ 
+  for(auto const p : slicePFPs){
+
+    // We are in the correct slice, so get the hits
+    const std::vector<const recob::Hit*> pfpHits = GetPFParticleHits(*p,evt,particleLabel);
+
+    std::cout << "Hit vector sizes: " << hits.size() << ", " << pfpHits.size() << std::endl;
+
+    for(const recob::Hit* h : pfpHits){
+      // Loop through the hit collection from the slice
+      for(unsigned int o = 0; o < hits.size(); ++o){
+        if(fabs(h->Integral() - hits[o]->Integral()) < 1e-5 && fabs(h->PeakTime() - hits[o]->PeakTime()) < 1e-5){
+          hitUsed[o] = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // Now we can fill our unassociated hits vector
+  for(unsigned int i = 0; i < hits.size(); ++i){
+    if(!hitUsed[i]) unassocHits.push_back(hits[i]);
+  }
+  std::cout << " Number of unassociated hits = " << unassocHits.size() << " of " << hits.size() << std::endl;
+
+  return unassocHits;
 }
 
 const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParticleMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const {
@@ -203,29 +314,20 @@ const std::map<std::string,float> protoana::ProtoDUNEPFParticleUtils::GetPFParti
 // Pandora tags and removes clear cosmics before slicing, so check if this particle is a clear cosmic
 bool protoana::ProtoDUNEPFParticleUtils::IsClearCosmic(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
-
-  // IsTestBeam only appears for beam particles
-  std::string search = "IsClearCosmic";
-  if(mdMap.find(search) != mdMap.end()){
-    return true;
-  }
-  else{
-    return false;
-  }
+  return FindBoolInMetaData(particle,evt,particleLabel,"IsClearCosmic");
 
 }
 
 // Get all of the clear cosmic ray particles
-std::vector<recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const{
+const std::vector<const recob::PFParticle*> protoana::ProtoDUNEPFParticleUtils::GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const{
 
   // Get the particles
   auto pfParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
 
-  std::vector<recob::PFParticle*> cosmicParticles;
+  std::vector<const recob::PFParticle*> cosmicParticles;
 
   for(unsigned int p = 0; p < pfParticles->size(); ++p){
-    recob::PFParticle* particle = const_cast<recob::PFParticle*>(&(pfParticles->at(p)));
+    const recob::PFParticle* particle = &(pfParticles->at(p));
 
     //  Only consider primary particles
     if(!particle->IsPrimary()) continue;
@@ -249,14 +351,15 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
   const std::vector<art::Ptr<recob::Vertex>> vertices = findVertices.at(particle.Self());
 
   // What happens next depends on the type of event.
+  // Not primary    -> just use the pfparticle vertex
   // Shower objects -> just use the pfparticle vertex
   // Cosmics        -> use track start point
   // Beam           -> use track start point
 
-  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
+//  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
 
-  // Shower
-  if(!IsPFParticleTracklike(particle)){
+  // Non-primary particle or shower-like primary particle
+  if(!particle.IsPrimary() || !IsPFParticleTracklike(particle)){
     if(vertices.size() != 0){
       const recob::Vertex* vtx = (vertices.at(0)).get();
       return TVector3(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
@@ -267,7 +370,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
     }
   }
   else{
-    // Cosmic or track-like beam particle
+    // Cosmic or track-like beam primary particle
   
     const recob::Track* track = GetPFParticleTrack(particle,evt,particleLabel,trackLabel);
 
@@ -300,8 +403,9 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
   // In this case we want to find the end of the track-like PFParticle
   // To do this, we need to access things via the track
 
+  // Showers have no secondary vertex
   if(!IsPFParticleTracklike(particle)){
-    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    std::cerr << "Shower-like PFParticles have no secondary vertex. Returning default TVector3" << std::endl;
     return TVector3();
   }
 
@@ -312,12 +416,12 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
     const TVector3 start(track->Trajectory().Start().X(),track->Trajectory().Start().Y(),track->Trajectory().Start().Z());
     const TVector3 end(track->Trajectory().End().X(),track->Trajectory().End().Y(),track->Trajectory().End().Z());
 
-      // Return the most upstream point as some cases where the track is reversed...
+      // Return the most downstream point as some cases where the track is reversed...
       if(IsBeamParticle(particle,evt,particleLabel)){
         if(start.Z() > end.Z()) return start;
         else return end;
       }
-      // Return the highest point for cosmics
+      // Return the lowest point for cosmics
       else{
         if(start.Y() < end.Y()) return start;
         else return end;
@@ -325,7 +429,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
 
   }
   else{
-    std::cerr << "This is not a track-like PFParticle. Returning default TVector3" << std::endl;
+    std::cerr << "This track-like PFParticle has no associated track. Returning default TVector3" << std::endl;
     return TVector3();
   }
 
@@ -411,19 +515,44 @@ unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleSpacePoints(
 
 }
 
+// Get the clusters associated to the PFParticle
+const std::vector<const recob::Cluster*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleClusters(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  // Get the particles and their associations
+  auto particles = evt.getValidHandle<std::vector<recob::PFParticle>>(particleLabel);
+  const art::FindManyP<recob::Cluster> findClusters(particles,evt,particleLabel);
+  const std::vector<art::Ptr<recob::Cluster>> pfpClusters = findClusters.at(particle.Self());
+
+  // We don't want the art::Ptr so we need to get rid of it
+  std::vector<const recob::Cluster*> clusters;
+  for(auto pointer : pfpClusters){
+    clusters.push_back(pointer.get());
+  }  
+
+  return clusters;
+}
+
+// Get the number of clusters associated to the PFParticle
+unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleClusters(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
+
+  return GetPFParticleClusters(particle,evt,particleLabel).size();
+
+}
+
 // Get the hits associated to the PFParticle
 const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  const std::vector<const recob::SpacePoint*> spacePoints = GetPFParticleSpacePoints(particle,evt,particleLabel);
-  auto allSpacePoints = evt.getValidHandle<std::vector<recob::SpacePoint>>(particleLabel);
-  const art::FindManyP<recob::Hit> findHits(allSpacePoints,evt,particleLabel);
+  const std::vector<const recob::Cluster*> pfpClusters = GetPFParticleClusters(particle,evt,particleLabel);
+  auto allClusters = evt.getValidHandle<std::vector<recob::Cluster>>(particleLabel);
+  const art::FindManyP<recob::Hit> findHits(allClusters,evt,particleLabel);
 
   std::vector<const recob::Hit*> pfpHits;
  
   // Store all of the hits in a single vector 
-  for(auto sp : spacePoints){
-    const std::vector<art::Ptr<recob::Hit>> spacePointHits = findHits.at(sp->ID());
-    for(auto hit : spacePointHits){
+  for(auto cluster : pfpClusters){
+    const std::vector<art::Ptr<recob::Hit>> clusterHits = findHits.at(cluster->ID());
+//    std::cout << "Cluster has " << clusterHits.size() << " hits" << std::endl;
+    for(auto hit : clusterHits){
       pfpHits.push_back(hit.get());
     }
   }

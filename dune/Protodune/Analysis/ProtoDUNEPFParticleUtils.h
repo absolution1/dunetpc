@@ -14,6 +14,8 @@
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/Slice.h"
+#include "lardataobj/RecoBase/Cluster.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
@@ -35,17 +37,35 @@ namespace protoana {
     /// Get the number of primary PFParticles
     unsigned int GetNumberPrimaryPFParticle(art::Event const &evt, const std::string particleLabel) const;
 
-    /// Get a map of slice index to the PFParticles within it
-    std::map<unsigned int,std::vector<recob::PFParticle*>> GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const;
+    /// Get a map of slice index to the primary PFParticles within it
+    const std::map<unsigned int,std::vector<const recob::PFParticle*>> GetPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const;
 
-    /// Get the PFParticles from a given slice. Returns an empty vector if the slice number is not valid
-    std::vector<recob::PFParticle*> GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const;
+    /// Get a map of slice index to all of the PFParticles within it
+    const std::map<unsigned int,std::vector<const recob::PFParticle*>> GetAllPFParticleSliceMap(art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the Primary PFParticles from a given slice. Returns an empty vector if the slice number is not valid
+    const std::vector<const recob::PFParticle*> GetPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get all of the PFParticles from a given slice. Returns an empty vector if the slice number is not valid
+    const std::vector<const recob::PFParticle*> GetAllPFParticlesFromSlice(const unsigned short slice, art::Event const &evt, const std::string particleLabel) const;
 
     /// Try to get the slice tagged as beam. Returns 9999 if no beam slice was found
     unsigned short GetBeamSlice(art::Event const &evt, const std::string particleLabel) const;
 
     /// Return the pointers for the PFParticles in the beam slice. Returns an empty vector is no beam slice was found
-    std::vector<recob::PFParticle*> GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const;
+    const std::vector<const recob::PFParticle*> GetPFParticlesFromBeamSlice(art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the reconstructed slice associated with a particle
+    const recob::Slice* GetPFParticleSlice(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the reconstructed slice number associated with a particle
+    unsigned short GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// For a given PFParticle, return all hits from the slice it comes from
+    const std::vector<const recob::Hit*> GetPFParticleSliceHits(const recob::PFParticle &particlei, art::Event const &evt, const std::string particleLabel) const;
+
+    /// For a given PFParticle find its slice and return all those hits not associated to any PFParticle
+    const std::vector<const recob::Hit*> GetPFParticleSliceUnassociatedHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the cosmic tag(s) from a given PFParticle
     std::vector<anab::CosmicTag> GetPFParticleCosmicTag(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const;
@@ -63,10 +83,7 @@ namespace protoana {
     bool IsClearCosmic(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
 
     /// Get all of the clear cosmic ray particles
-    std::vector<recob::PFParticle*> GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const;
-
-    /// Get the reconstructed slice associated with a particle
-    unsigned short GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+    const std::vector<const recob::PFParticle*> GetClearCosmicPFParticles(art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the metadata associated to a PFParticle from pandora
     const std::map<std::string,float> GetPFParticleMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
@@ -95,6 +112,12 @@ namespace protoana {
     /// Get the number of space points
     unsigned int GetNumberPFParticleSpacePoints(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
 
+    /// Get the clusters associated to the PFParticle
+    const std::vector<const recob::Cluster*> GetPFParticleClusters(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the number of clusters associated to the PFParticle
+    unsigned int GetNumberPFParticleClusters(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
     /// Get the hits associated to the PFParticle
     const std::vector<const recob::Hit*> GetPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
 
@@ -108,6 +131,15 @@ namespace protoana {
     const std::vector<const recob::Shower*> GetPFParticleDaughterShowers(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
 
   private:
+
+    // Some functions that don't need to be exposed to the outside
+    
+    /// Helper to get the slice map and avoid code repetition
+    const std::map<unsigned int,std::vector<const recob::PFParticle*>> SliceMapHelper(art::Event const &evt, const std::string particleLabel, bool primaryOnly) const;
+
+    /// Look for entries in the meta data
+    bool FindBoolInMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string entry) const;
+    float FindFloatInMetaData(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string entry) const;
 
   };
 

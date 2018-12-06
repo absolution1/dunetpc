@@ -278,8 +278,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name vhnam   = psh.get<Name>("valHist"); // Name of the template for the histogram used to fill
     Name valType = psh.get<Name>("valType"); // Type of variable extracted from histogram
     Name etype   = psh.get<Name>("errType"); // Type of variable extracted from histogram
-    Name crname0  = psh.get<Name>("cr");      // Name of the channel range for this histogram
+    Name crname0  = psh.get<Name>("cr");     // Name of the channel range for this histogram
     Name plname  = psh.get<Name>("plot");    // Name of the plot file for this histogram
+    Name spran   = psh.get<Name>("pran");    // Plot range with format "ymin:ymax"
     if ( hnam0.size() == 0 ) {
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
       continue;
@@ -314,6 +315,30 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       yttl = "Fit mean of " + valLabel;
     } else if ( valType == "fitSigma" ) {
       yttl = "Fit sigma of " + valLabel;
+    }
+    // Find y-range for plot.
+    bool havePlotYMin = false;
+    bool havePlotYMax = false;
+    float plotYMin = 0;
+    float plotYMax = 0;
+    if ( spran.size() ) {
+      Name::size_type ipos = spran.find(":");
+      if ( ipos == Name::npos ) {
+        cout << myname << "WARNING: Channel summary range specifcation must include \":\"" << endl;
+      } else {
+        Name spmin = spran.substr(0, ipos);
+        if ( spmin.size() ) {
+          istringstream ssin(spmin);
+          ssin >> plotYMin;
+          havePlotYMin = true;
+        } 
+        Name spmax = spran.substr(ipos+1);
+        if ( spmax.size() ) {
+          istringstream ssin(spmax);
+          ssin >> plotYMax;
+          havePlotYMax = true;
+        } 
+      }
     }
     // Loop over channel ranges. Value "list" means all; otherwise just the one given.
     NameVector crns;
@@ -362,6 +387,22 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       getState().chanSumHistVariableTypes[hnam] = valType;
       getState().chanSumHistErrorTypes[hnam] = etype;
       getState().chanSumPlotNames[hnam] = plname;
+      if ( havePlotYMin ) getState().chanSumPlotYMins[hnam] = plotYMin;
+      if ( havePlotYMax ) getState().chanSumPlotYMaxs[hnam] = plotYMax;
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "  Histogram name: " << hnam << endl;
+        cout << myname << "      Value type: " << valType << endl;
+        cout << myname << "      Error type: " << etype << endl;
+        cout << myname << "  Histogram name: " << hnam << endl;
+        cout << myname << "  Histogram name: " << hnam << endl;
+        cout << myname << "       Plot name: " << plname << endl;
+        cout << myname << "       Plot ymin: ";
+        if ( havePlotYMin ) cout << plotYMin;
+        cout << endl;
+        cout << myname << "       Plot ymax: ";
+        if ( havePlotYMax ) cout << plotYMax;
+        cout << endl;
+      }
     }  // End loop over channel ranges
   }  // End loop over channel summmary histogram configurations
   // Display the configuration.
@@ -1255,9 +1296,9 @@ void AdcRoiViewer::fillChanSumHists() const {
   for ( HistMap::value_type ihst : getState().chanSumHists ) {
     TH1* ph = ihst.second;
     Name hnam = ph->GetName();
-    Name varTemplateName = getState().getChanSumHistTemplateName(hnam);
-    if ( varTemplateName.size() == 0 ) {
-      cout << myname << "ERROR: Variable template name not found for " << hnam << endl;
+    Name hnamTemplate = getState().getChanSumHistTemplateName(hnam);
+    if ( hnamTemplate.size() == 0 ) {
+      cout << myname << "ERROR: Summary template histogram name not found for channel summary " << hnam << endl;
       continue;
     }
     Name vartype = getState().getChanSumHistVariableType(hnam);
@@ -1276,7 +1317,7 @@ void AdcRoiViewer::fillChanSumHists() const {
       Index icha = ph->GetBinCenter(ibin);
       ++ncha;
       acd.channel = icha;
-      Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, varTemplateName);
+      Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       TH1* phvar = getState().getSumHist(hnam);
       if ( phvar == nullptr ) {
         if ( m_LogLevel >= logthresh )
@@ -1404,6 +1445,21 @@ void AdcRoiViewer::writeChanSumPlots() const {
     pman->addAxis();
     pman->showUnderflow();
     pman->showOverflow();
+    bool doRange = false;
+    float ymin = ph->GetMinimum();
+    float ymax = ph->GetMaximum();
+    if ( getState().chanSumPlotYMins.find(hnam) != getState().chanSumPlotYMins.end() ) {
+      ymin = getState().chanSumPlotYMins[hnam];
+      doRange = true;
+    }
+    if ( getState().chanSumPlotYMaxs.find(hnam) != getState().chanSumPlotYMaxs.end() ) {
+      ymax = getState().chanSumPlotYMaxs[hnam];
+      doRange = true;
+    }
+    if ( doRange ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
+      pman->setRangeY(ymin, ymax);
+    }
     if ( m_LogLevel >= 1 ) cout << myname << "Plotting channel summary " << pnam << endl;
     pman->print(pnam);
     delete pman;

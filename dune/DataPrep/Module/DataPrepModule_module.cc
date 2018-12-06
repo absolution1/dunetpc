@@ -38,6 +38,8 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardata/Utilities/AssociationUtil.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/ChannelGroupService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
@@ -101,6 +103,7 @@ private:
   std::string m_DigitName;
 
   // Accessed services.
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
   RawDigitPrepService* m_pRawDigitPrepService = nullptr;
   ChannelGroupService* m_pChannelGroupService = nullptr;
 
@@ -159,6 +162,11 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   } else {
     m_DigitProducer = m_DigitLabel.substr(0, ipos);
     m_DigitName = m_DigitLabel.substr(ipos + 1);
+  }
+
+  m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+  if ( m_pChannelStatusProvider == nullptr ) {
+    cout << myname << "WARNING: Channel status provider not found." << endl;
   }
 
   m_pRawDigitPrepService = &*ServiceHandle<RawDigitPrepService>();
@@ -417,6 +425,12 @@ void DataPrepModule::produce(art::Event& evt) {
       ++nskip;
       continue;
     }
+    // Fetch the channel status.
+    Index chanStat = AdcChannelStatusGood;
+    if ( m_pChannelStatusProvider != nullptr ) {
+      if ( m_pChannelStatusProvider->IsNoisy(chan) ) chanStat = AdcChannelStatusNoisy;
+      if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
+    }
     // Fetch the online ID.
     bool haveFemb = false;
     AdcChannel fembID = -1;
@@ -443,6 +457,7 @@ void DataPrepModule::produce(art::Event& evt) {
     acd.time = itim;
     acd.timerem = itimrem;
     acd.channel = chan;
+    acd.channelStatus = chanStat;
     acd.digitIndex = idig;
     acd.digit = &dig;
     if ( haveFemb ) {
