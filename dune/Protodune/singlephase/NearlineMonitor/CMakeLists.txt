@@ -82,6 +82,7 @@ simple_plugin(PlotEventDetails "module"
       ${ART_FRAMEWORK_SERVICES_REGISTRY}
       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+      ${ART_PERSISTENCY_PROVENANCE}
       art_Persistency_Common
       art_Utilities 
       canvas
