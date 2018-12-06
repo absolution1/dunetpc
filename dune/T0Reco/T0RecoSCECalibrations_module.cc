@@ -27,7 +27,6 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
-#include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
@@ -70,6 +69,7 @@ private:
 	std::string fT0Producer;
 	std::string fFlashProducer;
 	std::string fHitProducer;
+	std::string fTriggerProducer;
 	
 	bool 	    fUseMC;
 	double      fTPCResolution; // [cm]
@@ -77,6 +77,7 @@ private:
 	
 	bool _debug;
 	bool fCathode;
+	bool fData;
 	
 	double _TOP, _BOTTOM, _FRONT, _BACK, _det_width; // [cm]
 	
@@ -102,7 +103,7 @@ private:
 	bool   TrackExitsSide     (const std::vector<TVector3>& sorted_trk);
   
 	void   SortTrackPoints      (const recob::Track& track, std::vector<TVector3>& sorted_trk);
-	void SplitTrack(const recob::Track& track, const std::vector<const recob::Hit*>& hits, std::vector<TVector3>& sorted_trk);
+	void   SplitTrack(const recob::Track& track, std::vector<TVector3>& sorted_trk);
 	
 	double GetEnteringTimeCoord (const std::vector<TVector3>& sorted_trk);
 	double GetExitingTimeCoord  (const std::vector<TVector3>& sorted_trk);
@@ -122,8 +123,8 @@ private:
 	double _dt_mc;
 	
 	double _length;
+	double _driftDir;
 	bool _TPC_edge;
-	int _driftDir;
 	double _rc_xs, _rc_xe, _rc_xs_corr, _rc_xe_corr;
 	double _rc_ys, _rc_ye;
 	double _rc_zs, _rc_ze;
@@ -138,26 +139,6 @@ private:
 	int _trk_ctr;
 	int _ev_ctr;
 	
-	TTree *_everyTrack;
-	double _x_start;
-	double _y_start;
-	double _z_start;
-	double _x_end;
-	double _y_end;
-	double _z_end;
-	
-	TTree *_hitTree;
-	int _trackNum;
-	int _hit;
-	int _wire;
-	int _plane;
-	int _TPC;
-	double _timeTick;
-	double _x_sp;
-	double _y_sp;
-	double _z_sp;
-	
-	
 };
 
 T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
@@ -169,6 +150,7 @@ T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
 	fHitProducer       = p.get<std::string>("HitProducer"      );
 	fFlashProducer     = p.get<std::string>("FlashProducer"    );
 	fT0Producer        = p.get<std::string>("T0Producer"       );
+	fTriggerProducer   = p.get<std::string>("TriggerProducer"  );
 	fUseMC             = p.get<bool>       ("UseMC"            );
 	fTPCResolution     = p.get<double>     ("Resolution"       );
 	fTimeRes           = p.get<double>     ("TimeRes"          );
@@ -176,6 +158,7 @@ T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
 	fPEmin             = p.get<double>     ("PEmin"            );
 	fCathode           = p.get<bool>       ("CathodeOnly"      );
 	_debug             = p.get<bool>       ("debug"            );
+	fData              = p.get<bool>       ("Data"             );
 	
 	
 	// get boundaries based on detector bounds
@@ -253,26 +236,6 @@ void T0RecoSCECalibrations::beginJob(){
 	_ev_ctr = 0;
 	_trk_ctr = 0;
 	
-	_everyTrack = tfs->make<TTree>("_everyTrack","position information for every track");
-	_everyTrack->Branch("_x_start",&_x_start,"x_start/D");
-	_everyTrack->Branch("_y_start",&_y_start,"y_start/D");
-	_everyTrack->Branch("_z_start",&_z_start,"z_start/D");
-	_everyTrack->Branch("_x_end",&_x_end,"x_end/D");
-	_everyTrack->Branch("_y_end",&_y_end,"y_end/D");
-	_everyTrack->Branch("_z_end",&_z_end,"z_end/D");
-	
-	_hitTree = tfs->make<TTree>("_hitTree","Hit and SpacePoint information");
-	_hitTree->Branch("_trackNum",&_trackNum,"trackNum/I");
-	_hitTree->Branch("_hit",&_hit,"hit/I");
-	_hitTree->Branch("_wire",&_wire,"wire/I");
-	_hitTree->Branch("_plane",&_plane,"plane/I");
-	_hitTree->Branch("_TPC",&_TPC,"TPC/I");
-	_hitTree->Branch("_driftDir",&_driftDir,"driftDir/I");
-	_hitTree->Branch("_timeTick",&_timeTick,"timeTick/D");
-	_hitTree->Branch("_x_sp",&_x_sp,"x_sp/D");
-	_hitTree->Branch("_y_sp",&_y_sp,"y_sp/D");
-	_hitTree->Branch("_z_sp",&_z_sp,"z_sp/D");
-	
 }
   
 void T0RecoSCECalibrations::analyze(art::Event const & e){
@@ -288,18 +251,30 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 	if(_debug) std::cout << "NEW EVENT" << std::endl;
 	if (_debug) std::cout << "top: " << _TOP << "\nbottom: " << _BOTTOM << "\nfront: " << _FRONT << "\nback: " << _BACK << std::endl;  
   
+  
 	_flash_times.clear();
 	_flash_idx_v.clear();
 	
 	// load Flash
 	if (_debug) { std::cout << "loading flash from producer " << fFlashProducer << std::endl; }
 	art::Handle<std::vector<recob::OpFlash> > flash_h;
+	if(!fCathode){
 	e.getByLabel(fFlashProducer,flash_h);
 
 	// make sure flash look good
 	if(!flash_h.isValid()) {
 		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Flash!"<<std::endl;
     	throw std::exception();
+  	}
+  	}
+  	
+  	if(_debug&&fData) std::cout << "loading trigger time from producer " << fTriggerProducer << std::endl;
+  	art::Handle<std::vector<recob::OpFlash> > trigger_h;
+	double trigger_time = 0;
+
+  	if(fData){
+  		e.getByLabel(fTriggerProducer, trigger_h);
+  		trigger_time = trigger_h->at(0).Time();
   	}
 
   	// load tracks previously created for which T0 reconstruction should occur
@@ -318,7 +293,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 
   	// grab 2d hits associated with tracks
   	art::FindMany<recob::Hit> trk_hit_assn_v(track_h, e, fHitProducer);
-  	
 
    // load MCParticles
   	art::Handle<std::vector<simb::MCParticle> > mcpart_h;
@@ -339,23 +313,22 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
   	art::FindMany<anab::T0> trk_t0_assn_v(track_h, e, fT0Producer );
 
 	// prepare a vector of optical flash times, if flash above some PE cut value
-
+	if(!fCathode){
   	size_t flash_ctr = 0;
   	for (auto const& flash : *flash_h){
     	if (flash.TotalPE() > fPEmin){
-      		_flash_times.push_back( flash.Time() );
+      		_flash_times.push_back( flash.Time() - trigger_time);
       		_flash_idx_v.push_back(flash_ctr);
-      		if (_debug) std::cout << "\t flash time : " << flash.Time() << ", PE : " << flash.TotalPE() << std::endl;
+      		if (_debug) std::cout << "\t flash time : " << flash.Time() - trigger_time << ", PE : " << flash.TotalPE() << std::endl;
    		}
     	flash_ctr += 1;
   	}// for all flashes
   
    	if (_debug) { std::cout << "Selected a total of " << _flash_times.size() << " OpFlashes" << std::endl; }
-
+	}
   
 	// loop through reconstructed tracks
 	size_t trk_ctr = -1;
-	_trackNum = -1;
 
 	for (auto& track : TrkVec){ 
 		trk_ctr ++;
@@ -363,16 +336,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 		if (_debug) std::cout << "Looping through reco track " << trk_ctr << std::endl;  
   
 		const std::vector<const recob::Hit*>& Hit_v = trk_hit_assn_v.at(trk_ctr);
-		  	
-		// load spacepoints from hits
-  		art::FindMany<recob::SpacePoint> sp_assn_v(Hit_v, e, "pandora");
-  		//const std::vector<const recob::SpacePoint*>& sp_v = sp_assn_v.at(0);
-  		//std::cout << sp_v.size() << std::endl;
-  		
-		//if(_debug) std::cout << "length of hits = " << Hit_v.size() << "Length of spacepoints = " << sp_assn_v.size() << std::endl;
-		//for(size_t jj = 0; jj<sp_assn_v.size(); jj++) std::cout << "SpacePoints: (" << sp_assn_v.at(jj).at(0)->XYZ()[0] << ", " << sp_assn_v.at(jj).at(0)->XYZ()[1] << ", " << sp_assn_v.at(jj).at(0)->XYZ()[2] << ")" << std::endl;
-		
-		if(_debug) std::cout << "\tThis track has " << track->NumberTrajectoryPoints() << " trajectory points and " << Hit_v.size() << " hits." << std::endl;
 		
 	_mc_time = 0.;
 	_rc_time = 0.;
@@ -381,7 +344,7 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 	_dt_flash = -9999.;
 	_dt_mc = -9999.;
 	_length = 0.;
-	//_driftDir = 0;
+	_driftDir = 0;
 	_rc_xs = 0.;
 	_rc_xe = 0.; 
 	_rc_xs_corr = 0.;
@@ -403,37 +366,21 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
       
       	 if( sqrt(pow(sorted_trk.at(0).X() - sorted_trk.at(sorted_trk.size()-1).X(),2.0) + pow(sorted_trk.at(0).Y() - sorted_trk.at(sorted_trk.size()-1).Y(),2.0) + pow(sorted_trk.at(0).Z() - sorted_trk.at(sorted_trk.size()-1).Z(),2.0)) < 50 ){
       		if(_debug) std::cout << "\tTrack too short. Skipping." << std::endl;
-      		//continue;
+      		continue;
       	}
-      	
-      	_x_start = sorted_trk.at(0).X();
-      	_y_start = sorted_trk.at(0).Y();
-      	_z_start = sorted_trk.at(0).Z();
-      	_x_end = sorted_trk.at(1).X();
-      	_y_end = sorted_trk.at(1).Y();
-      	_z_end = sorted_trk.at(1).Z();
-      	_everyTrack->Fill();
 
      	// Determine if the track crosses the cathode 
     	auto const* geom = lar::providerFrom<geo::Geometry>();   
     	auto const* hit = Hit_v.at(0);
-    	//const recob::SpacePoint* spacepoint = sp_assn_v.at(0);
-    	
     	const geo::WireID wireID = hit->WireID();
 		const auto TPCGeoObject = geom->TPC(wireID.TPC,wireID.Cryostat);
 		short int driftDir = TPCGeoObject.DetectDriftDirection();
-		
-		if(_debug) std::cout << "\t\t Hit " << 0 << " Wire: " << wireID.Wire << " Plane: " << wireID.Plane << " TPC: " << wireID.TPC << "  SpacePoints: (" << sp_assn_v.at(0).at(0)->XYZ()[0] << ", " << sp_assn_v.at(0).at(0)->XYZ()[1] << ", " << sp_assn_v.at(0).at(0)->XYZ()[2] << ")" << std::endl;
-		
 		bool cross_cathode = false;
     	for (size_t ii = 1; ii < Hit_v.size(); ii++) {
     		const geo::WireID wireID2 = Hit_v.at(ii)->WireID();
 			const auto TPCGeoObject2 = geom->TPC(wireID2.TPC,wireID2.Cryostat);
 			short int driftDir_tmp = TPCGeoObject2.DetectDriftDirection(); 
-			//const recob::SpacePoint* spacepoint2 = sp_assn_v.at(ii);
-			
-			//if(_debug) std::cout << "\t\t Hit " << ii << " Wire: " << wireID2.Wire << " Plane: " << wireID2.Plane << " TPC: " << wireID2.TPC << "  SpacePoints: (" << sp_assn_v.at(ii).at(0)->XYZ()[0] << ", " << sp_assn_v.at(ii).at(0)->XYZ()[1] << ", " << sp_assn_v.at(ii).at(0)->XYZ()[2] << ")" << std::endl;
-			
+		
 			if(driftDir_tmp + driftDir == 0){
 				cross_cathode = true;
 				if(_debug) std::cout << "\tCrosses cathode!" << std::endl;
@@ -450,35 +397,12 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 		_anode = 0;
 		_cathode = 1;
 		
-		_trackNum++;
-		for (size_t ii = 1; ii < Hit_v.size(); ii++){
-			const geo::WireID wID = Hit_v.at(ii)->WireID();
-			const recob::SpacePoint* sp = sp_assn_v.at(ii).at(0);
-			const auto TPCObj = geom->TPC(wID.TPC,wID.Cryostat);
-			
-			
-			_hit = ii;
-			_wire = wID.Wire;
-			_plane = wID.Plane;
-			_TPC = wID.TPC;
-			_driftDir = TPCObj.DetectDriftDirection();
-			_timeTick = Hit_v.at(ii)->PeakTime();
-			_x_sp = sp->XYZ()[0];
-			_y_sp = sp->XYZ()[1];
-			_z_sp = sp->XYZ()[2];
-			
-			_hitTree->Fill();
-			
-			 
-		}
-		
-		
 		//const std::vector<const anab::T0*>& T0_v = trk_t0_assn_v.at(trk_ctr);
 		//auto t0 = T0_v.at(0);
 		//_rc_time = t0->Time();
 		
     	
-    	SplitTrack(*track,Hit_v,sorted_trk);
+    	SplitTrack(*track,sorted_trk);
     	std::vector<TVector3> top_trk = {sorted_trk.at(0), sorted_trk.at(1)};
     	std::vector<TVector3> bottom_trk = {sorted_trk.at(2), sorted_trk.at(3)};
     	
@@ -504,8 +428,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 		if(_rc_xs<0.0) _driftDir = -1;
 		else _driftDir = 1;
 		
-		
-		std::cout << _driftDir << std::endl;
 		_tree->Fill();
 		_track++;
 		
@@ -529,8 +451,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 		if(_rc_xs<0.0) _driftDir = -1;
 		else _driftDir = 1;
 		
-		
-		std::cout << _driftDir << std::endl;
 		_tree->Fill();
 		_track++;
 		  
@@ -542,23 +462,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 	
 	if(_debug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC << " which has a drift direction of " << driftDir << std::endl; 
 	_driftDir = driftDir;
-	
-	// Determine if track hits edge of readout window
-    bool TPC_edge = false;
-    for (auto& hits : Hit_v){
-    	auto peakHit = hits->PeakTime();
-    	//if(_debug) std::cout << "\t\tHit time track " << trk_ctr << ": " << peakHit << " in TPC " << hits->WireID().TPC << " plane " << hits->WireID().Plane << " and wire " << hits->WireID().Wire << std::endl;
-    	if( (peakHit > 6000.0 - 50.0) || (peakHit < 50.0) ){
-    	 TPC_edge = true;
-    	 //if(_debug) std::cout << "\t\tHit time out of range: " << peakHit << std::endl;
-    	}
-    }
-    
-    if (TPC_edge) {
-    	if(_debug) std::cout << "\tHit time too close to edge" << std::endl;
-    	//continue;
-    	_TPC_edge = true;
-    }
 	
 	// create root trees variables
     auto const &top = sorted_trk.at(0);
@@ -671,16 +574,32 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
     _rc_xs_corr = _rc_xs + driftDir*_rc_time*fDriftVelocity;
     _rc_xe_corr = _rc_xe + driftDir*_rc_time*fDriftVelocity;
     
-
+	// Determine if track hits edge of readout window
+    bool TPC_edge = false;
+    for (auto& hits : Hit_v){
+    	auto peakHit = hits->PeakTime();
+    	//if(_debug) std::cout << "\t\tHit time track " << trk_ctr << ": " << peakHit << " in TPC " << hits->WireID().TPC << " plane " << hits->WireID().Plane << " and wire " << hits->WireID().Wire << std::endl;
+    	if( (peakHit > 6000.0 - 50.0) || (peakHit < 50.0) ){
+    	 TPC_edge = true;
+    	 //if(_debug) std::cout << "\t\tHit time out of range: " << peakHit << std::endl;
+    	}
+    }
+    
+    if (TPC_edge) {
+    	if(_debug) std::cout << "\tHit time too close to edge" << std::endl;
+    	//continue;
+    	_TPC_edge = true;
+    }
+	
     // flash matching
     auto const& flash_match_result = FlashMatch(_rc_time);
     const art::Ptr<recob::OpFlash> flash_ptr(flash_h, flash_match_result.second );
     if (_debug)
-    std::cout << "\t matched to flash w/ index " << flash_match_result.second << " w/ PE " << flash_ptr->TotalPE() << " and time " << flash_ptr->Time() << " vs reco time " << _rc_time << std::endl;
+    std::cout << "\t matched to flash w/ index " << flash_match_result.second << " w/ PE " << flash_ptr->TotalPE() << " and time " << flash_ptr->Time() - trigger_time << " vs reco time " << _rc_time << std::endl;
 
     
     _pe_flash = flash_ptr->TotalPE();
-    _t_match = flash_ptr->Time();
+    _t_match = flash_ptr->Time() - trigger_time;
     _dt_flash = _t_match - _rc_time;
     
 		 // if we should use MC info -> continue w/ MC validation
@@ -709,7 +628,6 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 	} // for all MCParticles
       }// if we should use MCParticles
       
-      std::cout << _driftDir << std::endl;
       _tree->Fill();
       
       _track++;
@@ -1006,9 +924,7 @@ bool   T0RecoSCECalibrations::TrackExitsSide(const std::vector<TVector3>& sorted
   return true;
 }
 
-void T0RecoSCECalibrations::SplitTrack(const recob::Track& track, const std::vector<const recob::Hit*>& hits, std::vector<TVector3>& sorted_trk){
-
-	if(_debug&&track.NumberTrajectoryPoints()!=hits.size()) std::cout << "\t\tMismatch in length of hits/tracks" << std::endl;
+void T0RecoSCECalibrations::SplitTrack(const recob::Track& track, std::vector<TVector3>& sorted_trk){
 
 	sorted_trk.clear();
 	
@@ -1020,9 +936,8 @@ void T0RecoSCECalibrations::SplitTrack(const recob::Track& track, const std::vec
 	
 	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
 		auto const& trk_loc = track.LocationAtPoint(ii);
-		auto hit = hits.at(ii);
 		
-		if(_debug) std::cout << "\t\t\tTrack location: (" << trk_loc.X() << ", " << trk_loc.Y() << ", " << trk_loc.Z() << ") and hit wire: " << hit->WireID().Wire << " plane: " << hit->WireID().Plane << " TPC: " <<hit->WireID().TPC << " and time tick: " << hit->PeakTime() << std::endl;
+		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
 		
 		if (trk_loc.X() < neg_x){
 			neg_x = trk_loc.X();
@@ -1066,6 +981,8 @@ void   T0RecoSCECalibrations::SortTrackPoints(const recob::Track& track, std::ve
 	
 	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
 		auto const& trk_loc = track.LocationAtPoint(ii);
+		
+		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
 		
 		if (trk_loc.Y() < end_y){
 			end_y = trk_loc.Y();
@@ -1194,4 +1111,3 @@ std::vector<std::vector< TLorentzVector >> T0RecoSCECalibrations::BuildMCParticl
 
 DEFINE_ART_MODULE(T0RecoSCECalibrations) 
   
-
