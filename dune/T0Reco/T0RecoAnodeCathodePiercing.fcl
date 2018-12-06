@@ -1,0 +1,74 @@
+BEGIN_PROLOG
+
+T0RecoAnodeCathodePiercing: {
+ module_type       : "T0RecoAnodeCathodePiercing"  
+ TrackProducer     : "pandoraTrack"
+ HitProducer       : "pandoraTrack"
+ FlashProducer     : "opflash"
+ Resolution        : 25    # centimeters
+ PEmin             : 50    # PE
+ TimeResA          : 10     # microseconds
+ TimeResC          : 10    # microseconds
+ RecoT0TimeOffsetA : 0     # microseconds
+ RecoT0TimeOffsetC : 0     # microseconds
+ T0negMin          : -406. # microseconds
+ T0negMax          : -400. # microseconds
+ T0posMin          :  500. # microseconds
+ T0posMax          :  507. # microseconds
+ top2side          : true
+ side2bottom       : true
+ front2side        : true
+ back2side         : true
+ side2front        : true
+ side2back         : true
+ debug             : false
+}
+
+
+T0RecoAnodeCathodePiercing_mc : @local::T0RecoAnodeCathodePiercing
+T0RecoAnodeCathodePiercing_mc.RecoT0TimeOffsetA: -0.53
+T0RecoAnodeCathodePiercing_mc.RecoT0TimeOffsetC: 9.97
+T0RecoAnodeCathodePiercing_mc.TimeResA: 5
+T0RecoAnodeCathodePiercing_mc.TimeResC: 2
+
+T0RecoAnodeCathodePiercing_mc_loose : @local::T0RecoAnodeCathodePiercing_mc
+T0RecoAnodeCathodePiercing_mc_loose.Resolution: 20
+
+T0RecoAnodeCathodePiercing_data : @local::T0RecoAnodeCathodePiercing
+T0RecoAnodeCathodePiercing_data.RecoT0TimeOffsetA: 5.0
+T0RecoAnodeCathodePiercing_data.RecoT0TimeOffsetC: -16.4
+T0RecoAnodeCathodePiercing_data.TimeResA: 5
+T0RecoAnodeCathodePiercing_data.TimeResC: 2
+T0RecoAnodeCathodePiercing_data.T0negMin: -400.47
+T0RecoAnodeCathodePiercing_data.T0negMax: -394.47
+T0RecoAnodeCathodePiercing_data.T0posMin:  473.63
+T0RecoAnodeCathodePiercing_data.T0posMax:  480.63
+
+T0RecoAnodeCathodePiercing_data_loose : @local::T0RecoAnodeCathodePiercing_data
+T0RecoAnodeCathodePiercing_data_loose.Resolution: 20
+
+T0RecoAnodeCathodePiercing_mc_beamgate : @local::T0RecoAnodeCathodePiercing
+T0RecoAnodeCathodePiercing_mc_beamgate.RecoT0TimeOffsetA: -0.53
+T0RecoAnodeCathodePiercing_mc_beamgate.RecoT0TimeOffsetC: 9.97
+T0RecoAnodeCathodePiercing_mc_beamgate.FlashProducer: "simpleFlashBeam"
+T0RecoAnodeCathodePiercing_mc_beamgate.TimeResA: 5
+T0RecoAnodeCathodePiercing_mc_beamgate.TimeResC: 5
+
+T0RecoAnodeCathodePiercing_mc_beamgate_loose : @local::T0RecoAnodeCathodePiercing_mc_beamgate
+T0RecoAnodeCathodePiercing_mc_beamgate_loose.Resolution: 20
+
+T0RecoAnodeCathodePiercing_data_beamgate : @local::T0RecoAnodeCathodePiercing
+T0RecoAnodeCathodePiercing_data_beamgate.RecoT0TimeOffsetA: 5.0
+T0RecoAnodeCathodePiercing_data_beamgate.RecoT0TimeOffsetC: -16.4
+T0RecoAnodeCathodePiercing_data_beamgate.FlashProducer: "simpleFlashBeam"
+T0RecoAnodeCathodePiercing_data_beamgate.TimeResA: 5
+T0RecoAnodeCathodePiercing_data_beamgate.TimeResC: 5
+T0RecoAnodeCathodePiercing_data.T0negMin: -400.47
+T0RecoAnodeCathodePiercing_data.T0negMax: -394.47
+T0RecoAnodeCathodePiercing_data.T0posMin:  473.63
+T0RecoAnodeCathodePiercing_data.T0posMax:  480.63
+
+T0RecoAnodeCathodePiercing_data_beamgate_loose : @local::T0RecoAnodeCathodePiercing_data_beamgate
+T0RecoAnodeCathodePiercing_data_beamgate_loose.Resolution: 20
+
+END_PROLOG

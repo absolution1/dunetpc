@@ -1,0 +1,17 @@
+BEGIN_PROLOG
+
+T0RecoAnodeCathodePiercingAna: {
+ module_type       : "T0RecoAnodeCathodePiercingAna"
+ TrackProducer     : "pandoraTrack"
+ FlashProducer     : "t0reco"
+ T0Producer        : "t0reco"
+ CaloProducer      : "pmtrackcalo"
+ HitProducer       : "pandoraTrack"
+ CosmicTagProducer : "pmtrack"
+ UseMC             : true
+ Resolution        : 25
+ debug             : false
+ PrintParticles    : false
+}
+
+END_PROLOG
