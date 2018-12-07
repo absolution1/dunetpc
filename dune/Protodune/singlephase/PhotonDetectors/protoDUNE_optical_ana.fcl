@@ -12,7 +12,7 @@ process_name: OpDetAnalysis
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_data_analysis_hist.root" }
+  TFileService: { fileName: "%ifb_opana_hist.root" }
   TimeTracker:       {}
   @table::protodune_services
   message:      @local::standard_info 

@@ -9,7 +9,7 @@ process_name: OpDetReco
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_waveforms_hist.root" }
+  TFileService: { fileName: "%ifb_waveforms_hist.root" }
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   message:      @local::standard_info 

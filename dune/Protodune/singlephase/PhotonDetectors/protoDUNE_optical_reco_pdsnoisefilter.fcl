@@ -10,7 +10,7 @@ process_name: OpDetReco
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_data_reco_hist.root" }
+  TFileService: { fileName: "%ifb_filtered_opreco_hist.root" }
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   @table::protodune_data_reco_services
@@ -31,7 +31,7 @@ outputs:
    out1:
    {
       module_type: RootOutput
-      fileName:    "protodune_optical_data_reco.root"
+      fileName:    "%ifb_filtered_opreco.root"
       
       # Drop the raw data and just keep the decoded and reconstructed data
       outputCommands: [ "keep *", "drop artdaq::Fragments_*_*_*" ]
