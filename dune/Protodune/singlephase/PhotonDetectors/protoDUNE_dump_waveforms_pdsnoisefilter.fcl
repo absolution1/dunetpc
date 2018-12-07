@@ -15,7 +15,6 @@ services:
   message:      @local::standard_info 
 }
 
-#services.OpDigiProperties:        @local::dunefd_opdigiproperties
 
 source:
 {
@@ -31,10 +30,6 @@ physics:
    {
       # photon detector reconstruction
       ssprawdecoder:   @local::ssp_raw_decoder_split
-      ophitInternal:   @local::protodune_ophit_data_internal
-      ophitExternal:   @local::protodune_ophit_data_external
-      opflashInternal: @local::protodune_opflash_data_internal
-      opflashExternal: @local::protodune_opflash_data_external
       pdsnoisefilter:  @local::pds_noise_filter_split
       rns:       { module_type: "RandomNumberSaver" }
    }
@@ -43,20 +38,13 @@ physics:
  {
    opdigianaInternal:   @local::dunefd_opdigiana
    opdigianaExternal:   @local::dunefd_opdigiana
-   opflashanaInternal:  @local::standard_opflashana
-   opflashanaExternal:  @local::standard_opflashana
    opdigianaInternalpdsnoisefilter: @local::dunefd_opdigiana
    opdigianaExternalpdsnoisefilter: @local::dunefd_opdigiana
  }
- #produceIt: [ssprawdecoder, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
  produceIt: [ssprawdecoder, pdsnoisefilter]
- #analyzeIt: [opflashanaInternal, opflashanaExternal]
  analyzeIt: [opdigianaInternal, opdigianaExternal, opdigianaInternalpdsnoisefilter, opdigianaExternalpdsnoisefilter] 
 
    
- #define the output stream, there could be more than one if using filters 
- #stream1:  [ out1 ]
-
  #trigger_paths is a keyword and contains the paths that modify the art::event, 
  #ie filters and producers
  trigger_paths: [produceIt]
@@ -64,7 +52,6 @@ physics:
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
  #ie analyzers and output streams.  these all run simultaneously
  end_paths:     [analyzeIt]  
- #end_paths:     [analyzeIt, stream1]  
 }
 
 physics.analyzers.opdigianaInternal.InputModule:  "ssprawdecoder"
@@ -79,8 +66,3 @@ physics.analyzers.opdigianaInternalpdsnoisefilter.InstanceName: "internal"
 physics.analyzers.opdigianaExternalpdsnoisefilter.InputModule:  "pdsnoisefilter"
 physics.analyzers.opdigianaExternalpdsnoisefilter.InstanceName: "external"
 
-
-physics.analyzers.opflashanaInternal.OpHitModuleLabel:   "ophitInternal"
-physics.analyzers.opflashanaInternal.OpFlashModuleLabel: "opflashInternal"
-physics.analyzers.opflashanaExternal.OpHitModuleLabel:   "ophitExternal"
-physics.analyzers.opflashanaExternal.OpFlashModuleLabel: "opflashExternal"

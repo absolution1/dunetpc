@@ -55,14 +55,11 @@ physics:
 
  analyzers:
  {
-   opdigianaInternal:   @local::dunefd_opdigiana
-   opdigianaExternal:   @local::dunefd_opdigiana
    opflashanaInternal:  @local::standard_opflashana
    opflashanaExternal:  @local::standard_opflashana
  }
  produceIt: [ssprawdecoder, pdsnoisefilter, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
  analyzeIt: [opflashanaInternal, opflashanaExternal]
- #analyzeIt: [opdigianaInternal, opdigianaExternal] 
 
    
  #define the output stream, there could be more than one if using filters 
@@ -79,12 +76,6 @@ physics:
 
 physics.producers.ophitInternal.InputModule: "pdsnoisefilter"
 physics.producers.ophitExternal.InputModule: "pdsnoisefilter"
-
-physics.analyzers.opdigianaInternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaInternal.InstanceName: "internal"
-
-physics.analyzers.opdigianaExternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaExternal.InstanceName: "external"
 
 physics.analyzers.opflashanaInternal.OpHitModuleLabel:   "ophitInternal"
 physics.analyzers.opflashanaInternal.OpFlashModuleLabel: "opflashInternal"
