@@ -359,7 +359,6 @@ protodune_rawdecoding_services: {
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
   PdspChannelMapService:        @local::pdspchannelmap
-  IPhotonCalibrator:            @local::protodunesp_photoncalibrator
 }
 
 protodune_data_services: {
@@ -454,6 +453,8 @@ protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus
 protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
 # Make sure we can use cryostat-side APA hits
 protodune_data_reco_services.ChannelGroupService.ApaRops: []
+# Add the photon detector calibrator service
+protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 
 
 #######################
