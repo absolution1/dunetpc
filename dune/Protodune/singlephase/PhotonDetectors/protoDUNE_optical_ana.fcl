@@ -14,7 +14,7 @@ services:
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "protodune_optical_data_analysis_hist.root" }
   TimeTracker:       {}
-  @table::protodune_rawdecoding_services
+  @table::protodune_services
   message:      @local::standard_info 
 }
 

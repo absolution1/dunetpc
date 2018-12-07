@@ -12,6 +12,7 @@ services:
   TFileService: { fileName: "protodune_optical_data_reco_hist.root" }
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
+  @table::protodune_data_reco_services
   message:      @local::standard_info 
 }
 
