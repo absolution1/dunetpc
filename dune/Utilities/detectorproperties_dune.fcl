@@ -79,4 +79,38 @@ protodune_detproperties.TimeOffsetV:       0.
 protodune_detproperties.TimeOffsetZ:       0.
 
 
+
+
+protodunesp_detproperties :
+ {
+ service_provider: "DetectorPropertiesServiceProtoDUNEsp" 
+  # Drift properties 
+Temperature:      91                #Kelvin
+Efield:           [0.5,0.66,1.2 ]   #kV/cm
+Electronlifetime: 750               #microseconds  
+SternheimerA:     0.1956  # Ar Sternheimer parameter a.
+SternheimerK:     3.0000  # Ar Sternheimer parameter k.
+SternheimerX0:    0.2000  # Ar Sternheimer parameter x0.
+SternheimerX1:    3.0000  # Ar Sternheimer parameter x0.
+SternheimerCbar:  5.2146  # Ar Sternheimer parameter Cbar.  
+ElectronsToADC:    1.208041e-3  # in ADC/e; 6241.5 electrons = 1fC = 7.54 ADC counts for ArgoNeuT
+NumberTimeSamples: 2048         # ticks of the clock per readout frame
+TimeOffsetU:       -5.193
+TimeOffsetV:       0.585
+TimeOffsetZ:       0
+ReadOutWindowSize: 2048 
+SimpleBoundaryProcess: true  #enable opticalBoundaryProcessSimple instead of G4 default
+}
+# Implement new 6000 tick readout window (500 before trigger)
+protodune_detproperties_owen:                   @local::protodunesp_detproperties
+protodune_detproperties_owen.Temperature:       87
+protodune_detproperties_owen.Electronlifetime:  3.0e3
+protodune_detproperties_owen.Efield:           [0.9,0.666,0.8]  #(predicted for microBooNE)
+protodune_detproperties_owen.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+protodune_detproperties_owen.NumberTimeSamples: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+protodune_detproperties_owen.ReadOutWindowSize: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+protodune_detproperties_owen.TimeOffsetU:       0.
+protodune_detproperties_owen.TimeOffsetV:       0.
+protodune_detproperties_owen.TimeOffsetZ:       0.
+
 END_PROLOG

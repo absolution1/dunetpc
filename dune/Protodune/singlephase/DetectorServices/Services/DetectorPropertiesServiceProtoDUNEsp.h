@@ -80,6 +80,7 @@ namespace spdp{
       virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
       void   preProcessEvent(const art::Event& evt);
       void   postOpenFile(const std::string& filename);
+      void preBeginRun(const art::Run &run);
       
       virtual const provider_type* provider() const override { return fProp.get();}
       

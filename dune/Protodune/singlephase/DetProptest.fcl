@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+DetProptest:
+{
+  module_type:            "DetProptest"
+
+}
+
+END_PROLOG

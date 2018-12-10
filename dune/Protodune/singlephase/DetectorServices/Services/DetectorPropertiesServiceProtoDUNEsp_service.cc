@@ -27,6 +27,7 @@ namespace spdp{
     // Register for callbacks.
     reg.sPostOpenFile.watch    (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
     reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preProcessEvent);
+    reg.sPreBeginRun.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
 /*
     // obtain the required dependency service providers and create our own
     const geo::GeometryCore* geo = lar::providerFrom<geo::Geometry>();
@@ -67,7 +68,20 @@ namespace spdp{
   {
     // Make sure TPC Clock is updated with TimeService (though in principle it shouldn't change
     fProp->UpdateClocks(lar::providerFrom<detinfo::DetectorClocksService>());
+
+
+
   }
+
+
+
+    void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run &run)
+  {
+//this is data specific now.
+      fProp->UpdateHV(run.run());
+    }
+
+
   //--------------------------------------------------------------------
   //  Callback called after input file is opened.
   void DetectorPropertiesServiceProtoDUNEsp::postOpenFile(const std::string& filename)
@@ -182,5 +196,5 @@ namespace spdp{
     return result;
 #endif // 0
   }
-} // namespace detinfo
+} // namespace spdf
 DEFINE_ART_SERVICE_INTERFACE_IMPL(spdp::DetectorPropertiesServiceProtoDUNEsp, detinfo::DetectorPropertiesService)

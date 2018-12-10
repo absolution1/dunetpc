@@ -170,6 +170,7 @@ namespace spdp{
         std::set<std::string> const& ignore_params = {}
         );
       bool Update(uint64_t ts); 
+      bool UpdateHV(uint64_t t);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
       /**
@@ -297,6 +298,8 @@ namespace spdp{
       const detinfo::DetectorClocks* fClocks;
       const geo::GeometryCore* fGeo;
       
+
+      double                         fHV_cath;   //  <KV
       std::vector< double >          fEfield;           ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime; ///< microseconds
       double                         fTemperature;      ///< kelvin
