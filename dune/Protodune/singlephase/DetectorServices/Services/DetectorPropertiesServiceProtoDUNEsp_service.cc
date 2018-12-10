@@ -78,7 +78,9 @@ namespace spdp{
     void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run &run)
   {
 //this is data specific now.
-      fProp->UpdateHV(run.run());
+      std::cout<<"New run, Num is: "<<run.run()<<" Updating DetectorProperties."<<std::endl;
+      fProp->UpdateHV(run.run()); //Look up HV cathode value from a run table and update Efield accordingly
+      fProp->UpdateReadoutWindowSize(run.run()); //Look up ReadoutWindowSize from a run table.
     }
 
 

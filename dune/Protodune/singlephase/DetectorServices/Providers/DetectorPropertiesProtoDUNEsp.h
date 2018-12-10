@@ -170,7 +170,8 @@ namespace spdp{
         std::set<std::string> const& ignore_params = {}
         );
       bool Update(uint64_t ts); 
-      bool UpdateHV(uint64_t t);
+      bool UpdateHV(uint64_t run);
+      bool UpdateReadoutWindowSize(uint64_t run);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
       /**

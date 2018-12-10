@@ -81,6 +81,7 @@ void proto::DetProptest::analyze(art::Event const & evt)
   std::cout<<fDetProp->Efield(1)<<std::endl;
   std::cout<<fDetProp->Efield(2)<<std::endl;
   std::cout<<fDetProp->Efield(3)<<std::endl;
+  std::cout<<fDetProp->ReadOutWindowSize()<<std::endl;
   //std::cout<<fDetProp->Efield(3)<<std::endl;
 
 
