@@ -82,9 +82,9 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
     acd.flags[isam] = AdcSetFixed;
   }
   // Interpolation mitigation.
-  //   isamLo2 isamLo1  isam  isamHi1 iSamH2
-  Index isamLo2 = 0;  // 2nd Sample used for low-side interpolation.
-  Index isamLo1 = 0;    // Sample used for low-side interpolation.
+  //   Ordering of samples: isamLo2 isamLo1 isam isamHi1 isamHi2
+  Index isamLo2 = 0;  // Second sample used for low-side interpolation.
+  Index isamLo1 = 0;  // Firstample used for low-side interpolation.
   bool haveLo1 = false;
   bool haveLo2 = false;
   Index isamHi1 = 0;  // Sample used for high-side interpolation.
@@ -110,8 +110,14 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
     bool haveHi2 = false;
     if ( haveHi1 ) {
       haveHi2 = isamHi2 > isamHi1 && isamHi2 < nsam;
-      isamHi2 = isamHi1;
-      while ( !haveHi2 && ++isamHi2 < nsam ) haveHi2 = m_skipSet.find(acd.flags[isamHi2]) == m_skipSet.end();
+      if ( ! haveHi2 ) {
+        isamHi2 = isamHi1;
+        while ( !haveHi2 && ++isamHi2 < nsam ) haveHi2 = m_skipSet.find(acd.flags[isamHi2]) == m_skipSet.end();
+      }
+    }
+    if ( m_LogLevel >= 5 ) {
+      cout << myname << "Samples: " << isamLo2 << " " << isamLo1 << " | " << isam
+           << " | " << isamHi1 << " " << isamHi2 << endl;
     }
     double y = 0.0;
     //  If threshold is set and samples are available, consider doing interpolation with
@@ -122,8 +128,18 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
       double ylo2 = acd.samples[isamLo2];
       double yhi1 = acd.samples[isamHi1];
       double yhi2 = acd.samples[isamHi2];
-      bool doFixedCurvature = fabs(ylo2 - ylo1) > m_FixedCurvThresh ||
-                              fabs(yhi2 - yhi1) > m_FixedCurvThresh;
+      //int nBigJump = 0;
+      //if ( fabs(ylo2 - ylo1) > m_FixedCurvThresh ) ++nBigJump;
+      //if ( fabs(yhi2 - yhi1) > m_FixedCurvThresh ) ++nBigJump;
+      //if ( fabs(yhi1 - ylo1) > m_FixedCurvThresh ) ++nBigJump;
+      //bool doFixedCurvature = nBigJump > 1;
+      double adiflo = fabs(ylo2 - ylo1);
+      double adifhi = fabs(yhi2 - yhi1);
+      bool doFixedCurvature = adiflo > m_FixedCurvThresh ||
+                              adifhi > m_FixedCurvThresh;
+      if ( m_LogLevel >= 5 ) {
+        cout << myname << "Lo, hi jumps for sample " << isam << ": " << adiflo << ", " << adifhi << endl;
+      }
       if ( doFixedCurvature ) {
         // j = isam - isamLo1
         // k = isam - isamHi1
@@ -133,18 +149,28 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
         // Require the  curve pass through the interpolation endpoints ylo1 and yhi1:
         //   a = yhi1/(isamHi1 - isamLo1)
         //   b = ylo1/(isamLo1 - isamHi1)
-        // Fix the remaining param c so the curve is equally close to ylo2 and yhi2 by
-        // requiring it give th matching value for ylo2 + yhi2.
+        // Fix the remaining param c so that
+        //   wlo*[y(isamlo2) - ylo2] + whi*[y(isamhi2) - yhi2] = 0
+        // E.g. if w1 == w2, the curve is equally close to ylo2 and yhi2
         int jlo2 = int(isamLo2) - int(isamLo1);
         int jhi2 = int(isamHi2) - int(isamLo1);
         int klo2 = int(isamLo2) - int(isamHi1);
         int khi2 = int(isamHi2) - int(isamHi1);
         double a = yhi1/(isamHi1 - isamLo1);
         double b = -ylo1/(isamHi1 - isamLo1);
-        int iden = jlo2*klo2 + jhi2*khi2;
-        if ( iden != 0 ) {
-          double num = ylo2 + yhi2 - a*(jlo2+jhi2) - b*(klo2+khi2);
-          double c = num/double(iden);
+        //int iden = jlo2*klo2 + jhi2*khi2;
+        //double wlo = 1.0;
+        //double whi = 1.0;
+        double w0 = acd.pedestalRms;
+        if ( w0 < 1.0 ) w0 = 1.0;
+        double wlo = adifhi + w0;
+        double whi = adiflo + w0;
+        double den = wlo*jlo2*klo2 + whi*jhi2*khi2;
+        if ( den != 0.0 ) {
+          //double num = ylo2 + yhi2 - a*(jlo2+jhi2) - b*(klo2+khi2);
+          //double c = num/double(iden);
+          double num = wlo*ylo2 + whi*yhi2 - a*(wlo*jlo2+whi*jhi2) - b*(wlo*klo2+whi*khi2);
+          double c = num/den;
           if ( m_LogLevel >= 4 ) {
             cout << myname << "Quadratic interpolation for sample " << isam << endl;
             cout << myname << "  isamLo2: " << isamLo2 << endl;
@@ -163,6 +189,10 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
           int ksam = isam - isamHi1;
           y = a*jsam + b*ksam + c*jsam*ksam;
           done = true;
+        } else {
+          if ( m_LogLevel >= 4 ) {
+            cout << myname << "Skipping quadratic interpolation for den=0 for sample " << isam << endl;
+          }
         }
       }
     }

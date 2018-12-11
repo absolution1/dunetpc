@@ -17,15 +17,18 @@
 // difference between two nearest non-sticky samples. A constant-curvature
 // interpolation is done if the magnitude of either of these jumps exceeds FCT.
 //
+// The interpolation passes through the closest point on each side and equally
+// far from the second point on each side.
+//
 // 2. Otherwise and if one non-sticky code is found on either side of the
 // mitigated samples, linear interpolate is performed between the nearest
 // samples on each side.
 //
 // 3. Otherwise if a non-sticky sample is found on one side, that value is used.
 //
-// 4. Otherwise the thes mitgaytes samples are set to zero.
+// 4. Otherwise the mitigated samples are set to zero.
 //
-// Here non-sticky mean not in InterpolateFlags or SkipFlags.
+// Here non-sticky means not in InterpolateFlags or SkipFlags.
 //
 // The fix mitigation is done before the interpolation.
 //
