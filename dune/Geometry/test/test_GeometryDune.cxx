@@ -13,7 +13,7 @@
 // service are used.
 //
 // Note the geometry service requires the experiment-specific geometry
-// helper with the channel map also be loaded. 
+// helper with the channel map also be loaded.
 //
 // The functions that set the expected values must be defined externally.
 
@@ -216,35 +216,20 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
 
   cout << myname << line << endl;
   cout << myname << "Create configuration." << endl;
-  const char* ofname = "test_GeometryDune.fcl";
-  if ( ! useExistingFcl ) {
-    ofstream fout(ofname);
-    fout << "#include \"geometry_dune.fcl\"" << endl;
-    fout << "services.Geometry:                   @local::" + ev.gname << endl;
-    fout << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
+  if (useExistingFcl) {
+    ArtServiceHelper::load_services("test_GeometryDune.fcl",
+                                    ArtServiceHelper::FileOnPath);
+  } else {
+    std::stringstream config;
+    config << "#include \"geometry_dune.fcl\"" << endl;
+    config << "services.Geometry:                   @local::" << ev.gname << endl;
+    config << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
     if ( ev.chanmap.size() ) {
-      fout << "services.ExptGeoHelperInterface.ChannelMapClass: " << ev.chanmap << endl;
+      config << "services.ExptGeoHelperInterface.ChannelMapClass: " << ev.chanmap << endl;
     }
-    //fout << "services.ExptGeoHelperInterface.GeoSorterClass: " << ev.sorter << endl;
+    //config << "services.ExptGeoHelperInterface.GeoSorterClass: " << ev.sorter << endl;
+    ArtServiceHelper::load_services(config);
   }
-
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& myash = ArtServiceHelper::instance();
-  myash.setLogLevel(3);
-
-  cout << myname << line << endl;
-  cout << myname << "Add services from " << ofname << endl;
-  assert( myash.addServices(ofname, true) == 0 );
-
-  cout << myname << line << endl;
-  cout << myname << "Display services" << endl;
-  myash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load the services." << endl;
-  assert( myash.loadServices() == 1 );
-  myash.print();
 
   cout << myname << line << endl;
   cout << myname << "Get Geometry service." << endl;
@@ -336,7 +321,7 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
   Index nprint = 0;
   TwoVector<Index> lastwire;
   resize(lastwire, ev.ntpc, ev.npla, 0);
-  for ( Index itpc=0; itpc<ev.ntpc; ++itpc ) 
+  for ( Index itpc=0; itpc<ev.ntpc; ++itpc )
     for ( Index ipla=0; ipla<ev.npla; ++ipla )
       lastwire[itpc][ipla] = 0;
   for ( Index icha=0; icha<ev.nchatot; ++icha ) {
@@ -586,7 +571,6 @@ int main(int argc, const char* argv[]) {
   }
   test_GeometryDune(ev, dorop, maxchanprint, useExistingFcl);
   cout << "Tests concluded." << endl;
-  ArtServiceHelper::close();
   return 0;
 }
 

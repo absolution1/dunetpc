@@ -1,5 +1,3 @@
-
-
 simple_plugin(TimingRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
@@ -9,9 +7,7 @@ simple_plugin(TimingRawDecoder "module"
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
@@ -20,18 +16,16 @@ simple_plugin(TimingRawDecoder "module"
 
 simple_plugin(SSPRawDecoder "module"
                         lardataobj_RawData
-			lardataobj_RecoBase
+                        lardataobj_RecoBase
                         dune-raw-data_Overlays
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-			artdaq-core_Data
+                        artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
@@ -59,22 +53,20 @@ simple_plugin(PDWaveform "module"
 )
 ]]
 
-include_directories( "$ENV{DUNEPDSPRCE_INC}" ) 
+include_directories( "$ENV{DUNEPDSPRCE_INC}" )
 cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
 
 simple_plugin(RceRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
-			artdaq-core_Data
+                        artdaq-core_Data
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
@@ -93,39 +85,51 @@ simple_plugin(FelixRawDecoder "module"
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
-                        ${MF_MESSAGELOGGER}                        
+                        ${ART_PERSISTENCY_PROVENANCE}
+                        ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
-			z
+                        z
                         BASENAME_ONLY
 )
 
 simple_plugin(PDSPTPCRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
-			artdaq-core_Data
+                        artdaq-core_Data
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
-			z
+                        z
                         BASENAME_ONLY
 )
 
-simple_plugin(CRTRawDecoder "module"
+# we are diabling this for art v3 - why?
+#simple_plugin(CRTRawDecoder "module"
+#                        dune-raw-data_Overlays
+#                        artdaq-core_Data
+#                        ${ART_FRAMEWORK_CORE}
+#                        ${ART_FRAMEWORK_PRINCIPAL}
+#                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+#                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+#                        ${MF_MESSAGELOGGER}
+#                        ${CETLIB}
+#                        ${ROOT_BASIC_LIB_LIST}
+#                        ${RCEDAMLIB}
+#                        BASENAME_ONLY
+#)
+
+simple_plugin(PDSPCTBRawDecoder "module"
                         dune-raw-data_Overlays
                         artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}
@@ -133,26 +137,9 @@ simple_plugin(CRTRawDecoder "module"
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
-                        ${CETLIB}
-                        ${ROOT_BASIC_LIB_LIST}
-                        ${RCEDAMLIB}
-                        BASENAME_ONLY                        
-)
-
-simple_plugin(PDSPCTBRawDecoder "module"
-                        dune-raw-data_Overlays
-			artdaq-core_Data
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
                         ${MF_MESSAGELOGGER}
- #                       art_Persistency_Common canvas_Persistency_Common
- #                       art_Persistency_Provenance canvas_Persistency_Provenance
- #                       art_Utilities canvas_Utilities
-                        ${MF_MESSAGELOGGER}                        
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}
                         ${RCEDAMLIB}
@@ -161,7 +148,7 @@ simple_plugin(PDSPCTBRawDecoder "module"
 
 art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
                   SOURCE
-                  RawDecodingUtils.cc             
+                  RawDecodingUtils.cc
                   LIBRARIES
                   lardataobj_RawData
                   dune-raw-data_Overlays
@@ -175,7 +162,7 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
  #                 art_Persistency_Provenance canvas_Persistency_Provenance
  #                 art_Utilities canvas_Utilities
                   ${MF_MESSAGELOGGER}
-                  
+
                   ${CETLIB}
                   ${ROOT_BASIC_LIB_LIST}
                   ${RCEDAMLIB}

@@ -39,4 +39,3 @@ cet_test(test_Dune35tChannelGroupService
   LIBRARIES
     dune_ArtSupport
 )
-
