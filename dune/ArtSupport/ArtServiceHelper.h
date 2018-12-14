@@ -116,6 +116,9 @@ public:
   static void load_services(std::istream& config);
   static void load_services(fhicl::ParameterSet const& pset);
 
+  // For backward compatibility.
+  static void load(std::string const& filename) { load_services(filename, FileOnPath_t{}); }
+
 private:
   explicit ArtServiceHelper(fhicl::ParameterSet&& pset);
   art::ActivityRegistry activityRegistry_;
