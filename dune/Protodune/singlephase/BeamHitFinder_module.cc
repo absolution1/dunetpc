@@ -146,7 +146,7 @@ void pdune::BeamHitFinder::produce(art::Event & evt)
 
   art::FindManyP< recob::SpacePoint > spFromHit(hitsHandle, evt, fHitModuleLabel);
 
-  auto const hitPtrMaker = art::PtrMaker<recob::Hit>(evt, *this);
+  auto const hitPtrMaker = art::PtrMaker<recob::Hit>(evt);
 
   std::map<geo::PlaneID, std::vector<art::Ptr<recob::Hit>>> hitmap;
   std::map<geo::PlaneID, std::vector<art::Ptr<recob::Hit>>> beamhitmap;
