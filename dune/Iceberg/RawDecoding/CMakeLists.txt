@@ -15,6 +15,7 @@ simple_plugin(IcebergTPCRawDecoder "module"
  #                       art_Persistency_Common canvas_Persistency_Common
  #                       art_Persistency_Provenance canvas_Persistency_Provenance
  #                       art_Utilities canvas_Utilities
+                        ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
                         ${ROOT_BASIC_LIB_LIST}

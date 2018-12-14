@@ -266,8 +266,8 @@ void IcebergTPCRawDecoder::produce(art::Event &e)
   RDTimeStamps rd_timestamps;
   RDTsAssocs rd_ts_assocs;
 
-  RDPmkr rdpm(e,*this,_output_label);
-  TSPmkr tspm(e,*this,_output_label);
+  RDPmkr rdpm(e,_output_label);
+  TSPmkr tspm(e,_output_label);
 
   error_counter = 0; //reset the errors to zero for each run
   incorrect_ticks = 0;
