@@ -3,134 +3,126 @@
 #ifndef ArtServiceHelper_H
 #define ArtServiceHelper_H
 
-// David Adams
-// September 2015
-// Updated January 2017 to add load(fclfile)
+// =================================================================
+// The purpose of the 'ArtServiceHelper' class is to construct and
+// manage a set of art services that normally appear in an art job.
+// In some circumstances, the available means of testing a new
+// algorithm may rely on functionality that has been expressed in
+// terms of an art service.  In such a case, the ArtServiceHelper
+// class can be used to initialize the required services and allow
+// users to create art::ServiceHandle objects for the configured
+// services.
 //
-// This class loads art services outside the art framework.
+// Unlike the art framework's services manager, the ArtServiceHelper
+// is not aware of framework transitions.  Because of that, using some
+// services outside of the context of the framework will not reflect
+// the same behavior as using them within it.  For that reason, using
+// such services outside of the framework is circumspect.  This must
+// be taken into account when using this class.
 //
-// Information about art services can be found at:
-//   https://cdcvs.fnal.gov/redmine/projects/art/wiki/Guide_to_writing_and_using_services
+// Initialization
+// ==============
+//
+// The 'ArtServiceHelper' is initialized by specifying the same kind
+// of configuration one might specify within art (see below under the
+// Configuration layout section).  Allowed initialization patterns
+// include:
+//
+// (1) string-based configuration:
+//
+//       std::string const config{"MyService: {...}"};
+//       ArtServiceHelper::load_services(config);
+//
+//     The string is allowed to '#include' any files that will be
+//     accessible via the FHICL_FILE_PATH environment variable.
+//
+// (2) filename-based configuration:
+//
+//       ArtServiceHelper::load_services("config.fcl",
+//                                       ArtServiceHelper::FileOnPath);
+//
+//     where 'config.fcl' is a filename relative to one of the
+//     directories on the FHICL_FILE_PATH environment variable.
+//
+// (3) stream-based configuration:
+//
+//     It is permissible to specify an input stream that will be used
+//     to parse the configuration.  This can be helpful when a
+//     configuration file is required that is not accessible via
+//     FHICL_FILE_PATH:
+//
+//       std::ifstream in{"/some/path/to_some_file.fcl"};
+//       ArtServiceHelper::load_services(in);
+//
+//     Note however, that FHICL_FILE_PATH lookup is *still* enabled in
+//     this mode--i.e. configurations within the file can '#include'
+//     files accessible via FHICL_FILE_PATH.  Stream-based
+//     configuration can also be used to assemble more complicated
+//     configurations via an std::stringstream object:
+//
+//       std::stringstream config;
+//       config << "#include \"some_config.fcl\"\n"
+//              << "PedestalCalibration.some_value: " << 15 << '\n;
+//       ArtServiceHelper::load_services(config);
+//
+// (4) ParameterSet-based configuration:
+//
+//     If a fhicl::ParameterSet object is already available, it can be
+//     used to initialize the ArtServiceHelper:
+//
+//       auto const pset = get_parameter_set(...);
+//       ArtServiceHelper::load_services(pset);
+//
+// Configuration layout
+// ====================
+//
+// The allowed configuration layout is of two forms.  The minimal form
+// lists all desired services by themselves:
+//
+//   Service1: {...}
+//   Service2: {...}
+//   ServiceN: {...}
+//
+// The other form nests these services inside of a 'services' table,
+// which supports cases when it is desired to use a configuration file
+// that would be used for an art job:
+//
+//   services: {
+//     Service1: {...}
+//     Service2: {...}
+//     ServiceN: {...}
+//   }
+//
+// As in art, it is not necessary to specify the 'service_type'
+// parameter for each service--the ArtServiceHelper class inserts
+// those configuration parameters automatically.
+//
+// =================================================================
 
-#include <string>
-#include <vector>
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Services/Registry/ServicesManager.h"
+
+#include <iosfwd>
 #include <map>
-#include <iostream>
-#include <memory>
-#include "dune/ArtSupport/ArtServicePointer.h"
+#include <string>
 
 class ArtServiceHelper {
-
 public:
+  struct FileOnPath_t {};
+  constexpr static FileOnPath_t FileOnPath{};
 
-  typedef std::vector<std::string> NameList;
-  typedef std::map<std::string, std::string> ConfigurationMap;
+  static void load_services(std::string const& config);
+  static void load_services(std::string const& filename, FileOnPath_t);
+  static void load_services(std::istream& config);
+  static void load_services(fhicl::ParameterSet const& pset);
 
-  // Return the one instance of this (singleton) class.
-  static ArtServiceHelper& instance();
-
-  // Read and load all services from a fcl file.
-  // No calls to addService, addServices or loadServices may precede or follow.
-  static ArtServiceHelper& load(std::string fname);
-
-  // Close the one instance of this class.
-  // Services are not longer available.
-  // The current instance of this class and all services are deleted.
-  // For TFileService, the files are written and renamed.
-  // The load status is set to 3.
-  static void close();
-
-  // Ctor.
-  ArtServiceHelper();
-
-  // Dtor.
-  ~ArtServiceHelper();
-
-  // Add a service.
-  //   name - Name of the service, e.g. "TFileService"
-  //   sval - If not isFile, configuration string for the service, e.g. for TFileService:
-  //          service_type: "TFileService" fileName: "test.root"
-  //          Note this is just the contents, not the full named block.
-  //          If isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
-  // Configuration format is the same as that found in the services block of an fcl file.
-  // Returns 0 for success.
-  int addService(std::string name, std::string sval ="", bool isFile =false);
-
-  // Add all services from a string or file.
-  //   sval - If not isFile, configuration string for the services.
-  //          Note that in contrast to the preceding, the string must hold full named blocks.
-  //          If isFile, base file name. Path to locate file is $FHICL_FILE_PATH.
-  // Configuration format is the same as that found in the services block of an fcl file.
-  // Returns 0 for success.
-  int addServices(std::string sval ="", bool isFile =false);
-
-  // Load the services, i.e. make them available for use via art::ServiceHandle.
-  // Returns the status: 1 for success, 2 for failure.
-  int loadServices();
-
-  // Load the services from a file.
-  // This may not be called after services are added.
-  // Returns the status: 1 for success, 2 for load failure, >=100 for other problems.
-  int loadServices(std::string fclfile);
-
-  // Set the log level.
-  //    0 - Only log errors.
-  //    1 - Log errors and warnings (default).
-  //   >1 - Noisy.
-  void setLogLevel(int lev);
-
-  // Return the names of added services.
-  NameList serviceNames() const;
-
-  // Return the names of the files used to add services.
-  // The value "STRING" is recorded whe services are added from a string.
-  NameList fileNames() const;
-
-  // Return the configuration string for a service.
-  std::string serviceConfiguration(std::string name) const;
-
-  // Return the full configuration string.
-  std::string fullServiceConfiguration() const;
-
-  // Return the service status.
-  //   0 - not loaded
-  //   1 - services loaded and available
-  //   2 - service load failed
-  //   3 - service helper is closed
-  int serviceStatus() const;
-
-  // Return if the services are loaded.
-  bool isReady() const;
-
-  // Display the contents and status of a service helper.
-  void print(std::ostream& out =std::cout) const;
-
-  // Return a service specified by type.
-  template<class T>
-  T* get() const {
-    if ( ! isReady() ) return nullptr;
-    return ArtServicePointer<T>();
-  }
+  // For backward compatibility.
+  static void load(std::string const& filename) { load_services(filename, FileOnPath_t{}); }
 
 private:
-
-  // Return the pointer to the one instance of this (singleton) class.
-  static std::unique_ptr<ArtServiceHelper>& instancePtr();
-
-  int m_LogLevel;
-  NameList m_names;
-  NameList m_fnames;
-  ConfigurationMap m_cfgmap;
-  std::string m_scfgs;
-  int m_load = 0;
-  bool m_needTriggerNamesService = false;
-  bool m_needCurrentModuleService = false;
-  void* m_poperate;  // ServiceRegistry::Operate
-
-  // Ctors.
-  ArtServiceHelper(const ArtServiceHelper&) = delete;
-  ArtServiceHelper& operator=(const ArtServiceHelper&) const = delete;
-
+  explicit ArtServiceHelper(fhicl::ParameterSet&& pset);
+  art::ActivityRegistry activityRegistry_;
+  art::ServicesManager servicesManager_;
 };
 
 #endif

@@ -41,38 +41,18 @@ int test_AdcSuppressSignalFindingService() {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_AdcSuppressSignalFindingService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "services.AdcSuppressService: {" << endl;
-  fout << "  service_provider: Legacy35tZeroSuppressService" << endl;
-  fout << "  AdcThreshold: 30.0" << endl;
-  fout << "  TickRange: 4" << endl;
-  fout << "  MinTickGap: 2" << endl;
-  fout << "  SuppressStickyBits: false" << endl;
-  fout << "}" << endl;
-  fout << "services.AdcSignalFindingService: {" << endl;
-  fout << "  service_provider: AdcSuppressSignalFindingService" << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add suppress service." << endl;
-  assert( ash.addService("AdcSuppressService", fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add signal finding service." << endl;
-  assert( ash.addService("AdcSignalFindingService", fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  std::ostringstream oss;
+  oss << "services.AdcSuppressService: {" << endl;
+  oss << "  service_provider: Legacy35tZeroSuppressService" << endl;
+  oss << "  AdcThreshold: 30.0" << endl;
+  oss << "  TickRange: 4" << endl;
+  oss << "  MinTickGap: 2" << endl;
+  oss << "  SuppressStickyBits: false" << endl;
+  oss << "}" << endl;
+  oss << "services.AdcSignalFindingService: {" << endl;
+  oss << "  service_provider: AdcSuppressSignalFindingService" << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;

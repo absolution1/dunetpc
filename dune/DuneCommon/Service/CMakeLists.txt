@@ -33,4 +33,3 @@ simple_plugin(FixedChannelGroupService   "service"
              )
 
 add_subdirectory(test)
-

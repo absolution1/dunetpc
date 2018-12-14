@@ -11,14 +11,14 @@ art_make(BASENAME_ONLY
         art_Utilities canvas
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
-        
+
         ${Boost_SYSTEM_LIBRARY}
         RunHistoryDUNE
         larcore_Geometry_Geometry_service
         larcorealg_Geometry
         lbne_daqinput35t_utilities
         lbne-raw-data_Overlays
-	lbne-raw-data_Services_ChannelMap_ChannelMapService_service
+        lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         lardataobj_RawData
         lardataobj_RecoBase
         dune_DuneCommon
@@ -26,39 +26,30 @@ art_make(BASENAME_ONLY
         )
 
 simple_plugin(TpcMilliSliceDump "module"
-lbne-raw-data_Overlays
-larcore_Geometry_Geometry_service
-larcorealg_Geometry
-lardataobj_RawData
-nusimdata_SimulationBase
-# ${ART_FRAMEWORK_CORE}
-# ${ART_FRAMEWORK_PRINCIPAL}
-${ART_FRAMEWORK_SERVICES_REGISTRY}
-${ART_FRAMEWORK_SERVICES_OPTIONAL}
-${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-# ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-# art_Persistency_Common canvas
-# art_Persistency_Provenance canvas
-# art_Utilities canvas
-# ${MF_MESSAGELOGGER}
-# 
-cetlib cetlib_except
-${ROOT_HIST}
-# ${ROOT_BASIC_LIB_LIST}
-)
+  lbne-raw-data_Overlays
+  larcore_Geometry_Geometry_service
+  larcorealg_Geometry
+  lardataobj_RawData
+  nusimdata_SimulationBase
+  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_PERSISTENCY_PROVENANCE}
+  cetlib cetlib_except
+  ${ROOT_HIST})
 
 simple_plugin(SSPDump "module"
-lbne-raw-data_Overlays
-larcore_Geometry_Geometry_service
-larcorealg_Geometry
-lardataobj_RawData
-nusimdata_SimulationBase
-art_Framework_Services_Registry
-art_Framework_Services_Optional
-art_Framework_Services_Optional_TFileService_service
-cetlib cetlib_except
-${ROOT_HIST}
-)
+  lbne-raw-data_Overlays
+  larcore_Geometry_Geometry_service
+  larcorealg_Geometry
+  lardataobj_RawData
+  nusimdata_SimulationBase
+  art_Framework_Services_Registry
+  art_Framework_Services_Optional
+  art_Framework_Services_Optional_TFileService_service
+  art_Persistency_Provenance
+  cetlib cetlib_except
+  ${ROOT_HIST})
 
 simple_plugin(SSPToOffline "module"
 lbne-raw-data_Overlays
@@ -132,28 +123,28 @@ ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(NoiseCorrelation "module"
-			       lbne-raw-data_Overlays
-			       lbne_daqinput35t_utilities
-			       lbne_daqinput35t
-			       larcore_Geometry_Geometry_service
-			       larcorealg_Geometry
-			       lardataobj_RawData
-			       ${ART_FRAMEWORK_CORE}
-			       ${ART_FRAMEWORK_PRINCIPAL}
-			       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-			       ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			       ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-			       art_Persistency_Common canvas
-			       art_Persistency_Provenance canvas
-			       art_Utilities canvas
-			       ${MF_MESSAGELOGGER}
-			       
-			       cetlib cetlib_except
-			       ${ROOT_BASIC_LIB_LIST}
+                               lbne-raw-data_Overlays
+                               lbne_daqinput35t_utilities
+                               lbne_daqinput35t
+                               larcore_Geometry_Geometry_service
+                               larcorealg_Geometry
+                               lardataobj_RawData
+                               ${ART_FRAMEWORK_CORE}
+                               ${ART_FRAMEWORK_PRINCIPAL}
+                               ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                               art_Persistency_Common canvas
+                               art_Persistency_Provenance canvas
+                               art_Utilities canvas
+                               ${MF_MESSAGELOGGER}
+
+                               cetlib cetlib_except
+                               ${ROOT_BASIC_LIB_LIST}
 )
 
 simple_plugin(FilterWF "module"
- 
+
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources
@@ -171,7 +162,7 @@ simple_plugin(FilterWF "module"
 )
 
 simple_plugin(CheckRawDigit "module"
- 
+
  lbne_daqinput35t
  art_Framework_IO_Root
  art_Framework_IO_Sources

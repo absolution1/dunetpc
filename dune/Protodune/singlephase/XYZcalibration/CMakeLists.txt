@@ -1,5 +1,5 @@
-art_make( 
-  LIB_LIBRARIES 
+art_make(
+  LIB_LIBRARIES
   lardataobj_RecoBase
   larana_OpticalDetector_OpHitFinder
   larsim_MCSTReco
@@ -52,6 +52,7 @@ art_make(
   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+  ${ART_PERSISTENCY_PROVENANCE}
   art_Persistency_Common
   art_Utilities
   canvas

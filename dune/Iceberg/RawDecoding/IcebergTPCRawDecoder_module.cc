@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       PDSPTPCRawDecoder
+// Class:       IcebergTPCRawDecoder
 // Plugin Type: producer (art v2_10_03)
-// File:        PDSPTPCRawDecoder_module.cc
+// File:        IcebergTPCRawDecoder_module.cc
 //
 // Generated at Fri Mar  2 15:36:20 2018 by Thomas Junk using cetskelgen
 // from cetlib version v3_02_00.
@@ -36,7 +36,7 @@
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
-#include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "dune-raw-data/Services/ChannelMap/IcebergChannelMapService.h"
 #include "dam/HeaderFragmentUnpack.hh"
 #include "dam/DataFragmentUnpack.hh"
 #include "dam/TpcFragmentUnpack.hh"
@@ -56,16 +56,16 @@
 // DUNE includes
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
-class PDSPTPCRawDecoder;
+class IcebergTPCRawDecoder;
 
-class PDSPTPCRawDecoder : public art::EDProducer {
+class IcebergTPCRawDecoder : public art::EDProducer {
 
 public:
-  explicit PDSPTPCRawDecoder(fhicl::ParameterSet const & p);
-  PDSPTPCRawDecoder(PDSPTPCRawDecoder const &) = delete;
-  PDSPTPCRawDecoder(PDSPTPCRawDecoder &&) = delete;
-  PDSPTPCRawDecoder & operator = (PDSPTPCRawDecoder const &) = delete;
-  PDSPTPCRawDecoder & operator = (PDSPTPCRawDecoder &&) = delete;
+  explicit IcebergTPCRawDecoder(fhicl::ParameterSet const & p);
+  IcebergTPCRawDecoder(IcebergTPCRawDecoder const &) = delete;
+  IcebergTPCRawDecoder(IcebergTPCRawDecoder &&) = delete;
+  IcebergTPCRawDecoder & operator = (IcebergTPCRawDecoder const &) = delete;
+  IcebergTPCRawDecoder & operator = (IcebergTPCRawDecoder &&) = delete;
   void produce(art::Event & e) override;
 
 private:
@@ -77,8 +77,6 @@ private:
   typedef std::vector<raw::RDStatus> RDStatuses;
 
   // configuration parameters
-
-  std::vector<int> _apas_to_decode;
 
   std::string   _rce_input_label; 
   std::string   _rce_input_container_instance;
@@ -104,11 +102,6 @@ private:
   bool          _rce_save_frags_to_files;
   bool          _rce_check_buffer_size;
   size_t        _rce_buffer_size_checklimit;
-
-  // flags for attempting to fix FEMB 110's misaligned data
-
-  bool          _rce_fix110;
-  unsigned int  _rce_fix110_nticks;
 
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
@@ -162,10 +155,9 @@ private:
 };
 
 
-PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
+IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
 {
   std::vector<int> emptyivec;
-  _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
   _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");
   _rce_input_container_instance = p.get<std::string>("RCERawDataContainerInstance","ContainerTPC");
   _rce_input_noncontainer_instance = p.get<std::string>("RCERawDataNonContainerInstance","TPC");
@@ -178,11 +170,6 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
   _rce_save_frags_to_files = p.get<bool>("RCESaveFragsToFiles",false);  
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
-
-  // parameters to steer the FEMB 110 band-aid
-
-  _rce_fix110 = p.get<bool>("RCEFIX110",true);
-  _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
 
   _felix_input_label = p.get<std::string>("FELIXRawDataLabel");
   _felix_input_container_instance = p.get<std::string>("FELIXRawDataContainerInstance","ContainerFELIX");
@@ -270,9 +257,10 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
       fFragSizeFELIX = tFileService->make<TH1I>("fFragSizeFELIX", "FELIX Fragment Size", 100, 0.5, 57600000.5);
       fFragSizeFELIX->GetXaxis()->SetTitle("Size of FELIX Fragments (bytes)");
     }
+
 }
 
-void PDSPTPCRawDecoder::produce(art::Event &e)
+void IcebergTPCRawDecoder::produce(art::Event &e)
 {
   RawDigits raw_digits;
   RDTimeStamps rd_timestamps;
@@ -310,7 +298,7 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
 
   if (_enforce_full_channel_count && raw_digits.size() != _full_channel_count) 
     {
-      LOG_WARNING("PDSPTPCRawDecoder:") << "Wrong Total number of Channels " << raw_digits.size()  
+      LOG_WARNING("IcebergTPCRawDecoder:") << "Wrong Total number of Channels " << raw_digits.size()  
 					<< " which is not " << _full_channel_count << ". Discarding Data";
       _DiscardedCorruptData = true;
       _discard_data = true;
@@ -342,7 +330,7 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
     }
 }
 
-bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
+bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_rce_frags = 0;
   art::Handle<artdaq::Fragments> cont_frags;
@@ -462,7 +450,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 // returns true if we want to add to the number of fragments processed.  Separate flag used
 // for data error conditions (_discard_data).
 
-bool PDSPTPCRawDecoder::_process_RCE_AUX(
+bool IcebergTPCRawDecoder::_process_RCE_AUX(
 					 const artdaq::Fragment& frag, 
 					 RawDigits& raw_digits,
 					 RDTimeStamps &timestamps,
@@ -511,7 +499,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
   //<< "   fragmentID = " << frag.fragmentID()
   //<< "   fragmentType = " << (unsigned)frag.type()
   //<< "   Timestamp =  " << frag.timestamp();
-  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
+  art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
   dune::RceFragment rce(frag);
   
   if (_rce_save_frags_to_files)
@@ -538,25 +526,6 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       uint32_t fiberNumber = identifier.getFiber();
 
       //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
-
-      size_t adsiz = _apas_to_decode.size();
-      bool apafound = true;  // default if no vector to test against
-      if (adsiz)
-	{
-	  apafound = false;
-	  for (unsigned int j=0; j<adsiz; ++j)
-	    {
-	      if ((int) crateNumber == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
-		{
-		  apafound = true;
-		  break;
-		}
-	    }
-	}
-      if (!apafound) 
-	{
-	  return false;
-	}
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
 	{
@@ -700,29 +669,14 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
 
 	  v_adc.clear();
 
-	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
-	    {
-	      for (size_t i_tick = 0; i_tick < n_ticks-_rce_fix110_nticks; i_tick++)
-		{
-		  v_adc.push_back(adcs[i_tick+_rce_fix110_nticks]);
-		}
-	      for (size_t i_tick=0; i_tick<_rce_fix110_nticks; ++i_tick)
-		{
-		  v_adc.push_back(v_adc.back());
-		}
-	      
-	    }
-	  else
-	    {
 	      for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
 		{
 		  v_adc.push_back(adcs[i_tick]);
 		}
-	    }
 	  adcs += n_ticks;
 
 	  ch_counter++;
@@ -783,7 +737,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 }
 
 
-bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
+bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
 
   // TODO Use LOG_DEBUG
@@ -902,7 +856,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
   return have_data || have_data_nc;
 }
 
-bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
+bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
 					   RDTimeStamps &timestamps,
 					   RDTsAssocs &tsassocs,
 					   RDPmkr &rdpm, TSPmkr &tspm)
@@ -951,7 +905,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       return false;
     }
 
-  art::ServiceHandle<dune::PdspChannelMapService> channelMap;
+  art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
 
   //Load overlay class.
   dune::FelixFragment felix(frag);
@@ -961,25 +915,6 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   uint8_t crate = felix.crate_no(0);
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // decode this one later 
-
-  size_t adsiz = _apas_to_decode.size();
-  bool apafound = true;  // default if no vector to test against
-  if (adsiz)
-    {
-      apafound = false;
-      for (unsigned int j=0; j<adsiz; ++j)
-	{
-	  if ((int) crate == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
-	    {
-	      apafound = true;
-	      break;
-	    }
-	}
-    }
-  if (!apafound) 
-    {
-      return false;
-    }
 
   if (crate == 0 || crate > 6 || slot > 4) 
     {
@@ -1104,7 +1039,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       }
     unsigned int crateloc = crate;  
 
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::IcebergChannelMapService::kFELIX); 
 
     if ( v_adc.size() != _full_tick_count)
       {
@@ -1196,7 +1131,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 // compute median and sigma.  Sigma is half the distance between the upper and lower bounds of the
 // 68% region where 34% is above the median and 34% is below ("centered" on the median).
 
-void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
+void IcebergTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
 {
   size_t asiz = v_adc.size();
   if (asiz == 0)
@@ -1213,53 +1148,6 @@ void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, fl
       sigma = TMath::RMS(asiz,v_adc.data());
     }
 
-  // never do this, but keep the code around in case we want it later
-
-  // if (asiz > 100000000)
-  //   {
-  //     size_t mednum = asiz/2;
-  //     size_t m1snum = mednum - ( (float) asiz )*0.34;
-  //     size_t p1snum = mednum + ( (float) asiz )*0.34;
-
-  //     std::map<size_t,size_t> adcmap;
-  //     for (auto const adc : v_adc)
-  // 	{
-  // 	  auto mapiter = adcmap.find(adc);
-  // 	  if (mapiter != adcmap.end())
-  // 	    {
-  // 	      mapiter->second ++;
-  // 	    }
-  // 	  else
-  // 	    {
-  // 	      adcmap[adc] = 1;
-  // 	    }
-  // 	}
-
-  //     // find quantiles, -1 sigma, median, plus 1 sigma
-  //     size_t sum = 0;
-  //     size_t m1s = 0;
-  //     size_t p1s = 0;
-  //     size_t m = 0;
-  //     for (auto const &mv : adcmap)
-  // 	{
-  // 	  sum += mv.second;
-  // 	  if (m1s == 0 && sum >= m1snum) 
-  // 	    {
-  // 	      m1s = mv.first;
-  // 	    }
-  // 	  if (m == 0 && sum >= mednum)
-  // 	    {
-  // 	      m = mv.first;
-  // 	    }
-  // 	  if (p1s == 0 && sum >= p1snum)
-  // 	    {
-  // 	      p1s = mv.first;
-  // 	      break;
-  // 	    }
-  // 	}
-  //     median = (float) m;
-  //     sigma = ((float) (p1s - m1s))/2.0;
-  //   }
 }
 
-DEFINE_ART_MODULE(PDSPTPCRawDecoder)
+DEFINE_ART_MODULE(IcebergTPCRawDecoder)
