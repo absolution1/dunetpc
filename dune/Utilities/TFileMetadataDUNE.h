@@ -18,6 +18,7 @@
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Framework/Principal/Event.h"
+#include "art/Persistency/Provenance/ScheduleContext.h"
 #include <iostream>
 #include <fstream>
 
@@ -75,7 +76,7 @@ namespace util{
     // Callbacks.
     void postBeginJob();
     void postOpenFile(std::string const& fn);
-    void postEvent(art::Event const& ev);
+    void postEvent(art::Event const& ev, art::ScheduleContext);
     void postBeginSubRun(art::SubRun const& subrun);
     void postEndJob();
 

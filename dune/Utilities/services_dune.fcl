@@ -25,6 +25,7 @@
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
 #include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 
@@ -359,7 +360,18 @@ protodune_rawdecoding_services: {
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
   PdspChannelMapService:        @local::pdspchannelmap
-  IPhotonCalibrator:            @local::protodunesp_photoncalibrator
+}
+
+iceberg_rawdecoding_services: {
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::iceberg_geo
+  DetectorClocksService:        @local::protodune_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+  IcebergChannelMapService:     @local::icebergchannelmap
 }
 
 protodune_data_services: {
@@ -453,6 +465,8 @@ protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus
 protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
 # Make sure we can use cryostat-side APA hits
 protodune_data_reco_services.ChannelGroupService.ApaRops: []
+# Add the photon detector calibrator service
+protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 
 
 #######################

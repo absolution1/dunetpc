@@ -44,47 +44,19 @@ int test_DuneRoiBuildingService(int a_LogLevel =1) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_DuneRoiBuildingService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services:      @local::dune35t_services" << endl;
-  fout << "services.AdcRoiBuildingService: {" << endl;
-  fout << "  service_provider: DuneRoiBuildingService" << endl;
-  fout << "  NSigmaStart:  4.0" << endl;
-  fout << "  NSigmaEnd:    1.0" << endl;
-  fout << "  PadLow:         5" << endl;
-  fout << "  PadHigh:       10" << endl;
-  fout << "  LogLevel:       " << a_LogLevel << endl;
-  fout << "}" << endl;
-  fout.close();
 
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-
-    cout << myname << line << endl;
-    cout << myname << "Add supporting services." << endl;
-    assert( ash.addService("ExptGeoHelperInterface", fclfile, true) == 0 );
-    assert( ash.addService("Geometry", fclfile, true) == 0 );
-    assert( ash.addService("LArPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorClocksService", fclfile, true) == 0 );
-    assert( ash.addService("DetectorPropertiesService", fclfile, true) == 0 );
-    assert( ash.addService("LArFFT", fclfile, true) == 0 );
-    assert( ash.addService("SignalShapingServiceDUNE", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Add ROI building service." << endl;
-    assert( ash.addService("AdcRoiBuildingService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  std::ostringstream oss;
+  oss << "#include \"services_dune.fcl\"" << endl;
+  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services.AdcRoiBuildingService: {" << endl;
+  oss << "  service_provider: DuneRoiBuildingService" << endl;
+  oss << "  NSigmaStart:  4.0" << endl;
+  oss << "  NSigmaEnd:    1.0" << endl;
+  oss << "  PadLow:         5" << endl;
+  oss << "  PadHigh:       10" << endl;
+  oss << "  LogLevel:       " << a_LogLevel << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   const unsigned int nsig = 100;
   AdcChannelData acd;

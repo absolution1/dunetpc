@@ -12,9 +12,9 @@ process_name: OpDetAnalysis
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_data_analysis_hist.root" }
+  TFileService: { fileName: "%ifb_opana_hist.root" }
   TimeTracker:       {}
-  @table::protodune_rawdecoding_services
+  @table::protodune_services
   message:      @local::standard_info 
 }
 
@@ -35,14 +35,11 @@ physics:
 
  analyzers:
  {
-   opdigianaInternal:   @local::dunefd_opdigiana
-   opdigianaExternal:   @local::dunefd_opdigiana
    opflashanaInternal:  @local::standard_opflashana
    opflashanaExternal:  @local::standard_opflashana
  }
 
  analyzeIt: [opflashanaInternal, opflashanaExternal]
- #analyzeIt: [opdigianaInternal, opdigianaExternal] 
 
    
  #trigger_paths is a keyword and contains the paths that modify the art::event, 
@@ -53,12 +50,6 @@ physics:
  #ie analyzers and output streams.  these all run simultaneously
  end_paths:     [analyzeIt]  
 }
-
-physics.analyzers.opdigianaInternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaInternal.InstanceName: "internal"
-
-physics.analyzers.opdigianaExternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaExternal.InstanceName: "external"
 
 physics.analyzers.opflashanaInternal.OpHitModuleLabel:   "ophitInternal"
 physics.analyzers.opflashanaInternal.OpFlashModuleLabel: "opflashInternal"
