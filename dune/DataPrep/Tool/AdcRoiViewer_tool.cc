@@ -12,6 +12,7 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/GausStepFitter.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -1149,6 +1150,7 @@ void AdcRoiViewer::fitSumHists() const {
     string hnam = ph->GetName();
     string fitName = getState().getSumFitName(hnam);
     bool doGausSigmaSteps = false;
+    bool fitDone = false;
     if ( fitName.size() ) {
       if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
       TF1* pf = nullptr;
@@ -1163,11 +1165,18 @@ void AdcRoiViewer::fitSumHists() const {
         }
         pf = gausTF1(height0, mean0, sigma0, "sumgaus");
         doGausSigmaSteps = true;
+      } else if ( fitName.substr(0,5) == "sgaus" ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing gaus step fit" << endl;
+        if ( fitName.size() > 5 ) {
+          istringstream ssin(fitName.substr(5));
+          ssin >> sigma0;
+        }
+        GausStepFitter gsf(mean0, sigma0, height0, "sumgaus", "WWS");
+        fitDone = gsf.fit(ph) == 0;
       } else {
         pf = new TF1(fitName.c_str(), fitName.c_str());
       }
       if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      bool fitDone = false;
       // For gaus fit, try to find a minimum close to the input value.
       // If a fit is succeeds, its function replaces the initial function.
       if ( doGausSigmaSteps ) {
