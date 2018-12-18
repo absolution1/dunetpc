@@ -52,9 +52,9 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
     Index itry = 0;
     for ( ; itry<maxtry; ++itry ) {
       double dx = m_nsigma*sigmaOld;
-      double x1 = mean - dx;
+      x1 = mean - dx;
       if ( x1 < xmin ) x1 = xmin;
-      double x2 = mean + dx;
+      x2 = mean + dx;
       if ( x1 > xmax ) x1 = xmax;
       ph->GetXaxis()->SetRangeUser(x1, x2);
       sigma = ph->GetRMS();
@@ -77,9 +77,10 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
     mean = ph->GetMean();
   }
   ph->GetXaxis()->SetRange(ibin1, ibin2);
-  if ( sigma <= m_sigma0 && m_sigma0 > 0.0 ) {
-    cout << myname << "Unexpected value for sigma: " << sigma << endl;
-    return 103;
+  // Protect against sigma == 0.
+  if ( sigma <= 0.0 ) {
+    sigma = ph->GetXaxis()->GetBinWidth(1)/sqrt(12.0);
+    if ( m_LogLevel >= 1 ) cout << myname << "Reset sigma = 0 --> " << sigma << endl;
   }
   TF1* pffix = gausTF1(height, mean, sigma, m_fnam);
   pffix->FixParameter(1, mean);

@@ -17,7 +17,9 @@
 // evaluated iteratively over the range (mean-nsigma*sigma, mean+nsigma*sigma)
 // until it coverges on a value for sigma. The range is restricted to that of
 // the input, i.e. its default or the value set with axis SetRange or SetRangeUser.
-// The starting values for the iteration are mean0 and sigma0.
+// The starting values for the iteration are mean0 and sigma0 and the iteration
+// stops when the evaluated value for sigma is less or close to that used to
+// define the range.
 //
 // If sigma0 is valid and nsigma is not, then those are used for the 
 // corresponding function values.

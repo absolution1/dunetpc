@@ -1152,30 +1152,25 @@ void AdcRoiViewer::fitSumHists() const {
     string fitName = getState().getSumFitName(hnam);
     bool doGausSigmaSteps = false;
     bool fitDone = false;
+    if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
     if ( fitName.size() ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
       TF1* pf = nullptr;
       int binMax = ph->GetMaximumBin();
       double mean0 = ph->GetBinLowEdge(binMax);
       double sigma0 = ph->GetRMS();
       double height0 = ph->GetMaximum();
-      if ( fitName.substr(0,4) == "gaus" ) {
-        if ( fitName.size() > 4 ) {
-          istringstream ssin(fitName.substr(4));
-          ssin >> sigma0;
-        }
-        pf = gausTF1(height0, mean0, sigma0, "sumgaus");
-        doGausSigmaSteps = true;
-      } else if ( fitName.substr(0,5) == "sgaus" ) {
-        if ( m_LogLevel >= 4 ) cout << myname << "  Doing gaus step fit" << endl;
+      // Use gaus step fit.
+      if ( fitName.substr(0,5) == "sgaus" ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing gaus step fit." << endl;
         if ( fitName.size() > 5 ) {
           istringstream ssin(fitName.substr(5));
           ssin >> sigma0;
         }
         GausStepFitter gsf(mean0, sigma0, height0, "sumgaus", "WWS");
         fitDone = gsf.fit(ph) == 0;
+      // Use gaus from RMS.
       } else if ( fitName.substr(0,5) == "rgaus" ) {
-        if ( m_LogLevel >= 4 ) cout << myname << "  Doing fixed rms fit" << endl;
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing fixed rms fit." << endl;
         double sigma0 = 0.0;
         double nsigma = 4.0;
         Name spar1 = fitName.substr(5);
@@ -1204,42 +1199,6 @@ void AdcRoiViewer::fitSumHists() const {
       }
       if ( m_LogLevel >= 4 && pf != nullptr ) {
         cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      }
-      // For gaus fit, try to find a minimum close to the input value.
-      // If a fit is succeeds, its function replaces the initial function.
-      if ( doGausSigmaSteps ) {
-        double sigma = sigma0;
-        double sigfac = 2.0;
-        for ( int ifit=0; ifit<5; ++ifit ) {
-          TF1* pffix = gausTF1(height0, mean0, sigma, "sumgaus");
-          double sigmax = 1.1*sigfac*sigma;
-          double sigmin = 0.9*sigma/sigfac;
-          if ( m_LogLevel >= 4 ) cout << myname << "  Doing constrained fit " << ifit
-                                      << " with pos=" << mean0 << ", sigma=" << sigma
-                                      << " (" << sigmin << ", " << sigmax << ")" << endl;
-          pffix->SetParameter(2, sigma);
-          pffix->SetParLimits(2, sigmin, sigmax);
-          pffix->SetParLimits(0, 0.1*height0, 2.0*height0);   // Don't let height go negative.
-          string fopt = "WWS";
-          //string fopt = "LS";
-          if ( m_LogLevel < 4 ) fopt += "Q"; 
-          int fstat = quietHistFit(ph, pffix, fopt.c_str());
-          double signew = pffix->GetParameter(2);
-          bool atHiLimit = signew > 0.999*sigmax;
-          bool atLoLimit = signew < 1.001*sigmin;
-          if ( m_LogLevel >= 4 ) cout << myname << "  status " << fstat << ", fit sigma=" << signew  << endl;
-          //                            << ", fCstatu=" << gMinuit->fCstatu << endl;
-          if ( fstat == 0 && !atHiLimit && !atLoLimit ) {
-            fitDone = true;
-            delete pf;
-            pf = pffix;
-            break;
-          }
-          ph->GetListOfFunctions()->Clear();   // Otherwise we may get a crash when we try to view saved copy of histo
-          delete pffix;
-          if ( atLoLimit ) sigma /= sigfac;
-          else             sigma *= sigfac;
-        }
       }
       if ( ! fitDone ) {
         if ( m_LogLevel >= 4 ) cout << myname << "  Doing unconstrained fit" << endl;
