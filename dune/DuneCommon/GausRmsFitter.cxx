@@ -49,33 +49,32 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
       cout << myname << "Start loop with mean, sigma: " << mean << ", " << sigmaOld << endl;
     }
     const Index maxtry = 100;
-    Index itry = 100;
-    for ( Index itry=0; itry<maxtry; ++itry ) {
+    Index itry = 0;
+    for ( ; itry<maxtry; ++itry ) {
       double dx = m_nsigma*sigmaOld;
       double x1 = mean - dx;
       if ( x1 < xmin ) x1 = xmin;
       double x2 = mean + dx;
       if ( x1 > xmax ) x1 = xmax;
       ph->GetXaxis()->SetRangeUser(x1, x2);
-      double sigmaNew = ph->GetRMS();
+      sigma = ph->GetRMS();
       mean = ph->GetMean();
       if ( m_LogLevel >= 2 ) {
         cout << myname << setw(5) << itry << ": " << x1 << ", " << x2 << "): "
-             << mean << ", " << sigmaNew << endl;
+             << mean << ", " << sigma << endl;
       }
-      if ( sigmaNew < 1.001*sigmaOld ) {
-        sigma = sigmaNew;
+      if ( sigma < 1.001*sigmaOld ) {
         break;
       }
-      sigmaOld = sigmaNew;
+      sigmaOld = sigma;
     }
     if ( itry >= 100 ) cout << myname << "WARNING: too many iterations." << endl;
-  // Use configured sigma.
+  // Use input mean and configured sigma.
   } else if ( m_sigma0 > 0.0 ) {
     sigma = m_sigma0;
+  // Use histogram mean and RMS.
   } else {
-    cout << myname << "Invalid configuration." << endl;
-    return 102;
+    mean = ph->GetMean();
   }
   ph->GetXaxis()->SetRange(ibin1, ibin2);
   if ( sigma <= m_sigma0 && m_sigma0 > 0.0 ) {

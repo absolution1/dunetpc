@@ -22,6 +22,9 @@
 // If sigma0 is valid and nsigma is not, then those are used for the 
 // corresponding function values.
 //
+// If both are invalid, mean0 is ignored and man and RMS for the full range
+// are used to construct the function.
+//
 // Any other configuration results in a fit error.
 
 #include <string>

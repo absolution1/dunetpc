@@ -1192,7 +1192,7 @@ void AdcRoiViewer::fitSumHists() const {
           istringstream ssin1(spar1);
           ssin1 >> sigma0;
         }
-        GausRmsFitter grf(sigma0, nsigma, "sumgaus");
+        GausRmsFitter grf(sigma0, nsigma, fitName);
         if ( m_LogLevel >=4 ) grf.setLogLevel(m_LogLevel - 3);
         if ( grf.fit(ph, mean0) == 0 ) {
           fitDone = true;
