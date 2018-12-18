@@ -13,6 +13,7 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/GausStepFitter.h"
+#include "dune/DuneCommon/GausRmsFitter.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -1173,10 +1174,37 @@ void AdcRoiViewer::fitSumHists() const {
         }
         GausStepFitter gsf(mean0, sigma0, height0, "sumgaus", "WWS");
         fitDone = gsf.fit(ph) == 0;
+      } else if ( fitName.substr(0,5) == "rgaus" ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing fixed rms fit" << endl;
+        double sigma0 = 0.0;
+        double nsigma = 4.0;
+        Name spar1 = fitName.substr(5);
+        Name spar2;
+        if ( spar1.size() ) {
+          if ( spar1[0] == '_' ) spar1 = spar1.substr(1);
+          string::size_type ipos = spar1.find("_");
+          if ( ipos != string::npos ) {
+            spar2 = spar1.substr(ipos+1);
+            spar1 = spar1.substr(0, ipos);
+            istringstream ssin2(spar2);
+            ssin2 >> nsigma;
+          }
+          istringstream ssin1(spar1);
+          ssin1 >> sigma0;
+        }
+        GausRmsFitter grf(sigma0, nsigma, "sumgaus");
+        if ( m_LogLevel >=4 ) grf.setLogLevel(m_LogLevel - 3);
+        if ( grf.fit(ph, mean0) == 0 ) {
+          fitDone = true;
+        } else {
+          pf = new TF1("mygaus", "gaus");
+        }
       } else {
         pf = new TF1(fitName.c_str(), fitName.c_str());
       }
-      if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
+      if ( m_LogLevel >= 4 && pf != nullptr ) {
+        cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
+      }
       // For gaus fit, try to find a minimum close to the input value.
       // If a fit is succeeds, its function replaces the initial function.
       if ( doGausSigmaSteps ) {
@@ -1316,11 +1344,13 @@ void AdcRoiViewer::writeSumPlots() const {
         pman->setRangeX(xmin, xmax);
       }
       NameVector labs;
-      TF1* pffit = ph->GetFunction("sumgaus");
+      TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
       if ( pffit != nullptr ) {
+        string fnam = pffit->GetName();
         double mean = pffit->GetParameter("Mean");
         double sigm = pffit->GetParameter("Sigma");
         double rat = mean == 0 ? 0.0 : sigm/mean;
+        labs.push_back(fnam);
         ostringstream ssout;
         ssout.precision(3);
         ssout.setf(std::ios_base::fixed);
