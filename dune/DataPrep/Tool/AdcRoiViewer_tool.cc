@@ -1150,7 +1150,6 @@ void AdcRoiViewer::fitSumHists() const {
     TH1* ph = ihst.second;
     string hnam = ph->GetName();
     string fitName = getState().getSumFitName(hnam);
-    bool doGausSigmaSteps = false;
     bool fitDone = false;
     if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
     if ( fitName.size() ) {
@@ -1166,7 +1165,7 @@ void AdcRoiViewer::fitSumHists() const {
           istringstream ssin(fitName.substr(5));
           ssin >> sigma0;
         }
-        GausStepFitter gsf(mean0, sigma0, height0, "sumgaus", "WWS");
+        GausStepFitter gsf(mean0, sigma0, height0, fitName, "WWS");
         fitDone = gsf.fit(ph) == 0;
       // Use gaus from RMS.
       } else if ( fitName.substr(0,5) == "rgaus" ) {
