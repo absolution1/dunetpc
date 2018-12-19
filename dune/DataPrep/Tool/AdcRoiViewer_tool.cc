@@ -12,6 +12,8 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/GausStepFitter.h"
+#include "dune/DuneCommon/GausRmsFitter.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -1148,61 +1150,54 @@ void AdcRoiViewer::fitSumHists() const {
     TH1* ph = ihst.second;
     string hnam = ph->GetName();
     string fitName = getState().getSumFitName(hnam);
-    bool doGausSigmaSteps = false;
+    bool fitDone = false;
+    if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
     if ( fitName.size() ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Fitting hist " << ph->GetName() << " with " << fitName << endl;
       TF1* pf = nullptr;
       int binMax = ph->GetMaximumBin();
       double mean0 = ph->GetBinLowEdge(binMax);
       double sigma0 = ph->GetRMS();
       double height0 = ph->GetMaximum();
-      if ( fitName.substr(0,4) == "gaus" ) {
-        if ( fitName.size() > 4 ) {
-          istringstream ssin(fitName.substr(4));
+      // Use gaus step fit.
+      if ( fitName.substr(0,5) == "sgaus" ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing gaus step fit." << endl;
+        if ( fitName.size() > 5 ) {
+          istringstream ssin(fitName.substr(5));
           ssin >> sigma0;
         }
-        pf = gausTF1(height0, mean0, sigma0, "sumgaus");
-        doGausSigmaSteps = true;
+        GausStepFitter gsf(mean0, sigma0, height0, fitName, "WWS");
+        fitDone = gsf.fit(ph) == 0;
+      // Use gaus from RMS.
+      } else if ( fitName.substr(0,5) == "rgaus" ) {
+        if ( m_LogLevel >= 4 ) cout << myname << "  Doing fixed rms fit." << endl;
+        double sigma0 = 0.0;
+        double nsigma = 4.0;
+        Name spar1 = fitName.substr(5);
+        Name spar2;
+        if ( spar1.size() ) {
+          if ( spar1[0] == '_' ) spar1 = spar1.substr(1);
+          string::size_type ipos = spar1.find("_");
+          if ( ipos != string::npos ) {
+            spar2 = spar1.substr(ipos+1);
+            spar1 = spar1.substr(0, ipos);
+            istringstream ssin2(spar2);
+            ssin2 >> nsigma;
+          }
+          istringstream ssin1(spar1);
+          ssin1 >> sigma0;
+        }
+        GausRmsFitter grf(sigma0, nsigma, fitName);
+        if ( m_LogLevel >=4 ) grf.setLogLevel(m_LogLevel - 3);
+        if ( grf.fit(ph, mean0) == 0 ) {
+          fitDone = true;
+        } else {
+          pf = new TF1("mygaus", "gaus");
+        }
       } else {
         pf = new TF1(fitName.c_str(), fitName.c_str());
       }
-      if ( m_LogLevel >= 4 ) cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
-      bool fitDone = false;
-      // For gaus fit, try to find a minimum close to the input value.
-      // If a fit is succeeds, its function replaces the initial function.
-      if ( doGausSigmaSteps ) {
-        double sigma = sigma0;
-        double sigfac = 2.0;
-        for ( int ifit=0; ifit<5; ++ifit ) {
-          TF1* pffix = gausTF1(height0, mean0, sigma, "sumgaus");
-          double sigmax = 1.1*sigfac*sigma;
-          double sigmin = 0.9*sigma/sigfac;
-          if ( m_LogLevel >= 4 ) cout << myname << "  Doing constrained fit " << ifit
-                                      << " with pos=" << mean0 << ", sigma=" << sigma
-                                      << " (" << sigmin << ", " << sigmax << ")" << endl;
-          pffix->SetParameter(2, sigma);
-          pffix->SetParLimits(2, sigmin, sigmax);
-          pffix->SetParLimits(0, 0.1*height0, 2.0*height0);   // Don't let height go negative.
-          string fopt = "WWS";
-          //string fopt = "LS";
-          if ( m_LogLevel < 4 ) fopt += "Q"; 
-          int fstat = quietHistFit(ph, pffix, fopt.c_str());
-          double signew = pffix->GetParameter(2);
-          bool atHiLimit = signew > 0.999*sigmax;
-          bool atLoLimit = signew < 1.001*sigmin;
-          if ( m_LogLevel >= 4 ) cout << myname << "  status " << fstat << ", fit sigma=" << signew  << endl;
-          //                            << ", fCstatu=" << gMinuit->fCstatu << endl;
-          if ( fstat == 0 && !atHiLimit && !atLoLimit ) {
-            fitDone = true;
-            delete pf;
-            pf = pffix;
-            break;
-          }
-          ph->GetListOfFunctions()->Clear();   // Otherwise we may get a crash when we try to view saved copy of histo
-          delete pffix;
-          if ( atLoLimit ) sigma /= sigfac;
-          else             sigma *= sigfac;
-        }
+      if ( m_LogLevel >= 4 && pf != nullptr ) {
+        cout << myname << "  Created function " << pf->GetName() << " at " << std::hex << pf << endl;
       }
       if ( ! fitDone ) {
         if ( m_LogLevel >= 4 ) cout << myname << "  Doing unconstrained fit" << endl;
@@ -1307,11 +1302,13 @@ void AdcRoiViewer::writeSumPlots() const {
         pman->setRangeX(xmin, xmax);
       }
       NameVector labs;
-      TF1* pffit = ph->GetFunction("sumgaus");
+      TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
       if ( pffit != nullptr ) {
+        string fnam = pffit->GetName();
         double mean = pffit->GetParameter("Mean");
         double sigm = pffit->GetParameter("Sigma");
         double rat = mean == 0 ? 0.0 : sigm/mean;
+        labs.push_back(fnam);
         ostringstream ssout;
         ssout.precision(3);
         ssout.setf(std::ios_base::fixed);

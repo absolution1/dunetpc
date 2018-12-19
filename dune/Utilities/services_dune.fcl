@@ -205,6 +205,7 @@ dunedphase3x1x1_simulation_services: {
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
+ OpDigiProperties: 		 @local::dunedphase3x1x1_opdigiproperties
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -232,10 +233,10 @@ dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "HadronElastic",
                                            "Stopping",
                                            "NeutronTrackingCut" ]
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 24000
-dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 1
-dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.2
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 		24000
+dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 	1
+dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
 
 ############################
 ### protoDUNE dual phase ###
