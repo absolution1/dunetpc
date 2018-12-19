@@ -205,6 +205,11 @@ protodune_geo.Name: "protodune" # will be made lower case anyway
 protodune_geo.GDML: "protodune_v5.gdml"
 protodune_geo.ROOT: "protodune_v5.gdml"
 
+iceberg_geo: @local::dune10kt_geo
+iceberg_geo.Name: "iceberg" # will be made lower case anyway
+iceberg_geo.GDML: "iceberg_v1.gdml"
+iceberg_geo.ROOT: "iceberg_v1.gdml"
+
 dune35t_geo:
 {
  Name:     "dune35t4apa_v6"

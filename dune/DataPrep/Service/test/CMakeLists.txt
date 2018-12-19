@@ -84,4 +84,5 @@ cet_test(test_ToolBasedRawDigitPrepService SOURCES test_ToolBasedRawDigitPrepSer
   LIBRARIES
     dune_ArtSupport
     lardataobj_RawData
+    ${ROOT_HIST}
 )

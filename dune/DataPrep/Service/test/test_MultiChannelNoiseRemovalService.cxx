@@ -40,36 +40,18 @@ int test_MultiChannelNoiseRemovalService(int a_LogLevel =1) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_MultiChannelNoiseRemovalService.fcl";
-  ofstream fout(fclfile.c_str());
   AdcSignal threshold = 4.0;
-  fout << "services.AdcChannelNoiseRemovalService: {" << endl;
-  fout << "  service_provider: ThresholdNoiseRemovalService" << endl;
-  fout << "  Threshold:    " << threshold <<  endl;
-  fout << "  LogLevel:       " << a_LogLevel << endl;
-  fout << "}" << endl;
-  fout << "services.AdcNoiseRemovalService: {" << endl;
-  fout << "  service_provider: MultiChannelNoiseRemovalService" << endl;
-  fout << "  LogLevel:       " << a_LogLevel << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-    cout << myname << line << endl;
-    cout << myname << "Add noise removal service." << endl;
-    assert( ash.addService("AdcChannelNoiseRemovalService", fclfile, true) == 0 );
-    assert( ash.addService("AdcNoiseRemovalService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  std::ostringstream oss;
+  oss << "services.AdcChannelNoiseRemovalService: {" << endl;
+  oss << "  service_provider: ThresholdNoiseRemovalService" << endl;
+  oss << "  Threshold:    " << threshold <<  endl;
+  oss << "  LogLevel:       " << a_LogLevel << endl;
+  oss << "}" << endl;
+  oss << "services.AdcNoiseRemovalService: {" << endl;
+  oss << "  service_provider: MultiChannelNoiseRemovalService" << endl;
+  oss << "  LogLevel:       " << a_LogLevel << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   cout << myname << line << endl;
   cout << myname << "Create samples." << endl;
@@ -119,7 +101,7 @@ int test_MultiChannelNoiseRemovalService(int a_LogLevel =1) {
       assert( sigs[isig] == sigsexp[icha][isig] );
     }
   }
-  
+
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
   return 0;

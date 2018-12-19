@@ -157,6 +157,8 @@ public:
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
   using FloatMap = std::map<Name, float>;
+  using IndexByIndexMap = std::map<Index, Index>;
+  using IndexByNameMap = std::map<Name, Index>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -187,12 +189,13 @@ public:
     FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
     // Channel summary histograms.
     HistMap chanSumHists;
-    NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
-    NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
-    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
-    NameMap chanSumPlotNames;          // Plot name indexed by chansum name
-    FloatMap chanSumPlotYMins;         // Min value of y for plot.
-    FloatMap chanSumPlotYMaxs;         // Max value of y for plot.
+    NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
+    NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
+    IndexByNameMap chanSumHistChannels; // Channel for each chansum name
+    NameMap chanSumPlotNames;           // Plot name indexed by chansum name
+    FloatMap chanSumPlotYMins;          // Min value of y for plot.
+    FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
@@ -203,10 +206,13 @@ public:
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
     Name getChanSumPlotName(Name hnam) const;
+    Index getChannelStatus(Index icha) const;
+    Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
     Index nRoiPlot =0;
+    IndexByIndexMap channelStatuses;     // Status indexed by channel number
   };
 
   using StatePtr = std::shared_ptr<State>;
