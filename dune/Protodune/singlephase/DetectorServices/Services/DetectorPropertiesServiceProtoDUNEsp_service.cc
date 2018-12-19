@@ -28,6 +28,9 @@ namespace spdp{
     reg.sPostOpenFile.watch    (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
     reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preProcessEvent);
     reg.sPreBeginRun.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
+
+
+    
 /*
     // obtain the required dependency service providers and create our own
     const geo::GeometryCore* geo = lar::providerFrom<geo::Geometry>();

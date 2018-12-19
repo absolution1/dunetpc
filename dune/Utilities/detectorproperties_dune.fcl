@@ -87,13 +87,13 @@ protodunesp_detproperties :
 
 
 
- #GetReadoutwindowfromTable: true
- #GetHVvaluefromTable: true
+ GetHVDriftfromRunTable: true   #will look up drift HV voltage from table of runs and update Efield accordingly 
+ GetReadOutWindowSizefromRunTable: true #will look up readout window size from table of runs
 
 
   # Drift properties 
 Temperature:      87              #Kelvin
-Efield:           [0.9,0.666,0.8]  #(predicted for microBooNE) #will be overwritten if GetHVvaluefromTable is enabled
+Efield:           [0.5,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
 Electronlifetime: 3.0e3               #microseconds  
 SternheimerA:     0.1956  # Ar Sternheimer parameter a.
 SternheimerK:     3.0000  # Ar Sternheimer parameter k.
@@ -109,16 +109,6 @@ TimeOffsetV:       0.
 TimeOffsetZ:       0.
 
 }
-# Implement new 6000 tick readout window (500 before trigger)
-protodune_detproperties_owen:                   @local::protodunesp_detproperties
-protodune_detproperties_owen.Temperature:       87
-protodune_detproperties_owen.Electronlifetime:  3.0e3
-protodune_detproperties_owen.Efield:           [0.9,0.666,0.8]  #(predicted for microBooNE)
-protodune_detproperties_owen.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
-protodune_detproperties_owen.NumberTimeSamples: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
-protodune_detproperties_owen.ReadOutWindowSize: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
-protodune_detproperties_owen.TimeOffsetU:       0.
-protodune_detproperties_owen.TimeOffsetV:       0.
-protodune_detproperties_owen.TimeOffsetZ:       0.
+
 
 END_PROLOG

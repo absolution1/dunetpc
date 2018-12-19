@@ -17,7 +17,7 @@
 #include "lardataalg/DetectorInfo/DetectorClocks.h"
 #include "lardataalg/DetectorInfo/DetectorProperties.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "dune/SlowControlsServices/TPCHVServiceProtoDUNE.h"
+
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Sequence.h"
@@ -47,6 +47,16 @@ namespace spdp{
           "electric field in front of each wire plane (the last one is the big one!) [kV/cm]")
           };
     
+
+       fhicl::Atom<bool        > GetHVDriftfromRunTable {
+          Name("GetHVDriftfromRunTable"),
+          Comment("option to get HV drift field from table of Runs")
+        };
+          fhicl::Atom<bool        > GetReadOutWindowSizefromRunTable{
+          Name("GetReadOutWindowSizefromRunTable"),
+          Comment("option to get ReadoutWindowSize and NumberTimeSamples from table of Runs")
+        };
+
         fhicl::Atom<double      > Electronlifetime         {
           Name("Electronlifetime"        ),
           Comment("electron lifetime in liquid argon [us]")
@@ -300,8 +310,11 @@ namespace spdp{
       const geo::GeometryCore* fGeo;
       
 
+
+      bool                        fGetHVDriftfromRunTable;
+      bool                        fGetReadOutWindowSizefromRunTable;
       double                         fHV_cath;   //  <KV
-      std::vector< double >          fEfield;           ///< kV/cm (per inter-plane volume)
+      std::vector<double>          fEfield;           ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime; ///< microseconds
       double                         fTemperature;      ///< kelvin
       double       fSamplingRate;      ///< in ns
