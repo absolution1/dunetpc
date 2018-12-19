@@ -40,64 +40,40 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_Dune35tNoiseRemovalService.fcl";
-  if ( ! useExistingFcl ) {
+  if (useExistingFcl) {
+    cout << myname << "Using existing top-level FCL." << endl;
+    ArtServiceHelper::load_services("test_Dune35tNoiseRemovalService.fcl",
+                                    ArtServiceHelper::FileOnPath);
+  } else {
     cout << myname << "Creating top-level FCL." << endl;
     string gname = "dune35t4apa_v6";
-    ofstream fout(fclfile.c_str());
-    fout << "services.Geometry: {" << endl;
-    fout << "  DisableWiresInG4: true" << endl;
-    fout << "  GDML: \"" << gname << ".gdml\"" << endl;
-    fout << "  Name: \"" << gname << "\"" << endl;
-    fout << "  ROOT: \"" << gname << "\"" << endl;
-    fout << "  SortingParameters: { DetectorVersion: \"" << gname << "\" ChannelsPerOpDet: 12} " << endl;
-    fout << "  SurfaceY: 0" << endl;
-    fout << "}" << endl;
-    fout << "services.ExptGeoHelperInterface: {" << endl;
-    fout << "  service_provider: \"DUNEGeometryHelper\"" << endl;
-    fout << "}" << endl;
-    fout << "services.ChannelMapService: {" << endl;
-    fout << "  LogLevel: 1" << endl;
-    fout << "  FileName: \"35tTPCChannelMap_v6.txt\"" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcNoiseRemovalService: {" << endl;
-    fout << "  service_provider: Dune35tNoiseRemovalService" << endl;
-    fout << "           LogLevel: 1" << endl;
-    fout << "       GroupingFlag: 1" << endl;
-    fout << "     SkipStuckCodes: false" << endl;
-    fout << "        SkipSignals: false" << endl;
-    fout << "  CorrectStuckCodes: true" << endl;
-    fout << "         ShowGroups: 2" << endl;
-    fout << "  ShowGroupsChannel: 4" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
-    cout << myname << "Using existing top-level FCL." << endl;
-  }
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-
-    cout << myname << line << endl;
-    cout << myname << "Add the Geometry services." << endl;
-    assert( ash.addService("Geometry", fclfile, true) == 0 );
-    assert( ash.addService("ExptGeoHelperInterface", fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Add LBNE channel map service." << endl;
-    assert( ash.addService("ChannelMapService", fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Add noise removal service." << endl;
-    assert( ash.addService("AdcNoiseRemovalService", fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
+    std::stringstream config;
+    config << "services.Geometry: {" << endl;
+    config << "  DisableWiresInG4: true" << endl;
+    config << "  GDML: \"" << gname << ".gdml\"" << endl;
+    config << "  Name: \"" << gname << "\"" << endl;
+    config << "  ROOT: \"" << gname << "\"" << endl;
+    config << "  SortingParameters: { DetectorVersion: \"" << gname << "\" ChannelsPerOpDet: 12} " << endl;
+    config << "  SurfaceY: 0" << endl;
+    config << "}" << endl;
+    config << "services.ExptGeoHelperInterface: {" << endl;
+    config << "  service_provider: \"DUNEGeometryHelper\"" << endl;
+    config << "}" << endl;
+    config << "services.ChannelMapService: {" << endl;
+    config << "  LogLevel: 1" << endl;
+    config << "  FileName: \"35tTPCChannelMap_v6.txt\"" << endl;
+    config << "}" << endl;
+    config << "services.AdcNoiseRemovalService: {" << endl;
+    config << "  service_provider: Dune35tNoiseRemovalService" << endl;
+    config << "           LogLevel: 1" << endl;
+    config << "       GroupingFlag: 1" << endl;
+    config << "     SkipStuckCodes: false" << endl;
+    config << "        SkipSignals: false" << endl;
+    config << "  CorrectStuckCodes: true" << endl;
+    config << "         ShowGroups: 2" << endl;
+    config << "  ShowGroupsChannel: 4" << endl;
+    config << "}" << endl;
+    ArtServiceHelper::load_services(config);
   }
 
   cout << myname << line << endl;
@@ -184,10 +160,6 @@ int test_Dune35tNoiseRemovalService(bool useExistingFcl) {
       assert(data.samples[isig] == 0.0);
     }
   }
-
-  cout << myname << line << endl;
-  cout << myname << "Close service helper." << endl;
-  ArtServiceHelper::close();
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

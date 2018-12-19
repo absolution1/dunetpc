@@ -50,33 +50,19 @@ int test_StandardRawDigitExtractService() {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_StandardRawDigitExtractService.fcl";
-  ofstream fout(fclfile.c_str());
+
   int loglevel = 1;
-  fout << "#include \"dataprep_tools.fcl\"" << endl;
-  fout << "services.RawDigitExtractService: {" << endl;
-  fout << "  service_provider: StandardRawDigitExtractService" << endl;
-  fout << "  LogLevel: " << loglevel << endl;
-  fout << "  DigitReadTool: digitReader" << endl;
-  fout << "  PedestalOption: 1" << endl;
-  fout << "  FlagStuckOff: true" << endl;
-  fout << "  FlagStuckOn: true" << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add raw digit extract service." << endl;
-  assert( ash.addService("RawDigitExtractService", fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  std::ostringstream oss;
+  oss << "#include \"dataprep_tools.fcl\"" << endl;
+  oss << "services.RawDigitExtractService: {" << endl;
+  oss << "  service_provider: StandardRawDigitExtractService" << endl;
+  oss << "  LogLevel: " << loglevel << endl;
+  oss << "  DigitReadTool: digitReader" << endl;
+  oss << "  PedestalOption: 1" << endl;
+  oss << "  FlagStuckOff: true" << endl;
+  oss << "  FlagStuckOn: true" << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   AdcCount lowbits = 63;
   AdcCount highbits = 4095 - 63;
@@ -132,7 +118,6 @@ int test_StandardRawDigitExtractService() {
   cout << myname << "Fetch raw digit extract service." << endl;
   ServiceHandle<RawDigitExtractService> hrdx;
   hrdx->print();
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Extract data from digit." << endl;

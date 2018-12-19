@@ -51,32 +51,15 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_DuneDeconvolutionService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services:      @local::dune35t_services" << endl;
-  fout << "services.AdcDeconvolutionService: {" << endl;
-  fout << "  service_provider: DuneDeconvolutionService" << endl;
-  fout << "  LogLevel:              " << a_LogLevel << endl;
-  fout << "}" << endl;
-  fout.close();
 
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-
-    cout << myname << line << endl;
-    cout << myname << "Add services." << endl;
-    assert( ash.addServices(fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-
-  }
+  std::ostringstream oss;
+  oss << "#include \"services_dune.fcl\"" << endl;
+  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services.AdcDeconvolutionService: {" << endl;
+  oss << "  service_provider: DuneDeconvolutionService" << endl;
+  oss << "  LogLevel:              " << a_LogLevel << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   const unsigned int nsig = 100;
   AdcChannelData acd;
@@ -135,8 +118,6 @@ int main(int argc, char* argv[]) {
     ssarg >> a_LogLevel;
   }
   int rstat = test_DuneDeconvolutionService(a_LogLevel);
-  cout << myname << "Closing service helper." << endl;
-  ArtServiceHelper::close();
   cout << myname << "Exiting." << endl;
   return rstat;
 }

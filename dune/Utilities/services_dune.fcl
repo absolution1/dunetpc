@@ -25,6 +25,7 @@
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
 #include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 
@@ -204,6 +205,7 @@ dunedphase3x1x1_simulation_services: {
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
+ OpDigiProperties: 		 @local::dunedphase3x1x1_opdigiproperties
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -231,10 +233,10 @@ dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "HadronElastic",
                                            "Stopping",
                                            "NeutronTrackingCut" ]
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 24000
-dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 1
-dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.2
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 		24000
+dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 	1
+dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
 
 ############################
 ### protoDUNE dual phase ###
@@ -359,6 +361,18 @@ protodune_rawdecoding_services: {
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
   PdspChannelMapService:        @local::pdspchannelmap
+}
+
+iceberg_rawdecoding_services: {
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::iceberg_geo
+  DetectorClocksService:        @local::protodune_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+  IcebergChannelMapService:     @local::icebergchannelmap
 }
 
 protodune_data_services: {

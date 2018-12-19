@@ -69,117 +69,105 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_StandardRawDigitPrepService.fcl";
   bool usePedestalAdjustment = false;
   vector<string> snames;
   bool noisy = false;
-  if ( useExistingFcl ) {
-  } else if ( useFclFile ) {
+  if (useExistingFcl) {
+    ArtServiceHelper::load_services("test_StandardRawDigitPrepService.fcl",
+                                    ArtServiceHelper::FileOnPath);
+  }
+  else if (useFclFile) {
     // Use the DUNE fcl for 35-ton reco.
     // Disable noise removal and deconvolution because these make it difficult
     // to predict the result.
-    ofstream fout(fclfile.c_str());
-    fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services: @local::dune35tdata_reco_services" << endl;
+    std::stringstream config;
+    config << "#include \"services_dune.fcl\"" << endl;
+    config << "services: @local::dune35tdata_reco_services" << endl;
     if ( noisy ) {
-      fout << "services.RawDigitExtractService.LogLevel: 3" << endl;
-      fout << "services.RawDigitPrepService.LogLevel: 3" << endl;
-      fout << "services.RawDigitPrepService.DoDump: true" << endl;
-      fout << "services.RawDigitPrepService.DumpChannel: 0" << endl;
+      config << "services.RawDigitExtractService.LogLevel: 3" << endl;
+      config << "services.RawDigitPrepService.LogLevel: 3" << endl;
+      config << "services.RawDigitPrepService.DoDump: true" << endl;
+      config << "services.RawDigitPrepService.DumpChannel: 0" << endl;
     }
-    fout << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
-    fout << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
-    fout << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
-    fout << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
-    fout.close();
+    config << "services.RawDigitPrepService.DoNoiseRemoval: false" << endl;
+    config << "services.RawDigitPrepService.DoDeconvolution: false" << endl;
+    config << "services.RawDigitPrepService.DoIntermediateStates: true" << endl;
+    config << "services.AdcChannelDataCopyService.CopyFlags: true" << endl;
+    ArtServiceHelper::load_services(config);
     snames.push_back("extracted");
     snames.push_back("mitigated");
   } else {
-    ofstream fout(fclfile.c_str());
-    fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services:      @local::dune35t_services" << endl;
-    fout << "services.RawDigitExtractService: {" << endl;
-    fout << "  service_provider: StandardRawDigitExtractService" << endl;
-    fout << "  LogLevel:        1" << endl;
-    fout << "  PedestalOption:  1" << endl;
-    fout << "  FlagStuckOff: true" << endl;
-    fout << "  FlagStuckOn:  true" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcMitigationService: {" << endl;
-    fout << "  service_provider: InterpolatingAdcMitigationService" << endl;
-    fout << "  LogLevel:              1" << endl;
-    fout << "  SkipUnderflows:     true" << endl;
-    fout << "  SkipOverflows:      true" << endl;
-    fout << "  MaxConsecutiveSamples: 3" << endl;
-    fout << "  MaxConsecutiveFlag:    0" << endl;
-    fout << "}" << endl;
-    fout << "services.PedestalEvaluationService: {" << endl;
-    fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "  LogLevel:           1" << endl;
-    fout << "  SkipFlaggedSamples: true" << endl;
-    fout << "  SkipSignals:        true" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcChannelNoiseRemovalService: {" << endl;
-    fout << "  service_provider: ThresholdNoiseRemovalService" << endl;
-    fout << "  Threshold:  10.0" <<  endl;
-    fout << "  LogLevel:      1" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcNoiseRemovalService: {" << endl;
-    fout << "  service_provider: MultiChannelNoiseRemovalService" << endl;
-    fout << "  LogLevel:       1" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcChannelDataCopyService: {" << endl;
-    fout << "  service_provider: ConfigurableAdcChannelDataCopyService" << endl;
-    fout << "  LogLevel: 1" << endl;
-    fout << "  CopyChannel:     true" << endl;
-    fout << "  CopyPedestal:    true" << endl;
-    fout << "  CopySamples:     true" << endl;
-    fout << "  CopyFlags:       true" << endl;
-    fout << "  CopyDigit:       true" << endl;
-    fout << "  CopyDigitIndex:  true" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcRoiBuildingService: {" << endl;
-    fout << "  service_provider: KeepAllRoiBuildingService" << endl;
-    fout << "  LogLevel:       1" << endl;
-    fout << "}" << endl;
-    fout << "services.AdcWireBuildingService: {" << endl;
-    fout << "  service_provider: StandardAdcWireBuildingService" << endl;
-    fout << "  LogLevel:       1" << endl;
-    fout << "}" << endl;
-    fout << "services.RawDigitPrepService: {" << endl;
-    fout << "  service_provider: StandardRawDigitPrepService" << endl;
-    fout << "  LogLevel:                 1" << endl;
-    fout << "  SkipBad:              false" << endl;
-    fout << "  SkipNoisy:            false" << endl;
-    fout << "  DoMitigation:          true" << endl;
-    fout << "  DoEarlySignalFinding: false" << endl;
-    fout << "  DoNoiseRemoval:        true" << endl;
-    fout << "  DoDeconvolution:      false" << endl;
-    fout << "  DoROI:                 true" << endl;
-    fout << "  DoWires:               true" << endl;
-    fout << "  DoPedestalAdjustment: false" << endl;
-    fout << "  DoIntermediateStates:  true" << endl;
-    fout << "}" << endl;
-    fout.close();
+    std::stringstream config;
+    config << "#include \"services_dune.fcl\"" << endl;
+    config << "services:      @local::dune35t_services" << endl;
+    config << "services.RawDigitExtractService: {" << endl;
+    config << "  service_provider: StandardRawDigitExtractService" << endl;
+    config << "  LogLevel:        1" << endl;
+    config << "  PedestalOption:  1" << endl;
+    config << "  FlagStuckOff: true" << endl;
+    config << "  FlagStuckOn:  true" << endl;
+    config << "}" << endl;
+    config << "services.AdcMitigationService: {" << endl;
+    config << "  service_provider: InterpolatingAdcMitigationService" << endl;
+    config << "  LogLevel:              1" << endl;
+    config << "  SkipUnderflows:     true" << endl;
+    config << "  SkipOverflows:      true" << endl;
+    config << "  MaxConsecutiveSamples: 3" << endl;
+    config << "  MaxConsecutiveFlag:    0" << endl;
+    config << "}" << endl;
+    config << "services.PedestalEvaluationService: {" << endl;
+    config << "  service_provider: MedianPedestalService" << endl;
+    config << "  LogLevel:           1" << endl;
+    config << "  SkipFlaggedSamples: true" << endl;
+    config << "  SkipSignals:        true" << endl;
+    config << "}" << endl;
+    config << "services.AdcChannelNoiseRemovalService: {" << endl;
+    config << "  service_provider: ThresholdNoiseRemovalService" << endl;
+    config << "  Threshold:  10.0" <<  endl;
+    config << "  LogLevel:      1" << endl;
+    config << "}" << endl;
+    config << "services.AdcNoiseRemovalService: {" << endl;
+    config << "  service_provider: MultiChannelNoiseRemovalService" << endl;
+    config << "  LogLevel:       1" << endl;
+    config << "}" << endl;
+    config << "services.AdcChannelDataCopyService: {" << endl;
+    config << "  service_provider: ConfigurableAdcChannelDataCopyService" << endl;
+    config << "  LogLevel: 1" << endl;
+    config << "  CopyChannel:     true" << endl;
+    config << "  CopyPedestal:    true" << endl;
+    config << "  CopySamples:     true" << endl;
+    config << "  CopyFlags:       true" << endl;
+    config << "  CopyDigit:       true" << endl;
+    config << "  CopyDigitIndex:  true" << endl;
+    config << "}" << endl;
+    config << "services.AdcRoiBuildingService: {" << endl;
+    config << "  service_provider: KeepAllRoiBuildingService" << endl;
+    config << "  LogLevel:       1" << endl;
+    config << "}" << endl;
+    config << "services.AdcWireBuildingService: {" << endl;
+    config << "  service_provider: StandardAdcWireBuildingService" << endl;
+    config << "  LogLevel:       1" << endl;
+    config << "}" << endl;
+    config << "services.RawDigitPrepService: {" << endl;
+    config << "  service_provider: StandardRawDigitPrepService" << endl;
+    config << "  LogLevel:                 1" << endl;
+    config << "  SkipBad:              false" << endl;
+    config << "  SkipNoisy:            false" << endl;
+    config << "  DoMitigation:          true" << endl;
+    config << "  DoEarlySignalFinding: false" << endl;
+    config << "  DoNoiseRemoval:        true" << endl;
+    config << "  DoDeconvolution:      false" << endl;
+    config << "  DoROI:                 true" << endl;
+    config << "  DoWires:               true" << endl;
+    config << "  DoPedestalAdjustment: false" << endl;
+    config << "  DoIntermediateStates:  true" << endl;
+    config << "}" << endl;
+    ArtServiceHelper::load_services(config);
     usePedestalAdjustment = false;
     snames.push_back("extracted");
     snames.push_back("mitigated");
     snames.push_back("noiseRemoved");
   }
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add services." << endl;
-  assert( ash.addServices(fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
 
   AdcCount lowbits = 63;
   AdcCount highbits = 4095 - 63;
@@ -259,7 +247,6 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   cout << myname << "Fetch raw digit prep service." << endl;
   ServiceHandle<RawDigitPrepService> hrdp;
   hrdp->print();
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Prep data from digits." << endl;
@@ -368,7 +355,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     cout << myname << header << endl;
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
       cout << myname;
-      cout << setw(4) << chan << "-" 
+      cout << setw(4) << chan << "-"
            << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig];
       for ( unsigned int ista=0; ista<intSigs.size(); ++ista ) {
         cout << fixed << setprecision(1) << setw(8) << intSigs[ista]->at(isig);

@@ -35,29 +35,22 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_VintageDeconvoluter.fcl";
-  if ( ! useExistingFcl ) {
-    cout << myname << "Creating top-level FCL." << endl;
-    ofstream fout(fclfile.c_str());
-    fout << "#include \"services_dune.fcl\"" << endl;
-    //fout << "services: @local::protodune_reco_services" << endl;
-    fout << "services: @local::dune35t_services" << endl;
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: VintageDeconvoluter" << endl;
-    fout << "    LogLevel: 1" << endl;
-    fout << "  }" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
+  if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
+  } else {
+    cout << myname << "Creating top-level FCL." << endl;
+    std::ofstream config{fclfile};
+    config << "#include \"services_dune.fcl\"" << endl;
+    //config << "services: @local::protodune_reco_services" << endl;
+    config << "services: @local::dune35t_services" << endl;
+    config << "tools: {" << endl;
+    config << "  mytool: {" << endl;
+    config << "    tool_type: VintageDeconvoluter" << endl;
+    config << "    LogLevel: 1" << endl;
+    config << "  }" << endl;
+    config << "}" << endl;
   }
-
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  assert( ash.addServices(fclfile, true) == 0 );
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
@@ -99,10 +92,6 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
   for ( Index isam=0; isam<data0.samples.size(); ++isam ) {
     cout << isam << ": " << data0.samples[isam] << "  " << data.samples[isam] << endl;
   }
-
-  cout << myname << line << endl;
-  cout << "Closing service helper." << endl;
-  ArtServiceHelper::close();    // See https://cdcvs.fnal.gov/redmine/issues/10618
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

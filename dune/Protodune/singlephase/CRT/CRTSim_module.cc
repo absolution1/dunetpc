@@ -143,7 +143,7 @@ void CRT::CRTSim::produce(art::Event & e)
 
   //Utilities to go along with making Assns
   art::PtrMaker<sim::AuxDetSimChannel> makeSimPtr(e, channels.id());
-  art::PtrMaker<CRT::Trigger> makeTrigPtr(e, *this);
+  art::PtrMaker<CRT::Trigger> makeTrigPtr(e);
 
   //Get access to geometry for each event (TODO: -> subrun?) in case CRTs move later
   art::ServiceHandle<geo::Geometry> geom;

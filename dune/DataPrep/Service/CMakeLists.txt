@@ -26,7 +26,7 @@ simple_plugin(StandardRawDigitExtractService   "service"
              )
 
 simple_plugin(ThresholdNoiseRemovalService   "service"
-		larcorealg_Geometry
+                larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

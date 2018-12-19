@@ -45,36 +45,15 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_StandardAdcWireBuildingService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services:      @local::dune35t_services" << endl;
-  fout << "services.AdcWireBuildingService: {" << endl;
-  fout << "  service_provider: StandardAdcWireBuildingService" << endl;
-  fout << "  LogLevel:       " << a_LogLevel << endl;
-  fout << "}" << endl;
-  fout.close();
 
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-    cout << myname << line << endl;
-    cout << myname << "Add supporting services." << endl;
-    assert( ash.addService("ExptGeoHelperInterface", fclfile, true) == 0 );
-    assert( ash.addService("Geometry", fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Add wire building service." << endl;
-    assert( ash.addService("AdcWireBuildingService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  std::ostringstream oss;
+  oss << "#include \"services_dune.fcl\"" << endl;
+  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services.AdcWireBuildingService: {" << endl;
+  oss << "  service_provider: StandardAdcWireBuildingService" << endl;
+  oss << "  LogLevel:       " << a_LogLevel << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   cout << myname << line << endl;
   float fac = 250.0;
@@ -93,7 +72,7 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
   cout << myname << "  Track count: " << ntrk << endl;
   std::vector<raw::RawDigit> digits;
   digits.reserve(ndig);
-  unsigned int sigoff[ntrk][ndig]; 
+  unsigned int sigoff[ntrk][ndig];
   sigoff[0][0] = 10;
   sigoff[0][1] = 11;
   sigoff[0][2] = 12;
