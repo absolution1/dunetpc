@@ -50,3 +50,15 @@ cet_test(test_offsetLine SOURCES test_offsetLine.cxx
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_GausStepFitter SOURCES test_GausStepFitter.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
+cet_test(test_GausRmsFitter SOURCES test_GausRmsFitter.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
