@@ -14,10 +14,14 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Principal/Run.h"
+
 #include "art/Framework/Principal/Event.h"
 //#include "lardataalg/DetectorInfo/DetectorPropertiesStandard.h"
 #include "dune/Protodune/singlephase/DetectorServices/Providers/DetectorPropertiesProtoDUNEsp.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+
+
+#include "art/Persistency/Provenance/ScheduleContext.h"
 ///General LArSoft Utilities
 namespace spdp{
   
@@ -78,9 +82,9 @@ namespace spdp{
       DetectorPropertiesServiceProtoDUNEsp(fhicl::ParameterSet const& pset,
                                 art::ActivityRegistry& reg);
       virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
-      void   preProcessEvent(const art::Event& evt);
+      void   preProcessEvent(const art::Event& evt, art::ScheduleContext);
       void   postOpenFile(const std::string& filename);
-      void preBeginRun(const art::Run &run);
+      void preBeginRun(const art::Run& run);
       
       virtual const provider_type* provider() const override { return fProp.get();}
       

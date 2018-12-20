@@ -25,7 +25,7 @@ namespace spdp{
     : fInheritNumberTimeSamples(pset.get<bool>("InheritNumberTimeSamples", false))
   {
     // Register for callbacks.
-    reg.sPostOpenFile.watch    (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
+    reg.sPostOpenFile.watch   (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
     reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preProcessEvent);
     reg.sPreBeginRun.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
 
@@ -67,7 +67,7 @@ namespace spdp{
     return;
   }
   //-------------------------------------------------------------
-  void DetectorPropertiesServiceProtoDUNEsp::preProcessEvent(const art::Event& evt)
+  void DetectorPropertiesServiceProtoDUNEsp::preProcessEvent(const art::Event& evt, art::ScheduleContext)
   {
     // Make sure TPC Clock is updated with TimeService (though in principle it shouldn't change
     fProp->UpdateClocks(lar::providerFrom<detinfo::DetectorClocksService>());
@@ -78,7 +78,7 @@ namespace spdp{
 
 
 
-    void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run &run)
+    void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run& run)
   {
 //this is data specific now.
       std::cout<<"New run, Num is: "<<run.run()<<" Updating DetectorProperties."<<std::endl;
