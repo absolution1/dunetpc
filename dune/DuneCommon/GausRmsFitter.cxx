@@ -60,7 +60,7 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
       sigma = ph->GetRMS();
       mean = ph->GetMean();
       if ( m_LogLevel >= 2 ) {
-        cout << myname << setw(5) << itry << ": " << x1 << ", " << x2 << "): "
+        cout << myname << setw(5) << itry << ": (" << x1 << ", " << x2 << "): "
              << mean << ", " << sigma << endl;
       }
       if ( sigma < 1.001*sigmaOld ) {
@@ -86,7 +86,7 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
   pffix->FixParameter(1, mean);
   pffix->FixParameter(2, sigma);
   pffix->SetRange(x1, x2);
-  string fopt = "S";
+  string fopt = "SR";
   if ( m_LogLevel <= 1 ) fopt += "Q";
   int fstat = quietHistFit(ph, pffix, fopt);
   if ( m_LogLevel >= 1 ) cout << myname << "  status " << fstat << endl;
