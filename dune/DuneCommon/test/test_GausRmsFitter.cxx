@@ -110,7 +110,7 @@ int main(int narg, const char* argc[]) {
   if ( narg > 2 ) {
     string sarg = argc[2];
     satfracs.clear();
-    for ( int iarg=1; iarg<narg; ++iarg ) {
+    for ( int iarg=2; iarg<narg; ++iarg ) {
       double satfrac = 0.0;
       istringstream ssin(argc[iarg]);
       ssin >> satfrac;
