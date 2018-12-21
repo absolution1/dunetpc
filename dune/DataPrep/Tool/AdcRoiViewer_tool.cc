@@ -1546,11 +1546,6 @@ void AdcRoiViewer::writeChanSumPlots() const {
     if ( getState().chanSumPlotYMaxs.find(hnam) != getState().chanSumPlotYMaxs.end() ) {
       ymax = getState().chanSumPlotYMaxs[hnam];
       doRange = true;
-      TH1* php = pman->hist();
-      double del = 1.e-4*(ymax -ymin);
-      for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
-        if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
-      }
     }
     if ( doRange ) {
       Name yopt = getState().chanSumPlotYOpts[hnam];
@@ -1569,6 +1564,13 @@ void AdcRoiViewer::writeChanSumPlots() const {
       }
       if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
       pman->setRangeY(ymin, ymax);
+      TH1* php = pman->hist();
+      double del = 1.e-4*(ymax -ymin);
+      // Put points on the page.
+      for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
+        if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
+        if ( php->GetBinContent(ibin) < ymin ) php->SetBinContent(ibin, ymin+del);
+      }
     }
     bool highlightBadChannels = true;
     if ( highlightBadChannels ) {
