@@ -348,23 +348,28 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     bool havePlotYMax = false;
     float plotYMin = 0;
     float plotYMax = 0;
+    Name plotYOpt;
     if ( spran.size() ) {
       Name::size_type ipos = spran.find(":");
       if ( ipos == Name::npos ) {
         cout << myname << "WARNING: Channel summary range specifcation must include \":\"" << endl;
       } else {
+        Name::size_type jpos = spran.find(":", ipos+1);
         Name spmin = spran.substr(0, ipos);
         if ( spmin.size() ) {
           istringstream ssin(spmin);
           ssin >> plotYMin;
           havePlotYMin = true;
         } 
-        Name spmax = spran.substr(ipos+1);
+        Name spmax = spran.substr(ipos+1, jpos-ipos);
         if ( spmax.size() ) {
           istringstream ssin(spmax);
           ssin >> plotYMax;
           havePlotYMax = true;
         } 
+        if ( jpos != Name::npos ) {
+          plotYOpt = spran.substr(jpos+1);
+        }
       }
     }
     // Loop over channel ranges. Value "list" means all; otherwise just the one given.
@@ -416,6 +421,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       getState().chanSumPlotNames[hnam] = plname;
       if ( havePlotYMin ) getState().chanSumPlotYMins[hnam] = plotYMin;
       if ( havePlotYMax ) getState().chanSumPlotYMaxs[hnam] = plotYMax;
+      if ( havePlotYMin || havePlotYMax ) getState().chanSumPlotYOpts[hnam] = plotYOpt;
       if ( m_LogLevel >= 3 ) {
         cout << myname << "  Histogram name: " << hnam << endl;
         cout << myname << "      Value type: " << valType << endl;
@@ -429,6 +435,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "       Plot ymax: ";
         if ( havePlotYMax ) cout << plotYMax;
         cout << endl;
+        cout << "       Plot yopt: " << plotYOpt << endl;
       }
     }  // End loop over channel ranges
   }  // End loop over channel summmary histogram configurations
@@ -891,14 +898,28 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
   const string myname = "AdcRoiViewer::fillSumHists: ";
   // Fetch the run data.
   RunData rdat;
-  if ( m_pRunDataTool != nullptr ) rdat = m_pRunDataTool->runData(acd.run, acd.subRun);
+  if ( m_pRunDataTool != nullptr ) {
+    rdat = m_pRunDataTool->runData(acd.run, acd.subRun);
+    RunData& rdatOld = getState().runData;
+    if ( rdat.isValid() && ! rdatOld.isValid() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Setting run data." << endl;
+      rdatOld = rdat;
+    } else if ( rdat.isValid() && rdatOld.isValid() ) {
+      if ( rdat.run() != rdatOld.run() ) {
+        cout << myname << "Ignoring unexpected change in run number: " << rdatOld.run()
+             << " --> " << rdat.run();
+      }
+    } else if ( ! rdat.isValid() ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Run data not found." << endl;
+    }
+  }
   float pulserQin = 0.0;
   bool havePulserAmplitude = rdat.havePulserAmplitude() && rdat.havePulserSource();
   bool havePulserPeriod = rdat.havePulserPeriod();
   bool haveQin = false;
   if ( havePulserAmplitude ) {
     int qfac = rdat.pulserAmplitude();
-    if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
+    //if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
     pulserQin = (qfac - m_PulserDacOffset)*m_PulserStepCharge;
     haveQin = pulserQin != 0.0;
     if ( ! haveQin ) {
@@ -1517,6 +1538,7 @@ void AdcRoiViewer::writeChanSumPlots() const {
     bool doRange = false;
     float ymin = ph->GetMinimum();
     float ymax = ph->GetMaximum();
+    Name yopt;
     if ( getState().chanSumPlotYMins.find(hnam) != getState().chanSumPlotYMins.end() ) {
       ymin = getState().chanSumPlotYMins[hnam];
       doRange = true;
@@ -1531,6 +1553,20 @@ void AdcRoiViewer::writeChanSumPlots() const {
       }
     }
     if ( doRange ) {
+      Name yopt = getState().chanSumPlotYOpts[hnam];
+      double yfac = 0.0;
+      if ( yopt == "pamp") {
+        const RunData& rdat = getState().runData;
+        if ( rdat.havePulserAmplitude() ) {
+          yfac = rdat.pulserAmplitude();
+        } else {
+          cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+        }
+      }
+      if ( yfac != 0.0 ) {
+        ymin *= yfac;
+        ymax *= yfac;
+      }
       if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
       pman->setRangeY(ymin, ymax);
     }

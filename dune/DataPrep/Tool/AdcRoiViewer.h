@@ -84,9 +84,11 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
-//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//     pran - Range of y axis: ymin:ymax:yscal
+//            yscal = pamp: Multiply range by pulserAmplitude
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
+//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -134,6 +136,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
+#include "dune/DuneInterface/Data/RunData.h"
 #include <iostream>
 
 class AdcChannelStringTool;
@@ -196,6 +199,7 @@ public:
     NameMap chanSumPlotNames;           // Plot name indexed by chansum name
     FloatMap chanSumPlotYMins;          // Min value of y for plot.
     FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
+    NameMap chanSumPlotYOpts;           // Y scaling option for plot ("", "pamp")
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
@@ -213,6 +217,8 @@ public:
     Name cachedSampleUnit;
     Index nRoiPlot =0;
     IndexByIndexMap channelStatuses;     // Status indexed by channel number
+    // Run data.
+    RunData runData;
   };
 
   using StatePtr = std::shared_ptr<State>;
