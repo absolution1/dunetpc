@@ -840,19 +840,23 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
     if ( pfit != nullptr ) {
       NameVector labs;
       if ( pfit != nullptr ) {
+        double area = ph->Integral();
         double height = pfit->GetParameter("Height");
         double shaping = pfit->GetParameter("Shaping");
         double t0 = pfit->GetParameter("T0");
         ostringstream ssout;
         ssout.precision(3);
         ssout.setf(std::ios_base::fixed);
+        ssout << "Area: " << area;
+        labs.push_back(ssout.str());
+        ssout.str("");
         ssout << "Height: " << height;
         labs.push_back(ssout.str());
         ssout.str("");
         ssout << "Shaping: " << shaping << " tick";
         labs.push_back(ssout.str());
         ssout.str("");
-        ssout.precision(4);
+        ssout.precision(2);
         ssout << "Position: " << t0 << " tick";
         labs.push_back(ssout.str());
         ssout.str("");
