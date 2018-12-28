@@ -1107,21 +1107,22 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
     IntVector fstats = dm.getIntVector("roiFitStats");
-    bool check = true;
+    bool checkFit = varx.substr(0,3) == "fit";
+    double chiSquareDofMax = 0.0;   // was 1000; should be config param?
     if ( csds.size() != vals.size() ) {
       cout << "ERROR: Variable and chi-square/DF vectors have different sizes." << endl;
-      check = false;
+      checkFit = false;
     }
     if ( fstats.size() != vals.size() ) {
       cout << "ERROR: Variable and fit status vectors have different sizes." << endl;
-      check = false;
+      checkFit = false;
     }
     Index nval = 0;
     Index nvalSkip = 0;
     bool logerr = m_LogLevel >= 3 && nhstGood == 0;
     for ( Index ival=0; ival<vals.size(); ++ival ) {
       ++nval;
-      if ( check ) {
+      if ( checkFit ) {
         int fstat = fstats[ival];
         float csd = csds[ival];
         if ( fstat ) {
@@ -1129,7 +1130,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
                             << " (chi-square/DOF = " << csd << ")" << endl;
           ++nvalSkip;
           continue;
-        } else if ( csd > 1000.0 ) {
+        } else if ( chiSquareDofMax > 0.0 && csd > chiSquareDofMax ) {
           if ( logerr) cout << myname << "WARNING: Skipping entry with chi-square/DOF = " << csd << endl;
           ++nvalSkip;
           continue;
@@ -1146,9 +1147,9 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
     }
     // Show skips for the first histogram only.
-    if ( nhstGood == 0 && nvalSkip ) {
+    if ( nvalSkip ) {
       cout << myname << "WARNING: Skipped " << nvalSkip << " of " << nval
-           << " entries due to bad fit." << endl;
+           << " entries due to bad fit for histogram " << hnam << "." << endl;
     }
     ++nhstGood;
   }
