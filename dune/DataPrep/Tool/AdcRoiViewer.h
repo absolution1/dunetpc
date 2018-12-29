@@ -25,6 +25,8 @@
 //        RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
 //        RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
 //           SumHists - Array of summary histogram specifiers. See below.
+//          SumNegate - If true, the following variable replacements are made for all sum hists:
+//                        fitHeight --> fitHeightNeg
 //        SumPlotPadX - Number of pad columns in summary plots.
 //        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
@@ -43,6 +45,8 @@
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
 //            fitHeight - Height from ROI fit
+//            fitHeightNeg - Negative of height from ROI fit
+//            fitHeightGain - Height/(pulser charge)
 //            fitWidth - Shaping time from ROI fit
 //            fitPos - Postion [ticks] from ROI fit
 //            fitPosRem - remainder(fitPos, 1)
@@ -279,6 +283,7 @@ private:
   int m_MaxRoiPlots;
   Index m_RoiPlotPadX;
   Index m_RoiPlotPadY;
+  bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;
   Name m_RunDataTool;

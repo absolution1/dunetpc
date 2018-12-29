@@ -167,6 +167,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
   m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
   m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
+  m_SumNegate(ps.get<bool>("SumNegate")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
@@ -257,6 +258,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "fitCSNorm" ) xlab = "Normalized fit #chi^{2}";
     else if ( hvarx == "fitCSNormDof" ) xlab = "Normalized fit #chi^{2}/DOF";
     else if ( hvarx == "sigArea" ) xlab = "Area [%(SUNIT)%-Tick]";
+    else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%(SUNIT)%-Tick]";
 
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
@@ -452,6 +454,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "       MaxRoiPlots: " << m_MaxRoiPlots << endl;
     cout << myname << "       RoiPlotPadX: " << m_RoiPlotPadX << endl;
     cout << myname << "       RoiPlotPadY: " << m_RoiPlotPadY << endl;
+    cout << myname << "         SumNegate: " << (m_SumNegate ? "true" : "false") << endl;
     cout << myname << "       SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "       SumPlotPadY: " << m_SumPlotPadY << endl;
     cout << myname << "   RoiRootFileName: " << m_RoiRootFileName << endl;
@@ -976,6 +979,10 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     const HistInfo& hin0 = ish.second;
     ++nhst;
     Name varx = hin0.varx;
+    if ( m_SumNegate ) {
+      if ( varx == "fitHeight" ) varx = "fitHeightNeg";
+      if ( varx == "sigArea" ) varx = "sigAreaNeg";
+    }
     Name vary = hin0.vary;
     TH1* ph0 = hin0.ph;
     Name fitName = hin0.fitName;
@@ -983,6 +990,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     FloatVector vals;
     IntVector ivals;
     if      ( varx == "sigArea" )            vals = dm.getFloatVector("roiSigAreas");
+    else if ( varx == "sigAreaNeg" )         vals = dm.getFloatVector("roiSigAreas");
     else if ( varx == "fitHeight"    )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightNeg" )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightGain" )      vals = dm.getFloatVector("roiFitHeights");
@@ -1029,6 +1037,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     }
     float varfac = 1.0;
     if ( varx == "fitHeightNeg" ) varfac = -1.0;
+    if ( varx == "sigAreaNeg" ) varfac = -1.0;
     if ( varx == "fitCSNorm" ||  varx == "fitCSNormDof" ) {
       float pedrms = acd.pedestalRms;
       if ( pedrms > 0.0 ) varfac = 1.0/(pedrms*pedrms);
