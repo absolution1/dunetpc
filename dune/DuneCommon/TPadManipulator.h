@@ -185,6 +185,12 @@ public:
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
+  // Set margins. Negative value uses default margin.
+  void setMarginLeft(double xmar) { m_marginLeft = xmar; }
+  void setMarginRight(double xmar) { m_marginRight = xmar; }
+  void setMarginBottom(double xmar) { m_marginBottom = xmar; }
+  void setMarginTop(double xmar) { m_marginTop = xmar; }
+
   // Add a legend.
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
@@ -304,6 +310,10 @@ private:
   TVirtualPad* m_ppad;
   int m_canvasWidth;
   int m_canvasHeight;
+  double m_marginLeft;
+  double m_marginRight;
+  double m_marginBottom;
+  double m_marginTop;
   std::shared_ptr<TH1> m_ph;
   std::shared_ptr<TGraph> m_pg;
   std::string m_dopt;

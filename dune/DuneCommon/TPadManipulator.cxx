@@ -41,6 +41,8 @@ namespace {
 TPadManipulator::TPadManipulator()
 : m_parent(nullptr), m_ppad(nullptr),
   m_canvasWidth(0), m_canvasHeight(0),
+  m_marginLeft(-999), m_marginRight(-999),
+  m_marginBottom(-999), m_marginTop(-999),
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false), m_logZ(false),
@@ -432,12 +434,23 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       phc->SetDirectory(nullptr);
       phc->SetTitle("");
       pman->m_ph.reset(phc);
+      pman->m_dopt = sopt;
     } else {
       TGraph* pgc = (TGraph*) pg->Clone();
       pgc->SetTitle("");
       pman->m_pg.reset(pgc);
+      string soptOut;
+      for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
+        char ch = sopt[ipos];
+        if ( ch == 'a' || ch == 'A' ) {
+          cout << myname << "WARNING: Dropping " << ch << " from drawing option string for graph "
+               << pgc->GetName() << "." << endl;
+        } else {
+          soptOut += ch;
+        }
+      }
+      pman->m_dopt = soptOut;
     }
-    pman->m_dopt = sopt;
   }
   return update();
 } 
@@ -589,6 +602,10 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
+  if ( m_marginLeft >= 0.0 ) xml = m_marginLeft;
+  if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
+  if ( m_marginBottom >= 0.0 ) xmb = m_marginBottom;
+  if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
