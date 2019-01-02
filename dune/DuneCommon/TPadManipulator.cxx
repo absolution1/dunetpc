@@ -91,6 +91,10 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_canvasWidth = rhs.m_canvasWidth;
   m_canvasHeight = rhs.m_canvasHeight;
+  m_marginLeft = rhs.m_marginLeft;
+  m_marginRight = rhs.m_marginRight;
+  m_marginBottom = rhs.m_marginBottom;
+  m_marginTop = rhs.m_marginTop;
   // Clone drawn objects.
   m_ph.reset();
   m_pg.reset();
@@ -240,6 +244,8 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 //**********************************************************************
 
 int TPadManipulator::print(string fname) {
+  bool isBatch = gROOT->IsBatch();
+  if ( ! isBatch ) gROOT->SetBatch(true);
   TCanvas* pcan = canvas(true);
   if ( pcan == nullptr ) return 1;
   // Suppress printing message from Root.
@@ -255,6 +261,7 @@ int TPadManipulator::print(string fname) {
   pcan->Print(fname.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
+  if ( ! isBatch ) gROOT->SetBatch(false);
   return 0;
 }
 
