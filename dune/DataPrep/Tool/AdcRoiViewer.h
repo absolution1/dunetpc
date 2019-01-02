@@ -21,8 +21,14 @@
 //   PulserStepCharge - Charge per unit step in a pulser run
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
+//        MaxRoiPlots - Maximum # of ROI plots (<0 is no limit, 0 is no plots)
+//        RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
+//        RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
 //           SumHists - Array of summary histogram specifiers. See below.
+//        SumPlotPadX - Number of pad columns in summary plots.
+//        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
+//                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
 //        RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                      ROI is assigned a charge corresponding to the pulser setting.
@@ -32,7 +38,7 @@
 //
 // Summary histograms
 // ------------------
-// Summary histograms show the number of ROIs is bins of some ROI variable such
+// Summary histograms show the number of ROIs in bins of some ROI variable such
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
@@ -55,6 +61,8 @@
 //    xmin: Lower edge of the first bin
 //    xmax: Upper edge of the last bin
 //     fit: Name of function used to fit the distribution, e.g. "gaus"
+//    plot: Name of file where plot should be created. E.g. myvar%CHAN%.png
+//    pwid: Plot only includes region of this width around the peak.
 // If xmin < xmax and xmin > 0, the range will have width xmin centered on the median
 // value for the first event. If xmax > 0, the lower edge is rounded to that value.
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
@@ -72,9 +80,13 @@
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
+//              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
+//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//     plot - Name of the file where the histogram should be plotted.
+//            The histogram name is substituted for %HNAME%.
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -127,6 +139,8 @@
 class AdcChannelStringTool;
 class RunDataTool;
 class TimeOffsetTool;
+class IndexRangeTool;
+class TH1;
 
 class AdcRoiViewer : AdcChannelTool {
 
@@ -137,9 +151,14 @@ public:
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
   using HistMap = std::map<Name, TH1*>;
+  using HistVectorMap = std::map<Name, HistVector>;
   using NameMap = std::map<Name, Name>;
+  using NameVectorMap = std::map<Name, NameVector>;
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
+  using FloatMap = std::map<Name, float>;
+  using IndexByIndexMap = std::map<Index, Index>;
+  using IndexByNameMap = std::map<Name, Index>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -148,6 +167,9 @@ public:
     TH1* ph = nullptr;
     Name varx;
     Name vary;
+    Name fitName;
+    Name plotName;
+    float plotWidth;
   };
 
   using HistInfoMap = std::map<Name, HistInfo>;
@@ -159,21 +181,38 @@ public:
     // Summary histogram templates.
     HistInfoMap sumHistTemplates;
     // Summary histograms.
-    HistMap sumHists;
+    HistMap sumHists;            // Histograms indexed by histogram name.
+    HistVectorMap sumPlotHists;  // Histograms for each plot indexed by plot template name.
+    NameMap sumFitNames;         // Fit name for each plotted histogram indexed by hist name.
+    NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
+                                 // The first file name is used for plots with multiple hists.
+    FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
     // Channel summary histograms.
     HistMap chanSumHists;
-    NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
-    NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
-    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
+    NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
+    NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
+    IndexByNameMap chanSumHistChannels; // Channel for each chansum name
+    NameMap chanSumPlotNames;           // Plot name indexed by chansum name
+    FloatMap chanSumPlotYMins;          // Min value of y for plot.
+    FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
     ~State();
-    // Fetch the summary histogram for a histogram name.
-    TH1* getSumHist(Name hname);
+    // Fetch properties indexed by a histogram name.
+    TH1* getSumHist(Name hnam);
+    Name getSumFitName(Name hnam) const;
+    Name getSumPlotName(Name hnam) const;
+    float getSumPlotWidth(Name hnam) const;
     Name getChanSumHistTemplateName(Name hnam) const;
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
+    Name getChanSumPlotName(Name hnam) const;
+    Index getChannelStatus(Index icha) const;
+    Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
+    Index nRoiPlot =0;
+    IndexByIndexMap channelStatuses;     // Status indexed by channel number
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -197,6 +236,10 @@ public:
   void writeRoiHists(const DataMap& res, int dbg) const;
   void writeRoiHists(const DataMapVector& res, int dbg) const;
 
+  // Plot the ROIs for an event/channel.
+  // ADC channel data is used to build plot names.
+  void writeRoiPlots(const HistVector& hists, const AdcChannelData& acd) const;
+
   // Return the state.
   State& getState() const { return *m_state; }
 
@@ -209,9 +252,12 @@ public:
   // Fill the channel summary histograms.
   void fillChanSumHists() const;
 
-  // Write the summary histograms to the summary Root file.
+  // Write the summary histograms to the summary Root files
+  // and summary plots to the plot files.
   void writeSumHists() const;
+  void writeSumPlots() const;
   void writeChanSumHists() const;
+  void writeChanSumPlots() const;
 
 private:
 
@@ -224,22 +270,30 @@ private:
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
+  int m_MaxRoiPlots;
+  Index m_RoiPlotPadX;
+  Index m_RoiPlotPadY;
+  Index m_SumPlotPadX;
+  Index m_SumPlotPadY;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
+  Name m_ChannelRangeTool ="channelRanges";
   Name m_RoiRootFileName;
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
-  ChannelRangeMap m_ChannelRanges;
+  NameVector m_ChannelRanges;
 
   // Derived from configuration.
+  ChannelRangeMap m_crmap;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;
 
   // Tools.
-  const AdcChannelStringTool* m_adcStringBuilder =nullptr;
-  const RunDataTool*          m_pRunDataTool     =nullptr;
-  const TimeOffsetTool*       m_pTickOffsetTool  =nullptr;
+  const AdcChannelStringTool* m_adcStringBuilder  =nullptr;
+  const RunDataTool*          m_pRunDataTool      =nullptr;
+  const TimeOffsetTool*       m_pTickOffsetTool   =nullptr;
+  const IndexRangeTool*       m_pChannelRangeTool =nullptr;
 
 };
 

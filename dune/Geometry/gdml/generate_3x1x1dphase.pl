@@ -4,9 +4,13 @@
 #
 #  This script is based on generate_dunedphase10kt_v2.pl (see description 
 #  in there file for more info). Some parameters were changed to generate 
-#  a first version of the protodune dual phase geometry (e.g. driftTPCActive
-#  and number of CRM's). The beam window is not included in this version! 
+#  a first version of the 3x1x1 dual phase geometry (e.g. driftTPCActive
+#  and number of CRM's).
+#  More detector elements are going to be added (e.g. PMTs, field cage, ...)
 #  For more info, please contact Christoph Alt: christoph.alt@cern.ch 
+#
+#  !!!NOTE!!!: the readout is on a positive X -- a fix for electric field
+#              direction  problem in larsoft
 #
 ##################################################################################
 
@@ -156,18 +160,38 @@ $FracMassOfAir   =  1 - $FracMassOfSteel;
 $SpaceSteelSupportToWall    = 0;
 $SpaceSteelSupportToCeiling = 0;
 
-$DetEncWidth   =    $Cryostat_x
-                  + 2*($SteelSupport_x + $FoamPadding) + 2*$SpaceSteelSupportToWall;
-$DetEncHeight  =    $Cryostat_y
-                  + 2*($SteelSupport_y + $FoamPadding) + $SpaceSteelSupportToCeiling;
-$DetEncLength  =    $Cryostat_z
+$DetEncX  =    $Cryostat_x
+                  + 2*($SteelSupport_x + $FoamPadding) + $SpaceSteelSupportToCeiling;
+
+$DetEncY  =    $Cryostat_y
+                  + 2*($SteelSupport_y + $FoamPadding) + 2*$SpaceSteelSupportToWall;
+
+$DetEncZ  =    $Cryostat_z
                   + 2*($SteelSupport_z + $FoamPadding) + 2*$SpaceSteelSupportToWall;
 
-$posCryoInDetEnc_y = - $DetEncHeight/2 + $SteelSupport_y + $FoamPadding + $Cryostat_y/2;
+$posCryoInDetEnc_x = - $DetEncX/2 + $SteelSupport_x + $FoamPadding + $Cryostat_x/2;
 
 
 # 2*AirThickness is added to the world volume in x, y and z
 $AirThickness = 3000;
+
+  # We want the world origin to be vertically centered on active TPC
+  # This is to be added to the x and y position of every volume in volWorld
+
+$OriginXSet =  $DetEncX/2.0
+              -$SteelSupport_x
+              -$FoamPadding
+              -$SteelThickness
+              -$xLArBuffer
+              -$driftTPCActive/2.0;
+
+$OriginYSet =   $DetEncY/2.0
+              - $SpaceSteelSupportToWall
+              - $SteelSupport_y
+              - $FoamPadding
+              - $SteelThickness
+              - $yLArBuffer
+              - $widthTPCActive/2.0;
 
   # We want the world origin to be at the very front of the fiducial volume.
   # move it to the front of the enclosure, then back it up through the concrete/foam, 
@@ -175,31 +199,13 @@ $AirThickness = 3000;
   # dead LAr on the edge of the TPC)
   # This is to be added to the z position of every volume in volWorld
 
-$OriginZSet =   $DetEncLength/2.0 
+$OriginZSet =   $DetEncZ/2.0 
               - $SpaceSteelSupportToWall
               - $SteelSupport_z
               - $FoamPadding
               - $SteelThickness
               - $zLArBuffer
-	      - $borderCRM;
-
-  # We want the world origin to be vertically centered on active TPC
-  # This is to be added to the y position of every volume in volWorld
-
-$OriginYSet =   $DetEncHeight/2.0
-              - $SteelSupport_y
-              - $FoamPadding
-              - $SteelThickness
-              - $yLArBuffer
-              - $widthTPCActive/2.0;
-
-$OriginXSet =  $DetEncWidth/2.0
-              -$SpaceSteelSupportToWall
-              -$SteelSupport_x
-              -$FoamPadding
-              -$SteelThickness
-              -$xLArBuffer
-              -$driftTPCActive/2.0;
+              - $borderCRM;
 
 
 ##################################################################
@@ -256,7 +262,7 @@ print DEF <<EOF;
 
 -->
 
-   <position name="posCryoInDetEnc"     unit="cm" x="0" y="$posCryoInDetEnc_y" z="0"/>
+   <position name="posCryoInDetEnc"     unit="cm" x="$posCryoInDetEnc_x" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
@@ -383,6 +389,7 @@ print TPC <<EOF;
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
     </volume>
 EOF
 
@@ -408,7 +415,7 @@ print TPC <<EOF;
       <solidref ref="CRMVPlane"/>
 EOF
 
-if ($wires_on==1) # add wires to Z plane
+if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
 for($i=0;$i<$nChannelsWidthPerCRM;++$i)
 {
@@ -433,7 +440,7 @@ print TPC <<EOF;
 EOF
 
 
-if ($wires_on==1) # add wires to X plane
+if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
 {
 for($i=0;$i<$nChannelsLengthPerCRM;++$i)
 {
@@ -489,7 +496,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="@{[$posTPCActive[0]+$padWidth]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
@@ -577,6 +584,7 @@ sub gen_pmt {
  <volume name="volPMTplatecoat">
   <materialref ref="TPB"/>
   <solidref ref="PMT_plate_coat"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
  </volume>
 
  <volume name="vol_PMT_AcrylicPlate">
@@ -587,6 +595,7 @@ sub gen_pmt {
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -823,9 +832,9 @@ print ENCL <<EOF;
     </subtraction>
 
     <box name="DetEnclosure" lunit="cm" 
-      x="$DetEncWidth"
-      y="$DetEncHeight"
-      z="$DetEncLength"/>
+      x="$DetEncX"
+      y="$DetEncY"
+      z="$DetEncZ"/>
 
 </solids>
 EOF
@@ -904,9 +913,9 @@ EOF
 print WORLD <<EOF;
 <solids>
     <box name="World" lunit="cm" 
-      x="@{[$DetEncWidth+2*$AirThickness]}" 
-      y="@{[$DetEncHeight+2*$AirThickness]}" 
-      z="@{[$DetEncLength+2*$AirThickness]}"/>
+      x="@{[$DetEncX+2*$AirThickness]}" 
+      y="@{[$DetEncY+2*$AirThickness]}" 
+      z="@{[$DetEncZ+2*$AirThickness]}"/>
 </solids>
 EOF
 
@@ -1015,7 +1024,7 @@ print "CRM active area    : $widthCRM_active x $lengthCRM_active\n";
 print "CRM total area     : $widthCRM x $lengthCRM\n";
 print "TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
 print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
-print "Detector enclosure : $DetEncWidth x $DetEncHeight x $DetEncLength\n";
+print "Detector enclosure : $DetEncX x $DetEncY x $DetEncZ\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
 print "PMTs               : $pmt_switch \n";
 

@@ -42,21 +42,24 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     ofstream fout(fclfile.c_str());
     fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
     fout << "#include \"dunecommon_tools.fcl\"" << endl;  // Need tickRanges
-    fout << "tools.tickRanges.myTicks: { begin:10 end:90 label:\"My ticks\" }" << endl;
+    fout << "tools.tickRanges.myTicks: { begin:10 end:90 labels:[\"My ticks\"] }" << endl;
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcDataPlotter" << endl;
     fout << "            DataType: 0" << endl;
     fout << "            LogLevel: 2" << endl;
     fout << "           TickRange: \"myTicks\"" << endl;
-    fout << "        FirstChannel: 0" << endl;
-    fout << "         LastChannel: 0" << endl;
+    fout << "           TickRebin: 1" << endl;
+    fout << "       ChannelRanges: []" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
+    fout << "     SkipBadChannels: false" << endl;
+    fout << "          EmptyColor: 18" << endl;
     fout << "  ChannelLineModulus:  4" << endl;
     fout << "  ChannelLinePattern:  [1]" << endl;
     fout << "             Palette: 1026" << endl;
     fout << "            HistName: \"hadc\"" << endl;
     fout << "           HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "           PlotTitle: \"Run %RUN% event %EVENT% xyx UTC\"" << endl;
     fout << "        PlotFileName: \"myplot-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;

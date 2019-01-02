@@ -1,5 +1,12 @@
 BEGIN_PROLOG
 
+crt_raw_decoder:
+{
+  module_type: "CRTRawDecoder"
+  RawDataTag: "daq:ContainerCRT"
+  LookForContainer: true
+}
+
 timing_raw_decoder:
 {
   module_type: "TimingRawDecoder"
@@ -23,27 +30,52 @@ felix_raw_decoder:
   module_type: "FelixRawDecoder"
   RawDataLabel: "daq"
   OutputDataLabel: "daq"
-  ExpectContainerFragments: false
+  ExpectContainerFragments: true
 }
 
-# configuration for combined TPC Raw Decoder module
+# configuration for combined TPC Raw Decoder module. Supersedes the RCE and FELIX
+# raw decoder modules listed above.
 
 pdsp_tpc_raw_decoder:
 {
   module_type: "PDSPTPCRawDecoder"
   OutputDataLabel: "daq"
 
+  APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
+                      # an emtpy list decodes them all
+
   RCERawDataLabel: "daq"
-  ExpectRCEContainerFragments: true
   RCERawDataContainerInstance: "ContainerTPC"
   RCERawDataNonContainerInstance: "TPC"
   RCEFragmentType: 2
+  RCEDropEventsWithSmallFrags: false
+  RCEDropSmallFrags: true
+  RCESmallFragSize: 500000
+  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEHexDump: false
+  RCESaveFragsToFiles: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
+
+  RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
+  RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
   FELIXRawDataLabel: "daq"
-  ExpectFELIXContainerFragments: false
   FELIXRawDataContainerInstance: "ContainerFELIX"
   FELIXRawDataNonContainerInstance: "FELIX"
-  FELIXFragmentType: 2    # not used in code
+  FELIXFragmentType: 8  
+  FELIXDropFragsWithBadCSF: true
+  FELIXEnforceExactCrateNumber: false
+  FELIXCrateNumberToCheck: 6
+  FELIXHexDump: false
+  FELIXDropEventsWithSmallFrags: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
+
+  CompressHuffman: false
+  PrintColdataConvertCount: false
 
   MakeHistograms: false #for making error monitoring histograms
 
@@ -68,7 +100,7 @@ pdsp_tpc_raw_decoder:
 # requires that all channels have the specified number of ticks
 
   EnforceFullTickCount: false
-  FullTickCount: 10000
+  FullTickCount: 6000
 
 # requires that no errors are reported by the unpacker (checksum or capture errors)
 
@@ -81,23 +113,42 @@ ssp_raw_decoder:
 
   module_type: "SSPRawDecoder"
   RawDataLabel: "daq"
-  OutputDataLabel: "daq"
-  UseChannelMap: "true"
+   
+  SplitTriggers: false           # If true, split into external and internal trigger data products
+  OutputDataLabel: "daq"         # Used if SplitTriggers = false
+  ExtTrigOutputLabel: "external" # Used if SplitTriggers = true
+  IntTrigOutputLabel: "internal" # Used if SPlitTriggers = true
+   
+#  UseChannelMap: "true"
+  UseChannelMap: "false"
   Debug: "false"
   MakeTree: "false"
-  verbose_metadata: false
+  verbose_metadata: "false"
   verbose_adcs: 0
-  ExpectContainerFragments: true
 
   number_of_packets: 12  # number of channels per SSP
 
   SSP_m1: 10   # samples used to calculate peak height
-  SSP_m2: 10   # (unused in the code)
-  SSP_i1: 500  # samples used to calculate pedestal
-  SSP_i2: 500  # samples used to calculate peak height
+  SSP_m2: 10   # samples used to calculate integral
+  SSP_i1: 40  # samples used to calculate pedestal
+  SSP_i2: 1200  # samples used to calculate peak height
 
-  NOvAClockFrequency: 64.0 # MHz
+  NOvAClockFrequency: 150.0 # MHz
   SPESize: 25
+ 
+}
+
+ssp_raw_decoder_split: @local::ssp_raw_decoder
+ssp_raw_decoder_split.SplitTriggers: true
+
+
+ctb_raw_decoder:
+{
+  module_type: "PDSPCTBRawDecoder"
+  InputLabel: "daq"
+  InputContainerInstance: "ContainerCTB"
+  InputNonContainerInstance: "CTB"
+  OutputLabel: "daq"
 }
 
 online_monitor:

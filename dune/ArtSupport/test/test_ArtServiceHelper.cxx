@@ -35,51 +35,16 @@ int test_ArtServiceHelper(int opt) {
   string line = "-----------------------------";
   string scfg;
 
-  cout << line << endl;
-  cout << myname << "Retrieve service helper.";
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-
-  ash.print();
-
   if ( opt == 1 ) {
-    cout << myname << line << endl;
-    cout << myname << "Add TFileService" << endl;
-    scfg = "fileName: \"mytest.root\" service_type: \"TFileService\"";
-    assert( ash.addService("TFileService", scfg) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Try to add TFileService again" << endl;
-    assert( ash.addService("TFileService", scfg) != 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Add RandomNumberGenerator" << endl;
-    ash.addService("RandomNumberGenerator", "prodsingle_common_dune35t.fcl", true);
-    ash.print();
-    assert( ash.serviceNames().size() == 2 );
-    assert( ash.serviceStatus() == 0 );
-
+    std::string const config{"#include \"prodsingle_common_dune35t.fcl\"\n"
+                             "services.TFileService.fileName: 'mytest.root'"};
+    ArtServiceHelper::load_services(config);
   } else if ( opt == 2 ) {
     cout << myname << line << endl;
     cout << myname << "Adding 35t reco services" << endl;
-    scfg = "standard_reco_dune35t.fcl";
-    assert( ash.addServices(scfg, true) == 0 );
+    ArtServiceHelper::load_services("standard_reco_dune35t.fcl",
+                                    ArtServiceHelper::FileOnPath);
   }
-  
-  cout << myname << line << endl;
-  cout << myname << "Full configuration:" << endl;
-  cout << myname << ash.fullServiceConfiguration() << endl;
-
-  cout << myname << line << endl;
-  cout << myname << "Load the services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Check TriggerNamesService is available." << endl;
-  ServiceHandle<art::TriggerNamesService> htns;
-  cout << myname << "  " << &*htns << endl;
 
   cout << myname << line << endl;
   cout << myname << "Check RandomNumberGenerator is available." << endl;
@@ -113,8 +78,5 @@ int main(int argc, char** argv) {
   }
   if ( opt == 0 ) return 0;
   int rstat = test_ArtServiceHelper(opt);
-  cout << myname << "Closing service helper (to avoid crash)." << endl;
-  ArtServiceHelper::close();
-  cout << myname << "Exiting." << endl;
   return rstat;
 }

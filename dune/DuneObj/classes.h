@@ -9,15 +9,19 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Common/Assns.h"
 
-//#include "dune/DuneObj/CalibTreeRecord.h"
+#include "dune/DuneObj/CalibTreeRecord.h"
 #include "dune/DuneObj/OpDetDivRec.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/Simulation/OpDetBacktrackerRecord.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
+//#include <bitset>
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/DuneObj/ProtoDUNEBeamSpill.h"
+#include "dune/DuneObj/ProtoDUNETimeStamp.h"
 
 #include <vector>
 #include <map>
-
+//#include <array>
 
 //template class art::wrapper<art::Assns<raw::OpDetWaveform,            sim::OpDetBacktrackerRecord,   void>  >

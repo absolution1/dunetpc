@@ -57,7 +57,7 @@ DataMap AdcSampleFiller::update(AdcChannelData& acd) const {
     }
     if ( adc < m_AdcUnderflow || adc > m_AdcOverflow ) ++nbad;
   }
-  acd.sampleUnit = "ADC counts";
+  acd.sampleUnit = "ADC count";
   DataMap res(0);
   res.setInt("nSample",  nsam);
   res.setInt("nUnderflow",  nlo);

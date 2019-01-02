@@ -29,7 +29,7 @@ physics:
 {
  analyzers:
  {
-  trkUtil:          @local::util_example
+  trkUtil:          @local::proto_util_example
   beamtruth:        @local::ProtoDUNETruthBeamParticle_params
  }
 

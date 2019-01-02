@@ -5,30 +5,35 @@
 //
 // Struct to hold the prepared time samples for a single TPC channel.
 //
-//         run - Run number
-//      subRun - Sub-run number
-//       event - Event number
-//     channel - Offline channel number
-//      fembID - FEMB ID
-// fembChannel - Channel number in FEMB (0, 1,..., 127).
-//    pedestal - Pedestal subtracted from the raw count
-// pedestalRms - Pedestal RMS or sigma
-//         raw - Uncompressed array holding the raw ADC count for each tick
-//     samples - Array holding the prepared signal value for each tick
-// sampleNoise - Noise level (e.g. RMS for samples)
-//       flags - Array holding the status flag for each tick
-//      signal - Array holding bools indicating which ticks have signals
-//        rois - Array of ROIs indicating ticks of interest (e.g. have signals)
-//     dftmags - Array of magnitudes for the DFT of the samples.
-//   dftphases - Array of phases for the DFT of the samples.
-//       digit - Corresponding raw digit
-//        wire - Corresponding wire
-//  digitIndex - Index for the digit in the event digit container
-//   wireIndex - Index for the wire in the event wire container
-//  sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
-//   dftphases - Phases for the DFT of samples
-//     dftmags - Magnitudes for the DFT of samples
-//    metadata - Extra attributes
+//          run - Run number
+//       subRun - Sub-run number
+//        event - Event number
+//         time - Unix time (sec)
+//      timerem - Time remainder (ns)
+//      channel - Offline channel number
+// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
+//       fembID - FEMB ID
+//  fembChannel - Channel number in FEMB (0, 1,..., 127).
+//      trigger - Index indicating which trigger(s) fired.
+// triggerClock - Time counter for the trigger
+//     pedestal - Pedestal subtracted from the raw count
+//  pedestalRms - Pedestal RMS or sigma
+//          raw - Uncompressed array holding the raw ADC count for each tick
+//      samples - Array holding the prepared signal value for each tick
+//  sampleNoise - Noise level (e.g. RMS for samples)
+//        flags - Array holding the status flag for each tick
+//       signal - Array holding bools indicating which ticks have signals
+//         rois - Array of ROIs indicating ticks of interest (e.g. have signals)
+//      dftmags - Array of magnitudes for the DFT of the samples.
+//    dftphases - Array of phases for the DFT of the samples.
+//        digit - Corresponding raw digit
+//         wire - Corresponding wire
+//   digitIndex - Index for the digit in the event digit container
+//    wireIndex - Index for the wire in the event wire container
+//   sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
+//    dftphases - Phases for the DFT of samples
+//      dftmags - Magnitudes for the DFT of samples
+//     metadata - Extra attributes
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -64,9 +69,14 @@ public:
   AdcIndex run =badIndex;
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
+  time_t time =0;
+  int timerem =0;
   AdcChannel channel =badIndex;
+  AdcIndex channelStatus =badIndex;
   AdcIndex fembID =badIndex;
   AdcIndex fembChannel =badIndex;
+  AdcIndex trigger =badIndex;
+  AdcLongIndex triggerClock =0;
   AdcSignal pedestal =badSignal;
   AdcSignal pedestalRms =0.0;
   AdcCountVector raw;
@@ -101,6 +111,44 @@ public:
     return metadata.find(mname) != metadata.end();
   }
 
+  // Fetch metadata.
+  float getMetadata(std::string mname, float def =0.0) const {
+    FloatMap::const_iterator imtd = metadata.find(mname);
+    if ( imtd == metadata.end() ) return def;
+    return imtd->second;
+  }
+
+  // Fetch any property including metadata.
+  float getAttribute(std::string mname, float def =0.0) const {
+    // For basic types, return the value.
+    if ( mname == "run" ) return run;
+    if ( mname == "subRun" ) return subRun;
+    if ( mname == "event" ) return event;
+    if ( mname == "fembID" ) return fembID;
+    if ( mname == "fembChannel" ) return fembChannel;
+    if ( mname == "trigger" ) return trigger;
+    if ( mname == "triggerClock" ) return triggerClock;  // lose precision here
+    if ( mname == "pedestal" ) return pedestal;
+    if ( mname == "pedestalRms" ) return pedestalRms;
+    if ( mname == "sampleNoise" ) return sampleNoise;
+    if ( mname == "digitIndex" ) return digitIndex;
+    if ( mname == "wireIndex" ) return wireIndex;
+    // For vectors, return the size.
+    if ( mname == "raw" ) return raw.size();
+    if ( mname == "samples" ) return samples.size();
+    if ( mname == "flags" ) return flags.size();
+    if ( mname == "signal" ) return signal.size();
+    if ( mname == "rois" ) return rois.size();
+    if ( mname == "dftmags" ) return dftmags.size();
+    if ( mname == "dftphases" ) return dftphases.size();
+    if ( mname == "digit" ) return digit != nullptr;
+    // For pointer, return false for null.
+    if ( mname == "wire" ) return wire != nullptr;
+    if ( mname == "metadata" ) return metadata.size();
+    // Otherwise return the metatdata field.
+    return getMetadata(mname, def);
+  }
+
   // Clear the data.
   void clear();
 
@@ -126,6 +174,8 @@ inline void AdcChannelData::clear() {
   channel = badIndex;
   fembID = badIndex;
   fembChannel = badIndex;
+  trigger = badIndex;
+  triggerClock = 0;
   pedestal = badSignal;
   pedestalRms = 0.0;
   raw.clear();

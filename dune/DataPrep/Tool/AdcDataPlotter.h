@@ -11,19 +11,27 @@
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
 //               If blank or not defined, the full range is used.
-//   FirstTick - First tick number to display
-//   LastTick - Last+1 tick number to display
-//   FirstChannel - First channel to display
-//   LastChannel - Last+1 channel to display
+//   TickRebin - If > 1, histo bins include this # ticks.
+//   ChannelRanges - Names of channel ranges to display.
+//                   Ranges are obtained from the tool channelRanges.
+//                   Special name "" or "data" plots all channels in data with label "All data".
+//                   If the list is empty, data are plotted.
 //   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots
 //   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   SkipBadChannels - If true, skip channels flagged as bad.
+//   EmptyColor - If >=0, empty bins are drawn in this color (See TAttColor).
+//                Otherwise empty bins are drawn with value zero.
+//                Bins may be empty if a channel is nor processed, if a tick out of range
+//                or a tick is not selected (outside ROI) for DataType 2.
+//                EmptyColor is not used when rebinning.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//   HistTitle - Histogram title
+//   HistTitle - Histogram title (appears above histogram)
+//   PlotTitle - Plot title (appears below histogram an only on plots)
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
@@ -32,7 +40,7 @@
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
-// For the title and file names, the following sustitutions are made:
+// For the title and file names, substitutions are made with adcStringBuilder, e.g.
 //     %RUN%    --> run number
 //     %SUBRUN% --> subrun number
 //     %EVENT%  --> event number
@@ -63,6 +71,9 @@
 class AdcChannelStringTool;
 class IndexMapTool;
 class IndexRangeTool;
+namespace lariov {
+  class ChannelStatusProvider;
+}
 
 class AdcDataPlotter : AdcChannelTool {
 
@@ -71,6 +82,9 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using IntVector = std::vector<int>;
+  using IndexRangeVector = std::vector<IndexRange>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   AdcDataPlotter(fhicl::ParameterSet const& ps);
 
@@ -85,16 +99,19 @@ private:
   int            m_LogLevel;
   int            m_DataType;
   std::string    m_TickRange;
-  Index          m_FirstChannel;
-  Index          m_LastChannel;
+  Index          m_TickRebin;
+  NameVector     m_ChannelRanges;
   IntVector      m_FembTickOffsets;
   std::string    m_OnlineChannelMapTool;
   double         m_MaxSignal;
+  bool           m_SkipBadChannels;
+  Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   int            m_Palette;
   std::string    m_HistName;
   std::string    m_HistTitle;
+  std::string    m_PlotTitle;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   std::string    m_PlotFileName;
@@ -103,9 +120,16 @@ private:
   // Derived configuration data.
   IndexRange m_tickRange;
 
-  // Client tools.
+  // Channel ranges.
+  IndexRangeVector m_crs;
+
+  // Client tools and services.
   const AdcChannelStringTool* m_adcStringBuilder;
   const IndexMapTool* m_pOnlineChannelMapTool;
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
+
+  // Make replacements in a name.
+  Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
 };
 

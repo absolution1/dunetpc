@@ -20,6 +20,11 @@
 
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
+#include "lardataobj/RecoBase/Track.h"
+
+#include "lardataobj/RawData/RDTimeStamp.h"
+
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -51,16 +56,39 @@ public:
 private:
 
   const art::InputTag fSpacePointModuleLabel;
+  const art::InputTag fBeamModuleLabel;
+  const art::InputTag fTrackModuleLabel;
+  const art::InputTag fTimeDecoderModuleLabel;
+
   TTree *fTree;
   // Run information
   int run;
   int subrun;
   int event;
+  int trigger;
   double evttime;
+
+  // space point information
   std::vector<double> vx;
   std::vector<double> vy;
   std::vector<double> vz;
   std::vector<double> vcharge;
+  std::vector<int> vtrackid;
+
+  // beam information
+  std::vector<double> beamPosx;
+  std::vector<double> beamPosy;
+  std::vector<double> beamPosz;
+  
+  std::vector<double> beamDirx;
+  std::vector<double> beamDiry;
+  std::vector<double> beamDirz;
+
+  std::vector<double> beamMomentum;
+
+  double tof;
+  short ckov0status;
+  short ckov1status;
 
 };
 
@@ -68,7 +96,10 @@ private:
 proto::SaveSpacePoints::SaveSpacePoints(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
-  fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel"))
+  fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
+  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
+  fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
+  fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel"))
 {}
 
 void proto::SaveSpacePoints::analyze(art::Event const & evt)
@@ -78,30 +109,117 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   subrun = evt.subRun();
   event = evt.id().event();
   art::Timestamp ts = evt.time();
-  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-  evttime = tts.AsDouble();
+  //std::cout<<ts.timeHigh()<<" "<<ts.timeLow()<<std::endl;
+  if (ts.timeHigh() == 0){
+    TTimeStamp tts(ts.timeLow());
+    evttime = tts.AsDouble();
+  }
+  else{
+    TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+    evttime = tts.AsDouble();
+  }
   vx.clear();
   vy.clear();
   vz.clear();
   vcharge.clear();
+  vtrackid.clear();
+  beamPosx.clear();
+  beamPosy.clear();
+  beamPosz.clear();
+  beamDirx.clear();
+  beamDiry.clear();
+  beamDirz.clear();
+  beamMomentum.clear();
 
-  auto spsHandle = evt.getValidHandle< std::vector<recob::SpacePoint> >(fSpacePointModuleLabel);
-  auto pcsHandle = evt.getValidHandle< std::vector<recob::PointCharge>>(fSpacePointModuleLabel);
+  // Access the trigger information
+  trigger = -1;
+  art::ValidHandle<std::vector<raw::RDTimeStamp>> timeStamps = evt.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeDecoderModuleLabel);
 
-  // all space points in the collection
+  // Check that we have good information
+  if(timeStamps.isValid() && timeStamps->size() == 1){
+    // Access the trigger information. Beam trigger flag = 0xc
+    const raw::RDTimeStamp& timeStamp = timeStamps->at(0);
+    trigger = timeStamp.GetFlags();
+  }
+
+  art::Handle< std::vector<recob::SpacePoint> > spsHandle;
   std::vector< art::Ptr<recob::SpacePoint> > sps;
-  art::fill_ptr_vector(sps, spsHandle);
+  if (evt.getByLabel(fSpacePointModuleLabel, spsHandle))
+    art::fill_ptr_vector(sps, spsHandle);
 
-  // all point charge in the collection
+  art::Handle< std::vector<recob::PointCharge> > pcsHandle;
   std::vector< art::Ptr<recob::PointCharge> > pcs;
-  art::fill_ptr_vector(pcs, pcsHandle);
+  if (evt.getByLabel(fSpacePointModuleLabel, pcsHandle))
+    art::fill_ptr_vector(pcs, pcsHandle);
 
   for (size_t i = 0; i<sps.size(); ++i){
     vx.push_back(sps[i]->XYZ()[0]);
     vy.push_back(sps[i]->XYZ()[1]);
     vz.push_back(sps[i]->XYZ()[2]);
     vcharge.push_back(pcs[i]->charge());
+    vtrackid.push_back(-1);
   }
+
+  art::Handle< std::vector<recob::Track> > trkHandle;
+  std::vector< art::Ptr<recob::Track> > trks;
+  if (evt.getByLabel(fTrackModuleLabel, trkHandle))
+    art::fill_ptr_vector(trks, trkHandle);
+
+  for (size_t i = 0; i<trks.size(); ++i){
+    auto & trk = trks[i];
+    for (size_t j = 0; j<trk->NPoints(); ++j){
+      if (trk->HasValidPoint(j)){
+        vx.push_back(trk->TrajectoryPoint(j).position.X());
+        vy.push_back(trk->TrajectoryPoint(j).position.Y());
+        vz.push_back(trk->TrajectoryPoint(j).position.Z());
+        vcharge.push_back(0);
+        vtrackid.push_back(trk->ID());
+      }
+    }
+  }
+
+  art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
+  std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
+  if (evt.getByLabel(fBeamModuleLabel, pdbeamHandle))
+    art::fill_ptr_vector(beaminfo, pdbeamHandle);
+  else{
+    std::cout<<"No beam information from "<<fBeamModuleLabel<<std::endl;
+  }
+
+  tof = -1;
+  ckov0status = -1;
+  ckov1status = -1;
+  if (beaminfo.size()){
+    if (beaminfo[0]->GetTimingTrigger() == 12){
+      if (beaminfo[0]->CheckIsMatched()){
+        //Get TOF info
+        if (beaminfo[0]->GetTOFChan() != -1){//if TOFChan == -1, then there was not a successful match, if it's 0, 1, 2, or 3, then there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
+          tof = beaminfo[0]->GetTOF();
+        }
+        //Get beam particle trajectory info
+        auto & tracks = beaminfo[0]->GetBeamTracks();
+        for (size_t i = 0; i<tracks.size(); ++i){
+          beamPosx.push_back(tracks[i].End().X());
+          beamPosy.push_back(tracks[i].End().Y());
+          beamPosz.push_back(tracks[i].End().Z());
+          beamDirx.push_back(tracks[i].StartDirection().X());
+          beamDiry.push_back(tracks[i].StartDirection().Y());
+          beamDirz.push_back(tracks[i].StartDirection().Z());
+        }
+        //Get reconstructed beam momentum info
+        auto & beammom = beaminfo[0]->GetRecoBeamMomenta();
+        for (size_t i = 0; i<beammom.size(); ++i){
+          beamMomentum.push_back(beammom[i]);
+        }
+      }
+    }
+    if (beaminfo[0]->GetBITrigger() == 1){
+      //Get CKov status
+      ckov0status = beaminfo[0]->GetCKov0Status();
+      ckov1status = beaminfo[0]->GetCKov1Status();
+    }
+  }
+
   fTree->Fill();
 }
 
@@ -112,11 +230,23 @@ void proto::SaveSpacePoints::beginJob()
   fTree->Branch("run",&run,"run/I");
   fTree->Branch("subrun",&subrun,"subrun/I");
   fTree->Branch("event",&event,"event/I");
+  fTree->Branch("trigger",&trigger,"trigger/I");
   fTree->Branch("evttime",&evttime,"evttime/D");
   fTree->Branch("vx",&vx);
   fTree->Branch("vy",&vy);
   fTree->Branch("vz",&vz);
   fTree->Branch("vcharge",&vcharge);
+  fTree->Branch("vtrackid",&vtrackid);
+  fTree->Branch("beamPosx",&beamPosx);
+  fTree->Branch("beamPosy",&beamPosy);
+  fTree->Branch("beamPosz",&beamPosz);
+  fTree->Branch("beamDirx",&beamDirx);
+  fTree->Branch("beamDiry",&beamDiry);
+  fTree->Branch("beamDirz",&beamDirz);
+  fTree->Branch("beamMomentum",&beamMomentum);
+  fTree->Branch("tof", &tof, "tof/D");
+  fTree->Branch("ckov0status", &ckov0status, "ckov0status/S");
+  fTree->Branch("ckov1status", &ckov1status, "ckov1status/S");
 }
 
 DEFINE_ART_MODULE(proto::SaveSpacePoints)

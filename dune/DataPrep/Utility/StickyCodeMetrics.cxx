@@ -8,6 +8,7 @@
 
 #include "TH1F.h"
 #include "TF1.h"
+//#include "TFitResult.h"
 
 using std::map;
 using std::string;
@@ -23,8 +24,10 @@ using Index = unsigned int;
 //**********************************************************************
 
 StickyCodeMetrics::
-StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin)
-: m_hnam(hnam), m_httl(httl), m_nbin(nbin), m_lowbin(lowbin) { }
+StickyCodeMetrics(Name hnam, Name httl, Index nbin, Index lowbin,
+                  float sigmaMin, float sigmaMax)
+: m_hnam(hnam), m_httl(httl), m_nbin(nbin), m_lowbin(lowbin),
+  m_sigmaMin(sigmaMin), m_sigmaMax(sigmaMax) { }
 
 //**********************************************************************
 
@@ -306,6 +309,7 @@ int StickyCodeMetrics::evaluateMetrics() {
   if ( ! haveXlab ) ph->GetXaxis()->SetTitle("ADC count");
   if ( ! haveYlab ) ph->GetYaxis()->SetTitle("# samples");
   ph->SetDirectory(0);
+  ph->Sumw2();  // Likelihood fit wants histogram to be weighted
   ph->SetStats(0);
   ph->SetLineWidth(2);
   for ( Index iadc=binOffset; iadc<=idadc2; ++iadc ) {
@@ -319,14 +323,23 @@ int StickyCodeMetrics::evaluateMetrics() {
   // Fit the histogram.
   TF1 fitter("pedgaus", "gaus", ihadc1, ihadc2, TF1::EAddToList::kNo);
   fitter.SetParameters(0.1*ph->Integral(), ph->GetMean(), 5.0);
+  if ( m_sigmaMax > m_sigmaMin ) {
+    fitter.SetParLimits(2, m_sigmaMin, m_sigmaMax);
+  } else if ( m_sigmaMax == m_sigmaMin ) {
+    fitter.FixParameter(2, m_sigmaMin);
+  } else {
+    fitter.SetParLimits(2, 0.1, 100.0);
+  }
   TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
   pfinit->SetLineColor(3);
   pfinit->SetLineStyle(2);
   string fopt = "0";
   fopt = "WWBQ";
+  fopt = "LWBQ";  // Use likelihood fit to include empty bins
   // Block Root info message for new Canvas produced in fit.
   int levelSave = gErrorIgnoreLevel;
   gErrorIgnoreLevel = 1001;
+  gErrorIgnoreLevel = 2001;   // Block warnings in Fit
   // Block non-default (e.g. art) from handling the Root "error".
   // We switch to the Root default handler while making the call to Print.
   ErrorHandlerFunc_t pehSave = nullptr;
@@ -334,7 +347,9 @@ int StickyCodeMetrics::evaluateMetrics() {
   if ( GetErrorHandler() != pehDefault ) {
     pehSave = SetErrorHandler(pehDefault);
   }
-  ph->Fit(&fitter, fopt.c_str());
+  //TFitResultPtr pres = ph->Fit(&fitter, fopt.c_str());
+  //m_fitStatus = pres->Status();
+  m_fitStatus = ph->Fit(&fitter, fopt.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
   ph->GetListOfFunctions()->AddLast(pfinit, "0");
@@ -358,6 +373,7 @@ DataMap StickyCodeMetrics::getMetrics(string prefix) const {
   res.setFloat(prefix + "OneFraction", oneFraction());
   res.setFloat(prefix + "HighFraction", highFraction());
   res.setFloat(prefix + "ClassicFraction", classicFraction());
+  res.setInt(prefix + "FitStatus", fitStatus());
   res.setFloat(prefix + "FitMean", fitMean());
   res.setFloat(prefix + "FitSigma", fitSigma());
   res.setFloat(prefix + "FitExcess", fitExcess());
@@ -389,6 +405,8 @@ void StickyCodeMetrics::print(string prefix) const {
   sout << prefix << "           Frac LSB=64: " << highFraction();
   sout << "\n";
   sout << prefix << "         Frac LSB=0,64: " << classicFraction();
+  sout << "\n";
+  sout << prefix << "            Fit status: " << fitStatus();
   sout << "\n";
   sout << prefix << "              Fit mean: " << fitMean();
   sout << "\n";

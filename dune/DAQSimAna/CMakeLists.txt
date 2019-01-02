@@ -2,17 +2,23 @@ add_subdirectory(SNAnaClustering)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   lbne-raw-data_Overlays
+  dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
   lbne_daqinput35t       #For online to offline channel map
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
+  lardataobj_RecoBase
+  lardataobj_AnalysisBase
+  dune_DuneObj
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
+  larsim_MCCheater_PhotonBackTrackerService_service
   larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  lardata_ArtDataHelper
   nusimdata_SimulationBase	
   ${ART_FRAMEWORK_CORE}
- ${ART_FRAMEWORK_PRINCIPAL}
- ${ART_FRAMEWORK_SERVICES_BASIC}
+  ${ART_FRAMEWORK_PRINCIPAL}
+  ${ART_FRAMEWORK_SERVICES_BASIC}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
@@ -23,7 +29,26 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
+  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderPass2_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
   )
+
+simple_plugin(TriggerPrimitiveFinderPass1 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
+
+simple_plugin(TriggerPrimitiveFinderPass2 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+  dune_DAQSimAna_TriggerPrimitiveFinderPass1_tool
+)
+
+simple_plugin(TriggerPrimitiveFinderTemplate "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
+
+cet_make_exec(read_packed SOURCE read_packed.cxx)
 
 install_fhicl()
 install_headers()

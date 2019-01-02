@@ -1,10 +1,11 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
-#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "art/Framework/Principal/Event.h"
+
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 protoana::ProtoDUNETruthUtils::ProtoDUNETruthUtils(){
 
@@ -28,9 +29,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  // A track utils object will be useful
-  protoana::ProtoDUNETrackUtils utils;
-  unsigned int trackIndex = utils.GetTrackIndexNumber(track,evt,trackModule);
+  unsigned int trackIndex = track.ID();
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -104,7 +103,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
     }
     
     // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
-    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && (pPart->E() - pDuneEnergy < 0.00001) ) {
+    if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
       return pPart;
     }
     
@@ -140,7 +139,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
   const sim::ParticleList & plist = pi_serv->ParticleList();
 
   for(auto const part : plist){
-    if((goodPart.PdgCode() == part.second->PdgCode()) && (part.second->E() - goodPart.E() < 1e-5)){
+    if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
       return part.second;
     }
   } 
@@ -151,4 +150,26 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
 
 }
 
+// Converting times in LArSoft can be a bit of a minefield. These functions convert true times in ns
+// to pandora times in ns
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeNano(const simb::MCParticle &part) const{
+  return ConvertTrueTimeToPandoraTimeNano(part.T());
+}
+
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeNano(const float trueTime) const{
+  return 1000. * ConvertTrueTimeToPandoraTimeMicro(trueTime);
+}
+
+// Microsecond versions
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeMicro(const simb::MCParticle &part) const{
+  return ConvertTrueTimeToPandoraTimeMicro(part.T());
+}
+
+const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeMicro(const float trueTime) const{
+
+  // Use the clocks service to account for the offset between the Geant4 time and the electronics clock
+  auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
+
+  return detclock->G4ToElecTime(trueTime);
+}
 

@@ -17,6 +17,7 @@
 #include "Rtypes.h"
 
 class StickyCodeMetrics;
+class TTree;
 
 class TickModTreeData {
 
@@ -28,13 +29,14 @@ public:
 
   static Index badIndex() { return 999999; }
 
-  // Identifiers that specify the tickmod and
+  // Identifiers that specify the channel, tickmod and
   // run conditions.
   Index run      =badIndex();
   Index chan     =badIndex();
   Index femb     =badIndex();
   Index fembChan =badIndex();
   Index itkm     =badIndex();
+  Float pedestal =0.0;
   // Sticky code data for one tickmod.
   Index nsample;
   Index maxAdc;
@@ -45,6 +47,7 @@ public:
   Float zeroFraction;
   Float oneFraction;
   Float highFraction;
+  int fitStatus;
   Float fitMean;
   Float fitSigma;
   Float fitExcess;
@@ -58,7 +61,8 @@ public:
   // Fill the sticky code data.
   void fill(const StickyCodeMetrics& scm);
 
-  ClassDefNV(TickModTreeData, 1);
+  // Add the data here as branches on a tree.
+  void createBranches(TTree* ptree);
 
 };
 

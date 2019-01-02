@@ -1,17 +1,151 @@
 #include "dataprep_tools.fcl"
 
 ################################################################################
+# Shared data.
+################################################################################
+
+data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
+data.pd_ClockUnit: "Mtick"
+data.pd_TriggerClockRate: 50000000.0
+data.pd_Tick0: 500
+
+tools.tickRanges.plotTicks.begin: 4000
+tools.tickRanges.plotTicks.end:   5000
+
+################################################################################
 # Channel mapping.
 ################################################################################
 
 tools.pd_onlineChannelMap: {
+  tool_type: ProtoduneOnlineChannel
+}
+
+tools.pd_onlineChannelMapByWib: {
   tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "WIB"
+}
+
+tools.pd_onlineChannelMapByConnector: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "connector"
+}
+
+tools.pd_onlineChannelMapByFemb: {
+  tool_type: PdspOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
 }
 
 tools.channelRanges: {
   tool_type: ProtoDuneChannelRanges
-  LogLevel: 1
+  LogLevel: 0
   ExtraRanges: ""
+}
+
+################################################################################
+# Reco.
+################################################################################
+
+# Fit ADC distribution to get pedestal.
+tools.pd_adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  FitRmsMin:  3.0
+  FitRmsMax: 20.0
+  HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
+  PlotFileName: ""
+  RootFileName: ""
+  HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
+  PlotShowFit: 1
+}
+
+# Sticky code mitigation.
+tools.pdsp_adcMitigate: {
+  tool_type: AdcCodeMitigator
+  LogLevel: 1
+  FixFlags: []
+  InterpolateFlags: [8, 9, 10, 11, 12]
+  SkipFlags: []
+  FixedCurvThresh: 20.0
+}
+
+# Timing mitigation.
+# Adjust the timing for FEMB 302 (aka femb 1)
+tools.pdsp_timingMitigate: {
+  tool_type: AdcTimingMitigator
+  LogLevel: 1
+  SamplingRatio: 0.9995
+  SamplingOffset: 3
+  FEMBs: [1]
+}
+
+# Subtract baseline after deconvolution
+tools.adcCorrectUndershoot: {
+  tool_type: UndershootCorr
+  LogLevel: 1
+  CorrectFlag: [ false, false, true]             # U, V, and Collection
+  TDecayConst: [ 0.99955, 0.99955, 0.99955 ]     # numbers so far tuned for collection plane
+  FSubConst:   [ 0.0005,  0.0005,  0.0005 ]      # and copied for U and V
+  LCA:         [ 1980,    1980,    1980 ]
+  LCB:         [ -0.08277,  -0.08277, -0.08277  ]
+  LCC:         [ -2043.65, -2043.65 , -2043.65 ]
+  LCD:         [ 1.03, 1.03,  1.03 ]
+}
+
+
+################################################################################
+# Event metrics.
+################################################################################
+
+tools.pd_evtviewNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:125:0:125"]
+  EventGraphs: ["event:0:0:nfemb:0:125"]
+  ChannelRanges: []
+  ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
+}
+
+tools.pd_evtviewPed: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["meanPed:80:0:4000"]
+  EventGraphs: ["event:0:0:meanPed:0:0"]
+  ChannelRanges: []
+  ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
+}
+
+tools.pd_evtviewPedpwr: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["rmPedPower:50:0:25"]
+  EventGraphs: ["event:0:0:rmPedPower:0:14"]
+  ChannelRanges: []
+  ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
+}
+
+tools.pd_evtviewNfembByTps: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:21:0:21"]
+  EventGraphs: ["event:0:0:nfemb:0:21"]
+  ChannelRanges: @local::data.pd_tpsChannelRanges
+  ChannelRangeLabel: "%CRLABEL% (%CRLABEL2% %CRLABEL1%)"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
 }
 
 ################################################################################
@@ -26,60 +160,72 @@ tools.rawAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
-  SignalThreshold: 5
+  SignalThreshold:  20
+  SkipBadChannels: false
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC collection view. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
+  Title: "Raw ADC collection view"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
   LogLevel: 1
   WireAngle: 0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
-  SignalThreshold: 5
+  SignalThreshold:  20
+  SkipBadChannels: false
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 1. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
+  Title: "Raw ADC induction view 1"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
   LogLevel: 1
   WireAngle: -0.623
   DataType: 1
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
-  SignalThreshold: 5
+  SignalThreshold:  20
+  SkipBadChannels: false
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Raw ADC induction view 2. Run %RUN%, event %EVENT%."
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
+  Title: "Raw ADC induction view 2"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
 # Prepared data.
@@ -88,19 +234,23 @@ tools.preparedAdcDetectorPlotColl: {
   LogLevel: 1
   WireAngle: 0.0
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  720.0
   SignalThreshold: 5
+  SkipBadChannels: true
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC collection view. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC collection view"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
 }
 tools.preparedAdcDetectorPlotInd1: {
@@ -108,19 +258,23 @@ tools.preparedAdcDetectorPlotInd1: {
   LogLevel: 1
   WireAngle: 0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin:  -20.0
   ZMax:  940.0
   SignalThreshold: 5
+  SkipBadChannels: true
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 1. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC induction view 1"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
 }
 tools.preparedAdcDetectorPlotInd2: {
@@ -128,19 +282,23 @@ tools.preparedAdcDetectorPlotInd2: {
   LogLevel: 1
   WireAngle: -0.623
   DataType: 0
-  Tick0: 0
+  Tick0: @local::data.pd_Tick0
   DriftSpeed: 0.08
   XMin:  400.0
   XMax: -400.0
   ZMin: -380.0
   ZMax:  580.0
   SignalThreshold: 5
+  SkipBadChannels: true
+  ShowAllTicks: false
   FirstTick: 0
   LastTick: 0
   ShowWires: true
   ShowCathode: true
+  ShowTpcSets: []
   ShowGrid: true
-  Title: "Prepared ADC induction view 2. Run %RUN%, event %EVENT%."
+  Title: "Prepared ADC induction view 2"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
 }
 
@@ -148,54 +306,111 @@ tools.preparedAdcDetectorPlotInd2: {
 # ADC channel-tick plots.
 ################################################################################
 
-pdwp_template: {
+pdcht_template: {
   tool_type: AdcDataPlotter
   LogLevel: 1
-  DataType: 0      # 0 for prepared, 1 for raw-pedestal
-  FirstTick: 0
-  LastTick:  0
-  FirstChannel: 0
-  LastChannel:  0
+  DataType: 1      # 0 for prepared, 1 for raw-pedestal, 2 is signal
+  TickRange: plotTicks
+  TickRebin: 1
+  ChannelRanges: []
   FembTickOffsets: []
   MaxSignal: 50
-  ChannelLineModulus: 0
+  SkipBadChannels: false
+  EmptyColor: 18
+  ChannelLineModulus: 2560
   ChannelLinePattern: []
   Palette: 1026
-  HistName: "hadcprp_evt%0EVENT%_ch_%0CHAN1%"
-  HistTitle: "Prepared ADC for event %EVENT%"
+  HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
+  HistTitle: "Raw ADC"
+  PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcprep_evt%0EVENT%_ch%0CHAN1%-%0CHAN2%.png"
+  PlotFileName: "adcraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
   RootFileName: ""    # or "adc_evt%EVENT%.root"
 }
 
-tools.pdwp_channelTickPlotApa1z: @local::pdwp_template
-tools.pdwp_channelTickPlotApa1z.FirstChannel:  2080
-tools.pdwp_channelTickPlotApa1z.LastChannel:   2560
-tools.pdwp_channelTickPlotApa1z.HistName: "hadcprp_evt%0EVENT%_apa1z"
-tools.pdwp_channelTickPlotApa1z.HistTitle: "Prepared ADC for plane 1z run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1z.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1z.png"
+# One plot for the full detector.
+tools.pdcht_All: @local::pdcht_template
+tools.pdcht_All.ChannelRanges: [all]
+tools.pdcht_All.ChannelLinePattern: [0]
 
-tools.pdwp_channelTickPlotApa1c: @local::pdwp_template
-tools.pdwp_channelTickPlotApa1c.FirstChannel:  1600
-tools.pdwp_channelTickPlotApa1c.LastChannel:   2080
-tools.pdwp_channelTickPlotApa1c.HistName: "hadcprp_evt%0EVENT%_apa1c"
-tools.pdwp_channelTickPlotApa1c.HistTitle: "Prepared ADC for plane 1c run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1c.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1c.png"
+# Add location for the remaining plots.
+pdcht_template.HistTitle: "Raw ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 
-tools.pdwp_channelTickPlotApa1u: @local::pdwp_template
-tools.pdwp_channelTickPlotApa1u.FirstChannel:     0
-tools.pdwp_channelTickPlotApa1u.LastChannel:    800
-tools.pdwp_channelTickPlotApa1u.HistName: "hadcprp_evt%0EVENT%_apa1u"
-tools.pdwp_channelTickPlotApa1u.HistTitle: "Prepared ADC for plane 1u run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1u.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1u.png"
+# One plot for each TPS (APA).
+tools.pdcht_Apas: @local::pdcht_template
+tools.pdcht_Apas.ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
+tools.pdcht_Apas.ChannelLinePattern: [800, 1600, 2080]
 
-tools.pdwp_channelTickPlotApa1v: @local::pdwp_template
-tools.pdwp_channelTickPlotApa1v.FirstChannel:   800
-tools.pdwp_channelTickPlotApa1v.LastChannel:   1600
-tools.pdwp_channelTickPlotApa1v.HistName: "hadcprp_evt%0EVENT%_apa1v"
-tools.pdwp_channelTickPlotApa1v.HistTitle: "Prepared ADC for plane 1v run %RUN% event %EVENT%"
-tools.pdwp_channelTickPlotApa1v.PlotFileName: "adcprep_run%0RUN%_evt%0EVENT%_apa1v.png"
+# One plot for each Z-plane. Z is the TPC-side collection plane.
+tools.pdcht_Zplanes: @local::pdcht_template
+tools.pdcht_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
+tools.pdcht_Zplanes.ChannelLineModulus: 2560
+tools.pdcht_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
+                                         2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# Plot APA3z (where the beam enters).
+tools.pdcht_Apa3z: @local::tools.pdcht_Zplanes
+tools.pdcht_Apa3z.ChannelRanges: [tpp0z]
+
+# One plot for each C-plane. C is the cryostat-side collection plane.
+tools.pdcht_Cplanes: @local::tools.pdcht_Zplanes
+tools.pdcht_Cplanes.ChannelRanges: [tpp0c, tpp1c, tpp2c, tpp3c, tpp4c, tpp5c]
+
+# One plot for each induction plane.
+tools.pdcht_Iplanes: @local::pdcht_template
+tools.pdcht_Iplanes.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
+                                    tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
+tools.pdcht_Iplanes.ChannelLineModulus: 40
+tools.pdcht_Iplanes.ChannelLinePattern: [0]
+
+# Plot APA3u (where the beam enters).
+tools.pdcht_Apa3u: @local::tools.pdcht_Iplanes
+tools.pdcht_Apa3u.ChannelRanges: [tpp0u]
+
+# Plot APA3v (where the beam enters).
+tools.pdcht_Apa3v: @local::tools.pdcht_Iplanes
+tools.pdcht_Apa3v.ChannelRanges: [tpp0v]
+
+# As above but for prepared data.
+
+pdchtp_template: @local::pdcht_template
+pdchtp_template.DataType: 2
+pdchtp_template.MaxSignal: 50
+pdchtp_template.SkipBadChannels: true
+pdchtp_template.HistName: "hadcprp_%CRNAME%_run%0RUN%_evt%0EVENT%"
+pdchtp_template. HistTitle: "Prepared ADC"
+pdchtp_template.PlotFileName: "adcprp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# One plot for the full detector.
+tools.pdchtp_All: @local::pdchtp_template
+tools.pdchtp_All.ChannelRanges: [all]
+tools.pdchtp_All.ChannelLinePattern: [0]
+
+# Add location for the remaining plots.
+pdchtp_template.HistTitle: "Prepared ADC for %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+
+# One plot for each Z-plane. Z is the TPC-side collection plane.
+tools.pdchtp_Zplanes: @local::pdchtp_template
+tools.pdchtp_Zplanes.ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
+tools.pdchtp_Zplanes.ChannelLineModulus: 2560
+tools.pdchtp_Zplanes.ChannelLinePattern: [1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032, 2080,
+                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+
+# One plot for each C-plane. C is the cryostat-side collection plane.
+tools.pdchtp_Cplanes: @local::tools.pdchtp_Zplanes
+tools.pdchtp_Cplanes.ChannelRanges: [tpp0c, tpp1c, tpp2c, tpp3c, tpp4c, tpp5c]
+
+# One plot for each induction plane.
+tools.pdchtp_Iplanes: @local::pdchtp_template
+tools.pdchtp_Iplanes.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
+                                     tpp0v, tpp1v, tpp2v, tpp3v, tpp4v, tpp5v]
+tools.pdchtp_Iplanes.ChannelLineModulus: 40
+tools.pdchtp_Iplanes.ChannelLinePattern: [0]
+
+# Plot APA3z (where the beam enters).
+tools.pdchtp_Apa3z: @local::tools.pdchtp_Zplanes
+tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 
 ################################################################################
 # ADC channel metric plotters.
@@ -232,7 +447,7 @@ tools.pdtps_adcChannelFembPlotter: @local::pdtps_template
 tools.pdtps_adcChannelFembPlotter.Metric: fembID
 tools.pdtps_adcChannelFembPlotter.MetricMax: 120
 tools.pdtps_adcChannelFembPlotter.HistName: "hchpd%CRNAME%_femb_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelFembPlotter.HistTitle: "FEMB IDs for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelFembPlotter.HistTitle: "FEMB IDs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelFembPlotter.MetricLabel: "FEMB ID"
 tools.pdtps_adcChannelFembPlotter.PlotFileName: "chmet_femb_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
@@ -241,7 +456,7 @@ tools.pdtps_adcChannelApaFembPlotter: @local::pdtps_template
 tools.pdtps_adcChannelApaFembPlotter.Metric: apaFembID
 tools.pdtps_adcChannelApaFembPlotter.MetricMax: 20
 tools.pdtps_adcChannelApaFembPlotter.HistName: "hchpd%CRNAME%_apafemb_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelApaFembPlotter.HistTitle: "APA FEMB IDs for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelApaFembPlotter.HistTitle: "APA FEMB IDs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelApaFembPlotter.MetricLabel: "APA FEMB ID"
 tools.pdtps_adcChannelApaFembPlotter.PlotFileName: "chmet_apafemb_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
@@ -250,34 +465,43 @@ tools.pdtps_adcChannelFembChannelPlotter: @local::pdtps_template
 tools.pdtps_adcChannelFembChannelPlotter.Metric: fembChannel
 tools.pdtps_adcChannelFembChannelPlotter.MetricMax: 128
 tools.pdtps_adcChannelFembChannelPlotter.HistName: "hchpd%CRNAME%_fembchan_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelFembChannelPlotter.HistTitle: "FEMB channels for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelFembChannelPlotter.HistTitle: "FEMB channels for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelFembChannelPlotter.MetricLabel: "FEMB channel"
 tools.pdtps_adcChannelFembChannelPlotter.PlotFileName: "chmet_fembchan_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Raw tick count for each TPS channel.
+tools.pdtps_adcChannelNrawPlotter: @local::pdtps_template
+tools.pdtps_adcChannelNrawPlotter.Metric: nraw
+tools.pdtps_adcChannelNrawPlotter.MetricMax: 6200
+tools.pdtps_adcChannelNrawPlotter.HistName: "hchpd%CRNAME%_nraw_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelNrawPlotter.HistTitle: "Raw tick count for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelNrawPlotter.MetricLabel: "# ticks"
+tools.pdtps_adcChannelNrawPlotter.PlotFileName: "chmet_nraw_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal for each TPS channel.
 tools.pdtps_adcChannelPedestalPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPlotter.Metric: pedestal
 tools.pdtps_adcChannelPedestalPlotter.MetricMax: 4096
 tools.pdtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC counts]"
 tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
-# Pedestal RMS for each TPS channel.
-tools.pdtps_adcChannelPedestalRmsPlotter: @local::pdtps_template
-tools.pdtps_adcChannelPedestalRmsPlotter.Metric: pedestalRms
-tools.pdtps_adcChannelPedestalRmsPlotter.MetricMax: 21
-tools.pdtps_adcChannelPedestalRmsPlotter.HistName: "hchpd%CRNAME%_pedrms_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelPedestalRmsPlotter.HistTitle: "ADC pedestal RMS for run %RUN% event %EVENT% %CRLABEL%"
-tools.pdtps_adcChannelPedestalRmsPlotter.MetricLabel: "Pedestal RMS [ADC counts]"
-tools.pdtps_adcChannelPedestalRmsPlotter.PlotFileName: "chmet_pedrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+# Pedestal noise for each TPS channel.
+tools.pdtps_adcChannelPedestalNoisePlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalNoisePlotter.Metric: pedestalRms
+tools.pdtps_adcChannelPedestalNoisePlotter.MetricMax: 14
+tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%STATUS%_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalNoisePlotter.MetricLabel: "Pedestal noise [ADC counts]"
+tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Peak out of range fraction for each TPS channel.
 tools.pdtps_adcChannelPedestalOrfPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalOrfPlotter.Metric: "fitPedFractionLow+fitPedFractionHigh"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedfracout_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedfracout_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricLabel: "Out-of-range fraction"
 tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
@@ -285,10 +509,28 @@ tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_ru
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedpeakexc_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL%"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedpeakexc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Pedestal RMS for each TPS channel.
+tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
+tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 14
+tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC counts]"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Pedestal tail fraction for each TPS channel.
+tools.pdtps_adcChannelPedestalRawTailPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalRawTailPlotter.Metric: rawTailFraction
+tools.pdtps_adcChannelPedestalRawTailPlotter.MetricMax: 0.5
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_%STATUS%_rawtail_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
+tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal for each z-plane channel.
 tools.pdwz_adcChannelPedestalPlotter: @local::pdwz_template
@@ -334,13 +576,27 @@ tools.pdwz_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_wp_pedpea
 ################################################################################
 
 # Read in the tick offset
-tools.pd_tickOffset: {
+# 26sep2018 dla: Set phase to 1. It appears protoDUNE has been using this
+# phase up til now and will presumably keep it.
+# If not, we will have to start using run data.
+tools.pd_tickOffset_sep26: {
   tool_type: TimingRawDecoderOffsetTool
   LogLevel: 1
-  TpcTickPhase: 0
+  TpcTickPhase: 1
   Unit: tick
   RunDataTool: ""
 }
+
+# 15nov2018 dla: It appears the phase is 23 for the pulser runs taken Oct 25.
+tools.pd_tickOffset_oct25: {
+  tool_type: TimingRawDecoderOffsetTool
+  LogLevel: 1
+  TpcTickPhase: 23
+  Unit: tick
+  RunDataTool: ""
+}
+
+tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {
@@ -348,12 +604,12 @@ tools.pd_tickmodViewer: {
   LogLevel: 1
   TickModPeriod: 497
   TimeOffsetTool: pd_tickOffset
-  FitRmsMin: 1.0
-  FitRmsMax: 20.0
+  FitSigmaMin:  2.0
+  FitSigmaMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
   HistTitle: "ADC spectrum for channel %CHAN% tickmod %TICKMOD%"
   HistChannelCount: 100
-  PlotChannels: [999999]
+  PlotChannels: []
   AllPlotFileName: ""
   MinPlotFileName: ""
   MaxPlotFileName: ""
@@ -366,6 +622,7 @@ tools.pd_tickmodViewer: {
   PlotSplitX:    4
   PlotSplitY:    0
   PlotFrequency: 0
+  PhaseVariable: phase
   PhaseGrouping: channel
   PhasePlotSizeX:  1400
   PhasePlotSizeY:  1000

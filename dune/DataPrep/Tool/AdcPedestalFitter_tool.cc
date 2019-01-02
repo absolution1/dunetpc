@@ -111,6 +111,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
   fillChannelPad(res, pman);
   if ( pman != nullptr ) {
     string pfname = nameReplace(m_PlotFileName, acd, false);
+    if ( m_LogLevel >= 3 ) cout << myname << "Creating plot " << pfname << endl;
     pman->print(pfname);
     delete pman;
   }
@@ -194,6 +195,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     ++iacd;
     bool lastpad = (++ipad == npad) || (iacd == nacd);
     if ( lastpad && pmantop != nullptr ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "  Creating plot " << plotFileName << endl;
       pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;
@@ -283,6 +285,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   double adc2 = adc1 + wadc;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(nullptr);
+  phf->Sumw2();
   Index countLo = 0;
   Index countHi = 0;
   Index count = 0;
@@ -314,12 +317,11 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     ++nbinsRemoved;
   }
   double amean = phf->GetMean() + 0.5;
-  double alim1 = amean - 25.0;
-  double alim2 = amean + 25.0;
+  double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
   TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
   fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
   fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
-  fitter.SetParLimits(1, alim1, alim2);
+  if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
   if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
   if ( m_FitRmsMin < m_FitRmsMax ) {
     fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
@@ -329,10 +331,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   pfinit->SetLineStyle(2);
   string fopt = "0";
   fopt = "WWB";
+  // Nov2018: Switch to likelihood fix to better handle pdsp run 5803 event 86 channel 7309.
+  fopt = "LWB";
   if ( m_LogLevel < 3 ) fopt += "Q";
   // Block Root info message for new Canvas produced in fit.
   int levelSave = gErrorIgnoreLevel;
   gErrorIgnoreLevel = 1001;
+  gErrorIgnoreLevel = 2001;   // Block warning in Fit
   // Block non-default (e.g. art) from handling the Root "error".
   // We switch to the Root default handler while making the call to Print.
   ErrorHandlerFunc_t pehSave = nullptr;

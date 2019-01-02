@@ -46,13 +46,23 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
   Name ifname = "artdaqTimestamp-Run" + std::to_string(dat.run) + 
                 "-Event" + std::to_string(dat.event) + ".dat";
   Offset res;
-  ifstream fin(ifname.c_str());
-  if ( ! fin ) {
-    cout << myname << "Unable to find time offset file: " << ifname << endl;
-    return res.setStatus(1);
+  unsigned long daqVal = dat.triggerClock;
+  static Index checkCount = 0;
+  if ( checkCount ) {
+    ifstream fin(ifname.c_str());
+    if ( ! fin ) {
+      cout << myname << "Unable to find time offset file: " << ifname << endl;
+      //return res.setStatus(1);
+    }
+    unsigned long daqValFile = 0;
+    fin >> daqValFile;
+    if ( daqVal == daqValFile ) {
+      cout << myname << "Input clock matches file clock." << endl;
+    } else {
+      cout << myname << "Input clock does not match file: " << daqVal << " != " << daqValFile << endl;
+    }
+    --checkCount;
   }
-  long daqVal;
-  fin >> daqVal;
   if ( m_Unit == "daq" ) {
     res.value = daqVal;
     res.rem = 0.0;
@@ -105,7 +115,7 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
       }
       if ( m_LogLevel >= 3 ) cout << myname << "Run phase is " << runPhase << endl;
     } else {
-      cout << myname << "WARNING: Run data does not have phases." << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "Run data tool not found." << endl;
     }
     long daqoff = daqVal + m_TpcTickPhase + runPhase;
     res.value = daqoff/25;

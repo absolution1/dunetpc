@@ -50,6 +50,11 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  PulserStepCharge: 0.0" << endl;
     fout << "  PulserDacOffset: 0.0" << endl;
     fout << "  PulserChargeUnit: \"\"" << endl;
+    fout << "  MaxRoiPlots: 100" << endl;
+    fout << "  RoiPlotPadX: 2" << endl;
+    fout << "  RoiPlotPadY: 2" << endl;
+    fout << "  SumPlotPadX: 2" << endl;
+    fout << "  SumPlotPadY: 2" << endl;
     fout << "  RunDataTool: \"\"" << endl;
     fout << "  TickOffsetTool: \"\"" << endl;
     fout << "  SumHists: []" << endl;
@@ -63,27 +68,31 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "tools.mytool2.SumHists: [" << endl;
     fout << "    {var:\"fitHeight\" name:\"hfh_%0RUN%\""
          << " title:\"Combined fit height run %RUN%\""
-         << " nbin:60 xmin:-300 xmax:300}, " << endl;
+         << " nbin:60 xmin:-300 xmax:300 plot:\"\"}, " << endl;
     fout << "    {var:\"fitHeight\" name:\"hfh_%0RUN%_chan%0CHAN%\""
          << " title:\"Fit height run %RUN% channel %CHAN%\""
-         << " nbin:40 xmin:0 xmax:0 fit:gaus}," << endl;
+         << " nbin:40 xmin:0 xmax:0 fit:gaus plot:\"\"}," << endl;
     fout << "    {var:\"fitWidth\" name:\"hfw_%0RUN%_chan%0CHAN%\""
          << " title:\"Fit width run %RUN% channel %CHAN%\""
-         << " nbin:40 xmin:0 xmax:4.0 fit:gaus}" << endl;
-    fout << "]" << endl;
-    fout << "tools.mytool2.ChannelRanges: [" << endl;
-    fout << "  {name:apa1x label:APA1x begin:250 end:270}" << endl;
+         << " nbin:40 xmin:0 xmax:4.0 fit:gaus plot:\"\"}" << endl;
     fout << "]" << endl;
     fout << "tools.mytool2.ChanSumHists: [" << endl;
     fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
-         <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x}," << endl;
+         <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x plot:\"\" pran:\"\"}," << endl;
     fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for run %RUN% %CRLABEL%\" "
-         <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x}" << endl;
+         <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x plot:\"\" pran:\"\"}" << endl;
     fout << "]" << endl;
     //fout << "  {val:\"hfw_%0RUN%_chan%0CHAN%:FitMean\" hist:\"hcsWidth_%0RUN%\"
     fout << "tools.mytool2.RoiRootFileName: \"\"" << endl;
     fout << "tools.mytool2.SumRootFileName: \"roisum.root\"" << endl;
     fout << "tools.mytool2.ChanSumRootFileName: \"roichan.root\"" << endl;
+    fout << "tools.channelRanges: {" << endl;
+    fout << "  tool_type: FclIndexRangeTool" << endl;
+    fout << "  LogLevel: 0" << endl;
+    fout << "  Ranges: [" << endl;
+    fout << "    {name:apa1x label:APA1x begin:250 end:270}" << endl;
+    fout << "  ]" << endl;
+    fout << "}" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;

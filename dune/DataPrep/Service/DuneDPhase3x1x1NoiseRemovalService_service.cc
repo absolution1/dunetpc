@@ -26,6 +26,9 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
     fCoherent32 = pset.get<bool>("Coherent32");
     fCoherent16 = pset.get<bool>("Coherent16");
     fLowPassFlt = pset.get<bool>("LowPassFlt");
+    fLowPassFltSecondPass = pset.get<bool>("LowPassFltSecondPass");
+    fLowPassFltFCut = pset.get<float>("LowPassFltFCut");
+    fLowPassFltExpo = pset.get<float>("LowPassFltExpo");
     fFlatten = pset.get<bool>("Flatten");
     fFlattenExtrapolate = pset.get<bool>("FlattenExtrapolate");
     fCoherent32Groups = pset.get<std::vector<size_t>>("Coherent32Groups");
@@ -61,11 +64,10 @@ DuneDPhase3x1x1NoiseRemovalService(fhicl::ParameterSet const& pset, art::Activit
 
     fLowPassCoeffs.resize(fFFT->FFTSize() / 2 + 1);
 
-    const float fcut = 0.5; // [MHz]
     for (size_t i = 0; i < fLowPassCoeffs.size(); ++i)
     {
         float f = 0.0015 * i; // [MHz]
-        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fcut, 8));
+        fLowPassCoeffs[i] = 1.0 / sqrt(1.0 + pow(f/fLowPassFltFCut, fLowPassFltExpo));
     }
 }
 //**********************************************************************
@@ -90,7 +92,7 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
       return 2;
     }
   }
-  
+
   if (nsig == 0)
   {
     std::cout << myname << "WARNING: No ADC samples found." << std::endl;
@@ -108,6 +110,8 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     {
       removeHighFreq(tempdatamap);
     }
+
+
 
     if (fFlatten)
     {
@@ -140,8 +144,6 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     m_pROIBuilderToolCNR->update(acd);
     }
 
-
-
     //copy the ROI found in tempdatampa to datamap
     AdcChannelDataMap::iterator ittempdatamap = tempdatamap.begin();
     for (auto & entry : datamap)
@@ -154,6 +156,11 @@ int DuneDPhase3x1x1NoiseRemovalService::update(AdcChannelDataMap& datamap) const
     }
 
     //Second pass
+
+    if (fLowPassFltSecondPass)
+    {
+      removeHighFreq(datamap);
+    }
 
     if (fFlatten)
     {
@@ -232,7 +239,7 @@ std::vector<float> DuneDPhase3x1x1NoiseRemovalService::getMeanCorrection(
         {
             if (!mask[s]) { continue; }
 
-            AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
+             AdcFlag flag = adc.flags.size() ? adc.flags[s] : AdcGood;
             if (flag != AdcGood) { continue; }
 
             correction[s] += adc.samples[s];
@@ -372,7 +379,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeHighFreq(AdcChannelDataMap& datam
 
 void DuneDPhase3x1x1NoiseRemovalService::removeSlope(AdcChannelDataMap& datamap) const
 {
-  size_t n_samples = datamap.begin()->second.samples.size(); 
+  size_t n_samples = datamap.begin()->second.samples.size();
   std::vector< float > slope(n_samples);
 
   auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
@@ -481,7 +488,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
   {
     // check if ROI at beginning of waveform
     if(signal[fBinsToSkip])
-    { 
+    {
 //      std::cout << "ROI at fBinsToSkip. Channel: " << channel << std::endl;
       AdcIndex ROIStart = fBinsToSkip;
       AdcIndex ROIEnd = fBinsToSkip;
@@ -514,13 +521,13 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
       double d = ((double)aCount*sxy - sx*sy)/((double)aCount*sx2 - sx*sx);
 
 /*
-	std::cout << "sx: " << sx << std::endl;	
+	std::cout << "sx: " << sx << std::endl;
 	std::cout << "sy: " << sy << std::endl;
-	std::cout << "sxy: " << sxy << std::endl;	
+	std::cout << "sxy: " << sxy << std::endl;
 	std::cout << "sx2: " << sx2 << std::endl;
-	std::cout << "c: " << c << std::endl;	
-	std::cout << "d: " << d << std::endl;	
-	std::cout << std::endl;	
+	std::cout << "c: " << c << std::endl;
+	std::cout << "d: " << d << std::endl;
+	std::cout << std::endl;
 */
       for( AdcIndex a = ROIStart; a <= ROIEnd; a++)
       {
@@ -565,13 +572,13 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
       double c = (sy*sx2 - sx*sxy)/((double)aCount*sx2 - sx*sx);
       double d = ((double)aCount*sxy - sx*sy)/((double)aCount*sx2 - sx*sx);
 /*
-	std::cout << "sx: " << sx << std::endl;	
+	std::cout << "sx: " << sx << std::endl;
 	std::cout << "sy: " << sy << std::endl;
-	std::cout << "sxy: " << sxy << std::endl;	
+	std::cout << "sxy: " << sxy << std::endl;
 	std::cout << "sx2: " << sx2 << std::endl;
-	std::cout << "c: " << c << std::endl;	
-	std::cout << "d: " << d << std::endl;	
-	std::cout << std::endl;	
+	std::cout << "c: " << c << std::endl;
+	std::cout << "d: " << d << std::endl;
+	std::cout << std::endl;
 */
       for( AdcIndex a = ROIEnd; a >= ROIStart; a--)
       {
@@ -585,7 +592,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
     for(AdcIndex i = fBinsToSkip; i < n_samples; i++)
     {
       if(signal[i])
-      { 
+      {
         x[i] = i;
         y[i] = 0;
       }
@@ -618,7 +625,7 @@ void DuneDPhase3x1x1NoiseRemovalService::removeSlopePolynomial(AdcChannelDataMap
       for(int j = 0; j<i; j++){
         matrix[j][i] = matrix[i][j];
       }
-    }   
+    }
 
     //get parameters for polynomial with Gauss-Jordan
     if(np > n_samples/10) //need minimum number of bins for fit
@@ -810,7 +817,7 @@ std::vector<double> DuneDPhase3x1x1NoiseRemovalService::GaussJordanSolv(std::vec
 {
 
   int n = matrix.size();
-  
+
   for (int i=0; i<n; i++) {
     // Search for maximum in this column
     double maxEl = std::abs(matrix[i][i]);
@@ -850,7 +857,7 @@ std::vector<double> DuneDPhase3x1x1NoiseRemovalService::GaussJordanSolv(std::vec
       matrix[k][n] -= matrix[k][i] * x[i];
     }
   }
-  return x;  
+  return x;
 }
 
 std::ostream& DuneDPhase3x1x1NoiseRemovalService::print(std::ostream& out, std::string prefix) const

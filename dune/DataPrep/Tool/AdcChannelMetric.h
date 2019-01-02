@@ -4,7 +4,13 @@
 // April 2018
 //
 // Tool to evalute metrics for single ADC channel and make histograms
-// for multiple channels. Subclasses may be used to extend the list of
+// of metric vs. channel for ranges of channels.
+//
+// If plots are made, graphs are shown instead of histograms.
+// If a plot range is specified then values outside the range arae
+// shown at the nearest range limit.
+//
+// Subclasses may be used to extend the list of
 // metrics (names and algorithms).
 //
 // Configuration:
@@ -16,6 +22,8 @@
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
+//              rawRms - RMS of (ADC - pedestal)
+//              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
 //   ChannelRanges - Names of channel ranges to display.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
@@ -25,6 +33,8 @@
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
+//              If the name has the field "%STATUS%, then separate histograms are also
+//              made for bad, noisy and good (not bad or noisy) channels.
 //   HistTitle - Histogram title
 //   MetricLabel - Histogram lable for the metric axis
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
@@ -62,6 +72,9 @@
 #include <vector>
 
 class AdcChannelStringTool;
+namespace lariov {
+  class ChannelStatusProvider;
+}
 
 class AdcChannelMetric : AdcChannelTool {
 
@@ -110,8 +123,14 @@ private:
   // Channel ranges.
   IndexRangeVector m_crs;
   
+  // Flag indicating separate plots should be made based on status.
+  bool m_useStatus;
+
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
+
+  // Channel status provider.
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
   // Create the plot for one range.
   DataMap viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const;

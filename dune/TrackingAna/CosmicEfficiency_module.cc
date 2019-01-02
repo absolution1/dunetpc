@@ -218,7 +218,7 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
       if(fabs(trueMatch->PdgCode()) == 13){
         ++local_TrueCosmicMuon;
         isCosmicMuon = true;
-        hTrkLenAll->Fill(((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).Mag());
+        hTrkLenAll->Fill(((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).R());
       }
       else{
         ++local_TrueOther;
@@ -259,7 +259,7 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
         //std::cout << "True vertex = "; trueMatch->Position().Vect().Print();
         //std::cout << "Reco end = "; (*recoTracks)[t].End().Print();
         //std::cout << "True end = "; trueMatch->EndPosition().Vect().Print();
-        std::cout << " - Track length = " << ((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).Mag() << std::endl; 
+        std::cout << " - Track length = " << ((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).R() << std::endl; 
         if((*recoTracks)[t].Vertex().Y() < (*recoTracks)[t].End().Y()){
           std::cout << " - Track reconstructed with the vertex lower than the end point" << std::endl;
         }
@@ -276,7 +276,7 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
       // Specific cosmic muon counters
       if(isCosmicMuon){
         ++local_TaggedCosmicMuon;
-        hTrkLenTag->Fill(((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).Mag());
+        hTrkLenTag->Fill(((*recoTracks)[t].Vertex()-(*recoTracks)[t].End()).R());
       }
       else{
         ++local_TaggedOther;
@@ -297,8 +297,8 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
           else{
             std::cout << " - Oops! Tagged a non-primary beam particle (" << trueMatch->PdgCode() << ") as a cosmic (" << ConvertCosmicType(trackCosmicTag[0]->CosmicType()) << ")" << std::endl;
           }
-          (*recoTracks)[t].Vertex().Print();
-          (*recoTracks)[t].End().Print();  
+          (*recoTracks)[t].Vertex<TVector3>().Print();
+          (*recoTracks)[t].End<TVector3>().Print();  
           trueMatch->Position().Vect().Print();
           trueMatch->EndPosition().Vect().Print();
         } 

@@ -13,7 +13,7 @@
 // service are used.
 //
 // Note the geometry service requires the experiment-specific geometry
-// helper with the channel map also be loaded. 
+// helper with the channel map also be loaded.
 //
 // The functions that set the expected values must be defined externally.
 
@@ -110,37 +110,22 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
   if ( wireAngle == 101 ) view =  geo::kV;
   if ( wireAngle == 102 ) view =  geo::kZ;
   bool useView = wireAngle >= 100;
+
   cout << myname << line << endl;
   cout << myname << "Create configuration." << endl;
-  const char* ofname = "test_WireSelector.fcl";
   bool useExistingFcl = false;
-  if ( ! useExistingFcl ) {
-    ofstream fout(ofname);
-    fout << "#include \"geometry_dune.fcl\"" << endl;
-    fout << "services.Geometry:                   @local::" + gname << endl;
-    fout << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
+  if (useExistingFcl) {
+    ArtServiceHelper::load_services("test_WireSelector.fcl",
+                                    ArtServiceHelper::FileOnPath);
+  }
+  else {
+    std::stringstream config;
+    config << "#include \"geometry_dune.fcl\"" << endl;
+    config << "services.Geometry:                   @local::" + gname << endl;
+    config << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
+    ArtServiceHelper::load_services(config);
   }
 
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& myash = ArtServiceHelper::instance();
-  myash.setLogLevel(3);
-
-  cout << myname << line << endl;
-  cout << myname << "Add services from " << ofname << endl;
-  assert( myash.addServices(ofname, true) == 0 );
-
-  cout << myname << line << endl;
-  cout << myname << "Display services" << endl;
-  myash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load the services." << endl;
-  assert( myash.loadServices() == 1 );
-  myash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Get Geometry service." << endl;
   art::ServiceHandle<geo::Geometry> pgeo;
 
   cout << myname << line << endl;
@@ -328,7 +313,7 @@ int test_WireSelector(string gname, double wireAngle, double minDrift, unsigned 
     sout << myname << setw(10) << std::fixed << xsigs[isig] << "," << setw(9) << std::fixed << zsigs[isig];
     cout << sout.str() << endl;
   }
-    
+
   bool drawWires = true;
   LineColors lc;
   double ticklen = 0.015;
@@ -432,7 +417,6 @@ int main(int argc, const char* argv[]) {
   }
   test_WireSelector(gname, thtx, minDrift, nShow, sigopt);
   cout << "Tests concluded." << endl;
-  ArtServiceHelper::close();
   return 0;
 }
 

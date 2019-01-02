@@ -59,15 +59,20 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   AdcIndex nsamhi = m_BinsAfter;
   acd.signal.resize(nsam, false);
   AdcIndex nbinAbove = 0;
+  AdcIndex isamNotRoi = 0;  // This is the 1st sample after the last ROI.
   for ( AdcIndex isam=0; isam<nsam; ++isam ) {
     bool keep = ( m_FlagPositive && acd.samples[isam] >  m_Threshold ) ||
                 ( m_FlagNegative && acd.samples[isam] < -m_Threshold );
-    if ( keep ) {
+    if ( keep ) { // Leave isam after the new ROI
       ++nbinAbove;
       AdcIndex jsam1 = isam > nsamlo ? isam - nsamlo : 0;
+      if ( jsam1 < isamNotRoi ) jsam1 = isamNotRoi;
       AdcIndex jsam2 = isam + nsamhi + 1;
       if ( jsam2 > nsam ) jsam2 = nsam;
-      for ( AdcIndex jsam=jsam1; jsam<jsam2; ++jsam ) acd.signal[jsam] = true;
+      for ( isam=jsam1; isam<jsam2; ++isam ) acd.signal[isam] = true;
+      isamNotRoi = isam;
+    } else {
+      ++isam;
     }
   }
   acd.roisFromSignal();

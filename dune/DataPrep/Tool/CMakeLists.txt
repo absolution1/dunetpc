@@ -26,12 +26,29 @@ simple_plugin(AdcChannelDumper   "tool"
 
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(AdcPedestalFitter  "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcCodeMitigator  "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcTimingMitigator  "tool"
                 dune_ArtSupport
                 dune_DuneCommon
                 art_Utilities canvas
@@ -79,6 +96,14 @@ simple_plugin(AdcChannelMetric   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcEventViewer   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AcdDigitReader   "tool"
                 dune_DuneCommon
                 lardataobj_RawData
@@ -100,6 +125,25 @@ simple_plugin(AdcSampleFiller   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(SubtractBaseline   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(UndershootCorr   "tool"
+              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Utilities canvas
+                        ${CETLIB_LIBS}
+                        ${MF_MESSAGELOGGER}
+                        ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service
                 art_Framework_Services_Registry
@@ -114,10 +158,21 @@ simple_plugin(AdcUnderflowFlagger   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(FclStickyCodeFlagger   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcKeepAllSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcThresholdSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+
 simple_plugin(DuneAdcSignalFinder   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

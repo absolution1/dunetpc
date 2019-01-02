@@ -49,33 +49,16 @@ int test_InterpolatingAdcMitigationService(int a_LogLevel =1, int a_MaxConsecuti
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_InterpolatingAdcMitigationService.fcl";
-  ofstream fout(fclfile.c_str());
-  fout << "services.AdcMitigationService: {" << endl;
-  fout << "  service_provider: InterpolatingAdcMitigationService" << endl;
-  fout << "  LogLevel:              " << a_LogLevel << endl;
-  fout << "  SkipUnderflows:     true" << endl;
-  fout << "  SkipOverflows:     false" << endl;
-  fout << "  MaxConsecutiveSamples: 3 " << endl;
-  fout << "  MaxConsecutiveFlag:    " << a_MaxConsecutiveFlag << endl;
-  fout << "}" << endl;
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-    cout << myname << line << endl;
-    cout << myname << "Add ADC mitigation service." << endl;
-    assert( ash.addService("AdcMitigationService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  std::ostringstream oss;
+  oss << "services.AdcMitigationService: {" << endl;
+  oss << "  service_provider: InterpolatingAdcMitigationService" << endl;
+  oss << "  LogLevel:              " << a_LogLevel << endl;
+  oss << "  SkipUnderflows:     true" << endl;
+  oss << "  SkipOverflows:     false" << endl;
+  oss << "  MaxConsecutiveSamples: 3 " << endl;
+  oss << "  MaxConsecutiveFlag:    " << a_MaxConsecutiveFlag << endl;
+  oss << "}" << endl;
+  ArtServiceHelper::load_services(oss.str());
 
   const unsigned int nsig = 50;
   AdcChannelData acd;
@@ -139,7 +122,6 @@ int test_InterpolatingAdcMitigationService(int a_LogLevel =1, int a_MaxConsecuti
   cout << myname << "Fetch ADC mitigation service." << endl;
   ServiceHandle<AdcMitigationService> hams;
   hams->print();
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Mitigate." << endl;
