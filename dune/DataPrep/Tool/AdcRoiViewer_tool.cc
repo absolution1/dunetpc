@@ -167,6 +167,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
   m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
   m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
+  m_SumNegate(ps.get<bool>("SumNegate")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
@@ -257,6 +258,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "fitCSNorm" ) xlab = "Normalized fit #chi^{2}";
     else if ( hvarx == "fitCSNormDof" ) xlab = "Normalized fit #chi^{2}/DOF";
     else if ( hvarx == "sigArea" ) xlab = "Area [%(SUNIT)%-Tick]";
+    else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%(SUNIT)%-Tick]";
 
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
@@ -348,23 +350,28 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     bool havePlotYMax = false;
     float plotYMin = 0;
     float plotYMax = 0;
+    Name plotYOpt;
     if ( spran.size() ) {
       Name::size_type ipos = spran.find(":");
       if ( ipos == Name::npos ) {
         cout << myname << "WARNING: Channel summary range specifcation must include \":\"" << endl;
       } else {
+        Name::size_type jpos = spran.find(":", ipos+1);
         Name spmin = spran.substr(0, ipos);
         if ( spmin.size() ) {
           istringstream ssin(spmin);
           ssin >> plotYMin;
           havePlotYMin = true;
         } 
-        Name spmax = spran.substr(ipos+1);
+        Name spmax = spran.substr(ipos+1, jpos-ipos);
         if ( spmax.size() ) {
           istringstream ssin(spmax);
           ssin >> plotYMax;
           havePlotYMax = true;
         } 
+        if ( jpos != Name::npos ) {
+          plotYOpt = spran.substr(jpos+1);
+        }
       }
     }
     // Loop over channel ranges. Value "list" means all; otherwise just the one given.
@@ -416,6 +423,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       getState().chanSumPlotNames[hnam] = plname;
       if ( havePlotYMin ) getState().chanSumPlotYMins[hnam] = plotYMin;
       if ( havePlotYMax ) getState().chanSumPlotYMaxs[hnam] = plotYMax;
+      if ( havePlotYMin || havePlotYMax ) getState().chanSumPlotYOpts[hnam] = plotYOpt;
       if ( m_LogLevel >= 3 ) {
         cout << myname << "  Histogram name: " << hnam << endl;
         cout << myname << "      Value type: " << valType << endl;
@@ -429,6 +437,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "       Plot ymax: ";
         if ( havePlotYMax ) cout << plotYMax;
         cout << endl;
+        cout << "       Plot yopt: " << plotYOpt << endl;
       }
     }  // End loop over channel ranges
   }  // End loop over channel summmary histogram configurations
@@ -445,6 +454,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "       MaxRoiPlots: " << m_MaxRoiPlots << endl;
     cout << myname << "       RoiPlotPadX: " << m_RoiPlotPadX << endl;
     cout << myname << "       RoiPlotPadY: " << m_RoiPlotPadY << endl;
+    cout << myname << "         SumNegate: " << (m_SumNegate ? "true" : "false") << endl;
     cout << myname << "       SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "       SumPlotPadY: " << m_SumPlotPadY << endl;
     cout << myname << "   RoiRootFileName: " << m_RoiRootFileName << endl;
@@ -833,19 +843,23 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
     if ( pfit != nullptr ) {
       NameVector labs;
       if ( pfit != nullptr ) {
+        double area = ph->Integral();
         double height = pfit->GetParameter("Height");
         double shaping = pfit->GetParameter("Shaping");
         double t0 = pfit->GetParameter("T0");
         ostringstream ssout;
         ssout.precision(3);
         ssout.setf(std::ios_base::fixed);
+        ssout << "Area: " << area;
+        labs.push_back(ssout.str());
+        ssout.str("");
         ssout << "Height: " << height;
         labs.push_back(ssout.str());
         ssout.str("");
         ssout << "Shaping: " << shaping << " tick";
         labs.push_back(ssout.str());
         ssout.str("");
-        ssout.precision(4);
+        ssout.precision(2);
         ssout << "Position: " << t0 << " tick";
         labs.push_back(ssout.str());
         ssout.str("");
@@ -891,14 +905,28 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
   const string myname = "AdcRoiViewer::fillSumHists: ";
   // Fetch the run data.
   RunData rdat;
-  if ( m_pRunDataTool != nullptr ) rdat = m_pRunDataTool->runData(acd.run, acd.subRun);
+  if ( m_pRunDataTool != nullptr ) {
+    rdat = m_pRunDataTool->runData(acd.run, acd.subRun);
+    RunData& rdatOld = getState().runData;
+    if ( rdat.isValid() && ! rdatOld.isValid() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Setting run data." << endl;
+      rdatOld = rdat;
+    } else if ( rdat.isValid() && rdatOld.isValid() ) {
+      if ( rdat.run() != rdatOld.run() ) {
+        cout << myname << "Ignoring unexpected change in run number: " << rdatOld.run()
+             << " --> " << rdat.run();
+      }
+    } else if ( ! rdat.isValid() ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Run data not found." << endl;
+    }
+  }
   float pulserQin = 0.0;
   bool havePulserAmplitude = rdat.havePulserAmplitude() && rdat.havePulserSource();
   bool havePulserPeriod = rdat.havePulserPeriod();
   bool haveQin = false;
   if ( havePulserAmplitude ) {
     int qfac = rdat.pulserAmplitude();
-    if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
+    //if ( rdat.pulserSource() == 2 && qfac > 0 ) --qfac;     // Should we do this??
     pulserQin = (qfac - m_PulserDacOffset)*m_PulserStepCharge;
     haveQin = pulserQin != 0.0;
     if ( ! haveQin ) {
@@ -951,6 +979,10 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     const HistInfo& hin0 = ish.second;
     ++nhst;
     Name varx = hin0.varx;
+    if ( m_SumNegate ) {
+      if ( varx == "fitHeight" ) varx = "fitHeightNeg";
+      if ( varx == "sigArea" ) varx = "sigAreaNeg";
+    }
     Name vary = hin0.vary;
     TH1* ph0 = hin0.ph;
     Name fitName = hin0.fitName;
@@ -958,6 +990,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     FloatVector vals;
     IntVector ivals;
     if      ( varx == "sigArea" )            vals = dm.getFloatVector("roiSigAreas");
+    else if ( varx == "sigAreaNeg" )         vals = dm.getFloatVector("roiSigAreas");
     else if ( varx == "fitHeight"    )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightNeg" )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightGain" )      vals = dm.getFloatVector("roiFitHeights");
@@ -1004,6 +1037,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     }
     float varfac = 1.0;
     if ( varx == "fitHeightNeg" ) varfac = -1.0;
+    if ( varx == "sigAreaNeg" ) varfac = -1.0;
     if ( varx == "fitCSNorm" ||  varx == "fitCSNormDof" ) {
       float pedrms = acd.pedestalRms;
       if ( pedrms > 0.0 ) varfac = 1.0/(pedrms*pedrms);
@@ -1086,21 +1120,22 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
     IntVector fstats = dm.getIntVector("roiFitStats");
-    bool check = true;
+    bool checkFit = varx.substr(0,3) == "fit";
+    double chiSquareDofMax = 0.0;   // was 1000; should be config param?
     if ( csds.size() != vals.size() ) {
       cout << "ERROR: Variable and chi-square/DF vectors have different sizes." << endl;
-      check = false;
+      checkFit = false;
     }
     if ( fstats.size() != vals.size() ) {
       cout << "ERROR: Variable and fit status vectors have different sizes." << endl;
-      check = false;
+      checkFit = false;
     }
     Index nval = 0;
     Index nvalSkip = 0;
     bool logerr = m_LogLevel >= 3 && nhstGood == 0;
     for ( Index ival=0; ival<vals.size(); ++ival ) {
       ++nval;
-      if ( check ) {
+      if ( checkFit ) {
         int fstat = fstats[ival];
         float csd = csds[ival];
         if ( fstat ) {
@@ -1108,7 +1143,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
                             << " (chi-square/DOF = " << csd << ")" << endl;
           ++nvalSkip;
           continue;
-        } else if ( csd > 1000.0 ) {
+        } else if ( chiSquareDofMax > 0.0 && csd > chiSquareDofMax ) {
           if ( logerr) cout << myname << "WARNING: Skipping entry with chi-square/DOF = " << csd << endl;
           ++nvalSkip;
           continue;
@@ -1125,9 +1160,9 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
     }
     // Show skips for the first histogram only.
-    if ( nhstGood == 0 && nvalSkip ) {
+    if ( nvalSkip ) {
       cout << myname << "WARNING: Skipped " << nvalSkip << " of " << nval
-           << " entries due to bad fit." << endl;
+           << " entries due to bad fit for histogram " << hnam << "." << endl;
     }
     ++nhstGood;
   }
@@ -1517,6 +1552,7 @@ void AdcRoiViewer::writeChanSumPlots() const {
     bool doRange = false;
     float ymin = ph->GetMinimum();
     float ymax = ph->GetMaximum();
+    Name yopt;
     if ( getState().chanSumPlotYMins.find(hnam) != getState().chanSumPlotYMins.end() ) {
       ymin = getState().chanSumPlotYMins[hnam];
       doRange = true;
@@ -1524,15 +1560,31 @@ void AdcRoiViewer::writeChanSumPlots() const {
     if ( getState().chanSumPlotYMaxs.find(hnam) != getState().chanSumPlotYMaxs.end() ) {
       ymax = getState().chanSumPlotYMaxs[hnam];
       doRange = true;
-      TH1* php = pman->hist();
-      double del = 1.e-4*(ymax -ymin);
-      for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
-        if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
-      }
     }
     if ( doRange ) {
+      Name yopt = getState().chanSumPlotYOpts[hnam];
+      double yfac = 0.0;
+      if ( yopt == "pamp") {
+        const RunData& rdat = getState().runData;
+        if ( rdat.havePulserAmplitude() ) {
+          yfac = rdat.pulserAmplitude();
+        } else {
+          cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+        }
+      }
+      if ( yfac != 0.0 ) {
+        ymin *= yfac;
+        ymax *= yfac;
+      }
       if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
       pman->setRangeY(ymin, ymax);
+      TH1* php = pman->hist();
+      double del = 1.e-4*(ymax -ymin);
+      // Put points on the page.
+      for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
+        if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
+        if ( php->GetBinContent(ibin) < ymin ) php->SetBinContent(ibin, ymin+del);
+      }
     }
     bool highlightBadChannels = true;
     if ( highlightBadChannels ) {

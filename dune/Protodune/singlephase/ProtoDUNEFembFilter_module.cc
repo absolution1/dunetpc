@@ -20,7 +20,6 @@
 
 
 
-
 namespace filt{
 
   class ProtoDUNEFembFilter : public art::EDFilter {
@@ -70,6 +69,12 @@ namespace filt{
   }
 
   bool ProtoDUNEFembFilter::filter(art::Event & evt) {
+
+
+
+
+
+
     std::vector<int> BeamsideAPAs;
     std::vector<int> AllAPAs;
     std::vector<int> checkedAPAs;

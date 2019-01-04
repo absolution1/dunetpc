@@ -402,6 +402,7 @@ tools.adcRoiViewer: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  SumNegate: false
   SumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
@@ -424,6 +425,7 @@ tools.adcRoiFitter: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  SumNegate: false
   SumHists: []
   ChannelRanges: []
   RoiRootFileName: ""

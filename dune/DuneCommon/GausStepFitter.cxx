@@ -39,7 +39,6 @@ int GausStepFitter::fit(TH1* ph) const {
     } else if ( height < 0.0 ) {
       pffix->SetParLimits(0, 2.0*height, 0.1*height);   // Don't let height go positive.
     }
-
     Name fopt = m_fopt;
     if ( m_LogLevel >= 2 ) fopt += "Q";
     int fstat = quietHistFit(ph, pffix, fopt.c_str());
