@@ -30,7 +30,7 @@ using DoubleVector = std::vector<double>;
 
 //**********************************************************************
 
-int test_GausRmsFitter(double satfrac) {
+int test_GausRmsFitter(int dbg, double satfrac) {
   const string myname = "test_GausRmsFitter: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -60,15 +60,22 @@ int test_GausRmsFitter(double satfrac) {
   delete pf2;
 
   cout << myname << line << endl;
-  GausRmsFitter gsf("ff");
+  GausRmsFitter gsf(4.0, 4.0, "ff");
+  if ( dbg > 0 ) gsf.setLogLevel(dbg);
   assert( gsf.fit(ph, 50) == 0 );
   TF1* pffit = ph->GetFunction("ff");
   if ( pffit == nullptr ) {
     cout << myname << "  Fit function not found!" << endl;
     ph->GetListOfFunctions()->Print();
   } else {
-    cout << myname << "   Fit mean: " << pffit->GetParameter("Mean") << endl;
-    cout << myname << "  Fit sigma: " << pffit->GetParameter("Sigma") << endl;
+    double x1, x2;
+    pffit->GetRange(x1, x2);
+    double sum = pffit->Integral(x1, x2);
+    cout << myname << "      Fit name: " << pffit->GetName() << endl;
+    cout << myname << "      Fit mean: " << pffit->GetParameter("Mean") << endl;
+    cout << myname << "     Fit sigma: " << pffit->GetParameter("Sigma") << endl;
+    cout << myname << "     Fit range: (" << x1 << ", " << x2 << ")" << endl;
+    cout << myname << "  Fit integral: " << sum << endl;
   }
 
   cout << myname << line << endl;
@@ -89,15 +96,21 @@ int test_GausRmsFitter(double satfrac) {
 //**********************************************************************
 
 int main(int narg, const char* argc[]) {
+  int dbg = 0;
   DoubleVector satfracs = {0.0, 0.1, 0.2, 0.5};
   if ( narg > 1 ) {
     string sarg = argc[1];
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argc[0] << " [F1 F2 ...]" << endl;
+      cout << "Usage: " << argc[0] << " [DBG] [F1 F2 ...]" << endl;
       return 0;
     }
+    istringstream ssin(sarg);
+    ssin >> dbg;
+  }
+  if ( narg > 2 ) {
+    string sarg = argc[2];
     satfracs.clear();
-    for ( int iarg=1; iarg<narg; ++iarg ) {
+    for ( int iarg=2; iarg<narg; ++iarg ) {
       double satfrac = 0.0;
       istringstream ssin(argc[iarg]);
       ssin >> satfrac;
@@ -105,7 +118,7 @@ int main(int narg, const char* argc[]) {
     }
   }
   int err = 0;
-  for ( double satfrac : satfracs ) err += test_GausRmsFitter(satfrac);
+  for ( double satfrac : satfracs ) err += test_GausRmsFitter(dbg, satfrac);
   return err;
 }
 
