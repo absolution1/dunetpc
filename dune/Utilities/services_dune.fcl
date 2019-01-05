@@ -468,7 +468,8 @@ protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
 protodune_data_reco_services.ChannelGroupService.ApaRops: []
 # Add the photon detector calibrator service
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
-
+# ProtoDUNE detector properties service
+protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
 
 #######################
 ### 35ton Prototype ###
