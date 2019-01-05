@@ -652,62 +652,10 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(uint64_t run)
         fDriftDirection[cstat][tpc] = dir;
         int nplane = tpcgeom.Nplanes();
         fXTicksOffsets[cstat][tpc].resize(nplane, 0.);
+
         for(int plane = 0; plane < nplane; ++plane) {
           const geo::PlaneGeo& pgeom = tpcgeom.Plane(plane);
-          
-
-          
-          
-          // Get field in gap between planes
-          double efieldgap[3];
-          double driftVelocitygap[3];
-          double fXTicksCoefficientgap[3];
-          for (int igap = 0; igap<3; ++igap){
-            efieldgap[igap] = Efield(igap);
-            driftVelocitygap[igap] = DriftVelocity(efieldgap[igap], temperature);
-            fXTicksCoefficientgap[igap] = 0.001 * driftVelocitygap[igap] * samplingRate;
-          }
-          
-          // Calculate geometric time offset.
-          // only works if xyz[0]<=0
-          const double* xyz = tpcgeom.PlaneLocation(0);
-          
-          fXTicksOffsets[cstat][tpc][plane] = -xyz[0]/(dir * fXTicksCoefficient) + triggerOffset;
-          if (nplane==3){
-            /*
-         |    ---------- plane = 2 (collection)
-         |                      Coeff[2]
-         |    ---------- plane = 1 (2nd induction)
-         |                      Coeff[1]
-         |    ---------- plane = 0 (1st induction) x = xyz[0]
-         |                      Coeff[0]
-         |    ---------- x = 0
-         V     For plane = 0, t offset is -xyz[0]/Coeff[0]
-         x   */
-            
-            for (int ip = 0; ip < plane; ++ip){
-              fXTicksOffsets[cstat][tpc][plane] += tpcgeom.PlanePitch(ip,ip+1)/fXTicksCoefficientgap[ip+1];
-              
-              
-            }
-          }          
-          else if (nplane==2){ ///< special case for ArgoNeuT
-            /*
-         |    ---------- plane = 1 (collection)
-         |                      Coeff[2]
-         |    ---------- plane = 0 (2nd induction) x = xyz[0]
-         |    ---------- x = 0, Coeff[1]
-         V    ---------- first induction plane
-         x                      Coeff[0]
-For plane = 0, t offset is pitch/Coeff[1] - (pitch+xyz[0])/Coeff[0]
-                         = -xyz[0]/Coeff[0] - pitch*(1/Coeff[0]-1/Coeff[1])
-            */
-            for (int ip = 0; ip < plane; ++ip){
-              fXTicksOffsets[cstat][tpc][plane] += tpcgeom.PlanePitch(ip,ip+1)/fXTicksCoefficientgap[ip+2];
-              
-            }
-            fXTicksOffsets[cstat][tpc][plane] -= tpcgeom.PlanePitch()*(1/fXTicksCoefficient-1/fXTicksCoefficientgap[1]);
-          }
+          fXTicksOffsets[cstat][tpc][plane] = triggerOffset;
           
           // Add view dependent offset
           // FIXME the offset should be plane-dependent
