@@ -132,6 +132,7 @@ dunefddphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -194,6 +195,7 @@ dunedphase3x1x1_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
  DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
@@ -269,6 +271,7 @@ protodunedphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -457,8 +460,7 @@ protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: [
     "pdsp_adcMitigate",           # Mitigate sticky codes
     "pdsp_timingMitigate",        # Mitigate FEMB302 timing
     "adcCorrectUndershoot",       # correct undershoot
-    "adcVintageDeconvoluter",     # Deconvolute
-    "adcThresholdSignalFinder"    # Build ROIs
+    "adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
 ]
 # Get rid of low frequency noise
 protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus"
@@ -469,7 +471,8 @@ protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
 protodune_data_reco_services.ChannelGroupService.ApaRops: []
 # Add the photon detector calibrator service
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
-
+# ProtoDUNE detector properties service
+protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
 
 #######################
 ### 35ton Prototype ###
