@@ -23,6 +23,11 @@
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build
+//   %TRIG% --> acd.trigger
+//   %TRIGNAME% --> TrigNames[acd.trigger]
+//   %TRIGNAMECAP% --> TrigNames[acd.trigger] with first letter capitalized.
+//   %TIMEUTC% --> Time string in UTC (implicit), e.g. "2018-10-23 15:31:12"
+//   %TIMEUTCn% --> Previous plus fracional seconds to n digits for n=0-9.
 // where acd is the AdcChannelData object and dm is the DataMap object
 // passed in the call to build.
 //
@@ -45,6 +50,7 @@
 //  EventWidth - width for event
 //  ChannelWidth - width for channel
 //  FembWidth - width for FEMB
+//  TrigNames - Names for triggers.
 
 #ifndef StandardAdcChannelStringTool_H
 #define StandardAdcChannelStringTool_H
@@ -52,6 +58,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
+#include <vector>
 
 class StandardAdcChannelStringTool
 : public AdcChannelStringTool {
@@ -59,6 +66,8 @@ class StandardAdcChannelStringTool
 public:
 
   using Index = unsigned int;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   StandardAdcChannelStringTool(fhicl::ParameterSet const& ps);
 
@@ -74,8 +83,10 @@ private:
   Index m_ChannelWidth;
   Index m_CountWidth;
   Index m_FembWidth;
+  Index m_TriggerWidth;
+  NameVector m_TrigNames;
 
-  static const Index m_nrep = 8;
+  static const Index m_nrep = 9;
   Index m_wids[m_nrep];
   std::string m_reps[m_nrep];
   std::string m_bads[m_nrep];

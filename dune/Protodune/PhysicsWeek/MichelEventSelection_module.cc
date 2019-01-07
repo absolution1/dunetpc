@@ -192,9 +192,9 @@ void MichelReco::analyze(art::Event const & evt)
     //int bestTrackId = trackMatching( &track - &tracks[0], hitsFromTracks );
     
     // find track start and end
-    auto const & trackStart = track.Vertex();
+    auto const & trackStart = track.Vertex<TVector3>();
     double start[3] = { trackStart.X(), trackStart.Y(), trackStart.Z() };
-    auto const & trackEnd = track.End();
+    auto const & trackEnd = track.End<TVector3>();
     double end[3] = { trackEnd.X(), trackEnd.Y(), trackEnd.Z() };
 
     // Check if the track starts or ends in the fiducial volume

@@ -21,6 +21,8 @@
 #undef NDEBUG
 #include <cassert>
 
+#include "TH1.h"
+
 using std::string;
 using std::cout;
 using std::endl;
@@ -67,10 +69,9 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_ToolBasedRawDigitPrepService.fcl";
-  vector<string> snames;
-  if ( ! useExistingFcl ) {
-    ofstream fout(fclfile.c_str());
+  std::string const fclfile{"test_ToolBasedRawDigitPrepService.fcl"};
+  if (!useExistingFcl) {
+    std::ofstream fout{fclfile};
     fout << "#include \"services_dune.fcl\"" << endl;
     fout << "services:      @local::dune35t_services" << endl;    // Need geometry for wire building.
     fout << "#include \"tools_dune.fcl\"" << endl;
@@ -84,30 +85,18 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "  DoWires: true" << endl;
     fout << "  AdcChannelToolNames: [" << endl;
     fout << "    \"digitReader\"," << endl;
-    //fout << "    \"adcChannelDumper\"," << endl;
+    // fout << "    \"adcChannelDumper\"," << endl;
     fout << "    \"rawAdcPlotter\"," << endl;
     fout << "    \"adcSampleFiller\"," << endl;
     fout << "    \"preparedAdcPlotter\"," << endl;
     fout << "    \"adcThresholdSignalFinder\"" << endl;
-    //fout << ",    \"adcRoiViewer\"" << endl;
+    // fout << ",    \"adcRoiViewer\"" << endl;
     fout << "  ]" << endl;
     fout << "}" << endl;
     fout.close();
   }
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Add services." << endl;
-  assert( ash.addServices(fclfile, true) == 0 );
-  ash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load services." << endl;
-  assert( ash.loadServices() == 1 );
-  ash.print();
+  std::ifstream config{fclfile};
+  ArtServiceHelper::load_services(config);
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
@@ -193,7 +182,6 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   cout << myname << "Fetch raw digit prep service." << endl;
   ServiceHandle<RawDigitPrepService> hrdp;
   hrdp->print();
-  ash.print();
 
   cout << myname << line << endl;
   cout << myname << "Prep data from digits." << endl;
@@ -213,6 +201,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   }
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);
+  vector<string> snames;
   WiredAdcChannelDataMap intStates(snames, nchan);
   assert( intStates.dataMaps.size() == snames.size() );
   assert( intStates.wires.size() == snames.size() );
@@ -305,7 +294,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     cout << myname << header << endl;
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
       cout << myname;
-      cout << setw(4) << chan << "-" 
+      cout << setw(4) << chan << "-"
            << setw(2) << isig << ": " << setw(4) << adcsmap[chan][isig];
       for ( unsigned int ista=0; ista<intSigs.size(); ++ista ) {
         cout << fixed << setprecision(1) << setw(8) << intSigs[ista]->at(isig);
@@ -337,6 +326,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
+  TH1::AddDirectory(false);
   return test_ToolBasedRawDigitPrepService(useExistingFcl);
 }
 

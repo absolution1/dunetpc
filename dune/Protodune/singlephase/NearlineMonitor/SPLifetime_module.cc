@@ -28,6 +28,9 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "cetlib_except/exception.h"
+
+#include <regex>
 
 #include <fstream>
 #include <sstream>
@@ -42,6 +45,7 @@
 #include "TCanvas.h"
 
 #define setHistTitles(hist,xtitle,ytitle) hist->GetXaxis()->SetTitle(xtitle); hist->GetYaxis()->SetTitle(ytitle);
+#define appendToHistTitle(hist,str) hist->SetTitle((std::string(hist->GetTitle())+std::string(str)).c_str());
 
 //// apa = tpcMapping[tpc]
 const std::array<size_t,13> tpcMapping = {{0,4,1,0,0,5,2,0,0,6,3,0,0}};
@@ -86,6 +90,12 @@ private:
   std::string fClusterModuleLabel;
   double fChiCut;
   std::vector<float> fChgCuts;
+  double fTicksPerBin; // 200 ticks * 0.5 us/tick = 0.1 ms
+  unsigned fMinBins;
+  unsigned fMinHits;
+  double fMinDTickSNR;
+  double fMinDWireSNR;
+  unsigned fMinHitsSNR;
   int lastRun;
   int fDebugCluster;
   std::string fInFilename;
@@ -97,6 +107,8 @@ private:
   double signalToNoiseCnt[12];
   unsigned int signalToNoiseClsCnt[12];
   
+  TH1F *fLife;
+  TH2F *fLifeVTPC;
   TH1F *fLifeInv;
   TH1F *fFracSelHits;
   TH1F *fChiDOF;
@@ -114,6 +126,7 @@ private:
 
   TH1F *fAmplitudes;
   TH1F *fNoise;
+  TH1F *fNoiseWide;
 
 };
 
@@ -135,6 +148,10 @@ void nlana::SPLifetime::beginJob()
   // Implementation of optional member function here.
   
   art::ServiceHandle<art::TFileService> tfs;
+  fLife = tfs->make<TH1F>("Life","Electron Lifetime for all APAs", 50, 0, 15);
+  setHistTitles(fLife,"Cluster Electron Lifetime [ms]", "Clusters / Bin");
+  fLifeVTPC = tfs->make<TH2F>("LifeVTPC","Electron Lifetime v. APA", 6,0.5,6.5,50, 0, 15.);
+  setHistTitles(fLifeVTPC,"","Cluster Electron Lifetime [ms]");
   fLifeInv = tfs->make<TH1F>("LifeInv","LifeInv", 50, 0, 1);
   fFracSelHits = tfs->make<TH1F>("FracSelHits","FracSelHits", 50, 0, 1);
   fChiDOF = tfs->make<TH1F>("ChiDOF","ChiDOF", 80, 0, 80);
@@ -160,17 +177,20 @@ void nlana::SPLifetime::beginJob()
   fDriftTimeVTPC = tfs->make<TH2F>("DriftTimeVTPC","Drift Time v. APA", 6,0.5,6.5,500,0.,10.);
   setHistTitles(fDriftTimeVTPC,"","Cluster Drift Time [ms]");
 
-  fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 1000, 0.,10000.);
+  fSNR = tfs->make<TH1F>("SNR","Signal to Noise Ratio", 400, 0.,200);
   setHistTitles(fSNR,"Signal to Noise Ratio", "Hits / Bin");
-  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. APA", 6,0.5,6.5,1000,0.,10000.);
+  fSNRVTPC = tfs->make<TH2F>("SNRVTPC","Signal to Noise Ratio v. APA", 6,0.5,6.5,400,0.,200.);
   setHistTitles(fSNRVTPC,"TPC Number","Signal to Noise Ratio");
 
-  fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 2000, 0.,4000.);
+  fAmplitudes = tfs->make<TH1F>("Amplitudes","Hit Amplitude", 4100, 0.,4100.);
   setHistTitles(fAmplitudes,"Hit Amplitude [ADC]", "Hits / Bin");
-  fNoise = tfs->make<TH1F>("Noise","Wire Noise", 2000, 0.,5.);
+  fNoise = tfs->make<TH1F>("Noise","Wire Noise < 10 ADC", 2000, 0.,10.);
   setHistTitles(fNoise,"RMS Noise [ADC]", "Hit Wires / Bin");
+  fNoiseWide = tfs->make<TH1F>("NoiseWide","Wire Noise", 2000, 0.,1000.);
+  setHistTitles(fNoiseWide,"RMS Noise [ADC]", "Hit Wires / Bin");
 
   for(size_t apa = 0; apa < 6; ++apa){
+    fLifeVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
     fDriftTimeVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
     fSNRVTPC->GetXaxis()->SetBinLabel(apa+1,apaLabels.at(apa).c_str());
   }
@@ -184,6 +204,12 @@ void nlana::SPLifetime::reconfigure(fhicl::ParameterSet const & pset)
   fClusterModuleLabel  = pset.get<std::string>("ClusterModuleLabel");
   fChgCuts             = pset.get<std::vector<float>>("ChgCuts", {0, 5});
   fChiCut              = pset.get<double>("ChiCut", 3);
+  fTicksPerBin         = pset.get<double>("TicksPerBin");
+  fMinBins             = pset.get<unsigned>("MinBins");
+  fMinHits             = pset.get<unsigned>("MinHits");
+  fMinDTickSNR         = pset.get<double>("MinDTickSNR");
+  fMinDWireSNR         = pset.get<double>("MinDWireSNR");
+  fMinHitsSNR          = pset.get<unsigned>("MinHitsSNR");
   fDebugCluster        = pset.get<int>("DebugCluster");
 } // reconfigure
 
@@ -237,45 +263,74 @@ void nlana::SPLifetime::endJob()
   canvas->SetBottomMargin(0.13);
   canvas->SetRightMargin(0.12);
   std::string imageFileName;
-  // Try to get rid of directory and .root extension
-  std::string infilenameStripped = fInFilename;
+
+  // Get filename in format p3s wants
+  // "run": "run003907_0001_dl05",
+  unsigned runNum = lastRun;
+  unsigned fileNum = 1;
+  unsigned dlNum = 5;
   if (fIsRealData)
   {
-    size_t slashPos = infilenameStripped.find_last_of("/");
-    if (slashPos != std::string::npos)
+    static const std::string patternString = "run(\\d+)_(\\d+)_dl(\\d+)";
+    static const std::regex pattern(patternString);
+    std::smatch patternMatches;
+    const bool foundMatch = std::regex_search(fInFilename,patternMatches,pattern);
+    if(foundMatch)
     {
-      infilenameStripped = infilenameStripped.substr(slashPos+1,std::string::npos); // get rid of directory
+      std::cout << "filename: " << fInFilename << " match: " << patternMatches[0] << " run: " << patternMatches[1] << " file: " << patternMatches[2] << " dl: " << patternMatches[3] << std::endl;
+      runNum = std::stoi(patternMatches[1]);
+      fileNum = std::stoi(patternMatches[2]);
+      dlNum = std::stoi(patternMatches[3]);
     }
-    infilenameStripped = infilenameStripped.substr(0, infilenameStripped.find_last_of(".")); // get rid of .root
-  }
-  else
-  {
-    // "run": "run003907_0001_dl05",
-    std::stringstream infilenamefake;
-    infilenamefake << "run";
-    infilenamefake << std::setfill('0') << std::setw(6) << lastRun;
-    infilenamefake << std::setw(0) << '_';
-    infilenamefake << std::setw(4) << 1;
-    infilenamefake << std::setw(0) << "_dl";
-    infilenamefake << std::setw(2) << 5;
-    infilenameStripped = infilenamefake.str();
+    else
+    {
+      //throw cet::exception("InputFilenameError")
+      //  <<"Couldn't parse input filename: '"<<fInFilename<<"' with regex '"<<patternString<<"'";
+      std::cout <<"Error: couldn't parse input filename: '"<<fInFilename<<"' with regex '"<<patternString<<"'\n";
+    }
   }
 
-  // summary json file
+  std::stringstream infileNameStrStream;
+  infileNameStrStream << "run";
+  infileNameStrStream << std::setfill('0') << std::setw(6) << runNum;
+  infileNameStrStream << std::setw(0) << '_';
+  infileNameStrStream << std::setw(4) << fileNum;
+  const std::string identifierNoDL = infileNameStrStream.str();
+  infileNameStrStream << std::setw(0) << "_dl";
+  infileNameStrStream << std::setw(2) << dlNum;
+  const std::string identifierDL = infileNameStrStream.str();
+
+  std::cout << "identifierDL: " << identifierDL << std::endl;
+  std::cout << "identifierNoDL: " << identifierNoDL << std::endl;
+  const std::string identifierTitle = " " + identifierDL;
+
+  //std::string identifierBase = infilenameStripped;
+  //identifierBase.erase(identifierBase.rfind("_dl"));
+  //std::cout << "identifierBase: '"<<identifierBase<<"'";
+  //std::string dlStr = infilenameStripped;
+  //dlStr.erase(0,dlStr.rfind("_dl")+3);
+  //std::cout << "dlStr: '"<<dlStr<<"'";
+
+  //// summary json file
+  // fn should be like run003907_0001_purity_summary.json
+  std::string summary_filename = identifierNoDL+"_purity_summary.json";
+  std::string filelist_filename = identifierNoDL+"_purity_FileList.json";
+
   std::ofstream summaryfile;
-  summaryfile.open("summary_purity.json");
-  summaryfile << "[\n  {\n    \"run\": \"" << infilenameStripped << "\",\n"
-              << "    \"Type\": \"purity\"\n  }\n]";
+  summaryfile.open(summary_filename);
+  summaryfile << "[\n  {\n    \"run\": \"" << identifierDL << "\",\n"
+              << "    \"Type\": \"purity\"\n  }\n]\n";
   summaryfile.close();
 
   // file list json file
   std::ofstream filelistfile;
-  filelistfile.open("purity_FileList.json");
+  filelistfile.open(filelist_filename);
   filelistfile << "[\n  {\n    \"Category\": \"Purity Monitor\",\n    \"Files\": {\n      \"Cluster Drift Time\": \"";
 
   imageFileName = "driftVTPC_";
-  imageFileName += infilenameStripped;
+  imageFileName += identifierNoDL;
   imageFileName += ".png";
+  appendToHistTitle(fDriftTimeVTPC,identifierTitle);
   fDriftTimeVTPC->SetStats(false);
   fDriftTimeVTPC->GetXaxis()->SetLabelSize(0.050);
   fDriftTimeVTPC->Draw("colz");
@@ -283,7 +338,7 @@ void nlana::SPLifetime::endJob()
   filelistfile << imageFileName<<",";
 
   imageFileName = "driftVTPC_zoom_";
-  imageFileName += infilenameStripped;
+  imageFileName += identifierNoDL;
   imageFileName += ".png";
   std::string originalTitle = fDriftTimeVTPC->GetTitle();
   fDriftTimeVTPC->SetTitle((originalTitle+" From 0 to 4 ms").c_str());
@@ -293,7 +348,92 @@ void nlana::SPLifetime::endJob()
   fDriftTimeVTPC->SetTitle(originalTitle.c_str());
   filelistfile << imageFileName;
 
-  filelistfile << "\"\n    }\n  }\n]";
+  filelistfile << "\",\n";
+
+  // Now e lifetime
+  filelistfile << "      \"Purity\": \"";
+  imageFileName = "purity_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fLife,identifierTitle);
+  fLife->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  canvas->SetLogz(false);
+  imageFileName = "purityVTPC_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fLifeVTPC,identifierTitle);
+  fLifeVTPC->SetStats(false);
+  fLifeVTPC->GetXaxis()->SetLabelSize(0.050);
+  fLifeVTPC->Draw("colz");
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName;
+  canvas->SetLogz();
+
+  filelistfile << "\",\n";
+
+  // Now SNR
+  filelistfile << "      \"SNR\": \"";
+  imageFileName = "snr_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  canvas->SetLogy(true);
+  appendToHistTitle(fSNR,identifierTitle);
+  fLife->Draw();
+  fSNR->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  canvas->SetLogy(false);
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "snrVTPC_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fSNRVTPC,identifierTitle);
+  fSNRVTPC->SetStats(false);
+  fSNRVTPC->GetXaxis()->SetLabelSize(0.050);
+  fSNRVTPC->Draw("colz");
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  canvas->SetLogy(true);
+  imageFileName = "noise_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fNoise,identifierTitle);
+  fNoise->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "noiseWide_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fNoiseWide,identifierTitle);
+  fNoiseWide->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "amplitude_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  appendToHistTitle(fAmplitudes,identifierTitle);
+  fAmplitudes->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName<<",";
+
+  imageFileName = "amplitude_zoom_";
+  imageFileName += identifierNoDL;
+  imageFileName += ".png";
+  originalTitle = fAmplitudes->GetTitle();
+  fAmplitudes->SetTitle((originalTitle+" From 0 to 500 ADC").c_str());
+  fAmplitudes->GetXaxis()->SetRangeUser(0,500);
+  fAmplitudes->Draw();
+  canvas->SaveAs(imageFileName.c_str());
+  filelistfile << imageFileName;
+  canvas->SetLogy(false);
+
+  filelistfile << "\"\n    }\n  }\n]\n";
   filelistfile.close();
   delete canvas;
 
@@ -328,8 +468,6 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   
 //  bool prt = false;
   
-  // This corresponds to time bins of size 200 ticks * 0.5 us/tick = 0.1 ms
-  constexpr float ticksPerHist = 200;
   
   for(unsigned int icl = 0; icl < clsVecHandle->size(); ++icl) {
     art::Ptr<recob::Cluster> cls = art::Ptr<recob::Cluster>(clsVecHandle, icl);
@@ -347,9 +485,9 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     unsigned short tpc = clsHits[0]->WireID().TPC;
     fDriftTime->Fill(dTick*msPerTick);
     fDriftTimeVTPC->Fill(tpcMapping.at(tpc),dTick*msPerTick);
-    unsigned short nhist = 1 + (unsigned short)(dTick / ticksPerHist);
-    if(nhist < 5) continue;
-    if(clsHits.size() < 100) continue;
+    unsigned short nhist = 1 + (unsigned short)(dTick / fTicksPerBin);
+    if(nhist < fMinBins) continue;
+    if(clsHits.size() < fMinHits) continue;
 /*
     if(prt) {
       auto& sht = clsHits[0];
@@ -372,7 +510,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       } // ihist
       // Sum to get the (truncated) average
       for(auto& pht : clsHits) {
-        unsigned short ihist = (pht->PeakTime() - sTick) / ticksPerHist;
+        unsigned short ihist = (pht->PeakTime() - sTick) / fTicksPerBin;
         if(ihist > nhist - 1) continue;
         float chg = pht->Integral();
         if(chg < minChg[ihist] || chg > maxChg[ihist]) continue;
@@ -421,7 +559,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
 /*
     if(prt) {
       for(unsigned short ihist = 0; ihist < nhist; ++ihist) {
-        float xx = (ihist + 0.5) * ticksPerHist + sTick;
+        float xx = (ihist + 0.5) * fTicksPerBin + sTick;
         std::cout<<"ihist "<<ihist<<" tick "<<(int)xx<<" ave "<<(int)ave[ihist]<<" +/- "<<(int)err[ihist]<<" cnt "<<(int)cnt[ihist]<<"\n";
       } // ihist
     }
@@ -488,6 +626,8 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     bigLifeInv[tpc] += lifeInv;
     bigLifeInvErr[tpc] += lifeInv * lifeInv;
     fLifeInv->Fill(lifeInv);
+    fLife->Fill(1./lifeInv);
+    fLifeVTPC->Fill(tpcMapping.at(tpc),1./lifeInv);
     
     double selHits = 0;
     for(auto& hcnt : cnt) selHits += hcnt;
@@ -520,13 +660,13 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
     // only consider the collection plane
     if(cls->Plane().Plane != 2) continue;
     float dTick = std::abs(cls->StartTick() - cls->EndTick());
-    if(dTick < 500) continue;
+    if(dTick < fMinDTickSNR) continue;
     float dWire = std::abs(cls->StartWire() - cls->EndWire());
-    if(dWire < 300) continue;
+    if(dWire < fMinDWireSNR) continue;
     // Get the hits
     std::vector<art::Ptr<recob::Hit> > clsHits;
     clsHitsFind.get(icl, clsHits);
-    if(clsHits.size() < 300) continue;
+    if(clsHits.size() < fMinHitsSNR) continue;
     unsigned short tpc = clsHits[0]->WireID().TPC;
     ++signalToNoiseClsCnt[tpc];
 //    float aveSN = 0;
@@ -545,6 +685,7 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
       ++signalToNoiseCnt[tpc];
       fAmplitudes->Fill(hit->PeakAmplitude());
       fNoise->Fill(pedRMS);
+      fNoiseWide->Fill(pedRMS);
       fSNR->Fill(snr);
       fSNRVTPC->Fill(tpcMapping.at(tpc),snr);
 //      aveSN += sn;

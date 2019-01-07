@@ -1,0 +1,29 @@
+BEGIN_PROLOG
+
+standard_protodunebeamlineutils:
+{
+   BeamEventTag:            "beamevent"
+
+   RotateMonitorXZ:   -10.3
+   RotateMonitorYZ:    11.7
+
+  #Position of beam monitor in z in [mm] 
+   FirstTrackingProfZ: 707479
+   SecondTrackingProfZ: 716048
+   NP04FrontZ: 717243
+  
+  #Position of Beam in [cm]
+   BeamX: 8.0757
+   BeamY: 461.06
+   BeamZ: -196.11
+
+   #Nominal beam bend (mrad)
+   BeamBend:     .12003
+   
+   L1: 1.980
+   L2: 1.69472
+   L3: 2.11666
+
+}
+
+END_PROLOG

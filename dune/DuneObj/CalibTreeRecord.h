@@ -16,8 +16,10 @@
 #include <iostream>
 
 namespace CalibTreeRecord {
-  typedef int64_t eve_number_t ;
-  typedef int64_t particle_number_t ;
+//  typedef int64_t eve_number_t ;
+//  typedef int64_t particle_number_t ;
+  typedef Long64_t eve_number_t ;
+  typedef Long64_t particle_number_t ;
   //class OpHit : public TObject{
 
   class HCRec{
@@ -56,7 +58,8 @@ namespace CalibTreeRecord {
       Double_t energy;
       Double_t split;//fraction of hit energy in this partial.
       UInt_t opdet;
-      int64_t index;
+      Long64_t index;
+      //int64_t index;
   };
 
   class PartialOpHit : public PartialPDOpHit {
@@ -76,7 +79,8 @@ namespace CalibTreeRecord {
       Double_t width;
       Double_t split;//fraction of track energy in this hit.
       UInt_t wire;
-      int64_t index;
+      Long64_t index;
+      //int64_t index;
       Bool_t is_collection_wire;
   };
 

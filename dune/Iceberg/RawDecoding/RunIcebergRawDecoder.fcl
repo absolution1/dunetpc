@@ -1,0 +1,56 @@
+#include "services_dune.fcl"
+
+#This is the default configuration file
+#include "IcebergRawDecoder.fcl"
+
+services:
+{
+  #message:              @local::dune_message_services_prod_debug
+
+  TimeTracker:       {}
+  RandomNumberGenerator: {}
+
+  @table::iceberg_rawdecoding_services
+
+  TFileService: { 
+   closeFileFast: true  # default
+   fileName:  "%ifb_raw_anal.root"
+   tmpDir: "<parent-path-of-filename>"  # default
+  }
+ 
+}
+
+physics:
+{
+  producers:
+  {
+    tpcrawdecoder: @local::iceberg_tpc_raw_decoder
+  }
+
+  produce: [ tpcrawdecoder ] 
+  output: [ out1 ]
+  trigger_paths : [ produce ]
+  end_paths: [ output ]
+} 	     
+
+outputs:
+{
+  out1:
+  {
+    outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*" ]
+    compressionLevel: 1
+    module_type: RootOutput
+    fileName: "%ifb_decode.root"
+  }
+
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/afs/cern.ch/user/s/sergiand/workspace/artdaq_devel/pdune_r1000077_sr01_20170629T181646_1_0.root" ]
+  maxEvents : -1
+}
+
+process_name: RunIcebergRawDecoder
+ 

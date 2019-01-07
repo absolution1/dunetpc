@@ -39,7 +39,25 @@ cet_test(test_coldelecResponse SOURCES test_coldelecResponse.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_gausTF1 SOURCES test_gausTF1.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
 cet_test(test_offsetLine SOURCES test_offsetLine.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
+cet_test(test_GausStepFitter SOURCES test_GausStepFitter.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
+cet_test(test_GausRmsFitter SOURCES test_GausRmsFitter.cxx
   LIBRARIES
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}

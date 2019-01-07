@@ -80,6 +80,18 @@ cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
   LIBRARIES
     dune_ArtSupport
@@ -189,6 +201,20 @@ cet_test(test_AdcSampleFiller
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_FclStickyCodeFlagger
+  SOURCES
+    test_FclStickyCodeFlagger.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcKeepAllSignalFinder
   SOURCES
     test_AdcKeepAllSignalFinder.cxx
@@ -258,21 +284,21 @@ cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
-cet_test(test_AdcRoiViewer
-  SOURCES
-    test_AdcRoiViewer.cxx
-  LIBRARIES
-    lardataobj_RawData
-    dune_ArtSupport
-    art_Utilities
-    canvas
-    fhiclcpp
-    cetlib cetlib_except
-    cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
-    ${Boost_FILESYSTEM_LIBRARY}
-)
+#cet_test(test_AdcRoiViewer
+#  SOURCES
+#    test_AdcRoiViewer.cxx
+#  LIBRARIES
+#    lardataobj_RawData
+#    dune_ArtSupport
+#    art_Utilities
+#    canvas
+#    fhiclcpp
+#    cetlib cetlib_except
+#    cetlib_except
+#    ${ROOT_BASIC_LIB_LIST}
+#    ${SQLITE3}
+#    ${Boost_FILESYSTEM_LIBRARY}
+#)
 
 cet_test(test_FembLinearCalibration
   SOURCES

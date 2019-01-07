@@ -299,7 +299,7 @@ namespace RecoTrack {
 	int ntraj = track.NumberTrajectoryPoints();
 	if(ntraj > 0)
 	  {
-	    TVector3 dir = track.VertexDirection();
+	    auto dir = track.VertexDirection();
 	    trackTheta=dir.Theta()*180.0/PI;
 	    fTrackThetaHist->Fill(trackTheta);
 	    trackPhi=dir.Phi()*180.0/PI;

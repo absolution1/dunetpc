@@ -177,8 +177,8 @@ void dune::SignalToNoise::analyze(art::Event const & e)
     double ccosy = (cy[c1[0]]-cy[c2[0]])/sqrt(pow(cx[c1[0]]-cx[c2[0]],2)+pow(cy[c1[0]]-cy[c2[0]],2)+pow(cz[c1[0]]-cz[c2[0]],2));
     double ccosz = (cz[c1[0]]-cz[c2[0]])/sqrt(pow(cx[c1[0]]-cx[c2[0]],2)+pow(cy[c1[0]]-cy[c2[0]],2)+pow(cz[c1[0]]-cz[c2[0]],2));   
 
-    TVector3 larStart;
-    TVector3 larEnd;
+    recob::Track::Vector_t larStart;
+    recob::Track::Vector_t larEnd;
  
     for (size_t i = 0; i<tracklist.size(); ++i){
       recob::Track::Point_t trackStart, trackEnd;
@@ -186,7 +186,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
       larStart = tracklist[i]->VertexDirection();
       larEnd = tracklist[i]->EndDirection();
 
-      double dc = std::abs(ccosx*larStart[0]+ccosy*larStart[1]+ccosz*larStart[2]);
+      double dc = std::abs(ccosx*larStart.X()+ccosy*larStart.Y()+ccosz*larStart.Z());
       dcos->Fill(dc);
       /*
       if (i==4){
@@ -225,13 +225,13 @@ void dune::SignalToNoise::analyze(art::Event const & e)
         hdx->Fill(x0+(cz[c2[0]]-z0)*(x0-x1)/(z0-z1)-cx[c2[0]]);
         if (dx1>40||dx2>40) continue;
         for (size_t j = 0; j<tracklist[i]->NumberTrajectoryPoints(); ++j){
-          TVector3 loc = tracklist[i]->LocationAtPoint(j);
-          hyz->Fill(loc[2],loc[1]);
-          if (loc[0]>0){
-            hxz->Fill(loc[2],loc[0]-ctime*0.5*0.1085);
+          auto loc = tracklist[i]->LocationAtPoint(j);
+          hyz->Fill(loc.Z(),loc.Y());
+          if (loc.X()>0){
+            hxz->Fill(loc.Z(),loc.X()-ctime*0.5*0.1085);
           }
           else{
-            hxz->Fill(loc[2],loc[0]+ctime*0.5*0.1085);
+            hxz->Fill(loc.Z(),loc.X()+ctime*0.5*0.1085);
           }
         }
         //map wireid with hit pointer, index on track and x position
@@ -245,11 +245,11 @@ void dune::SignalToNoise::analyze(art::Event const & e)
           std::map<geo::PlaneID, std::vector<std::pair<int, double>>> planehits;
         
           for (size_t h = 0; h < vhit.size(); ++h){
-            TVector3 loc = tracklist[i]->LocationAtPoint(vmeta[h]->Index());
+            auto loc = tracklist[i]->LocationAtPoint(vmeta[h]->Index());
             if (vhit[h]->WireID().TPC==5&&vhit[h]->WireID().Plane==2){
               hitmap[vhit[h]->WireID().Wire] = vhit[h];
               indexmap[vhit[h]->WireID().Wire] = vmeta[h]->Index();
-              xposmap[vhit[h]->WireID().Wire] = loc[0]-ctime*0.5*0.1085;
+              xposmap[vhit[h]->WireID().Wire] = loc.X()-ctime*0.5*0.1085;
             }
             planehits[vhit[h]->WireID().planeID()].push_back(std::make_pair(vhit[h]->WireID().Wire, vhit[h]->PeakTime()));
             //now study the difference between hit time and prediction from counters
@@ -325,7 +325,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
                         mean2/=npts;
                         double angleToVert = geom->WireAngleToVertical(geom->View(wid), wid.TPC, wid.Cryostat) - 0.5*::util::pi<>();
                         //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-                        const TVector3& dir = tracklist[i]->DirectionAtPoint(0);
+                        const auto& dir = tracklist[i]->DirectionAtPoint(0);
                         double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
                         //std::cout<<maxph*cosgamma<<" "<<sqrt(mean2-mean*mean)<<std::endl;
                         //std::cout<<vhit[h]->PeakTime()<<" "<<vhit[h]->PeakAmplitude()<<" "<<besttime<<" "<<maxph<<std::endl;
@@ -352,7 +352,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
                         mean2/=npts;
                         double angleToVert = geom->WireAngleToVertical(geom->View(wid), wid.TPC, wid.Cryostat) - 0.5*::util::pi<>();
                         //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
-                        const TVector3& dir = tracklist[i]->DirectionAtPoint(0);
+                        const auto& dir = tracklist[i]->DirectionAtPoint(0);
                         double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
                         //std::cout<<maxph*cosgamma<<" "<<sqrt(mean2-mean*mean)<<std::endl;
                         //std::cout<<vhit[h]->PeakTime()<<" "<<vhit[h]->PeakAmplitude()<<" "<<besttime<<" "<<maxph<<std::endl;
@@ -415,7 +415,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
               double angleToVert = geom->WireAngleToVertical(hitmap.begin()->second->View(), hitmap.begin()->second->WireID().TPC, hitmap.begin()->second->WireID().Cryostat) - 0.5*::util::pi<>();
               //std::cout<<vhit[h]->View()<<" "<<vhit[h]->WireID().TPC<<" "<<vhit[h]->WireID().Cryostat<<" "<<angleToVert<<std::endl;
               //const TVector3& dir = tracklist[i]->DirectionAtPoint(indexmap.begin()->second);
-              const TVector3& dir = tracklist[i]->VertexDirection();
+              const auto& dir = tracklist[i]->VertexDirection();
               double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
               hphx->Fill(xpos,maxph*cosgamma/geom->WirePitch(hitmap.begin()->second->View()));
               tpc = 5;
