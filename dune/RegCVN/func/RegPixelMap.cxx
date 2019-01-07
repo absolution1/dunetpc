@@ -71,6 +71,7 @@ namespace cvn
 	fPEZ[GlobalToIndexSingle(wire,tdc, view)] += (float)pe;
 	fLabZ[GlobalToIndexSingle(wire,tdc, view)] = label;
 	fPurZ[GlobalToIndexSingle(wire,tdc, view)] = purity;
+      //std::cout << "Q = " << pe << " " << fPEZ[GlobalToIndexSingle(wire,tdc, view)] << std::endl;
       }
    }
   }
@@ -81,16 +82,19 @@ namespace cvn
   {
 
     int meanWire = (fBound.LastWire(view)+fBound.FirstWire(view))/2;
-    int meanTDC  = (fBound.LastTDC(view)+fBound.FirstTDC(view)+(int)fNTRes)/2;
+    int meanTDC  = (fBound.LastTDC(view)+fBound.FirstTDC(view)+(int)fNTRes/2)/2;
 
     unsigned int internalWire = (unsigned int)( (wire-meanWire) + fNWire/2 );
-    unsigned int internalTdc  = (unsigned int)( (tdc-meanTDC)/(int)fNTRes + fNTdc/2);
+    //unsigned int internalTdc  = (unsigned int)( round((float)(tdc-meanTDC)/(float)fNTRes + fNTdc/2) );
+    unsigned int internalTdc  = (unsigned int)( round((float)((unsigned int)(tdc-meanTDC)+fNTdc*fNTRes/2)/(float)fNTRes) );
 
     unsigned int index = internalWire * fNTdc + internalTdc % fNTdc;
-
-
+   
+    //if (internalTdc <1.1){
+    //std::cout << "====> " << meanWire <<" " << meanTDC << " " << internalWire << " " << internalTdc << " " << index << std::endl;
+    //std::cout << "    => " << wire << " " << tdc << " " << wire-meanWire << " " << round((float)(tdc-meanTDC)/(float)fNTRes) << std::endl;
+    //}
     assert(index < fPE.size());
-
     return index;
   }
 
@@ -110,10 +114,11 @@ namespace cvn
   {
 
     int meanWire = (fBound.LastWire(view)+fBound.FirstWire(view))/2;
-    int meanTDC  = (fBound.LastTDC(view)+fBound.FirstTDC(view)+(int)fNTRes)/2;
+    int meanTDC  = (fBound.LastTDC(view)+fBound.FirstTDC(view)+(int)fNTRes/2)/2;
 
     unsigned int internalWire = (unsigned int)( (wire-meanWire) + fNWire/2 );
-    unsigned int internalTdc  = (unsigned int)( (tdc-meanTDC)/(int)fNTRes + fNTdc/2);
+    //unsigned int internalTdc  = (unsigned int)( round( (float)(tdc-meanTDC)/(float)fNTRes + fNTdc/2) );
+    unsigned int internalTdc  = (unsigned int)( round((float)((unsigned int)(tdc-meanTDC)+fNTdc*fNTRes/2)/(float)fNTRes) );
 
     unsigned int index = internalWire * fNTdc + internalTdc % fNTdc;
 

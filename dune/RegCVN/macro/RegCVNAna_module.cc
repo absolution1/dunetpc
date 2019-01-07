@@ -44,13 +44,19 @@ class myana::RegCVNAna : public art::EDAnalyzer
     double trueEnergy;
     float  regcvn_energy;
     
-    int    inDet;
+    int    InDet;
+    int    FidCut;
     int    nhits;
     int    nu_truth_N;
     int    nupdg_truth[kMax];
     int    numode_truth[kMax];    
     int    nuccnc_truth[kMax];     
     double nueng_truth[kMax];
+    double nuvtxx_truth[kMax];
+    double nuvtxy_truth[kMax];
+    double nuvtxz_truth[kMax];
+
+
 
     double ErecoNue;
     double RecoLepEnNue; 
@@ -71,7 +77,8 @@ myana::RegCVNAna::RegCVNAna(fhicl::ParameterSet const& pset) : EDAnalyzer(pset)
   this->reconfigure(pset);
   fTree = tfs->make<TTree>("anatree", "anatree");
   fTree->Branch("ievent",            &ievt,          "ievent/I");
-  fTree->Branch("InDet",             &inDet,         "InDet/I");
+  fTree->Branch("InDet",             &InDet,         "InDet/I");
+  fTree->Branch("FidCut",            &FidCut,         "FidCut/I");
   fTree->Branch("TrueEnergy",        &trueEnergy,    "TrueEnergy/D");
   fTree->Branch("CVNEnergy",         &regcvn_energy, "CVNEnergy/F");
   fTree->Branch("NuTruthN",          &nu_truth_N,    "NuTruthN/I");  
@@ -79,6 +86,10 @@ myana::RegCVNAna::RegCVNAna(fhicl::ParameterSet const& pset) : EDAnalyzer(pset)
   fTree->Branch("NuPDGTruth",        nupdg_truth,    "NuPDGTruth[NuTruthN]/I");   
   fTree->Branch("NuModeTruth",       numode_truth,   "NuModeTruth[NuTruthN]/I"); 
   fTree->Branch("NuCCNCTruth",       nuccnc_truth,   "NuCCNCTruth[NuTruthN]/I");   
+
+  fTree->Branch("NuVtxXTruth",       nuvtxx_truth,   "NuVtxXTruth[NuTruthN]/I"); 
+  fTree->Branch("NuVtxYTruth",       nuvtxy_truth,   "NuVtxYTruth[NuTruthN]/I"); 
+  fTree->Branch("NuVtxZTruth",       nuvtxz_truth,   "NuVtxZTruth[NuTruthN]/I"); 
 
   fTree->Branch("NHits",             &nhits,         "NHits/I");
 
@@ -143,6 +154,11 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
             nupdg_truth[neutrino_i]  = mclist[iList]->GetNeutrino().Nu().PdgCode(); 
             nuccnc_truth[neutrino_i] = mclist[iList]->GetNeutrino().CCNC(); 
             numode_truth[neutrino_i] = mclist[iList]->GetNeutrino().Mode();
+
+            nuvtxx_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vx();
+            nuvtxy_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vy();
+            nuvtxz_truth[neutrino_i] = mclist[iList]->GetNeutrino().Nu().Vz();
+
             neutrino_i++; 
           }        
         }   
@@ -150,7 +166,7 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
   }
   // Get Hit information
   nhits = hits.size();
-  inDet = 0;
+  InDet = 0;
   if (hits.size()>0)
   {
       bool fid_flag = false;
@@ -164,8 +180,16 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
         if (plane == 2 && channel < 1605) fid_flag = true;
 	if (fid_flag) break; 
       }
-      if (!fid_flag) inDet = 1; 
+      if (!fid_flag) InDet = 1; 
   }
+
+  //cut with true vertex in fiducial volume
+  FidCut = 0;
+  if (nu_truth_N>0){
+    //if(nuccnc_truth[0] == 0 && fabs(nuvtxx_truth[0]) < 310. && fabs(nuvtxy_truth[0]) < 550. && fabs(nuvtxz_truth[0]) > 50. && fabs(nuvtxz_truth[0]) < 1250.) nutrue_fid = 1; 
+    if(fabs(nuvtxx_truth[0]) < 310. && fabs(nuvtxy_truth[0]) < 550. && fabs(nuvtxz_truth[0]) > 50. && fabs(nuvtxz_truth[0]) < 1250.) FidCut = 1;
+  }
+
 
   // Get RecoE from DUNE
   if (!engrecoHandle.failedToGet())
@@ -208,6 +232,11 @@ void myana::RegCVNAna::reset()
         numode_truth[ii] = -99999;
         nuccnc_truth[ii] = -99999;
         nueng_truth[ii] = -99999;
+
+        nuvtxx_truth[ii] = -99999;
+        nuvtxy_truth[ii] = -99999;
+        nuvtxz_truth[ii] = -99999;
+
     }
 
 }

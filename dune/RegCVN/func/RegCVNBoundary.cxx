@@ -30,12 +30,12 @@ namespace cvn
     fLastWire{WireMeanX+nWire/2,
       WireMeanY+nWire/2,
       WireMeanZ+nWire/2},
-    fFirstTDC{TDCMeanX - (nTDC*tRes)/2-tRes,
-        TDCMeanY  - (nTDC*tRes)/2-tRes,
-        TDCMeanZ  - (nTDC*tRes)/2-tRes},  
-    fLastTDC{TDCMeanX + (nTDC*tRes)/2,
-        TDCMeanY + (nTDC*tRes)/2,
-        TDCMeanZ + (nTDC*tRes)/2}
+    fFirstTDC{TDCMeanX - (nTDC*tRes)/2,
+        TDCMeanY  - (nTDC*tRes)/2,
+        TDCMeanZ  - (nTDC*tRes)/2},  
+    fLastTDC{TDCMeanX + (nTDC*tRes)/2-tRes/2,
+        TDCMeanY + (nTDC*tRes)/2-tRes/2,
+        TDCMeanZ + (nTDC*tRes)/2-tRes/2}
   
   {
     assert(fLastWire[0] - fFirstWire[0] == nWire - 1);
@@ -46,7 +46,7 @@ namespace cvn
   bool RegCVNBoundary::IsWithin(const int& wire, const int& tdc, const unsigned int& view)
   {
     bool inWireRcvne = (int) wire >= fFirstWire[view] && (int) wire < fLastWire[view];
-    bool inTDCRcvne = (int) tdc > fFirstTDC[view] &&
+    bool inTDCRcvne = (int) tdc >= fFirstTDC[view] &&
                       (int) tdc < fLastTDC[view];
     return inWireRcvne && inTDCRcvne;
   }

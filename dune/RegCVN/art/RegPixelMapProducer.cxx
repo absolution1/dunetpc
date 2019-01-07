@@ -116,22 +116,23 @@ namespace cvn
   {
     ShiftGlobalWire(cluster);
 
-    std::vector<int> time_0;
-    std::vector<int> time_1;
-    std::vector<int> time_2;
+    std::vector<float> time_0;
+    std::vector<float> time_1;
+    std::vector<float> time_2;
 
     std::vector<int> wire_0;
     std::vector<int> wire_1;
     std::vector<int> wire_2;
 
     unsigned int temp_wire = cluster[0]->WireID().Wire;
-    int temp_time_min = 99999;
-    int temp_time_max = -99999;
+    float temp_time_min = 99999;
+    float temp_time_max = -99999;
     float temp_trms_max = -99999;
     for(size_t iHit = 0; iHit < cluster.size(); ++iHit)
     {
         geo::WireID wireid = cluster[iHit]->WireID();
-	if (temp_wire != wireid.Wire){
+	//if (temp_wire != wireid.Wire || iHit == cluster.size()-1){ // lost last hit info
+	if (temp_wire != wireid.Wire ){ // lost last hit info
 		temp_wire = wireid.Wire;
 		hitwireidx.push_back(iHit-1);
 		tmin_each_wire.push_back(temp_time_min);
@@ -139,12 +140,12 @@ namespace cvn
 		trms_max_each_wire.push_back(temp_trms_max);
 		temp_time_min = 99999; temp_time_max = -99999, temp_trms_max = -99999;
 	}
-	if (temp_time_min > cluster[iHit]->PeakTime()) temp_time_min = (int)cluster[iHit]->PeakTime();
-	if (temp_time_max < cluster[iHit]->PeakTime()) temp_time_max = (int)cluster[iHit]->PeakTime();
+	if (temp_time_min > cluster[iHit]->PeakTime()) temp_time_min = cluster[iHit]->PeakTime();
+	if (temp_time_max < cluster[iHit]->PeakTime()) temp_time_max = cluster[iHit]->PeakTime();
 	if (temp_trms_max < cluster[iHit]->RMS()) temp_trms_max = (float)cluster[iHit]->RMS();
 
 	unsigned int planeid = wireid.Plane;
-	int peaktime = (int)cluster[iHit]->PeakTime() ;
+	float peaktime = cluster[iHit]->PeakTime() ;
 	if (wireid.TPC%2 == 0) peaktime = -peaktime;
 
         double globalWire = GetGlobalWire(wireid);
@@ -187,8 +188,9 @@ namespace cvn
     double wiresum_2 = std::accumulate(wire_2.begin(), wire_2.end(), 0.0);
     double wiremean_2 = wiresum_2 / wire_2.size();
 
-    //std::cout << "TDC ===> " << (int)tmean_0 << " " << (int)tmean_1 << " " << (int)tmean_2 << std::endl;
-    //std::cout << "Wire ==> " << (int)wiremean_0 << " " << (int)wiremean_1 << " " << (int)wiremean_2 << std::endl;
+    //std::cout << "TDC ===> " << round(tmean_0) << " " <<   round(tmean_1) << " " << round(tmean_2) << std::endl;
+    //std::cout << "Wire ==> " << round(wiremean_0) << " " << round(wiremean_1) << " " << round(wiremean_2) << std::endl;
+    //std::cout << "Offset ==> " << fOffset[0] << " " << fOffset[1] << std::endl;
 
     //auto minwireelement_0= std::min_element(wire_0.begin(), wire_0.end());
     //std::cout<<"minwire 0: "<<*minwireelement_0<<std::endl;
@@ -209,7 +211,7 @@ namespace cvn
     //int minwire_1 = *minwireelement_1-1;
     //int minwire_2 = *minwireelement_2-1;
 
-    RegCVNBoundary bound(fNWire,fNTdc,fTRes,wiremean_0,wiremean_1,wiremean_2,tmean_0,tmean_1,tmean_2);
+    RegCVNBoundary bound(fNWire,fNTdc,fTRes,round(wiremean_0),round(wiremean_1),round(wiremean_2),round(tmean_0),round(tmean_1),round(tmean_2));
 
     return bound;
   }
@@ -254,12 +256,15 @@ namespace cvn
     // find hits passing through an APA
     std::vector<unsigned int> list_TPCs;
     std::map<unsigned int, double> map_mean_U, map_mean_V, map_Twei_U, map_Twei_V;
+    int nhits_z[24] = {0};
     for (unsigned int iHit = 0; iHit < cluster.size(); ++iHit)
     {
 	geo::WireID wireid = cluster[iHit]->WireID();
-        if (wireid.Plane == 2) continue; // skip collection plane
-	// select 30 ticks
-	if (cluster[iHit]->PeakTime() < 30){
+        if (wireid.Plane == 2){
+		nhits_z[wireid.TPC] += 1;
+	}	
+	//if (cluster[iHit]->PeakTime() < 30){ // select 30 ticks
+	if (cluster[iHit]->PeakTime() < 150){ // select 150 ticks
 		double Twei = cluster[iHit]->PeakTime()+1.; //
 		list_TPCs.push_back(wireid.TPC);
 		if (wireid.Plane == 0){
@@ -281,22 +286,28 @@ namespace cvn
     // obtain offsets for U and V planes
     if (unique_TPCs.size() > 1){
       // shift global wire for an event passing through an APA
-      double offsetU = 0, offsetV = 0;
+      int maxsum = 0;
+      unsigned int nmax_tpcs[2] = {10000,10000};
       for (unsigned int ii = 0; ii < unique_TPCs.size()-1; ++ii)
       {
         unsigned int tpc1 = unique_TPCs[ii];
         unsigned int tpc2 = unique_TPCs[ii+1];
         if (tpc1/4 != tpc2/4) continue;
         if (tpc1%2 == tpc2%2) continue;
-        if (map_Twei_U[tpc1] > 0 && map_Twei_U[tpc2] > 0) offsetU = map_mean_U[tpc1] - map_mean_U[tpc2];
-        if (map_Twei_V[tpc1] > 0 && map_Twei_V[tpc2] > 0) offsetV = map_mean_V[tpc1] - map_mean_V[tpc2];
+	int sum = nhits_z[tpc1] + nhits_z[tpc2];
+	if (sum > maxsum){
+		maxsum = sum;
+		nmax_tpcs[0] = tpc1;
+		nmax_tpcs[1] = tpc2;
+	}
       }
-      if (abs(offsetU) > 0 && abs(offsetV) > 0){ //FIXME
+      if (nmax_tpcs[0] < 10000 && nmax_tpcs[1] < 10000){
+        double offsetU = 0, offsetV = 0;
+        if (map_Twei_U[nmax_tpcs[0]] > 0 && map_Twei_U[nmax_tpcs[1]] > 0) offsetU = map_mean_U[nmax_tpcs[0]] - map_mean_U[nmax_tpcs[1]];
+        if (map_Twei_V[nmax_tpcs[0]] > 0 && map_Twei_V[nmax_tpcs[1]] > 0) offsetV = map_mean_V[nmax_tpcs[0]] - map_mean_V[nmax_tpcs[1]];
         fOffset[0] = round(offsetU);
         fOffset[1] = round(offsetV);
-      }
-    }
-
+      } // end of nmax_tpc
+    } // ned of unique_TPCs
   }
-
 }
