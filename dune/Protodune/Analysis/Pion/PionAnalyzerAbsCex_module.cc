@@ -299,7 +299,8 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
             std::cout << "Size: " << daughtersVec.size()     << std::endl;
             if( daughtersVec.size() ){ 
               auto theDaughter = daughtersVec.at(0);
-              std::cout << "ID: "   << theDaughter->ID() << std::endl;
+              std::cout << "ID: "   << theDaughter->ID()         << std::endl;
+              std::cout << "PID: "  << theDaughter->ParticleId() << std::endl;
             }
           }
         }
