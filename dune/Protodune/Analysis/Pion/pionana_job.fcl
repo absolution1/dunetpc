@@ -26,14 +26,38 @@ source:
   fileNames: ["input_file.root"]
 }
 
+outputs:
+{
+ out1:
+ {
+   module_type: RootOutput
+   fileName:    "Beam.root"    #default file name, can override from command line with -o or --output
+   dataTier: "reconstructed"
+   fastCloning: false
+ } 
+}
+
 physics:
 {
+
+ producers: { 
+ 
+ }
+
+ filters: { 
+   f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
+ }
+
+ fpath: [f1]
+
  analyzers:
  {
   pionana:          @local::pionanalysis
  }
  
  ana:  [ pionana ]
+
+ #stream1: [ out1 ]
  
  end_paths:     [ ana ]
 

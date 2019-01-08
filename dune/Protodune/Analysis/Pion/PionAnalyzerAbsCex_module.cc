@@ -1,8 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       PionAnalyzer_AbsCex 
-// Plugin Type: analyzer (art v2_11_02)
+// Class:       PionAnalyzerAbsCex
+// Plugin Type: analyzer (art v3_00_00)
+// File:        PionAnalyzerAbsCex_module.cc
 //
-// Created By:  Jake Calcutt (calcuttj@msu.edu)
+// Generated at Tue Jan  8 09:12:19 2019 by Jacob Calcutt using cetskelgen
+// from cetlib version v3_04_00.
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -11,9 +13,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h" 
 #include "canvas/Utilities/InputTag.h"
-#include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -41,33 +41,30 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-#include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "art/Framework/Services/Optional/TFileService.h"
 
 // ROOT includes
 #include "TTree.h"
-#include "TTimeStamp.h"
-
-using namespace std;
 
 namespace pionana {
-  class pionabscex;
+  class PionAnalyzerAbsCex;
 }
 
 
-class pionana::pionabscex : public art::EDAnalyzer {
+class pionana::PionAnalyzerAbsCex : public art::EDAnalyzer {
 public:
-  explicit pionabscex(fhicl::ParameterSet const & p);
+  explicit PionAnalyzerAbsCex(fhicl::ParameterSet const& p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  pionabscex(pionabscex const &) = delete;
-  pionabscex(pionabscex &&) = delete;
-  pionabscex & operator = (pionabscex const &) = delete;
-  pionabscex & operator = (pionabscex &&) = delete;
+  PionAnalyzerAbsCex(PionAnalyzerAbsCex const&) = delete;
+  PionAnalyzerAbsCex(PionAnalyzerAbsCex&&) = delete;
+  PionAnalyzerAbsCex& operator=(PionAnalyzerAbsCex const&) = delete;
+  PionAnalyzerAbsCex& operator=(PionAnalyzerAbsCex&&) = delete;
 
   // Required functions.
-  void analyze(art::Event const & e) override;
+  void analyze(art::Event const& evt) override;
 
   // Selected optional functions.
   void beginJob() override;
@@ -77,6 +74,7 @@ public:
 
 private:
 
+  // Declare member data here.
   //const art::InputTag fSpacePointModuleLabel;
   const art::InputTag fBeamModuleLabel;
   const art::InputTag fTrackModuleLabel;
@@ -86,13 +84,6 @@ private:
   int run;
   int subrun;
   int event;
-
-  // space point information
-//  std::vector<double> vx;
-//  std::vector<double> vy;
-//  std::vector<double> vz;
-//  std::vector<double> vcharge;
-//  std::vector<int> vtrackid;
 
   // beam information
   std::vector<double> beamPosx;
@@ -137,13 +128,13 @@ private:
   std::vector<int> pfp_self;
   //std::vector<int> pfp_parent;
   std::vector<int> pfp_daughter;
+  std::vector<int> pfp_daughter_PDGs;
+
 };
 
 
-pionana::pionabscex::pionabscex(fhicl::ParameterSet const & p)
-  :
-  EDAnalyzer(p),
-  //fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
+pionana::PionAnalyzerAbsCex::PionAnalyzerAbsCex(fhicl::ParameterSet const& p)
+  : EDAnalyzer{p}  ,
   fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
 
@@ -154,13 +145,13 @@ pionana::pionabscex::pionabscex(fhicl::ParameterSet const & p)
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
 {
-    //if (fSaveTrackInfo == false) fSaveCaloInfo = false;
+  // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
 
-void pionana::pionabscex::analyze(art::Event const & evt)
+void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
 {
   //reset containers
-  pionana::pionabscex::reset();  
+  reset();  
 
 
   art::Handle< std::vector<recob::Track> > trackListHandle;
@@ -173,44 +164,12 @@ void pionana::pionabscex::analyze(art::Event const & evt)
   run = evt.run();
   subrun = evt.subRun();
   event = evt.id().event();
-/*
-  art::Handle< std::vector<recob::SpacePoint> > spsHandle;
-  std::vector< art::Ptr<recob::SpacePoint> > sps;
-  if (evt.getByLabel(fSpacePointModuleLabel, spsHandle))
-    art::fill_ptr_vector(sps, spsHandle);
-
-  art::Handle< std::vector<recob::PointCharge> > pcsHandle;
-  std::vector< art::Ptr<recob::PointCharge> > pcs;
-  if (evt.getByLabel(fSpacePointModuleLabel, pcsHandle))
-    art::fill_ptr_vector(pcs, pcsHandle);
-
-  for (size_t i = 0; i<sps.size(); ++i){
-    vx.push_back(sps[i]->XYZ()[0]);
-    vy.push_back(sps[i]->XYZ()[1]);
-    vz.push_back(sps[i]->XYZ()[2]);
-    vcharge.push_back(pcs[i]->charge());
-    vtrackid.push_back(-1);
-  }
-*/
 
   art::Handle< std::vector<recob::Track> > trkHandle;
   std::vector< art::Ptr<recob::Track> > trks;
   if (evt.getByLabel(fTrackModuleLabel, trkHandle))
     art::fill_ptr_vector(trks, trkHandle);
 
-/*  for (size_t i = 0; i<trks.size(); ++i){
-    auto & trk = trks[i];
-    for (size_t j = 0; j<trk->NPoints(); ++j){
-      if (trk->HasValidPoint(j)){
-        vx.push_back(trk->TrajectoryPoint(j).position.X());
-        vy.push_back(trk->TrajectoryPoint(j).position.Y());
-        vz.push_back(trk->TrajectoryPoint(j).position.Z());
-        vcharge.push_back(0);
-        vtrackid.push_back(trk->ID());
-      }
-    }
-  }
-*/
 
   art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
   std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
@@ -230,176 +189,196 @@ void pionana::pionabscex::analyze(art::Event const & evt)
 
     if (beamevent->GetTimingTrigger() == 12 && beamevent->CheckIsMatched()){
 
-    //Get TOF info if valid
-    if (beamevent->GetTOFChan() != -1){
-      tof = beamevent->GetTOF();
-    }
-    
-    //Get beam particle trajectory info
-    auto & tracks = beamevent->GetBeamTracks();
-    std::cout<<"###############################################################"<<std::endl;
-    std::cout<<"ToF:"<<tof<<" [ns]"<<std::endl;
-    std::cout<<"beam trk size:"<<tracks.size()<<std::endl;
-    for (size_t i = 0; i<tracks.size(); ++i){
-      beamPosx.push_back(tracks[i].End().X());
-      beamPosy.push_back(tracks[i].End().Y());
-      beamPosz.push_back(tracks[i].End().Z());
-      beamDirx.push_back(tracks[i].StartDirection().X());
-      beamDiry.push_back(tracks[i].StartDirection().Y());
-      beamDirz.push_back(tracks[i].StartDirection().Z());
-    
-      std::cout<<"run/subrun/evt:"<<run<<"/"<<subrun<<"/"<<event<<std::endl;	
-      std::cout<<"beamPosx/beamPosy/beamPosz:"<<tracks[i].End().X()<<"/"<<tracks[i].End().Y()<<"/"<<tracks[i].End().Z()<<std::endl;
-      std::cout<<"beamDirx/beamDiry/beamDirz:"<<tracks[i].StartDirection().X()<<"/"<<tracks[i].StartDirection().Y()<<"/"<<tracks[i].StartDirection().Z()<<std::endl;
+      //Get TOF info if valid
+      if (beamevent->GetTOFChan() != -1){
+        tof = beamevent->GetTOF();
+      }
+      
+      //Get beam particle trajectory info
+      auto & tracks = beamevent->GetBeamTracks();
       std::cout<<"###############################################################"<<std::endl;
-    }
-    //Get reconstructed beam momentum info
-    auto & beammom = beamevent->GetRecoBeamMomenta();
-    std::cout<<"==============================================================="<<std::endl;
-    std::cout<<"beam mom size:"<<beammom.size()<<std::endl;
-    for (size_t i = 0; i<beammom.size(); ++i){
-      beamMomentum.push_back(beammom[i]);
-      std::cout<<"beam mom["<<i<<"]:"<<beammom[i]<<" [GeV]"<<std::endl;
-    }
-    std::cout<<"==============================================================="<<std::endl;
-    
-    std::cout<<"\n*******************************************************"<<std::endl;
-    std::cout<<"Moving on to the PFParticle section..."<<std::endl;	
-    
-    protoana::ProtoDUNEPFParticleUtils pfpUtil;
-    auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
-    
-    
-    // We'd like to find the beam particle. Pandora tries to do this for us, so let's use the PFParticle utility 
-    // to look for it. Pandora reconstructs slices containing one (or sometimes more) primary PFParticles. These	
-    // are tagged as either beam or cosmic for ProtoDUNE. This function automatically considers only those 
-    // PFParticles considered as primary
-    
-    bool beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
-    if(beamTriggerEvent){
-      std::cout << "This data event has a beam trigger" << std::endl;
-    }
-    
-    
-    const std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
-    if(beamParticles.size() == 0){
-      std::cerr << "We found no beam particles for this event... moving on" << std::endl;
-      return;
-    }
-    
-    
-    n_beamparticle.push_back(beamParticles.size());
-    std::cout<<"we have "<<beamParticles.size()<<" beam particle(s)"<<std::endl;
-    for(const recob::PFParticle* particle : beamParticles){
-    
-      const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
-      const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
-
-      if(thisTrack) {
-        std::cout << "Beam particle is track-like" << std::endl;
-        primtrk_trktag.push_back(1);
+      std::cout<<"ToF:"<<tof<<" [ns]"<<std::endl;
+      std::cout<<"beam trk size:"<<tracks.size()<<std::endl;
+      for (size_t i = 0; i<tracks.size(); ++i){
+        beamPosx.push_back(tracks[i].End().X());
+        beamPosy.push_back(tracks[i].End().Y());
+        beamPosz.push_back(tracks[i].End().Z());
+        beamDirx.push_back(tracks[i].StartDirection().X());
+        beamDiry.push_back(tracks[i].StartDirection().Y());
+        beamDirz.push_back(tracks[i].StartDirection().Z());
+      
+        std::cout<<"run/subrun/evt:"<<run<<"/"<<subrun<<"/"<<event<<std::endl;	
+        std::cout<<"beamPosx/beamPosy/beamPosz:"<<tracks[i].End().X()<<"/"<<tracks[i].End().Y()<<"/"<<tracks[i].End().Z()<<std::endl;
+        std::cout<<"beamDirx/beamDiry/beamDirz:"<<tracks[i].StartDirection().X()<<"/"<<tracks[i].StartDirection().Y()<<"/"<<tracks[i].StartDirection().Z()<<std::endl;
+        std::cout<<"###############################################################"<<std::endl;
       }
-
-      if(thisShower) { 
-        std::cout << "Beam particle is shower-like" << std::endl;
-        primtrk_trktag.push_back(-1);
+      //Get reconstructed beam momentum info
+      auto & beammom = beamevent->GetRecoBeamMomenta();
+      std::cout<<"==============================================================="<<std::endl;
+      std::cout<<"beam mom size:"<<beammom.size()<<std::endl;
+      for (size_t i = 0; i<beammom.size(); ++i){
+        beamMomentum.push_back(beammom[i]);
+        std::cout<<"beam mom["<<i<<"]:"<<beammom[i]<<" [GeV]"<<std::endl;
       }
-     
-      pdg_code.push_back(particle->PdgCode());
-      n_daughter.push_back(particle->NumDaughters());
-      isPrimary.push_back(particle->IsPrimary());
-      pfp_self.push_back(particle->Self());
+      std::cout<<"==============================================================="<<std::endl;
+      
+      std::cout<<"\n*******************************************************"<<std::endl;
+      std::cout<<"Moving on to the PFParticle section..."<<std::endl;	
+      
+      protoana::ProtoDUNEPFParticleUtils pfpUtil;
+      auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+      
+      
+      // We'd like to find the beam particle. Pandora tries to do this for us, so let's use the PFParticle utility 
+      // to look for it. Pandora reconstructs slices containing one (or sometimes more) primary PFParticles. These	
+      // are tagged as either beam or cosmic for ProtoDUNE. This function automatically considers only those 
+      // PFParticles considered as primary
+      
+      bool beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
+      if(beamTriggerEvent){
+        std::cout << "This data event has a beam trigger" << std::endl;
+      }
+      
+      
+      const std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+      if(beamParticles.size() == 0){
+        std::cerr << "We found no beam particles for this event... moving on" << std::endl;
+        return;
+      }
+      
+      
+      n_beamparticle.push_back(beamParticles.size());
+      std::cout<<"we have "<<beamParticles.size()<<" beam particle(s)"<<std::endl;
+
+      // Trying to get the associated tracks from the PFParticle
+      art::FindManyP<recob::Track> tracksFromPFParticles(recoParticles, evt, "pandoraTrack");
         
-      std::cout << "pdg code:"     << particle->PdgCode()      << std::endl;
-      std::cout << "IsPrimary:"    << particle->IsPrimary()    << std::endl;
-      std::cout << "NumDaughters:" << particle->NumDaughters() << std::endl;
-      std::cout << "Self:"         << particle->Self()         << std::endl;	
-      std::cout << "Parent:"       << particle->Parent()       << std::endl;
-     
-      if ( particle->NumDaughters() > 0 ) {
-        for ( int ii = 0; ii < particle->NumDaughters(); ++ii ) {
-          std::cout << "Daughter[" << ii << "]:" << particle->Daughter(ii) << std::endl;
-          pfp_daughter.push_back(particle->Daughter(ii));
+   
+      for(const recob::PFParticle* particle : beamParticles){
+
+      
+        const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
+        const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
+
+        if(thisTrack) {
+          std::cout << "Beam particle is track-like" << std::endl;
+          primtrk_trktag.push_back(1);
         }
-      }
-      else {
-           pfp_daughter.push_back(-99);
-      }
-     
-   	// Find the particle vertex. We need the tracker tag here because we need to do a bit of
-     	// additional work if the PFParticle is track-like to find the vertex. 
-     	const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-     
-     	primtrk_startx.push_back(vtx.X());
-     	primtrk_starty.push_back(vtx.Y());
-     	primtrk_startz.push_back(vtx.Z());
-     	
+
+        if(thisShower) { 
+          std::cout << "Beam particle is shower-like" << std::endl;
+          primtrk_trktag.push_back(-1);
+        }
+       
+        pdg_code.push_back(particle->PdgCode());
+        n_daughter.push_back(particle->NumDaughters());
+        isPrimary.push_back(particle->IsPrimary());
+        pfp_self.push_back(particle->Self());
+          
+        std::cout << "pdg code:"     << particle->PdgCode()      << std::endl;
+        std::cout << "IsPrimary:"    << particle->IsPrimary()    << std::endl;
+        std::cout << "NumDaughters:" << particle->NumDaughters() << std::endl;
+        std::cout << "Self:"         << particle->Self()         << std::endl;	
+        std::cout << "Parent:"       << particle->Parent()       << std::endl;
+
+        auto tracksVec = tracksFromPFParticles.at( particle->Self() );
+        std::cout << "Getting tracks with FindMany"   << std::endl;
+        std::cout << "Size: " << tracksVec.size()     << std::endl;
+        if( tracksVec.size() ){ 
+          auto theTrack = tracksVec.at(0);
+          std::cout << "ID: "   << theTrack->ID() << std::endl;
+        }
+
+        if ( particle->NumDaughters() > 0 ) {
+          for ( int ii = 0; ii < particle->NumDaughters(); ++ii ) {
+            std::cout << "Daughter[" << ii << "]:" << particle->Daughter(ii) << std::endl;
+            pfp_daughter.push_back(particle->Daughter(ii));
+
+            auto daughtersVec = tracksFromPFParticles.at( particle->Daughter(ii) );
+            std::cout << "Getting daughters with FindMany"   << std::endl;
+            std::cout << "Size: " << daughtersVec.size()     << std::endl;
+            if( daughtersVec.size() ){ 
+              auto theDaughter = daughtersVec.at(0);
+              std::cout << "ID: "   << theDaughter->ID() << std::endl;
+            }
+          }
+        }
+        else {
+             pfp_daughter.push_back(-99);
+        }
+       
+        // Find the particle vertex. We need the tracker tag here because we need to do a bit of
+        // additional work if the PFParticle is track-like to find the vertex. 
+        const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+        
+        primtrk_startx.push_back(vtx.X());
+        primtrk_starty.push_back(vtx.Y());
+        primtrk_startz.push_back(vtx.Z());
+        
         // Get track direction
         if (thisTrack) {
           auto trackdir = thisTrack->StartDirection();
-     	  std::cout<<"run/subrun/event:"<<run<<"/"<<subrun<<"/"<<event<<std::endl;	
-     	  std::cout<<"trkDirx/trkDiry/trkDirz:"<<trackdir.X()<<"/"<<trackdir.Y()<<"/"<<trackdir.Z()<<std::endl;
-     	  primtrk_Dirx.push_back(trackdir.X());
-     	  primtrk_Diry.push_back(trackdir.Y());
-     	  primtrk_Dirz.push_back(trackdir.Z());
-     
-     	  primtrklen.push_back(thisTrack->Length()); 
-     	  std::cout<<"trk length: "<<thisTrack->Length()<<" [cm]"<<std::endl;
-     	  primtrkID.push_back(thisTrack->ID());
-     	  std::cout<<"trk ID: "<<thisTrack->ID()<<""<<std::endl; //HY::Fix me::trk ID seems wrong 
-     
-     	  if (tracks.size()){
-     	      cosine_beam_primtrk = tracks[0].StartDirection().X()*trackdir.X()
+          std::cout<<"run/subrun/event:"<<run<<"/"<<subrun<<"/"<<event<<std::endl;	
+          std::cout<<"trkDirx/trkDiry/trkDirz:"<<trackdir.X()<<"/"<<trackdir.Y()<<"/"<<trackdir.Z()<<std::endl;
+          primtrk_Dirx.push_back(trackdir.X());
+          primtrk_Diry.push_back(trackdir.Y());
+          primtrk_Dirz.push_back(trackdir.Z());
+        
+          primtrklen.push_back(thisTrack->Length()); 
+          std::cout<<"trk length: "<<thisTrack->Length()<<" [cm]"<<std::endl;
+          primtrkID.push_back(thisTrack->ID());
+          std::cout<<"trk ID: "<<thisTrack->ID()<<""<<std::endl; //HY::Fix me::trk ID seems wrong 
+        
+          if (tracks.size()){
+              cosine_beam_primtrk = tracks[0].StartDirection().X()*trackdir.X()
               + tracks[0].StartDirection().Y()*trackdir.Y()
               + tracks[0].StartDirection().Z()*trackdir.Z();
-     	  }
+          }
         }
-     
-     	// Now we can look for the interaction point of the particle if one exists, i.e where the particle
-     	// scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
-     	// check this by making sure we get a sensible position
-     	const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-     
-     
-     	// Let's get the daughter PFParticles... we can do this simply without the utility
-     	for(const int daughterID : particle->Daughters()){
-     	  // Daughter ID is the element of the original recoParticle vector
-     	  const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-     	  std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
-     	}
-     
-     	// For actually studying the objects, it is easier to have the daughters in their track and shower forms.
-     	// We can use the utility to get a vector of track-like and a vector of shower-like daughters
-     	const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
-     	const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
-     	std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
-     
-       }
-       std::cout<<"*******************************************************"<<std::endl;
-      } 
+        
+        // Now we can look for the interaction point of the particle if one exists, i.e where the particle
+        // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
+        // check this by making sure we get a sensible position
+        const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+        
+        
+        // Let's get the daughter PFParticles... we can do this simply without the utility
+        for(const int daughterID : particle->Daughters()){
+          // Daughter ID is the element of the original recoParticle vector
+          const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
+          std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
+          std::cout << "\tAnd has PID: " << daughterParticle->PdgCode() << std::endl;
 
-      if (beamevent->GetBITrigger() == 1){ 
-        //Get CKov status
-        ckov0status = beamevent->GetCKov0Status();
-        ckov1status = beamevent->GetCKov1Status();
-      } 
-    }
+          pfp_daughter_PDGs.push_back( daughterParticle->PdgCode() );
+        }
+        
+        // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
+        // We can use the utility to get a vector of track-like and a vector of shower-like daughters
+        const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
+        const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
+        std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+       
+      }
+      std::cout<<"*******************************************************"<<std::endl;
+    } 
+
+    if (beamevent->GetBITrigger() == 1){ 
+      //Get CKov status
+      ckov0status = beamevent->GetCKov0Status();
+      ckov1status = beamevent->GetCKov1Status();
+    } 
+  }
 
   fTree->Fill();
 }
 
-void pionana::pionabscex::beginJob()
+void pionana::PionAnalyzerAbsCex::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("beamana","beam analysis tree");
   fTree->Branch("run",&run,"run/I");
   fTree->Branch("subrun",&subrun,"subrun/I");
   fTree->Branch("event",&event,"event/I");
-//  fTree->Branch("vx",&vx);
-//  fTree->Branch("vy",&vy);
-//  fTree->Branch("vz",&vz);
-//  fTree->Branch("vcharge",&vcharge);
-//  fTree->Branch("vtrackid",&vtrackid);
   fTree->Branch("beamPosx",&beamPosx);
   fTree->Branch("beamPosy",&beamPosy);
   fTree->Branch("beamPosz",&beamPosz);
@@ -427,22 +406,18 @@ void pionana::pionabscex::beginJob()
   fTree->Branch("pfp_self", &pfp_self);
   //fTree->Branch("pfp_parent", &pfp_parent);
   fTree->Branch("pfp_daughter", &pfp_daughter);
+  fTree->Branch("pfp_daughter_PDGs", &pfp_daughter_PDGs);
   fTree->Branch("primtrk_trktag", &primtrk_trktag);
 
 }
 
-void pionana::pionabscex::endJob()
+void pionana::PionAnalyzerAbsCex::endJob()
 {
 
 }
 
-void pionana::pionabscex::reset()
+void pionana::PionAnalyzerAbsCex::reset()
 {
-//  vx.clear();
-//  vy.clear();
-//  vz.clear();
-//  vcharge.clear();
-//  vtrackid.clear();
   beamPosx.clear();
   beamPosy.clear();
   beamPosz.clear();
@@ -469,9 +444,10 @@ void pionana::pionabscex::reset()
   pfp_self.clear();
   //pfp_parent.clear();
   pfp_daughter.clear();
+  pfp_daughter_PDGs.clear();
 
   cosine_beam_primtrk=-99;
 
 }
 
-DEFINE_ART_MODULE(pionana::pionabscex)
+DEFINE_ART_MODULE(pionana::PionAnalyzerAbsCex)
