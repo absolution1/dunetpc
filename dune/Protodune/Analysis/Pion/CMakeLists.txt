@@ -1,9 +1,5 @@
-
-include_directories( $ENV{PANDORA_INC} )
-
 art_make(BASENAME_ONLY
-  LIBRARY_NAME      ProtoDUNEAnaUtils
-  LIB_LIBRARIES CVNFunc
+  MODULE_LIBRARIES
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -16,20 +12,14 @@ art_make(BASENAME_ONLY
   ${ART_UTILITIES}
   ${MF_MESSAGELOGGER}
   cetlib cetlib_except
-  fhiclcpp
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry
   nusimdata_SimulationBase
-  lardataobj_RawData
-  lardataobj_Simulation
-  dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-  dune_DuneObj
   larsim_MCCheater_PhotonBackTrackerService_service           
   larsim_MCCheater_BackTrackerService_service           
   larsim_MCCheater_ParticleInventoryService_service
   larreco_RecoAlg
-  MODULE_LIBRARIES
   ${ROOT_BASIC_LIB_LIST}
   ProtoDUNEAnaUtils
   )
@@ -37,5 +27,3 @@ install_headers()
 install_fhicl()
 install_source()
 
-add_subdirectory(BeamExample)
-add_subdirectory(Pion)
