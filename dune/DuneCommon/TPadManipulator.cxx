@@ -537,7 +537,16 @@ int TPadManipulator::update() {
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
     if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) m_pg->Draw("AP");
+    else if ( m_pg != nullptr ) {
+      // If the graph has no points, we add one because root (6.12/06) raises an
+      // exception if we draw an empty graph.
+      if ( m_pg->GetN() == 0 ) {
+        double xmin = m_pg->GetXaxis()->GetXmin();
+        double ymin = m_pg->GetYaxis()->GetXmin();
+        m_pg->SetPoint(0, xmin, ymin);
+      }
+      m_pg->Draw("AP");
+    }
   }
 /*
   if ( ! haveHistOrGraph() ) {
