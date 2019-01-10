@@ -197,8 +197,17 @@ public:
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
+  // The title is drawn as specified in the promary object, i.e. typically
+  // above the frame.
   int setTitle(std::string sttl);
   std::string getTitle() const { return m_title.GetTitle(); }
+
+  // Set and get the label associated with this pad.
+  // The label object can be used to modify the label.
+  // This is written in the lower left corner.
+  int setLabel(std::string slab);
+  std::string getLabel() const { return m_label.GetTitle(); }
+  TLatex& getLabelObject() { return m_label; }
 
   // Remove histograms and graphs from top and subpads.
   int clear();
@@ -336,6 +345,7 @@ private:
   bool m_top;
   bool m_right;
   TLatex m_title;
+  TLatex m_label;
   std::vector<unsigned int> m_histFuns;
   std::vector<double> m_hmlXmod;
   std::vector<double> m_hmlXoff;
