@@ -51,6 +51,11 @@ TPadManipulator::TPadManipulator()
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
+  m_label.SetNDC();
+  m_label.SetX(0.01);
+  m_label.SetY(0.02);
+  m_label.SetTextFont(42);
+  m_label.SetTextSize(0.035);
 }
 
 //**********************************************************************
@@ -127,6 +132,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_top = rhs.m_top;
   m_right = rhs.m_right;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
+  rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
@@ -488,6 +494,13 @@ int TPadManipulator::setTitle(string sttl) {
 
 //**********************************************************************
 
+int TPadManipulator::setLabel(string slab) {
+  m_label.SetTitle(slab.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::clear() {
   m_ph.reset();
   m_pg.reset();
@@ -759,6 +772,7 @@ int TPadManipulator::update() {
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
   m_title.Draw();
+  if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
   return rstat;
 }
