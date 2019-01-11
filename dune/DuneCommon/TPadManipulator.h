@@ -270,10 +270,14 @@ public:
   // Remove all lines.
   int clearLines();
 
-  // Add a vertical line at x=xoff or horizonatl at y=yoff.
+  // Add a vertical line at x=xoff or horizontal at y=yoff.
   // The lines are draw with style isty from the low edge to lenfrac*width
   int addVerticalLine(double xoff =0.0, double lenfrac =1.0, int isty =1);
   int addHorizontalLine(double yoff =0.0, double lenfrac =1.0, int isty =1);
+
+  // Add a line with slop dydx and y = y0 at x = 0.
+  // The lines are draw with style isty between frame boundaries.
+  int addSlopedLine(double slop, double yoff =0.0, int isty =1);
 
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
@@ -355,6 +359,9 @@ private:
   std::vector<double> m_vmlXoff;
   std::vector<int> m_vmlXStyle;
   std::vector<double> m_vmlXLength;
+  std::vector<double> m_slSlop;
+  std::vector<double> m_slYoff;
+  std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;

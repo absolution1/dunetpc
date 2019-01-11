@@ -944,6 +944,15 @@ int TPadManipulator::addHorizontalLine(double xoff, double lenfrac, int isty) {
 }
 //**********************************************************************
 
+int TPadManipulator::addSlopedLine(double slop, double yoff, int isty) {
+  m_slSlop.push_back(slop);
+  m_slYoff.push_back(yoff);
+  m_slStyl.push_back(isty);
+  drawLines();
+  return 0;
+}
+//**********************************************************************
+
 int TPadManipulator::addVerticalModLines(double xmod, double xoff, double lenfrac, int isty) {
   m_vmlXmod.push_back(xmod);
   m_vmlXoff.push_back(xoff);
@@ -1169,6 +1178,52 @@ int TPadManipulator::drawLines() {
       if ( ymod == 0.0 ) break;
       y += ymod;
     }
+  }
+  for ( Index iset=0; iset<m_slSlop.size(); ++iset ) {
+    double slop = m_slSlop[iset];
+    double yoff = m_slYoff[iset];
+    double isty = m_slStyl[iset];
+    double wx = xmax() - xmin();
+    double wy = ymax() - ymin();
+    if ( wx < 0.0 || wy < 0.0 ) continue;
+    double xlef = xmin();
+    double xrig = xmax();
+    double ybot = ymin();
+    double ytop = ymax();
+    double ylef = slop*xlef + yoff;
+    double yrig = slop*xrig + yoff;
+    double xbot = slop == 0.0  ? xmin() - wx : (ybot - yoff)/slop;
+    double xtop = slop == 0.0  ? xmax() + wx : (ytop - yoff)/slop;
+    double x1 = 0.0;
+    double y1 = 0.0;
+    if ( ylef > ybot && ylef < ytop ) {
+      x1 = xlef;
+      y1 = ylef;
+    } else if ( ylef <= ybot && slop > 0.0 && xbot < xrig ) {
+      x1 = xbot;
+      y1 = ybot;
+    } else if ( ylef >= ytop && slop < 0.0 && xtop < xrig ) {
+      x1 = xtop;
+      y1 = ytop;
+    } else {
+      continue;
+    }
+    double x2 = 0.0;
+    double y2 = 0.0;
+    if ( slop > 0.0 && xtop < xrig ) {
+      x2 = xtop;
+      y2 = ytop;
+    } else if ( slop < 0.0 && xbot < xrig ) {
+      x2 = xbot;
+      y2 = ybot;
+    } else {
+      x2 = xrig;
+      y2 = yrig;
+    }
+    std::shared_ptr<TLine> pline(new TLine(x1, y1, x2, y2));
+    pline->SetLineStyle(isty);
+    m_vmlLines.push_back(pline);
+    pline->Draw();
   }
   gPad = pPadSave;
   return 0;
