@@ -51,6 +51,11 @@ TPadManipulator::TPadManipulator()
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
+  m_label.SetNDC();
+  m_label.SetX(0.01);
+  m_label.SetY(0.02);
+  m_label.SetTextFont(42);
+  m_label.SetTextSize(0.035);
 }
 
 //**********************************************************************
@@ -127,6 +132,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_top = rhs.m_top;
   m_right = rhs.m_right;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
+  rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
@@ -488,6 +494,13 @@ int TPadManipulator::setTitle(string sttl) {
 
 //**********************************************************************
 
+int TPadManipulator::setLabel(string slab) {
+  m_label.SetTitle(slab.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::clear() {
   m_ph.reset();
   m_pg.reset();
@@ -537,7 +550,16 @@ int TPadManipulator::update() {
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
     if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) m_pg->Draw("AP");
+    else if ( m_pg != nullptr ) {
+      // If the graph has no points, we add one because root (6.12/06) raises an
+      // exception if we draw an empty graph.
+      if ( m_pg->GetN() == 0 ) {
+        double xmin = m_pg->GetXaxis()->GetXmin();
+        double ymin = m_pg->GetYaxis()->GetXmin();
+        m_pg->SetPoint(0, xmin, ymin);
+      }
+      m_pg->Draw("AP");
+    }
   }
 /*
   if ( ! haveHistOrGraph() ) {
@@ -750,6 +772,7 @@ int TPadManipulator::update() {
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
   m_title.Draw();
+  if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
   return rstat;
 }
@@ -916,6 +939,15 @@ int TPadManipulator::addHorizontalLine(double xoff, double lenfrac, int isty) {
   m_hmlXoff.push_back(xoff);
   m_hmlXStyle.push_back(isty);
   m_hmlXLength.push_back(lenfrac);
+  drawLines();
+  return 0;
+}
+//**********************************************************************
+
+int TPadManipulator::addSlopedLine(double slop, double yoff, int isty) {
+  m_slSlop.push_back(slop);
+  m_slYoff.push_back(yoff);
+  m_slStyl.push_back(isty);
   drawLines();
   return 0;
 }
@@ -1146,6 +1178,52 @@ int TPadManipulator::drawLines() {
       if ( ymod == 0.0 ) break;
       y += ymod;
     }
+  }
+  for ( Index iset=0; iset<m_slSlop.size(); ++iset ) {
+    double slop = m_slSlop[iset];
+    double yoff = m_slYoff[iset];
+    double isty = m_slStyl[iset];
+    double wx = xmax() - xmin();
+    double wy = ymax() - ymin();
+    if ( wx < 0.0 || wy < 0.0 ) continue;
+    double xlef = xmin();
+    double xrig = xmax();
+    double ybot = ymin();
+    double ytop = ymax();
+    double ylef = slop*xlef + yoff;
+    double yrig = slop*xrig + yoff;
+    double xbot = slop == 0.0  ? xmin() - wx : (ybot - yoff)/slop;
+    double xtop = slop == 0.0  ? xmax() + wx : (ytop - yoff)/slop;
+    double x1 = 0.0;
+    double y1 = 0.0;
+    if ( ylef > ybot && ylef < ytop ) {
+      x1 = xlef;
+      y1 = ylef;
+    } else if ( ylef <= ybot && slop > 0.0 && xbot < xrig ) {
+      x1 = xbot;
+      y1 = ybot;
+    } else if ( ylef >= ytop && slop < 0.0 && xtop < xrig ) {
+      x1 = xtop;
+      y1 = ytop;
+    } else {
+      continue;
+    }
+    double x2 = 0.0;
+    double y2 = 0.0;
+    if ( slop > 0.0 && xtop < xrig ) {
+      x2 = xtop;
+      y2 = ytop;
+    } else if ( slop < 0.0 && xbot < xrig ) {
+      x2 = xbot;
+      y2 = ybot;
+    } else {
+      x2 = xrig;
+      y2 = yrig;
+    }
+    std::shared_ptr<TLine> pline(new TLine(x1, y1, x2, y2));
+    pline->SetLineStyle(isty);
+    m_vmlLines.push_back(pline);
+    pline->Draw();
   }
   gPad = pPadSave;
   return 0;

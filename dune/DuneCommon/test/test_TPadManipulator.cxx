@@ -67,6 +67,17 @@ int test_TPadManipulator() {
   man.addVerticalModLines(0.2*xmax, 0.1*xmax);
 
   cout << myname << line << endl;
+  cout << myname << "Add sloped lines." << endl;
+  man.addSlopedLine(0.01, 5, 2);
+  man.addSlopedLine(0.01, -5, 3);
+
+  cout << myname << line << endl;
+  cout << myname << "Add label." << endl;
+  assert( ! man.getLabel().size() );
+  man.setLabel("This is my #beta data for E_{tot} = m#timesC^{2}.");
+  assert( man.getLabel().size() );
+
+  cout << myname << line << endl;
   cout << myname << "Draw." << endl;
   assert( man.pad() == nullptr );
   man.draw();
