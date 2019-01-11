@@ -35,12 +35,11 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
   double mean = mean0;
   double sigma = ph->GetRMS();
   double height = ph->GetMaximum();
-  int ibin1 = ph->GetXaxis()->GetFirst();
-  int ibin2 = ph->GetXaxis()->GetLast();
-  double xmin = ph->GetXaxis()->GetBinLowEdge(ibin1);
-  double xmax = ph->GetXaxis()->GetBinUpEdge(ibin2);
-  double x1 = xmin;
-  double x2 = xmax;
+  int nbin = ph->GetXaxis()->GetNbins();
+  int ibin1Start = ph->GetXaxis()->GetFirst();
+  int ibin2Start = ph->GetXaxis()->GetLast();
+  double x1 = ph->GetXaxis()->GetBinLowEdge(ibin1Start);
+  double x2 = ph->GetXaxis()->GetBinUpEdge(ibin2Start);
   // Evaluate mean and sigma.
   if ( m_sigma0 > 0.0 && m_nsigma > 0.0 ) {
     sigma = 0.0;
@@ -50,17 +49,23 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
     }
     const Index maxtry = 100;
     Index itry = 0;
+    int ibin1 = ibin1Start;
+    int ibin2 = ibin2Start;
     for ( ; itry<maxtry; ++itry ) {
       double dx = m_nsigma*sigmaOld;
       x1 = mean - dx;
-      if ( x1 < xmin ) x1 = xmin;
+      ibin1 = ph->GetXaxis()->FindFixBin(x1);
+      if ( ibin1 == 0 ) ibin1 = 1;
+      x1 = ph->GetXaxis()->GetBinLowEdge(ibin1);
       x2 = mean + dx;
-      if ( x1 > xmax ) x1 = xmax;
-      ph->GetXaxis()->SetRangeUser(x1, x2);
+      ibin2 = ph->GetXaxis()->FindFixBin(x2);
+      if ( ibin2 == nbin+1 ) ibin2 = nbin;
+      x2 = ph->GetXaxis()->GetBinUpEdge(ibin2);
+      ph->GetXaxis()->SetRange(ibin1, ibin2);
       sigma = ph->GetRMS();
       mean = ph->GetMean();
       if ( m_LogLevel >= 2 ) {
-        cout << myname << setw(5) << itry << ": " << x1 << ", " << x2 << "): "
+        cout << myname << setw(5) << itry << ": (" << x1 << ", " << x2 << "): "
              << mean << ", " << sigma << endl;
       }
       if ( sigma < 1.001*sigmaOld ) {
@@ -68,6 +73,7 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
       }
       sigmaOld = sigma;
     }
+    ph->GetXaxis()->SetRange(ibin1Start, ibin2Start);
     if ( itry >= 100 ) cout << myname << "WARNING: too many iterations." << endl;
   // Use input mean and configured sigma.
   } else if ( m_sigma0 > 0.0 ) {
@@ -76,7 +82,6 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
   } else {
     mean = ph->GetMean();
   }
-  ph->GetXaxis()->SetRange(ibin1, ibin2);
   // Protect against sigma == 0.
   if ( sigma <= 0.0 ) {
     sigma = ph->GetXaxis()->GetBinWidth(1)/sqrt(12.0);
@@ -86,7 +91,7 @@ int GausRmsFitter::fit(TH1* ph, double mean0) const {
   pffix->FixParameter(1, mean);
   pffix->FixParameter(2, sigma);
   pffix->SetRange(x1, x2);
-  string fopt = "S";
+  string fopt = "SR";
   if ( m_LogLevel <= 1 ) fopt += "Q";
   int fstat = quietHistFit(ph, pffix, fopt);
   if ( m_LogLevel >= 1 ) cout << myname << "  status " << fstat << endl;

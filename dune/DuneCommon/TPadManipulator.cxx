@@ -41,6 +41,8 @@ namespace {
 TPadManipulator::TPadManipulator()
 : m_parent(nullptr), m_ppad(nullptr),
   m_canvasWidth(0), m_canvasHeight(0),
+  m_marginLeft(-999), m_marginRight(-999),
+  m_marginBottom(-999), m_marginTop(-999),
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false), m_logZ(false),
@@ -49,6 +51,11 @@ TPadManipulator::TPadManipulator()
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
+  m_label.SetNDC();
+  m_label.SetX(0.01);
+  m_label.SetY(0.02);
+  m_label.SetTextFont(42);
+  m_label.SetTextSize(0.035);
 }
 
 //**********************************************************************
@@ -89,6 +96,10 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_canvasWidth = rhs.m_canvasWidth;
   m_canvasHeight = rhs.m_canvasHeight;
+  m_marginLeft = rhs.m_marginLeft;
+  m_marginRight = rhs.m_marginRight;
+  m_marginBottom = rhs.m_marginBottom;
+  m_marginTop = rhs.m_marginTop;
   // Clone drawn objects.
   m_ph.reset();
   m_pg.reset();
@@ -121,6 +132,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_top = rhs.m_top;
   m_right = rhs.m_right;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
+  rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
@@ -238,6 +250,8 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 //**********************************************************************
 
 int TPadManipulator::print(string fname) {
+  bool isBatch = gROOT->IsBatch();
+  if ( ! isBatch ) gROOT->SetBatch(true);
   TCanvas* pcan = canvas(true);
   if ( pcan == nullptr ) return 1;
   // Suppress printing message from Root.
@@ -253,6 +267,7 @@ int TPadManipulator::print(string fname) {
   pcan->Print(fname.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
+  if ( ! isBatch ) gROOT->SetBatch(false);
   return 0;
 }
 
@@ -432,12 +447,23 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       phc->SetDirectory(nullptr);
       phc->SetTitle("");
       pman->m_ph.reset(phc);
+      pman->m_dopt = sopt;
     } else {
       TGraph* pgc = (TGraph*) pg->Clone();
       pgc->SetTitle("");
       pman->m_pg.reset(pgc);
+      string soptOut;
+      for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
+        char ch = sopt[ipos];
+        if ( ch == 'a' || ch == 'A' ) {
+          cout << myname << "WARNING: Dropping " << ch << " from drawing option string for graph "
+               << pgc->GetName() << "." << endl;
+        } else {
+          soptOut += ch;
+        }
+      }
+      pman->m_dopt = soptOut;
     }
-    pman->m_dopt = sopt;
   }
   return update();
 } 
@@ -463,6 +489,13 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
 
 int TPadManipulator::setTitle(string sttl) {
   m_title.SetTitle(sttl.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setLabel(string slab) {
+  m_label.SetTitle(slab.c_str());
   return 0;
 }
 
@@ -517,7 +550,16 @@ int TPadManipulator::update() {
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
     if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) m_pg->Draw("AP");
+    else if ( m_pg != nullptr ) {
+      // If the graph has no points, we add one because root (6.12/06) raises an
+      // exception if we draw an empty graph.
+      if ( m_pg->GetN() == 0 ) {
+        double xmin = m_pg->GetXaxis()->GetXmin();
+        double ymin = m_pg->GetYaxis()->GetXmin();
+        m_pg->SetPoint(0, xmin, ymin);
+      }
+      m_pg->Draw("AP");
+    }
   }
 /*
   if ( ! haveHistOrGraph() ) {
@@ -589,6 +631,10 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
+  if ( m_marginLeft >= 0.0 ) xml = m_marginLeft;
+  if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
+  if ( m_marginBottom >= 0.0 ) xmb = m_marginBottom;
+  if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
@@ -726,6 +772,7 @@ int TPadManipulator::update() {
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
   m_title.Draw();
+  if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
   return rstat;
 }

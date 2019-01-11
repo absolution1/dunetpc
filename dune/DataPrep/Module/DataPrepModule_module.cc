@@ -495,7 +495,9 @@ void DataPrepModule::produce(art::Event& evt) {
           datamaps.emplace_back();
           AdcChannelDataMap& datamap = datamaps.back();
           for ( Index icha=ran.begin; icha<ran.end; ++icha ) {
-            datamap.emplace(icha, move(fulldatamap[icha]));
+            if ( fulldatamap.find(icha) != fulldatamap.end() ) {
+              datamap.emplace(icha, move(fulldatamap[icha]));
+            }
             ++nproc;
           }
         } else {
