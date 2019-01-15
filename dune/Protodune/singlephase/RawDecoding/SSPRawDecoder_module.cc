@@ -675,7 +675,7 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
     {
       //Check that the data are valid
       if(!containerFragments.isValid()){
-        LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
                                    << ", SubRun: " << evt.subRun()
                                    << ", Event: " << eventNumber
                                    << " Container Fragments found but NOT VALID";
@@ -718,7 +718,7 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
       //Check that the data is valid
       if(!rawFragments.isValid()){
 
-        LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
                                    << ", SubRun: " << evt.subRun()
                                    << ", Event: " << eventNumber
                                    << " Non-Container Fragments found but NOT VALID";
@@ -789,7 +789,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   art::ServiceHandle<art::TFileService> tFileService;
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
 
-  //LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
+  //MF_LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
   // Implementation of required member function here.
 
   art::EventNumber_t eventNumber = evt.event();  

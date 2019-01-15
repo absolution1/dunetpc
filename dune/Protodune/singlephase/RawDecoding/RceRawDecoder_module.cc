@@ -146,8 +146,8 @@ void dune::RceRawDecoder::beginJob(){
 }
 
 void dune::RceRawDecoder::produce(art::Event & evt){
-    // TODO Use LOG_DEBUG
-    LOG_INFO("RceRawDecoder")
+    // TODO Use MF_LOG_DEBUG
+    MF_LOG_INFO("RceRawDecoder")
       << "-------------------- RCE RawDecoder -------------------";
 
   RawDigits raw_digits;
@@ -168,7 +168,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
     }
     //Check that the data is valid
     if(!cont_frags.isValid()){
-      LOG_ERROR("RceRawDecoder")
+      MF_LOG_ERROR("RceRawDecoder")
           << "Run: " << evt.run()
 		  << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
@@ -205,7 +205,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
 
     //Check that the data is valid
     if(!frags.isValid()){
-      LOG_ERROR("RceRawDecoder")
+      MF_LOG_ERROR("RceRawDecoder")
           << "Run: " << evt.run()
 		  << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
@@ -218,7 +218,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
     }
   }
 
-  LOG_INFO("RceRawDecoder")
+  MF_LOG_INFO("RceRawDecoder")
       << " Processed " << n_rce_frags
       << " RCE Fragments, "
       << raw_digits.size()
@@ -236,7 +236,7 @@ bool dune::RceRawDecoder::_process(
   // FIXME: Remove hard-coded fragment type
   if((unsigned)frag.type() != 2) return false;
 
-  LOG_INFO("RceRawDecoder")
+  MF_LOG_INFO("RceRawDecoder")
       << "   SequenceID = " << frag.sequenceID()
       << "   fragmentID = " << frag.fragmentID()
       << "   fragmentType = " << (unsigned)frag.type()
@@ -257,7 +257,7 @@ bool dune::RceRawDecoder::_process(
      std::cout<<"crate, slot, fiber = "<<crateNumber<<", "<<slotNumber<<", "<<fiberNumber<<std::endl;
      uint32_t fiberID = (crateNumber*5+slotNumber)*4 + fiberNumber;
      _h_fiber_IDs->Fill(fiberID);
-     LOG_INFO("RceRawDecoder")
+     MF_LOG_INFO("RceRawDecoder")
          << "RceFragment timestamp: " << rce_stream->getTimeStamp()
          << ", NChannels: " << n_ch
          << ", NTicks: " << n_ticks;
@@ -267,7 +267,7 @@ bool dune::RceRawDecoder::_process(
      size_t buffer_size = n_ch * n_ticks;
      if (_buffer.capacity() < buffer_size)
      {
-         LOG_INFO("RceRawDecoder")
+         MF_LOG_INFO("RceRawDecoder")
              << "Increase buffer size from " << _buffer.capacity()
              << " to " << buffer_size;
 
