@@ -539,6 +539,18 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
+      // skip the fake TPC data
+
+      if ( slotNumber == 1 && fiberNumber == 1 ) 
+	{
+	  return false;
+	}
+
+      if ( slotNumber == 2 && fiberNumber == 1 )
+	{
+	  return false;
+	}
+
       if (_print_coldata_convert_count)
 	{
 	  // from JJ's PdReaderTest.cc
