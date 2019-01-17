@@ -219,7 +219,7 @@ namespace pd_monitor {
 
   void PDWaveform::analyze(const art::Event& event) {
 
-    LOG_INFO("PDWaveform")
+    MF_LOG_INFO("PDWaveform")
       << "-------------------- Photodetector waveforms -------------------";
     
     // Get the data with the correct label and instance from the root file	

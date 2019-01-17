@@ -1575,6 +1575,13 @@ void AdcRoiViewer::writeChanSumPlots() const {
         } else {
           cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
         }
+      } else if ( yopt == "pampg14") {
+        const RunData& rdat = getState().runData;
+        if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
+          yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
+        } else {
+          cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
+        }
       }
       if ( yfac != 0.0 ) {
         ymin *= yfac;

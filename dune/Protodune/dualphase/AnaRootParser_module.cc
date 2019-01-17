@@ -1279,17 +1279,17 @@ namespace dune {
               if (!pBranch) {
                 pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
 
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Creating branch '" << name << " with leaf '" << leaflist << "'";
 
               }
               else if (pBranch->GetAddress() != address) {
                 pBranch->SetAddress(address);
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Reassigning address to branch '" << name << "'";
               }
               else {
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Branch '" << name << "' is fine";
               }
             } // operator()
@@ -1315,7 +1315,7 @@ namespace dune {
                 pTree->Branch(name.c_str(), &data);
                 // ROOT needs a TClass definition for T in order to create a branch,
                 // se we are sure that at this point the TClass exists
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Creating object branch '" << name
                   << " with " << TClass::GetClass(typeid(T))->ClassName();
               }
@@ -1328,11 +1328,11 @@ namespace dune {
                   // member. Here we check that the address of the object in fObject
                   // is the same as the address of our current data type
                   pBranch->SetObject(&data);
-                  LOG_DEBUG("AnaRootParserStructure")
+                  MF_LOG_DEBUG("AnaRootParserStructure")
                     << "Reassigning object to branch '" << name << "'";
                 }
               else {
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Branch '" << name << "' is fine";
               }
             } // operator()
@@ -4460,7 +4460,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 	}
       }
     } // if have MC truth
-    LOG_DEBUG("AnaRootParser") << "Expected "
+    MF_LOG_DEBUG("AnaRootParser") << "Expected "
     << nGEANTparticles << " GEANT particles, "
     << nGeniePrimaries << " GENIE particles";
   } // if MC
@@ -6202,7 +6202,7 @@ if (fSaveTrackInfo) {
         } // for particles
         fData->generator_list_size = generator_particle;
         fData->processname.resize(generator_particle);
-        LOG_DEBUG("AnaRootParser")
+        MF_LOG_DEBUG("AnaRootParser")
           << "Counted "
           << fData->generator_list_size << " Generator particles";
       }//fSaveGeneratorInfo
@@ -6444,7 +6444,7 @@ if (fSaveTrackInfo) {
         fData->no_primaries = primary;
         fData->geant_list_size = geant_particle;
         fData->processname.resize(geant_particle);
-        LOG_DEBUG("AnaRootParser")
+        MF_LOG_DEBUG("AnaRootParser")
           << "Counted "
           << fData->geant_list_size << " GEANT particles ("
           << fData->geant_list_size_in_tpcAV << " in AV), "
@@ -6745,7 +6745,7 @@ if (fSaveTrackInfo) {
     fTree->Fill();
 
     if (mf::isDebugEnabled()) {
-      // use mf::LogDebug instead of LOG_DEBUG because we reuse it in many lines;
+      // use mf::LogDebug instead of MF_LOG_DEBUG because we reuse it in many lines;
       // thus, we protect this part of the code with the line above
       mf::LogDebug logStream("AnaRootParserStructure");
       logStream
@@ -6783,7 +6783,7 @@ if (fSaveTrackInfo) {
     // delete the current buffer, and we'll create a new one on the next event
 
     if (!fUseBuffer) {
-      LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
+      MF_LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
       DestroyData();
     }
     } // dune::AnaRootParser::analyze()
