@@ -250,7 +250,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFieldResponse(std::vector<double> 
 
 	//double integral = 0;
 	art::ServiceHandle<util::LArFFT> fft;
-	LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase field response function...";
+	MF_LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase field response function...";
 
 	int nticks = fft->FFTSize();
 	std::vector<double> time(nticks,0.);
@@ -269,7 +269,7 @@ void util::SignalShapingServiceDUNEDPhase::SetFieldResponse(std::vector<double> 
 		for(size_t i = 0; i < fresp.size(); ++i)
        fresp[i] *= fColFieldRespAmp/integral;
 
-	LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
+	MF_LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
 
    return;
 }
@@ -282,7 +282,7 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
 
   art::ServiceHandle<util::LArFFT> fft;
 
-  LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase electronics response function...";
+  MF_LOG_DEBUG("SignalShapingDUNEDPhase") << "Setting DUNEDPhase electronics response function...";
 
   int nticks = fft->FFTSize();
   std::vector<double> time(nticks,0.);
@@ -301,7 +301,7 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
     }// end loop over time buckets
 
 
-  LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
+  MF_LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
 
   //normalize to 1e charge before the convolution
   for(auto& element : ElecResp1Meter)
@@ -329,7 +329,7 @@ void util::SignalShapingServiceDUNEDPhase::SetElectResponse(std::vector<double> 
     }// end loop over time buckets
 
 
-  LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
+  MF_LOG_DEBUG("SignalShapingDUNEDPhase") << " Done.";
 
   //normalize to 1e charge before the convolution
   for(auto& element : ElecResp3Meter)

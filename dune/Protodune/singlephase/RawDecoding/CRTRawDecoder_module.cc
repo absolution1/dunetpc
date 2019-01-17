@@ -119,7 +119,7 @@ namespace CRT
   {
     CRT::Fragment frag(artFrag);
                                                                                                                                                    
-    LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
+    MF_LOG_DEBUG("CRTGoodEvent") << "Is this Fragment good?  " << ((frag.good_event())?"true":"false") << "\n";
     /*frag.print_header();
     frag.print_hits();*/
                                                                                                                                                    
@@ -129,16 +129,16 @@ namespace CRT
     for(size_t hitNum = 0; hitNum < frag.num_hits(); ++hitNum)
     {
       const auto hit = *(frag.hit(hitNum));
-      LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
+      MF_LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
                           << "ADC: " << hit.adc << "\n";
                                                                                                                                                    
       hits.emplace_back(hit.channel, hit.adc);
-      //LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
+      //MF_LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
                                                                     //      function template from namespace CRT.  using namespace CRT seems like 
                                                                     //      it should solve this, but it doesn't seem to.
     }
                                                                                                                                                    
-    LOG_DEBUG("CRTFragments") << "Module: " << frag.module_num() << "\n"
+    MF_LOG_DEBUG("CRTFragments") << "Module: " << frag.module_num() << "\n"
                               << "Number of hits: " << frag.num_hits() << "\n"
                               << "Fifty MHz time: " << frag.fifty_mhz_time() << "\n";
                                                                                                                                                    

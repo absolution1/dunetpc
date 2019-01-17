@@ -92,13 +92,13 @@ filter::ProtoDUNEUnstableHVFilter::~ProtoDUNEUnstableHVFilter() { }
 
 
 uint64_t filter::ProtoDUNEUnstableHVFilter::GetRawDecoderInfo(art::Event & e){
-    LOG_INFO("BeamEvent") << "\n";
-    LOG_INFO("BeamEvent") << "Getting Raw Decoder Info" << "\n";
+    MF_LOG_INFO("BeamEvent") << "\n";
+    MF_LOG_INFO("BeamEvent") << "Getting Raw Decoder Info" << "\n";
     e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
-    LOG_INFO("BeamEvent") << "RDTS valid? " << RDTimeStampHandle.isValid() << "\n";
+    MF_LOG_INFO("BeamEvent") << "RDTS valid? " << RDTimeStampHandle.isValid() << "\n";
     for (auto const & RDTS : *RDTimeStampHandle){
-        LOG_INFO("BeamEvent") << "High: " << RDTS.GetTimeStamp_High() << "\n";
-        LOG_INFO("BeamEvent") << "Low: " << RDTS.GetTimeStamp_Low() << "\n";
+        MF_LOG_INFO("BeamEvent") << "High: " << RDTS.GetTimeStamp_High() << "\n";
+        MF_LOG_INFO("BeamEvent") << "Low: " << RDTS.GetTimeStamp_Low() << "\n";
 
         uint64_t high = RDTS.GetTimeStamp_High();
         uint64_t low  = RDTS.GetTimeStamp_Low();
@@ -106,11 +106,11 @@ uint64_t filter::ProtoDUNEUnstableHVFilter::GetRawDecoderInfo(art::Event & e){
         high = high << 32;
         uint64_t joined = (high | low);
 
-        LOG_INFO("BeamEvent") << "Raw Decoder Timestamp: " << joined << "\n";
+        MF_LOG_INFO("BeamEvent") << "Raw Decoder Timestamp: " << joined << "\n";
 
         RDTSTime = joined;
         RDTSTrigger = RDTS.GetFlags();
-        LOG_INFO("BeamEvent") << "Trigger: " << RDTSTrigger << "\n";
+        MF_LOG_INFO("BeamEvent") << "Trigger: " << RDTSTrigger << "\n";
 
         //Separates seconds portion of the ticks 
         //From the nanoseconds
