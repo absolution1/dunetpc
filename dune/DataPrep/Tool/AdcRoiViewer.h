@@ -90,6 +90,7 @@
 //                zero - Set the error to zero
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
+//            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
 //       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
