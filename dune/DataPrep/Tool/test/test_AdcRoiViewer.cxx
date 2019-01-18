@@ -53,6 +53,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  MaxRoiPlots: 100" << endl;
     fout << "  RoiPlotPadX: 2" << endl;
     fout << "  RoiPlotPadY: 2" << endl;
+    fout << "  SumNegate: false" << endl;
     fout << "  SumPlotPadX: 2" << endl;
     fout << "  SumPlotPadY: 2" << endl;
     fout << "  RunDataTool: \"\"" << endl;

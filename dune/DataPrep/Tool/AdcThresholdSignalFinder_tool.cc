@@ -60,7 +60,7 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   acd.signal.resize(nsam, false);
   AdcIndex nbinAbove = 0;
   AdcIndex isamNotRoi = 0;  // This is the 1st sample after the last ROI.
-  for ( AdcIndex isam=0; isam<nsam; ++isam ) {
+  for ( AdcIndex isam=0; isam<nsam; ) {
     bool keep = ( m_FlagPositive && acd.samples[isam] >  m_Threshold ) ||
                 ( m_FlagNegative && acd.samples[isam] < -m_Threshold );
     if ( keep ) { // Leave isam after the new ROI
@@ -69,6 +69,8 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
       if ( jsam1 < isamNotRoi ) jsam1 = isamNotRoi;
       AdcIndex jsam2 = isam + nsamhi + 1;
       if ( jsam2 > nsam ) jsam2 = nsam;
+      if ( m_LogLevel >= 4 ) cout << myname << "Trigger: " << isam << ", range: ["
+                                  << jsam1 << ", " << jsam2 << ")" << endl;
       for ( isam=jsam1; isam<jsam2; ++isam ) acd.signal[isam] = true;
       isamNotRoi = isam;
     } else {
