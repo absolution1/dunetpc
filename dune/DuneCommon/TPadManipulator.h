@@ -185,14 +185,29 @@ public:
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
+  // Set margins. Negative value uses default margin.
+  void setMarginLeft(double xmar) { m_marginLeft = xmar; }
+  void setMarginRight(double xmar) { m_marginRight = xmar; }
+  void setMarginBottom(double xmar) { m_marginBottom = xmar; }
+  void setMarginTop(double xmar) { m_marginTop = xmar; }
+
   // Add a legend.
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
+  // The title is drawn as specified in the promary object, i.e. typically
+  // above the frame.
   int setTitle(std::string sttl);
   std::string getTitle() const { return m_title.GetTitle(); }
+
+  // Set and get the label associated with this pad.
+  // The label object can be used to modify the label.
+  // This is written in the lower left corner.
+  int setLabel(std::string slab);
+  std::string getLabel() const { return m_label.GetTitle(); }
+  TLatex& getLabelObject() { return m_label; }
 
   // Remove histograms and graphs from top and subpads.
   int clear();
@@ -255,10 +270,14 @@ public:
   // Remove all lines.
   int clearLines();
 
-  // Add a vertical line at x=xoff or horizonatl at y=yoff.
+  // Add a vertical line at x=xoff or horizontal at y=yoff.
   // The lines are draw with style isty from the low edge to lenfrac*width
   int addVerticalLine(double xoff =0.0, double lenfrac =1.0, int isty =1);
   int addHorizontalLine(double yoff =0.0, double lenfrac =1.0, int isty =1);
+
+  // Add a line with slop dydx and y = y0 at x = 0.
+  // The lines are draw with style isty between frame boundaries.
+  int addSlopedLine(double slop, double yoff =0.0, int isty =1);
 
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
@@ -304,6 +323,10 @@ private:
   TVirtualPad* m_ppad;
   int m_canvasWidth;
   int m_canvasHeight;
+  double m_marginLeft;
+  double m_marginRight;
+  double m_marginBottom;
+  double m_marginTop;
   std::shared_ptr<TH1> m_ph;
   std::shared_ptr<TGraph> m_pg;
   std::string m_dopt;
@@ -326,6 +349,7 @@ private:
   bool m_top;
   bool m_right;
   TLatex m_title;
+  TLatex m_label;
   std::vector<unsigned int> m_histFuns;
   std::vector<double> m_hmlXmod;
   std::vector<double> m_hmlXoff;
@@ -335,6 +359,9 @@ private:
   std::vector<double> m_vmlXoff;
   std::vector<int> m_vmlXStyle;
   std::vector<double> m_vmlXLength;
+  std::vector<double> m_slSlop;
+  std::vector<double> m_slYoff;
+  std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;

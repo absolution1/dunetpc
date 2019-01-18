@@ -53,7 +53,7 @@ endif ( ${VMAJ} EQUAL 2 AND ${VMIN} LESS 9 )
 message(STATUS "GENIE version ${GENIE_VERSION} major ${VMAJ} minor ${VMIN} ${GRSSPELLING}")
 cet_find_library( GREINSEHGAL NAMES ${GRSSPELLING} PATHS ENV GENIE_LIB NO_DEFAULT_PATH )
 # nusystematics
-cet_find_library( SYSTTOOLS NAMES systematicstools_interface systematicstools_interpreters systematicstools_utility PATHS ENV SYSTEMATICSTOOLS_LIB NO_DEFAULT_PATH )
+##cet_find_library( SYSTTOOLS NAMES systematicstools_interface systematicstools_interpreters systematicstools_utility PATHS ENV SYSTEMATICSTOOLS_LIB NO_DEFAULT_PATH )
 
 simple_plugin(CAFMaker   "module"
                         nutools_NuReweight
@@ -115,7 +115,9 @@ simple_plugin(CAFMaker   "module"
 			${GREWEIGHT}
 			${GNUCLEONDECAY}
 			${GMESSENGER}
-                        ${SYSTTOOLS}
+                        systematicstools_interface
+			systematicstools_interpreters
+			systematicstools_utility
                         CVNFunc
               BASENAME_ONLY
 )

@@ -43,60 +43,42 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   string fclfile = "test_AdcDetectorPlotter.fcl";
   string gname = "protodune_geo";
-  if ( ! useExistingFcl ) {
-    cout << myname << "Creating top-level FCL." << endl;
-    ofstream fout(fclfile.c_str());
-    fout << "#include \"geometry_dune.fcl\"" << endl;
-    fout << "services.Geometry:                   @local::" + gname << endl;
-    fout << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
-    fout << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
-    fout << "tools.mytool: {" << endl;
-    fout << "    tool_type: AdcDetectorPlotter" << endl;
-    fout << "    LogLevel: 2" << endl;
-    fout << "   WireAngle: 0.0" << endl;
-    //fout << "   WireAngle: 0.623" << endl;
-    fout << "    DataType: 0" << endl;
-    fout << "       Tick0: 0" << endl;
-    fout << "  DriftSpeed: 0.01" << endl;
-    fout << "    XMin:  600.0" << endl;
-    fout << "    XMax: -600.0" << endl;
-    fout << "    ZMin:  -20.0" << endl;
-    fout << "    ZMax:  720.0" << endl;
-    fout << "    SignalThreshold: 10" << endl;
-    fout << "    SkipBadChannels: false" << endl;
-    fout << "    ShowAllTicks: false" << endl;
-    fout << "    FirstTick: 0" << endl;
-    fout << "     LastTick: 0" << endl;
-    fout << "    ShowWires: true" << endl;
-    fout << "    ShowCathode: true" << endl;
-    fout << "    ShowTpcSets: []" << endl;
-    fout << "    ShowGrid: true" << endl;
-    fout << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
-    fout << "    PlotTitle: \"%UTCTIME2\"" << endl;
-    fout << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
+  if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
+  } else {
+    cout << myname << "Creating top-level FCL." << endl;
+    std::ofstream config{fclfile};
+    config << "#include \"geometry_dune.fcl\"" << endl;
+    config << "services.Geometry:                   @local::" + gname << endl;
+    config << "services.ExptGeoHelperInterface:     @local::dune_geometry_helper" << endl;
+    config << "#include \"dataprep_tools.fcl\"" << endl;  // Need adcStringBuilder
+    config << "tools.mytool: {" << endl;
+    config << "    tool_type: AdcDetectorPlotter" << endl;
+    config << "    LogLevel: 2" << endl;
+    config << "   WireAngle: 0.0" << endl;
+    //config << "   WireAngle: 0.623" << endl;
+    config << "    DataType: 0" << endl;
+    config << "       Tick0: 0" << endl;
+    config << "  DriftSpeed: 0.01" << endl;
+    config << "    XMin:  600.0" << endl;
+    config << "    XMax: -600.0" << endl;
+    config << "    ZMin:  -20.0" << endl;
+    config << "    ZMax:  720.0" << endl;
+    config << "    SignalThreshold: 10" << endl;
+    config << "    SkipBadChannels: false" << endl;
+    config << "    ShowAllTicks: false" << endl;
+    config << "    FirstTick: 0" << endl;
+    config << "     LastTick: 0" << endl;
+    config << "    ShowWires: true" << endl;
+    config << "    ShowCathode: true" << endl;
+    config << "    ShowTpcSets: []" << endl;
+    config << "    ShowGrid: true" << endl;
+    config << "    Title: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
+    config << "    PlotTitle: \"%UTCTIME2\"" << endl;
+    config << "    FileName: \"test_AdcDetectorPlotter-run%0RUN%-evt%0EVENT%.png\"" << endl;
+    config << "}" << endl;
   }
-
-  cout << myname << line << endl;
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& myash = ArtServiceHelper::instance();
-  myash.setLogLevel(3);
-
-  cout << myname << line << endl;
-  cout << myname << "Add services from " << fclfile << endl;
-  assert( myash.addServices(fclfile, true) == 0 );
-
-  cout << myname << line << endl;
-  cout << myname << "Display services" << endl;
-  myash.print();
-
-  cout << myname << line << endl;
-  cout << myname << "Load the services." << endl;
-  assert( myash.loadServices() == 1 );
-  myash.print();
+  ArtServiceHelper::load_services(fclfile, ArtServiceHelper::FileOnPath);
 
   cout << myname << line << endl;
   cout << myname << "Get Geometry service." << endl;

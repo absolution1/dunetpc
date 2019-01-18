@@ -228,8 +228,24 @@ const recob::Slice* protoana::ProtoDUNEPFParticleUtils::GetPFParticleSlice(const
 // Get the reconstructed slice associated with a particle
 unsigned short protoana::ProtoDUNEPFParticleUtils::GetPFParticleSliceIndex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
-  const recob::Slice* slice = GetPFParticleSlice(particle,evt,particleLabel);
-  return slice->ID();
+  // Try to use slices if we can
+  try{
+    const recob::Slice* slice = GetPFParticleSlice(particle,evt,particleLabel);
+    return slice->ID();
+  }
+  // Otherwise fall back on metadata
+  catch(...){
+    std::map<std::string,float> mdMap = GetPFParticleMetaData(particle,evt,particleLabel);
+    std::string search = "SliceIndex";
+    if(mdMap.find(search) != mdMap.end()){
+      return static_cast<unsigned short>(mdMap.at(search));
+    }
+    else{
+//    std::cerr << "Object has no slice index... returning 9999" << std::endl;
+      return 9999;
+    }
+  }
+
 }
 
 // Get all hits from a PFParticle's slice

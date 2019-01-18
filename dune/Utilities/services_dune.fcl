@@ -25,7 +25,9 @@
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
 #include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
+#include "PhotonCalibratorProtoDUNESP.fcl"
 
 BEGIN_PROLOG
 
@@ -130,6 +132,7 @@ dunefddphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -192,6 +195,7 @@ dunedphase3x1x1_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
  DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
@@ -203,6 +207,7 @@ dunedphase3x1x1_simulation_services: {
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
+ OpDigiProperties: 		 @local::dunedphase3x1x1_opdigiproperties
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
@@ -230,10 +235,10 @@ dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "HadronElastic",
                                            "Stopping",
                                            "NeutronTrackingCut" ]
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 24000
-dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 1
-dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.2
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 		24000
+dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 	1
+dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
 
 ############################
 ### protoDUNE dual phase ###
@@ -266,6 +271,7 @@ protodunedphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -336,9 +342,9 @@ protodune_services: {
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
- BackTrackerService:                  @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
- PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
+ BackTrackerService:           @local::dunefd_backtrackerservice
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
@@ -360,6 +366,18 @@ protodune_rawdecoding_services: {
   PdspChannelMapService:        @local::pdspchannelmap
 }
 
+iceberg_rawdecoding_services: {
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::iceberg_geo
+  DetectorClocksService:        @local::protodune_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
+  IcebergChannelMapService:     @local::icebergchannelmap
+}
+
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
@@ -373,6 +391,12 @@ protodune_data_services: {
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::pdsp_channel_status
  ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+# Reco services for ProtoDUNE real data.
+ RawDigitExtractService:       @local::rdx_std
+ RawDigitPrepService:          @local::adcprep_with_services_sim
+ AdcDeconvolutionService:      @local::adcdco_dunefd
+ AdcRoiBuildingService:        @local::adcroi_dunefd
+ AdcWireBuildingService:       @local::adcwire_std
 }
 
 protodune_simulation_services: {
@@ -418,24 +442,37 @@ protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_service
 protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
-
 # Switch to tool-based dataprep for ProtoDUNE simulation.
 # Comment out the the following line to go back to the service-based dataprep.
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
-
 # xyz calibration service
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
+# channel map service
+protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
 
-# Reco services for ProtoDUNE real data.
-protodune_data_services.RawDigitExtractService:     @local::rdx_std
-protodune_data_services.RawDigitPrepService:        @local::adcprep_with_services_sim
-protodune_data_services.AdcDeconvolutionService:    @local::adcdco_dunefd
-protodune_data_services.AdcRoiBuildingService:      @local::adcroi_dunefd
-protodune_data_services.AdcWireBuildingService:     @local::adcwire_std
-
-
-
-
+# Reco services for ProtoDUNE data
+protodune_data_reco_services:                       @local::protodune_reco_services
+protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: [
+    "digitReader",                # Read RawDigit
+    "pd_adcPedestalFit",          # Find pedestal
+    "adcSampleFiller",            # Subtract pedestal, trivial calibration
+    "pdsp_sticky_codes_ped",      # Flag sticky codes
+    "pdsp_adcMitigate",           # Mitigate sticky codes
+    "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+    "adcCorrectUndershoot",       # correct undershoot
+    "adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
+]
+# Get rid of low frequency noise
+protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus"
+protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
+# Use channel service for data
+protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
+# Make sure we can use cryostat-side APA hits
+protodune_data_reco_services.ChannelGroupService.ApaRops: []
+# Add the photon detector calibrator service
+protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
+# ProtoDUNE detector properties service
+protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
 
 #######################
 ### 35ton Prototype ###

@@ -39,36 +39,21 @@ int test_MedianPedestalService(bool useExistingFcl) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_MedianPedestalService.fcl";
-  if ( ! useExistingFcl ) {
-    cout << myname << "Creating top-level FCL." << endl;
-    ofstream fout(fclfile.c_str());
-    fout << "services.PedestalEvaluationService: {" << endl;
-    fout << "  service_provider: MedianPedestalService" << endl;
-    fout << "            LogLevel:     1" << endl;
-    fout << "             UseMean: false" << endl;
-    fout << "  SkipFlaggedSamples:  true" << endl;
-    fout << "         SkipSignals:  true" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
+  if (useExistingFcl) {
     cout << myname << "Using existing top-level FCL." << endl;
-  }
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-
-    cout << myname << line << endl;
-    cout << myname << "Add pedestal evaluation service." << endl;
-    assert( ash.addService("PedestalEvaluationService", fclfile, true) == 0 );
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
+    ArtServiceHelper::load_services("test_MedianPedestalService.fcl",
+                                    ArtServiceHelper::FileOnPath);
+  } else {
+    cout << myname << "Creating top-level FCL." << endl;
+    std::stringstream config;
+    config << "services.PedestalEvaluationService: {" << endl;
+    config << "  service_provider: MedianPedestalService" << endl;
+    config << "            LogLevel:     1" << endl;
+    config << "             UseMean: false" << endl;
+    config << "  SkipFlaggedSamples:  true" << endl;
+    config << "         SkipSignals:  true" << endl;
+    config << "}" << endl;
+    ArtServiceHelper::load_services(config);
   }
 
   cout << myname << line << endl;

@@ -195,7 +195,7 @@ namespace evgendp{
         };
 
         //Find the trigger particle
-        void MakeTrigger();
+        void MakeTrigger(CLHEP::HepRandomEngine& engine);
 
         //geo utilities
         double GetPhi( const double py, const double pz );
@@ -246,7 +246,8 @@ namespace evgendp{
 
 
   evgendp::Gen311::Gen311(fhicl::ParameterSet const & p)
-    : fProjectToHeight(p.get< double >("ProjectToHeight",0.)),
+    : EDProducer{p},
+      fProjectToHeight(p.get< double >("ProjectToHeight",0.)),
       fShowerInputFiles(p.get< std::vector< std::string > >("ShowerInputFiles")),
       fShowerFluxConstants(p.get< std::vector< double > >("ShowerFluxConstants")),
       fSampleTime(p.get< double >("SampleTime",0.)),
@@ -329,7 +330,9 @@ namespace evgendp{
     //sqlite3_stmt *statement;
     //get rng engine
     art::ServiceHandle<art::RandomNumberGenerator> rng;
-    CLHEP::HepRandomEngine &engine = rng->getEngine("gen");
+    CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),
+                                                    moduleDescription().moduleLabel(),
+						    "gen");
     CLHEP::RandFlat flat(engine);
 
     if(fUseIFDH){
@@ -413,7 +416,7 @@ namespace evgendp{
       mf::LogInfo("Gen311")
         << "Fetching: "<<selectedflist[i].first<<" "<<selectedflist[i].second<<"\n";
       std::string fetchedfile(selectedflist[i].first);
-      LOG_DEBUG("Gen311") << "Fetched; local path: "<<fetchedfile;
+      MF_LOG_DEBUG("Gen311") << "Fetched; local path: "<<fetchedfile;
       locallist.push_back(fetchedfile);
     }
 
@@ -489,7 +492,7 @@ void evgendp::Gen311::openDBs(){
     mf::LogInfo("CorsikaGendp")
       << "Fetching: "<<selectedflist[i].first<<" "<<selectedflist[i].second<<"\n";
     std::string fetchedfile(fIFDH->fetchInput(selectedflist[i].first));
-    LOG_DEBUG("CorsikaGendp") << "Fetched; local path: "<<fetchedfile;
+    MF_LOG_DEBUG("CorsikaGendp") << "Fetched; local path: "<<fetchedfile;
     locallist.push_back(fetchedfile);
   }
 
@@ -648,10 +651,14 @@ void evgendp::Gen311::openDBs(){
 
     //get rng engine
     art::ServiceHandle<art::RandomNumberGenerator> rng;
-    CLHEP::HepRandomEngine &engine = rng->getEngine("gen");
+    CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),
+                                                    moduleDescription().moduleLabel(),
+						    "gen");
     CLHEP::RandFlat flat(engine);
 
-    CLHEP::HepRandomEngine &engine_pois = rng->getEngine("pois");
+    CLHEP::HepRandomEngine &engine_pois = rng->getEngine(art::ScheduleID::first(),
+                                                         moduleDescription().moduleLabel(),
+							 "pois");
     CLHEP::RandPoissonQ randpois(engine_pois);
 
     // get geometry and figure where to project particles to, based on CRYHelper
@@ -694,7 +701,7 @@ void evgendp::Gen311::openDBs(){
         //build and do query to get nshowers
         double thisrnd=flat(); //need a new random number for each query
         TString kthisStatement=TString::Format(kStatement.Data(),thisrnd,nShowerQry,thisrnd);
-        LOG_DEBUG("Gen311")<<"Executing: "<<kthisStatement;
+        MF_LOG_DEBUG("Gen311")<<"Executing: "<<kthisStatement;
         if ( sqlite3_prepare(fdb[i], kthisStatement.Data(), -1, &statement, 0 ) == SQLITE_OK ){
           int res=0;
           //loop over database rows, pushing particles into mctruth object
@@ -752,7 +759,7 @@ void evgendp::Gen311::openDBs(){
       }
     } //end loop over showers
 
-    trg.MakeTrigger(); //<<--Select a muon to use as trigger
+    trg.MakeTrigger(engine); //<<--Select a muon to use as trigger
 
     double showerTime=0, showerTimey=0, showerTimez=0, showerYOffset=0, showerZOffset=0;
     int boxnoY=0, boxnoZ=0;
@@ -1003,7 +1010,7 @@ void evgendp::Trigger::ProjectToBoxEdge(	const double 	xyz[],
 
 }
 
-void evgendp::Trigger::MakeTrigger(){
+void evgendp::Trigger::MakeTrigger(CLHEP::HepRandomEngine& engine) {
 
     //get the coordinates of the tpc and an active volume arount it
     double tpc[6] ={0.}; this->GetTPCSize(tpc);
@@ -1013,9 +1020,6 @@ void evgendp::Trigger::MakeTrigger(){
     double cryo[6] ={0.}; this->GetCryoSize(cryo);
     for(int i=0; i<6; i++){ cryo[i] += fCryoBuffer[i]; }
 
-    //get the random engine:
-    art::ServiceHandle<art::RandomNumberGenerator> rng;
-    CLHEP::HepRandomEngine &engine = rng->getEngine("gen");
     CLHEP::RandFlat flat(engine);
 
     //choose a random muon

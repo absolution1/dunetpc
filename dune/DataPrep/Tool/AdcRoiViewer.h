@@ -25,6 +25,8 @@
 //        RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
 //        RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
 //           SumHists - Array of summary histogram specifiers. See below.
+//          SumNegate - If true, the following variable replacements are made for all sum hists:
+//                        fitHeight --> fitHeightNeg
 //        SumPlotPadX - Number of pad columns in summary plots.
 //        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
@@ -43,6 +45,8 @@
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
 //            fitHeight - Height from ROI fit
+//            fitHeightNeg - Negative of height from ROI fit
+//            fitHeightGain - Height/(pulser charge)
 //            fitWidth - Shaping time from ROI fit
 //            fitPos - Postion [ticks] from ROI fit
 //            fitPosRem - remainder(fitPos, 1)
@@ -84,9 +88,12 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
-//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//     pran - Range of y axis: ymin:ymax:yscal
+//            yscal = pamp: Multiply range by pulserAmplitude
+//            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
+//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -134,6 +141,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
+#include "dune/DuneInterface/Data/RunData.h"
 #include <iostream>
 
 class AdcChannelStringTool;
@@ -157,6 +165,8 @@ public:
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
   using FloatMap = std::map<Name, float>;
+  using IndexByIndexMap = std::map<Index, Index>;
+  using IndexByNameMap = std::map<Name, Index>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -187,12 +197,14 @@ public:
     FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
     // Channel summary histograms.
     HistMap chanSumHists;
-    NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
-    NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
-    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
-    NameMap chanSumPlotNames;          // Plot name indexed by chansum name
-    FloatMap chanSumPlotYMins;         // Min value of y for plot.
-    FloatMap chanSumPlotYMaxs;         // Max value of y for plot.
+    NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
+    NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
+    IndexByNameMap chanSumHistChannels; // Channel for each chansum name
+    NameMap chanSumPlotNames;           // Plot name indexed by chansum name
+    FloatMap chanSumPlotYMins;          // Min value of y for plot.
+    FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
+    NameMap chanSumPlotYOpts;           // Y scaling option for plot ("", "pamp")
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
@@ -203,10 +215,15 @@ public:
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
     Name getChanSumPlotName(Name hnam) const;
+    Index getChannelStatus(Index icha) const;
+    Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
     Index nRoiPlot =0;
+    IndexByIndexMap channelStatuses;     // Status indexed by channel number
+    // Run data.
+    RunData runData;
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -267,6 +284,7 @@ private:
   int m_MaxRoiPlots;
   Index m_RoiPlotPadX;
   Index m_RoiPlotPadY;
+  bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;
   Name m_RunDataTool;
