@@ -48,7 +48,9 @@ int test_TPadManipulator() {
 
   cout << myname << line << endl;
   cout << myname << "Create manipulator" << endl;
-  TPadManipulator* pman = new TPadManipulator;
+  TPadManipulator* pmantop = new TPadManipulator(700, 1000, 1, 2);
+
+  TPadManipulator* pman = pmantop->man(0);
   TPadManipulator& man = *pman;
   assert( man.pad() == nullptr );
   assert( man.hist() == nullptr );
@@ -78,17 +80,21 @@ int test_TPadManipulator() {
   assert( man.getLabel().size() );
 
   cout << myname << line << endl;
+  cout << myname << "Copy the pad." << endl;
+  *pmantop->man(1) = *pmantop->man(0);
+
+  cout << myname << line << endl;
   cout << myname << "Draw." << endl;
   assert( man.pad() == nullptr );
-  man.draw();
+  pmantop->draw();
   assert( man.pad() != nullptr );
 
-  man.pad()->Print("test_TPadManipulator.png");
+  pmantop->print("test_TPadManipulator.png");
 
   cout << myname << line << endl;
   cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;
   cout << myname << "Deleting manipulator." << endl;
-  delete pman;
+  delete pmantop;
   cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;
 
   cout << myname << line << endl;
