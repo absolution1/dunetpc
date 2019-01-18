@@ -26,6 +26,9 @@
 #include "dune/Calib/XYZCalib.h"
 #include "dune/CalibServices/XYZCalibService.h"
 
+#include "larevt/SpaceCharge/SpaceCharge.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
+
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TFile.h"
@@ -57,6 +60,11 @@ private:
   std::string fCalorimetryModuleLabel;
 
   calo::CalorimetryAlg caloAlg;
+  
+  double fModBoxA;
+  double fModBoxB;
+  
+  bool fSCE;
 
   const detinfo::DetectorProperties* detprop;
 
@@ -67,6 +75,9 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
+  , fModBoxA               (p.get< double >("ModBoxA"))
+  , fModBoxB               (p.get< double >("ModBoxB"))
+  , fSCE                   (p.get< bool >("CorrectSCE"))
 {
   detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
 
@@ -82,6 +93,9 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   art::ServiceHandle<calib::XYZCalibService> xyzcalibHandler;
   calib::XYZCalibService & xyzcalibService = *xyzcalibHandler;
   calib::XYZCalib *xyzcalib = xyzcalibService.provider();
+  
+  //Spacecharge services provider 
+  auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   //create anab::Calorimetry objects and make association with recob::Track
   std::unique_ptr< std::vector<anab::Calorimetry> > calorimetrycol(new std::vector<anab::Calorimetry>);
@@ -156,7 +170,25 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
-          vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
+          //vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
+          
+          
+          //Calculate dE/dx uisng the new recombination constants
+          double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
+          double rho = detprop->Density();  			// LAr density in g/cm^3
+          double Wion = 1000./util::kGeVToElectrons;    // 23.6 eV = 1e, Wion in MeV/e
+          double E_field_nominal = detprop->Efield();   // Electric Field in the drift region in KV/cm
+          
+          //correct Efield for SCE
+          geo::Vector_t E_field_offsets = {0., 0., 0.};
+          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
+          double E_field = E_field_vector.Mag();
+          
+          //calculate recombination factors
+          double Beta = fModBoxB / (rho * E_field);
+          double Alpha = fModBoxA;
+          vdEdx[j] = (exp(Beta * Wion * dQdx_e) - Alpha) / Beta;
 
 	  //update kinetic energy calculation
 	  if (j>=1) {
