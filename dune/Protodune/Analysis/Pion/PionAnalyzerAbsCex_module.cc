@@ -129,6 +129,8 @@ private:
   //std::vector<int> pfp_parent;
   std::vector<int> pfp_daughter;
   std::vector<int> pfp_daughter_PDGs;
+  std::vector<int> pfp_daughter_TrackIDs;
+  std::vector<int> pfp_daughter_ShowerIDs;
 
 };
 
@@ -154,21 +156,21 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
   reset();  
 
 
-  art::Handle< std::vector<recob::Track> > trackListHandle;
-  std::vector<art::Ptr<recob::Track> > tracklist;
-  if(evt.getByLabel(fTrackModuleLabel,trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
-  art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryTag);
-  art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle, evt, "pandoraTrack");
+//  art::Handle< std::vector<recob::Track> > trackListHandle;
+//  std::vector<art::Ptr<recob::Track> > tracklist;
+//  if(evt.getByLabel(fTrackModuleLabel,trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
+//  art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryTag);
+//  art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle, evt, "pandoraTrack");
 
 
   run = evt.run();
   subrun = evt.subRun();
   event = evt.id().event();
 
-  art::Handle< std::vector<recob::Track> > trkHandle;
-  std::vector< art::Ptr<recob::Track> > trks;
-  if (evt.getByLabel(fTrackModuleLabel, trkHandle))
-    art::fill_ptr_vector(trks, trkHandle);
+//  art::Handle< std::vector<recob::Track> > trkHandle;
+//  std::vector< art::Ptr<recob::Track> > trks;
+//  if (evt.getByLabel(fTrackModuleLabel, trkHandle))
+//    art::fill_ptr_vector(trks, trkHandle);
 
 
   art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
@@ -194,6 +196,8 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
         tof = beamevent->GetTOF();
       }
       
+      //JC: IMPORTANT! Try filtering out for events with Momentum/Track vector size == 1
+
       //Get beam particle trajectory info
       auto & tracks = beamevent->GetBeamTracks();
       std::cout<<"###############################################################"<<std::endl;
@@ -281,36 +285,23 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
         std::cout << "Self:"         << particle->Self()         << std::endl;	
         std::cout << "Parent:"       << particle->Parent()       << std::endl;
 
-        auto tracksVec = tracksFromPFParticles.at( particle->Self() );
-        std::cout << "Getting tracks with FindMany"   << std::endl;
-        std::cout << "Size: " << tracksVec.size()     << std::endl;
-        if( tracksVec.size() ){ 
-          auto theTrack = tracksVec.at(0);
-          std::cout << "ID: "   << theTrack->ID() << std::endl;
-        }
 
         if ( particle->NumDaughters() > 0 ) {
           for ( int ii = 0; ii < particle->NumDaughters(); ++ii ) {
             std::cout << "Daughter[" << ii << "]:" << particle->Daughter(ii) << std::endl;
             pfp_daughter.push_back(particle->Daughter(ii));
-
-            auto daughtersVec = tracksFromPFParticles.at( particle->Daughter(ii) );
-            std::cout << "Getting daughters with FindMany"   << std::endl;
-            std::cout << "Size: " << daughtersVec.size()     << std::endl;
-            if( daughtersVec.size() ){ 
-              auto theDaughter = daughtersVec.at(0);
-              std::cout << "ID: "   << theDaughter->ID()         << std::endl;
-              std::cout << "PID: "  << theDaughter->ParticleId() << std::endl;
-            }
           }
         }
         else {
-             pfp_daughter.push_back(-99);
+          pfp_daughter.push_back(-99);
         }
-       
+
+
         // Find the particle vertex. We need the tracker tag here because we need to do a bit of
         // additional work if the PFParticle is track-like to find the vertex. 
         const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+
+        std::cout << "Primary Beam Track Vertex: " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
         
         primtrk_startx.push_back(vtx.X());
         primtrk_starty.push_back(vtx.Y());
@@ -347,8 +338,27 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
         for(const int daughterID : particle->Daughters()){
           // Daughter ID is the element of the original recoParticle vector
           const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-          std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
-          std::cout << "\tAnd has PID: " << daughterParticle->PdgCode() << std::endl;
+          const recob::Track* daughterTrack = pfpUtil.GetPFParticleTrack(*daughterParticle,evt,fPFParticleTag,fTrackerTag);
+
+          std::cout << "Daughter "    << daughterID << " has "       << daughterParticle->NumDaughters() << " daughters" << std::endl;
+          std::cout << "\tTrack ID: " << daughterTrack->ID()         << std::endl;
+          std::cout << "\tPID: "      << daughterParticle->PdgCode() << std::endl;
+          
+          const TVector3 daughterVertex          = pfpUtil.GetPFParticleVertex( *daughterParticle, evt, fPFParticleTag, fTrackerTag );
+          const TVector3 daughterSecondaryVertex = pfpUtil.GetPFParticleSecondaryVertex( *daughterParticle, evt, fPFParticleTag, fTrackerTag );
+
+          double X, Y, Z;
+          X = daughterVertex.X();
+          Y = daughterVertex.Y();
+          Z = daughterVertex.Z();
+
+          std::cout << "\tVertex: " << X << ", " << Y << ", " << Z << std::endl;
+
+          X = daughterSecondaryVertex.X();
+          Y = daughterSecondaryVertex.Y();
+          Z = daughterSecondaryVertex.Z();
+
+          std::cout << "\tSecondaryVertex: " << X << ", " << Y << ", " << Z << std::endl;
 
           pfp_daughter_PDGs.push_back( daughterParticle->PdgCode() );
         }
@@ -357,7 +367,18 @@ void pionana::PionAnalyzerAbsCex::analyze(art::Event const& evt)
         // We can use the utility to get a vector of track-like and a vector of shower-like daughters
         const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
         const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
+
         std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+
+        for( size_t iD = 0; iD < trackDaughters.size(); ++iD ){
+          std::cout << "Daughter track: " << iD << " " << trackDaughters[iD]->ID() << std::endl;
+          pfp_daughter_TrackIDs.push_back( trackDaughters[iD]->ID() );
+        }
+        for( size_t iD = 0; iD < showerDaughters.size(); ++iD ){
+          std::cout << "Daughter shower: " << iD << " " << showerDaughters[iD]->ID() << std::endl;
+          pfp_daughter_ShowerIDs.push_back( showerDaughters[iD]->ID() );
+        }
+
        
       }
       std::cout<<"*******************************************************"<<std::endl;
@@ -408,6 +429,8 @@ void pionana::PionAnalyzerAbsCex::beginJob()
   //fTree->Branch("pfp_parent", &pfp_parent);
   fTree->Branch("pfp_daughter", &pfp_daughter);
   fTree->Branch("pfp_daughter_PDGs", &pfp_daughter_PDGs);
+  fTree->Branch("pfp_daughter_TrackIDs", &pfp_daughter_TrackIDs);
+  fTree->Branch("pfp_daughter_ShowerIDs", &pfp_daughter_ShowerIDs);
   fTree->Branch("primtrk_trktag", &primtrk_trktag);
 
 }
@@ -446,6 +469,8 @@ void pionana::PionAnalyzerAbsCex::reset()
   //pfp_parent.clear();
   pfp_daughter.clear();
   pfp_daughter_PDGs.clear();
+  pfp_daughter_TrackIDs.clear();
+  pfp_daughter_ShowerIDs.clear();
 
   cosine_beam_primtrk=-99;
 
