@@ -142,6 +142,9 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_vmlXoff = rhs.m_vmlXoff;
   m_vmlXStyle = rhs.m_vmlXStyle;
   m_vmlXLength = rhs.m_vmlXLength;
+  m_slSlop = rhs.m_slSlop;
+  m_slYoff = rhs.m_slYoff;
+  m_slStyl = rhs.m_slStyl;
   m_vmlLines.clear();
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
