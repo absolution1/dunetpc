@@ -543,12 +543,12 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 
       if ( slotNumber == 1 && fiberNumber == 1 ) 
 	{
-	  return false;
+	  continue;
 	}
 
       if ( slotNumber == 2 && fiberNumber == 1 )
 	{
-	  return false;
+	  continue;
 	}
 
       if (_print_coldata_convert_count)

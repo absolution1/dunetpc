@@ -107,6 +107,10 @@ if ( $workspace == 2 )
 {
     $basename = $basename."_workspace4x2";
 }
+if ( $workspace == 3 )
+{
+    $basename = $basename."_workspace3x3";
+}
 
 if ( $wires_on == 0 )
 {
@@ -150,6 +154,14 @@ if( $workspace == 2 )
     $nCRM_x = 2;
     $nCRM_z = 4;
 }
+
+# create a smaller geometry
+if( $workspace == 3 )
+{
+    $nCRM_x = 3;
+    $nCRM_z = 3;
+}
+
 
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200

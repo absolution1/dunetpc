@@ -1963,6 +1963,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
   }
  
+
   for(size_t iU = 0; iU < upstreamPositions.size(); ++iU){
     for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
       std::vector<TVector3> thePoints;
@@ -1982,9 +1983,10 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
       recob::Track * tempTrack = new recob::Track(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
-									 recob::tracking::convertCollToVector(theMomenta),
-									 recob::Track::Flags_t(thePoints.size()), false),
-						  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
+                                                                        recob::tracking::convertCollToVector(theMomenta),
+                                                                        recob::Track::Flags_t(thePoints.size()), false),
+                                                 0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
+
       beamevt->AddBeamTrack( *tempTrack );
     }
   }
@@ -2191,39 +2193,9 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 }
 
 double proto::BeamEvent::MomentumCosTheta(double X1, double X2, double X3){
+////This is from my own derived momentum reconstruction. It's very close to the CERN-group's, but we're just
+////using theirs
 /*
-  double a = cos(fBeamBend)*(X3*L2 - X2*L3) / (L3 - L2);
-
-  double cosTheta = (a + X1)*( (L3 - L2)*tan(fBeamBend) + (X2 - X3)*cos(fBeamBend) )+ (L3 - L2)*L1 ;
-
-  double denomTerm1, denomTerm2, denom; 
-  denomTerm1 = sqrt( L1*L1 + (a + X1)*(a + X1) );
-  denomTerm2 = sqrt( 
-               (L3 - L2)*(L3 - L2) 
-             + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
-                             + (X2 - X3)*cos(fBeamBend) ), 2 ) );
-                            
-  denom = denomTerm1*denomTerm2;
-  cosTheta = cosTheta / denom;
-
-  //
- 
-  double a = (X2*L3 - X3*L2) / (L3 - L2);
-   
-  double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) + (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
-    
-  double denomTerm1, denomTerm2, denom; 
-  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
-  denomTerm2 = sqrt( 
-               (L3 - L2)*(L3 - L2) 
-             + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
-                             + (X3 - X2)*cos(fBeamBend) ), 2 ) );
-  
-  denom = denomTerm1*denomTerm2;
-  cosTheta = cosTheta / denom;
- */
-
-    //double a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
     double a =  ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
     a = a / (L3 - X3*sin(fBeamBend) - L2 + X2*sin(fBeamBend) );
     a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - a;
@@ -2237,7 +2209,22 @@ double proto::BeamEvent::MomentumCosTheta(double X1, double X2, double X3){
     denom = denomTerm1 * denomTerm2; 
 
     double cosTheta = numTerm/denom;
-  
+*/
+
+
+///This is the CERN group's
+  double a =  (X2*L3 - X3*L2)*cos(fBeamBend)/(L3-L2);
+
+ 
+  double numTerm = (a - X1)*( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ) + L1*( L3 - L2 );
+
+  double denomTerm1, denomTerm2, denom;
+  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
+  denomTerm2 = sqrt( TMath::Power( ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ),2)
+                   + TMath::Power( ( (L3 - L2) ),2) );
+  denom = denomTerm1 * denomTerm2;
+
+  double cosTheta = numTerm/denom;  
   return cosTheta;
 }
 
