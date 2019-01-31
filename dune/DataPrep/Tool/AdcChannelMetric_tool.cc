@@ -3,6 +3,7 @@
 #include "AdcChannelMetric.h"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -21,14 +22,35 @@
 
 using std::string;
 using std::cout;
+using std::setw;
 using std::cin;
 using std::endl;
 using std::vector;
+using Index = AdcChannelMetric::Index;
 using TGraphVector = std::vector<TGraph*>;
 
 //**********************************************************************
 // local definitiions.
 //**********************************************************************
+
+//**********************************************************************
+// Sublass methods.
+//**********************************************************************
+
+void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
+  if ( callCount == 0 ) {
+    firstRun = run;
+    firstEvent = event;
+    runCount = 1;
+    eventCount = 1;
+  } else {
+    if ( run != lastRun ) ++runCount;
+    if ( event != lastEvent ) ++eventCount;
+  }
+  ++callCount;
+  lastEvent = event;
+  lastRun = run;
+}
 
 //**********************************************************************
 // Class methods.
@@ -49,7 +71,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_RootFileName(ps.get<Name>("RootFileName")),
-  m_useStatus(false) {
+  m_useStatus(false),
+  m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -76,6 +99,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
       }
     }
   }
+  // Initialize the state.
+  for ( const IndexRange& cr : m_crs ) getState().crsums[cr].resize(cr.size());
   // Fetch the naming tool.
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
@@ -130,6 +155,55 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
+}
+
+//**********************************************************************
+
+AdcChannelMetric::~AdcChannelMetric() {
+  const string myname = "AdcChannelMetric::dtor: ";
+  Index ncha = 0;
+  Index nchaData = 0;
+  Index nchaDataMax = 0;
+  Index countMax = 0;
+  for ( const MetricSummaryMap::value_type& imsm : getState().crsums ) {
+    IndexRange cr = imsm.first;
+    const MetricSummaryVector& msums = imsm.second;
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "Channel range " << cr.name << endl;
+    }
+    for ( Index kcha=0; kcha<cr.size(); ++ kcha ) {
+      Index icha = cr.first() + kcha;
+      const MetricSummary& ms = msums[kcha];
+      ++ncha;
+      if ( ms.count ) {
+        ++nchaData;
+        if ( ms.count > countMax ) {
+          countMax = ms.count;
+          nchaDataMax = 1;
+        } else if ( ms.count == countMax ) {
+          ++nchaDataMax;
+        }
+      }
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << setw(8) << icha << ":" << ms.mean() << " +/- " << ms.dmean() << endl;
+      }
+    }
+  }
+  if ( m_LogLevel >= 1 ) {
+    Index w = 1;
+    Index valmax = std::max(ncha, getState().callCount);
+    if ( ncha ) w = log10(valmax) + 1.01;
+    cout << myname << "Summary for metric " << m_Metric << endl;
+    cout << myname << "                          # calls: " << setw(w) << getState().callCount << endl;
+    cout << myname << "                         # events: " << setw(w) << getState().eventCount << endl;
+    cout << myname << "                           # runs: " << setw(w) << getState().runCount << endl;
+    cout << myname << "  Maximum # entries for a channel: " << setw(w) << countMax << endl;
+    cout << myname << "       Total # channels in ranges: " << setw(w) << ncha << endl;
+    cout << myname << "          # channels without data: " << setw(w) << ncha - nchaData << endl;
+    cout << myname << "             # channels with data: " << setw(w) << nchaData << endl;
+    cout << myname << "    # channels with max # entries: " << setw(w) << nchaDataMax << endl;
+  }
+
 }
 
 //**********************************************************************
@@ -219,6 +293,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
   Name sunits;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(ich0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
+  MetricSummaryVector& metricSums = getState().crsums[ran];
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
     const AdcChannelData& acd = iacd->second;
     int rstat = getMetric(acd, val, sunits);
@@ -229,6 +304,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     Index icha = iacd->first;
     Index bin = (icha + 1) - ich0;
     ph->SetBinContent(bin, val);
+    metricSums[icha-ich0].add(val);
     float gval = val;
     if ( m_MetricMax > m_MetricMin ) {
       if ( val < m_MetricMin ) gval = m_MetricMin;
