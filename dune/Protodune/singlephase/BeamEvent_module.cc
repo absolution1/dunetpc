@@ -250,6 +250,7 @@ private:
 
   double fRotateMonitorXZ;
   double fRotateMonitorYZ;
+  double fRotateMonitorYX;
 
   double fFirstTrackingProfZ;
   double fSecondTrackingProfZ;
@@ -1735,6 +1736,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   //New parameters to match Leigh's
   fRotateMonitorXZ = p.get<double>("RotateMonitorXZ");
   fRotateMonitorYZ = p.get<double>("RotateMonitorYZ");
+  fRotateMonitorYX = p.get<double>("RotateMonitorYX");
 
   fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
   fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
@@ -1814,7 +1816,8 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
   vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  //vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){

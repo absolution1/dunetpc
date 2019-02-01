@@ -64,4 +64,3 @@ physics:
  end_paths:         [ stream1 ]
 }
 
-#physics.producers.beamevent.BProf3Shift: 1.45
