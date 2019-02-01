@@ -484,7 +484,7 @@ tools.pdtps_adcChannelNrawPlotter.PlotFileName: "chmet_nraw_%CRNAME%_run%0RUN%_e
 tools.pdtps_adcChannelPedestalPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPlotter.Metric: pedestal
 tools.pdtps_adcChannelPedestalPlotter.MetricMax: 4096
-tools.pdtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%STATUS%_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC count]"
 tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -494,7 +494,7 @@ tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -25
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  25
-tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpdd%CRNAME%_ped_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpdd%CRNAME%_ped_%STATUS%_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricLabel: "#DeltaPedestal [ADC count]"
 tools.pdtps_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -539,7 +539,7 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%
 tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 14
-tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%STATUS%_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC count]"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"

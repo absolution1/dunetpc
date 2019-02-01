@@ -152,7 +152,13 @@ private:
     double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
   };
 
-  using MetricMap = std::map<Index, float>;
+  class Metric {
+  public:
+    float value =0.0;
+    float error =0.0;
+    bool operator<(const Metric& rhs) const { return value < rhs.value; }
+  };
+  using MetricMap = std::map<Index, Metric>;
   using MetricSummaryVector = std::vector<MetricSummary>;
   using MetricSummaryMap = std::map<IndexRange, MetricSummaryVector>;
 

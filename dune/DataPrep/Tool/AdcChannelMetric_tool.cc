@@ -269,7 +269,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
       continue;
     }
     Index icha = iacd->first;
-    mets[icha] = met;
+    mets[icha].value = met;
     MetricSummary& metricSum = metricSums[icha-icha0];
     metricSum.add(met);
   }
@@ -309,9 +309,9 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
     MetricMap& pedRefs = getState().pedRefs;
     MetricMap::const_iterator ipdr = pedRefs.find(icha);
     if ( ipdr == pedRefs.end() ) {
-      pedRefs[icha] = ped;
+      pedRefs[icha].value = ped;
     } else {
-      val = ped - ipdr->second;
+      val = ped - ipdr->second.value;
     }
     sunits = "ADC count";
   } else if ( m_Metric == "pedestalRms" ) {
@@ -425,9 +425,11 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   Index icha0 = ran.begin;
   for ( MetricMap::value_type imet : mets ) {
     Index icha = imet.first;
-    float met = imet.second;
+    float met = imet.second.value;
+    float err = imet.second.error;
     Index bin = (icha + 1) - icha0;
     ph->SetBinContent(bin, met);
+    if ( err ) ph->SetBinError(bin, err);
     float gval = met;
     if ( m_MetricMax > m_MetricMin ) {
       if ( met < m_MetricMin ) gval = m_MetricMin;
