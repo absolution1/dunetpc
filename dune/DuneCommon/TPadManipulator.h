@@ -267,6 +267,12 @@ public:
   // Return the under/overflow histogram.
   TH1* flowHistogram() { return m_flowHist.get(); }
 
+  // Show overflow points for graphs.
+  // Any point off scale in any of the indicated directions is drawn at
+  // that boundary with the indicated marker and color.
+  // Direction: B=bottom, T=top, L=left, R=right, "" to show nothing.
+  int showGraphOverflow(std::string sopt ="BTLR", int imrk =38, int icol =1);
+
   // Remove all lines.
   int clearLines();
 
@@ -346,6 +352,10 @@ private:
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
+  std::shared_ptr<TGraph> m_flowGraph;
+  std::string m_gflowOpt;
+  int m_gflowMrk;
+  int m_gflowCol;
   bool m_top;
   bool m_right;
   TLatex m_title;
