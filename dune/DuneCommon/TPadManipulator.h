@@ -197,8 +197,17 @@ public:
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
+  // The title is drawn as specified in the promary object, i.e. typically
+  // above the frame.
   int setTitle(std::string sttl);
   std::string getTitle() const { return m_title.GetTitle(); }
+
+  // Set and get the label associated with this pad.
+  // The label object can be used to modify the label.
+  // This is written in the lower left corner.
+  int setLabel(std::string slab);
+  std::string getLabel() const { return m_label.GetTitle(); }
+  TLatex& getLabelObject() { return m_label; }
 
   // Remove histograms and graphs from top and subpads.
   int clear();
@@ -258,13 +267,23 @@ public:
   // Return the under/overflow histogram.
   TH1* flowHistogram() { return m_flowHist.get(); }
 
+  // Show overflow points for graphs.
+  // Any point off scale in any of the indicated directions is drawn at
+  // that boundary with the indicated marker and color.
+  // Direction: B=bottom, T=top, L=left, R=right, "" to show nothing.
+  int showGraphOverflow(std::string sopt ="BTLR", int imrk =38, int icol =1);
+
   // Remove all lines.
   int clearLines();
 
-  // Add a vertical line at x=xoff or horizonatl at y=yoff.
+  // Add a vertical line at x=xoff or horizontal at y=yoff.
   // The lines are draw with style isty from the low edge to lenfrac*width
   int addVerticalLine(double xoff =0.0, double lenfrac =1.0, int isty =1);
   int addHorizontalLine(double yoff =0.0, double lenfrac =1.0, int isty =1);
+
+  // Add a line with slop dydx and y = y0 at x = 0.
+  // The lines are draw with style isty between frame boundaries.
+  int addSlopedLine(double slop, double yoff =0.0, int isty =1);
 
   // Add vertical modulus lines.
   // I.e at x = xoff, xoff+/-xmod, xoff+/-2*xmod, ...
@@ -333,9 +352,14 @@ private:
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
+  std::shared_ptr<TGraph> m_flowGraph;
+  std::string m_gflowOpt;
+  int m_gflowMrk;
+  int m_gflowCol;
   bool m_top;
   bool m_right;
   TLatex m_title;
+  TLatex m_label;
   std::vector<unsigned int> m_histFuns;
   std::vector<double> m_hmlXmod;
   std::vector<double> m_hmlXoff;
@@ -345,6 +369,9 @@ private:
   std::vector<double> m_vmlXoff;
   std::vector<int> m_vmlXStyle;
   std::vector<double> m_vmlXLength;
+  std::vector<double> m_slSlop;
+  std::vector<double> m_slYoff;
+  std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;

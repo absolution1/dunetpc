@@ -323,7 +323,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"mean", "rms", "fitMean", "fitSigma"};
+    const NameVector valTypes = {"count", "mean", "rms", "fitMean", "fitSigma"};
     if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
@@ -344,6 +344,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       yttl = "Fit mean of " + valLabel;
     } else if ( valType == "fitSigma" ) {
       yttl = "Fit sigma of " + valLabel;
+    } else if ( valType == "count" ) {
+      yttl = "# ROI";
     }
     // Find y-range for plot.
     bool havePlotYMin = false;
@@ -1433,6 +1435,8 @@ void AdcRoiViewer::fillChanSumHists() const {
         val = phvar->GetMean();
       } else if ( vartype == "rms" ) {
         val = phvar->GetRMS();
+      } else if ( vartype == "count" ) {
+        val = phvar->GetEntries();
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
@@ -1570,6 +1574,13 @@ void AdcRoiViewer::writeChanSumPlots() const {
           yfac = rdat.pulserAmplitude();
         } else {
           cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+        }
+      } else if ( yopt == "pampg14") {
+        const RunData& rdat = getState().runData;
+        if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
+          yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
+        } else {
+          cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
         }
       }
       if ( yfac != 0.0 ) {
