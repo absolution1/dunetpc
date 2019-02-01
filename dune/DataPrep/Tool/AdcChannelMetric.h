@@ -152,6 +152,7 @@ private:
     double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
   };
 
+  using MetricMap = std::map<Index, float>;
   using MetricSummaryVector = std::vector<MetricSummary>;
   using MetricSummaryMap = std::map<IndexRange, MetricSummaryVector>;
 
@@ -166,7 +167,8 @@ private:
     Index lastEvent =0;
     Index eventCount =0;
     Index runCount =0;
-    MetricSummaryMap crsums;
+    MetricSummaryMap crsums;    // Summary for each channel.
+    MetricMap pedRefs;          // Reference pedestal for each channel;
     void update(Index run, Index event);
   };
 
@@ -176,6 +178,11 @@ private:
 
   // Return the state.
   State& getState() const { return *m_state; }
+
+  // Local method that fills the metric histogram and creates plots
+  // for the provided range and data.
+  void processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
+                                 Name ofname, Name ofrname) const;
 
 };
 
