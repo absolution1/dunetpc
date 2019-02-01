@@ -293,7 +293,9 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
   Name sunits;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(ich0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
+  getState().update(iacd1->second.run, iacd1->second.event);
   MetricSummaryVector& metricSums = getState().crsums[ran];
+  if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
     const AdcChannelData& acd = iacd->second;
     int rstat = getMetric(acd, val, sunits);
