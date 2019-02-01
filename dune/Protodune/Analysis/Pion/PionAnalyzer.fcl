@@ -13,7 +13,7 @@ BEGIN_PROLOG
 
 pionanalysis:
 {
-  module_type: "PionAnalyzerAbsCex"
+  module_type: "PionAnalyzer"
   SpacePointModuleLabel:  "reco3d"
   BeamModuleLabel:        "beamevent"
   TrackModuleLabel:       "pandoraTrack"
@@ -79,7 +79,7 @@ END_PROLOG
 # analyzers:{
 #   pionanalysis:
 #   {
-#     module_type: "pionabscex"
+#     module_type: "pion"
 #
 #     SpacePointModuleLabel:  "reco3d"
 #     BeamModuleLabel:        "beamevent"
