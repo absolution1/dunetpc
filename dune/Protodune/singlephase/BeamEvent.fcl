@@ -84,6 +84,15 @@ proto_beamevent:
   BPROF3:       "XBPF022702"
   #Nominal beam bend (mrad)
   BeamBend:     .12003
+
+  L1: 1.980
+  L2: 1.69472      
+  L3: 2.11666
+
+      ##Calibrated Positions##
+  BProf1Shift:  0.
+  BProf2Shift:  0.
+  BProf3Shift:  1.45
   ################################
 
 

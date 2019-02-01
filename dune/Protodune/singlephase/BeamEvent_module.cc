@@ -215,6 +215,10 @@ private:
   std::string BPROF2;
   std::string BPROF3;
   double      fBeamBend;
+  double L1, L2, L3;
+  double fBProf1Shift;
+  double fBProf2Shift;
+  double fBProf3Shift;
 
   std::vector< std::string > fDevices;
   std::map<std::string, std::string > fDeviceTypes;
@@ -296,7 +300,7 @@ private:
 
   uint64_t validTimeStamp;
 
-  double L1=1.980, L2=1.69472, L3=2.11666;
+//  double L1=1.980, L2=1.69472, L3=2.11666;
   double magnetLen, magnetField;
   std::vector<double> current;
 
@@ -1691,10 +1695,13 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   BPROF2       = p.get< std::string >("BPROF2");
   BPROF3       = p.get< std::string >("BPROF3");
   fBeamBend    = p.get< double >("BeamBend");
-/*  L1           = 2.004;//(m)
-  L2           = 1.718*cos(fBeamBend);//(m)
-  L3           = 2.728*cos(fBeamBend);//(m)
-*/
+  L1           = p.get< double >("L1"); 
+  L2           = p.get< double >("L2"); 
+  L3           = p.get< double >("L3"); 
+  fBProf1Shift           = p.get< double >("BProf1Shift"); 
+  fBProf2Shift           = p.get< double >("BProf2Shift"); 
+  fBProf3Shift           = p.get< double >("BProf3Shift"); 
+
   magnetLen    = 1.;//(m)
   magnetField  = 1000.;//()
   ///////////////////////////////
@@ -2117,6 +2124,12 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   ////////////
   
   if( (BPROF1Fibers.size() == 1) && (BPROF2Fibers.size() == 1) && (BPROF3Fibers.size() == 1) ){
+    //Calibrate the positions
+    //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
+    // = -1.*FiberPos - ShiftDist
+    X1 = X1 - fBProf1Shift*1.e-3; 
+    X2 = X2 - fBProf2Shift*1.e-3; 
+    X3 = X3 - fBProf3Shift*1.e-3; 
     double cosTheta = MomentumCosTheta(X1,X2,X3);
     double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
 
@@ -2159,6 +2172,14 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
             x3 += .0005;
           }
         }
+
+
+        //Calibrate the positions
+        //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
+        // = -1.*FiberPos - ShiftDist
+        x1 = x1 - fBProf1Shift*1.e-3; 
+        x2 = x2 - fBProf2Shift*1.e-3; 
+        x3 = x3 - fBProf3Shift*1.e-3; 
 
         double cosTheta_full = MomentumCosTheta(x1,x2,x3);        
         double momentum_full = 299792458*LB/(1.E9 * acos(cosTheta_full));
