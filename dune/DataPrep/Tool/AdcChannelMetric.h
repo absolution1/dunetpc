@@ -7,7 +7,7 @@
 // of metric vs. channel for ranges of channels.
 //
 // If plots are made, graphs are shown instead of histograms.
-// If a plot range is specified then values outside the range arae
+// If a plot range is specified then values outside the range are
 // shown at the nearest range limit.
 //
 // Subclasses may be used to extend the list of
@@ -88,7 +88,7 @@ public:
 
   AdcChannelMetric(fhicl::ParameterSet const& ps);
 
-  ~AdcChannelMetric() override =default;
+  ~AdcChannelMetric() override;
 
   // Tool interface.
   DataMap view(const AdcChannelData& acd) const override;
@@ -137,6 +137,58 @@ private:
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
+
+  // Summary data for one channel.
+  class MetricSummary {
+  public:
+    Index count = 0;
+    double sum = 0.0;
+    double sumsq = 0.0;
+    // Add an entry.
+    void add(double val) { ++count; sum+=val; sumsq+=val*val; }
+    double mean() const { return count ? sum/count : 0.0; }
+    double meansq() const { return count ? sumsq/count : 0.0; }
+    double rms() const { double valm = mean(); return meansq() - valm*valm; }
+    double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
+  };
+
+  class Metric {
+  public:
+    float value =0.0;
+    float error =0.0;
+    bool operator<(const Metric& rhs) const { return value < rhs.value; }
+  };
+  using MetricMap = std::map<Index, Metric>;
+  using MetricSummaryVector = std::vector<MetricSummary>;
+  using MetricSummaryMap = std::map<IndexRange, MetricSummaryVector>;
+
+  // This subclass carries the state for this tool, i.e. data that can change
+  // after initialization.
+  class State {
+  public:
+    Index callCount = 0;
+    Index firstRun =0;
+    Index lastRun =0;
+    Index firstEvent =0;
+    Index lastEvent =0;
+    Index eventCount =0;
+    Index runCount =0;
+    MetricSummaryMap crsums;    // Summary for each channel.
+    MetricMap pedRefs;          // Reference pedestal for each channel;
+    void update(Index run, Index event);
+  };
+
+  // Shared pointer so we can make sure only one reference is out at a time.
+  using StatePtr = std::shared_ptr<State>;
+  StatePtr m_state;
+
+  // Return the state.
+  State& getState() const { return *m_state; }
+
+  // Local method that fills the metric histogram and creates plots
+  // for the provided range and data.
+  void processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
+                                 Name ofname, Name ofrname) const;
 
 };
 

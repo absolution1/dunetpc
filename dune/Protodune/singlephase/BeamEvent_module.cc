@@ -215,6 +215,10 @@ private:
   std::string BPROF2;
   std::string BPROF3;
   double      fBeamBend;
+  double L1, L2, L3;
+  double fBProf1Shift;
+  double fBProf2Shift;
+  double fBProf3Shift;
 
   std::vector< std::string > fDevices;
   std::map<std::string, std::string > fDeviceTypes;
@@ -246,6 +250,7 @@ private:
 
   double fRotateMonitorXZ;
   double fRotateMonitorYZ;
+  double fRotateMonitorYX;
 
   double fFirstTrackingProfZ;
   double fSecondTrackingProfZ;
@@ -296,7 +301,7 @@ private:
 
   uint64_t validTimeStamp;
 
-  double L1=1.980, L2=1.69472, L3=2.11666;
+//  double L1=1.980, L2=1.69472, L3=2.11666;
   double magnetLen, magnetField;
   std::vector<double> current;
 
@@ -1691,10 +1696,13 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   BPROF2       = p.get< std::string >("BPROF2");
   BPROF3       = p.get< std::string >("BPROF3");
   fBeamBend    = p.get< double >("BeamBend");
-/*  L1           = 2.004;//(m)
-  L2           = 1.718*cos(fBeamBend);//(m)
-  L3           = 2.728*cos(fBeamBend);//(m)
-*/
+  L1           = p.get< double >("L1"); 
+  L2           = p.get< double >("L2"); 
+  L3           = p.get< double >("L3"); 
+  fBProf1Shift           = p.get< double >("BProf1Shift"); 
+  fBProf2Shift           = p.get< double >("BProf2Shift"); 
+  fBProf3Shift           = p.get< double >("BProf3Shift"); 
+
   magnetLen    = 1.;//(m)
   magnetField  = 1000.;//()
   ///////////////////////////////
@@ -1728,6 +1736,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   //New parameters to match Leigh's
   fRotateMonitorXZ = p.get<double>("RotateMonitorXZ");
   fRotateMonitorYZ = p.get<double>("RotateMonitorYZ");
+  fRotateMonitorYX = p.get<double>("RotateMonitorYX");
 
   fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
   fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
@@ -1807,7 +1816,8 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
   vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  //vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
@@ -1963,6 +1973,7 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
 
   }
  
+
   for(size_t iU = 0; iU < upstreamPositions.size(); ++iU){
     for(size_t iD = 0; iD < downstreamPositions.size(); ++iD){
       std::vector<TVector3> thePoints;
@@ -1982,9 +1993,10 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
       recob::Track * tempTrack = new recob::Track(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
-									 recob::tracking::convertCollToVector(theMomenta),
-									 recob::Track::Flags_t(thePoints.size()), false),
-						  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
+                                                                        recob::tracking::convertCollToVector(theMomenta),
+                                                                        recob::Track::Flags_t(thePoints.size()), false),
+                                                 0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
+
       beamevt->AddBeamTrack( *tempTrack );
     }
   }
@@ -2115,6 +2127,12 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   ////////////
   
   if( (BPROF1Fibers.size() == 1) && (BPROF2Fibers.size() == 1) && (BPROF3Fibers.size() == 1) ){
+    //Calibrate the positions
+    //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
+    // = -1.*FiberPos - ShiftDist
+    X1 = X1 - fBProf1Shift*1.e-3; 
+    X2 = X2 - fBProf2Shift*1.e-3; 
+    X3 = X3 - fBProf3Shift*1.e-3; 
     double cosTheta = MomentumCosTheta(X1,X2,X3);
     double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
 
@@ -2158,6 +2176,14 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
           }
         }
 
+
+        //Calibrate the positions
+        //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
+        // = -1.*FiberPos - ShiftDist
+        x1 = x1 - fBProf1Shift*1.e-3; 
+        x2 = x2 - fBProf2Shift*1.e-3; 
+        x3 = x3 - fBProf3Shift*1.e-3; 
+
         double cosTheta_full = MomentumCosTheta(x1,x2,x3);        
         double momentum_full = 299792458*LB/(1.E9 * acos(cosTheta_full));
         if( fDebugMomentum ) fFullMomentum->Fill(momentum_full);
@@ -2191,39 +2217,9 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 }
 
 double proto::BeamEvent::MomentumCosTheta(double X1, double X2, double X3){
+////This is from my own derived momentum reconstruction. It's very close to the CERN-group's, but we're just
+////using theirs
 /*
-  double a = cos(fBeamBend)*(X3*L2 - X2*L3) / (L3 - L2);
-
-  double cosTheta = (a + X1)*( (L3 - L2)*tan(fBeamBend) + (X2 - X3)*cos(fBeamBend) )+ (L3 - L2)*L1 ;
-
-  double denomTerm1, denomTerm2, denom; 
-  denomTerm1 = sqrt( L1*L1 + (a + X1)*(a + X1) );
-  denomTerm2 = sqrt( 
-               (L3 - L2)*(L3 - L2) 
-             + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
-                             + (X2 - X3)*cos(fBeamBend) ), 2 ) );
-                            
-  denom = denomTerm1*denomTerm2;
-  cosTheta = cosTheta / denom;
-
-  //
- 
-  double a = (X2*L3 - X3*L2) / (L3 - L2);
-   
-  double cosTheta = (a - X1)*(X3 - X2)*cos(fBeamBend) + (L3 - L2 )*( L1 + (a - X1)*tan(fBeamBend) );
-    
-  double denomTerm1, denomTerm2, denom; 
-  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
-  denomTerm2 = sqrt( 
-               (L3 - L2)*(L3 - L2) 
-             + TMath::Power( ( (L3 - L2)*tan(fBeamBend) 
-                             + (X3 - X2)*cos(fBeamBend) ), 2 ) );
-  
-  denom = denomTerm1*denomTerm2;
-  cosTheta = cosTheta / denom;
- */
-
-    //double a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
     double a =  ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
     a = a / (L3 - X3*sin(fBeamBend) - L2 + X2*sin(fBeamBend) );
     a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - a;
@@ -2237,7 +2233,22 @@ double proto::BeamEvent::MomentumCosTheta(double X1, double X2, double X3){
     denom = denomTerm1 * denomTerm2; 
 
     double cosTheta = numTerm/denom;
-  
+*/
+
+
+///This is the CERN group's
+  double a =  (X2*L3 - X3*L2)*cos(fBeamBend)/(L3-L2);
+
+ 
+  double numTerm = (a - X1)*( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ) + L1*( L3 - L2 );
+
+  double denomTerm1, denomTerm2, denom;
+  denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
+  denomTerm2 = sqrt( TMath::Power( ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ),2)
+                   + TMath::Power( ( (L3 - L2) ),2) );
+  denom = denomTerm1 * denomTerm2;
+
+  double cosTheta = numTerm/denom;  
   return cosTheta;
 }
 
