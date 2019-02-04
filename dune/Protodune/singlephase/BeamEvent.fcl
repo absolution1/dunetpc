@@ -102,9 +102,14 @@ proto_beamevent:
   RotateMonitorYX:     227.18669653445150
 
 # Position of beam monitor in z in [mm] 
-  FirstTrackingProfZ: 707479
-  SecondTrackingProfZ: 716048
+  #FirstTrackingProfZ: 707479
+  #SecondTrackingProfZ: 716048
+  #NP04FrontZ: 717243
+  ####From beatch file:
+  FirstTrackingProfZ: 707555
+  SecondTrackingProfZ: 716124
   NP04FrontZ: 717243
+  ########################
 
 # Position of Beam in [cm]
   BeamX: 8.0757
