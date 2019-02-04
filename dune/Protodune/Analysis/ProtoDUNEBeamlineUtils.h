@@ -92,6 +92,7 @@ namespace protoana {
 
     double fRotateMonitorXZ;
     double fRotateMonitorYZ;
+    double fRotateMonitorYX;
 
     double fFirstTrackingProfZ;
     double fSecondTrackingProfZ;

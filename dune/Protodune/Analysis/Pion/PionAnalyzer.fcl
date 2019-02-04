@@ -8,6 +8,7 @@
 #include "photpropservices_dune.fcl"
 #include "ProtoDUNEDataUtils.fcl"
 #include "ProtoDUNEBeamlineFilter.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
 
 BEGIN_PROLOG
 
@@ -26,6 +27,7 @@ pionanalysis:
   GeneratorTag:           "generator"
   Verbose:                true
   DataUtils: @local::standard_protodunedatautils
+  BeamlineUtils: @local::standard_protodunebeamlineutils
 
   SelectEvents: [fpath]
 }
