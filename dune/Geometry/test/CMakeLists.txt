@@ -6,6 +6,7 @@
 # Build tests for channel maps.
 install_fhicl()
 include(CetTest)
+add_subdirectory(testIssue19191)
 
 cet_enable_asserts()
 
@@ -42,17 +43,3 @@ cet_test(test_WireSelector SOURCES test_WireSelector.cxx
     ${ROOT_GEOM}
     ${ROOT_BASIC_LIB_LIST}
 )
-
-#cet_test(test_issue19191 HANDBUILT 
-#  TEST_EXEC art 
-#  TEST_ARGS -c test_issue19191.fcl
-#  DATAFILES ../test_issue19191.fcl
-#  LIBRARIES
-#    dune_ArtSupport
-#    dune_Geometry
-#    dune_DuneCommon
-#    larcorealg_Geometry
-#    ${ROOT_GEOM}
-#    ${ROOT_BASIC_LIB_LIST}
-#)
-
