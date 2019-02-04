@@ -3,7 +3,7 @@
 // David Adams
 // January 2019
 //
-// ProtoDUNE CE ADC pulser charge. See the circuit diagram
+// ProtoDUNE CE pulser voltage and induced charge. See the circuit diagram
 //   http://internal.dunescience.org/people/dladams/docs/pulserCircuit.pdf
 
 #ifndef cePulser_H
@@ -11,6 +11,7 @@
 
 #include "TF1.h"
 #include <string>
+#include <iostream>
 
 //**********************************************************************
 
@@ -22,7 +23,7 @@
 // Returns charge in fC.
 // Use cinj = 1 to get voltage in mV.
 inline
-double cePulserVoltage(int iaIn, double rfLines[6], double r6, double vfpga) {
+double cePulserVoltage(int iaIn, const double rfLines[6], double r6, double vfpga) {
   using Index = unsigned int;
   if ( r6 < 0.0 ) return 0.0;
   if ( iaIn < 0 ) return 0.0;
@@ -55,9 +56,9 @@ double cePulserVoltage(int iaIn, double rfLines[6], double r6, double vfpga) {
 //   ia - gain setting: 0 - 63 (minus inverts charge)
 //   rLines - FPGA IO resistances (high to low) [kOhm]
 //   r6 - Fixed resistance to Vrail.
-//   qvscale - Vfpga*Cinj - Injection capacitance (fF)
+//   qvscale - Vfpga*Cinj where Cinj is the injection capacitance (fF)
 inline
-double cePulser(int ia, double rfLines[6], double r6, double qvscale) {
+double cePulser(int ia, const double rfLines[6], double r6, double qvscale) {
   if ( ia == 0 ) return 0.0;
   if ( ia > 63 ) return 0.0;
   if ( ia < 0 ) return cePulser(-ia, rfLines, r6, qvscale);
@@ -125,36 +126,63 @@ TF1* cePulserVoltageTF1(std::string fname="cepulserVoltage", double tol =0.01) {
 
 //**********************************************************************
 
+// Set the parameters for a pulser function or a function constructed from
+// a pulser function.
+//   pf - the function
+//   ipoff - Offset to the pulser section of the paramter list.
+//   tol - fractional limits for the parameters
+inline
+int initCePulserTF1(TF1* pf, unsigned int ipoff, double tol =0.01) {
+  using std::cout;
+  using std::endl;
+  const std::string myname = "initCePulserTF1: ";
+  using Index = unsigned int;
+  const Index npar = 8;
+  if ( pf->GetNpar() < int(npar) ) {
+    cout << myname << "Function has fewer than " << npar << " parameters." << endl;
+    return 1;
+  }
+  if ( pf->GetNpar() < int(ipoff + npar) ) {
+    cout << myname << "Function has fewer than " << npar << " parameters after offset "
+         << ipoff << "." << endl;
+    return 2;
+  }
+  pf->SetParName(ipoff + 0, "R0");
+  pf->SetParName(ipoff + 1, "R1");
+  pf->SetParName(ipoff + 2, "R2");
+  pf->SetParName(ipoff + 3, "R3");
+  pf->SetParName(ipoff + 4, "R4");
+  pf->SetParName(ipoff + 5, "R5");
+  pf->SetParName(ipoff + 6, "R6");
+  pf->SetParName(ipoff + 7, "QVscale");
+  pf->SetParameter(ipoff + 0, 32.40);
+  pf->SetParameter(ipoff + 1, 16.02);
+  pf->SetParameter(ipoff + 2,  8.06);
+  pf->SetParameter(ipoff + 3,  4.02);
+  pf->SetParameter(ipoff + 4,  2.00);
+  pf->SetParameter(ipoff + 5,  1.00);
+  pf->SetParameter(ipoff + 6,  1.00);
+  pf->SetParameter(ipoff + 7, 1.8*183.0);
+  if ( tol > 0.0 && tol < 1.0 ) {
+    double fmin = 1 - tol;
+    double fmax = 1 + tol;
+    for ( Index ipar=ipoff; ipar<ipoff+npar; ++ipar ) {
+      double val = pf->GetParameter(ipar);
+      pf->SetParLimits(ipar, fmin*val, fmax*val);
+    }
+  }
+  return 0;
+}
+ 
+//**********************************************************************
+
 // Generate a TF1 for the pulser function.
 inline
 TF1* cePulserTF1(std::string fname="cepulser", double tol =0.01) {
   using Index = unsigned int;
   const Index npar = 8;
   TF1* pf = new TF1(fname.c_str(), cePulser, -64, 64, npar);
-  pf->SetParName(0, "R0");
-  pf->SetParName(1, "R1");
-  pf->SetParName(2, "R2");
-  pf->SetParName(3, "R3");
-  pf->SetParName(4, "R4");
-  pf->SetParName(5, "R5");
-  pf->SetParName(6, "R6");
-  pf->SetParName(7, "QVscale");
-  pf->SetParameter(0, 32.40);
-  pf->SetParameter(1, 16.02);
-  pf->SetParameter(2,  8.06);
-  pf->SetParameter(3,  4.02);
-  pf->SetParameter(4,  2.00);
-  pf->SetParameter(5,  1.00);
-  pf->SetParameter(6,  1.00);
-  pf->SetParameter(7, 1.8*183.0);
-  if ( tol > 0.0 && tol < 1.0 ) {
-    double fmin = 1 - tol;
-    double fmax = 1 + tol;
-    for ( Index ipar=0; ipar<npar; ++ipar ) {
-      double val = pf->GetParameter(ipar);
-      pf->SetParLimits(ipar, fmin*val, fmax*val);
-    }
-  }
+  initCePulserTF1(pf, 0, tol);
   return pf;
 }
  

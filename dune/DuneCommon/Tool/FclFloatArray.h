@@ -3,7 +3,7 @@
 // David Adams
 // January 2019
 //
-// Tool that returns a float array stored in a fcl.
+// Tool that returns a float array stored as fcl.
 // 
 // Parameters:
 //   LogLevel - Message logging level:
