@@ -99,6 +99,7 @@ private:
   std::string fTrackerTag;    
   std::string fShowerTag;     
   std::string fPFParticleTag; 
+  std::string fGeneratorTag;
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
   fhicl::ParameterSet beamlineUtil;
@@ -115,6 +116,7 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fTrackerTag(p.get<std::string>("TrackerTag")),
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
+  fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
   beamlineUtil( p.get<fhicl::ParameterSet>("BeamlineUtils"))
@@ -133,131 +135,164 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
   subrun = evt.subRun();
   event = evt.id().event();
 
-  //Get Beamline info
-  auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamModuleLabel);
-  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
-  if( beamHandle.isValid()){
-    art::fill_ptr_vector(beamVec, beamHandle);
-  }
-  //Should just have one
-  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
-
-  //Beamline utils 
-  protoana::ProtoDUNEBeamlineUtils BLUtil(beamlineUtil);
-   
-
-  // Get the PFParticle utility
-  protoana::ProtoDUNEPFParticleUtils pfpUtil;
-
-  // Get all of the PFParticles, by default from the "pandora" product
-  auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
-
-  std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
-
-  if(beamParticles.size() == 0){
-    std::cerr << "We found no beam particles for this event... moving on" << std::endl;
-    return;
-  }
-
-  // We can now look at these particles
-  for(const recob::PFParticle* particle : beamParticles){
-
-    const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
-    const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
-    if(thisTrack != 0x0){
-      std::cout << "Beam particle is track-like" << std::endl;
-      type = 13;
+  if( evt.isRealData() ){
+    //Get Beamline info
+    auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamModuleLabel);
+    std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+    if( beamHandle.isValid()){
+      art::fill_ptr_vector(beamVec, beamHandle);
     }
-    if(thisShower != 0x0){
-      std::cout << "Beam particle is shower-like" << std::endl;
-      type = 11;
+    //Should just have one
+    const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
+
+    //Beamline utils 
+    protoana::ProtoDUNEBeamlineUtils BLUtil(beamlineUtil);
+     
+
+    // Get the PFParticle utility
+    protoana::ProtoDUNEPFParticleUtils pfpUtil;
+
+    // Get all of the PFParticles, by default from the "pandora" product
+    auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+
+    std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+
+    if(beamParticles.size() == 0){
+      std::cerr << "We found no beam particles for this event... moving on" << std::endl;
+      return;
     }
 
+    // We can now look at these particles
+    for(const recob::PFParticle* particle : beamParticles){
 
-    // Find the particle vertex. We need the tracker tag here because we need to do a bit of
-    // additional work if the PFParticle is track-like to find the vertex. 
-    const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-    std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
+      const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
+      const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
+      if(thisTrack != 0x0){
+        std::cout << "Beam particle is track-like" << std::endl;
+        type = 13;
+      }
+      if(thisShower != 0x0){
+        std::cout << "Beam particle is shower-like" << std::endl;
+        type = 11;
+      }
 
-    //Get the TPC ID for the beginning of the track
-    if( thisTrack ){
-      startX = thisTrack->Trajectory().Start().X();
-      startY = thisTrack->Trajectory().Start().Y();
-      startZ = thisTrack->Trajectory().Start().Z();
-      endX = thisTrack->Trajectory().End().X();
-      endY = thisTrack->Trajectory().End().Y();
-      endZ = thisTrack->Trajectory().End().Z();
-      len  = thisTrack->Length();    
-      
-      std::cout << "Start: " << startX << " " << startY << " " << startY << std::endl;
-      std::cout << "End: " << endX << " " << endY << " " << endY << std::endl;
 
-      std::vector< recob::Track > newTracks = BLUtil.MakeTracks( evt );
-      const std::vector< recob::Track > & beamTracks = beamEvent.GetBeamTracks();
-      std::cout << "Beamline tracks: " << beamTracks.size() << std::endl;
-      if( beamTracks.size() == 1 ){
-        auto trackDir = thisTrack->StartDirection();
-        auto beamDir = beamTracks.at(0).StartDirection();
+      // Find the particle vertex. We need the tracker tag here because we need to do a bit of
+      // additional work if the PFParticle is track-like to find the vertex. 
+      const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+      std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
+
+      //Get the TPC ID for the beginning of the track
+      if( thisTrack ){
+        startX = thisTrack->Trajectory().Start().X();
+        startY = thisTrack->Trajectory().Start().Y();
+        startZ = thisTrack->Trajectory().Start().Z();
+        endX = thisTrack->Trajectory().End().X();
+        endY = thisTrack->Trajectory().End().Y();
+        endZ = thisTrack->Trajectory().End().Z();
+        len  = thisTrack->Length();    
         
-        double flip = 1.;
-        if( beamDir.Z() < 0. ) flip = -1.;
-        beamDirX = flip * beamDir.X(); 
-        beamDirY = flip * beamDir.Y(); 
-        beamDirZ = flip * beamDir.Z(); 
+        std::cout << "Start: " << startX << " " << startY << " " << startY << std::endl;
+        std::cout << "End: " << endX << " " << endY << " " << endY << std::endl;
 
-        if( trackDir.Z() < 0. ) flip = -1.;
-        else flip = 1.;
-        trackDirX = flip * trackDir.X(); 
-        trackDirY = flip * trackDir.Y(); 
-        trackDirZ = flip * trackDir.Z(); 
+        std::vector< recob::Track > newTracks = BLUtil.MakeTracks( evt );
+        const std::vector< recob::Track > & beamTracks = beamEvent.GetBeamTracks();
+        std::cout << "Beamline tracks: " << beamTracks.size() << std::endl;
+        if( beamTracks.size() == 1 ){
+          auto trackDir = thisTrack->StartDirection();
+          auto beamDir = beamTracks.at(0).StartDirection();
+          
+          double flip = 1.;
+          if( beamDir.Z() < 0. ) flip = -1.;
+          beamDirX = flip * beamDir.X(); 
+          beamDirY = flip * beamDir.Y(); 
+          beamDirZ = flip * beamDir.Z(); 
 
-        std::cout << "beamDirX: " << beamDir.X() << std::endl;
-        std::cout << "beamDirY: " << beamDir.Y() << std::endl;
-        std::cout << "beamDirZ: " << beamDir.Z() << std::endl;
-        std::cout << "trackDirX: " << trackDir.X() << std::endl;
-        std::cout << "trackDirY: " << trackDir.Y() << std::endl;
-        std::cout << "trackDirZ: " << trackDir.Z() << std::endl;
+          if( trackDir.Z() < 0. ) flip = -1.;
+          else flip = 1.;
+          trackDirX = flip * trackDir.X(); 
+          trackDirY = flip * trackDir.Y(); 
+          trackDirZ = flip * trackDir.Z(); 
 
-        beam_costheta = beamDirX*trackDirX + beamDirY*trackDirY + beamDirZ*trackDirZ;
+          std::cout << "beamDirX: " << beamDir.X() << std::endl;
+          std::cout << "beamDirY: " << beamDir.Y() << std::endl;
+          std::cout << "beamDirZ: " << beamDir.Z() << std::endl;
+          std::cout << "trackDirX: " << trackDir.X() << std::endl;
+          std::cout << "trackDirY: " << trackDir.Y() << std::endl;
+          std::cout << "trackDirZ: " << trackDir.Z() << std::endl;
+
+          beam_costheta = beamDirX*trackDirX + beamDirY*trackDirY + beamDirZ*trackDirZ;
+        }
+
+        if( newTracks.size() == 1 ){
+          auto newDir = newTracks.at(0).StartDirection();
+
+          double flip = 1.;
+          if( newDir.Z() < 0. ) flip = -1.;
+
+          newDirX = flip * newDir.X(); 
+          newDirY = flip * newDir.Y(); 
+          newDirZ = flip * newDir.Z(); 
+
+          std::cout << "newDirX: " << newDir.X() << std::endl;
+          std::cout << "newDirY: " << newDir.Y() << std::endl;
+          std::cout << "newDirZ: " << newDir.Z() << std::endl;
+          new_beam_costheta = newDirX*trackDirX + newDirY*trackDirY + newDirZ*trackDirZ;
+        }
+    
       }
 
-      if( newTracks.size() == 1 ){
-        auto newDir = newTracks.at(0).StartDirection();
+      // Now we can look for the interaction point of the particle if one exists, i.e where the particle
+      // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
+      // check this by making sure we get a sensible position
+      const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
 
-        double flip = 1.;
-        if( newDir.Z() < 0. ) flip = -1.;
-
-        newDirX = flip * newDir.X(); 
-        newDirY = flip * newDir.Y(); 
-        newDirZ = flip * newDir.Z(); 
-
-        std::cout << "newDirX: " << newDir.X() << std::endl;
-        std::cout << "newDirY: " << newDir.Y() << std::endl;
-        std::cout << "newDirZ: " << newDir.Z() << std::endl;
-        new_beam_costheta = newDirX*trackDirX + newDirY*trackDirY + newDirZ*trackDirZ;
+      // Let's get the daughter PFParticles... we can do this simply without the utility
+      for(const int daughterID : particle->Daughters()){
+        // Daughter ID is the element of the original recoParticle vector
+        const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
+        std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
       }
-  
-    }
-
-    // Now we can look for the interaction point of the particle if one exists, i.e where the particle
-    // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
-    // check this by making sure we get a sensible position
-    const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-
-    // Let's get the daughter PFParticles... we can do this simply without the utility
-    for(const int daughterID : particle->Daughters()){
-      // Daughter ID is the element of the original recoParticle vector
-      const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-      std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
-    }
  
-    // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
-    // We can use the utility to get a vector of track-like and a vector of shower-like daughters
-    const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
-    const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
-    std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
-    std::cout << std::endl;
+      // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
+      // We can use the utility to get a vector of track-like and a vector of shower-like daughters
+      const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
+      const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
+      std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+      std::cout << std::endl;
+    }  
   } 
+  else{
+    // Get the truth utility to help us out
+    protoana::ProtoDUNETruthUtils truthUtil;
+    // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
+    // simulation has fGeneratorTag = "generator"
+    auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+    // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
+    // of these, so we pass the first element into the function to get the good particle
+    const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+    if(geantGoodParticle != 0x0){
+      std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+      std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
+      std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
+    }
+
+    if( geantGoodParticle->PdgCode() != 211 ) return;
+    std::cout << "Found Pi+" << std::endl;
+    
+    std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
+    art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+    const sim::ParticleList & plist = pi_serv->ParticleList(); 
+    for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
+      int daughterID = geantGoodParticle->Daughter(i);
+      std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
+      auto part = plist[ daughterID ];
+      std::cout << "Got particle from list. Mother: " << part->Mother() << std::endl;
+    }
+    
+
+  }
+  
 
   
 
