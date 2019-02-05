@@ -48,6 +48,7 @@ TPadManipulator::TPadManipulator()
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
+  m_gflowMrk(0), m_gflowCol(0),
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
@@ -129,6 +130,9 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_tickLengthY = rhs.m_tickLengthY;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
+  m_gflowOpt = rhs.m_gflowOpt;
+  m_gflowMrk = rhs.m_gflowMrk;
+  m_gflowCol = rhs.m_gflowCol;
   m_top = rhs.m_top;
   m_right = rhs.m_right;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
@@ -253,10 +257,24 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 //**********************************************************************
 
 int TPadManipulator::print(string fname) {
-  bool isBatch = gROOT->IsBatch();
-  if ( ! isBatch ) gROOT->SetBatch(true);
-  TCanvas* pcan = canvas(true);
-  if ( pcan == nullptr ) return 1;
+  TCanvas* pcan = canvas(false);
+  // If canvas does not yet exist, draw in batch mode to avoid
+  // display on screen.
+  // We should (but don't yet) also remove the canvas after draw so
+  // there are no problems if a draw to screen is attempted later.
+  bool setBackToNonBatch = false;
+  if ( pcan == nullptr ) {
+    bool isBatch = gROOT->IsBatch();
+    if ( ! isBatch ) {
+      gROOT->SetBatch(true);
+      setBackToNonBatch = true;
+    }
+    pcan = canvas(true);
+  }
+  if ( pcan == nullptr ) {
+    if ( setBackToNonBatch ) gROOT->SetBatch(false);
+    return 1;
+  }
   // Suppress printing message from Root.
   int levelSave = gErrorIgnoreLevel;
   gErrorIgnoreLevel = 1001;
@@ -270,7 +288,7 @@ int TPadManipulator::print(string fname) {
   pcan->Print(fname.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
-  if ( ! isBatch ) gROOT->SetBatch(false);
+  if ( setBackToNonBatch ) gROOT->SetBatch(false);
   return 0;
 }
 
@@ -768,6 +786,39 @@ int TPadManipulator::update() {
     if ( pobj != nullptr ) pobj->Draw(sopt.c_str());
   }
   // no longer needed?  m_ppad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
+  // Make overflow graph.
+  if ( m_gflowOpt.size() ) {
+    bool doBot = m_gflowOpt.find("B") != string::npos;
+    bool doTop = m_gflowOpt.find("T") != string::npos;
+    bool doLef = m_gflowOpt.find("L") != string::npos;
+    bool doRig = m_gflowOpt.find("R") != string::npos;
+    TGraph* pgout = new TGraph();
+    pgout->SetMarkerStyle(m_gflowMrk);
+    pgout->SetMarkerColor(m_gflowCol);
+    for ( TObjPtr pobj : m_objs ) {
+      TGraph* pgin = dynamic_cast<TGraph*>(pobj.get());
+      if ( pgin == nullptr ) continue;
+      for ( int ipt=0; ipt<pgin->GetN(); ++ipt ) {
+        double x, y;
+        pgin->GetPoint(ipt, x, y);
+        double xout = x;
+        double yout = y;
+        bool doAdd = false;
+        if ( doRig && x > xmax() ) { doAdd = true; xout = xmax(); }
+        if ( doLef && x < xmin() ) { doAdd = true; xout = xmin(); }
+        if ( doBot && y < ymin() ) { doAdd = true; yout = ymin(); }
+        if ( doTop && y > ymax() ) { doAdd = true; yout = ymax(); }
+        if ( doAdd ) pgout->SetPoint(pgout->GetN(), xout, yout);
+      }
+    }
+    if ( pgout->GetN() == 0 ) {
+      delete pgout;
+      pgout = nullptr;
+    } else {
+      m_flowGraph.reset(pgout);
+      m_flowGraph->Draw("P");
+    }
+  }
   drawLines();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
@@ -910,6 +961,16 @@ int TPadManipulator::showOverflow(bool show) {
   if ( show == m_showOverflow ) return 0;
   m_showOverflow = show;
   return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::showGraphOverflow(std::string sopt, int imrk, int icol) {
+  m_flowGraph.reset();
+  m_gflowOpt = sopt;
+  m_gflowMrk = imrk;
+  m_gflowCol = icol;
+  return 0;
 }
 
 //**********************************************************************

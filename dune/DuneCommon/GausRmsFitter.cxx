@@ -20,7 +20,7 @@ GausRmsFitter::GausRmsFitter(Name fnam)
 //**********************************************************************
 
 GausRmsFitter::GausRmsFitter(double sigma0, double nsigma, Name fnam)
-: m_sigma0(sigma0), m_nsigma(nsigma), m_fnam(fnam), m_LogLevel(1) { }
+: m_sigma0(sigma0), m_nsigma(nsigma), m_fnam(fnam), m_LogLevel(0) { }
 
 //**********************************************************************
 
