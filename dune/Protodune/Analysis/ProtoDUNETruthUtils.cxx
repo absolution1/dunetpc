@@ -67,6 +67,39 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   return mcParticle;
 }
 
+std::vector< std::pair< const simb::MCParticle*, double > > protoana::ProtoDUNETruthUtils::GetAllMCParticlesFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const{
+
+  std::vector< std::pair< const simb::MCParticle*, double > > mcparts;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return mcparts;
+
+  // Get the reconstructed tracks
+  auto allRecoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+
+  // We need the association between the tracks and the hits
+  const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
+
+  unsigned int trackIndex = track.ID();
+
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+
+  std::unordered_map<int, double> trkIDE;
+  for (auto const & h : findTrackHits.at(trackIndex)){
+    for (auto const & ide : bt_serv->HitToTrackIDEs(h)){ // loop over std::vector<sim::TrackIDE>
+      trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
+    }
+  }
+
+  for (auto const & contrib : trkIDE){
+    if( contrib.first < 0 ) continue;
+    mcparts.push_back( std::make_pair( pi_serv->TrackIdToParticle_P( contrib.first ), contrib.second ) );
+  }
+
+  return mcparts;
+}
+
 const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt )
 {  // Function that will match the protoDUNE MC particle to the Geant 4 MC particle, and return the matched particle (or a null pointer).
 

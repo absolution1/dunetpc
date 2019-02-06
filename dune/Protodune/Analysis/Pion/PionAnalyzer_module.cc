@@ -85,6 +85,11 @@ private:
   int subrun;
   int event;
 
+  int MC;
+
+  int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
+  int nProton_truth, nNeutron_truth;
+
   double startX, startY, startZ;
   double endX, endY, endZ;
   double len;
@@ -93,6 +98,9 @@ private:
   double beamDirX, beamDirY, beamDirZ;
   double trackDirX, trackDirY, trackDirZ;
   double newDirX, newDirY, newDirZ;
+
+  std::vector< double > dQdX, resRange;
+
   int type;
 
   std::string fCalorimetryTag;
@@ -135,69 +143,73 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
   subrun = evt.subRun();
   event = evt.id().event();
 
-  if( evt.isRealData() ){
-    //Get Beamline info
-    auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamModuleLabel);
-    std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
-    if( beamHandle.isValid()){
-      art::fill_ptr_vector(beamVec, beamHandle);
+  //Instantiate this here. Fill later if real data
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  
+  //Beamline utils 
+  protoana::ProtoDUNEBeamlineUtils BLUtil(beamlineUtil);
+   
+  // Get the PFParticle utility
+  protoana::ProtoDUNEPFParticleUtils pfpUtil;
+
+  // Get all of the PFParticles, by default from the "pandora" product
+  auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+
+  std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+
+  if(beamParticles.size() == 0){
+    std::cerr << "We found no beam particles for this event... moving on" << std::endl;
+    return;
+  }
+
+  // We can now look at these particles
+  for(const recob::PFParticle* particle : beamParticles){
+
+    const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
+    const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
+    if(thisTrack != 0x0){
+      std::cout << "Beam particle is track-like" << std::endl;
+      type = 13;
     }
-    //Should just have one
-    const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
-
-    //Beamline utils 
-    protoana::ProtoDUNEBeamlineUtils BLUtil(beamlineUtil);
-     
-
-    // Get the PFParticle utility
-    protoana::ProtoDUNEPFParticleUtils pfpUtil;
-
-    // Get all of the PFParticles, by default from the "pandora" product
-    auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
-
-    std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
-
-    if(beamParticles.size() == 0){
-      std::cerr << "We found no beam particles for this event... moving on" << std::endl;
-      return;
+    if(thisShower != 0x0){
+      std::cout << "Beam particle is shower-like" << std::endl;
+      type = 11;
     }
 
-    // We can now look at these particles
-    for(const recob::PFParticle* particle : beamParticles){
 
-      const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
-      const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
-      if(thisTrack != 0x0){
-        std::cout << "Beam particle is track-like" << std::endl;
-        type = 13;
-      }
-      if(thisShower != 0x0){
-        std::cout << "Beam particle is shower-like" << std::endl;
-        type = 11;
-      }
+    // Find the particle vertex. We need the tracker tag here because we need to do a bit of
+    // additional work if the PFParticle is track-like to find the vertex. 
+    const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+    std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
 
+    //Get the TPC ID for the beginning of the track
+    if( thisTrack ){
 
-      // Find the particle vertex. We need the tracker tag here because we need to do a bit of
-      // additional work if the PFParticle is track-like to find the vertex. 
-      const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-      std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
+      startX = thisTrack->Trajectory().Start().X();
+      startY = thisTrack->Trajectory().Start().Y();
+      startZ = thisTrack->Trajectory().Start().Z();
+      endX = thisTrack->Trajectory().End().X();
+      endY = thisTrack->Trajectory().End().Y();
+      endZ = thisTrack->Trajectory().End().Z();
+      len  = thisTrack->Length();    
+      
+      std::cout << "Start: " << startX << " " << startY << " " << startZ << std::endl;
+      std::cout << "End: " << endX << " " << endY << " " << endZ << std::endl;
+      std::cout << "len: " << len << std::endl;
 
-      //Get the TPC ID for the beginning of the track
-      if( thisTrack ){
-        startX = thisTrack->Trajectory().Start().X();
-        startY = thisTrack->Trajectory().Start().Y();
-        startZ = thisTrack->Trajectory().Start().Z();
-        endX = thisTrack->Trajectory().End().X();
-        endY = thisTrack->Trajectory().End().Y();
-        endZ = thisTrack->Trajectory().End().Z();
-        len  = thisTrack->Length();    
-        
-        std::cout << "Start: " << startX << " " << startY << " " << startY << std::endl;
-        std::cout << "End: " << endX << " " << endY << " " << endY << std::endl;
-
+      if( evt.isRealData() ){
+        //Get Beamline info
+        auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamModuleLabel);
+        if( beamHandle.isValid()){
+          art::fill_ptr_vector(beamVec, beamHandle);
+        }
+        //Should just have one
+        const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
+      
         std::vector< recob::Track > newTracks = BLUtil.MakeTracks( evt );
         const std::vector< recob::Track > & beamTracks = beamEvent.GetBeamTracks();
         std::cout << "Beamline tracks: " << beamTracks.size() << std::endl;
+
         if( beamTracks.size() == 1 ){
           auto trackDir = thisTrack->StartDirection();
           auto beamDir = beamTracks.at(0).StartDirection();
@@ -239,7 +251,64 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
           std::cout << "newDirZ: " << newDir.Z() << std::endl;
           new_beam_costheta = newDirX*trackDirX + newDirY*trackDirY + newDirZ*trackDirZ;
         }
-    
+      }
+      else{
+
+        art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+
+        MC = 1;
+        // Get the truth utility to help us out
+        protoana::ProtoDUNETruthUtils truthUtil;
+        // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
+        // simulation has fGeneratorTag = "generator"
+        auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+        // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
+        // of these, so we pass the first element into the function to get the good particle
+        const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+        if(geantGoodParticle != 0x0){
+          std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+          std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
+          std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
+        }
+
+        if( geantGoodParticle->PdgCode() != 211 ) return;
+        std::cout << "Found Pi+" << std::endl;
+        
+        std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
+
+        art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+        const sim::ParticleList & plist = pi_serv->ParticleList(); 
+
+
+        for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
+          int daughterID = geantGoodParticle->Daughter(i);
+
+          //Skip photons, neutrons, the nucleus
+          if( plist[ daughterID ]->PdgCode() == 22 || plist[ daughterID ]->PdgCode() == 2112 || plist[ daughterID ]->PdgCode() > 1000000000  ) continue;
+
+          std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
+          auto part = plist[ daughterID ];
+          int pid = part->PdgCode();
+          std::cout << "PID: " << pid << std::endl;
+          std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
+          std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
+          std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
+
+          if( pid == 211 )  nPiPlus_truth++;
+          if( pid == -211 ) nPiMinus_truth++;
+          if( pid == 111 )  nPi0_truth++;
+          if( pid == 2212 ) nProton_truth++;
+
+        }
+
+        //Want to see all of the truth particles that contributed to this track
+        std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetAllMCParticlesFromRecoTrack(*thisTrack, evt, fTrackerTag);
+        std::cout << contribParts.size() << " Truth Particles Contributed to this track" << std::endl;
+        for( size_t ip = 0; ip < contribParts.size(); ++ip ){
+          auto part = contribParts.at( ip ).first;
+          double energy = contribParts.at( ip ).second;
+          std::cout << ip << " " << part->TrackId() << " " << part->PdgCode() << " " << energy << std::endl;
+        }
       }
 
       // Now we can look for the interaction point of the particle if one exists, i.e where the particle
@@ -260,44 +329,23 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
       std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
       std::cout << std::endl;
+
+
+      //Calorimetry 
+      //
+      protoana::ProtoDUNETrackUtils trackUtil;
+      std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
+      auto calo_dQdX = calo[0].dQdx();
+      auto calo_range = calo[0].ResidualRange();
+      for( size_t i = 0; i < calo_dQdX.size(); ++i ){
+        dQdX.push_back( calo_dQdX[i] );
+      }
+      for( size_t i = 0; i < calo_range.size(); ++i ){
+        resRange.push_back( calo_range[i] );
+      }
     }  
-  } 
-  else{
-    // Get the truth utility to help us out
-    protoana::ProtoDUNETruthUtils truthUtil;
-    // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
-    // simulation has fGeneratorTag = "generator"
-    auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
-    // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
-    // of these, so we pass the first element into the function to get the good particle
-    const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
-    if(geantGoodParticle != 0x0){
-      std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
-      std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
-      std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
-    }
-
-    if( geantGoodParticle->PdgCode() != 211 ) return;
-    std::cout << "Found Pi+" << std::endl;
-    
-    std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
-    art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
-    const sim::ParticleList & plist = pi_serv->ParticleList(); 
-    for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
-      int daughterID = geantGoodParticle->Daughter(i);
-      std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
-      auto part = plist[ daughterID ];
-      std::cout << "Got particle from list. Mother: " << part->Mother() << std::endl;
-    }
-    
-
   }
   
-
-  
-
-
-
 
   fTree->Fill();
 }
@@ -329,7 +377,15 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("newDirY", &newDirY);
   fTree->Branch("newDirZ", &newDirZ);
 
+  fTree->Branch("MC", &MC);
+  fTree->Branch("dQdX", &dQdX);
+  fTree->Branch("resRange", &resRange);
+  fTree->Branch("nProton_truth", &nProton_truth);
+  fTree->Branch("nPi0_truth", &nPi0_truth);
+  fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
+  fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
 
+  
 }
 
 void pionana::PionAnalyzer::endJob()
@@ -350,6 +406,15 @@ void pionana::PionAnalyzer::reset()
   type = -1;
   beam_costheta = -100;
   new_beam_costheta = -100;
+
+  MC = 0;
+  nProton_truth = 0;
+  nPi0_truth = 0;
+  nPiPlus_truth = 0;
+  nPiMinus_truth = 0;
+
+  dQdX.clear();
+  resRange.clear();
 
 }
 

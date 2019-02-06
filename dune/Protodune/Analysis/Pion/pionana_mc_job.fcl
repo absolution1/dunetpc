@@ -45,11 +45,11 @@ physics:
  
  }
 
- filters: { 
-   f1: @local::beam_filter
- }
-
- fpath: [f1]
+# filters: { 
+#   f1: @local::beam_filter
+# }
+#
+# fpath: [f1]
 
  analyzers:
  {
@@ -66,5 +66,6 @@ physics:
 
 outputs: {}
 
-physics.filters.f1.PDG: [211]
-physics.filters.f1.IsVerbose: true
+physics.analyzers.pionana.SelectEvents: []
+#physics.filters.f1.PDG: [211]
+#physics.filters.f1.IsVerbose: true
