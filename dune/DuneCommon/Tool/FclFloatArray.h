@@ -44,6 +44,9 @@ public:
   // Return the values without offset.
   const FloatVector& values() const override { return m_Values; }
 
+  // Retrurn the default value.
+  float defaultValue() const override { return m_DefaultValue; }
+
 private:
 
   // Parameters.
