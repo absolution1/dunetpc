@@ -85,3 +85,16 @@ cet_test(test_FclFloatArray SOURCES test_FclFloatArray.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_FclFileFloatArray SOURCES test_FclFileFloatArray.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
