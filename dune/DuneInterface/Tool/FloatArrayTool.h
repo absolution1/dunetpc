@@ -34,6 +34,23 @@ public:
   // Return the number of values.
   virtual Index size() const { return values().size(); }
 
+  // Return the default value, i.e. the value returned when
+  // a caller requests a value that is out of range.
+  virtual float defaultValue() const { return 0.0; }
+
+  // Return if an index is in range.
+  virtual bool inRange(Index ival) {
+    if ( ival < offset() ) return false;
+    if ( ival + offset() >= size() ) return false;
+    return true;
+  }
+
+  // Return the value for an (offset) index.
+  virtual float value(Index ival) {
+    if ( ! inRange(ival) ) return defaultValue();
+    return values()[ival + offset()];
+  }
+
   // Insert the values into a supplied vector.
   // Values are place at the offset position.
   // If needed, the size of the input vector is increased.

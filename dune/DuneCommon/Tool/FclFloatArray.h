@@ -10,6 +10,7 @@
 //              0: No messages
 //              1: Show config in ctor with a few values
 //              2: Show config in ctor with all values
+//   DefaultValue - Value to return when an index is out of range.
 //   Offset - Index of the first value
 //   Label - string label
 //   Values - Array values.
@@ -47,6 +48,7 @@ private:
 
   // Parameters.
   Index m_LogLevel;
+  float m_DefaultValue;
   Index m_Offset;
   std::string m_Label;
   FloatVector m_Values;
