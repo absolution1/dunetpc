@@ -26,16 +26,16 @@ source:
   fileNames: ["input_file.root"]
 }
 
-outputs:
-{
- out1:
- {
-   module_type: RootOutput
-   fileName:    "Beam.root"    #default file name, can override from command line with -o or --output
-   dataTier: "reconstructed"
-   fastCloning: false
- } 
-}
+#outputs:
+#{
+# out1:
+# {
+#   module_type: RootOutput
+#   fileName:    "Beam.root"    #default file name, can override from command line with -o or --output
+#   dataTier: "reconstructed"
+#   fastCloning: false
+# } 
+#}
 
 physics:
 {
