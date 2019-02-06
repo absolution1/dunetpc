@@ -41,6 +41,9 @@ public:
   // Return the label.
   std::string label() const override { return m_Label; }
  
+  // Return the units.
+  Name unit() const override { return m_Unit; }
+
   // Return the values without offset.
   const FloatVector& values() const override { return m_Values; }
 
@@ -53,8 +56,10 @@ private:
   Index m_LogLevel;
   float m_DefaultValue;
   Index m_Offset;
-  std::string m_Label;
+  Name m_Label;
+  Name m_Unit;
   FloatVector m_Values;
+
 
 };
 

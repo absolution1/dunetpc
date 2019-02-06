@@ -27,6 +27,9 @@ public:
   // Return the label.
   virtual std::string label() const { return ""; }
 
+  // Return the units for the values.
+  virtual std::string unit() const { return ""; }
+
   // Return the values without offset.
   virtual const FloatVector& values() const =0;
 
