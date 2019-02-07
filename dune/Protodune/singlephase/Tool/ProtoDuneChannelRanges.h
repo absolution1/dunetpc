@@ -5,7 +5,7 @@
 //
 // Tool to return channel ranges for protoDUNE. The following are created:
 //      tpsS - for TPC set S, e.g. tps0
-//     tppSP - TPC plane P in TPC set S, e.g. tps0z
+//     tppSP - TPC plane or plane pair P in TPC set S, e.g. tps0z
 //      apaA - APA, e.g. apa3
 //  fembAFFV - FEMB AFF orientation x, eg femb302x
 //
@@ -13,6 +13,7 @@
 //    S is the TPC set (offline APA) number in range [0,5]
 //    A is the APA number in range [1,6]
 //    P is the wire plane: u, v, z (TPC-side collection) or c (cryostat-side collection)
+//      or the wire plane pair x for (z, c) or i for (u, v)
 //   FF is the FEMB number in an APA in range [01,20]
 //    V is a wire orientation: u, v or x (collection)
 //
