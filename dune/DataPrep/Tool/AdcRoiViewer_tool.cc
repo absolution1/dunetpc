@@ -860,18 +860,18 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
     pman->add(ph, "hist", false);
     pman->addHistFun(0);
     TF1* pfit = ph->GetFunction("coldelec");
-    if ( pfit != nullptr ) {
+    if ( true ) {
       NameVector labs;
+      double area = ph->Integral();
+      ostringstream ssout;
+      ssout.precision(3);
+      ssout.setf(std::ios_base::fixed);
+      ssout << "Area: " << area;
+      labs.push_back(ssout.str());
       if ( pfit != nullptr ) {
-        double area = ph->Integral();
         double height = pfit->GetParameter("Height");
         double shaping = pfit->GetParameter("Shaping");
         double t0 = pfit->GetParameter("T0");
-        ostringstream ssout;
-        ssout.precision(3);
-        ssout.setf(std::ios_base::fixed);
-        ssout << "Area: " << area;
-        labs.push_back(ssout.str());
         ssout.str("");
         ssout << "Height: " << height;
         labs.push_back(ssout.str());
@@ -909,7 +909,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
     ++ipad;
     if ( ipad >= npad || ++ihst >= hsts.size() ) {
       if (  m_LogLevel >= 3 ) cout << myname << "  Writing " << plotFileName << endl;
-      pman->print(plotFileName);
+      pmantop->print(plotFileName);
       delete pmantop;
       pmantop = nullptr;
       ipad = 0;
