@@ -534,7 +534,7 @@ void util::SignalShapingServiceDUNE::SetElectResponse(double shapingtime, double
   art::ServiceHandle<geo::Geometry> geo;
   art::ServiceHandle<util::LArFFT> fft;
 
-  LOG_DEBUG("SignalShapingDUNE") << "Setting DUNE electronics response function...";
+  MF_LOG_DEBUG("SignalShapingDUNE") << "Setting DUNE electronics response function...";
 
   int nticks = fft->FFTSize();
   fElectResponse.resize(nticks, 0.);
@@ -583,7 +583,7 @@ void util::SignalShapingServiceDUNE::SetElectResponse(double shapingtime, double
   }// end loop over time buckets
     
 
-  LOG_DEBUG("SignalShapingDUNE") << " Done.";
+  MF_LOG_DEBUG("SignalShapingDUNE") << " Done.";
 
  //normalize fElectResponse[i], before the convolution   
   
