@@ -96,7 +96,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
-
+  
   //create anab::Calorimetry objects and make association with recob::Track
   std::unique_ptr< std::vector<anab::Calorimetry> > calorimetrycol(new std::vector<anab::Calorimetry>);
   std::unique_ptr< art::Assns<recob::Track, anab::Calorimetry> > assn(new art::Assns<recob::Track, anab::Calorimetry>);
@@ -167,7 +167,9 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           if (!normcorrection) normcorrection = 1.;
           if (!xcorrection) xcorrection = 1.;
           if (!yzcorrection) yzcorrection = 1.;
-          vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
+          //vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
+          
+          
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
           //vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
@@ -181,15 +183,25 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0., 0., 0.};
+          
           if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();
           
           //calculate recombination factors
           double Beta = fModBoxB / (rho * E_field);
           double Alpha = fModBoxA;
+          //double old_vdEdx = vdEdx[j];
           vdEdx[j] = (exp(Beta * Wion * dQdx_e) - Alpha) / Beta;
-
+          
+         /*if (planeID.Plane==2){ 
+         std::cout << sce->EnableCalEfieldSCE() << " " << fSCE << std::endl;
+         std::cout << E_field << " " << E_field_nominal << std::endl;
+         std::cout << vdQdx[j] << " " << dQdx_e << std::endl;
+         std::cout << old_vdEdx << " " << vdEdx[j] << std::endl; 
+         std::cout << rho << " " << Wion << " " << Beta << "\n" << std::endl; }
+         */ 
 	  //update kinetic energy calculation
 	  if (j>=1) {
 	    if ( (vresRange[j] < 0) || (vresRange[j-1] < 0) ) continue;
