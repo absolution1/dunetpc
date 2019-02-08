@@ -30,6 +30,18 @@ pionanalysis:
   BeamlineUtils: @local::standard_protodunebeamlineutils
 
   SelectEvents: [fpath]
+
+  
+  #####Track stitching
+  BrokenTrackZ_low:   220
+  BrokenTrackZ_high:  230
+  StitchTrackZ_low:   232
+  StitchTrackZ_high:  240
+  StitchXTol:         10
+  StitchYTol:         10
+
+
+
 }
 
 END_PROLOG

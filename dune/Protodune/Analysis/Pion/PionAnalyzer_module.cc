@@ -93,13 +93,24 @@ private:
   double startX, startY, startZ;
   double endX, endY, endZ;
   double len;
+  double stitch_len;
+  double combined_len;
   double beam_costheta;
   double new_beam_costheta;
   double beamDirX, beamDirY, beamDirZ;
   double trackDirX, trackDirY, trackDirZ;
   double newDirX, newDirY, newDirZ;
+  int beamTrackID;
+  std::vector< int >  stitchTrackID;
+  std::vector< double > stitch_cos_theta;
+  std::vector< double > stitch_dQdX;
+  std::vector< double > stitch_dEdX;
+  std::vector< double > stitch_resRange;
+  std::vector< double > combined_dQdX;
+  std::vector< double > combined_dEdX;
+  std::vector< double > combined_resRange;
 
-  std::vector< double > dQdX, resRange;
+  std::vector< double > dEdX, dQdX, resRange;
 
   int type;
 
@@ -111,6 +122,9 @@ private:
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
   fhicl::ParameterSet beamlineUtil;
+  double fBrokenTrackZ_low, fBrokenTrackZ_high;
+  double fStitchTrackZ_low, fStitchTrackZ_high;
+  double fStitchXTol, fStitchYTol;
 
 };
 
@@ -127,7 +141,14 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
-  beamlineUtil( p.get<fhicl::ParameterSet>("BeamlineUtils"))
+  beamlineUtil( p.get<fhicl::ParameterSet>("BeamlineUtils")),
+
+  fBrokenTrackZ_low( p.get<double>("BrokenTrackZ_low") ),
+  fBrokenTrackZ_high( p.get<double>("BrokenTrackZ_high") ),
+  fStitchTrackZ_low( p.get<double>("StitchTrackZ_low") ),
+  fStitchTrackZ_high( p.get<double>("StitchTrackZ_high") ),
+  fStitchXTol( p.get<double>("StitchXTol") ),
+  fStitchYTol( p.get<double>("StitchYTol") )
 
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -168,7 +189,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
     const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
     const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
     if(thisTrack != 0x0){
-      std::cout << "Beam particle is track-like" << std::endl;
+      std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
       type = 13;
     }
     if(thisShower != 0x0){
@@ -192,6 +213,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       endY = thisTrack->Trajectory().End().Y();
       endZ = thisTrack->Trajectory().End().Z();
       len  = thisTrack->Length();    
+      beamTrackID = thisTrack->ID();
       
       std::cout << "Start: " << startX << " " << startY << " " << startZ << std::endl;
       std::cout << "End: " << endX << " " << endY << " " << endZ << std::endl;
@@ -336,12 +358,89 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       protoana::ProtoDUNETrackUtils trackUtil;
       std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
       auto calo_dQdX = calo[0].dQdx();
+      auto calo_dEdX = calo[0].dEdx();
       auto calo_range = calo[0].ResidualRange();
       for( size_t i = 0; i < calo_dQdX.size(); ++i ){
         dQdX.push_back( calo_dQdX[i] );
-      }
-      for( size_t i = 0; i < calo_range.size(); ++i ){
+        dEdX.push_back( calo_dEdX[i] );
         resRange.push_back( calo_range[i] );
+      }
+
+
+      //Looking for tracks ending at APA3-2 boundary
+      //
+      if( fBrokenTrackZ_low < endZ && endZ < fBrokenTrackZ_high ){
+        std::cout << "Possibly broken track " << std::endl; 
+        std::cout << "Track: " <<  beamTrackID << " at " << endZ << std::endl;
+        const auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackModuleLabel);
+
+        //Look through all of the tracks
+//        for( size_t i = 0; i < recoTracks->size(); ++i ){
+          
+//          recob::Track tr = recoTracks[i];
+        for( auto const & tr : *recoTracks ){          
+
+          //Skip the beam particle
+          if( tr.ID() == beamTrackID ) continue;
+
+          std::cout << "Checking track: " << tr.ID() << std::endl;
+          
+          //Check if the track is close enough to the APA boundary
+          double stitchStartZ = tr.Trajectory().Start().Z();
+          std::cout << "Start: " << stitchStartZ << std::endl;
+          if( fStitchTrackZ_low < stitchStartZ && stitchStartZ < fStitchTrackZ_high ){
+
+            double deltaX = fabs(endX - tr.Trajectory().Start().X());
+            double deltaY = fabs(endY - tr.Trajectory().Start().Y());
+            double deltaZ = tr.Trajectory().Start().Z() - endZ;
+
+            if( deltaX < fStitchXTol && deltaY < fStitchYTol ){
+              std::cout << "Found track " << tr.ID() << " within (dx, dy, dz): " << deltaX << " " <<  deltaY << " " << deltaZ 
+                        << " of the beam track" << std::endl;
+
+              stitch_len = tr.Length();
+              //Possibly add more requirements?
+              stitchTrackID.push_back(tr.ID());
+
+              //Check the cosine of the angle between them
+              auto stitchDir = tr.StartDirection();
+              stitch_cos_theta.push_back( stitchDir.X()*trackDirX + stitchDir.Y()*trackDirY + stitchDir.Z()*trackDirZ );
+              std::cout << "cosine between possible stitch: " << stitch_cos_theta.back() << std::endl;
+              
+
+              //Get calorimetry of the stitched track
+              std::vector< anab::Calorimetry> stitch_calo = trackUtil.GetRecoTrackCalorimetry(tr, evt, fTrackerTag, fCalorimetryTag);
+              auto temp_dQdX  = stitch_calo[0].dQdx();
+              auto temp_dEdX  = stitch_calo[0].dEdx();
+              auto temp_range = stitch_calo[0].ResidualRange();
+              for( size_t i = 0; i < temp_dQdX.size(); ++i ){
+                stitch_dQdX.push_back( temp_dQdX[i] );
+                stitch_dEdX.push_back( temp_dEdX[i] );
+                stitch_resRange.push_back( temp_range[i] );
+              }
+       
+              ///This will possibly be out of order
+              combined_resRange = stitch_resRange;
+              if( stitch_resRange[0] > stitch_resRange.back() ){      
+                for( size_t i = 0; i < resRange.size(); ++i ){
+                  combined_resRange.push_back( resRange[i] + stitch_resRange[0] );
+                }
+              }
+              else{
+                for( size_t i = 0; i < resRange.size(); ++i ){
+                  combined_resRange.push_back( resRange[i] + stitch_resRange.back() );
+                }
+              }
+              combined_dQdX = stitch_dQdX;
+              combined_dQdX.insert(combined_dQdX.end(), dQdX.begin(), dQdX.end() );
+              combined_dEdX = stitch_dEdX;
+              combined_dEdX.insert(combined_dEdX.end(), dEdX.begin(), dEdX.end() );
+
+              combined_len = stitch_len + len;
+
+            }
+          }
+        }
       }
     }  
   }
@@ -361,6 +460,8 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("endY", &endY);
   fTree->Branch("endZ", &endZ);
   fTree->Branch("len", &len);
+  fTree->Branch("stitch_len", &stitch_len);
+  fTree->Branch("combined_len", &combined_len);
   fTree->Branch("run", &run);
   fTree->Branch("event", &event);
   fTree->Branch("type", &type);
@@ -376,9 +477,19 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("newDirX", &newDirX);
   fTree->Branch("newDirY", &newDirY);
   fTree->Branch("newDirZ", &newDirZ);
+  fTree->Branch("beamTrackID", &beamTrackID);
+  fTree->Branch("stitchTrackID", &stitchTrackID);
+  fTree->Branch("stitch_cos_theta", &stitch_cos_theta);
+  fTree->Branch("stitch_dQdX", &stitch_dQdX);
+  fTree->Branch("stitch_dEdX", &stitch_dEdX);
+  fTree->Branch("stitch_resRange", &stitch_resRange);
+  fTree->Branch("combined_dQdX", &combined_dQdX);
+  fTree->Branch("combined_dEdX", &combined_dEdX);
+  fTree->Branch("combined_resRange", &combined_resRange);
 
   fTree->Branch("MC", &MC);
   fTree->Branch("dQdX", &dQdX);
+  fTree->Branch("dEdX", &dEdX);
   fTree->Branch("resRange", &resRange);
   fTree->Branch("nProton_truth", &nProton_truth);
   fTree->Branch("nPi0_truth", &nPi0_truth);
@@ -403,6 +514,8 @@ void pionana::PionAnalyzer::reset()
   endZ = -1;
 
   len = -1;
+  stitch_len = -1;
+  combined_len = -1;
   type = -1;
   beam_costheta = -100;
   new_beam_costheta = -100;
@@ -414,7 +527,22 @@ void pionana::PionAnalyzer::reset()
   nPiMinus_truth = 0;
 
   dQdX.clear();
+  dEdX.clear();
   resRange.clear();
+
+  beamTrackID = -1;
+
+  if( stitchTrackID.size() ){
+    stitchTrackID.clear();
+    stitch_cos_theta.clear();
+
+    stitch_dQdX.clear();
+    stitch_dEdX.clear();
+    stitch_resRange.clear();
+    combined_dQdX.clear();
+    combined_dEdX.clear();
+    combined_resRange.clear();
+  }
 
 }
 
