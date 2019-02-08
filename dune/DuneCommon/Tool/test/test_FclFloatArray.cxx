@@ -51,9 +51,10 @@ int test_FclFloatArray(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "       tool_type: FclFloatArray" << endl;
     fout << "        LogLevel: 2" << endl;
-    fout << "    DefaultValue: -1" << ioff << endl;
+    fout << "    DefaultValue: -1" << endl;
     fout << "          Offset: " << ioff << endl;
     fout << "           Label: myvals" << endl;
+    fout << "            Unit: ke" << endl;
     fout << "          Values: [   0, 1.01, 2.02, 3.03, 4.04, 5.05, 6.06, 7.07, 8.08, 9.09," << endl;
     fout << "                    10.10, 11.11, 12.12, 13.13, 14.14, 15.15 ]" << endl;
     fout << "  }" << endl;

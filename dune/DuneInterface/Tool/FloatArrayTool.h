@@ -10,7 +10,6 @@
 #ifndef FloatArrayTool_H
 #define FloatArrayTool_H
 
-#include "dune/DuneInterface/Data/RunData.h"
 #include <vector>
 
 class FloatArrayTool {
@@ -23,10 +22,13 @@ public:
   virtual ~FloatArrayTool() =default;
 
   // Return the offset.
-  virtual Index offset() const =0;
+  virtual Index offset() const { return 0; }
 
   // Return the label.
-  virtual std::string label() const =0;
+  virtual std::string label() const { return ""; }
+
+  // Return the units for the values.
+  virtual std::string unit() const { return ""; }
 
   // Return the values without offset.
   virtual const FloatVector& values() const =0;
@@ -57,7 +59,7 @@ public:
   // Existing values may be overwritten.
   // New values below the offset are set to valdef.
   // Returns 0 for success.
-  virtual int fill(FloatVector& vals, float valdef =0.0) const {
+  virtual int fill(FloatVector& vals, float valdef) const {
     Index len = offset() + size();
     if ( len > vals.size() ) vals.resize(len, valdef);
     std::copy(values().begin(), values().end(), vals.begin() + offset());
