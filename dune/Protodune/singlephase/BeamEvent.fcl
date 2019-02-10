@@ -43,6 +43,14 @@ proto_beamevent:
 
   TOF1:               "XBTF022687"
   TOF2:               "XBTF022716"
+
+
+  ####Calibrations for TOFs#####
+  TOFCalAA: 60.1630598   #155.479 - 95.3159402
+  TOFCalAB: 59.7480598   #155.064 - 95.3159402
+  TOFCalBA: 60.0430598   #155.359 - 95.3159402
+  TOFCalBB: 59.6540598   #154.970 - 95.3159402
+  #############################
                                    
   CKov1:              "XCET022713"
   CKov2:              "XCET022716"
@@ -112,9 +120,13 @@ proto_beamevent:
   ########################
 
 # Position of Beam in [cm]
-  BeamX: 8.0757
-  BeamY: 461.06
-  BeamZ: -196.11
+  #BeamX: 8.0757
+  #BeamY: 461.06
+  #BeamZ: -196.11
+  ##New from Martin:
+  BeamX: -4.994
+  BeamY: 448.449
+  BeamZ: -129.804
 
 # Current TAI Offset in [sec]  
   OffsetTAI: 37

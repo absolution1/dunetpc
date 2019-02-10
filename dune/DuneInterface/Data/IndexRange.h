@@ -49,6 +49,9 @@ public:
   // Length of the range.
   Index size() const { return end>begin ? end - begin : 0; }
 
+  // Ordering operator.
+  bool operator<(const IndexRange& rhs) const { return name < rhs.name; }
+
   // Other helpers.
   bool isValid() const { return end > begin; }
   Index first() const { return begin; }

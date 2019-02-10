@@ -244,6 +244,8 @@ private:
   std::string fTOF2;
   std::string fTOF2A, fTOF2B;
 
+  double fTOFCalAA, fTOFCalBA, fTOFCalAB, fTOFCalBB;
+
   // Cerenkovs
   std::string fCKov1;
   std::string fCKov2;
@@ -681,6 +683,8 @@ void proto::BeamEvent::SetBeamEvent(){
   beamevt->SetTOFChans( beamspill->GetMultipleTOFChans( activeTrigger ) );
   beamevt->SetUpstreamTriggers( beamspill->GetUpstreamTriggers( activeTrigger ) );
   beamevt->SetDownstreamTriggers( beamspill->GetDownstreamTriggers( activeTrigger ) );
+  beamevt->SetCalibrations( fTOFCalAA, fTOFCalBA, fTOFCalAB, fTOFCalBB );
+  beamevt->CalibrateTOFs();
   beamevt->DecodeTOF();
 
   const std::vector< double > & tofs = beamevt->GetTOFs();
@@ -1771,6 +1775,11 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fSaveOutTree            = p.get<bool>("SaveOutTree");
   fDebugMomentum          = p.get<bool>("DebugMomentum");
   fDebugTOFs              = p.get<bool>("DebugTOFs");
+
+  fTOFCalAA               = p.get<double>("TOFCalAA");
+  fTOFCalBA               = p.get<double>("TOFCalBA");
+  fTOFCalAB               = p.get<double>("TOFCalAB");
+  fTOFCalBB               = p.get<double>("TOFCalBB");
 
 }
 

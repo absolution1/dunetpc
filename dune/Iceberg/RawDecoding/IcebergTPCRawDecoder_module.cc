@@ -553,10 +553,11 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 
       if (_print_coldata_convert_count)
 	{
+	  std::cout << "Printing coldata convert counts for slot: " << slotNumber << " fiber: " << fiberNumber << std::endl;
 	  // from JJ's PdReaderTest.cc
 	  using namespace pdd;
 	  using namespace pdd::access;
-	  bool printed=false;
+	  //bool printed=false;
 	  TpcStream const        &stream = rce_stream->getStream ();
 	  TpcToc           toc    (stream.getToc    ());
 	  TpcPacket        pktRec (stream.getPacket ());
@@ -574,12 +575,12 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 		  auto const &colddata = wf->getColdData ();
 		  auto cvt0 = colddata[0].getConvertCount ();
 		  //auto cvt1 = colddata[1].getConvertCount ();
-		  std::cout << "RCE coldata convert count: " << cvt0 << std::endl;
-		  printed = true;
+		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << std::endl;
+		  //printed = true;
 		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
-		  break;
+		  //break;
 		}
-	      if (printed) break;
+	      //if (printed) break;
 	    }
 	}
 
@@ -681,7 +682,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
+	  // hardcode crate number 1 so we don't get warning messages
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
 
 	  v_adc.clear();
 

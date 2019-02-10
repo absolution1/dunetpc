@@ -31,6 +31,8 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchau = 800;
   Index nchav = 800;
   Index nchaz = 480;
+  Index nchax = 2*nchaz;
+  Index nchai = nchau + nchav;
   Index apaIdx[ntps] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
   string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
   insertLen("all", 0, ntps*nchaApa, "All", "", "");
@@ -50,6 +52,7 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     Index chv0 = chu0 + nchau;
     Index chx10 = chv0 + nchav;
     Index chx20 = chx10 + nchaz;
+    Index chx0 = chx10;
     bool beamRight = 2*(itps/2) == itps;
     Index chz0 = beamRight ? chx20 : chx10;
     Index chc0 = beamRight ? chx10 : chx20;
@@ -61,6 +64,10 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
     insertLen(sapa + "c", chc0, nchaz, "APA plane " + siapa + "c", sloc);
     insertLen(stpp + "z", chz0, nchaz, "TPC plane " + sitps + "z", sloc, labApa);
     insertLen(sapa + "z", chz0, nchaz, "APA plane " + siapa + "z", sloc);
+    insertLen(stpp + "i", chu0, nchai, "TPC plane " + sitps + "i", sloc, labApa);
+    insertLen(sapa + "i", chu0, nchai, "APA plane " + siapa + "i", sloc);
+    insertLen(stpp + "x", chx0, nchax, "TPC plane " + sitps + "x", sloc, labApa);
+    insertLen(sapa + "x", chx0, nchax, "APA plane " + siapa + "x", sloc);
     Index fchu0 = chu0;
     Index fchv0 = chv0;
     Index fchx0 = chx10;
