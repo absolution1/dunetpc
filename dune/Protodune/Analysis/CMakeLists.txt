@@ -29,6 +29,7 @@ art_make(BASENAME_ONLY
   larsim_MCCheater_BackTrackerService_service           
   larsim_MCCheater_ParticleInventoryService_service
   larreco_RecoAlg
+  larreco_Calorimetry
   MODULE_LIBRARIES
   ${ROOT_BASIC_LIB_LIST}
   ProtoDUNEAnaUtils
