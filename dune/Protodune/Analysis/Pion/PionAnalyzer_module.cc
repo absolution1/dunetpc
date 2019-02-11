@@ -111,6 +111,8 @@ private:
   std::vector< double > combined_resRange;
 
   std::vector< double > dEdX, dQdX, resRange;
+  std::vector< std::vector< double > > daughter_dEdX, daughter_dQdX, daughter_resRange;
+  std::vector< double > daughter_len;
 
   int type;
 
@@ -337,12 +339,13 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
       // check this by making sure we get a sensible position
       const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+      std::cout << "Interaction Vertex: " << interactionVtx.X() << " " <<  interactionVtx.Y() << " " <<  interactionVtx.Z() << std::endl;
 
       // Let's get the daughter PFParticles... we can do this simply without the utility
       for(const int daughterID : particle->Daughters()){
         // Daughter ID is the element of the original recoParticle vector
         const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-        std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
+        std::cout << "Daughter " << daughterID << " PDG: " << daughterParticle->PdgCode() << std::endl; 
       }
  
       // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
@@ -352,11 +355,21 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
       std::cout << std::endl;
 
+      for( size_t i = 0; i < trackDaughters.size(); ++i ){
+        std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
+        daughter_len.push_back( trackDaughters[i]->Length() );
+      }
+
+      for( size_t i = 0; i < showerDaughters.size(); ++i ){
+        std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
+      }
+
 
       //Calorimetry 
       //
       protoana::ProtoDUNETrackUtils trackUtil;
       std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
+      std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
       auto calo_dQdX = calo[0].dQdx();
       auto calo_dEdX = calo[0].dEdx();
       auto calo_range = calo[0].ResidualRange();
@@ -366,6 +379,25 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
         resRange.push_back( calo_range[i] );
       }
 
+
+      //Go through the track-like daughters and save their calorimetry
+      for( size_t i = 0; i < trackDaughters.size(); ++i ){
+        auto daughterTrack = trackDaughters.at(i);
+        std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
+        auto dummy_dQdx = dummy_calo[0].dQdx();
+        auto dummy_dEdx = dummy_calo[0].dEdx();
+        auto dummy_Range = dummy_calo[0].ResidualRange();
+ 
+        daughter_dQdX.push_back( std::vector<double>() );   
+        daughter_dEdX.push_back( std::vector<double>() );
+        daughter_resRange.push_back( std::vector<double>() );
+
+        for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
+          daughter_dQdX.back().push_back( dummy_dQdx[i] );
+          daughter_dEdX.back().push_back( dummy_dEdx[i] );
+          daughter_resRange.back().push_back( dummy_Range[i] );
+        }
+      }
 
       //Looking for tracks ending at APA3-2 boundary
       //
@@ -404,7 +436,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
               //Check the cosine of the angle between them
               auto stitchDir = tr.StartDirection();
-              stitch_cos_theta.push_back( stitchDir.X()*trackDirX + stitchDir.Y()*trackDirY + stitchDir.Z()*trackDirZ );
+              stitch_cos_theta.push_back( stitchDir.X()*thisTrack->EndDirection().X() + stitchDir.Y()*thisTrack->EndDirection().Y() + stitchDir.Z()*thisTrack->EndDirection().Z() );
               std::cout << "cosine between possible stitch: " << stitch_cos_theta.back() << std::endl;
               
 
@@ -491,6 +523,10 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("dQdX", &dQdX);
   fTree->Branch("dEdX", &dEdX);
   fTree->Branch("resRange", &resRange);
+  fTree->Branch("daughter_dQdX", &daughter_dQdX);
+  fTree->Branch("daughter_dEdX", &daughter_dEdX);
+  fTree->Branch("daughter_resRange", &daughter_resRange);
+  fTree->Branch("daughter_len", &daughter_len);
   fTree->Branch("nProton_truth", &nProton_truth);
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
@@ -529,6 +565,11 @@ void pionana::PionAnalyzer::reset()
   dQdX.clear();
   dEdX.clear();
   resRange.clear();
+
+  daughter_dQdX.clear();
+  daughter_dEdX.clear();
+  daughter_resRange.clear();
+  daughter_len.clear();
 
   beamTrackID = -1;
 
