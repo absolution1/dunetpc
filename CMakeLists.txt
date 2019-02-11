@@ -40,7 +40,7 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
   WERROR
   NO_UNDEFINED
   ALLOW_DEPRECATIONS
-  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs
+  EXTRA_FLAGS -pedantic -Wno-unused-local-typedefs  -O0
 )
 
 cet_report_compiler_flags()
@@ -67,6 +67,7 @@ find_ups_product( dune_raw_data v1_10_00 )
 find_ups_product( dunepdsprce v0_0_3 )
 find_ups_product( artdaq_core v01_03_6 )
 find_ups_product( ifdh_art )
+find_ups_product( ifdhc )
 find_ups_geant4( geant4 )
 find_ups_product( systematicstools v00_01_01 )
 find_ups_product( nusystematics v00_01_01 )

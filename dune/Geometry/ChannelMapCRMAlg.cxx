@@ -146,7 +146,7 @@ namespace geo{
     // calculate the total number of channels in the detector
     fNchannels = fTopChannel;
 
-    LOG_DEBUG("ChannelMapCRM") << "# of channels is " << fNchannels;
+    MF_LOG_DEBUG("ChannelMapCRM") << "# of channels is " << fNchannels;
 
 
     return;

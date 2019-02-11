@@ -22,6 +22,8 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
+#include "dunetpc/dune/DuneObj/ProtoDUNETimeStamp.h"
+
 // larsoft includes
 #include "lardataobj/RawData/RDTimeStamp.h"
 
@@ -90,7 +92,8 @@ dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
 
   reconfigure(pset);
   // Call appropriate produces<>() functions here.
-  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);  
+  produces< std::vector<raw::RDTimeStamp> > (fOutputDataLabel);
+  produces< std::vector<dune::ProtoDUNETimeStamp> > (fOutputDataLabel);
 }
 
 void dune::TimingRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
@@ -133,7 +136,7 @@ void dune::TimingRawDecoder::setRootObjects(){
   fHTimestampDelta = tFileService->make<TH1I>("TimestampDelta","Timing Timestamp Delta", 100, 0, 1e3);
   fHTimestampDelta->GetXaxis()->SetTitle("Delta Timestamp (ms)");
 
-  fHTrigType = tFileService->make<TH1I>("TrigType","Timing trigger type", 10, 0, 10);
+  fHTrigType = tFileService->make<TH1I>("TrigType","Timing trigger type", 20, -0.5, 19.5);
   fHTrigType->GetXaxis()->SetTitle("Trigger type");
 
 
@@ -151,16 +154,68 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
   art::RunNumber_t runNumber = evt.run();
 
   std::vector<raw::RDTimeStamp> rdtimestamps;
+  std::vector<dune::ProtoDUNETimeStamp> pdtimestamps;
 
   if(rawFragments.isValid()){
 
     ULong64_t evtTimestamp = 0;
     for(auto const& rawFrag : *rawFragments){
       dune::TimingFragment frag(rawFrag);
+      // Try to determine the version of the fragment. This is
+      // complicated because early versions of the fragment didn't
+      // have a metadata object with the version, so for those, we
+      // have to look at the size of the fragment (actually the size
+      // of the payload, which excludes the header and metadata)
+      int fragmentVersion=0;
+      if(rawFrag.hasMetadata()){
+          dune::TimingFragment::Metadata const* metadata=rawFrag.metadata<dune::TimingFragment::Metadata>();
+          fragmentVersion=metadata->fragment_version;
+      }
+      else{
+          size_t dataSizeBytes=rawFrag.dataSizeBytes();
+          // The first version of the fragment had 6 uint32_t words
+          if(dataSizeBytes==6*sizeof(uint32_t)){
+              fragmentVersion=1;
+          }
+          // The second version of the fragment had 12 uint32_t words,
+          // as the last spill start/end and last run start timestamps
+          // were added
+          else if(dataSizeBytes==12*sizeof(uint32_t)){
+              fragmentVersion=2;
+          }
+          else{
+              throw cet::exception("TimingRawDecoder::produce") << "Fragment had no metadata and unexpected size " << dataSizeBytes << " bytes. Can't determined timing fragment version";
+          }
+      }
+
       //std::cout << "  Run " << runNumber << ", event " << eventNumber << ": ArtDaq Fragment Timestamp: "  << std::dec << rawFrag.timestamp() << std::endl;
       ULong64_t currentTimestamp=frag.get_tstamp();
       uint16_t scmd = (frag.get_scmd() & 0xFFFF);  // mask this just to make sure.  Though scmd only has four relevant bits, the method is declared uint32_t.
       rdtimestamps.emplace_back(currentTimestamp,scmd);
+
+      dune::ProtoDUNETimeStamp pdts;
+      pdts.setCookie(frag.get_cookie());
+      pdts.setTriggerType((dune::ProtoDUNETimingCommand)frag.get_scmd());
+      pdts.setReservedBits(frag.get_tcmd());
+      pdts.setTimeStamp(frag.get_tstamp());
+      pdts.setEventCounter(frag.get_evtctr());
+      // TODO: Checksum isn't set by the board reader yet
+      pdts.setChecksumGood(true);
+      pdts.setVersion(fragmentVersion);
+      // The additional timestamps were not added until version 2 of the timing fragment
+      if(fragmentVersion>=2){
+          pdts.setLastRunStart(frag.get_last_runstart_timestamp());
+          pdts.setLastSpillStart(frag.get_last_spillstart_timestamp());
+          pdts.setLastSpillEnd(frag.get_last_spillend_timestamp());
+      }
+      else{
+          // Set to 0xfff... if not present
+          pdts.setLastRunStart(~0ul);
+          pdts.setLastSpillStart(~0ul);
+          pdts.setLastSpillEnd(~0ul);
+      }
+
+      pdtimestamps.push_back(pdts);
 
       fHTimestamp->Fill(currentTimestamp/1e6);
       fHTrigType->Fill(frag.get_scmd());
@@ -193,6 +248,7 @@ void dune::TimingRawDecoder::produce(art::Event & evt){
     }
   }
   evt.put(std::make_unique<decltype(rdtimestamps)>(std::move(rdtimestamps)), fOutputDataLabel);
+  evt.put(std::make_unique<decltype(pdtimestamps)>(std::move(pdtimestamps)), fOutputDataLabel);
 }
 
 DEFINE_ART_MODULE(dune::TimingRawDecoder)

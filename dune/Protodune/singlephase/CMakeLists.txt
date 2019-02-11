@@ -36,7 +36,7 @@ art_make( MODULE_LIBRARIES
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			
+      ProtoDUNEAnaUtils			
 			cetlib cetlib_except
 			${ROOT_BASIC_LIB_LIST}
 )
@@ -45,11 +45,14 @@ install_headers()
 install_fhicl()
 install_source()
 install_scripts()
+add_subdirectory(Exe)
 add_subdirectory(NearlineMonitor)
 add_subdirectory(RawDecoding)
-#add_subdirectory(calcuttjRecoEff)
 add_subdirectory(CRT)
 add_subdirectory(CTB)
 add_subdirectory(Tool)
 add_subdirectory(dEdxcalibration)
 add_subdirectory(XYZcalibration)
+add_subdirectory(PhotonDetectors)
+add_subdirectory(fcl)
+add_subdirectory(DetectorServices)

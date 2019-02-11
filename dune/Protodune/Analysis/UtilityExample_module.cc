@@ -245,7 +245,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   // of the event. We can use metadata from pandora to build a slice map if we want to.
   // This consists of the slice number from pandora and a vector of primary PFParticles 
   // in that slice
-  std::map<unsigned int, std::vector<recob::PFParticle*>> sliceMap;
+  std::map<unsigned int, std::vector<const recob::PFParticle*>> sliceMap;
   // Get the slice map from the PFParticle utility
   sliceMap = pfpUtil.GetPFParticleSliceMap(evt,fPFParticleTag);
   unsigned int nMultiSlice = 0;
@@ -262,7 +262,7 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
   std::cout << "- Beam slice = " << beamSlice << std::endl;
   if(beamSlice != 9999){
     // We have found the beam slice. Let's get the particles contained in the slice
-    std::vector<recob::PFParticle*> beamSlicePrimaries = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+    std::vector<const recob::PFParticle*> beamSlicePrimaries = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
     std::cout << " - Found the beam slice! " << beamSlicePrimaries.size() << " beam particles in slice " << beamSlice << std::endl;
     // Loop over the particles in the beam slice
     for (const recob::PFParticle* prim : beamSlicePrimaries){
@@ -296,6 +296,9 @@ void protoana::UtilityExample::analyze(art::Event const & evt)
       std::cout << "Beam particle has " << daughterTracks.size() << " daughter tracks and " << daughterShowers.size() << " daughter showers." << std::endl;
     }
 
+    // Look for unassociated hits in the beam slice
+    const std::vector<const recob::Hit*> unassocHits = pfpUtil.GetPFParticleSliceUnassociatedHits(*(beamSlicePrimaries[0]),evt,fPFParticleTag);
+    std::cout << "The besm slice has " << unassocHits.size() << " hits not associated to any PFParticle " << std::endl;
   }
 
   // The first pass of pandora reconstruction identifies clear cosmic particles. We can get a vector of these from the PFParticle utility

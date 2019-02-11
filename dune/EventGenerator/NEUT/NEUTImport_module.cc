@@ -3,8 +3,16 @@
 // Module Type: producer
 // File:        NEUTImport_module.cc
 //
-// Get input list of selected reco track, generates primary MCParticles
-// matching each of them
+// author: Christoph Alt
+// email: christoph.alt@cern.ch
+//
+// - Outside LArSoft: files are generated with NEUT and then converted to RooTracker-like format,
+// using the NeutToRooTracker package. 
+// - This module: The RooTracker-like files are imported and converted to art format, event by event.
+// Only final state particles (status 1) are added to the art events.
+//
+// NeutToRooTracker: https://github.com/luketpickering/NeutToRooTracker (by Luke Pickering)
+// 
 ////////////////////////////////////////////////////////////////////////
 
 // ROOT includes
@@ -62,13 +70,13 @@ namespace evgendp{
 
   //----------------------------------------------------------------------------
 
-  class NDecayParticle{
-    //holds NDecayParticle input parameters from file
+  class RooTrackerParticle{
+    //holds RooTrackerParticle input parameters from file
 
   public:
 
-      NDecayParticle();
-      ~NDecayParticle();
+      RooTrackerParticle();
+      ~RooTrackerParticle();
 
       TLorentzVector getPosition();
       TLorentzVector getMomentum();
@@ -84,19 +92,19 @@ namespace evgendp{
       double momZ;
       double energy;
 
-  }; //end class NDecayParticle
+  }; //end class RooTrackerParticle
 
-  NDecayParticle::NDecayParticle(){
+  RooTrackerParticle::RooTrackerParticle(){
 
   }
-  NDecayParticle::~NDecayParticle(){}
+  RooTrackerParticle::~RooTrackerParticle(){}
 
-  TLorentzVector NDecayParticle::getPosition(){
+  TLorentzVector RooTrackerParticle::getPosition(){
     TLorentzVector position(startX, startY, startZ, 0);
     return position;
   }
 
-  TLorentzVector NDecayParticle::getMomentum(){
+  TLorentzVector RooTrackerParticle::getMomentum(){
     TLorentzVector momentum( 0.001*momX, 0.001*momY, 0.001*momZ, 0.001*energy );
     return momentum;
   }
@@ -113,19 +121,44 @@ namespace evgendp{
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
 
-      fhicl::Atom<double> P0{
-        Name("P0"),
-        Comment("central momentum (GeV/c) to generate")
+      fhicl::Atom<double> LogLevel{
+        Name("LogLevel"),
+        Comment("LogLevel")
       };
 
-      fhicl::Atom<double> SigmaP{
-        Name("SigmaP"),
-        Comment("variation in momenta (GeV/c)")
+      fhicl::Atom<double> StartEvent{
+        Name("StartEvent"),
+        Comment("StartEvent")
       };
 
-      fhicl::Atom<std::string> FName{
+      fhicl::Atom<double> NumberOfEvents{
+        Name("NumberOfEvents"),
+        Comment("NumberOfEvents")
+      };
+
+      fhicl::Atom<double> StartPositionX{
+        Name("StartPositionX"),
+        Comment("StartPositionX")
+      };
+
+      fhicl::Atom<double> StartPositionY{
+        Name("StartPositionY"),
+        Comment("StartPositionY")
+      };
+
+      fhicl::Atom<double> StartPositionZ{
+        Name("StartPositionZ"),
+        Comment("StartPositionZ")
+      };
+
+      fhicl::Atom<std::string> FileName{
         Name("FileName"),
         Comment("NEUT output")
+      };
+
+      fhicl::Atom<bool> UseRotatedStartMomentum{
+        Name("UseRotatedStartMomentum"),
+        Comment("Set to true to use rotated start momentum")
       };
     }; //end struct Config
 
@@ -143,11 +176,16 @@ namespace evgendp{
 
     void beginJob() override;
 
-    double fP0;
-    double fSigmaP;
-    std::string fFName;
+    int fLogLevel;
+    int fStartEvent;
+    int fNumberOfEvents;
+    double fStartPositionX;
+    double fStartPositionY;
+    double fStartPositionZ;
+    std::string fFileName;
+    bool fUseRotatedStartMomentum;
 
-    std::map< int, std::vector< NDecayParticle*> > NDecayEventMap;
+    std::map< int, std::vector< RooTrackerParticle*> > RooTrackerEventMap;
 
   };
 
@@ -156,10 +194,15 @@ namespace evgendp{
 ////////////////////////////////////////////////////////////////////////////////
 
 evgendp::NEUTImport::NEUTImport(Parameters const& config)
- :
-   fP0           (config().P0()),
-   fSigmaP       (config().SigmaP()),
-   fFName        (config().FName())
+ : EDProducer{config},
+   fLogLevel			(config().LogLevel()),
+   fStartEvent			(config().StartEvent()),
+   fNumberOfEvents		(config().NumberOfEvents()),
+   fStartPositionX		(config().StartPositionX()),
+   fStartPositionY		(config().StartPositionY()),
+   fStartPositionZ		(config().StartPositionZ()),
+   fFileName			(config().FileName()),
+   fUseRotatedStartMomentum	(config().UseRotatedStartMomentum())
 {
     art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
     //art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "gen", p, { "Seed", "SeedGenerator" });
@@ -176,60 +219,88 @@ void evgendp::NEUTImport::beginJob(){
 
   const int NMaxParticlesPerEvent = 1000;
 
-  TFile *neutFile = new TFile(fFName.c_str(), "READ");
-  TTree *neutTree = (TTree*)neutFile->Get("nRooTracker"); //should always be the same
-  int NEvents= (int)neutTree->GetEntries();
-  std::cout << "Reading in " << NEvents << " NEUT events. " << std::endl;
-
-
   int tStdHepN = 0;
   int tStdHepStatus[NMaxParticlesPerEvent] = {0};
   int tStdHepPdg[NMaxParticlesPerEvent] = {0};
   double tStdHepP4[4*NMaxParticlesPerEvent] = {0.};
 
+
+  TFile *neutFile = new TFile(fFileName.c_str(), "READ");
+  TTree *neutTree = (TTree*)neutFile->Get("nRooTracker");
+  int NEvents = (int)neutTree->GetEntries();
+  std::cout << "Reading in " << NEvents << " NEUT events. " << std::endl;
+
   neutTree->SetBranchAddress("StdHepN",&tStdHepN);
   neutTree->SetBranchAddress("StdHepStatus",&tStdHepStatus);
   neutTree->SetBranchAddress("StdHepPdg",&tStdHepPdg);
-  neutTree->SetBranchAddress("StdHepP4",&tStdHepP4);
+
+  TTree *neutTreeRot;
+
+  if(fUseRotatedStartMomentum)
+  {
+    neutTreeRot = (TTree*)neutFile->Get("nRooTrackerRot");
+    neutTreeRot->SetBranchAddress("StdHepP4Rot",&tStdHepP4);
+  }
+  else
+  {
+    neutTree->SetBranchAddress("StdHepP4",&tStdHepP4);
+  }
 
 
-  for(int i=0; i<NEvents; i++) //Event loop
+  for(int i=fStartEvent; i<fStartEvent+fNumberOfEvents; i++) //Event loop
   {
     neutTree->GetEntry(i);
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << "Event " << i << std::endl;
-    std::cout << "NParticles: " << tStdHepN << std::endl;
+    if(fUseRotatedStartMomentum)
+    {
+      neutTreeRot->GetEntry(i);
+    }
+
+    if(fLogLevel == 1)
+    {
+      std::cout << std::endl;
+      std::cout << std::endl;
+      std::cout << "Event #" << i+1 << " in LArSoft, event #" << i << " in ROOT file." << std::endl;
+      std::cout << "NParticles:\t" << tStdHepN << " (from 0 to " << tStdHepN-1 << ")" << std::endl;
+    }
 
     for(int j=0; j<tStdHepN; j++)
     {
-      if( tStdHepPdg[j]!=0 && tStdHepStatus[j] == 1 && std::abs(tStdHepP4[4*j]) + std::abs(tStdHepP4[4*j+1]) + std::abs(tStdHepP4[4*j+2]) > 0 )
+      double fAbsoluteParticleMomentum = sqrt( pow(tStdHepP4[4*j],2) + pow(tStdHepP4[4*j+1],2) + pow(tStdHepP4[4*j+2],2) );
+      //Only take particles with real PDG code (!=0), status 1 and momentum > 0.
+      //Also ignore first particle (j=0): this is the decaying nucleon in case of nucleon decay or incoming neutrino in case of atmospheric neutrino background.
+      if( tStdHepPdg[j] != 0 && tStdHepStatus[j] == 1 && j > 0 && fAbsoluteParticleMomentum > 0 )
       {
     	static TDatabasePDG  pdgt;
     	TParticlePDG* pdgp = pdgt.GetParticle(tStdHepPdg[j]);
 
-    	NDecayParticle *ndecayparticle = new NDecayParticle();
-	ndecayparticle->pdg = tStdHepPdg[j];
-	ndecayparticle->mass = pdgp->Mass();
-	ndecayparticle->startX = 0;
-	ndecayparticle->startY = -150;
-	ndecayparticle->startZ = 150;
-	ndecayparticle->momX = tStdHepP4[4*j];
-	ndecayparticle->momY = tStdHepP4[4*j+1];
-	ndecayparticle->momZ = tStdHepP4[4*j+2];
-	ndecayparticle->energy = tStdHepP4[4*j+3];
-    	NDecayEventMap[i].push_back(ndecayparticle);
-    	std::cout << std::endl;
-	std::cout << "Status " << j << ":\t" << tStdHepStatus[j] << std::endl;
-	std::cout << "PDG " << j << ":\t" << ndecayparticle->pdg << std::endl;
-	std::cout << "Mas " << j << ":\t" << ndecayparticle->mass << std::endl;
-	std::cout << "Start.X " << j << ":\t" << ndecayparticle->startX << std::endl;
-	std::cout << "Start.Y " << j << ":\t" <<ndecayparticle->startY << std::endl;
-	std::cout << "Start.Z " << j << ":\t" << ndecayparticle->startZ << std::endl;
-	std::cout << "Mom.X " << j << ":\t" << ndecayparticle->momX << std::endl;
-	std::cout << "Mom.Y " << j << ":\t" <<ndecayparticle->momY << std::endl;
-	std::cout << "Mom.Z " << j << ":\t" << ndecayparticle->momZ << std::endl;
-	std::cout << "Energy " << j << ":\t" << tStdHepP4[4*j+3] << std::endl;
+    	RooTrackerParticle *rootrackerparticle = new RooTrackerParticle();
+	rootrackerparticle->pdg = tStdHepPdg[j];
+	rootrackerparticle->mass = pdgp->Mass();
+	rootrackerparticle->startX = fStartPositionX;
+	rootrackerparticle->startY = fStartPositionY;
+	rootrackerparticle->startZ = fStartPositionZ;
+	rootrackerparticle->momX = tStdHepP4[4*j];
+	rootrackerparticle->momY = tStdHepP4[4*j+1];
+	rootrackerparticle->momZ = tStdHepP4[4*j+2];
+	rootrackerparticle->energy = tStdHepP4[4*j+3];
+    	RooTrackerEventMap[i-fStartEvent].push_back(rootrackerparticle);
+
+	if(fLogLevel == 1)
+	{
+	  std::cout << std::endl;
+	  std::cout << "Particle " << j << ":" << std::endl;
+	  std::cout << "Status particle " << j << ":\t" << tStdHepStatus[j] << std::endl;
+	  std::cout << "PDG particle " << j << ":\t" << rootrackerparticle->pdg << std::endl;
+	  std::cout << "Mass particle " << j << ":\t" << rootrackerparticle->mass << std::endl;
+	  std::cout << "StartPositionX particle " << j << ":\t" << rootrackerparticle->startX << std::endl;
+	  std::cout << "StartPositionY particle " << j << ":\t" <<rootrackerparticle->startY << std::endl;
+	  std::cout << "StartPositionZ particle " << j << ":\t" << rootrackerparticle->startZ << std::endl;
+	  std::cout << "StartMomentumX particle " << j << ":\t" << rootrackerparticle->momX << std::endl;
+	  std::cout << "StartMomentumY particle " << j << ":\t" <<rootrackerparticle->momY << std::endl;
+	  std::cout << "StartMomentumZ particle " << j << ":\t" << rootrackerparticle->momZ << std::endl;
+	  std::cout << "StartEnergy particle " << j << ":\t" << tStdHepP4[4*j+3] << std::endl;
+	  std::cout << "Absolute momentum particle " << j << ":\t" << fAbsoluteParticleMomentum << std::endl;
+	}
       }
     }
   }
@@ -241,7 +312,8 @@ void evgendp::NEUTImport::produce(art::Event & e){
 
 
   art::ServiceHandle<art::RandomNumberGenerator> rng;
-  CLHEP::HepRandomEngine &engine = rng->getEngine();
+  CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),
+                                                  moduleDescription().moduleLabel());
   CLHEP::RandFlat flat(engine);
 
   std::unique_ptr< std::vector<simb::MCTruth> > truthcol(new std::vector<simb::MCTruth>);
@@ -250,15 +322,15 @@ void evgendp::NEUTImport::produce(art::Event & e){
   truth.SetOrigin(simb::kUnknown);
 
   //read the particle map and create the MCParticle
-  int ndecayparticlecounter=0;
-  for(NDecayParticle* ndecayparticle : NDecayEventMap[e.id().event()] ){
+  int rootrackerparticlecounter=0;
+  for(RooTrackerParticle* rootrackerparticle : RooTrackerEventMap[e.id().event()-1] ){ //-1: art events start at 1, events in EventMap start at 0.
 
-    simb::MCParticle particle( ndecayparticlecounter, ndecayparticle->pdg ,"primary",-200, ndecayparticle->mass , 1 );
-    particle.AddTrajectoryPoint( ndecayparticle->getPosition() , ndecayparticle->getMomentum() );
+    simb::MCParticle particle( rootrackerparticlecounter, rootrackerparticle->pdg ,"primary",-200, rootrackerparticle->mass , 1 );
+    particle.AddTrajectoryPoint( rootrackerparticle->getPosition() , rootrackerparticle->getMomentum() );
 
     truth.Add(particle);
 
-    ndecayparticlecounter++;
+    rootrackerparticlecounter++;
   }
 
   truthcol->push_back(truth);
@@ -266,4 +338,4 @@ void evgendp::NEUTImport::produce(art::Event & e){
 
 }
 
-DEFINE_ART_MODULE(evgendp::NEUTImport)
+DEFINE_ART_MODULE(evgendp::NEUTImport) 

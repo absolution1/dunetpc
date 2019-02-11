@@ -395,8 +395,8 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   //track information
   ntracks_reco=tracklist.size();
 
-  TVector3 larStart;
-  TVector3 larEnd;
+  recob::Track::Point_t larStart;
+  recob::Track::Point_t larEnd;
   
   // Get Cryostat information.....
   int c=0;//only one cryo   
@@ -465,12 +465,12 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       trkendx[i]        = trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
       trkendy[i]        = trackEnd.Y();
       trkendz[i]        = trackEnd.Z();
-      trkstartdcosx[i]  = larStart[0];
-      trkstartdcosy[i]  = larStart[1];
-      trkstartdcosz[i]  = larStart[2];
-      trkenddcosx[i]    = larEnd[0];
-      trkenddcosy[i]    = larEnd[1];
-      trkenddcosz[i]    = larEnd[2];
+      trkstartdcosx[i]  = larStart.X();
+      trkstartdcosy[i]  = larStart.Y();
+      trkstartdcosz[i]  = larStart.Z();
+      trkenddcosx[i]    = larEnd.X();
+      trkenddcosy[i]    = larEnd.Y();
+      trkenddcosz[i]    = larEnd.Z();
       TLorentzVector v1(trackStart.X(),trackStart.Y(),trackStart.Z(),0);
       TLorentzVector v2(trackEnd.X(),trackEnd.Y(),trackEnd.Z(),0);
       trklen[i]=(v2-v1).Rho();
@@ -482,7 +482,7 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       // Fill histograms involving reco tracks only.
       int ntraj = track.NumberTrajectoryPoints();
       if(ntraj > 0) {
-	TVector3 dir = track.VertexDirection();
+	auto dir = track.VertexDirection();
 	trktheta_xz[i] = std::atan2(dir.X(), dir.Z());
 	trktheta_yz[i] = std::atan2(dir.Y(), dir.Z());
 	trketa_xy[i] = std::atan2(dir.X(), dir.Y());

@@ -6,7 +6,7 @@
 // Generated at Thu Jul  6 18:31:48 2017 by Antonino Sergi,32 1-A14,+41227678738, using artmod
 // from cetpkgsupport v1_11_00.
 //
-//   
+// Most recent additions by Bryan Ramson of FNAL (bjrams87@fnal.gov), Thursday September 20, 2018   
 ////////////////////////////////////////////////////////////////////////
 
 // art includes
@@ -70,18 +70,18 @@ public:
     unsigned short trig_id;
     unsigned short module_id;
     unsigned short channel_id;
-    unsigned int timestamp_sync_delay;
-    unsigned int timestamp_sync_count;
-    unsigned long timestamp_nova;
+    unsigned long timestamp_sync_delay;
+    unsigned long timestamp_sync_count;
+    uint64_t timestamp_nova; //make sure the data type actually contains the data...
     uint32_t peaksum;
     unsigned short peaktime;
     unsigned int prerise;
     unsigned int intsum;
-    unsigned short baseline;
+    unsigned long baseline;
     unsigned long baselinesum;
-    unsigned short cfd_interpol[4];
-    unsigned short internal_interpol;
-    uint64_t internal_timestamp;
+    unsigned long cfd_interpol[4];
+    unsigned long internal_interpol;
+    uint64_t internal_timestamp; //internal timestamps necessary for 150 Mhz sample matching, if desired.
   };
   void readHeader(const SSPDAQ::EventHeader* daqHeader, struct trig_variables* tv);
 
@@ -99,7 +99,10 @@ private:
 
   // Declare member data here.
   std::string fRawDataLabel;
+  bool        fSplitTriggers;
   std::string fOutputDataLabel;
+  std::string fExtTrigOutputLabel;
+  std::string fIntTrigOutputLabel;
   bool fUseChannelMap;
   bool fDebug;
   raw::Compress_t        fCompression;      ///< compression type to use
@@ -107,29 +110,407 @@ private:
 
   uint32_t n_adc_counter_;  //counter of total number of ALL adc values in an event
   uint64_t adc_cumulative_; //cumulative total of ALL adc values in an event
+  
+  //debug and scaling variables scale all times to sample 0, per SSP
+  uint64_t intreftime_[24];
+  uint64_t int_ireftime_[24];
+  uint64_t extreftime_[24];
+  uint64_t ext_ireftime_[24];
+  uint64_t allreftime;
+  int diff_time = 5; //~33 ns window for coincidences
 
   uint32_t         verb_adcs_;
   bool             verb_meta_;
+  bool             timed_;
 
-  TH1D * n_event_packets_;
+  TH1D * n_event_packets_; //diagnostic histos
   TH1D * frag_sizes_;
+  TH1D * trig_ref_time_;
+  TH1D * trig_abs_time_;
+  TH2D * trig_adc_time_;
+  TH2D * hit_map_;
+  TH2D * coincidence_map_;
+  TH2D * heat_map_;
 
-  // m1, i1, i2
-  double m1,i1,i2;
+  // m1, m2, i1, i2
+  double m1,m2,i1,i2;
 
   double NOvAClockFrequency;
   double SPESize;
 
-  //Graphs and vectors                                                                                                                                      
+  //const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
+  const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
+  //const uint32_t spillsamptime_ = 720000000; //~4.8 sec beam spill time
+  
+  //global vectors for smuggling relevant variables out of the producer method/function
+  std::vector<unsigned short> coin_module_id, coin_channel_id;
+  std::vector<double> coin_adc_peak;
+  std::vector<uint64_t> coin_ext_time;
+  std::vector<int32_t> coin_int_time;
+                                                                                                                                        
 
   int number_of_packets = 12;  // 12 channels per SSP
+  
+  //physical map for coincidence and heat maps. May be useful elsewhere...
+  std::map<std::pair<int,int>,std::pair<int,int>> phys_map_ =
+    { {std::make_pair(11,0),std::make_pair(8,9)},
+      {std::make_pair(11,1),std::make_pair(9,9)},
+      {std::make_pair(11,2),std::make_pair(10,9)},
+      {std::make_pair(11,3),std::make_pair(11,9)},
+
+      {std::make_pair(11,4),std::make_pair(8,8)},
+      {std::make_pair(11,5),std::make_pair(9,8)},
+      {std::make_pair(11,6),std::make_pair(10,8)},
+      {std::make_pair(11,7),std::make_pair(11,8)},
+
+      {std::make_pair(11,8),std::make_pair(8,7)},
+      {std::make_pair(11,9),std::make_pair(9,7)},
+      {std::make_pair(11,10),std::make_pair(10,7)},
+      {std::make_pair(11,11),std::make_pair(11,7)}, //SSP 101                                                         
+
+      {std::make_pair(12,0),std::make_pair(8,6)},
+      {std::make_pair(12,1),std::make_pair(9,6)},
+      {std::make_pair(12,2),std::make_pair(10,6)},
+      {std::make_pair(12,3),std::make_pair(11,6)},
+
+      {std::make_pair(12,4),std::make_pair(8,5)},
+      {std::make_pair(12,5),std::make_pair(9,5)},
+      {std::make_pair(12,6),std::make_pair(10,5)},
+      {std::make_pair(12,7),std::make_pair(11,5)},
+
+      {std::make_pair(12,8),std::make_pair(8,4)},
+      {std::make_pair(12,9),std::make_pair(9,4)},
+      {std::make_pair(12,10),std::make_pair(10,4)},
+      {std::make_pair(12,11),std::make_pair(11,4)}, //SSP 102
+      
+      {std::make_pair(13,0),std::make_pair(8,3)},
+      {std::make_pair(13,1),std::make_pair(9,3)},
+      {std::make_pair(13,2),std::make_pair(10,3)},
+      {std::make_pair(13,3),std::make_pair(11,3)},
+
+      {std::make_pair(13,4),std::make_pair(8,2)},
+      {std::make_pair(13,5),std::make_pair(9,2)},
+      {std::make_pair(13,6),std::make_pair(10,2)},
+      {std::make_pair(13,7),std::make_pair(11,2)},
+
+      {std::make_pair(13,8),std::make_pair(8,1)},
+      {std::make_pair(13,9),std::make_pair(9,1)},
+      {std::make_pair(13,10),std::make_pair(10,1)},
+      {std::make_pair(13,11),std::make_pair(11,1)}, //SSP 103                                                         
+
+      {std::make_pair(14,0),std::make_pair(8,0)},
+      {std::make_pair(14,1),std::make_pair(9,0)},
+      {std::make_pair(14,2),std::make_pair(10,0)},
+      {std::make_pair(14,3),std::make_pair(11,0)}, //SSP 104                                                          
+
+      {std::make_pair(21,0),std::make_pair(4,9)},
+      {std::make_pair(21,1),std::make_pair(5,9)},
+      {std::make_pair(21,2),std::make_pair(6,9)},
+      {std::make_pair(21,3),std::make_pair(7,9)},
+
+      {std::make_pair(21,4),std::make_pair(4,8)},
+      {std::make_pair(21,5),std::make_pair(5,8)},
+      {std::make_pair(21,6),std::make_pair(6,8)},
+      {std::make_pair(21,7),std::make_pair(7,8)},
+
+      {std::make_pair(21,8),std::make_pair(4,7)},
+      {std::make_pair(21,9),std::make_pair(5,7)},
+      {std::make_pair(21,10),std::make_pair(6,7)},
+      {std::make_pair(21,11),std::make_pair(7,7)}, //SSP 201  
+
+      {std::make_pair(22,0),std::make_pair(4,6)},
+      {std::make_pair(22,1),std::make_pair(5,6)},
+      {std::make_pair(22,2),std::make_pair(6,6)},
+      {std::make_pair(22,3),std::make_pair(7,6)},
+
+      {std::make_pair(22,4),std::make_pair(4,5)},
+      {std::make_pair(22,5),std::make_pair(5,5)},
+      {std::make_pair(22,6),std::make_pair(6,5)},
+      {std::make_pair(22,7),std::make_pair(7,5)},
+
+      {std::make_pair(22,8),std::make_pair(4,4)},
+      {std::make_pair(22,9),std::make_pair(5,4)},
+      {std::make_pair(22,10),std::make_pair(6,4)},
+      {std::make_pair(22,11),std::make_pair(7,4)}, //SSP 202                                                          
+
+      {std::make_pair(23,0),std::make_pair(4,3)},
+      {std::make_pair(23,1),std::make_pair(5,3)},
+      {std::make_pair(23,2),std::make_pair(6,3)},
+      {std::make_pair(23,3),std::make_pair(7,3)},
+
+      {std::make_pair(23,4),std::make_pair(4,2)},
+      {std::make_pair(23,5),std::make_pair(5,2)},
+      {std::make_pair(23,6),std::make_pair(6,2)},
+      {std::make_pair(23,7),std::make_pair(7,2)},
+
+      {std::make_pair(23,8),std::make_pair(4,1)},
+      {std::make_pair(23,9),std::make_pair(5,1)},
+      {std::make_pair(23,10),std::make_pair(6,1)},
+      {std::make_pair(23,11),std::make_pair(7,1)}, //SSP 203                                                          
+
+      {std::make_pair(24,0),std::make_pair(4,0)},
+      {std::make_pair(24,1),std::make_pair(5,0)},
+      {std::make_pair(24,2),std::make_pair(6,0)},
+      {std::make_pair(24,3),std::make_pair(7,0)}, //SSP 204 
+
+      {std::make_pair(31,0),std::make_pair(0,9)},
+      {std::make_pair(31,1),std::make_pair(1,9)},
+      {std::make_pair(31,2),std::make_pair(2,9)},
+      {std::make_pair(31,3),std::make_pair(3,9)},
+
+      {std::make_pair(31,4),std::make_pair(0,8)},
+      {std::make_pair(31,5),std::make_pair(1,8)},
+      {std::make_pair(31,6),std::make_pair(2,8)},
+      {std::make_pair(31,7),std::make_pair(3,8)},
+
+      {std::make_pair(31,8),std::make_pair(0,7)},
+      {std::make_pair(31,9),std::make_pair(1,7)},
+      {std::make_pair(31,10),std::make_pair(2,7)},
+      {std::make_pair(31,11),std::make_pair(3,7)}, //SSP 301                                                          
+
+      {std::make_pair(32,0),std::make_pair(0,5)},
+      {std::make_pair(32,1),std::make_pair(1,5)},
+      {std::make_pair(32,2),std::make_pair(2,5)},
+      {std::make_pair(32,3),std::make_pair(3,5)},
+
+      {std::make_pair(32,4),std::make_pair(0,4)},
+      {std::make_pair(32,5),std::make_pair(1,4)},
+      {std::make_pair(32,6),std::make_pair(2,4)},
+      {std::make_pair(32,7),std::make_pair(3,4)},
+
+      {std::make_pair(32,8),std::make_pair(0,3)},
+      {std::make_pair(32,9),std::make_pair(1,3)},
+      {std::make_pair(32,10),std::make_pair(2,3)},
+      {std::make_pair(32,11),std::make_pair(3,3)}, //SSP 302 
+  
+      {std::make_pair(33,0),std::make_pair(0,2)},
+      {std::make_pair(33,1),std::make_pair(1,2)},
+      {std::make_pair(33,2),std::make_pair(2,2)},
+      {std::make_pair(33,3),std::make_pair(3,2)},
+
+      {std::make_pair(33,4),std::make_pair(0,1)},
+      {std::make_pair(33,5),std::make_pair(1,1)},
+      {std::make_pair(33,6),std::make_pair(2,1)},
+      {std::make_pair(33,7),std::make_pair(3,1)},
+
+      {std::make_pair(34,0),std::make_pair(21,21)},
+      {std::make_pair(34,1),std::make_pair(21,21)},
+      {std::make_pair(34,2),std::make_pair(21,21)},
+      {std::make_pair(34,3),std::make_pair(21,21)}, //SSP 304                                                          
+
+      {std::make_pair(34,4),std::make_pair(21,21)},
+      {std::make_pair(34,5),std::make_pair(21,21)},
+      {std::make_pair(34,6),std::make_pair(21,21)},
+      {std::make_pair(34,7),std::make_pair(21,21)}, //SSP 304 
+      
+      {std::make_pair(34,8),std::make_pair(21,21)},
+      {std::make_pair(34,9),std::make_pair(21,21)},
+      {std::make_pair(34,10),std::make_pair(21,21)},
+      {std::make_pair(34,11),std::make_pair(21,21)}, //SSP 304                                                          
+
+      
+      {std::make_pair(41,0),std::make_pair(8,19)},
+      {std::make_pair(41,1),std::make_pair(9,19)},
+      {std::make_pair(41,2),std::make_pair(10,19)},
+      {std::make_pair(41,3),std::make_pair(11,19)},
+
+      {std::make_pair(41,4),std::make_pair(8,18)},
+      {std::make_pair(41,5),std::make_pair(9,18)},
+      {std::make_pair(41,6),std::make_pair(10,18)},
+      {std::make_pair(41,7),std::make_pair(11,18)},
+
+      {std::make_pair(41,8),std::make_pair(8,17)},
+      {std::make_pair(41,9),std::make_pair(9,17)},
+      {std::make_pair(41,10),std::make_pair(10,17)},
+      {std::make_pair(41,11),std::make_pair(11,17)}, //SSP 401   
+
+      {std::make_pair(42,0),std::make_pair(8,16)},
+      {std::make_pair(42,1),std::make_pair(9,16)},
+      {std::make_pair(42,2),std::make_pair(10,16)},
+      {std::make_pair(42,3),std::make_pair(11,16)},
+
+      {std::make_pair(42,4),std::make_pair(8,15)},
+      {std::make_pair(42,5),std::make_pair(9,15)},
+      {std::make_pair(42,6),std::make_pair(10,15)},
+      {std::make_pair(42,7),std::make_pair(11,15)},
+
+      {std::make_pair(42,8),std::make_pair(8,14)},
+      {std::make_pair(42,9),std::make_pair(9,14)},
+      {std::make_pair(42,10),std::make_pair(10,14)},
+      {std::make_pair(42,11),std::make_pair(11,14)}, //SSP 402                                                        
+
+      {std::make_pair(43,0),std::make_pair(8,13)},
+      {std::make_pair(43,1),std::make_pair(9,13)},
+      {std::make_pair(43,2),std::make_pair(10,13)},
+      {std::make_pair(43,3),std::make_pair(11,13)},
+
+      {std::make_pair(43,4),std::make_pair(8,12)},
+      {std::make_pair(43,5),std::make_pair(9,12)},
+      {std::make_pair(43,6),std::make_pair(10,12)},
+      {std::make_pair(43,7),std::make_pair(11,12)},
+
+      {std::make_pair(43,8),std::make_pair(8,11)},
+      {std::make_pair(43,9),std::make_pair(9,11)},
+      {std::make_pair(43,10),std::make_pair(10,11)},
+      {std::make_pair(43,11),std::make_pair(11,11)}, //SSP 403                                                        
+
+      {std::make_pair(44,0),std::make_pair(8,10)},
+      {std::make_pair(44,1),std::make_pair(9,10)},
+      {std::make_pair(44,2),std::make_pair(10,10)},
+      {std::make_pair(44,3),std::make_pair(11,10)}, //SSP 404        
+      
+      {std::make_pair(51,0),std::make_pair(0,15)},
+      {std::make_pair(51,1),std::make_pair(1,15)},
+      {std::make_pair(51,2),std::make_pair(2,15)},
+      {std::make_pair(51,3),std::make_pair(3,15)},
+
+      {std::make_pair(51,4),std::make_pair(0,13)},
+      {std::make_pair(51,5),std::make_pair(1,13)},
+      {std::make_pair(51,6),std::make_pair(2,13)},
+      {std::make_pair(51,7),std::make_pair(3,13)},
+
+      {std::make_pair(51,8),std::make_pair(0,12)},
+      {std::make_pair(51,9),std::make_pair(1,12)},
+      {std::make_pair(51,10),std::make_pair(2,12)},
+      {std::make_pair(51,11),std::make_pair(3,12)}, //SSP 501                                                         
+
+      {std::make_pair(52,0),std::make_pair(0,10)},
+      {std::make_pair(52,1),std::make_pair(1,10)},
+      {std::make_pair(52,2),std::make_pair(2,10)},
+      {std::make_pair(52,3),std::make_pair(3,10)}, //SSP 502                                                          
+
+      {std::make_pair(53,0),std::make_pair(0,19)},
+      {std::make_pair(53,1),std::make_pair(1,19)},
+      {std::make_pair(53,2),std::make_pair(2,19)},
+      {std::make_pair(53,3),std::make_pair(3,19)},
+
+      {std::make_pair(53,4),std::make_pair(0,18)},
+      {std::make_pair(53,5),std::make_pair(1,18)},
+      {std::make_pair(53,6),std::make_pair(2,18)},
+      {std::make_pair(53,7),std::make_pair(3,18)},
+
+      {std::make_pair(53,8),std::make_pair(0,17)},
+      {std::make_pair(53,9),std::make_pair(1,17)},
+      {std::make_pair(53,10),std::make_pair(2,17)},
+      {std::make_pair(53,11),std::make_pair(3,17)}, //SSP 503 
+
+      {std::make_pair(54,0),std::make_pair(0,16)},
+      {std::make_pair(54,1),std::make_pair(1,16)},
+      {std::make_pair(54,2),std::make_pair(2,16)},
+      {std::make_pair(54,3),std::make_pair(3,16)},
+
+      {std::make_pair(54,4),std::make_pair(0,14)},
+      {std::make_pair(54,5),std::make_pair(1,14)},
+      {std::make_pair(54,6),std::make_pair(2,14)},
+      {std::make_pair(54,7),std::make_pair(3,14)},
+
+      {std::make_pair(54,8),std::make_pair(0,11)},
+      {std::make_pair(54,9),std::make_pair(1,11)},
+      {std::make_pair(54,10),std::make_pair(2,11)},
+      {std::make_pair(54,11),std::make_pair(3,11)}, //SSP 504                                                         
+
+      {std::make_pair(61,0),std::make_pair(4,19)},
+      {std::make_pair(61,1),std::make_pair(5,19)},
+      {std::make_pair(61,2),std::make_pair(6,19)},
+      {std::make_pair(61,3),std::make_pair(7,19)},
+
+      {std::make_pair(61,4),std::make_pair(4,18)},
+      {std::make_pair(61,5),std::make_pair(5,18)},
+      {std::make_pair(61,6),std::make_pair(6,18)},
+      {std::make_pair(61,7),std::make_pair(7,18)},
+
+      {std::make_pair(61,8),std::make_pair(4,17)},
+      {std::make_pair(61,9),std::make_pair(5,17)},
+      {std::make_pair(61,10),std::make_pair(6,17)},
+      {std::make_pair(61,11),std::make_pair(7,17)}, //SSP 601                                                         
+
+      {std::make_pair(62,0),std::make_pair(4,16)},
+      {std::make_pair(62,1),std::make_pair(5,16)},
+      {std::make_pair(62,2),std::make_pair(6,16)},
+      {std::make_pair(62,3),std::make_pair(7,16)},
+
+      {std::make_pair(62,4),std::make_pair(4,15)},
+      {std::make_pair(62,5),std::make_pair(5,15)},
+      {std::make_pair(62,6),std::make_pair(6,15)},
+      {std::make_pair(62,7),std::make_pair(7,15)},
+
+      {std::make_pair(62,8),std::make_pair(4,13)},
+      {std::make_pair(62,9),std::make_pair(5,13)},
+      {std::make_pair(62,10),std::make_pair(6,13)},
+      {std::make_pair(62,11),std::make_pair(7,13)}, //SSP 602                                                         
+
+      {std::make_pair(64,0),std::make_pair(4,12)},
+      {std::make_pair(64,1),std::make_pair(5,12)},
+      {std::make_pair(64,2),std::make_pair(6,12)},
+      {std::make_pair(64,3),std::make_pair(7,12)},
+
+      {std::make_pair(64,4),std::make_pair(4,11)},
+      {std::make_pair(64,5),std::make_pair(5,11)},
+      {std::make_pair(64,6),std::make_pair(6,11)},
+      {std::make_pair(64,7),std::make_pair(7,11)},
+
+      {std::make_pair(64,8),std::make_pair(4,10)},
+      {std::make_pair(64,9),std::make_pair(5,10)},
+      {std::make_pair(64,10),std::make_pair(6,10)},
+      {std::make_pair(64,11),std::make_pair(7,10)}, //SSP 604         
+    
+      {std::make_pair(63,0),std::make_pair(21,21)},
+      {std::make_pair(63,1),std::make_pair(21,21)},
+      {std::make_pair(63,2),std::make_pair(21,21)},
+      {std::make_pair(63,3),std::make_pair(21,21)}, //SSP 603                                                          
+
+      {std::make_pair(63,4),std::make_pair(21,21)},
+      {std::make_pair(63,5),std::make_pair(21,21)},
+      {std::make_pair(63,6),std::make_pair(21,21)},
+      {std::make_pair(63,7),std::make_pair(21,21)}, //SSP 603 
+      
+      {std::make_pair(63,8),std::make_pair(21,21)},
+      {std::make_pair(63,9),std::make_pair(21,21)},
+      {std::make_pair(63,10),std::make_pair(21,21)},
+      {std::make_pair(63,11),std::make_pair(21,21)}, //SSP 603                                                          
+
+    };
+  
+  //mapping for SSPs to simple array
+  std::map<int,int> ssp_map_ =
+    { {11,1},
+      {12,2},
+      {13,3},
+      {14,4},
+      {21,5},
+      {22,6},
+      {23,7},
+      {24,8},
+      {31,9},
+      {32,10},
+      {33,11},
+      {34,12},
+      {41,13},
+      {42,14},
+      {43,15},
+      {44,16},
+      {51,17},
+      {52,18},
+      {53,19},
+      {54,20},
+      {61,21},
+      {62,22},
+      {63,23},
+      {64,24} };
 
   std::map<size_t,TH1D*> trigger_type_; // internal vs. external  (16 internal, 48 external)
 
   // more parameters from the FCL file
+  int fragment;
 
-  std::vector<raw::OpDetWaveform> waveforms;
+  //int smooth; // unused
+  
+  std::vector<raw::OpDetWaveform> waveforms; 
+  std::vector<raw::OpDetWaveform> ext_waveforms;
+  std::vector<raw::OpDetWaveform> int_waveforms;
   std::vector<recob::OpHit> hits;
+  std::vector<recob::OpHit> ext_hits;
+  std::vector<recob::OpHit> int_hits;
 
 };
 
@@ -138,14 +519,25 @@ dune::SSPRawDecoder::SSPRawDecoder(fhicl::ParameterSet const & pset)
 // :
 {
   reconfigure(pset);
-  produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
-  produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  if (!fSplitTriggers) {
+    produces< std::vector<raw::OpDetWaveform> > (fOutputDataLabel);
+    produces< std::vector<recob::OpHit> > (fOutputDataLabel);
+  }
+  else{
+    produces< std::vector<raw::OpDetWaveform> > (fExtTrigOutputLabel);
+    produces< std::vector<raw::OpDetWaveform> > (fIntTrigOutputLabel);
+    produces< std::vector<recob::OpHit> > (fExtTrigOutputLabel);
+    produces< std::vector<recob::OpHit> > (fIntTrigOutputLabel);
+  }
 }
 
 void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
 
   fRawDataLabel = pset.get<std::string>("RawDataLabel");
+  fSplitTriggers = pset.get<bool>("SplitTriggers");
   fOutputDataLabel = pset.get<std::string>("OutputDataLabel");
+  fExtTrigOutputLabel = pset.get<std::string>("ExtTrigOutputLabel");
+  fIntTrigOutputLabel = pset.get<std::string>("IntTrigOutputLabel");
   fUseChannelMap = pset.get<bool>("UseChannelMap");
   number_of_packets=pset.get<int>("number_of_packets");
   fDebug = pset.get<bool>("Debug");
@@ -155,12 +547,13 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   if(fDebug) printParameterSet();
 
   verb_adcs_=pset.get<uint32_t>        ("verbose_adcs", 10000); 
-  verb_meta_=pset.get<bool>            ("verbose_metadata", true); 
+  verb_meta_=pset.get<bool>            ("verbose_metadata", false); 
   n_adc_counter_=0; 
   adc_cumulative_=0; 
   
   // m1, i1, i2
   m1=pset.get<int>("SSP_m1"); 
+  m2=pset.get<int>("SSP_m2");
   i1=pset.get<int>("SSP_i1"); 
   i2=pset.get<int>("SSP_i2"); 
   NOvAClockFrequency=pset.get<double>("NOvAClockFrequency"); // in MHz
@@ -168,8 +561,10 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
                                                        
   std::cout << "Parameters from the fcl file" << std::endl;
   std::cout << "m1: " << m1 << std::endl;
+  std::cout << "m2: " << m2 << std::endl;
   std::cout << "i1: " << i1 << std::endl;
   std::cout << "i2: " << i2 << std::endl;
+  std::cout << "Fragment: " << fragment << std::endl;
   std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
   std::cout << "SPESize: " << SPESize << std::endl;
   std::cout << std::endl;
@@ -187,7 +582,15 @@ void dune::SSPRawDecoder::printParameterSet(){
   std::cout << std::endl;
 
   std::cout << "fRawDataLabel: " << fRawDataLabel << std::endl;
-  std::cout << "fOutputDataLabel: " << fOutputDataLabel << std::endl;
+  if (!fSplitTriggers) {
+    std::cout << "Not splitting triggers" << std::endl;
+    std::cout << "fOutputDataLabel: " << fOutputDataLabel << std::endl;
+  }
+  else{
+    std::cout << "Splitting triggers" << std::endl;
+    std::cout << "fExtTrigOutputLabel: " << fExtTrigOutputLabel << std::endl;
+    std::cout << "fIntTrigOutputLabel: " << fIntTrigOutputLabel << std::endl;
+  }    
   std::cout << "fDebug: ";
   if(fDebug) std::cout << "true" << std::endl;
   else std::cout << "false" << std::endl;
@@ -201,7 +604,12 @@ void dune::SSPRawDecoder::setRootObjects(){
 
   n_event_packets_ = tFileService->make<TH1D>("ssp_n_event_packets","SSP: n_event_packets",960,-0.5,959.5);  
   frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
-
+  hit_map_ = tFileService->make<TH2D>("hit_map_","hit_map_",12,0,12,20,0,20);
+  heat_map_ = tFileService->make<TH2D>("heat_map_","heat_map_",12,0,12,20,0,20);
+  coincidence_map_ = tFileService->make<TH2D>("coincidence_map","coincidence_map",12,0,12,20,0,20);
+  trig_ref_time_ = tFileService->make<TH1D>("trig_ref_time_","trig_ref_time_",3750,0,ext_trig_samp_time);
+  trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
+  trig_adc_time_ = tFileService->make<TH2D>("trig_adc_time_","trig_adc_time_",10000,0.0,23000000000.0,1000,0.0,4000.0);
 }
 
 void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struct trig_variables* tv){
@@ -246,67 +654,132 @@ void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struc
 
 void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Fragment> *fragments){
 
-  //art::EventNumber_t eventNumber = evt.event();
+  art::EventNumber_t eventNumber = evt.event();
 
   art::Handle<artdaq::Fragments> rawFragments;
   art::Handle<artdaq::Fragments> containerFragments;
 
+  bool have_data = true;
+
   /// look for Container Fragments:
   evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything    
+  try { containerFragments->size(); }
+  catch(std::exception e)  {
+    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
+    have_data = false;
+  }
 
-  if(containerFragments.isValid())
+  if (have_data)
     {
+      //Check that the data are valid
+      if(!containerFragments.isValid()){
+        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+                                   << ", SubRun: " << evt.subRun()
+                                   << ", Event: " << eventNumber
+                                   << " Container Fragments found but NOT VALID";
+        return;
+      }
 
       for (auto cont : *containerFragments)
-	{
-	  //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
-	  artdaq::ContainerFragment contf(cont);
-	  for (size_t ii = 0; ii < contf.block_count(); ++ii)
-	    {
-	      size_t fragSize = contf.fragSize(ii);
-	      frag_sizes_->Fill(fragSize);
-	      //artdaq::Fragment thisfrag;
-	      //thisfrag.resizeBytes(fragSize);
-	    
-	      //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
-	      fragments->emplace_back(*contf[ii]);
-	    }
-	}
+        {
+          //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
+          artdaq::ContainerFragment contf(cont);
+          for (size_t ii = 0; ii < contf.block_count(); ++ii)
+            {
+              size_t fragSize = contf.fragSize(ii);
+              frag_sizes_->Fill(fragSize);
+              //artdaq::Fragment thisfrag;
+              //thisfrag.resizeBytes(fragSize);
+            
+              //memcpy(thisfrag.headerAddress(), contf.at(ii), fragSize);
+              fragments->emplace_back(*contf[ii]);
+            }
+        }
     }
 
   /// Look for non-container Raw Fragments:
 
+  bool have_data2=true;
+
   evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
     
-  if(rawFragments.isValid())
+  // Check if there is SSP data in this event
+  // Don't crash code if not present, just don't save anything
+  try { rawFragments->size(); }
+  catch(std::exception e) {
+    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+    have_data2=false;
+  }
+
+  if (have_data2)
     {
-      for(auto const& rawfrag: *rawFragments)
-	{
-	  fragments->emplace_back( rawfrag );
-	}
-    }  
+      //Check that the data is valid
+      if(!rawFragments.isValid()){
+
+        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+                                   << ", SubRun: " << evt.subRun()
+                                   << ", Event: " << eventNumber
+                                   << " Non-Container Fragments found but NOT VALID";
+        return;
+      }
+      for(auto const& rawfrag: *rawFragments){
+        fragments->emplace_back( rawfrag );
+      }
+    }
+  
 }
 
 void dune::SSPRawDecoder::beginJob(){
-  
+  //intializing normalizing time references for use in the producer method
   setRootObjects();
-  
+  allreftime=0;
+  for(int i=0;i<24;i++){ 
+    int_ireftime_[i]=0;
+    ext_ireftime_[i]=0;
+  }
 }
 
 void dune::SSPRawDecoder::beginEvent(art::EventNumber_t /*eventNumber*/)
 {
+  //intializing adc counters and internal references
   n_adc_counter_  = 0;
   adc_cumulative_ = 0;
+  for(int i=0;i<24;i++) {
+  intreftime_[i]=0;
+  // extreftime_[i]=0;
+  }
+  timed_ = false;
+  
 }
 
 void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
 {
-  //write the ADC histogram for the given event
-  //if(n_adc_counter_)
-  //  adc_values_->Write(Form("adc_values:event_%d", eventNumber));
-
+  
+  //These should only work with "internal" trig.trigger_type=16 triggers.
+  if(coin_ext_time.size() > 0){
+    for(size_t i=0;i<coin_ext_time.size();i++){
+      trig_ref_time_->Fill(coin_int_time[i]);                                
+      trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
+      trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
+      hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);
+      heat_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second,coin_adc_peak[i]);
+      for(size_t j=0;j<i;j++){
+        if(abs(coin_int_time[i]-coin_int_time[j]) < diff_time){
+          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
+          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].first,phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].second);  
+        }
+        
+      }
+    }
+  }
+  coin_module_id.clear();
+  coin_channel_id.clear();
+  coin_int_time.clear();
+  coin_ext_time.clear();
+  coin_adc_peak.clear();
 }
- 
 void dune::SSPRawDecoder::endJob(){
 
 }
@@ -316,7 +789,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   art::ServiceHandle<art::TFileService> tFileService;
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
 
-  //LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
+  //MF_LOG_INFO("SSPRawDecoder") << "-------------------- SSP RawDecoder -------------------";
   // Implementation of required member function here.
 
   art::EventNumber_t eventNumber = evt.event();  
@@ -327,81 +800,32 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 
   unsigned int allPacketsProcessed = 0;
   unsigned int waveform_counter = 0;
-  
+  uint64_t ssptrigtime = 0;
   std::map<int, int> packets_per_fragment;
 
   // just to make sure -- the std::move from the previous event should clear them out, but this is
   // not guaranteed by the standard.
 
   waveforms.clear();
+  int_waveforms.clear();
+  ext_waveforms.clear();
   hits.clear();
+  int_hits.clear();
+  ext_hits.clear();
   
   /// Process all packets:
   
   for(auto const& frag: fragments){
     if((unsigned)frag.type() != 3) continue;
-    // print raw fragment header information
-    //std::cout << "   SequenceID = " << frag.sequenceID()
-    //	      << "   fragmentID = " << frag.fragmentID()
-    //	      << "   fragmentType = " << (unsigned)frag.type()
-    //	      << "   Timestamp =  " << std::dec << frag.timestamp() << std::endl;
-    
+ 
     ///> Create a SSPFragment from the generic artdaq fragment
     dune::SSPFragment sspf(frag);
     
-    ///> get the size of the event in units of dune::SSPFragment::Header::data_t
-    //dune::SSPFragment::Header::event_size_t event_size = sspf.hdr_event_size();
-    
-    ///> get the size of the header in units of dune::SSPFragment::Header::data_t
-    //std::size_t header_size = sspf.hdr_run_number();
-    
-    ///> get the event run number
-    //dune::SSPFragment::Header::run_number_t run_number = sspf.hdr_run_number();
-    
-    ///> get the number of ADC values describing data beyond the header
-    //std::size_t n_adc_values = sspf.total_adc_values();
-    
-    //std::cout << std::endl;
-    //std::cout << "SSP fragment "     << frag.fragmentID() 
-    //	      << " has total size: " << event_size << " SSPFragment::Header::data_t words"
-    //	      << " (of which " << header_size << " is header)"
-    //	      << " and run number: " << run_number
-    //	      << " with " << n_adc_values << " total ADC values"
-    //	      << std::endl;
-    //std::cout << std::endl;
-    
-    //unsigned int n_packets = 0;
-    
     const SSPDAQ::MillisliceHeader* meta=0;
-    ///> get the information from the header
-    if(frag.hasMetadata())
-      {
-	///> get the metadata
-	meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader);
-	
-	///> get the start and end times for the millislice
-	//unsigned long start_time = meta->startTime;
-	//unsigned long end_time   = meta->endTime;
-	
-	///> get the length of the millislice in unsigned ints (including header)
-	//unsigned int milli_length = meta->length;
-	
-	///> get the number of packets in the millislice
-	//n_packets = meta->nTriggers;
-	
-	//std::cout << "Event number: " << eventNumber << ", packets: " << n_packets << std::endl;
-	
-	//std::cout
-	//  <<"===Slice metadata:"<<std::endl
-	//<<"Start time         "<< start_time   <<std::endl
-	//<<"End time           "<< end_time     <<std::endl
-	//<<"Packet length      "<< milli_length <<std::endl
-	//<<"Number of packets "<< n_packets   <<std::endl <<std::endl;
-      }
-    else
-      {
-	std::cout << "SSP fragment has no metadata associated with it." << std::endl;
-      }
+    
+     ///> get the information from the header
+    if(frag.hasMetadata()) meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader); ///> get the metadata
+    else std::cout << "SSP fragment has no metadata associated with it." << std::endl;
     
     ///> get a pointer to the first packet in the millislice
     const unsigned int* dataPointer = sspf.dataBegin();
@@ -413,63 +837,42 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       ///> get the packet header
       const SSPDAQ::EventHeader* daqHeader=reinterpret_cast<const SSPDAQ::EventHeader*>(dataPointer);
       
-      /// read the header to provide the trigger variables structure	
+      /// read the header to provide the trigger variables structure        
       struct trig_variables trig;
       readHeader(daqHeader, &trig);
       
       /// time
-      double time = trig.internal_timestamp/150*1E-6;
+      long double time = trig.timestamp_nova/(3.0*NOvAClockFrequency); //in expeirment microseconds
       
-      /// channel (0..number_of_packets*number_of_fragments)
-      //unsigned int channel = frag.fragmentID()*number_of_packets + trig.channel_id;
       unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
 
-      // pedestal, area and peak (according to the Register table, the  SSP User Manual has i1 and i2 inverted)
-      double pedestal = trig.baseline / ((double)i1);    
-      double area = trig.intsum  - pedestal * ((double)i2);
-      double peak = trig.peaksum / ((double)m1) - pedestal;
+      //set external reference time to the first time stamp of the run, if a lower time stamp is found, adjust
+      if(allreftime==0 || (allreftime > trig.timestamp_nova)) allreftime=trig.timestamp_nova;
       
-      if(verb_meta_) {
-	std::cout
-	  << "Channel:                            " << channel                   << std::endl
-	  << "Header:                             " << trig.header               << std::endl
-	  << "Length:                             " << trig.length               << std::endl
-	  << "Trigger type:                       " << trig.type                 << std::endl
-	  << "Status flags:                       " << trig.status_flags         << std::endl
-	  << "Header type:                        " << trig.header_type          << std::endl
-	  << "Trigger ID:                         " << trig.trig_id              << std::endl
-	  << "Module ID:                          " << trig.module_id            << std::endl
-	  << "Channel ID:                         " << trig.channel_id           << std::endl
-	  << "External timestamp (F mode):        "                              << std::endl
-	  << "  Sync delay:                       " << trig.timestamp_sync_delay << std::endl
-	  << "  Sync count:                       " << trig.timestamp_sync_count << std::endl
-	  << "External timestamp (NOvA mode):     " << trig.timestamp_nova       << std::endl
-	  << "Peak sum:                           " << trig.peaksum              << std::endl
-	  << "Peak time:                          " << trig.peaktime             << std::endl
-	  << "Prerise:                            " << trig.prerise              << std::endl
-	  << "Integrated sum:                     " << trig.intsum               << std::endl
-	  << "Baseline sum:                       " << trig.baseline             << std::endl
-	  << "CFD Timestamp interpolation points: " << trig.cfd_interpol[0]      << " " << trig.cfd_interpol[1] << " " << trig.cfd_interpol[2]   << " " << trig.cfd_interpol[3] << std::endl
-	  << "Internal interpolation point:       " << trig.internal_interpol    << std::endl
-	  << "Internal timestamp:                 " << trig.internal_timestamp   << std::endl
-	  << std::endl
-	  << "Pedestal                            " << pedestal                  << std::endl
-	  << "Area                                " << area                      << std::endl
-	  << "Peak heigth                         " << peak                      << std::endl
-	  << std::endl;
+      //internal and external reference times on external (beam/cosmic window triggers). Can be used to time external timestamp down to the internal timesample. Might want to try this at some point in production...
+      if(trig.type==48) {
+        if (ssptrigtime==0) {
+          ssptrigtime=trig.timestamp_nova;
+          if(verb_meta_) std::cout << "SSP: " << ssptrigtime << std::endl; 
+        }
+        
+        intreftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;  
+        extreftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova; 
+        if(int_ireftime_[ssp_map_[trig.module_id]] == 0) int_ireftime_[ssp_map_[trig.module_id]] = trig.internal_timestamp;
+        if(ext_ireftime_[ssp_map_[trig.module_id]] == 0) ext_ireftime_[ssp_map_[trig.module_id]] = trig.timestamp_nova;  
       }
-      
-      ///> Trigger type histogram
+     
+      // Trigger type histogram
       if (trigger_type_.find(channel) == trigger_type_.end())
-	{
-	  TH1D* tth = tFileService->make<TH1D>(Form("trigger_type_channel_%d",channel),Form("trigger_type_channel_%d",channel),4,0,3);
+        {
+          TH1D* tth = tFileService->make<TH1D>(Form("trigger_type_channel_%d",channel),Form("trigger_type_channel_%d",channel),4,0,3);
           tth->SetTitle(Form("Trigger type - Channel %d",channel));
           tth->GetXaxis()->SetTitle("Trigger type");
           tth->GetXaxis()->SetBinLabel(2,"Internal (16)");
           tth->GetXaxis()->SetBinLabel(3,"External (48)");
-	  trigger_type_[channel] = tth;
-	}
-
+          trigger_type_[channel] = tth;
+        }
+      
       if ( trig.type == 16 ) trigger_type_[channel]->Fill(1);
       if ( trig.type == 48 ) trigger_type_[channel]->Fill(2);
       
@@ -491,89 +894,158 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       TH1D* hist=new TH1D("hist","hist",nADC,0,nADC);
       
       // map the channel number to offline if requested
-
+      
       unsigned int mappedchannel = channel;
       if (fUseChannelMap) mappedchannel = channelMap->SSPOfflineChannelFromOnlineChannel(channel);
-      //std::cout << "trj SSP online channel: " << channel << std::endl;
-
+      
       // Get information from the header, //added by Jingbo
-            
+      
       unsigned short     OpChannel   =  (unsigned short) mappedchannel;   ///< Derived Optical channel
       raw::OpDetWaveform Waveform(time, OpChannel, nADC);
       
+      //calculating relevant values in decoder because what comes out of the trigger header seems incorrect-Bryan Ramson
+      unsigned long calbasesum = 0;
+      unsigned short maxadc = 0;
+      unsigned long calintsum = 0;
+      unsigned short  calpeaktime = 0;
+      unsigned int calpeaksum =0;
       ///> copy the waveforms
-
       for(size_t idata = 0; idata < nADC; idata++) {
-	///> get the 'idata-th' ADC value
-	const unsigned short* adc = adcPointer + idata;
-	
-	Waveform.push_back(*adc); //added by Jingbo
-	waveform_counter++;
-	
-	n_adc_counter_++;
-	adc_cumulative_ += (uint64_t)(*adc);
-	
-	///> Waveform 
-	hist->SetBinContent(idata+1,*adc);
-	// hist.at(packetsProcessed)->SetBinContent(idata+1, *adc); 
-	// std::cout << idata+1 << ":" << *adc << std::endl;
-
-	if (idata >= verb_adcs_) verb_values = false;
-	verb_values = false; //don't print adc. Added by J.Wang
-	if(verb_values) {
-	  if(idata == 0&&verb_adcs_>0) std::cout << "Printing the " << nADC << " ADC values saved with the packet:" << std::endl;
-	  std::cout << *adc << " ";
-	}
-
+        ///> get the 'idata-th' ADC value
+        const unsigned short* adc = adcPointer + idata;
+        if(idata < i1) calbasesum +=  static_cast<unsigned long>(*adc); //added by Bryan Ramson
+        if(idata > i1+m1 && idata <= i2+i1+m1) calintsum += static_cast<unsigned long>(*adc); //added by Bryan Ramson
+        if(idata >= i1+m1+m2 && idata <= i1+2*m1+m2) calpeaksum += static_cast<unsigned int>(*adc); //added by Bryan Ramson
+        
+        maxadc = std::max(maxadc,*adc); //added by Bryan Ramson
+        if(maxadc == *adc) calpeaktime = idata; //added by Bryan Ramson
+        Waveform.push_back(*adc); //added by Jingbo
+        waveform_counter++;
+        
+        n_adc_counter_++;
+        adc_cumulative_ += (uint64_t)(*adc);
+        
+        ///> Waveform 
+        hist->SetBinContent(idata+1,*adc);
+        
+        if (idata >= verb_adcs_) verb_values = false;
+        
+        verb_values = false; //don't print adc. Added by J.Wang
+        if(verb_values) {
+          if(idata == 0&&verb_adcs_>0) std::cout << "Printing the " << nADC << " ADC values saved with the packet:" << std::endl;
+          std::cout << *adc << " ";
+        }
       }// idata
+
+      // pedestal, area and peak (according to the Register table, the  SSP User Manual has i1 and i2 inverted)
+      double pedestal = calbasesum / ((double)i1);    
+      double area = calintsum-(pedestal*i2);
+      if(area<0) area=0; //On external triggers area over "peak" less pedestal could be negative which is nonsense.
+      double peak = maxadc;
+     
+      trig.baselinesum = calbasesum;
+      trig.intsum = calintsum;
+      trig.peaktime = calpeaktime;
+      trig.peaksum = calpeaksum;
       
+      if(verb_meta_) {
+        std::cout
+          << "Channel:                            " << channel                   << std::endl
+          << "Header:                             " << trig.header               << std::endl
+          << "Length:                             " << trig.length               << std::endl
+          << "Trigger type:                       " << trig.type                 << std::endl
+          << "Status flags:                       " << trig.status_flags         << std::endl
+          << "Header type:                        " << trig.header_type          << std::endl
+          << "Trigger ID:                         " << trig.trig_id              << std::endl
+          << "Module ID:                          " << trig.module_id            << std::endl
+          << "Channel ID:                         " << trig.channel_id           << std::endl
+          << "External timestamp (F mode):        "                              << std::endl
+          << "  Sync delay:                       " << trig.timestamp_sync_delay << std::endl
+          << "  Sync count:                       " << trig.timestamp_sync_count << std::endl
+          << "External timestamp (NOvA mode):     " << trig.timestamp_nova       << std::endl
+          << "Peak sum:                           " << trig.peaksum              << std::endl
+          << "Peak time:                          " << trig.peaktime             << std::endl
+          << "Prerise:                            " << trig.prerise              << std::endl
+          << "Integrated sum:                     " << trig.intsum               << std::endl
+          << "Baseline sum:                       " << trig.baselinesum          << std::endl
+          << "CFD Timestamp interpolation points: " << trig.cfd_interpol[0]      << " " << trig.cfd_interpol[1] << " " << trig.cfd_interpol[2]   << " " << trig.cfd_interpol[3] << std::endl
+          << "Internal interpolation point:       " << trig.internal_interpol    << std::endl
+          << "Internal timestamp:                 " << trig.internal_timestamp   << std::endl
+          << std::endl
+          << "Pedestal                            " << pedestal                  << std::endl
+          << "Area                                " << area                      << std::endl
+          << "Peak heigth                         " << peak                      << std::endl
+          << std::endl;
+      }
+            
+      //Fill diagnostic vectors for use at the end of the event
+      coin_module_id.push_back(trig.module_id);
+      coin_channel_id.push_back(trig.channel_id);
+      coin_int_time.push_back(trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]]);
+      coin_ext_time.push_back(trig.timestamp_nova);
+      coin_adc_peak.push_back(peak);
+     
       ///> increment the data pointer to the end of the current packet (to the start of the next packet header, if available)
       dataPointer+=nADC/2;
       
-      // fill waveforms, added by Jingbo 
-      waveforms.emplace_back( Waveform );
-      
-      // fill the ophit and put it in hits
-      hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
-      
+      // Put waveform and ophit into collections
+      // Split into internal and external triggers if that has been set.
+      if (!fSplitTriggers) {
+        waveforms.emplace_back( Waveform );
+        hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+      }
+      else{
+        if (trig.type == 48 ) {
+          ext_waveforms.emplace_back( Waveform );
+          ext_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+        }
+        else if (trig.type == 16) {
+          int_waveforms.emplace_back( Waveform );
+          int_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+        }
+        else {
+          std::cerr << "Unknown trigger type " << trig.type << ", cannot assign to appropriate data product with SplitTriggers enabled." << std::endl;
+        }
+      }
+
       hist->Delete();
-      
-      ++packetsProcessed;
-      //std::cout<<std::endl<<"Packets processed: "<<packetsProcessed<<std::endl<<std::endl;
-    }// packets
+    
+      ++packetsProcessed; // packets
+    }
     
     packets_per_fragment[frag.fragmentID()] = packetsProcessed;
     allPacketsProcessed += packetsProcessed;
-    
-  }// frag: fragments
+  }//frag: fragments
   
   n_event_packets_->Fill(allPacketsProcessed);
-  //std::cout << "Event " << eventNumber << " has " << allPacketsProcessed << " total packets";
-  //for(std::map<int, int>::iterator i_packets_per_fragment = packets_per_fragment.begin(); i_packets_per_fragment != packets_per_fragment.end(); i_packets_per_fragment++)
-  // std::cout << " " << i_packets_per_fragment->first << ":" << i_packets_per_fragment->second;
-  //std::cout << std::endl;
-  //std::cout << std::endl
-  //	    << "ADC total is (from counter):           " << (double)adc_cumulative_
-  //        << std::endl
-  //	    << "Event ADC average is (from counter):   " << ((n_adc_counter_ == 0) ? 0 : (double)adc_cumulative_/(double)n_adc_counter_)
-  //	    << std::endl;
-  endEvent(eventNumber);
   
-  evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
-  evt.put(std::make_unique<decltype(hits)>(std::move(hits)), fOutputDataLabel);
+  endEvent(eventNumber);
+
+
+  if (!fSplitTriggers) {
+    evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
+    evt.put(std::make_unique<decltype(hits)>(     std::move(hits)),      fOutputDataLabel);
+  }
+  else {
+    evt.put(std::make_unique<decltype(ext_waveforms)>(std::move(ext_waveforms)), fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(ext_hits)>(     std::move(ext_hits)),      fExtTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_waveforms)>(std::move(int_waveforms)), fIntTrigOutputLabel);
+    evt.put(std::make_unique<decltype(int_hits)>(     std::move(int_hits)),      fIntTrigOutputLabel);
+  }
 }
+
+
 
 recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned int channel)
 {
   // Get basic information from the header
   unsigned short     OpChannel   = channel;         ///< Derived Optical channel
-  unsigned long      FirstSample = trig.timestamp_nova;
-  double             TimeStamp   = ((double)FirstSample)/NOvAClockFrequency; ///< first sample time in microseconds
+  unsigned long      FirstSample = trig.timestamp_nova/3;
+  double             TimeStamp   = ((double)FirstSample)/(NOvAClockFrequency); ///< first sample experiment time in microseconds
 
   auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
   double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
-  
   double pedestal = ( (double) trig.baselinesum ) / ( (double) i1 );
   double area =     ( (double) trig.intsum      ) - pedestal * ( (double) i2 );
   double peak =     ( (double) trig.peaksum     ) / ( (double) m1 ) - pedestal;

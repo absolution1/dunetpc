@@ -1,0 +1,79 @@
+BEGIN_PROLOG
+
+iceberg_tpc_raw_decoder:
+{
+  module_type: "IcebergTPCRawDecoder"
+  OutputDataLabel: "daq"
+
+  RCERawDataLabel: "daq"
+  RCERawDataContainerInstance: "ContainerTPC"
+  RCERawDataNonContainerInstance: "TPC"
+  RCEFragmentType: 2
+  RCEDropEventsWithSmallFrags: false
+  RCEDropSmallFrags: true
+  RCESmallFragSize: 500
+  RCEDropFragsWithBadCSF: false    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEHexDump: false
+  RCESaveFragsToFiles: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
+
+  FELIXRawDataLabel: "daq"
+  FELIXRawDataContainerInstance: "ContainerFELIX"
+  FELIXRawDataNonContainerInstance: "FELIX"
+  FELIXFragmentType: 8  
+  FELIXDropFragsWithBadCSF: false
+  FELIXEnforceExactCrateNumber: false
+  FELIXCrateNumberToCheck: 6
+  FELIXHexDump: false
+  FELIXDropEventsWithSmallFrags: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 500
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
+
+  CompressHuffman: false
+  PrintColdataConvertCount: false
+
+  MakeHistograms: false #for making error monitoring histograms
+
+# enforcement flags.  If these are set to true and the data completeness 
+# conditions are not met, then an emtpy collection of raw::RawDigits is 
+# put in the event
+
+# if set to true, the number of channels present in the fragments must be
+# the FullChannelCount below.
+
+  EnforceFullChannelCount: false
+  FullChannelCount: 1280
+
+# requires that we don't see the same channel twice in in an event
+
+  EnforceNoDuplicateChannels: true
+
+# requires that all channels have the same number of ticks (on each event separately)
+
+  EnforceSameTickCount: false
+
+# requires that all channels have the specified number of ticks
+
+  EnforceFullTickCount: false
+  FullTickCount: 6000
+
+# requires that no errors are reported by the unpacker (checksum or capture errors)
+
+  EnforceErrorFree: false
+
+}
+
+timing_raw_decoder:
+{
+  module_type: "TimingRawDecoder"
+  RawDataLabel: "daq"
+  OutputDataLabel: "daq"
+  UseChannelMap: "true"
+  Debug: "false"
+  MakeTree: "false"
+}
+
+END_PROLOG

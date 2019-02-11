@@ -411,7 +411,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       // ---- Get lengths and angles.
       if (NumTraj < 2) continue;
       else {
-	TVector3 dir = track.VertexDirection();
+	TVector3 dir = track.VertexDirection<TVector3>();
 	TrackTheta_XZ = std::atan2(dir.X(), dir.Z());
 	TrackTheta_YZ = std::atan2(dir.Y(), dir.Z());
 	TrackEta_XY   = std::atan2(dir.X(), dir.Y());
@@ -495,7 +495,7 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
       std::vector < TVector3 > CorrectedLocations;
       CorrectedLocations.clear();
       for ( unsigned int point=0; point < NumTraj; ++point ) {
-	const TVector3 ThisLoc = track.LocationAtPoint(point);
+	const TVector3 ThisLoc = track.LocationAtPoint<TVector3>(point);
 	TVector3 CorrectLoc = ThisLoc;
 	CorrectLoc[0] = CorrectLoc[0] - detprop->ConvertTicksToX( TickT0, allHits[NumTraj-(1+point)]->WireID().Plane, allHits[NumTraj-(1+point)]->WireID().TPC, allHits[NumTraj-(1+point)]->WireID().Cryostat );
 	CorrectedLocations.push_back(CorrectLoc);

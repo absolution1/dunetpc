@@ -80,6 +80,18 @@ cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
   LIBRARIES
     dune_ArtSupport
@@ -178,6 +190,20 @@ cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
 cet_test(test_AdcSampleFiller
   SOURCES
     test_AdcSampleFiller.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_FclStickyCodeFlagger
+  SOURCES
+    test_FclStickyCodeFlagger.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities

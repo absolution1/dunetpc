@@ -5,8 +5,11 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larcorealg_Geometry
   lardataobj_RawData
   larsim_MCCheater_BackTrackerService_service
+  larsim_MCCheater_PhotonBackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
-  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  larsim_Simulation
+  nutools_ParticleNavigation
+  lardataobj_Simulation
   nusimdata_SimulationBase	
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}
@@ -18,7 +21,8 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   art_Persistency_Provenance canvas
   art_Utilities canvas
   ${MF_MESSAGELOGGER}
-  
+  ${MF_UTILITIES}
+  ${ROOT_GEOM}
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
   )

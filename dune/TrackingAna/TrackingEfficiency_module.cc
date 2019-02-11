@@ -384,7 +384,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	TrackLength = track.Length();
 	int ntraj = track.NumberTrajectoryPoints();
 	if(ntraj > 0) {
-	  TVector3 dir = track.VertexDirection();
+	  auto dir = track.VertexDirection();
 	  TrackTheta_XZ = std::atan2(dir.X(), dir.Z());
 	  TrackTheta_YZ = std::atan2(dir.Y(), dir.Z());
 	  TrackEta_XY   = std::atan2(dir.X(), dir.Y());
