@@ -95,10 +95,10 @@ namespace protoana {
     const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Is the particle track-like?
-    bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
+    bool IsPFParticleTracklike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Is the particle track-like?
-    bool IsPFParticleShowerlike(const recob::PFParticle &particle) const;
+    bool IsPFParticleShowerlike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
 
     /// Get the track associated to this particle. Returns a null pointer if not found.
     const recob::Track* GetPFParticleTrack(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
