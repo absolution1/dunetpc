@@ -149,11 +149,6 @@ namespace tpc_monitor{
     std::vector<TProfile*> fChanRMSZ_pfx;
     std::vector<TProfile*> fChanMeanZ_pfx;
 
-    // 2D histograms of all Mean/RMS by offline channel number
-    // Intended as a color map with each bin to represent a single channel
-    TProfile2D* fAllChanMean;
-    TProfile2D* fAllChanRMS;
-
     //2Dhistograms of bits, using same mapping as the fAllChan histos
     //vector indexes over 0-11 bit numbers
     std::vector<TProfile2D*> fBitValue;
@@ -360,22 +355,6 @@ namespace tpc_monitor{
 	fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
       }
     
-    //All in one view
-    //make the histograms
-    fAllChanMean = tfs->make<TProfile2D>("fAllChanMean", "Means for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
-    fAllChanRMS = tfs->make<TProfile2D>("fAllChanRMS", "RMS for all channels", 240, -0.5, 239.5, 64, -0.5, 63.5);
-    //set titles and bin labels
-    fAllChanMean->GetXaxis()->SetTitle("APA Number (online)"); fAllChanMean->GetYaxis()->SetTitle("Plane"); fAllChanMean->GetZaxis()->SetTitle("Raw Mean");
-    fAllChanRMS->GetXaxis()->SetTitle("APA Number (online)"); fAllChanRMS->GetYaxis()->SetTitle("Plane"); fAllChanRMS->GetZaxis()->SetTitle("Raw RMS");
-    fAllChanMean->GetXaxis()->SetLabelSize(.075); fAllChanMean->GetYaxis()->SetLabelSize(.05);
-    fAllChanRMS->GetXaxis()->SetLabelSize(.075); fAllChanRMS->GetYaxis()->SetLabelSize(.05);
-    fAllChanMean->GetXaxis()->SetBinLabel(40, "3"); fAllChanMean->GetXaxis()->SetBinLabel(120, "2"); fAllChanMean->GetXaxis()->SetBinLabel(200, "1");
-    fAllChanRMS->GetXaxis()->SetBinLabel(40, "3"); fAllChanRMS->GetXaxis()->SetBinLabel(120, "2"); fAllChanRMS->GetXaxis()->SetBinLabel(200, "1");
-    fAllChanMean->GetYaxis()->SetBinLabel(5, "U"); fAllChanMean->GetYaxis()->SetBinLabel(15, "V"); fAllChanMean->GetYaxis()->SetBinLabel(26, "Z");
-    fAllChanMean->GetYaxis()->SetBinLabel(37, "U"); fAllChanMean->GetYaxis()->SetBinLabel(47, "V"); fAllChanMean->GetYaxis()->SetBinLabel(58, "Z");
-    fAllChanRMS->GetYaxis()->SetBinLabel(5, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(15, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(26, "Z");
-    fAllChanRMS->GetYaxis()->SetBinLabel(37, "U"); fAllChanRMS->GetYaxis()->SetBinLabel(47, "V"); fAllChanRMS->GetYaxis()->SetBinLabel(58, "Z");
-
     for(int i=0;i<12;i++)
       {
 	fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
@@ -645,8 +624,6 @@ namespace tpc_monitor{
       int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa
       int yBin = ((FEMBchanToHistogramMap(FEMBchan,1))+yEdgeAPA[(apa%2)]); //(fembchan location on histogram) + shift from apa 
 
-      fAllChanMean->Fill(xBin,yBin,mean); //histogram the mean
-      fAllChanRMS->Fill(xBin,yBin,rms); //histogram the rms
 
       for (int i=0; i<nSamples; i++) //histogram the 12 bits
 	{ 
