@@ -421,6 +421,11 @@ my $asmix = <<EOF;
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
+  <material name="vm2000" formula="vm2000">
+    <D value="1.2" unit="g/cm3"/>
+    <composite n="2" ref="carbon"/>
+    <composite n="4" ref="hydrogen"/>
+  </material>
 EOF
 
     # add the general materials used anywere
