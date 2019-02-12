@@ -1,0 +1,16 @@
+# calibs_pdsp.fcl
+#
+# David Adams
+# February 2019
+
+tools.areaGain_calib20190205 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20190205/areaGain_apa3z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa3c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa3u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa3v.fcl"
+  ]
+}

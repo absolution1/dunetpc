@@ -14,6 +14,7 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH1F.h"
 #include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TColor.h"
 #include "TStyle.h"
@@ -28,6 +29,7 @@ using std::endl;
 using std::vector;
 using Index = AdcChannelMetric::Index;
 using TGraphVector = std::vector<TGraph*>;
+using TGraphErrorsVector = std::vector<TGraphErrors*>;
 
 //**********************************************************************
 // local definitiions.
@@ -72,6 +74,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_useStatus(false),
+  m_doSummary(false),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
@@ -107,6 +110,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   m_useStatus = m_HistName.find("%STATUS%") != string::npos;
+  m_doSummary = m_HistName.find("EVENT%") == string::npos;
   if ( m_useStatus ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
@@ -187,6 +191,25 @@ AdcChannelMetric::~AdcChannelMetric() {
       if ( m_LogLevel >= 3 ) {
         cout << myname << setw(8) << icha << ":" << ms.mean() << " +/- " << ms.dmean() << endl;
       }
+    }
+    if ( m_doSummary ) {
+      MetricMap mets;
+      const MetricSummaryVector& msums = getState().crsums[cr];
+      for ( Index kcha=0; kcha<cr.size(); ++kcha ) {
+        Index icha = cr.first() + kcha;
+        const MetricSummary& msum = msums[kcha];
+        if ( msum.count ) {
+          Metric& met = mets[icha];
+          met.setValue(msum.mean());
+          met.setError(msum.rms());
+        }
+      }
+      AdcChannelData acd;
+      acd.run = getState().firstRun;
+      Name ofname = nameReplace(m_PlotFileName, acd, cr);
+      Name ofrname = nameReplace(m_RootFileName, acd, cr);
+      TH1* ph = createHisto(acd, cr);
+      processMetricsForOneRange(cr, mets, ph, ofname, ofrname, true);
     }
   }
   if ( m_LogLevel >= 1 ) {
@@ -269,26 +292,21 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
       continue;
     }
     Index icha = iacd->first;
-    mets[icha].value = met;
+    mets[icha].setValue(met);
     MetricSummary& metricSum = metricSums[icha-icha0];
     metricSum.add(met);
   }
   // Create the histogram for this data and this range.
   const AdcChannelData& acdFirst = acds.begin()->second;
-  string   hname = nameReplace(    m_HistName, acdFirst, ran);
-  string   htitl = nameReplace(   m_HistTitle, acdFirst, ran);
-  string   slaby = nameReplace( m_MetricLabel, acdFirst, ran);
-  string  ofname = nameReplace(m_PlotFileName, acdFirst, ran);
-  string ofrname = nameReplace(m_RootFileName, acdFirst, ran);
-  Index nchan = ran.size();
-  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nchan, icha0, ran.end);
-  ph->SetDirectory(nullptr);
-  ph->SetLineWidth(2);
-  ph->SetStats(0);
-  ph->GetXaxis()->SetTitle("Channel");
-  ph->GetYaxis()->SetTitle(slaby.c_str());
+  string  ofname;
+  string ofrname;
+  if ( ! m_doSummary ) {
+    ofname = nameReplace(m_PlotFileName, acdFirst, ran);
+    ofrname = nameReplace(m_RootFileName, acdFirst, ran);
+  }
+  TH1* ph = createHisto(acdFirst, ran);
   // Fill the histogram and create the plots for this data and this range.
-  processMetricsForOneRange(ran, mets, ph, ofname, ofrname);
+  processMetricsForOneRange(ran, mets, ph, ofname, ofrname, false);
   ret.setHist(ph, true);
   return ret;
 }
@@ -394,7 +412,7 @@ nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const
 
 void AdcChannelMetric::
 processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
-                          Name ofname, Name ofrname) const {
+                          Name ofname, Name ofrname, bool useErrors) const {
   const string myname = "AdcChannelMetric::useMetricsForOneRange: ";
   unsigned int ngraph = m_useStatus ? 4 : 1;
   NameVector statNames = {"All", "Good", "Bad", "Noisy"};
@@ -404,6 +422,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   Name htitl = ph->GetTitle();
   Name slaby = ph->GetYaxis()->GetTitle();
   TGraphVector graphs(ngraph, nullptr);
+  TGraphErrorsVector egraphs(ngraph, nullptr);
   for ( Index igra=0; igra<ngraph; ++igra ) {
     string gname = hname;
     string gtitl = htitl;
@@ -411,16 +430,24 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     smanName.replace("%STATUS%", statNames[igra]);
     StringManipulator smanTitl(gtitl);
     smanTitl.replace("%STATUS%", statNames[igra]);
-    graphs[igra] = new TGraph;
+    if ( useErrors ) {
+      egraphs[igra] = new TGraphErrors;
+      graphs[igra] = egraphs[igra];
+    } else {
+      graphs[igra] = new TGraph;
+    }
     TGraph* pg = graphs[igra];
     pg->SetName(gname.c_str());
     pg->SetTitle(gtitl.c_str());
-    pg->SetMarkerStyle(2);
+    if ( ! useErrors ) pg->SetMarkerStyle(2);
     pg->SetMarkerColor(statCols[igra]);
+    pg->SetLineColor(statCols[igra]);
     pg->GetXaxis()->SetTitle("Channel");
     pg->GetYaxis()->SetTitle(slaby.c_str());
   }
   TGraph* pgAll = graphs[0];
+  TGraphErrors* pgeAll = egraphs[0];
+  double ex = 0.25;
   Index nfill = 0;
   Index icha0 = ran.begin;
   for ( MetricMap::value_type imet : mets ) {
@@ -435,12 +462,18 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       if ( met < m_MetricMin ) gval = m_MetricMin;
       if ( met > m_MetricMax ) gval = m_MetricMax;
     }
-    pgAll->SetPoint(pgAll->GetN(), icha, gval);
+    Index iptAll = pgAll->GetN();
+    pgAll->SetPoint(iptAll, icha, gval);
+    if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
     if ( m_useStatus ) {
-      TGraph* pgStat = graphs[1];
-      if      ( m_pChannelStatusProvider->IsBad(icha) )   pgStat = graphs[2];
-      else if ( m_pChannelStatusProvider->IsNoisy(icha) ) pgStat = graphs[3];
-      pgStat->SetPoint(pgStat->GetN(), icha, gval);
+      Index stat = channelStatus(icha);
+      if ( stat > 0 ) {
+        TGraph* pgStat = graphs[stat];
+        TGraphErrors* pgeStat = egraphs[stat];
+        Index iptStat = pgStat->GetN();
+        pgStat->SetPoint(iptStat, icha, gval);
+        if ( pgeStat != nullptr ) pgeStat->SetPointError(iptStat, ex, err);
+      }
     }
     ++nfill;
   }
@@ -485,6 +518,35 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
     delete pfile;
   }
+}
+
+//**********************************************************************
+
+TH1* AdcChannelMetric::createHisto(const AdcChannelData& acd, const IndexRange& ran) const {
+  string   hname = nameReplace(    m_HistName, acd, ran);
+  string   htitl = nameReplace(   m_HistTitle, acd, ran);
+  string   slaby = nameReplace( m_MetricLabel, acd, ran);
+  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), ran.size(), ran.begin, ran.end);
+  ph->SetDirectory(nullptr);
+  ph->SetLineWidth(2);
+  ph->SetStats(0);
+  ph->GetXaxis()->SetTitle("Channel");
+  ph->GetYaxis()->SetTitle(slaby.c_str());
+  return ph;
+}
+
+//**********************************************************************
+
+Index AdcChannelMetric::channelStatus(Index icha) const {
+  IndexVector& stats = getState().channelStatuses;
+  if ( icha >= stats.size() ) stats.resize(icha + 1, 0);
+  Index& stat = stats[icha];
+  if ( stat == 0 && m_pChannelStatusProvider != nullptr ) {
+    if      ( m_pChannelStatusProvider->IsBad(icha) )   stat = 2;
+    else if ( m_pChannelStatusProvider->IsNoisy(icha) ) stat = 3;
+    else                                                stat = 1;
+  }
+  return stat;
 }
 
 //**********************************************************************

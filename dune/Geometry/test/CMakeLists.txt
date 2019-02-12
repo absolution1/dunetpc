@@ -4,8 +4,9 @@
 # November 2016
 
 # Build tests for channel maps.
-
+install_fhicl()
 include(CetTest)
+#add_subdirectory(testIssue19191)
 
 cet_enable_asserts()
 

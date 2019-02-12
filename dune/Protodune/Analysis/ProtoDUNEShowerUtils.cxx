@@ -1,6 +1,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 
 #include "lardataobj/RecoBase/Hit.h"
+#include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
@@ -56,6 +57,26 @@ std::vector<const recob::PCAxis*> protoana::ProtoDUNEShowerUtils::GetRecoShowerP
   }
 
   return pcaVec;
+}
+
+std::vector<double> protoana::ProtoDUNEShowerUtils::EstimateEnergyFromHitCharge(const std::vector<const recob::Hit*> &hits, calo::CalorimetryAlg caloAlg) 
+{
+  double kGeVtoElectrons  { 4.237e7 }; // obtained from utils class.. Copied for now, should use class.
+
+  std::vector<double> showerEnergy = {0,0,0};
+  
+       // Find the total charge on each plane
+  for ( size_t h{0} ; h < hits.size() ; h++ ) {
+    const recob::Hit* hit = hits[h];
+    const int plane = hit->WireID().Plane;
+    showerEnergy[ plane ] += ( caloAlg.ElectronsFromADCArea( hit->Integral(), plane) * caloAlg.LifetimeCorrection(hit->PeakTime()) ) / kGeVtoElectrons;
+  }
+
+  // caloAlg.ElectronsFromADCArea( hit->Integral(), plane) -> Does hit->Integral()/AreaConstants(plane)
+  // AreaConstants(plane) is defined in calorimetry_pdune.fcl. Although that fcl file has a typo.
+  // These probably need tuning for protodune data.
+
+  return showerEnergy;
 }
 
 // If the shower.ID() isn't filled we must find the actual shower index ourselves
