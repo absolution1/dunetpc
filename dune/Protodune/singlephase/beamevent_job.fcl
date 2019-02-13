@@ -63,4 +63,4 @@ physics:
  trigger_paths:     [ produce ]
  end_paths:         [ stream1 ]
 }
-
+physics.producers.beamevent.IFBeamDebug: 1 

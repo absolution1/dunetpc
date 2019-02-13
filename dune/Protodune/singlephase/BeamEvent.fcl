@@ -5,7 +5,10 @@ proto_beamevent:
   module_type:          "BeamEvent"
   URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
 #  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
-  BFEpsilon:           6.
+  BFEpsilon:           10.
+  XCETEpsilon:         10.
+  FillCacheUp:         5.
+  FillCacheDown:       10.
   IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
 
@@ -54,9 +57,10 @@ proto_beamevent:
                                    
   CKov1:              "XCET022713"
   CKov2:              "XCET022716"
+  XCET1:              "timber/XBH4/XTDC/022/713"
+  XCET2:              "timber/XBH4/XTDC/022/716"
 
-#  GlobalDetCoords: []
-#  DetRotation:     []
+  XCETDebug:          "false"
 
   DeviceTypes:  [["XBPF022697","horiz"],
                  ["XBPF022698","vert"],

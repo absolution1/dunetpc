@@ -108,6 +108,7 @@ public:
 
   void  parseXTOF(uint64_t);
   void  parseXCET(uint64_t);
+  void  parseXCETDB(uint64_t);
 
 
   void getS11Info(uint64_t);
@@ -200,7 +201,7 @@ private:
   std::string fBundleName;
   std::string fOutputLabel;
   std::string fURLStr;
-  double fBFEpsilon;
+  double fBFEpsilon, fXCETEpsilon;
   int fIFBeamDebug;
   uint64_t fFixedTime;
   //std::vector< uint64_t > fMultipleTimes;
@@ -249,6 +250,8 @@ private:
   // Cerenkovs
   std::string fCKov1;
   std::string fCKov2;
+  std::string fXCET1;
+  std::string fXCET2;
 
   double fRotateMonitorXZ;
   double fRotateMonitorYZ;
@@ -260,9 +263,12 @@ private:
   double fBeamX, fBeamY, fBeamZ;
 
   bool   fForceNewFetch;
+  bool   fXCETDebug;
   bool   fMatchTime;
   bool   fForceRead;
   bool   fForceMatchS11;
+  
+  double fFillCacheUp, fFillCacheDown;
 
   bool   fSaveOutTree;
   bool   fDebugTOFs;
@@ -639,13 +645,13 @@ void proto::BeamEvent::MatchBeamToTPC(){
 
 void proto::BeamEvent::SetCKovInfo(){
 
-  beam::CKov theCKov = beamspill->GetCKov0();
-  theCKov.trigger = C1;
-  beamevt->SetCKov0( theCKov );
+  //beam::CKov theCKov = beamspill->GetCKov0();
+  //theCKov.trigger = C1;
+  //beamevt->SetCKov0( theCKov );
 
-  theCKov = beamspill->GetCKov1();
-  theCKov.trigger = C2;
-  beamevt->SetCKov1( theCKov );
+  //theCKov = beamspill->GetCKov1();
+  //theCKov.trigger = C2;
+ // beamevt->SetCKov1( theCKov );
 
 }
 
@@ -703,6 +709,11 @@ void proto::BeamEvent::SetBeamEvent(){
 
   beamevt->SetMagnetCurrent( beamspill->GetMagnetCurrent() );
   MF_LOG_INFO("BeamEvent") << "beamevt has Magnet Current " << beamevt->GetMagnetCurrent() << "\n";
+
+  beamevt->SetCKov0( beamspill->GetCKov0( activeTrigger ) );
+  beamevt->SetCKov1( beamspill->GetCKov1( activeTrigger ) );
+  MF_LOG_INFO("BeamEvent") << "beamevt CKov0: " << beamevt->GetCKov0Status() << " " << beamevt->GetCKov0Pressure() << "\n";
+  MF_LOG_INFO("BeamEvent") << "beamevt CKov1: " << beamevt->GetCKov1Status() << " " << beamevt->GetCKov1Pressure() << "\n";
 
   MF_LOG_INFO("BeamEvent") << "Finished adding info to beamevt " << "\n";
 
@@ -818,13 +829,13 @@ void proto::BeamEvent::produce(art::Event & e){
         //      (The info does exist in the raw decoder info, but it's not always 
         //       present, so I'm just opting for this)
         try{        
-          bfp->FillCache( fetch_time + 5 );
+          bfp->FillCache( fetch_time + fFillCacheUp );
           cache_start = bfp->GetCacheStartTime();
           cache_end   = bfp->GetCacheEndTime();
           MF_LOG_INFO("BeamEvent") << "interim cache_start: " << cache_start << "\n";
           MF_LOG_INFO("BeamEvent") << "interim cache_end: "   << cache_end << "\n";
 
-          bfp->FillCache( fetch_time - 5 );
+          bfp->FillCache( fetch_time - fFillCacheDown );
           cache_start = bfp->GetCacheStartTime();
           cache_end   = bfp->GetCacheEndTime();
           MF_LOG_INFO("BeamEvent") << "new cache_start: " << cache_start << "\n";
@@ -838,7 +849,7 @@ void proto::BeamEvent::produce(art::Event & e){
         //First event, let's get the start of spill info 
         MF_LOG_INFO("BeamEvent") << "First Event: Priming cache\n";
         try{        
-          bfp->FillCache( fetch_time - 5 );
+          bfp->FillCache( fetch_time - fFillCacheDown );
         }
         catch( std::exception e ){
           MF_LOG_INFO("BeamEvent") << "Could not fill cache\n"; 
@@ -862,7 +873,8 @@ void proto::BeamEvent::produce(art::Event & e){
         parseXBPF(fetch_time);
       }
 
-      parseXCET(fetch_time);
+//      parseXCET(fetch_time);
+      parseXCETDB(fetch_time);
 
       try{
         current = FetchAndReport(fetch_time_down, "dip/acc/NORTH/NP04/POW/MBPL022699:current");
@@ -1402,6 +1414,147 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 // END BeamEvent::parseXTOF
 ////////////////////////
 
+void proto::BeamEvent::parseXCETDB(uint64_t time){
+
+  if(fCKov1 != ""){  
+
+    try{
+      std::vector< double > pressureCKov1   = FetchAndReport(time, fXCETPrefix + fCKov1 + ":pressure");
+      CKov1Pressure = pressureCKov1[0];
+    }
+    catch( std::exception e){
+      MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 1 Pressure\n";
+      CKov1Pressure = 0.; 
+    }
+
+  }
+  
+  if(fCKov2 != ""){
+    try{
+      std::vector< double > pressureCKov2   = FetchAndReport(time, fXCETPrefix + fCKov2 + ":pressure");
+      CKov2Pressure = pressureCKov2[0];
+    }
+    catch( std::exception e){
+      MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 2 Pressure\n";
+      CKov2Pressure = 0.; 
+    }  
+  }
+
+  std::vector< double > XCET1_timestamps, XCET2_timestamps;
+  std::vector< double > XCET1_seconds,    XCET2_seconds;   
+  std::vector< double > XCET1_frac,       XCET2_frac;      
+  std::vector< double > XCET1_coarse,     XCET2_coarse;    
+
+  bool fetched_XCET1, fetched_XCET2; 
+  if( fXCET1 != "" ){
+    bfp->set_epsilon( fXCETEpsilon );
+    try{ 
+      XCET1_timestamps = FetchAndReport( time - 10, fXCET1 + ":TIMESTAMP_COUNT" );
+      XCET1_seconds    = FetchAndReport( time - 10, fXCET1 + ":SECONDS" );
+      XCET1_frac       = FetchAndReport( time - 10, fXCET1 + ":FRAC" );
+      XCET1_coarse     = FetchAndReport( time - 10, fXCET1 + ":COARSE" );
+      fetched_XCET1 = true;
+
+      if( fXCETDebug ){
+        std::cout << "XCET1 timestamps " << XCET1_timestamps[0] << std::endl; 
+        for( size_t i = 0; i < XCET1_timestamps[0]; ++i ){
+          std::cout << i << " " << XCET1_seconds[i] - fOffsetTAI << " " << (8.*XCET1_coarse[i] + XCET1_frac[i] / 512.) << std::endl;
+        }
+      }
+
+    }
+    catch( std::exception e){
+      //PUT A DUMMY CKOV OBJECT WITH TRIGGER = -1
+      MF_LOG_WARNING("BeamEvent") << "Could not get XCET1 info\n";
+      fetched_XCET1 = false;
+    }
+  }
+  if( fXCET2 != "" ){
+    bfp->set_epsilon( fXCETEpsilon );
+    try{ 
+      XCET2_timestamps = FetchAndReport( time - 10, fXCET2 + ":TIMESTAMP_COUNT" );
+      XCET2_seconds    = FetchAndReport( time - 10, fXCET2 + ":SECONDS" );
+      XCET2_frac       = FetchAndReport( time - 10, fXCET2 + ":FRAC" );
+      XCET2_coarse     = FetchAndReport( time - 10, fXCET2 + ":COARSE" );
+      fetched_XCET2 = true;
+
+      if( fXCETDebug ){
+        std::cout << "XCET2 timestamps " << XCET2_timestamps[0] << std::endl; 
+        for( size_t i = 0; i < XCET2_timestamps[0]; ++i ){
+          std::cout << i << " " << XCET2_seconds[i] - fOffsetTAI << " " << (8.*XCET2_coarse[i] + XCET2_frac[i] / 512.) << std::endl;
+        }
+      }
+    }
+    catch( std::exception e){
+      MF_LOG_WARNING("BeamEvent") << "Could not get XCET2 info\n";
+      fetched_XCET2 = false;
+    }
+  }
+
+
+
+  //Go through the general triggers and try to match. If one can't be found, then just add a 0
+  for( size_t i = 0; i < beamspill->GetNT0(); ++i ){
+    if( fXCETDebug ) std::cout << "GenTrig: " << i << " " << beamspill->GetT0Sec(i) << " " << beamspill->GetT0Nano(i) << std::endl;
+    
+    beam::CKov status_1;
+    status_1.pressure = CKov1Pressure;
+    if( !fetched_XCET1 ) status_1.trigger = -1;
+    else{
+      status_1.trigger = 0;
+      for( size_t ic1 = 0; ic1 < XCET1_timestamps[0]; ++ic1 ){
+        double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET1_seconds[ic1] - fOffsetTAI) );
+        delta += ( beamspill->GetT0Nano(i) - (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) );
+
+        if( fabs(delta) < 500. ){
+          if( fXCETDebug ) std::cout << "Found matching XCET1 trigger " << XCET1_seconds[ic1] - fOffsetTAI << " " << (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) << " " << delta << std::endl;
+          status_1.trigger = 1;
+          status_1.timeStamp = std::make_pair( XCET1_seconds[ic1] - fOffsetTAI, (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) );
+          break;
+        }     
+      }
+    }
+    beamspill->AddCKov0( status_1 );
+
+    beam::CKov status_2;
+    status_2.pressure = CKov2Pressure;
+    if( !fetched_XCET2 ) status_2.trigger = -1;
+    else{
+      status_2.trigger = 0;
+      for( size_t ic2 = 0; ic2 < XCET2_timestamps[0]; ++ic2 ){
+
+        double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET2_seconds[ic2] - fOffsetTAI) );
+        delta += ( beamspill->GetT0Nano(i) - (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) );
+
+        if( fabs(delta) < 500. ){
+          if( fXCETDebug ) std::cout << "Found matching XCET2 trigger " << XCET2_seconds[ic2] - fOffsetTAI << " " << (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) << " " << delta << std::endl;
+          status_2.trigger = 1;
+          status_2.timeStamp = std::make_pair( XCET2_seconds[ic2] - fOffsetTAI, (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) );
+          break;
+        }     
+      }
+    }
+    beamspill->AddCKov1( status_2 );
+  }
+
+  if( fXCETDebug ){
+    MF_LOG_INFO("BeamEvent") << "GeneralTriggers: " << beamspill->GetNT0() << std::endl;
+    MF_LOG_INFO("BeamEvent") << "XCET1: " << beamspill->GetNCKov0() << std::endl;
+    MF_LOG_INFO("BeamEvent") << "XCET2: " << beamspill->GetNCKov1() << std::endl;
+
+    int nxcet1 = 0, nxcet2 = 0;
+
+    for( size_t i = 0; i < beamspill->GetNT0(); ++i ){
+      nxcet1 += beamspill->GetCKov0Status(i);
+      nxcet2 += beamspill->GetCKov1Status(i);
+    }
+    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_timestamps[0] << " " << nxcet1 << std::endl;
+    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_timestamps[0] << " " << nxcet2 << std::endl;
+  }
+
+  bfp->set_epsilon( fBFEpsilon );
+}
+
 void proto::BeamEvent::parseXCET(uint64_t time){
   if(fCKov1 != ""){  
 
@@ -1431,12 +1584,12 @@ void proto::BeamEvent::parseXCET(uint64_t time){
 
   CKov1Status.pressure  = CKov1Pressure;
   CKov1Status.trigger   = C1;
-  beamspill->SetCKov0( CKov1Status );
+ // beamspill->SetCKov0( CKov1Status );
 
 
   CKov2Status.pressure  = CKov2Pressure;
   CKov2Status.trigger   = C2;
-  beamspill->SetCKov1( CKov2Status );
+ // beamspill->SetCKov1( CKov2Status );
 
 }
 // END BeamEvent::parseXCET
@@ -1681,6 +1834,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fOutputLabel = p.get<std::string>("OutputLabel");
   fURLStr      = p.get<std::string>("URLStr");
   fBFEpsilon   = p.get<double>("BFEpsilon");
+  fXCETEpsilon   = p.get<double>("XCETEpsilon");
   fIFBeamDebug = p.get<int>("IFBeamDebug");
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
@@ -1730,7 +1884,11 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
 
   fCKov1 = p.get< std::string >("CKov1");
   fCKov2 = p.get< std::string >("CKov2");
+  fXCET1 = p.get< std::string >("XCET1");
+  fXCET2 = p.get< std::string >("XCET2");
 
+  fFillCacheUp   = p.get< double >("FillCacheUp");
+  fFillCacheDown = p.get< double >("FillCacheDown");
 
   fXBPFPrefix      = p.get<std::string>("XBPFPrefix");
   fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
@@ -1754,6 +1912,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fMatchTime           = p.get<bool>("MatchTime");
   fForceRead           = p.get<bool>("ForceRead");
   fForceMatchS11       = p.get<bool>("ForceMatchS11");
+  fXCETDebug           = p.get<bool>("XCETDebug");
 
 
   fTimingCalibration      = p.get<double>("TimingCalibration");
