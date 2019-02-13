@@ -20,7 +20,7 @@
 //          If "derived", then /(ADC count) is removed from the gain unit.
 //   GainDefault - Gain used if input gain is <=0 or missing.
 //   AdcUnderflowDefault - value for underflow
-//   AdcOverflowDefault - value for underflow
+//   AdcOverflowDefault - value for overflow
 //   GainTool - Name of the FloatArrayTool holding the gains.
 //
 // Output:

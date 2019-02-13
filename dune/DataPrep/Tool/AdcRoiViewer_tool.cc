@@ -1071,7 +1071,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       varfac = 1.0/pulserQin;
     }
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
-    if ( ph == nullptr && vals.size() ) {
+    //if ( ph == nullptr && vals.size() ) {
+    if ( ph == nullptr ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
       Name httl0 = ph0->GetTitle();
       Name httl = AdcChannelStringTool::build(m_adcStringBuilder, acd, httl0);
@@ -1080,7 +1081,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       float xmax = ph0->GetXaxis()->GetXmax();
       // If xmin > xmax and xmin > 0, then we center histogram on median and use width = xmin.
       // If also xmax >0, then we round the first bin edge to that value.
-      if ( xmin > xmax && xmin > 0.0 ) {
+      if ( vals.size() && xmin > xmax && xmin > 0.0 ) {
         FloatVector tmpvals = vals;
         std::sort(tmpvals.begin(), tmpvals.end());
         Index nval = tmpvals.size();
@@ -1137,18 +1138,22 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       getState().chanSumHistChannels[hnam] = acd.channel;
     }
-    if ( m_LogLevel >= 3 ) cout << myname << "Filling histogram " << hnam << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "Filling summary histogram " << hnam << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
     IntVector fstats = dm.getIntVector("roiFitStats");
     bool checkFit = varx.substr(0,3) == "fit";
+    if ( csds.size() == 0 || fstats.size() == 0 ) checkFit = false;
     double chiSquareDofMax = 0.0;   // was 1000; should be config param?
-    if ( csds.size() != vals.size() ) {
+    if ( checkFit ) {
+      if ( csds.size() != vals.size() ) {
       cout << "ERROR: Variable and chi-square/DF vectors have different sizes." << endl;
-      checkFit = false;
-    }
-    if ( fstats.size() != vals.size() ) {
-      cout << "ERROR: Variable and fit status vectors have different sizes." << endl;
-      checkFit = false;
+        checkFit = false;
+      }
+      if ( fstats.size() != vals.size() ) {
+        cout << "ERROR: Variable and fit status vectors have different sizes: "
+             << vals.size() << " != " << fstats.size()  << endl;
+        checkFit = false;
+      }
     }
     Index nval = 0;
     Index nvalSkip = 0;
@@ -1357,6 +1362,21 @@ void AdcRoiViewer::writeSumPlots() const {
         pman->setRangeX(xmin, xmax);
       }
       NameVector labs;
+      bool showMean = true;
+      if ( showMean ) {
+        ostringstream ssout;
+        ssout.precision(3);
+        ssout.setf(std::ios_base::fixed);
+        ssout.str("");
+        ssout << "# ROI: " << ph->GetEntries();
+        labs.push_back(ssout.str());
+        ssout.str("");
+        ssout << "Hist Mean: " << ph->GetMean();
+        labs.push_back(ssout.str());
+        ssout.str("");
+        ssout << "Hist RMS: " << ph->GetRMS();
+        labs.push_back(ssout.str());
+      }
       TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
       if ( pffit != nullptr ) {
         string fnam = pffit->GetName();
