@@ -3,6 +3,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
+#include <algorithm>
 #include "TVector3.h"
 
 protoana::ProtoDUNEBeamlineUtils::ProtoDUNEBeamlineUtils(fhicl::ParameterSet const& p){
@@ -158,7 +159,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
     double yPos = GetPosition(thePair.second);
     
     std::cout << "normal " << xPos << " " << yPos << std::endl;
-    TVector3 posInDet = ConvertMonitorCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+    TVector3 posInDet = ConvertMonitorCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
     std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
     DownstreamPositions.push_back( posInDet );
   }
@@ -201,6 +202,7 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
 
   fRotateMonitorXZ = p.get<double>("RotateMonitorXZ"); 
   fRotateMonitorYZ = p.get<double>("RotateMonitorYZ"); 
+  fRotateMonitorYX = p.get<double>("RotateMonitorYX"); 
 
   fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
   fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
@@ -255,7 +257,7 @@ void protoana::ProtoDUNEBeamlineUtils::BeamMonitorBasisVectors(){
 
 void protoana::ProtoDUNEBeamlineUtils::RotateMonitorVector(TVector3 &vec){
   vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
 }
 
 
@@ -412,4 +414,150 @@ double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2,
   double cosTheta = numTerm/denom;
 
   return cosTheta;
+}
+
+std::vector< int > protoana::ProtoDUNEBeamlineUtils::GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
+  std::vector< int > thePIDs;
+
+  //Check if momentum is in valid set
+  std::vector< double > valid_momenta = {1., 2., 3., 6., 7.};
+  if( std::find(valid_momenta.begin(), valid_momenta.end(), nominal_momentum) == valid_momenta.end() ){
+    std::cout << "Reference momentum " << nominal_momentum << " not valid" << std::endl;
+    return thePIDs;
+  }
+
+  //Get the high/low pressure Cerenkov info
+  int high_pressure_status, low_pressure_status; 
+  
+  std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
+  if( beamevt.GetCKov0Pressure() < beamevt.GetCKov1Pressure() ){
+    high_pressure_status = beamevt.GetCKov1Status();
+    low_pressure_status = beamevt.GetCKov0Status();
+  }
+  else{
+    high_pressure_status = beamevt.GetCKov0Status();
+    low_pressure_status = beamevt.GetCKov1Status();
+  }
+  
+
+  if( nominal_momentum == 1. ){
+    if( beamevt.GetTOFChan() == -1 ){
+      std::cout << "TOF invalid" << std::endl;
+      return thePIDs;
+    }
+    if( high_pressure_status == -1 ){
+      std::cout << "High pressure status invalid" << std::endl;
+      return thePIDs;
+    }
+
+    const double & tof = beamevt.GetTOF();
+    if      ( tof < 105. && high_pressure_status == 1 ) 
+      thePIDs.push_back(kElectron);
+
+    else if ( tof < 110. && high_pressure_status == 0 ){
+      thePIDs.push_back(kMuon);
+      thePIDs.push_back(kPion);
+    }
+
+    else if ( tof > 110. && tof < 160. && high_pressure_status == 0 ) 
+      thePIDs.push_back(kProton);
+
+  }
+  else if( nominal_momentum == 2. ){
+    if( beamevt.GetTOFChan() == -1 ){
+      std::cout << "TOF invalid" << std::endl;
+      return thePIDs;
+    }
+    if( high_pressure_status == -1 ){
+      std::cout << "High pressure Cerenkov status invalid" << std::endl;
+      return thePIDs;
+    }
+
+    const double & tof = beamevt.GetTOF();
+    if      ( tof < 105. && high_pressure_status == 1 ) 
+      thePIDs.push_back(kElectron);
+
+    else if ( tof < 103. && high_pressure_status == 0 ){
+      thePIDs.push_back(kMuon);
+      thePIDs.push_back(kPion);
+    }
+    else if ( tof > 103. && tof < 160. && high_pressure_status == 0 )
+      thePIDs.push_back(kProton);
+   
+  }
+  else if( nominal_momentum == 3. ){
+    if( high_pressure_status == -1 || low_pressure_status == -1 ){
+      std::cout << "At least one Cerenkov status invalid " << std::endl;
+      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
+      return thePIDs;
+    }
+    else if ( low_pressure_status == 1 && high_pressure_status == 1 ) 
+      thePIDs.push_back(kElectron);
+
+    else if ( low_pressure_status == 0 && high_pressure_status == 1 ){
+      thePIDs.push_back(kMuon);
+      thePIDs.push_back(kPion);
+    }
+
+    else{ // low, high = 0, 0
+      thePIDs.push_back(kProton);
+      thePIDs.push_back(kKaon); 
+    }
+  }
+  else if( nominal_momentum == 6. || nominal_momentum == 7. ){
+    if( high_pressure_status == -1 || low_pressure_status == -1 ){
+      std::cout << "At least one Cerenkov status invalid " << std::endl;
+      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
+      return thePIDs;
+    }
+    else if ( low_pressure_status == 1 && high_pressure_status == 1 ){
+      thePIDs.push_back(kElectron);
+      thePIDs.push_back(kMuon);
+      thePIDs.push_back(kPion);
+    }
+    else if ( low_pressure_status == 0 && high_pressure_status == 1 ) 
+      thePIDs.push_back(kKaon); 
+
+    else  // low, high = 0, 0
+      thePIDs.push_back(kProton);
+  }
+
+  return thePIDs;
+ 
+}
+
+double protoana::ProtoDUNEBeamlineUtils::ComputeTOF( int pdg, double momentum ){
+  if( momentum  < .0000001 ){ 
+    std::cout << "Low Momentum" << std::endl;
+    return -1.;
+  }
+
+  if( particle_mass.find( pdg ) == particle_mass.end() ){
+    std::cout << "PDG " << pdg << " not found" <<  std::endl;
+    return -1.;
+  }
+
+  double m = particle_mass[pdg];
+  double fTOFDist = 28.575;
+  double tof = fTOFDist / c;
+  tof = tof / sqrt( 1. - m*m / (momentum*momentum + m*m) );
+
+  return tof * 1.e9;
+}
+
+double protoana::ProtoDUNEBeamlineUtils::ComputeMomentum( int pdg, double tof ){
+  if( tof < .0000001 ){ 
+    std::cout << "Low TOF" << std::endl;
+    return -1.;
+  }
+
+  if( particle_mass.find( pdg ) == particle_mass.end() ){
+    std::cout << "PDG " << pdg << " not found" <<  std::endl;
+    return -1.;
+  }
+
+  double m = particle_mass[pdg];
+  double fTOFDist = 28.575;
+  return m * sqrt(1. / ( 1. - fTOFDist*fTOFDist / ( 1.e-18*tof*tof*c*c ) )  - 1. );
+
 }
