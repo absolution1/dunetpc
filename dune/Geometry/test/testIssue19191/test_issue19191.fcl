@@ -1,0 +1,36 @@
+#include "services_dune.fcl"
+#
+
+#services.Geometry:                   @local::protodune_geo
+#services.ExptGeoHelperInterface:     @local::dune_geometry_helper
+ 
+services:
+{ 
+  @table::dunefd_services
+} 
+source:
+{
+  module_type: EmptyEvent
+  maxEvents:  1            # Number of events to create
+}
+
+outputs:
+{
+}
+
+physics:
+{
+ producers:{}
+ filters:  {}
+ analyzers:{}
+ ana:  [ issue19191 ]
+
+ trigger_paths: []
+ end_paths:     [  ana ]
+ }
+ #
+ #        # define the list of LArSoft modules to run through the simulate path
+ #
+ physics.analyzers.issue19191:  {
+    module_type: "issue19191"
+ }

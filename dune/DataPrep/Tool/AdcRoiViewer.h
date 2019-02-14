@@ -37,6 +37,8 @@
 //     TickOffsetTool - Name of the tool that provides the tick offset.
 //    RoiRootFileName - Name of file to which the ROI histograms are copied.
 //    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
+//         PlotLabels - Array of strings that may be used whe constructin plot titles.
+//                      The are referencesd as %LAB0%, %LAB1%, ... %LAB9%
 //
 // Summary histograms
 // ------------------
@@ -90,6 +92,7 @@
 //                zero - Set the error to zero
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
+//            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
 //       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
@@ -269,6 +272,9 @@ public:
   void writeChanSumHists() const;
   void writeChanSumPlots() const;
 
+  // Replace %LABX% with the corresponding plot label.
+  void setPlotLabels(Name& sttl) const;
+
 private:
 
   // Configuration data.
@@ -293,9 +299,11 @@ private:
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
   NameVector m_ChannelRanges;
+  NameVector m_PlotLabels;
 
   // Derived from configuration.
-  ChannelRangeMap m_crmap;
+  ChannelRangeMap m_crmap; 
+  NameMap m_plotLabelSubs;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;

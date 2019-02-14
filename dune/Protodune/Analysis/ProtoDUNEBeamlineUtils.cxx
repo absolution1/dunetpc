@@ -94,7 +94,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
     for(size_t iV = 0; iV < VertUpstreamFibers.size(); ++iV){
       size_t VertFiber = VertUpstreamFibers[iV];
 
-      //LOG_DEBUG("BeamEvent") << "Paired: " << HorizFiber << " " << VertFiber << "\n"; 
+      //MF_LOG_DEBUG("BeamEvent") << "Paired: " << HorizFiber << " " << VertFiber << "\n"; 
       std::cout << "Paired: " << HorizFiber << " " << VertFiber << std::endl; 
       UpstreamPairedFibers.push_back(std::make_pair(HorizFiber, VertFiber));
 
@@ -132,7 +132,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
     for(size_t iV = 0; iV < VertDownstreamFibers.size(); ++iV){
       size_t VertFiber = VertDownstreamFibers[iV];
 
-      //LOG_DEBUG("BeamEvent") << "Paired: " << HorizFiber << " " << VertFiber << "\n"; 
+      //MF_LOG_DEBUG("BeamEvent") << "Paired: " << HorizFiber << " " << VertFiber << "\n"; 
       std::cout << "Paired: " << HorizFiber << " " << VertFiber << std::endl; 
       DownstreamPairedFibers.push_back(std::make_pair(HorizFiber, VertFiber));
 

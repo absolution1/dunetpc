@@ -26,6 +26,7 @@
 #include "TF1.h"
 
 using std::string;
+using std::to_string;
 using std::cout;
 using std::endl;
 using std::ostringstream;
@@ -176,6 +177,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_SumRootFileName(ps.get<string>("SumRootFileName")),
   m_ChanSumRootFileName(ps.get<string>("ChanSumRootFileName")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
+  m_PlotLabels(ps.get<NameVector>("PlotLabels")),
   m_state(new AdcRoiViewer::State)
 {
   const string myname = "AdcRoiViewer::ctor: ";
@@ -203,6 +205,11 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( m_pChannelRangeTool == nullptr ) {
       cout << myname << "WARNING: Index range tool not found: " << m_ChannelRangeTool << endl;
     }
+  }
+  // Build the label substitutions.
+  for ( Index ilab=0; ilab<m_PlotLabels.size(); ++ilab ) {
+    Name stxt = "%LAB" + to_string(ilab) + "%";
+    m_plotLabelSubs[stxt] = m_PlotLabels[ilab];
   }
   // Build the summary template histograms.
   // The summary histogram for each channel is created the first time it is encountered in th data.
@@ -323,7 +330,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"mean", "rms", "fitMean", "fitSigma"};
+    const NameVector valTypes = {"count", "mean", "rms", "fitMean", "fitSigma"};
     if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
@@ -344,6 +351,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       yttl = "Fit mean of " + valLabel;
     } else if ( valType == "fitSigma" ) {
       yttl = "Fit sigma of " + valLabel;
+    } else if ( valType == "count" ) {
+      yttl = "# ROI";
     }
     // Find y-range for plot.
     bool havePlotYMin = false;
@@ -395,12 +404,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "ERROR: Duplicate channel summary histogram name: " << hnam << endl;
         continue;
       }
+      setPlotLabels(hnam);
       StringManipulator smttl(httl0);
       smttl.replace("%CRNAME%", cr.name);
       smttl.replace("%CRLABEL%", cr.label());
       smttl.replace("%CRLABEL1%", cr.label(1));
       smttl.replace("%CRLABEL2%", cr.label(2));
       Name httl = smttl.string();
+      setPlotLabels(httl);
       TH1* phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
       phf->GetXaxis()->SetTitle("Channel");
       phf->GetYaxis()->SetTitle(yttl.c_str());
@@ -416,6 +427,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       smplt.replace("%CRLABEL1%", cr.label(1));
       smplt.replace("%CRLABEL2%", cr.label(2));
       plname = smplt.string();
+      setPlotLabels(plname);
       getState().chanSumHists[hnam] = phf;
       getState().chanSumHistTemplateNames[hnam] = vhnam;
       getState().chanSumHistVariableTypes[hnam] = valType;
@@ -483,6 +495,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "                 " << ph->GetName() << endl;
       }
     }
+    cout << myname << "        PlotLabels: [";
+    bool first = true;
+    for ( Name slab : m_PlotLabels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << slab;
+    }
+    cout << "]" << endl;
     cout << myname << "      RunDataTool: \"" << m_RunDataTool << "\" @ "
          << m_pRunDataTool << endl;
     cout << myname << "   TickOffsetTool: \"" << m_TickOffsetTool << "\" @ "
@@ -618,7 +638,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     if ( dbg >=3 ) cout << myname << "  ROI " << nroi << "(raw " << iroiRaw << "): ["
                         << roi.first << ", " << roi.second << "]" << endl;
     ostringstream sshnam;
-    sshnam << "hroi_evt%0EVENT%_chan%0CHAN%_roi";
+    sshnam << "hroi_run_%0RUN%_evt%0EVENT%_chan%0CHAN%_roi";
     if ( nroi < 100 ) sshnam << "0";
     if ( nroi <  10 ) sshnam << "0";
     sshnam << nroi;
@@ -1433,6 +1453,8 @@ void AdcRoiViewer::fillChanSumHists() const {
         val = phvar->GetMean();
       } else if ( vartype == "rms" ) {
         val = phvar->GetRMS();
+      } else if ( vartype == "count" ) {
+        val = phvar->GetEntries();
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
@@ -1571,6 +1593,13 @@ void AdcRoiViewer::writeChanSumPlots() const {
         } else {
           cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
         }
+      } else if ( yopt == "pampg14") {
+        const RunData& rdat = getState().runData;
+        if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
+          yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
+        } else {
+          cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
+        }
       }
       if ( yfac != 0.0 ) {
         ymin *= yfac;
@@ -1622,6 +1651,16 @@ void AdcRoiViewer::writeChanSumPlots() const {
     pman->print(pnam);
     delete pman;
   }
+}
+
+//**********************************************************************
+
+void AdcRoiViewer::setPlotLabels(Name& sttl) const {
+  StringManipulator sman(sttl);
+  for ( NameMap::value_type isub : m_plotLabelSubs ) {
+    sman.replace(isub.first, isub.second);
+  }
+  sttl = sman.string();
 }
 
 //**********************************************************************

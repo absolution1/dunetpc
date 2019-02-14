@@ -132,7 +132,7 @@ dunefddphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
- PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry:                       @local::dunedphase10kt_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks
@@ -195,7 +195,7 @@ dunedphase3x1x1_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
- PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  Geometry:                       @local::dphase3x1x1_geo
  DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
@@ -271,7 +271,7 @@ protodunedphase_simulation_services: {
  NuRandomService:                @local::dune_seedservice
  DatabaseUtil:                   @local::dunefd_database
  OpDetResponseInterface:         @local::standard_opdetresponse
- PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
  DetectorClocksService:          @local::dunefddphase_detectorclocks

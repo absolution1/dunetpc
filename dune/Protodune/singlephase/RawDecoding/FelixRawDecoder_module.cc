@@ -96,8 +96,8 @@ void dune::FelixRawDecoder::beginJob(){
 }
 
 void dune::FelixRawDecoder::produce(art::Event & evt){
-    // TODO Use LOG_DEBUG
-    LOG_INFO("FelixRawDecoder")
+    // TODO Use MF_LOG_DEBUG
+    MF_LOG_INFO("FelixRawDecoder")
       << "-------------------- FELIX RawDecoder -------------------";
 
   RawDigits raw_digits;
@@ -118,7 +118,7 @@ void dune::FelixRawDecoder::produce(art::Event & evt){
     }
     //Check that the data is valid
     if(!cont_frags.isValid()){
-      LOG_ERROR("FelixRawDecoder")
+      MF_LOG_ERROR("FelixRawDecoder")
           << "Run: " << evt.run()
 		  << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
@@ -156,7 +156,7 @@ void dune::FelixRawDecoder::produce(art::Event & evt){
 
     //Check that the data is valid
     if(!frags.isValid()){
-      LOG_ERROR("FelixRawDecoder")
+      MF_LOG_ERROR("FelixRawDecoder")
           << "Run: " << evt.run()
 		  << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
@@ -169,7 +169,7 @@ void dune::FelixRawDecoder::produce(art::Event & evt){
     }
   }
 
-  LOG_INFO("FelixRawDecoder")
+  MF_LOG_INFO("FelixRawDecoder")
       << " Processed " << n_felix_frags
       << " FELIX Fragments, "
       << raw_digits.size()
@@ -188,7 +188,7 @@ bool dune::FelixRawDecoder::_process(
   // FIXME: Remove hard-coded fragment type
   //if((unsigned)frag.type() != 2) return false;
 
-  LOG_INFO("FelixRawDecoder")
+  MF_LOG_INFO("FelixRawDecoder")
       << "   SequenceID = " << frag.sequenceID()
       << "   fragmentID = " << frag.fragmentID()
       << "   fragmentType = " << (unsigned)frag.type()

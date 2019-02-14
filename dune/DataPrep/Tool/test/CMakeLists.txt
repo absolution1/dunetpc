@@ -284,21 +284,21 @@ cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
-#cet_test(test_AdcRoiViewer
-#  SOURCES
-#    test_AdcRoiViewer.cxx
-#  LIBRARIES
-#    lardataobj_RawData
-#    dune_ArtSupport
-#    art_Utilities
-#    canvas
-#    fhiclcpp
-#    cetlib cetlib_except
-#    cetlib_except
-#    ${ROOT_BASIC_LIB_LIST}
-#    ${SQLITE3}
-#    ${Boost_FILESYSTEM_LIBRARY}
-#)
+cet_test(test_AdcRoiViewer
+  SOURCES
+    test_AdcRoiViewer.cxx
+  LIBRARIES
+    lardataobj_RawData
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
 
 cet_test(test_FembLinearCalibration
   SOURCES
