@@ -1549,7 +1549,6 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET1 trigger " << XCET1_seconds[ic1] - fOffsetTAI << " " << (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) << " " << delta << std::endl;
           status_1.trigger = 1;
-          status_1.timeStamp = std::make_pair( XCET1_seconds[ic1] - fOffsetTAI, (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) );
           break;
         }     
       }
@@ -1569,7 +1568,6 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET2 trigger " << XCET2_seconds[ic2] - fOffsetTAI << " " << (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) << " " << delta << std::endl;
           status_2.trigger = 1;
-          status_2.timeStamp = std::make_pair( XCET2_seconds[ic2] - fOffsetTAI, (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) );
           break;
         }     
       }
@@ -1620,16 +1618,16 @@ void proto::BeamEvent::parseXCET(uint64_t time){
     }  
   }
 
-  beam::CKov CKov1Status, CKov2Status;
+  //beam::CKov CKov1Status, CKov2Status;
 
-  CKov1Status.pressure  = CKov1Pressure;
-  CKov1Status.trigger   = C1;
- // beamspill->SetCKov0( CKov1Status );
+  //CKov1Status.pressure  = CKov1Pressure;
+  //CKov1Status.trigger   = C1;
+  //beamspill->SetCKov0( CKov1Status );
 
 
-  CKov2Status.pressure  = CKov2Pressure;
-  CKov2Status.trigger   = C2;
- // beamspill->SetCKov1( CKov2Status );
+  //CKov2Status.pressure  = CKov2Pressure;
+  //CKov2Status.trigger   = C2;
+  //beamspill->SetCKov1( CKov2Status );
 
 }
 // END BeamEvent::parseXCET

@@ -625,8 +625,8 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
       if(beaminfo[i]->GetBITrigger() == 1){
 	fcerenkovStatus[0]   = beaminfo[i]->GetCKov0Status();
 	fcerenkovStatus[1]   = beaminfo[i]->GetCKov1Status();
-	fcerenkovTime[0]     = beaminfo[i]->GetCKov0Time().first;
-	fcerenkovTime[1]     = beaminfo[i]->GetCKov1Time().first;
+	fcerenkovTime[0]     = beaminfo[i]->GetCKov0Time();
+	fcerenkovTime[1]     = beaminfo[i]->GetCKov1Time();
 	fcerenkovPressure[0] = beaminfo[i]->GetCKov0Pressure();
 	fcerenkovPressure[1] = beaminfo[i]->GetCKov1Pressure();
       }

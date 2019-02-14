@@ -37,7 +37,7 @@ namespace beam
     //Status at time of system trigger (on/off)
     short trigger;
     double pressure;
-    std::pair< double, double > timeStamp;
+    double timeStamp;
   };
 
 
@@ -80,8 +80,8 @@ namespace beam
       short                         GetCKov1Status(size_t i){ return CKov1[i].trigger; };
       double                        GetCKov0Pressure(size_t i){ return CKov0[i].pressure; };
       double                        GetCKov1Pressure(size_t i){ return CKov1[i].pressure; };
-      std::pair< double, double >   GetCKov0Time(size_t i){ return CKov0[i].timeStamp; };
-      std::pair< double, double >   GetCKov1Time(size_t i){ return CKov1[i].timeStamp; };
+      double                        GetCKov0Time(size_t i){ return CKov0[i].timeStamp; };
+      double                        GetCKov1Time(size_t i){ return CKov1[i].timeStamp; };
 
 
       void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };

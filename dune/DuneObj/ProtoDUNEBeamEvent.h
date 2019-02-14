@@ -36,8 +36,8 @@ namespace beam
       void                       SetCKov1(CKov theCKov){ CKov1 = theCKov; };
       const short  &             GetCKov0Status() const{ return CKov0.trigger; };
       const short  &             GetCKov1Status() const{ return CKov1.trigger; };
-      const std::pair< double, double > &             GetCKov0Time() const{ return CKov0.timeStamp; };
-      const std::pair< double, double > &             GetCKov1Time() const{ return CKov1.timeStamp; };
+      const double &             GetCKov0Time() const{ return CKov0.timeStamp; };
+      const double &             GetCKov1Time() const{ return CKov1.timeStamp; };
       const double &             GetCKov0Pressure() const{ return CKov0.pressure; };
       const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
