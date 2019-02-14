@@ -75,16 +75,38 @@ void protoana::ProtoDUNEBeamlineReco::reconfigure(fhicl::ParameterSet const& pse
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
 
-  std::vector< recob::Track > tracks = fBeamlineUtils.MakeTracks( evt );
-  std::cout << "Got " << tracks.size() << " tracks" << std::endl;
+//  std::vector< recob::Track > tracks = fBeamlineUtils.MakeTracks( evt );
+//  std::cout << "Got " << tracks.size() << " tracks" << std::endl;
+//
+//  std::vector< double > momenta = fBeamlineUtils.MomentumSpec( evt );
+//  std::cout << "Got " << momenta.size() << " reconstructed momenta" << std::endl;
+//  for( size_t i = 0; i < momenta.size(); ++i ){
+//    std::cout << "\t" << momenta[i] << std::endl;
+//  }
+//  std::cout << std::endl;
 
-  std::vector< double > momenta = fBeamlineUtils.MomentumSpec( evt );
-  std::cout << "Got " << momenta.size() << " reconstructed momenta" << std::endl;
-  for( size_t i = 0; i < momenta.size(); ++i ){
-    std::cout << "\t" << momenta[i] << std::endl;
+  std::cout << "Computed TOF "      << fBeamlineUtils.ComputeTOF( kProton, 2.0 ) << std::endl;
+  std::cout << "Computed Momentum " << fBeamlineUtils.ComputeMomentum( kProton, 130. ) << std::endl;
+
+  auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
+  
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  if( beamHandle.isValid()){
+    art::fill_ptr_vector(beamVec, beamHandle);
   }
-  std::cout << std::endl;
 
+  //Should just have one
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
+  if( beamEvent.GetTimingTrigger() != 12) return;
+
+  const std::vector< double > & momenta = beamEvent.GetRecoBeamMomenta();
+  if( momenta.size() == 1 ) std::cout << "Measured Momentum: " << momenta.at(0) << std::endl;
+  if( beamEvent.GetTOFChan() > -1 ) std::cout << "Measured TOF: " << beamEvent.GetTOF() << std::endl;
+
+  std::vector< int > pids = fBeamlineUtils.GetPID( beamEvent, 1. );
+  for( size_t i = 0; i < pids.size(); ++i ){ 
+    std::cout << pids[i] << std::endl;
+  }
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}
