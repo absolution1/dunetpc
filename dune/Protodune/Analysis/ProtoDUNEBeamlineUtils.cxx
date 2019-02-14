@@ -158,7 +158,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
     double yPos = GetPosition(thePair.second);
     
     std::cout << "normal " << xPos << " " << yPos << std::endl;
-    TVector3 posInDet = ConvertMonitorCoordinates(xPos,yPos,0.,fFirstTrackingProfZ);
+    TVector3 posInDet = ConvertMonitorCoordinates(xPos,yPos,0.,fSecondTrackingProfZ);
     std::cout << posInDet.X() << " " << posInDet.Y() << " " << posInDet.Z() << std::endl;
     DownstreamPositions.push_back( posInDet );
   }
@@ -201,6 +201,7 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
 
   fRotateMonitorXZ = p.get<double>("RotateMonitorXZ"); 
   fRotateMonitorYZ = p.get<double>("RotateMonitorYZ"); 
+  fRotateMonitorYX = p.get<double>("RotateMonitorYX"); 
 
   fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
   fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
@@ -255,7 +256,7 @@ void protoana::ProtoDUNEBeamlineUtils::BeamMonitorBasisVectors(){
 
 void protoana::ProtoDUNEBeamlineUtils::RotateMonitorVector(TVector3 &vec){
   vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateX(fRotateMonitorYZ * TMath::Pi()/180.);
+  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
 }
 
 
