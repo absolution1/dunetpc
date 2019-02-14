@@ -5,8 +5,8 @@ proto_beamevent:
   module_type:          "BeamEvent"
   URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
 #  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
-  BFEpsilon:           10.
-  XCETEpsilon:         10.
+  BFEpsilon:           6.
+  XCETEpsilon:         9.
   FillCacheUp:         5.
   FillCacheDown:       10.
   IFBeamDebug:         0
@@ -15,6 +15,7 @@ proto_beamevent:
   NRetries:             5
   TimeWindow: 120  # width of time window in seconds
   BundleName: "DUNE_CERN_SEP2018"
+  XCETBundleName: "DUNE_CERN_SEP2018_TIMBER"
 
   ##########################
   #Warning: Only for testing
