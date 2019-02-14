@@ -107,6 +107,15 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   for( size_t i = 0; i < pids.size(); ++i ){ 
     std::cout << pids[i] << std::endl;
   }
+
+  PossibleParticleCands candidates = fBeamlineUtils.GetPIDCandidates( beamEvent, 1. );
+  std::cout << "electron " << candidates.electron << std::endl;
+  std::cout << "muon " << candidates.muon << std::endl;
+  std::cout << "pion " << candidates.pion << std::endl;
+  std::cout << "kaon " << candidates.kaon << std::endl;
+  std::cout << "proton " << candidates.proton << std::endl;
+
+  std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}

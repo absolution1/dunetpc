@@ -15,6 +15,7 @@
 #include "art/Framework/Principal/Event.h"
 
 #include "dunetpc/dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "ProtoDUNEDataUtils.h"
 #include "lardataobj/RecoBase/Track.h"
 
 #include <set>
@@ -29,7 +30,7 @@ namespace protoana {
     kElectron = 11,
     kMuon = 13,
     kPion = 211,
-    kKaon = 231,
+    kKaon = 321,
     kProton = 2112,
     kDeuteron = 1000010020
   };
@@ -58,6 +59,7 @@ namespace protoana {
     double MomentumCosTheta( double, double, double );
 
     std::vector< int > GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
+    PossibleParticleCands GetPIDCandidates( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
 
     double ComputeMomentum( int pdg, double tof );
     double ComputeTOF     ( int pdg, double momentum );

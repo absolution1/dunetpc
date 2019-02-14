@@ -416,6 +416,117 @@ double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2,
   return cosTheta;
 }
 
+protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
+ 
+  PossibleParticleCands candidates;
+  
+  //Check if momentum is in valid set
+  std::vector< double > valid_momenta = {1., 2., 3., 6., 7.};
+  if( std::find(valid_momenta.begin(), valid_momenta.end(), nominal_momentum) == valid_momenta.end() ){
+    std::cout << "Reference momentum " << nominal_momentum << " not valid" << std::endl;
+    return candidates;
+  }
+
+  //Get the high/low pressure Cerenkov info
+  int high_pressure_status, low_pressure_status; 
+  
+  std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
+  if( beamevt.GetCKov0Pressure() < beamevt.GetCKov1Pressure() ){
+    high_pressure_status = beamevt.GetCKov1Status();
+    low_pressure_status = beamevt.GetCKov0Status();
+  }
+  else{
+    high_pressure_status = beamevt.GetCKov0Status();
+    low_pressure_status = beamevt.GetCKov1Status();
+  }
+  
+
+  if( nominal_momentum == 1. ){
+    if( beamevt.GetTOFChan() == -1 ){
+      std::cout << "TOF invalid" << std::endl;
+      return candidates;
+    }
+    if( high_pressure_status == -1 ){
+      std::cout << "High pressure status invalid" << std::endl;
+      return candidates;
+    }
+
+    const double & tof = beamevt.GetTOF();
+    if      ( tof < 105. && high_pressure_status == 1 ) 
+      candidates.electron = true;
+
+    else if ( tof < 110. && high_pressure_status == 0 ){
+      candidates.muon = true;
+      candidates.pion = true;
+    }
+
+    else if ( tof > 110. && tof < 160. && high_pressure_status == 0 ) 
+      candidates.proton = true;
+
+  }
+  else if( nominal_momentum == 2. ){
+    if( beamevt.GetTOFChan() == -1 ){
+      std::cout << "TOF invalid" << std::endl;
+      return candidates;
+    }
+    if( high_pressure_status == -1 ){
+      std::cout << "High pressure Cerenkov status invalid" << std::endl;
+      return candidates;
+    }
+
+    const double & tof = beamevt.GetTOF();
+    if      ( tof < 105. && high_pressure_status == 1 ) 
+      candidates.electron = true;
+
+    else if ( tof < 103. && high_pressure_status == 0 ){
+      candidates.muon = true;
+      candidates.pion = true;
+    }
+    else if ( tof > 103. && tof < 160. && high_pressure_status == 0 )
+      candidates.proton = true;
+   
+  }
+  else if( nominal_momentum == 3. ){
+    if( high_pressure_status == -1 || low_pressure_status == -1 ){
+      std::cout << "At least one Cerenkov status invalid " << std::endl;
+      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
+      return candidates;
+    }
+    else if ( low_pressure_status == 1 && high_pressure_status == 1 ) 
+      candidates.electron = true;
+
+    else if ( low_pressure_status == 0 && high_pressure_status == 1 ){
+      candidates.muon = true;
+      candidates.pion = true;
+    }
+
+    else{ // low, high = 0, 0
+      candidates.proton = true;
+      candidates.kaon = true; 
+    }
+  }
+  else if( nominal_momentum == 6. || nominal_momentum == 7. ){
+    if( high_pressure_status == -1 || low_pressure_status == -1 ){
+      std::cout << "At least one Cerenkov status invalid " << std::endl;
+      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
+      return candidates;
+    }
+    else if ( low_pressure_status == 1 && high_pressure_status == 1 ){
+      candidates.electron = true;
+      candidates.muon = true;
+      candidates.pion = true;
+    }
+    else if ( low_pressure_status == 0 && high_pressure_status == 1 ) 
+      candidates.kaon = true; 
+
+    else  // low, high = 0, 0
+      candidates.proton = true;
+  }
+
+  return candidates;
+ 
+}
+
 std::vector< int > protoana::ProtoDUNEBeamlineUtils::GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
   std::vector< int > thePIDs;
 
