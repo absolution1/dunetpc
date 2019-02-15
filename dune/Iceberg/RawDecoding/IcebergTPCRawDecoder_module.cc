@@ -56,8 +56,6 @@
 // DUNE includes
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
-class IcebergTPCRawDecoder;
-
 class IcebergTPCRawDecoder : public art::EDProducer {
 
 public:
@@ -1051,9 +1049,22 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 	chloc -= 128;
 	fiberloc++;
       }
-    unsigned int crateloc = crate;  
+    //unsigned int crateloc = crate;  
 
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::IcebergChannelMapService::kFELIX); 
+    // skip the fake TPC data
+
+    if ( slot == 1 && fiberloc == 1 ) 
+      {
+	continue;
+      }
+
+    if ( slot == 2 && fiberloc == 1 )
+      {
+	continue;
+      }
+
+    // for iceberg, hardcode the crate number to suppress warnings
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slot, fiberloc, chloc, dune::IcebergChannelMapService::kFELIX); 
 
     if ( v_adc.size() != _full_tick_count)
       {
