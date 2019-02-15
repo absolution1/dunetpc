@@ -191,8 +191,8 @@ private:
   int subRunNum;
   double CKov1Pressure;
   double CKov2Pressure;
-  double CKov1Efficiency;
-  double CKov2Efficiency;
+  int CKov1Counts;
+  int CKov2Counts;
   
   TVector3 fBMBasisX;
   TVector3 fBMBasisY;
@@ -1454,24 +1454,31 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
   if(fCKov1 != ""){  
 
     try{
-      std::vector< double > pressureCKov1   = FetchAndReport(time, fXCETPrefix + fCKov1 + ":pressure", bfp);
+      std::vector< double > pressureCKov1 = FetchAndReport(time, fXCETPrefix + fCKov1 + ":pressure", bfp);
+      std::vector< double > countsCKov1   = FetchAndReport(time, fXCETPrefix + fCKov1 + ":counts", bfp);
+
       CKov1Pressure = pressureCKov1[0];
+      CKov1Counts   = countsCKov1[0];
     }
     catch( std::exception e){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 1 Pressure\n";
       CKov1Pressure = 0.; 
+      CKov1Counts   = 0.;
     }
 
   }
   
   if(fCKov2 != ""){
     try{
-      std::vector< double > pressureCKov2   = FetchAndReport(time, fXCETPrefix + fCKov2 + ":pressure", bfp);
+      std::vector< double > pressureCKov2 = FetchAndReport(time, fXCETPrefix + fCKov2 + ":pressure", bfp);
+      std::vector< double > countsCKov2   = FetchAndReport(time, fXCETPrefix + fCKov2 + ":counts", bfp);
       CKov2Pressure = pressureCKov2[0];
+      CKov2Counts   = countsCKov2[0];
     }
     catch( std::exception e){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 2 Pressure\n";
       CKov2Pressure = 0.; 
+      CKov2Counts   = 0.;
     }  
   }
 
@@ -1553,6 +1560,8 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET1_seconds[ic1] - fOffsetTAI) );
         delta += ( beamspill->GetT0Nano(i) - (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) );
 
+        if( fXCETDebug ) std::cout << "XCET1 delta: " << delta << std::endl;
+
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET1 trigger " << XCET1_seconds[ic1] - fOffsetTAI << " " << (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) << " " << delta << std::endl;
           status_1.trigger = 1;
@@ -1573,6 +1582,8 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET2_seconds[ic2] - fOffsetTAI) );
         delta += ( beamspill->GetT0Nano(i) - (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) );
 
+        if( fXCETDebug ) std::cout << "XCET2 delta: " << delta << std::endl;
+
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET2 trigger " << XCET2_seconds[ic2] - fOffsetTAI << " " << (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) << " " << delta << std::endl;
           status_2.trigger = 1;
@@ -1592,9 +1603,12 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
     int nxcet1 = 0, nxcet2 = 0;
 
     for( size_t i = 0; i < beamspill->GetNT0(); ++i ){
-      nxcet1 += beamspill->GetCKov0Status(i);
-      nxcet2 += beamspill->GetCKov1Status(i);
+      if( beamspill->GetCKov0Status(i) == 1 ) nxcet1++ ;
+      if( beamspill->GetCKov1Status(i) == 1 ) nxcet2++ ;
     }
+
+    if( nxcet1 != CKov1Counts ) MF_LOG_WARNING("BeamEvent") << "CKov1 counts differ. In spill: " << nxcet1 << " From counts: " << CKov1Counts << "\n";
+    if( nxcet2 != CKov2Counts ) MF_LOG_WARNING("BeamEvent") << "CKov2 counts differ. In spill: " << nxcet2 << " From counts: " << CKov2Counts << "\n";
 //    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_timestamps[0] << " " << nxcet1 << std::endl;
 //    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_timestamps[0] << " " << nxcet2 << std::endl;
     if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_seconds.size() << " " << nxcet1 << std::endl;
@@ -1785,9 +1799,9 @@ void proto::BeamEvent::beginJob()
     fOutTree->Branch("Run",   &runNum);
     fOutTree->Branch("Subrun", &subRunNum);
     fOutTree->Branch("Pressure1", &CKov1Pressure);
-    fOutTree->Branch("Eff1", &CKov1Efficiency);
+    fOutTree->Branch("Counts1", &CKov1Counts);
     fOutTree->Branch("Pressure2", &CKov2Pressure);
-    fOutTree->Branch("Eff2", &CKov2Efficiency);
+    fOutTree->Branch("Counts2", &CKov2Counts);
     fOutTree->Branch("acqTime",        &acqTime);
     fOutTree->Branch("acqStampMBPL",   &acqStampMBPL);
     fOutTree->Branch("HLTWord",     &HLTWord);
