@@ -205,6 +205,7 @@ private:
   std::string fOutputLabel;
   std::string fURLStr;
   double fBFEpsilon, fXCETEpsilon;
+  double fXCETFetchShift;
   int fIFBeamDebug;
   uint64_t fFixedTime;
   //std::vector< uint64_t > fMultipleTimes;
@@ -1482,51 +1483,56 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
   bool fetched_XCET1, fetched_XCET2; 
   if( fXCET1 != "" ){
     try{ 
-      XCET1_timestamps = FetchAndReport( time, fXCET1 + ":TIMESTAMP_COUNT" , bfp_xcet);
-      std::cout << "Got XCET1 Timestamps" << std::endl;
-      XCET1_seconds    = FetchAndReport( time, fXCET1 + ":SECONDS" , bfp_xcet);
+//      XCET1_timestamps = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":TIMESTAMP_COUNT" , bfp_xcet);
+//      std::cout << "Got XCET1 Timestamps" << std::endl;
+      XCET1_seconds    = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":SECONDS" , bfp_xcet);
       std::cout << "Got XCET1 Seconds" << std::endl;
-      XCET1_frac       = FetchAndReport( time, fXCET1 + ":FRAC" , bfp_xcet);
+      XCET1_frac       = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":FRAC" , bfp_xcet);
       std::cout << "Got XCET1 Fracs" << std::endl;
-      XCET1_coarse     = FetchAndReport( time, fXCET1 + ":COARSE" , bfp_xcet);
+      XCET1_coarse     = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":COARSE" , bfp_xcet);
       std::cout << "Got XCET1 Coarse" << std::endl;
       fetched_XCET1 = true;
 
+//      std::cout << XCET1_timestamps[0] << " " << XCET1_seconds.size() << std::endl;
+
       if( fXCETDebug ){
-        std::cout << "XCET1 timestamps " << XCET1_timestamps[0] << std::endl; 
-        for( size_t i = 0; i < XCET1_timestamps[0]; ++i ){
+//        std::cout << "XCET1 timestamps " << XCET1_timestamps[0] << std::endl; 
+//        for( size_t i = 0; i < XCET1_timestamps[0]; ++i ){
+        for( size_t i = 0; i < XCET1_seconds.size(); ++i ){
           std::cout << i << " " << XCET1_seconds[i] - fOffsetTAI << " " << (8.*XCET1_coarse[i] + XCET1_frac[i] / 512.) << std::endl;
         }
       }
 
     }
-    catch( std::exception e){
-      //PUT A DUMMY CKOV OBJECT WITH TRIGGER = -1
+    catch( const std::exception &e ){
       MF_LOG_WARNING("BeamEvent") << "Could not get XCET1 info\n";
+
       fetched_XCET1 = false;
     }
   }
   if( fXCET2 != "" ){
     try{ 
-      XCET2_timestamps = FetchAndReport( time, fXCET2 + ":TIMESTAMP_COUNT" , bfp_xcet);
-      std::cout << "Got XCET2 Timestamps" << std::endl;
-      XCET2_seconds    = FetchAndReport( time, fXCET2 + ":SECONDS" , bfp_xcet);
+//      XCET2_timestamps = FetchAndReport( time + fXCETFetchShift, fXCET2 + ":TIMESTAMP_COUNT" , bfp_xcet);
+//      std::cout << "Got XCET2 Timestamps" << std::endl;
+      XCET2_seconds    = FetchAndReport( time + fXCETFetchShift, fXCET2 + ":SECONDS" , bfp_xcet);
       std::cout << "Got XCET2 Seconds" << std::endl;
-      XCET2_frac       = FetchAndReport( time, fXCET2 + ":FRAC" , bfp_xcet);
+      XCET2_frac       = FetchAndReport( time + fXCETFetchShift, fXCET2 + ":FRAC" , bfp_xcet);
       std::cout << "Got XCET2 Fracs" << std::endl;
-      XCET2_coarse     = FetchAndReport( time, fXCET2 + ":COARSE" , bfp_xcet);
+      XCET2_coarse     = FetchAndReport( time + fXCETFetchShift, fXCET2 + ":COARSE" , bfp_xcet);
       std::cout << "Got XCET2 Coarse" << std::endl;
       fetched_XCET2 = true;
 
       if( fXCETDebug ){
-        std::cout << "XCET2 timestamps " << XCET2_timestamps[0] << std::endl; 
-        for( size_t i = 0; i < XCET2_timestamps[0]; ++i ){
+//        std::cout << "XCET2 timestamps " << XCET2_timestamps[0] << std::endl; 
+//        for( size_t i = 0; i < XCET2_timestamps[0]; ++i ){
+        for( size_t i = 0; i < XCET2_seconds.size(); ++i ){
           std::cout << i << " " << XCET2_seconds[i] - fOffsetTAI << " " << (8.*XCET2_coarse[i] + XCET2_frac[i] / 512.) << std::endl;
         }
       }
     }
-    catch( std::exception e){
+    catch( const std::exception &e ){
       MF_LOG_WARNING("BeamEvent") << "Could not get XCET2 info\n";
+
       fetched_XCET2 = false;
     }
   }
@@ -1542,7 +1548,8 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
     if( !fetched_XCET1 ) status_1.trigger = -1;
     else{
       status_1.trigger = 0;
-      for( size_t ic1 = 0; ic1 < XCET1_timestamps[0]; ++ic1 ){
+//      for( size_t ic1 = 0; ic1 < XCET1_timestamps[0]; ++ic1 ){
+      for( size_t ic1 = 0; ic1 < XCET1_seconds.size(); ++ic1 ){
         double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET1_seconds[ic1] - fOffsetTAI) );
         delta += ( beamspill->GetT0Nano(i) - (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) );
 
@@ -1560,7 +1567,8 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
     if( !fetched_XCET2 ) status_2.trigger = -1;
     else{
       status_2.trigger = 0;
-      for( size_t ic2 = 0; ic2 < XCET2_timestamps[0]; ++ic2 ){
+//      for( size_t ic2 = 0; ic2 < XCET2_timestamps[0]; ++ic2 ){
+      for( size_t ic2 = 0; ic2 < XCET2_seconds.size(); ++ic2 ){
 
         double delta = 1.e9 * ( beamspill->GetT0Sec(i) - (XCET2_seconds[ic2] - fOffsetTAI) );
         delta += ( beamspill->GetT0Nano(i) - (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) );
@@ -1587,8 +1595,10 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
       nxcet1 += beamspill->GetCKov0Status(i);
       nxcet2 += beamspill->GetCKov1Status(i);
     }
-    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_timestamps[0] << " " << nxcet1 << std::endl;
-    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_timestamps[0] << " " << nxcet2 << std::endl;
+//    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_timestamps[0] << " " << nxcet1 << std::endl;
+//    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_timestamps[0] << " " << nxcet2 << std::endl;
+    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_seconds.size() << " " << nxcet1 << std::endl;
+    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_seconds.size() << " " << nxcet2 << std::endl;
   }
 
 }
@@ -1881,6 +1891,7 @@ void proto::BeamEvent::reconfigure(fhicl::ParameterSet const & p)
   fURLStr      = p.get<std::string>("URLStr");
   fBFEpsilon   = p.get<double>("BFEpsilon");
   fXCETEpsilon   = p.get<double>("XCETEpsilon");
+  fXCETFetchShift   = p.get<double>("XCETFetchShift");
   fIFBeamDebug = p.get<int>("IFBeamDebug");
   fTimeWindow  = p.get<double>("TimeWindow");
   fFixedTime   = p.get<uint64_t>("FixedTime");
