@@ -1,9 +1,9 @@
 #MESSAGE( STATUS "Boost_SYSTEM_LIBRARY:         " ${Boost_SYSTEM_LIBRARY} )
 
 art_make( BASENAME_ONLY
-          EXCLUDE CheckGeometry_module.cc CheckDPhaseGeometry_module.cc
-          LIBRARY_NAME dune_Geometry
-          LIB_LIBRARIES larcorealg_Geometry
+	  EXCLUDE CheckGeometry_module.cc CheckDPhaseGeometry_module.cc issue19191_module.cc
+	  LIBRARY_NAME dune_Geometry
+	  LIB_LIBRARIES larcorealg_Geometry
                         ${MF_MESSAGELOGGER}
                         cetlib cetlib_except
                         ${FHICLCPP}
