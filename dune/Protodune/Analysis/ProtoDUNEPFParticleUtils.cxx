@@ -442,10 +442,27 @@ bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFPa
 
 }
 
+// This is the old and deprecated version of the function 
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle) const{
+  if(abs(particle.PdgCode()) == 11){
+    return false;
+  }
+  else{
+    return true;
+  }
+}
+
+
+
 bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleShowerlike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const{
 
   return (GetPFParticleShower(particle,evt,particleLabel,showerLabel) != 0x0);
 
+}
+
+// This is the old and deprecated version of the function
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleShowerlike(const recob::PFParticle &particle) const{
+  return !IsPFParticleTracklike(particle);
 }
 
 // Get the track associated to this particle. Returns a null pointer if not found.

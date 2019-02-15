@@ -96,9 +96,13 @@ namespace protoana {
 
     /// Is the particle track-like?
     bool IsPFParticleTracklike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
+    // Old deprecated version
+    bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
 
     /// Is the particle track-like?
     bool IsPFParticleShowerlike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
+    // Old deprecated version
+    bool IsPFParticleShowerlike(const recob::PFParticle &particle) const;
 
     /// Get the track associated to this particle. Returns a null pointer if not found.
     const recob::Track* GetPFParticleTrack(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
