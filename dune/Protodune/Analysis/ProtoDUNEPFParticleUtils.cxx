@@ -444,6 +444,7 @@ bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFPa
 
 // This is the old and deprecated version of the function 
 bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle) const{
+  std::cerr << "This function is deprecated, please use the version with four arguments." << std::endl;
   if(abs(particle.PdgCode()) == 11){
     return false;
   }
