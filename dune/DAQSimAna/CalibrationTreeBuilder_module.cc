@@ -439,39 +439,47 @@ namespace CalibrationTreeBuilder {
 
   bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter){
     {//make each loop local so the vectors don't persist
-      const std::vector< sim::SDP> sdps = this->OpHitToChannelWeightedSimSDPs(hit);
-      std::vector<std::pair<int, CalibTreeRecord::PartialOpHit>> track_partials;
-      Double_t total_charge = 0.0;
-      if(sdps.empty()){return false;}
-      for(auto sdp : sdps){
-        int track_id = sdp.trackID;
-        CalibTreeRecord::PartialOpHit tmp;
-        total_charge += sdp.numPhotons;
-        //        tmp.pes = //Not used yet.
-        tmp.num_photons = sdp.numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
-        tmp.energy = sdp.energy;
-        //tmp.energy = 0.0;// sdp.energy;
-        tmp.time   = hit->PeakTime();
-        tmp.width  = hit->Width();
-        tmp.split  = 0.0;
-        tmp.opchan = hit->OpChannel();
-        tmp.opdet  = GS->OpDetFromOpChannel(hit->OpChannel());
-        tmp.index  = counter;
-        track_partials.push_back(std::make_pair(track_id, tmp));
-      }
-      for(auto track_partial : track_partials){
-        track_partial.second.split  = track_partial.second.num_photons / total_charge; //What percentage of the hit is in this partial.
-        track_partial.second.pes = hit->PE()*track_partial.second.split; //PEs now normalized by deposition;
-        //Add partial to CalibTreeRecord;
-        const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
-        //Emplace Particle. (Emplace Eve will be handeled in emplace particle
-        std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
-        part_marker.first->partial_ophits.push_back(track_partial.second); //Add post normalized partial hit.
-        //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
-      }//end for track partial.
+//      try{
+        const std::vector< sim::SDP> sdps = this->OpHitToChannelWeightedSimSDPs(hit);
+//      }catch(const std::exception &e){
+//        return false;
+//      }
+        std::vector<std::pair<int, CalibTreeRecord::PartialOpHit>> track_partials;
+        Double_t total_charge = 0.0;
+        if(sdps.empty()){return false;}
+        for(auto sdp : sdps){
+          int track_id = sdp.trackID;
+          CalibTreeRecord::PartialOpHit tmp;
+          total_charge += sdp.numPhotons;
+          //        tmp.pes = //Not used yet.
+          tmp.num_photons = sdp.numPhotons; //This is not PEs. This is incident photons. I am just storing it here for later logic (see final assignment in the next for loop.
+          tmp.energy = sdp.energy;
+          //tmp.energy = 0.0;// sdp.energy;
+          tmp.time   = hit->PeakTime();
+          tmp.width  = hit->Width();
+          tmp.split  = 0.0;
+          tmp.opchan = hit->OpChannel();
+          tmp.opdet  = GS->OpDetFromOpChannel(hit->OpChannel());
+          tmp.index  = counter;
+          track_partials.push_back(std::make_pair(track_id, tmp));
+        }
+        for(auto track_partial : track_partials){
+          track_partial.second.split  = track_partial.second.num_photons / total_charge; //What percentage of the hit is in this partial.
+          track_partial.second.pes = hit->PE()*track_partial.second.split; //PEs now normalized by deposition;
+          //Add partial to CalibTreeRecord;
+          const simb::MCParticle* part = PIS->TrackIdToParticle_P(track_partial.first);
+          //Emplace Particle. (Emplace Eve will be handeled in emplace particle
+          std::pair<std::vector<CalibTreeRecord::ParticleRecord>::iterator, bool> part_marker = EmplaceParticle(part);
+          part_marker.first->partial_ophits.push_back(track_partial.second); //Add post normalized partial hit.
+          //Don't forget to add the indicies to the hit vector. Actually. To keep it easy, we can just loop the eve records and add the indicies then. This is inefficient, but easier to code since I don't immediately have access to eve_pos here.
+        }//end for track partial.
 
-    }
-    return true;
+      }
+      return true;
+//    }
+//    catch(...){
+//      return false;
+//    }
   }
 
 
@@ -568,7 +576,17 @@ namespace CalibrationTreeBuilder {
     if(start_time > end_time){throw;}//This is bad. Give a reasonable error message here, and use cet::except
 
     //BUG!!!fGeom->OpDetFromOpChannel(channel)
-    art::Ptr<sim::OpDetBacktrackerRecord> fBTR = PBS->FindOpDetBTR(fDet);
+    art::Ptr<sim::OpDetBacktrackerRecord> fBTR;
+    try{
+      fBTR = PBS->FindOpDetBTR(fDet);
+    }catch(cet::exception &e){
+      if(true){
+        std::vector<sim::SDP> ret;
+        return ret;
+      }else{
+        throw e;
+      }
+    }
     const std::vector<std::pair<double, std::vector<sim::SDP>> >& timeSDPMap
       = fBTR->timePDclockSDPsMap(); //Not guranteed to be sorted.
     art::Ptr<sim::OpDetDivRec> div_rec = this->FindDivRec(fDet);//This is an OpDetDivRec collected from this BTR.
@@ -632,19 +650,19 @@ namespace CalibrationTreeBuilder {
     return retVec;
   }
 
-  void CalibrationTreeBuilder::PrepDivRec(const art::Event& evt)
-  {
-      if( 0 ){ return;} //Insert check for DivRecs here, or don't use validHandle below.
-      auto const& divrecHandle = evt.getValidHandle <std::vector<sim::OpDetDivRec>>(fWavLabel);
-      if(divrecHandle.failedToGet()){
-        return;
-      }
-      art::fill_ptr_vector(priv_DivRecs, divrecHandle);
-      auto compareDivReclambda = [](art::Ptr<sim::OpDetDivRec> a, art::Ptr<sim::OpDetDivRec> b) {return(a->OpDetNum() < b->OpDetNum());};
-      if (!std::is_sorted(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda))
-        std::sort(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda);
-
+void CalibrationTreeBuilder::PrepDivRec(const art::Event& evt)
+{
+  if( 0 ){ return;} //Insert check for DivRecs here, or don't use validHandle below.
+  auto const& divrecHandle = evt.getValidHandle <std::vector<sim::OpDetDivRec>>(fWavLabel);
+  if(divrecHandle.failedToGet()){
+    return;
   }
+  art::fill_ptr_vector(priv_DivRecs, divrecHandle);
+  auto compareDivReclambda = [](art::Ptr<sim::OpDetDivRec> a, art::Ptr<sim::OpDetDivRec> b) {return(a->OpDetNum() < b->OpDetNum());};
+  if (!std::is_sorted(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda))
+    std::sort(priv_DivRecs.begin(), priv_DivRecs.end(), compareDivReclambda);
+
+}
 
 
 }//end namespace
