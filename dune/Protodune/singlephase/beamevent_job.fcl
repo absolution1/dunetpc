@@ -63,7 +63,4 @@ physics:
  trigger_paths:     [ produce ]
  end_paths:         [ stream1 ]
 }
-physics.producers.beamevent.IFBeamDebug: 1 
 physics.producers.beamevent.SaveOutTree: "true"
-physics.producers.beamevent.XCETEpsilon: 6.
-physics.producers.beamevent.XCETFetchShift: -5.

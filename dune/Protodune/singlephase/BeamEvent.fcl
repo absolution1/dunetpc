@@ -6,8 +6,8 @@ proto_beamevent:
   URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
 #  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
   BFEpsilon:           6.
-  XCETEpsilon:         9.
-  XCETFetchShift:      0.
+  XCETEpsilon:         6.
+  XCETFetchShift:      -5.
   FillCacheUp:         5.
   FillCacheDown:       10.
   IFBeamDebug:         0
