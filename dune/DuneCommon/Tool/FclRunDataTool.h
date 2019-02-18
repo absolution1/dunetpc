@@ -6,7 +6,7 @@
 // Fcl-based tool to find conditions data for a run.
 // 
 // A search is done along the usual fcl path for each of the files in FileNames
-// afer making the following substituions in those names:
+// afer making the following substitions in those names:
 //   %RUN% --> run number
 //   %SUBRUN% --> run number
 // with the run and subrun sustitutions padded with leading zeros to attain

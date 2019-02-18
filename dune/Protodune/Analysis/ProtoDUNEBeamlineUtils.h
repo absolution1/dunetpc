@@ -15,6 +15,7 @@
 #include "art/Framework/Principal/Event.h"
 
 #include "dunetpc/dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "ProtoDUNEDataUtils.h"
 #include "lardataobj/RecoBase/Track.h"
 
 #include <set>
@@ -24,6 +25,15 @@
 #include "TVector3.h"
 
 namespace protoana {
+
+  enum beamPDG{
+    kElectron = 11,
+    kMuon = 13,
+    kPion = 211,
+    kKaon = 321,
+    kProton = 2112,
+    kDeuteron = 1000010020
+  };
 
   class ProtoDUNEBeamlineUtils {
 
@@ -47,6 +57,12 @@ namespace protoana {
 
     std::vector< double > MomentumSpec( art::Event const & evt);
     double MomentumCosTheta( double, double, double );
+
+    std::vector< int > GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
+    PossibleParticleCands GetPIDCandidates( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
+
+    double ComputeMomentum( int pdg, double tof );
+    double ComputeTOF     ( int pdg, double momentum );
 
   private:
 
@@ -92,6 +108,7 @@ namespace protoana {
 
     double fRotateMonitorXZ;
     double fRotateMonitorYZ;
+    double fRotateMonitorYX;
 
     double fFirstTrackingProfZ;
     double fSecondTrackingProfZ;
@@ -108,6 +125,16 @@ namespace protoana {
     double mag_P3 = -4.68880000e-6;
     double mag_P4 = 324.573967;
 
+    std::map< int, double > particle_mass = {
+       {kElectron, .0005109989},
+       {kMuon,     .1056583745},
+       {kPion,     .13957018  },
+       {kKaon,     .493677    },
+       {kProton,   .9382720813},
+       {kDeuteron, 2.013553213}
+    };
+
+    double c = 299792458.; 
 
   };
 

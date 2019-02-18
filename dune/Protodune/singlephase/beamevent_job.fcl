@@ -1,6 +1,6 @@
 #include "services_dune.fcl"
 #include "BeamEvent.fcl"
-#include "RawDecoding/RunRawDecoder.fcl"
+#include "RunRawDecoder.fcl"
 
 process_name: BeamEvent
 
@@ -63,4 +63,4 @@ physics:
  trigger_paths:     [ produce ]
  end_paths:         [ stream1 ]
 }
-
+physics.producers.beamevent.SaveOutTree: "true"

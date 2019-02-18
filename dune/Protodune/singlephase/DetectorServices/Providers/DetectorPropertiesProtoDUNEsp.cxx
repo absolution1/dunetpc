@@ -563,7 +563,8 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
 
         for(int plane = 0; plane < nplane; ++plane) {
           const geo::PlaneGeo& pgeom = tpcgeom.Plane(plane);
-          fXTicksOffsets[cstat][tpc][plane] = triggerOffset;
+          const double* xyz = tpcgeom.PlaneLocation(0);
+          fXTicksOffsets[cstat][tpc][plane] = -xyz[0]/(dir * fXTicksCoefficient) + triggerOffset;
           
           // Add view dependent offset
           // FIXME the offset should be plane-dependent
