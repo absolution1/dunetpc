@@ -4,6 +4,7 @@ simple_plugin(DetectorPropertiesServiceProtoDUNEsp "service"
               larcore_Geometry_Geometry_service
               larcorealg_Geometry
               art_Framework_Principal
+              ifdh
 
 	      ${ART_FRAMEWORK_IO_ROOT_ROOTDB}
 	      ${ART_FRAMEWORK_SERVICES_REGISTRY}

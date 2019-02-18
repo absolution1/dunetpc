@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-//
+//Adapted for ProtoDUNE by Owen Goodwin (ogoodwin@fnal.gov) from
 //  \file DetectorProperties_service.cc
-//
+//   
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
 // LArSoft includes
@@ -18,6 +18,10 @@
 // Art includes
 #include "art/Framework/IO/Root/RootDB/SQLite3Wrapper.h"
 #include "fhiclcpp/make_ParameterSet.h"
+
+
+#include "IFDH_service.h"
+
 namespace spdp{
   //--------------------------------------------------------------------
   DetectorPropertiesServiceProtoDUNEsp::DetectorPropertiesServiceProtoDUNEsp
@@ -30,7 +34,7 @@ namespace spdp{
     reg.sPreBeginRun.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
 
 
-    
+    isNewRun=true;
 /*
     // obtain the required dependency service providers and create our own
     const geo::GeometryCore* geo = lar::providerFrom<geo::Geometry>();
@@ -55,6 +59,7 @@ namespace spdp{
     
     // Save the parameter set.
     fPS = pset;
+    
     
   }
   //--------------------------------------------------------------------
@@ -81,9 +86,8 @@ namespace spdp{
     void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run& run)
   {
 //this is data specific now.
+      isNewRun=true;
       std::cout<<"New run, Num is: "<<run.run()<<" Updating DetectorProperties."<<std::endl;
-      fProp->UpdateHV(run.run()); //Look up HV cathode value from a run table and update Efield accordingly
-      fProp->UpdateReadoutWindowSize(run.run()); //Look up ReadoutWindowSize from a run table.
     }
 
 
@@ -91,6 +95,32 @@ namespace spdp{
   //  Callback called after input file is opened.
   void DetectorPropertiesServiceProtoDUNEsp::postOpenFile(const std::string& filename)
   {
+
+
+
+    
+    
+
+    
+
+    // std::cout<<"new run?"<<isNewRun<<std::endl;
+    if(isNewRun){
+
+      int start = filename.rfind("/"); //finds the final "/"
+      start += 1;
+    
+      int end = filename.length(); //last postion
+      std::string filename_s=(filename.substr(start, end-start)); //creates string of just file name, not path
+      // std::cout<<"filename:"<<filename_s<<std::endl;
+      art::ServiceHandle<ifdh_ns::IFDH> ifdh;
+      auto metadata=ifdh->getMetadata(filename_s);
+      fProp->UpdateHV(metadata); //update HV value from MetaData
+      fProp->UpdateReadoutWindowSize(metadata); //update Readout windo value from MetaData
+      isNewRun=false;
+
+    }
+
+
     // Use this method to figure out whether to inherit configuration
     // parameters from previous jobs.
     // There is no way currently to correlate parameter sets saved in
