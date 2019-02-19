@@ -9,10 +9,12 @@ art_make(
 			${ROOT_BASIC_LIB_LIST}
           MODULE_LIBRARIES 
             lardataobj_RawData
-            larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-		    larsim_MCCheater_BackTrackerService_service
+            larsim_Simulation
+	    nutools_ParticleNavigation
+	    lardataobj_Simulation
+	    larsim_MCCheater_BackTrackerService_service
             larsim_MCCheater_ParticleInventoryService_service
-            larsim_MCCheater_PhotonBackTrackerService_service
+	    larsim_MCCheater_PhotonBackTrackerService_service
 			${ART_FRAMEWORK_SERVICES_BASIC}
 			 
 			larcorealg_Geometry
