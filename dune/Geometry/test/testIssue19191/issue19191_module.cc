@@ -64,7 +64,8 @@ void issue19191::analyze(art::Event const & )
   channels.reserve(gcore->Nchannels());
   channels = gcore->ChannelsInTPCs();
   assert(std::is_sorted(channels.begin(), channels.end()));
-  assert(std::is_unique(channels.begin(), channels.end()));
+  assert(std::unique(channels.begin(), channels.end())==channels.end());
+  assert(std::adjacent_find(channels.begin(), channels.end())==channels.end());
   assert(channels.size() == gcore->Nchannels());
 }
 
