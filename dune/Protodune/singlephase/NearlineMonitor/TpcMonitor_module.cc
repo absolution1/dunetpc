@@ -520,8 +520,8 @@ namespace tpc_monitor{
   void TpcMonitor::analyze(const art::Event& event) {
     // Get channel map
     art::ServiceHandle<dune::PdspChannelMapService> channelMap;
-    // TODO Use LOG_DEBUG
-    LOG_INFO("TpcMonitor")
+    // TODO Use MF_LOG_DEBUG
+    MF_LOG_INFO("TpcMonitor")
       << "-------------------- TPC TpcMonitor -------------------";
 
     // called once per event
@@ -557,7 +557,7 @@ namespace tpc_monitor{
       {
 	if (rdstatus.GetCorruptDataDroppedFlag())
 	  {
-	    LOG_INFO("TpcMonitor_module: ") << "Corrupt Data Dropped Flag set in RDStatus";
+	    MF_LOG_INFO("TpcMonitor_module: ") << "Corrupt Data Dropped Flag set in RDStatus";
 	  }
 	//std::cout << "RDStatus:  Corrupt Data dropped " << rdstatus.GetCorruptDataDroppedFlag() << std::endl; 
 	//std::cout << "RDStatus:  Corrupt Data kept " << rdstatus.GetCorruptDataKeptFlag() << std::endl; 

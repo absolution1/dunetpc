@@ -24,12 +24,13 @@ namespace protoana {
       bool pion = false;
       bool kaon = false;
       bool proton = false;
+      bool deuteron = false;
 
     inline PossibleParticleCands operator&&(const PossibleParticleCands & b) const {
-        return {electron && b.electron, muon && b.muon, pion && b.pion, kaon && b.kaon, proton && b.proton};
+        return {electron && b.electron, muon && b.muon, pion && b.pion, kaon && b.kaon, proton && b.proton, deuteron && b.deuteron};
     }
     inline PossibleParticleCands operator||(const PossibleParticleCands & b) const {
-        return {electron || b.electron, muon || b.muon, pion || b.pion, kaon || b.kaon, proton || b.proton};
+        return {electron || b.electron, muon || b.muon, pion || b.pion, kaon || b.kaon, proton || b.proton, deuteron || b.deuteron};
     }
   };
 

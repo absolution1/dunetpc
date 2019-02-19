@@ -41,14 +41,22 @@ namespace {
 TPadManipulator::TPadManipulator()
 : m_parent(nullptr), m_ppad(nullptr),
   m_canvasWidth(0), m_canvasHeight(0),
+  m_marginLeft(-999), m_marginRight(-999),
+  m_marginBottom(-999), m_marginTop(-999),
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
+  m_gflowMrk(0), m_gflowCol(0),
   m_top(false), m_right(false) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
+  m_label.SetNDC();
+  m_label.SetX(0.01);
+  m_label.SetY(0.02);
+  m_label.SetTextFont(42);
+  m_label.SetTextSize(0.035);
 }
 
 //**********************************************************************
@@ -89,6 +97,10 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_canvasWidth = rhs.m_canvasWidth;
   m_canvasHeight = rhs.m_canvasHeight;
+  m_marginLeft = rhs.m_marginLeft;
+  m_marginRight = rhs.m_marginRight;
+  m_marginBottom = rhs.m_marginBottom;
+  m_marginTop = rhs.m_marginTop;
   // Clone drawn objects.
   m_ph.reset();
   m_pg.reset();
@@ -118,9 +130,13 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_tickLengthY = rhs.m_tickLengthY;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
+  m_gflowOpt = rhs.m_gflowOpt;
+  m_gflowMrk = rhs.m_gflowMrk;
+  m_gflowCol = rhs.m_gflowCol;
   m_top = rhs.m_top;
   m_right = rhs.m_right;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
+  rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
   m_hmlXmod = rhs.m_hmlXmod;
   m_hmlXoff = rhs.m_hmlXoff;
@@ -130,6 +146,9 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_vmlXoff = rhs.m_vmlXoff;
   m_vmlXStyle = rhs.m_vmlXStyle;
   m_vmlXLength = rhs.m_vmlXLength;
+  m_slSlop = rhs.m_slSlop;
+  m_slYoff = rhs.m_slYoff;
+  m_slStyl = rhs.m_slStyl;
   m_vmlLines.clear();
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
@@ -238,8 +257,24 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 //**********************************************************************
 
 int TPadManipulator::print(string fname) {
-  TCanvas* pcan = canvas(true);
-  if ( pcan == nullptr ) return 1;
+  TCanvas* pcan = canvas(false);
+  // If canvas does not yet exist, draw in batch mode to avoid
+  // display on screen.
+  // We should (but don't yet) also remove the canvas after draw so
+  // there are no problems if a draw to screen is attempted later.
+  bool setBackToNonBatch = false;
+  if ( pcan == nullptr ) {
+    bool isBatch = gROOT->IsBatch();
+    if ( ! isBatch ) {
+      gROOT->SetBatch(true);
+      setBackToNonBatch = true;
+    }
+    pcan = canvas(true);
+  }
+  if ( pcan == nullptr ) {
+    if ( setBackToNonBatch ) gROOT->SetBatch(false);
+    return 1;
+  }
   // Suppress printing message from Root.
   int levelSave = gErrorIgnoreLevel;
   gErrorIgnoreLevel = 1001;
@@ -253,6 +288,7 @@ int TPadManipulator::print(string fname) {
   pcan->Print(fname.c_str());
   if ( pehSave != nullptr ) SetErrorHandler(pehSave);
   gErrorIgnoreLevel = levelSave;
+  if ( setBackToNonBatch ) gROOT->SetBatch(false);
   return 0;
 }
 
@@ -432,12 +468,23 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       phc->SetDirectory(nullptr);
       phc->SetTitle("");
       pman->m_ph.reset(phc);
+      pman->m_dopt = sopt;
     } else {
       TGraph* pgc = (TGraph*) pg->Clone();
       pgc->SetTitle("");
       pman->m_pg.reset(pgc);
+      string soptOut;
+      for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
+        char ch = sopt[ipos];
+        if ( ch == 'a' || ch == 'A' ) {
+          cout << myname << "WARNING: Dropping " << ch << " from drawing option string for graph "
+               << pgc->GetName() << "." << endl;
+        } else {
+          soptOut += ch;
+        }
+      }
+      pman->m_dopt = soptOut;
     }
-    pman->m_dopt = sopt;
   }
   return update();
 } 
@@ -463,6 +510,13 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
 
 int TPadManipulator::setTitle(string sttl) {
   m_title.SetTitle(sttl.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setLabel(string slab) {
+  m_label.SetTitle(slab.c_str());
   return 0;
 }
 
@@ -517,7 +571,16 @@ int TPadManipulator::update() {
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
     if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) m_pg->Draw("AP");
+    else if ( m_pg != nullptr ) {
+      // If the graph has no points, we add one because root (6.12/06) raises an
+      // exception if we draw an empty graph.
+      if ( m_pg->GetN() == 0 ) {
+        double xmin = m_pg->GetXaxis()->GetXmin();
+        double ymin = m_pg->GetYaxis()->GetXmin();
+        m_pg->SetPoint(0, xmin, ymin);
+      }
+      m_pg->Draw("AP");
+    }
   }
 /*
   if ( ! haveHistOrGraph() ) {
@@ -589,6 +652,10 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
+  if ( m_marginLeft >= 0.0 ) xml = m_marginLeft;
+  if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
+  if ( m_marginBottom >= 0.0 ) xmb = m_marginBottom;
+  if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
@@ -719,6 +786,39 @@ int TPadManipulator::update() {
     if ( pobj != nullptr ) pobj->Draw(sopt.c_str());
   }
   // no longer needed?  m_ppad->Update();   // Need an update here to get correct results for xmin, ymin, xmax, ymax
+  // Make overflow graph.
+  if ( m_gflowOpt.size() ) {
+    bool doBot = m_gflowOpt.find("B") != string::npos;
+    bool doTop = m_gflowOpt.find("T") != string::npos;
+    bool doLef = m_gflowOpt.find("L") != string::npos;
+    bool doRig = m_gflowOpt.find("R") != string::npos;
+    TGraph* pgout = new TGraph();
+    pgout->SetMarkerStyle(m_gflowMrk);
+    pgout->SetMarkerColor(m_gflowCol);
+    for ( TObjPtr pobj : m_objs ) {
+      TGraph* pgin = dynamic_cast<TGraph*>(pobj.get());
+      if ( pgin == nullptr ) continue;
+      for ( int ipt=0; ipt<pgin->GetN(); ++ipt ) {
+        double x, y;
+        pgin->GetPoint(ipt, x, y);
+        double xout = x;
+        double yout = y;
+        bool doAdd = false;
+        if ( doRig && x > xmax() ) { doAdd = true; xout = xmax(); }
+        if ( doLef && x < xmin() ) { doAdd = true; xout = xmin(); }
+        if ( doBot && y < ymin() ) { doAdd = true; yout = ymin(); }
+        if ( doTop && y > ymax() ) { doAdd = true; yout = ymax(); }
+        if ( doAdd ) pgout->SetPoint(pgout->GetN(), xout, yout);
+      }
+    }
+    if ( pgout->GetN() == 0 ) {
+      delete pgout;
+      pgout = nullptr;
+    } else {
+      m_flowGraph.reset(pgout);
+      m_flowGraph->Draw("P");
+    }
+  }
   drawLines();
   if ( m_top ) drawAxisTop();
   if ( m_right ) drawAxisRight();
@@ -726,6 +826,7 @@ int TPadManipulator::update() {
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
   m_title.Draw();
+  if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
   return rstat;
 }
@@ -864,6 +965,16 @@ int TPadManipulator::showOverflow(bool show) {
 
 //**********************************************************************
 
+int TPadManipulator::showGraphOverflow(std::string sopt, int imrk, int icol) {
+  m_flowGraph.reset();
+  m_gflowOpt = sopt;
+  m_gflowMrk = imrk;
+  m_gflowCol = icol;
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::clearLines() {
   m_vmlXmod.clear();
   m_vmlXoff.clear();
@@ -892,6 +1003,15 @@ int TPadManipulator::addHorizontalLine(double xoff, double lenfrac, int isty) {
   m_hmlXoff.push_back(xoff);
   m_hmlXStyle.push_back(isty);
   m_hmlXLength.push_back(lenfrac);
+  drawLines();
+  return 0;
+}
+//**********************************************************************
+
+int TPadManipulator::addSlopedLine(double slop, double yoff, int isty) {
+  m_slSlop.push_back(slop);
+  m_slYoff.push_back(yoff);
+  m_slStyl.push_back(isty);
   drawLines();
   return 0;
 }
@@ -1122,6 +1242,52 @@ int TPadManipulator::drawLines() {
       if ( ymod == 0.0 ) break;
       y += ymod;
     }
+  }
+  for ( Index iset=0; iset<m_slSlop.size(); ++iset ) {
+    double slop = m_slSlop[iset];
+    double yoff = m_slYoff[iset];
+    double isty = m_slStyl[iset];
+    double wx = xmax() - xmin();
+    double wy = ymax() - ymin();
+    if ( wx < 0.0 || wy < 0.0 ) continue;
+    double xlef = xmin();
+    double xrig = xmax();
+    double ybot = ymin();
+    double ytop = ymax();
+    double ylef = slop*xlef + yoff;
+    double yrig = slop*xrig + yoff;
+    double xbot = slop == 0.0  ? xmin() - wx : (ybot - yoff)/slop;
+    double xtop = slop == 0.0  ? xmax() + wx : (ytop - yoff)/slop;
+    double x1 = 0.0;
+    double y1 = 0.0;
+    if ( ylef > ybot && ylef < ytop ) {
+      x1 = xlef;
+      y1 = ylef;
+    } else if ( ylef <= ybot && slop > 0.0 && xbot < xrig ) {
+      x1 = xbot;
+      y1 = ybot;
+    } else if ( ylef >= ytop && slop < 0.0 && xtop < xrig ) {
+      x1 = xtop;
+      y1 = ytop;
+    } else {
+      continue;
+    }
+    double x2 = 0.0;
+    double y2 = 0.0;
+    if ( slop > 0.0 && xtop < xrig ) {
+      x2 = xtop;
+      y2 = ytop;
+    } else if ( slop < 0.0 && xbot < xrig ) {
+      x2 = xbot;
+      y2 = ybot;
+    } else {
+      x2 = xrig;
+      y2 = yrig;
+    }
+    std::shared_ptr<TLine> pline(new TLine(x1, y1, x2, y2));
+    pline->SetLineStyle(isty);
+    m_vmlLines.push_back(pline);
+    pline->Draw();
   }
   gPad = pPadSave;
   return 0;

@@ -38,7 +38,7 @@
 //   calibAdcMax         - max ADC for the channel
 //   calibGain           - applied gain
 //
-// Int he case of zero or negative gain, only the last is returned.
+// In the case of zero or negative gain, only the last is returned.
 //   
 
 #ifndef FembLinearCalibration_H

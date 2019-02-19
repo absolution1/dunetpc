@@ -3,6 +3,7 @@
 #include "AdcChannelMetric.h"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -13,6 +14,7 @@
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 #include "TH1F.h"
 #include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TColor.h"
 #include "TStyle.h"
@@ -21,14 +23,36 @@
 
 using std::string;
 using std::cout;
+using std::setw;
 using std::cin;
 using std::endl;
 using std::vector;
+using Index = AdcChannelMetric::Index;
 using TGraphVector = std::vector<TGraph*>;
+using TGraphErrorsVector = std::vector<TGraphErrors*>;
 
 //**********************************************************************
 // local definitiions.
 //**********************************************************************
+
+//**********************************************************************
+// Sublass methods.
+//**********************************************************************
+
+void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
+  if ( callCount == 0 ) {
+    firstRun = run;
+    firstEvent = event;
+    runCount = 1;
+    eventCount = 1;
+  } else {
+    if ( run != lastRun ) ++runCount;
+    if ( event != lastEvent ) ++eventCount;
+  }
+  ++callCount;
+  lastEvent = event;
+  lastRun = run;
+}
 
 //**********************************************************************
 // Class methods.
@@ -49,7 +73,9 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_RootFileName(ps.get<Name>("RootFileName")),
-  m_useStatus(false) {
+  m_useStatus(false),
+  m_doSummary(false),
+  m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -76,12 +102,15 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
       }
     }
   }
+  // Initialize the state.
+  for ( const IndexRange& cr : m_crs ) getState().crsums[cr].resize(cr.size());
   // Fetch the naming tool.
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   m_useStatus = m_HistName.find("%STATUS%") != string::npos;
+  m_doSummary = m_HistName.find("EVENT%") == string::npos;
   if ( m_useStatus ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
@@ -134,6 +163,74 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
+AdcChannelMetric::~AdcChannelMetric() {
+  const string myname = "AdcChannelMetric::dtor: ";
+  Index ncha = 0;
+  Index nchaData = 0;
+  Index nchaDataMax = 0;
+  Index countMax = 0;
+  for ( const MetricSummaryMap::value_type& imsm : getState().crsums ) {
+    IndexRange cr = imsm.first;
+    const MetricSummaryVector& msums = imsm.second;
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "Channel range " << cr.name << endl;
+    }
+    for ( Index kcha=0; kcha<cr.size(); ++ kcha ) {
+      Index icha = cr.first() + kcha;
+      const MetricSummary& ms = msums[kcha];
+      ++ncha;
+      if ( ms.count ) {
+        ++nchaData;
+        if ( ms.count > countMax ) {
+          countMax = ms.count;
+          nchaDataMax = 1;
+        } else if ( ms.count == countMax ) {
+          ++nchaDataMax;
+        }
+      }
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << setw(8) << icha << ":" << ms.mean() << " +/- " << ms.dmean() << endl;
+      }
+    }
+    if ( m_doSummary ) {
+      MetricMap mets;
+      const MetricSummaryVector& msums = getState().crsums[cr];
+      for ( Index kcha=0; kcha<cr.size(); ++kcha ) {
+        Index icha = cr.first() + kcha;
+        const MetricSummary& msum = msums[kcha];
+        if ( msum.count ) {
+          Metric& met = mets[icha];
+          met.setValue(msum.mean());
+          met.setError(msum.rms());
+        }
+      }
+      AdcChannelData acd;
+      acd.run = getState().firstRun;
+      Name ofname = nameReplace(m_PlotFileName, acd, cr);
+      Name ofrname = nameReplace(m_RootFileName, acd, cr);
+      TH1* ph = createHisto(acd, cr);
+      processMetricsForOneRange(cr, mets, ph, ofname, ofrname, true);
+    }
+  }
+  if ( m_LogLevel >= 1 ) {
+    Index w = 1;
+    Index valmax = std::max(ncha, getState().callCount);
+    if ( ncha ) w = log10(valmax) + 1.01;
+    cout << myname << "Summary for metric " << m_Metric << endl;
+    cout << myname << "                          # calls: " << setw(w) << getState().callCount << endl;
+    cout << myname << "                         # events: " << setw(w) << getState().eventCount << endl;
+    cout << myname << "                           # runs: " << setw(w) << getState().runCount << endl;
+    cout << myname << "  Maximum # entries for a channel: " << setw(w) << countMax << endl;
+    cout << myname << "       Total # channels in ranges: " << setw(w) << ncha << endl;
+    cout << myname << "          # channels without data: " << setw(w) << ncha - nchaData << endl;
+    cout << myname << "             # channels with data: " << setw(w) << nchaData << endl;
+    cout << myname << "    # channels with max # entries: " << setw(w) << nchaDataMax << endl;
+  }
+
+}
+
+//**********************************************************************
+
 DataMap AdcChannelMetric::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelMetric::view: ";
   DataMap ret;
@@ -177,113 +274,39 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
 DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const {
   const string myname = "AdcChannelMetric::viewMapForOneRange: ";
   DataMap ret;
-  // At this point, there is only one range to plot.
-  const AdcChannelData& acdFirst = acds.begin()->second;
-  string   hname = nameReplace(    m_HistName, acdFirst, ran);
-  string   htitl = nameReplace(   m_HistTitle, acdFirst, ran);
-  string   slaby = nameReplace( m_MetricLabel, acdFirst, ran);
-  string  ofname = nameReplace(m_PlotFileName, acdFirst, ran);
-  string ofrname = nameReplace(m_RootFileName, acdFirst, ran);
-  Index nchan = ran.size();
-  Index ich0 = ran.begin;
-  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nchan, ich0, ran.end);
-  ph->SetDirectory(nullptr);
-  ph->SetLineWidth(2);
-  ph->SetStats(0);
-  ph->GetXaxis()->SetTitle("Channel");
-  ph->GetYaxis()->SetTitle(slaby.c_str());
-  unsigned int ngraph = m_useStatus ? 4 : 1;
-  NameVector statNames = {"All", "Good", "Bad", "Noisy"};
-  LineColors lc;
-  std::vector<int> statCols = {lc.blue(), lc.green(), lc.red(), lc.brown()};
-  TGraphVector graphs(ngraph, nullptr);
-  for ( Index igra=0; igra<ngraph; ++igra ) {
-    string gname = hname;
-    string gtitl = htitl;
-    StringManipulator smanName(gname);
-    smanName.replace("%STATUS%", statNames[igra]);
-    StringManipulator smanTitl(gtitl);
-    smanTitl.replace("%STATUS%", statNames[igra]);
-    graphs[igra] = new TGraph;
-    TGraph* pg = graphs[igra];
-    pg->SetName(gname.c_str());
-    pg->SetTitle(gtitl.c_str());
-    pg->SetMarkerStyle(2);
-    pg->SetMarkerColor(statCols[igra]);
-    pg->GetXaxis()->SetTitle("Channel");
-    pg->GetYaxis()->SetTitle(slaby.c_str());
-  }
-  TGraph* pgAll = graphs[0];
-  Index nfill = 0;
-  float val = 0.0;
-  Name sunits;
-  AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(ich0);
+  // Extract the metrics for the subset of this range included in the data.
+  MetricMap mets;
+  Index icha0 = ran.begin;
+  AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
+  getState().update(iacd1->second.run, iacd1->second.event);
+  MetricSummaryVector& metricSums = getState().crsums[ran];
+  if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
     const AdcChannelData& acd = iacd->second;
-    int rstat = getMetric(acd, val, sunits);
+    float met;
+    Name sunits;
+    int rstat = getMetric(acd, met, sunits);
     if ( rstat ) {
       cout << myname << "WARNING: Metric evaluation failed for channel " << acd.channel << endl;
       continue;
     }
     Index icha = iacd->first;
-    Index bin = (icha + 1) - ich0;
-    ph->SetBinContent(bin, val);
-    float gval = val;
-    if ( m_MetricMax > m_MetricMin ) {
-      if ( val < m_MetricMin ) gval = m_MetricMin;
-      if ( val > m_MetricMax ) gval = m_MetricMax;
-    }
-    pgAll->SetPoint(pgAll->GetN(), icha, gval);
-    if ( m_useStatus ) {
-      TGraph* pgStat = graphs[1];
-      if      ( m_pChannelStatusProvider->IsBad(acd.channel) )   pgStat = graphs[2];
-      else if ( m_pChannelStatusProvider->IsNoisy(acd.channel) ) pgStat = graphs[3];
-      pgStat->SetPoint(pgStat->GetN(), icha, gval);
-    }
-    ++nfill;
+    mets[icha].setValue(met);
+    MetricSummary& metricSum = metricSums[icha-icha0];
+    metricSum.add(met);
   }
-  if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
-  if ( ofname.size() ) {
-    TPadManipulator man;
-    if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
-    //man.add(ph, "hist");
-    //man.add(ph, "axis");
-    man.add(pgAll, "P");
-    if ( m_useStatus ) {
-      for ( int igra : {1, 3, 2} ) {
-        TGraph* pgra = graphs[igra];
-        if ( pgra->GetN() ) man.add(pgra, "P");
-      }
-    }
-    man.addAxis();
-    if ( m_ChannelLineModulus ) {
-      for ( Index icha : m_ChannelLinePattern ) {
-        man.addVerticalModLines(m_ChannelLineModulus, icha);
-      }
-    } else {
-      for ( Index icha : m_ChannelLinePattern ) {
-        if ( icha > ich0 && icha < ran.last() ) {
-          man.addVerticalLine(icha, 1.0, 3);
-        }
-      }
-    }
-    man.setRangeX(ran.begin, ran.end);
-    if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
-    man.setGridY();
-    man.print(ofname);
+  // Create the histogram for this data and this range.
+  const AdcChannelData& acdFirst = acds.begin()->second;
+  string  ofname;
+  string ofrname;
+  if ( ! m_doSummary ) {
+    ofname = nameReplace(m_PlotFileName, acdFirst, ran);
+    ofrname = nameReplace(m_RootFileName, acdFirst, ran);
   }
-  if ( m_LogLevel > 1 ) {
-    cout << myname << "Created plot ";
-    cout << "for " << nfill << " channels in range " << ran.name << endl;
-    cout << myname << " Output file: " << ofname << endl;
-  }
-  if ( ofrname.size() ) {
-    TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
-    ph->Write();
-    if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
-    delete pfile;
-  }
+  TH1* ph = createHisto(acdFirst, ran);
+  // Fill the histogram and create the plots for this data and this range.
+  processMetricsForOneRange(ran, mets, ph, ofname, ofrname, false);
   ret.setHist(ph, true);
   return ret;
 }
@@ -296,10 +319,22 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
   sunits = "";
   if ( m_Metric == "pedestal" ) {
     val = acd.pedestal;
-    sunits = "ADC counts";
+    sunits = "ADC count";
+  } else if ( m_Metric == "pedestalDiff" ) {
+    float ped = acd.pedestalRms;
+    val = 0.0;
+    Index icha = acd.channel;
+    MetricMap& pedRefs = getState().pedRefs;
+    MetricMap::const_iterator ipdr = pedRefs.find(icha);
+    if ( ipdr == pedRefs.end() ) {
+      pedRefs[icha].value = ped;
+    } else {
+      val = ped - ipdr->second.value;
+    }
+    sunits = "ADC count";
   } else if ( m_Metric == "pedestalRms" ) {
     val = acd.pedestalRms;
-    sunits = "ADC counts";
+    sunits = "ADC count";
   } else if ( m_Metric == "fembID" ) {
     val = acd.fembID;
   } else if ( m_Metric == "apaFembID" ) {
@@ -371,6 +406,147 @@ nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const
   dm.setInt("chan1", ran.first());
   dm.setInt("chan2", ran.last());
   return pnbl->build(acd, dm, name);
+}
+
+//**********************************************************************
+
+void AdcChannelMetric::
+processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
+                          Name ofname, Name ofrname, bool useErrors) const {
+  const string myname = "AdcChannelMetric::useMetricsForOneRange: ";
+  unsigned int ngraph = m_useStatus ? 4 : 1;
+  NameVector statNames = {"All", "Good", "Bad", "Noisy"};
+  LineColors lc;
+  std::vector<int> statCols = {lc.blue(), lc.green(), lc.red(), lc.brown()};
+  Name hname = ph->GetName();
+  Name htitl = ph->GetTitle();
+  Name slaby = ph->GetYaxis()->GetTitle();
+  TGraphVector graphs(ngraph, nullptr);
+  TGraphErrorsVector egraphs(ngraph, nullptr);
+  for ( Index igra=0; igra<ngraph; ++igra ) {
+    string gname = hname;
+    string gtitl = htitl;
+    StringManipulator smanName(gname);
+    smanName.replace("%STATUS%", statNames[igra]);
+    StringManipulator smanTitl(gtitl);
+    smanTitl.replace("%STATUS%", statNames[igra]);
+    if ( useErrors ) {
+      egraphs[igra] = new TGraphErrors;
+      graphs[igra] = egraphs[igra];
+    } else {
+      graphs[igra] = new TGraph;
+    }
+    TGraph* pg = graphs[igra];
+    pg->SetName(gname.c_str());
+    pg->SetTitle(gtitl.c_str());
+    if ( ! useErrors ) pg->SetMarkerStyle(2);
+    pg->SetMarkerColor(statCols[igra]);
+    pg->SetLineColor(statCols[igra]);
+    pg->GetXaxis()->SetTitle("Channel");
+    pg->GetYaxis()->SetTitle(slaby.c_str());
+  }
+  TGraph* pgAll = graphs[0];
+  TGraphErrors* pgeAll = egraphs[0];
+  double ex = 0.25;
+  Index nfill = 0;
+  Index icha0 = ran.begin;
+  for ( MetricMap::value_type imet : mets ) {
+    Index icha = imet.first;
+    float met = imet.second.value;
+    float err = imet.second.error;
+    Index bin = (icha + 1) - icha0;
+    ph->SetBinContent(bin, met);
+    if ( err ) ph->SetBinError(bin, err);
+    float gval = met;
+    if ( m_MetricMax > m_MetricMin ) {
+      if ( met < m_MetricMin ) gval = m_MetricMin;
+      if ( met > m_MetricMax ) gval = m_MetricMax;
+    }
+    Index iptAll = pgAll->GetN();
+    pgAll->SetPoint(iptAll, icha, gval);
+    if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
+    if ( m_useStatus ) {
+      Index stat = channelStatus(icha);
+      if ( stat > 0 ) {
+        TGraph* pgStat = graphs[stat];
+        TGraphErrors* pgeStat = egraphs[stat];
+        Index iptStat = pgStat->GetN();
+        pgStat->SetPoint(iptStat, icha, gval);
+        if ( pgeStat != nullptr ) pgeStat->SetPointError(iptStat, ex, err);
+      }
+    }
+    ++nfill;
+  }
+  if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
+  if ( ofname.size() ) {
+    TPadManipulator man;
+    if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
+    //man.add(ph, "hist");
+    //man.add(ph, "axis");
+    man.add(pgAll, "P");
+    if ( m_useStatus ) {
+      for ( int igra : {1, 3, 2} ) {
+        TGraph* pgra = graphs[igra];
+        if ( pgra->GetN() ) man.add(pgra, "P");
+      }
+    }
+    man.addAxis();
+    if ( m_ChannelLineModulus ) {
+      for ( Index icha : m_ChannelLinePattern ) {
+        man.addVerticalModLines(m_ChannelLineModulus, icha);
+      }
+    } else {
+      for ( Index icha : m_ChannelLinePattern ) {
+        if ( icha > icha0 && icha < ran.last() ) {
+          man.addVerticalLine(icha, 1.0, 3);
+        }
+      }
+    }
+    man.setRangeX(ran.begin, ran.end);
+    if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
+    man.setGridY();
+    man.print(ofname);
+  }
+  if ( m_LogLevel > 1 ) {
+    cout << myname << "Created plot ";
+    cout << "for " << nfill << " channels in range " << ran.name << endl;
+    cout << myname << " Output file: " << ofname << endl;
+  }
+  if ( ofrname.size() ) {
+    TFile* pfile = TFile::Open(ofrname.c_str(), "UPDATE");
+    ph->Write();
+    if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
+    delete pfile;
+  }
+}
+
+//**********************************************************************
+
+TH1* AdcChannelMetric::createHisto(const AdcChannelData& acd, const IndexRange& ran) const {
+  string   hname = nameReplace(    m_HistName, acd, ran);
+  string   htitl = nameReplace(   m_HistTitle, acd, ran);
+  string   slaby = nameReplace( m_MetricLabel, acd, ran);
+  TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), ran.size(), ran.begin, ran.end);
+  ph->SetDirectory(nullptr);
+  ph->SetLineWidth(2);
+  ph->SetStats(0);
+  ph->GetXaxis()->SetTitle("Channel");
+  ph->GetYaxis()->SetTitle(slaby.c_str());
+  return ph;
+}
+
+//**********************************************************************
+
+Index AdcChannelMetric::channelStatus(Index icha) const {
+  IndexVector& stats = getState().channelStatuses;
+  if ( icha >= stats.size() ) stats.resize(icha + 1, 0);
+  Index& stat = stats[icha];
+  if ( stat == 0 && m_pChannelStatusProvider != nullptr ) {
+    if      ( m_pChannelStatusProvider->IsBad(icha) )   stat = 2;
+    else if ( m_pChannelStatusProvider->IsNoisy(icha) ) stat = 3;
+    else                                                stat = 1;
+  }
+  return stat;
 }
 
 //**********************************************************************

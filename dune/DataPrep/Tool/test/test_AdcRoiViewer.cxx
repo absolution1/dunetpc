@@ -53,6 +53,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  MaxRoiPlots: 100" << endl;
     fout << "  RoiPlotPadX: 2" << endl;
     fout << "  RoiPlotPadY: 2" << endl;
+    fout << "  SumNegate: false" << endl;
     fout << "  SumPlotPadX: 2" << endl;
     fout << "  SumPlotPadY: 2" << endl;
     fout << "  RunDataTool: \"\"" << endl;
@@ -63,6 +64,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  RoiRootFileName: \"roi.root\"" << endl;
     fout << "  SumRootFileName: \"\"" << endl;
     fout << "  ChanSumRootFileName: \"\"" << endl;
+    fout << "  PlotLabels: [\"very\",  \"nice\"]" << endl;
     fout << "}" << endl;
     fout << "tools.mytool2: @local::tools.mytool1" << endl;
     fout << "tools.mytool2.SumHists: [" << endl;
@@ -77,7 +79,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
          << " nbin:40 xmin:0 xmax:4.0 fit:gaus plot:\"\"}" << endl;
     fout << "]" << endl;
     fout << "tools.mytool2.ChanSumHists: [" << endl;
-    fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for run %RUN% %CRLABEL%\" "
+    fout << "  {name:\"hcsHeight_%CRNAME%\" title:\"Pulse heights for %LAB0% %LAB1% run %RUN% %CRLABEL%\" "
          <<    "valHist:\"hfh_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x plot:\"\" pran:\"\"}," << endl;
     fout << "  {name:\"hcsWidth_%CRNAME%\" title:\"Shaping times for run %RUN% %CRLABEL%\" "
          <<    "valHist:\"hfw_%0RUN%_chan%0CHAN%\" valType:fitMean errType:fitSigma cr:apa1x plot:\"\" pran:\"\"}" << endl;

@@ -160,7 +160,7 @@ void util::TFileMetadataDUNE::postOpenFile(std::string const& fn)
 
 //--------------------------------------------------------------------  	
 // PostEvent callback.
-void util::TFileMetadataDUNE::postEvent(art::Event const& evt)
+void util::TFileMetadataDUNE::postEvent(art::Event const& evt, art::ScheduleContext)
 {
  
   if(!fGenerateTFileMetadata) return;	
