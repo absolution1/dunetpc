@@ -26,6 +26,7 @@
 #include "fhiclcpp/types/OptionalAtom.h"
 // C/C++ standard libraries
 #include <set>
+
 ///General LArSoft Utilities
 namespace spdp{
   
@@ -48,13 +49,13 @@ namespace spdp{
           };
     
 
-       fhicl::Atom<bool        > GetHVDriftfromRunTable {
+       fhicl::Atom<bool        > fGetHVDriftfromMetaData {
           Name("GetHVDriftfromRunTable"),
-          Comment("option to get HV drift field from table of Runs")
+          Comment("option to get HV drift field from MetaData")
         };
-          fhicl::Atom<bool        > GetReadOutWindowSizefromRunTable{
+          fhicl::Atom<bool        > fGetReadOutWindowSizefromMetaData{
           Name("GetReadOutWindowSizefromRunTable"),
-          Comment("option to get ReadoutWindowSize and NumberTimeSamples from table of Runs")
+          Comment("option to get ReadoutWindowSize and NumberTimeSamples from MetaData")
         };
 
         fhicl::Atom<double      > Electronlifetime         {
@@ -180,8 +181,8 @@ namespace spdp{
         std::set<std::string> const& ignore_params = {}
         );
       bool Update(uint64_t ts); 
-      bool UpdateHV(uint64_t run);
-      bool UpdateReadoutWindowSize(uint64_t run);
+      bool UpdateHV(std::string metadata);
+      bool UpdateReadoutWindowSize(std::string metadata);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
       /**
@@ -311,8 +312,8 @@ namespace spdp{
       
 
 
-      bool                        fGetHVDriftfromRunTable;
-      bool                        fGetReadOutWindowSizefromRunTable;
+      bool                        fGetHVDriftfromMetaData;
+      bool                        fGetReadOutWindowSizefromMetaData;
       double                         fHV_cath;   //  <KV
       std::vector<double>          fEfield;           ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime; ///< microseconds
