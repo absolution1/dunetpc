@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Geometry/GeoObjectSorterCRM.h"
+#include "dune/Geometry/OpDetSorter.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
@@ -188,5 +189,11 @@ namespace geo{
 
     return;
   }
+
+  //----------------------------------------------------------------------------
+ void GeoObjectSorterCRM::SortOpDets         (std::vector<geo::OpDetGeo*> & opdet) const {
+   std::sort(opdet.begin(), opdet.end(), sortorderOpDet);
+   return;
+ } 
 
 }
