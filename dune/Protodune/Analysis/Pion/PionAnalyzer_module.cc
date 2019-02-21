@@ -111,12 +111,14 @@ private:
   std::vector< double > combined_resRange;
 
   std::vector< double > dEdX, dQdX, resRange;
+  std::vector< double > calibrated_dEdX;
   std::vector< std::vector< double > > daughter_dEdX, daughter_dQdX, daughter_resRange;
   std::vector< double > daughter_len;
 
   int type;
 
   std::string fCalorimetryTag;
+  
   std::string fTrackerTag;    
   std::string fShowerTag;     
   std::string fPFParticleTag; 
@@ -127,6 +129,8 @@ private:
   double fBrokenTrackZ_low, fBrokenTrackZ_high;
   double fStitchTrackZ_low, fStitchTrackZ_high;
   double fStitchXTol, fStitchYTol;
+
+  fhicl::ParameterSet fCalorimetryParameters;
 
 };
 
@@ -150,7 +154,9 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fStitchTrackZ_low( p.get<double>("StitchTrackZ_low") ),
   fStitchTrackZ_high( p.get<double>("StitchTrackZ_high") ),
   fStitchXTol( p.get<double>("StitchXTol") ),
-  fStitchYTol( p.get<double>("StitchYTol") )
+  fStitchYTol( p.get<double>("StitchYTol") ),
+
+  fCalorimetryParameters( p.get< fhicl::ParameterSet > ("CalorimetryParameters") )
 
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -374,9 +380,17 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       auto calo_dEdX = calo[0].dEdx();
       auto calo_range = calo[0].ResidualRange();
       for( size_t i = 0; i < calo_dQdX.size(); ++i ){
+
+        std::cout << calo_dQdX[i] << " " << calo_dEdX[i] << " " << calo_range[i] << std::endl;
         dQdX.push_back( calo_dQdX[i] );
         dEdX.push_back( calo_dEdX[i] );
         resRange.push_back( calo_range[i] );
+      }
+
+      calibrated_dEdX = trackUtil.CalibrateCalorimetry( *thisTrack, evt, fTrackerTag, fCalorimetryTag, fCalorimetryParameters);
+      std::cout << "Calibrated size: " << calibrated_dEdX.size();
+      for( size_t i = 0; i < calibrated_dEdX.size(); ++i ){
+        std::cout << calibrated_dEdX[i] << std::endl;
       }
 
 
@@ -522,6 +536,7 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("MC", &MC);
   fTree->Branch("dQdX", &dQdX);
   fTree->Branch("dEdX", &dEdX);
+  fTree->Branch("calibrated_dEdX", &calibrated_dEdX);
   fTree->Branch("resRange", &resRange);
   fTree->Branch("daughter_dQdX", &daughter_dQdX);
   fTree->Branch("daughter_dEdX", &daughter_dEdX);
@@ -564,6 +579,7 @@ void pionana::PionAnalyzer::reset()
 
   dQdX.clear();
   dEdX.clear();
+  calibrated_dEdX.clear();
   resRange.clear();
 
   daughter_dQdX.clear();

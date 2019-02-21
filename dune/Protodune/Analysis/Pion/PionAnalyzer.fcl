@@ -40,6 +40,17 @@ pionanalysis:
   StitchXTol:         10
   StitchYTol:         10
 
+  CalorimetryParameters: {
+    PlaneID:      2
+    betap:        0.212
+    Rho:          1.383
+    Efield:       0.50
+    Wion:         23.6e-6
+    alpha:        0.93
+    norm_factor:  0.983
+    calib_factor: 6.155e-3
+    X_correction: "/dune/app/users/apaudel/v071100/run5387_new/run_5387_Xcalibration.root"
+  }
 
 
 }

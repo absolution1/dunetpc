@@ -32,8 +32,13 @@ namespace protoana {
     std::vector<anab::T0> GetRecoTrackT0(const recob::Track &track, art::Event const &evt, std::string trackModule) const;
     /// Get the Calorimetry(s) from a given reco track
     std::vector<anab::Calorimetry> GetRecoTrackCalorimetry(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule) const;
+    /// Calibrate a Calorimetry object for a given plane from a given track 
+    std::vector< double > CalibrateCalorimetry(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet & ps );
+    double calc_dEdX( double, double, double, double, double, double );
     /// Get the hits from a given reco track
     const std::vector<const recob::Hit*> GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
+    /// Get the hits from a given reco track from a specific plane
+    const std::vector<const recob::Hit*> GetRecoTrackHitsFromPlane(const recob::Track &track, art::Event const &evt, const std::string trackModule, int planeID) const;
     /// Get the number of hits from a given reco track
     unsigned int GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
     /// Get the PID from a given track
