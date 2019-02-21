@@ -447,11 +447,11 @@
 
 
 
-    <box name="FoilLayerZ" lunit="cm" x="0.25" y="1193" z="6017"/>
-    <box name="FoilTPBZ" lunit="cm" x="0.27844" y="1193" z="6017"/>
+    <box name="FoilLayerZ" lunit="cm" x="0.25" y="595.5" z="6017"/>
+    <box name="FoilTPBZ" lunit="cm" x="0.27844" y="595.5" z="6017"/>
 
-    <box name="FoilLayerX" lunit="cm" x="1201" y="1193" z="0.25"/>
-    <box name="FoilTPBX" lunit="cm" x="1201" y="1193" z="0.27844"/>
+    <box name="FoilLayerX" lunit="cm" x="1201" y="595.5" z="0.25"/>
+    <box name="FoilTPBX" lunit="cm" x="1201" y="595.5" z="0.27844"/>
 
 
    <box name="CRM" lunit="cm" 
@@ -18839,22 +18839,22 @@
   </physvol>
   <physvol>
      <volumeref ref="volFoilZ"/>
-     <position name="posFoilZpos" unit="cm" x="602.2" y="57.8150000000001" z="0" />
+     <position name="posFoilZpos" unit="cm" x="602.2" y="356.565" z="0" />
      <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
   </physvol>
   <physvol>
      <volumeref ref="volFoilZ"/>
-     <position name="posFoilZneg" unit="cm"  x="-602.2" y="57.8150000000001" z="0" />
+     <position name="posFoilZneg" unit="cm"  x="-602.2" y="356.565" z="0" />
      <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
   </physvol>
   <physvol>
      <volumeref ref="volFoilX"/>
-     <position name="posFoilXpos" unit="cm"  x="0" y="57.8150000000001" z="3010.2" />
+     <position name="posFoilXpos" unit="cm"  x="0" y="356.565" z="3010.2" />
      <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
   </physvol>
   <physvol>
      <volumeref ref="volFoilX"/>
-     <position name="posFoilXneg" unit="cm"  x="0" y="57.8150000000001" z="-3010.2" />
+     <position name="posFoilXneg" unit="cm"  x="0" y="356.565" z="-3010.2" />
      <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
   </physvol>
     </volume>
