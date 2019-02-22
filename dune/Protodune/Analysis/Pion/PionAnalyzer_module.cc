@@ -103,15 +103,15 @@ private:
   int beamTrackID;
   std::vector< int >  stitchTrackID;
   std::vector< double > stitch_cos_theta;
-  std::vector< double > stitch_dQdX;
-  std::vector< double > stitch_dEdX;
-  std::vector< double > stitch_resRange;
-  std::vector< double > combined_dQdX;
-  std::vector< double > combined_dEdX;
-  std::vector< double > combined_resRange;
+  std::vector< float > stitch_dQdX;
+  std::vector< float > stitch_dEdX;
+  std::vector< float > stitch_resRange;
+  std::vector< float > combined_dQdX;
+  std::vector< float > combined_dEdX;
+  std::vector< float > combined_resRange;
 
   std::vector< double > dEdX, dQdX, resRange;
-  std::vector< double > calibrated_dEdX;
+  std::vector< float > calibrated_dEdX;
   std::vector< std::vector< double > > daughter_dEdX, daughter_dQdX, daughter_resRange;
   std::vector< double > daughter_len;
 
@@ -131,6 +131,7 @@ private:
   double fStitchXTol, fStitchYTol;
 
   fhicl::ParameterSet fCalorimetryParameters;
+  fhicl::ParameterSet fBrokenTrackParameters;
 
 };
 
@@ -156,7 +157,8 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fStitchXTol( p.get<double>("StitchXTol") ),
   fStitchYTol( p.get<double>("StitchYTol") ),
 
-  fCalorimetryParameters( p.get< fhicl::ParameterSet > ("CalorimetryParameters") )
+  fCalorimetryParameters( p.get< fhicl::ParameterSet > ("CalorimetryParameters") ),
+  fBrokenTrackParameters( p.get< fhicl::ParameterSet > ("BrokenTrackParameters") )
 
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -389,10 +391,6 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
       calibrated_dEdX = trackUtil.CalibrateCalorimetry( *thisTrack, evt, fTrackerTag, fCalorimetryTag, fCalorimetryParameters);
       std::cout << "Calibrated size: " << calibrated_dEdX.size();
-      for( size_t i = 0; i < calibrated_dEdX.size(); ++i ){
-        std::cout << calibrated_dEdX[i] << std::endl;
-      }
-
 
       //Go through the track-like daughters and save their calorimetry
       for( size_t i = 0; i < trackDaughters.size(); ++i ){
@@ -415,14 +413,11 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
       //Looking for tracks ending at APA3-2 boundary
       //
-      if( fBrokenTrackZ_low < endZ && endZ < fBrokenTrackZ_high ){
+/*      if( fBrokenTrackZ_low < endZ && endZ < fBrokenTrackZ_high ){
         std::cout << "Possibly broken track " << std::endl; 
         std::cout << "Track: " <<  beamTrackID << " at " << endZ << std::endl;
         const auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackModuleLabel);
 
-        //Look through all of the tracks
-//        for( size_t i = 0; i < recoTracks->size(); ++i ){
-          
 //          recob::Track tr = recoTracks[i];
         for( auto const & tr : *recoTracks ){          
 
@@ -487,8 +482,26 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
             }
           }
         }
+      }*/
+
+
+
+      protoana::BrokenTrack theBrokenTrack = trackUtil.IsBrokenTrack(  *thisTrack, evt, fTrackerTag, fCalorimetryTag, fBrokenTrackParameters, fCalorimetryParameters );
+
+      if( theBrokenTrack.Valid ){
+        std::cout << "Found stitch track!" << std::endl;
+        combined_dQdX = theBrokenTrack.Combined_dQdx;
+        combined_dEdX = theBrokenTrack.Combined_dEdx;
+        combined_resRange = theBrokenTrack.Combined_ResidualRange;
+        stitch_len = theBrokenTrack.secondTrack->Length();
+        combined_len =  stitch_len + len;
+
+        stitch_cos_theta.push_back( theBrokenTrack.CosTheta );
+
+        stitchTrackID.push_back( theBrokenTrack.secondTrack->ID() );
       }
-    }  
+    } 
+
   }
   
 

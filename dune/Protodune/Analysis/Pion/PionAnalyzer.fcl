@@ -52,6 +52,17 @@ pionanalysis:
     X_correction: "/dune/app/users/apaudel/v071100/run5387_new/run_5387_Xcalibration.root"
   }
 
+  BrokenTrackParameters: {
+    BrokenTrackZ_low:  220
+    BrokenTrackZ_high: 230
+                       
+    StitchTrackZ_low:  232 
+    StitchTrackZ_high: 240
+                       
+    StitchXTol:        10
+    StitchYTol:        10
+  }
+
 
 }
 

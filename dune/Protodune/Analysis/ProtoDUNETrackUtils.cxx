@@ -123,8 +123,6 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrack
     planeID_string += plane_string[ pos + 2 ];
     if( planeID_string != std::to_string( planeID ) ) continue;
        
-    std::cout << "Found hit on " << planeID << std::endl;
-
     trackHits.push_back(hit.get());
 
   }
@@ -133,7 +131,7 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrack
 
 }
 
-std::vector< double >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet &ps ) {
+std::vector< float >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet &ps ) {
 
 
   int planeID = ps.get< int >( "PlaneID" );
@@ -150,7 +148,7 @@ std::vector< double >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  con
   TH1F * X_correction_hist = (TH1F*)X_correction_file.Get( "dqdx_X_correction_hist" );
 
 
-  std::vector< double > calibrated_dEdx;
+  std::vector< float > calibrated_dEdx;
 
   //Get the Calorimetry vector from the track
   std::vector< anab::Calorimetry > caloVector = GetRecoTrackCalorimetry( track, evt, trackModule, caloModule ); 
@@ -188,13 +186,13 @@ std::vector< double >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  con
 
   //Do Ajib's correction 
   for( size_t i = 0; i < dQdX.size(); ++i ){ 
-    double hit_x = theXYZPoints[i].X();
+    float hit_x = theXYZPoints[i].X();
     int X_bin = X_correction_hist->FindBin( hit_x );
-    double X_correction = X_correction_hist->GetBinContent(X_bin);
+    float X_correction = X_correction_hist->GetBinContent(X_bin);
 
-    double corrected_dq_dx = dQdX[i] * X_correction * norm_factor;
-    double scaled_corrected_dq_dx = corrected_dq_dx / calib_factor;
-    double cal_de_dx = calc_dEdX( scaled_corrected_dq_dx,  betap,  Rho,  Efield,  Wion,  alpha );
+    float corrected_dq_dx = dQdX[i] * X_correction * norm_factor;
+    float scaled_corrected_dq_dx = corrected_dq_dx / calib_factor;
+    float cal_de_dx = calc_dEdX( scaled_corrected_dq_dx,  betap,  Rho,  Efield,  Wion,  alpha );
  
     calibrated_dEdx.push_back( cal_de_dx );
   }
@@ -203,7 +201,7 @@ std::vector< double >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  con
   return calibrated_dEdx;
 }
 
-double protoana::ProtoDUNETrackUtils::calc_dEdX(double dqdx, double betap, double Rho, double Efield, double Wion, double alpha){
+float protoana::ProtoDUNETrackUtils::calc_dEdX(double dqdx, double betap, double Rho, double Efield, double Wion, double alpha){
   return (exp(dqdx*(betap/(Rho*Efield)*Wion))-alpha)/(betap/(Rho*Efield));  
 }
 
@@ -235,4 +233,171 @@ std::vector<anab::ParticleID> protoana::ProtoDUNETrackUtils::GetRecoTrackPID(con
 
   return pidvec;
 
+}
+
+protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet & BrokenTrackPars, const fhicl::ParameterSet & CalorimetryPars ){
+  
+  BrokenTrack theBrokenTrack;
+  theBrokenTrack.Valid = false;
+  
+  double fBrokenTrackZ_low  = BrokenTrackPars.get< double >( "BrokenTrackZ_low" );
+  double fBrokenTrackZ_high = BrokenTrackPars.get< double >( "BrokenTrackZ_high" );
+
+  double fStitchTrackZ_low  = BrokenTrackPars.get< double >( "StitchTrackZ_low" );
+  double fStitchTrackZ_high = BrokenTrackPars.get< double >( "StitchTrackZ_high" );
+  
+  double fStitchXTol = BrokenTrackPars.get< double >( "StitchXTol" );
+  double fStitchYTol = BrokenTrackPars.get< double >( "StitchYTol" );
+
+  ////Check the end of the track
+  double endZ = track.Trajectory().End().Z();
+  double endX = track.Trajectory().End().X();
+  double endY = track.Trajectory().End().Y();
+  if( fBrokenTrackZ_low < endZ && endZ < fBrokenTrackZ_high ){
+
+    const auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
+    for( auto const & tr : *recoTracks ){          
+
+      //Skip the track in question 
+      if( tr.ID() == track.ID() ) continue;
+
+      double stitchStartZ = tr.Trajectory().Start().Z();
+      if( fStitchTrackZ_low < stitchStartZ && stitchStartZ < fStitchTrackZ_high ){
+        double deltaX = fabs(endX - tr.Trajectory().Start().X());
+        double deltaY = fabs(endY - tr.Trajectory().Start().Y());
+
+        std::cout << "Possible stitching track: " << stitchStartZ << " " << deltaX << " " << deltaY << std::endl;
+
+        if( deltaX < fStitchXTol && deltaY < fStitchYTol ){
+
+
+          //Get the cosine of the angle between them
+          auto stitchDir = tr.StartDirection();
+          double stitch_cos_theta =  stitchDir.X()*track.EndDirection().X() + stitchDir.Y()*track.EndDirection().Y() + stitchDir.Z()*track.EndDirection().Z() ;
+          std::cout << "Cos_theta " << stitch_cos_theta << std::endl;
+
+
+          int planeID = CalorimetryPars.get< int >( "PlaneID");
+          //Get the calorimetries, calibrate, and combine
+          std::vector< anab::Calorimetry > broken_calos = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
+
+          size_t calo_position;
+          for( size_t i = 0; i < broken_calos.size(); ++i ){
+            //Hacking this because idk how to get the plane id 
+            std::string plane_string = broken_calos.at(i).PlaneID().toString();
+            std::cout << plane_string << std::endl;
+            size_t pos = plane_string.find( "P" );
+            if ( pos == std::string::npos ) continue;
+            std::string planeID_string = "";
+            planeID_string += plane_string[ pos + 2 ];
+            if( planeID_string == std::to_string( planeID ) ){
+              calo_position = i;
+              break;
+            }
+          }
+
+          auto broken_range = broken_calos.at( calo_position ).ResidualRange();
+          auto broken_dQdx  = broken_calos.at( calo_position ).dQdx();
+          std::vector< float > broken_cal_dEdx = CalibrateCalorimetry(  track, evt, trackModule, caloModule, CalorimetryPars );
+
+          
+
+          calo_position = 0;
+          std::vector< anab::Calorimetry > stitch_calos = GetRecoTrackCalorimetry(tr, evt, trackModule, caloModule);
+
+          for( size_t i = 0; i < stitch_calos.size(); ++i ){
+            //Hacking this because idk how to get the plane id 
+            std::string plane_string = stitch_calos.at(i).PlaneID().toString();
+            std::cout << plane_string << std::endl;
+            size_t pos = plane_string.find( "P" );
+            if ( pos == std::string::npos ) continue;
+            std::string planeID_string = "";
+            planeID_string += plane_string[ pos + 2 ];
+            if( planeID_string == std::to_string( planeID ) ){
+              calo_position = i;
+              break;
+            }
+          }
+
+          auto stitch_range = stitch_calos.at( calo_position ).ResidualRange();
+          auto stitch_dQdx  = stitch_calos.at( calo_position ).dQdx();
+          std::vector< float > stitch_cal_dEdx = CalibrateCalorimetry(  tr, evt, trackModule, caloModule, CalorimetryPars );
+
+          //piece them together in order       
+          std::vector< float > combined_range, combined_dQdx, combined_dEdx;
+          
+
+          combined_range = stitch_range;
+          if( stitch_range[0] > stitch_range.back() ){
+            std::cout << "Adding range: " << stitch_range[0] << std::endl;
+            for( size_t i = 0 ; i < broken_range.size(); ++i ){
+              combined_range.push_back( broken_range[i] + stitch_range[0] );
+            }
+          }
+          else{
+            std::cout << "Adding range: " << stitch_range[0] << std::endl;
+            for( size_t i = 0 ; i < broken_range.size(); ++i ){
+              combined_range.push_back( broken_range[i] + stitch_range.back() );
+            }
+          }
+
+          for( size_t i = 0; i < combined_range.size(); ++i ){
+            std::cout << combined_range[i] << std::endl;
+          }
+
+          combined_dQdx = stitch_dQdx;
+          combined_dQdx.insert( combined_dQdx.end(), broken_dQdx.begin(), broken_dQdx.end() );
+          combined_dEdx = stitch_cal_dEdx;
+          combined_dEdx.insert( combined_dEdx.end(), broken_cal_dEdx.begin(), broken_cal_dEdx.end() );
+/*          float total_stitch_range;
+          if( stitch_range[0] > stitch_range.back() ){
+            total_stitch_range = stitch_range[0]; 
+          }
+          else{
+            total_stitch_range = stitch_range.back();
+          }
+
+          std::cout << stitch_range[0] << " " << stitch_range.back() << " " << total_stitch_range << std::endl;
+
+          if( broken_range[0] > broken_range.back() ){
+            for( size_t i = 0; i < broken_range.size(); ++i ){
+              combined_range.push_back( broken_range.at(i) + total_stitch_range );
+              combined_dQdx.push_back(  broken_dQdx.at(i) );
+              combined_dEdx.push_back(  broken_cal_dEdx.at(i) );
+            }
+          }
+          else{
+            for( size_t i = broken_range.size() - 1; i >= 0; --i ){
+              combined_range.push_back( broken_range.at(i) + total_stitch_range );
+              combined_dQdx.push_back(  broken_dQdx.at(i) );
+              combined_dEdx.push_back(  broken_cal_dEdx.at(i) );
+            }
+          }
+
+          if( stitch_range[0] > stitch_range.back() ){
+            combined_range.insert( combined_range.end(), stitch_range.begin(), stitch_range.end() );
+            combined_dQdx.insert( combined_dQdx.end(), stitch_dQdx.begin(), stitch_dQdx.end() );
+            combined_dEdx.insert( combined_dEdx.end(), stitch_cal_dEdx.begin(), stitch_cal_dEdx.end() );
+          }
+          else{
+            combined_range.insert( combined_range.end(), stitch_range.rbegin(), stitch_range.rend() );
+            combined_dQdx.insert( combined_dQdx.end(), stitch_dQdx.rbegin(), stitch_dQdx.rend() );
+            combined_dEdx.insert( combined_dEdx.end(), stitch_cal_dEdx.rbegin(), stitch_cal_dEdx.rend() );
+          }
+*/          
+
+          theBrokenTrack.firstTrack = &track;
+          theBrokenTrack.secondTrack = &tr;
+          theBrokenTrack.CosTheta = stitch_cos_theta; 
+          theBrokenTrack.Combined_ResidualRange = combined_range;
+          theBrokenTrack.Combined_dQdx = combined_dQdx;
+          theBrokenTrack.Combined_dEdx = combined_dEdx;
+          theBrokenTrack.Valid = true;
+
+          return theBrokenTrack;
+        }
+      }
+    }
+  }
+  return theBrokenTrack;
 }
