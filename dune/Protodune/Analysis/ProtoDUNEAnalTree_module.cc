@@ -24,6 +24,7 @@
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "larsim/Simulation/LArG4Parameters.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -34,6 +35,9 @@
 #include "lardataobj/AnalysisBase/T0.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "larcore/Geometry/Geometry.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 //#include "dune/EventGenerator/ProtoDUNEbeamDataProducts/ProtoDUNEbeamsim.h"
@@ -64,6 +68,7 @@
 
 // Maximum number of beam particles to save
 const int NMAXDAUGTHERS = 15;
+const int NMAXTRUTHDAUGTHERS = 30;
 
 namespace protoana {
   class ProtoDUNEAnalTree;
@@ -83,6 +88,8 @@ public:
   virtual void beginJob() override;
   virtual void endJob() override;
 
+  void beginRun(const art::Run& run) override;
+
   // Required functions.
   void analyze(art::Event const & evt) override;
 
@@ -97,15 +104,18 @@ private:
   // Track momentum algorithm calculates momentum based on track range
   trkf::TrackMomentumCalculator trmom;
 
+  // Geometry
+  geo::GeometryCore const * fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+
   // Initialise tree variables
   void Initialise();
+
+  // Fill configuration tree
+  void FillConfigTree();
 
   void FillPrimaryPFParticle(art::Event const & evt, const recob::PFParticle* particle);
   void FillPrimaryDaughterPFParticle(art::Event const & evt, const recob::PFParticle* daughterParticle, int daughterID);
   void FillPrimaryGrandDaughterPFParticle(art::Event const & evt, const recob::PFParticle* gdaughterParticle, int daughterID, int gdaughterID);
-
-  // Fill cosmics tree
-  //void FillCosmicsTree(art::Event const & evt, std::string pfParticleTag);
 
   // fcl parameters
   const art::InputTag fBeamModuleLabel;
@@ -115,12 +125,25 @@ private:
   std::string fShowerTag;
   std::string fPFParticleTag;
   std::string fGeneratorTag;
-  bool fVerbose;
+  std::string fSimulationTag;
+  int fVerbose;
 
+  // Define configuration tree
+  TTree *fConfigTree;
+
+  int fNAPAs;
+  int fNChansPerAPA;
+  int fNCryostats;
+  int fNTPCs;
+  int fNChannels;
+  int fNPlanes;
+  double fActiveTPCBoundsX[2];
+  double fActiveTPCBoundsY[2];
+  double fActiveTPCBoundsZ[2];
+
+  // Output tree
   TTree *fPandoraBeam;
-  //TTree *fPandoraCosmics;
 
-  // Tree variables
   int fRun;
   int fSubRun;
   int fevent;
@@ -135,11 +158,66 @@ private:
   double fcerenkovPressure[2];
   double fbeamtrackMomentum;
   double fbeamtrackEnergy;
-  double fbeamtrackPos[3];
+  double fbeamtrackPos[4];
   double fbeamtrackDir[3];
-  double fbeamtrackTime;
   int fbeamtrackPdg;
   int fbeamtrackID;
+
+  // Check what the beam track will do in the detector. The beam track couldn't be the same with the primary beam PFParticle.
+  double fbeamtrack_truth_EndPos[4];
+  double fbeamtrack_truth_Momentum[4];
+  double fbeamtrack_truth_KinEnergy;
+  double fbeamtrack_truth_Pt;
+  double fbeamtrack_truth_Mass;
+  double fbeamtrack_truth_Theta;
+  double fbeamtrack_truth_Phi;
+  double fbeamtrack_truth_TotalLength;
+  int fbeamtrack_truth_Process;
+  int fbeamtrack_truth_EndProcess;
+  int fbeamtrack_truth_Pdg;
+
+  double fbeamtrack_truth_Pos_InTPCActive[4];
+  double fbeamtrack_truth_Momentum_InTPCActive[4];
+  double fbeamtrack_truth_P_InTPCActive;
+  double fbeamtrack_truth_Pt_InTPCActive;
+  double fbeamtrack_truth_Theta_InTPCActive;
+  double fbeamtrack_truth_Phi_InTPCActive;
+  double fbeamtrack_truth_TotalLength_InTPCActive;
+  double fbeamtrack_truth_KinEnergy_InTPCActive;
+
+  int fbeamtrack_truth_NDAUGTHERS;
+  int fbeamtrack_truthdaughter_TrackId[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdaughter_Pdg[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdaughter_Mother[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_StartPosition[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdaughter_EndPosition[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdaughter_P[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_Momentum[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdaughter_EndMomentum[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdaughter_Pt[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_Mass[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_Theta[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_Phi[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdaughter_TotalLength[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdaughter_Process[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdaughter_EndProcess[NMAXTRUTHDAUGTHERS];
+
+  int fbeamtrack_truth_NDECAYDAUGTHERS;
+  int fbeamtrack_truthdecaydaughter_TrackId[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdecaydaughter_Pdg[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdecaydaughter_Mother[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_StartPosition[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdecaydaughter_EndPosition[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdecaydaughter_P[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_Momentum[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdecaydaughter_EndMomentum[NMAXTRUTHDAUGTHERS][4];
+  double fbeamtrack_truthdecaydaughter_Pt[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_Mass[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_Theta[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_Phi[NMAXTRUTHDAUGTHERS];
+  double fbeamtrack_truthdecaydaughter_TotalLength[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdecaydaughter_Process[NMAXTRUTHDAUGTHERS];
+  int fbeamtrack_truthdecaydaughter_EndProcess[NMAXTRUTHDAUGTHERS];
 
   // Reconstructed tracks/showers
   double fprimaryVertex[3];
@@ -158,9 +236,9 @@ private:
   double fprimaryStartDirection[3];
   double fprimaryOpeningAngle;
   int fprimaryShowerBestPlane;
-  double fprimaryShowerEnergy;
-  double fprimaryShowerMIPEnergy;
-  double fprimaryShowerdEdx;
+  double fprimaryShowerEnergy[3];
+  double fprimaryShowerMIPEnergy[3];
+  double fprimaryShowerdEdx[3];
   double fprimaryMomentumByRangeProton;
   double fprimaryMomentumByRangeMuon;
   double fprimaryKineticEnergy[3];
@@ -198,7 +276,7 @@ private:
   int fprimary_truth_EndProcess;
   int fprimary_truth_Isbeammatched;
   int fprimary_truth_NDaughters;
-  
+
   // Daughters from primary
   int fNDAUGHTERS;
   double fdaughterVertex[3];
@@ -215,9 +293,9 @@ private:
   double fdaughterEndDirection[NMAXDAUGTHERS][3];
   double fdaughterStartDirection[NMAXDAUGTHERS][3];
   double fdaughterOpeningAngle[NMAXDAUGTHERS];
-  double fdaughterShowerEnergy[NMAXDAUGTHERS];
-  double fdaughterShowerMIPEnergy[NMAXDAUGTHERS];
-  double fdaughterShowerdEdx[NMAXDAUGTHERS];
+  double fdaughterShowerEnergy[NMAXDAUGTHERS][3];
+  double fdaughterShowerMIPEnergy[NMAXDAUGTHERS][3];
+  double fdaughterShowerdEdx[NMAXDAUGTHERS][3];
   int fdaughterShowerBestPlane[NMAXDAUGTHERS];
   double fdaughterMomentumByRangeProton[NMAXDAUGTHERS];
   double fdaughterMomentumByRangeMuon[NMAXDAUGTHERS];
@@ -270,9 +348,9 @@ private:
   double fgranddaughterEndDirection[NMAXDAUGTHERS][3];
   double fgranddaughterStartDirection[NMAXDAUGTHERS][3];
   double fgranddaughterOpeningAngle[NMAXDAUGTHERS];
-  double fgranddaughterShowerEnergy[NMAXDAUGTHERS];
-  double fgranddaughterShowerMIPEnergy[NMAXDAUGTHERS];
-  double fgranddaughterShowerdEdx[NMAXDAUGTHERS];
+  double fgranddaughterShowerEnergy[NMAXDAUGTHERS][3];
+  double fgranddaughterShowerMIPEnergy[NMAXDAUGTHERS][3];
+  double fgranddaughterShowerdEdx[NMAXDAUGTHERS][3];
   int fgranddaughterShowerBestPlane[NMAXDAUGTHERS];
   double fgranddaughterMomentumByRangeProton[NMAXDAUGTHERS];
   double fgranddaughterMomentumByRangeMuon[NMAXDAUGTHERS];
@@ -325,8 +403,13 @@ protoana::ProtoDUNEAnalTree::ProtoDUNEAnalTree(fhicl::ParameterSet const & p)
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
-  fVerbose(p.get<bool>("Verbose"))
+  fSimulationTag(p.get<std::string>("SimulationTag")),
+  fVerbose(p.get<int>("Verbose"))
 {
+
+}
+
+void protoana::ProtoDUNEAnalTree::beginRun(const art::Run&){
 
 }
 
@@ -334,207 +417,260 @@ void protoana::ProtoDUNEAnalTree::beginJob(){
 
   art::ServiceHandle<art::TFileService> tfs;
 
+  // Configuration Tree
+  fConfigTree = tfs->make<TTree>("Config", "Configuration Tree");
+  fConfigTree->Branch("NAPAs",                                       &fNAPAs,                                       "NAPAs/I");
+  fConfigTree->Branch("NChansPerAPA",                                &fNChansPerAPA,                                "NChansPerAPA/I");
+  fConfigTree->Branch("NCryostats",                                  &fNCryostats,                                  "NCryostats/I");
+  fConfigTree->Branch("NTPCs",                                       &fNTPCs,                                       "NTPCs/I");
+  fConfigTree->Branch("NChannels",                                   &fNChannels,                                   "NChannels/I");
+  fConfigTree->Branch("NPlanes",                                     &fNPlanes,                                     "NPlanes/I");
+  fConfigTree->Branch("ActiveTPCBoundsX",                            &fActiveTPCBoundsX,                            "ActiveTPCBoundsX[2]/D");
+  fConfigTree->Branch("ActiveTPCBoundsY",                            &fActiveTPCBoundsY,                            "ActiveTPCBoundsY[2]/D");
+  fConfigTree->Branch("ActiveTPCBoundsZ",                            &fActiveTPCBoundsZ,                            "ActiveTPCBoundsZ[2]/D");
+
+  // Fill configuration tree
+  FillConfigTree();
+
+  // Analysis tree
   fPandoraBeam = tfs->make<TTree>("PandoraBeam", "Beam events reconstructed with Pandora");
-  fPandoraBeam->Branch("run",                           &fRun,                          "run/I");
-  fPandoraBeam->Branch("subrun",                        &fSubRun,                       "subrun/I");
-  fPandoraBeam->Branch("event",                         &fevent,                        "event/I");
-  fPandoraBeam->Branch("timestamp",                     &fTimeStamp,                    "timestamp/D");
-  fPandoraBeam->Branch("Nactivefembs",                  &fNactivefembs,                 "Nactivefembs[5]/I");
+  fPandoraBeam->Branch("run",                                         &fRun,                                         "run/I");
+  fPandoraBeam->Branch("subrun",                                      &fSubRun,                                      "subrun/I");
+  fPandoraBeam->Branch("event",                                       &fevent,                                       "event/I");
+  fPandoraBeam->Branch("timestamp",                                   &fTimeStamp,                                   "timestamp/D");
+  fPandoraBeam->Branch("Nactivefembs",                                &fNactivefembs,                                "Nactivefembs[5]/I");
 
-  fPandoraBeam->Branch("beamtrigger",                   &fbeamtrigger,                  "beamtrigger/I");
-  fPandoraBeam->Branch("tof",                           &ftof,                          "tof/D");
-  fPandoraBeam->Branch("cerenkovStatus",                &fcerenkovStatus,               "cerenkovStatus[2]/I");
-  fPandoraBeam->Branch("cerenkovTime",                  &fcerenkovTime,                 "cerenkovTime[2]/D");
-  fPandoraBeam->Branch("cerenkovPressure",              &fcerenkovPressure,             "cerenkovPressure[2]/D");
-  fPandoraBeam->Branch("beamtrackMomentum",             &fbeamtrackMomentum,            "beamtrackMomentum/D");
-  fPandoraBeam->Branch("beamtrackEnergy",               &fbeamtrackEnergy,              "beamtrackEnergy/D");
-  fPandoraBeam->Branch("beamtrackPos",                  &fbeamtrackPos,                 "beamtrackPos[3]/D");
-  fPandoraBeam->Branch("beamtrackDir",                  &fbeamtrackDir,                 "beamtrackDir[3]/D");
-  fPandoraBeam->Branch("beamtrackTime",                 &fbeamtrackTime,                "beamtrackTime/D");
-  fPandoraBeam->Branch("beamtrackPdg",                  &fbeamtrackPdg,                 "beamtrackPdg/I");
-  fPandoraBeam->Branch("beamtrackID",                   &fbeamtrackID,                  "beamtrackID/I");
+  fPandoraBeam->Branch("beamtrigger",                                 &fbeamtrigger,                                 "beamtrigger/I");
+  fPandoraBeam->Branch("tof",                                         &ftof,                                         "tof/D");
+  fPandoraBeam->Branch("cerenkovStatus",                              &fcerenkovStatus,                              "cerenkovStatus[2]/I");
+  fPandoraBeam->Branch("cerenkovTime",                                &fcerenkovTime,                                "cerenkovTime[2]/D");
+  fPandoraBeam->Branch("cerenkovPressure",                            &fcerenkovPressure,                            "cerenkovPressure[2]/D");
+  fPandoraBeam->Branch("beamtrackMomentum",                           &fbeamtrackMomentum,                           "beamtrackMomentum/D");
+  fPandoraBeam->Branch("beamtrackEnergy",                             &fbeamtrackEnergy,                             "beamtrackEnergy/D");
+  fPandoraBeam->Branch("beamtrackPos",                                &fbeamtrackPos,                                "beamtrackPos[4]/D");
+  fPandoraBeam->Branch("beamtrackDir",                                &fbeamtrackDir,                                "beamtrackDir[3]/D");
+  fPandoraBeam->Branch("beamtrackPdg",                                &fbeamtrackPdg,                                "beamtrackPdg/I");
+  fPandoraBeam->Branch("beamtrackID",                                 &fbeamtrackID,                                 "beamtrackID/I");
+  fPandoraBeam->Branch("beamtrack_truth_EndPos",                      &fbeamtrack_truth_EndPos,                      "beamtrack_truth_EndPos[4]/D");
+  fPandoraBeam->Branch("beamtrack_truth_Momentum",                    &fbeamtrack_truth_Momentum,                    "beamtrack_truth_Momentum[4]/D");
+  fPandoraBeam->Branch("beamtrack_truth_KinEnergy",                   &fbeamtrack_truth_KinEnergy,                   "beamtrack_truth_KinEnergy/D");
+  fPandoraBeam->Branch("beamtrack_truth_Pt",                          &fbeamtrack_truth_Pt,                          "beamtrack_truth_Pt/D");
+  fPandoraBeam->Branch("beamtrack_truth_Mass",                        &fbeamtrack_truth_Mass,                        "beamtrack_truth_Mass/D");
+  fPandoraBeam->Branch("beamtrack_truth_Theta",                       &fbeamtrack_truth_Theta,                       "beamtrack_truth_Theta/D");
+  fPandoraBeam->Branch("beamtrack_truth_Phi",                         &fbeamtrack_truth_Phi,                         "beamtrack_truth_Phi/D");
+  fPandoraBeam->Branch("beamtrack_truth_TotalLength",                 &fbeamtrack_truth_TotalLength,                 "beamtrack_truth_TotalLength/D");
+  fPandoraBeam->Branch("beamtrack_truth_Process",                     &fbeamtrack_truth_Process,                     "beamtrack_truth_Process/I");
+  fPandoraBeam->Branch("beamtrack_truth_EndProcess",                  &fbeamtrack_truth_EndProcess,                  "beamtrack_truth_EndProcess/I");
+  fPandoraBeam->Branch("beamtrack_truth_Pdg",                         &fbeamtrack_truth_Pdg,                         "beamtrack_truth_Pdg/I");
+  fPandoraBeam->Branch("beamtrack_truth_NDAUGTHERS",                  &fbeamtrack_truth_NDAUGTHERS,                  "beamtrack_truth_NDAUGTHERS/I");
+  fPandoraBeam->Branch("beamtrack_truth_NDECAYDAUGTHERS",             &fbeamtrack_truth_NDECAYDAUGTHERS,             "beamtrack_truth_NDECAYDAUGTHERS/I");
+  fPandoraBeam->Branch("beamtrack_truth_Pos_InTPCActive",             &fbeamtrack_truth_Pos_InTPCActive,             "beamtrack_truth_Pos_InTPCActive[4]/D");
+  fPandoraBeam->Branch("beamtrack_truth_Momentum_InTPCActive",        &fbeamtrack_truth_Momentum_InTPCActive,        "beamtrack_truth_Momentum_InTPCActive[4]/D");
+  fPandoraBeam->Branch("beamtrack_truth_P_InTPCActive",               &fbeamtrack_truth_P_InTPCActive,               "beamtrack_truth_P_InTPCActive/D");
+  fPandoraBeam->Branch("beamtrack_truth_Pt_InTPCActive",              &fbeamtrack_truth_Pt_InTPCActive,              "beamtrack_truth_Pt_InTPCActive/D");
+  fPandoraBeam->Branch("beamtrack_truth_Theta_InTPCActive",           &fbeamtrack_truth_Theta_InTPCActive,           "beamtrack_truth_Theta_InTPCActive/D");
+  fPandoraBeam->Branch("beamtrack_truth_Phi_InTPCActive",             &fbeamtrack_truth_Phi_InTPCActive,             "beamtrack_truth_Phi_InTPCActive/D");
+  fPandoraBeam->Branch("beamtrack_truth_TotalLength_InTPCActive",     &fbeamtrack_truth_TotalLength_InTPCActive,     "beamtrack_truth_TotalLength_InTPCActive/D");
+  fPandoraBeam->Branch("beamtrack_truth_KinEnergy_InTPCActive",       &fbeamtrack_truth_KinEnergy_InTPCActive,       "beamtrack_truth_KinEnergy_InTPCActive/D");
 
-  fPandoraBeam->Branch("primaryVertex",                 &fprimaryVertex,                "primaryVertex[3]/D");
-  fPandoraBeam->Branch("primaryIstrack",                &fprimaryIstrack,               "primaryIstrack/I");
-  fPandoraBeam->Branch("primaryIsshower",               &fprimaryIsshower,              "primaryIsshower/I");
-  fPandoraBeam->Branch("primaryBDTScore",               &fprimaryBDTScore,              "primaryBDTScore/D");
-  fPandoraBeam->Branch("primaryNHits",                  &fprimaryNHits,                 "fprimaryNHits/I");
-  fPandoraBeam->Branch("primaryTheta",                  &fprimaryTheta,                 "primaryTheta/D");
-  fPandoraBeam->Branch("primaryPhi",                    &fprimaryPhi,                   "primaryPhi/D");
-  fPandoraBeam->Branch("primaryLength",                 &fprimaryLength,                "primaryLength/D");
-  fPandoraBeam->Branch("primaryMomentum",               &fprimaryMomentum,              "primaryMomentum/D");
-  fPandoraBeam->Branch("primaryEndMomentum",            &fprimaryEndMomentum,           "primaryEndMomentum/D");
-  fPandoraBeam->Branch("primaryEndPosition",            &fprimaryEndPosition,           "primaryEndPosition[3]/D");
-  fPandoraBeam->Branch("primaryStartPosition",          &fprimaryStartPosition,         "primaryStartPosition[3]/D");
-  fPandoraBeam->Branch("primaryEndDirection",           &fprimaryEndDirection,          "primaryEndDirection[3]/D");
-  fPandoraBeam->Branch("primaryStartDirection",         &fprimaryStartDirection,        "primaryStartDirection[3]/D");
-  fPandoraBeam->Branch("primaryOpeningAngle",           &fprimaryOpeningAngle,          "primaryOpeningAngle/D");
-  fPandoraBeam->Branch("primaryID",                     &fprimaryID,                    "primaryID/I");
-  fPandoraBeam->Branch("primaryShowerBestPlane",        &fprimaryShowerBestPlane,       "primaryShowerBestPlane/I");
-  fPandoraBeam->Branch("primaryShowerEnergy",           &fprimaryShowerEnergy,          "primaryShowerEnergy/I");
-  fPandoraBeam->Branch("primaryShowerMIPEnergy",        &fprimaryShowerMIPEnergy,       "primaryShowerMIPEnergy/I");
-  fPandoraBeam->Branch("primaryShowerdEdx",             &fprimaryShowerdEdx,            "primaryShowerdEdx/I");
-  fPandoraBeam->Branch("primaryMomentumByRangeProton",  &fprimaryMomentumByRangeProton, "primaryMomentumByRangeProton/D");
-  fPandoraBeam->Branch("primaryMomentumByRangeMuon",    &fprimaryMomentumByRangeMuon,   "primaryMomentumByRangeMuon/D");
-  fPandoraBeam->Branch("primaryKineticEnergy",          &fprimaryKineticEnergy,         "primaryKineticEnergy[3]/D");
-  fPandoraBeam->Branch("primaryRange",                  &fprimaryRange,                 "primaryRange[3]/D");
-  fPandoraBeam->Branch("primaryTrkPitchC",              &fprimaryTrkPitchC,             "primaryTrkPitchC[3]/D");
-  fPandoraBeam->Branch("primaryT0",                     &fprimaryT0,                    "primaryT0/D");
-  fPandoraBeam->Branch("primaryPID_Pdg",                &fprimaryPID_Pdg,               "primaryPID_Pdg[3]/I");
-  fPandoraBeam->Branch("primaryPID_Ndf",                &fprimaryPID_Ndf,               "primaryPID_Ndf[3]/I");
-  fPandoraBeam->Branch("primaryPID_MinChi2",            &fprimaryPID_MinChi2,           "primaryPID_MinChi2[3]/D");
-  fPandoraBeam->Branch("primaryPID_DeltaChi2",          &fprimaryPID_DeltaChi2,         "primaryPID_DeltaChi2[3]/D");
-  fPandoraBeam->Branch("primaryPID_Chi2Proton",         &fprimaryPID_Chi2Proton,        "primaryPID_Chi2Proton[3]/D");
-  fPandoraBeam->Branch("primaryPID_Chi2Kaon",           &fprimaryPID_Chi2Kaon,          "primaryPID_Chi2Kaon[3]/D");
-  fPandoraBeam->Branch("primaryPID_Chi2Pion",           &fprimaryPID_Chi2Pion,          "primaryPID_Chi2Pion[3]/D");
-  fPandoraBeam->Branch("primaryPID_Chi2Muon",           &fprimaryPID_Chi2Muon,          "primaryPID_Chi2Muon[3]/D");
-  fPandoraBeam->Branch("primaryPID_MissingE",           &fprimaryPID_MissingE,          "primaryPID_MissingE[3]/D");
-  fPandoraBeam->Branch("primaryPID_MissingEavg",        &fprimaryPID_MissingEavg,       "primaryPID_MissingEavg[3]/D");
-  fPandoraBeam->Branch("primaryPID_PIDA",               &fprimaryPID_PIDA,              "primaryPID_PIDA[3]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_TrackId",              &fbeamtrack_truthdaughter_TrackId,            "beamtrack_truthdaughter_TrackId[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Pdg",                  &fbeamtrack_truthdaughter_Pdg,                "beamtrack_truthdaughter_Pdg[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Mother",               &fbeamtrack_truthdaughter_Mother,             "beamtrack_truthdaughter_Mother[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_StartPosition",        &fbeamtrack_truthdaughter_StartPosition,      "beamtrack_truthdaughter_StartPosition[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_EndPosition",          &fbeamtrack_truthdaughter_EndPosition,        "beamtrack_truthdaughter_EndPosition[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_P",                    &fbeamtrack_truthdaughter_P,                  "beamtrack_truthdaughter_P[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Momentum",             &fbeamtrack_truthdaughter_Momentum,           "beamtrack_truthdaughter_Momentum[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_EndMomentum",          &fbeamtrack_truthdaughter_EndMomentum,        "beamtrack_truthdaughter_EndMomentum[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Pt",                   &fbeamtrack_truthdaughter_Pt,                 "beamtrack_truthdaughter_Pt[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Mass",                 &fbeamtrack_truthdaughter_Mass,               "beamtrack_truthdaughter_Mass[beamtrack_truth_NDAUGTHERS]/D");
+ fPandoraBeam->Branch("beamtrack_truthdaughter_Theta",                 &fbeamtrack_truthdaughter_Theta,              "beamtrack_truthdaughter_Theta[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Phi",                  &fbeamtrack_truthdaughter_Phi,                "beamtrack_truthdaughter_Phi[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_TotalLength",          &fbeamtrack_truthdaughter_TotalLength,        "beamtrack_truthdaughter_TotalLength[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_Process",              &fbeamtrack_truthdaughter_Process,            "beamtrack_truthdaughter_Process[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdaughter_EndProcess",           &fbeamtrack_truthdaughter_EndProcess,         "beamtrack_truthdaughter_EndProcess[beamtrack_truth_NDAUGTHERS]/I");
 
-  fPandoraBeam->Branch("primary_truth_TrackId",         &fprimary_truth_TrackId,         "primary_truth_TrackId/I");
-  fPandoraBeam->Branch("primary_truth_Pdg",             &fprimary_truth_Pdg,             "primary_truth_Pdg/I");
-  fPandoraBeam->Branch("primary_truth_Mother",          &fprimary_truth_Mother,          "primary_truth_Mother/I");
-  fPandoraBeam->Branch("primary_truth_StartPosition",   &fprimary_truth_StartPosition,   "primary_truth_StartPosition[4]/D");
-  fPandoraBeam->Branch("primary_truth_EndPosition",     &fprimary_truth_EndPosition,     "primary_truth_EndPosition[4]/D");
-  fPandoraBeam->Branch("primary_truth_Momentum",        &fprimary_truth_Momentum,        "primary_truth_Momentum[4]/D");
-  fPandoraBeam->Branch("primary_truth_EndMomentum",     &fprimary_truth_EndMomentum,     "primary_truth_EndMomentum[4]/D");
-  fPandoraBeam->Branch("primary_truth_P",               &fprimary_truth_P,               "primary_truth_P/D");
-  fPandoraBeam->Branch("primary_truth_Pt",              &fprimary_truth_Pt,              "primary_truth_Pt/D");
-  fPandoraBeam->Branch("primary_truth_Mass",            &fprimary_truth_Mass,            "primary_truth_Mass/D");
-  fPandoraBeam->Branch("primary_truth_Theta",           &fprimary_truth_Theta,           "primary_truth_Theta/D");
-  fPandoraBeam->Branch("primary_truth_Phi",             &fprimary_truth_Phi,             "primary_truth_Phi/D");
-  fPandoraBeam->Branch("primary_truth_TotalLength",     &fprimary_truth_TotalLength,     "primary_truth_TotalLength/D");
-  fPandoraBeam->Branch("primary_truth_Process",         &fprimary_truth_Process,         "primary_truth_Process/I");
-  fPandoraBeam->Branch("primary_truth_EndProcess",      &fprimary_truth_EndProcess,      "primary_truth_EndProcess/I");
-  fPandoraBeam->Branch("primary_truth_Isbeammatched",   &fprimary_truth_Isbeammatched,   "primary_truth_Isbeammatched/I");
-  fPandoraBeam->Branch("primary_truth_NDaughters",      &fprimary_truth_NDaughters,      "primary_truth_NDaughters/I");
+   fPandoraBeam->Branch("beamtrack_truthdecaydaughter_TrackId",        &fbeamtrack_truthdecaydaughter_TrackId,       "beamtrack_truthdecaydaughter_TrackId[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Pdg",             &fbeamtrack_truthdecaydaughter_Pdg,           "beamtrack_truthdecaydaughter_Pdg[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Mother",          &fbeamtrack_truthdecaydaughter_Mother,        "beamtrack_truthdecaydaughter_Mother[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_StartPosition",   &fbeamtrack_truthdecaydaughter_StartPosition, "beamtrack_truthdecaydaughter_StartPosition[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_EndPosition",     &fbeamtrack_truthdecaydaughter_EndPosition,   "beamtrack_truthdecaydaughter_EndPosition[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_P",               &fbeamtrack_truthdecaydaughter_P,             "beamtrack_truthdecaydaughter_P[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Momentum",        &fbeamtrack_truthdecaydaughter_Momentum,      "beamtrack_truthdecaydaughter_Momentum[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_EndMomentum",     &fbeamtrack_truthdecaydaughter_EndMomentum,   "beamtrack_truthdecaydaughter_EndMomentum[beamtrack_truth_NDAUGTHERS][4]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Pt",              &fbeamtrack_truthdecaydaughter_Pt,            "beamtrack_truthdecaydaughter_Pt[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Mass",            &fbeamtrack_truthdecaydaughter_Mass,          "beamtrack_truthdecaydaughter_Mass[beamtrack_truth_NDAUGTHERS]/D");
+ fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Theta",            &fbeamtrack_truthdecaydaughter_Theta,         "beamtrack_truthdecaydaughter_Theta[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Phi",             &fbeamtrack_truthdecaydaughter_Phi,           "beamtrack_truthdecaydaughter_Phi[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_TotalLength",     &fbeamtrack_truthdecaydaughter_TotalLength,   "beamtrack_truthdecaydaughter_TotalLength[beamtrack_truth_NDAUGTHERS]/D");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_Process",         &fbeamtrack_truthdecaydaughter_Process,       "beamtrack_truthdecaydaughter_Process[beamtrack_truth_NDAUGTHERS]/I");
+  fPandoraBeam->Branch("beamtrack_truthdecaydaughter_EndProcess",      &fbeamtrack_truthdecaydaughter_EndProcess,    "beamtrack_truthdecaydaughter_EndProcess[beamtrack_truth_NDAUGTHERS]/I");
 
-  fPandoraBeam->Branch("NDAUGHTERS",                    &fNDAUGHTERS,                    "NDAUGHTERS/I");
-  fPandoraBeam->Branch("daughterVertex",                &fdaughterVertex,                "daughterVertex[3]/D");
-  fPandoraBeam->Branch("daughterIstrack",               &fdaughterIstrack,               "daughterIstrack[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughterIsshower",              &fdaughterIsshower,              "daughterIsshower[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughterNHits",                 &fdaughterNHits,                 "daughterNHits[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughterTheta",                 &fdaughterTheta,                 "daughterTheta[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterPhi",                   &fdaughterPhi,                   "daughterPhi[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterLength",                &fdaughterLength,                "daughterLength[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterMomentum",              &fdaughterMomentum,              "daughterMomentum[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterEndMomentum",           &fdaughterEndMomentum,           "daughterEndMomentum[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterEndPosition",           &fdaughterEndPosition,           "daughterEndPosition[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterStartPosition",         &fdaughterStartPosition,         "daughterStartPosition[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterStartDirection",        &fdaughterStartDirection,        "daughterStartDirection[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterEndDirection",          &fdaughterEndDirection,          "daughterEndDirection[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterOpeningAngle",          &fdaughterOpeningAngle,          "daughterOpeningAngle[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterShowerBestPlane",       &fdaughterShowerBestPlane,       "daughterShowerBestPlane[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterShowerEnergy",          &fdaughterShowerEnergy,          "daughterShowerEnergy[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterShowerMIPEnergy",       &fdaughterShowerMIPEnergy,       "daughterShowerMIPEnergy[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterShowerdEdx",            &fdaughterShowerdEdx,            "daughterShowerdEdx[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterMomentumByRangeProton", &fdaughterMomentumByRangeProton, "daughterMomentumByRangeProton[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterMomentumByRangeMuon",   &fdaughterMomentumByRangeMuon,   "daughterMomentumByRangeMuon[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughterKineticEnergy",         &fdaughterKineticEnergy,         "daughterKineticEnergy[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterRange",                 &fdaughterRange,                 "daughterRange[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterTrkPitchC",             &fdaughterTrkPitchC,             "daughterTrkPitchC[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterID",                    &fdaughterID,                    "daughterID[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughterT0",                    &fdaughterT0,                    "daughterT0[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("primaryVertex",                                &fprimaryVertex,                              "primaryVertex[3]/D");
+  fPandoraBeam->Branch("primaryIstrack",                               &fprimaryIstrack,                             "primaryIstrack/I");
+  fPandoraBeam->Branch("primaryIsshower",                              &fprimaryIsshower,                            "primaryIsshower/I");
+  fPandoraBeam->Branch("primaryBDTScore",                              &fprimaryBDTScore,                            "primaryBDTScore/D");
+  fPandoraBeam->Branch("primaryNHits",                                 &fprimaryNHits,                               "primaryNHits/I");
+  fPandoraBeam->Branch("primaryTheta",                                 &fprimaryTheta,                               "primaryTheta/D");
+  fPandoraBeam->Branch("primaryPhi",                                   &fprimaryPhi,                                 "primaryPhi/D");
+  fPandoraBeam->Branch("primaryLength",                                &fprimaryLength,                              "primaryLength/D");
+  fPandoraBeam->Branch("primaryMomentum",                              &fprimaryMomentum,                            "primaryMomentum/D");
+  fPandoraBeam->Branch("primaryEndMomentum",                           &fprimaryEndMomentum,                         "primaryEndMomentum/D");
+  fPandoraBeam->Branch("primaryEndPosition",                           &fprimaryEndPosition,                         "primaryEndPosition[3]/D");
+  fPandoraBeam->Branch("primaryStartPosition",                         &fprimaryStartPosition,                       "primaryStartPosition[3]/D");
+  fPandoraBeam->Branch("primaryEndDirection",                          &fprimaryEndDirection,                        "primaryEndDirection[3]/D");
+  fPandoraBeam->Branch("primaryStartDirection",                        &fprimaryStartDirection,                      "primaryStartDirection[3]/D");
+  fPandoraBeam->Branch("primaryOpeningAngle",                          &fprimaryOpeningAngle,                        "primaryOpeningAngle/D");
+  fPandoraBeam->Branch("primaryID",                                    &fprimaryID,                                  "primaryID/I");
+  fPandoraBeam->Branch("primaryShowerBestPlane",                       &fprimaryShowerBestPlane,                     "primaryShowerBestPlane/I");
+  fPandoraBeam->Branch("primaryShowerEnergy",                          &fprimaryShowerEnergy,                        "primaryShowerEnergy[3]/I");
+  fPandoraBeam->Branch("primaryShowerMIPEnergy",                       &fprimaryShowerMIPEnergy,                     "primaryShowerMIPEnergy[3]/I");
+  fPandoraBeam->Branch("primaryShowerdEdx",                            &fprimaryShowerdEdx,                          "primaryShowerdEdx[3]/I");
+  fPandoraBeam->Branch("primaryMomentumByRangeProton",                 &fprimaryMomentumByRangeProton,               "primaryMomentumByRangeProton/D");
+  fPandoraBeam->Branch("primaryMomentumByRangeMuon",                   &fprimaryMomentumByRangeMuon,                 "primaryMomentumByRangeMuon/D");
+  fPandoraBeam->Branch("primaryKineticEnergy",                         &fprimaryKineticEnergy,                       "primaryKineticEnergy[3]/D");
+  fPandoraBeam->Branch("primaryRange",                                 &fprimaryRange,                               "primaryRange[3]/D");
+  fPandoraBeam->Branch("primaryTrkPitchC",                             &fprimaryTrkPitchC,                           "primaryTrkPitchC[3]/D");
+  fPandoraBeam->Branch("primaryT0",                                    &fprimaryT0,                                  "primaryT0/D");
+  fPandoraBeam->Branch("primaryPID_Pdg",                               &fprimaryPID_Pdg,                             "primaryPID_Pdg[3]/I");
+  fPandoraBeam->Branch("primaryPID_Ndf",                               &fprimaryPID_Ndf,                             "primaryPID_Ndf[3]/I");
+  fPandoraBeam->Branch("primaryPID_MinChi2",                           &fprimaryPID_MinChi2,                         "primaryPID_MinChi2[3]/D");
+  fPandoraBeam->Branch("primaryPID_DeltaChi2",                         &fprimaryPID_DeltaChi2,                       "primaryPID_DeltaChi2[3]/D");
+  fPandoraBeam->Branch("primaryPID_Chi2Proton",                        &fprimaryPID_Chi2Proton,                      "primaryPID_Chi2Proton[3]/D");
+  fPandoraBeam->Branch("primaryPID_Chi2Kaon",                          &fprimaryPID_Chi2Kaon,                        "primaryPID_Chi2Kaon[3]/D");
+  fPandoraBeam->Branch("primaryPID_Chi2Pion",                          &fprimaryPID_Chi2Pion,                        "primaryPID_Chi2Pion[3]/D");
+  fPandoraBeam->Branch("primaryPID_Chi2Muon",                          &fprimaryPID_Chi2Muon,                        "primaryPID_Chi2Muon[3]/D");
+  fPandoraBeam->Branch("primaryPID_MissingE",                          &fprimaryPID_MissingE,                        "primaryPID_MissingE[3]/D");
+  fPandoraBeam->Branch("primaryPID_MissingEavg",                       &fprimaryPID_MissingEavg,                     "primaryPID_MissingEavg[3]/D");
+  fPandoraBeam->Branch("primaryPID_PIDA",                              &fprimaryPID_PIDA,                            "primaryPID_PIDA[3]/D");
 
-  fPandoraBeam->Branch("daughterPID_Pdg",               &fdaughterPID_Pdg,               "daughterPID_Pdg[NDAUGHTERS][3]/I");
-  fPandoraBeam->Branch("daughterPID_Ndf",               &fdaughterPID_Ndf,               "daughterPID_Ndf[NDAUGHTERS][3]/I");
-  fPandoraBeam->Branch("daughterPID_MinChi2",           &fdaughterPID_MinChi2,           "daughterPID_MinChi2[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_DeltaChi2",         &fdaughterPID_DeltaChi2,         "daughterPID_DeltaChi2[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_Chi2Proton",        &fdaughterPID_Chi2Proton,        "daughterPID_Chi2Proton[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_Chi2Kaon",          &fdaughterPID_Chi2Kaon,          "daughterPID_Chi2Kaon[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_Chi2Pion",          &fdaughterPID_Chi2Pion,          "daughterPID_Chi2Pion[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_Chi2Muon",          &fdaughterPID_Chi2Muon,          "daughterPID_Chi2Muon[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_MissingE",          &fdaughterPID_MissingE,          "daughterPID_MissingE[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_MissingEavg",       &fdaughterPID_MissingEavg,       "daughterPID_MissingEavg[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("daughterPID_PIDA",              &fdaughterPID_PIDA,              "daughterPID_PIDA[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("primary_truth_TrackId",                        &fprimary_truth_TrackId,                      "primary_truth_TrackId/I");
+  fPandoraBeam->Branch("primary_truth_Pdg",                            &fprimary_truth_Pdg,                          "primary_truth_Pdg/I");
+  fPandoraBeam->Branch("primary_truth_Mother",                         &fprimary_truth_Mother,                       "primary_truth_Mother/I");
+  fPandoraBeam->Branch("primary_truth_StartPosition",                  &fprimary_truth_StartPosition,                "primary_truth_StartPosition[4]/D");
+  fPandoraBeam->Branch("primary_truth_EndPosition",                    &fprimary_truth_EndPosition,                  "primary_truth_EndPosition[4]/D");
+  fPandoraBeam->Branch("primary_truth_Momentum",                       &fprimary_truth_Momentum,                     "primary_truth_Momentum[4]/D");
+  fPandoraBeam->Branch("primary_truth_EndMomentum",                    &fprimary_truth_EndMomentum,                  "primary_truth_EndMomentum[4]/D");
+  fPandoraBeam->Branch("primary_truth_P",                              &fprimary_truth_P,                            "primary_truth_P/D");
+  fPandoraBeam->Branch("primary_truth_Pt",                             &fprimary_truth_Pt,                           "primary_truth_Pt/D");
+  fPandoraBeam->Branch("primary_truth_Mass",                           &fprimary_truth_Mass,                         "primary_truth_Mass/D");
+  fPandoraBeam->Branch("primary_truth_Theta",                          &fprimary_truth_Theta,                        "primary_truth_Theta/D");
+  fPandoraBeam->Branch("primary_truth_Phi",                            &fprimary_truth_Phi,                          "primary_truth_Phi/D");
+  fPandoraBeam->Branch("primary_truth_TotalLength",                    &fprimary_truth_TotalLength,                  "primary_truth_TotalLength/D");
+  fPandoraBeam->Branch("primary_truth_Process",                        &fprimary_truth_Process,                      "primary_truth_Process/I");
+  fPandoraBeam->Branch("primary_truth_EndProcess",                     &fprimary_truth_EndProcess,                   "primary_truth_EndProcess/I");
+  fPandoraBeam->Branch("primary_truth_Isbeammatched",                  &fprimary_truth_Isbeammatched,                "primary_truth_Isbeammatched/I");
+  fPandoraBeam->Branch("primary_truth_NDaughters",                     &fprimary_truth_NDaughters,                   "primary_truth_NDaughters/I");
 
-  fPandoraBeam->Branch("daughter_truth_TrackId",        &fdaughter_truth_TrackId,        "daughter_truth_TrackId[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughter_truth_Pdg",            &fdaughter_truth_Pdg,            "daughter_truth_Pdg[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughter_truth_Mother",         &fdaughter_truth_Mother,         "daughter_truth_Mother[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughter_truth_StartPosition",  &fdaughter_truth_StartPosition,  "daughter_truth_StartPosition[NDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("daughter_truth_EndPosition",    &fdaughter_truth_EndPosition,    "daughter_truth_EndPosition[NDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("daughter_truth_Momentum",       &fdaughter_truth_Momentum,       "daughter_truth_Momentum[NDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("daughter_truth_EndMomentum",    &fdaughter_truth_EndMomentum,    "daughter_truth_EndMomentum[NDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("daughter_truth_P",              &fdaughter_truth_P,              "daughter_truth_P[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_Pt",             &fdaughter_truth_Pt,             "daughter_truth_Pt[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_Mass",           &fdaughter_truth_Mass,           "daughter_truth_Mass[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_Theta",          &fdaughter_truth_Theta,          "daughter_truth_Theta[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_Phi",            &fdaughter_truth_Phi,            "daughter_truth_Phi[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_TotalLength",    &fdaughter_truth_TotalLength,    "daughter_truth_TotalLength[NDAUGHTERS]/D");
-  fPandoraBeam->Branch("daughter_truth_Process",        &fdaughter_truth_Process,        "daughter_truth_Process[NDAUGHTERS]/I");
-  fPandoraBeam->Branch("daughter_truth_EndProcess",     &fdaughter_truth_EndProcess,     "daughter_truth_EndProcess[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("NDAUGHTERS",                                   &fNDAUGHTERS,                                 "NDAUGHTERS/I");
+  fPandoraBeam->Branch("daughterVertex",                               &fdaughterVertex,                             "daughterVertex[3]/D");
+  fPandoraBeam->Branch("daughterIstrack",                              &fdaughterIstrack,                            "daughterIstrack[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughterIsshower",                             &fdaughterIsshower,                           "daughterIsshower[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughterNHits",                                &fdaughterNHits,                              "daughterNHits[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughterTheta",                                &fdaughterTheta,                              "daughterTheta[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterPhi",                                  &fdaughterPhi,                                "daughterPhi[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterLength",                               &fdaughterLength,                             "daughterLength[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterMomentum",                             &fdaughterMomentum,                           "daughterMomentum[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterEndMomentum",                          &fdaughterEndMomentum,                        "daughterEndMomentum[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterEndPosition",                          &fdaughterEndPosition,                        "daughterEndPosition[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterStartPosition",                        &fdaughterStartPosition,                      "daughterStartPosition[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterStartDirection",                       &fdaughterStartDirection,                     "daughterStartDirection[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterEndDirection",                         &fdaughterEndDirection,                       "daughterEndDirection[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterOpeningAngle",                         &fdaughterOpeningAngle,                       "daughterOpeningAngle[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterShowerBestPlane",                      &fdaughterShowerBestPlane,                    "daughterShowerBestPlane[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughterShowerEnergy",                         &fdaughterShowerEnergy,                       "daughterShowerEnergy[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterShowerMIPEnergy",                      &fdaughterShowerMIPEnergy,                    "daughterShowerMIPEnergy[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterShowerdEdx",                           &fdaughterShowerdEdx,                         "daughterShowerdEdx[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterMomentumByRangeProton",                &fdaughterMomentumByRangeProton,              "daughterMomentumByRangeProton[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterMomentumByRangeMuon",                  &fdaughterMomentumByRangeMuon,                "daughterMomentumByRangeMuon[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterKineticEnergy",                        &fdaughterKineticEnergy,                      "daughterKineticEnergy[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterRange",                                &fdaughterRange,                              "daughterRange[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterTrkPitchC",                            &fdaughterTrkPitchC,                          "daughterTrkPitchC[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterID",                                   &fdaughterID,                                 "daughterID[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughterT0",                                   &fdaughterT0,                                 "daughterT0[NDAUGHTERS]/D");
 
-  fPandoraBeam->Branch("granddaughterVertex",           &fgranddaughterVertex,           "granddaughterVertex[NDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("NGRANDDAUGHTERS",               &fNGRANDDAUGHTERS,               "NGRANDDAUGHTERS/I");
-  fPandoraBeam->Branch("granddaughterIstrack",               &fgranddaughterIstrack,               "granddaughterIstrack[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughterIsshower",              &fgranddaughterIsshower,              "granddaughterIsshower[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughterNHits",                 &fgranddaughterNHits,                 "granddaughterNHits[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughterTheta",                 &fgranddaughterTheta,                 "granddaughterTheta[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterPhi",                   &fgranddaughterPhi,                   "granddaughterPhi[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterLength",                &fgranddaughterLength,                "granddaughterLength[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterMomentum",              &fgranddaughterMomentum,              "granddaughterMomentum[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterEndMomentum",           &fgranddaughterEndMomentum,           "granddaughterEndMomentum[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterEndPosition",           &fgranddaughterEndPosition,           "granddaughterEndPosition[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterStartPosition",         &fgranddaughterStartPosition,         "granddaughterStartPosition[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterStartDirection",        &fgranddaughterStartDirection,        "granddaughterStartDirection[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterEndDirection",          &fgranddaughterEndDirection,          "granddaughterEndDirection[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterOpeningAngle",          &fgranddaughterOpeningAngle,          "granddaughterOpeningAngle[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterShowerBestPlane",       &fgranddaughterShowerBestPlane,       "granddaughterShowerBestPlane[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterShowerEnergy",          &fgranddaughterShowerEnergy,          "granddaughterShowerEnergy[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterShowerMIPEnergy",       &fgranddaughterShowerMIPEnergy,       "granddaughterShowerMIPEnergy[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterShowerdEdx",            &fgranddaughterShowerdEdx,            "granddaughterShowerdEdx[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterMomentumByRangeProton", &fgranddaughterMomentumByRangeProton, "granddaughterMomentumByRangeProton[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterMomentumByRangeMuon",   &fgranddaughterMomentumByRangeMuon,   "granddaughterMomentumByRangeMuon[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughterKineticEnergy",         &fgranddaughterKineticEnergy,         "granddaughterKineticEnergy[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterRange",                 &fgranddaughterRange,                 "granddaughterRange[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterTrkPitchC",             &fgranddaughterTrkPitchC,             "granddaughterTrkPitchC[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterID",                    &fgranddaughterID,                    "granddaughterID[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughterMotherID",              &fgranddaughterMotherID,              "granddaughterMotherID[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughterT0",                    &fgranddaughterT0,                    "granddaughterT0[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughterPID_Pdg",                              &fdaughterPID_Pdg,                            "daughterPID_Pdg[NDAUGHTERS][3]/I");
+  fPandoraBeam->Branch("daughterPID_Ndf",                              &fdaughterPID_Ndf,                            "daughterPID_Ndf[NDAUGHTERS][3]/I");
+  fPandoraBeam->Branch("daughterPID_MinChi2",                          &fdaughterPID_MinChi2,                        "daughterPID_MinChi2[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_DeltaChi2",                        &fdaughterPID_DeltaChi2,                      "daughterPID_DeltaChi2[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_Chi2Proton",                       &fdaughterPID_Chi2Proton,                     "daughterPID_Chi2Proton[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_Chi2Kaon",                         &fdaughterPID_Chi2Kaon,                       "daughterPID_Chi2Kaon[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_Chi2Pion",                         &fdaughterPID_Chi2Pion,                       "daughterPID_Chi2Pion[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_Chi2Muon",                         &fdaughterPID_Chi2Muon,                       "daughterPID_Chi2Muon[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_MissingE",                         &fdaughterPID_MissingE,                       "daughterPID_MissingE[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_MissingEavg",                      &fdaughterPID_MissingEavg,                    "daughterPID_MissingEavg[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughterPID_PIDA",                             &fdaughterPID_PIDA,                           "daughterPID_PIDA[NDAUGHTERS][3]/D");
 
-  fPandoraBeam->Branch("granddaughterPID_Pdg",               &fgranddaughterPID_Pdg,               "granddaughterPID_Pdg[NGRANDDAUGHTERS][3]/I");
-  fPandoraBeam->Branch("granddaughterPID_Ndf",               &fgranddaughterPID_Ndf,               "granddaughterPID_Ndf[NGRANDDAUGHTERS][3]/I");
-  fPandoraBeam->Branch("granddaughterPID_MinChi2",           &fgranddaughterPID_MinChi2,           "granddaughterPID_MinChi2[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_DeltaChi2",         &fgranddaughterPID_DeltaChi2,         "granddaughterPID_DeltaChi2[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_Chi2Proton",        &fgranddaughterPID_Chi2Proton,        "granddaughterPID_Chi2Proton[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_Chi2Kaon",          &fgranddaughterPID_Chi2Kaon,          "granddaughterPID_Chi2Kaon[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_Chi2Pion",          &fgranddaughterPID_Chi2Pion,          "granddaughterPID_Chi2Pion[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_Chi2Muon",          &fgranddaughterPID_Chi2Muon,          "granddaughterPID_Chi2Muon[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_MissingE",          &fgranddaughterPID_MissingE,          "granddaughterPID_MissingE[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_MissingEavg",       &fgranddaughterPID_MissingEavg,       "granddaughterPID_MissingEavg[NGRANDDAUGHTERS][3]/D");
-  fPandoraBeam->Branch("granddaughterPID_PIDA",              &fgranddaughterPID_PIDA,              "granddaughterPID_PIDA[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("daughter_truth_TrackId",                       &fdaughter_truth_TrackId,                     "daughter_truth_TrackId[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughter_truth_Pdg",                           &fdaughter_truth_Pdg,                         "daughter_truth_Pdg[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughter_truth_Mother",                        &fdaughter_truth_Mother,                      "daughter_truth_Mother[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughter_truth_StartPosition",                 &fdaughter_truth_StartPosition,               "daughter_truth_StartPosition[NDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("daughter_truth_EndPosition",                   &fdaughter_truth_EndPosition,                 "daughter_truth_EndPosition[NDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("daughter_truth_Momentum",                      &fdaughter_truth_Momentum,                    "daughter_truth_Momentum[NDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("daughter_truth_EndMomentum",                   &fdaughter_truth_EndMomentum,                 "daughter_truth_EndMomentum[NDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("daughter_truth_P",                             &fdaughter_truth_P,                           "daughter_truth_P[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_Pt",                            &fdaughter_truth_Pt,                          "daughter_truth_Pt[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_Mass",                          &fdaughter_truth_Mass,                        "daughter_truth_Mass[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_Theta",                         &fdaughter_truth_Theta,                       "daughter_truth_Theta[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_Phi",                           &fdaughter_truth_Phi,                         "daughter_truth_Phi[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_TotalLength",                   &fdaughter_truth_TotalLength,                 "daughter_truth_TotalLength[NDAUGHTERS]/D");
+  fPandoraBeam->Branch("daughter_truth_Process",                       &fdaughter_truth_Process,                     "daughter_truth_Process[NDAUGHTERS]/I");
+  fPandoraBeam->Branch("daughter_truth_EndProcess",                    &fdaughter_truth_EndProcess,                  "daughter_truth_EndProcess[NDAUGHTERS]/I");
 
-  fPandoraBeam->Branch("granddaughter_truth_TrackId",        &fgranddaughter_truth_TrackId,        "granddaughter_truth_TrackId[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughter_truth_Pdg",            &fgranddaughter_truth_Pdg,            "granddaughter_truth_Pdg[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughter_truth_Mother",         &fgranddaughter_truth_Mother,         "granddaughter_truth_Mother[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughter_truth_StartPosition",  &fgranddaughter_truth_StartPosition,  "granddaughter_truth_StartPosition[NGRANDDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("granddaughter_truth_EndPosition",    &fgranddaughter_truth_EndPosition,    "granddaughter_truth_EndPosition[NGRANDDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Momentum",       &fgranddaughter_truth_Momentum,       "granddaughter_truth_Momentum[NGRANDDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("granddaughter_truth_EndMomentum",    &fgranddaughter_truth_EndMomentum,    "granddaughter_truth_EndMomentum[NGRANDDAUGHTERS][4]/D");
-  fPandoraBeam->Branch("granddaughter_truth_P",              &fgranddaughter_truth_P,              "granddaughter_truth_P[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Pt",             &fgranddaughter_truth_Pt,             "granddaughter_truth_Pt[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Mass",           &fgranddaughter_truth_Mass,           "granddaughter_truth_Mass[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Theta",          &fgranddaughter_truth_Theta,          "granddaughter_truth_Theta[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Phi",            &fgranddaughter_truth_Phi,            "granddaughter_truth_Phi[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_TotalLength",    &fgranddaughter_truth_TotalLength,    "granddaughter_truth_TotalLength[NGRANDDAUGHTERS]/D");
-  fPandoraBeam->Branch("granddaughter_truth_Process",        &fgranddaughter_truth_Process,        "granddaughter_truth_Process[NGRANDDAUGHTERS]/I");
-  fPandoraBeam->Branch("granddaughter_truth_EndProcess",     &fgranddaughter_truth_EndProcess,     "granddaughter_truth_EndProcess[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterVertex",                          &fgranddaughterVertex,                         "granddaughterVertex[NDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("NGRANDDAUGHTERS",                              &fNGRANDDAUGHTERS,                             "NGRANDDAUGHTERS/I");
+  fPandoraBeam->Branch("granddaughterIstrack",                         &fgranddaughterIstrack,                        "granddaughterIstrack[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterIsshower",                        &fgranddaughterIsshower,                       "granddaughterIsshower[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterNHits",                           &fgranddaughterNHits,                          "granddaughterNHits[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterTheta",                           &fgranddaughterTheta,                          "granddaughterTheta[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterPhi",                             &fgranddaughterPhi,                            "granddaughterPhi[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterLength",                          &fgranddaughterLength,                         "granddaughterLength[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterMomentum",                        &fgranddaughterMomentum,                       "granddaughterMomentum[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterEndMomentum",                     &fgranddaughterEndMomentum,                    "granddaughterEndMomentum[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterEndPosition",                     &fgranddaughterEndPosition,                    "granddaughterEndPosition[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterStartPosition",                   &fgranddaughterStartPosition,                  "granddaughterStartPosition[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterStartDirection",                  &fgranddaughterStartDirection,                 "granddaughterStartDirection[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterEndDirection",                    &fgranddaughterEndDirection,                   "granddaughterEndDirection[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterOpeningAngle",                    &fgranddaughterOpeningAngle,                   "granddaughterOpeningAngle[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterShowerBestPlane",                 &fgranddaughterShowerBestPlane,                "granddaughterShowerBestPlane[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterShowerEnergy",                    &fgranddaughterShowerEnergy,                   "granddaughterShowerEnergy[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterShowerMIPEnergy",                 &fgranddaughterShowerMIPEnergy,                "granddaughterShowerMIPEnergy[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterShowerdEdx",                      &fgranddaughterShowerdEdx,                     "granddaughterShowerdEdx[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterMomentumByRangeProton",           &fgranddaughterMomentumByRangeProton,          "granddaughterMomentumByRangeProton[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterMomentumByRangeMuon",             &fgranddaughterMomentumByRangeMuon,            "granddaughterMomentumByRangeMuon[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughterKineticEnergy",                   &fgranddaughterKineticEnergy,                  "granddaughterKineticEnergy[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterRange",                           &fgranddaughterRange,                          "granddaughterRange[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterTrkPitchC",                       &fgranddaughterTrkPitchC,                      "granddaughterTrkPitchC[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterID",                              &fgranddaughterID,                             "granddaughterID[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterMotherID",                        &fgranddaughterMotherID,                       "granddaughterMotherID[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughterT0",                              &fgranddaughterT0,                             "granddaughterT0[NGRANDDAUGHTERS]/D");
 
+  fPandoraBeam->Branch("granddaughterPID_Pdg",                         &fgranddaughterPID_Pdg,                        "granddaughterPID_Pdg[NGRANDDAUGHTERS][3]/I");
+  fPandoraBeam->Branch("granddaughterPID_Ndf",                         &fgranddaughterPID_Ndf,                        "granddaughterPID_Ndf[NGRANDDAUGHTERS][3]/I");
+  fPandoraBeam->Branch("granddaughterPID_MinChi2",                     &fgranddaughterPID_MinChi2,                    "granddaughterPID_MinChi2[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_DeltaChi2",                   &fgranddaughterPID_DeltaChi2,                  "granddaughterPID_DeltaChi2[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_Chi2Proton",                  &fgranddaughterPID_Chi2Proton,                 "granddaughterPID_Chi2Proton[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_Chi2Kaon",                    &fgranddaughterPID_Chi2Kaon,                   "granddaughterPID_Chi2Kaon[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_Chi2Pion",                    &fgranddaughterPID_Chi2Pion,                   "granddaughterPID_Chi2Pion[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_Chi2Muon",                    &fgranddaughterPID_Chi2Muon,                   "granddaughterPID_Chi2Muon[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_MissingE",                    &fgranddaughterPID_MissingE,                   "granddaughterPID_MissingE[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_MissingEavg",                 &fgranddaughterPID_MissingEavg,                "granddaughterPID_MissingEavg[NGRANDDAUGHTERS][3]/D");
+  fPandoraBeam->Branch("granddaughterPID_PIDA",                        &fgranddaughterPID_PIDA,                       "granddaughterPID_PIDA[NGRANDDAUGHTERS][3]/D");
 
-  //fPandoraCosmics = tfs->make<TTree>("PandoraCosmics", "Cosmic tracks reconstructed with Pandora");
-  //fPandoraCosmics->Branch("run",                 &fRun,                "run/I");
-  //fPandoraCosmics->Branch("subrun",              &fSubRun,             "subrun/I");
-  //fPandoraCosmics->Branch("event",               &fevent,              "event/I");
-  //fPandoraCosmics->Branch("timestamp",           &fTimeStamp,          "timestamp/D");
-  //fPandoraCosmics->Branch("Nactivefembs",        &fNactivefembs,       "Nactivefembs[5]/I");
-  //fPandoraCosmics->Branch("beamtrigger",         &fbeamtrigger,        "beamtrigger/I");
-  //fPandoraCosmics->Branch("tof",                 &ftof,                "tof/D");
-  //fPandoraCosmics->Branch("cerenkov1",           &fcerenkov1,          "cerenkov1/I");
-  //fPandoraCosmics->Branch("cerenkov2",           &fcerenkov2,          "cerenkov2/I");
-  //fPandoraCosmics->Branch("beamtrackMomentum",   &fbeamtrackMomentum,  "beamtrackMomentum/D");
-  //fPandoraCosmics->Branch("beamtrackPos",        &fbeamtrackPos,       "beamtrackPos[3]/D");
-  //fPandoraCosmics->Branch("beamtrackDir",        &fbeamtrackDir,       "beamtrackDir[3]/D");
+  fPandoraBeam->Branch("granddaughter_truth_TrackId",                  &fgranddaughter_truth_TrackId,                 "granddaughter_truth_TrackId[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughter_truth_Pdg",                      &fgranddaughter_truth_Pdg,                     "granddaughter_truth_Pdg[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughter_truth_Mother",                   &fgranddaughter_truth_Mother,                  "granddaughter_truth_Mother[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughter_truth_StartPosition",            &fgranddaughter_truth_StartPosition,           "granddaughter_truth_StartPosition[NGRANDDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("granddaughter_truth_EndPosition",              &fgranddaughter_truth_EndPosition,             "granddaughter_truth_EndPosition[NGRANDDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Momentum",                 &fgranddaughter_truth_Momentum,                "granddaughter_truth_Momentum[NGRANDDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("granddaughter_truth_EndMomentum",              &fgranddaughter_truth_EndMomentum,             "granddaughter_truth_EndMomentum[NGRANDDAUGHTERS][4]/D");
+  fPandoraBeam->Branch("granddaughter_truth_P",                        &fgranddaughter_truth_P,                       "granddaughter_truth_P[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Pt",                       &fgranddaughter_truth_Pt,                      "granddaughter_truth_Pt[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Mass",                     &fgranddaughter_truth_Mass,                    "granddaughter_truth_Mass[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Theta",                    &fgranddaughter_truth_Theta,                   "granddaughter_truth_Theta[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Phi",                      &fgranddaughter_truth_Phi,                     "granddaughter_truth_Phi[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_TotalLength",              &fgranddaughter_truth_TotalLength,             "granddaughter_truth_TotalLength[NGRANDDAUGHTERS]/D");
+  fPandoraBeam->Branch("granddaughter_truth_Process",                  &fgranddaughter_truth_Process,                 "granddaughter_truth_Process[NGRANDDAUGHTERS]/I");
+  fPandoraBeam->Branch("granddaughter_truth_EndProcess",               &fgranddaughter_truth_EndProcess,              "granddaughter_truth_EndProcess[NGRANDDAUGHTERS]/I");
 
 }
 
@@ -587,23 +723,143 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
     const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
 
     if(geantGoodParticle != 0x0){
-      std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() 
-		<< " , track id = " << geantGoodParticle->TrackId()
-		<< std::endl;
 
-      beamTriggerEvent = true;
-      fbeamtrigger       = 12;
-      fbeamtrackPos[0]   = geantGoodParticle->Vx();
-      fbeamtrackPos[1]   = geantGoodParticle->Vy();
-      fbeamtrackPos[2]   = geantGoodParticle->Vz();
-      fbeamtrackMomentum = geantGoodParticle->P();
-      fbeamtrackEnergy   = geantGoodParticle->E();
-      fbeamtrackPdg      = geantGoodParticle->PdgCode();
-      fbeamtrackTime     = geantGoodParticle->T();
-      fbeamtrackID       = geantGoodParticle->TrackId();
-    }
-  }
-  else{
+      beamTriggerEvent             = true;
+      fbeamtrigger                 = 12;
+      fbeamtrackPos[0]             = geantGoodParticle->Vx();
+      fbeamtrackPos[1]             = geantGoodParticle->Vy();
+      fbeamtrackPos[2]             = geantGoodParticle->Vz();
+      fbeamtrackPos[3]             = geantGoodParticle->T();
+      fbeamtrackMomentum           = geantGoodParticle->P();
+      fbeamtrackEnergy             = geantGoodParticle->E();
+      fbeamtrackPdg                = geantGoodParticle->PdgCode();
+      fbeamtrackID                 = geantGoodParticle->TrackId();
+
+      fbeamtrack_truth_EndPos[0]   = geantGoodParticle->EndX();
+      fbeamtrack_truth_EndPos[1]   = geantGoodParticle->EndY();
+      fbeamtrack_truth_EndPos[2]   = geantGoodParticle->EndZ();
+      fbeamtrack_truth_EndPos[3]   = geantGoodParticle->EndT();
+      fbeamtrack_truth_Momentum[0] = geantGoodParticle->Px();
+      fbeamtrack_truth_Momentum[1] = geantGoodParticle->Py();
+      fbeamtrack_truth_Momentum[2] = geantGoodParticle->Pz();
+      fbeamtrack_truth_Momentum[3] = geantGoodParticle->E();
+      fbeamtrack_truth_Pt          = geantGoodParticle->Pt();
+      fbeamtrack_truth_Mass        = geantGoodParticle->Mass();
+      fbeamtrack_truth_Theta       = geantGoodParticle->Momentum().Theta();
+      fbeamtrack_truth_Phi         = geantGoodParticle->Momentum().Phi();
+      fbeamtrack_truth_TotalLength = geantGoodParticle->Trajectory().TotalLength();
+      fbeamtrack_truth_KinEnergy   = std::sqrt(geantGoodParticle->P()*geantGoodParticle->P() + geantGoodParticle->Mass()*geantGoodParticle->Mass()) - geantGoodParticle->Mass();
+      //fbeamtrack_truth_Process     = int(geantGoodParticle->Trajectory().ProcessToKey(geantGoodParticle->Process()));
+      //fbeamtrack_truth_EndProcess  = int(geantGoodParticle->Trajectory().ProcessToKey(geantGoodParticle->EndProcess()));
+      fbeamtrack_truth_Process     = truthUtil.GetProcessKey(geantGoodParticle->Process());
+      fbeamtrack_truth_EndProcess  = truthUtil.GetProcessKey(geantGoodParticle->EndProcess());
+      // Truth Pdg may not be the same as the beam PID.
+      fbeamtrack_truth_Pdg         = geantGoodParticle->PdgCode();
+      // Get the position and kinematics in the TPC active volume
+      int trajintpcactivevol       = truthUtil.GetFirstTrajectoryPointInTPCActiveVolume(*geantGoodParticle, fActiveTPCBoundsX[0], fActiveTPCBoundsX[1], fActiveTPCBoundsY[0], fActiveTPCBoundsY[1], fActiveTPCBoundsZ[0], fActiveTPCBoundsZ[1]);
+      if(trajintpcactivevol > 0){
+	fbeamtrack_truth_Pos_InTPCActive[0]      = geantGoodParticle->Vx(trajintpcactivevol);
+	fbeamtrack_truth_Pos_InTPCActive[1]      = geantGoodParticle->Vy(trajintpcactivevol);
+	fbeamtrack_truth_Pos_InTPCActive[2]      = geantGoodParticle->Vz(trajintpcactivevol);
+	fbeamtrack_truth_Pos_InTPCActive[3]      = geantGoodParticle->T(trajintpcactivevol);
+	fbeamtrack_truth_Momentum_InTPCActive[0] = geantGoodParticle->Px(trajintpcactivevol);
+	fbeamtrack_truth_Momentum_InTPCActive[1] = geantGoodParticle->Py(trajintpcactivevol);
+	fbeamtrack_truth_Momentum_InTPCActive[2] = geantGoodParticle->Pz(trajintpcactivevol);
+	fbeamtrack_truth_Momentum_InTPCActive[3] = geantGoodParticle->E(trajintpcactivevol);
+	fbeamtrack_truth_P_InTPCActive           = geantGoodParticle->P(trajintpcactivevol);
+	fbeamtrack_truth_Pt_InTPCActive          = geantGoodParticle->Pt(trajintpcactivevol);
+	fbeamtrack_truth_Theta_InTPCActive       = geantGoodParticle->Momentum(trajintpcactivevol).Theta();
+	fbeamtrack_truth_Phi_InTPCActive         = geantGoodParticle->Momentum(trajintpcactivevol).Phi();
+	fbeamtrack_truth_TotalLength_InTPCActive = truthUtil.GetMCParticleLengthInTPCActiveVolume(*geantGoodParticle, fActiveTPCBoundsX[0], fActiveTPCBoundsX[1], fActiveTPCBoundsY[0], fActiveTPCBoundsY[1], fActiveTPCBoundsZ[0], fActiveTPCBoundsZ[1]);
+	fbeamtrack_truth_KinEnergy_InTPCActive   = std::sqrt(geantGoodParticle->P(trajintpcactivevol)*geantGoodParticle->P(trajintpcactivevol) + geantGoodParticle->Mass()*geantGoodParticle->Mass()) - geantGoodParticle->Mass();
+	//unsigned int ntrajpoints = geantGoodParticle->NumberTrajectoryPoints();
+      }
+
+      // If this beam particle has interacted in the detector, find its daugthers.
+      art::Handle<std::vector<simb::MCParticle> > mcbeamHandle;
+      std::vector<art::Ptr<simb::MCParticle> > mcbeampartilelist;
+      if(evt.getByLabel(fSimulationTag, mcbeamHandle))
+	art::fill_ptr_vector(mcbeampartilelist, mcbeamHandle);
+
+      for(size_t p=0; p < mcbeampartilelist.size(); p++){
+	auto & beamprim_mcparticle =  mcbeampartilelist[p];
+	if(beamprim_mcparticle->Mother() == geantGoodParticle->TrackId()){
+	  fbeamtrack_truthdaughter_TrackId[fbeamtrack_truth_NDAUGTHERS]            = beamprim_mcparticle->TrackId();
+	  fbeamtrack_truthdaughter_Pdg[fbeamtrack_truth_NDAUGTHERS]                = beamprim_mcparticle->PdgCode();
+	  fbeamtrack_truthdaughter_Mother[fbeamtrack_truth_NDAUGTHERS]             = beamprim_mcparticle->Mother();
+	  fbeamtrack_truthdaughter_StartPosition[fbeamtrack_truth_NDAUGTHERS][0]   = beamprim_mcparticle->Vx();
+	  fbeamtrack_truthdaughter_StartPosition[fbeamtrack_truth_NDAUGTHERS][1]   = beamprim_mcparticle->Vy();
+	  fbeamtrack_truthdaughter_StartPosition[fbeamtrack_truth_NDAUGTHERS][2]   = beamprim_mcparticle->Vz();
+	  fbeamtrack_truthdaughter_StartPosition[fbeamtrack_truth_NDAUGTHERS][3]   = beamprim_mcparticle->T();
+	  fbeamtrack_truthdaughter_EndPosition[fbeamtrack_truth_NDAUGTHERS][0]     = beamprim_mcparticle->EndX();
+	  fbeamtrack_truthdaughter_EndPosition[fbeamtrack_truth_NDAUGTHERS][1]     = beamprim_mcparticle->EndY();
+	  fbeamtrack_truthdaughter_EndPosition[fbeamtrack_truth_NDAUGTHERS][2]     = beamprim_mcparticle->EndZ();
+	  fbeamtrack_truthdaughter_EndPosition[fbeamtrack_truth_NDAUGTHERS][3]     = beamprim_mcparticle->EndT();
+	  fbeamtrack_truthdaughter_P[fbeamtrack_truth_NDAUGTHERS]                  = beamprim_mcparticle->P();
+	  fbeamtrack_truthdaughter_Momentum[fbeamtrack_truth_NDAUGTHERS][0]        = beamprim_mcparticle->Px();
+	  fbeamtrack_truthdaughter_Momentum[fbeamtrack_truth_NDAUGTHERS][1]        = beamprim_mcparticle->Py();
+	  fbeamtrack_truthdaughter_Momentum[fbeamtrack_truth_NDAUGTHERS][2]        = beamprim_mcparticle->Pz();
+	  fbeamtrack_truthdaughter_Momentum[fbeamtrack_truth_NDAUGTHERS][3]        = beamprim_mcparticle->E();
+	  fbeamtrack_truthdaughter_Pt[fbeamtrack_truth_NDAUGTHERS]                 = beamprim_mcparticle->Pt();
+	  fbeamtrack_truthdaughter_Mass[fbeamtrack_truth_NDAUGTHERS]               = beamprim_mcparticle->Mass();
+	  fbeamtrack_truthdaughter_EndMomentum[fbeamtrack_truth_NDAUGTHERS][0]     = beamprim_mcparticle->EndPx();
+	  fbeamtrack_truthdaughter_EndMomentum[fbeamtrack_truth_NDAUGTHERS][1]     = beamprim_mcparticle->EndPy();
+	  fbeamtrack_truthdaughter_EndMomentum[fbeamtrack_truth_NDAUGTHERS][2]     = beamprim_mcparticle->EndPz();
+	  fbeamtrack_truthdaughter_EndMomentum[fbeamtrack_truth_NDAUGTHERS][3]     = beamprim_mcparticle->EndE();
+	  fbeamtrack_truthdaughter_Theta[fbeamtrack_truth_NDAUGTHERS]              = beamprim_mcparticle->Momentum().Theta();
+	  fbeamtrack_truthdaughter_Phi[fbeamtrack_truth_NDAUGTHERS]                = beamprim_mcparticle->Momentum().Phi();
+	  fbeamtrack_truthdaughter_TotalLength[fbeamtrack_truth_NDAUGTHERS]        = beamprim_mcparticle->Trajectory().TotalLength();
+	  fbeamtrack_truthdaughter_Process[fbeamtrack_truth_NDAUGTHERS]            = truthUtil.GetProcessKey(beamprim_mcparticle->Process());
+	  fbeamtrack_truthdaughter_EndProcess[fbeamtrack_truth_NDAUGTHERS]         = truthUtil.GetProcessKey(beamprim_mcparticle->EndProcess());
+
+	  fbeamtrack_truth_NDAUGTHERS++;
+	  if(fbeamtrack_truth_NDAUGTHERS > NMAXTRUTHDAUGTHERS) break;
+
+	  if(truthUtil.GetProcessKey(beamprim_mcparticle->EndProcess()) == 30){ // Decay particle
+	    for(size_t pp=0; pp < mcbeampartilelist.size(); pp++){
+	      auto & decay_beamprim_mcparticle =  mcbeampartilelist[pp];
+	      if(decay_beamprim_mcparticle->Mother() == beamprim_mcparticle->TrackId()){
+		fbeamtrack_truthdecaydaughter_TrackId[fbeamtrack_truth_NDECAYDAUGTHERS]            = decay_beamprim_mcparticle->TrackId();
+		fbeamtrack_truthdecaydaughter_Pdg[fbeamtrack_truth_NDECAYDAUGTHERS]                = decay_beamprim_mcparticle->PdgCode();
+		fbeamtrack_truthdecaydaughter_Mother[fbeamtrack_truth_NDECAYDAUGTHERS]             = decay_beamprim_mcparticle->Mother();
+		fbeamtrack_truthdecaydaughter_StartPosition[fbeamtrack_truth_NDECAYDAUGTHERS][0]   = decay_beamprim_mcparticle->Vx();
+		fbeamtrack_truthdecaydaughter_StartPosition[fbeamtrack_truth_NDECAYDAUGTHERS][1]   = decay_beamprim_mcparticle->Vy();
+		fbeamtrack_truthdecaydaughter_StartPosition[fbeamtrack_truth_NDECAYDAUGTHERS][2]   = decay_beamprim_mcparticle->Vz();
+		fbeamtrack_truthdecaydaughter_StartPosition[fbeamtrack_truth_NDECAYDAUGTHERS][3]   = decay_beamprim_mcparticle->T();
+		fbeamtrack_truthdecaydaughter_EndPosition[fbeamtrack_truth_NDECAYDAUGTHERS][0]     = decay_beamprim_mcparticle->EndX();
+		fbeamtrack_truthdecaydaughter_EndPosition[fbeamtrack_truth_NDECAYDAUGTHERS][1]     = decay_beamprim_mcparticle->EndY();
+		fbeamtrack_truthdecaydaughter_EndPosition[fbeamtrack_truth_NDECAYDAUGTHERS][2]     = decay_beamprim_mcparticle->EndZ();
+		fbeamtrack_truthdecaydaughter_EndPosition[fbeamtrack_truth_NDECAYDAUGTHERS][3]     = decay_beamprim_mcparticle->EndT();
+		fbeamtrack_truthdecaydaughter_P[fbeamtrack_truth_NDECAYDAUGTHERS]                  = decay_beamprim_mcparticle->P();
+		fbeamtrack_truthdecaydaughter_Momentum[fbeamtrack_truth_NDECAYDAUGTHERS][0]        = decay_beamprim_mcparticle->Px();
+		fbeamtrack_truthdecaydaughter_Momentum[fbeamtrack_truth_NDECAYDAUGTHERS][1]        = decay_beamprim_mcparticle->Py();
+		fbeamtrack_truthdecaydaughter_Momentum[fbeamtrack_truth_NDECAYDAUGTHERS][2]        = decay_beamprim_mcparticle->Pz();
+		fbeamtrack_truthdecaydaughter_Momentum[fbeamtrack_truth_NDECAYDAUGTHERS][3]        = decay_beamprim_mcparticle->E();
+		fbeamtrack_truthdecaydaughter_Pt[fbeamtrack_truth_NDECAYDAUGTHERS]                 = decay_beamprim_mcparticle->Pt();
+		fbeamtrack_truthdecaydaughter_Mass[fbeamtrack_truth_NDECAYDAUGTHERS]               = decay_beamprim_mcparticle->Mass();
+		fbeamtrack_truthdecaydaughter_EndMomentum[fbeamtrack_truth_NDECAYDAUGTHERS][0]     = decay_beamprim_mcparticle->EndPx();
+		fbeamtrack_truthdecaydaughter_EndMomentum[fbeamtrack_truth_NDECAYDAUGTHERS][1]     = decay_beamprim_mcparticle->EndPy();
+		fbeamtrack_truthdecaydaughter_EndMomentum[fbeamtrack_truth_NDECAYDAUGTHERS][2]     = decay_beamprim_mcparticle->EndPz();
+		fbeamtrack_truthdecaydaughter_EndMomentum[fbeamtrack_truth_NDECAYDAUGTHERS][3]     = decay_beamprim_mcparticle->EndE();
+		fbeamtrack_truthdecaydaughter_Theta[fbeamtrack_truth_NDECAYDAUGTHERS]              = decay_beamprim_mcparticle->Momentum().Theta();
+		fbeamtrack_truthdecaydaughter_Phi[fbeamtrack_truth_NDECAYDAUGTHERS]                = decay_beamprim_mcparticle->Momentum().Phi();
+		fbeamtrack_truthdecaydaughter_TotalLength[fbeamtrack_truth_NDECAYDAUGTHERS]        = decay_beamprim_mcparticle->Trajectory().TotalLength();
+		fbeamtrack_truthdecaydaughter_Process[fbeamtrack_truth_NDECAYDAUGTHERS]            = truthUtil.GetProcessKey(decay_beamprim_mcparticle->Process());
+		fbeamtrack_truthdecaydaughter_EndProcess[fbeamtrack_truth_NDECAYDAUGTHERS]         = truthUtil.GetProcessKey(decay_beamprim_mcparticle->EndProcess());
+
+		fbeamtrack_truth_NDECAYDAUGTHERS++;
+		if(fbeamtrack_truth_NDECAYDAUGTHERS > NMAXTRUTHDAUGTHERS) break;
+	      }
+	    }
+	  } // decay particle
+	  
+	}
+
+      } // mc particle vector
+
+    } // beam geant particle  found
+  } // is mc
+  else{ // data
     // For data we can see if this event comes from a beam trigger
     beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
 
@@ -615,7 +871,7 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
     for(unsigned int i = 0; i < beaminfo.size(); ++i){
       //if(!beaminfo[i]->CheckIsMatched()) continue;
       fbeamtrigger = beaminfo[i]->GetTimingTrigger();
-      fbeamtrackTime = (double)beaminfo[i]->GetRDTimestamp();
+      fbeamtrackPos[3] = (double)beaminfo[i]->GetRDTimestamp();
 
       // If ToF is 0-3 there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
       if(beaminfo[i]->GetTOFChan() >= 0)
@@ -707,7 +963,7 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
     for(const int daughterID : particle->Daughters()){
       // Daughter ID is the element of the original recoParticle vector
       const recob::PFParticle *daughterParticle      = &(recoParticles->at(daughterID));
-      std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
+      //std::cout << "Daughter " << daughterID << " has " << daughterParticle->NumDaughters() << " daughters" << std::endl;
 
       // Fill tree with daughter info
       FillPrimaryDaughterPFParticle(evt, daughterParticle, daughterID);
@@ -736,8 +992,6 @@ void protoana::ProtoDUNEAnalTree::analyze(art::Event const & evt){
   if(beamTriggerEvent)
     fPandoraBeam->Fill();
 
-  //fPandoraCosmics->Fill();
-
 }
 
 // -----------------------------------------------------------------------------
@@ -758,7 +1012,13 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryPFParticle(art::Event const & evt, 
   std::vector<anab::T0> pfT0vec = pfpUtil.GetPFParticleT0(*particle,evt,fPFParticleTag);
   if(!pfT0vec.empty())
     fprimaryT0 = pfT0vec[0].Time();
-    
+
+  //art::Handle<std::vector<simb::MCParticle> > mcHandle;
+  //std::vector<art::Ptr<simb::MCParticle> > mcpartilelist;
+  //mf::LogWarning("ProtoDUNEAnalTree") << " Getting MC Particle failed. Ignore if you run on data. " << std::endl;
+  //if(evt.getByLabel(fSimulationTag, mcHandle))
+  //art::fill_ptr_vector(mcpartilelist, mcHandle);
+
   // "particle" is the pointer to our beam particle. The recob::Track or recob::Shower object
   // of this particle might be more helpful. These return null pointers if not track-like / shower-like
   const recob::Track* thisTrack   = pfpUtil.GetPFParticleTrack(*particle, evt,fPFParticleTag,fTrackerTag);
@@ -791,7 +1051,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryPFParticle(art::Event const & evt, 
     
     // Calorimetry
     std::vector<anab::Calorimetry> calovector = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
-    if(calovector.size() != 3)
+    if(calovector.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::Calorimetry vector size for primary is = " << calovector.size() << std::endl;
     
     for(size_t k = 0; k < calovector.size() && k<3; k++){
@@ -805,7 +1065,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryPFParticle(art::Event const & evt, 
     
     // PID
     std::vector<anab::ParticleID> pids = trackUtil.GetRecoTrackPID(*thisTrack, evt, fTrackerTag, fParticleIDTag);
-    if(pids.size() != 3)
+    if(pids.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::PID vector size for primary is = " << pids.size() << std::endl;
     
     for(size_t k = 0; k < pids.size() && k<3; k++){
@@ -854,16 +1114,20 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryPFParticle(art::Event const & evt, 
       fprimary_truth_Phi                = mcparticle->Momentum().Phi();
       fprimary_truth_NDaughters         = mcparticle->NumberDaughters();
       fprimary_truth_TotalLength        = mcparticle->Trajectory().TotalLength();
-      fprimary_truth_Process            = int(mcparticle->Trajectory().ProcessToKey(mcparticle->Process()));
-      fprimary_truth_EndProcess         = int(mcparticle->Trajectory().ProcessToKey(mcparticle->EndProcess()));
+      fprimary_truth_Process            = truthUtil.GetProcessKey(mcparticle->Process());
+      fprimary_truth_EndProcess         = truthUtil.GetProcessKey(mcparticle->EndProcess());
+	
       if(fbeamtrackID != -999 && fprimary_truth_TrackId == fbeamtrackID)
 	fprimary_truth_Isbeammatched    = 1;
       else
 	fprimary_truth_Isbeammatched    = 0;
       
-      std::cout << "Process = " << (mcparticle->Process()).c_str() << " , End process = " << (mcparticle->EndProcess()).c_str()
-		<< " , track ID = " << mcparticle->TrackId()
-		<< std::endl;
+      if(fVerbose > 0){
+	std::cout << "Process = " << (mcparticle->Process()).c_str() << " , End process = " << (mcparticle->EndProcess()).c_str()
+		  << " , track ID = " << mcparticle->TrackId()
+		  << std::endl;
+      }
+
     }
   } // end is track
   else if(thisShower != 0x0){
@@ -880,15 +1144,17 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryPFParticle(art::Event const & evt, 
     fprimaryStartDirection[0]           = thisShower->Direction().X();
     fprimaryStartDirection[1]           = thisShower->Direction().Y();
     fprimaryStartDirection[2]           = thisShower->Direction().Z();
-    if( (thisShower->Energy()).size() > 0 )
-      fprimaryShowerEnergy = thisShower->Energy()[0]; // thisShower->best_plane()
-    if( (thisShower->MIPEnergy()).size() > 0 )
-      fprimaryShowerMIPEnergy = thisShower->MIPEnergy()[0];
-    if( (thisShower->dEdx()).size() > 0 )
-      fprimaryShowerdEdx = thisShower->dEdx()[0];
+    for(size_t k = 0; k < (thisShower->Energy()).size() && k<3; k++)
+      fprimaryShowerEnergy[k] = thisShower->Energy()[k];
+    for(size_t k = 0; k < (thisShower->MIPEnergy()).size() && k<3; k++)
+      fprimaryShowerMIPEnergy[k] = thisShower->MIPEnergy()[k];
+    for(size_t k = 0; k < (thisShower->dEdx()).size() && k<3; k++)
+      fprimaryShowerdEdx[k] = thisShower->dEdx()[k];
   } // end is shower
   else{
-    std::cout << "INFO::Primary pfParticle is not track or shower!" << std::endl;
+    if(fVerbose > 0){
+      std::cout << "INFO::Primary pfParticle is not track or shower!" << std::endl;
+    }
     return;
   }
 
@@ -926,7 +1192,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryDaughterPFParticle(art::Event const
     
     // Calorimetry
     std::vector<anab::Calorimetry> daughtercalovector = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
-    if(daughtercalovector.size() != 3)
+    if(daughtercalovector.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::Calorimetry vector size for daughter is = " << daughtercalovector.size() << std::endl;
     
     for(size_t k = 0; k < daughtercalovector.size() && k<3; k++){
@@ -940,7 +1206,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryDaughterPFParticle(art::Event const
 
     // PID
     std::vector<anab::ParticleID> daughterpids = trackUtil.GetRecoTrackPID(*daughterTrack, evt, fTrackerTag, fParticleIDTag);
-    if(daughterpids.size() != 3)
+    if(daughterpids.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::PID vector size for daughter is = " << daughterpids.size() << std::endl;
     
     for(size_t k = 0; k < daughterpids.size() && k<3; k++){
@@ -988,11 +1254,8 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryDaughterPFParticle(art::Event const
       fdaughter_truth_Theta[fNDAUGHTERS]            = mcdaughterparticle->Momentum().Theta();
       fdaughter_truth_Phi[fNDAUGHTERS]              = mcdaughterparticle->Momentum().Phi();
       fdaughter_truth_TotalLength[fNDAUGHTERS]      = mcdaughterparticle->Trajectory().TotalLength();
-      fdaughter_truth_Process[fNDAUGHTERS]          = int(mcdaughterparticle->Trajectory().ProcessToKey(mcdaughterparticle->Process()));
-      fdaughter_truth_EndProcess[fNDAUGHTERS]       = int(mcdaughterparticle->Trajectory().ProcessToKey(mcdaughterparticle->EndProcess()));
-      std::cout << "Daughter Process = " << (mcdaughterparticle->Process()).c_str() 
-		<< " , mother = " << mcdaughterparticle->Mother() 
-		<< std::endl;
+      fdaughter_truth_Process[fNDAUGHTERS]          = truthUtil.GetProcessKey(mcdaughterparticle->Process());
+      fdaughter_truth_EndProcess[fNDAUGHTERS]       = truthUtil.GetProcessKey(mcdaughterparticle->EndProcess());
     }
   }
   else if(daughterShower != 0x0){
@@ -1007,15 +1270,17 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryDaughterPFParticle(art::Event const
     fdaughterStartDirection[fNDAUGHTERS][0]         = daughterShower->Direction().X();
     fdaughterStartDirection[fNDAUGHTERS][1]         = daughterShower->Direction().Y();
     fdaughterStartDirection[fNDAUGHTERS][2]         = daughterShower->Direction().Z();
-    if( (daughterShower->Energy()).size() > 0 )
-      fdaughterShowerEnergy[fNDAUGHTERS] = daughterShower->Energy()[0]; // thisShower->best_plane()
-    if( (daughterShower->MIPEnergy()).size() > 0 )
-      fdaughterShowerMIPEnergy[fNDAUGHTERS] = daughterShower->MIPEnergy()[0];
-    if( (daughterShower->dEdx()).size() > 0 )
-      fdaughterShowerdEdx[fNDAUGHTERS] = daughterShower->dEdx()[0];
+    for(size_t k = 0; k < (daughterShower->Energy()).size() && k<3; k++)
+      fdaughterShowerEnergy[fNDAUGHTERS][k] = daughterShower->Energy()[k];
+    for(size_t k = 0; k < (daughterShower->MIPEnergy()).size() && k<3; k++)
+      fdaughterShowerMIPEnergy[fNDAUGHTERS][k] = daughterShower->MIPEnergy()[k];
+    for(size_t k = 0; k < (daughterShower->dEdx()).size() && k<3; k++)
+      fdaughterShowerdEdx[fNDAUGHTERS][k] = daughterShower->dEdx()[k];
   }
   else{
-    std::cout << "INFO::Daughter pfParticle is not track or shower!" << std::endl;
+    if(fVerbose > 0){
+      std::cout << "INFO::Daughter pfParticle is not track or shower!" << std::endl;
+    }
     //return;
   }
   
@@ -1064,7 +1329,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryGrandDaughterPFParticle(art::Event 
     
     // Calorimetry
     std::vector<anab::Calorimetry> daughtercalovector = trackUtil.GetRecoTrackCalorimetry(*gdaughterTrack, evt, fTrackerTag, fCalorimetryTag);
-    if(daughtercalovector.size() != 3)
+    if(daughtercalovector.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::Calorimetry vector size for grand-daughter is = " << daughtercalovector.size() << std::endl;
     
     for(size_t k = 0; k < daughtercalovector.size() && k<3; k++){
@@ -1078,7 +1343,7 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryGrandDaughterPFParticle(art::Event 
 
     // PID
     std::vector<anab::ParticleID> daughterpids = trackUtil.GetRecoTrackPID(*gdaughterTrack, evt, fTrackerTag, fParticleIDTag);
-    if(daughterpids.size() != 3)
+    if(daughterpids.size() != 3 && fVerbose > 0)
       std::cerr << "WARNING::PID vector size for grand-daughter is = " << daughterpids.size() << std::endl;
     
     for(size_t k = 0; k < daughterpids.size() && k<3; k++){
@@ -1126,11 +1391,8 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryGrandDaughterPFParticle(art::Event 
       fgranddaughter_truth_Theta[fNGRANDDAUGHTERS]            = mcdaughterparticle->Momentum().Theta();
       fgranddaughter_truth_Phi[fNGRANDDAUGHTERS]              = mcdaughterparticle->Momentum().Phi();
       fgranddaughter_truth_TotalLength[fNGRANDDAUGHTERS]      = mcdaughterparticle->Trajectory().TotalLength();
-      fgranddaughter_truth_Process[fNGRANDDAUGHTERS]          = int(mcdaughterparticle->Trajectory().ProcessToKey(mcdaughterparticle->Process()));
-      fgranddaughter_truth_EndProcess[fNGRANDDAUGHTERS]       = int(mcdaughterparticle->Trajectory().ProcessToKey(mcdaughterparticle->EndProcess()));
-      std::cout << "GrandDaughter Process = " << (mcdaughterparticle->Process()).c_str() 
-		<< " , mother = " << mcdaughterparticle->Mother() 
-		<< std::endl;
+      fgranddaughter_truth_Process[fNGRANDDAUGHTERS]          = truthUtil.GetProcessKey(mcdaughterparticle->Process());
+      fgranddaughter_truth_EndProcess[fNGRANDDAUGHTERS]       = truthUtil.GetProcessKey(mcdaughterparticle->EndProcess());
     }
   }
   else if(gdaughterShower != 0x0){
@@ -1145,15 +1407,17 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryGrandDaughterPFParticle(art::Event 
     fgranddaughterStartDirection[fNGRANDDAUGHTERS][0]         = gdaughterShower->Direction().X();
     fgranddaughterStartDirection[fNGRANDDAUGHTERS][1]         = gdaughterShower->Direction().Y();
     fgranddaughterStartDirection[fNGRANDDAUGHTERS][2]         = gdaughterShower->Direction().Z();
-    if( (gdaughterShower->Energy()).size() > 0 )
-      fgranddaughterShowerEnergy[fNGRANDDAUGHTERS] = gdaughterShower->Energy()[0]; // thisShower->best_plane()
-    if( (gdaughterShower->MIPEnergy()).size() > 0 )
-      fgranddaughterShowerMIPEnergy[fNGRANDDAUGHTERS] = gdaughterShower->MIPEnergy()[0];
-    if( (gdaughterShower->dEdx()).size() > 0 )
-      fgranddaughterShowerdEdx[fNGRANDDAUGHTERS] = gdaughterShower->dEdx()[0];
+    for(size_t k = 0; k < (gdaughterShower->Energy()).size() && k<3; k++)
+      fgranddaughterShowerEnergy[fNGRANDDAUGHTERS][k] = gdaughterShower->Energy()[k];
+    for(size_t k = 0; k < (gdaughterShower->MIPEnergy()).size() && k<3; k++)
+      fgranddaughterShowerMIPEnergy[fNGRANDDAUGHTERS][k] = gdaughterShower->MIPEnergy()[k];
+    for(size_t k = 0; k < (gdaughterShower->dEdx()).size() && k<3; k++)
+      fgranddaughterShowerdEdx[fNGRANDDAUGHTERS][k] = gdaughterShower->dEdx()[k];
   }
   else{
-    std::cout << "INFO::GrandDaughter pfParticle is not track or shower!" << std::endl;
+    if(fVerbose > 0){
+      std::cout << "INFO::GrandDaughter pfParticle is not track or shower!" << std::endl;
+    }
     //return;
   }
   
@@ -1172,11 +1436,41 @@ void protoana::ProtoDUNEAnalTree::FillPrimaryGrandDaughterPFParticle(art::Event 
 }
 
 // -----------------------------------------------------------------------------
-//void protoana::ProtoDUNEAnalTree::FillCosmicsTree(art::Event const & evt, std::string pfParticleTag){
+void protoana::ProtoDUNEAnalTree::FillConfigTree(){
 
-  // To fill
+  fNCryostats     = fGeometry->Ncryostats();
+  fNTPCs          = fGeometry->NTPC();
+  fNChannels      = fGeometry->Nchannels();
+  fNPlanes         = fGeometry->Nplanes();
+  fNAPAs          = fGeometry->NTPC()*fGeometry->Ncryostats()/2;
+  if(fNAPAs > 0)
+    fNChansPerAPA = fGeometry->Nchannels()/fNAPAs;
 
-//}
+  fActiveTPCBoundsX[0] = fActiveTPCBoundsY[0] = fActiveTPCBoundsZ[0] = 1000000.0;
+  fActiveTPCBoundsX[1] = fActiveTPCBoundsY[1] = fActiveTPCBoundsZ[1] = -1000000.0;
+
+  if(fVerbose > 0){
+    std::cout << "Detector Name: " << fGeometry->DetectorName() << std::endl;
+    std::cout << "GDML file: " << fGeometry->GDMLFile() << std::endl;
+  }
+
+  for (geo::TPCGeo const& TPC: fGeometry->IterateTPCs()) {
+    // get center in world coordinates
+    double origin[3] = {0.};
+    double center[3] = {0.};
+    TPC.LocalToWorld(origin, center);
+    double tpc[3] = {TPC.HalfWidth(), TPC.HalfHeight(), 0.5*TPC.Length() };
+    if(center[0] - tpc[0] < fActiveTPCBoundsX[0]) fActiveTPCBoundsX[0] = center[0] - tpc[0];
+    if(center[0] + tpc[0] > fActiveTPCBoundsX[1]) fActiveTPCBoundsX[1] = center[0] + tpc[0];
+    if(center[1] - tpc[1] < fActiveTPCBoundsY[0]) fActiveTPCBoundsY[0] = center[1] - tpc[1];
+    if(center[1] + tpc[1] > fActiveTPCBoundsY[1]) fActiveTPCBoundsY[1] = center[1] + tpc[1];
+    if(center[2] - tpc[2] < fActiveTPCBoundsZ[0]) fActiveTPCBoundsZ[0] = center[2] - tpc[2];
+    if(center[2] + tpc[2] > fActiveTPCBoundsZ[1]) fActiveTPCBoundsZ[1] = center[2] + tpc[2];
+  }
+
+  fConfigTree->Fill();
+
+}
 
 // -----------------------------------------------------------------------------
 void protoana::ProtoDUNEAnalTree::Initialise(){
@@ -1222,13 +1516,69 @@ void protoana::ProtoDUNEAnalTree::Initialise(){
   fbeamtrackMomentum = -999.0;
   fbeamtrackEnergy = 999.0;
   fbeamtrackPdg = -999;
-  fbeamtrackTime = -999.0;
   fbeamtrackID = -999;
+  fbeamtrack_truth_Pt = -999.0;
+  fbeamtrack_truth_Mass = -999.0;
+  fbeamtrack_truth_Theta = -999.0;
+  fbeamtrack_truth_Phi = -999.0;
+  fbeamtrack_truth_TotalLength = -999.0;
+  fbeamtrack_truth_KinEnergy  = -999.0;
+  fbeamtrack_truth_P_InTPCActive  = -999.0;
+  fbeamtrack_truth_Pt_InTPCActive  = -999.0;
+  fbeamtrack_truth_Theta_InTPCActive  = -999.0;
+  fbeamtrack_truth_Phi_InTPCActive  = -999.0;
+  fbeamtrack_truth_TotalLength_InTPCActive  = -999.0;
+  fbeamtrack_truth_KinEnergy_InTPCActive  = -999.0;
+
   for(int l=0; l < 3; l++){
     fbeamtrackPos[l] = -999.0;
     fbeamtrackDir[l] = -999.0;
   }
- 
+  for(int l=0; l < 4; l++){
+    fbeamtrack_truth_EndPos[l] = -999.0;
+    fbeamtrack_truth_Momentum[l] = -999.0;
+    fbeamtrack_truth_Pos_InTPCActive[l] = -999.0;
+    fbeamtrack_truth_Momentum_InTPCActive[l] = -999.0;
+  }
+  fbeamtrack_truth_NDAUGTHERS = 0;
+  fbeamtrack_truth_NDECAYDAUGTHERS = 0;
+  for(int k=0; k < NMAXTRUTHDAUGTHERS; k++){
+    fbeamtrack_truthdaughter_TrackId[k] = -999;
+    fbeamtrack_truthdaughter_Pdg[k] = -999;
+    fbeamtrack_truthdaughter_Mother[k] = -999;
+    fbeamtrack_truthdaughter_P[k] = -999.0;
+    fbeamtrack_truthdaughter_Pt[k] = -999.0;
+    fbeamtrack_truthdaughter_Mass[k] = -999.0;
+    fbeamtrack_truthdaughter_Theta[k] = -999.0;
+    fbeamtrack_truthdaughter_Phi[k] = -999.0;
+    fbeamtrack_truthdaughter_TotalLength[k] = -999.0;
+    fbeamtrack_truthdaughter_Process[k] = -999;
+    fbeamtrack_truthdaughter_EndProcess[k] = -999;
+
+    fbeamtrack_truthdecaydaughter_TrackId[k] = -999;
+    fbeamtrack_truthdecaydaughter_Pdg[k] = -999;
+    fbeamtrack_truthdecaydaughter_Mother[k] = -999;
+    fbeamtrack_truthdecaydaughter_P[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_Pt[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_Mass[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_Theta[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_Phi[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_TotalLength[k] = -999.0;
+    fbeamtrack_truthdecaydaughter_Process[k] = -999;
+    fbeamtrack_truthdecaydaughter_EndProcess[k] = -999;
+    for(int l=0; l < 4; l++){
+      fbeamtrack_truthdaughter_StartPosition[k][l] = -999.0;
+      fbeamtrack_truthdaughter_EndPosition[k][l] = -999.0;
+      fbeamtrack_truthdaughter_Momentum[k][l] = -999.0;
+      fbeamtrack_truthdaughter_EndMomentum[k][l] = -999.0;
+
+      fbeamtrack_truthdecaydaughter_StartPosition[k][l] = -999.0;
+      fbeamtrack_truthdecaydaughter_EndPosition[k][l] = -999.0;
+      fbeamtrack_truthdecaydaughter_Momentum[k][l] = -999.0;
+      fbeamtrack_truthdecaydaughter_EndMomentum[k][l] = -999.0;
+    }
+  }
+
   fprimaryIstrack = 0;
   fprimaryIsshower = 0;
 
@@ -1241,9 +1591,6 @@ void protoana::ProtoDUNEAnalTree::Initialise(){
   fprimaryEndMomentum = -999.0;
   fprimaryOpeningAngle = -999.0;
   fprimaryShowerBestPlane = -999;
-  fprimaryShowerEnergy = -999;
-  fprimaryShowerMIPEnergy = -999;
-  fprimaryShowerdEdx = -999;
   fprimaryID = -999;
   fprimaryMomentumByRangeProton = -999.0;
   fprimaryMomentumByRangeMuon = -999.0;
@@ -1266,6 +1613,11 @@ void protoana::ProtoDUNEAnalTree::Initialise(){
     fprimary_truth_EndPosition[l] = -999.0;
     fprimary_truth_Momentum[l] = -999.0;
     fprimary_truth_EndMomentum[l] = -999.0;
+  }
+  for(int l=0; l < 3; l++){
+    fprimaryShowerEnergy[l] = -999;
+    fprimaryShowerMIPEnergy[l] = -999;
+    fprimaryShowerdEdx[l] = -999;
   }
 
   fNDAUGHTERS = 0;
@@ -1300,12 +1652,13 @@ void protoana::ProtoDUNEAnalTree::Initialise(){
       fdaughterPID_MissingEavg[k][l] = -999.0;
       fdaughterPID_PIDA[k][l] = -999.0;
       fgranddaughterVertex[k][l] = -999.0;
+
+      fdaughterShowerEnergy[k][l] = -999;
+      fdaughterShowerMIPEnergy[k][l] = -999;
+      fdaughterShowerdEdx[k][l] = -999;
     }
     fdaughterOpeningAngle[k] = -999.0;
     fdaughterShowerBestPlane[k] = -999;
-    fdaughterShowerEnergy[k] = -999;
-    fdaughterShowerMIPEnergy[k] = -999;
-    fdaughterShowerdEdx[k] = -999;
     fdaughterMomentumByRangeProton[k] = -999.0;
     fdaughterMomentumByRangeMuon[k] = -999.0;
     fdaughterID[k] = -999;
@@ -1357,12 +1710,13 @@ void protoana::ProtoDUNEAnalTree::Initialise(){
       fgranddaughterPID_MissingE[k][l] = -999.0;
       fgranddaughterPID_MissingEavg[k][l] = -999.0;
       fgranddaughterPID_PIDA[k][l] = -999.0;
+
+      fgranddaughterShowerEnergy[k][l] = -999;
+      fgranddaughterShowerMIPEnergy[k][l] = -999;
+      fgranddaughterShowerdEdx[k][l] = -999;
     }
     fgranddaughterOpeningAngle[k] = -999.0;
     fgranddaughterShowerBestPlane[k] = -999;
-    fgranddaughterShowerEnergy[k] = -999;
-    fgranddaughterShowerMIPEnergy[k] = -999;
-    fgranddaughterShowerdEdx[k] = -999;
     fgranddaughterMomentumByRangeProton[k] = -999.0;
     fgranddaughterMomentumByRangeMuon[k] = -999.0;
     fgranddaughterID[k] = -999;

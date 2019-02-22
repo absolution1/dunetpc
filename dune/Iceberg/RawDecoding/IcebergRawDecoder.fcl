@@ -66,4 +66,14 @@ iceberg_tpc_raw_decoder:
 
 }
 
+timing_raw_decoder:
+{
+  module_type: "TimingRawDecoder"
+  RawDataLabel: "daq"
+  OutputDataLabel: "daq"
+  UseChannelMap: "true"
+  Debug: "false"
+  MakeTree: "false"
+}
+
 END_PROLOG

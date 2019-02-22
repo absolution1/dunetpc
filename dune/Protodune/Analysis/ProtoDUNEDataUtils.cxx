@@ -9,6 +9,8 @@
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
 protoana::ProtoDUNEDataUtils::ProtoDUNEDataUtils(fhicl::ParameterSet const& p){
   this->reconfigure(p);
 }
@@ -202,7 +204,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,false,false,false,false};
       return result;
     }
-    else if(CKov1Status == 1) // pi/mu
+    else if(CKov0Status == 1) // pi/mu
     {
       protoana::PossibleParticleCands result = {false,true,true,false,false};
       return result;
@@ -220,14 +222,20 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,true,true,false,false};
       return result;
     }
-    else if(CKov1Status == 1) // kaon
+    else if(CKov0Status == 1) // kaon
     {
       protoana::PossibleParticleCands result = {false,false,false,true,false};
       return result;
     }
-    else // proton
+    else if(CKov1Status == 0)// proton
     {
       protoana::PossibleParticleCands result = {false,false,false,false,true};
+      return result;
+    }
+    else // Ckov0Status == 0 && CKov1Status == 1 not allowed
+    {
+      mf::LogWarning("protoana::ProtoDUNEDataUtils::GetCherenkovParticleID") << "Ckov0Status == 0 && CKov1Status == 1 shouldn't happen but did. Setting all PossibleParticleCands to false.";
+      protoana::PossibleParticleCands result = {false,false,false,false,false};
       return result;
     }
   }
