@@ -20,7 +20,9 @@ art_make(BASENAME_ONLY
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry
+  larcore_Geometry_Geometry_service
   nusimdata_SimulationBase
+  larsim_Simulation
   lardataobj_RawData
   lardataobj_Simulation
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
