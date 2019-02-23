@@ -31,7 +31,7 @@ namespace protoana {
     kMuon = 13,
     kPion = 211,
     kKaon = 321,
-    kProton = 2112,
+    kProton = 2212,
     kDeuteron = 1000010020
   };
 

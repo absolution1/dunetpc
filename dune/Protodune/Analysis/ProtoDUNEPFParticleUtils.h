@@ -128,6 +128,9 @@ namespace protoana {
     /// Get the number of hits
     unsigned int GetNumberPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
 
+    /// Get the total hit charge for each view
+    const std::vector<double> GetPFParticleHitsCharge(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
     /// Get the daughter tracks from the PFParticle
     const std::vector<const recob::Track*> GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 

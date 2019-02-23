@@ -582,6 +582,27 @@ unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleHits(const r
 
 }
 
+// Get the total charge from all PFParticle hits
+const std::vector<double> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHitsCharge(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const {
+
+  const std::vector<const recob::Hit*> hitvector = GetPFParticleHits(particle, evt, particleLabel);
+
+  double hitcharge[3] = {0.0, 0.0, 0.0};
+  for(auto hit : hitvector){
+    int hit_plane = (int)hit->WireID().Plane;
+    if(hit_plane < 0) continue;
+    if(hit_plane > 2) continue;
+    //hitcharge[hit_plane] += hit->SummedADC();
+    hitcharge[hit_plane] += hit->Integral();
+  }
+  
+  std::vector<double> hitchargevec;
+  for(int i = 0; i < 3; i++)
+    hitchargevec.push_back(hitcharge[i]);
+
+  return hitchargevec;
+}
+
 // Get the daughter tracks from the PFParticle
 const std::vector<const recob::Track*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, 
                                                                                                        const std::string particleLabel, const std::string trackLabel) const{
