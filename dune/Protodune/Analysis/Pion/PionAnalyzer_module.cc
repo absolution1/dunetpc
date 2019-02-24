@@ -89,12 +89,15 @@ private:
 
   int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
   int nProton_truth, nNeutron_truth;
+  int PDG_truth;
+
 
   double startX, startY, startZ;
   double endX, endY, endZ;
   double len;
   double stitch_len;
   double combined_len;
+  int broken_candidate;
   double beam_costheta;
   double new_beam_costheta;
   double beamDirX, beamDirY, beamDirZ;
@@ -303,12 +306,31 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
           std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
         }
 
-        if( geantGoodParticle->PdgCode() != 211 ) return;
-        std::cout << "Found Pi+" << std::endl;
+        const simb::MCParticle* trueParticle = truthUtil.GetMCParticleFromRecoTrack(*thisTrack, evt, fTrackerTag);
+        std::cout << "True particle from beam track: " << trueParticle->PdgCode() << std::endl;
+        PDG_truth = trueParticle->PdgCode();
+
+//        if( geantGoodParticle->PdgCode() != 211 ) return;
+//        std::cout << "Found Pi+" << std::endl;
         
         std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
 
         art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+        auto origin = pi_serv->TrackIdToMCTruth_P(thisTrack->ID())->Origin();
+
+        std::cout << "True origin: " << std::endl;
+        switch( origin ){
+          case simb::kCosmicRay: 
+            std::cout << "Cosmic" << std::endl;
+            break;
+          case simb::kSingleParticle:
+            std::cout << "Beam" << std::endl;
+            break;
+          default:
+            std::cout << "Other" << std::endl;
+        }
+         
+
         const sim::ParticleList & plist = pi_serv->ParticleList(); 
 
 
@@ -411,81 +433,6 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
         }
       }
 
-      //Looking for tracks ending at APA3-2 boundary
-      //
-/*      if( fBrokenTrackZ_low < endZ && endZ < fBrokenTrackZ_high ){
-        std::cout << "Possibly broken track " << std::endl; 
-        std::cout << "Track: " <<  beamTrackID << " at " << endZ << std::endl;
-        const auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackModuleLabel);
-
-//          recob::Track tr = recoTracks[i];
-        for( auto const & tr : *recoTracks ){          
-
-          //Skip the beam particle
-          if( tr.ID() == beamTrackID ) continue;
-
-          std::cout << "Checking track: " << tr.ID() << std::endl;
-          
-          //Check if the track is close enough to the APA boundary
-          double stitchStartZ = tr.Trajectory().Start().Z();
-          std::cout << "Start: " << stitchStartZ << std::endl;
-          if( fStitchTrackZ_low < stitchStartZ && stitchStartZ < fStitchTrackZ_high ){
-
-            double deltaX = fabs(endX - tr.Trajectory().Start().X());
-            double deltaY = fabs(endY - tr.Trajectory().Start().Y());
-            double deltaZ = tr.Trajectory().Start().Z() - endZ;
-
-            if( deltaX < fStitchXTol && deltaY < fStitchYTol ){
-              std::cout << "Found track " << tr.ID() << " within (dx, dy, dz): " << deltaX << " " <<  deltaY << " " << deltaZ 
-                        << " of the beam track" << std::endl;
-
-              stitch_len = tr.Length();
-              //Possibly add more requirements?
-              stitchTrackID.push_back(tr.ID());
-
-              //Check the cosine of the angle between them
-              auto stitchDir = tr.StartDirection();
-              stitch_cos_theta.push_back( stitchDir.X()*thisTrack->EndDirection().X() + stitchDir.Y()*thisTrack->EndDirection().Y() + stitchDir.Z()*thisTrack->EndDirection().Z() );
-              std::cout << "cosine between possible stitch: " << stitch_cos_theta.back() << std::endl;
-              
-
-              //Get calorimetry of the stitched track
-              std::vector< anab::Calorimetry> stitch_calo = trackUtil.GetRecoTrackCalorimetry(tr, evt, fTrackerTag, fCalorimetryTag);
-              auto temp_dQdX  = stitch_calo[0].dQdx();
-              auto temp_dEdX  = stitch_calo[0].dEdx();
-              auto temp_range = stitch_calo[0].ResidualRange();
-              for( size_t i = 0; i < temp_dQdX.size(); ++i ){
-                stitch_dQdX.push_back( temp_dQdX[i] );
-                stitch_dEdX.push_back( temp_dEdX[i] );
-                stitch_resRange.push_back( temp_range[i] );
-              }
-       
-              ///This will possibly be out of order
-              combined_resRange = stitch_resRange;
-              if( stitch_resRange[0] > stitch_resRange.back() ){      
-                for( size_t i = 0; i < resRange.size(); ++i ){
-                  combined_resRange.push_back( resRange[i] + stitch_resRange[0] );
-                }
-              }
-              else{
-                for( size_t i = 0; i < resRange.size(); ++i ){
-                  combined_resRange.push_back( resRange[i] + stitch_resRange.back() );
-                }
-              }
-              combined_dQdX = stitch_dQdX;
-              combined_dQdX.insert(combined_dQdX.end(), dQdX.begin(), dQdX.end() );
-              combined_dEdX = stitch_dEdX;
-              combined_dEdX.insert(combined_dEdX.end(), dEdX.begin(), dEdX.end() );
-
-              combined_len = stitch_len + len;
-
-            }
-          }
-        }
-      }*/
-
-
-
       protoana::BrokenTrack theBrokenTrack = trackUtil.IsBrokenTrack(  *thisTrack, evt, fTrackerTag, fCalorimetryTag, fBrokenTrackParameters, fCalorimetryParameters );
 
       if( theBrokenTrack.Valid ){
@@ -499,6 +446,8 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
         stitch_cos_theta.push_back( theBrokenTrack.CosTheta );
 
         stitchTrackID.push_back( theBrokenTrack.secondTrack->ID() );
+
+        broken_candidate = 1;
       }
     } 
 
@@ -521,6 +470,7 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("len", &len);
   fTree->Branch("stitch_len", &stitch_len);
   fTree->Branch("combined_len", &combined_len);
+  fTree->Branch("broken_candidate", &broken_candidate);
   fTree->Branch("run", &run);
   fTree->Branch("event", &event);
   fTree->Branch("type", &type);
@@ -559,6 +509,7 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
+  fTree->Branch("PDG_truth", &PDG_truth);
 
   
 }
@@ -580,6 +531,7 @@ void pionana::PionAnalyzer::reset()
   len = -1;
   stitch_len = -1;
   combined_len = -1;
+  broken_candidate = 0;
   type = -1;
   beam_costheta = -100;
   new_beam_costheta = -100;
@@ -589,6 +541,7 @@ void pionana::PionAnalyzer::reset()
   nPi0_truth = 0;
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
+  PDG_truth = 0;
 
   dQdX.clear();
   dEdX.clear();
