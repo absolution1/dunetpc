@@ -281,7 +281,7 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           //Get the calorimetries, calibrate, and combine
           std::vector< anab::Calorimetry > broken_calos = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
 
-          size_t calo_position;
+          size_t calo_position= 0;
           for( size_t i = 0; i < broken_calos.size(); ++i ){
             //Hacking this because idk how to get the plane id 
             std::string plane_string = broken_calos.at(i).PlaneID().toString();
