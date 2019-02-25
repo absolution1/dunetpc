@@ -281,6 +281,7 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           //Get the calorimetries, calibrate, and combine
           std::vector< anab::Calorimetry > broken_calos = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
 
+          bool found_broken_calo = false; 
           size_t calo_position= 0;
           for( size_t i = 0; i < broken_calos.size(); ++i ){
             //Hacking this because idk how to get the plane id 
@@ -291,10 +292,14 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
             std::string planeID_string = "";
             planeID_string += plane_string[ pos + 2 ];
             if( planeID_string == std::to_string( planeID ) ){
+              found_broken_calo = true;
               calo_position = i;
               break;
             }
           }
+          
+          //If no calorimetry object is found for this track, return the default BrokenTrack.
+          if( !found_broken_calo ) return theBrokenTrack; 
 
           auto broken_range = broken_calos.at( calo_position ).ResidualRange();
           auto broken_dQdx  = broken_calos.at( calo_position ).dQdx();
@@ -305,6 +310,7 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           calo_position = 0;
           std::vector< anab::Calorimetry > stitch_calos = GetRecoTrackCalorimetry(tr, evt, trackModule, caloModule);
 
+          bool found_stitch_calo = false;
           for( size_t i = 0; i < stitch_calos.size(); ++i ){
             //Hacking this because idk how to get the plane id 
             std::string plane_string = stitch_calos.at(i).PlaneID().toString();
@@ -318,6 +324,9 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
               break;
             }
           }
+
+          //If no calorimetry object is found for this track, try the next 
+          if( !found_stitch_calo ) continue; 
 
           auto stitch_range = stitch_calos.at( calo_position ).ResidualRange();
           auto stitch_dQdx  = stitch_calos.at( calo_position ).dQdx();
