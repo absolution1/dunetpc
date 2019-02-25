@@ -41,6 +41,23 @@ namespace beam
       const double &             GetCKov0Pressure() const{ return CKov0.pressure; };
       const double &             GetCKov1Pressure() const{ return CKov1.pressure; };
 
+      void SetCalibrations(double TOFCalAA, double TOFCalBA, double TOFCalAB, double TOFCalBB){
+        TOFCal.at(0) = TOFCalAA;
+        TOFCal.at(1) = TOFCalBA;
+        TOFCal.at(2) = TOFCalAB;
+        TOFCal.at(3) = TOFCalBB;
+      };
+
+      const std::vector<double> & GetCalibrations() const{ return TOFCal; };
+      
+
+      void CalibrateTOFs(){
+        for( size_t i = 0; i < MultipleTOFs.size(); ++i ){
+          if( MultipleTOFChans[i] < 0) continue;
+          MultipleTOFs[i] -= TOFCal[ MultipleTOFChans[i] ];
+        }
+      };
+
       void DecodeTOF(){ 
         theTOF = MultipleTOFs[0]; 
         TOFChan = MultipleTOFChans[0];
@@ -127,6 +144,8 @@ namespace beam
       std::vector< int > MultipleTOFChans;
       std::vector< size_t > UpstreamTriggers;
       std::vector< size_t > DownstreamTriggers;
+
+      std::vector<double> TOFCal = {0.,0.,0.,0.};
 
       //Set of Cerenkov detectors
       //

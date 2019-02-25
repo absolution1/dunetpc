@@ -3,9 +3,12 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "art/Framework/Principal/Event.h"
 
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
+
+#include "TVector3.h"
 
 protoana::ProtoDUNETruthUtils::ProtoDUNETruthUtils(){
 
@@ -97,7 +100,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
                 << "GEANT particle #" << partIt->first << " returned a null pointer\n"
                 << "This is not necessarily bad. It just means at least one\n"
                 << "of the G4 particles returned a null pointer. It may well\n"
-                << "have still matached a PD particle and a G4 particle.\n"
+                << "have still matched a PD particle and a G4 particle.\n"
                 << "#####################################\n\n";
       continue;
     }
@@ -173,3 +176,110 @@ const float protoana::ProtoDUNETruthUtils::ConvertTrueTimeToPandoraTimeMicro(con
   return detclock->G4ToElecTime(trueTime);
 }
 
+// Get process key.
+int protoana::ProtoDUNETruthUtils::GetProcessKey(std::string process){
+
+  if(process.compare("primary") == 0)                    return 0;
+  else if(process.compare("hadElastic") == 0)            return 1;
+  else if(process.compare("pi-Inelastic") == 0)          return 2;
+  else if(process.compare("pi+Inelastic") == 0)          return 3;
+  else if(process.compare("kaon-Inelastic") == 0)        return 4;
+  else if(process.compare("kaon+Inelastic") == 0)        return 5;
+  else if(process.compare("protonInelastic") == 0)       return 6;
+  else if(process.compare("neutronInelastic") == 0)      return 7;
+  else if(process.compare("kaon0SInelastic") == 0)       return 8;
+  else if(process.compare("kaon0LInelastic") == 0)       return 9;
+  else if(process.compare("lambdaInelastic") == 0)       return 10;
+  else if(process.compare("omega-Inelastic") == 0)       return 11;
+  else if(process.compare("sigma+Inelastic") == 0)       return 12;
+  else if(process.compare("sigma-Inelastic") == 0)       return 13;
+  else if(process.compare("sigma0Inelastic") == 0)       return 14;
+  else if(process.compare("xi-Inelastic") == 0)          return 15;
+  else if(process.compare("xi0Inelastic") == 0)          return 16;
+  else if(process.compare("anti_protonInelastic") == 0)  return 20;
+  else if(process.compare("anti_neutronInelastic") == 0) return 21;
+  else if(process.compare("anti_lambdaInelastic") == 0)  return 22;
+  else if(process.compare("anti_omega-Inelastic") == 0)  return 23;
+  else if(process.compare("anti_sigma+Inelastic") == 0)  return 24;
+  else if(process.compare("anti_sigma-Inelastic") == 0)  return 25;
+  else if(process.compare("anti_xi-Inelastic") == 0)     return 26;
+  else if(process.compare("anti_xi0Inelastic") == 0)     return 27;
+
+  else if(process.compare("Decay") == 0)                 return 30;
+  else if(process.compare("FastScintillation") == 0)     return 31;
+  else if(process.compare("nKiller") == 0)               return 32; // Remove unwanted neutrons: neutron kinetic energy threshold (default 0) or time limit for neutron track
+  else if(process.compare("nCapture") == 0)              return 33; // Neutron capture
+
+  else if(process.compare("compt") == 0)                 return 40; // Compton Scattering
+  else if(process.compare("rayleigh") == 0)              return 41; // Rayleigh Scattering
+  else if(process.compare("phot") == 0)                  return 42; // Photoelectric Effect
+  else if(process.compare("conv") == 0)                  return 43; // Pair production
+  else if(process.compare("CoupledTransportation") == 0) return 44; //
+  
+  else return -1;
+}
+
+// Get estimated particle energy deposit. The G4 trackId must be provided 
+double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo::GeometryCore const * fGeom, int trackid, int whichview) const {
+
+  double edep = 0.0;
+
+  art::Handle< std::vector<sim::SimChannel> > simchannelHandle;
+  if(evt.getByLabel("largeant", simchannelHandle)){
+    // Loop over sim channels
+    for(auto const& simchannel : (*simchannelHandle)){
+      // Only keep channels in the selected view
+      if(fGeom->View(simchannel.Channel()) != whichview) continue;
+      // Get all time slices
+      auto const& alltimeslices = simchannel.TDCIDEMap();
+      // Loop over time slices
+      for(auto const& tslice : alltimeslices){
+	auto const& simide = tslice.second;
+	// Loop over energy deposits
+	for(auto const& eDep : simide){
+	  if(eDep.trackID != trackid) continue;
+	  edep += eDep.energy;
+	}
+      }
+    }
+  }
+  
+  return edep;
+  
+}
+
+// Get first trajectory point in TPC active volume
+int protoana::ProtoDUNETruthUtils::GetFirstTrajectoryPointInTPCActiveVolume(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh){
+
+  int firstpoint = -999;
+  for(unsigned int i = 0; i < mcpart.NumberTrajectoryPoints(); ++i) {
+    if(mcpart.Vx(i) >= tpcactiveXlow && mcpart.Vx(i) <= tpcactiveXhigh && mcpart.Vy(i) >= tpcactiveYlow && mcpart.Vy(i) <= tpcactiveYhigh && mcpart.Vz(i) >= tpcactiveZlow && mcpart.Vz(i) <= tpcactiveZhigh){
+
+      firstpoint = i;
+      break;
+    }
+  }
+
+  return firstpoint;
+}
+
+// Get MC Particle length in TPC active volume
+double protoana::ProtoDUNETruthUtils::GetMCParticleLengthInTPCActiveVolume(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh){
+
+  double length = 0.0;
+  int firstpoint = GetFirstTrajectoryPointInTPCActiveVolume(mcpart, tpcactiveXlow, tpcactiveXhigh, tpcactiveYlow, tpcactiveYhigh, tpcactiveZlow, tpcactiveZhigh);
+
+  if(firstpoint < 0) return length;
+
+  TVector3 pos =  mcpart.Position(firstpoint).Vect();
+  for(unsigned int i = firstpoint+1; i < mcpart.NumberTrajectoryPoints(); ++i) {
+    if(mcpart.Vx(i) >= tpcactiveXlow && mcpart.Vx(i) <= tpcactiveXhigh && mcpart.Vy(i) >= tpcactiveYlow && mcpart.Vy(i) <= tpcactiveYhigh && mcpart.Vz(i) >= tpcactiveZlow && mcpart.Vz(i) <= tpcactiveZhigh){
+      
+      pos -= mcpart.Position(i).Vect();
+      length += pos.Mag();
+      pos = mcpart.Position(i).Vect();
+    }
+  }
+
+  return length;
+}

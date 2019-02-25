@@ -111,16 +111,19 @@ if ( $workspace == 3 )
 {
     $basename = $basename."_workspace3x3";
 }
-
+if($foils==0)
+{
+    $Foils_switch="off";
+}
+if($foils==2)
+{
+    $basename = $basename."_HalfFoil";
+}
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
 }
 
-if($foils==0)
-{
-    $Foils_switch="off";
-}
 
 ##################################################################
 ############## Parameters for Charge Readout Plane ###############
@@ -268,14 +271,15 @@ $OriginZSet =   $DetEncZ/2.0
 ##################################################################
 ############## Field Cage Parameters ###############
 
-$FieldShaperLongTubeLength =  $lengthTPCActive;
-$FieldShaperShortTubeLength =  $widthTPCActive;
+$FieldShaperLongTubeLength =  $lengthTPCActive+1;
+$FieldShaperShortTubeLength =  $widthTPCActive+1;#plus 1 to give space to the Foils without overlaps
 $FieldShaperInnerRadius = 1.485;
 $FieldShaperOuterRadius = 1.685;
 $FieldShaperTorRad = 1.69;
 
 $FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 $FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
+$FieldShaperHeight = 2*$FieldShaperOuterRadius;
 
 $FieldShaperSeparation = 5.0;
 $NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
@@ -284,6 +288,35 @@ $FieldCageSizeX = $FieldShaperWidth+2;
 $FieldCageSizeY = $FieldShaperSeparation*$NFieldShapers+2;
 $FieldCageSizeZ = $FieldShaperLength+2;
 
+##################################################################
+############## Positioning Parameters ###############
+
+
+$FirstFieldShaperPosY=0.5*$Argon_y-$HeightGaseousAr - 0.5*$FieldShaperHeight;
+
+$CathodeGroundGridSeparation=80;
+
+$CathodePosX=0;
+#$CathodePosY=-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation;
+
+$CathodePosY=$FirstFieldShaperPosY-$NFieldShapers*$FieldShaperSeparation;
+
+$CathodePosZ=0;
+
+$GroundGridPosX=0;
+$GroundGridPosY= $CathodePosY - $CathodeGroundGridSeparation;
+$GroundGridPosZ=0;
+
+#-$OriginYSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation
+#$FoilPositionY=$FirstFieldShaperPosY - 0.5*$NFieldShapers*$FieldShaperSeparation;
+
+$posLEMsX = 0;
+$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
+$posLEMsZ = 0;
+
+$ExtractionGridX = 0;
+$ExtractionGridY = 0.5*$Argon_y-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeY;
+$ExtractionGridZ = 0;
 
 ##################################################################
 ############## Parameters for PMTs ###############
@@ -300,11 +333,8 @@ if($PMTDensity==1)
   $pmtDistanceZ=100;
 }
 $pmtN = $pmtNx*$pmtNz; #keeping 1m2 density of pmts
-$posPMTy=0;
 
-$posPMTy =  -$Argon_y/2 + 0.5*($HeightPMT);
-$posPMTy =-$OriginYSet+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - 100 - 0.5*($HeightPMT); #1m below the cathode
-
+$posPMTy = $CathodePosY - 100.0- 0.5*($HeightPMT); #1m below the cathode
 
 @pmt_pos = ('','','');
 
@@ -330,7 +360,6 @@ print "widthTPCActive       : $widthTPCActive \n";
 #$Cathode_x = $widthTPCActive;
 #$Cathode_y = 1.0;
 #$Cathode_z = $lengthTPCActive;
-$CathodeGroundGridSeparation=80;
 
 
 
@@ -420,6 +449,11 @@ my $asmix = <<EOF;
    <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cm3"/>
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
+  </material>
+  <material name="vm2000" formula="vm2000">
+    <D value="1.2" unit="g/cm3"/>
+    <composite n="2" ref="carbon"/>
+    <composite n="4" ref="hydrogen"/>
   </material>
 EOF
 
@@ -864,15 +898,20 @@ close(LEMs);
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-$FoilsHeight=$NFieldShapers*$FieldShaperSeparation+$CathodeGroundGridSeparation;
-$FoilsLengthZ=$lengthTPCActive;
-$FoilsLengthX=$widthTPCActive;
+$FoilsHeight=$NFieldShapers*$FieldShaperSeparation-2.;
+if($foils==2)
+{
+    $FoilsHeight=0.5*$NFieldShapers*$FieldShaperSeparation-2.;
+}
+
+$FoilsLengthZ=$lengthTPCActive-3.;
+$FoilsLengthX=$widthTPCActive-3.;
 $FoilsWidth=0.25;
 $FoilsCoatingWidth=0.02844;
 
-$FoilPositionX=0.5*$FoilsLengthZ+1;
-$FoilPositionZ=0.5*$FoilsLengthX+1;
-$FoilPositionY=0.0;
+$FoilPositionX=0.5*$FoilsLengthZ+1.7;
+$FoilPositionZ=0.5*$FoilsLengthX+1.7;
+$FoilPositionY=$FirstFieldShaperPosY - 0.5*$FoilsHeight+1;
 
 sub gen_Foils {
 
@@ -1251,11 +1290,6 @@ EOF
 
   if ( $LEMs_switch eq "on" )
   {
-
-$posLEMsX = 0;
-$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
-$posLEMsZ = 0;
-
       print CRYO <<EOF;
       <physvol>
       <volumeref ref="volLEMs"/>
@@ -1324,48 +1358,19 @@ $posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
 	print CRYO <<EOF;
   <physvol>
      <volumeref ref="volFieldShaper"/>
-     <position name="posFieldShaper$i" unit="cm"  x="@{[-1*(-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad)]}" y="@{[-$OriginYSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" z="0" />
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-1*(-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad)]}" y="@{[-$i*$FieldShaperSeparation+$FirstFieldShaperPosY]}" z="0" />
      <rotation name="rotFS$i" unit="deg" x="0" y="0" z="0" />
   </physvol>
 EOF
     }
   }
 
-  if ( $Foils_switch eq "on" ) {
-	print CRYO <<EOF;
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZpos" unit="cm" x="@{[$FoilPositionZ]}" y="0" z="0" />
-     <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZneg" unit="cm"  x="@{[-$FoilPositionZ]}" y="0" z="0" />
-     <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXpos" unit="cm"  x="0" y="0" z="@{[$FoilPositionX]}" />
-     <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXneg" unit="cm"  x="0" y="0" z="@{[-$FoilPositionX]}" />
-     <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
-  </physvol>
-EOF
-  }
-
-$GroundGridPosX=0;
-$GroundGridPosY=-1*(-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - $CathodeGroundGridSeparation);
-$GroundGridPosZ=0;
-
   if ( $GroundGrid_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[$GroundGridPosZ]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[$GroundGridPosY]}" z="@{[$GroundGridPosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="0" />
   </physvol>
 
@@ -1373,15 +1378,13 @@ EOF
 
   }
 
-$CathodePosX=0;
-$CathodePosY=-1*(-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation);
-$CathodePosZ=0;
+
   if ( $Cathode_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[$CathodePosZ]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[$CathodePosY]}" z="@{[$CathodePosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="0" />
   </physvol>
 
@@ -1392,9 +1395,7 @@ EOF
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-$ExtractionGridX = 0;
-$ExtractionGridY = 0.5*$Argon_y-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeY;
-$ExtractionGridZ = 0;
+
 
       print CRYO <<EOF;
   <physvol>
@@ -1406,6 +1407,30 @@ EOF
 
   }
 
+  if ( $Foils_switch eq "on" ) {
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFoilZ"/>
+     <position name="posFoilZpos" unit="cm" x="@{[$FoilPositionZ]}" y="@{[$FoilPositionY]}" z="0" />
+     <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilZ"/>
+     <position name="posFoilZneg" unit="cm"  x="@{[-$FoilPositionZ]}" y="@{[$FoilPositionY]}" z="0" />
+     <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilX"/>
+     <position name="posFoilXpos" unit="cm"  x="0" y="@{[$FoilPositionY]}" z="@{[$FoilPositionX]}" />
+     <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilX"/>
+     <position name="posFoilXneg" unit="cm"  x="0" y="@{[$FoilPositionY]}" z="@{[-$FoilPositionX]}" />
+     <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+EOF
+  }
 
 print CRYO <<EOF;
     </volume>

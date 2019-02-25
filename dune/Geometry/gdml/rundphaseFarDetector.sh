@@ -21,6 +21,22 @@ rm dunedphase10kt_v2_driftY_nowires_*.gdml
 rm dphase_geo_driftY_nowires.xml
 
 # with wires for larcore
+perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_HalfFoil.xml --pmtdensity 1 --TPBFoils 2
+perl make_gdml.pl -i dphase_geo_driftY_HalfFoil.xml -o dunedphase10kt_v2_driftY_HalfFoil.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_HalfFoil_*.gdml
+rm dphase_geo_driftY_HalfFoil.xml
+
+# no wires for geant
+perl generate_dunedphase10kt_v2_driftY.pl -w 0 -o dphase_geo_driftY_HalfFoil_nowires.xml --pmtdensity 1 --TPBFoils 2
+perl make_gdml.pl -i dphase_geo_driftY_HalfFoil_nowires.xml -o dunedphase10kt_v2_driftY_HalfFoil_nowires.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_HalfFoil_nowires_*.gdml
+rm dphase_geo_driftY_HalfFoil_nowires.xml
+
+# with wires for larcore
 perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_2PMTperM2.xml --pmtdensity 2 --TPBFoils 0
 perl make_gdml.pl -i dphase_geo_driftY_2PMTperM2.xml -o dunedphase10kt_v2_driftY_2PMTperM2.gdml
 
