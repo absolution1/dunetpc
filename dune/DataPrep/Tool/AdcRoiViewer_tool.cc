@@ -1114,23 +1114,29 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       bool replacingHistogram = ph != nullptr;
       // Fetch the vector that lists the summary histograms to be plotted for the current template.
       // Find or make a place to record this histogram.
-      HistVector& plotHists = getState().sumPlotHists[plotNameTemplate];
+      HistVector empty;
+      bool havePlot = plotNameTemplate.size();
+      HistVector& plotHists = havePlot ? getState().sumPlotHists[plotNameTemplate] : empty;
       HistVector::iterator iplotHist = plotHists.end();
       if ( replacingHistogram ) {
-        iplotHist = find(plotHists.begin(), plotHists.end(), ph);
-        if ( iplotHist == plotHists.end() ) {
-          cout << myname << "ERROR: Unable to find histogram in plot name list." << endl;
-          plotHists.clear();
-          iplotHist = plotHists.end();
+        if ( havePlot ) {
+          iplotHist = find(plotHists.begin(), plotHists.end(), ph);
+          if ( iplotHist == plotHists.end() ) {
+            cout << myname << "ERROR: Unable to find histogram in plot name list." << endl;
+            plotHists.clear();
+            iplotHist = plotHists.end();
+          }
+          *iplotHist = nullptr;
         }
-        *iplotHist = nullptr;
         delete ph;
         ph = nullptr;
         if ( m_LogLevel >= 2 ) cout << myname << "Replacing histogram " << hnam << endl;
       } else {
-        plotHists.push_back(nullptr);
-        iplotHist = plotHists.end();
-        --iplotHist;
+        if ( havePlot ) {
+          plotHists.push_back(nullptr);
+          iplotHist = plotHists.end();
+          --iplotHist;
+        }
         if ( m_LogLevel >= 2 ) cout << myname << "Creating histogram " << hnam << endl;
       }
       Name httl0 = ph0->GetTitle();
@@ -1202,7 +1208,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       getState().sumFitNames[hnam] = fitName;
       if ( plotNameTemplate.size() ) {
         Name plotNameHist = AdcChannelStringTool::build(m_adcStringBuilder, acd, plotNameTemplate);
-        *iplotHist = ph;
+        if ( havePlot ) *iplotHist = ph;
         if ( ! replacingHistogram ) {
           getState().sumPlotNames[hnam] = plotNameHist;
           getState().sumPlotWidths[hnam] = hin0.plotWidth;
@@ -1402,96 +1408,104 @@ void AdcRoiViewer::writeSumPlots() const {
     Name plotFileName;
     for ( Index ihst=0; ihst<hsts.size(); ++ihst ) {
       TH1* ph = hsts[ihst];
-      Name hnam = ph->GetName();
-      if ( pmantop == nullptr ) {
-        plotFileName = getState().getSumPlotName(hnam);
-        if ( plotFileName.size() == 0 ) {
-          cout << myname << "ERROR: Plot file name is not assigned for " << hnam << endl;
-          break;
+      if ( ph == nullptr ) {
+        cout << myname << "WARNING: Histogram " << ihst << " not found for template " << plotNameTemplate << endl;
+      } else {
+        Name hnam = ph->GetName();
+        if ( pmantop == nullptr ) {
+          plotFileName = getState().getSumPlotName(hnam);
+          if ( plotFileName.size() == 0 ) {
+            cout << myname << "ERROR: Plot file name is not assigned for " << hnam << endl;
+            break;
+          }
+          ipad = 0;
+          pmantop = new TPadManipulator;
+          if ( npadx && npady ) pmantop->setCanvasSize(wpadx, wpady);
+          if ( npad > 1 ) pmantop->split(npadx, npady);
+          if (  m_LogLevel >= 2 ) cout << myname << "  Creating plots for " << plotFileName << endl;
         }
-        ipad = 0;
-        pmantop = new TPadManipulator;
-        if ( npadx && npady ) pmantop->setCanvasSize(wpadx, wpady);
-        if ( npad > 1 ) pmantop->split(npadx, npady);
-        if (  m_LogLevel >= 2 ) cout << myname << "  Creating plots for " << plotFileName << endl;
-      }
-      if (  m_LogLevel >= 3 ) cout << myname << "    Plotting " << ph->GetName() << endl;
-      TPadManipulator* pman = pmantop->man(ipad);
-      pman->add(ph, "hist", false);
-      if ( ph->GetListOfFunctions()->GetEntries() ) {
-        //dynamic_cast<TF1*>(pman->hist()->GetListOfFunctions()->At(0))->SetNpx(2000);
-        pman->addHistFun(0);
-      }
-      pman->addAxis();
-      pman->showUnderflow();
-      pman->showOverflow();
-      float plotWidth = getState().getSumPlotWidth(hnam);
-      if ( plotWidth > 0.0 ) {
-        int binMax = ph->GetMaximumBin();
-        if ( binMax && binMax <= ph->GetNbinsX() ) {
-          float xCen = ph->GetBinLowEdge(binMax);
-          float xmin = xCen - 0.5*plotWidth;
-          float xmax = xCen + 0.5*plotWidth;
-          pman->setRangeX(xmin, xmax);
+        if (  m_LogLevel >= 3 ) cout << myname << "    Plotting " << ph->GetName() << endl;
+        TPadManipulator* pman = pmantop->man(ipad);
+        pman->add(ph, "hist", false);
+        if ( ph->GetListOfFunctions()->GetEntries() ) {
+          //dynamic_cast<TF1*>(pman->hist()->GetListOfFunctions()->At(0))->SetNpx(2000);
+          pman->addHistFun(0);
         }
-      }
-      NameVector labs;
-      bool showMean = true;
-      if ( showMean ) {
-        ostringstream ssout;
-        ssout.precision(3);
-        ssout.setf(std::ios_base::fixed);
-        ssout.str("");
-        ssout << "# ROI: " << ph->GetEntries();
-        labs.push_back(ssout.str());
-        ssout.str("");
-        ssout << "Hist Mean: " << ph->GetMean();
-        labs.push_back(ssout.str());
-        ssout.str("");
-        ssout << "Hist RMS: " << ph->GetRMS();
-        labs.push_back(ssout.str());
-      }
-      TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
-      if ( pffit != nullptr ) {
-        string fnam = pffit->GetName();
-        double mean = pffit->GetParameter("Mean");
-        double sigm = pffit->GetParameter("Sigma");
-        double rat = mean == 0 ? 0.0 : sigm/mean;
-        labs.push_back(fnam);
-        ostringstream ssout;
-        ssout.precision(3);
-        ssout.setf(std::ios_base::fixed);
-        ssout << "Mean: " << mean;
-        labs.push_back(ssout.str());
-        ssout.str("");
-        ssout << "Sigma: " << sigm;
-        labs.push_back(ssout.str());
-        ssout.str("");
-        ssout.precision(4);
-        ssout << "Ratio: " << rat;
-        labs.push_back(ssout.str());
-        Index chanStat = getState().getChannelStatus(ph->GetName());
-        if ( chanStat == AdcChannelStatusBad ) labs.push_back("Bad channel");
-        if ( chanStat == AdcChannelStatusNoisy ) labs.push_back("Noisy channel");
-      }
-      double xlab = 0.70;
-      double ylab = 0.80;
-      double dylab = 0.04;
-      for ( Name lab : labs ) {
-        TLatex* pptl = nullptr;
-        pptl = new TLatex(xlab, ylab, lab.c_str());
-        pptl->SetNDC();
-        pptl->SetTextFont(42);
-        pptl->SetTextSize(dylab);
-        pman->add(pptl);
-        ylab -= 1.2*dylab;
+        pman->addAxis();
+        pman->showUnderflow();
+        pman->showOverflow();
+        float plotWidth = getState().getSumPlotWidth(hnam);
+        if ( plotWidth > 0.0 ) {
+          int binMax = ph->GetMaximumBin();
+          if ( binMax && binMax <= ph->GetNbinsX() ) {
+            float xCen = ph->GetBinLowEdge(binMax);
+            float xmin = xCen - 0.5*plotWidth;
+            float xmax = xCen + 0.5*plotWidth;
+            pman->setRangeX(xmin, xmax);
+          }
+        }
+        NameVector labs;
+        bool showMean = true;
+        if ( showMean ) {
+          ostringstream ssout;
+          ssout.precision(3);
+          ssout.setf(std::ios_base::fixed);
+          ssout.str("");
+          ssout << "# ROI: " << ph->GetEntries();
+          labs.push_back(ssout.str());
+          ssout.str("");
+          ssout << "Hist Mean: " << ph->GetMean();
+          labs.push_back(ssout.str());
+          ssout.str("");
+          ssout << "Hist RMS: " << ph->GetRMS();
+          labs.push_back(ssout.str());
+        }
+        TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
+        if ( pffit != nullptr ) {
+          string fnam = pffit->GetName();
+          double mean = pffit->GetParameter("Mean");
+          double sigm = pffit->GetParameter("Sigma");
+          double rat = mean == 0 ? 0.0 : sigm/mean;
+          labs.push_back(fnam);
+          ostringstream ssout;
+          ssout.precision(3);
+          ssout.setf(std::ios_base::fixed);
+          ssout << "Mean: " << mean;
+          labs.push_back(ssout.str());
+          ssout.str("");
+          ssout << "Sigma: " << sigm;
+          labs.push_back(ssout.str());
+          ssout.str("");
+          ssout.precision(4);
+          ssout << "Ratio: " << rat;
+          labs.push_back(ssout.str());
+          Index chanStat = getState().getChannelStatus(ph->GetName());
+          if ( chanStat == AdcChannelStatusBad ) labs.push_back("Bad channel");
+          if ( chanStat == AdcChannelStatusNoisy ) labs.push_back("Noisy channel");
+        }
+        double xlab = 0.70;
+        double ylab = 0.80;
+        double dylab = 0.04;
+        for ( Name lab : labs ) {
+          TLatex* pptl = nullptr;
+          pptl = new TLatex(xlab, ylab, lab.c_str());
+          pptl->SetNDC();
+          pptl->SetTextFont(42);
+          pptl->SetTextSize(dylab);
+          pman->add(pptl);
+          ylab -= 1.2*dylab;
+        }
       }
       ++ipad;
       if ( ipad >= npad || ihst+1 >= hsts.size() ) {
-        if (  m_LogLevel >= 2 ) cout << myname << "  Writing " << plotFileName << endl;
-        pman->print(plotFileName);
-        delete pmantop;
-        pmantop = nullptr;
+        if ( pmantop == nullptr ) {
+          if (  m_LogLevel >= 2 ) cout << myname << "  Not writing empty plot" << endl;
+        } else {
+          if (  m_LogLevel >= 2 ) cout << myname << "  Writing " << plotFileName << endl;
+          pmantop->print(plotFileName);
+          delete pmantop;
+          pmantop = nullptr;
+        }
         ipad = 0;
       }
     }
