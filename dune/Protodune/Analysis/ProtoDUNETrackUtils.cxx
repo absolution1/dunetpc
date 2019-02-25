@@ -102,10 +102,10 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrack
 
 }
 
-const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrackHitsFromPlane(const recob::Track &track, art::Event const &evt, const std::string trackModule, int planeID ) const{
+const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrackHitsFromPlane(const recob::Track &track, art::Event const &evt, const std::string trackModule, unsigned int planeID ) const{
 
   std::vector<const recob::Hit*> trackHits;
-  if( planeID < 0 || planeID > 2 ){
+  if( planeID > 2 ){
     std::cout << "Please input plane 0, 1, or 2" << std::endl;
     return trackHits;
   }
@@ -115,13 +115,8 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrack
   std::vector<art::Ptr<recob::Hit>> inputHits = findHits.at(track.ID());
 
   for(const art::Ptr<recob::Hit> hit : inputHits){
-    //Hacking this because idk how to get the plane id 
-    std::string plane_string = hit.get()->WireID().asPlaneID().toString();
-    size_t pos = plane_string.find( "P" );
-    if ( pos == std::string::npos ) continue;
-    std::string planeID_string = "";
-    planeID_string += plane_string[ pos + 2 ];
-    if( planeID_string != std::to_string( planeID ) ) continue;
+    unsigned int thePlane = hit.get()->WireID().asPlaneID().Plane;
+    if( thePlane != planeID ) continue;
        
     trackHits.push_back(hit.get());
 
@@ -134,7 +129,7 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNETrackUtils::GetRecoTrack
 std::vector< float >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet &ps ) {
 
 
-  int planeID = ps.get< int >( "PlaneID" );
+  unsigned int planeID = ps.get< unsigned int >( "PlaneID" );
    
   double betap  = ps.get< double >( "betap"  );
   double Rho    = ps.get< double >( "Rho"    );
@@ -156,13 +151,8 @@ std::vector< float >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  cons
   size_t calo_position;
   bool found_plane = false;
   for( size_t i = 0; i < caloVector.size(); ++i ){
-     //Hacking this because idk how to get the plane id 
-     std::string plane_string = caloVector.at(i).PlaneID().toString();
-     size_t pos = plane_string.find( "P" );
-     if ( pos == std::string::npos ) continue;
-     std::string planeID_string = "";
-     planeID_string += plane_string[ pos + 2 ];
-     if( planeID_string == std::to_string( planeID ) ){
+     unsigned int thePlane = caloVector.at(i).PlaneID().Plane;
+     if( thePlane == planeID ){
        calo_position = i;
        found_plane = true;
        break;
@@ -277,21 +267,15 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           std::cout << "Cos_theta " << stitch_cos_theta << std::endl;
 
 
-          int planeID = CalorimetryPars.get< int >( "PlaneID");
+          unsigned int planeID = CalorimetryPars.get< unsigned int >( "PlaneID");
           //Get the calorimetries, calibrate, and combine
           std::vector< anab::Calorimetry > broken_calos = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
 
           bool found_broken_calo = false; 
           size_t calo_position= 0;
           for( size_t i = 0; i < broken_calos.size(); ++i ){
-            //Hacking this because idk how to get the plane id 
-            std::string plane_string = broken_calos.at(i).PlaneID().toString();
-            std::cout << plane_string << std::endl;
-            size_t pos = plane_string.find( "P" );
-            if ( pos == std::string::npos ) continue;
-            std::string planeID_string = "";
-            planeID_string += plane_string[ pos + 2 ];
-            if( planeID_string == std::to_string( planeID ) ){
+            unsigned int thePlane = broken_calos.at(i).PlaneID().Plane;
+            if( thePlane == planeID ){
               found_broken_calo = true;
               calo_position = i;
               break;
@@ -305,21 +289,13 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           auto broken_dQdx  = broken_calos.at( calo_position ).dQdx();
           std::vector< float > broken_cal_dEdx = CalibrateCalorimetry(  track, evt, trackModule, caloModule, CalorimetryPars );
 
-          
-
           calo_position = 0;
           std::vector< anab::Calorimetry > stitch_calos = GetRecoTrackCalorimetry(tr, evt, trackModule, caloModule);
 
           bool found_stitch_calo = false;
           for( size_t i = 0; i < stitch_calos.size(); ++i ){
-            //Hacking this because idk how to get the plane id 
-            std::string plane_string = stitch_calos.at(i).PlaneID().toString();
-            std::cout << plane_string << std::endl;
-            size_t pos = plane_string.find( "P" );
-            if ( pos == std::string::npos ) continue;
-            std::string planeID_string = "";
-            planeID_string += plane_string[ pos + 2 ];
-            if( planeID_string == std::to_string( planeID ) ){
+            unsigned int thePlane = stitch_calos.at(i).PlaneID().Plane;
+            if( thePlane == planeID ){
               calo_position = i;
               break;
             }
