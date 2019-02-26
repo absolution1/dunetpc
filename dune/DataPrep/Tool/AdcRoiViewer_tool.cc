@@ -280,6 +280,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "fitCSNormDof" ) xlab = "Normalized fit #chi^{2}/DOF";
     else if ( hvarx == "sigArea" ) xlab = "Area [%ASUNIT%]";
     else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%ASUNIT%]";
+    else if ( hvarx == "sigWidth" ) xlab = "Width [Tick]";
     else if ( hvarx == "timeSec" ) xlab = stimepre + " [sec]";
     else if ( hvarx == "timeHour" ) xlab = stimepre + "[hour]";
     else {
@@ -1044,6 +1045,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     IntVector ivals;
     if      ( varx == "sigArea" )            vals = dm.getFloatVector("roiSigAreas");
     else if ( varx == "sigAreaNeg" )         vals = dm.getFloatVector("roiSigAreas");
+    else if ( varx == "sigWidth" )          ivals = dm.getIntVector("roiNTicks");
     else if ( varx == "fitHeight"    )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightNeg" )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightGain" )      vals = dm.getFloatVector("roiFitHeights");

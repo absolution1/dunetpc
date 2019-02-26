@@ -47,6 +47,8 @@
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
+//            sigArea - Raw area
+//            sigWidth - Raw width
 //            fitHeight - Height from ROI fit
 //            fitHeightNeg - Negative of height from ROI fit
 //            fitHeightGain - Height/(pulser charge)
