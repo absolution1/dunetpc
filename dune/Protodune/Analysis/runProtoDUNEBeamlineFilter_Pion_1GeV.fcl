@@ -1,4 +1,5 @@
 #include "services_dune.fcl"
+#include "BeamEvent.fcl"
 #include "ProtoDUNEBeamlineFilter.fcl"
 
 
@@ -60,7 +61,14 @@ physics:
  end_paths:     [ stream1 ]  
 }
 
-
+##############################################################
+##############################################################
+##############################################################
 
 #physics.filters.filter.DataUtils.StrictTOF: false
 #physics.filters.filter.DataUtils.StrictCherenkov: false
+
+### Uncomment below to redo Beam Instrumentation Reconstruction
+services.IFBeam:  {}
+physics.producers.beamevent: @local::proto_beamevent
+physics.reco: [ beamevent, filter ]
