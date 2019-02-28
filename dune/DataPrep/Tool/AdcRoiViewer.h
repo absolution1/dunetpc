@@ -18,6 +18,7 @@
 //             FitOpt - ROI fitting option
 //                        0 - no fit
 //                        1 - fit with coldelecReponse
+//          StartTime - Offset for time meaurements in sec since 1970.
 //   PulserStepCharge - Charge per unit step in a pulser run
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
@@ -226,6 +227,9 @@ public:
     IndexByIndexMap channelStatuses;     // Status indexed by channel number
     // Run data.
     RunData runData;
+    // Count doView calls.
+    Index callCount =0;                   // Total
+    IndexByIndexMap eventCallCount;       // For each event. Size of this is the event count.
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -283,6 +287,7 @@ private:
   Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
+  time_t m_StartTime;
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;

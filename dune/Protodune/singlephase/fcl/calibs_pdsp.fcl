@@ -6,11 +6,32 @@
 tools.areaGain_calib20190205 : {
   tool_type: FclFileFloatArray
   LogLevel: 1
+  Label: "areaGain_calib20190205"
   DefaultValue: 0.0
   FileNames: [
     "calib/protodune/calib20190205/areaGain_apa3z.fcl",
     "calib/protodune/calib20190205/areaGain_apa3c.fcl",
     "calib/protodune/calib20190205/areaGain_apa3u.fcl",
-    "calib/protodune/calib20190205/areaGain_apa3v.fcl"
+    "calib/protodune/calib20190205/areaGain_apa3v.fcl",
+    "calib/protodune/calib20190205/areaGain_apa5z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa5c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa5u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa5v.fcl",
+    "calib/protodune/calib20190205/areaGain_apa2z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa2c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa2u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa2v.fcl",
+    "calib/protodune/calib20190205/areaGain_apa6z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa6c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa6u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa6v.fcl",
+    "calib/protodune/calib20190205/areaGain_apa1z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa1c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa1u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa1v.fcl",
+    "calib/protodune/calib20190205/areaGain_apa4z.fcl",
+    "calib/protodune/calib20190205/areaGain_apa4c.fcl",
+    "calib/protodune/calib20190205/areaGain_apa4u.fcl",
+    "calib/protodune/calib20190205/areaGain_apa4v.fcl"
   ]
 }
