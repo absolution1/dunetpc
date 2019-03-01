@@ -65,10 +65,13 @@ physics:
 ##############################################################
 ##############################################################
 
-#physics.filters.filter.DataUtils.StrictTOF: false
-#physics.filters.filter.DataUtils.StrictCherenkov: false
- 
+#physics.filters.filter.BeamlineUtils.StrictTOF: false
+#physics.filters.filter.BeamlineUtils.StrictCherenkov: false
+#services.message.destinations.LogStandardOut.threshold: "INFO"
+
 ### Uncomment below to redo Beam Instrumentation Reconstruction
 #services.IFBeam:  {}
 #physics.producers.beamevent: @local::proto_beamevent
 #physics.reco: [ beamevent, filter ]
+#physics.filters.filter.BeamlineUtils.TOFOffset: 0.
+#physics.filters.filter.BeamlineUtils.UseCERNCalibSelection: true
