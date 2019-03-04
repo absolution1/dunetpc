@@ -72,8 +72,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<Name>("PlotFileName")),
+  m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
-  m_useStatus(false),
   m_doSummary(false),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
@@ -109,14 +109,13 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
-  m_useStatus = m_HistName.find("%STATUS%") != string::npos;
   m_doSummary = m_HistName.find("EVENT%") == string::npos;
-  if ( m_useStatus ) {
+  if ( m_PlotUsesStatus ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
     if ( m_pChannelStatusProvider == nullptr ) {
       cout << myname << "WARNING: Channel status provider not found." << endl;
-      m_useStatus = false;
+      m_PlotUsesStatus = false;
     }
   }
   // Display the configuration.
@@ -157,6 +156,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "           HistTitle: " << m_HistTitle << endl;
     cout << myname << "         MetricLabel: " << m_MetricLabel << endl;
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "      PlotUsesStatus: " << m_PlotUsesStatus << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
 }
@@ -414,7 +414,7 @@ void AdcChannelMetric::
 processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
                           Name ofname, Name ofrname, bool useErrors) const {
   const string myname = "AdcChannelMetric::useMetricsForOneRange: ";
-  unsigned int ngraph = m_useStatus ? 4 : 1;
+  unsigned int ngraph = m_PlotUsesStatus ? 4 : 1;
   NameVector statNames = {"All", "Good", "Bad", "Noisy"};
   LineColors lc;
   std::vector<int> statCols = {lc.blue(), lc.green(), lc.red(), lc.brown()};
@@ -465,7 +465,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     Index iptAll = pgAll->GetN();
     pgAll->SetPoint(iptAll, icha, gval);
     if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
-    if ( m_useStatus ) {
+    if ( m_PlotUsesStatus ) {
       Index stat = channelStatus(icha);
       if ( stat > 0 ) {
         TGraph* pgStat = graphs[stat];
@@ -484,7 +484,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     //man.add(ph, "hist");
     //man.add(ph, "axis");
     man.add(pgAll, "P");
-    if ( m_useStatus ) {
+    if ( m_PlotUsesStatus ) {
       for ( int igra : {1, 3, 2} ) {
         TGraph* pgra = graphs[igra];
         if ( pgra->GetN() ) man.add(pgra, "P");

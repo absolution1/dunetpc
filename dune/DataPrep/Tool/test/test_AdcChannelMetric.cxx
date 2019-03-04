@@ -57,6 +57,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "         MetricLabel: \"Pedestal [ADC counts]\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
+    fout << "      PlotUsesStatus: 0" << endl;
     fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%_%CRNAME%.png\"" << endl;
     fout << "        RootFileName: \"\"" << endl;
     fout << "}" << endl;
