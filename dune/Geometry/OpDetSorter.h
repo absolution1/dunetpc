@@ -7,7 +7,7 @@
 namespace geo {
 
   //----------------------------------------------------------------------------
-  static bool sortorderOpDet(const OpDetGeo* t1, const OpDetGeo* t2)
+  inline bool sortorderOpDet(const OpDetGeo* t1, const OpDetGeo* t2)
   {
     double xyz1[3] = {0.}, xyz2[3] = {0.};
     double local[3] = {0.};

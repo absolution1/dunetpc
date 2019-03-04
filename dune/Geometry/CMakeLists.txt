@@ -6,6 +6,7 @@ art_make( BASENAME_ONLY
 	  LIB_LIBRARIES larcorealg_Geometry
                         ${MF_MESSAGELOGGER}
                         cetlib cetlib_except
+
                         ${FHICLCPP}
                         art_Framework_Services_Registry
                         art_Utilities
