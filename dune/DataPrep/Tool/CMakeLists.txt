@@ -204,6 +204,12 @@ simple_plugin(FembLinearCalibration   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(FloatArrayGainCalibration   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(FembMappedAdcModifier   "tool"
                 dune_ArtSupport
                 cetlib cetlib_except

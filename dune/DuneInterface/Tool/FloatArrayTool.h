@@ -41,15 +41,19 @@ public:
   virtual float defaultValue() const { return 0.0; }
 
   // Return if an index is in range.
-  virtual bool inRange(Index ival) {
+  virtual bool inRange(Index ival) const {
     if ( ival < offset() ) return false;
     if ( ival + offset() >= size() ) return false;
     return true;
   }
 
   // Return the value for an (offset) index.
-  virtual float value(Index ival) {
+  virtual float value(Index ival) const {
     if ( ! inRange(ival) ) return defaultValue();
+    return values()[ival + offset()];
+  }
+  virtual float value(Index ival, float defval) const {
+    if ( ! inRange(ival) ) return defval;
     return values()[ival + offset()];
   }
 
