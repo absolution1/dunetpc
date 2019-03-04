@@ -496,10 +496,10 @@ tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -25
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  25
-tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpdd%CRNAME%_ped_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpd%CRNAME%_peddiff_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricLabel: "#DeltaPedestal [ADC count]"
-tools.pdtps_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+tools.pdtps_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_peddiff_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal noise for each TPS channel.
 tools.pdtps_adcChannelPedestalNoisePlotter: @local::pdtps_template
