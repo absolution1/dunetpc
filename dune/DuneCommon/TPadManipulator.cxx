@@ -795,9 +795,13 @@ int TPadManipulator::update() {
     TGraph* pgout = new TGraph();
     pgout->SetMarkerStyle(m_gflowMrk);
     pgout->SetMarkerColor(m_gflowCol);
+    std::vector<TGraph*> gras;
+    if ( haveGraph() ) gras.push_back(graph());
     for ( TObjPtr pobj : m_objs ) {
-      TGraph* pgin = dynamic_cast<TGraph*>(pobj.get());
-      if ( pgin == nullptr ) continue;
+      TGraph* pgra = dynamic_cast<TGraph*>(pobj.get());
+      if ( pgra != nullptr ) gras.push_back(pgra);
+    }
+    for ( TGraph* pgin : gras ) {
       for ( int ipt=0; ipt<pgin->GetN(); ++ipt ) {
         double x, y;
         pgin->GetPoint(ipt, x, y);

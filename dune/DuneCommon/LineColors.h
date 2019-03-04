@@ -8,6 +8,9 @@
 // Developers may inherit from the class and redefine any color to
 // their taste.
 
+#ifndef LineColors_H
+#define LineColors_H
+
 #include "Rtypes.h"
 
 class LineColors {
@@ -59,3 +62,5 @@ public:
   ColorType operator[](Index icolin) const { return color(icolin); }
 
 };
+
+#endif

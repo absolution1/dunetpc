@@ -57,24 +57,23 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel << endl;
   AdcIndex nsamlo = m_BinsBefore;
   AdcIndex nsamhi = m_BinsAfter;
+  acd.signal.clear();
   acd.signal.resize(nsam, false);
   AdcIndex nbinAbove = 0;
-  AdcIndex isamNotRoi = 0;  // This is the 1st sample after the last ROI.
-  for ( AdcIndex isam=0; isam<nsam; ) {
+  AdcIndex isamUnknown = 0;  // First sample which is not known to be inside or ouside a ROI.
+  for ( AdcIndex isam=0; isam<nsam; ++isam ) {
     bool keep = ( m_FlagPositive && acd.samples[isam] >  m_Threshold ) ||
                 ( m_FlagNegative && acd.samples[isam] < -m_Threshold );
-    if ( keep ) { // Leave isam after the new ROI
+    if ( keep ) {
       ++nbinAbove;
       AdcIndex jsam1 = isam > nsamlo ? isam - nsamlo : 0;
-      if ( jsam1 < isamNotRoi ) jsam1 = isamNotRoi;
+      if ( jsam1 < isamUnknown ) jsam1 = isamUnknown;
       AdcIndex jsam2 = isam + nsamhi + 1;
       if ( jsam2 > nsam ) jsam2 = nsam;
       if ( m_LogLevel >= 4 ) cout << myname << "Trigger: " << isam << ", range: ["
                                   << jsam1 << ", " << jsam2 << ")" << endl;
-      for ( isam=jsam1; isam<jsam2; ++isam ) acd.signal[isam] = true;
-      isamNotRoi = isam;
-    } else {
-      ++isam;
+      for ( AdcIndex jsam=jsam1; jsam<jsam2; ++jsam ) acd.signal[jsam] = true;
+      isamUnknown = jsam2;
     }
   }
   acd.roisFromSignal();
