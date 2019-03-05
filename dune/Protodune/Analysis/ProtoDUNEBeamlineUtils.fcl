@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_protodunebeamlineutils:
 {
    BeamEventTag:            "beamevent"
+   UseCERNCalibSelection:   false
 
    #RotateMonitorXZ:   -10.3
    RotateMonitorYZ:    11.7
@@ -33,6 +34,77 @@ standard_protodunebeamlineutils:
    L2: 1.69472
    L3: 2.11666
 
+   ##################################
+   ### For Justin Hugon's old cuts ##
+   ##################################
+
+   StrictTOF:               true # strict/permissive on events with invalid TOF data
+   StrictCherenkov:         true # strict/permissive on events with invalid Cherenkov data
+
+   MomentumScaleFactor:     1.
+   MomentumOffset:          0. # GeV/c
+   TOFScaleFactor:          1.
+   TOFOffset:               59.6 # ns
+
+   ## TOF Cuts for GetTOFParticleID [min,max]
+   TOFElectronCuts:         [-1e3,1e3]
+   TOFMuonCuts:             [-1e3,160]
+   TOFPionCuts:             [-1e3,160]
+   TOFKaonCuts:             [-1e3,1e3]
+   TOFProtonCuts:           [160,1e3]
 }
+
+standard_protodunebeamlineutils_0p3GeV:                 @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_0p3GeV.TOFElectronCuts: [-1e3,1e3]
+standard_protodunebeamlineutils_0p3GeV.TOFMuonCuts:     [-1e3,170]
+standard_protodunebeamlineutils_0p3GeV.TOFPionCuts:     [-1e3,170]
+standard_protodunebeamlineutils_0p3GeV.TOFKaonCuts:     [-1e3,1e3]
+standard_protodunebeamlineutils_0p3GeV.TOFProtonCuts:   [170,1e3]
+
+standard_protodunebeamlineutils_0p5GeV:                 @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_0p5GeV.TOFElectronCuts: [-1e3,1e3]
+standard_protodunebeamlineutils_0p5GeV.TOFMuonCuts:     [-1e3,170]
+standard_protodunebeamlineutils_0p5GeV.TOFPionCuts:     [-1e3,170]
+standard_protodunebeamlineutils_0p5GeV.TOFKaonCuts:     [-1e3,1e3]
+standard_protodunebeamlineutils_0p5GeV.TOFProtonCuts:   [170,1e3]
+
+standard_protodunebeamlineutils_1GeV:                   @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_1GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunebeamlineutils_1GeV.TOFMuonCuts:       [-1e3,170]
+standard_protodunebeamlineutils_1GeV.TOFPionCuts:       [-1e3,170]
+standard_protodunebeamlineutils_1GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_1GeV.TOFProtonCuts:     [170,1e3]
+
+standard_protodunebeamlineutils_2GeV:                   @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_2GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunebeamlineutils_2GeV.TOFMuonCuts:       [-1e3,160]
+standard_protodunebeamlineutils_2GeV.TOFPionCuts:       [-1e3,160]
+standard_protodunebeamlineutils_2GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_2GeV.TOFProtonCuts:     [160,1e3]
+
+standard_protodunebeamlineutils_3GeV:                   @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_3GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunebeamlineutils_3GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_3GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_3GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_3GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunebeamlineutils_3GeV.StrictTOF:         false
+
+standard_protodunebeamlineutils_6GeV:                   @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_6GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunebeamlineutils_6GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_6GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_6GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_6GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunebeamlineutils_6GeV.StrictTOF:         false
+
+standard_protodunebeamlineutils_7GeV:                   @local::standard_protodunebeamlineutils
+standard_protodunebeamlineutils_7GeV.TOFElectronCuts:   [-1e3,1e3]
+standard_protodunebeamlineutils_7GeV.TOFMuonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_7GeV.TOFPionCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_7GeV.TOFKaonCuts:       [-1e3,1e3]
+standard_protodunebeamlineutils_7GeV.TOFProtonCuts:     [-1e3,1e3]
+standard_protodunebeamlineutils_7GeV.StrictTOF:         false
+
 
 END_PROLOG
