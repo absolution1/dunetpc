@@ -65,10 +65,6 @@ physics:
 ##############################################################
 ##############################################################
 
-#physics.filters.filter.BeamlineUtils.StrictTOF: false
-#physics.filters.filter.BeamlineUtils.StrictCherenkov: false
-#services.message.destinations.LogStandardOut.threshold: "INFO"
-
 ### Uncomment below to redo Beam Instrumentation Reconstruction
 #services.IFBeam:  {}
 #physics.producers.beamevent: @local::proto_beamevent
