@@ -46,7 +46,7 @@ tools.adcStringBuilder: {
   TriggerWidth: 2
   TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
                "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
-              "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
+               "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -318,6 +318,17 @@ tools.adcSampleFiller: {
   LogLevel: 1
   AdcUnderflow: 0
   AdcOverflow: 4095
+}
+
+# Fill sample and apply calibration.
+tools.adcSampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 4095
+  GainTool: "areaGain_calib20190205"
 }
 
 # Perform deconvolution with SignalShapingService.

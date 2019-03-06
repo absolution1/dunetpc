@@ -18,11 +18,13 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // dunetpc includes
-#include "dunetpc/dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
+#include "dunetpc/dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
 
 // ROOT includes
 #include "TH1F.h"
 #include "TH2F.h"
+
+#include <cmath>
 
 namespace protoana{
   class ProtoDUNEBeamlineFilter;
@@ -41,7 +43,7 @@ public:
   
 private:
   
-  protoana::ProtoDUNEDataUtils fDataUtils;
+  protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
   float fNominalBeamMomentum; // GeV/c
   bool fIsElectron;
   bool fIsMuon;
@@ -82,7 +84,7 @@ private:
   
 //-----------------------------------------------------------------------
 protoana::ProtoDUNEBeamlineFilter::ProtoDUNEBeamlineFilter(fhicl::ParameterSet const& pset):
-  fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
+  fBeamlineUtils(pset.get<fhicl::ParameterSet>("BeamlineUtils"))
 {
 
   this->reconfigure(pset);
@@ -140,7 +142,7 @@ void protoana::ProtoDUNEBeamlineFilter::reconfigure(fhicl::ParameterSet const& p
 //-----------------------------------------------------------------------
 bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
 
-  if(fDataUtils.IsBeamTrigger(evt))
+  if(fBeamlineUtils.IsGoodBeamlineTrigger(evt))
   {
     fIsBeamTrigger->Fill(1);
   }
@@ -149,11 +151,8 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     fIsBeamTrigger->Fill(0);
     return false;
   }
-
-  const auto possiblePartsTOF = fDataUtils.GetTOFParticleID(evt,fNominalBeamMomentum);
-  const auto possiblePartsCherenkov = fDataUtils.GetCherenkovParticleID(evt,fNominalBeamMomentum);
-  auto possibleParts = possiblePartsTOF && possiblePartsCherenkov;
-  possibleParts.electron = possiblePartsCherenkov.electron; // don't care about TOF for electrons
+  const auto possibleParts = fBeamlineUtils.GetPIDCandidates(evt,fNominalBeamMomentum);
+  mf::LogInfo("protoana::ProtoDUNEBeamlineFilter::filter") << (std::string) possibleParts;
   bool result = false;
   if(fAndParticles)
   {
@@ -174,18 +173,6 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     else result = false;
   }
 
-  if (possiblePartsTOF.electron) fPossiblePartsTOF->Fill(0);
-  if (possiblePartsTOF.muon)     fPossiblePartsTOF->Fill(1);
-  if (possiblePartsTOF.pion)     fPossiblePartsTOF->Fill(2);
-  if (possiblePartsTOF.kaon)     fPossiblePartsTOF->Fill(3);
-  if (possiblePartsTOF.proton)   fPossiblePartsTOF->Fill(4);
-
-  if (possiblePartsCherenkov.electron) fPossiblePartsCherenkov->Fill(0);
-  if (possiblePartsCherenkov.muon)     fPossiblePartsCherenkov->Fill(1);
-  if (possiblePartsCherenkov.pion)     fPossiblePartsCherenkov->Fill(2);
-  if (possiblePartsCherenkov.kaon)     fPossiblePartsCherenkov->Fill(3);
-  if (possiblePartsCherenkov.proton)   fPossiblePartsCherenkov->Fill(4);
-
   if (possibleParts.electron) fPossiblePartsAll->Fill(0);
   if (possibleParts.muon)     fPossiblePartsAll->Fill(1);
   if (possibleParts.pion)     fPossiblePartsAll->Fill(2);
@@ -200,7 +187,7 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
     if (possibleParts.proton)   fPossiblePartsPass->Fill(4);
   }
 
-  const auto [momentum,tof,tofChannel,ckov0,ckov1,ckov0Pressure,ckov1Pressure,timingTrigger,BITrigger,areBIAndTimingMatched] = fDataUtils.GetBeamlineVarsAndStatus(evt);
+  const auto [momentum,tof,tofChannel,ckov0,ckov1,ckov0Pressure,ckov1Pressure,timingTrigger,BITrigger,areBIAndTimingMatched] = fBeamlineUtils.GetBeamlineVarsAndStatus(evt);
   fMomentumAll->Fill(momentum);
   if(result) fMomentumPass->Fill(momentum);
   fTOFAll->Fill(momentum);
@@ -232,12 +219,13 @@ bool protoana::ProtoDUNEBeamlineFilter::filter(art::Event& evt){
                 << " ckov1Pressure: " << ckov1Pressure 
                 << " timingTrigger: "<<timingTrigger<<" BITrigger: "<<BITrigger
                 << " BIAndTimingMatched: "<<areBIAndTimingMatched;
-  std::vector<double> masses = fDataUtils.GetBeamlineMass(evt);
-  for (const auto& mass: masses)
+  std::vector<double> massSquareds = fBeamlineUtils.GetBeamlineMassSquared(evt);
+  for (const auto& massSquared: massSquareds)
   {
-    mf::LogInfo("protoana::ProtoDUNEBeamlineFilter::filter") << "mass: " << mass << " GeV/c^2";
-   fMassAll->Fill(mass);
-   if(result) fMassPass->Fill(mass);
+    const auto& mass = std::sqrt(massSquared);
+    mf::LogInfo("protoana::ProtoDUNEBeamlineFilter::filter") << "mass^2: " << massSquared << " (GeV/c^2)^2  " << "mass: " << mass << " GeV/c^2";
+    fMassAll->Fill(mass);
+    if(result) fMassPass->Fill(mass);
   }
   fBITriggerAll->Fill(BITrigger);
   if(result) fBITriggerPass->Fill(BITrigger);
