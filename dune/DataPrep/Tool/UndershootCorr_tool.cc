@@ -53,38 +53,41 @@ DataMap UndershootCorr::update(AdcChannelData& acd) const {
 
   AdcSignalVector& samples = acd.samples;
   size_t nticks = samples.size();
-  if (nticks < 10) return ret;
+  if ( nticks < 10 ) {
+    cout << myname << "Data for channel " << acd.channel << " has "
+         << ( nticks==0 ? "no" : "too few" ) << " ticks." << endl;
+    return ret;
+  }
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   size_t offlineChannel = acd.channel;
   size_t plane = channelMap->PlaneFromOfflineChannel(offlineChannel);
   if (plane >= m_CorrectFlag.size()) return ret;  
-  if (m_CorrectFlag[plane])
-    {
+  double pedfit = 0;
+  double csifit = 0;
+  if (m_CorrectFlag[plane]) {
 
-      double median = TMath::Median(nticks,samples.data());
+    double median = TMath::Median(nticks,samples.data());
 
-      std::vector<double> x(nticks);
-      std::vector<double> yorig(nticks);
-      std::vector<double> ycorr(nticks);
+    std::vector<double> x(nticks);
+    std::vector<double> yorig(nticks);
+    std::vector<double> ycorr(nticks);
 
-      bool allempty = true;
-      for (size_t i=0;i<nticks;++i)
-	{
-	  double bc = samples[i]-median;
-	  if (bc != 0) allempty=false;
-	  yorig[i] = bc;
-	  x[i] = i;
-	}
-      if (allempty) return ret;
-      double pedfit = 0;
-      double csifit = 0;
-      estimatepars(x,yorig,pedfit,csifit,plane);
-      crc(yorig,ycorr,pedfit,csifit,plane);
-      for (size_t i=0;i<nticks;++i)
-	{
-	  samples[i] = ycorr[i] + median;
-	}
+    bool allempty = true;
+    for (size_t i=0;i<nticks;++i) {
+      double bc = samples[i]-median;
+      if (bc != 0) allempty=false;
+      yorig[i] = bc;
+      x[i] = i;
     }
+    if (allempty) return ret;
+    estimatepars(x,yorig,pedfit,csifit,plane);
+    crc(yorig,ycorr,pedfit,csifit,plane);
+    for (size_t i=0;i<nticks;++i) {
+      samples[i] = ycorr[i] + median;
+    }
+  }
+  acd.metadata["uscPedestal"] = pedfit;
+  acd.metadata["uscPedestalOffset"] = csifit;
 
   return ret;
 }

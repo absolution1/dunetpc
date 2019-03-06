@@ -491,6 +491,24 @@ tools.pdtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% ev
 tools.pdtps_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC count]"
 tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# Digit pedestal for each TPS channel.
+tools.pdtps_adcChannelPedestalInpPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalInpPlotter.Metric: inputPedestal
+tools.pdtps_adcChannelPedestalInpPlotter.MetricMax: 4096
+tools.pdtps_adcChannelPedestalInpPlotter.HistName: "hchpd%CRNAME%_pedinp_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalInpPlotter.HistTitle: "ADC input pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalInpPlotter.MetricLabel: "Pedestal [ADC count]"
+tools.pdtps_adcChannelPedestalInpPlotter.PlotFileName: "chmet_pedinp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Undershoot correction pedestal for each TPS channel.
+tools.pdtps_adcChannelPedestalUscPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalUscPlotter.Metric: uscPedestal
+tools.pdtps_adcChannelPedestalUscPlotter.MetricMax: 4096
+tools.pdtps_adcChannelPedestalUscPlotter.HistName: "hchpd%CRNAME%_pedusc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalUscPlotter.HistTitle: "ADC USC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalUscPlotter.MetricLabel: "Pedestal [ADC count]"
+tools.pdtps_adcChannelPedestalUscPlotter.PlotFileName: "chmet_pedusc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
 # Pedestal diff for each TPS channel.
 tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
