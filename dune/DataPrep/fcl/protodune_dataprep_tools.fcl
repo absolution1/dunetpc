@@ -90,13 +90,15 @@ tools.pdsp_timingMitigate: {
 tools.adcCorrectUndershoot: {
   tool_type: UndershootCorr
   LogLevel: 1
-  CorrectFlag: [ false, false, true]             # U, V, and Collection
-  TDecayConst: [ 0.99955, 0.99955, 0.99955 ]     # numbers so far tuned for collection plane
-  FSubConst:   [ 0.0005,  0.0005,  0.0005 ]      # and copied for U and V
-  LCA:         [ 1980,    1980,    1980 ]
-  LCB:         [ -0.08277,  -0.08277, -0.08277  ]
-  LCC:         [ -2043.65, -2043.65 , -2043.65 ]
-  LCD:         [ 1.03, 1.03,  1.03 ]
+  CorrectFlag:     [    false,     false,     true ]  # Apply correction (U, V, and Collection)
+  SignalThreshold: [       20,        20,       20 ]  # Above this value, ticks are deweighted in fit
+  TDecayConst:     [  0.99955,   0.99955,  0.99955 ]  # Corrn params (tuned for collection plane)
+  FSubConst:       [   0.0005,    0.0005,   0.0005 ]  #  "
+  RestoreBaseline: [    false,     false,    false ]  # If true, add back medians to restore orig baseline
+  LCA:             [     1980,      1980,     1980 ]  # Params used in fit to determine the ped and
+  LCB:             [ -0.08277,  -0.08277, -0.08277 ]  # and initial pedestal offset
+  LCC:             [ -2043.65, -2043.65 , -2043.65 ]  #  "
+  LCD:             [     1.03,      1.03,     1.03 ]  #  "
 }
 
 
