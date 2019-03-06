@@ -189,30 +189,9 @@ namespace protoana {
     std::vector< int > GetPID_CERNCalib( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
     /**
      * Get the particle ID from beamline instrumentation info (this uses the official CERN cuts and assumes
-     * CERN calibrations)
+     * CERN calibrations) if fUseCERNCalibSelection is set, otherwise uses old values.
      */
     PossibleParticleCands GetPIDCandidates_CERNCalib( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum );
-    /**
-     * Based on the beam energy of the given run and whether each of the Cherenkov
-     * detectors fired, sets the particle types this could possibly be to true in the
-     * returned PossibleParticleCands
-     */
-    PossibleParticleCands GetCherenkovParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const;
-    /**
-     * Based on the energy of a given run, the beamline momentum, 
-     * and time of flight, sets the particle types this could 
-     * possibly be to true in the returned PossibleParticleCands 
-     * object (this is Justin Hugon's unofficial cuts assuming no 
-     * calibration is applied)
-     */
-    PossibleParticleCands GetTOFParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const;
-    /**
-     * Combines TOF, momentum, and Cherenkov info to determine a particle ID.
-     * Sets the particle types this could possibly be to true in 
-     * the returned PossibleParticleCands object (this is Justin Hugon's 
-     * unofficial cuts assuming no calibration is applied)
-     */
-    PossibleParticleCands GetBeamlineParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const;
 
     art::InputTag fBeamEventTag;
 
@@ -290,19 +269,10 @@ namespace protoana {
     //////////////////////////////////////////////////////////////////
     // for Justin Hugon's old beamline selection from BeamlineUtils //
     //////////////////////////////////////////////////////////////////
-    bool fStrictTOF;
-    bool fStrictCherenkov;
-
     float fMomentumScaleFactor;
     float fMomentumOffset; // GeV/c
     float fTOFScaleFactor;
     float fTOFOffset; // ns
-
-    std::vector<float> fTOFElectronCuts; // ns
-    std::vector<float> fTOFMuonCuts; // ns
-    std::vector<float> fTOFPionCuts; // ns
-    std::vector<float> fTOFKaonCuts; // ns
-    std::vector<float> fTOFProtonCuts; // ns
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////
