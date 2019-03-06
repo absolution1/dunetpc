@@ -220,40 +220,10 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
   ///////////////////////
   
   // Justin's stuff from BeamlineUtils
-  fStrictTOF = p.get<bool>("StrictTOF");
-  fStrictCherenkov = p.get<bool>("StrictCherenkov");
-
   fMomentumScaleFactor = p.get<float>("MomentumScaleFactor"); 
   fMomentumOffset = p.get<float>("MomentumOffset"); // GeV/c
   fTOFScaleFactor = p.get<float>("TOFScaleFactor");
   fTOFOffset = p.get<float>("TOFOffset"); // ns
-
-  fTOFElectronCuts = p.get<std::vector<float> >("TOFElectronCuts"); // ns
-  fTOFMuonCuts = p.get<std::vector<float> >("TOFMuonCuts"); // ns
-  fTOFPionCuts = p.get<std::vector<float> >("TOFPionCuts"); // ns
-  fTOFKaonCuts = p.get<std::vector<float> >("TOFKaonCuts"); // ns
-  fTOFProtonCuts = p.get<std::vector<float> >("TOFProtonCuts"); // ns
-  if(fTOFElectronCuts.size() != 2)
-  {
-    throw cet::exception("ProtoDUNEDataUtils")<< "TOFElectronCuts parameter needs to be a vector of size 2 not "<<fTOFElectronCuts.size();
-  }
-  if(fTOFMuonCuts.size() != 2)
-  {
-    throw cet::exception("ProtoDUNEDataUtils")<< "TOFMuonCuts parameter needs to be a vector of size 2 not "<<fTOFMuonCuts.size();
-  }
-  if(fTOFPionCuts.size() != 2)
-  {
-    throw cet::exception("ProtoDUNEDataUtils")<< "TOFPionCuts parameter needs to be a vector of size 2 not "<<fTOFPionCuts.size();
-  }
-  if(fTOFKaonCuts.size() != 2)
-  {
-    throw cet::exception("ProtoDUNEDataUtils")<< "TOFKaonCuts parameter needs to be a vector of size 2 not "<<fTOFKaonCuts.size();
-  }
-  if(fTOFProtonCuts.size() != 2)
-  {
-    throw cet::exception("ProtoDUNEDataUtils")<< "TOFProtonCuts parameter needs to be a vector of size 2 not "<<fTOFProtonCuts.size();
-  }
-  
 }
 
 double protoana::ProtoDUNEBeamlineUtils::GetPosition( short theFiber ){
@@ -454,14 +424,7 @@ double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2,
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
-  if (fUseCERNCalibSelection)
-  {
-    return GetPIDCandidates_CERNCalib(beamevt,nominal_momentum);
-  }
-  else
-  {
-    return GetBeamlineParticleID_noCalib(beamevt,nominal_momentum);
-  }
+  return GetPIDCandidates_CERNCalib(beamevt,nominal_momentum);
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates( art::Event const & evt, double nominal_momentum ){
@@ -525,17 +488,26 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
     }
 
     const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
+    if ( 
+        ((fUseCERNCalibSelection && tof < 105.) 
+            || (!fUseCERNCalibSelection && tof < 170.))
+        && high_pressure_status == 1 
+       ) {
       candidates.electron = true;
-
-    else if ( tof < 110. && high_pressure_status == 0 ){
+    }
+    else if ( 
+        ((fUseCERNCalibSelection && tof < 110.) 
+            || (!fUseCERNCalibSelection && tof < 170.))
+        && high_pressure_status == 0 ){
       candidates.muon = true;
       candidates.pion = true;
     }
-
-    else if ( tof > 110. && tof < 160. && high_pressure_status == 0 ) 
+    else if ( 
+        ((fUseCERNCalibSelection && tof > 110. && tof < 160.) 
+            || (!fUseCERNCalibSelection && tof > 170.))
+        && high_pressure_status == 0 ) {
       candidates.proton = true;
-
+    }
   }
   else if( nominal_momentum == 2. ){
     if( beamevt.GetTOFChan() == -1 ){
@@ -548,16 +520,26 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
     }
 
     const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
+    if ( 
+        ((fUseCERNCalibSelection && tof < 105.) 
+            || (!fUseCERNCalibSelection && tof < 160.))
+        && high_pressure_status == 1 
+       ) {
       candidates.electron = true;
-
-    else if ( tof < 103. && high_pressure_status == 0 ){
+    }
+    else if ( 
+        ((fUseCERNCalibSelection && tof < 103.) 
+            || (!fUseCERNCalibSelection && tof < 160.))
+        && high_pressure_status == 0 ){
       candidates.muon = true;
       candidates.pion = true;
     }
-    else if ( tof > 103. && tof < 160. && high_pressure_status == 0 )
+    else if ( 
+        ((fUseCERNCalibSelection && tof > 103. && tof < 160.) 
+            || (!fUseCERNCalibSelection && tof > 160.))
+        && high_pressure_status == 0 ) {
       candidates.proton = true;
-   
+    }
   }
   else if( nominal_momentum == 3. ){
     if( high_pressure_status == -1 || low_pressure_status == -1 ){
@@ -701,127 +683,6 @@ std::vector<double> protoana::ProtoDUNEBeamlineUtils::GetBeamlineMassSquared(art
         result.push_back(massSquared);
     }
   }
-  return result;
-}
-
-protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetCherenkovParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const{
-  const int CKov0Status = beamevt.GetCKov0Status();
-  const int CKov1Status = beamevt.GetCKov1Status();
-  if (CKov0Status < 0 || CKov1Status < 0)
-  {
-    if (fStrictCherenkov)
-    {
-      protoana::PossibleParticleCands result = {false,false,false,false,false};
-      return result;
-    }
-    else
-    {
-      protoana::PossibleParticleCands result = {true,true,true,true,true};
-      return result;
-    }
-  }
-  if (beamEnergyGeV < 2.5)
-  {
-    if(CKov1Status == 1)
-    {
-      protoana::PossibleParticleCands result = {true,false,false,false,false};
-      return result;
-    }
-    else
-    {
-      protoana::PossibleParticleCands result = {false,true,true,true,true};
-      return result;
-    }
-  }
-  else if (beamEnergyGeV < 3.5)
-  {
-    if(CKov0Status == 1 && CKov1Status == 1) // electron
-    {
-      protoana::PossibleParticleCands result = {true,false,false,false,false};
-      return result;
-    }
-    else if(CKov0Status == 1) // pi/mu
-    {
-      protoana::PossibleParticleCands result = {false,true,true,false,false};
-      return result;
-    }
-    else // kaon/proton
-    {
-      protoana::PossibleParticleCands result = {false,false,false,true,true};
-      return result;
-    }
-  }
-  else // 6 and 7 GeV
-  {
-    if(CKov0Status == 1 && CKov1Status == 1) // electron/muon/pion
-    {
-      protoana::PossibleParticleCands result = {true,true,true,false,false};
-      return result;
-    }
-    else if(CKov0Status == 1) // kaon
-    {
-      protoana::PossibleParticleCands result = {false,false,false,true,false};
-      return result;
-    }
-    else if(CKov1Status == 0)// proton
-    {
-      protoana::PossibleParticleCands result = {false,false,false,false,true};
-      return result;
-    }
-    else // Ckov0Status == 0 && CKov1Status == 1 not allowed
-    {
-      mf::LogWarning("protoana::ProtoDUNEBeamlineUtils::GetCherenkovParticleID_noCalib") << "Ckov0Status == 0 && CKov1Status == 1 shouldn't happen but did. Setting all PossibleParticleCands to false.";
-      protoana::PossibleParticleCands result = {false,false,false,false,false};
-      return result;
-    }
-  }
-}
-
-protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetTOFParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const{
-  protoana::PossibleParticleCands result = {false,false,false,false};
-  if (!beamevt.CheckIsMatched())
-  {
-    if(fStrictTOF)
-    {
-      result = {false,false,false,false,false};
-      return result;
-    }
-    else
-    {
-      result = {true,true,true,true,true};
-      return result;
-    }
-  }
-  const float TOF = beamevt.GetTOF();
-  if(TOF >= fTOFElectronCuts.at(0) && TOF <= fTOFElectronCuts.at(1))
-  {
-    result.electron = true;
-  }
-  if(TOF >= fTOFMuonCuts.at(0) && TOF <= fTOFMuonCuts.at(1))
-  {
-    result.muon = true;
-  }
-  if(TOF >= fTOFPionCuts.at(0) && TOF <= fTOFPionCuts.at(1))
-  {
-    result.pion = true;
-  }
-  if(TOF >= fTOFKaonCuts.at(0) && TOF <= fTOFKaonCuts.at(1))
-  {
-    result.kaon = true;
-  }
-  if(TOF >= fTOFProtonCuts.at(0) && TOF <= fTOFProtonCuts.at(1))
-  {
-    result.proton = true;
-  }
-  
-  return result;
-}
-
-protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetBeamlineParticleID_noCalib(beam::ProtoDUNEBeamEvent const & beamevt, const float beamEnergyGeV) const {
-  const auto tof = GetTOFParticleID_noCalib(beamevt,beamEnergyGeV);
-  const auto chkov = GetCherenkovParticleID_noCalib(beamevt,beamEnergyGeV);
-  auto result = tof && chkov;
-  result.electron = chkov.electron; // disregard tof for electrons
   return result;
 }
 
