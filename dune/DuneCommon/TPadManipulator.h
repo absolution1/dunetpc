@@ -273,6 +273,9 @@ public:
   // Direction: B=bottom, T=top, L=left, R=right, "" to show nothing.
   int showGraphOverflow(std::string sopt ="BTLR", int imrk =38, int icol =1);
 
+  // Return the under/overflow graph.
+  TGraph* flowGraph() { return m_flowGraph.get(); }
+
   // Remove all lines.
   int clearLines();
 

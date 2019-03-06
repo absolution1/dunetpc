@@ -45,7 +45,7 @@ physics:
  }
   filters:
  {
- filter:   @local::standard_protodunebeamlinefilter_Proton_7GeV
+ filter:   @local::standard_protodunebeamlinefilter_Proton_1GeV
 
   }
 
