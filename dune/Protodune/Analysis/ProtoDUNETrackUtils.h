@@ -51,7 +51,7 @@ namespace protoana {
     /// Get the hits from a given reco track
     const std::vector<const recob::Hit*> GetRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
     /// Get the hits from a given reco track from a specific plane
-    const std::vector<const recob::Hit*> GetRecoTrackHitsFromPlane(const recob::Track &track, art::Event const &evt, const std::string trackModule, int planeID) const;
+    const std::vector<const recob::Hit*> GetRecoTrackHitsFromPlane(const recob::Track &track, art::Event const &evt, const std::string trackModule, unsigned int planeID) const;
     /// Get the number of hits from a given reco track
     unsigned int GetNumberRecoTrackHits(const recob::Track &track, art::Event const &evt, const std::string trackModule) const;
     /// Get the PID from a given track
