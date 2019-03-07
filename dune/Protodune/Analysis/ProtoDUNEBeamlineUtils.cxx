@@ -2,6 +2,7 @@
 
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <algorithm>
 #include "TVector3.h"
@@ -194,6 +195,7 @@ std::vector< recob::Track > protoana::ProtoDUNEBeamlineUtils::MakeTracks( art::E
 
 void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p){
   fBeamEventTag = p.get<art::InputTag>("BeamEventTag");
+  fUseCERNCalibSelection = p.get<bool>("UseCERNCalibSelection");
 
   //Tracking parameters
   fBeamX = p.get<double>("BeamX");
@@ -217,6 +219,11 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
   L3 = p.get<double>("L3");
   ///////////////////////
   
+  // Justin's stuff from BeamlineUtils
+  fMomentumScaleFactor = p.get<float>("MomentumScaleFactor"); 
+  fMomentumOffset = p.get<float>("MomentumOffset"); // GeV/c
+  fTOFScaleFactor = p.get<float>("TOFScaleFactor");
+  fTOFOffset = p.get<float>("TOFOffset"); // ns
 }
 
 double protoana::ProtoDUNEBeamlineUtils::GetPosition( short theFiber ){
@@ -417,6 +424,35 @@ double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2,
 }
 
 protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
+  return GetPIDCandidates_CERNCalib(beamevt,nominal_momentum);
+}
+
+protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates( art::Event const & evt, double nominal_momentum ){
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  for(size_t iBeamEvent=0; iBeamEvent < beamHand->size(); iBeamEvent++)
+  {
+    return GetPIDCandidates(beamHand->at(iBeamEvent),nominal_momentum);
+  }
+  return protoana::PossibleParticleCands();
+}
+
+
+std::vector< int > protoana::ProtoDUNEBeamlineUtils::GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
+  const auto& thePIDCands = GetPIDCandidates(beamevt, nominal_momentum);
+  std::vector< int > thePIDs = thePIDCands.getPDGCodes();
+  return thePIDs;
+}
+
+std::vector<int> protoana::ProtoDUNEBeamlineUtils::GetPID( art::Event const & evt, double nominal_momentum ){
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  for(size_t iBeamEvent=0; iBeamEvent < beamHand->size(); iBeamEvent++)
+  {
+    return GetPID(beamHand->at(iBeamEvent),nominal_momentum);
+  }
+  return std::vector<int>();
+}
+
+protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidates_CERNCalib( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
  
   PossibleParticleCands candidates;
   
@@ -452,17 +488,26 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
     }
 
     const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
+    if ( 
+        ((fUseCERNCalibSelection && tof < 105.) 
+            || (!fUseCERNCalibSelection && tof < 170.))
+        && high_pressure_status == 1 
+       ) {
       candidates.electron = true;
-
-    else if ( tof < 110. && high_pressure_status == 0 ){
+    }
+    else if ( 
+        ((fUseCERNCalibSelection && tof < 110.) 
+            || (!fUseCERNCalibSelection && tof < 170.))
+        && high_pressure_status == 0 ){
       candidates.muon = true;
       candidates.pion = true;
     }
-
-    else if ( tof > 110. && tof < 160. && high_pressure_status == 0 ) 
+    else if ( 
+        ((fUseCERNCalibSelection && tof > 110. && tof < 160.) 
+            || (!fUseCERNCalibSelection && tof > 170.))
+        && high_pressure_status == 0 ) {
       candidates.proton = true;
-
+    }
   }
   else if( nominal_momentum == 2. ){
     if( beamevt.GetTOFChan() == -1 ){
@@ -475,16 +520,26 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
     }
 
     const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
+    if ( 
+        ((fUseCERNCalibSelection && tof < 105.) 
+            || (!fUseCERNCalibSelection && tof < 160.))
+        && high_pressure_status == 1 
+       ) {
       candidates.electron = true;
-
-    else if ( tof < 103. && high_pressure_status == 0 ){
+    }
+    else if ( 
+        ((fUseCERNCalibSelection && tof < 103.) 
+            || (!fUseCERNCalibSelection && tof < 160.))
+        && high_pressure_status == 0 ){
       candidates.muon = true;
       candidates.pion = true;
     }
-    else if ( tof > 103. && tof < 160. && high_pressure_status == 0 )
+    else if ( 
+        ((fUseCERNCalibSelection && tof > 103. && tof < 160.) 
+            || (!fUseCERNCalibSelection && tof > 160.))
+        && high_pressure_status == 0 ) {
       candidates.proton = true;
-   
+    }
   }
   else if( nominal_momentum == 3. ){
     if( high_pressure_status == -1 || low_pressure_status == -1 ){
@@ -527,114 +582,10 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
  
 }
 
-std::vector< int > protoana::ProtoDUNEBeamlineUtils::GetPID( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
-  std::vector< int > thePIDs;
-
-  //Check if momentum is in valid set
-  std::vector< double > valid_momenta = {1., 2., 3., 6., 7.};
-  if( std::find(valid_momenta.begin(), valid_momenta.end(), nominal_momentum) == valid_momenta.end() ){
-    std::cout << "Reference momentum " << nominal_momentum << " not valid" << std::endl;
-    return thePIDs;
-  }
-
-  //Get the high/low pressure Cerenkov info
-  int high_pressure_status, low_pressure_status; 
-  
-  std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
-  if( beamevt.GetCKov0Pressure() < beamevt.GetCKov1Pressure() ){
-    high_pressure_status = beamevt.GetCKov1Status();
-    low_pressure_status = beamevt.GetCKov0Status();
-  }
-  else{
-    high_pressure_status = beamevt.GetCKov0Status();
-    low_pressure_status = beamevt.GetCKov1Status();
-  }
-  
-
-  if( nominal_momentum == 1. ){
-    if( beamevt.GetTOFChan() == -1 ){
-      std::cout << "TOF invalid" << std::endl;
-      return thePIDs;
-    }
-    if( high_pressure_status == -1 ){
-      std::cout << "High pressure status invalid" << std::endl;
-      return thePIDs;
-    }
-
-    const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
-      thePIDs.push_back(kElectron);
-
-    else if ( tof < 110. && high_pressure_status == 0 ){
-      thePIDs.push_back(kMuon);
-      thePIDs.push_back(kPion);
-    }
-
-    else if ( tof > 110. && tof < 160. && high_pressure_status == 0 ) 
-      thePIDs.push_back(kProton);
-
-  }
-  else if( nominal_momentum == 2. ){
-    if( beamevt.GetTOFChan() == -1 ){
-      std::cout << "TOF invalid" << std::endl;
-      return thePIDs;
-    }
-    if( high_pressure_status == -1 ){
-      std::cout << "High pressure Cerenkov status invalid" << std::endl;
-      return thePIDs;
-    }
-
-    const double & tof = beamevt.GetTOF();
-    if      ( tof < 105. && high_pressure_status == 1 ) 
-      thePIDs.push_back(kElectron);
-
-    else if ( tof < 103. && high_pressure_status == 0 ){
-      thePIDs.push_back(kMuon);
-      thePIDs.push_back(kPion);
-    }
-    else if ( tof > 103. && tof < 160. && high_pressure_status == 0 )
-      thePIDs.push_back(kProton);
-   
-  }
-  else if( nominal_momentum == 3. ){
-    if( high_pressure_status == -1 || low_pressure_status == -1 ){
-      std::cout << "At least one Cerenkov status invalid " << std::endl;
-      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
-      return thePIDs;
-    }
-    else if ( low_pressure_status == 1 && high_pressure_status == 1 ) 
-      thePIDs.push_back(kElectron);
-
-    else if ( low_pressure_status == 0 && high_pressure_status == 1 ){
-      thePIDs.push_back(kMuon);
-      thePIDs.push_back(kPion);
-    }
-
-    else{ // low, high = 0, 0
-      thePIDs.push_back(kProton);
-      thePIDs.push_back(kKaon); 
-    }
-  }
-  else if( nominal_momentum == 6. || nominal_momentum == 7. ){
-    if( high_pressure_status == -1 || low_pressure_status == -1 ){
-      std::cout << "At least one Cerenkov status invalid " << std::endl;
-      std::cout << "High: " << high_pressure_status << " Low: " << low_pressure_status << std::endl;
-      return thePIDs;
-    }
-    else if ( low_pressure_status == 1 && high_pressure_status == 1 ){
-      thePIDs.push_back(kElectron);
-      thePIDs.push_back(kMuon);
-      thePIDs.push_back(kPion);
-    }
-    else if ( low_pressure_status == 0 && high_pressure_status == 1 ) 
-      thePIDs.push_back(kKaon); 
-
-    else  // low, high = 0, 0
-      thePIDs.push_back(kProton);
-  }
-
+std::vector< int > protoana::ProtoDUNEBeamlineUtils::GetPID_CERNCalib( beam::ProtoDUNEBeamEvent const & beamevt, double nominal_momentum ){
+  const auto& thePIDCands = GetPIDCandidates_CERNCalib(beamevt, nominal_momentum);
+  std::vector< int > thePIDs = thePIDCands.getPDGCodes();
   return thePIDs;
- 
 }
 
 double protoana::ProtoDUNEBeamlineUtils::ComputeTOF( int pdg, double momentum ){
@@ -649,7 +600,6 @@ double protoana::ProtoDUNEBeamlineUtils::ComputeTOF( int pdg, double momentum ){
   }
 
   double m = particle_mass[pdg];
-  double fTOFDist = 28.575;
   double tof = fTOFDist / c;
   tof = tof / sqrt( 1. - m*m / (momentum*momentum + m*m) );
 
@@ -668,7 +618,142 @@ double protoana::ProtoDUNEBeamlineUtils::ComputeMomentum( int pdg, double tof ){
   }
 
   double m = particle_mass[pdg];
-  double fTOFDist = 28.575;
   return m * sqrt(1. / ( 1. - fTOFDist*fTOFDist / ( 1.e-18*tof*tof*c*c ) )  - 1. );
 
 }
+
+// ----------------------------------------------------------------------------
+bool protoana::ProtoDUNEBeamlineUtils::IsGoodBeamlineTrigger(art::Event const & evt) const{
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    if(beamEvent.GetTimingTrigger() == 12 && beamEvent.CheckIsMatched()) return true;
+  }
+  return false;
+}
+
+std::vector<double> protoana::ProtoDUNEBeamlineUtils::GetBeamlineMass(art::Event const & evt) const{
+  std::vector<double> result;
+  
+  const auto & massSquareds = GetBeamlineMassSquared(evt);
+  for (const auto & massSquared: massSquareds)
+  {
+    const auto & mass = std::sqrt(massSquared);
+    result.push_back(mass);
+  }
+  return result;
+}
+
+std::vector<double> protoana::ProtoDUNEBeamlineUtils::GetBeamlineMassSquared(art::Event const & evt) const{
+  std::vector<double> tofs;
+  std::vector<double> momenta;
+  std::vector<double> result;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tofs.push_back(beamEvent.GetTOF());
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    for(size_t iMom=0; iMom < beamMomenta.size(); iMom++)
+    {
+      momenta.push_back(beamEvent.GetRecoBeamMomentum(iMom));
+    }
+  }
+  for(const auto & tof : tofs)
+  {
+    for(const auto & momentum : momenta)
+    {
+        const double massSquared = std::pow(momentum*fMomentumScaleFactor-fMomentumOffset,2) 
+                    * ((tof*fTOFScaleFactor-fTOFOffset)/(fTOFDist/c*1e9) - 1.);
+        result.push_back(massSquared);
+    }
+  }
+  return result;
+}
+
+const std::tuple<double,double,int,int> protoana::ProtoDUNEBeamlineUtils::GetBeamlineVars(art::Event const & evt) const {
+
+  double momentum = -99999.;
+  double tof = -99999.;
+  int ckov0 = -99999.;
+  int ckov1 = -99999.;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tof = beamEvent.GetTOF();
+    ckov0 = beamEvent.GetCKov0Status();
+    ckov1 = beamEvent.GetCKov1Status();
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
+    {
+        momentum = beamEvent.GetRecoBeamMomentum(0);
+    }
+  }
+  return std::make_tuple(momentum, tof, ckov0, ckov1);
+}
+
+const std::tuple<double,double,int,int,int,double,double,int,int,bool> protoana::ProtoDUNEBeamlineUtils::GetBeamlineVarsAndStatus(art::Event const & evt) const {
+
+  double momentum = -99999.;
+  double tof = -99999.;
+  int tofChannel = -99999.;
+  int ckov0 = -99999.;
+  int ckov1 = -99999.;
+  double ckov0Pressure = -99999.;
+  double ckov1Pressure = -99999.;
+  int timingTrigger = -99999.;
+  int BITrigger = -99999.;
+  bool areBIAndTimingMatched = false;
+
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  auto beamHand = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
+  if(beamHand.isValid())
+  {
+    art::fill_ptr_vector(beamVec, beamHand);
+  }
+  for(size_t iBeamEvent=0; iBeamEvent < beamVec.size(); iBeamEvent++)
+  {
+    const beam::ProtoDUNEBeamEvent& beamEvent = *(beamVec.at(iBeamEvent));
+    tof = beamEvent.GetTOF();
+    tofChannel = beamEvent.GetTOFChan();
+    ckov0 = beamEvent.GetCKov0Status();
+    ckov1 = beamEvent.GetCKov1Status();
+    ckov0Pressure = beamEvent.GetCKov0Pressure();
+    ckov1Pressure = beamEvent.GetCKov1Pressure();
+    timingTrigger = beamEvent.GetTimingTrigger();
+    BITrigger = beamEvent.GetBITrigger();
+    areBIAndTimingMatched = beamEvent.CheckIsMatched();
+
+    const std::vector<double> & beamMomenta = beamEvent.GetRecoBeamMomenta();
+    if (beamMomenta.size() > 0)
+    {
+        momentum = beamEvent.GetRecoBeamMomentum(0);
+    }
+    break;
+  }
+  return std::make_tuple(momentum, tof, tofChannel, ckov0, ckov1, ckov0Pressure, ckov1Pressure, timingTrigger, BITrigger, areBIAndTimingMatched);
+}
+

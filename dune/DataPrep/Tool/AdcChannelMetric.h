@@ -18,7 +18,8 @@
 //   Metric - Name of the plotted metric. This can be the name of any
 //            metadata field or any of the following:
 //              pedestal 
-//              pedestalRms
+//              pedestalDiff - pedestal - (pedestal for first event)
+//              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
@@ -33,8 +34,6 @@
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//              If the name has the field "%STATUS%, then separate histograms are also
-//              made for bad, noisy and good (not bad or noisy) channels.
 //              If the HistName name does not include "EVENT%", then only summary histogram
 //              and plot are created.
 //   HistTitle - Histogram title
@@ -44,6 +43,7 @@
 //   PlotFileName - Name for output plot file.
 //                  If blank, no file is written.
 //                  Existing file with the same name is replaced.
+//   PlotUsesStatus - If nonzero plot colors indicate channel status (good, bad noisy).
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
@@ -120,13 +120,13 @@ private:
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   Name           m_PlotFileName;
+  int            m_PlotUsesStatus;
   Name           m_RootFileName;
 
   // Channel ranges.
   IndexRangeVector m_crs;
   
   // Flag indicating separate plots should be made based on status.
-  bool m_useStatus;
   bool m_doSummary;
 
   // ADC string tool.

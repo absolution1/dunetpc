@@ -103,6 +103,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
 
 DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelPlotter::view: ";
+  if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << acd.channel << endl;
   DataMap res;
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
@@ -216,7 +217,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   if ( pfile != nullptr ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Writing to  " << pfile->GetName() << endl;
     for ( TH1* ph : hists ) ph->Write();
-    if ( m_LogLevel >= 3 ) {
+    if ( m_LogLevel >= 4 ) {
       cout << myname << "File listing: " << endl;
       pfile->ls();
     }
@@ -230,7 +231,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
 //**********************************************************************
 
 DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
-  const string myname = "AdcChannelPlotter::view: ";
+  const string myname = "AdcChannelPlotter::viewMap: ";
   DataMap resall;
   bool doPlots = m_PlotFileName.size();
   Index nx = 1;
@@ -262,6 +263,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
       for ( string type : m_HistTypes ) {
         bool isRaw = type == "raw";
         if ( mans.find(type) == mans.end() ) {
+          if ( m_LogLevel >= 3 ) cout << "Creating new top-level plot of type " << type << "." << endl;
           TPadManipulator& man = mans[type];
           man.setCanvasSize(1400, 1000);
           if ( isRaw || type == "prepared" ) {
@@ -289,6 +291,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         Index& iplt = iplts[type];
         Index nplt = nplts[type];
         TH1* ph = res.getHist(type);
+        if ( m_LogLevel >= 3 ) cout << "  Adding subplot " << iplt << " for type " << type << "." << endl;
         TPadManipulator& man = *mans[type].man(iplt);
         man.add(ph, "hist", false);
         if ( type == "raw" || type == "prepared" ) {
@@ -302,9 +305,9 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
               cout << myname << "Invalid raw PlotSigOpt = " << m_PlotSigOpt << ". Using fixed." << endl;
             }
           } else if ( m_PlotSigOpt == "full" ) {
-            Index dSigMin = m_PlotSigMin;
-            Index gSigMin = res.getFloat("plotSigMin_" + type);
-            Index gSigMax = res.getFloat("plotSigMax_" + type) + 0.999;
+            int dSigMin = m_PlotSigMin;
+            int gSigMin = res.getFloat("plotSigMin_" + type);
+            int gSigMax = res.getFloat("plotSigMax_" + type) + 0.999;
             if ( gSigMax - gSigMin < dSigMin ) {
               while ( gSigMax - gSigMin < dSigMin ) {
                 if ( gSigMin > 0 ) --gSigMin;
@@ -333,6 +336,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         man.addAxis();
         if ( ++iplt >= nplt ) {
+          if ( m_LogLevel >= 3 ) cout << "Printing plot " << pfnames[type] << endl;
           for ( string type : m_HistTypes ) mans[type].print(pfnames[type]);
           mans.erase(type);
           pfnames.erase(type);

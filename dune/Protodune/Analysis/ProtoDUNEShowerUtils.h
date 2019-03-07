@@ -36,10 +36,11 @@ namespace protoana {
     std::vector<const recob::PCAxis*> GetRecoShowerPCAxis(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
     // Estimate the energy of a shower from its hits
     std::vector<double> EstimateEnergyFromHitCharge(const std::vector<const recob::Hit*> &hits, calo::CalorimetryAlg caloAlg);
-  private:
-
     /// If the shower.ID() isn't filled we must find the actual shower index ourselves
     int GetShowerIndex(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
+
+  private:
+
 
   };
 
