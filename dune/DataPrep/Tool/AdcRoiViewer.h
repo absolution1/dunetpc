@@ -93,6 +93,8 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
+//     bins - # bins if this is a # channels vs. variable plot
+//            if 0, then variable vs channel is plotted
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
 //            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
