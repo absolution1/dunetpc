@@ -329,12 +329,6 @@
    <fraction n="0.998" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="0.002"   ref="Air"/>
   </material>
-  <material name="vm2000" formula="vm2000">
-    <D value="1.2" unit="g/cm3"/>
-    <composite n="2" ref="carbon"/>
-    <composite n="4" ref="hydrogen"/>
-  </material>
-
 
 </materials>
 <solids>
@@ -64016,483 +64010,483 @@
      <solidref ref="ArapucaAcceptanceWindow"/>
    </volume>
    <volume name="volArapuca_0-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_0-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_1-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_2-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_3-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_4-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_5-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_6-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_7-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_8-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_9-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_10-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-0">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-1">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-2">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-3">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-4">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-5">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-6">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-7">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-8">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
    <volume name="volArapuca_11-9">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
 

@@ -447,7 +447,7 @@ sub gen_Define()
 # Create the <define> fragment file name, 
 # add file to list of fragments,
 # and open it
-    $DEF = "dune10kt_v3_Def" . $suffix . ".gdml";
+    $DEF = "dune10kt_v4_Def" . $suffix . ".gdml";
     push (@gdmlFiles, $DEF);
     $DEF = ">" . $DEF;
     open(DEF) or die("Could not open file $DEF for writing");
@@ -495,7 +495,7 @@ sub gen_Materials()
 # Create the <materials> fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $MAT = "dune10kt_v3_Materials" . $suffix . ".gdml";
+    $MAT = "dune10kt_v4_Materials" . $suffix . ".gdml";
     push (@gdmlFiles, $MAT);
     $MAT = ">" . $MAT;
 
@@ -513,12 +513,6 @@ my $asmix = <<EOF;
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
   </material>
-  <material name="vm2000" formula="vm2000">
-    <D value="1.2" unit="g/cm3"/>
-    <composite n="2" ref="carbon"/>
-    <composite n="4" ref="hydrogen"/>
-  </material>
-
 EOF
 
     # add the general materials used anywere
@@ -556,7 +550,7 @@ sub gen_TPC
 # Create the TPC fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $TPC = "dune10kt_v3_TPC_${_[3]}" . $suffix . ".gdml";
+    $TPC = "dune10kt_v4_TPC_${_[3]}" . $suffix . ".gdml";
     push (@gdmlFiles, $TPC);
     $TPC = ">" . $TPC;
     open(TPC) or die("Could not open file $TPC for writing");
@@ -1309,7 +1303,7 @@ sub gen_Cryostat()
 # Create the cryostat fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $CRYO = "dune10kt_v3_Cryostat" . $suffix . ".gdml";
+    $CRYO = "dune10kt_v4_Cryostat" . $suffix . ".gdml";
     push (@gdmlFiles, $CRYO);
     $CRYO = ">" . $CRYO;
     open(CRYO) or die("Could not open file $CRYO for writing");
@@ -1541,7 +1535,7 @@ for($i=0 ; $i<$nAPAs ; $i++){
 for($p=0 ; $p<10 ; $p++){
 print CRYO <<EOF;
    <volume name="volArapuca_$i\-$p">
-     <materialref ref="vm2000"/>
+     <materialref ref="G10"/>
      <solidref ref="ArapucaWalls"/>
    </volume>
 EOF
@@ -2094,7 +2088,7 @@ sub gen_Enclosure()
 # Create the detector enclosure fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $ENCL = "dune10kt_v3_DetEnclosure" . $suffix . ".gdml";
+    $ENCL = "dune10kt_v4_DetEnclosure" . $suffix . ".gdml";
     push (@gdmlFiles, $ENCL);
     $ENCL = ">" . $ENCL;
     open(ENCL) or die("Could not open file $ENCL for writing");
@@ -2209,7 +2203,7 @@ sub gen_World()
 # Create the WORLD fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $WORLD = "dune10kt_v3_World" . $suffix . ".gdml";
+    $WORLD = "dune10kt_v4_World" . $suffix . ".gdml";
     push (@gdmlFiles, $WORLD);
     $WORLD = ">" . $WORLD;
     open(WORLD) or die("Could not open file $WORLD for writing");
