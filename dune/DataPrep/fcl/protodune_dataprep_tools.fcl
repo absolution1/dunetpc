@@ -90,13 +90,15 @@ tools.pdsp_timingMitigate: {
 tools.adcCorrectUndershoot: {
   tool_type: UndershootCorr
   LogLevel: 1
-  CorrectFlag: [ false, false, true]             # U, V, and Collection
-  TDecayConst: [ 0.99955, 0.99955, 0.99955 ]     # numbers so far tuned for collection plane
-  FSubConst:   [ 0.0005,  0.0005,  0.0005 ]      # and copied for U and V
-  LCA:         [ 1980,    1980,    1980 ]
-  LCB:         [ -0.08277,  -0.08277, -0.08277  ]
-  LCC:         [ -2043.65, -2043.65 , -2043.65 ]
-  LCD:         [ 1.03, 1.03,  1.03 ]
+  CorrectFlag:     [    false,     false,     true ]  # Apply correction (U, V, and Collection)
+  SignalThreshold: [       20,        20,       20 ]  # Above this value, ticks are deweighted in fit
+  TDecayConst:     [  0.99955,   0.99955,  0.99955 ]  # Corrn params (tuned for collection plane)
+  FSubConst:       [   0.0005,    0.0005,   0.0005 ]  #  "
+  RestoreBaseline: [    false,     false,    false ]  # If true, add back medians to restore orig baseline
+  LCA:             [     1980,      1980,     1980 ]  # Params used in fit to determine the ped and
+  LCB:             [ -0.08277,  -0.08277, -0.08277 ]  # and initial pedestal offset
+  LCC:             [ -2043.65, -2043.65 , -2043.65 ]  #  "
+  LCD:             [     1.03,      1.03,     1.03 ]  #  "
 }
 
 
@@ -420,12 +422,14 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
   ChannelLineModulus: 2560
   ChannelLinePattern: [800, 1600, 2080]
   PlotSizeX: 1400
   PlotSizeY:  500
+  PlotUsesStatus: 1
   RootFileName: ""
 }
 
@@ -433,12 +437,14 @@ pdtps_template: {
 pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
   ChannelLineModulus: 2560
   ChannelLinePattern: [2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
   PlotSizeX: 1400
   PlotSizeY:  500
+  PlotUsesStatus: 1
   RootFileName: ""
 }
 
@@ -484,26 +490,55 @@ tools.pdtps_adcChannelNrawPlotter.PlotFileName: "chmet_nraw_%CRNAME%_run%0RUN%_e
 tools.pdtps_adcChannelPedestalPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPlotter.Metric: pedestal
 tools.pdtps_adcChannelPedestalPlotter.MetricMax: 4096
-tools.pdtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%STATUS%_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC count]"
 tools.pdtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Digit pedestal for each TPS channel.
+tools.pdtps_adcChannelPedestalInpPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalInpPlotter.Metric: inputPedestal
+tools.pdtps_adcChannelPedestalInpPlotter.MetricMax: 4096
+tools.pdtps_adcChannelPedestalInpPlotter.HistName: "hchpd%CRNAME%_pedinp_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalInpPlotter.HistTitle: "ADC input pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalInpPlotter.MetricLabel: "Pedestal [ADC count]"
+tools.pdtps_adcChannelPedestalInpPlotter.PlotFileName: "chmet_pedinp_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Undershoot correction pedestal for each TPS channel.
+tools.pdtps_adcChannelPedestalUscPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalUscPlotter.Metric: uscPedestal
+tools.pdtps_adcChannelPedestalUscPlotter.MetricMin: -25
+tools.pdtps_adcChannelPedestalUscPlotter.MetricMax:  25
+tools.pdtps_adcChannelPedestalUscPlotter.HistName: "hchpd%CRNAME%_pedusc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalUscPlotter.HistTitle: "ADC USC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalUscPlotter.MetricLabel: "Pedestal offset [ADC count]"
+tools.pdtps_adcChannelPedestalUscPlotter.PlotFileName: "chmet_pedusc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Undershoot correction pedestal for each TPS channel.
+tools.pdtps_adcChannelPedestalUscPlotter: @local::pdtps_template
+tools.pdtps_adcChannelPedestalUscPlotter.Metric: uscPedestalOffset
+tools.pdtps_adcChannelPedestalUscPlotter.MetricMin: -25
+tools.pdtps_adcChannelPedestalUscPlotter.MetricMax:  25
+tools.pdtps_adcChannelPedestalUscPlotter.HistName: "hchpd%CRNAME%_pedoffusc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalUscPlotter.HistTitle: "ADC USC pedestal offsets for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalUscPlotter.MetricLabel: "Pedestal offset [ADC count]"
+tools.pdtps_adcChannelPedestalUscPlotter.PlotFileName: "chmet_pedoffusc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal diff for each TPS channel.
 tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -25
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  25
-tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpdd%CRNAME%_ped_%STATUS%_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpd%CRNAME%_peddiff_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricLabel: "#DeltaPedestal [ADC count]"
-tools.pdtps_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+tools.pdtps_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_peddiff_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal noise for each TPS channel.
 tools.pdtps_adcChannelPedestalNoisePlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalNoisePlotter.Metric: pedestalRms
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricMax: 14
-tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%STATUS%_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalNoisePlotter.MetricLabel: "Pedestal noise [ADC count]"
 tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -512,7 +547,7 @@ tools.pdtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME
 tools.pdtps_adcChannelPedestalOrfPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalOrfPlotter.Metric: "fitPedFractionLow+fitPedFractionHigh"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedfracout_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedfracout_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalOrfPlotter.MetricLabel: "Out-of-range fraction"
 tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -521,7 +556,7 @@ tools.pdtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_ru
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.Metric: fitPedPeakBinFraction
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedpeakfrac_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.HistName: "hchpd%CRNAME%_pedpeakfrac_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.HistTitle: "ADC pedestal peak bin fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.MetricLabel: "Peak fraction"
 tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "chmet_pedfrac_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -530,7 +565,7 @@ tools.pdtps_adcChannelPedestalPeakBinFractionPlotter.PlotFileName: "chmet_pedfra
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.Metric: fitPedPeakBinExcess
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricMax: 1.0
-tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_%STATUS%_pedpeakexc_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedpeakexc_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -539,7 +574,7 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%
 tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 14
-tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%STATUS%_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC count]"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -548,7 +583,7 @@ tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNA
 tools.pdtps_adcChannelPedestalRawTailPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalRawTailPlotter.Metric: rawTailFraction
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricMax: 0.5
-tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_%STATUS%_rawtail_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
@@ -589,15 +624,49 @@ tools.pdwz_adcChannelPedestalPeakBinExcessPlotter.ChannelLinePattern: @local::pd
 
 # Pedestal
 tools.pdwzs_adcChannelPedestalPlotter: @local::tools.pdwz_adcChannelPedestalPlotter
-tools.pdwzs_adcChannelPedestalPlotter.HistName: "hchspd%CRNAME%_ped_%STATUS%_%0RUN%%"
+tools.pdwzs_adcChannelPedestalPlotter.HistName: "hchspd%CRNAME%_ped_%0RUN%"
 tools.pdwzs_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdwzs_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%.png"
 
 # Pedestal diff
 tools.pdwzs_adcChannelPedestalDiffPlotter: @local::tools.pdwz_adcChannelPedestalDiffPlotter
-tools.pdwzs_adcChannelPedestalDiffPlotter.HistName: "hchspd%CRNAME%_pedd_%STATUS%_%0RUN%%"
+tools.pdwzs_adcChannelPedestalDiffPlotter.HistName: "hchspd%CRNAME%_pedd_%0RUN%"
 tools.pdwzs_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdwzs_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run%0RUN%.png"
+
+################################################################################
+
+pdmet_template: {
+  tool_type: AdcChannelMetric
+  LogLevel: 1
+  MetricBins: 100
+  MetricMin: 0.0
+  ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
+  ChannelLineModulus: 2560
+  ChannelLinePattern: [800, 1600, 2080]
+  PlotSizeX:  700
+  PlotSizeY:  500
+  PlotUsesStatus: 1
+  RootFileName: ""
+}
+
+# Pedestal for each TPS channel.
+tools.pdmet_adcChannelPedestalPlotter: @local::pdmet_template
+tools.pdmet_adcChannelPedestalPlotter.Metric: pedestal
+tools.pdmet_adcChannelPedestalPlotter.MetricMax: 4096
+tools.pdmet_adcChannelPedestalPlotter.HistName: "hpdmet%CRNAME%_ped_%0RUN%_%0EVENT%"
+tools.pdmet_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmet_adcChannelPedestalPlotter.MetricLabel: "Pedestal [ADC count]"
+tools.pdmet_adcChannelPedestalPlotter.PlotFileName: "pdmet_ped_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Pedestal noise for each TPS channel.
+tools.pdmet_adcChannelPedestalNoisePlotter: @local::pdmet_template
+tools.pdmet_adcChannelPedestalNoisePlotter.Metric: pedestalRms
+tools.pdmet_adcChannelPedestalNoisePlotter.MetricMax: 50
+tools.pdmet_adcChannelPedestalNoisePlotter.HistName: "hpdmet%CRNAME%_pednoise_%0RUN%_%0EVENT%"
+tools.pdmet_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmet_adcChannelPedestalNoisePlotter.MetricLabel: "Pedestal noise [ADC count]"
+tools.pdmet_adcChannelPedestalNoisePlotter.PlotFileName: "pdmet_pednoise_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 ################################################################################
 # Tickmod viewer.

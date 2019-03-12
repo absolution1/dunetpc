@@ -18,32 +18,34 @@
 //   Metric - Name of the plotted metric. This can be the name of any
 //            metadata field or any of the following:
 //              pedestal 
-//              pedestalRms
+//              pedestalDiff - pedestal - (pedestal for first event)
+//              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
-//   ChannelRanges - Names of channel ranges to display.
+//   ChannelRanges - Channel ranges for which metric channel histograms and plots are made.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
 //                   If the list is empty, all are plotted.
 //   MetricMin - Minimum for the metric axis.
 //   MetricMax - Maximum for the metric axis.
+//   MetricBins - If nonzero, # channels vs metric is plotted with this binning instead of
+//                metric vs channel.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//              If the name has the field "%STATUS%, then separate histograms are also
-//              made for bad, noisy and good (not bad or noisy) channels.
 //              If the HistName name does not include "EVENT%", then only summary histogram
 //              and plot are created.
 //   HistTitle - Histogram title
-//   MetricLabel - Histogram lable for the metric axis
+//   MetricLabel - Histogram label for the metric axis
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
 //                  If blank, no file is written.
 //                  Existing file with the same name is replaced.
+//   PlotUsesStatus - If nonzero plot colors indicate channel status (good, bad noisy).
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
@@ -112,6 +114,7 @@ private:
   IndexVector    m_ChannelCounts;
   float          m_MetricMin;
   float          m_MetricMax;
+  Index          m_MetricBins;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   Name           m_HistName;
@@ -120,13 +123,13 @@ private:
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   Name           m_PlotFileName;
+  int            m_PlotUsesStatus;
   Name           m_RootFileName;
 
   // Channel ranges.
   IndexRangeVector m_crs;
   
   // Flag indicating separate plots should be made based on status.
-  bool m_useStatus;
   bool m_doSummary;
 
   // ADC string tool.

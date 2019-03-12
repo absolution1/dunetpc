@@ -20,6 +20,7 @@
 //   % ((SUNIT))% --> add preceding space to this if sunit is not blank
 //   %[SUNIT]% --> "[sunit]" or "" if sunit is empty
 //   % [SUNIT]% --> " [sunit]" or "" if sunit is empty
+//   Same patterns with ASUNIT substitute sunit-tick
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build

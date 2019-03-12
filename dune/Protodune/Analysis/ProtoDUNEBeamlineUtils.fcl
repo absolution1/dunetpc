@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_protodunebeamlineutils:
 {
    BeamEventTag:            "beamevent"
+   UseCERNCalibSelection:   false
 
    #RotateMonitorXZ:   -10.3
    RotateMonitorYZ:    11.7
@@ -33,6 +34,17 @@ standard_protodunebeamlineutils:
    L2: 1.69472
    L3: 2.11666
 
+   ##################################
+   ### For Justin Hugon's old cuts ##
+   ##################################
+
+   StrictTOF:               true # strict/permissive on events with invalid TOF data
+   StrictCherenkov:         true # strict/permissive on events with invalid Cherenkov data
+
+   MomentumScaleFactor:     1.
+   MomentumOffset:          0. # GeV/c
+   TOFScaleFactor:          1.
+   TOFOffset:               59.6 # ns
 }
 
 END_PROLOG

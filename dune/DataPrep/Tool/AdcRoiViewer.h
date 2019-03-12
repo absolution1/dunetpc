@@ -18,6 +18,7 @@
 //             FitOpt - ROI fitting option
 //                        0 - no fit
 //                        1 - fit with coldelecReponse
+//          StartTime - Offset for time meaurements in sec since 1970.
 //   PulserStepCharge - Charge per unit step in a pulser run
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
@@ -46,6 +47,8 @@
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
+//            sigArea - Raw area
+//            sigWidth - Raw width
 //            fitHeight - Height from ROI fit
 //            fitHeightNeg - Negative of height from ROI fit
 //            fitHeightGain - Height/(pulser charge)
@@ -90,6 +93,8 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                zero - Set the error to zero
+//     bins - # bins if this is a # channels vs. variable plot
+//            if 0, then variable vs channel is plotted
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
 //            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
@@ -197,16 +202,19 @@ public:
     NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
                                  // The first file name is used for plots with multiple hists.
     FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
+    IndexByNameMap sumHistChannels; // Channel for each sum histogram
     // Channel summary histograms.
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
     NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
     NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
-    IndexByNameMap chanSumHistChannels; // Channel for each chansum name
+    IndexByNameMap chanSumHistTypes;    // Type (0=var vs. chan, 1=#ROI vs var)
     NameMap chanSumPlotNames;           // Plot name indexed by chansum name
     FloatMap chanSumPlotYMins;          // Min value of y for plot.
     FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
     NameMap chanSumPlotYOpts;           // Y scaling option for plot ("", "pamp")
+    IndexByNameMap chanSumChaBegin;     // First channel for each histogram.
+    IndexByNameMap chanSumChaEnd;       // Last channel for each histogram.
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
@@ -226,6 +234,9 @@ public:
     IndexByIndexMap channelStatuses;     // Status indexed by channel number
     // Run data.
     RunData runData;
+    // Count doView calls.
+    Index callCount =0;                   // Total
+    IndexByIndexMap eventCallCount;       // For each event. Size of this is the event count.
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -283,6 +294,7 @@ private:
   Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
+  time_t m_StartTime;
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;

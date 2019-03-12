@@ -3,6 +3,7 @@
 #include "opticaldetectormodules_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
 
+#include "tools_dune.fcl"
 
 process_name: OpDetReco
 
@@ -13,7 +14,9 @@ services:
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   @table::protodune_data_reco_services
-  message:      @local::standard_info 
+  message:      @local::standard_info
+
+  IFDH:              {} 
 }
 
 #services.OpDigiProperties:        @local::dunefd_opdigiproperties
