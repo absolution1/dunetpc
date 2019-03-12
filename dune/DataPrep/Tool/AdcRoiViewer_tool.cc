@@ -154,8 +154,8 @@ Index AdcRoiViewer::State::getChannelStatus(Index icha) const {
 
 Index AdcRoiViewer::State::getChannelStatus(Name hnam) const {
   const Name myname = "AdcRoiViewer::State::getChannelStatus: ";
-  IndexByNameMap::const_iterator ichc = chanSumHistChannels.find(hnam); 
-  if ( ichc == chanSumHistChannels.end() ) {
+  IndexByNameMap::const_iterator ichc = sumHistChannels.find(hnam); 
+  if ( ichc == sumHistChannels.end() ) {
     cout << myname << "WARNING: Channel not found for chansum histogram " << hnam << endl;
     return 0;
   }
@@ -333,6 +333,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name crname0  = psh.get<Name>("cr");     // Name of the channel range for this histogram
     Name plname  = psh.get<Name>("plot");    // Name of the plot file for this histogram
     Name spran   = psh.get<Name>("pran");    // Plot range with format "ymin:ymax"
+    Index nbins  = psh.get<Index>("nbins");   // # bins for #ROI vs var plot. 0 means var vs chan plot.;
     if ( hnam0.size() == 0 ) {
       cout << myname << "ERROR: Channel summary histogram name is missing." << endl;
       continue;
@@ -404,7 +405,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     if ( crname0 == "list" ) crns = m_ChannelRanges;
     else crns.push_back(crname0);
     for ( Name crname : crns ) {
-      if ( m_LogLevel >= 2 ) cout << myname << "Creating channel summary histograms for channel range " << crname << endl;
+      if ( m_LogLevel >= 2 ) cout << myname << "Creating channel summary histograms for channel range "
+                                  << crname << endl;
       IndexRange cr = m_pChannelRangeTool->get(crname);
       if ( ! cr.isValid() ) {
         cout << myname << "ERROR: Channel range " << crname << " not found." << endl;
@@ -428,9 +430,17 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       smttl.replace("%CRLABEL2%", cr.label(2));
       Name httl = smttl.string();
       setPlotLabels(httl);
-      TH1* phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
-      phf->GetXaxis()->SetTitle("Channel");
-      phf->GetYaxis()->SetTitle(yttl.c_str());
+      TH1* phf = nullptr;
+      if ( nbins == 0 ) {
+        phf = new TH1F(hnam.c_str(), httl.c_str(), cr.size(), cr.begin, cr.end);
+        phf->GetXaxis()->SetTitle("Channel");
+        phf->GetYaxis()->SetTitle(yttl.c_str());
+      } else {
+        phf = new TH1F(hnam.c_str(), httl.c_str(), nbins, plotYMin, plotYMax);
+        phf->GetXaxis()->SetTitle(yttl.c_str());
+        phf->GetYaxis()->SetTitle("# channels");
+        phf->SetLineWidth(2);
+      }
       phf->SetDirectory(nullptr);
       phf->SetStats(0);
       if ( cr.size() < 400 ) phf->SetLineWidth(2);
@@ -446,12 +456,15 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       setPlotLabels(plname);
       getState().chanSumHists[hnam] = phf;
       getState().chanSumHistTemplateNames[hnam] = vhnam;
+      getState().chanSumHistTypes[hnam] = nbins > 0;
       getState().chanSumHistVariableTypes[hnam] = valType;
       getState().chanSumHistErrorTypes[hnam] = etype;
       getState().chanSumPlotNames[hnam] = plname;
       if ( havePlotYMin ) getState().chanSumPlotYMins[hnam] = plotYMin;
       if ( havePlotYMax ) getState().chanSumPlotYMaxs[hnam] = plotYMax;
       if ( havePlotYMin || havePlotYMax ) getState().chanSumPlotYOpts[hnam] = plotYOpt;
+      getState().chanSumChaBegin[hnam] = cr.begin;
+      getState().chanSumChaEnd[hnam] = cr.end;
       if ( m_LogLevel >= 3 ) {
         cout << myname << "  Histogram name: " << hnam << endl;
         cout << myname << "      Value type: " << valType << endl;
@@ -1206,6 +1219,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         ph->GetListOfFunctions()->AddLast(pf);
         ph->GetListOfFunctions()->SetOwner(kTRUE);
       }
+      getState().sumHistChannels[hnam] = acd.channel;
       getState().sumHists[hnam] = ph;
       getState().sumFitNames[hnam] = fitName;
       if ( plotNameTemplate.size() ) {
@@ -1216,7 +1230,6 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
           getState().sumPlotWidths[hnam] = hin0.plotWidth;
         }
       }
-      getState().chanSumHistChannels[hnam] = acd.channel;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filling summary histogram " << hnam << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
@@ -1535,6 +1548,7 @@ void AdcRoiViewer::fillChanSumHists() const {
     }
     Name vartype = getState().getChanSumHistVariableType(hnam);
     Name errtype = getState().getChanSumHistErrorType(hnam);
+    bool isDist = getState().chanSumHistTypes[hnam];
     if ( vartype.size() == 0 ) {
       cout << myname << "ERROR: Variable type name not found for " << hnam << endl;
       continue;
@@ -1545,8 +1559,12 @@ void AdcRoiViewer::fillChanSumHists() const {
     Index ncha = 0;
     Index nchaGood = 0;
     int logthresh = 3;
-    for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
-      Index icha = ph->GetBinCenter(ibin);
+    Index icha1 = getState().chanSumChaBegin[hnam];
+    Index icha2 = getState().chanSumChaEnd[hnam];
+    //for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
+    //  Index icha = ph->GetBinCenter(ibin);
+    Index ibin = 0;
+    for ( Index icha=icha1; icha<icha2; ++icha ) {
       acd.channel = icha;
       Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       //Index chanStat = getState().getChannelStatus(hnam);
@@ -1616,11 +1634,13 @@ void AdcRoiViewer::fillChanSumHists() const {
         }
       }
       if ( ph->GetEntries() == 0 ) {
-        Name ylabOld = ph->GetYaxis()->GetTitle();
-        Name ylabNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, ylabOld);
-        if ( ylabNew != ylabOld ) {
-          if ( m_LogLevel >= 3 ) cout << "Setting y-label for " << hnam << " to \"" << ylabNew << "\"." << endl;
-          ph->GetYaxis()->SetTitle(ylabNew.c_str());
+        TAxis* paxis = isDist ? ph->GetXaxis() : ph->GetYaxis();
+        Name vlabOld = paxis->GetTitle();
+        Name vlabNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, vlabOld);
+        if ( vlabNew != vlabOld ) {
+          if ( m_LogLevel >= 3 ) cout << "Setting variable label for " << hnam
+                                      << " to \"" << vlabNew << "\"." << endl;
+          paxis->SetTitle(vlabNew.c_str());
         }
         Name httlOld = ph->GetTitle();
         Name httlNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, httlOld);
@@ -1629,8 +1649,12 @@ void AdcRoiViewer::fillChanSumHists() const {
           ph->SetTitle(httlNew.c_str());
         }
       }
-      ph->SetBinContent(ibin, val);
-      if ( haveErr ) ph->SetBinError(ibin, dval);
+      if ( isDist ) {
+        ph->Fill(val);
+      } else {
+        ph->SetBinContent(++ibin, val);
+        if ( haveErr ) ph->SetBinError(ibin, dval);
+      }
       ++nchaGood;
     }
     if ( nchaGood < ncha ) {
@@ -1676,71 +1700,77 @@ void AdcRoiViewer::writeChanSumPlots() const {
     Name pnam = getState().getChanSumPlotName(hnam);
     if ( pnam.size() == 0 ) continue;
     if ( m_LogLevel >= 2 ) cout << myname << "Hist:Plot name: " << hnam << ":" << pnam << endl;
-    TPadManipulator* pman = new TPadManipulator(1400, 500);
-    pman->add(ph, "p", false);
+    bool isDist = getState().chanSumHistTypes[hnam];
+    Index wpadx = isDist ? 700 : 1400;
+    Index wpady = 500;
+    TPadManipulator* pman = new TPadManipulator(wpadx, wpady);
+    Name plotOpt = isDist ? "hist" : "p";
+    pman->add(ph, plotOpt, false);
     pman->addAxis();
     pman->showUnderflow();
     pman->showOverflow();
-    bool doRange = false;
-    float ymin = ph->GetMinimum();
-    float ymax = ph->GetMaximum();
-    Name yopt;
-    if ( getState().chanSumPlotYMins.find(hnam) != getState().chanSumPlotYMins.end() ) {
-      ymin = getState().chanSumPlotYMins[hnam];
-      doRange = true;
-    }
-    if ( getState().chanSumPlotYMaxs.find(hnam) != getState().chanSumPlotYMaxs.end() ) {
-      ymax = getState().chanSumPlotYMaxs[hnam];
-      doRange = true;
-    }
-    if ( doRange ) {
-      Name yopt = getState().chanSumPlotYOpts[hnam];
-      double yfac = 0.0;
-      if ( yopt == "pamp") {
-        const RunData& rdat = getState().runData;
-        if ( rdat.havePulserAmplitude() ) {
-          yfac = rdat.pulserAmplitude();
-        } else {
-          cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+    if ( ! isDist ) {
+      bool doRange = false;
+      float ymin = ph->GetMinimum();
+      float ymax = ph->GetMaximum();
+      Name yopt;
+      if ( getState().chanSumPlotYMins.find(hnam) != getState().chanSumPlotYMins.end() ) {
+        ymin = getState().chanSumPlotYMins[hnam];
+        doRange = true;
+      }
+      if ( getState().chanSumPlotYMaxs.find(hnam) != getState().chanSumPlotYMaxs.end() ) {
+        ymax = getState().chanSumPlotYMaxs[hnam];
+        doRange = true;
+      }
+      if ( doRange ) {
+        Name yopt = getState().chanSumPlotYOpts[hnam];
+        double yfac = 0.0;
+        if ( yopt == "pamp") {
+          const RunData& rdat = getState().runData;
+          if ( rdat.havePulserAmplitude() ) {
+            yfac = rdat.pulserAmplitude();
+          } else {
+            cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+          }
+        } else if ( yopt == "pampg14") {
+          const RunData& rdat = getState().runData;
+          if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
+            yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
+          } else {
+            cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
+          }
+        } else if ( yopt == "nevt") {
+          yfac = getState().eventCallCount.size();
         }
-      } else if ( yopt == "pampg14") {
-        const RunData& rdat = getState().runData;
-        if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
-          yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
-        } else {
-          cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
+        if ( yfac != 0.0 ) {
+          ymin *= yfac;
+          ymax *= yfac;
         }
-      } else if ( yopt == "nevt") {
-        yfac = getState().eventCallCount.size();
-      }
-      if ( yfac != 0.0 ) {
-        ymin *= yfac;
-        ymax *= yfac;
-      }
-      // If ymin > ymax and ymin > 0, then we center histogram on median and use width = ymin.
-      if ( ymin > ymax && ymin > 0.0 ) {
-        int nval = ph->GetNbinsX();
-        FloatVector tmpvals(nval);
-        for ( int ival=0; ival<nval; ++ival ) tmpvals[ival] = ph->GetBinContent(ival+1);
-        std::sort(tmpvals.begin(), tmpvals.end());
-        float ymed = 0.5*(tmpvals[(nval-1)/2] + tmpvals[nval/2]);
-        float width = ymin;
-        ymin = ymed - 0.5*width;
-        ymax = ymin + width;
-      }
-      if ( ymax > ymin ) {
-        if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
-        pman->setRangeY(ymin, ymax);
-        TH1* php = pman->hist();
-        double del = 1.e-4*(ymax -ymin);
-        // Put points on the page.
-        for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
-          if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
-          if ( php->GetBinContent(ibin) < ymin ) php->SetBinContent(ibin, ymin+del);
+        // If ymin > ymax and ymin > 0, then we center histogram on median and use width = ymin.
+        if ( ymin > ymax && ymin > 0.0 ) {
+          int nval = ph->GetNbinsX();
+          FloatVector tmpvals(nval);
+          for ( int ival=0; ival<nval; ++ival ) tmpvals[ival] = ph->GetBinContent(ival+1);
+          std::sort(tmpvals.begin(), tmpvals.end());
+          float ymed = 0.5*(tmpvals[(nval-1)/2] + tmpvals[nval/2]);
+          float width = ymin;
+          ymin = ymed - 0.5*width;
+          ymax = ymin + width;
+        }
+        if ( ymax > ymin ) {
+          if ( m_LogLevel >= 2 ) cout << myname << "Setting plot range to (" << ymin << ", " << ymax << ")" << endl;
+          pman->setRangeY(ymin, ymax);
+          TH1* php = pman->hist();
+          double del = 1.e-4*(ymax -ymin);
+          // Put points on the page.
+          for ( int ibin=1; ibin<php->GetNbinsX(); ++ibin ) {
+            if ( php->GetBinContent(ibin) > ymax ) php->SetBinContent(ibin, ymax-del);
+            if ( php->GetBinContent(ibin) < ymin ) php->SetBinContent(ibin, ymin+del);
+          }
         }
       }
     }
-    bool highlightBadChannels = true;
+    bool highlightBadChannels = ! isDist;
     if ( highlightBadChannels ) {
       TH1* php = pman->hist();
       LineColors cols;

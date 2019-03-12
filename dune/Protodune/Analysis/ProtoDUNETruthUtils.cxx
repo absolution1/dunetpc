@@ -237,8 +237,8 @@ double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo:
 	auto const& simide = tslice.second;
 	// Loop over energy deposits
 	for(auto const& eDep : simide){
-	  if(eDep.trackID != trackid) continue;
-	  edep += eDep.energy;
+	  if(eDep.trackID == trackid || eDep.trackID == -trackid)
+	    edep += eDep.energy;
 	}
       }
     }
