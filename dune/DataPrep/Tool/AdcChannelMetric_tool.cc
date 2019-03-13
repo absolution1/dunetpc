@@ -84,7 +84,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   bool toolNotFound = false;
   const IndexRangeTool* pcrt = nullptr;
   for ( Name crn : m_ChannelRanges.size() ? m_ChannelRanges : NameVector(1, "") ) {
-    if ( crn.size() == 0 || crn == "all" ) {
+    if ( crn.size() == 0 ) {
       m_crs.emplace_back("all", 0, 0, "All");
     } else {
       if ( pcrt == nullptr && !toolNotFound ) {
@@ -424,6 +424,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   Name htitl = ph->GetTitle();
   // # channels vs. metric
   if ( m_MetricBins > 0 ) {
+    if ( m_LogLevel >= 2 ) cout << "Plotting # channels vs. metric. Count is " << mets.size() << endl;
     for ( MetricMap::value_type imet : mets ) {
       float met = imet.second.value;
       ph->Fill(met);
@@ -442,6 +443,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     Name slaby = ph->GetYaxis()->GetTitle();
     TGraphVector graphs(ngraph, nullptr);
     TGraphErrorsVector egraphs(ngraph, nullptr);
+    if ( m_LogLevel >= 2 ) cout << "Plotting metric vs. channel. Count is " << mets.size() << endl;
     for ( Index igra=0; igra<ngraph; ++igra ) {
       string gname = hname;
       string gtitl = htitl;

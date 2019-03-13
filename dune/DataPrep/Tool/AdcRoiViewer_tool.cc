@@ -353,7 +353,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       continue;
     }
     const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
-    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
+    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end()
+         && etype.substr(0, 3) != "rms" ) {
       cout << myname << "ERROR: Channel summary histogram has invalid error type: " << etype << endl;
       continue;
     }
@@ -1059,6 +1060,10 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     if      ( varx == "sigArea" )            vals = dm.getFloatVector("roiSigAreas");
     else if ( varx == "sigAreaNeg" )         vals = dm.getFloatVector("roiSigAreas");
     else if ( varx == "sigWidth" )          ivals = dm.getIntVector("roiNTicks");
+    else if ( varx == "sigTick0" )          ivals = dm.getIntVector("roiTick0s");
+    else if ( varx == "sigTick0Pulser" )    ivals = dm.getIntVector("roiTick0s");
+    else if ( varx == "sigTickMax" )        ivals = dm.getIntVector("roiTickMaxs");
+    else if ( varx == "sigTickMaxPulser" )  ivals = dm.getIntVector("roiTickMaxs");
     else if ( varx == "fitHeight"    )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightNeg" )       vals = dm.getFloatVector("roiFitHeights");
     else if ( varx == "fitHeightGain" )      vals = dm.getFloatVector("roiFitHeights");
@@ -1095,7 +1100,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       for ( float& val : vals ) val = fmod(val, pulserPeriod);
     }
-    if ( varx == "fitToffPulser" || varx == "fitToffPulserMod10" ) {
+    if ( varx == "fitToffPulser" || varx == "fitToffPulserMod10" ||
+         varx == "sigTick0Pulser" || varx == "sigTickMaxPulser" ) {
       if ( ! haveTickOffsetPulserMod ) {
         cout << myname << "WARNING: Cannot evaluate " << varx << " without timing offset and pulser period" << endl;
         continue;
@@ -1231,7 +1237,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
         }
       }
     }
-    if ( m_LogLevel >= 3 ) cout << myname << "Filling summary histogram " << hnam << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "Filling summary histogram " << hnam
+                                << ". Fill count is " << vals.size() << endl;
     FloatVector csds = dm.getFloatVector("roiFitChiSquareDofs");
     IntVector fstats = dm.getIntVector("roiFitStats");
     bool checkFit = varx.substr(0,3) == "fit";
@@ -1548,6 +1555,13 @@ void AdcRoiViewer::fillChanSumHists() const {
     }
     Name vartype = getState().getChanSumHistVariableType(hnam);
     Name errtype = getState().getChanSumHistErrorType(hnam);
+    double errmin = 0.0;
+    if ( errtype.substr(0,3) == "rms" && errtype.size() > 3 ) {
+      string serrmin = errtype.substr(3);
+      istringstream ssermin(serrmin);
+      ssermin >> errmin;
+      errtype = "rms";
+    }
     bool isDist = getState().chanSumHistTypes[hnam];
     if ( vartype.size() == 0 ) {
       cout << myname << "ERROR: Variable type name not found for " << hnam << endl;
@@ -1615,8 +1629,9 @@ void AdcRoiViewer::fillChanSumHists() const {
         haveErr = false;
       } else if ( errtype == "zero" ) {
         dval = 0.0;
-      } else if ( errtype == "rms" ) {
+      } else if ( errtype.substr(0,3) == "rms" ) {
         dval = phvar->GetRMS();
+        if ( dval < errmin ) dval = errmin;
       } else if ( errtype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;

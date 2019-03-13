@@ -426,7 +426,7 @@ pdtps_template: {
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
   ChannelLineModulus: 2560
-  ChannelLinePattern: [800, 1600, 2080]
+  ChannelLinePattern: [0, 800, 1600, 2080]
   PlotSizeX: 1400
   PlotSizeY:  500
   PlotUsesStatus: 1
