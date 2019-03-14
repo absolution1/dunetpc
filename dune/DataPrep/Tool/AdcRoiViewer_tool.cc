@@ -1021,6 +1021,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     tdat.subrun = acd.subRun;
     tdat.event = acd.event;
     tdat.channel = acd.channel;
+    tdat.fembID = acd.fembID;
     tdat.triggerClock = acd.triggerClock;
     TimeOffsetTool::Offset off = m_pTickOffsetTool->offset(tdat);
     if ( off.isValid() ) {

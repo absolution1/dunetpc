@@ -681,26 +681,29 @@ tools.pd_tickOffset_sep26: {
   LogLevel: 1
   TpcTickPhase: 1
   Unit: tick
+  FembScaleIds: []
+  FembScaleValues: []
   RunDataTool: ""
 }
 
 # 15nov2018 dla: It appears the phase is 23 for the pulser runs taken Oct 25.
-tools.pd_tickOffset_oct25: {
-  tool_type: TimingRawDecoderOffsetTool
-  LogLevel: 1
-  TpcTickPhase: 23
-  Unit: tick
-  RunDataTool: ""
-}
+tools.pd_tickOffset_oct25: @local::tools.pd_tickOffset_sep26
+tools.pd_tickOffset_oct25.TpcTickPhase: 23
 
 tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
+
+# Add timing scale correction for FEMB302.
+# March 2019 from run 6690 (DLA)
+tools.pd_tickOffsetCorr: @local::tools.pd_tickOffset
+tools.pd_tickOffsetCorr.FembScaleIds: [1]
+tools.pd_tickOffsetCorr.FembScaleValues: [0.999293]
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {
   tool_type: AdcTickModViewer
   LogLevel: 1
   TickModPeriod: 497
-  TimeOffsetTool: pd_tickOffset
+  TimeOffsetTool: pd_tickOffsetCorr
   FitSigmaMin:  2.0
   FitSigmaMax: 20.0
   HistName: "adctm_ch%0CHAN%_tm%0TICKMOD%"
