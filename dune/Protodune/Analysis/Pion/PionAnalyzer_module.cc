@@ -104,6 +104,8 @@ private:
   double trackDirX, trackDirY, trackDirZ;
   double newDirX, newDirY, newDirZ;
   int beamTrackID;
+  std::vector< int > daughter_trackID;
+  std::vector< int > daughter_showerID;
   std::vector< int >  stitchTrackID;
   std::vector< double > stitch_cos_theta;
   std::vector< float > stitch_dQdX;
@@ -116,7 +118,15 @@ private:
   std::vector< double > dEdX, dQdX, resRange;
   std::vector< float > calibrated_dEdX;
   std::vector< std::vector< double > > daughter_dEdX, daughter_dQdX, daughter_resRange;
+  std::vector< double > daughter_startX, daughter_endX;
+  std::vector< double > daughter_startY, daughter_endY;
+  std::vector< double > daughter_startZ, daughter_endZ;
+  std::vector< double > daughter_shower_startX;
+  std::vector< double > daughter_shower_startY;
+  std::vector< double > daughter_shower_startZ;
   std::vector< double > daughter_len;
+
+  int nTrackDaughters, nShowerDaughters;
 
   int type;
 
@@ -392,7 +402,14 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
       for( size_t i = 0; i < showerDaughters.size(); ++i ){
         std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
+        daughter_showerID.push_back( showerDaughters[i]->ID() );
+        daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
+        daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
+        daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
       }
+
+      nTrackDaughters = trackDaughters.size();
+      nShowerDaughters = showerDaughters.size();
 
 
       //Calorimetry 
@@ -417,20 +434,33 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       //Go through the track-like daughters and save their calorimetry
       for( size_t i = 0; i < trackDaughters.size(); ++i ){
         auto daughterTrack = trackDaughters.at(i);
+        
+        daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
+        daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
+        daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
+        daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
+        daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
+        daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+
+        daughter_trackID.push_back( daughterTrack->ID() );
+
+
         std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
         auto dummy_dQdx = dummy_calo[0].dQdx();
         auto dummy_dEdx = dummy_calo[0].dEdx();
         auto dummy_Range = dummy_calo[0].ResidualRange();
  
         daughter_dQdX.push_back( std::vector<double>() );   
-        daughter_dEdX.push_back( std::vector<double>() );
+//        daughter_dEdX.push_back( std::vector<double>() );
         daughter_resRange.push_back( std::vector<double>() );
 
         for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
           daughter_dQdX.back().push_back( dummy_dQdx[i] );
-          daughter_dEdX.back().push_back( dummy_dEdx[i] );
+//          daughter_dEdX.back().push_back( dummy_dEdx[i] );
           daughter_resRange.back().push_back( dummy_Range[i] );
         }
+        std::vector<float> cal_daughter_dEdX = trackUtil.CalibrateCalorimetry( *daughterTrack, evt, fTrackerTag, fCalorimetryTag, fCalorimetryParameters);
+        daughter_dEdX.push_back( std::vector<double>(cal_daughter_dEdX.begin(), cal_daughter_dEdX.end() ) );
       }
 
       protoana::BrokenTrack theBrokenTrack = trackUtil.IsBrokenTrack(  *thisTrack, evt, fTrackerTag, fCalorimetryTag, fBrokenTrackParameters, fCalorimetryParameters );
@@ -487,6 +517,8 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("newDirY", &newDirY);
   fTree->Branch("newDirZ", &newDirZ);
   fTree->Branch("beamTrackID", &beamTrackID);
+  fTree->Branch("daughter_trackID", &daughter_trackID);
+  fTree->Branch("daughter_showerID", &daughter_showerID);
   fTree->Branch("stitchTrackID", &stitchTrackID);
   fTree->Branch("stitch_cos_theta", &stitch_cos_theta);
   fTree->Branch("stitch_dQdX", &stitch_dQdX);
@@ -505,6 +537,17 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("daughter_dEdX", &daughter_dEdX);
   fTree->Branch("daughter_resRange", &daughter_resRange);
   fTree->Branch("daughter_len", &daughter_len);
+  fTree->Branch("daughter_startX", &daughter_startX);
+  fTree->Branch("daughter_startY", &daughter_startY);
+  fTree->Branch("daughter_startZ", &daughter_startZ);
+  fTree->Branch("daughter_endX", &daughter_endX);
+  fTree->Branch("daughter_endY", &daughter_endY);
+  fTree->Branch("daughter_endZ", &daughter_endZ);
+  fTree->Branch("daughter_shower_startX", &daughter_shower_startX);
+  fTree->Branch("daughter_shower_startY", &daughter_shower_startY);
+  fTree->Branch("daughter_shower_startZ", &daughter_shower_startZ);
+  fTree->Branch("nTrackDaughters", &nTrackDaughters);
+  fTree->Branch("nShowerDaughters", &nShowerDaughters);
   fTree->Branch("nProton_truth", &nProton_truth);
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
@@ -543,9 +586,23 @@ void pionana::PionAnalyzer::reset()
   nPiMinus_truth = 0;
   PDG_truth = 0;
 
+  nTrackDaughters = -1;
+  nShowerDaughters = -1;
+
   dQdX.clear();
   dEdX.clear();
   calibrated_dEdX.clear();
+  daughter_startX.clear();
+  daughter_startY.clear();
+  daughter_startZ.clear();
+  daughter_endX.clear();
+  daughter_endY.clear();
+  daughter_endZ.clear();
+
+  daughter_shower_startX.clear();
+  daughter_shower_startY.clear();
+  daughter_shower_startZ.clear();
+
   resRange.clear();
 
   daughter_dQdX.clear();
@@ -554,6 +611,8 @@ void pionana::PionAnalyzer::reset()
   daughter_len.clear();
 
   beamTrackID = -1;
+  daughter_trackID.clear();
+  daughter_showerID.clear();
 
   if( stitchTrackID.size() ){
     stitchTrackID.clear();
