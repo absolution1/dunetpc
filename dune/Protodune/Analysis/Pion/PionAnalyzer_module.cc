@@ -129,6 +129,8 @@ private:
   int nTrackDaughters, nShowerDaughters;
 
   int type;
+  double check_beam_endZ, check_beam_startZ;
+  int nBeamParticles;
 
   std::string fCalorimetryTag;
   
@@ -142,6 +144,9 @@ private:
   double fBrokenTrackZ_low, fBrokenTrackZ_high;
   double fStitchTrackZ_low, fStitchTrackZ_high;
   double fStitchXTol, fStitchYTol;
+
+  double good_startZ, good_startY, good_startX;
+  double delta_startZ, delta_startY, delta_startX;
 
   fhicl::ParameterSet fCalorimetryParameters;
   fhicl::ParameterSet fBrokenTrackParameters;
@@ -169,6 +174,12 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fStitchTrackZ_high( p.get<double>("StitchTrackZ_high") ),
   fStitchXTol( p.get<double>("StitchXTol") ),
   fStitchYTol( p.get<double>("StitchYTol") ),
+  good_startZ( p.get<double>("good_startZ") ),
+  good_startY( p.get<double>("good_startY") ),
+  good_startX( p.get<double>("good_startX") ),
+  delta_startZ( p.get<double>("delta_startZ") ),
+  delta_startY( p.get<double>("delta_startY") ),
+  delta_startX( p.get<double>("delta_startX") ),
 
   fCalorimetryParameters( p.get< fhicl::ParameterSet > ("CalorimetryParameters") ),
   fBrokenTrackParameters( p.get< fhicl::ParameterSet > ("BrokenTrackParameters") )
@@ -198,17 +209,22 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
   // Get all of the PFParticles, by default from the "pandora" product
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+  std::vector< art::Ptr<recob::PFParticle> > recoVec;
+  art::fill_ptr_vector(recoVec, recoParticles);
 
   std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+  nBeamParticles = beamParticles.size();
 
   if(beamParticles.size() == 0){
     std::cerr << "We found no beam particles for this event... moving on" << std::endl;
     return;
   }
 
-  // We can now look at these particles
-  for(const recob::PFParticle* particle : beamParticles){
+  std::cout << "Found " << nBeamParticles << " beamParticles" << std::endl;
 
+  // We can now look at these particles
+//  for(const recob::PFParticle* particle : beamParticles){
+  const recob::PFParticle* particle = beamParticles.at(0);
     const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
     const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
     if(thisTrack != 0x0){
@@ -220,6 +236,53 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       type = 11;
     }
 
+
+
+    if( thisTrack ){
+      if( thisTrack->Trajectory().Start().Z() > thisTrack->Trajectory().End().Z() ){
+        check_beam_startZ = thisTrack->Trajectory().End().Z();  
+        check_beam_endZ = thisTrack->Trajectory().Start().Z();  
+      }
+      else{
+        check_beam_endZ = thisTrack->Trajectory().End().Z();  
+        check_beam_startZ = thisTrack->Trajectory().Start().Z();  
+      }
+
+      if( ( check_beam_startZ > good_startZ + delta_startZ ) || ( check_beam_startZ < good_startZ - delta_startZ ) ){
+        std::cout << "Found track outside of good start" << thisTrack->ID() << std::endl;
+        //Look for a new beam candidate
+        for( auto newParticle : recoVec ){
+          const recob::Track * newTrack = pfpUtil.GetPFParticleTrack(*newParticle,evt,fPFParticleTag,fTrackerTag);  
+          
+          if( newTrack ){
+            double newStartZ = newTrack->Trajectory().Start().Z();
+            double newEndZ = newTrack->Trajectory().End().Z();
+            double newStartY = newTrack->Trajectory().Start().Y();
+            double newEndY = newTrack->Trajectory().End().Y();
+            double newStartX = newTrack->Trajectory().Start().X();
+            double newEndX = newTrack->Trajectory().End().X();
+            std::cout << "Checking track " << newTrack->ID() << std::endl;
+            std::cout << "Start: " << newStartZ << " " << newStartY << " " << newStartX << std::endl;
+            std::cout << "End: " << newEndZ << " " << newEndY << " " << newEndX << std::endl;
+
+            if( ( newStartZ < good_startZ + delta_startZ ) &&  (newStartZ > good_startZ - delta_startZ ) 
+            &&  ( newStartY < good_startY + delta_startY ) &&  (newStartY > good_startY - delta_startY )
+            &&  ( newStartX < good_startX + delta_startX ) &&  (newStartX > good_startX - delta_startX ) ){
+              //Found another particle within my well-defined beam entrance  
+              thisTrack = newTrack;
+              break;
+            }
+            else if( ( newEndZ < good_startZ + delta_startZ ) &&  (newEndZ > good_startZ - delta_startZ ) 
+            &&       ( newEndY < good_startY + delta_startY ) &&  (newEndY > good_startY - delta_startY )
+            &&       ( newEndX < good_startX + delta_startX ) &&  (newEndX > good_startX - delta_startX ) ){
+              //Found another particle within my well-defined beam entrance, but it was reversed  
+              thisTrack = newTrack;
+              break;
+            }
+          }
+        }
+      }
+    }
 
     // Find the particle vertex. We need the tracker tag here because we need to do a bit of
     // additional work if the PFParticle is track-like to find the vertex. 
@@ -481,7 +544,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
       }
     } 
 
-  }
+  //}
   
 
   fTree->Fill();
@@ -504,6 +567,9 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("run", &run);
   fTree->Branch("event", &event);
   fTree->Branch("type", &type);
+  fTree->Branch("check_beam_startZ", &check_beam_startZ);
+  fTree->Branch("check_beam_endZ", &check_beam_endZ);
+  fTree->Branch("nBeamParticles", &nBeamParticles);
 
   fTree->Branch("beam_costheta", &beam_costheta);
   fTree->Branch("new_beam_costheta", &new_beam_costheta);
@@ -576,6 +642,9 @@ void pionana::PionAnalyzer::reset()
   combined_len = -1;
   broken_candidate = 0;
   type = -1;
+  check_beam_endZ = 0.;
+  check_beam_startZ = 0.;
+  nBeamParticles = 0;
   beam_costheta = -100;
   new_beam_costheta = -100;
 

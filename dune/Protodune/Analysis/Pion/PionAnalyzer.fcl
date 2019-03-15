@@ -40,6 +40,14 @@ pionanalysis:
   StitchXTol:         10
   StitchYTol:         10
 
+  ####Checking beam particle location
+  good_startZ:     30.
+  good_startY:     430.
+  good_startX:     -20.
+  delta_startZ:    5. 
+  delta_startY:    5. 
+  delta_startX:    5. 
+
   CalorimetryParameters: {
     PlaneID:      2
     betap:        0.212
