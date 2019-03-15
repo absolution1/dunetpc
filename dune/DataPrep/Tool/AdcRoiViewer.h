@@ -88,17 +88,22 @@
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
+//               rmsFF - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
 //              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
+//                 rms - Root GetRMS()
+//               rmsFF - max(Root GetRMS(), FF)
 //                zero - Set the error to zero
+//     bins - if > 0,  plot # channels vs. variable in nbins bins
+//            if 0, plot variable vs channel
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
 //            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
-//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//       cr - Name of the channel range to plot. If "list", each value in ChannelRanges.
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -200,16 +205,19 @@ public:
     NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
                                  // The first file name is used for plots with multiple hists.
     FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
+    IndexByNameMap sumHistChannels; // Channel for each sum histogram
     // Channel summary histograms.
     HistMap chanSumHists;
     NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
     NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
     NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
-    IndexByNameMap chanSumHistChannels; // Channel for each chansum name
+    IndexByNameMap chanSumHistTypes;    // Type (0=var vs. chan, 1=#ROI vs var)
     NameMap chanSumPlotNames;           // Plot name indexed by chansum name
     FloatMap chanSumPlotYMins;          // Min value of y for plot.
     FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
     NameMap chanSumPlotYOpts;           // Y scaling option for plot ("", "pamp")
+    IndexByNameMap chanSumChaBegin;     // First channel for each histogram.
+    IndexByNameMap chanSumChaEnd;       // Last channel for each histogram.
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
