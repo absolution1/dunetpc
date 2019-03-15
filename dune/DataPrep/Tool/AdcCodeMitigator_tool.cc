@@ -123,7 +123,7 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
     //  If threshold is set and samples are available, consider doing interpolation with
     // a varying slope but constant curvature.
     bool done = false;
-    if ( m_FixedCurvThresh > 0.0 && ( haveLo2 || haveHi2 ) ) {
+    if ( m_FixedCurvThresh > 0.0 && haveLo1 && haveHi1 && ( haveLo2 || haveHi2 ) ) {
       double ylo1 = acd.samples[isamLo1];
       double ylo2 = acd.samples[isamLo2];
       double yhi1 = acd.samples[isamHi1];

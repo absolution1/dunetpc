@@ -56,7 +56,7 @@ int test_AdcCodeMitigator(bool useExistingFcl =false, bool interp =false) {
       fout << "    InterpolateFlags: []" << endl;
     }
     fout << "    SkipFlags: []" << endl;
-    fout << "  FixedCurvThresh: 0.0" << endl;
+    fout << "    FixedCurvThresh: 0.0" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
