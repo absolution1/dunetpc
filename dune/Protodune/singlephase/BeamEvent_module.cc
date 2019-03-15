@@ -1694,6 +1694,12 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   
   beam::FBM fbm;
   fbm.ID = ID;
+  fbm.fibers = {};
+  std::uninitialized_fill( std::begin(fbm.fiberData), std::end(fbm.fiberData), 0. );
+  std::uninitialized_fill( std::begin(fbm.timeData), std::end(fbm.timeData), 0. );
+  fbm.timeStamp = 0.;
+  fbm.decoded = false;
+  fbm.active = std::vector<short>();
     
   //Use this just in case any are out of sync?
   //Shouldn't be, but just to be safe...
