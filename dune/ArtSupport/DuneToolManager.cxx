@@ -62,10 +62,10 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
           words.back() += ch;
         }
       }
-      // Find the flag "-c" and use following text as the fcl name.
+      // Find the flag "-c" or "--config" and use following text as the fcl name.
       for ( Index iwrd=0; iwrd<words.size(); ++iwrd ) {
         string word = words[iwrd];
-        if ( word == "-c" ) {
+        if ( word == "-c" || word == "--config") {
           if ( words.size() > iwrd+1 ) fclname = words[iwrd+1];
         } else if ( word.substr(0,2) == "-c" ) {
           fclname = word.substr(2);

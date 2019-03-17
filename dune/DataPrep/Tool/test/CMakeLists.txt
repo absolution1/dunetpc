@@ -243,6 +243,20 @@ cet_test(test_AdcThresholdSignalFinder
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcRoiShifter
+  SOURCES
+    test_AdcRoiShifter.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcRegularSignalFinder
   SOURCES
     test_AdcRegularSignalFinder.cxx
