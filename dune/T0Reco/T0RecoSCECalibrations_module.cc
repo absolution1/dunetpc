@@ -37,6 +37,7 @@
 // ROOT
 #include "TVector3.h"
 #include <TTree.h>
+#include "TTimeStamp.h"
 
 // C++
 #include <memory>
@@ -121,6 +122,10 @@ private:
 	double _pe_flash;
 	double _dt_flash;
 	double _dt_mc;
+	
+        double _evttime;
+        int _year_month_day;
+        int _hour_min_sec;
 	
 	double _length;
 	double _driftDir;
@@ -212,6 +217,10 @@ void T0RecoSCECalibrations::beginJob(){
 	_tree->Branch("_length", &_length, "length/D");
 	_tree->Branch("_TPC_edge",&_TPC_edge,"TPC_edge/B");
 	_tree->Branch("_driftDir",&_driftDir,"driftDir/I");
+	//Add branches for time of the track
+        _tree->Branch("_evttime", &_evttime, "evttime/D");
+        _tree->Branch("_year_month_day", &_year_month_day, "year_month_day/I");
+        _tree->Branch("_hour_min_sec", &_hour_min_sec, "hour_min_sec/I");
 	// Add branches for the first and last x, y, and z coordinates of the rc tracks and the mc tracks
 	_tree->Branch("_rc_xs",&_rc_xs,"rc_xs/D");
 	_tree->Branch("_rc_xs_corr",&_rc_xs_corr,"rc_xs/D");
@@ -358,6 +367,9 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 	_sister_track = 0;
 	_TPC_edge = false;
 	
+        _evttime = -9999.;
+        _year_month_day = -9999;
+        _hour_min_sec = -9999;
   
  		// get sorted points for the track object [assuming downwards going]
     	std::vector<TVector3> sorted_trk;
@@ -401,6 +413,22 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 		//auto t0 = T0_v.at(0);
 		//_rc_time = t0->Time();
 		
+    	
+        //Get Time and date
+        art::Timestamp ts = e.time();
+        TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+        _evttime = tts.AsDouble();
+
+
+        UInt_t year = 0;
+        UInt_t month = 0;
+        UInt_t day = 0;
+        _year_month_day = tts.GetDate(kTRUE,0,&year,&month,&day);
+
+        UInt_t hour = 0;
+        UInt_t min = 0;
+        UInt_t sec = 0;
+        _hour_min_sec = tts.GetTime(kTRUE,0,&hour,&min,&sec);
     	
     	SplitTrack(*track,sorted_trk);
     	std::vector<TVector3> top_trk = {sorted_trk.at(0), sorted_trk.at(1)};
@@ -474,6 +502,23 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
     _rc_ye = bottom.Y();
     _rc_ze = bottom.Z();
     _length = track->Length();
+
+        //Get Time and date
+        art::Timestamp ts = e.time();
+        TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+        _evttime = tts.AsDouble();
+    
+
+        UInt_t year = 0;
+        UInt_t month = 0;
+        UInt_t day = 0;
+        _year_month_day = tts.GetDate(kTRUE,0,&year,&month,&day);
+
+        UInt_t hour = 0;
+        UInt_t min = 0;
+        UInt_t sec = 0;
+        _hour_min_sec = tts.GetTime(kTRUE,0,&hour,&min,&sec);
+    
 
     // keep track of whether it goes thorugh the anode or cathode
     _anode = 0, _cathode = 0;
