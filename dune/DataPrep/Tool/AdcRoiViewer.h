@@ -87,6 +87,7 @@
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
 //                mean - Root GetMean()
+//                peak - Root GetMaximumBin()
 //                 rms - Root GetRMS()
 //               rmsFF - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
