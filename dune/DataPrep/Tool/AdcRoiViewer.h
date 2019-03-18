@@ -88,19 +88,22 @@
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
+//               rmsFF - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
 //              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
+//                 rms - Root GetRMS()
+//               rmsFF - max(Root GetRMS(), FF)
 //                zero - Set the error to zero
-//     bins - # bins if this is a # channels vs. variable plot
-//            if 0, then variable vs channel is plotted
+//     bins - if > 0,  plot # channels vs. variable in nbins bins
+//            if 0, plot variable vs channel
 //     pran - Range of y axis: ymin:ymax:yscal
 //            yscal = pamp: Multiply range by pulserAmplitude
 //            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
-//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//       cr - Name of the channel range to plot. If "list", each value in ChannelRanges.
 //
 // Output data map for view:
 //           int              roiRun - Run number

@@ -76,6 +76,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_doSummary(false),
+  m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
@@ -84,7 +85,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   bool toolNotFound = false;
   const IndexRangeTool* pcrt = nullptr;
   for ( Name crn : m_ChannelRanges.size() ? m_ChannelRanges : NameVector(1, "") ) {
-    if ( crn.size() == 0 || crn == "all" ) {
+    if ( crn.size() == 0 ) {
       m_crs.emplace_back("all", 0, 0, "All");
     } else {
       if ( pcrt == nullptr && !toolNotFound ) {
@@ -161,6 +162,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "      PlotUsesStatus: " << m_PlotUsesStatus << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
+  // We might have to move this to getMetric.
+  initialize();
 }
 
 //**********************************************************************
@@ -219,6 +222,7 @@ AdcChannelMetric::~AdcChannelMetric() {
     Index valmax = std::max(ncha, getState().callCount);
     if ( ncha ) w = log10(valmax) + 1.01;
     cout << myname << "Summary for metric " << m_Metric << endl;
+    cout << myname << "                          # inits: " << setw(w) << getState().initCount << endl;
     cout << myname << "                          # calls: " << setw(w) << getState().callCount << endl;
     cout << myname << "                         # events: " << setw(w) << getState().eventCount << endl;
     cout << myname << "                           # runs: " << setw(w) << getState().runCount << endl;
@@ -229,6 +233,25 @@ AdcChannelMetric::~AdcChannelMetric() {
     cout << myname << "    # channels with max # entries: " << setw(w) << nchaDataMax << endl;
   }
 
+}
+
+//**********************************************************************
+
+void AdcChannelMetric::initialize(bool force) {
+  const string myname = "AdcChannelMetric::initialize: ";
+  if ( !force && getState().initCount ) return;
+  if ( m_LogLevel >= 1 ) cout << myname << "Initializing " << m_crs.size()
+                              << " channel ranges." << endl;
+  // Loop over channels and fetch status for each.
+  Index ncha = 0;
+  for ( const IndexRange& ran : m_crs ) {
+    for ( Index icha =ran.begin; icha<ran.end; ++icha ) { 
+      channelStatus(icha);
+      ++ncha;
+    }
+  }
+  if ( m_LogLevel >= 1 ) cout << myname << "Initialized " << ncha << " channels." << endl;
+  ++getState().initCount;
 }
 
 //**********************************************************************
@@ -424,6 +447,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   Name htitl = ph->GetTitle();
   // # channels vs. metric
   if ( m_MetricBins > 0 ) {
+    if ( m_LogLevel >= 2 ) cout << "Plotting # channels vs. metric. Count is " << mets.size() << endl;
     for ( MetricMap::value_type imet : mets ) {
       float met = imet.second.value;
       ph->Fill(met);
@@ -442,6 +466,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     Name slaby = ph->GetYaxis()->GetTitle();
     TGraphVector graphs(ngraph, nullptr);
     TGraphErrorsVector egraphs(ngraph, nullptr);
+    if ( m_LogLevel >= 2 ) cout << "Plotting metric vs. channel. Count is " << mets.size() << endl;
     for ( Index igra=0; igra<ngraph; ++igra ) {
       string gname = hname;
       string gtitl = htitl;

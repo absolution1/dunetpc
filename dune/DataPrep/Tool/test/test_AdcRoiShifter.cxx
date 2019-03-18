@@ -1,17 +1,15 @@
-// test_TimingRawDecoderOffsetTool.cxx
+// test_AdcRoiShifter.cxx
 //
 // David Adams
-// May 2018
+// March 2019
 //
-// Test TimingRawDecoderOffsetTool.
+// Test AdcRoiShifter.
 
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <sstream>
+#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/TimeOffsetTool.h"
-#include "TH1F.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -19,15 +17,14 @@
 using std::string;
 using std::cout;
 using std::endl;
+using std::vector;
 using std::ofstream;
-using std::istringstream;
 using fhicl::ParameterSet;
-using Index = unsigned int;
 
 //**********************************************************************
 
-int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
-  const string myname = "test_TimingRawDecoderOffsetTool: ";
+int test_AdcRoiShifter(bool useExistingFcl =false) {
+  const string myname = "test_AdcRoiShifter: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -35,19 +32,15 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_TimingRawDecoderOffsetTool.fcl";
+  string fclfile = "test_AdcRoiShifter.fcl";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
-    fout << "    tool_type: TimingRawDecoderOffsetTool" << endl;
-    fout << "    LogLevel: 2" << endl;
-    fout << "    TpcTickPhase: 0" << endl;
-    fout << "    Unit: \"tick\"" << endl;
-    fout << "    FembScaleIds: []" << endl;
-    fout << "    FembScaleValues: []" << endl;
-    fout << "    RunDataTool: \"\"" << endl;
+    fout << "    tool_type: AdcRoiShifter" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    BinOffset: 3" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();
@@ -61,29 +54,34 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() >= 1 );
-
-  cout << myname << line << endl;
-  cout << myname << "Create time offset file." << endl;
-  Index run = 123;
-  Index evt = 2468;
-  Index daqVal = 369258;
+  assert( tm.toolNames().size() == 1 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto tot = tm.getPrivate<TimeOffsetTool>("mytool");
-  assert( tot != nullptr );
+  auto psgf = tm.getPrivate<AdcChannelTool>("mytool");
+  assert( psgf != nullptr );
+  auto psgfmod = tm.getPrivate<AdcChannelTool>("mytool");
+  assert( psgfmod != nullptr );
 
   cout << myname << line << endl;
-  cout << "Fetch the time offset in ticks." << endl;
-  TimeOffsetTool::Data dat;
-  dat.run = run;
-  dat.event = evt;
-  dat.triggerClock = daqVal;
-  TimeOffsetTool::Offset off = tot->offset(dat);
-  assert( off.isValid() );
-  assert( off.value == daqVal/25 );
-  assert( off.unit == "tick" );
+  cout << myname << "Create data and call tool." << endl;
+  AdcChannelData data;
+  vector<bool> sigdat = {false, true, false, false, true, false, false, false, true};
+  vector<bool> sigchk = {false, false, false, false, true, false, false, true, false};
+  data.signal = sigdat;
+  assert( data.signal == sigdat );
+  assert( data.signal != sigchk );
+
+  cout << myname << line << endl;
+  cout << myname << "Running tool." << endl;
+  DataMap resmod = psgfmod->update(data);
+  resmod.print();
+
+  cout << myname << line << endl;
+  cout << myname << "Checking results." << endl;
+  assert( resmod == 0 );
+  assert( data.signal != sigdat );
+  assert( data.signal == sigchk );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -97,14 +95,13 @@ int main(int argc, char* argv[]) {
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [keepFCL] [RUN]" << endl;
-      cout << "  If keepFCL = true, existing FCL file is used." << endl;
-      cout << "  If RUN is nonzero, the data for that run are displayed." << endl;
+      cout << "Usage: " << argv[0] << " [ARG]" << endl;
+      cout << "  If ARG = true, existing FCL file is used." << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_TimingRawDecoderOffsetTool(useExistingFcl);
+  return test_AdcRoiShifter(useExistingFcl);
 }
 
 //**********************************************************************
