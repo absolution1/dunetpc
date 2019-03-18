@@ -18,6 +18,7 @@
 //             FitOpt - ROI fitting option
 //                        0 - no fit
 //                        1 - fit with coldelecReponse
+//          StartTime - Offset for time meaurements in sec since 1970.
 //   PulserStepCharge - Charge per unit step in a pulser run
 //    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
 //   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
@@ -25,6 +26,8 @@
 //        RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
 //        RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
 //           SumHists - Array of summary histogram specifiers. See below.
+//          SumNegate - If true, the following variable replacements are made for all sum hists:
+//                        fitHeight --> fitHeightNeg
 //        SumPlotPadX - Number of pad columns in summary plots.
 //        SumPlotPadY - Number of pad rows in summary plots.
 //      ChannelRanges - Ranges of channels for channel summary plots.
@@ -35,6 +38,8 @@
 //     TickOffsetTool - Name of the tool that provides the tick offset.
 //    RoiRootFileName - Name of file to which the ROI histograms are copied.
 //    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
+//         PlotLabels - Array of strings that may be used whe constructin plot titles.
+//                      The are referencesd as %LAB0%, %LAB1%, ... %LAB9%
 //
 // Summary histograms
 // ------------------
@@ -42,7 +47,11 @@
 // as tick or pulse height.
 // A summary histogram specifier is a parameter set with the following fields:
 //     var: Name of the variable to draw:
+//            sigArea - Raw area
+//            sigWidth - Raw width
 //            fitHeight - Height from ROI fit
+//            fitHeightNeg - Negative of height from ROI fit
+//            fitHeightGain - Height/(pulser charge)
 //            fitWidth - Shaping time from ROI fit
 //            fitPos - Postion [ticks] from ROI fit
 //            fitPosRem - remainder(fitPos, 1)
@@ -79,14 +88,22 @@
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
 //                mean - Root GetMean()
 //                 rms - Root GetRMS()
+//               rmsFF - Root GetRMS()
 //              fitXXX - Parameter XXX from the fit made to the summary histogram, e.g. Mean for gaus.
 //              fitratXXX - Ratio of parameter XXX from the fit to the mean from the fit.
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
+//                 rms - Root GetRMS()
+//               rmsFF - max(Root GetRMS(), FF)
 //                zero - Set the error to zero
-//       cr - Name of the channl range to plot. If "list", each value in ChannelRanges.
+//     bins - if > 0,  plot # channels vs. variable in nbins bins
+//            if 0, plot variable vs channel
+//     pran - Range of y axis: ymin:ymax:yscal
+//            yscal = pamp: Multiply range by pulserAmplitude
+//            yscal = pampg14: Multiply range by pulserAmplitude*pulserGain/14.0
 //     plot - Name of the file where the histogram should be plotted.
 //            The histogram name is substituted for %HNAME%.
+//       cr - Name of the channel range to plot. If "list", each value in ChannelRanges.
 //
 // Output data map for view:
 //           int              roiRun - Run number
@@ -134,6 +151,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
+#include "dune/DuneInterface/Data/RunData.h"
 #include <iostream>
 
 class AdcChannelStringTool;
@@ -157,6 +175,8 @@ public:
   using ChannelRange = IndexRange;
   using ChannelRangeMap = std::map<Name, ChannelRange>;
   using FloatMap = std::map<Name, float>;
+  using IndexByIndexMap = std::map<Index, Index>;
+  using IndexByNameMap = std::map<Name, Index>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -185,14 +205,19 @@ public:
     NameMap sumPlotNames;        // File names for each plotted histogram indexed by hist name.
                                  // The first file name is used for plots with multiple hists.
     FloatMap sumPlotWidths;      // Plot width for each plotted histogram indexed by hist name.
+    IndexByNameMap sumHistChannels; // Channel for each sum histogram
     // Channel summary histograms.
     HistMap chanSumHists;
-    NameMap chanSumHistTemplateNames;  // Sum template name indexed by chansum name
-    NameMap chanSumHistVariableTypes;  // Variable type indexed by chansum name.
-    NameMap chanSumHistErrorTypes;     // Error type indexed by chansum name.
-    NameMap chanSumPlotNames;          // Plot name indexed by chansum name
-    FloatMap chanSumPlotYMins;         // Min value of y for plot.
-    FloatMap chanSumPlotYMaxs;         // Max value of y for plot.
+    NameMap chanSumHistTemplateNames;   // Sum template name indexed by chansum name
+    NameMap chanSumHistVariableTypes;   // Variable type indexed by chansum name.
+    NameMap chanSumHistErrorTypes;      // Error type indexed by chansum name.
+    IndexByNameMap chanSumHistTypes;    // Type (0=var vs. chan, 1=#ROI vs var)
+    NameMap chanSumPlotNames;           // Plot name indexed by chansum name
+    FloatMap chanSumPlotYMins;          // Min value of y for plot.
+    FloatMap chanSumPlotYMaxs;          // Max value of y for plot.
+    NameMap chanSumPlotYOpts;           // Y scaling option for plot ("", "pamp")
+    IndexByNameMap chanSumChaBegin;     // First channel for each histogram.
+    IndexByNameMap chanSumChaEnd;       // Last channel for each histogram.
     ~State();
     // Fetch properties indexed by a histogram name.
     TH1* getSumHist(Name hnam);
@@ -203,10 +228,18 @@ public:
     Name getChanSumHistVariableType(Name hnam) const;
     Name getChanSumHistErrorType(Name hnam) const;
     Name getChanSumPlotName(Name hnam) const;
+    Index getChannelStatus(Index icha) const;
+    Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
     Index cachedRun = AdcChannelData::badIndex;
     Name cachedSampleUnit;
     Index nRoiPlot =0;
+    IndexByIndexMap channelStatuses;     // Status indexed by channel number
+    // Run data.
+    RunData runData;
+    // Count doView calls.
+    Index callCount =0;                   // Total
+    IndexByIndexMap eventCallCount;       // For each event. Size of this is the event count.
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -253,6 +286,9 @@ public:
   void writeChanSumHists() const;
   void writeChanSumPlots() const;
 
+  // Replace %LABX% with the corresponding plot label.
+  void setPlotLabels(Name& sttl) const;
+
 private:
 
   // Configuration data.
@@ -261,12 +297,14 @@ private:
   Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
+  time_t m_StartTime;
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
   int m_MaxRoiPlots;
   Index m_RoiPlotPadX;
   Index m_RoiPlotPadY;
+  bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;
   Name m_RunDataTool;
@@ -276,9 +314,11 @@ private:
   Name m_SumRootFileName;
   Name m_ChanSumRootFileName;
   NameVector m_ChannelRanges;
+  NameVector m_PlotLabels;
 
   // Derived from configuration.
-  ChannelRangeMap m_crmap;
+  ChannelRangeMap m_crmap; 
+  NameMap m_plotLabelSubs;
 
   // Shared pointer so we can make sure only one reference is out at a time.
   StatePtr m_state;

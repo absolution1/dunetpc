@@ -10,9 +10,10 @@ process_name: OpDetReco
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "protodune_optical_data_reco_hist.root" }
+  TFileService: { fileName: "%ifb_filtered_opreco_hist.root" }
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
+  @table::protodune_data_reco_services
   message:      @local::standard_info 
 }
 
@@ -30,7 +31,7 @@ outputs:
    out1:
    {
       module_type: RootOutput
-      fileName:    "protodune_optical_data_reco.root"
+      fileName:    "%ifb_filtered_opreco.root"
       
       # Drop the raw data and just keep the decoded and reconstructed data
       outputCommands: [ "keep *", "drop artdaq::Fragments_*_*_*" ]
@@ -54,14 +55,11 @@ physics:
 
  analyzers:
  {
-   opdigianaInternal:   @local::dunefd_opdigiana
-   opdigianaExternal:   @local::dunefd_opdigiana
    opflashanaInternal:  @local::standard_opflashana
    opflashanaExternal:  @local::standard_opflashana
  }
  produceIt: [ssprawdecoder, pdsnoisefilter, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
  analyzeIt: [opflashanaInternal, opflashanaExternal]
- #analyzeIt: [opdigianaInternal, opdigianaExternal] 
 
    
  #define the output stream, there could be more than one if using filters 
@@ -78,12 +76,6 @@ physics:
 
 physics.producers.ophitInternal.InputModule: "pdsnoisefilter"
 physics.producers.ophitExternal.InputModule: "pdsnoisefilter"
-
-physics.analyzers.opdigianaInternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaInternal.InstanceName: "internal"
-
-physics.analyzers.opdigianaExternal.InputModule:  "ssprawdecoder"
-physics.analyzers.opdigianaExternal.InstanceName: "external"
 
 physics.analyzers.opflashanaInternal.OpHitModuleLabel:   "ophitInternal"
 physics.analyzers.opflashanaInternal.OpFlashModuleLabel: "opflashInternal"

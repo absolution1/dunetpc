@@ -1,4 +1,4 @@
-#include "ProtoDUNEDataUtils.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
 
 BEGIN_PROLOG
 
@@ -12,32 +12,26 @@ standard_protodunebeamlinefilter_Pion_1GeV:
    IsKaon:               false
    IsProton:             false
    AndParticles:         true
-   DataUtils:            @local::standard_protodunedatautils_1GeV
+   BeamlineUtils:        @local::standard_protodunebeamlineutils
 }
 
 standard_protodunebeamlinefilter_Pion_0p3GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_0p3GeV.NominalBeamMomentum: 0.3
-standard_protodunebeamlinefilter_Pion_0p3GeV.DataUtils: @local::standard_protodunedatautils_0p3GeV
 
 standard_protodunebeamlinefilter_Pion_0p5GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_0p5GeV.NominalBeamMomentum: 0.5
-standard_protodunebeamlinefilter_Pion_0p5GeV.DataUtils: @local::standard_protodunedatautils_0p5GeV
 
 standard_protodunebeamlinefilter_Pion_2GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_2GeV.NominalBeamMomentum: 2.0
-standard_protodunebeamlinefilter_Pion_2GeV.DataUtils: @local::standard_protodunedatautils_2GeV
 
 standard_protodunebeamlinefilter_Pion_3GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_3GeV.NominalBeamMomentum: 3.0
-standard_protodunebeamlinefilter_Pion_3GeV.DataUtils: @local::standard_protodunedatautils_3GeV
 
 standard_protodunebeamlinefilter_Pion_6GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_6GeV.NominalBeamMomentum: 6.0
-standard_protodunebeamlinefilter_Pion_6GeV.DataUtils: @local::standard_protodunedatautils_6GeV
 
 standard_protodunebeamlinefilter_Pion_7GeV: @local::standard_protodunebeamlinefilter_Pion_1GeV
 standard_protodunebeamlinefilter_Pion_7GeV.NominalBeamMomentum: 7.0
-standard_protodunebeamlinefilter_Pion_7GeV.DataUtils: @local::standard_protodunedatautils_7GeV
 
 ###################
 
@@ -47,31 +41,24 @@ standard_protodunebeamlinefilter_Proton_1GeV.IsMuon:     false
 standard_protodunebeamlinefilter_Proton_1GeV.IsPion:     false
 standard_protodunebeamlinefilter_Proton_1GeV.IsKaon:     false
 standard_protodunebeamlinefilter_Proton_1GeV.IsProton:   true
-standard_protodunebeamlinefilter_Proton_1GeV.DataUtils: @local::standard_protodunedatautils_1GeV
 
 standard_protodunebeamlinefilter_Proton_0p3GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_0p3GeV.NominalBeamMomentum: 0.3
-standard_protodunebeamlinefilter_Proton_0p3GeV.DataUtils: @local::standard_protodunedatautils_0p3GeV
 
 standard_protodunebeamlinefilter_Proton_0p5GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_0p5GeV.NominalBeamMomentum: 0.5
-standard_protodunebeamlinefilter_Proton_0p5GeV.DataUtils: @local::standard_protodunedatautils_0p5GeV
 
 standard_protodunebeamlinefilter_Proton_2GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_2GeV.NominalBeamMomentum: 2.0
-standard_protodunebeamlinefilter_Proton_2GeV.DataUtils: @local::standard_protodunedatautils_2GeV
 
 standard_protodunebeamlinefilter_Proton_3GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_3GeV.NominalBeamMomentum: 3.0
-standard_protodunebeamlinefilter_Proton_3GeV.DataUtils: @local::standard_protodunedatautils_3GeV
 
 standard_protodunebeamlinefilter_Proton_6GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_6GeV.NominalBeamMomentum: 6.0
-standard_protodunebeamlinefilter_Proton_6GeV.DataUtils: @local::standard_protodunedatautils_6GeV
 
 standard_protodunebeamlinefilter_Proton_7GeV: @local::standard_protodunebeamlinefilter_Proton_1GeV
 standard_protodunebeamlinefilter_Proton_7GeV.NominalBeamMomentum: 7.0
-standard_protodunebeamlinefilter_Proton_7GeV.DataUtils: @local::standard_protodunedatautils_7GeV
 
 ###################
 
@@ -81,31 +68,24 @@ standard_protodunebeamlinefilter_Electron_1GeV.IsMuon:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsPion:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsKaon:     false
 standard_protodunebeamlinefilter_Electron_1GeV.IsProton:   false
-standard_protodunebeamlinefilter_Electron_1GeV.DataUtils: @local::standard_protodunedatautils_1GeV
 
 standard_protodunebeamlinefilter_Electron_0p3GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_0p3GeV.NominalBeamMomentum: 0.3
-standard_protodunebeamlinefilter_Electron_0p3GeV.DataUtils: @local::standard_protodunedatautils_0p3GeV
 
 standard_protodunebeamlinefilter_Electron_0p5GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_0p5GeV.NominalBeamMomentum: 0.5
-standard_protodunebeamlinefilter_Electron_0p5GeV.DataUtils: @local::standard_protodunedatautils_0p5GeV
 
 standard_protodunebeamlinefilter_Electron_2GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_2GeV.NominalBeamMomentum: 2.0
-standard_protodunebeamlinefilter_Electron_2GeV.DataUtils: @local::standard_protodunedatautils_2GeV
 
 standard_protodunebeamlinefilter_Electron_3GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_3GeV.NominalBeamMomentum: 3.0
-standard_protodunebeamlinefilter_Electron_3GeV.DataUtils: @local::standard_protodunedatautils_3GeV
 
 standard_protodunebeamlinefilter_Electron_6GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_6GeV.NominalBeamMomentum: 6.0
-standard_protodunebeamlinefilter_Electron_6GeV.DataUtils: @local::standard_protodunedatautils_6GeV
 
 standard_protodunebeamlinefilter_Electron_7GeV: @local::standard_protodunebeamlinefilter_Electron_1GeV
 standard_protodunebeamlinefilter_Electron_7GeV.NominalBeamMomentum: 7.0
-standard_protodunebeamlinefilter_Electron_7GeV.DataUtils: @local::standard_protodunedatautils_7GeV
 
 ###################
 
@@ -115,31 +95,24 @@ standard_protodunebeamlinefilter_Kaon_1GeV.IsMuon:     false
 standard_protodunebeamlinefilter_Kaon_1GeV.IsPion:     false
 standard_protodunebeamlinefilter_Kaon_1GeV.IsKaon:     true
 standard_protodunebeamlinefilter_Kaon_1GeV.IsProton:   false
-standard_protodunebeamlinefilter_Kaon_1GeV.DataUtils: @local::standard_protodunedatautils_1GeV
 
 standard_protodunebeamlinefilter_Kaon_0p3GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_0p3GeV.NominalBeamMomentum: 0.3
-standard_protodunebeamlinefilter_Kaon_0p3GeV.DataUtils: @local::standard_protodunedatautils_0p3GeV
 
 standard_protodunebeamlinefilter_Kaon_0p5GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_0p5GeV.NominalBeamMomentum: 0.5
-standard_protodunebeamlinefilter_Kaon_0p5GeV.DataUtils: @local::standard_protodunedatautils_0p5GeV
 
 standard_protodunebeamlinefilter_Kaon_2GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_2GeV.NominalBeamMomentum: 2.0
-standard_protodunebeamlinefilter_Kaon_2GeV.DataUtils: @local::standard_protodunedatautils_2GeV
 
 standard_protodunebeamlinefilter_Kaon_3GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_3GeV.NominalBeamMomentum: 3.0
-standard_protodunebeamlinefilter_Kaon_3GeV.DataUtils: @local::standard_protodunedatautils_3GeV
 
 standard_protodunebeamlinefilter_Kaon_6GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_6GeV.NominalBeamMomentum: 6.0
-standard_protodunebeamlinefilter_Kaon_6GeV.DataUtils: @local::standard_protodunedatautils_6GeV
 
 standard_protodunebeamlinefilter_Kaon_7GeV: @local::standard_protodunebeamlinefilter_Kaon_1GeV
 standard_protodunebeamlinefilter_Kaon_7GeV.NominalBeamMomentum: 7.0
-standard_protodunebeamlinefilter_Kaon_7GeV.DataUtils: @local::standard_protodunedatautils_7GeV
 
 ###################
 

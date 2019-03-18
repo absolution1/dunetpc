@@ -26,7 +26,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
   static std::unique_ptr<DuneToolManager> pins;
   if ( !pins ) {
     fclname = a_fclname;
-    if ( fclname == "" ) {
+    if ( fclname.empty() ) {
       // Use ps to discover the command line.
       Index pid = getpid();
       ostringstream ssftmp;
@@ -62,23 +62,23 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
           words.back() += ch;
         }
       }
-      // Find the flag "-c" and use following text as the fcl name.
+      // Find the flag "-c" or "--config" and use following text as the fcl name.
       for ( Index iwrd=0; iwrd<words.size(); ++iwrd ) {
         string word = words[iwrd];
-        if ( word == "-c" ) {
+        if ( word == "-c" || word == "--config") {
           if ( words.size() > iwrd+1 ) fclname = words[iwrd+1];
         } else if ( word.substr(0,2) == "-c" ) {
           fclname = word.substr(2);
         }
       }
       // If name was not found, switch to a default.
-      if ( fclname.size() == 0 ) {
+      if ( fclname.empty() ) {
         cout << myname << "ERROR: unable to retrieve configuration file name from command line." << endl;
         fclname = "tools_dune.fcl";
       }
     }
-    if ( fclname.size() ) {
-      if ( dbg >= 1 ) cout << myname << "Configuration file: " << fclname << endl;
+    if ( !fclname.empty() ) {
+      cout << myname << "Configuration file: " << fclname << endl;
       pins.reset(new DuneToolManager(fclname));
     }
   } else {

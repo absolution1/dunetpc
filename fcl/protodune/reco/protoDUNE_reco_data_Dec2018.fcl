@@ -4,6 +4,7 @@
 #include "RawDecoder.fcl"
 #include "BeamEvent.fcl"
 #include "caldata_dune.fcl"
+#include "wirecell_dune.fcl"
 #include "hitfindermodules_dune.fcl"
 #include "SpacePointSolver_dune.fcl"
 #include "cluster_dune.fcl"
@@ -32,12 +33,15 @@ protoDUNE_rawdecoding_producers:
 protoDUNE_reco_data_producers:
 {
     ### Reconstruction Chain
-    #TPC wire signals
+    # TPC wire signals
     caldata:            @local::producer_adcprep
+    # WireCell
+    wclsdatasp:         @local::protodunespdata_wctsp
+    digitwire:          @local::protodunespdata_digitwire
     # Hit finder
     gaushit:            @local::protodunespmc_gaushitfinder
     # Space point finder
-    reco3d:             @local::protodunespmc_spacepointsolver
+    reco3d:             @local::protodunespdata_spacepointsolver
     # Hit disambiguation
     hitpdune:           @local::pdune_disambigfromsp
     # CNN track/shower ID
@@ -73,6 +77,8 @@ protoDUNE_rawdecoding: [ timingrawdecoder,
                        ]
 
 protoDUNE_reco_data: [ caldata,
+                       wclsdatasp,
+                       digitwire,
                        gaushit,
                        reco3d,
                        hitpdune,
@@ -99,8 +105,9 @@ protoDUNE_reco_data_producers.pmtrack.ClusterModuleLabel: "linecluster"
 protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.TrackLikeThreshold: 0.0
 
 # Basic noise mitigation
-protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.RoiThreshold: 10.0
-protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.RoiThreshold: 10.0
+protoDUNE_reco_data_producers.gaushit.CalDataModuleLabel: "digitwire"
+protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.RoiThreshold: 3.0
+protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.RoiThreshold: 3.0
 protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.RoiThreshold: 3.0
 
 # Make sure we can use cryostat-side APA hits

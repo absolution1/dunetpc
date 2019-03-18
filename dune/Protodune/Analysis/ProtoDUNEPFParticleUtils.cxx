@@ -359,7 +359,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleVertex(const rec
 //  std::cout << "PFParticle daughters " << particle.NumDaughters() << std::endl;
 
   // Non-primary particle or shower-like primary particle
-  if(!particle.IsPrimary() || !IsPFParticleTracklike(particle)){
+  if(!particle.IsPrimary() || !IsPFParticleTracklike(particle,evt,particleLabel,trackLabel)){
     if(vertices.size() != 0){
       const recob::Vertex* vtx = (vertices.at(0)).get();
       return TVector3(vtx->position().X(),vtx->position().Y(),vtx->position().Z());
@@ -404,7 +404,7 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
   // To do this, we need to access things via the track
 
   // Showers have no secondary vertex
-  if(!IsPFParticleTracklike(particle)){
+  if(!IsPFParticleTracklike(particle,evt,particleLabel,trackLabel)){
     std::cerr << "Shower-like PFParticles have no secondary vertex. Returning default TVector3" << std::endl;
     return TVector3();
   }
@@ -436,17 +436,32 @@ const TVector3 protoana::ProtoDUNEPFParticleUtils::GetPFParticleSecondaryVertex(
 }
 
 // Is the particle track-like?
-bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle) const{
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const{
 
+  return (GetPFParticleTrack(particle,evt,particleLabel,trackLabel) != 0x0);
+
+}
+
+// This is the old and deprecated version of the function 
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleTracklike(const recob::PFParticle &particle) const{
+  std::cerr << "This function is deprecated, please use the version with four arguments." << std::endl;
   if(abs(particle.PdgCode()) == 11){
     return false;
   }
   else{
     return true;
   }
+}
+
+
+
+bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleShowerlike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const{
+
+  return (GetPFParticleShower(particle,evt,particleLabel,showerLabel) != 0x0);
 
 }
 
+// This is the old and deprecated version of the function
 bool protoana::ProtoDUNEPFParticleUtils::IsPFParticleShowerlike(const recob::PFParticle &particle) const{
   return !IsPFParticleTracklike(particle);
 }
@@ -565,6 +580,27 @@ unsigned int protoana::ProtoDUNEPFParticleUtils::GetNumberPFParticleHits(const r
 
   return GetPFParticleHits(particle,evt,particleLabel).size();
 
+}
+
+// Get the total charge from all PFParticle hits
+const std::vector<double> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHitsCharge(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const {
+
+  const std::vector<const recob::Hit*> hitvector = GetPFParticleHits(particle, evt, particleLabel);
+
+  double hitcharge[3] = {0.0, 0.0, 0.0};
+  for(auto hit : hitvector){
+    int hit_plane = (int)hit->WireID().Plane;
+    if(hit_plane < 0) continue;
+    if(hit_plane > 2) continue;
+    //hitcharge[hit_plane] += hit->SummedADC();
+    hitcharge[hit_plane] += hit->Integral();
+  }
+  
+  std::vector<double> hitchargevec;
+  for(int i = 0; i < 3; i++)
+    hitchargevec.push_back(hitcharge[i]);
+
+  return hitchargevec;
 }
 
 // Get the daughter tracks from the PFParticle

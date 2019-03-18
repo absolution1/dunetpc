@@ -13,7 +13,6 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "nutools/RandomUtils/NuRandomService.h"
 
 
@@ -64,27 +63,28 @@ public:
   PhotonLibraryPropagationS2 & operator = (PhotonLibraryPropagationS2 const &) = delete;
   PhotonLibraryPropagationS2 & operator = (PhotonLibraryPropagationS2 &&) = delete;
 
+private:
   // Required functions.
   void produce(art::Event & e) override;
 
-  // Selected optional functions.
-  void reconfigure(fhicl::ParameterSet const & p);
-  void beginJob() override;
   void Print(std::map<int, std::map<int, int>>* StepPhotonTable);
-
-private:
 
   bool fUseLitePhotons;
 
   std::string fDriftEModuleLabel;
   double fGain;//Number of photons created per drifted electron.
-
+  CLHEP::HepRandomEngine& fPhotonEngine;
+  CLHEP::HepRandomEngine& fScintTimeEngine;
 };
 
 
 phot::PhotonLibraryPropagationS2::PhotonLibraryPropagationS2(fhicl::ParameterSet const & p)
+  : EDProducer{p}
+  , fDriftEModuleLabel{p.get< std::string >("DriftEModuleLabel")}
+  , fGain{p.get<double>("Gain",500)}
+  , fPhotonEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "photon", p, "SeedPhoton"))
+  , fScintTimeEngine(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "scinttime", p, "SeedScintTime"))
 {
-
   art::ServiceHandle<sim::LArG4Parameters> lgp;
 
   fUseLitePhotons=lgp->UseLitePhotons();
@@ -94,10 +94,6 @@ phot::PhotonLibraryPropagationS2::PhotonLibraryPropagationS2(fhicl::ParameterSet
      produces< std::vector<sim::SimPhotonsLite> >();
   }
   else     produces< std::vector<sim::SimPhotons> >();  
-
-  art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "photon",    p, "SeedPhoton");
-  art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "scinttime", p, "SeedScintTime");  
-  this->reconfigure(p);
 }
 
 
@@ -115,11 +111,8 @@ void phot::PhotonLibraryPropagationS2::produce(art::Event & e)
   art::ServiceHandle<geo::Geometry> geom;
   //  const detinfo::LArProperties* larp = lar::providerFrom<detinfo::LArPropertiesService>();
   
-  art::ServiceHandle<art::RandomNumberGenerator> rng;  
-  CLHEP::HepRandomEngine &engine_photon = rng->getEngine("photon");
-  CLHEP::RandPoissonQ randpoisphot(engine_photon);
-  CLHEP::HepRandomEngine &engine_scinttime = rng->getEngine("scinttime");
-  CLHEP::RandFlat randflatscinttime(engine_scinttime);
+  CLHEP::RandPoissonQ randpoisphot(fPhotonEngine);
+  CLHEP::RandFlat randflatscinttime(fScintTimeEngine);
 
 
     larg4::OpDetPhotonTable::Instance()->ClearTable(geom->NOpDets());
@@ -325,7 +318,7 @@ void phot::PhotonLibraryPropagationS2::produce(art::Event & e)
      mf::LogError("PhotonLibraryPropagationS2") << "Error creating S2 light, SimPhotons data product is not supported."<<std::endl;
      //std::cout << "SIMPHOTONS NOT SUPPORTED!!! "<< std::endl;
       /*
-    LOG_DEBUG("Optical") << "Storing OpDet Hit Collection in Event";
+    MF_LOG_DEBUG("Optical") << "Storing OpDet Hit Collection in Event";
     std::vector<sim::SimPhotons>& ThePhotons = larg4::OpDetPhotonTable::Instance()->GetPhotons();
     PhotonCol->reserve(ThePhotons.size());
     for(auto& it : ThePhotons)
@@ -379,16 +372,5 @@ void phot::PhotonLibraryPropagationS2::Print(std::map<int, std::map<int, int>>* 
   }
 }
 
-
-void phot::PhotonLibraryPropagationS2::reconfigure(fhicl::ParameterSet const & p)
-{
-  fGain = p.get<double>("Gain",500);
-  fDriftEModuleLabel= p.get< std::string >("DriftEModuleLabel");
-}
-
-void phot::PhotonLibraryPropagationS2::beginJob()
-{
-
-}
 
 DEFINE_ART_MODULE(phot::PhotonLibraryPropagationS2)

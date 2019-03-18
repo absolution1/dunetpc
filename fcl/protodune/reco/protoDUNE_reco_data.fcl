@@ -9,10 +9,12 @@ services:
 {
   TimeTracker:       {}
   MemoryTracker:     {}
+  TFileService:      { fileName: "reco_protoDUNE_hist.root" }
   RandomNumberGenerator: {} #ART native random number generator
   message:              @local::dune_message_services_prod_debug
   FileCatalogMetadata:  @local::art_file_catalog_data
                         @table::protodune_data_reco_services
+  IFDH:               {}
 }
 
 #source is now a root file
