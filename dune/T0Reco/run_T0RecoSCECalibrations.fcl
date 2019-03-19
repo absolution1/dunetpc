@@ -29,16 +29,6 @@ source:
   maxEvents:   -1        # Number of events to create
 }
 
-outputs:{
-
- out1:
- {
-   module_type: RootOutput
-   fileName:    "T0RecoSCE.root"
-   dataTier:    "ana"
-   compressionLevel: 1
- }
-}
 
 # Define and configure some modules to do work on each event.
 # First modules are defined; they are scheduled later.

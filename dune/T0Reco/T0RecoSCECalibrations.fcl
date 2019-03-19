@@ -6,6 +6,7 @@ T0RecoSCECalibrations: {
  HitProducer      : "pandoraTrack"
  T0Producer       : "pandora"
  FlashProducer    : "opflash"
+ CaloProducer     : "pandoracalo"
  Resolution       : 25.0  # cm
  PEmin            : 20.0  # PE
  TimeRes          : 10.0  # us
