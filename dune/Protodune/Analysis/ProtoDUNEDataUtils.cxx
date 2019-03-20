@@ -9,8 +9,6 @@
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-#include "messagefacility/MessageLogger/MessageLogger.h"
-
 protoana::ProtoDUNEDataUtils::ProtoDUNEDataUtils(fhicl::ParameterSet const& p){
   this->reconfigure(p);
 }
@@ -84,23 +82,31 @@ bool protoana::ProtoDUNEDataUtils::IsBeamTrigger(art::Event const & evt) const{
 // ----------------------------------------------------------------------------
 int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, int apa) const {
 
-  // Get raw digits
-  art::Handle< std::vector<raw::RawDigit> > RawdigitListHandle;
-  std::vector<art::Ptr<raw::RawDigit> > digitlist;
-  if (evt.getByLabel("tpcrawdecoder", "daq", RawdigitListHandle))
-    art::fill_ptr_vector(digitlist, RawdigitListHandle);
 
-  // Get pd channel map
+// Get pd channel map
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
 
   // set only saves unique elements
   std::set<int> apaset;
 
-  for(auto const & dptr : digitlist) {
-    const raw::RawDigit & digit = *dptr;
-    
+  // Get raw digits time stamps
+  art::Handle< std::vector<raw::RDTimeStamp> > RawdigitTSListHandle;
+  std::vector<art::Ptr<raw::RDTimeStamp> > digitTSlist;
+  
+
+   // Get raw digits
+  art::Handle< std::vector<raw::RawDigit> > RawdigitListHandle;
+  std::vector<art::Ptr<raw::RawDigit> > digitlist;
+
+  if (evt.getByLabel("tpcrawdecoder", "daq", RawdigitListHandle)){
+  	
+    art::fill_ptr_vector(digitlist, RawdigitListHandle);  
+
+    for(auto const & dptr : digitlist) {
+    const raw::RawDigit& digit = *dptr;
     // Get the channel number for this digit
     uint32_t chan = digit.Channel();
+    
     int iapa = channelMap->APAFromOfflineChannel(chan);
     if(iapa != apa) continue;
     // Get the channel FEMB and WIB
@@ -111,6 +117,31 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
 
     apaset.insert(iFEMB);
   }
+}
+
+else{ // if raw digits have been dropped use RDTimeStamps instead
+	evt.getByLabel("tpcrawdecoder", "daq", RawdigitTSListHandle);
+	
+	art::fill_ptr_vector(digitTSlist, RawdigitTSListHandle);  
+	
+  for(auto const & dptr : digitTSlist) {
+  	
+    const raw::RDTimeStamp & digit = *dptr;
+    
+    // Get the channel number for this digit
+    uint16_t chan = digit.GetFlags();
+    
+    int iapa = channelMap->APAFromOfflineChannel(chan);
+    if(iapa != apa) continue;
+    // Get the channel FEMB and WIB
+    int WIB = channelMap->WIBFromOfflineChannel(chan); // 0-4
+    int FEMB = channelMap->FEMBFromOfflineChannel(chan); // 1-4
+    //int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
+    int iFEMB = ((WIB*4)+(FEMB-1)); //index of the FEMB 0-19
+
+    apaset.insert(iFEMB);
+  }
+}
 
   return (apaset.size());
 
@@ -204,7 +235,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,false,false,false,false};
       return result;
     }
-    else if(CKov0Status == 1) // pi/mu
+    else if(CKov1Status == 1) // pi/mu
     {
       protoana::PossibleParticleCands result = {false,true,true,false,false};
       return result;
@@ -222,20 +253,14 @@ protoana::PossibleParticleCands protoana::ProtoDUNEDataUtils::GetCherenkovPartic
       protoana::PossibleParticleCands result = {true,true,true,false,false};
       return result;
     }
-    else if(CKov0Status == 1) // kaon
+    else if(CKov1Status == 1) // kaon
     {
       protoana::PossibleParticleCands result = {false,false,false,true,false};
       return result;
     }
-    else if(CKov1Status == 0)// proton
+    else // proton
     {
       protoana::PossibleParticleCands result = {false,false,false,false,true};
-      return result;
-    }
-    else // Ckov0Status == 0 && CKov1Status == 1 not allowed
-    {
-      mf::LogWarning("protoana::ProtoDUNEDataUtils::GetCherenkovParticleID") << "Ckov0Status == 0 && CKov1Status == 1 shouldn't happen but did. Setting all PossibleParticleCands to false.";
-      protoana::PossibleParticleCands result = {false,false,false,false,false};
       return result;
     }
   }
