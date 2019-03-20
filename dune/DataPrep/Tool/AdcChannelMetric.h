@@ -94,6 +94,11 @@ public:
 
   ~AdcChannelMetric() override;
 
+  // Initialize this tool.
+  // We cache the status for each channel.
+  // Does nothing if already called unlesss force is true.
+  void initialize(bool force =false);
+
   // Tool interface.
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
@@ -178,6 +183,7 @@ private:
   // after initialization.
   class State {
   public:
+    Index initCount = 0;
     Index callCount = 0;
     Index firstRun =0;
     Index lastRun =0;

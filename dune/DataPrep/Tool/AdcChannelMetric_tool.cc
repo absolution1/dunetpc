@@ -76,6 +76,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_doSummary(false),
+  m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
@@ -161,6 +162,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "      PlotUsesStatus: " << m_PlotUsesStatus << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
   }
+  // We might have to move this to getMetric.
+  initialize();
 }
 
 //**********************************************************************
@@ -219,6 +222,7 @@ AdcChannelMetric::~AdcChannelMetric() {
     Index valmax = std::max(ncha, getState().callCount);
     if ( ncha ) w = log10(valmax) + 1.01;
     cout << myname << "Summary for metric " << m_Metric << endl;
+    cout << myname << "                          # inits: " << setw(w) << getState().initCount << endl;
     cout << myname << "                          # calls: " << setw(w) << getState().callCount << endl;
     cout << myname << "                         # events: " << setw(w) << getState().eventCount << endl;
     cout << myname << "                           # runs: " << setw(w) << getState().runCount << endl;
@@ -229,6 +233,25 @@ AdcChannelMetric::~AdcChannelMetric() {
     cout << myname << "    # channels with max # entries: " << setw(w) << nchaDataMax << endl;
   }
 
+}
+
+//**********************************************************************
+
+void AdcChannelMetric::initialize(bool force) {
+  const string myname = "AdcChannelMetric::initialize: ";
+  if ( !force && getState().initCount ) return;
+  if ( m_LogLevel >= 1 ) cout << myname << "Initializing " << m_crs.size()
+                              << " channel ranges." << endl;
+  // Loop over channels and fetch status for each.
+  Index ncha = 0;
+  for ( const IndexRange& ran : m_crs ) {
+    for ( Index icha =ran.begin; icha<ran.end; ++icha ) { 
+      channelStatus(icha);
+      ++ncha;
+    }
+  }
+  if ( m_LogLevel >= 1 ) cout << myname << "Initialized " << ncha << " channels." << endl;
+  ++getState().initCount;
 }
 
 //**********************************************************************

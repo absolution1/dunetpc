@@ -113,6 +113,7 @@ DataMap AdcCodeMitigator::update(AdcChannelData& acd) const {
       if ( ! haveHi2 ) {
         isamHi2 = isamHi1;
         while ( !haveHi2 && ++isamHi2 < nsam ) haveHi2 = m_skipSet.find(acd.flags[isamHi2]) == m_skipSet.end();
+        if ( ! haveHi2 ) isamHi2 = isamHi1;
       }
     }
     if ( m_LogLevel >= 5 ) {
