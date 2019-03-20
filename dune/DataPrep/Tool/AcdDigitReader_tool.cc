@@ -55,6 +55,7 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   }
   // Copy pedestal.
   acd.pedestal = dig.GetPedestal();
+  acd.metadata["inputPedestal"] = dig.GetPedestal();
   // Copy raw data.
   unsigned int nsig = dig.Samples();
   acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.

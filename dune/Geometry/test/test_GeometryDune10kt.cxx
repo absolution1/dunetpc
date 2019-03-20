@@ -79,11 +79,11 @@ void setExpectedValues(ExpectedValues& ev) {
   #include "setWorkspaceSpacePoints.dat"
   // Optical detectors.
   ev.nopdet = 10*ev.napa;
-  ev.nopdetcha.resize(ev.nopdet, 4);
-  ev.nopcha = ev.nopdet*4;
-  resize(ev.opdetcha, ev.nopdet, 4, 0);
+  ev.nopdetcha.resize(ev.nopdet, 1);
+  ev.nopcha = ev.nopdet;
+  resize(ev.opdetcha, ev.nopdet, 1, 0);
   for ( Index iopt=0; iopt<ev.nopdet; ++iopt ) {
-    Index icha = 4*iopt;
+    Index icha = iopt;
     for ( Index ioch=0; ioch<ev.nopdetcha[iopt]; ++ ioch ) {
       ev.opdetcha[iopt][ioch] = icha++;
     }
