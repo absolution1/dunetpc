@@ -101,7 +101,7 @@ tools.pdsp_timingMitigateMar2019: {
 }
 
 # Default for reco.
-tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateDec2018
+tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateMar2019
 
 ###########
 
