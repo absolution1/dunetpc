@@ -17,7 +17,6 @@ services:
   message:      @local::standard_info 
 }
 
-#services.OpDigiProperties:        @local::dunefd_opdigiproperties
 
 source:
 {
