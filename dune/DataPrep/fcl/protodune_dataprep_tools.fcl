@@ -76,15 +76,34 @@ tools.pdsp_adcMitigate: {
   FixedCurvThresh: 20.0
 }
 
+###########
+
 # Timing mitigation.
 # Adjust the timing for FEMB 302 (aka femb 1)
-tools.pdsp_timingMitigate: {
+
+# Rough tune Dec 2018.
+tools.pdsp_timingMitigateDec2018: {
   tool_type: AdcTimingMitigator
   LogLevel: 1
   SamplingRatio: 0.9995
   SamplingOffset: 3
   FEMBs: [1]
 }
+
+# Better tune Mar 2019.
+# See ProtoDUNE sim/reco meeting March 27, 2019.
+tools.pdsp_timingMitigateMar2019: {
+  tool_type: AdcTimingMitigator
+  LogLevel: 1
+  SamplingRatio: 0.9993
+  SamplingOffset: 1.0
+  FEMBs: [1]
+}
+
+# Default for reco.
+tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateDec2018
+
+###########
 
 # Subtract baseline after deconvolution
 tools.adcCorrectUndershoot: {
@@ -693,10 +712,25 @@ tools.pd_tickOffset_oct25.TpcTickPhase: 23
 tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
 
 # Add timing scale correction for FEMB302.
-# March 2019 from run 6690 (DLA)
 tools.pd_tickOffsetCorr: @local::tools.pd_tickOffset
 tools.pd_tickOffsetCorr.FembScaleIds: [1]
 tools.pd_tickOffsetCorr.FembScaleValues: [0.999293]
+
+# March 2019 from run 6690 (DLA)
+tools.pd_tickOffsetCorr6690: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr6690.FembScaleValues: [0.9992930]
+
+# March 2019 from run 6036 (DLA)
+tools.pd_tickOffsetCorr6036: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr6036.FembScaleValues: [0.9992927]
+
+# March 2019 from run 5531 (and 5526, 5540) (DLA)
+tools.pd_tickOffsetCorr5531: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr5531.FembScaleValues: [0.9992961]
+
+# March 2019 from run 5954 (DLA)
+tools.pd_tickOffsetCorr5954: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr5954.FembScaleValues: [0.9992875]
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {
