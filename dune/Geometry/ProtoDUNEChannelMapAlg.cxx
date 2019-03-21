@@ -186,7 +186,7 @@ namespace geo {
   Index ProtoDUNEChannelMapAlg::NOpHardwareChannels(Index opDet) const {
 
     // ARAPUCAs
-    if (opDet == 31 or opDet == 46)
+    if (opDet == 30 or opDet == 47)
       return 12;
     else
       return 4;  
