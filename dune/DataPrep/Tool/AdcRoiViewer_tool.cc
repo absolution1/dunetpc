@@ -347,7 +347,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"count", "mean", "rms", "fitMean", "fitSigma"};
+    const NameVector valTypes = {"count", "mean", "peak", "rms", "fitMean", "fitSigma"};
     if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
@@ -363,6 +363,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     Name yttl = "Unknown";
     if ( valType == "mean" ) {
       yttl = "Mean of " + valLabel;
+    } else if ( valType == "peak" ) {
+      yttl = "Peak of " + valLabel;
     } else if ( valType == "rms" ) {
       yttl = "RMS of " + valLabel;
     } else if ( valType == "fitMean" ) {
@@ -1594,6 +1596,9 @@ void AdcRoiViewer::fillChanSumHists() const {
       float val = 0.0;
       if ( vartype == "mean" ) {
         val = phvar->GetMean();
+      } else if ( vartype == "peak" ) {
+        int ibin = phvar->GetMaximumBin();
+        val = phvar->GetBinCenter(ibin);
       } else if ( vartype == "rms" ) {
         val = phvar->GetRMS();
       } else if ( vartype == "count" ) {

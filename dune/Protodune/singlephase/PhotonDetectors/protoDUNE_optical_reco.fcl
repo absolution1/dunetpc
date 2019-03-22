@@ -19,7 +19,6 @@ services:
   IFDH:              {} 
 }
 
-#services.OpDigiProperties:        @local::dunefd_opdigiproperties
 
 source:
 {
