@@ -19,11 +19,13 @@
 namespace cvn
 {
 
-  RegPixelMapProducer::RegPixelMapProducer(unsigned int nWire, unsigned int nTdc, double tRes):
+  RegPixelMapProducer::RegPixelMapProducer(unsigned int nWire, unsigned int nTdc, double tRes, int Global):
   fNWire(nWire),
   fNTdc(nTdc),
   fTRes(tRes),
-  fOffset{0,0}
+  fGlobalWireMethod(Global),
+  fOffset{0,0},
+  detprop(lar::providerFrom<detinfo::DetectorPropertiesService>())
   {}
 
 
@@ -52,7 +54,7 @@ namespace cvn
 
     if (!fmwire.isValid()) return pm;
 
-    auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    //auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     // get all raw adc of every hit wire
     for (size_t iwire = 0; iwire < hitwireidx.size(); ++iwire)
@@ -79,18 +81,28 @@ namespace cvn
 	t1_hit = (t1_hit > 4491) ? 4491 : t1_hit;
 
 	const std::vector<float>& signal = wireptr[0]->Signal();
-        double globalWire = GetGlobalWire(wireid);
-	if (wireid.TPC%2 == 1) {
-	  if (wireid.Plane == 0) globalWire += fOffset[0];
-	  if (wireid.Plane == 1) globalWire += fOffset[1];
-	}
+        double globalWire = 0;
+        if (fGlobalWireMethod == 1){
+            globalWire = GetGlobalWire(wireid);
+	    if (wireid.TPC%2 == 1) {
+	      if (wireid.Plane == 0) globalWire += fOffset[0];
+	      if (wireid.Plane == 1) globalWire += fOffset[1];
+	    }
+        }
+
+        unsigned int globalplane = wireid.Plane;
 	for (int tt = t0_hit; tt <= t1_hit; ++tt)
         {
 	  //double correctedadc = (double) signal[tt];
 	  double correctedadc = ( (double)signal[tt] * TMath::Exp( (detprop->SamplingRate() * tt) / (detprop->ElectronLifetime()*1.e3) ) );
 	  int tdc = tt;
   	  if (wireid.TPC%2 == 0) tdc = -tdc;
-	  pm.Add((int)globalWire, tdc, wireid.Plane, correctedadc);
+          if (fGlobalWireMethod == 2){
+            float globaltick = 0;
+            GetDUNEGlobalWireTDC(wireid, (float)tt, globalWire, globalplane, globaltick);
+            tdc = (int)round(globaltick);
+          }
+	  pm.Add((int)globalWire, tdc, globalplane, correctedadc);
     
         } // end of tt
       } // end of iwireptr
@@ -114,7 +126,7 @@ namespace cvn
 
   RegCVNBoundary RegPixelMapProducer::DefineBoundary(std::vector< art::Ptr< recob::Hit > >& cluster)
   {
-    ShiftGlobalWire(cluster);
+    if (fGlobalWireMethod == 1) { ShiftGlobalWire(cluster); }
 
     std::vector<float> time_0;
     std::vector<float> time_1;
@@ -148,21 +160,31 @@ namespace cvn
 	float peaktime = cluster[iHit]->PeakTime() ;
 	if (wireid.TPC%2 == 0) peaktime = -peaktime;
 
-        double globalWire = GetGlobalWire(wireid);
-	if (wireid.TPC%2 == 1) {
+        double globalWire = 0;
+        unsigned int globalplane = planeid;
+        if (fGlobalWireMethod == 1){
+            globalWire = GetGlobalWire(wireid);
+        } else if (fGlobalWireMethod == 2 ){
+            GetDUNEGlobalWireTDC(wireid, cluster[iHit]->PeakTime(), globalWire, globalplane, peaktime);
+        } else {
+            std::cout << "Wrong GlobalWireMethod" << std::endl;
+            abort();
+        }
+
+	if (wireid.TPC%2 == 1 && fGlobalWireMethod == 1) {
 	  if (wireid.Plane == 0) globalWire += fOffset[0];
 	  if (wireid.Plane == 1) globalWire += fOffset[1];
 	}
 
-        if(planeid==0){
+        if(globalplane==0){
           time_0.push_back(peaktime);
           wire_0.push_back((int)globalWire);
         }
-        if(planeid==1){
+        if(globalplane==1){
           time_1.push_back(peaktime);
           wire_1.push_back((int)globalWire);
         }
-        if(planeid==2){
+        if(globalplane==2){
           time_2.push_back(peaktime);
           wire_2.push_back((int)globalWire);
         }
@@ -310,4 +332,58 @@ namespace cvn
       } // end of nmax_tpc
     } // ned of unique_TPCs
   }
+
+  void RegPixelMapProducer::GetDUNEGlobalWireTDC(const geo::WireID& wireID, float localTDC,
+                                                 double& globalWire, unsigned int& globalPlane, 
+                                                 float& globalTDC){
+    unsigned int localWire = wireID.Wire;
+    unsigned int plane = wireID.Plane;
+    unsigned int tpc   = wireID.TPC;
+    unsigned int nWiresTPC = 400;
+    unsigned int wireGap = 4;
+    double driftLen = geom->TPC(tpc,0).DriftDistance();
+    double apaLen = geom->TPC(tpc,0).Width() - geom->TPC(tpc,0).ActiveWidth();
+    double driftVel = detprop->DriftVelocity();
+    unsigned int drift_size = (driftLen / driftVel) * 2;
+    unsigned int apa_size   = 4*(apaLen / driftVel) * 2;
+    globalWire = 0;
+    globalPlane = 0;
+    // Collection plane has more wires
+    if(plane == 2){
+        nWiresTPC=480;
+        wireGap = 5;
+        globalPlane = 2;
+    }
+    bool includeZGap = true;
+    if(includeZGap) nWiresTPC += wireGap;
+    int tpcMod4 = tpc%4;
+    int offset = 0;
+    // Induction views depend on the drift direction
+    if(plane < 2){
+        // For TPCs 0 and 3 keep U and V as defined.
+        if(tpcMod4 == 0 || tpcMod4 == 3){
+          globalPlane = plane;
+        }
+        else{
+            if(plane == 0) globalPlane = 1;
+            else globalPlane = 0;
+        }
+    }
+    if(globalPlane != 1){
+        globalWire += (double)( (tpc/4)*nWiresTPC + (tpcMod4>1)*offset + localWire );
+    }
+    else{
+        globalWire += (double)( ((23-tpc)/4)*nWiresTPC + (tpcMod4>1)*offset + localWire );
+    }
+    
+    if(tpcMod4 == 0 || tpcMod4 == 2){
+        globalTDC = (float)( drift_size - (double)localTDC );
+    }
+    else {
+        globalTDC = (float)( (double)localTDC + drift_size + apa_size );
+    }
+
+
+  } // end of GetDUNEGlobalWireTDC
+
 }

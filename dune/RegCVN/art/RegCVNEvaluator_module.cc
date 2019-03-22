@@ -62,19 +62,22 @@ namespace cvn {
     std::string fResultLabel;
 
     std::string fCVNType;
+    std::string fTarget;
 
     cvn::TFRegNetHandler fTFHandler;
 
     /// Number of outputs fron neural net
     unsigned int fNOutput;
 
+    void getCM(const RegPixelMap& pm, float* cm_list);
   };
 
   //.......................................................................
   RegCVNEvaluator::RegCVNEvaluator(fhicl::ParameterSet const& pset):
-    fPixelMapInput (pset.get<std::string>         ("PixelMapInput")),
-    fResultLabel (pset.get<std::string>         ("ResultLabel")),
-    fCVNType     (pset.get<std::string>         ("CVNType")),
+    fPixelMapInput    (pset.get<std::string>         ("PixelMapInput")),
+    fResultLabel      (pset.get<std::string>         ("ResultLabel")),
+    fCVNType          (pset.get<std::string>         ("CVNType")),
+    fTarget           (pset.get<std::string>         ("Target")),
     fTFHandler       (pset.get<fhicl::ParameterSet> ("TFNetHandler"))
   {
     produces< std::vector<cvn::RegCVNResult>   >(fResultLabel);
@@ -98,6 +101,19 @@ namespace cvn {
   }
 
   //......................................................................
+  void RegCVNEvaluator::getCM(const RegPixelMap& pm, float* cm_list)
+  {
+    //std::cout << pm.fBound.fFirstWire[0]+pm.fNWire/2 << std::endl;
+    //std::cout << pm.fBound.fFirstTDC[0]+pm.fNTdc*pm.fNTRes/2 << std::endl;
+    for (int ii = 0; ii < 3; ii++){
+        float mean_wire = pm.fBound.fFirstWire[ii]+pm.fNWire/2;
+        float mean_tdc  = pm.fBound.fFirstTDC[ii]+pm.fNTdc*pm.fNTRes/2;
+        cm_list[2*ii] = mean_tdc;
+        cm_list[2*ii+1] = mean_wire;
+    }
+  }
+
+  //......................................................................
   void RegCVNEvaluator::produce(art::Event& evt)
   {
 
@@ -111,13 +127,25 @@ namespace cvn {
     if (evt.getByLabel(fPixelMapInput, "regcvnmap", pixelmapListHandle))
       art::fill_ptr_vector(pixelmaplist, pixelmapListHandle);
 
-
     /// Make sure we have a valid name for the CVN type
     if(fCVNType == "TF" || fCVNType == "Tensorflow" || fCVNType == "TensorFlow"){
       // If we have a pixel map then use the TF interface to give us a prediction
       if(pixelmaplist.size() > 0){
-
-        std::vector<float> networkOutput = fTFHandler.Predict(*pixelmaplist[0]);
+        std::vector<float> networkOutput;
+        if (fTarget == "nueenergy"){
+            networkOutput = fTFHandler.Predict(*pixelmaplist[0]);
+            std::cout << "-->" << networkOutput[0] << std::endl;
+        }
+        else if (fTarget == "nuevertex"){
+            float center_of_mass[6] = {0};
+            getCM(*pixelmaplist[0], center_of_mass);
+            //std::cout << center_of_mass[0] << " " << center_of_mass[1] << " " << center_of_mass[2] << std::endl;
+            networkOutput = fTFHandler.Predict(*pixelmaplist[0], center_of_mass);
+            //std::cout << networkOutput[0] << " " << networkOutput[1] << " " << networkOutput[2] << std::endl;
+        } else {
+            std::cout << "Wrong Target" << std::endl;
+            abort();
+        }
 
         // cvn::Result can now take a vector of floats and works out the number of outputs
         resultCol->emplace_back(networkOutput);

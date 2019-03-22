@@ -8,6 +8,7 @@ standard_regcvnmapper:
   #==================
   HitsModuleLabel:   "linecluster"
   ClusterPMLabel: "regcvnmap"
+  GlobalWireMethod: 1
   MinClusterHits: 1
   TdcWidth:      280 # time width of pixel map
   WireLength:    400 # wire width of pixel map

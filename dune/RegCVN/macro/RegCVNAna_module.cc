@@ -43,6 +43,7 @@ class myana::RegCVNAna : public art::EDAnalyzer
     int ievt;
     double trueEnergy;
     float  regcvn_energy;
+    float  regcvn_vertex[3];
     
     int    InDet;
     int    FidCut;
@@ -67,6 +68,7 @@ class myana::RegCVNAna : public art::EDAnalyzer
     std::string fRegCVNModuleLabel;   
     std::string fHitsModuleLabel;
     std::string fEnergyRecoNueLabel;
+    std::string fRegCVNResultLabel;   
 
     art::ServiceHandle<art::TFileService> tfs;
 
@@ -81,6 +83,8 @@ myana::RegCVNAna::RegCVNAna(fhicl::ParameterSet const& pset) : EDAnalyzer(pset)
   fTree->Branch("FidCut",            &FidCut,         "FidCut/I");
   fTree->Branch("TrueEnergy",        &trueEnergy,    "TrueEnergy/D");
   fTree->Branch("CVNEnergy",         &regcvn_energy, "CVNEnergy/F");
+  fTree->Branch("CVNVertex",         regcvn_vertex, "CVNVertex[3]/F");
+
   fTree->Branch("NuTruthN",          &nu_truth_N,    "NuTruthN/I");  
   fTree->Branch("NuEngTruth",        nueng_truth,    "NuEngTruth[NuTruthN]/D");   
   fTree->Branch("NuPDGTruth",        nupdg_truth,    "NuPDGTruth[NuTruthN]/I");   
@@ -107,6 +111,7 @@ void myana::RegCVNAna::reconfigure(fhicl::ParameterSet const& pset)
   fRegCVNModuleLabel = pset.get<std::string>("RegCVNModuleLabel");
   fHitsModuleLabel   = pset.get<std::string>("HitsModuleLabel");
   fEnergyRecoNueLabel = pset.get<std::string>("EnergyRecoNueLabel");
+  fRegCVNResultLabel = pset.get<std::string>("RegCVNResultLabel");
 }
 
 void myana::RegCVNAna::analyze(art::Event const& evt)
@@ -136,7 +141,7 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
 
   // Get RegCVN Results
   art::Handle<std::vector<cvn::RegCVNResult>> cvnresultListHandle;
-  evt.getByLabel(fRegCVNModuleLabel, "regcvnresult", cvnresultListHandle);
+  evt.getByLabel(fRegCVNModuleLabel, fRegCVNResultLabel, cvnresultListHandle);
   //std::vector<art::Ptr<cvn::Result> > cvnlist;
   //if (evt.getByLabel(fRegCVNModuleLabel, cvnresultListHandle))
   //  art::fill_ptr_vector(cvnlist, cvnresultListHandle);
@@ -209,6 +214,9 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
   	  const std::vector<float>& v = (*cvnresultListHandle)[0].fOutput;
 	  regcvn_energy = v[0];
           //std::cout << v[0] << std::endl;
+          for (unsigned int ii = 0; ii < 3; ii++){
+	      regcvn_vertex[ii] = v[ii];
+          }
         }
   }
   // fill entry
@@ -224,7 +232,10 @@ void myana::RegCVNAna::reset()
     RecoLepEnNue = -99999;
     RecoHadEnNue = -99999;
     RecoMethodNue = -99999;
-    
+   
+    for (int ii = 0; ii < 3; ii++){ 
+        regcvn_vertex[ii] = -99999;
+    }
     nu_truth_N = 0;
     for (int ii = 0; ii < kMax; ++ii)
     {

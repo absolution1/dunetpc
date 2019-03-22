@@ -25,19 +25,37 @@ namespace cvn
     //fLibPath((pset.get<std::string>("LibPath", ""))),
     fTFProtoBuf  (fLibPath+"/"+pset.get<std::string>("TFProtoBuf")),
     fInputs(pset.get<unsigned int>("NInputs")),
+    fOutputName(pset.get<std::vector<std::string>>("OutputName")),
     fReverseViews(pset.get<std::vector<bool> >("ReverseViews"))
   {
 
     // Construct the TF Graph object. The empty vector {} is used since the protobuf
     // file gives the names of the output layer nodes
     mf::LogInfo("TFRegNetHandler") << "Loading network: " << fTFProtoBuf << std::endl;
-    fTFGraph = tf::RegCVNGraph::create(fTFProtoBuf.c_str(),fInputs,{});
+    //fTFGraph = tf::RegCVNGraph::create(fTFProtoBuf.c_str(),fInputs,{});
+    fTFGraph = tf::RegCVNGraph::create(fTFProtoBuf.c_str(),fInputs,fOutputName);
     if(!fTFGraph){
       art::Exception(art::errors::Unknown) << "Tensorflow model not found or incorrect";
     }
 
   }
-  
+  std::vector<float> TFRegNetHandler::Predict(const RegPixelMap& pm, const float* cm_list)
+  {
+   
+    RegCVNImageUtils imageUtils;
+
+    // Configure the image utility  
+    imageUtils.SetViewReversal(fReverseViews);
+    ImageVectorF thisImage;
+    imageUtils.ConvertPixelMapToImageVectorF(pm,thisImage);
+    std::vector<ImageVectorF> vecForTF;
+    vecForTF.push_back(thisImage);
+
+    auto cvnResults = fTFGraph->run(vecForTF, cm_list, fInputs);
+    return cvnResults[0];
+  }
+
+ 
   std::vector<float> TFRegNetHandler::Predict(const RegPixelMap& pm)
   {
    

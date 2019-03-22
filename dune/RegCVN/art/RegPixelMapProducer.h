@@ -38,13 +38,17 @@ namespace cvn
   class RegPixelMapProducer
   {
   public:
-    RegPixelMapProducer(unsigned int nWire, unsigned int nTdc, double tRes);
+    RegPixelMapProducer(unsigned int nWire, unsigned int nTdc, double tRes, int Global);
 
     /// Get boundaries for pixel map representation of cluster
     RegCVNBoundary DefineBoundary(std::vector< art::Ptr< recob::Hit > >& cluster);
 
     /// Function to convert to a global unwrapped wire number
     double GetGlobalWire(const geo::WireID& wireID);
+    void GetDUNEGlobalWireTDC(const geo::WireID& wireID, float localTDC,
+                              double& globalWire, unsigned int& globalPlane, 
+                              float& globalTDC);
+
 
     unsigned int NWire() const {return fNWire;};
     unsigned int NTdc() const {return fNTdc;};
@@ -59,16 +63,18 @@ namespace cvn
     void ShiftGlobalWire(std::vector< art::Ptr< recob::Hit > >& cluster);
 
    private:
+
     unsigned int      fNWire;  ///< Number of wires, length for pixel maps
     unsigned int      fNTdc;   ///< Number of tdcs, width of pixel map
     unsigned int      fTRes;
+    int               fGlobalWireMethod;
     double            fOffset[2];
     std::vector<int> hitwireidx; // collect hit wire
     std::vector<int> tmin_each_wire;
     std::vector<int> tmax_each_wire;
     std::vector<float> trms_max_each_wire;
 
-
+    detinfo::DetectorProperties const* detprop;
     art::ServiceHandle<geo::Geometry> geom;
   };
 

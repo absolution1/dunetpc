@@ -79,6 +79,8 @@ namespace cvn {
     /// Use unwrapped pixel maps?
     bool fUnwrappedPixelMap;
 
+    int fGlobalWireMethod;
+
     /// PixelMapProducer does the work for us
     RegPixelMapProducer fProducer;
 
@@ -89,12 +91,13 @@ namespace cvn {
   //.......................................................................
   RegCVNMapper::RegCVNMapper(fhicl::ParameterSet const& pset):
   fHitsModuleLabel  (pset.get<std::string>    ("HitsModuleLabel")),
-  fClusterPMLabel(pset.get<std::string>    ("ClusterPMLabel")),
-  fMinClusterHits(pset.get<unsigned short> ("MinClusterHits")),
-  fTdcWidth     (pset.get<unsigned short> ("TdcWidth")),
-  fWireLength   (pset.get<unsigned short> ("WireLength")),
+  fClusterPMLabel   (pset.get<std::string>       ("ClusterPMLabel")),
+  fMinClusterHits   (pset.get<unsigned short>    ("MinClusterHits")),
+  fTdcWidth         (pset.get<unsigned short>     ("TdcWidth")),
+  fWireLength       (pset.get<unsigned short>     ("WireLength")),
   fTimeResolution   (pset.get<unsigned short> ("TimeResolution")),
-  fProducer      (fWireLength, fTdcWidth, fTimeResolution)
+  fGlobalWireMethod (pset.get<int>            ("GlobalWireMethod")),
+  fProducer      (fWireLength, fTdcWidth, fTimeResolution, fGlobalWireMethod)
   {
 
     produces< std::vector<cvn::RegPixelMap>   >(fClusterPMLabel);

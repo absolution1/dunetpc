@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Class:       RegCVNGraph
+// Class:       RegCVNGraph modified from the original code from R.Sulej
 // Authors:     Ilsoo Seong - iseong@uci.edu
 // Authors:     R.Sulej (Robert.Sulej@cern.ch), from DUNE, FNAL/NCBJ, Sept. 2017
 //              P.Plonski,                      from DUNE, WUT, Sept. 2017
@@ -36,8 +36,12 @@ tf::RegCVNGraph::RegCVNGraph(const char* graph_file_name, const unsigned int &ni
 
     size_t ng = graph_def.node().size();
     // set input names
+    std::string ss("input_");
     for (unsigned int ii = 0; ii < ninputs; ++ii){
         fInputNames.push_back(graph_def.node()[ii].name());
+        //std::string inname(ss+std::to_string(ii+1));
+        //fInputNames.push_back(inname);
+        std::cout<< graph_def.node()[ii].name() << std::endl;
     }
 
     // last node as output if no specific name provided
@@ -158,6 +162,61 @@ std::vector< std::vector<float> > tf::RegCVNGraph::run(
     return run(_x);
 
 }
+
+std::vector< std::vector<float> > tf::RegCVNGraph::run(
+	const std::vector<  std::vector<  std::vector< std::vector<float> > > > & x,
+        const float *cm, const unsigned int &ninputs,
+	long long int samples)
+{
+    // this is for the vertex reconstruction
+    if (ninputs == 1) return run(x);
+
+    if ((samples == 0) || x.empty() || x.front().empty() || x.front().front().empty() || x.front().front().front().empty())
+        return std::vector< std::vector<float> >();
+
+    if ((samples == -1) || (samples > (long long int)x.size())) { samples = x.size(); }
+
+    long long int
+              rows = x.front().size(),
+              cols = x.front().front().size(),
+              depth = x.front().front().front().size();
+
+    //std::cout << "====>" << rows << " " << cols << " " << depth << std::endl;
+
+    std::vector< tensorflow::Tensor > _x;
+    //for (unsigned int ii = 0; ii < ninputs; ++ii){
+    for (unsigned int ii = 0; ii < 3; ++ii){
+        tensorflow::Tensor _xtemp(tensorflow::DT_FLOAT, tensorflow::TensorShape({ samples, rows, cols, 1 }));
+        _x.push_back(_xtemp);
+    }
+    // for center of mass input
+    tensorflow::Tensor _xtemp(tensorflow::DT_FLOAT, tensorflow::TensorShape({ samples, 6 }));
+    _x.push_back(_xtemp);
+
+    //auto input_map = _x[0].tensor<float, 4>();
+    // fill data into _x
+    for (long long int s = 0; s < samples; ++s) {
+        const auto & sample = x[s];
+        for (long long int r = 0; r < rows; ++r) {
+            const auto & row = sample[r];
+            for (long long int c = 0; c < cols; ++c) {
+                const auto & col = row[c];
+                for (long long int d = 0; d < depth; ++d) {
+                    //input_map(s, r, c, d) = col[d];
+		    _x[d].tensor<float, 4>()(s, r, c, 0) = col[d];
+                }
+            }
+        }
+        for (unsigned int icm = 0; icm < 6; ++icm){
+            _x[depth].tensor<float, 2>()(s, icm) = cm[icm];
+        }
+    }
+    // for center of mass input
+
+    return run(_x);
+
+}
+
 
 std::vector< std::vector<float> > tf::RegCVNGraph::run(
 	const std::vector<  std::vector<  std::vector< std::vector<float> > > > & x,

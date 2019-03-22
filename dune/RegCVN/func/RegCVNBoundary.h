@@ -42,7 +42,6 @@ namespace cvn
 
 
 
-  private:
     int fFirstWire[3];  ///< Minimum wire, inclusive
     int fLastWire[3];   ///< Maximum wire, inclusive
     int fFirstTDC[3]; ///< Minimum TDC in each view, inclusive

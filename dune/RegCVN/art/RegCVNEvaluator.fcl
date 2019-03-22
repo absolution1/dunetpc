@@ -10,6 +10,7 @@ standard_tfregnethandler:
   TFProtoBuf: "duneRegCVNNetwork/dune_model.pb"
   NInputs : 3
   ReverseViews: [false,false,false]
+  OutputName: []
 }
 
 standard_regcvnevaluator:
@@ -20,6 +21,7 @@ standard_regcvnevaluator:
   ResultLabel: "regcvnresult"
   TFNetHandler: @local::standard_tfregnethandler
   CVNType: "Tensorflow"
+  Target: "nueenergy"
 }
 
 END_PROLOG
