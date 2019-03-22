@@ -19,8 +19,9 @@ pdune_sp_calomc.CaloAlg:                 @local::pdune_sp_calorimetryalgmc
 pdune_sp_calomc.CaloAlg.CaloUseModBox:   true
 
 pdune_sp_calorimetryalgmcc10mc:          @local::standard_calorimetryalgmc
-calorimetryalgmcc10mc.CalAreaConstants:  [ 0.4911, 0.4911, 0.4911 ]
-calorimetryalgmcc10mc.CaloDoLifeTimeCorrection: false
+# pdune_sp_calorimetryalgmcc10mc.CalAreaConstants:  [ 0.4911, 0.4911, 0.4911 ]
+pdune_sp_calorimetryalgmc.CalAreaConstants: [ 4.833e-3, 4.815e-3, 4.966e-3 ]
+pdune_sp_calorimetryalgmcc10mc.CaloDoLifeTimeCorrection: false
 
 # Double-Phase 6x6x6 parameters (***BLINDLY*** copied from SP above, changing to 2 planes and same constants!)
 

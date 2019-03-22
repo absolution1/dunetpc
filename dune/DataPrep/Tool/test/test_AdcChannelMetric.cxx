@@ -48,6 +48,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "            LogLevel: 3" << endl;
     fout << "              Metric: \"pedestal\"" << endl;
     fout << "       ChannelRanges: [all, tpp3c, tpp3z]" << endl;
+    fout << "          MetricBins: 0" << endl;
     fout << "           MetricMin: 0.0" << endl;
     fout << "           MetricMax: 2000.0" << endl;
     fout << "  ChannelLineModulus:  40" << endl;
@@ -57,6 +58,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "         MetricLabel: \"Pedestal [ADC counts]\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
+    fout << "      PlotUsesStatus: 0" << endl;
     fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%_%CRNAME%.png\"" << endl;
     fout << "        RootFileName: \"\"" << endl;
     fout << "}" << endl;

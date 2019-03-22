@@ -149,18 +149,6 @@ namespace tpc_monitor{
     std::vector<TProfile*> fChanRMSZ_pfx;
     std::vector<TProfile*> fChanMeanZ_pfx;
 
-    //2Dhistograms of bits, using same mapping as the fAllChan histos
-    //vector indexes over 0-11 bit numbers
-    std::vector<TProfile2D*> fBitValue;
-
-    
-    // profiled over events Mean/RMS by slot number
-    std::vector<TProfile*> fSlotChanMean_pfx;
-    std::vector<TProfile*> fSlotChanRMS_pfx;	
-    
-    // FFT by slot number
-    //std::vector<TH2F*> fSlotChanFFT;
-    
     // Persistent and overlay wavefroms by fiber
     //std::vector<TH2F*> fPersistentFFT_by_Fiber;
     // change to only saving these for each APA
@@ -355,32 +343,8 @@ namespace tpc_monitor{
 	fChanFFTZ[i]->Rebin2D(fRebinX, fRebinY);
       }
     
-    for(int i=0;i<12;i++)
-      {
-	fBitValue.push_back(tfs->make<TProfile2D>(Form("fBitValue%d",i),Form("Values for bit %d",i),240,-0.5,239.5,64,-0.5,63.5,0,1));
-	fBitValue[i]->SetStats(false);
-	fBitValue[i]->GetXaxis()->SetTitle("APA Number (online)"); fBitValue[i]->GetYaxis()->SetTitle("Plane"); fBitValue[i]->GetZaxis()->SetTitle("Bit Fraction On");
-	fBitValue[i]->GetXaxis()->SetLabelSize(.075); fBitValue[i]->GetYaxis()->SetLabelSize(.05);
-	fBitValue[i]->GetXaxis()->SetBinLabel(40, "3"); fBitValue[i]->GetXaxis()->SetBinLabel(120, "2"); fBitValue[i]->GetXaxis()->SetBinLabel(200, "1");
-	fBitValue[i]->GetYaxis()->SetBinLabel(5, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(15, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(26, "Z");
-	fBitValue[i]->GetYaxis()->SetBinLabel(37, "U"); fBitValue[i]->GetYaxis()->SetBinLabel(47, "V"); fBitValue[i]->GetYaxis()->SetBinLabel(58, "Z");
-      }
+    // protodune, but the first 10 are Iceberg labels
 
-    // Mean/RMS by slot channel number for each slot
-    for(int i=0;i<5;i++) {
-      int apaloc = fApaLabelNum[i/5];
-      int slotloc = i % 5;
-      
-      fSlotChanMean_pfx.push_back(tfs->make<TProfile>(Form("APA%d_Slot%d_Mean", apaloc, slotloc), Form("APA %d Slot%d Mean_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, "s")); 
-      fSlotChanRMS_pfx.push_back(tfs->make<TProfile>(Form("APA%d_Slot%d_RMS", apaloc, slotloc), Form("APA %d Slot %d  RMS_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, "s")); 
-      //fSlotChanFFT.push_back(tfs->make<TH2F>(Form("APA%d_Slot%d_FFT", apaloc, slotloc), Form("APA %d Slot %d FFT_vs_SlotChannel", apaloc, slotloc), 512, 0, 512, fNticks/2, 0, fNticks/2*fBinWidth));
-  	  
-      fSlotChanMean_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanMean_pfx[i]->GetYaxis()->SetTitle("Profiled Mean"); 
-      fSlotChanRMS_pfx[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanRMS_pfx[i]->GetYaxis()->SetTitle("Profiled RMS"); 
-      //fSlotChanFFT[i]->GetXaxis()->SetTitle("Slot Channel"); fSlotChanFFT[i]->GetYaxis()->SetTitle("kHz");
-    }
-
-    // protodune
     unsigned int fembmap_by_fiberID[120] =
       {
 	703,727,715,723,721,706,726,716,704,709,308,303,317,312,307,302,316,311,306,301,505,510,515,520,504,509,514,519,503,508,513,518,502,507,512,517,501,506,511,516,220,215,210,205,219,
@@ -526,12 +490,6 @@ namespace tpc_monitor{
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
     art::fill_ptr_vector(RawDigits, RawTPC);
 
-    //for the large all channel summary histograms these are key points for bin mapping
-    //for each offline numbered apa, the left most bin should be at the x value:
-    int xEdgeAPA[6] = {0,0,80,80,160,160}; //these numbers may be adjusted to horizontally space out the histogram
-    //for each of the apas, the bottom most bin should be at the y value:
-    int yEdgeAPA[2] = {0,32}; //these numbers may be adjusted to vertically space out the histograms
-
     // example of retrieving RDStatus word and flags
 
     for ( auto const& rdstatus : (*RDStatusHandle) )
@@ -613,32 +571,6 @@ namespace tpc_monitor{
       float mean = meanADC(uncompPed);
       float rms = rmsADC(uncompPed);
 
-      //get ready to fill the summary plots
-      //get the channel's FEMB and WIB
-      int WIB = channelMap->WIBFromOfflineChannel(chan); //0-4
-      int FEMB = channelMap->FEMBFromOfflineChannel(chan); //1-4
-      int FEMBchan = channelMap->FEMBChannelFromOfflineChannel(chan);
-      int iFEMB = ((WIB*4)+(FEMB-1)); //index of the FEMB 0-19
-      //Get the location of any FEMBchan in the hitogram
-      //put as a function for clenliness.
-      int xBin = ((FEMBchanToHistogramMap(FEMBchan,0))+(iFEMB*4)+xEdgeAPA[apa]); // (fembchan location on histogram) + shift from mobo + shift from apa
-      int yBin = ((FEMBchanToHistogramMap(FEMBchan,1))+yEdgeAPA[(apa%2)]); //(fembchan location on histogram) + shift from apa 
-
-
-      for (int i=0; i<nSamples; i++) //histogram the 12 bits
-	{ 
-	  auto adc=uncompressed.at(i);
-	  int bitstring = adc;
-	  for(int mm=0;mm<12;mm++)
-	    {
-	      // get the bit value from the adc
-	      int bit = (bitstring%2);
-	      fBitValue[mm]->Fill(xBin,yBin,bit);
-	      bitstring = (bitstring/2);
-	    }
-	}
-
-	     
       // U View, induction Plane	  
       if( fGeom->View(chan) == geo::kU){	
 	fChanMeanU_pfx[apa]->Fill(chan, mean, 1);
@@ -689,20 +621,6 @@ namespace tpc_monitor{
 	}
 
       }// end of Z View
-      
-      // Mean/RMS by slot
-      int SlotID = channelMap->SlotIdFromOfflineChannel(chan);
-      int FiberNumber = channelMap->FEMBFromOfflineChannel(chan) - 1;
-      int FiberChannelNumber = channelMap->FEMBChannelFromOfflineChannel(chan);
-      uint32_t SlotChannelNumber = FiberNumber*128 + FiberChannelNumber; //128 channels per fiber
-      fSlotChanMean_pfx.at(SlotID)->Fill(SlotChannelNumber, mean, 1);
-      fSlotChanRMS_pfx.at(SlotID)->Fill(SlotChannelNumber, rms, 1);
-      
-      // FFT by slot
-      for(int l=0;l<nSamples/2;l++) {
-	//for the 2D histos
-	// fSlotChanFFT.at(SlotID)->Fill(SlotChannelNumber, (l+0.5)*fBinWidth, histfft->GetBinContent(l+1));
-      }
       
       histwav->Delete(); 
       histfft->Delete();                                                                                                                    

@@ -22,6 +22,8 @@
 
 
 #include "art/Persistency/Provenance/ScheduleContext.h"
+
+
 ///General LArSoft Utilities
 namespace spdp{
   
@@ -84,6 +86,7 @@ namespace spdp{
       virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
       void   preProcessEvent(const art::Event& evt, art::ScheduleContext);
       void   postOpenFile(const std::string& filename);
+      void   preOpenFile(const std::string& filename);
       void preBeginRun(const art::Run& run);
       
       virtual const provider_type* provider() const override { return fProp.get();}
@@ -91,7 +94,7 @@ namespace spdp{
     private:
       std::unique_ptr<spdp::DetectorPropertiesProtoDUNEsp> fProp;
       fhicl::ParameterSet   fPS;       ///< Original parameter set.
-      
+      bool isNewRun;
       bool fInheritNumberTimeSamples; ///< Flag saying whether to inherit NumberTimeSamples
       
       bool isDetectorPropertiesServiceProtoDUNEsp(const fhicl::ParameterSet& ps) const;

@@ -5,6 +5,9 @@
 //
 // Tool to plot data from an ADC channel.
 //
+// Either waveforms (signal vs. tick) or distributions (# tick vs signal)
+// may be produced.
+//
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   HistTypes: Types of histograms to create:

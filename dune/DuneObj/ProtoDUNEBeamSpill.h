@@ -66,18 +66,22 @@ namespace beam
       size_t            GetNFBMTriggers(std::string);
       std::bitset<32>   toBinary(double); 
 
-      void              SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
-      void              SetCKov1(CKov theCKov){ CKov1 = theCKov; };
-      CKov              GetCKov0(){ return CKov0; }; 
-      CKov              GetCKov1(){ return CKov1; };
+//      void              SetCKov0(CKov theCKov){ CKov0 = theCKov; }; 
+//      void              SetCKov1(CKov theCKov){ CKov1 = theCKov; };
+      void              AddCKov0(CKov theCKov){ CKov0.push_back(theCKov); }; 
+      void              AddCKov1(CKov theCKov){ CKov1.push_back(theCKov); };
+      CKov              GetCKov0(size_t i){ return CKov0[i]; }; 
+      CKov              GetCKov1(size_t i){ return CKov1[i]; };
+      size_t            GetNCKov0(){ return CKov0.size(); };
+      size_t            GetNCKov1(){ return CKov1.size(); };
 
 
-      short             GetCKov0Status(){ return CKov0.trigger; };
-      short             GetCKov1Status(){ return CKov1.trigger; };
-      double            GetCKov0Time(){ return CKov0.timeStamp; };
-      double            GetCKov1Time(){ return CKov1.timeStamp; };
-      double            GetCKov0Pressure(){ return CKov0.pressure; };
-      double            GetCKov1Pressure(){ return CKov1.pressure; };
+      short                         GetCKov0Status(size_t i){ return CKov0[i].trigger; };
+      short                         GetCKov1Status(size_t i){ return CKov1[i].trigger; };
+      double                        GetCKov0Pressure(size_t i){ return CKov0[i].pressure; };
+      double                        GetCKov1Pressure(size_t i){ return CKov1[i].pressure; };
+      double                        GetCKov0Time(size_t i){ return CKov0[i].timeStamp; };
+      double                        GetCKov1Time(size_t i){ return CKov1[i].timeStamp; };
 
 
       void              AddTOF0Trigger( std::pair<double,double> theT){ TOF0.push_back(theT); };
@@ -168,8 +172,8 @@ namespace beam
 
       //Set of Cerenkov detectors
       //
-      CKov CKov0;
-      CKov CKov1;
+      std::vector< CKov > CKov0;
+      std::vector< CKov > CKov1;
 
       std::vector<recob::Track> Tracks;
   

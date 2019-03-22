@@ -106,6 +106,8 @@ namespace opdet {
     Float_t fDetectedT;
     Float_t fTrueE;
     Int_t   fTruePDG;
+    Float_t fRecoX;
+
 
     Int_t fNFlashes;
     std::vector< Int_t >   fFlashIDVector;
@@ -114,6 +116,7 @@ namespace opdet {
     std::vector< Float_t > fYWidthVector;
     std::vector< Float_t > fZWidthVector;
     std::vector< Float_t > fTimeVector;
+    std::vector< Float_t > fRecoXVector;
     std::vector< Float_t > fTimeWidthVector;
     std::vector< Float_t > fTimeDiffVector;
     std::vector< Int_t >   fFlashFrameVector;
@@ -208,6 +211,8 @@ namespace opdet {
     fFlashMatchTree->Branch("NHitOpDetVector",             &fNHitOpDetVector);
     fFlashMatchTree->Branch("Purity",                      &fPurityVector);
     fFlashMatchTree->Branch("Distance",                    &fDistanceVector);
+    fFlashMatchTree->Branch("RecoXVector",                 &fRecoXVector);
+
 
     fLargestFlashTree = tfs->make<TTree>("LargestFlashTree","LargestFlashTree");
     fLargestFlashTree->Branch("EventID",                     &fEventID,   "EventID/I");
@@ -233,7 +238,8 @@ namespace opdet {
     fLargestFlashTree->Branch("PEsPerOpDetVector",           &fPEsPerOpDetVector);
     fLargestFlashTree->Branch("Purity",                      &fPurity,    "Purity/F");
     fLargestFlashTree->Branch("Distance",                    &fDistance,  "Distance/F");
-
+    fLargestFlashTree->Branch("RecoX",                       &fRecoX,     "RecoX/F");
+      
 
     fSelectedFlashTree = tfs->make<TTree>("SelectedFlashTree","SelectedFlashTree");
     fSelectedFlashTree->Branch("EventID",                     &fEventID,   "EventID/I");
@@ -259,6 +265,8 @@ namespace opdet {
     fSelectedFlashTree->Branch("PEsPerOpDetVector",           &fPEsPerOpDetVector);
     fSelectedFlashTree->Branch("Purity",                      &fPurity,    "Purity/F");
     fSelectedFlashTree->Branch("Distance",                    &fDistance,    "Distance/F");
+    fSelectedFlashTree->Branch("RecoX",                       &fRecoX,     "RecoX/F");
+   
 
     if (!fOpDetWaveformLabel.empty()) {
       fCountTree = tfs->make<TTree>("CountWaveforms","CountWaveforms");
@@ -307,54 +315,34 @@ namespace opdet {
     fEventID = evt.id().event();
 
 
-    //////////////////////////////////////
-    // Access all the truth information //
-    //////////////////////////////////////
 
-    auto MClistHandle = evt.getValidHandle<std::vector<simb::MCTruth> >(fSignalLabel);
 
-    art::Ptr<simb::MCTruth> mctruth(MClistHandle, 0);
-    if (mctruth->NParticles() == 0) {
-      mf::LogError("FlashMatchAna") << "No MCTruth Particles";
-    }
+    ///////////////////////////////////////////////////
+    // Count waveforms if a waveform label was given //
+    ///////////////////////////////////////////////////
 
-    // Get all the track ids associated with the signal event.
-    std::set<int> signal_trackids;
-    art::FindManyP<simb::MCParticle> SignalGeantAssns(MClistHandle,evt,fGeantLabel);
-    for ( size_t i = 0; i < SignalGeantAssns.size(); i++) {
-      auto parts = SignalGeantAssns.at(i);
-      for (auto part = parts.begin(); part != parts.end(); part++) {
-        signal_trackids.emplace((*part)->TrackId());
+    if (!fOpDetWaveformLabel.empty()) {
+      fnwaveforms1pe = 0;
+      fnwaveforms2pe = 0;
+      fnwaveforms3pe = 0;
+      art::Handle< std::vector< raw::OpDetWaveform > > wfHandle;
+      if (evt.getByLabel(fOpDetWaveformLabel, wfHandle)) {
+        fnwaveforms1pe = wfHandle->size();
+
+        for (auto wf: *wfHandle) {
+          auto it = max_element(std::begin(wf), std::end(wf));
+          double peak = *it - fBaseline;
+          if ( peak > (1.5*fPE)) {
+            ++fnwaveforms2pe;
+
+            if ( peak > (2.5*fPE) )
+              ++fnwaveforms3pe;
+          }
+        }
+        fCountTree->Fill();
       }
     }
 
-    // Get just the neutrino, entry 0 from the list, and record its properties
-    const simb::MCParticle& part(mctruth->GetParticle(0));
-    fTrueX     = part.Vx();
-    fTrueY     = part.Vy();
-    fTrueZ     = part.Vz();
-    fTrueT     = part.T()*1000; // ns -> us
-    fTrueE     = part.E();
-    fTruePDG   = part.PdgCode();
-
-    // Get the PlaneID which describes the location of the true vertex
-    int plane = 0;
-    double loc[] = {part.Vx(), part.Vy(), part.Vz()};
-    geo::TPCID tpc = geom->FindTPCAtPosition(loc);
-    if (! geom->HasTPC(tpc) ) {
-      mf::LogInfo("FlashMatchAna") << "No valid TPC for " << tpc;
-      return;
-    }
-    geo::PlaneID planeid(tpc, plane);
-
-    // Convert true X to would-be charge arrival time, and convert from ticks to us, add to MC time
-    double deltaTicks = detprop->ConvertXToTicks(part.Vx(), planeid);
-    double deltaT = timeService->TPCTick2Time(deltaTicks);
-    fDetectedT = fTrueT + deltaT;
-
-    // Get the maximum possible time difference by getting number of ticks corresponding to
-    // one full drift distance, and converting to time.
-    double maxT = timeService->TPCTick2Time(detprop->NumberTimeSamples());
 
 
 
@@ -370,12 +358,88 @@ namespace opdet {
       std::sort(flashlist.begin(), flashlist.end(), recob::OpFlashPtrSortByPE);
     }
     else {
-      mf::LogError("FlashMatchAna") << "Cannot load any flashes. Failing";
-      abort();
+      mf::LogWarning("FlashMatchAna") << "Cannot load any flashes. Failing";
+      return;
     }
 
     // Get assosciations between flashes and hits
     //art::FindManyP< recob::OpHit > Assns(flashlist, evt, fOpFlashModuleLabel);
+
+
+    
+    //////////////////////////////////////
+    // Access all the truth information //
+    //////////////////////////////////////
+
+    std::set<int> signal_trackids;
+    geo::PlaneID planeid;
+
+    try {
+      auto MClistHandle = evt.getValidHandle<std::vector<simb::MCTruth> >(fSignalLabel);
+
+      art::Ptr<simb::MCTruth> mctruth(MClistHandle, 0);
+      if (mctruth->NParticles() == 0) {
+        mf::LogError("FlashMatchAna") << "No MCTruth Particles";
+      }
+
+      // Get all the track ids associated with the signal event.
+      art::FindManyP<simb::MCParticle> SignalGeantAssns(MClistHandle,evt,fGeantLabel);
+      for ( size_t i = 0; i < SignalGeantAssns.size(); i++) {
+        auto parts = SignalGeantAssns.at(i);
+        for (auto part = parts.begin(); part != parts.end(); part++) {
+          signal_trackids.emplace((*part)->TrackId());
+        }
+      }
+
+      // Get just the neutrino, entry 0 from the list, and record its properties
+      const simb::MCParticle& part(mctruth->GetParticle(0));
+      fTrueX     = part.Vx();
+      fTrueY     = part.Vy();
+      fTrueZ     = part.Vz();
+      fTrueT     = part.T()*1000; // ns -> us
+      fTrueE     = part.E();
+      fTruePDG   = part.PdgCode();
+
+      // Get the PlaneID which describes the location of the true vertex
+      int plane = 0;
+      double loc[] = {part.Vx(), part.Vy(), part.Vz()};
+      geo::TPCID tpc = geom->FindTPCAtPosition(loc);
+      if (! geom->HasTPC(tpc) ) {
+        mf::LogInfo("FlashMatchAna") << "No valid TPC for " << tpc;
+        return;
+      }
+      geo::PlaneID tempid(tpc, plane);
+      planeid = tempid;
+
+      // Convert true X to would-be charge arrival time, and convert from ticks to us, add to MC time
+      double deltaTicks = detprop->ConvertXToTicks(part.Vx(), planeid);
+      double deltaT = timeService->TPCTick2Time(deltaTicks);
+      fDetectedT = fTrueT + deltaT;
+    }
+    catch (art::Exception const& err) 
+    {
+      // If the error isn't that a product wasn't found, throw it back up.
+      if ( err.categoryCode() != art::errors::ProductNotFound ) throw;
+
+      // Otherwise, this event just doesn't have signal. Fill default values
+      fTrueX = 0;
+      fTrueY = 0;
+      fTrueZ = 0;
+      fTrueT = 0;
+      fTrueE = 0;
+      fTruePDG = 0;
+      fDetectedT = 0;
+    }
+
+    // Get the maximum possible time difference by getting number of ticks corresponding to
+    // one full drift distance, and converting to time.
+    double maxT = timeService->TPCTick2Time(detprop->NumberTimeSamples());
+
+
+
+    /////////////////////////
+    // Analyze the flashes //
+    /////////////////////////
 
 
     // Set up some flags to fill as we loop
@@ -406,6 +470,15 @@ namespace opdet {
       // Calcuate relative detection time
       double timeDiff = fDetectedT - TheFlash.Time();
 
+      if (!planeid) {
+        // planeid isn't valid
+        fRecoX = 0;
+      }
+      else {
+        double ticks = timeService->Time2Tick(timeDiff);
+        fRecoX = detprop->ConvertTicksToX(ticks, planeid);
+      }
+
       // Check if this is a possible flash (w/in 1 drift window)
       // Otherwise, skip it
       if (timeDiff < -10 || timeDiff > maxT)
@@ -427,6 +500,7 @@ namespace opdet {
       fDistance = sqrt( pow(fTrueY-fYCenter,2) +  pow(fTrueZ-fZCenter,2) );
 
 
+
       // Loop through all the opdets with hits in this flash
       fPEsPerOpDetVector.clear();
       for(unsigned int iOD = 0; iOD < geom->NOpDets(); ++iOD){
@@ -443,7 +517,7 @@ namespace opdet {
         if (fPEsPerOpDetVector[iOD] > 0) ++fNHitOpDets;
       }
       fNHitOpDetVector.emplace_back(fNHitOpDets);
-
+     
 
       // Add flash info to the tree of all possible flashes
       fFlashIDVector    .emplace_back(fFlashID);
@@ -457,6 +531,7 @@ namespace opdet {
       fTotalPEVector    .emplace_back(fTotalPE);
       fPurityVector     .emplace_back(fPurity);
       fDistanceVector   .emplace_back(fDistance);
+      fRecoXVector      .emplace_back(fRecoX);
 
 
       // Did we reconstruct any flashes with signal in them?
@@ -510,33 +585,6 @@ namespace opdet {
 
 
 
-    ///////////////////////////////////////////////////
-    // Count waveforms if a waveform label was given //
-    ///////////////////////////////////////////////////
-
-    if (!fOpDetWaveformLabel.empty()) {
-      fnwaveforms1pe = 0;
-      fnwaveforms2pe = 0;
-      fnwaveforms3pe = 0;
-      art::Handle< std::vector< raw::OpDetWaveform > > wfHandle;
-      if (evt.getByLabel(fOpDetWaveformLabel, wfHandle)) {
-        fnwaveforms1pe = wfHandle->size();
-
-        for (auto wf: *wfHandle) {
-          auto it = max_element(std::begin(wf), std::end(wf));
-          double peak = *it - fBaseline;
-          if ( peak > (1.5*fPE)) {
-            ++fnwaveforms2pe;
-
-            if ( peak > (2.5*fPE) )
-              ++fnwaveforms3pe;
-          }
-        }
-        fCountTree->Fill();
-      }
-    }
-
-
 
     ///////////////////////////////////////////////
     // Write out the FlashMatchTree and clean up //
@@ -555,6 +603,7 @@ namespace opdet {
     fNHitOpDetVector            .clear();
     fPurityVector               .clear();
     fDistanceVector             .clear();
+    fRecoXVector                .clear();
   }
 } // namespace opdet
 
