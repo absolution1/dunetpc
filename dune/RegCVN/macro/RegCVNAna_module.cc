@@ -179,10 +179,16 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
       {
         art::Ptr<recob::Hit> hit = hits.at(iHit);
     	float peakT = hit->PeakTime();
-    	unsigned int channel = hit->Channel();
+    	//unsigned int channel = hit->Channel();
 	unsigned int plane = hit->WireID().Plane;
+        unsigned int wire = hit->WireID().Wire;
+        unsigned int tpc  = hit->WireID().TPC;
+        // for dunefd 1x2x6
     	if (peakT > 4482.) fid_flag = true; 
-        if (plane == 2 && channel < 1605) fid_flag = true;
+        if (plane == 2){
+            if (tpc < 4 && wire < 5) fid_flag = true;
+            if (tpc > 19 && wire > 474) fid_flag = true;
+        }
 	if (fid_flag) break; 
       }
       if (!fid_flag) InDet = 1; 
@@ -192,7 +198,7 @@ void myana::RegCVNAna::analyze(art::Event const& evt)
   FidCut = 0;
   if (nu_truth_N>0){
     //if(nuccnc_truth[0] == 0 && fabs(nuvtxx_truth[0]) < 310. && fabs(nuvtxy_truth[0]) < 550. && fabs(nuvtxz_truth[0]) > 50. && fabs(nuvtxz_truth[0]) < 1250.) nutrue_fid = 1; 
-    if(fabs(nuvtxx_truth[0]) < 310. && fabs(nuvtxy_truth[0]) < 550. && fabs(nuvtxz_truth[0]) > 50. && fabs(nuvtxz_truth[0]) < 1250.) FidCut = 1;
+    if(fabs(nuvtxx_truth[0]) < 310. && fabs(nuvtxy_truth[0]) < 550. && nuvtxz_truth[0] > 50. && nuvtxz_truth[0] < 1250.) FidCut = 1;
   }
 
 

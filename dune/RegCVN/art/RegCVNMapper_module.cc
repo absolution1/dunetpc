@@ -38,6 +38,7 @@
 
 #include "dune/RegCVN/art/RegPixelMapProducer.h"
 #include "dune/RegCVN/func/RegPixelMap.h"
+#include "dune/RegCVN/func/RegCVNResult.h"
 
 
 namespace cvn {
@@ -79,7 +80,12 @@ namespace cvn {
     /// Use unwrapped pixel maps?
     bool fUnwrappedPixelMap;
 
+    /// select which global wire method
     int fGlobalWireMethod;
+    /// select how to choose center of pixel map
+    int fUseRecoVertex;
+    std::string fRegCVNResultLabel;
+    std::string fRegCVNModuleLabel;
 
     /// PixelMapProducer does the work for us
     RegPixelMapProducer fProducer;
@@ -95,8 +101,11 @@ namespace cvn {
   fMinClusterHits   (pset.get<unsigned short>    ("MinClusterHits")),
   fTdcWidth         (pset.get<unsigned short>     ("TdcWidth")),
   fWireLength       (pset.get<unsigned short>     ("WireLength")),
-  fTimeResolution   (pset.get<unsigned short> ("TimeResolution")),
-  fGlobalWireMethod (pset.get<int>            ("GlobalWireMethod")),
+  fTimeResolution   (pset.get<unsigned short>     ("TimeResolution")),
+  fGlobalWireMethod (pset.get<int>                ("GlobalWireMethod")),
+  fUseRecoVertex    (pset.get<int>                ("UseRecoVertex")),
+  fRegCVNResultLabel (pset.get<std::string>       ("RegCVNResultLabel")),
+  fRegCVNModuleLabel (pset.get<std::string>       ("RegCVNModuleLabel")),
   fProducer      (fWireLength, fTdcWidth, fTimeResolution, fGlobalWireMethod)
   {
 
@@ -138,7 +147,28 @@ namespace cvn {
       pmCol(new std::vector<cvn::RegPixelMap>);
 
     if(nhits>fMinClusterHits){
-      RegPixelMap pm = fProducer.CreateMap(hitlist, fmwire);
+      RegPixelMap pm;
+      if (!(fUseRecoVertex)){
+          // create pixel map based on mean of wire and ticks
+          pm = fProducer.CreateMap(hitlist, fmwire);
+      } else{
+        // create pixel map based on the reconstructed vertex
+        // Get RegCVN Results
+        art::Handle<std::vector<cvn::RegCVNResult>> cvnresultListHandle;
+        evt.getByLabel(fRegCVNModuleLabel, fRegCVNResultLabel, cvnresultListHandle);
+        float vtx[3] = {-99999, -99999, -99999};
+        if (!cvnresultListHandle.failedToGet())
+        {
+            if (!cvnresultListHandle->empty())
+            {
+                const std::vector<float>& v = (*cvnresultListHandle)[0].fOutput;
+                for (unsigned int ii = 0; ii < 3; ii++){
+                     vtx[ii] = v[ii]; 
+                }
+            }
+        }
+        pm = fProducer.CreateMap(hitlist, fmwire, vtx);
+      }
       // skip if PixelMap is empty
       if (pm.fInPM) pmCol->push_back(pm);
       //pm.Print();

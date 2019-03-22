@@ -13,6 +13,9 @@ standard_regcvnmapper:
   TdcWidth:      280 # time width of pixel map
   WireLength:    400 # wire width of pixel map
   TimeResolution: 6 
+  UseRecoVertex: 0
+  RegCVNModuleLabel: "regcvneval"
+  RegCVNResultLabel: "regcvnresult"
 }
 
 

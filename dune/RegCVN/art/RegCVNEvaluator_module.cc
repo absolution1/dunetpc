@@ -124,8 +124,10 @@ namespace cvn {
     /// Load in the pixel maps
     art::Handle< std::vector< cvn::RegPixelMap > > pixelmapListHandle;
     std::vector< art::Ptr< cvn::RegPixelMap > > pixelmaplist;
-    if (evt.getByLabel(fPixelMapInput, "regcvnmap", pixelmapListHandle))
+    //if (evt.getByLabel(fPixelMapInput, "regcvnmap", pixelmapListHandle))
+    if (evt.getByLabel(fPixelMapInput, fPixelMapInput, pixelmapListHandle)){
       art::fill_ptr_vector(pixelmaplist, pixelmapListHandle);
+    }
 
     /// Make sure we have a valid name for the CVN type
     if(fCVNType == "TF" || fCVNType == "Tensorflow" || fCVNType == "TensorFlow"){
@@ -139,9 +141,9 @@ namespace cvn {
         else if (fTarget == "nuevertex"){
             float center_of_mass[6] = {0};
             getCM(*pixelmaplist[0], center_of_mass);
-            //std::cout << center_of_mass[0] << " " << center_of_mass[1] << " " << center_of_mass[2] << std::endl;
+            std::cout << "cm: " << center_of_mass[0] << " " << center_of_mass[1] << " " << center_of_mass[2] << std::endl;
             networkOutput = fTFHandler.Predict(*pixelmaplist[0], center_of_mass);
-            //std::cout << networkOutput[0] << " " << networkOutput[1] << " " << networkOutput[2] << std::endl;
+            std::cout << networkOutput[0] << " " << networkOutput[1] << " " << networkOutput[2] << std::endl;
         } else {
             std::cout << "Wrong Target" << std::endl;
             abort();

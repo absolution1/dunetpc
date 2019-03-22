@@ -42,6 +42,20 @@ namespace cvn
 
     return CreateMapGivenBoundary(cluster, bound, fmwire);
 
+  }
+
+  RegPixelMap RegPixelMapProducer::CreateMap(std::vector< art::Ptr< recob::Hit > >& cluster, art::FindManyP<recob::Wire> fmwire, const float *vtx)
+  {
+    hitwireidx.clear();
+    tmin_each_wire.clear();
+    tmax_each_wire.clear();
+    trms_max_each_wire.clear();
+    fOffset[0] = 0; fOffset[1] = 0;
+
+    RegCVNBoundary bound = DefineBoundary(cluster, vtx);
+
+    return CreateMapGivenBoundary(cluster, bound, fmwire);
+
 
   }
 
@@ -236,6 +250,69 @@ namespace cvn
     RegCVNBoundary bound(fNWire,fNTdc,fTRes,round(wiremean_0),round(wiremean_1),round(wiremean_2),round(tmean_0),round(tmean_1),round(tmean_2));
 
     return bound;
+  }
+
+  RegCVNBoundary RegPixelMapProducer::DefineBoundary(std::vector< art::Ptr< recob::Hit > >& cluster, const float *vtx)
+  {
+
+      unsigned int temp_wire = cluster[0]->WireID().Wire;
+      float temp_time_min = 99999;
+      float temp_time_max = -99999;
+      float temp_trms_max = -99999;
+      for(size_t iHit = 0; iHit < cluster.size(); ++iHit)
+      {
+          geo::WireID wireid = cluster[iHit]->WireID();
+	  if (temp_wire != wireid.Wire ){ // lost last hit info
+	  	temp_wire = wireid.Wire;
+	  	hitwireidx.push_back(iHit-1);
+	  	tmin_each_wire.push_back(temp_time_min);
+	  	tmax_each_wire.push_back(temp_time_max);
+	  	trms_max_each_wire.push_back(temp_trms_max);
+	  	temp_time_min = 99999; temp_time_max = -99999, temp_trms_max = -99999;
+	  }
+	  if (temp_time_min > cluster[iHit]->PeakTime()) temp_time_min = cluster[iHit]->PeakTime();
+	  if (temp_time_max < cluster[iHit]->PeakTime()) temp_time_max = cluster[iHit]->PeakTime();
+	  if (temp_trms_max < cluster[iHit]->RMS()) temp_trms_max = (float)cluster[iHit]->RMS();
+      }
+      double regvtx_loc[3] = {(double)vtx[0], (double)vtx[1], (double)vtx[2]};
+      int rawcrys = 0;
+      double center_wire[3] = {-99999, -99999, -99999};
+      double center_tick[3] = {-99999, -99999, -99999};
+
+      bool inTPC = false;
+      if (geom->FindTPCAtPosition(regvtx_loc).isValid) inTPC = true;
+      if (inTPC){
+          for (int iplane = 0; iplane<3; iplane++){
+              int rawtpc = (int) (geom->FindTPCAtPosition(regvtx_loc)).TPC;
+              geo::PlaneGeo const& planegeo_temp = geom->Plane(iplane);
+              geo::WireID w1;
+              try { 
+                  w1 = geom->NearestWireID(regvtx_loc, iplane, rawtpc, rawcrys);
+              }
+              catch (geo::InvalidWireError const& e){
+	          if (!e.hasSuggestedWire()) throw;
+		  w1 = planegeo_temp.ClosestWireID(e.suggestedWireID());
+	      }
+              double time1 = detprop->ConvertXToTicks(regvtx_loc[0], iplane, rawtpc, rawcrys);
+              if (fGlobalWireMethod == 1){
+	          std::cout << "You Can't use this with GlobalWireMethod = 1" << std::endl;
+                  abort();
+              } else if (fGlobalWireMethod == 2){
+                  double globalWire  = (double)w1.Wire;
+                  unsigned int globalPlane = w1.Plane;
+                  float globalTDC = (float)time1;
+                  GetDUNEGlobalWireTDC(w1, time1, globalWire, globalPlane, globalTDC);
+                  center_wire[globalPlane] = globalWire;
+		  center_tick[globalPlane] = (double)globalTDC;
+              } else {
+                  std::cout << "Wrong Global Wire Method" << std::endl;
+                  abort();
+              }
+          } // end of iplane
+      } // end of inTPC
+
+      RegCVNBoundary bound(fNWire,fNTdc,fTRes,round(center_wire[0]),round(center_wire[1]),round(center_wire[2]),round(center_tick[0]),round(center_tick[1]),round(center_tick[2]));
+     return bound;
   }
 
   double RegPixelMapProducer::GetGlobalWire(const geo::WireID& wireID){
