@@ -473,35 +473,32 @@ private:
   
   //mapping for SSPs to simple array
   std::map<int,int> ssp_map_ =
-    { {11,1},
-      {12,2},
-      {13,3},
-      {14,4},
-      {21,5},
-      {22,6},
-      {23,7},
-      {24,8},
-      {31,9},
-      {32,10},
-      {33,11},
-      {34,12},
-      {41,13},
-      {42,14},
-      {43,15},
-      {44,16},
-      {51,17},
-      {52,18},
-      {53,19},
-      {54,20},
-      {61,21},
-      {62,22},
-      {63,23},
-      {64,24} };
+    { {11,0},
+      {12,1},
+      {13,2},
+      {14,3},
+      {21,4},
+      {22,5},
+      {23,6},
+      {24,7},
+      {31,8},
+      {32,9},
+      {33,10},
+      {34,11},
+      {41,12},
+      {42,13},
+      {43,14},
+      {44,15},
+      {51,16},
+      {52,17},
+      {53,18},
+      {54,19},
+      {61,20},
+      {62,21},
+      {63,22},
+      {64,23} };
 
   std::map<size_t,TH1D*> trigger_type_; // internal vs. external  (16 internal, 48 external)
-
-  // more parameters from the FCL file
-  int fragment;
 
   //int smooth; // unused
   
@@ -564,7 +561,6 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   std::cout << "m2: " << m2 << std::endl;
   std::cout << "i1: " << i1 << std::endl;
   std::cout << "i2: " << i2 << std::endl;
-  std::cout << "Fragment: " << fragment << std::endl;
   std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
   std::cout << "SPESize: " << SPESize << std::endl;
   std::cout << std::endl;
