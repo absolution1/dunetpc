@@ -106,9 +106,10 @@ tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateMar2019
 ###########
 
 # Subtract baseline after deconvolution
-tools.adcCorrectUndershoot: {
+tools.adcCorrectUndershootAdc: {
   tool_type: UndershootCorr
   LogLevel: 1
+  SignalUnit: "ADC count"
   CorrectFlag:     [    false,     false,     true ]  # Apply correction (U, V, and Collection)
   SignalThreshold: [       20,        20,       20 ]  # Above this value, ticks are deweighted in fit
   TDecayConst:     [  0.99955,   0.99955,  0.99955 ]  # Corrn params (tuned for collection plane)
@@ -120,6 +121,11 @@ tools.adcCorrectUndershoot: {
   LCD:             [     1.03,      1.03,     1.03 ]  #  "
 }
 
+tools.adcCorrectUndershootKe: @local::tools.adcCorrectUndershootAdc
+tools.adcCorrectUndershootKe.SignalUnit: "ke/tick"
+tools.adcCorrectUndershootKe.SignalThreshold: [      0.50,      0.50,     0.50 ]
+
+tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 
 ################################################################################
 # Event metrics.
