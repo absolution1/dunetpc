@@ -45,6 +45,7 @@ pdsp_tpc_raw_decoder:
                       # an emtpy list decodes them all
 
   RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC" ]
+  RCEEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
@@ -59,6 +60,7 @@ pdsp_tpc_raw_decoder:
   RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
   FELIXRawDataLabels: [ "daq:ContainerFELIX", "daq:FELIX" ]
+  FELIXEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   FELIXFragmentType: 8  
   FELIXDropFragsWithBadCSF: true
   FELIXEnforceExactCrateNumber: false

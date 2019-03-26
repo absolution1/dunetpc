@@ -86,6 +86,8 @@ private:
   bool _felix_useInputLabels;
   std::vector<std::string>   _rce_input_labels;   // input labels also include instances.  Example: "daq:TPC" or "daq::ContainerTPC"
   std::vector<std::string>   _felix_input_labels; // input labels also include instances.  Example: "daq:FELIX" or "daq::ContainerFELIX"
+  bool          _rce_enforce_fragment_type_match;
+  bool          _felix_enforce_fragment_type_match;
   int           _rce_fragment_type;
   int           _felix_fragment_type;
   std::string   _output_label;
@@ -181,6 +183,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
     {
       _rce_useInputLabels = false;
     }
+  _rce_enforce_fragment_type_match = p.get<bool>("RCEEnforceFragmentTypeMatch",false);
   _rce_fragment_type = p.get<int>("RCEFragmentType",2);
   _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
@@ -207,6 +210,7 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
       _felix_useInputLabels = false;
     }
 
+  _felix_enforce_fragment_type_match = p.get<bool>("FELIXEnforceFragmentTypeMatch",false);
   _felix_fragment_type = p.get<int>("FELIXFragmentType",8);
   _felix_drop_frags_with_badcsf = p.get<bool>("FELIXDropFragsWithBadCSF",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
@@ -540,7 +544,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       std::cout.copyfmt(oldState);
     }
 
-  if(frag.type() != _rce_fragment_type) 
+  if (_rce_enforce_fragment_type_match && (frag.type() != _rce_fragment_type)) 
     {
       MF_LOG_WARNING("_process_RCE_AUX:") << " RCE fragment type " << (int) frag.type() << " doesn't match expected value: " << _rce_fragment_type << " Discarding RCE fragment";
       _DiscardedCorruptData = true;
@@ -1006,7 +1010,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     }
 
   // check against _felix_fragment_type
-  if(frag.type() != _felix_fragment_type) 
+  if ( _felix_enforce_fragment_type_match && (frag.type() != _felix_fragment_type) )
     {
       _DiscardedCorruptData = true;
       MF_LOG_WARNING("_process_FELIX_AUX:") << " FELIX fragment type " << (int) frag.type() << " doesn't match expected value: " << _felix_fragment_type << " Discarding FELIX fragment";
