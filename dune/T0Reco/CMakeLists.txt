@@ -8,13 +8,14 @@ art_make(
                         ${Boost_SYSTEM_LIBRARY}
 			${ROOT_BASIC_LIB_LIST}
           MODULE_LIBRARIES 
-            lardataobj_RawData
-            larsim_Simulation
-	    nutools_ParticleNavigation
-	    lardataobj_Simulation
-	    larsim_MCCheater_BackTrackerService_service
-            larsim_MCCheater_ParticleInventoryService_service
-	    larsim_MCCheater_PhotonBackTrackerService_service
+            	lardataobj_RawData
+            	larsim_Simulation
+	    	nutools_ParticleNavigation
+	    	lardataobj_Simulation
+	    	larsim_MCCheater_BackTrackerService_service
+            	larsim_MCCheater_ParticleInventoryService_service
+	    	larsim_MCCheater_PhotonBackTrackerService_service
+		ProtoDUNEAnaUtils
 			${ART_FRAMEWORK_SERVICES_BASIC}
 			 
 			larcorealg_Geometry

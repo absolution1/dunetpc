@@ -3,8 +3,8 @@
 // Module Type: analyzer
 // File:        T0RecoSCECalibrations_module.cc
 //
-//
-// Hannah Rogers   - hannah.rogers@colostate.edu
+// Joshua Thompson - joshua.l.thompson@sheffield.ac.uk
+// developed from work by Hannah Rogers   - hannah.rogers@colostate.edu
 // based on uboonecode modules by David Caratelli and Chris Barnes
 ////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +22,7 @@
 // services etc...
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 // data-products
 #include "lardataobj/RecoBase/Track.h"
@@ -36,6 +37,9 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 
 // ROOT
 #include "TVector3.h"
@@ -69,38 +73,37 @@ private:
 
 	// Delcare member data here.
 	std::string fTrackProducer;
-	std::string fT0Producer;
 	std::string fFlashProducer;
 	std::string fHitProducer;
 	std::string fTriggerProducer;
+	std::string fPFPProducer;
 	
 	bool 	    fUseMC;
 	double      fTPCResolution; // [cm]
 	double      fDriftVelocity; // [cm/us]
 	
-	bool _debug;
+	bool debug;
 	bool fCathode;
+	bool fAnode;
 	bool fData;
+	bool fAllFlash;
 	
 	double _TOP, _BOTTOM, _FRONT, _BACK, _det_width; // [cm]
 	
 	std::vector<double> _flash_times;
 	std::vector<size_t> _flash_id_v;
+	art::Handle<std::vector<recob::OpFlash> > flash_h;
 	
 	double fTimeRes;
 	
 	double fPEmin;
-
+	double fMinTrackLength;
 	double fTDiffMax;
-	
-	double fRecoT0TimeOffset;
-	
+
+	double fFlashScaleFactor;
+	double fFlashTPCOffset;
+
 	//functions to be used throughout module
-	bool   TrackEntersTop     (const std::vector<TVector3>& sorted_trk);
-	bool   TrackEntersFront   (const std::vector<TVector3>& sorted_trk);
-	bool   TrackEntersBack    (const std::vector<TVector3>& sorted_trk);
-	bool   TrackEntersAnode   (const std::vector<TVector3>& sorted_trk, const int driftDir);
-	bool   TrackEntersSide    (const std::vector<TVector3>& sorted_trk);
 	bool   TrackExitsBottom   (const std::vector<TVector3>& sorted_trk);
 	bool   TrackExitsFront    (const std::vector<TVector3>& sorted_trk);
 	bool   TrackExitsBack     (const std::vector<TVector3>& sorted_trk);
@@ -113,41 +116,74 @@ private:
 	double GetEnteringTimeCoord (const std::vector<TVector3>& sorted_trk);
 	double GetExitingTimeCoord  (const std::vector<TVector3>& sorted_trk);
 	
-	size_t FlashMatch(const double reco_time);
+	size_t FlashMatch(const double reco_time, std::vector<double>);
 	
 	double MatchTracks(std::vector<TVector3>& sorted_trk, std::vector<TLorentzVector> mcpart);
   	std::vector<std::vector< TLorentzVector>> BuildMCParticleList(const art::Handle<std::vector<simb::MCParticle>>& mcpart_h, const double& fTPCResolution, const double& width);
   	
-  	// Tree parameters
-	TTree *_tree;
-	double _mc_time;
-	double _rc_time;
-	double _flash_time;
-	double _matched_flash_time;
-	double _mc_matched_flash_time;
-	double _dt_flash_reco;
-	double _dt_mc_reco;
-	double _dt_mc_flash;
-
-	double _pe_flash;
-	double _purity;	
-	double _length;
-	double _driftDir;
-	bool _TPC_edge;
-
-	double _rc_xs, _rc_xe, _rc_xs_corr, _rc_xe_corr;
-	double _rc_ys, _rc_ye;
-	double _rc_zs, _rc_ze;
-	
-	int _anode;
-	int _cathode;
-	int _sister_track;
-	
-	int _run, _subrun, _event, _track;
-	
-	TTree *_evTree;
-	int _trk_ctr;
-	int _ev_ctr;
+	TTree *track_tree;
+	// Track parameters
+	double 	_rc_time;
+	double 	_length;
+	double 	_rc_xs, _rc_xe, _rc_xs_corr, _rc_xe_corr;
+	double 	_rc_ys, _rc_ye;
+	double 	_rc_zs, _rc_ze;
+	// Track parameters for cathode crossing anode piercing tracks
+	double	_anode_rc_time;
+	double	_cathode_rc_time;
+	double	dt_anode_cathode;
+	// Flash parameters
+	double 	_matched_flash_pe;	
+	double 	_matched_flash_time;
+	double 	_matched_flash_time_width;
+	double 	_corrected_matched_flash_time;
+	double	_matched_flash_centre_y;
+	double	_matched_flash_centre_z;
+	double	_matched_flash_width_y;
+	double	_matched_flash_width_z;
+	// Reco results
+	double 	_dt_flash_reco;
+	// Track info
+	double 	_driftDir;
+	bool 	TPC_edge;
+	bool 	anode_piercing_track_candidate;
+	bool 	_cathode_crossing_track;
+	int 	sister_track;
+	// MC info
+	double 	mc_time;
+	double 	mc_particle_xs;
+	double 	mc_particle_ys;
+	double 	mc_particle_zs;
+	double 	mc_particle_ts;
+	double 	mc_particle_xe;
+	double 	mc_particle_ye;
+	double 	mc_particle_ze;
+	double 	mc_particle_te;
+	double 	_mc_matched_flash_time;
+	double 	_dt_mc_reco;
+	double 	_dt_mc_flash;
+	//double	_purity;
+	bool 	_anode_entering;
+	bool	_anode_exiting;
+	bool	_true_anode_piercer;
+	// Tree for flash info
+	TTree 	*_flash_tree;
+	double 	_flash_reco_time_diff;
+	double 	_corrected_flash_reco_time_diff;
+	double 	_flash_time;
+	double 	_flash_time_width;
+	double 	_corrected_flash_time;
+	double 	_flash_pe;
+	double	_flash_centre_y;
+	double	_flash_centre_z;
+	double	_flash_width_y;
+	double	_flash_width_z;
+	// Tree for event info
+	TTree 	*_evTree;
+	int 	run;
+	int	event;
+	int 	total_particle_ctr;
+	int 	ev_ctr;
 	
 };
 
@@ -156,22 +192,33 @@ T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
 	EDAnalyzer(p)
 {
 
-	fTrackProducer     = p.get<std::string>("TrackProducer"    );
-	fHitProducer       = p.get<std::string>("HitProducer"      );
-	fFlashProducer     = p.get<std::string>("FlashProducer"    );
-	fT0Producer        = p.get<std::string>("T0Producer"       );
-	fTriggerProducer   = p.get<std::string>("TriggerProducer"  );
-	fUseMC             = p.get<bool>       ("UseMC"            );
-	fTPCResolution     = p.get<double>     ("Resolution"       );
-	fTimeRes           = p.get<double>     ("TimeRes"          );
-	fRecoT0TimeOffset  = p.get<double>     ("RecoT0TimeOffset" );
-	fPEmin             = p.get<double>     ("PEmin"            );
-	fTDiffMax     	   = p.get<double>     ("TDiffMax"         );
-	fCathode           = p.get<bool>       ("CathodeOnly"      );
-	_debug             = p.get<bool>       ("debug"            );
-	fData              = p.get<bool>       ("Data"             );
-	
-	
+	fTrackProducer     	= p.get<std::string>	("TrackProducer"    	);
+	fHitProducer       	= p.get<std::string>	("HitProducer"      	);
+	fFlashProducer     	= p.get<std::string>	("FlashProducer"    	);
+	fTriggerProducer	= p.get<std::string>	("TriggerProducer"  	);
+	fPFPProducer		= p.get<std::string>	("PFPProducer"  	);
+
+	fUseMC             = p.get<bool>	("UseMC"            	);
+
+	fData              = p.get<bool>   	("Data"             	);
+
+	fTPCResolution     = p.get<double>	("Resolution"       	);
+	fTimeRes           = p.get<double> 	("TimeRes"         	);
+
+	fPEmin             = p.get<double> 	("PEmin"           	);
+	fMinTrackLength	   = p.get<double>	("MinTrackLength"    	);
+	fTDiffMax     	   = p.get<double> 	("TDiffMax"         	);
+
+	fCathode           = p.get<bool>  	("CathodeCrossers"  	);
+	fAnode    	   = p.get<bool>  	("AnodePiercers"    	);
+
+	debug             = p.get<bool>  	("debug"            	);
+
+	fAllFlash     	   = p.get<bool>  	("OutputAllFlashes" 	);
+
+	fFlashScaleFactor  = p.get<double>	("FlashScaleFactor" 	);
+	fFlashTPCOffset	   = p.get<double>	("FlashTPCOffset"	    	);
+
 	// get boundaries based on detector bounds
 	auto const* geom = lar::providerFrom<geo::Geometry>();
   
@@ -208,83 +255,132 @@ T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
 	double temp   = _detp -> Temperature();
 	// Determine the drift velocity from 'efield' and 'temp'
 	fDriftVelocity = _detp -> DriftVelocity(efield,temp);
+
+	
+	
 }  
   
 void T0RecoSCECalibrations::beginJob(){
 
 	art::ServiceHandle<art::TFileService> tfs;
-	_tree = tfs->make<TTree>("_tree","SCE calibrations variables");
-	_tree->Branch("_mc_time",&_mc_time,"mc_time/D");
-	_tree->Branch("_rc_time",&_rc_time,"rc_time/D");
-	_tree->Branch("_flash_time",&_flash_time,"flash_time/D");	
-	_tree->Branch("_matched_flash_time",&_matched_flash_time,"matched_flash_time/D");
-	_tree->Branch("_mc_matched_flash_time",&_mc_matched_flash_time,"mc_matched_flash_time/D");
-	_tree->Branch("_dt_flash_reco",&_dt_flash_reco,"dt_flash_reco/D");
-	_tree->Branch("_dt_mc_reco",&_dt_mc_reco,"dt_mc_reco/D");
-	_tree->Branch("_dt_mc_flash",&_dt_mc_flash,"dt_mc_flash/D");
-	_tree->Branch("_pe_flash",&_pe_flash,"pe_flash/D");
-	_tree->Branch("_purity",&_purity,"purity/D");
-	_tree->Branch("_length", &_length, "length/D");
-	_tree->Branch("_TPC_edge",&_TPC_edge,"TPC_edge/B");
-	_tree->Branch("_driftDir",&_driftDir,"driftDir/I");
-	// Add branches for the first and last x, y, and z coordinates of the rc tracks and the mc tracks
-	_tree->Branch("_rc_xs",&_rc_xs,"rc_xs/D");
-	_tree->Branch("_rc_xs_corr",&_rc_xs_corr,"rc_xs/D");
-	_tree->Branch("_rc_ys",&_rc_ys,"rc_ys/D");
-	_tree->Branch("_rc_zs",&_rc_zs,"rc_zs/D");
-	_tree->Branch("_rc_xe",&_rc_xe,"rc_xe/D");
-	_tree->Branch("_rc_xe_corr",&_rc_xe_corr,"rc_xe_corr/D");
-	_tree->Branch("_rc_ye",&_rc_ye,"rc_ye/D");
-	_tree->Branch("_rc_ze",&_rc_ze,"rc_ze/D");
-	// information on whether track enters/exits which sides
-	_tree->Branch("_anode"  ,&_anode,"anode/I"  );
-	_tree->Branch("_cathode",&_cathode,"cathode/I");
-	_tree->Branch("_sister_track",&_sister_track,"sister_track/I");
-	_tree->Branch("_run",&_run,"run/I");
-	_tree->Branch("_subrun",&_subrun,"subrun/I");
-	_tree->Branch("_event",&_event,"event/I");
-	_tree->Branch("_track",&_track,"track/I");
+	track_tree = tfs->make<TTree>("track_tree","SCE calibrations variables");
+	//Track parameters
+	track_tree->Branch("_rc_time",&_rc_time,"rc_time/D");
+	track_tree->Branch("_length", &_length, "length/D");
+	track_tree->Branch("_rc_xs",&_rc_xs,"rc_xs/D");
+	track_tree->Branch("_rc_xs_corr",&_rc_xs_corr,"rc_xs/D");
+	track_tree->Branch("_rc_ys",&_rc_ys,"rc_ys/D");
+	track_tree->Branch("_rc_zs",&_rc_zs,"rc_zs/D");
+	track_tree->Branch("_rc_xe",&_rc_xe,"rc_xe/D");
+	track_tree->Branch("_rc_xe_corr",&_rc_xe_corr,"rc_xe_corr/D");
+	track_tree->Branch("_rc_ye",&_rc_ye,"rc_ye/D");
+	track_tree->Branch("_rc_ze",&_rc_ze,"rc_ze/D");
+
+	if(fCathode&&fAnode) {
+	track_tree->Branch("_cathode_rc_time",&_cathode_rc_time,"cathode_rc_time/D");
+	track_tree->Branch("_anode_rc_time",&_anode_rc_time,"anode_rc_time/D");
+	track_tree->Branch("dt_anode_cathode",&dt_anode_cathode,"dt_anode_cathode/D");
+	}
 	
+	//Flash parameters
+	track_tree->Branch("_matched_flash_time",&_matched_flash_time,"matched_flash_time/D");
+	track_tree->Branch("_matched_flash_time_width",&_matched_flash_time_width,"matched_flash_time_width/D");
+	track_tree->Branch("_corrected_matched_flash_time",&_corrected_matched_flash_time,"corrected_matched_flash_time/D");
+	track_tree->Branch("_matched_flash_pe",&_matched_flash_pe,"matched_flash_pe/D");
+	track_tree->Branch("_matched_flash_centre_y",&_matched_flash_centre_y,"matched_flash_centre_y/D");
+	track_tree->Branch("_matched_flash_centre_z",&_matched_flash_centre_z,"matched_flash_centre_z/D");
+	track_tree->Branch("_matched_flash_width_y",&_matched_flash_width_y,"matched_flash_width_y/D");
+	track_tree->Branch("_matched_flash_width_z",&_matched_flash_width_z,"matched_flash_width_z/D");
+
+	//Flash -> track time difference
+	track_tree->Branch("_dt_flash_reco",&_dt_flash_reco,"dt_flash_reco/D");
+
+	//track_tree->Branch("TPC_edge",&TPC_edge,"TPC_edge/B");
+	
+	// Branches for MC variables
+	if(fUseMC) {
+	track_tree->Branch("mc_time",&mc_time,"mc_time/D");
+	track_tree->Branch("mc_particle_xs",&mc_particle_xs,"mc_particle_xs/D");
+	track_tree->Branch("mc_particle_ys",&mc_particle_ys,"mc_particle_ys/D");
+	track_tree->Branch("mc_particle_zs",&mc_particle_zs,"mc_particle_zs/D");
+	track_tree->Branch("mc_particle_xe",&mc_particle_xe,"mc_particle_xe/D");
+	track_tree->Branch("mc_particle_ye",&mc_particle_ye,"mc_particle_ye/D");
+	track_tree->Branch("mc_particle_ze",&mc_particle_ze,"mc_particle_ze/D");
+
+	track_tree->Branch("_dt_mc_reco",&_dt_mc_reco,"dt_mc_reco/D");
+	//track_tree->Branch("_purity",&_purity,"purity/D");
+	//track_tree->Branch("_anode_entering",&_anode_entering,"anode_entering/B");
+	//track_tree->Branch("_anode_exiting",&_anode_exiting,"anode_exiting/B");
+	track_tree->Branch("_true_anode_piercer",&_true_anode_piercer,"true_anode_piercer/B");
+	}
+
+	// Information on whether track crosses anode or cathode
+	track_tree->Branch("anode_piercing_track_candidate",&anode_piercing_track_candidate,"anode_piercing_track_candidate/I"  );
+	track_tree->Branch("_cathode_crossing_track",&_cathode_crossing_track,"cathode_crossing_track/I");
+	
+	//track_tree->Branch("sister_track",&sister_track,"sister_track/I");
+
+
+	// Flash Tree
+	if (fAllFlash) {
+	_flash_tree = tfs->make<TTree>("_flash_tree","Flash properties and reco time differences");
+	_flash_tree->Branch("_flash_time",&_flash_time,"flash_time/D");
+	_flash_tree->Branch("_flash_time_width",&_flash_time_width,"flash_time_width/D");
+	_flash_tree->Branch("_corrected_flash_time",&_corrected_flash_time,"corrected_flash_time/D");
+	//_flash_tree->Branch("_flash_reco_time_diff",&_flash_reco_time_diff,"flash_reco_time_diff/D");
+	_flash_tree->Branch("_corrected_flash_reco_time_diff",&_corrected_flash_reco_time_diff,"corrected_flash_reco_time_diff/D");
+	_flash_tree->Branch("_flash_pe",&_flash_pe,"flash_pe/D");
+	_flash_tree->Branch("_flash_centre_y",&_flash_centre_y,"flash_centre_y/D");
+	_flash_tree->Branch("_flash_centre_z",&_flash_centre_z,"flash_centre_z/D");
+	_flash_tree->Branch("_flash_width_y",&_flash_width_y,"flash_width_y/D");
+	_flash_tree->Branch("_flash_width_z",&_flash_width_z,"flash_width_z/D");
+
+	}
+
+	// Event Tree
 	_evTree = tfs->make<TTree>("_evTree","Event information");
-	_evTree->Branch("_trk_ctr",&_trk_ctr,"trk_ctr/I");
-	_evTree->Branch("_ev_ctr",&_ev_ctr,"ev_ctr/I");
-	_ev_ctr = 0;
-	_trk_ctr = 0;
+	_evTree->Branch("total_particle_ctr",&total_particle_ctr,"total_particle_ctr/I");
+	_evTree->Branch("ev_ctr",&ev_ctr,"ev_ctr/I");
+	_evTree->Branch("run",&run,"run/I");
+	_evTree->Branch("event",&event,"event/I");
+	ev_ctr = 0;
+	total_particle_ctr = 0;
 	
 }
   
 void T0RecoSCECalibrations::analyze(art::Event const & e){
 
-	_event = e.event();
-	_subrun = e.subRun();
-	_run = e.run();
-	_track = 0;
-	_ev_ctr++;
-	
+	event = e.event();
+	run = e.run();
+ 	int track_number = 0;
+	ev_ctr++;
+
+	double TPC_trigger_offset = 0.0;
+
 	std::vector<std::vector<TLorentzVector>> mcpart_list;
 	
-	std::cout << "Event number: " << _ev_ctr << std::endl;
-	if(_debug) std::cout << "Set event number: " << _event << "top: " << _TOP << "\nbottom: " << _BOTTOM 
+	std::cout << "Event number: " << ev_ctr << std::endl;
+	if(debug) std::cout << "Set event number: " << event << "\ntop: " << _TOP << "\nbottom: " << _BOTTOM 
 	<< "\nfront: " << _FRONT << "\nback: " << _BACK << std::endl;  
-  
   
 	_flash_times.clear();
 	_flash_id_v.clear();
+	flash_h.clear();
 	
 	// load Flash
-	if (_debug) { std::cout << "loading flash from producer " << fFlashProducer << std::endl; }
-	art::Handle<std::vector<recob::OpFlash> > flash_h;
-	if(!fCathode){
+	if (debug) std::cout << "Loading flash from producer " << fFlashProducer << std::endl;
+
+	if(fAnode||fAllFlash){
 	e.getByLabel(fFlashProducer,flash_h);
 
-	// make sure flash look good
+	// make sure flashes look good
 	if(!flash_h.isValid()) {
 		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Flash!"<<std::endl;
     	throw std::exception();
   	}
   	}
   	
-  	if(_debug&&fData) std::cout << "loading trigger time from producer " << fTriggerProducer << std::endl;
+  	if(debug&&fData) std::cout << "Loading trigger time from producer " << fTriggerProducer << std::endl;
   	art::Handle<std::vector<recob::OpFlash> > trigger_h;
 	double trigger_time = 0;
 
@@ -293,28 +389,43 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
   		trigger_time = trigger_h->at(0).Time();
   	}
 
+	// load PFParticles
+
+	auto reco_particles_h = e.getValidHandle<std::vector<recob::PFParticle>>(fPFPProducer);
+	
+	if(!reco_particles_h.isValid()) {
+	std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate PFParticles!"<<std::endl;
+	throw std::exception(); }
+
+	// Utilities for PFParticles and tracks
+	protoana::ProtoDUNEPFParticleUtils pfpUtil;
+	protoana::ProtoDUNETrackUtils trackUtil;
+	protoana::ProtoDUNETruthUtils truthUtil;
+
+	/* OLD - NECESSARY IF LOOKING BACK AT PMTRACK THOUGH
   	// load tracks previously created for which T0 reconstruction should occur
-  	if (_debug) { std::cout << "loading track from producer " << fTrackProducer << std::endl; }
+
+  	if (debug) std::cout << "Loading track from producer " << fTrackProducer << std::endl;
   	art::Handle<std::vector<recob::Track> > track_h;
   	e.getByLabel(fTrackProducer,track_h);
 
   	// make sure tracks look good
-  	if(!track_h.isValid()) {
+  	if(!track_h_pmtrack.isValid()) {
    		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Track!"<<std::endl;
-    	throw std::exception();
-  	}
+    	throw std::exception();	}
 
   	std::vector<art::Ptr<recob::Track> > TrkVec;
   	art::fill_ptr_vector(TrkVec, track_h);
 
-  	// grab 2d hits associated with tracks
+  	// grab 2d hits associated with tracks - 
   	art::FindMany<recob::Hit> trk_hit_assn_v(track_h, e, fHitProducer);
+	*/
 
-   // load MCParticles
+	// load MCParticles
 	
 	//auto mclist_h = e.getValidHandle<std::vector<simb::MCTruth> >("generator");
   	art::Handle<std::vector<simb::MCParticle> > mcpart_h;
-  	//e.getByLabel("largeant",mcpart_h);
+  	e.getByLabel("largeant",mcpart_h);
 
   	// if we should use MCParticle
   	if (fUseMC){
@@ -323,791 +434,433 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
 			std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate MCParticle!"<<std::endl;
 			throw std::exception(); }
 
-		mcpart_list = BuildMCParticleList(mcpart_h,fTPCResolution,_det_width);
+		// NOT NEEDED WITH PANDORA RECONSTRUCTION
+		/*mcpart_list = BuildMCParticleList(mcpart_h,fTPCResolution,_det_width);
 		// Get all the MC particle ids.
-		/*std::set<int> particleIDs;
+		std::set<int> particleIDs;
 	  	art::FindManyP<simb::MCParticle> geantAssns(mclist_h,e,"largeant");
 	  	for ( size_t i = 0; i < geantAssns.size(); i++) {
-	      	auto parts = geantAssns.at(i);
-	      	for (auto part = parts.begin(); part != parts.end(); part++) {
-	        particleIDs.emplace((*part)->TrackId()); }*/
-	
-
+	      		auto parts = geantAssns.at(i);
+	      		for (auto part = parts.begin(); part != parts.end(); part++) {
+	       			particleIDs.emplace((*part)->TrackId()); }
+			}
+		*/
    	}
-
 	// ^ if use MCParticle
 
-  	// grab T0 objects associated with tracks
-  	art::FindMany<anab::T0> trk_t0_assn_v(track_h, e, fT0Producer );
+	// Get trigger to TPC Offset
+	auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
+	TPC_trigger_offset = detclock->TriggerOffsetTPC();
+	if(debug) std::cout << "TPC time offset from trigger: " << TPC_trigger_offset << " us" << std::endl;
 
 	// Prepare a vector of optical flash times, if flash above some PE cut value
 
-	if(!fCathode){
-  	size_t flash_ctr = 0;
-  	for (auto const& flash : *flash_h){
-    	if (flash.TotalPE() > fPEmin){
-      		_flash_times.push_back(flash.Time() - trigger_time);
-      		_flash_id_v.push_back(flash_ctr);
-		_flash_time = flash.Time();
-		_tree->Fill();
-      		if (_debug) std::cout << "\t Flash: " << flash_ctr << " has time : " << flash.Time() - trigger_time << ", PE : " 
-		<< flash.TotalPE() << std::endl;
-   		}
-    	flash_ctr++;
-  	}// for all flashes
-  
-   	if (_debug) { std::cout << "Selected a total of " << _flash_times.size() << " OpFlashes" << std::endl; }
+	if(fAnode||fAllFlash){
+  		size_t flash_ctr = 0;
+  		for (auto const& flash : *flash_h){
+    			if (flash.TotalPE() > fPEmin){
+      				_flash_times.push_back(flash.Time() - trigger_time);
+      				_flash_id_v.push_back(flash_ctr);
+      				/*if (debug) std::cout << "\t Flash: " << flash_ctr << " has time : "
+				<< flash.Time() - trigger_time << ", PE : " << flash.TotalPE() << std::endl;*/
+   				}
+    			flash_ctr++;
+  		}// for all flashes
+
+  		if(!fAnode) {auto const& output_flashes = FlashMatch(0.0,_flash_times);
+			if (debug) std::cout << "Output all flashes - closest flash to trigger time has time: "
+			<< output_flashes << std::endl; }
+
+   		if(debug) std::cout << "Selected a total of " << _flash_times.size() << " OpFlashes" << std::endl;
 	}
   
-	// loop through reconstructed tracks
-	size_t trk_ctr = -1;
+	// LOOP THROUGH RECONSTRUCTED PFPARTICLES
 
-	for (auto& track : TrkVec){ 
-		trk_ctr ++;
-		_trk_ctr ++;
-		if (_debug) std::cout << "Looping through reco track " << trk_ctr << std::endl;  
-  
-		const std::vector<const recob::Hit*>& Hit_v = trk_hit_assn_v.at(trk_ctr);
-		
-		//_rc_time = 9999.;
-		//_matched_flash_time = -9999.;
-		//_mc_time = 9999.;
-		//_dt_flash_reco = -9999.;
-		//_dt_mc_reco = -9999.;
-		//_dt_mc_flash = -9999.;
+	size_t ev_particle_ctr = 0;
 
-		_pe_flash = 0.;
-		_purity = 0.;
+	for(unsigned int p = 0; p < reco_particles_h->size(); ++p){
+
+		ev_particle_ctr ++;
+		total_particle_ctr ++;
+
+		recob::PFParticle particle = (*reco_particles_h)[p];
+		const recob::Track* track = pfpUtil.GetPFParticleTrack(particle,e,fPFPProducer,fTrackProducer);
+		if(track == 0x0) { 
+			if(debug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
+			continue; } 
+
+	//for (auto& track : TrkVec){ // OLD, FROM PMTRACK
+
+		if (debug) std::cout << "\tLooping through reco PFParticle " << ev_particle_ctr << std::endl;  
+
+		const std::vector<const recob::Hit*>& hit_v = trackUtil.GetRecoTrackHits(*track,e,fTrackProducer);
+
+		_rc_time = 4999.;
+		_anode_rc_time = 3999.;
+		_cathode_rc_time = 5999.;
+
 		_length = 0.;
+		_rc_xs = 499.;
+		_rc_xe = -499.; 
+		_rc_xs_corr = 499.;
+		_rc_xe_corr = -499.;
+		_rc_ys = -100.;
+		_rc_ye = -100.; 
+		_rc_zs = -100.; 
+		_rc_ze = -100.;
+
+		_matched_flash_time = -4999.;
+		_corrected_matched_flash_time = -4999.;
+		_matched_flash_time_width = -1.;
+		_matched_flash_pe = 0.;
+		_matched_flash_centre_y = -100.;
+		_matched_flash_centre_z = -100.;
+		_matched_flash_width_y = -100.;
+		_matched_flash_width_z = -100.;
+
 		_driftDir = 0;
 
-		//_rc_xs = 999.;
-		//_rc_xe = 999.; 
-		//_rc_xs_corr = 999.;
-		//_rc_xe_corr = 999.;
-		//_rc_ys = 999.;
-		//_rc_ye = 999.; 
-		//_rc_zs = 999.; 
-		//_rc_ze = 999.;
+		mc_time = 9999.;
+		//_purity = 0.;
 
-		_anode = 0;
-		_cathode = 0;
-		_sister_track = 0;
-		_TPC_edge = false;
-	
+		anode_piercing_track_candidate = false;
+		_cathode_crossing_track = false;
+		sister_track = 0;
   
  		// get sorted points for the track object [assuming downwards going]
     		std::vector<TVector3> sorted_trk;
 	    	SortTrackPoints(*track,sorted_trk);
-	    	if(_debug) std::cout << "\tTrack goes from (" << sorted_trk.at(0).X() << ", " << sorted_trk.at(0).Y() << ", " << sorted_trk.at(0).Z() << ") --> (" << sorted_trk.at(sorted_trk.size()-1).X() << ", " << sorted_trk.at(sorted_trk.size()-1).Y() << ", " << sorted_trk.at(sorted_trk.size()-1).Z() << ")" << std::endl;
-      
-	      	 if( sqrt(pow(sorted_trk.at(0).X() - sorted_trk.at(sorted_trk.size()-1).X(),2.0) + pow(sorted_trk.at(0).Y() - sorted_trk.at(sorted_trk.size()-1).Y(),2.0) + pow(sorted_trk.at(0).Z() - sorted_trk.at(sorted_trk.size()-1).Z(),2.0)) < 50 )
-		{
-      			if(_debug) std::cout << "\tTrack too short. Skipping." << std::endl;
+
+    		auto const &track_start = sorted_trk.at(0);
+   		auto const &track_end = sorted_trk.at(sorted_trk.size() - 1);
+
+	    	if(debug) std::cout << "\t\tTrack goes from (" << track_start.X() << ", " 
+		<< track_start.Y() << ", " << track_start.Z() << ") --> (" << track_end.X() << ", " 
+		<< track_end.Y() << ", " << track_end.Z() << ")" << std::endl;
+
+	      	if((fabs(track_start.X()) > 360 || track_start.Y() < 0 || track_start.Y() > 600 ||
+		track_start.Z() < 0 || track_start.Z() > 700) && (fabs(track_end.X()) > 360 || 
+		track_end.Y() < 0 || track_end.Y() > 600 || track_end.Z() < 0 || track_end.Z() > 700)) {
+      			if(debug) std::cout << "\t\t\tParticle track does not enter TPC. Skipping. " << std::endl;
+      			continue;
+	      	}
+
+	      	if(sqrt(pow(track_start.X() - track_end.X(),2.0) + pow(track_start.Y() - track_end.Y(),2.0)
+		+ pow(track_start.Z() - track_end.Z(),2.0)) < fMinTrackLength )	{
+      			if(debug) std::cout << "\t\t\tParticle track too short. Skipping." << std::endl;
       			continue;
 	      	}
 
      		// Determine if the track crosses the cathode 
-    		auto const* geom = lar::providerFrom<geo::Geometry>();   
-    		auto const* hit = Hit_v.at(0);
+    		bool cross_cathode = false;
+		auto const* geom = lar::providerFrom<geo::Geometry>();   
+    		auto const* hit = hit_v.at(0);
 	    	const geo::WireID wireID = hit->WireID();
 		const auto TPCGeoObject = geom->TPC(wireID.TPC,wireID.Cryostat);
 		short int driftDir = TPCGeoObject.DetectDriftDirection();
-		bool cross_cathode = false;
-	    	for (size_t ii = 1; ii < Hit_v.size(); ii++) {
-    			const geo::WireID wireID2 = Hit_v.at(ii)->WireID();
+
+	    	for (size_t ii = 1; ii < hit_v.size(); ii++) {
+    			const geo::WireID wireID2 = hit_v.at(ii)->WireID();
 			const auto TPCGeoObject2 = geom->TPC(wireID2.TPC,wireID2.Cryostat);
 			short int driftDir_tmp = TPCGeoObject2.DetectDriftDirection(); 
 		
 			if(driftDir_tmp + driftDir == 0){
 				cross_cathode = true;
-				if(_debug) std::cout << "\tCrosses cathode!" << std::endl;
-				//continue;
-				ii = Hit_v.size();
+				ii = hit_v.size();
 			}
 		}
-		if(_debug) std::cout << "\tCross cathode = " << cross_cathode << std::endl;
-		
-	
-	// -------------------------------------------------------------------------------
-	//CATHODE CROSSERS
-		if(cross_cathode){ 
-			_anode = 0;
-			_cathode = 1;
-		
-			//const std::vector<const anab::T0*>& T0_v = trk_t0_assn_v.at(trk_ctr);
-			//auto t0 = T0_v.at(0);
-			//_rc_time = t0->Time();
-		
+
+
+		// if we should use MC info -> continue w/ MC validation
+      		if (fUseMC){
+
+			const simb::MCParticle* mc_particle = truthUtil.GetMCParticleFromRecoTrack(*track,e,fTrackProducer);
+
+			if(mc_particle==0x0) { 
+				if(debug) std::cout << "\t\t\tNo MC particle matched to PFParticle " << ev_particle_ctr << std::endl;
+				continue; }
+
+			mc_particle_xs = mc_particle->Position(0).X();
+			mc_particle_ys = mc_particle->Position(0).Y();
+			mc_particle_zs = mc_particle->Position(0).Z();
+			mc_particle_ts = mc_particle->T(0)/1000;
+
+			int last_mc_point = mc_particle->NumberTrajectoryPoints()-1;
+			mc_particle_xe = mc_particle->Position(last_mc_point).X();
+			mc_particle_ye = mc_particle->Position(last_mc_point).Y();
+			mc_particle_ze = mc_particle->Position(last_mc_point).Z();
+			mc_particle_te = mc_particle->T(last_mc_point)/1000;
+
+			mc_time = mc_particle_ts;
+			if(fabs(mc_particle_te - mc_particle_ts)>1) std::cout << "\t\t\tMC Particle end time: "
+			 << mc_particle_te << " us significantly different from start time: " << 
+			mc_particle_ts << " us" << std::endl;
+			}
+
+		// -------------------------------------------------------------------------------
+		// CATHODE CROSSERS
+		if(fCathode){
+
+			if(!cross_cathode) { 
+				std::cout << "\t\tTrack does not cross cathode."<< std::endl;
+				continue; }
+
+			_cathode_crossing_track = true;
+
+			//GET T0 FROM PFPARTICLE
+			auto t0_v = pfpUtil.GetPFParticleT0(particle,e,fPFPProducer);
+			if(t0_v.size() == 0) continue; 
+			auto t0 = t0_v.at(0);
+			_cathode_rc_time = t0.Time()/1000;
+
+			if (debug) std::cout << "\t\tTrack crossers cathode - PFParticle has t0: " 
+			<< _cathode_rc_time << " against MC particle t0: " << mc_time << std::endl;
+
+			// Old pmtrack t0 method, doesn't work
+			/*art::FindMany<anab::T0> trk_t0_assn_v(track_h, e, "pmtrack");
+			const std::vector<const anab::T0*>& T0_old_v = trk_t0_assn_v.at(trk_ctr);
+			auto t0_old = T0_old_v.at(0);
+			if (debug) std::cout << "Track: " << trk_ctr << " has pmtrack t0: "
+			<< t0_old->Time() << std::endl;*/
+			
+			_rc_time = _cathode_rc_time;
+			_dt_mc_reco = mc_time - _rc_time;
+
+			std::vector<TVector3> split_trk = sorted_trk;
+
+    			SplitTrack(*track,split_trk);
+    			std::vector<TVector3> top_trk = {split_trk.at(0), split_trk.at(1)};
+	    		std::vector<TVector3> bottom_trk = {split_trk.at(2), split_trk.at(3)};
     	
-    			SplitTrack(*track,sorted_trk);
-    			std::vector<TVector3> top_trk = {sorted_trk.at(0), sorted_trk.at(1)};
-	    		std::vector<TVector3> bottom_trk = {sorted_trk.at(2), sorted_trk.at(3)};
-    	
-		    	if(_debug)std::cout << "\tCathode-crossing track from (" << top_trk.at(0).X() << ", " << top_trk.at(0).Y() << ", " << top_trk.at(0).Z() << ") --> (" << top_trk.at(1).X() << ", " << top_trk.at(1).Y() << ", " << top_trk.at(1).Z() << ") --> (" << bottom_trk.at(0).X() << ", " << bottom_trk.at(0).Y() << ", " << bottom_trk.at(0).Z() << ") --> (" << bottom_trk.at(1).X() << ", " << bottom_trk.at(1).Y() << ", " << bottom_trk.at(1).Z() << ")" << std::endl;
+		    	if(debug) std::cout << "\t\tCathode-crossing point: (" << top_trk.at(1).X() << 
+			", " << top_trk.at(1).Y() << ", " << top_trk.at(1).Z() << ") --> (" << 
+			bottom_trk.at(0).X() << ", " << bottom_trk.at(0).Y() << ", " << 
+			bottom_trk.at(0).Z() << ")" << std::endl;
     	
     			// Top Track!
-		    	if(_debug) std::cout << "\tTop track" << std::endl;
+		    	//if(debug) std::cout << "\tTop track" << std::endl;
     	
-    			_sister_track = _track + 1;
-		    	auto const &top = top_trk.at(0);
-	    		auto const &bottom = top_trk.at(1);
+    			sister_track = track_number + 1;
+		    	auto const &top_track_start = top_trk.at(0);
+	    		auto const &top_track_end = top_trk.at(1);
 		
-			_rc_xs = top.X();
+			_rc_xs = top_track_start.X();
 			_rc_xs_corr = _rc_xs;
-    			_rc_ys = top.Y();
-    			_rc_zs = top.Z();
-    			_rc_xe = bottom.X();
+    			_rc_ys = top_track_start.Y();
+    			_rc_zs = top_track_start.Z();
+    			_rc_xe = top_track_end.X();
     			_rc_xe_corr = _rc_xe;
-    			_rc_ye = bottom.Y();
-    			_rc_ze = bottom.Z();
+    			_rc_ye = top_track_end.Y();
+    			_rc_ze = top_track_end.Z();
     	
-			_length = sqrt(pow(_rc_xs - _rc_xe,2.0) + pow(_rc_ys - _rc_ye,2.0) + pow(_rc_zs - _rc_ze,2.0));
+			_length = sqrt(pow(_rc_xs - _rc_xe,2.0) + pow(_rc_ys - _rc_ye,2.0) + 
+			pow(_rc_zs - _rc_ze,2.0));
+
 			if(_rc_xs<0.0) _driftDir = -1;
 			else _driftDir = 1;
 		
-			_tree->Fill();
-			_track++;
+			track_tree->Fill();
+			track_number++;
 		
 			// Bottom Track
-			if(_debug) std::cout << "\tBottom track" << std::endl;
-			_sister_track = _track - 1;
+			//if(debug) std::cout << "\tBottom track" << std::endl;
+			sister_track = track_number - 1;
 		
-			auto const &top2 = bottom_trk.at(0);
-		    	auto const &bottom2 = bottom_trk.at(1);
+			auto const &bottom_track_start = bottom_trk.at(0);
+		    	auto const &bottom_track_end = bottom_trk.at(1);
 		
-			_rc_xs = top2.X();
+			_rc_xs = bottom_track_start.X();
 			_rc_xs_corr = _rc_xs;
-    			_rc_ys = top2.Y();
-    			_rc_zs = top2.Z();
-    			_rc_xe = bottom2.X();
+    			_rc_ys = bottom_track_start.Y();
+    			_rc_zs = bottom_track_start.Z();
+    			_rc_xe = bottom_track_end.X();
     			_rc_xe_corr = _rc_xe;
-    			_rc_ye = bottom2.Y();
-    			_rc_ze = bottom2.Z();
+    			_rc_ye = bottom_track_end.Y();
+    			_rc_ze = bottom_track_end.Z();
     	
 			_length = sqrt(pow(_rc_xs - _rc_xe,2.0) + pow(_rc_ys - _rc_ye,2.0) + pow(_rc_zs - _rc_ze,2.0));
 			if(_rc_xs<0.0) _driftDir = -1;
 			else _driftDir = 1;
 		
-			_tree->Fill();
-			_track++;
-			}
+			track_tree->Fill();
+			track_number++;
+		}
+		    
 		
 		// ------------------------------------------------------------------------------------
 		// ANODE PIERCERS 
-		else{
-			if(fCathode) {std::cout << "\tSKIPPING ANODE-PEIRCING TRACKS" << std::endl; continue;}
-	
-			if(_debug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC << " which has a drift direction of " << driftDir << std::endl; 
+		if(fAnode){	
+			// if(debug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC <<
+			//" which has a drift direction of " << driftDir << std::endl; 
 			_driftDir = driftDir;
 	
 			// create root trees variables
-    			auto const &top = sorted_trk.at(0);
-   			auto const &bottom = sorted_trk.at(1);
     
-   			_rc_xs = top.X();
-		  	_rc_ys = top.Y();
-		  	_rc_zs = top.Z();
-	    		_rc_xe = bottom.X();
-	    		_rc_ye = bottom.Y();
-    			_rc_ze = bottom.Z();
+   			_rc_xs = track_start.X();
+		  	_rc_ys = track_start.Y();
+		  	_rc_zs = track_start.Z();
+	    		_rc_xe = track_end.X();
+	    		_rc_ye = track_end.Y();
+    			_rc_ze = track_end.Z();
     			_length = track->Length();
 
-    			// keep track of whether it goes thorugh the anode or cathode
-    			_anode = 0, _cathode = 0;
+			anode_piercing_track_candidate = false;
 
-    			// 1st category: tracks which ENTER SIDE
-    			if ( TrackEntersSide(sorted_trk) == true ) {
+    			// 1st category: tracks which may enter an APA
+    			if (_rc_ys < _TOP && _rc_zs > _FRONT && _rc_zs < _BACK) {
 
-			     	if (_debug) std::cout << "\t track enters side" << std::endl;
-	
-			    	// we are not done. We need to check that the track either: 1) Exits the bottom. 2) exits the front or 3) exits the back of the TPC.
-			   	bool tagged = false;
-
-				// tracks that exit the bottom
-      				if ( (TrackExitsBottom(sorted_trk) == true) ) {
-				tagged = true;
-				if (_debug) std::cout << "\t track exits bottom" << std::endl;
-			      	}
-      			// tracks that exit the front
-      			if ( (TrackExitsFront(sorted_trk) == true) and (TrackEntersFront(sorted_trk) == false)) {
-				tagged = true;
-				if (_debug) std::cout << "\t track exits front" << std::endl;
-      				}
-      			// tracks that exit the back
-      			if ( (TrackExitsBack(sorted_trk) == true) and (TrackEntersBack(sorted_trk) == false) ) {
-				tagged = true;
-				if (_debug) std::cout << "\t track exits back" << std::endl;
+      				// reconstruct track T0 w.r.t. trigger time
+				if( ( _rc_xs < _rc_xe && driftDir<0 ) || 
+				( _rc_xs > _rc_xe && driftDir>0 ) ) {
+					_anode_rc_time = (_det_width - driftDir * _rc_xs) / fDriftVelocity;
+					if(debug) std::cout << "\t\tTrack enters anode. Reco t0: " 
+					<< _anode_rc_time << " from anode entering position: " << 
+					_rc_xs << std::endl;
+					anode_piercing_track_candidate = true;
       				}
 
-      			// have any of these 3 conditions been met? if no, skip this track
-      			if (tagged == false) continue;
-      
-      			// figure out if it enters the anode or cathode
-      			bool enters_anode = TrackEntersAnode(sorted_trk, driftDir);
-      
-      			// get the X coordinate of the point piercing the anode/cathode (upon ENTERING) 
-      			double trkX = GetEnteringTimeCoord(sorted_trk);
-      
-      			// reconstruct track T0 w.r.t. trigger time
+    			}
 
-      // The 'trkX' enters on the anode, the side of the TPC with a lower x value than the cathode
-      if (enters_anode){
-	_rc_time = (_det_width - (double)driftDir * trkX) / fDriftVelocity + fRecoT0TimeOffset;
-	if(_debug) std::cout << "\tTrack enters anode. " << _rc_time << "  = ( " << _det_width << " - " << driftDir*trkX << ") / " << fDriftVelocity << std::endl;
-	_anode = 1;
-      }
+    			// When track may exit an APA
+    			if (_rc_ye > _BOTTOM && _rc_ze > _FRONT && _rc_ze < _BACK) {
 
-    }// if the track enters the side
+      				// reconstruct track T0 w.r.t. trigger time	
+				if( ( _rc_xe < _rc_xs && driftDir<0 ) || 
+				( _rc_xe > _rc_xs && driftDir>0 ) ) {
+					_anode_rc_time = (_det_width - driftDir * _rc_xe) / fDriftVelocity;
+					if(debug) std::cout << "\t\tTrack exits anode. Reco t0:" 
+					<< _anode_rc_time << " from anode exiting position: " << 
+					_rc_xe << std::endl;
+					anode_piercing_track_candidate = true;
+      				}
 
-    // case in which the track exits the side
-    if (TrackExitsSide(sorted_trk) == true) {
-
-      if (_debug) std::cout << "\t track exits side" << std::endl;
-
-      // we are not done. We need to check that the track either: 1) Enters the bottom. 2) enters the front
-      // or 3) enters the back of the TPC.
-      bool tagged = false;
-
-      // track enters the top
-      if ( (TrackEntersTop(sorted_trk) == true) ) {       
-	tagged = true;
-	if (_debug) std::cout << "\t track enters the top" << std::endl;
-      }
-
-      if ( (TrackEntersFront(sorted_trk) == true) and (TrackExitsFront(sorted_trk) == false)) {
-	tagged = true;
-	if (_debug) std::cout << "\t track enters front" << std::endl;
-      }
-
-      if ( (TrackEntersBack(sorted_trk) == true) and (TrackExitsBack(sorted_trk) == false)  ) {
-	tagged = true;
-	if (_debug) std::cout << "\t track enters back" << std::endl;
-      }
-
-      // has either of these 3 conditions been met? if no, skip this track
-      if (tagged == false) continue;
-      // figure out if it enters the anode or cathode
-      bool exits_anode = TrackExitsAnode(sorted_trk, driftDir);
-      
-      // get the X coordinate of the point piercing the anode/cathode (upon ENTERING) 
-      double trkX = GetExitingTimeCoord(sorted_trk);
-      
-      // reconstruct track T0 w.r.t. trigger time
-
-      // The 'trkX' enters on the anode, the side of the TPC with a lower x value than the cathode
-      if (exits_anode){
-	_rc_time = (_det_width - (double)driftDir * trkX) / fDriftVelocity + fRecoT0TimeOffset;
-	if(_debug) std::cout << "\tTrack exits anode. " << _rc_time << "  = ( " << _det_width << " - " << driftDir*trkX << ") / " << fDriftVelocity << std::endl;
-	_anode = 1;
-      }
-
-    }// if the track exits the side
+  			}// if the track exits the side
 	
-	if(!_anode) continue; 
+			if(!anode_piercing_track_candidate) {
+				if(debug) std::cout << "\t\tTrack does not pierce anode." << std::endl;
+				continue; }
     
+    			_rc_xs_corr = _rc_xs + driftDir*_anode_rc_time*fDriftVelocity;
+    			_rc_xe_corr = _rc_xe + driftDir*_anode_rc_time*fDriftVelocity;
+    
+			// Determine if track hits edge of readout window
+    			TPC_edge = false;
+			//Turn back on if late/early tracks get much worse
+    			/*for (auto& hits : hit_v) {
+    				auto peakHit = hits->PeakTime();
+    				//if(debug) std::cout << "\t\tHit time of track " << trk_ctr << ": " << 
+				//peakHit << " in TPC " << hits->WireID().TPC << " plane " << 
+				//hits->WireID().Plane << " and wire " << hits->WireID().Wire << std::endl;
+    				if( peakHit > (6000.0 - 50.0) || peakHit < 50.0 ){
+    		 			TPC_edge = true;
+    		 			//if(debug) std::cout << "\t\tHit time out of range: " << peakHit << std::endl;
+    				}
+    			} */
+	
+			if(TPC_edge) {
+				if(debug) std::cout << "\t\tTrack hits edge of readout window. Skipping." << std::endl;
+				continue; }
 
-    if (_debug) std::cout << "\t this track has a reconstructed time = " << _rc_time << std::endl;
+    			// FLASH MATCHING
+    			auto const& flash_match_result = FlashMatch((_anode_rc_time + TPC_trigger_offset),_flash_times);
+    			const art::Ptr<recob::OpFlash> flash_ptr(flash_h, flash_match_result);
+
+    			_matched_flash_time = flash_ptr->Time() - trigger_time;
+			_corrected_matched_flash_time = fFlashScaleFactor*_matched_flash_time + fFlashTPCOffset;
+			_matched_flash_time_width = flash_ptr->TimeWidth() - trigger_time;
+
+	    		_dt_flash_reco = _corrected_matched_flash_time - (_anode_rc_time + TPC_trigger_offset);
+	    
+	    		_matched_flash_pe = flash_ptr->TotalPE();
+			_matched_flash_centre_y = flash_ptr->YCenter();
+			_matched_flash_centre_z = flash_ptr->ZCenter();
+			_matched_flash_width_y = flash_ptr->YWidth();
+			_matched_flash_width_z = flash_ptr->ZWidth();
     
-    _rc_xs_corr = _rc_xs + driftDir*_rc_time*fDriftVelocity;
-    _rc_xe_corr = _rc_xe + driftDir*_rc_time*fDriftVelocity;
+   			if(debug) std::cout << "\t\t Matched to flash w/ index " << flash_match_result << " w/ PE " 
+    			<< _matched_flash_pe << ", corrected time " << _corrected_matched_flash_time << 
+			" vs corrected reco time " << _anode_rc_time + TPC_trigger_offset << std::endl;
+
+			// if we should use MC info -> continue w/ MC validation
+      			if (fUseMC){
+				if(fabs(mc_particle_xs) > 358.5 && mc_particle_ys > 0.0 && 
+				mc_particle_ys < 610.0 && mc_particle_zs > 0.0 && mc_particle_zs < 700.0)
+				 _anode_entering = true;
+
+				if(fabs(mc_particle_xe) > 358.5 && mc_particle_ye > 0.0 && 
+				mc_particle_ye < 610.0 && mc_particle_ze > 0.0 && mc_particle_ze < 700.0)
+				_anode_exiting = true;
+
+				if(_anode_exiting || _anode_entering) _true_anode_piercer = true;
+	
+		  		if(debug) std::cout << "\t\tMC Particle matched to track has t0: " << 
+				mc_time << " us against reconstructed t0: " << _anode_rc_time << " us" 
+				<< std::endl;
+
+				if (!cross_cathode) _dt_mc_reco = mc_time - _anode_rc_time;
+
+				// OLD METHOD - loop through MCParticles to find the one that matches.
+				/*
+				double _displacement = 1.0;
+	  
+				for (unsigned int j=0; j < mcpart_list.size(); j++){
+
+	  				std::vector<TLorentzVector> mcpart = mcpart_list.at(j);
+	  
+	  				// try matching to MC
+	  				double _tmp_disp = MatchTracks(sorted_trk, mcpart);
+	  				if ((_tmp_disp > _displacement)||isnan(_tmp_disp)) continue;
+
+					_anode_entering = false;
+					_anode_exiting = false;
+					_true_anode_piercer = false;
+
+	  				if(debug) std::cout <<"\t\tMCParticle starts at: (" << mcpart.at(0).X() << ", " 
+					<< mcpart.at(0).Y() << ", " << mcpart.at(0).Z() << ") and goes to (" << mcpart.at(1).X() <<
+					", " << mcpart.at(1).Y() << ", " << mcpart.at(1).Z() << ")" << std::endl;
+	  
+	  				// matched -> get MCTrack time and reconstructed track reconstructed T0
+	  				_displacement = _tmp_disp;
+	  				mc_time = mcpart.at(0).T() / 1000.;
+	  				_dt_mc_reco = mc_time - _rc_time;
+
+					if(fabs(mcpart.at(0).X()) > 358.5 && fabs(mcpart.at(0).X()) < 359.5 && 
+					mcpart.at(0).Y() > 0.0 && mcpart.at(0).Y() < 610.0 && mcpart.at(0).Z() > 0.0
+					 && mcpart.at(0).Z() < 700.0) 
+					_anode_entering = true;
+
+					if(fabs(mcpart.at(1).X()) > 358.5 && fabs(mcpart.at(1).X()) < 359.5 && 
+					mcpart.at(1).Y() > 0.0 && mcpart.at(1).Y() < 610.0 && mcpart.at(1).Z() > 0.0
+					 && mcpart.at(1).Z() < 700.0) 
+					_anode_exiting = true;
+
+					if(_anode_exiting || _anode_entering) _true_anode_piercer = true;
+				
+	  				if(debug) std::cout << "\t\tParticle number: " << j << " with sigma comparison value of " 
+	  				<< _displacement << "\n\t\tTrack matched to MC value with t0 of " << mc_time << 
+	  				" and reconstructed time of " << _rc_time << std::endl;
+				
+	  			} // ^ for all MCParticles
+      				*/
+
+			} // ^ if we should use MCParticles
+
+			if (!cross_cathode) _rc_time = _anode_rc_time;
+
+			if(_anode_rc_time<3000&&_cathode_rc_time<3000) 
+			dt_anode_cathode = _anode_rc_time - _cathode_rc_time;
+
+      			if(abs(_dt_flash_reco) < fTDiffMax) track_tree->Fill();
+      			track_number++;
+	
+		}
     
-	// Determine if track hits edge of readout window
-    bool TPC_edge = false;
-    for (auto& hits : Hit_v){
-    	auto peakHit = hits->PeakTime();
-    	//if(_debug) std::cout << "\t\tHit time track " << trk_ctr << ": " << peakHit << " in TPC " << hits->WireID().TPC << " plane " << hits->WireID().Plane << " and wire " << hits->WireID().Wire << std::endl;
-    	if( (peakHit > 6000.0 - 50.0) || (peakHit < 50.0) ){
-    	 TPC_edge = true;
-    	 //if(_debug) std::cout << "\t\tHit time out of range: " << peakHit << std::endl;
     	}
-    }
     
-    if (TPC_edge) {
-    	if(_debug) std::cout << "\tHit time too close to edge" << std::endl;
-    	//continue;
-    	_TPC_edge = true;
-    }
-	
-    // flash matching
-    auto const& flash_match_result = FlashMatch(_rc_time);
-    const art::Ptr<recob::OpFlash> flash_ptr(flash_h, flash_match_result);
-    if(_debug) std::cout << "\t matched to flash w/ index " << flash_match_result << " w/ PE " 
-    << flash_ptr->TotalPE() << " and time " << flash_ptr->Time() - trigger_time << " vs reco time " 
-    << _rc_time << std::endl;
-
-    
-    _pe_flash = flash_ptr->TotalPE();
-    _matched_flash_time = flash_ptr->Time() - trigger_time;
-    _dt_flash_reco = _matched_flash_time - _rc_time;
-    
-		 // if we should use MC info -> continue w/ MC validation
-      if (fUseMC == true){
-	// loop through MCParticles to find the one that matches.
-
-	double _displacement = 1.0;
-	  
-	for (unsigned int j=0; j < mcpart_list.size(); j++){
-
-	  std::vector<TLorentzVector> mcpart = mcpart_list.at(j);
-	  
-	  if(_debug) std::cout <<"\t\tMCParticle: (" << mcpart.at(0).X() << ", " << mcpart.at(0).Y() << ", " << mcpart.at(0).Z() <<
-	  ") -> (" << mcpart.at(1).X() << ", " << mcpart.at(1).Y() << ", " << mcpart.at(1).Z() << ")" << std::endl;
-	  
-	  // try matching to MC
-	  double _tmp_disp = MatchTracks(sorted_trk, mcpart);
-	  if ((_tmp_disp > _displacement)||isnan(_tmp_disp))
-	    continue;
-	  
-	  // matched -> get MCTrack time and reconstructed track reconstructed T0
-	  _displacement = _tmp_disp;
-	  _mc_time = mcpart.at(0).T() / 1000.;
-	  _dt_mc_reco = _mc_time - _rc_time;
-
-	  if(_debug) std::cout << "\tParticle number: " << j << " with sigma comparison value of " 
-	  << _displacement << "\n\t\tTrack matched to MC value with t0 of " << _mc_time << 
-	  " and reconstructed time of " << _rc_time << std::endl;
-
-	    // flash matching to MC
-
-	    art::ServiceHandle<cheat::PhotonBackTrackerService> pbt;
-	    auto const& flash_match_mc = FlashMatch(_mc_time);
-	    art::Ptr<recob::OpFlash> mc_flash_ptr (flash_h, flash_match_mc);
-	    if(_debug)	std::cout << "MC particle " << j << " matched to flash w/ index " << flash_match_mc << 
-	    " w/ PE " << mc_flash_ptr->TotalPE() << " and time " << mc_flash_ptr->Time() - trigger_time << 
-	    " vs MC time " << _mc_time << std::endl;
-
-	    //PhotonBackTracker for MC flash match purity
- 	    std::vector< art::Ptr<recob::OpHit> > flash_hits = pbt->OpFlashToOpHits_Ps(mc_flash_ptr);
-	    std::set<int> particleIDs;
-	    particleIDs.emplace(j);
-  	    _purity = pbt->OpHitCollectionPurity(particleIDs, flash_hits);
-
-	    _mc_matched_flash_time = mc_flash_ptr->Time();
-	    _dt_mc_flash = _mc_time - _mc_matched_flash_time;
-
-	  
-	} // for all MCParticles
-      }// if we should use MCParticles
-      
-      if(abs(_dt_flash_reco) < fTDiffMax) _tree->Fill();
-      
-      _track++;
-	
-	}
-    
-    }
-    
-    _evTree->Fill();
-}  
-  
-  double T0RecoSCECalibrations::MatchTracks(std::vector<TVector3>& sorted_trk, std::vector<TLorentzVector> mcpart)
-{
-  //assumes both the reco track
-  //and mctrack are downwards going
-  
-  //auto const& mctrk_s = mcpart.at(0);
-  //auto const& mctrk_e = mcpart.at(1);
-  //auto const& track_s = sorted_trk.at(0);
-  //auto const& track_e = sorted_trk.at(sorted_trk.size()-1);
-  
-  double mcX = mcpart.at(0).X(), mcY = mcpart.at(0).Y(), mcZ = mcpart.at(0).Z();
-  double mcX_end = mcpart.at(1).X(), mcY_end = mcpart.at(1).Y(), mcZ_end = mcpart.at(1).Z();
-  double trkX = sorted_trk.at(0).X(), trkY = sorted_trk.at(0).Y(), trkZ = sorted_trk.at(0).Z();
-  double trkX_end = sorted_trk.at(sorted_trk.size()-1).X(), trkY_end = sorted_trk.at(sorted_trk.size()-1).Y(), trkZ_end = sorted_trk.at(sorted_trk.size()-1).Z();
-  
-  if(mcY<mcY_end){
-  	double tmpX = mcX, tmpY = mcY, tmpZ = mcZ;
-  	mcX = mcX_end;
-  	mcY = mcY_end;
-  	mcZ = mcZ_end;
-  	mcX_end = tmpX;
-  	mcY_end = tmpY;
-  	mcZ_end = tmpZ;
-  }
-  
-  double trkThXZ = atan((trkZ_end - trkZ)/(trkX_end - trkX));
-  double trkThYZ = atan((trkZ_end - trkZ)/(trkY_end - trkY));
-  double sigThXZ = sqrt(2.0)*fTPCResolution/sqrt(pow(trkZ_end-trkZ,2.0)+pow(trkX_end-trkX,2.0));
-  double sigThYZ = sqrt(2.0)*fTPCResolution/sqrt(pow(trkZ_end-trkZ,2.0)+pow(trkY_end-trkY,2.0));
-  double mcThXZ = atan((mcZ_end - mcZ)/(mcX_end - mcX));
-  double mcThYZ = atan((mcZ_end - mcZ)/(mcY_end - mcY));
-  
-  return sqrt(pow((trkThXZ -  mcThXZ)/sigThXZ,2.0) + pow((trkThYZ -  mcThYZ)/sigThYZ,2.0) + pow((trkY - mcY)/fTPCResolution,2.0) + pow((trkZ - mcZ)/fTPCResolution,2.0))/4.0;
-
-  
-  
-/*
-  // if track start is above and mctrk start is above
-  if ( ( track_s.Y() > track_e.Y() ) and ( mctrk_s.Y() > mctrk_e.Y() ) ){
-    if ( (fabs(mctrk_s.Y()-track_s.Y()) < res) and (fabs(mctrk_s.Z()-track_s.Z()) < res) and (fabs(mctrk_e.Y()-track_e.Y()) < res) and (fabs(mctrk_e.Z()-track_e.Z()) < res) )
-      return true;
-  }
-  // if track start is above and mctrk start is below
-  if ( ( track_s.Y() > track_e.Y() ) and ( mctrk_s.Y() < mctrk_e.Y() ) ){
-    if ( (fabs(mctrk_e.Y()-track_s.Y()) < res) and (fabs(mctrk_e.Z()-track_s.Z()) < res) and (fabs(mctrk_s.Y()-track_e.Y()) < res) and (fabs(mctrk_s.Z() - track_e.Z()) < res) )
-      return true;
-  }
-  // if track start is below and mctrk start is above
-  if ( ( track_s.Y() < track_e.Y() ) and ( mctrk_s.Y() > mctrk_e.Y() ) ){
-    if ( (fabs(mctrk_s.Y()-track_e.Y()) < res) and (fabs(mctrk_s.Z()-track_e.Z()) < res) and (fabs(mctrk_e.Y()-track_s.Y()) < res) and (fabs(mctrk_e.Z()-track_s.Z()) < res) )
-      return true;
-  }
-  // if track start is below and mctrk start is below
-  if ( ( track_s.Y() < track_e.Y() ) and ( mctrk_s.Y() < mctrk_e.Y() ) ){
-    if ( (fabs(mctrk_e.Y()-track_e.Y()) < res) and (fabs(mctrk_e.Z()-track_e.Z()) < res) and (fabs(mctrk_s.Y() - track_s.Y()) < res) and (fabs(mctrk_s.Z()-track_s.Z()) < res) )
-      return true;
-  }
-  
-  return false;
-  */
-}
-  
-  
-size_t T0RecoSCECalibrations::FlashMatch(const double reco_time){
-  
-  // loop through all reco'd flash times and see if one matches
-  // the time from the track/particle
-  double dt_min = 20000.; // us
-  size_t match_flash_id;
-
-  for (size_t i=0; i < _flash_times.size(); i++){
-    auto const& time = _flash_times[i];
-    double dt = fabs(time - reco_time);
-    if (dt < dt_min){
-      dt_min  = dt;
-      match_flash_id = _flash_id_v[i];
-    }
-  }
-
-  return match_flash_id;
+	_evTree->Fill();
 }
 
-
-bool   T0RecoSCECalibrations::TrackEntersTop(const std::vector<TVector3>& sorted_trk)
-{
-  // check that the first point in the track
-  // pierces the top boundary of the TPC
-  // This track either will pierce the top of the TPC or is just about to (the '_TOP' variable is just below the actual coordinate position of the top in Y)
-
-  if (sorted_trk.at(0).Y() > _TOP)
-    return true;
-
-  return false;
-}
-
-
-bool T0RecoSCECalibrations::TrackEntersFront(const std::vector<TVector3>& sorted_trk)
-{
-
-  // Determine if the track enters the
-  // front of the TPC based on if the position
-  // of its initial Z-coordinate is less than
-  // the location of the front of the TPC in Z
-  
-  // First define 'top_pt' to mean the point at the start of the track
-  auto const& top_pt = sorted_trk.at(0);
-
-  if (top_pt.Z() < _FRONT)
-    return true;
-
-  // I may include the case in which I check
-  // the y-coordinates as well, but I will not
-  // implement that at this time
-  
-  // If this condition is not satisfied, then return 'false' (the track was not determined
-  // within resolution to enter the front of the TPC)
-  return false;
-}
-
-
-bool T0RecoSCECalibrations::TrackEntersBack(const std::vector<TVector3>& sorted_trk)
-{
-
-  // Determines if the track enters the
-  // back of the TPC based on if the position
-  // of its initial Z-coordinate is greater
-  // than the location of the back of the
-  // TPC in Z
-  
-  // First define 'top_pt' to mean the point at the start of the track
-  auto const& top_pt = sorted_trk.at(0);
-
-  if (top_pt.Z() > _BACK)
-    return true;
-
-  // If this condition is not satisfied, then return 'false' (the track was not determined
-  // within resolution to enter the back of the TPC)
-  return false;
-}
-
-
-bool   T0RecoSCECalibrations::TrackEntersAnode(const std::vector<TVector3>& sorted_trk, const int driftDir)
-{
-
-  // we know the track enters either the
-  // anode or cathode
-  // at this point figure out
-  // if it ENTERS the ANODE or CATHODE
-  // ANODE: top point must be at lower X-coord
-  // than bottom point
-  // CATHODE: top point must be at larger X-coord
-  // than bottom point
-  // assume track has already been sorted
-  // such that the 1st point is the most elevated in Y coord.
-  // return TRUE if passes the ANODE
-  
-  auto const& top    = sorted_trk.at(0);
-  auto const& bottom = sorted_trk.at( sorted_trk.size() - 1 );
-
-  if ( ( (top.X() < bottom.X()) && driftDir<0 ) || ( (top.X() > bottom.X()) && driftDir>0 ) )
-    return true;
-
-  return false;
-}
-
-
-bool   T0RecoSCECalibrations::TrackEntersSide(const std::vector<TVector3>& sorted_trk)
-{
-  
-  // check that the top-most point
-  // is not on the top of the TPC
-  // nor on the front & back of the TPC
-  
-  auto const& top_pt = sorted_trk.at(0);
-
-  // if highest point above the TOP -> false
-  if (top_pt.Y() > _TOP)
-    return false;
-
-  // if highest point in Z close to front or back
-  // -> FALSE
-  if ( (top_pt.Z() < _FRONT) or (top_pt.Z() > _BACK) )
-    return false;
-
-
-  // If the function makes it this far, then it will enter through one of the sides of the TPC
-  return true;
-}
-
-
-bool   T0RecoSCECalibrations::TrackExitsBottom(const std::vector<TVector3>& sorted_trk)
-{
-
-  // check that the last point in the track
-  // pierces the bottom boundary of the TPC
-  if ( sorted_trk.at( sorted_trk.size() - 1).Y() < _BOTTOM )
-    return true;
-
-  return false;
-}
-
-
-bool   T0RecoSCECalibrations::TrackExitsFront(const std::vector<TVector3>& sorted_trk)
-{
-
-  // Determine if the track exits the
-  // front of the TPC based on if the position
-  // of its final Z-coordinate is less than
-  // the location of the front of the TPC in Z
-  
-  // First define 'bottom_pt' to mean the point at the end of the track
-  auto const& bottom_pt = sorted_trk.at(sorted_trk.size() - 1);
-
-  if (bottom_pt.Z() < _FRONT)
-    return true;
-  
-  return false;
-}
-
-
-bool   T0RecoSCECalibrations::TrackExitsBack(const std::vector<TVector3>& sorted_trk)
-{
-
-  // Determine if the track exits the
-  // front of the TPC based on if the position
-  // of its final Z-coordinate is less than
-  // the location of the front of the TPC in Z
-  
-  // First define 'bottom_pt' to mean the point at the end of the track
-  auto const& bottom_pt = sorted_trk.at(sorted_trk.size() - 1);
-
-  if (bottom_pt.Z() > _BACK)
-    return true;
-
-  return false;
-}
-
-
-bool   T0RecoSCECalibrations::TrackExitsAnode(const std::vector<TVector3>& sorted_trk, const int driftDir)
-{
-
-  // Check, once it's known that the track doesn't exit out of the bottom, whether it's the anode or
-  // the cathode that it exits out of
-  // This can be done by direct analogy with the 'Anode' function (shown in this file as the 'TrackEntersAnode') function written by D. Caratelli
-  // Define 'top' as the point at the start of the track, and 'bottom' as the point at the end of the track
-
-  auto const& top    = sorted_trk.at(0);
-  auto const& bottom = sorted_trk.at(sorted_trk.size() - 1);
-
-  // Check to see which point has a lower x coordinate
-  // If the bottom does, then it exits out of the anode
-  // If the top does, then it exits out of the cathode
-  if ( ( (bottom.X() < top.X()) && driftDir<0 ) || ( (bottom.X() > top.X()) && driftDir>0 ) ) 
-    return true;
-	
-  return false; // Otherwise, the top is less than the bottom, so the track ended closer to the cathode and exited there
-}
-
-
-bool   T0RecoSCECalibrations::TrackExitsSide(const std::vector<TVector3>& sorted_trk)
-{
-
-  // check that the bottom-most point
-  // is not on the bottom of the TPC
-  // nor on the front & back of the TPC
-
-  auto const& bottom_pt = sorted_trk.at(sorted_trk.size() - 1);
-
-  // if lowest point below the BOTTOM -> false
-  // Within this resolution, this means that it's likely that the track exited out of the bottom (at a point earlier on in the process than the last point) OR is just about to
-
-  if (bottom_pt.Y() <  _BOTTOM)
-    return false;
-
-  // if lowest point in Z close to front or back
-  // -> FALSE
-  // If the the bottom point is less than the front, then the track has already pierced the front of the TPC and exited that way OR is likely just about to
-  // If the bottom point is greater than the back, then the track has already pierced the back of the TPC and exited that way OR is likely just about to
-  if ( (bottom_pt.Z() < _FRONT) or (bottom_pt.Z() > _BACK) )
-    return false;
-
-  return true;
-}
-
-void T0RecoSCECalibrations::SplitTrack(const recob::Track& track, std::vector<TVector3>& sorted_trk){
-
-	sorted_trk.clear();
-	
-	TVector3 track_neg, track_neg_c, track_pos_c,track_pos;
-	double neg_x = 0.0;
-	double pos_x = 0.0;
-	double neg_c = -2.0*fTPCResolution;
-	double pos_c = 2.0*fTPCResolution;
-	
-	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
-		auto const& trk_loc = track.LocationAtPoint(ii);
-		
-		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
-		
-		if (trk_loc.X() < neg_x){
-			neg_x = trk_loc.X();
-			track_neg = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-		if (trk_loc.X() > pos_x){
-			pos_x = trk_loc.X();
-			track_pos = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-		if ((trk_loc.X() < 0.0) && (trk_loc.X() > neg_c)){
-			neg_c = trk_loc.X();
-			track_neg_c = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-		if ((trk_loc.X() > 0.0) && (trk_loc.X() < pos_c)){
-			pos_c = trk_loc.X();
-			track_pos_c = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-	}
-	
-	if( track_neg.Y() > track_pos.Y()){
-		sorted_trk.push_back(track_neg);
-		sorted_trk.push_back(track_neg_c);
-		sorted_trk.push_back(track_pos_c);
-		sorted_trk.push_back(track_pos);
-	} else {
-		sorted_trk.push_back(track_pos);
-		sorted_trk.push_back(track_pos_c);
-		sorted_trk.push_back(track_neg_c);
-		sorted_trk.push_back(track_neg);
-	}
-	
-}
-
-void   T0RecoSCECalibrations::SortTrackPoints(const recob::Track& track, std::vector<TVector3>& sorted_trk)
-{
-	sorted_trk.clear();
-		
-	TVector3 track_start, track_end;	
-	double start_y = _BOTTOM - 2.0*fTPCResolution;
-	double end_y = _TOP + 2.0*fTPCResolution;
-	
-	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
-		auto const& trk_loc = track.LocationAtPoint(ii);
-		
-		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
-		
-		if (trk_loc.Y() < end_y){
-			end_y = trk_loc.Y();
-			track_end = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-		if (trk_loc.Y() > start_y){
-			start_y = trk_loc.Y();
-			track_start = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
-	}
-	
-	sorted_trk.push_back(track_start);
-	sorted_trk.push_back(track_end);
-	
-/*  THIS METHOD ASSUMES THE TRACK IS SORTED AT ALL!!
-  // vector to store 3D coordinates of
-  // ordered track
-  sorted_trk.clear();
-
-  // take the reconstructed 3D track
-  // and assuming it is downwards
-  // going, sort points so that
-  // the track starts at the top
-  // which point is further up in Y coord?
-  // start or end?
-  auto const&N = track.NumberTrajectoryPoints();
-  auto const&start = track.LocationAtPoint(0);
-  auto const&end   = track.LocationAtPoint( N - 1 );
-
-  // if points are ordered correctly
-  if (start.Y() > end.Y()){
-    for (size_t i=0; i < N; i++)
-      sorted_trk.push_back( track.LocationAtPoint(i) );
-  }
-  
-  // otherwise flip order
-  else {
-    for (size_t i=0; i < N; i++)
-      sorted_trk.push_back( track.LocationAtPoint( N - i - 1) );
-  }
-*/
-}
-
-
-double T0RecoSCECalibrations::GetEnteringTimeCoord(const std::vector<TVector3>& sorted_trk)
-{
-
-  // get the drift-coordinate value
-  // associated with the point
-  // along the track piercing the anode / cathode
-  // ** WHEN the track enters the anode / cathode
-  return sorted_trk.at(0).X();
-}
-
-
-double T0RecoSCECalibrations::GetExitingTimeCoord(const std::vector<TVector3>& sorted_trk) 
-{
-  // get the drift-coordinate value
-  // associated with the point
-  // along the track piercing the anode / cathode
-  // ** WHEN the track exits the anode / cathode
-  return sorted_trk.at(sorted_trk.size() - 1).X();
-}
-
+// NOT NEEDED WITH PANDORA RECONSTRUCTION
 std::vector<std::vector< TLorentzVector >> T0RecoSCECalibrations::BuildMCParticleList(const art::Handle<std::vector<simb::MCParticle> >& mcpart_h,const double& fTPCResolution, const double& width){
 
 	std::vector<std::vector< TLorentzVector>> mcVec;
@@ -1159,14 +912,219 @@ std::vector<std::vector< TLorentzVector >> T0RecoSCECalibrations::BuildMCParticl
 		
 		if (ys >  ye) mcVec.push_back({mc_top, mc_bot});
 		else mcVec.push_back({mc_bot, mc_top});
-		if(_debug) std::cout << " MCParticle: (" << x0 << ", " << y0 << ", " << z0 << ", " << t0/1000. << ") --> (" << xs << ", " << ys << ", " << zs << ", " << ts/1000.0 << ") --> (" << xe << ", " << ye << ", " << ze << ", " << te/1000.0 << ") --> (" << x1 << ", " << y1 << ", " << z1 << ", " << t1/1000.0 << ")" << std::endl;
+		//if(debug) std::cout << " MCParticle: (" << x0 << ", " << y0 << ", " << z0 << ", " << t0/1000. << ") --> (" << xs << ", " << ys << ", " << zs << ", " << ts/1000.0 << ") --> (" << xe << ", " << ye << ", " << ze << ", " << te/1000.0 << ") --> (" << x1 << ", " << y1 << ", " << z1 << ", " << t1/1000.0 << ")" << std::endl;
 		
 	}
 		return mcVec;	
 
 }
 
+void   T0RecoSCECalibrations::SortTrackPoints(const recob::Track& track, std::vector<TVector3>& sorted_trk)
+{
+	sorted_trk.clear();
+		
+	TVector3 track_start, track_end;	
+	double start_y = _BOTTOM - 2.0*fTPCResolution;
+	double end_y = _TOP + 2.0*fTPCResolution;
+	
+	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
+		auto const& trk_loc = track.LocationAtPoint(ii);
+		
+		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
+		
+		if (trk_loc.Y() < end_y){
+			end_y = trk_loc.Y();
+			track_end = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+		if (trk_loc.Y() > start_y){
+			start_y = trk_loc.Y();
+			track_start = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+	}
+	
+	sorted_trk.push_back(track_start);
+	sorted_trk.push_back(track_end);
+	
+	/*  THIS METHOD ASSUMES THE TRACK IS SORTED AT ALL!!
+  	// vector to store 3D coordinates of
+  	// ordered track
+  	sorted_trk.clear();
 
+  	// take the reconstructed 3D track
+  	// and assuming it is downwards
+  	// going, sort points so that
+  	// the track starts at the top
+  	// which point is further up in Y coord?
+  	// start or end?
+  	auto const&N = track.NumberTrajectoryPoints();
+  	auto const&start = track.LocationAtPoint(0);
+  	auto const&end   = track.LocationAtPoint( N - 1 );
+
+  	// if points are ordered correctly
+  	if (start.Y() > end.Y()){
+    		for (size_t i=0; i < N; i++)
+      		sorted_trk.push_back( track.LocationAtPoint(i) );
+  		}
+  
+ 	// otherwise flip order
+  	else {
+    	for (size_t i=0; i < N; i++)
+      		sorted_trk.push_back( track.LocationAtPoint( N - i - 1) );
+  	}
+	*/
+}
+void T0RecoSCECalibrations::SplitTrack(const recob::Track& track, std::vector<TVector3>& split_trk){
+
+	split_trk.clear();
+	
+	TVector3 track_neg, track_neg_c, track_pos_c,track_pos;
+	double neg_x = 0.0;
+	double pos_x = 0.0;
+	double neg_c = -2.0*fTPCResolution;
+	double pos_c = 2.0*fTPCResolution;
+	
+	for (size_t ii = 0; ii < track.NumberTrajectoryPoints(); ii++){
+		auto const& trk_loc = track.LocationAtPoint(ii);
+		
+		if ((trk_loc.X() < -998.)||(trk_loc.Y() < -998.)||(trk_loc.Z() < -998)) continue;
+		
+		if (trk_loc.X() < neg_x){
+			neg_x = trk_loc.X();
+			track_neg = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+		if (trk_loc.X() > pos_x){
+			pos_x = trk_loc.X();
+			track_pos = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+		if ((trk_loc.X() < 0.0) && (trk_loc.X() > neg_c)){
+			neg_c = trk_loc.X();
+			track_neg_c = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+		if ((trk_loc.X() > 0.0) && (trk_loc.X() < pos_c)){
+			pos_c = trk_loc.X();
+			track_pos_c = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
+		}
+	}
+	
+	if( track_neg.Y() > track_pos.Y()){
+		split_trk.push_back(track_neg);
+		split_trk.push_back(track_neg_c);
+		split_trk.push_back(track_pos_c);
+		split_trk.push_back(track_pos);
+	} else {
+		split_trk.push_back(track_pos);
+		split_trk.push_back(track_pos_c);
+		split_trk.push_back(track_neg_c);
+		split_trk.push_back(track_neg);
+	}
+	
+}
+  
+size_t  T0RecoSCECalibrations::FlashMatch(const double reco_time, std::vector<double> flash_times_v){
+  
+  	// loop through all reco'd flash times and see if one matches
+  	// the time from the track/particle
+  	double dt_min = 20000.; // us
+  	size_t matched_flash_id;
+
+    	_flash_time = 4999;
+	_corrected_flash_time = -4999;
+	_flash_pe = -9;
+	_flash_centre_y = -9;
+	_flash_centre_z = -9;
+	_flash_width_y = -9;
+	_flash_width_z = -9;
+	_flash_time_width = -9;	
+
+  	for (size_t i=0; i < flash_times_v.size(); i++){
+		double _flash_time_i = flash_times_v[i];
+    		double _corrected_flash_time_i = _flash_time_i*fFlashScaleFactor + fFlashTPCOffset;
+    		_corrected_flash_reco_time_diff = _corrected_flash_time_i - reco_time;
+    		if (fabs(_corrected_flash_reco_time_diff) < dt_min){
+      			dt_min  = fabs(_corrected_flash_reco_time_diff);
+      			matched_flash_id = _flash_id_v[i];
+    		}
+
+		if (fAllFlash) {
+		const art::Ptr<recob::OpFlash> flash_i_ptr(flash_h, _flash_id_v[i]);
+    		_flash_time = _flash_time_i;
+		_corrected_flash_time = _corrected_flash_time_i;
+		_flash_pe = flash_i_ptr->TotalPE();
+		_flash_centre_y = flash_i_ptr->YCenter();
+		_flash_centre_z = flash_i_ptr->ZCenter();
+		_flash_width_y = flash_i_ptr->YWidth();
+		_flash_width_z = flash_i_ptr->ZWidth();
+		_flash_time_width = flash_i_ptr->TimeWidth() - flash_i_ptr->Time();
+		_flash_tree->Fill();
+		}
+
+		
+  	}
+  	return matched_flash_id;
+}
+
+// Not used with pandora reconstruction
+double T0RecoSCECalibrations::MatchTracks(std::vector<TVector3>& sorted_trk, std::vector<TLorentzVector> mcpart)
+{
+  //assumes both the reco track
+  //and mctrack are downwards going
+  
+  //auto const& mctrk_s = mcpart.at(0);
+  //auto const& mctrk_e = mcpart.at(1);
+  //auto const& track_s = sorted_trk.at(0);
+  //auto const& track_e = sorted_trk.at(sorted_trk.size()-1);
+  
+  double mcX_start = mcpart.at(0).X(), mcY_start = mcpart.at(0).Y(), mcZ_start = mcpart.at(0).Z();
+  double mcX_end = mcpart.at(1).X(), mcY_end = mcpart.at(1).Y(), mcZ_end = mcpart.at(1).Z();
+  double trkX_start = sorted_trk.at(0).X(), trkY_start = sorted_trk.at(0).Y(), trkZ_start = sorted_trk.at(0).Z();
+  double trkX_end = sorted_trk.at(sorted_trk.size()-1).X(), trkY_end = sorted_trk.at(sorted_trk.size()-1).Y(), trkZ_end = sorted_trk.at(sorted_trk.size()-1).Z();
+  
+  if(mcY_start<mcY_end){
+  	double tmpX = mcX_start, tmpY = mcY_start, tmpZ = mcZ_start;
+  	mcX_start = mcX_end;
+  	mcY_start = mcY_end;
+  	mcZ_start = mcZ_end;
+  	mcX_end = tmpX;
+  	mcY_end = tmpY;
+  	mcZ_end = tmpZ;
+  }
+  
+  double trkThXZ = atan((trkZ_end - trkZ_start)/(trkX_end - trkX_start));
+  double trkThYZ = atan((trkZ_end - trkZ_start)/(trkY_end - trkY_start));
+  double sigThXZ = sqrt(2.0)*fTPCResolution/sqrt(pow(trkZ_end-trkZ_start,2.0)+pow(trkX_end-trkX_start,2.0));
+  double sigThYZ = sqrt(2.0)*fTPCResolution/sqrt(pow(trkZ_end-trkZ_start,2.0)+pow(trkY_end-trkY_start,2.0));
+  double mcThXZ = atan((mcZ_end - mcZ_start)/(mcX_end - mcX_start ));
+  double mcThYZ = atan((mcZ_end - mcZ_start)/(mcY_end - mcY_start));
+  
+  return sqrt(pow((trkThXZ -  mcThXZ)/sigThXZ,2.0) + pow((trkThYZ -  mcThYZ)/sigThYZ,2.0) + pow((trkY_start - mcY_start)/fTPCResolution,2.0) + pow((trkZ_start - mcZ_start)/fTPCResolution,2.0))/4.0;
+
+  
+  
+/*
+  // if track start is above and mctrk start is above
+  if ( ( track_s.Y() > track_e.Y() ) and ( mctrk_s.Y() > mctrk_e.Y() ) ){
+    if ( (fabs(mctrk_s.Y()-track_s.Y()) < res) and (fabs(mctrk_s.Z()-track_s.Z()) < res) and (fabs(mctrk_e.Y()-track_e.Y()) < res) and (fabs(mctrk_e.Z()-track_e.Z()) < res) )
+      return true;
+  }
+  // if track start is above and mctrk start is below
+  if ( ( track_s.Y() > track_e.Y() ) and ( mctrk_s.Y() < mctrk_e.Y() ) ){
+    if ( (fabs(mctrk_e.Y()-track_s.Y()) < res) and (fabs(mctrk_e.Z()-track_s.Z()) < res) and (fabs(mctrk_s.Y()-track_e.Y()) < res) and (fabs(mctrk_s.Z() - track_e.Z()) < res) )
+      return true;
+  }
+  // if track start is below and mctrk start is above
+  if ( ( track_s.Y() < track_e.Y() ) and ( mctrk_s.Y() > mctrk_e.Y() ) ){
+    if ( (fabs(mctrk_s.Y()-track_e.Y()) < res) and (fabs(mctrk_s.Z()-track_e.Z()) < res) and (fabs(mctrk_e.Y()-track_s.Y()) < res) and (fabs(mctrk_e.Z()-track_s.Z()) < res) )
+      return true;
+  }
+  // if track start is below and mctrk start is below
+  if ( ( track_s.Y() < track_e.Y() ) and ( mctrk_s.Y() < mctrk_e.Y() ) ){
+    if ( (fabs(mctrk_e.Y()-track_e.Y()) < res) and (fabs(mctrk_e.Z()-track_e.Z()) < res) and (fabs(mctrk_s.Y() - track_s.Y()) < res) and (fabs(mctrk_s.Z()-track_s.Z()) < res) )
+      return true;
+  }
+  
+  return false;
+  */
+}
 
 DEFINE_ART_MODULE(T0RecoSCECalibrations) 
   
