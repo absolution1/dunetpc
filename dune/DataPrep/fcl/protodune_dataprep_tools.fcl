@@ -106,9 +106,10 @@ tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateMar2019
 ###########
 
 # Subtract baseline after deconvolution
-tools.adcCorrectUndershoot: {
+tools.adcCorrectUndershootAdc: {
   tool_type: UndershootCorr
   LogLevel: 1
+  SignalUnit: "ADC count"
   CorrectFlag:     [    false,     false,     true ]  # Apply correction (U, V, and Collection)
   SignalThreshold: [       20,        20,       20 ]  # Above this value, ticks are deweighted in fit
   TDecayConst:     [  0.99955,   0.99955,  0.99955 ]  # Corrn params (tuned for collection plane)
@@ -120,6 +121,11 @@ tools.adcCorrectUndershoot: {
   LCD:             [     1.03,      1.03,     1.03 ]  #  "
 }
 
+tools.adcCorrectUndershootKe: @local::tools.adcCorrectUndershootAdc
+tools.adcCorrectUndershootKe.SignalUnit: "ke/tick"
+tools.adcCorrectUndershootKe.SignalThreshold: [      0.50,      0.50,     0.50 ]
+
+tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 
 ################################################################################
 # Event metrics.
@@ -606,6 +612,20 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# As above but including multiple events.
+
+# Pedestal.
+tools.pdmtps_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
+tools.pdmtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%"
+tools.pdmtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%.png"
+
+# Pedestal noise.
+tools.pdmtps_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%"
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%.png"
 
 # Event plots by z wire plane
 

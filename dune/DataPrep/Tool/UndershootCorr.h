@@ -8,12 +8,15 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   CorrectFlag: switch per plane to turn the correction on and off
-//   TDecayConst: constant used to decay accumulated charge sum on each tick.  csum *= TDecayConst on each tick and then
+//   TDecayConst: constant used to decay accumulated charge sum on each tick.
+//                csum *= TDecayConst on each tick and then
 //                new charge is accumulated after pedestal subtraction
 //   FSubConst: fraction of the accumulated charge to subtract from the next tick's data
 //   RestoreBaseline: If true (for each plane), the median signal is added back after correction
 //                    to restore the input baseline.
 //   SignalThreshold: Ticks with signals greated than this are deweighted in the fit
+//   SignalUnit: If non-blank, then this is compared with sampleUnit and a warning
+//               broadcast if they differ.
 //   LCA, LCB, LCC, LCD: Linear combination coefficients to translate from slope and intercept of a linear fit
 //                 to the underhsoot-corrected waveform with zero initial charge and pedesal offset to get the
 //                 fit initial charge and pedestal offset.
@@ -46,6 +49,7 @@ private:
   std::vector<double>         m_FSubConst;
   std::vector<bool>           m_RestoreBaseline;
   std::vector<double>         m_SignalThreshold;
+  std::string                 m_SignalUnit;
   std::vector<double>         m_LCA;
   std::vector<double>         m_LCB;
   std::vector<double>         m_LCC;
