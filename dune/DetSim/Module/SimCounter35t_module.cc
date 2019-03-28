@@ -113,22 +113,24 @@ private:
   double exitpz;
   int trackid;
   double energy;
+
+  CLHEP::RandFlat fFlat;
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 
 detsim::SimCounter35t::SimCounter35t(fhicl::ParameterSet const & p)
   :
+  EDProducer{p},
   fLArG4ModuleLabel(p.get<std::string>("LArGeantModuleLabel", "largeant")),
   fMakeTree(p.get<bool>("MakeTree",false)),
   fBSUTriggerThreshold(p.get<double>("BSUTriggerThreshold",0.5)),// MeV
   fTSUTriggerThreshold(p.get<double>("TSUTriggerThreshold",0.25)),// MeV
   fTriggerEfficiency(p.get<double>("TriggerEfficiency",1.)),
   fClockSpeedCounter(p.get<double>("ClockSpeedCounter",64)), // MHz
-  fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)) // ns
+  fCombinedTimeDelay(p.get<double>("CombinedTimeDelay",160)), // ns
+  fFlat(art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "rand"), 0, 1)
 {
-  art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "rand");
- 
   produces< std::vector< raw::ExternalTrigger > >();
 }
 
@@ -138,10 +140,6 @@ void detsim::SimCounter35t::produce(art::Event & e)
 {
   int skippedHitsIneff = 0;
   int skippedHitsOutRange = 0;
-
-  art::ServiceHandle<art::RandomNumberGenerator> rng;
-  CLHEP::HepRandomEngine &engine = rng->getEngine("rand");
-  CLHEP::RandFlat flat(engine,0,1);
 
   auto const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
   auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -190,7 +188,7 @@ void detsim::SimCounter35t::produce(art::Event & e)
         fTree->Fill();
       }
 
-      double randEff = flat.fire();
+      double randEff = fFlat.fire();
       if (randEff > fTriggerEfficiency) {
 	++skippedHitsIneff;
 	continue;

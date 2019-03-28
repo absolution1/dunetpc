@@ -21,6 +21,8 @@ TimingRawDecoderOffsetTool::TimingRawDecoderOffsetTool(fhicl::ParameterSet const
 : m_LogLevel(ps.get<Index>("LogLevel")),
   m_TpcTickPhase(ps.get<Index>("TpcTickPhase")),
   m_Unit(ps.get<Name>("Unit")),
+  m_FembScaleIds(ps.get<IndexVector>("FembScaleIds")),
+  m_FembScaleValues(ps.get<DoubleVector>("FembScaleValues")),
   m_RunDataTool(ps.get<Name>("RunDataTool")) {
   const Name myname = "TimingRawDecoderOffsetTool::ctor: ";
   if ( m_RunDataTool.size() ) {
@@ -30,11 +32,30 @@ TimingRawDecoderOffsetTool::TimingRawDecoderOffsetTool(fhicl::ParameterSet const
       cout << myname << "WARNING: RunDataTool not found: " << m_RunDataTool << endl;
     }
   }
+  Index nfmb = std::min(m_FembScaleIds.size(), m_FembScaleValues.size());
+  for ( Index kfmb=0; kfmb<nfmb; ++kfmb ) {
+    m_fembScales[m_FembScaleIds[kfmb]] = m_FembScaleValues[kfmb];
+  }
+  // If needed, pad FEMB scale values.
+  if ( m_FembScaleValues.size() < m_FembScaleIds.size() ) {
+    cout << myname << "WARNING: Missing scale values have been set to one." << endl;
+  }
+  if ( m_FembScaleValues.size() > m_FembScaleIds.size() ) {
+    cout << myname << "WARNING: Extra scale values will be ignored." << endl;
+  }
   if ( m_LogLevel ) {
     cout << myname << "Configuration:" << endl;
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "  TpcTickPhase: " << m_TpcTickPhase << endl;
     cout << myname << "          Unit: " << m_Unit << endl;
+    cout << myname << "    FembScales: [";
+    Index nfmb = 0;
+    for ( ScaleMap::value_type isca : m_fembScales ) {
+      if ( nfmb ) cout << ", ";
+      cout << isca.first << ":" << isca.second;
+      ++nfmb;
+    }
+    cout << "]" << endl;
     cout << myname << "   RunDataTool: " << m_RunDataTool << " @ " << m_pRunDataTool << endl;
   }
 }
@@ -48,6 +69,9 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
   Offset res;
   unsigned long daqVal = dat.triggerClock;
   static Index checkCount = 0;
+  ScaleMap::const_iterator isca = m_fembScales.find(dat.fembID);
+  bool haveScale = isca != m_fembScales.end();
+  double scale = haveScale ? isca->second : 1.0;
   if ( checkCount ) {
     ifstream fin(ifname.c_str());
     if ( ! fin ) {
@@ -64,10 +88,10 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
     --checkCount;
   }
   if ( m_Unit == "daq" ) {
-    res.value = daqVal;
+    res.value = scale*daqVal;
     res.rem = 0.0;
   } else if ( m_Unit == "ns" ) {
-    res.value = 20*daqVal;
+    res.value = scale*20*daqVal;
     res.rem = 0.0;
   } else if ( m_Unit == "tick" ) {
     Index runPhase = 0;
@@ -118,7 +142,11 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
       if ( m_LogLevel >= 3 ) cout << myname << "Run data tool not found." << endl;
     }
     long daqoff = daqVal + m_TpcTickPhase + runPhase;
-    res.value = daqoff/25;
+    if ( haveScale ) {
+      res.value = scale*daqoff/25;
+    } else {
+      res.value = daqoff/25;
+    }
     res.rem = (daqoff % 25)/25.0;
   } else {
     cout << myname << "Invalid unit: " << m_Unit << ifname << endl;

@@ -9,7 +9,6 @@
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "canvas/Persistency/Provenance/EventID.h"
-#include "art/Persistency/Provenance/MasterProductRegistry.h"
 #include "canvas/Persistency/Provenance/RunID.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 #include "canvas/Utilities/InputTag.h"
@@ -1530,7 +1529,7 @@ void DAQToOffline::Splitter::makeEventAndPutDigits_(art::EventPrincipal*& outE, 
   ++AttemptedEvents;
   ++GoodEvents;
   
-  mf::LogDebug("SplitterFunc") << "Producing event: " << outE->id() << " with " << bufferedDigits_.size() << " RCE digits and " <<
+  mf::LogDebug("SplitterFunc") << "Producing event: " << outE->eventID() << " with " << bufferedDigits_.size() << " RCE digits and " <<
     wbuf_.size() << " SSP waveforms, " << hbuf_.size() << " OpHits and " << cbuf_.size() << " External Triggers (muon counters)";
   Reset();
 }

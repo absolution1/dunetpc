@@ -8,7 +8,10 @@
 //          run - Run number
 //       subRun - Sub-run number
 //        event - Event number
+//         time - Unix time (sec)
+//      timerem - Time remainder (ns)
 //      channel - Offline channel number
+// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //       fembID - FEMB ID
 //  fembChannel - Channel number in FEMB (0, 1,..., 127).
 //      trigger - Index indicating which trigger(s) fired.
@@ -66,7 +69,10 @@ public:
   AdcIndex run =badIndex;
   AdcIndex subRun =badIndex;
   AdcIndex event =badIndex;
+  time_t time =0;
+  int timerem =0;
   AdcChannel channel =badIndex;
+  AdcIndex channelStatus =badIndex;
   AdcIndex fembID =badIndex;
   AdcIndex fembChannel =badIndex;
   AdcIndex trigger =badIndex;

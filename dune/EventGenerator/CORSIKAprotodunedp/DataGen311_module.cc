@@ -31,13 +31,9 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
-
-// art extensions
-#include "nutools/RandomUtils/NuRandomService.h"
 
 // nutools includes
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -48,8 +44,6 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcoreobj/SummaryData/RunData.h"
 #include "TDatabasePDG.h"
-
-#include "CLHEP/Random/RandFlat.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -149,9 +143,14 @@ namespace evgendp{
         Comment("true: read particle energy from CORSIKA histograms as a fucntion of azimuth angle")
       };
 
-      fhicl::Atom<double> FixedEnergy{
-        Name("FixedEnergy"),
-        Comment("Fixed particle energy")
+      fhicl::Atom<double> UniformEnergyMin{
+        Name("UniformEnergyMin"),
+        Comment("Minimum particle energy")
+      };
+
+      fhicl::Atom<double> UniformEnergyMax{
+        Name("UniformEnergyMax"),
+        Comment("Maximum particle energy")
       };
 
       fhicl::Atom<std::string> TrackFile{
@@ -183,7 +182,8 @@ namespace evgendp{
     int fStartEvent;
     int fPDG;
     bool fGetEnergyFromCORSIKA;
-    int fFixedEnergy;
+    double fUniformEnergyMin;
+    double fUniformEnergyMax;
     std::string fTrackFile;
     std::string fHistFile;
 
@@ -196,18 +196,16 @@ namespace evgendp{
 ////////////////////////////////////////////////////////////////////////////////
 
 evgendp::DataGen311::DataGen311(Parameters const& config)
- :
+ : EDProducer{config},
    fEventsToProcess 		(config().EventsToProcess()),
    fStartEvent      		(config().StartEvent()),
    fPDG             		(config().PDG()),
    fGetEnergyFromCORSIKA	(config().GetEnergyFromCORSIKA()),
-   fFixedEnergy			(config().FixedEnergy()),
+   fUniformEnergyMin		(config().UniformEnergyMin()),
+   fUniformEnergyMax		(config().UniformEnergyMax()),
    fTrackFile       		(config().TrackFile()),
    fHistFile        		(config().HistFile())
 {
-    art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
-    //art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "gen", p, { "Seed", "SeedGenerator" });
-
     produces< std::vector<simb::MCTruth> >();
     produces< sumdata::RunData, art::InRun >();
 }
@@ -217,6 +215,9 @@ evgendp::DataGen311::DataGen311(Parameters const& config)
 
 
 void evgendp::DataGen311::beginJob(){
+
+  //Random number generator for particle energy
+  gRandom = new TRandom3();
 
   //read the files and store the information on the map
   std::ifstream trackfile;
@@ -274,12 +275,15 @@ void evgendp::DataGen311::beginJob(){
         continue;
       }
 
-      double energy = hEnergyAtTheta->GetRandom();
-      track->energy = energy;
+      track->energy = hEnergyAtTheta->GetRandom();
     }
+    else if(fUniformEnergyMin == fUniformEnergyMax) //get energy from .fcl parameter
+    {
+      track->energy = fUniformEnergyMin;
+    }  
     else //get energy from .fcl parameter
     {
-      track->energy = fFixedEnergy;
+      track->energy = gRandom->Uniform(fUniformEnergyMin, fUniformEnergyMax);
     }
 
     if( track->event != eventBefore ){
@@ -300,10 +304,6 @@ void evgendp::DataGen311::beginJob(){
 ////////////////////////////////////////////////////////////////////////////////
 
 void evgendp::DataGen311::produce(art::Event & e){
-  art::ServiceHandle<art::RandomNumberGenerator> rng;
-  CLHEP::HepRandomEngine &engine = rng->getEngine();
-  CLHEP::RandFlat flat(engine);
-
   std::unique_ptr< std::vector<simb::MCTruth> > truthcol(new std::vector<simb::MCTruth>);
 
   simb::MCTruth truth;

@@ -1,3 +1,7 @@
+// daqsimana_job.fcl
+//
+// Run DAQSimAna on the output of offline hit finders
+
 #include "services_dune.fcl"
 #include "DAQSimAna.fcl"
 

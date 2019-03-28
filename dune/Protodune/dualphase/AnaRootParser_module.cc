@@ -32,6 +32,7 @@
 #include "lardataobj/RawData/TriggerData.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/Simulation/SimPhotons.h"
+#include "lardataobj/Simulation/SimEnergyDeposit.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
@@ -501,20 +502,21 @@ namespace dune {
         tdGeant = 0x20,
 	tdGeantInAV = 0x40,
 	tdGeantTrajectory = 0x80,
-        tdHit = 0x100,
-        tdTrack = 0x200,
-        tdVertex = 0x400,
-        tdFlash = 0x800,
-        tdShower = 0x1000,
-        tdMCshwr = 0x2000,
-        tdMCtrk  = 0x4000,
-        tdCluster = 0x8000,
-        tdRawDigit = 0x10000,
-	tdRecobWire = 0x20000,
-        tdPandoraNuVertex = 0x40000,
-        tdPFParticle = 0x80000,
-        tdCount = 0x100000,
-        tdProto = 0x200000,
+	tdSimEnergyDepositTPCActive = 0x100,
+        tdHit = 0x200,
+        tdTrack = 0x400,
+        tdVertex = 0x800,
+        tdFlash = 0x1000,
+        tdShower = 0x2000,
+        tdMCshwr = 0x4000,
+        tdMCtrk  = 0x8000,
+        tdCluster = 0x10000,
+        tdRawDigit = 0x20000,
+	tdRecobWire = 0x40000,
+        tdPandoraNuVertex = 0x80000,
+        tdPFParticle = 0x100000,
+        tdCount = 0x200000,
+        tdProto = 0x400000,
         tdDefault = 0
       }; // DataBits_t
 
@@ -881,16 +883,15 @@ namespace dune {
       std::vector<Int_t>    MCTruthIndex; //this geant particle comes from the neutrino interaction of the _truth variables with this index
 
       //G4 MC trajectory information
-      size_t MaxGEANTtrajectorypoints = 0; ///! how many particles there is currently room for
+      size_t MaxGEANTtrajectorypoints = 0; ///! how many trajectory points for all geant particles there is currently room for
 
       Int_t     geant_trajectory_size;  //number of trajectory points for all geant particles
 
       std::vector<Int_t> NTrajectoryPointsPerParticle;
 
 
-      std::vector<Float_t>  TrajTrackId;
-      std::vector<Float_t>  TrajPDGCode;
-
+      std::vector<Int_t>  TrajTrackId;
+      std::vector<Int_t>  TrajPDGCode;
       std::vector<Float_t>  TrajX;
       std::vector<Float_t>  TrajY;
       std::vector<Float_t>  TrajZ;
@@ -902,6 +903,40 @@ namespace dune {
       std::vector<Float_t>  TrajPz;
       std::vector<Float_t>  TrajTheta;
       std::vector<Float_t>  TrajPhi;
+
+      //SimEnergyDepositInfo
+      size_t MaxSimEnergyDepositsTPCActive = 0; ///! how many sim energy deposits in TPC AV there is currently room for
+      size_t MaxParticlesWithSimEnergyDepositsTPCActive = 0; ///! how many particles with sim energy deposits in TPC AV there is currently room for
+
+      Int_t simenergydeposit_size;  //number of SEDTPCAV for all geant particles
+      Int_t particleswithsimenergydeposit_size;  //number of SEDTPCAV for all geant particles
+
+      std::vector<Int_t> NSimEnergyDepositsTPCActivePerParticle;
+      std::vector<Int_t> ParticleIDSimEnergyDepositsTPCActivePerParticle;
+
+      std::vector<Int_t>  SEDTPCAVTrackID;
+      std::vector<Int_t>  SEDTPCAVPDGCode;
+      std::vector<float>  SEDTPCAVEnergy;
+      std::vector<Int_t>  SEDTPCAVNumPhotons;
+      std::vector<Int_t>  SEDTPCAVNumElectrons;
+      std::vector<float>  SEDTPCAVLength;
+
+      std::vector<float>  SEDTPCAVStartTime;
+      std::vector<float>  SEDTPCAVStartX;
+      std::vector<float>  SEDTPCAVStartY;
+      std::vector<float>  SEDTPCAVStartZ;
+
+      std::vector<float>  SEDTPCAVMidTime;
+      std::vector<float>  SEDTPCAVMidX;
+      std::vector<float>  SEDTPCAVMidY;
+      std::vector<float>  SEDTPCAVMidZ;
+
+      std::vector<float>  SEDTPCAVEndTime;
+      std::vector<float>  SEDTPCAVEndX;
+      std::vector<float>  SEDTPCAVEndY;
+      std::vector<float>  SEDTPCAVEndZ;
+
+
 
       //MC Shower information
       Int_t     no_mcshowers;                         //number of MC Showers in this event.
@@ -1076,6 +1111,9 @@ namespace dune {
       /// Returns whether we have Geant trajectory data
       bool hasGeantTrajectoryInfo() const { return bits & tdGeantTrajectory; }
 
+      /// Returns whether we have Geant trajectory data
+      bool hasSimEnergyDepositTPCActiveInfo() const { return bits & tdSimEnergyDepositTPCActive; }
+
       /// Returns whether we have Flash data
       bool hasFlashInfo() const { return bits & tdFlash; }
 
@@ -1146,6 +1184,9 @@ namespace dune {
       /// Resize the data strutcure for GEANT trajectory info
       void ResizeGEANTTrajectory(int nTrajectoryPoints);
 
+       /// Resize the data strutcure for SimEnergyDepositTPCActive info
+      void ResizeSimEnergyDepositsTPCActive(int nSimEnergyDepositsTPCActive, int nParticlesWithSimEnergyDepositsTPCActive);   
+
       /// Resize the data strutcure for Genie primaries
       void ResizeGenie(int nPrimaries);
 
@@ -1204,8 +1245,16 @@ namespace dune {
       /// Returns the number of GEANT particles in AV for which memory is allocated
       size_t GetMaxGEANTInAVparticles() const { return MaxGEANTInAVparticles; }
 
-      /// Returns the number of GEANT particles for which memory is allocated
+      /// Returns the number of GEANT trajectory steps for which memory is allocated
       size_t GetMaxGEANTtrajectorypoints() const { return MaxGEANTtrajectorypoints; }
+
+      /// Returns the number of SimEnergyDepositsTPCActive for which memory is allocated
+      size_t GetMaxSimEnergyDepositsTPCActive() const { return MaxSimEnergyDepositsTPCActive; }
+
+      /// Returns the number of particles with SimEnergyDepositsTPCActive for which memory is allocated
+      size_t GetMaxParticlesWithSimEnergyDepositsTPCActive() const { return MaxParticlesWithSimEnergyDepositsTPCActive; }
+
+
 
       /// Returns the number of GENIE primaries for which memory is allocated
       size_t GetMaxGeniePrimaries() const { return MaxGeniePrimaries; }
@@ -1230,17 +1279,17 @@ namespace dune {
               if (!pBranch) {
                 pTree->Branch(name.c_str(), address, leaflist.c_str() /*, bufsize */);
 
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Creating branch '" << name << " with leaf '" << leaflist << "'";
 
               }
               else if (pBranch->GetAddress() != address) {
                 pBranch->SetAddress(address);
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Reassigning address to branch '" << name << "'";
               }
               else {
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Branch '" << name << "' is fine";
               }
             } // operator()
@@ -1266,7 +1315,7 @@ namespace dune {
                 pTree->Branch(name.c_str(), &data);
                 // ROOT needs a TClass definition for T in order to create a branch,
                 // se we are sure that at this point the TClass exists
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Creating object branch '" << name
                   << " with " << TClass::GetClass(typeid(T))->ClassName();
               }
@@ -1279,11 +1328,11 @@ namespace dune {
                   // member. Here we check that the address of the object in fObject
                   // is the same as the address of our current data type
                   pBranch->SetObject(&data);
-                  LOG_DEBUG("AnaRootParserStructure")
+                  MF_LOG_DEBUG("AnaRootParserStructure")
                     << "Reassigning object to branch '" << name << "'";
                 }
               else {
-                LOG_DEBUG("AnaRootParserStructure")
+                MF_LOG_DEBUG("AnaRootParserStructure")
                   << "Branch '" << name << "' is fine";
               }
             } // operator()
@@ -1360,12 +1409,14 @@ namespace dune {
 
       std::string fRawDigitModuleLabel;
       std::string fHitsModuleLabel;
-      std::string fLArG4ModuleLabel;
+      std::string fPhotonPropS1ModuleLabel;
+      std::string fElecDriftModuleLabel;
       std::string fCalDataModuleLabel;
       std::string fGenieGenModuleLabel;
       std::string fCryGenModuleLabel;
       std::string fProtoGenModuleLabel;
       std::string fG4ModuleLabel;
+      std::string fSimEnergyDepositTPCActiveLabel;
       std::string fClusterModuleLabel;
       std::string fPandoraNuVertexModuleLabel;
       std::string fOpFlashModuleLabel;
@@ -1397,6 +1448,7 @@ namespace dune {
       bool fSaveGeantInfo; ///whether to extract and save Geant information
       bool fSaveGeantInAVInfo; ///whether to extract and save Geant information
       bool fSaveGeantTrajectoryInfo; ///whether to extract and save Geant information
+      bool fSaveSimEnergyDepositTPCActiveInfo;  ///whether to extract and save Cluster information
       bool fSaveMCShowerInfo; ///whether to extract and save MC Shower information
       bool fSaveMCTrackInfo; ///whether to extract and save MC Track information
       bool fSaveHitInfo; ///whether to extract and save Hit information
@@ -1451,6 +1503,7 @@ namespace dune {
           fData->SetBits(AnaRootParserDataStruct::tdGeant,  !fSaveGeantInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGeantInAV,  !fSaveGeantInAVInfo);
           fData->SetBits(AnaRootParserDataStruct::tdGeantTrajectory,  !fSaveGeantTrajectoryInfo);
+          fData->SetBits(AnaRootParserDataStruct::tdSimEnergyDepositTPCActive,  !fSaveSimEnergyDepositTPCActiveInfo);
           fData->SetBits(AnaRootParserDataStruct::tdMCshwr, !fSaveMCShowerInfo);
           fData->SetBits(AnaRootParserDataStruct::tdMCtrk,  !fSaveMCTrackInfo);
           fData->SetBits(AnaRootParserDataStruct::tdHit,    !fSaveHitInfo);
@@ -2929,13 +2982,13 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(mcshwr_AncestorendY, -999.);
   FillWith(mcshwr_AncestorendZ, -999.);
 
+  //GEANT trajectory steps
   geant_trajectory_size = 0;
 
   FillWith(NTrajectoryPointsPerParticle, -999);
 
-  FillWith(TrajTrackId, -999.);
-  FillWith(TrajPDGCode, -999.);
-
+  FillWith(TrajTrackId, -999);
+  FillWith(TrajPDGCode, -999);
   FillWith(TrajX, -999.);
   FillWith(TrajY, -999.);
   FillWith(TrajZ, -999.);
@@ -2947,6 +3000,36 @@ void dune::AnaRootParserDataStruct::ClearLocalData() {
   FillWith(TrajPz, -999.);
   FillWith(TrajTheta, -999.);
   FillWith(TrajPhi, -999.);
+
+  //SimEnergyDeposits
+  simenergydeposit_size = 0;
+  particleswithsimenergydeposit_size = 0;
+
+  FillWith(NSimEnergyDepositsTPCActivePerParticle, -999);
+  FillWith(ParticleIDSimEnergyDepositsTPCActivePerParticle, 0);
+
+  FillWith(SEDTPCAVTrackID, 0);
+  FillWith(SEDTPCAVPDGCode, 0);
+
+  FillWith(SEDTPCAVEnergy, -999.);
+  FillWith(SEDTPCAVNumPhotons, -999);
+  FillWith(SEDTPCAVNumElectrons, -999);
+  FillWith(SEDTPCAVLength, -999.);
+  FillWith(SEDTPCAVStartTime, -999.);
+  FillWith(SEDTPCAVStartX, -999.);
+  FillWith(SEDTPCAVStartY, -999.);
+  FillWith(SEDTPCAVStartZ, -999.);
+  FillWith(SEDTPCAVMidTime, -999.);
+  FillWith(SEDTPCAVMidX, -999.);
+  FillWith(SEDTPCAVMidY, -999.);
+  FillWith(SEDTPCAVMidZ, -999.);
+  FillWith(SEDTPCAVEndTime, -999.);
+  FillWith(SEDTPCAVEndX, -999.);
+  FillWith(SEDTPCAVEndY, -999.);
+  FillWith(SEDTPCAVEndZ, -999.);
+
+
+
 
 
   // auxiliary detector information;
@@ -3154,6 +3237,42 @@ void dune::AnaRootParserDataStruct::ResizeGEANTTrajectory(int nTrajectoryPoints)
   TrajPhi.resize(MaxGEANTtrajectorypoints);
 
 } // dune::AnaRootParserDataStruct::ResizeGEANTTrajectory()
+
+void dune::AnaRootParserDataStruct::ResizeSimEnergyDepositsTPCActive(int nSimEnergyDepositsTPCActive, int nParticlesWithSimEnergyDepositsTPCActive) {
+
+  // minimum size is 1, so that we always have an address
+  MaxSimEnergyDepositsTPCActive = (size_t) std::max(nSimEnergyDepositsTPCActive, 1);
+  MaxParticlesWithSimEnergyDepositsTPCActive = (size_t) std::max(nParticlesWithSimEnergyDepositsTPCActive, 1);
+
+  std::cout << "MaxSimEnergyDepositsTPCActive: " << MaxSimEnergyDepositsTPCActive << std::endl;
+  std::cout << "MaxParticlesWithSimEnergyDepositsTPCActive: " << MaxParticlesWithSimEnergyDepositsTPCActive << std::endl;
+
+  NSimEnergyDepositsTPCActivePerParticle.resize(MaxParticlesWithSimEnergyDepositsTPCActive);
+  ParticleIDSimEnergyDepositsTPCActivePerParticle.resize(MaxParticlesWithSimEnergyDepositsTPCActive);
+
+  SEDTPCAVTrackID.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVPDGCode.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVEnergy.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVNumPhotons.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVNumElectrons.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVLength.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVStartTime.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVStartX.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVStartY.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVStartZ.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVMidTime.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVMidX.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVMidY.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVMidZ.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVEndTime.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVEndX.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVEndY.resize(MaxSimEnergyDepositsTPCActive);
+  SEDTPCAVEndZ.resize(MaxSimEnergyDepositsTPCActive);
+
+
+} // dune::AnaRootParserDataStruct::ResizeSimEnergyDepositsTPCActive()
+
+
 
 
 void dune::AnaRootParserDataStruct::ResizeGenie(int nPrimaries) {
@@ -3705,12 +3824,11 @@ if (hasPFParticleInfo()){
 }
 
 if(hasGeantTrajectoryInfo()){
-  CreateBranch("MCTruth_GEANT4_NumberOfTrajectoryStepsPerParticle",NTrajectoryPointsPerParticle,"NTrajectoryPointsPerParticle[geant_list_size]/I");
   CreateBranch("MCTruth_GEANT4_TotalNumberOfTrajectoryStepsForAllParticles",&geant_trajectory_size,"geant_trajectory_size/I");
+  CreateBranch("MCTruth_GEANT4_NumberOfTrajectoryStepsPerParticle",NTrajectoryPointsPerParticle,"NTrajectoryPointsPerParticle[geant_list_size]/I");
 
-  CreateBranch("MCTruth_GEANT4_TrajectoryStep_ParticleID",TrajTrackId,"TrajTrackId[geant_trajectory_size]/F");
-  CreateBranch("MCTruth_GEANT4_TrajectoryStep_PDGCode",TrajPDGCode,"TrajPDGCode[geant_trajectory_size]/F");
-
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_ParticleID",TrajTrackId,"TrajTrackId[geant_trajectory_size]/I");
+  CreateBranch("MCTruth_GEANT4_TrajectoryStep_PDGCode",TrajPDGCode,"TrajPDGCode[geant_trajectory_size]/I");
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_X",TrajX,"TrajX[geant_trajectory_size]/F");
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_Y",TrajY,"TrajY[geant_trajectory_size]/F");
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Point_Z",TrajZ,"TrajZ[geant_trajectory_size]/F");
@@ -3722,6 +3840,33 @@ if(hasGeantTrajectoryInfo()){
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Momentum_Z",TrajPz,"TrajPz[geant_trajectory_size]/F");
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Direction_Theta",TrajTheta,"TrajTheta[geant_trajectory_size]/F");
   CreateBranch("MCTruth_GEANT4_TrajectoryStep_Direction_Phi",TrajPhi,"TrajPhi[geant_trajectory_size]/F");
+}
+
+if(hasSimEnergyDepositTPCActiveInfo()){
+  CreateBranch("MCTruth_GEANT4_TotalNumberOfSEDInTPCAVForAllParticles",&simenergydeposit_size,"simenergydeposit_size/I");
+  CreateBranch("MCTruth_GEANT4_NumberOfParticlesWithSEDInTPCAV",&particleswithsimenergydeposit_size,"particleswithsimenergydeposit_size/I");
+
+  CreateBranch("MCTruth_GEANT4_ParticlesWithSEDInTPCAV_NumberOfSED",NSimEnergyDepositsTPCActivePerParticle,"NSimEnergyDepositsTPCActivePerParticle[particleswithsimenergydeposit_size]/I");
+  CreateBranch("MCTruth_GEANT4_ParticlesWithSEDInTPCAV_ParticleID",ParticleIDSimEnergyDepositsTPCActivePerParticle,"ParticleIDSimEnergyDepositsTPCActivePerParticle[particleswithsimenergydeposit_size]/I");
+
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_ParticleID",SEDTPCAVTrackID,"SEDTPCAVTrackID[simenergydeposit_size]/I");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_PDGCode",SEDTPCAVPDGCode,"SEDTPCAVPDGCode[simenergydeposit_size]/I");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_EnergyDeposition",SEDTPCAVEnergy,"SEDTPCAVEnergy[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_NumberOfPhotons",SEDTPCAVNumPhotons,"SEDTPCAVNumPhotons[simenergydeposit_size]/I");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_NumberOfElectrons",SEDTPCAVNumElectrons,"SEDTPCAVNumElectrons[simenergydeposit_size]/I");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_Length",SEDTPCAVLength,"SEDTPCAVLength[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_StartTime",SEDTPCAVStartTime,"SEDTPCAVStartTime[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_StartPoint_X",SEDTPCAVStartX,"SEDTPCAVStartX[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_StartPoint_Y",SEDTPCAVStartY,"SEDTPCAVStartY[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_StartPoint_Z",SEDTPCAVStartZ,"SEDTPCAVStartZ[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_MidTime",SEDTPCAVMidTime,"SEDTPCAVMidTime[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_MidPoint_X",SEDTPCAVMidX,"SEDTPCAVMidX[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_MidPoint_Y",SEDTPCAVMidY,"SEDTPCAVMidY[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_MidPoint_Z",SEDTPCAVMidZ,"SEDTPCAVMidZ[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_EndTime",SEDTPCAVEndTime,"SEDTPCAVEndTime[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_EndPoint_X",SEDTPCAVEndX,"SEDTPCAVEndX[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_EndPoint_Y",SEDTPCAVEndY,"SEDTPCAVEndY[simenergydeposit_size]/F");
+  CreateBranch("MCTruth_GEANT4_SEDInTPCAV_EndPoint_Z",SEDTPCAVEndZ,"SEDTPCAVEndZ[simenergydeposit_size]/F");
 }
 
 /*
@@ -3858,12 +4003,14 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fRawDigitModuleLabel         (pset.get< std::string >("RawDigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
-  fLArG4ModuleLabel         (pset.get< std::string >("LArGeantModuleLabel")     ),
+  fPhotonPropS1ModuleLabel  (pset.get< std::string >("PhotonPropS1ModuleLabel")     ),
+  fElecDriftModuleLabel     (pset.get< std::string >("ElecDriftModuleLabel")     ),
   fCalDataModuleLabel       (pset.get< std::string >("CalDataModuleLabel")      ),
   fGenieGenModuleLabel      (pset.get< std::string >("GenieGenModuleLabel")     ),
   fCryGenModuleLabel        (pset.get< std::string >("CryGenModuleLabel")       ),
   fProtoGenModuleLabel      (pset.get< std::string >("ProtoGenModuleLabel")     ),
   fG4ModuleLabel            (pset.get< std::string >("G4ModuleLabel")           ),
+  fSimEnergyDepositTPCActiveLabel    (pset.get< std::string >("SimEnergyDepositTPCActiveLabel")           ),
   fClusterModuleLabel       (pset.get< std::string >("ClusterModuleLabel")     ),
   fPandoraNuVertexModuleLabel (pset.get< std::string >("PandoraNuVertexModuleLabel")     ),
   fOpFlashModuleLabel       (pset.get< std::string >("OpFlashModuleLabel")      ),
@@ -3892,6 +4039,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fSaveGeantInfo	    (pset.get< bool >("SaveGeantInfo", false)),
   fSaveGeantInAVInfo	    (pset.get< bool >("SaveGeantInAVInfo", false)),
   fSaveGeantTrajectoryInfo  (pset.get< bool >("SaveGeantTrajectoryInfo", false)),
+  fSaveSimEnergyDepositTPCActiveInfo (pset.get< bool >("SaveSimEnergyDepositTPCActiveInfo", false)),
   fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
   fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
   fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
@@ -4097,8 +4245,8 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
   // * photons
   art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
-//  std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
-  evt.getByLabel(fLArG4ModuleLabel, photonHandle);
+  //std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
+  if(fSavePhotonInfo) evt.getByLabel(fPhotonPropS1ModuleLabel, photonHandle);
 //    art::fill_ptr_vector(photonlist, photonHandle);
 
   // * hits
@@ -4133,6 +4281,39 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   if (fIsMC){
     if (evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
       art::fill_ptr_vector(mclist, mctruthListHandle);
+  }
+
+  // SimEnergyDepositTPCActive
+  int nSimEnergyDepositsTPCActive = 0;
+  int nParticlesWithSimEnergyDepositsTPCActive = 0;
+  int nLowestParticleIDSimEnergyDepositsTPCActive = 0;
+  int nHighestParticleIDSimEnergyDepositsTPCActive = 0;
+
+  art::Handle< std::vector<sim::SimEnergyDeposit> > energyDepositTPCActiveHandle;
+  std::vector<art::Ptr<sim::SimEnergyDeposit> > energyDepositTPCActivelist;
+  if (fIsMC && fSaveSimEnergyDepositTPCActiveInfo)
+  {
+    if (evt.getByLabel(fSimEnergyDepositTPCActiveLabel,energyDepositTPCActiveHandle))
+    {
+      art::fill_ptr_vector(energyDepositTPCActivelist,energyDepositTPCActiveHandle);
+      nSimEnergyDepositsTPCActive = energyDepositTPCActivelist.size();
+
+      std::vector<int> tempparticleID;
+      tempparticleID.resize(nSimEnergyDepositsTPCActive);
+      FillWith(tempparticleID, 0);
+
+      for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+      {
+	if( std::find(tempparticleID.begin(), tempparticleID.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == tempparticleID.end() ) //check if current particle ID is already in the vector. if true: not in vector
+	{
+	  tempparticleID[nParticlesWithSimEnergyDepositsTPCActive] = energyDepositTPCActivelist[sedavit]->TrackID();
+	  nParticlesWithSimEnergyDepositsTPCActive++;
+	}
+	if(energyDepositTPCActivelist[sedavit]->TrackID() < nLowestParticleIDSimEnergyDepositsTPCActive) nLowestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
+	if(energyDepositTPCActivelist[sedavit]->TrackID() > nHighestParticleIDSimEnergyDepositsTPCActive) nHighestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
+      }
+
+    }
   }
 
   // *MC truth cosmic generator information
@@ -4263,27 +4444,23 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       } // for particles
 
       // counting photons
-      for ( auto const& pmt : (*photonHandle) )
+      if(fSavePhotonInfo)
       {
-        std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
-
-        for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
+        for ( auto const& pmt : (*photonHandle) )
         {
-          for(int i = 0; i < itphoton->second ; i++)
+          std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
+
+          for(auto itphoton = PhotonsMap.begin(); itphoton!= PhotonsMap.end(); itphoton++)
           {
-	    nPhotons++;
-	  }
+            for(int i = 0; i < itphoton->second ; i++)
+            {
+	      nPhotons++;
+	    }
+          }
 	}
       }
-
-
-//      for()
-//      {
-
-//      }
-
     } // if have MC truth
-    LOG_DEBUG("AnaRootParser") << "Expected "
+    MF_LOG_DEBUG("AnaRootParser") << "Expected "
     << nGEANTparticles << " GEANT particles, "
     << nGeniePrimaries << " GENIE particles";
   } // if MC
@@ -4296,16 +4473,21 @@ if (fSaveGeneratorInfo){  fData->ResizeGenerator(nGeneratorParticles);}
 if (fSaveGeantInfo){  fData->ResizeGEANT(nGEANTparticles);}
 if (fSaveGeantInfo && fSaveGeantInAVInfo){  fData->ResizeGEANTInAV(nGEANTparticlesInAV);}
 if (fSaveGeantTrajectoryInfo){  fData->ResizeGEANTTrajectory(nGEANTtrajectorysteps);}
+if (fSaveSimEnergyDepositTPCActiveInfo) {fData->ResizeSimEnergyDepositsTPCActive(nSimEnergyDepositsTPCActive, nParticlesWithSimEnergyDepositsTPCActive);}
 if (fSaveMCShowerInfo){  fData->ResizeMCShower(nMCShowers);}
 if (fSaveMCTrackInfo){  fData->ResizeMCTrack(nMCTracks);}
 if (fSavePhotonInfo){  fData->ResizePhotons(nPhotons);}
 
-if(fLogLevel == 1)
+if(fLogLevel >= 1)
 {
   std::cout << "nGeneratorParticles: " << nGeneratorParticles << std::endl;
   std::cout << "nGEANTparticles: " << nGEANTparticles << std::endl;
   std::cout << "nGEANTtrajectorysteps: " << nGEANTtrajectorysteps << std::endl;
   std::cout << "nGEANTparticlesInAV: " << nGEANTparticlesInAV << std::endl;
+  std::cout << "nSimEnergyDepositsTPCActive: " << nSimEnergyDepositsTPCActive << std::endl;
+  std::cout << "nParticlesWithSimEnergyDepositsTPCActive: " << nParticlesWithSimEnergyDepositsTPCActive << std::endl;
+  std::cout << "nLowestParticleIDSimEnergyDepositsTPCActive: " << nLowestParticleIDSimEnergyDepositsTPCActive << std::endl;
+  std::cout << "nHighestParticleIDSimEnergyDepositsTPCActive: " << nHighestParticleIDSimEnergyDepositsTPCActive << std::endl;
   std::cout << "nPhotons: " << nPhotons << std::endl;
 }
 
@@ -4409,11 +4591,11 @@ if (fSaveShowerInfo) {
 
 std::vector<const sim::AuxDetSimChannel*> fAuxDetSimChannels;
 if (fSaveAuxDetInfo){
-  evt.getView(fLArG4ModuleLabel, fAuxDetSimChannels);
+  evt.getView(fElecDriftModuleLabel, fAuxDetSimChannels);
 }
 
 std::vector<const sim::SimChannel*> fSimChannels;
-if (fIsMC && fSaveGeantInfo){  evt.getView(fLArG4ModuleLabel, fSimChannels);}
+if (fIsMC && fSaveGeantInfo){  evt.getView(fElecDriftModuleLabel, fSimChannels);}
 
   fData->run = evt.run();
   fData->subrun = evt.subRun();
@@ -5051,8 +5233,8 @@ if (fSaveTrackInfo) {
     }
 
     //call the track momentum algorithm that gives you momentum based on track range
-    trkf::TrackMomentumCalculator trkm;
-    trkm.SetMinLength(50); //change the minimal track length requirement to 50 cm
+    // - change the minimal track length requirement to 50 cm
+    trkf::TrackMomentumCalculator trkm{50.};
 
     recob::MCSFitResult res;
 
@@ -5157,10 +5339,10 @@ if (fSaveTrackInfo) {
       else {   //use the normal methods for other kinds of tracks
         ntraj = track.NumberTrajectoryPoints();
         if (ntraj > 0) {
-          pos       = track.Vertex();
-          dir_start = track.VertexDirection();
-          dir_end   = track.EndDirection();
-          end       = track.End();
+          pos       = track.Vertex<TVector3>();
+          dir_start = track.VertexDirection<TVector3>();
+          dir_end   = track.EndDirection<TVector3>();
+          end       = track.End<TVector3>();
 
           dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
           dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
@@ -5194,7 +5376,7 @@ if (fSaveTrackInfo) {
         TrackerData.trkstartdirectiony[iTrk]	= dir_start.Y();
         TrackerData.trkstartdirectionz[iTrk]	= dir_start.Z();
 
-	if(fLogLevel == 2)
+	if(fLogLevel >= 2)
 	{
 	  std::cout << std::endl;
 	  std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
@@ -5342,7 +5524,7 @@ if (fSaveTrackInfo) {
 	int NHitsView0 = 0;
 	int NHitsView1 = 0;
 
-	if(fLogLevel == 2)
+	if(fLogLevel >= 2)
 	{
 	  std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
 	  std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
@@ -5355,8 +5537,8 @@ if (fSaveTrackInfo) {
   	  {
 	    //corrected pitch
   	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
-  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint(h);
-  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint(h);
+  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint<TVector3>(h);
+  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint<TVector3>(h);
   	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
 
 
@@ -5383,7 +5565,7 @@ if (fSaveTrackInfo) {
 
 	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
-	    if(fLogLevel == 2)
+	    if(fLogLevel >= 2)
 	    {
 	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
 	      std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
@@ -5660,9 +5842,11 @@ if (fSaveTrackInfo) {
 
 
   //mc truth information
-  if (fIsMC){
+  if (fIsMC)
+  {
 
-    if (fSaveCryInfo){
+    if (fSaveCryInfo)
+    {
 
       //store cry (cosmic generator information)
       fData->mcevts_truthcry = mclistcry.size();
@@ -5710,8 +5894,10 @@ if (fSaveTrackInfo) {
 
     //save neutrino interaction information
     fData->mcevts_truth = mclist.size();
-    if (fData->mcevts_truth > 0){//at least one mc record
-      if (fSaveGenieInfo){
+    if (fData->mcevts_truth > 0) //at least one mc record
+    {
+      if (fSaveGenieInfo)
+      {
         int neutrino_i = 0;
         for(unsigned int iList = 0; (iList < mclist.size()) && (neutrino_i < kMaxTruth) ; ++iList){
           if (mclist[iList]->NeutrinoSet()){
@@ -5822,7 +6008,8 @@ if (fSaveTrackInfo) {
       }// end (fSaveGenieInfo)
 
       //Extract MC Shower information and fill the Shower branches
-      if (fSaveMCShowerInfo){
+      if (fSaveMCShowerInfo)
+      {
         fData->no_mcshowers = nMCShowers;
         size_t shwr = 0;
         for(std::vector<sim::MCShower>::const_iterator imcshwr = mcshowerh->begin();
@@ -5880,7 +6067,8 @@ if (fSaveTrackInfo) {
       }//End if (fSaveMCShowerInfo){
 
       //Extract MC Track information and fill the Shower branches
-      if (fSaveMCTrackInfo){
+      if (fSaveMCTrackInfo)
+      {
         fData->no_mctracks = nMCTracks;
         size_t trk = 0;
         for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
@@ -5940,8 +6128,9 @@ if (fSaveTrackInfo) {
 
 
       //Photon particles information
-      if (fSavePhotonInfo){
-	int photoncounter=0;
+      if (fSavePhotonInfo)
+      {
+        int photoncounter=0;
         for ( auto const& pmt : (*photonHandle) )
         {
           std::map<int, int> PhotonsMap = pmt.DetectedPhotons;
@@ -5950,17 +6139,18 @@ if (fSaveTrackInfo) {
           {
             for(int iphotonatthistime = 0; iphotonatthistime < itphoton->second ; iphotonatthistime++)
             {
-	      fData->photons_time[photoncounter]=itphoton->first;
-	      fData->photons_channel[photoncounter]=pmt.OpChannel;
-	      photoncounter++;
-	    }
-	  }
+              fData->photons_time[photoncounter]=itphoton->first;
+              fData->photons_channel[photoncounter]=pmt.OpChannel;
+              photoncounter++;
+            }
+          }
         }
-	fData->numberofphotons=photoncounter;
+        fData->numberofphotons=photoncounter;
       }
 
-      //Generator particles information
-      if (fSaveGeneratorInfo){
+          //Generator particles information
+      if (fSaveGeneratorInfo)
+      {
         const sim::ParticleList& plist = pi_serv->ParticleList();
 
         size_t generator_particle=0;
@@ -6012,7 +6202,7 @@ if (fSaveTrackInfo) {
         } // for particles
         fData->generator_list_size = generator_particle;
         fData->processname.resize(generator_particle);
-        LOG_DEBUG("AnaRootParser")
+        MF_LOG_DEBUG("AnaRootParser")
           << "Counted "
           << fData->generator_list_size << " Generator particles";
       }//fSaveGeneratorInfo
@@ -6021,7 +6211,8 @@ if (fSaveTrackInfo) {
 
 
       //GEANT particles information
-      if (fSaveGeantInfo){
+      if (fSaveGeantInfo)
+      {
 
         const sim::ParticleList& plist = pi_serv->ParticleList();
 
@@ -6062,7 +6253,7 @@ if (fSaveTrackInfo) {
 //            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 //            bool isDrifted = plendrifted!= 0;
 
-	    if(fLogLevel == 3)
+	    if(fLogLevel >= 3)
 	    {
 	      std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
 	      std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
@@ -6253,7 +6444,7 @@ if (fSaveTrackInfo) {
         fData->no_primaries = primary;
         fData->geant_list_size = geant_particle;
         fData->processname.resize(geant_particle);
-        LOG_DEBUG("AnaRootParser")
+        MF_LOG_DEBUG("AnaRootParser")
           << "Counted "
           << fData->geant_list_size << " GEANT particles ("
           << fData->geant_list_size_in_tpcAV << " in AV), "
@@ -6295,8 +6486,8 @@ if (fSaveTrackInfo) {
       } // if (fSaveGeantInfo)
 
       //GEANT trajectory information
-      if (fSaveGeantTrajectoryInfo){
-
+      if (fSaveGeantTrajectoryInfo)
+      {
         const sim::ParticleList& plist = pi_serv->ParticleList();
         sim::ParticleList::const_iterator itPart = plist.begin(),
           pend = plist.end(); // iterator to pairs (track id, particle)
@@ -6336,10 +6527,12 @@ if (fSaveTrackInfo) {
             fData->TrajTheta[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Theta();
             fData->TrajPhi[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Phi();
 
-	    if(fLogLevel == 4)
+	    if(fLogLevel >= 4)
 	    {
 	    std::cout << std::endl;
 	    std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
+	    std::cout << "fData->TrajTrackId[trajpointcounter]: " << fData->TrajTrackId[trajpointcounter] << std::endl;
+	    std::cout << "fData->TrajPDGCode[trajpointcounter]: " << fData->TrajPDGCode[trajpointcounter] << std::endl;
 	    std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
 	    std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
 	    std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
@@ -6358,18 +6551,201 @@ if (fSaveTrackInfo) {
         } // for particles
 
 	fData->geant_trajectory_size = trajpointcounter;
-
       }// if (fSaveGeantTrajectoryInfo)
 
+
+      if (fSaveSimEnergyDepositTPCActiveInfo)
+      {
+        fData->simenergydeposit_size = nSimEnergyDepositsTPCActive;
+        fData->particleswithsimenergydeposit_size = nParticlesWithSimEnergyDepositsTPCActive;
+
+        // Find particle ID's for each particle with sim energy deposit in this event
+	int particlewithsedit=0;
+	for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+	{
+	  if (std::find(fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.begin(), fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end() ) //check if current particle ID is already in the vector. if true: not in vector
+	  {
+	     fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[particlewithsedit] = energyDepositTPCActivelist[sedavit]->TrackID();
+
+	     particlewithsedit++;
+	  }
+	}
+
+	//Sort particle ID's for each particle with sim energy deposit in this event by particle ID.
+        std::sort(fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.begin(), fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end());
+
+
+        // Find number of sim energy deposits for each particle in this event and sort all SEDs by Particle ID.
+        std::vector<int> it_sortedbyparticleID;
+
+	int totalsed = 0;
+	for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
+	{
+	  int NSEDForThisParticle = 0;
+	  for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+	  {
+	    if(energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit])
+	    {
+	      NSEDForThisParticle++;
+	      it_sortedbyparticleID.push_back(sedavit);
+	    }
+	  }
+
+	  fData->NSimEnergyDepositsTPCActivePerParticle[psedavit] = NSEDForThisParticle;
+	  totalsed += NSEDForThisParticle;
+	}
+
+/*
+	std::cout << std::endl;
+	std::cout << "it_sortedbyparticleID.size(): " << it_sortedbyparticleID.size() << std::endl;
+
+	for(int sedavit=0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+	{
+	  std::cout << std::endl;
+	  std::cout << "energyDepositTPCActivelist[" << sedavit << "]->TrackID(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID() << std::endl;
+	  std::cout << "energyDepositTPCActivelist[" << sedavit << "]->Time(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() << std::endl;
+	}
+*/
+
+
+//Algorithm to sort SEDs by time 
+/*
+	//Now also sort SEDs by time
+	//Sort by time (after sorting by particle ID)
+        std::vector<int> it_sortedbyparticleIDandtime;
+
+	int sedavit_currentparticle=0;
+	int sedavit_mintime_currentparticle = -1;
+
+
+	for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
+	{
+	  for(int NSEDForThisParticle = 0; NSEDForThisParticle < fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; NSEDForThisParticle++)
+	  {
+	    double mintime_currentparticle = 1e9;
+
+	    for(int sedavit = sedavit_currentparticle; sedavit < sedavit_currentparticle + fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; sedavit++)
+	    {
+	      if( energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() < mintime_currentparticle && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
+	      {
+	        mintime_currentparticle = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
+	        sedavit_mintime_currentparticle = sedavit;
+	      }
+	    }
+	    it_sortedbyparticleIDandtime.push_back(sedavit_mintime_currentparticle);
+	  }
+	  sedavit_currentparticle+=fData->NSimEnergyDepositsTPCActivePerParticle[psedavit];
+	}
+
+*/
+
+
+//Alternative algorithm to sort SEDs by time 
+/*
+	//Sort by time (after sorting by particle ID)
+        std::vector<int> it_sortedbyparticleIDandtime;
+        it_sortedbyparticleIDandtime.resize(nSimEnergyDepositsTPCActive);
+        FillWith(it_sortedbyparticleIDandtime, -1);
+
+	int sedavit_sortedbyparticleIDandtime = 0;
+	int mintime_sedavit = -1;
+	int psedavit=0;
+
+	//for(int sedavit_sortedbyparticleIDandtime = 0; sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive; i++)
+	//{
+	while(sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive )
+	{
+	  double mintime = 1e9;
+	  bool FoundSEDForThisParticleID = false;
+	  int NSEDForThisParticle = 0;
+
+	  for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+	  {
+	    if( energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit] )
+	    {
+	      if( energyDepositTPCActivelist[sedavit]->Time() < mintime && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
+	      {
+		mintime = energyDepositTPCActivelist[sedavit]->Time();
+		mintime_sedavit = sedavit;
+	 	FoundSEDForThisParticleID = true;
+	      }
+	    }
+	  }
+
+	  if( FoundSEDForThisParticleID )
+	  {
+	    it_sortedbyparticleIDandtime[sedavit_sortedbyparticleIDandtime] = mintime_sedavit;
+	    sedavit_sortedbyparticleIDandtime++;
+	  }
+	  else
+	  {
+	    psedavit++;
+	  }
+	}
+*/
+
+        // For each energy deposit in this event (sorted by particle ID, not by time)
+
+	for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+	{
+	  fData->SEDTPCAVTrackID[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID();
+	  fData->SEDTPCAVPDGCode[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->PdgCode();
+	  fData->SEDTPCAVEnergy[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Energy();
+	  fData->SEDTPCAVNumPhotons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumPhotons();
+	  fData->SEDTPCAVNumElectrons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumElectrons();
+	  fData->SEDTPCAVLength[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StepLength();
+
+	  fData->SEDTPCAVStartTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartT();
+	  fData->SEDTPCAVStartX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartX();
+	  fData->SEDTPCAVStartY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartY();
+	  fData->SEDTPCAVStartZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartZ();
+
+	  fData->SEDTPCAVMidTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
+	  fData->SEDTPCAVMidX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointX();
+	  fData->SEDTPCAVMidY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointY();
+	  fData->SEDTPCAVMidZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointZ();
+
+	  fData->SEDTPCAVEndTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndT();
+	  fData->SEDTPCAVEndX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndX();
+	  fData->SEDTPCAVEndY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndY();
+	  fData->SEDTPCAVEndZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndZ();
+
+
+	  if(fLogLevel >= 5)
+	  {
+	    std::cout << std::endl;
+	    std::cout << "sedavit: " << sedavit << std::endl;
+	    std::cout << "fData->SEDTPCAVTrackID[" << sedavit << "]: " << fData->SEDTPCAVTrackID[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVPDGCode[" << sedavit << "]: " << fData->SEDTPCAVPDGCode[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVEnergy[" << sedavit << "]: " << fData->SEDTPCAVEnergy[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVNumPhotons[" << sedavit << "]: " << fData->SEDTPCAVNumPhotons[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVNumElectrons[" << sedavit << "]: " << fData->SEDTPCAVNumElectrons[sedavit] << std::endl;
+
+	    std::cout << "fData->SEDTPCAVLength[" << sedavit << "]: " << fData->SEDTPCAVLength[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVStartTime[" << sedavit << "]: " << fData->SEDTPCAVStartTime[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVStartX[" << sedavit << "]: " << fData->SEDTPCAVStartX[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVStartY[" << sedavit << "]: " << fData->SEDTPCAVStartY[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVStartZ[" << sedavit << "]: " << fData->SEDTPCAVStartZ[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVMidTime[" << sedavit << "]: " << fData->SEDTPCAVMidTime[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVMidX[" << sedavit << "]: " << fData->SEDTPCAVMidX[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVMidY[" << sedavit << "]: " << fData->SEDTPCAVMidY[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVMidZ[" << sedavit << "]: " << fData->SEDTPCAVMidZ[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVEndTime[" << sedavit << "]: " << fData->SEDTPCAVEndTime[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVEndX[" << sedavit << "]: " << fData->SEDTPCAVEndX[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVEndY[" << sedavit << "]: " << fData->SEDTPCAVEndY[sedavit] << std::endl;
+	    std::cout << "fData->SEDTPCAVEndZ[" << sedavit << "]: " << fData->SEDTPCAVEndZ[sedavit] << std::endl;
+	  }
+	}
+      }
     }//if (mcevts_truth)
-    }//if (fIsMC){
+  }//if (fIsMC){
 
     fData->taulife = detprop->ElectronLifetime();
 
     fTree->Fill();
 
     if (mf::isDebugEnabled()) {
-      // use mf::LogDebug instead of LOG_DEBUG because we reuse it in many lines;
+      // use mf::LogDebug instead of MF_LOG_DEBUG because we reuse it in many lines;
       // thus, we protect this part of the code with the line above
       mf::LogDebug logStream("AnaRootParserStructure");
       logStream
@@ -6407,7 +6783,7 @@ if (fSaveTrackInfo) {
     // delete the current buffer, and we'll create a new one on the next event
 
     if (!fUseBuffer) {
-      LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
+      MF_LOG_DEBUG("AnaRootParserStructure") << "Freeing the tree data structure";
       DestroyData();
     }
     } // dune::AnaRootParser::analyze()
@@ -6562,17 +6938,7 @@ if (fSaveTrackInfo) {
     // Length of reconstructed track, trajectory by trajectory.
     double dune::AnaRootParser::length(const recob::Track& track)
     {
-      double result = 0.;
-      TVector3 disp = track.LocationAtPoint(0);
-      int n = track.NumberTrajectoryPoints();
-
-      for(int i = 1; i < n; ++i) {
-        const TVector3& pos = track.LocationAtPoint(i);
-        disp -= pos;
-        result += disp.Mag();
-        disp = pos;
-      }
-      return result;
+      return track.Length();
     }
 
 

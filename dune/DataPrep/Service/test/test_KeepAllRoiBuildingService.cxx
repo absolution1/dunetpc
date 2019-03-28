@@ -48,8 +48,7 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1, bool explicitFcl =true) {
 
   cout << myname << line << endl;
   cout << myname << "Create top-level FCL." << endl;
-  string fclfile = "test_KeepAllRoiBuildingService.fcl";
-  ofstream fout(fclfile.c_str());
+  std::ostringstream fout;
   fout << "#include \"services_dune.fcl\"" << endl;
   fout << "services: @local::dune35t_services" << endl;
   if ( explicitFcl ) {
@@ -60,24 +59,7 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1, bool explicitFcl =true) {
   } else {
     fout << "services.AdcRoiBuildingService:  @local::adcroi_keepall" << endl;
   }
-  fout.close();
-
-  cout << myname << "Fetch art service helper." << endl;
-  ArtServiceHelper& ash = ArtServiceHelper::instance();
-  ash.print();
-
-  if ( ash.serviceStatus() == 0 ) {
-
-    cout << myname << line << endl;
-    cout << myname << "Add ROI building service." << endl;
-    assert( ash.addService("AdcRoiBuildingService", fclfile, true) == 0 );
-    ash.print();
-
-    cout << myname << line << endl;
-    cout << myname << "Load services." << endl;
-    assert( ash.loadServices() == 1 );
-    ash.print();
-  }
+  ArtServiceHelper::load_services(fout.str());
 
   const unsigned int nsig = 100;
   AdcChannelData acd;

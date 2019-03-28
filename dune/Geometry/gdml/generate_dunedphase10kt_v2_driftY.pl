@@ -19,7 +19,10 @@
 
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
-#
+# Updates:
+# 26/11/2018 - j.soto@cern.ch - This updates are not included in the drift in X geometries!
+# Added a variable PMT density, to generate new geometries with more PMTs.
+# TPB foils added to the default geometry, altough they can be deactivated.
 ##################################################################################
 
 
@@ -34,7 +37,9 @@ GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires,  
-            "workspace|k:s" => \$wkspc); 
+            "workspace|k:s" => \$wkspc,
+            "pmtdensity|p:s" => \$PMTDensity,
+            "TPBFoils|f:s" => \$foils); 
 
 my $pmt_switch="on";
 my $FieldCage_switch="on";
@@ -42,6 +47,7 @@ my $GroundGrid_switch="on";
 my $Cathode_switch="on";
 my $ExtractionGrid_switch="on";
 my $LEMs_switch="on";
+my $Foils_switch="on";
 
 
 if ( defined $help )
@@ -85,7 +91,14 @@ if (defined $wires)
 
 $tpc_on = 1;
 
-$basename = "dunedphase10kt_v2_driftY";
+if($PMTDensity==1)
+{
+     $basename = "dunedphase10kt_v2_driftY";
+}
+if($PMTDensity!=1)
+{
+     $basename = 'dunedphase10kt_v2_driftY_' . $PMTDensity . 'PMTperM2';
+}
 if ( $workspace == 1 )
 {
     $basename = $basename."_workspace";
@@ -94,12 +107,22 @@ if ( $workspace == 2 )
 {
     $basename = $basename."_workspace4x2";
 }
-
+if ( $workspace == 3 )
+{
+    $basename = $basename."_workspace3x3";
+}
+if($foils==0)
+{
+    $Foils_switch="off";
+}
+if($foils==2)
+{
+    $basename = $basename."_HalfFoil";
+}
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
 }
-
 
 
 ##################################################################
@@ -134,6 +157,14 @@ if( $workspace == 2 )
     $nCRM_x = 2;
     $nCRM_z = 4;
 }
+
+# create a smaller geometry
+if( $workspace == 3 )
+{
+    $nCRM_x = 3;
+    $nCRM_z = 3;
+}
+
 
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200
@@ -240,14 +271,15 @@ $OriginZSet =   $DetEncZ/2.0
 ##################################################################
 ############## Field Cage Parameters ###############
 
-$FieldShaperLongTubeLength =  $lengthTPCActive;
-$FieldShaperShortTubeLength =  $widthTPCActive;
+$FieldShaperLongTubeLength =  $lengthTPCActive+1;
+$FieldShaperShortTubeLength =  $widthTPCActive+1;#plus 1 to give space to the Foils without overlaps
 $FieldShaperInnerRadius = 1.485;
 $FieldShaperOuterRadius = 1.685;
 $FieldShaperTorRad = 1.69;
 
 $FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 $FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
+$FieldShaperHeight = 2*$FieldShaperOuterRadius;
 
 $FieldShaperSeparation = 5.0;
 $NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
@@ -256,18 +288,53 @@ $FieldCageSizeX = $FieldShaperWidth+2;
 $FieldCageSizeY = $FieldShaperSeparation*$NFieldShapers+2;
 $FieldCageSizeZ = $FieldShaperLength+2;
 
+##################################################################
+############## Positioning Parameters ###############
+
+
+$FirstFieldShaperPosY=0.5*$Argon_y-$HeightGaseousAr - 0.5*$FieldShaperHeight;
+
+$CathodeGroundGridSeparation=80;
+
+$CathodePosX=0;
+#$CathodePosY=-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation;
+
+$CathodePosY=$FirstFieldShaperPosY-$NFieldShapers*$FieldShaperSeparation;
+
+$CathodePosZ=0;
+
+$GroundGridPosX=0;
+$GroundGridPosY= $CathodePosY - $CathodeGroundGridSeparation;
+$GroundGridPosZ=0;
+
+#-$OriginYSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation
+#$FoilPositionY=$FirstFieldShaperPosY - 0.5*$NFieldShapers*$FieldShaperSeparation;
+
+$posLEMsX = 0;
+$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
+$posLEMsZ = 0;
+
+$ExtractionGridX = 0;
+$ExtractionGridY = 0.5*$Argon_y-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeY;
+$ExtractionGridZ = 0;
 
 ##################################################################
 ############## Parameters for PMTs ###############
+#$PMTDensity=1.0;
+
 $HeightPMT = 37.0;
-$pmtNx=int(0.01*$widthTPCActive);
-$pmtNz=int(0.01*$lengthTPCActive);
+$pmtNx=int(0.01*$widthTPCActive*sqrt($PMTDensity));
+$pmtDistanceX=$widthTPCActive/($pmtNx);
+$pmtNz=int(0.01*$lengthTPCActive*sqrt($PMTDensity));
+$pmtDistanceZ=$lengthTPCActive/($pmtNz);
+if($PMTDensity==1)
+{
+  $pmtDistanceX=100;
+  $pmtDistanceZ=100;
+}
 $pmtN = $pmtNx*$pmtNz; #keeping 1m2 density of pmts
-$posPMTy=0;
 
-$posPMTy =  -$Argon_y/2 + 0.5*($HeightPMT);
-$posPMTy =-$OriginYSet+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - 100 - 0.5*($HeightPMT); #1m below the cathode
-
+$posPMTy = $CathodePosY - 100.0- 0.5*($HeightPMT); #1m below the cathode
 
 @pmt_pos = ('','','');
 
@@ -279,8 +346,9 @@ for($i=0;$i<$pmtNx;++$i)
 {
 	for($j=0;$j<$pmtNz;++$j)
 	{
-	$pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*100 + $i*100]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*100+$j*100]}\"";
-	$counter++;
+	 $pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*100 + $i*100]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*100+$j*100]}\"";
+	 $pmt_pos[$counter]="x=\"@{[-0.5*($pmtNx-1)*$pmtDistanceZ + $i*$pmtDistanceX]}\" y=\"$posPMTy\" z=\"@{[-0.5*($pmtNz-1)*$pmtDistanceZ+$j*$pmtDistanceZ]}\"";
+	 $counter++;
 	}	
 }
 print "Number of PMTs      : $counter (@{[$pmtNx]} x @{[$pmtNz]})\n";
@@ -381,6 +449,11 @@ my $asmix = <<EOF;
    <D value=" 0.001205*(1-$FracMassOfSteel) + 7.9300*$FracMassOfSteel " unit="g/cm3"/>
    <fraction n="$FracMassOfSteel" ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
    <fraction n="$FracMassOfAir"   ref="Air"/>
+  </material>
+  <material name="vm2000" formula="vm2000">
+    <D value="1.2" unit="g/cm3"/>
+    <composite n="2" ref="carbon"/>
+    <composite n="4" ref="hydrogen"/>
   </material>
 EOF
 
@@ -819,6 +892,92 @@ EOF
 close(LEMs);
 }
 
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#++++++++++++++++++++++++++++++++++++++ gen_Foils +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+$FoilsHeight=$NFieldShapers*$FieldShaperSeparation-2.;
+if($foils==2)
+{
+    $FoilsHeight=0.5*$NFieldShapers*$FieldShaperSeparation-2.;
+}
+
+$FoilsLengthZ=$lengthTPCActive-3.;
+$FoilsLengthX=$widthTPCActive-3.;
+$FoilsWidth=0.25;
+$FoilsCoatingWidth=0.02844;
+
+$FoilPositionX=0.5*$FoilsLengthZ+1.7;
+$FoilPositionZ=0.5*$FoilsLengthX+1.7;
+$FoilPositionY=$FirstFieldShaperPosY - 0.5*$FoilsHeight+1;
+
+sub gen_Foils {
+
+
+    $Foils = $basename."_Foils" . $suffix . ".gdml";
+    push (@gdmlFiles, $Foils);
+    $Foils = ">" . $Foils;
+    open(Foils) or die("Could not open file $Foils for writing");
+
+# The standard XML prefix and starting the gdml
+print Foils <<EOF;
+<?xml version='1.0'?>
+<gdml>
+EOF
+
+print Foils <<EOF;
+
+<solids>
+
+    <box name="FoilLayerZ" lunit="cm" x="@{[$FoilsWidth]}" y="$FoilsHeight" z="$FoilsLengthZ"/>
+    <box name="FoilTPBZ" lunit="cm" x="@{[$FoilsWidth+$FoilsCoatingWidth]}" y="$FoilsHeight" z="$FoilsLengthZ"/>
+
+    <box name="FoilLayerX" lunit="cm" x="$FoilsLengthX" y="$FoilsHeight" z="@{[$FoilsWidth]}"/>
+    <box name="FoilTPBX" lunit="cm" x="$FoilsLengthX" y="$FoilsHeight" z="@{[$FoilsWidth+$FoilsCoatingWidth]}"/>
+
+</solids>
+
+EOF
+print Foils <<EOF;
+
+<structure>
+
+    <volume name="volFoilLayerZ">
+      <materialref ref="vm2000"/>
+      <solidref ref="FoilLayerZ"/>
+    </volume>
+
+    <volume name="volFoilZ">
+      <materialref ref="TPB"/>
+      <solidref ref="FoilTPBZ"/>
+      <physvol>
+        <volumeref ref="volFoilLayerZ"/>
+        <position name="posFoilLayerZ" unit="cm" x="@{[-0.5*$FoilsCoatingWidth]}" y="0" z="0"/>
+      </physvol>
+    </volume>
+
+    <volume name="volFoilLayerX">
+      <materialref ref="vm2000"/>
+      <solidref ref="FoilLayerX"/>
+    </volume>
+
+    <volume name="volFoilX">
+      <materialref ref="TPB"/>
+      <solidref ref="FoilTPBX"/>
+      <physvol>
+        <volumeref ref="volFoilLayerX"/>
+        <position name="posFoilLayerX" unit="cm" x="0" y="0" z="@{[-0.5*$FoilsCoatingWidth]}"/>
+      </physvol>
+    </volume>
+
+</structure>
+</gdml>
+EOF
+close(Foils);
+}
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_GroundGrid +++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1054,9 +1213,9 @@ EOF
    <position name="posallpmtcoat" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
- <physvol name="volOpDetSensitiveCoat">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
+  <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="@{[1.27*2.54-(2.23*2.54)]}"/>
   </physvol>
 
  </volume>
@@ -1131,11 +1290,6 @@ EOF
 
   if ( $LEMs_switch eq "on" )
   {
-
-$posLEMsX = 0;
-$posLEMsY = -0.5*$HeightGaseousAr+0.5+0.5*$LEMsSizeY;
-$posLEMsZ = 0;
-
       print CRYO <<EOF;
       <physvol>
       <volumeref ref="volLEMs"/>
@@ -1204,24 +1358,19 @@ $posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
 	print CRYO <<EOF;
   <physvol>
      <volumeref ref="volFieldShaper"/>
-     <position name="posFieldShaper$i" unit="cm"  x="@{[-1*(-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad)]}" y="@{[-$OriginYSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" z="0" />
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-1*(-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad)]}" y="@{[-$i*$FieldShaperSeparation+$FirstFieldShaperPosY]}" z="0" />
      <rotation name="rotFS$i" unit="deg" x="0" y="0" z="0" />
   </physvol>
 EOF
     }
   }
 
-
-$GroundGridPosX=0;
-$GroundGridPosY=-1*(-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation - 80);
-$GroundGridPosZ=0;
-
   if ( $GroundGrid_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[-$GroundGridPosY]}" z="@{[$GroundGridPosZ]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$GroundGridPosX" y="@{[$GroundGridPosY]}" z="@{[$GroundGridPosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="0" />
   </physvol>
 
@@ -1229,15 +1378,13 @@ EOF
 
   }
 
-$CathodePosX=0;
-$CathodePosY=-1*(-$OriginYSet+50+(-1-$NFieldShapers*0.5)*$FieldShaperSeparation);
-$CathodePosZ=0;
+
   if ( $Cathode_switch eq "on" )
   {
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[-$CathodePosY]}" z="@{[$CathodePosZ]}"/>
+   <position name="posGroundGrid01" unit="cm" x="$CathodePosX" y="@{[$CathodePosY]}" z="@{[$CathodePosZ]}"/>
    <rotation name="rotGG01" unit="deg" x="0" y="0" z="0" />
   </physvol>
 
@@ -1248,9 +1395,7 @@ EOF
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-$ExtractionGridX = 0;
-$ExtractionGridY = 0.5*$Argon_y-$HeightGaseousAr-0.5-0.5*$ExtractionGridSizeY;
-$ExtractionGridZ = 0;
+
 
       print CRYO <<EOF;
   <physvol>
@@ -1262,6 +1407,30 @@ EOF
 
   }
 
+  if ( $Foils_switch eq "on" ) {
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFoilZ"/>
+     <position name="posFoilZpos" unit="cm" x="@{[$FoilPositionZ]}" y="@{[$FoilPositionY]}" z="0" />
+     <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilZ"/>
+     <position name="posFoilZneg" unit="cm"  x="@{[-$FoilPositionZ]}" y="@{[$FoilPositionY]}" z="0" />
+     <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilX"/>
+     <position name="posFoilXpos" unit="cm"  x="0" y="@{[$FoilPositionY]}" z="@{[$FoilPositionX]}" />
+     <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFoilX"/>
+     <position name="posFoilXneg" unit="cm"  x="0" y="@{[$FoilPositionY]}" z="@{[-$FoilPositionX]}" />
+     <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
+  </physvol>
+EOF
+  }
 
 print CRYO <<EOF;
     </volume>
@@ -1519,11 +1688,12 @@ print "Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n";
 print "Detector enclosure : $DetEncX x $DetEncY x $DetEncZ\n";
 print "TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
 print "Field Cage         : $FieldCage_switch \n";
-print "Cathode            : $Cathode_switch \n";;
+print "Cathode            : $Cathode_switch \n";
 print "GroundGrid         : $GroundGrid_switch \n";
 print "ExtractionGrid     : $ExtractionGrid_switch \n";
 print "LEMs               : $LEMs_switch \n";
 print "PMTs               : $pmt_switch \n";
+print "Foils               : $Foils_switch \n";
 
 # run the sub routines that generate the fragments
 if ( $pmt_switch eq "on" ) {  gen_pmt();	}
@@ -1532,6 +1702,7 @@ if ( $GroundGrid_switch eq "on" ) {  gen_GroundGrid();	}
 #if ( $Cathode_switch eq "on" ) {  gen_Cathode();	} #Cathode for now has the same geometry as the Ground Grid
 if ( $ExtractionGrid_switch eq "on" ) {  gen_ExtractionGrid();	}
 if ( $LEMs_switch eq "on" ) {  gen_LEMs();	}
+if ( $Foils_switch eq "on" ) {  gen_Foils();	}
 
 
 gen_Define(); 	 # generates definitions at beginning of GDML

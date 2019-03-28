@@ -26,8 +26,9 @@ typedef std::shared_ptr<ParameterSet> PSPtr;
 typedef std::vector<PSPtr> PSPtrVector;
 typedef std::vector<int> IntVector;
 typedef std::vector<double> DoubleVector;
-typedef std::vector<string> StringVector;
 typedef std::vector<DoubleVector> DVVector;
+typedef std::vector<string> StringVector;
+typedef std::vector<StringVector> SVVector;
 typedef std::vector<DVVector> DVVVector;
 typedef std::vector<ParameterSet> PSVector;
 typedef std::vector<PSPtr> PSPVector;
@@ -87,27 +88,31 @@ void print_block(string prefix, PSPtr pcfgs[], unsigned int nlevrem) {
                 cout << pcfg->get<StringVector>(key);
               } catch (...) {
                 try {
-                  // Trick case: sequnce of paremter sets.
-                  PSVector psets = pcfg->get<PSVector>(key);
-                  cout << "[";
-                  int submaxlev = nlevrem;
-                  if ( submaxlev > 0 ) {
-                    for ( const ParameterSet& pset : psets ) {
-                      cout << endl;
-                      PSPtrVector subcfgs(submaxlev, std::make_shared<ParameterSet>(pset));
-                      subcfgs[0] = std::make_shared<ParameterSet>(pset);
-                      cout << prefix << "{" << endl;
-                      print_block(prefix + "  ", &subcfgs[0], submaxlev-1);
-                      cout << prefix << "}";
+                  cout << pcfg->get<SVVector>(key);
+                } catch (...) {
+                  try {
+                    // Trick case: sequence of parameter sets.
+                    PSVector psets = pcfg->get<PSVector>(key);
+                    cout << "[";
+                    int submaxlev = nlevrem;
+                    if ( submaxlev > 0 ) {
+                      for ( const ParameterSet& pset : psets ) {
+                        cout << endl;
+                        PSPtrVector subcfgs(submaxlev, std::make_shared<ParameterSet>(pset));
+                        subcfgs[0] = std::make_shared<ParameterSet>(pset);
+                        cout << prefix << "{" << endl;
+                        print_block(prefix + "  ", &subcfgs[0], submaxlev-1);
+                        cout << prefix << "}";
+                      }
+                      cout << endl << prefix << "]";
+                    } else {
+                      for ( unsigned int ips=0; ips<psets.size(); ++ips ) cout << ".";
+                      cout << "]";
                     }
-                    cout << endl << prefix << "]";
-                  } else {
-                    for ( unsigned int ips=0; ips<psets.size(); ++ips ) cout << ".";
-                    cout << "]";
+                  } catch (fhicl::exception& exc) {
+                    cout << "ERROR: Unknown data type for sequence key " << key << endl;
+                    throw exc;
                   }
-                } catch (fhicl::exception& exc) {
-                  cout << "ERROR: Unknown data type for sequence key " << key << endl;
-                  throw exc;
                 }
               }
             }

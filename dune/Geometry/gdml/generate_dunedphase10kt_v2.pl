@@ -1052,7 +1052,7 @@ EOF
    <position name="posallpmtcoat" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
- <physvol name="volOpDetSensitiveCoat">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
   <position name="posOpDetSensitiveCoat" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>

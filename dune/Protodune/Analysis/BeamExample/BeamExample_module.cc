@@ -3,16 +3,13 @@
 // Plugin Type: analyzer (art v2_07_03)
 // File:        BeamExample_module.cc
 //
-// Generated at Mon Sep  4 06:55:33 2017 by Leigh Whitehead using cetskelgen
-// from cetlib version v3_00_01.
+// Author: Leigh Whitehead using cetskelgen
 //
-// This module is designed to show some usage examples of the analysis
-// tools that I have been producing for protoDUNE. The aim has been to
-// simplify the associations between the different objects to make
-// some of the low-level art features more transparent
-//
-// The code is split into a few sections with each focusing on a different
-// type of initial object
+// Example module that will access PFParticle objects tagged as beam
+// particles by Pandora. A lot of useful information about these
+// objects is stored in art via associations. These complex links
+// are encapsulated by the ProtoDUNEPFParticleUtils class used here
+// to simplify the process 
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -43,6 +40,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 
 namespace protoana {
   class BeamExample;
@@ -78,6 +76,8 @@ private:
   std::string fGeneratorTag;
   bool fVerbose;
 
+  protoana::ProtoDUNEDataUtils dataUtil;
+
 };
 
 
@@ -89,7 +89,8 @@ protoana::BeamExample::BeamExample(fhicl::ParameterSet const & p)
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
-  fVerbose(p.get<bool>("Verbose"))
+  fVerbose(p.get<bool>("Verbose")),
+  dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
 {
 
 }
@@ -102,6 +103,7 @@ void protoana::BeamExample::beginJob()
 void protoana::BeamExample::analyze(art::Event const & evt)
 {
 
+  bool beamTriggerEvent = false;
   // If this event is MC then we can check what the true beam particle is
   if(!evt.isRealData()){
     // Get the truth utility to help us out
@@ -114,6 +116,13 @@ void protoana::BeamExample::analyze(art::Event const & evt)
     const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
     if(geantGoodParticle != 0x0){
       std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+    }
+  }
+  else{
+    // For data we can see if this event comes from a beam trigger
+    beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
+    if(beamTriggerEvent){
+      std::cout << "This data event has a beam trigger" << std::endl;
     }
   }
 
@@ -143,7 +152,7 @@ void protoana::BeamExample::analyze(art::Event const & evt)
   // to look for it. Pandora reconstructs slices containing one (or sometimes more) primary PFParticles. These
   // are tagged as either beam or cosmic for ProtoDUNE. This function automatically considers only those
   // PFParticles considered as primary
-  std::vector<recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+  std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
 
   if(beamParticles.size() == 0){
     std::cerr << "We found no beam particles for this event... moving on" << std::endl;
@@ -181,6 +190,11 @@ void protoana::BeamExample::analyze(art::Event const & evt)
     const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
     const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
     std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+
+    // At this point we have access to the primary particle track or shower, plus the track and shower daughters of this event.
+    // For other information that can be extracted from the PFParticle objects please see the ProtoDUNEPFParticleUtils header file
+    // /dunetpc/dune/ProtoDUNE/Analysis/ProtoDUNEPFParticleUtils.h
+
   } 
 
 }

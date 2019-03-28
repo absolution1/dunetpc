@@ -79,4 +79,36 @@ protodune_detproperties.TimeOffsetV:       0.
 protodune_detproperties.TimeOffsetZ:       0.
 
 
+
+
+protodunesp_detproperties :
+ {
+ service_provider: "DetectorPropertiesServiceProtoDUNEsp" 
+
+
+
+ GetHVDriftfromRunTable: true   #will look up drift HV voltage from table of runs and update Efield accordingly 
+ GetReadOutWindowSizefromRunTable: true #will look up readout window size from table of runs
+
+
+  # Drift properties 
+Temperature:      87              #Kelvin
+Efield:           [0.5,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
+Electronlifetime: 3.0e3               #microseconds  
+SternheimerA:     0.1956  # Ar Sternheimer parameter a.
+SternheimerK:     3.0000  # Ar Sternheimer parameter k.
+SternheimerX0:    0.2000  # Ar Sternheimer parameter x0.
+SternheimerX1:    3.0000  # Ar Sternheimer parameter x0.
+SternheimerCbar:  5.2146  # Ar Sternheimer parameter Cbar.  
+SimpleBoundaryProcess: true  #enable opticalBoundaryProcessSimple instead of G4 default
+ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+NumberTimeSamples: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+ReadOutWindowSize: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
+TimeOffsetU:       0.
+TimeOffsetV:       0.
+TimeOffsetZ:       0.
+
+}
+
+
 END_PROLOG

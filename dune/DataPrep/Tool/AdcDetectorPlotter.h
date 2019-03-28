@@ -14,6 +14,7 @@
 //   XMin, XMax - Plot limits for the drift coordinate
 //   ZMin, ZMax - Plot limits for the wire coordinate
 //   SignalThreshold - Signals in a channel-tick bin above this value are plotted
+//   SkipBadChannels - If true, skip channels flagged as bad.
 //   ShowAllTicks - If true, ticks outside the nominal drift volume are displayed.
 //   FirstTick - First tick number to display
 //   LastTick - Last+1 tick number to display
@@ -21,7 +22,8 @@
 //   ShowCathode - Also show cathode planes (one point for each wire) on the plot.
 //   ShowTpcSets - If not empty, only show wires and cathodes for these TPC sets.
 //   ShowGrid - Also show (Root default) grid.
-//   Title - Title for the plot.
+//   Title - Title at top of plot (part of graph)
+//   PlotTitle - Plot title (appears in lower left corner)
 //   FileName - Name for output plot file.
 //              If blank, no file is written.
 //              Existing file with the same name is replaced.
@@ -52,9 +54,13 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/Geometry/WireSelector.h"
 #include <memory>
+#include "TLatex.h"
 
 namespace geo {
   class GeometryCore;
+}
+namespace lariov {
+  class ChannelStatusProvider;
 }
 
 class AdcChannelStringTool;
@@ -66,6 +72,7 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using TPadManipulatorPtr = std::unique_ptr<TPadManipulator>;
+  using TLatexPtr = std::unique_ptr<TLatex>;
 
   class State {
   public:
@@ -79,6 +86,7 @@ public:
     WireSelector sel;
     TPadManipulatorPtr ppad;
     std::string ofname;
+    TLatexPtr pttl = nullptr;
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -114,6 +122,7 @@ private:
   float          m_ZMin;
   float          m_ZMax;
   float          m_SignalThreshold;
+  bool           m_SkipBadChannels;
   float          m_ShowAllTicks;
   Index          m_FirstTick;
   Index          m_LastTick;
@@ -122,7 +131,11 @@ private:
   IndexVector    m_ShowTpcSets;
   bool           m_ShowGrid;
   std::string    m_Title;
+  std::string    m_PlotTitle;
   std::string    m_FileName;
+
+  // Derived configuration.
+  const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
   StatePtr m_state;
 

@@ -31,7 +31,7 @@
 #include "dune/FDSensOpt/FDSensOptData/EnergyRecoOutput.h"
 #include "dune/CVN/func/InteractionType.h"
 #include "dune/CVN/func/Result.h"
-#include "dune/RegCVN/func/RegCVNResult.h"
+#include "dune/RegCNN/func/RegCNNResult.h"
 
 // dunerw stuff
 #include "systematicstools/interface/ISystProviderTool.hh"
@@ -65,6 +65,7 @@ namespace dunemva {
       explicit CAFMaker(fhicl::ParameterSet const& pset);
       virtual ~CAFMaker();
       void beginJob() override;
+      void endJob() override;
       void beginSubRun(const art::SubRun& sr) override;
       void endSubRun(const art::SubRun& sr) override;
       void reconfigure(fhicl::ParameterSet const& pset) /*override*/;
@@ -77,7 +78,7 @@ namespace dunemva {
       std::string fMVASelectNumuLabel;
 
       std::string fCVNLabel;
-      std::string fRegCVNLabel;
+      std::string fRegCNNLabel;
 
       std::string fEnergyRecoNueLabel;
       std::string fEnergyRecoNumuLabel;
@@ -86,9 +87,11 @@ namespace dunemva {
       float fOscPro;
       double fWeight;
       TTree* fTree;  
+      TTree* fMetaTree;
 
       // Get reweight knobs from fhicl file -- no hard-coded shifts
       int fNwgt[knShifts];
+      double fCvWgts[knShifts];
       double fWgts[knShifts][kmaxRwgts];
 
       // CAF variables
@@ -101,6 +104,8 @@ namespace dunemva {
       double fEv, fQ2, fW, fX, fY, fNuMomX, fNuMomY, fNuMomZ, fLepMomX, fLepMomY, fLepMomZ, fLepE, fLepNuAngle;
       // True particle counts
       int nP, nN, nPip, nPim, nPi0, nKp, nKm, nK0, nEM, nOtherHad, nNucleus, nUNKNOWN;
+      double eP, eN, ePip, ePim, ePi0, eOther;
+      double vtx_x, vtx_y, vtx_z;
 
       // Reco information
       double fErecoNue;
@@ -126,10 +131,10 @@ namespace dunemva {
       double fCVNResult0Pizeros, fCVNResult1Pizeros, fCVNResult2Pizeros, fCVNResultNPizeros; // #pizeros
       double fCVNResult0Neutrons, fCVNResult1Neutrons, fCVNResult2Neutrons, fCVNResultNNeutrons; // #neutrons
 
-      double fRegCVNNueE;
+      double fRegCNNNueE;
 
-    //int meta_run, meta_subrun;
       double meta_pot;
+      int meta_run, meta_subrun, meta_version;
 
       systtools::provider_list_t fSystProviders;
 
@@ -153,7 +158,7 @@ namespace dunemva {
     fMVASelectNueLabel = pset.get<std::string>("MVASelectNueLabel");
     fMVASelectNumuLabel = pset.get<std::string>("MVASelectNumuLabel");
     fCVNLabel = pset.get<std::string>("CVNLabel");
-    fRegCVNLabel = pset.get<std::string>("RegCVNLabel");
+    fRegCNNLabel = pset.get<std::string>("RegCNNLabel");
 
     fEnergyRecoNueLabel = pset.get<std::string>("EnergyRecoNueLabel");
     fEnergyRecoNumuLabel = pset.get<std::string>("EnergyRecoNumuLabel");
@@ -178,7 +183,8 @@ namespace dunemva {
   {
 
     art::ServiceHandle<art::TFileService> tfs;
-    fTree =tfs->make<TTree>("caf", "caf");
+    fTree = tfs->make<TTree>("caf", "caf");
+    fMetaTree = tfs->make<TTree>("meta", "meta");
 
     // book-keeping
     fTree->Branch("run",         &fRun,        "run/I");
@@ -220,6 +226,17 @@ namespace dunemva {
     fTree->Branch("niother",   &nOtherHad,  "niother/I");
     fTree->Branch("nNucleus",  &nNucleus,   "nNucleus/I");
     fTree->Branch("nUNKNOWN",  &nUNKNOWN,   "nUNKNOWN/I");
+    fTree->Branch("eP",        &eP,         "eP/D");
+    fTree->Branch("eN",        &eN,         "eN/D");
+    fTree->Branch("ePip",      &ePip,       "ePip/D");
+    fTree->Branch("ePim",      &ePim,       "ePim/D");
+    fTree->Branch("ePi0",      &ePi0,       "ePi0/D");
+    fTree->Branch("eOther",    &eOther,     "eOther/D");
+
+    // vertex position
+    fTree->Branch("vtx_x",   &vtx_x,    "vtx_x/D");
+    fTree->Branch("vtx_y",   &vtx_y,    "vtx_y/D");
+    fTree->Branch("vtx_z",   &vtx_z,    "vtx_z/D");
 
     // Reco variables
     fTree->Branch("mvaresult",   &fMVAResult,  "mvaresult/D");
@@ -248,7 +265,7 @@ namespace dunemva {
     fTree->Branch("cvn2neutrons",      &fCVNResult2Neutrons,      "cvn2neutrons/D");
     fTree->Branch("cvnNneutrons",      &fCVNResultNNeutrons,      "cvnNneutrons/D");
 
-    fTree->Branch("RegCVNNueE",  &fRegCVNNueE,   "RegCVNNueE/D");
+    fTree->Branch("RegCNNNueE",  &fRegCNNNueE,   "RegCNNNueE/D");
     fTree->Branch("weight",      &fWeight,     "weight/D");
     fTree->Branch("oscpro",      &fOscPro,     "oscpro/F");
 
@@ -263,7 +280,10 @@ namespace dunemva {
     fTree->Branch("LongestTrackContNumu",  &fLongestTrackContNumu, "LongestTrackContNumu/I");
     fTree->Branch("TrackMomMethodNumu",    &fTrackMomMethodNumu,   "TrackMomMethodNumu/I");
 
-    fTree->Branch("totpot",       &meta_pot,       "totpot/D");
+    fMetaTree->Branch("pot", &meta_pot, "pot/D");
+    fMetaTree->Branch("run", &meta_run, "run/I");
+    fMetaTree->Branch("subrun", &meta_subrun, "subrun/I");
+    fMetaTree->Branch("version", &meta_version, "version/I");
 
     // make DUNErw variables
     for( auto &sp : fSystProviders ) {
@@ -274,6 +294,7 @@ namespace dunemva {
         unsigned int parId = head.systParamId;
         std::cout << "Adding reweight branch " << parId << " for " << name << " with " << head.paramVariations.size() << " shifts" << std::endl;
         fTree->Branch( Form("%s_nshifts", name.c_str()), &fNwgt[parId], Form("%s_nshifts/I", name.c_str()) );
+        fTree->Branch( Form("%s_cvwgt", name.c_str()), &fCvWgts[parId], Form("%s_cvwgt/D", name.c_str()) );
         fTree->Branch( Form("wgt_%s", name.c_str()), fWgts[parId], Form("wgt_%s[%s_nshifts]/D", name.c_str(), name.c_str()) );
       }
     }
@@ -281,19 +302,21 @@ namespace dunemva {
     // initialize weight variables -- some won't ever be set
     for( int i = 0; i < knShifts; ++i ) {
       fNwgt[i] = 0;
+      fCvWgts[i] = 1.;
       for( int j = 0; j < kmaxRwgts; ++j ) {
         fWgts[i][j] = 0.;
       }
     }
 
+    meta_pot = 0.;
+    meta_version = 1;
   }
 
   //------------------------------------------------------------------------------
   void CAFMaker::beginSubRun(const art::SubRun& sr)
   {
     art::Handle< sumdata::POTSummary > pots;
-    if( sr.getByLabel("generator",pots) ) meta_pot = pots->totpot;
-    else meta_pot = -1.;
+    if( sr.getByLabel("generator",pots) ) meta_pot += pots->totpot;
   }
 
   //------------------------------------------------------------------------------
@@ -311,8 +334,8 @@ namespace dunemva {
     art::Handle<std::vector<cvn::Result>> cvnin;
     evt.getByLabel(fCVNLabel, "cvnresult", cvnin);
 
-    art::Handle<std::vector<cvn::RegCVNResult>> regcvnin;
-    evt.getByLabel(fRegCVNLabel, "regcvnresult", regcvnin);
+    art::Handle<std::vector<cnn::RegCNNResult>> regcnnin;
+    evt.getByLabel(fRegCNNLabel, "regcnnresult", regcnnin);
 
 
     art::Handle<dune::EnergyRecoOutput> ereconuein;
@@ -324,6 +347,8 @@ namespace dunemva {
     fRun = evt.id().run();
     fSubrun = evt.id().subRun();
     fEvent = evt.id().event();
+    meta_run = fRun;
+    meta_subrun = fSubrun;
 
     if( !pidin.failedToGet() ) {
       fMVAResult = pidin->pid;
@@ -394,11 +419,11 @@ namespace dunemva {
       }
     }
 
-    fRegCVNNueE = -1.;  // initializing
-    if(!regcvnin.failedToGet()){
-      if (!regcvnin->empty()){
-        const std::vector<float>& v = (*regcvnin)[0].fOutput;
-        fRegCVNNueE = v[0];
+    fRegCNNNueE = -1.;  // initializing
+    if(!regcnnin.failedToGet()){
+      if (!regcnnin->empty()){
+        const std::vector<float>& v = (*regcnnin)[0].fOutput;
+        fRegCNNNueE = v[0];
       }
     }
 
@@ -447,6 +472,10 @@ namespace dunemva {
       fNuMomY   = truth[i]->GetNeutrino().Nu().Momentum().Y();
       fNuMomZ   = truth[i]->GetNeutrino().Nu().Momentum().Z();
 
+      vtx_x     = truth[i]->GetNeutrino().Lepton().Vx();
+      vtx_y     = truth[i]->GetNeutrino().Lepton().Vy();
+      vtx_z     = truth[i]->GetNeutrino().Lepton().Vz();
+
       //Lepton stuff
       fLepPDG     = truth[i]->GetNeutrino().Lepton().PdgCode();
       fLepMomX    = truth[i]->GetNeutrino().Lepton().Momentum().X();
@@ -473,22 +502,53 @@ namespace dunemva {
       nNucleus  = 0;
       nUNKNOWN  = 0;
 
+      eP = 0.;
+      eN = 0.;
+      ePip = 0.;
+      ePim = 0.;
+      ePi0 = 0.;
+      eOther = 0.;
+
       for( int p = 0; p < truth[i]->NParticles(); p++ ) {
         if( truth[i]->GetParticle(p).StatusCode() == genie::kIStHadronInTheNucleus ) {
 
           int pdg = truth[i]->GetParticle(p).PdgCode();
-          if     ( pdg == genie::kPdgProton ) nP++;
-          else if( pdg == genie::kPdgNeutron ) nN++;
-          else if( pdg == genie::kPdgPiP ) nPip++;
-          else if( pdg == genie::kPdgPiM ) nPim++;
-          else if( pdg == genie::kPdgPi0 ) nPi0++;
-          else if( pdg == genie::kPdgKP ) nKp++;
-          else if( pdg == genie::kPdgKM ) nKm++;
-          else if( pdg == genie::kPdgK0 || pdg == genie::kPdgAntiK0 || pdg == genie::kPdgK0L || pdg == genie::kPdgK0S ) nK0++;
-          else if( pdg == genie::kPdgGamma ) nEM++;
-          else if( genie::pdg::IsHadron(pdg) ) nOtherHad++; // charm mesons, strange and charm baryons, antibaryons, etc.
-          else if( genie::pdg::IsIon(pdg) ) nNucleus++;
-          else nUNKNOWN++;
+          double ke = truth[i]->GetParticle(p).E() - truth[i]->GetParticle(p).Mass();
+          if     ( pdg == genie::kPdgProton ) {
+            nP++;
+            eP += ke;
+          } else if( pdg == genie::kPdgNeutron ) {
+            nN++;
+            eN += ke;
+          } else if( pdg == genie::kPdgPiP ) {
+            nPip++;
+            ePip += ke;
+          } else if( pdg == genie::kPdgPiM ) {
+            nPim++;
+            ePim += ke;
+          } else if( pdg == genie::kPdgPi0 ) {
+            nPi0++;
+            ePi0 += ke;
+          } else if( pdg == genie::kPdgKP ) {
+            nKp++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgKM ) {
+            nKm++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgK0 || pdg == genie::kPdgAntiK0 || pdg == genie::kPdgK0L || pdg == genie::kPdgK0S ) {
+            nK0++;
+            eOther += ke;
+          } else if( pdg == genie::kPdgGamma ) {
+            nEM++;
+            eOther += ke;
+          } else if( genie::pdg::IsHadron(pdg) ) {
+            nOtherHad++; // charm mesons, strange and charm baryons, antibaryons, etc.
+            eOther += ke;
+          } else if( genie::pdg::IsIon(pdg) ) {
+            nNucleus++;
+          } else {
+            nUNKNOWN++;
+          }
 
         }
       }
@@ -515,6 +575,7 @@ namespace dunemva {
           systtools::event_unit_response_t resp = *itResp;
           for( systtools::event_unit_response_t::iterator it = resp.begin(); it != resp.end(); ++it ) {
             fNwgt[(*it).pid] = (*it).responses.size();
+            //fCvWgts[(*it).pid] = (*it).CV_weight;
             for( unsigned int i = 0; i < (*it).responses.size(); ++i ) {
               fWgts[(*it).pid][i] = (*it).responses[i];
             }
@@ -531,6 +592,11 @@ namespace dunemva {
 
   //------------------------------------------------------------------------------
   void CAFMaker::endSubRun(const art::SubRun& sr){
+  }
+
+  void CAFMaker::endJob()
+  {
+    fMetaTree->Fill();
   }
 
   DEFINE_ART_MODULE(CAFMaker)

@@ -49,6 +49,9 @@ public:
   // Length of the range.
   Index size() const { return end>begin ? end - begin : 0; }
 
+  // Ordering operator.
+  bool operator<(const IndexRange& rhs) const { return name < rhs.name; }
+
   // Other helpers.
   bool isValid() const { return end > begin; }
   Index first() const { return begin; }
@@ -71,7 +74,14 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& lhs, const IndexRange& ir) {
-  lhs << ir.name << ": [" << ir.begin << ", " << ir.end << ")";
+  lhs << ir.name << ": ";
+  if ( ir.size() == 0 ) {
+    lhs << "<empty>";
+  } else if ( ir.size() == 1 ) {
+    lhs << ir.begin;
+  } else {
+    lhs << "[" << ir.begin << ", " << ir.end << ")";
+  }
   bool first = true;
   for ( std::string lab : ir.labels ) {
     if ( first ) first = false;

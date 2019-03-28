@@ -23,6 +23,7 @@ public:
     Index subrun =0;
     Index event =0;
     Index channel =0;
+    Index fembID =0;
     LongIndex triggerClock =0;
   };
 

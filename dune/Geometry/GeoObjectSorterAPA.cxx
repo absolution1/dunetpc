@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Geometry/GeoObjectSorterAPA.h"
+#include "dune/Geometry/OpDetSorter.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
@@ -215,5 +216,10 @@ namespace geo{
 
     return;
   }
+
+  //----------------------------------------------------------------------------
+ void GeoObjectSorterAPA::SortOpDets         (std::vector<geo::OpDetGeo*> & opdet) const {
+   std::sort(opdet.begin(), opdet.end(), sortorderOpDet);
+ } 
 
 }
