@@ -345,10 +345,19 @@ tools.adcSubtractBaseline: {
   BaseVarCut: 5.
 }
 
-# Find one ADC signals that includes all samples.
+# Find one ROI signals that includes all samples.
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+}
+
+# Scale samples from ke to ADC count.
+tools.adcScaleKeToAdc: {
+  tool_type: AdcSampleScaler
+  LogLevel: 1
+  ScaleFactor: 40.0
+  OutputUnit: "ADC count"
+  InputUnit: "ke/tick"
 }
 
 # Find ADC signals with simple threshold algorithm.

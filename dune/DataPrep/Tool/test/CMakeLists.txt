@@ -116,6 +116,18 @@ cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcSampleScaler SOURCES test_AdcSampleScaler.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
   LIBRARIES
     dune_ArtSupport
