@@ -3,11 +3,8 @@
 #include "opticaldetectormodules_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
 
-<<<<<<< Updated upstream
 #include "tools_dune.fcl"
-=======
 #include "protodune_tools_dune.fcl"
->>>>>>> Stashed changes
 
 process_name: OpDetReco
 
@@ -18,15 +15,10 @@ services:
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   @table::protodune_data_reco_services
-<<<<<<< Updated upstream
   message:      @local::standard_info
 
   IFDH:              {} 
-=======
-  message:      @local::standard_info 
 
-  IFDH:               {}
->>>>>>> Stashed changes
 }
 
 

@@ -784,3 +784,26 @@ tools.pd_tickmodViewer: {
   PhasePlotSplitY:    0
 }
 
+# Remove coherent noise and high frequency noise
+tools.pdsp_noiseRemoval: {
+  tool_type: PdspNoiseRemoval
+  LogLevel: 1
+  RemoveHighFrequency: true
+  RemoveCoherent: true
+  CutoffFrequency: 400              # cutoff frequency in kHz for Butterworth low-pass filter
+  CorrMode: "median"                # mean or median waveform for coherent noise determination
+  CoherentOffline16: false          # remove coherent noise for every 16 offline channels
+  CoherentOffline16Groups: []       # remove coherent noise for all groups if list is empty
+  CoherentDaq8: false               # remove coherent noise for every 8 online DAQ channels on the same ASIC
+  CoherentDaq8Groups: []            # remove coherent noise for all groups if list is empty
+  CoherentDaq16: false              # remove coherent noise for every 16 online DAQ channels on the same chip
+  CoherentDaq16Groups: []           # remove coherent noise for all groups if list is empty
+  CoherentFEMB128: true             # remove coherent noise for every 128 online DAQ channels on the same FEMB
+  CoherentFEMB128Groups: []         # remove coherent noise for all groups if list is empty
+  UseBasicROIForCNR: true           # use simple threshold ROI finder
+  RoiStartThreshold: 20             # threshold on the leading edge
+  RoiEndThreshold: 20               # threshold on the trailing edge
+  RoiPadLow: 8                      # low bin extension  
+  RoiPadHigh: 20                    # high bin extension
+}
+
