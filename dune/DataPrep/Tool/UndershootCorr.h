@@ -21,6 +21,8 @@
 //                 to the underhsoot-corrected waveform with zero initial charge and pedesal offset to get the
 //                 fit initial charge and pedestal offset.
 //
+// See DUNE-doc-11662                
+//
 /////////////////////////////////////////////////////////////////////////
 #ifndef UndershootCorr_H
 #define UndershootCorr_H
