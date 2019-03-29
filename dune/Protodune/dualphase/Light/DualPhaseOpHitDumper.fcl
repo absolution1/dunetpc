@@ -1,0 +1,18 @@
+BEGIN_PROLOG
+
+standard_ophitdumper:
+{
+      module_type:          DualPhaseOpHitDumper
+      OpHitModuleLabel:     "ophit"
+      SaveTruth:            true # save all the generated particle
+      SavePDS:              true
+      GEANT4Label:   "largeant"    # The label for the process which ran GEANT4
+      SIGNALLabel:   "generator"      # The label for the process which produced SIGNAL events
+      Argon39Label:  "ar39Gen"     # The label for the process which produced Argon 39 events
+      NeutronLabel:  "cNeutronGen" # The label for the process which produced Neutron events
+      KryptonLabel:  "kr85Gen"     # The label for the process which produced Krypton events
+      RadonLabel:    "rn222Gen"    # The label for the process which produced Radon events
+      Argon42Label:  "ar42Gen"     # The label for the process which produced Argon 42 events
+}
+
+END_PROLOG
