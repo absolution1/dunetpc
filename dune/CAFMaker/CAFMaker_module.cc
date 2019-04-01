@@ -31,7 +31,7 @@
 #include "dune/FDSensOpt/FDSensOptData/EnergyRecoOutput.h"
 #include "dune/CVN/func/InteractionType.h"
 #include "dune/CVN/func/Result.h"
-#include "dune/RegCVN/func/RegCVNResult.h"
+#include "dune/RegCNN/func/RegCNNResult.h"
 
 // dunerw stuff
 #include "systematicstools/interface/ISystProviderTool.hh"
@@ -78,7 +78,7 @@ namespace dunemva {
       std::string fMVASelectNumuLabel;
 
       std::string fCVNLabel;
-      std::string fRegCVNLabel;
+      std::string fRegCNNLabel;
 
       std::string fEnergyRecoNueLabel;
       std::string fEnergyRecoNumuLabel;
@@ -131,7 +131,7 @@ namespace dunemva {
       double fCVNResult0Pizeros, fCVNResult1Pizeros, fCVNResult2Pizeros, fCVNResultNPizeros; // #pizeros
       double fCVNResult0Neutrons, fCVNResult1Neutrons, fCVNResult2Neutrons, fCVNResultNNeutrons; // #neutrons
 
-      double fRegCVNNueE;
+      double fRegCNNNueE;
 
       double meta_pot;
       int meta_run, meta_subrun, meta_version;
@@ -158,7 +158,7 @@ namespace dunemva {
     fMVASelectNueLabel = pset.get<std::string>("MVASelectNueLabel");
     fMVASelectNumuLabel = pset.get<std::string>("MVASelectNumuLabel");
     fCVNLabel = pset.get<std::string>("CVNLabel");
-    fRegCVNLabel = pset.get<std::string>("RegCVNLabel");
+    fRegCNNLabel = pset.get<std::string>("RegCNNLabel");
 
     fEnergyRecoNueLabel = pset.get<std::string>("EnergyRecoNueLabel");
     fEnergyRecoNumuLabel = pset.get<std::string>("EnergyRecoNumuLabel");
@@ -265,7 +265,7 @@ namespace dunemva {
     fTree->Branch("cvn2neutrons",      &fCVNResult2Neutrons,      "cvn2neutrons/D");
     fTree->Branch("cvnNneutrons",      &fCVNResultNNeutrons,      "cvnNneutrons/D");
 
-    fTree->Branch("RegCVNNueE",  &fRegCVNNueE,   "RegCVNNueE/D");
+    fTree->Branch("RegCNNNueE",  &fRegCNNNueE,   "RegCNNNueE/D");
     fTree->Branch("weight",      &fWeight,     "weight/D");
     fTree->Branch("oscpro",      &fOscPro,     "oscpro/F");
 
@@ -334,8 +334,8 @@ namespace dunemva {
     art::Handle<std::vector<cvn::Result>> cvnin;
     evt.getByLabel(fCVNLabel, "cvnresult", cvnin);
 
-    art::Handle<std::vector<cvn::RegCVNResult>> regcvnin;
-    evt.getByLabel(fRegCVNLabel, "regcvnresult", regcvnin);
+    art::Handle<std::vector<cnn::RegCNNResult>> regcnnin;
+    evt.getByLabel(fRegCNNLabel, "regcnnresult", regcnnin);
 
 
     art::Handle<dune::EnergyRecoOutput> ereconuein;
@@ -419,11 +419,11 @@ namespace dunemva {
       }
     }
 
-    fRegCVNNueE = -1.;  // initializing
-    if(!regcvnin.failedToGet()){
-      if (!regcvnin->empty()){
-        const std::vector<float>& v = (*regcvnin)[0].fOutput;
-        fRegCVNNueE = v[0];
+    fRegCNNNueE = -1.;  // initializing
+    if(!regcnnin.failedToGet()){
+      if (!regcnnin->empty()){
+        const std::vector<float>& v = (*regcnnin)[0].fOutput;
+        fRegCNNNueE = v[0];
       }
     }
 

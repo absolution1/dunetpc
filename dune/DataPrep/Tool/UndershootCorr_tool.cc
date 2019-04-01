@@ -24,6 +24,7 @@ UndershootCorr::UndershootCorr(fhicl::ParameterSet const& ps)
 , m_FSubConst(ps.get<std::vector<double> >("FSubConst"))
 , m_RestoreBaseline(ps.get<std::vector<bool> >("RestoreBaseline")) 
 , m_SignalThreshold(ps.get<std::vector<double> >("SignalThreshold")) 
+, m_SignalUnit(ps.get<std::string>("SignalUnit")) 
 , m_LCA(ps.get<std::vector<double> >("LCA"))
 , m_LCB(ps.get<std::vector<double> >("LCB"))
 , m_LCC(ps.get<std::vector<double> >("LCC"))
@@ -39,6 +40,7 @@ UndershootCorr::UndershootCorr(fhicl::ParameterSet const& ps)
       cout << myname << "           FSubConst: " << m_FSubConst[i] << endl;
       cout << myname << "     RestoreBaseline: " << (m_RestoreBaseline[i] ? "true" : "false" ) << endl;
       cout << myname << "     SignalThreshold: " << m_SignalThreshold[i] << endl;
+      cout << myname << "          SignalUnit: " << m_SignalUnit << endl;
       cout << myname << "                 LCA: " << m_LCA[i] << endl;
       cout << myname << "                 LCB: " << m_LCB[i] << endl;
       cout << myname << "                 LCC: " << m_LCC[i] << endl;
@@ -56,12 +58,25 @@ DataMap UndershootCorr::update(AdcChannelData& acd) const {
   DataMap ret;
 
   AdcSignalVector& samples = acd.samples;
+
+  // Check input data size.
   size_t nticks = samples.size();
   if ( nticks < 10 ) {
     cout << myname << "Data for channel " << acd.channel << " has "
          << ( nticks==0 ? "no" : "too few" ) << " ticks." << endl;
     return ret;
   }
+
+  // Check input data unit.
+  if ( m_SignalUnit.size() ) {
+    if ( acd.sampleUnit.size() == 0 ) {
+      cout << myname << "WARNING: Input data does not have a sample unit." << endl;
+    } else if ( acd.sampleUnit != m_SignalUnit ) {
+      cout << myname << "WARNING: Unexpected input data unit: " << acd.sampleUnit
+           << " != " << m_SignalUnit << endl;
+    }
+  }
+
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
   size_t offlineChannel = acd.channel;
   size_t plane = channelMap->PlaneFromOfflineChannel(offlineChannel);

@@ -245,6 +245,18 @@ simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(PdspNoiseRemoval   "tool"
+               dune_ArtSupport
+               larcorealg_Geometry
+               dune_DuneCommon
+               lardataobj_RawData
+               lardataobj_RecoBase
+               art_Utilities canvas
+               cetlib cetlib_except
+               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+               ${ROOT_BASIC_LIB_LIST}
+               ${ROOT_SPECTRUM}
+             )
 add_subdirectory(test)
 install_source()
 

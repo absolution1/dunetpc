@@ -76,9 +76,13 @@ tools.pdsp_adcMitigate: {
   FixedCurvThresh: 20.0
 }
 
+###########
+
 # Timing mitigation.
 # Adjust the timing for FEMB 302 (aka femb 1)
-tools.pdsp_timingMitigate: {
+
+# Rough tune Dec 2018.
+tools.pdsp_timingMitigateDec2018: {
   tool_type: AdcTimingMitigator
   LogLevel: 1
   SamplingRatio: 0.9995
@@ -86,10 +90,26 @@ tools.pdsp_timingMitigate: {
   FEMBs: [1]
 }
 
+# Better tune Mar 2019.
+# See ProtoDUNE sim/reco meeting March 27, 2019.
+tools.pdsp_timingMitigateMar2019: {
+  tool_type: AdcTimingMitigator
+  LogLevel: 1
+  SamplingRatio: 0.9993
+  SamplingOffset: 1.0
+  FEMBs: [1]
+}
+
+# Default for reco.
+tools.pdsp_timingMitigate: @local::tools.pdsp_timingMitigateMar2019
+
+###########
+
 # Subtract baseline after deconvolution
-tools.adcCorrectUndershoot: {
+tools.adcCorrectUndershootAdc: {
   tool_type: UndershootCorr
   LogLevel: 1
+  SignalUnit: "ADC count"
   CorrectFlag:     [    false,     false,     true ]  # Apply correction (U, V, and Collection)
   SignalThreshold: [       20,        20,       20 ]  # Above this value, ticks are deweighted in fit
   TDecayConst:     [  0.99955,   0.99955,  0.99955 ]  # Corrn params (tuned for collection plane)
@@ -101,6 +121,11 @@ tools.adcCorrectUndershoot: {
   LCD:             [     1.03,      1.03,     1.03 ]  #  "
 }
 
+tools.adcCorrectUndershootKe: @local::tools.adcCorrectUndershootAdc
+tools.adcCorrectUndershootKe.SignalUnit: "ke/tick"
+tools.adcCorrectUndershootKe.SignalThreshold: [      0.50,      0.50,     0.50 ]
+
+tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 
 ################################################################################
 # Event metrics.
@@ -588,6 +613,20 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail f
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# As above but including multiple events.
+
+# Pedestal.
+tools.pdmtps_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
+tools.pdmtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%"
+tools.pdmtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%.png"
+
+# Pedestal noise.
+tools.pdmtps_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%"
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%.png"
+
 # Event plots by z wire plane
 
 # Pedestal for each z-plane channel.
@@ -693,10 +732,25 @@ tools.pd_tickOffset_oct25.TpcTickPhase: 23
 tools.pd_tickOffset: @local::tools.pd_tickOffset_oct25
 
 # Add timing scale correction for FEMB302.
-# March 2019 from run 6690 (DLA)
 tools.pd_tickOffsetCorr: @local::tools.pd_tickOffset
 tools.pd_tickOffsetCorr.FembScaleIds: [1]
 tools.pd_tickOffsetCorr.FembScaleValues: [0.999293]
+
+# March 2019 from run 6690 (DLA)
+tools.pd_tickOffsetCorr6690: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr6690.FembScaleValues: [0.9992930]
+
+# March 2019 from run 6036 (DLA)
+tools.pd_tickOffsetCorr6036: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr6036.FembScaleValues: [0.9992927]
+
+# March 2019 from run 5531 (and 5526, 5540) (DLA)
+tools.pd_tickOffsetCorr5531: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr5531.FembScaleValues: [0.9992961]
+
+# March 2019 from run 5954 (DLA)
+tools.pd_tickOffsetCorr5954: @local::tools.pd_tickOffsetCorr
+tools.pd_tickOffsetCorr5954.FembScaleValues: [0.9992875]
 
 # Build tickmod spectra.
 tools.pd_tickmodViewer: {
@@ -728,5 +782,28 @@ tools.pd_tickmodViewer: {
   PhasePlotSizeY:  1000
   PhasePlotSplitX:    4
   PhasePlotSplitY:    0
+}
+
+# Remove coherent noise and high frequency noise
+tools.pdsp_noiseRemoval: {
+  tool_type: PdspNoiseRemoval
+  LogLevel: 1
+  RemoveHighFrequency: true
+  RemoveCoherent: true
+  CutoffFrequency: 400              # cutoff frequency in kHz for Butterworth low-pass filter
+  CorrMode: "median"                # mean or median waveform for coherent noise determination
+  CoherentOffline16: false          # remove coherent noise for every 16 offline channels
+  CoherentOffline16Groups: []       # remove coherent noise for all groups if list is empty
+  CoherentDaq8: false               # remove coherent noise for every 8 online DAQ channels on the same ASIC
+  CoherentDaq8Groups: []            # remove coherent noise for all groups if list is empty
+  CoherentDaq16: false              # remove coherent noise for every 16 online DAQ channels on the same chip
+  CoherentDaq16Groups: []           # remove coherent noise for all groups if list is empty
+  CoherentFEMB128: true             # remove coherent noise for every 128 online DAQ channels on the same FEMB
+  CoherentFEMB128Groups: []         # remove coherent noise for all groups if list is empty
+  UseBasicROIForCNR: true           # use simple threshold ROI finder
+  RoiStartThreshold: 20             # threshold on the leading edge
+  RoiEndThreshold: 20               # threshold on the trailing edge
+  RoiPadLow: 8                      # low bin extension  
+  RoiPadHigh: 20                    # high bin extension
 }
 
