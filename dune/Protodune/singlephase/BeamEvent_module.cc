@@ -144,8 +144,8 @@ private:
   double fXTOF1BSec;
   double fXTOF2ASec;
   double fXTOF2BSec;
-  std::vector<double>* diff2A;
-  std::vector<double>* diff2B;
+  std::vector<double> diff2A;
+  std::vector<double> diff2B;
  
 
   long long int eventTime;
@@ -153,13 +153,13 @@ private:
   ULong_t SpillStart_alt;
   bool SpillStartValid;
   bool acqStampValid;
-  double PrevStart;
+  double PrevStart=-99999.;
   double SpillEnd;
   double SpillOffset;
   double ActiveTriggerTime;
   long long RDTSTime;
   double RDTSTimeSec;
-  double PrevRDTSTimeSec;  
+  double PrevRDTSTimeSec=-99999.;  
   double RDTSTimeNano; 
 
   long long valid_fetch_time; 
@@ -194,9 +194,9 @@ private:
   int CKov1Counts;
   int CKov2Counts;
   
-  TVector3 fBMBasisX;
-  TVector3 fBMBasisY;
-  TVector3 fBMBasisZ;
+  TVector3 fBMBasisX = TVector3(1.,0.,0.);
+  TVector3 fBMBasisY = TVector3(0.,1.,0.);
+  TVector3 fBMBasisZ = TVector3(0.,0.,1.);
 
   // Declare member data here.
   double  fTimeWindow;
@@ -332,8 +332,123 @@ proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
   // Declare products this module will provide
   produces<std::vector<beam::ProtoDUNEBeamEvent>>();  
 
-  // Configure/Reconfigure
-  this->reconfigure(p);
+//  // Configure/Reconfigure
+//  this->reconfigure(p);
+
+  // Implementation of optional member function here.
+  fBundleName      = p.get<std::string>("BundleName");
+  fXCETBundleName  = p.get<std::string>("XCETBundleName");
+  fOutputLabel = p.get<std::string>("OutputLabel");
+  fURLStr      = p.get<std::string>("URLStr");
+  fBFEpsilon   = p.get<double>("BFEpsilon");
+  fXCETEpsilon   = p.get<double>("XCETEpsilon");
+  fXCETFetchShift   = p.get<double>("XCETFetchShift");
+  fIFBeamDebug = p.get<int>("IFBeamDebug");
+  fTimeWindow  = p.get<double>("TimeWindow");
+  fFixedTime   = p.get<uint64_t>("FixedTime");
+
+  fDevices     = p.get< std::vector< std::string > >("Devices");    
+
+  //For Tracking/////
+  firstUpstreamName    = p.get< std::string >("FirstUpstream");
+  secondUpstreamName   = p.get< std::string >("SecondUpstream");
+  firstDownstreamName  = p.get< std::string >("FirstDownstream");
+  secondDownstreamName = p.get< std::string >("SecondDownstream");
+  ///////////////////
+
+  //For Momentum Spectrometry////
+  firstBPROF1  = p.get< std::string >("FirstBPROF1");
+  secondBPROF1 = p.get< std::string >("SecondBPROF1");
+  BPROF2       = p.get< std::string >("BPROF2");
+  BPROF3       = p.get< std::string >("BPROF3");
+  fBeamBend    = p.get< double >("BeamBend");
+  L1           = p.get< double >("L1"); 
+  L2           = p.get< double >("L2"); 
+  L3           = p.get< double >("L3"); 
+  fBProf1Shift           = p.get< double >("BProf1Shift"); 
+  fBProf2Shift           = p.get< double >("BProf2Shift"); 
+  fBProf3Shift           = p.get< double >("BProf3Shift"); 
+
+  magnetLen    = 1.;//(m)
+  magnetField  = 1000.;//()
+  ///////////////////////////////
+
+  std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
+  fDeviceTypes  = std::map<std::string, std::string>(tempTypes.begin(), tempTypes.end() );
+
+  //Deminsion of Fibers
+  std::vector< std::pair<std::string, double> > tempFiberDims = p.get< std::vector<std::pair<std::string,double> > >("Dimension");
+  fFiberDimension = std::map<std::string, double>(tempFiberDims.begin(), tempFiberDims.end());
+
+  
+  //XTOF devices 
+  fTOF1 = p.get< std::string >("TOF1");
+  fTOF2 = p.get< std::string >("TOF2");
+
+  fTOF1A = fTOF1 + "A";
+  fTOF1B = fTOF1 + "B";
+  fTOF2A = fTOF2 + "A";
+  fTOF2B = fTOF2 + "B";
+
+  fCKov1 = p.get< std::string >("CKov1");
+  fCKov2 = p.get< std::string >("CKov2");
+  fXCET1 = p.get< std::string >("XCET1");
+  fXCET2 = p.get< std::string >("XCET2");
+
+  fFillCacheUp   = p.get< double >("FillCacheUp");
+  fFillCacheDown = p.get< double >("FillCacheDown");
+
+  fXBPFPrefix      = p.get<std::string>("XBPFPrefix");
+  fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
+  fXCETPrefix      = p.get<std::string>("XCETPrefix");
+
+
+  //New parameters to match Leigh's
+  fRotateMonitorXZ = p.get<double>("RotateMonitorXZ");
+  fRotateMonitorYZ = p.get<double>("RotateMonitorYZ");
+  fRotateMonitorYX = p.get<double>("RotateMonitorYX");
+
+  fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
+  fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
+  fNP04FrontZ          = p.get<double>("NP04FrontZ");  
+
+  fBeamX               = p.get<double>("BeamX");
+  fBeamY               = p.get<double>("BeamY");
+  fBeamZ               = p.get<double>("BeamZ");
+
+  fForceNewFetch       = p.get<bool>("ForceNewFetch");
+  fMatchTime           = p.get<bool>("MatchTime");
+  fForceRead           = p.get<bool>("ForceRead");
+  fForceMatchS11       = p.get<bool>("ForceMatchS11");
+  fXCETDebug           = p.get<bool>("XCETDebug");
+
+
+  fTimingCalibration      = p.get<double>("TimingCalibration");
+  fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
+  fOffsetTAI              = p.get<double>("OffsetTAI");
+
+  fS11DiffUpper           = p.get<double>("S11DiffUpper");
+  fS11DiffLower           = p.get<double>("S11DiffLower");
+
+  fRDTSToS11Upper         = p.get<double>("RDTSToS11Upper");
+  fRDTSToS11Lower         = p.get<double>("RDTSToS11Lower");
+
+  fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
+  fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
+
+  fDownstreamToGenTrig    = p.get<double>("DownstreamToGenTrig");
+  fUpstreamToDownstream   = p.get<double>("UpstreamToDownstream");
+
+  fSaveOutTree            = p.get<bool>("SaveOutTree");
+  fDebugMomentum          = p.get<bool>("DebugMomentum");
+  fDebugTOFs              = p.get<bool>("DebugTOFs");
+
+  fTOFCalAA               = p.get<double>("TOFCalAA");
+  fTOFCalBA               = p.get<double>("TOFCalBA");
+  fTOFCalAB               = p.get<double>("TOFCalAB");
+  fTOFCalBB               = p.get<double>("TOFCalBB");
+
+
 }
 // END Constructor
 ////////////////////////
@@ -774,7 +889,7 @@ void proto::BeamEvent::produce(art::Event & e){
   beamspill = new beam::ProtoDUNEBeamSpill();
 
   // Get the coordinate system conversions
-  if(!rotated) BeamMonitorBasisVectors();
+//   if(!rotated) BeamMonitorBasisVectors();
 
   validTimeStamp = GetRawDecoderInfo(e);
   
@@ -1260,9 +1375,9 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
       if (fXTOF2ACoarse == 0.0 && fXTOF2AFrac == 0.0 && fXTOF2ASec == 0.0) break;
       unorderedTOF2ATime.push_back(std::make_pair(fXTOF2ASec, (fXTOF2ACoarse*8. + fXTOF2AFrac/512.)) );
 
-      if(diff2A->size()) diff2A->clear();
+      if(diff2A.size()) diff2A.clear();
       for(size_t j = 0; j < timestampCountGeneralTrigger[0]; ++j){
-        diff2A->push_back( 1.e9*(unorderedTOF2ATime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2ATime.back().second - unorderedGenTrigTime[j].second) );
+        diff2A.push_back( 1.e9*(unorderedTOF2ATime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2ATime.back().second - unorderedGenTrigTime[j].second) );
       }
       
       if(fDebugTOFs)fXTOF2ATree->Fill();
@@ -1279,9 +1394,9 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
       if (fXTOF2BCoarse == 0.0 && fXTOF2BFrac == 0.0 && fXTOF2BSec == 0.0) break;
       unorderedTOF2BTime.push_back(std::make_pair(fXTOF2BSec, (fXTOF2BCoarse*8. + fXTOF2BFrac/512.) ));
-      if(diff2B->size()) diff2B->clear();
+      if(diff2B.size()) diff2B.clear();
       for(size_t j = 0; j < timestampCountGeneralTrigger[0]; ++j){
-        diff2B->push_back( 1.e9*(unorderedTOF2BTime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2BTime.back().second - unorderedGenTrigTime[j].second) );
+        diff2B.push_back( 1.e9*(unorderedTOF2BTime.back().first - unorderedGenTrigTime[j].first) + (unorderedTOF2BTime.back().second - unorderedGenTrigTime[j].second) );
       }
       if(fDebugTOFs)fXTOF2BTree->Fill();
     }
@@ -1513,7 +1628,6 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
     }
     catch( const std::exception &e ){
       MF_LOG_WARNING("BeamEvent") << "Could not get XCET1 info\n";
-
       fetched_XCET1 = false;
     }
   }
@@ -1552,6 +1666,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
     
     beam::CKov status_1;
     status_1.pressure = CKov1Pressure;
+    status_1.timeStamp = -1.;
     if( !fetched_XCET1 ) status_1.trigger = -1;
     else{
       status_1.trigger = 0;
@@ -1565,6 +1680,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET1 trigger " << XCET1_seconds[ic1] - fOffsetTAI << " " << (8.*XCET1_coarse[ic1] + XCET1_frac[ic1] / 512.) << " " << delta << std::endl;
           status_1.trigger = 1;
+          status_1.timeStamp = delta;
           break;
         }     
       }
@@ -1573,6 +1689,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
 
     beam::CKov status_2;
     status_2.pressure = CKov2Pressure;
+    status_2.timeStamp = -1.;
     if( !fetched_XCET2 ) status_2.trigger = -1;
     else{
       status_2.trigger = 0;
@@ -1587,6 +1704,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
         if( fabs(delta) < 500. ){
           if( fXCETDebug ) std::cout << "Found matching XCET2 trigger " << XCET2_seconds[ic2] - fOffsetTAI << " " << (8.*XCET2_coarse[ic2] + XCET2_frac[ic2] / 512.) << " " << delta << std::endl;
           status_2.trigger = 1;
+          status_2.timeStamp = delta;
           break;
         }     
       }
@@ -1609,8 +1727,6 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
 
     if( nxcet1 != CKov1Counts ) MF_LOG_WARNING("BeamEvent") << "CKov1 counts differ. In spill: " << nxcet1 << " From counts: " << CKov1Counts << "\n";
     if( nxcet2 != CKov2Counts ) MF_LOG_WARNING("BeamEvent") << "CKov2 counts differ. In spill: " << nxcet2 << " From counts: " << CKov2Counts << "\n";
-//    if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_timestamps[0] << " " << nxcet1 << std::endl;
-//    if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_timestamps[0] << " " << nxcet2 << std::endl;
     if( fetched_XCET1 ) MF_LOG_INFO("BeamEvent") << "XCET1: " << XCET1_seconds.size() << " " << nxcet1 << std::endl;
     if( fetched_XCET2 ) MF_LOG_INFO("BeamEvent") << "XCET2: " << XCET2_seconds.size() << " " << nxcet2 << std::endl;
   }
@@ -1827,8 +1943,8 @@ void proto::BeamEvent::beginJob()
     fOutTree->Branch("s11Nano",      &s11Nano);
   }    
 
-  diff2A = new std::vector<double>();
-  diff2B = new std::vector<double>();
+//  diff2A = std::vector<double>();
+//  diff2B = std::vector<double>();
   if( fDebugTOFs ){
     fGenTrigTree = tfs->make<TTree>("GenTrig","");
     fGenTrigTree->Branch("coarse", &fGenTrigCoarse);
@@ -1875,6 +1991,12 @@ void proto::BeamEvent::beginJob()
  
   bfp_xcet->set_epsilon( fXCETEpsilon );
   MF_LOG_INFO("BeamEvent") << "%%%%%%%%%% Set beam epislon " << fBFEpsilon << " %%%%%%%%%%\n";
+
+
+  BeamMonitorBasisVectors();
+  std::cout << "Basis Vectors: " << fBMBasisX.X() << " " << fBMBasisX.Y() << " " << fBMBasisX.Z() << std::endl;
+  std::cout << "Basis Vectors: " << fBMBasisY.X() << " " << fBMBasisY.Y() << " " << fBMBasisY.Z() << std::endl;
+  std::cout << "Basis Vectors: " << fBMBasisZ.X() << " " << fBMBasisZ.Y() << " " << fBMBasisZ.Z() << std::endl;
 }
 
 void proto::BeamEvent::beginRun(art::Run & r)
@@ -2049,9 +2171,9 @@ TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, 
 }
 
 void proto::BeamEvent::BeamMonitorBasisVectors(){
-  fBMBasisX = TVector3(1.,0.,0.);
-  fBMBasisY = TVector3(0.,1.,0.);
-  fBMBasisZ = TVector3(0.,0.,1.);
+ //  fBMBasisX = TVector3(1.,0.,0.);
+ //  fBMBasisY = TVector3(0.,1.,0.);
+ //  fBMBasisZ = TVector3(0.,0.,1.);
   RotateMonitorVector(fBMBasisX);
   RotateMonitorVector(fBMBasisY);
   RotateMonitorVector(fBMBasisZ);
@@ -2237,12 +2359,12 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
       theMomenta.push_back( ( downstreamPositions.at(iD) - upstreamPositions.at(iU) ).Unit() );
 
-      recob::Track * tempTrack = new recob::Track(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
+      recob::Track tempTrack(recob::TrackTrajectory(recob::tracking::convertCollToPoint(thePoints),
                                                                         recob::tracking::convertCollToVector(theMomenta),
                                                                         recob::Track::Flags_t(thePoints.size()), false),
                                                  0, -1., 0, recob::tracking::SMatrixSym55(), recob::tracking::SMatrixSym55(), 1);
 
-      beamevt->AddBeamTrack( *tempTrack );
+      beamevt->AddBeamTrack( tempTrack );
     }
   }
 
@@ -2505,6 +2627,7 @@ TVector3 proto::BeamEvent::ProjectToTPC(TVector3 firstPoint, TVector3 secondPoin
   double deltaY = deltaZ * (dR.Y() / dR.Z());
 
   TVector3 lastPoint = secondPoint + TVector3(deltaX, deltaY, deltaZ);
+  std::cout << "Projected: " << lastPoint.X() << " " << lastPoint.Y() << " " << lastPoint.Z() << std::endl; 
   return lastPoint;
 }
 
