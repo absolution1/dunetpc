@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "larcorealg/Geometry/GeoObjectSorter.h"
+//#include "larcorealg/Geometry/OpDetGeo.h"
 
 namespace geo{
 
@@ -28,7 +29,7 @@ namespace geo{
     void SortPlanes   	    (std::vector<geo::PlaneGeo*>    	     & pgeo,	      
 		      	     geo::DriftDirection_t     	        const& driftDir) const;
     void SortWires    	    (std::vector<geo::WireGeo*>     	     & wgeo)     const;
-        
+    void SortOpDets         (std::vector<geo::OpDetGeo*> & opdet) const;        
   private:
     
   };

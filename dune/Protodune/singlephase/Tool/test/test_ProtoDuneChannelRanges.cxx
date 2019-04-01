@@ -73,8 +73,8 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false, int show =1) {
   cout << myname << line << endl;
   cout << myname << "Fetching TPC ranges." << endl;
   int nbad = 0;
-  vector<string> namSufs = {   "",   "u",   "v",   "z",  "c"};
-  vector<string> namPres = {"tps", "tpp", "tpp", "tpp", "tpp"};
+  vector<string> namSufs = {   "",   "u",   "v",   "z",  "c",   "x",    "i"};
+  vector<string> namPres = {"tps", "tpp", "tpp", "tpp", "tpp", "tpp", "tpp"};
   for ( Index inam=0; inam<namPres.size(); ++inam ) {
     for ( Index itps=0; itps<6; ++itps ) {
       string stps = std::to_string(itps);
@@ -97,7 +97,7 @@ int test_ProtoDuneChannelRanges(bool useExistingFcl =false, int show =1) {
   cout << myname << line << endl;
   cout << myname << "Fetching APA ranges." << endl;
   nbad = 0;
-  vector<string> namPresApa = {"apa", "apa", "apa", "apa", "apa"};
+  vector<string> namPresApa = {"apa", "apa", "apa", "apa", "apa", "apa", "apa"};
   for ( Index inam=0; inam<namPres.size(); ++inam ) {
     for ( Index iapa=1; iapa<=6; ++iapa ) {
       string stps = std::to_string(iapa);

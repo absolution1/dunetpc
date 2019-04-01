@@ -95,9 +95,13 @@ namespace protoana {
     const TVector3 GetPFParticleSecondaryVertex(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
 
     /// Is the particle track-like?
+    bool IsPFParticleTracklike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;
+    // Old deprecated version
     bool IsPFParticleTracklike(const recob::PFParticle &particle) const;
 
     /// Is the particle track-like?
+    bool IsPFParticleShowerlike(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string showerLabel) const;
+    // Old deprecated version
     bool IsPFParticleShowerlike(const recob::PFParticle &particle) const;
 
     /// Get the track associated to this particle. Returns a null pointer if not found.
@@ -123,6 +127,9 @@ namespace protoana {
 
     /// Get the number of hits
     unsigned int GetNumberPFParticleHits(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const; 
+
+    /// Get the total hit charge for each view
+    const std::vector<double> GetPFParticleHitsCharge(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the daughter tracks from the PFParticle
     const std::vector<const recob::Track*> GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;

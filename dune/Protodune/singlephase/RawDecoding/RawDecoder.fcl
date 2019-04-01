@@ -44,9 +44,8 @@ pdsp_tpc_raw_decoder:
   APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
                       # an emtpy list decodes them all
 
-  RCERawDataLabel: "daq"
-  RCERawDataContainerInstance: "ContainerTPC"
-  RCERawDataNonContainerInstance: "TPC"
+  RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC" ]
+  RCEEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
@@ -60,9 +59,8 @@ pdsp_tpc_raw_decoder:
   RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
   RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
-  FELIXRawDataLabel: "daq"
-  FELIXRawDataContainerInstance: "ContainerFELIX"
-  FELIXRawDataNonContainerInstance: "FELIX"
+  FELIXRawDataLabels: [ "daq:ContainerFELIX", "daq:FELIX" ]
+  FELIXEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   FELIXFragmentType: 8  
   FELIXDropFragsWithBadCSF: true
   FELIXEnforceExactCrateNumber: false

@@ -1,0 +1,56 @@
+#include "services_dune.fcl"
+#include "IcebergRawDecoder.fcl"
+#include "IcebergTpcMonitor.fcl"
+
+process_name: DecodeRawTPCMonitor
+
+services:
+{
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+  message:              @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  @table::iceberg_rawdecoding_services
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::iceberg_geo
+ DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ ChannelStatusService:         @local::dunefd_channel_status
+ IcebergChannelMapService:        @local::icebergchannelmap
+ TFileService: { fileName: "icebergtpcmonitor.root" }
+
+}
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: ["input_file.root"]
+}
+
+
+
+outputs:{}
+
+physics:
+{
+  producers:
+  {
+    tpcrawdecoder: @local::iceberg_tpc_raw_decoder
+    timingrawdecoder: @local::timing_raw_decoder
+  }
+
+  analyzers:
+  {
+    icebergtpcmonitor: @local::IcebergTPCMonitor_params
+  }
+
+  produce: [ tpcrawdecoder, timingrawdecoder ]
+  analysis: [ icebergtpcmonitor ] 
+  trigger_paths : [ produce ]
+  end_paths: [ analysis ]
+}
+

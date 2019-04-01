@@ -6,8 +6,11 @@
 // author: Christoph Alt
 // email: christoph.alt@cern.ch
 //
-// Reads in events from NeutToRooTracker files and generates art events,
-// selecting final state particles only.
+// - Outside LArSoft: files are generated with NEUT and then converted to RooTracker-like format,
+// using the NeutToRooTracker package. 
+// - This module: The RooTracker-like files are imported and converted to art format, event by event.
+// Only final state particles (status 1) are added to the art events.
+//
 // NeutToRooTracker: https://github.com/luketpickering/NeutToRooTracker (by Luke Pickering)
 // 
 ////////////////////////////////////////////////////////////////////////
@@ -36,13 +39,9 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
-
-// art extensions
-#include "nutools/RandomUtils/NuRandomService.h"
 
 // nutools includes
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -53,8 +52,6 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcoreobj/SummaryData/RunData.h"
 #include "TDatabasePDG.h"
-
-#include "CLHEP/Random/RandFlat.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -67,14 +64,8 @@ namespace evgendp{
 
   //----------------------------------------------------------------------------
 
-  class RooTrackerParticle{
+  struct RooTrackerParticle{
     //holds RooTrackerParticle input parameters from file
-
-  public:
-
-      RooTrackerParticle();
-      ~RooTrackerParticle();
-
       TLorentzVector getPosition();
       TLorentzVector getMomentum();
 
@@ -89,21 +80,14 @@ namespace evgendp{
       double momZ;
       double energy;
 
-  }; //end class RooTrackerParticle
-
-  RooTrackerParticle::RooTrackerParticle(){
-
-  }
-  RooTrackerParticle::~RooTrackerParticle(){}
+  }; //end struct RooTrackerParticle
 
   TLorentzVector RooTrackerParticle::getPosition(){
-    TLorentzVector position(startX, startY, startZ, 0);
-    return position;
+    return TLorentzVector(startX, startY, startZ, 0);
   }
 
   TLorentzVector RooTrackerParticle::getMomentum(){
-    TLorentzVector momentum( 0.001*momX, 0.001*momY, 0.001*momZ, 0.001*energy );
-    return momentum;
+    return TLorentzVector( 0.001*momX, 0.001*momY, 0.001*momZ, 0.001*energy );
   }
 
   //----------------------------------------------------------------------------
@@ -152,6 +136,11 @@ namespace evgendp{
         Name("FileName"),
         Comment("NEUT output")
       };
+
+      fhicl::Atom<bool> UseRotatedStartMomentum{
+        Name("UseRotatedStartMomentum"),
+        Comment("Set to true to use rotated start momentum")
+      };
     }; //end struct Config
 
     using Parameters = art::EDProducer::Table<Config>;
@@ -175,6 +164,7 @@ namespace evgendp{
     double fStartPositionY;
     double fStartPositionZ;
     std::string fFileName;
+    bool fUseRotatedStartMomentum;
 
     std::map< int, std::vector< RooTrackerParticle*> > RooTrackerEventMap;
 
@@ -186,17 +176,15 @@ namespace evgendp{
 
 evgendp::NEUTImport::NEUTImport(Parameters const& config)
  : EDProducer{config},
-   fLogLevel		(config().LogLevel()),
-   fStartEvent		(config().StartEvent()),
-   fNumberOfEvents	(config().NumberOfEvents()),
-   fStartPositionX	(config().StartPositionX()),
-   fStartPositionY	(config().StartPositionY()),
-   fStartPositionZ	(config().StartPositionZ()),
-   fFileName		(config().FileName())
+   fLogLevel			(config().LogLevel()),
+   fStartEvent			(config().StartEvent()),
+   fNumberOfEvents		(config().NumberOfEvents()),
+   fStartPositionX		(config().StartPositionX()),
+   fStartPositionY		(config().StartPositionY()),
+   fStartPositionZ		(config().StartPositionZ()),
+   fFileName			(config().FileName()),
+   fUseRotatedStartMomentum	(config().UseRotatedStartMomentum())
 {
-    art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this);
-    //art::ServiceHandle<rndm::NuRandomService>()->createEngine(*this, "HepJamesRandom", "gen", p, { "Seed", "SeedGenerator" });
-
     produces< std::vector<simb::MCTruth> >();
     produces< sumdata::RunData, art::InRun >();
 }
@@ -209,40 +197,56 @@ void evgendp::NEUTImport::beginJob(){
 
   const int NMaxParticlesPerEvent = 1000;
 
-  TFile *neutFile = new TFile(fFileName.c_str(), "READ");
-  TTree *neutTree = (TTree*)neutFile->Get("nRooTracker"); //should always be the same
-  int NEvents = (int)neutTree->GetEntries();
-  std::cout << "Reading in " << NEvents << " NEUT events. " << std::endl;
-
-
   int tStdHepN = 0;
   int tStdHepStatus[NMaxParticlesPerEvent] = {0};
   int tStdHepPdg[NMaxParticlesPerEvent] = {0};
   double tStdHepP4[4*NMaxParticlesPerEvent] = {0.};
 
+
+  TFile *neutFile = new TFile(fFileName.c_str(), "READ");
+  TTree *neutTree = (TTree*)neutFile->Get("nRooTracker");
+  int NEvents = (int)neutTree->GetEntries();
+  std::cout << "Reading in " << NEvents << " NEUT events. " << std::endl;
+
   neutTree->SetBranchAddress("StdHepN",&tStdHepN);
   neutTree->SetBranchAddress("StdHepStatus",&tStdHepStatus);
   neutTree->SetBranchAddress("StdHepPdg",&tStdHepPdg);
-  neutTree->SetBranchAddress("StdHepP4",&tStdHepP4);
+
+  TTree *neutTreeRot;
+
+  if(fUseRotatedStartMomentum)
+  {
+    neutTreeRot = (TTree*)neutFile->Get("nRooTrackerRot");
+    neutTreeRot->SetBranchAddress("StdHepP4Rot",&tStdHepP4);
+  }
+  else
+  {
+    neutTree->SetBranchAddress("StdHepP4",&tStdHepP4);
+  }
 
 
   for(int i=fStartEvent; i<fStartEvent+fNumberOfEvents; i++) //Event loop
   {
     neutTree->GetEntry(i);
+    if(fUseRotatedStartMomentum)
+    {
+      neutTreeRot->GetEntry(i);
+    }
 
     if(fLogLevel == 1)
     {
       std::cout << std::endl;
       std::cout << std::endl;
-      std::cout << "Event:\t" <<  i << std::endl;
-      std::cout << "NParticles:\t" << tStdHepN << std::endl;
+      std::cout << "Event #" << i+1 << " in LArSoft, event #" << i << " in ROOT file." << std::endl;
+      std::cout << "NParticles:\t" << tStdHepN << " (from 0 to " << tStdHepN-1 << ")" << std::endl;
     }
 
     for(int j=0; j<tStdHepN; j++)
     {
+      double fAbsoluteParticleMomentum = sqrt( pow(tStdHepP4[4*j],2) + pow(tStdHepP4[4*j+1],2) + pow(tStdHepP4[4*j+2],2) );
       //Only take particles with real PDG code (!=0), status 1 and momentum > 0.
       //Also ignore first particle (j=0): this is the decaying nucleon in case of nucleon decay or incoming neutrino in case of atmospheric neutrino background.
-      if( tStdHepPdg[j]!=0 && tStdHepStatus[j] == 1 && j>0 && std::abs(tStdHepP4[4*j]) + std::abs(tStdHepP4[4*j+1]) + std::abs(tStdHepP4[4*j+2]) > 0 )
+      if( tStdHepPdg[j] != 0 && tStdHepStatus[j] == 1 && j > 0 && fAbsoluteParticleMomentum > 0 )
       {
     	static TDatabasePDG  pdgt;
     	TParticlePDG* pdgp = pdgt.GetParticle(tStdHepPdg[j]);
@@ -261,12 +265,11 @@ void evgendp::NEUTImport::beginJob(){
 
 	if(fLogLevel == 1)
 	{
-	  double fAbsoluteParticleMomentum = sqrt( pow(tStdHepP4[4*j],2) + pow(tStdHepP4[4*j+1],2) + pow(tStdHepP4[4*j+2],2) );
 	  std::cout << std::endl;
-	  std::cout << "Event #" << i+1 << " in LArSoft, event #" << i << " in ROOT file." << std::endl;
+	  std::cout << "Particle " << j << ":" << std::endl;
 	  std::cout << "Status particle " << j << ":\t" << tStdHepStatus[j] << std::endl;
 	  std::cout << "PDG particle " << j << ":\t" << rootrackerparticle->pdg << std::endl;
-	  std::cout << "Mass particle " << j << "\t" << rootrackerparticle->mass << std::endl;
+	  std::cout << "Mass particle " << j << ":\t" << rootrackerparticle->mass << std::endl;
 	  std::cout << "StartPositionX particle " << j << ":\t" << rootrackerparticle->startX << std::endl;
 	  std::cout << "StartPositionY particle " << j << ":\t" <<rootrackerparticle->startY << std::endl;
 	  std::cout << "StartPositionZ particle " << j << ":\t" << rootrackerparticle->startZ << std::endl;
@@ -284,13 +287,6 @@ void evgendp::NEUTImport::beginJob(){
 ////////////////////////////////////////////////////////////////////////////////
 
 void evgendp::NEUTImport::produce(art::Event & e){
-
-
-  art::ServiceHandle<art::RandomNumberGenerator> rng;
-  CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),
-                                                  moduleDescription().moduleLabel());
-  CLHEP::RandFlat flat(engine);
-
   std::unique_ptr< std::vector<simb::MCTruth> > truthcol(new std::vector<simb::MCTruth>);
 
   simb::MCTruth truth;
@@ -313,4 +309,4 @@ void evgendp::NEUTImport::produce(art::Event & e){
 
 }
 
-DEFINE_ART_MODULE(evgendp::NEUTImport)
+DEFINE_ART_MODULE(evgendp::NEUTImport) 

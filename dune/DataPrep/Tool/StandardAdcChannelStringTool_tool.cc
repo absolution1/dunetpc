@@ -143,7 +143,7 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
       }
     }
   }
-  // Next replace the units strings.
+  // Next replace the signal unit strings.
   StringManipulator sman(sout);
   string sunit = acd.sampleUnit;
   string sunitSpaced = sunit.size() ? " " + sunit : "";
@@ -161,6 +161,27 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   sman.replace("% ((SUNIT))%", sunitSpOptWrapped);
   sman.replace("%[SUNIT]%", sunitBarred);
   sman.replace("% [SUNIT]%", sunitSpBarred);
+  // Next replace the signal area unit strings.
+  string asunit = sunit + "-tick";
+  string::size_type ipos = sunit.find("/tick");
+  if ( ipos != string::npos ) {
+    asunit = sunit.substr(0, ipos) + sunit.substr(ipos + 5);
+  }
+  string asunitSpaced = asunit.size() ? " " + asunit : "";
+  string asunitWrapped = asunit.size() ? "(" + asunit + ")" : "";
+  string asunitSpWrapped = asunit.size() ? " " + asunitWrapped : "";
+  string asunitOptWrapped = asunit.find(" ") != string::npos ? asunitWrapped : "";
+  string asunitSpOptWrapped = asunitOptWrapped.size() ? " " + asunitOptWrapped : "";
+  string asunitBarred = asunit.size() ? "[" + asunit + "]" : "";
+  string asunitSpBarred = asunit.size() ? " " + asunitBarred : "";
+  sman.replace("%ASUNIT%", asunit);
+  sman.replace("% ASUNIT%", asunitSpaced);
+  sman.replace("%(ASUNIT)%", asunitWrapped);
+  sman.replace("% (ASUNIT)%", asunitSpWrapped);
+  sman.replace("%((ASUNIT))%", asunitOptWrapped);
+  sman.replace("% ((ASUNIT))%", asunitSpOptWrapped);
+  sman.replace("%[ASUNIT]%", asunitBarred);
+  sman.replace("% [ASUNIT]%", asunitSpBarred);
   // Next replace trigger name.
   if ( sout.find("%TRIGNAME") != string::npos ) {
     Index ntrn = m_TrigNames.size();
@@ -175,7 +196,7 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   }
   // Next replace time name.
   string spatpre = "%UTCTIME";
-  string::size_type ipos = sout.find(spatpre);
+  ipos = sout.find(spatpre);
   if ( ipos != string::npos ) {
     time_t tim = acd.time;
     int rem = acd.timerem;

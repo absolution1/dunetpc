@@ -106,8 +106,10 @@ dune10kt_1x2x6_refl_v1_photonvisibilityservice: {
 
 
 
+
 # Make a choice here among the above for *the* FD 1x2x6 PVS
-dune10kt_1x2x6_photonvisibilityservice: @local::dune10kt_1x2x6_refl_v1_photonvisibilityservice
+# Use the pre-defined DUNE SP configuration from larsim for paramterized simulation
+dune10kt_1x2x6_photonvisibilityservice: @local::dunesp_Nhits_vuv_vis_prop_timing_photonvisibilityservice
 
 
 
@@ -284,10 +286,7 @@ dunefddphase_photonvisibilityservice.ParametrisedTimePropagationMaxRange: 1000
 dunefddphase_photonvisibilityservice.ParametrisedTimePropagationNParameters: 3
 dunefddphase_photonvisibilityservice.ParametrisedTimePropagation: true
 #dunefddphase_photonvisibilityservice.LibraryFile: "PhotonPropagation/LibraryData/libext_dunedp_1M_15x15x62_20180913.root"#not use this old library
-dunefddphase_photonvisibilityservice.LibraryFile: "PhotonPropagation/LibraryData/libext_dunedp_1M_15x15x62_20181114.root"
-
-
-
+dunefddphase_photonvisibilityservice.LibraryFile: "PhotonPropagation/LibraryData/libext_dunedp_1M_15x15x62_20181122.root"
 
 
 

@@ -12,7 +12,8 @@ proto_AnalTree:
    ShowerTag:               "pandoraShower"
    PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
-   Verbose:                 false
+   SimulationTag:	    "largeant"
+   Verbose:                 0
    DataUtils:               @local::standard_protodunedatautils
 }
 

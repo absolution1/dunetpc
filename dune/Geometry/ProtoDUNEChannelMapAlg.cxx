@@ -64,77 +64,76 @@ namespace geo {
 
 
     // DSDaS -- "normal" pattern
-    fSSP[ 1] = 41; fSSPChOne[ 1] = 0;
-    fSSP[ 3] = 41; fSSPChOne[ 3] = 4;
-    fSSP[ 5] = 41; fSSPChOne[ 5] = 8;
-    fSSP[ 7] = 42; fSSPChOne[ 7] = 0;
-    fSSP[ 9] = 42; fSSPChOne[ 9] = 4;
-    fSSP[11] = 42; fSSPChOne[11] = 8;
-    fSSP[13] = 43; fSSPChOne[13] = 0;
-    fSSP[15] = 43; fSSPChOne[15] = 4;
-    fSSP[17] = 43; fSSPChOne[17] = 8;
-    fSSP[19] = 44; fSSPChOne[19] = 0;
+    fSSP[ 0] = 41; fSSPChOne[ 0] = 0;
+    fSSP[ 2] = 41; fSSPChOne[ 2] = 4;
+    fSSP[ 4] = 41; fSSPChOne[ 4] = 8;
+    fSSP[ 6] = 42; fSSPChOne[ 6] = 0;
+    fSSP[ 8] = 42; fSSPChOne[ 8] = 4;
+    fSSP[10] = 42; fSSPChOne[10] = 8;
+    fSSP[12] = 43; fSSPChOne[12] = 0;
+    fSSP[14] = 43; fSSPChOne[14] = 4;
+    fSSP[16] = 43; fSSPChOne[16] = 8;
+    fSSP[18] = 44; fSSPChOne[18] = 0;
 
-    // MSDaS -- unusual pattern for ARAPUCA
-    fSSP[21] = 61; fSSPChOne[21] = 0;
-    fSSP[23] = 61; fSSPChOne[23] = 4;
-    fSSP[25] = 61; fSSPChOne[25] = 8;
-    fSSP[27] = 62; fSSPChOne[27] = 0;
-    fSSP[29] = 62; fSSPChOne[29] = 4;
-    fSSP[31] = 63; fSSPChOne[31] = 0; // ARAPUCA
-    fSSP[33] = 62; fSSPChOne[33] = 8;
-    fSSP[35] = 64; fSSPChOne[35] = 0;
-    fSSP[37] = 64; fSSPChOne[37] = 4;
-    fSSP[39] = 64; fSSPChOne[39] = 8;
+    // MSDaS -- unusual patternfor ARAPUCA
+    fSSP[20] = 61; fSSPChOne[20] = 0;
+    fSSP[22] = 61; fSSPChOne[22] = 4;
+    fSSP[24] = 61; fSSPChOne[24] = 8;
+    fSSP[26] = 62; fSSPChOne[26] = 0;
+    fSSP[28] = 62; fSSPChOne[28] = 4;
+    fSSP[30] = 63; fSSPChOne[30] = 0; // ARAPUCA
+    fSSP[32] = 62; fSSPChOne[32] = 8;
+    fSSP[34] = 64; fSSPChOne[34] = 0;
+    fSSP[36] = 64; fSSPChOne[36] = 4;
+    fSSP[38] = 64; fSSPChOne[38] = 8;
 
     // USDaS -- unusual pattern
-    fSSP[41] = 53; fSSPChOne[41] = 0;
-    fSSP[43] = 53; fSSPChOne[43] = 4;
-    fSSP[45] = 53; fSSPChOne[45] = 8;
-    fSSP[47] = 54; fSSPChOne[47] = 0;
-    fSSP[49] = 51; fSSPChOne[49] = 0;
-    fSSP[51] = 54; fSSPChOne[51] = 4;
-    fSSP[53] = 51; fSSPChOne[53] = 4;
-    fSSP[55] = 51; fSSPChOne[55] = 8;
-    fSSP[57] = 54; fSSPChOne[57] = 8;
-    fSSP[59] = 52; fSSPChOne[59] = 0;
-  
+    fSSP[40] = 53; fSSPChOne[40] = 0;
+    fSSP[42] = 53; fSSPChOne[42] = 4;
+    fSSP[44] = 53; fSSPChOne[44] = 8;
+    fSSP[46] = 54; fSSPChOne[46] = 0;
+    fSSP[48] = 51; fSSPChOne[48] = 0;
+    fSSP[50] = 54; fSSPChOne[50] = 4;
+    fSSP[52] = 51; fSSPChOne[52] = 4;
+    fSSP[54] = 51; fSSPChOne[54] = 8;
+    fSSP[56] = 54; fSSPChOne[56] = 8;
+    fSSP[58] = 52; fSSPChOne[58] = 0;
+
     // DSRaS -- "normal" pattern
-    fSSP[ 0] = 11; fSSPChOne[ 0] = 0;
-    fSSP[ 2] = 11; fSSPChOne[ 2] = 4;
-    fSSP[ 4] = 11; fSSPChOne[ 4] = 8;
-    fSSP[ 6] = 12; fSSPChOne[ 6] = 0;
-    fSSP[ 8] = 12; fSSPChOne[ 8] = 4;
-    fSSP[10] = 12; fSSPChOne[10] = 8;
-    fSSP[12] = 13; fSSPChOne[12] = 0;
-    fSSP[14] = 13; fSSPChOne[14] = 4;
-    fSSP[16] = 13; fSSPChOne[16] = 8;
-    fSSP[18] = 14; fSSPChOne[18] = 0;
+    fSSP[ 1] = 11; fSSPChOne[ 1] = 0;
+    fSSP[ 3] = 11; fSSPChOne[ 3] = 4;
+    fSSP[ 5] = 11; fSSPChOne[ 5] = 8;
+    fSSP[ 7] = 12; fSSPChOne[ 7] = 0;
+    fSSP[ 9] = 12; fSSPChOne[ 9] = 4;
+    fSSP[11] = 12; fSSPChOne[11] = 8;
+    fSSP[13] = 13; fSSPChOne[13] = 0;
+    fSSP[15] = 13; fSSPChOne[15] = 4;
+    fSSP[17] = 13; fSSPChOne[17] = 8;
+    fSSP[19] = 14; fSSPChOne[19] = 0;
 
     // MSRaS -- "normal" pattern
-    fSSP[20] = 21; fSSPChOne[20] = 0;
-    fSSP[22] = 21; fSSPChOne[22] = 4;
-    fSSP[24] = 21; fSSPChOne[24] = 8;
-    fSSP[26] = 22; fSSPChOne[26] = 0;
-    fSSP[28] = 22; fSSPChOne[28] = 4;
-    fSSP[30] = 22; fSSPChOne[30] = 8;
-    fSSP[32] = 23; fSSPChOne[32] = 0;
-    fSSP[34] = 23; fSSPChOne[34] = 4;
-    fSSP[36] = 23; fSSPChOne[36] = 8;
-    fSSP[38] = 24; fSSPChOne[38] = 0;
-  
-    // USRaS -- unusual pattern for ARAPUCA
-    fSSP[40] = 31; fSSPChOne[40] = 0;
-    fSSP[42] = 31; fSSPChOne[42] = 4;
-    fSSP[44] = 31; fSSPChOne[44] = 8;
-    fSSP[46] = 34; fSSPChOne[46] = 0; // ARAPUCA
-    fSSP[48] = 32; fSSPChOne[48] = 0;
-    fSSP[50] = 32; fSSPChOne[50] = 4;
-    fSSP[52] = 32; fSSPChOne[52] = 8;
-    fSSP[54] = 33; fSSPChOne[54] = 0;
-    fSSP[56] = 33; fSSPChOne[56] = 4;
-    fSSP[58] = 33; fSSPChOne[58] = 8;
+    fSSP[21] = 21; fSSPChOne[21] = 0;
+    fSSP[23] = 21; fSSPChOne[23] = 4;
+    fSSP[25] = 21; fSSPChOne[25] = 8;
+    fSSP[27] = 22; fSSPChOne[27] = 0;
+    fSSP[29] = 22; fSSPChOne[29] = 4;
+    fSSP[31] = 22; fSSPChOne[31] = 8;
+    fSSP[33] = 23; fSSPChOne[33] = 0;
+    fSSP[35] = 23; fSSPChOne[35] = 4;
+    fSSP[37] = 23; fSSPChOne[37] = 8;
+    fSSP[39] = 24; fSSPChOne[39] = 0;
 
+    // USRaS -- unusual patternfor ARAPUCA
+    fSSP[41] = 31; fSSPChOne[41] = 0;
+    fSSP[43] = 31; fSSPChOne[43] = 4;
+    fSSP[45] = 31; fSSPChOne[45] = 8;
+    fSSP[47] = 34; fSSPChOne[47] = 0; // ARAPUCA
+    fSSP[49] = 32; fSSPChOne[49] = 0;
+    fSSP[51] = 32; fSSPChOne[51] = 4;
+    fSSP[53] = 32; fSSPChOne[53] = 8;
+    fSSP[55] = 33; fSSPChOne[55] = 0;
+    fSSP[57] = 33; fSSPChOne[57] = 4;
+    fSSP[59] = 33; fSSPChOne[59] = 8;
 
     // The above enables OpDet + HW channel -> OpChannel
     //
@@ -187,7 +186,7 @@ namespace geo {
   Index ProtoDUNEChannelMapAlg::NOpHardwareChannels(Index opDet) const {
 
     // ARAPUCAs
-    if (opDet == 31 or opDet == 46)
+    if (opDet == 30 or opDet == 47)
       return 12;
     else
       return 4;  
