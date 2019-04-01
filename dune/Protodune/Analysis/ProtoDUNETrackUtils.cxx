@@ -296,6 +296,7 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
           for( size_t i = 0; i < stitch_calos.size(); ++i ){
             unsigned int thePlane = stitch_calos.at(i).PlaneID().Plane;
             if( thePlane == planeID ){
+              found_stitch_calo = true;
               calo_position = i;
               break;
             }
