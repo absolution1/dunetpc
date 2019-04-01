@@ -1,0 +1,39 @@
+#include "hitfindermodules_dune.fcl"
+#include "filters.fcl"
+#include "signalservices_dune.fcl"
+#include "caldata_dune.fcl"
+#include "trackfindermodules_dune.fcl"
+#include "ecalibration.fcl"
+#include "triggeralgo_service.fcl"
+#include "photpropservices_dune.fcl"
+#include "ProtoDUNEDataUtils.fcl"
+#include "ProtoDUNEBeamlineFilter.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
+
+BEGIN_PROLOG
+
+pionanalysis:
+{
+  module_type: "PionAnalyzerMC"
+  SpacePointModuleLabel:  "reco3d"
+  TrackModuleLabel:       "pandoraTrack"
+  TimeDecoderModuleLabel: "timingrawdecoder:daq"
+
+  CalorimetryTag:         "pandoracalo"
+  TrackerTag:             "pandoraTrack"
+  ShowerTag:              "pandoraShower"
+  PFParticleTag:          "pandora"
+  GeneratorTag:           "generator"
+  Verbose:                true
+  DataUtils: @local::standard_protodunedatautils
+
+  SelectEvents: [fpath]
+
+
+
+}
+
+END_PROLOG
+
+
+

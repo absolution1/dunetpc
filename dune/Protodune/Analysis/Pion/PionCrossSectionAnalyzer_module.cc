@@ -200,6 +200,7 @@ void PionCrossSectionAnalyzer::analyze(art::Event const& evt){
 
           // If we made it here, then this is the first interesting interaction in the TPC
           // Our job is done!!! Great! Store the interaction label and the iterator for the final point
+          std::cout << "key: " << size_t(couple.second) << std::endl;
           interactionLabel = truetraj.KeyToProcess(couple.second);
           std::cout<<"interaction Label "<<interactionLabel<<" EndProcess "<<geantGoodParticle->EndProcess()<<std::endl;
           finTPCPoint = truetraj.begin() + couple.first; 
