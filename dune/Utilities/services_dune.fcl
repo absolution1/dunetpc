@@ -496,7 +496,7 @@ protodune_dataprep_tools_calib_noiserem: [
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe",     # correct undershoot
-  "pdsp_noiseRemoval",          # Remove high frequency noise and coherent noise
+  "pdsp_noiseRemovalKe",        # Remove high frequency noise and coherent noise
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
 ]
