@@ -93,7 +93,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
 
 DuneToolManager::DuneToolManager(std::string fclname)
 : m_fclname(fclname) {
-  cet::filepath_lookup policy("FHICL_FILE_PATH");
+  cet::filepath_lookup_nonabsolute policy("FHICL_FILE_PATH");
   fhicl::intermediate_table tbl;
   fhicl::parse_document(fclname, policy, tbl);
   fhicl::ParameterSet psTop;
