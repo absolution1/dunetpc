@@ -452,16 +452,6 @@ protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
 
 # Reco services for ProtoDUNE data
 protodune_data_reco_services:                       @local::protodune_reco_services
-protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: [
-    "digitReader",                # Read RawDigit
-    "pd_adcPedestalFit",          # Find pedestal
-    "adcSampleFiller",            # Subtract pedestal, trivial calibration
-    "pdsp_sticky_codes_ped",      # Flag sticky codes
-    "pdsp_adcMitigate",           # Mitigate sticky codes
-    "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-    "adcCorrectUndershoot",       # correct undershoot
-    "adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
-]
 # Get rid of low frequency noise
 protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus"
 protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
@@ -473,6 +463,45 @@ protodune_data_reco_services.ChannelGroupService.ApaRops: []
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 # ProtoDUNE detector properties service
 protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
+# Finally, add the tools
+## No calibration, no noise removal.
+protodune_dataprep_tools_nocal: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleFiller",            # Subtract pedestal, trivial calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootAdc",    # correct undershoot
+  "adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
+]
+## Charge calibration, no noise removal.
+protodune_dataprep_tools_calib: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe",     # correct undershoot
+  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
+  "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
+]
+## Charge calibration, noise removal.
+protodune_dataprep_tools_calib_noiserem: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe",     # correct undershoot
+  "pdsp_noiseRemovalKe",        # Remove high frequency noise and coherent noise
+  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
+  "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
+]
+## Set a default here.
+protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_calib
 
 #######################
 ### 35ton Prototype ###
