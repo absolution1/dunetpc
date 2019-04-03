@@ -102,6 +102,7 @@ cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
     cetlib_except
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
