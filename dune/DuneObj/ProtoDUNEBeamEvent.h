@@ -202,8 +202,8 @@ namespace beam
 
   inline void ProtoDUNEBeamEvent::SetFBMTrigger(std::string FBMName, FBM theFBM){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
-      std::cout << "FBM not found" << std::endl;
-      std::cout << "Setting New FBM " << FBMName << std::endl;
+//      std::cout << "FBM not found" << std::endl;
+//      std::cout << "Setting New FBM " << FBMName << std::endl;
     }
 
     fiberMonitors[FBMName] = theFBM;
