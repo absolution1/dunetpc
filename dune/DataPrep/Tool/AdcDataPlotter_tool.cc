@@ -240,7 +240,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       szunits = acdFirst.sampleUnit;
       if ( szunits.find(" ") != string::npos ) szunits = "(" + szunits + ")";
     }
-    htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
+    string zunit = szunits;
+    if ( zunit.find(" ") != string::npos ) zunit = "(" + zunit + ")";
+    bool zhasTick = zunit.find("Tick") != string::npos || zunit.find("tick") != string::npos;
+    if ( ! zhasTick ) zunit += "/tick";
+    zunit += "/channel";
+    htitl += "; Tick; Channel; Signal [" + zunit + "]";
     // Set flag indicating we want to show empty bins with the color m_EmptyColor.
     // We initialize all bins below zmin and fill with zmin where the value would be lower.
     // We do not attempt this this where rebinning is done.
