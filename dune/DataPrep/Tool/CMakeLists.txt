@@ -48,6 +48,12 @@ simple_plugin(AdcCodeMitigator  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcSampleScaler   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcTimingMitigator  "tool"
                 dune_ArtSupport
                 dune_DuneCommon
@@ -131,6 +137,20 @@ simple_plugin(SubtractBaseline   "tool"
              )
 
 simple_plugin(UndershootCorr   "tool"
+              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        art_Utilities canvas
+                        ${CETLIB_LIBS}
+                        ${MF_MESSAGELOGGER}
+                        ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(ExpTailRemover   "tool"
               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
