@@ -33,7 +33,8 @@ namespace filt{
 
   };
 
-  ProtoDUNETriggerFilter::ProtoDUNETriggerFilter::ProtoDUNETriggerFilter(fhicl::ParameterSet const & pset) {
+  ProtoDUNETriggerFilter::ProtoDUNETriggerFilter::ProtoDUNETriggerFilter(fhicl::ParameterSet const & pset)
+: EDFilter(pset) {
     using std::cout;
     using std::endl;
     const std::string myname = "ProtoDUNETriggerFilter::ctor: ";

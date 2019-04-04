@@ -72,7 +72,8 @@ private:
 
 
 dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
-  : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
+  : EDProducer(p)
+  , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
   , fModBoxA               (p.get< double >("ModBoxA"))

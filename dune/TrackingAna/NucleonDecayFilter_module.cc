@@ -22,7 +22,7 @@
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Principal/Handle.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "larcore/Geometry/Geometry.h"
