@@ -93,7 +93,7 @@ private:
 };
 
 //-------------------------------------------------------------------
-lbne::FilterWF::FilterWF(fhicl::ParameterSet const& pset) {
+lbne::FilterWF::FilterWF(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   this->reconfigure(pset);
   produces<std::vector<raw::RawDigit> >();
 }

@@ -80,7 +80,7 @@ private:
 
 
 DAQToOffline::SSPToOffline::SSPToOffline(fhicl::ParameterSet const & pset)
-                           : sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
+                           : EDProducer{pset}, sspReform(pset.get<fhicl::ParameterSet>("SSPReformatter"))
 {
 
   this->reconfigure(pset);

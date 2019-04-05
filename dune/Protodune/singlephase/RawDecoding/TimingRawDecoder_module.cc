@@ -83,7 +83,7 @@ private:
 
 
 dune::TimingRawDecoder::TimingRawDecoder(fhicl::ParameterSet const & pset)
-// :
+  : EDProducer{pset}
 // Initialize member data here.
 {
   art::ServiceHandle<art::TFileService> fs;

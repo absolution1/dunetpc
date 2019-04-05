@@ -87,7 +87,7 @@ private:
 };
 
 
-DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset) {
+DAQToOffline::TpcDAQToOffline::TpcDAQToOffline(fhicl::ParameterSet const & pset) : EDProducer{pset} {
 
   this->reconfigure(pset);
 

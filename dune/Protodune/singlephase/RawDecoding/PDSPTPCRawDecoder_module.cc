@@ -169,7 +169,7 @@ private:
 };
 
 
-PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
+PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   std::vector<int> emptyivec;
   _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);

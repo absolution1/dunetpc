@@ -82,7 +82,7 @@ namespace filt{
      
   };
   // *************************************************************************************
-  NucleonDecayFilter::NucleonDecayFilter::NucleonDecayFilter(fhicl::ParameterSet const & pset) {
+  NucleonDecayFilter::NucleonDecayFilter::NucleonDecayFilter(fhicl::ParameterSet const & pset) : EDFilter{pset} {
     this->reconfigure(pset);
   }
   // ************************************ Reconfigure ************************************

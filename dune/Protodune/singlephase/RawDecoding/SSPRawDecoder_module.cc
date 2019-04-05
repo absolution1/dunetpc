@@ -513,7 +513,7 @@ private:
 
 
 dune::SSPRawDecoder::SSPRawDecoder(fhicl::ParameterSet const & pset)
-// :
+  : EDProducer{pset}
 {
   reconfigure(pset);
   if (!fSplitTriggers) {

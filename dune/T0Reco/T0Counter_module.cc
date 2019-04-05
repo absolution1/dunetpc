@@ -125,7 +125,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
-  : fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
+  : EDProducer{p}, fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
     fClockSpeedCounter(p.get<double>("ClockSpeedCounter")), // MHz
     fCombinedTimeDelay(p.get<double>("CombinedTimeDelay")), // ns
     fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // ticks

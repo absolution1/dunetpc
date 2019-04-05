@@ -86,7 +86,7 @@ private:
 };
 
 //-------------------------------------------------------------------
-lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) {
+lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   std::string colFilt               = pset.get<std::string>("ColFilter");
   fColFilterFunc = new TF1("colFilter", colFilt.c_str());
 

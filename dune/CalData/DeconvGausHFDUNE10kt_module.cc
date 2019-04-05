@@ -141,7 +141,7 @@ namespace deconvgaushf {
   DEFINE_ART_MODULE(DeconvGausHFDUNE10kt)
   
   //-------------------------------------------------
-  DeconvGausHFDUNE10kt::DeconvGausHFDUNE10kt(fhicl::ParameterSet const& pset)
+  DeconvGausHFDUNE10kt::DeconvGausHFDUNE10kt(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     fSpillName="";
     this->reconfigure(pset);
