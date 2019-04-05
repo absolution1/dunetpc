@@ -501,7 +501,7 @@ protodune_dataprep_tools_calib_noiserem: [
   "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
 ]
 ## Set a default here.
-protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_calib
+protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_calib_noiserem
 
 #######################
 ### 35ton Prototype ###
