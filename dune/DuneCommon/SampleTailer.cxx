@@ -111,12 +111,18 @@ int SampleTailer::setData(const FloatVector& inData) {
   double s = 0.0;
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( isam > 0 ) t = m_beta*t + m_alpha*s;
-    float d = m_d[isam];
-    s = d - t - m_pedestal;
+    s = m_d[isam] - t - m_pedestal;
     m_t[isam] = t;
     m_s[isam] = s;
   }
   return 0;
+}
+
+//**********************************************************************
+
+int SampleTailer::setDataZero(Index nsam) {
+  FloatVector dats(nsam, 0.0);
+  return setData(dats);
 }
 
 //**********************************************************************

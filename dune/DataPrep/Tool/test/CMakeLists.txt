@@ -95,6 +95,7 @@ cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
 cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
   LIBRARIES
     dune_ArtSupport
+    dune_DuneCommon
     art_Utilities
     canvas
     fhiclcpp
