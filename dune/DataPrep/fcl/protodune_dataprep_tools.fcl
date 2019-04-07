@@ -813,3 +813,7 @@ tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
 
 tools.pdsp_noiseRemoval: @local::tools.pdsp_noiseRemovalAdc
 
+tools.pdsp_RemoveBadChannels: {
+  tool_type: RemoveBadChannels
+  LogLevel: 1
+}
