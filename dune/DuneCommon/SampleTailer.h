@@ -68,6 +68,9 @@ public:
   // Evaluate the signal and tail for provided data.
   int setData(const FloatVector& inData);
 
+  // Evaluate the signal and tail for data value zero for nsam smples..
+  int setDataZero(Index nsam);
+
   // Evaluate the data and tail for provided signal.
   int setSignal(const FloatVector& inSignal);
 
