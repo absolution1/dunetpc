@@ -785,7 +785,7 @@ tools.pd_tickmodViewer: {
 }
 
 # Remove coherent noise and high frequency noise
-tools.pdsp_noiseRemoval: {
+tools.pdsp_noiseRemovalAdc: {
   tool_type: PdspNoiseRemoval
   LogLevel: 1
   RemoveHighFrequency: true
@@ -807,3 +807,13 @@ tools.pdsp_noiseRemoval: {
   RoiPadHigh: 20                    # high bin extension
 }
 
+tools.pdsp_noiseRemovalKe: @local::tools.pdsp_noiseRemovalAdc
+tools.pdsp_noiseRemovalKe.RoiStartThreshold: 0.5
+tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
+
+tools.pdsp_noiseRemoval: @local::tools.pdsp_noiseRemovalAdc
+
+tools.pdsp_RemoveBadChannels: {
+  tool_type: RemoveBadChannels
+  LogLevel: 1
+}

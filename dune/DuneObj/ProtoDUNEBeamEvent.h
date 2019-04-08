@@ -171,6 +171,13 @@ namespace beam
   inline ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){ 
     FBM dummy; 
     dummy.ID = -1;
+    dummy.ID = -1;
+    dummy.fibers = {};
+    std::uninitialized_fill( std::begin(dummy.fiberData), std::end(dummy.fiberData), 0. );
+    std::uninitialized_fill( std::begin(dummy.timeData), std::end(dummy.timeData), 0. );
+    dummy.timeStamp = 0.;
+    dummy.decoded = false;
+    dummy.active = std::vector<short>();
     fiberMonitors["dummy"] = dummy;
   }
 
@@ -195,8 +202,8 @@ namespace beam
 
   inline void ProtoDUNEBeamEvent::SetFBMTrigger(std::string FBMName, FBM theFBM){
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
-      std::cout << "FBM not found" << std::endl;
-      std::cout << "Setting New FBM " << FBMName << std::endl;
+//      std::cout << "FBM not found" << std::endl;
+//      std::cout << "Setting New FBM " << FBMName << std::endl;
     }
 
     fiberMonitors[FBMName] = theFBM;
