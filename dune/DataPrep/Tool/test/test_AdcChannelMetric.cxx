@@ -47,6 +47,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "           tool_type: AdcChannelMetric" << endl;
     fout << "            LogLevel: 3" << endl;
     fout << "              Metric: \"pedestal\"" << endl;
+    fout << "   MetricSummaryView: \"\"" << endl;
     fout << "       ChannelRanges: [all, tpp3c, tpp3z]" << endl;
     fout << "          MetricBins: 0" << endl;
     fout << "           MetricMin: 0.0" << endl;

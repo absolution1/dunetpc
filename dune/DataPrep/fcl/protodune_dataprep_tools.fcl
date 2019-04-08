@@ -447,6 +447,7 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
@@ -462,6 +463,7 @@ pdtps_template: {
 pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
@@ -678,6 +680,7 @@ tools.pdwzs_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run
 pdmet_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 100
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
