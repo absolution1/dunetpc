@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneCommon/SampleTailer.h"
@@ -21,6 +22,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::ofstream;
+using std::istringstream;
 using std::setw;
 using fhicl::ParameterSet;
 
@@ -30,7 +32,46 @@ using FloatVector = AdcSignalVector;
 
 //**********************************************************************
 
-int test_ExpTailRemover(bool useExistingFcl, Index flag) {
+namespace {
+
+struct SigStats {
+  Index count = 0;
+  float mean = 0.0;
+  float rms = 0.0;
+  SigStats(const AdcChannelData& acd, string lab);
+};
+
+SigStats::SigStats(const AdcChannelData& acd, string lab) {
+  Index nSig = 0;
+  double sumSig = 0.0;
+  double sumSig2 = 0.0;
+  Index nsam = acd.samples.size();
+  if ( acd.signal.size() < nsam ) return;
+  bool dbg = false;
+  for ( Index isam=0; isam<nsam; ++isam ) {
+    if ( acd.signal[isam] ) continue;
+    ++nSig;
+    double sig = acd.samples[isam];
+    sumSig += sig;
+    sumSig2 += sig*sig;
+    if ( dbg ) cout << lab << setw(5) << isam << ":" << setw(10) << sig << endl;
+  }
+  if ( nSig == 0 ) return;
+  count = nSig;
+  mean = sumSig/nSig;
+  rms = sqrt(sumSig2/nSig - mean*mean);
+  if ( lab.size() ) {
+    cout << lab << "  # signal: " << count << endl;
+    cout << lab << "      mean: " << mean << endl;
+    cout << lab << "       RMS: " << rms << endl;
+  }
+}
+
+}  // end unnamed namespace
+
+//**********************************************************************
+
+int test_ExpTailRemover(bool useExistingFcl, Index flag, float noiseSigma, bool setSeed) {
   const string myname = "test_ExpTailRemover: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -61,7 +102,7 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag) {
     fout << "                LogLevel: 3" << endl;
     fout << "              SignalFlag: " << flag << endl;
     fout << "    SignalIterationLimit: 10" << endl;
-    fout << "              SignalTool: \"\"" << endl;
+    fout << "              SignalTool: \"sigfind\"" << endl;
     fout << "               DecayTime: " << decayTime << endl;
     fout << "             CorrectFlag: []" << endl;
     fout << "  }" << endl;
@@ -105,6 +146,11 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag) {
     }
   }
 
+  cout << myname << line << endl;
+  cout << myname << "Add noise to the signal." << endl;
+  if ( setSeed ) gRandom->SetSeed();
+  for ( float& sig : sigs1 ) sig += gRandom->Gaus(0.0, noiseSigma);
+
   cout << myname << "Create sample tailer." << endl;
   SampleTailer sta(decayTime);
   sta.setPedestal(ped);
@@ -117,14 +163,8 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag) {
   cout << myname << "      tail0: " << sta.tail0() << endl;
 
   cout << myname << line << endl;
-  cout << myname << "Create data from signal." << endl;
+  cout << myname << "Add pedestal and tail to the signal to create data." << endl;
   assert( sta.setSignal(sigs1) == 0 );
-
-  cout << myname << line << endl;
-  cout << myname << "Create data." << endl;
-  AdcSignalVector dats1 = sta.data();
-  float noiseLevel = 2.0;
-  for ( float& dat : dats1 ) dat += gRandom->Gaus(noiseLevel, 0.0);
 
   cout << myname << line << endl;
   cout << myname << "Create channel data." << endl;
@@ -137,10 +177,20 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag) {
   acd.signal = isSignal;
 
   cout << myname << line << endl;
+  cout << myname << "Check input noise." << endl;
+  SigStats inStats(acd, myname);
+  assert( inStats.count > 0 );
+
+  cout << myname << line << endl;
   cout << myname << "Use tool to remove tail from data." << endl;
   DataMap res = ptoo->update(acd);
   res.print();
   assert ( res == 0 );
+
+  cout << myname << line << endl;
+  cout << myname << "Check output noise." << endl;
+  SigStats ouStats(acd, myname);
+  assert( ouStats.count > 0 );
 
   cout << myname << "Done." << endl;
   return 0;
@@ -150,12 +200,17 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  Index flag = 1;
+  Index flag = 2;
+  float noiseSigma = 2.0;
+  bool setSeed = false;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [ARG]" << endl;
+      cout << "Usage: " << argv[0] << " [ARG [OPT [noise [setSeed]]]]" << endl;
       cout << "  If ARG = true, existing FCL file is used." << endl;
+      cout << "  OPT [2] is SignalOption = 0, 1, 2, or 3" << endl;
+      cout << "  noise [2.0]  is the sigma of the noise added to the data" << endl;
+      cout << "  setSeed nonzero means a random random seed for the noise" << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
@@ -164,7 +219,16 @@ int main(int argc, char* argv[]) {
     string sarg(argv[2]);
     flag = std::stoi(sarg);
   }
-  return test_ExpTailRemover(useExistingFcl, flag);
+  if ( argc > 3 ) {
+    string sarg(argv[3]);
+    istringstream ssarg(sarg);
+    ssarg >> noiseSigma;
+  }
+  if ( argc > 4 ) {
+    string sarg(argv[3]);
+    setSeed = sarg != "0";
+  }
+  return test_ExpTailRemover(useExistingFcl, flag, noiseSigma, setSeed);
 }
 
 //**********************************************************************

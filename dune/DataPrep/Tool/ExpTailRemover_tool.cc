@@ -68,8 +68,6 @@ ExpTailRemover::ExpTailRemover(fhicl::ParameterSet const& ps)
 
 DataMap ExpTailRemover::update(AdcChannelData& acd) const {
   const string myname = "ExpTailRemover::view: ";
-  if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run << " event " << acd.event
-                              << " channel " << acd.channel << endl;
   DataMap ret;
 
   // Save the data before tail removal.
@@ -90,12 +88,13 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
     size_t plane = channelMap->PlaneFromOfflineChannel(offlineChannel);
     if ( plane >= m_CorrectFlag.size() ) {
       cout << myname << "WARNING: Unexpected plane index: " << plane << "." << endl;
-      return ret.setStatus(2);;  
+      return ret.setStatus(2);  
     }
     if ( ! m_CorrectFlag[plane] ) return ret.setStatus(3);
   }
 
-  if ( m_LogLevel >= 2 ) cout << myname << "Correcting channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
+                              << " channel " << acd.channel << endl;
 
   // Build the initial signal selection.
   bool checkSignal = true;   // Whether to use only non-signal in fit.
@@ -108,10 +107,11 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
            << " to " << nsam << " samples." << endl;
     }
   } else if ( m_SignalFlag >= 2  ) {
-    findSignal = true;
     if ( m_pSignalTool == nullptr ) {
       cout << myname << "WARNING: Signal-finding tool is missing. Using all signals." << endl;
       checkSignal = false;
+    } else {
+      findSignal = true;
     }
   }
 
@@ -120,6 +120,7 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
   float tau = 0.0;  // Fitted tail0
   Index nsamKeep = 0;
   Index maxiter = findSignal ? m_SignalIterationLimit : 1;
+  double noise = 0.0;
   while ( niter < maxiter ) {
     // Do signal finding.
     if ( findSignal ) {
@@ -180,10 +181,13 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
       break;
     }
     double deninv = 1.0/den;
-    float tau = deninv*(kdp*ktp-kdt*kpp);
-    float ped = deninv*(kdt*ktp-kdp*ktt);
+    tau = deninv*(kdp*ktp-kdt*kpp);
+    ped = deninv*(kdt*ktp-kdp*ktt);
     double chsq = kdd + ktt*tau*tau + kpp*ped*ped + 2.0*(kdt*tau + kdp*ped + ktp*tau*ped);
-    double noise = nsamKeep > 0 ? chsq/nsamKeep : 0.0;
+    noise = 0.0;
+    if ( nsamKeep > 2 && chsq > 0.0 ) {
+      noise =  sqrt(chsq/(nsamKeep-2));
+    }
     if ( m_LogLevel >= 3 ) cout << myname << "Iteration " << niter << ": ped, tau, noise: "
                                 << ped << ", " << tau << ", " << noise
                                 << " (" << nsamKeep << " samples)." << endl;
@@ -206,8 +210,10 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
   // Use the fitted
   acd.metadata["uscPedestal"] = ped;
   acd.metadata["uscTail"] = tau;
+  acd.metadata["uscNoise"] = noise;
   ret.setFloat("uscPedestal", ped);
   ret.setFloat("uscTail", tau);
+  ret.setFloat("uscNoise", noise);
   ret.setInt("uscNsamFit", nsamKeep);
   ret.setInt("uscNiteration", niter);
 
