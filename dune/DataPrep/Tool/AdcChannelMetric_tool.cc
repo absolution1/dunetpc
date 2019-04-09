@@ -119,29 +119,31 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   if ( m_doSummary ) {
     const std::set<Name> sumVals = {"count", "mean", "rms", "drms"};
     if ( m_MetricSummaryView.size() == 0 ) {
-      m_MetricSummaryView = "mean#rms";
+      m_MetricSummaryView = "mean:rms";
       cout << myname << "WARNING: Missing metric summary view set to \"" << m_MetricSummaryView
            << "\"." << endl;
     }
     Name vnam = m_MetricSummaryView;
     Name enam;
-    Name::size_type ipos = vnam.find("#");
+    Name::size_type ipos = vnam.find(":");
     if ( ipos != Name::npos ) {
       enam = vnam.substr(ipos+1);
       vnam = vnam.substr(0, ipos);
     }
-    if ( sumVals.find(vnam) == sumVals.end() ) {
+    if ( ! MetricSummary::isValueName(vnam) ) {
       cout << myname << "WARNING: Invalid value for metric summary view reset from " << vnam
            << " to mean." << endl;
       vnam = "mean";
     }
     if ( enam.size() ) {
-      if ( sumVals.find(enam) == sumVals.end() ) {
-        cout << myname << "WARNING: Ignoring invalid value for metric summary view: " << enam << endl;
+      if ( ! MetricSummary::isValueName(enam) ) {
+        cout << myname << "WARNING: Ignoring invalid error for metric summary view: " << enam << endl;
       } else {
         m_doSummaryError = true;
       }
     }
+    m_summaryValue = vnam;
+    m_summaryError = enam;
   }
   // Fetch the channel status service.
   if ( m_PlotUsesStatus ) {
@@ -157,7 +159,13 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "              Metric: " << m_Metric << endl;
-    cout << myname << "   MetricSummaryView: " << m_MetricSummaryView << endl;
+    cout << myname << "   MetricSummaryView: " << m_MetricSummaryView;
+    if ( m_summaryValue.size() ) {
+      cout << " (" << m_summaryValue;
+      if ( m_summaryError.size() ) cout << " +/- " << m_summaryError;
+      cout << ")";
+    }
+    cout << endl;
     cout << myname << "       ChannelRanges: [";
     bool first = true;
     for ( const IndexRange& ran : m_crs ) {
@@ -238,8 +246,10 @@ AdcChannelMetric::~AdcChannelMetric() {
         const MetricSummary& msum = msums[kcha];
         if ( msum.count ) {
           Metric& met = mets[icha];
-          met.setValue(msum.mean());
-          met.setError(msum.rms());
+          if ( m_summaryValue.size() ) {
+            met.setValue(msum.getValue(m_summaryValue));
+            if ( m_summaryError.size() ) met.setError(msum.getValue(m_summaryError));
+          }
         }
       }
       AdcChannelData acd;

@@ -127,6 +127,30 @@ tools.adcCorrectUndershootKe.SignalThreshold: [      0.50,      0.50,     0.50 ]
 
 tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 
+# Signal finder to use with tail removal.
+tools.adcTailSignalFinderAdc: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 20.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
+tools.adcTailSignalFinderKe.Threshold: 0.5
+
+tools.adcTailRemovalAdc:
+  tool_type: ExpTailRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderAdc
+  CorrectFlag: [true, false, false]
+}
+
 ################################################################################
 # Event metrics.
 ################################################################################
