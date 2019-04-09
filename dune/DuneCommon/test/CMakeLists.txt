@@ -62,3 +62,9 @@ cet_test(test_GausRmsFitter SOURCES test_GausRmsFitter.cxx
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_SampleTailer SOURCES test_SampleTailer.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)

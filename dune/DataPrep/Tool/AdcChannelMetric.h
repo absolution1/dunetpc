@@ -25,6 +25,14 @@
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
+//   MetricSummaryView - If not empty and a summary is requested, this speicifies the view
+//                       that is plotted, this view of the metric summary is plotted.
+//                       The format is is VVV or VVV#EEE where VVV=position and EEE=error
+//                       can be any of the following. Default is "mean#rms".
+//                  count - Number of values
+//                  mean - Mean of the value
+//                  rms - RMS of the values
+//                  dmean - error on the mean = rms/sqrt(count)
 //   ChannelRanges - Channel ranges for which metric channel histograms and plots are made.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
@@ -115,6 +123,7 @@ private:
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
   float          m_MetricMin;
@@ -134,8 +143,11 @@ private:
   // Channel ranges.
   IndexRangeVector m_crs;
   
-  // Flag indicating separate plots should be made based on status.
+  // Summary info.
   bool m_doSummary;
+  bool m_doSummaryError;
+  Name m_summaryValue;
+  Name m_summaryError;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
