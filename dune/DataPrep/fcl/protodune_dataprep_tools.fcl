@@ -141,7 +141,7 @@ tools.adcTailSignalFinderAdc: {
 tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
 tools.adcTailSignalFinderKe.Threshold: 0.5
 
-tools.adcTailRemovalAdc:
+tools.adcTailRemovalAdc: {
   tool_type: ExpTailRemover
   LogLevel: 1
   DecayTime: 2000
