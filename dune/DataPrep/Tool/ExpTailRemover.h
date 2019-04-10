@@ -17,15 +17,28 @@
 // The data is fit with this model and two varied parameters: the (residual)
 // pedestal ped and the initial charge of the tail csi.
 //
-// The fit is done in time-domain, i.e ther is no deconvolution following the
-// the model in tool UndershootCorr and DUNE-doc-11662                .
+// The fit is iterative using samples not flagged as signal to evaluate these
+// parameters. Each iteration, the samples are updated and those values are used
+// to evaluate the signal for the next iteration. Iterations stop when the signal
+// evalaution does not change or the maximum # iterations is reached.
+//
+// The fit is done in time-domain, i.e there is no deconvolution following the
+// the model in tool UndershootCorr and DUNE-doc-11662.
+// Details of the fit procedure are in DUNE-doc-XXXXX.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   DecayTime: Exponential decay time in ticks.
-//   SignalThreshold: Ticks with signals greated than this are deweighted in the fit
-//   SignalUnit: If non-blank, then this is compared with sampleUnit and a warning
-//               broadcast if they differ.
+//   SignalFlag: Specifies how signal regions are identified in the samples.
+//               0 - Use all samples.
+//               1 - Use the input acd.signal. If not enough values, pad with
+//                   false and log warning.
+//               2 - Apply the signal finder on updated samples each iteration.
+//               3 - Same as 2 plus the signal finder is applied on the final
+//                   samples.
+//   SignalIterationLimit - Maximum nimber of fit iterations.
+//   SignalTool - Name of the tool used identify signals. The method called is
+//                AdcChannelTool::update, i.e. single-channel signal finding.
 //   CorrectFlag: switch per plane (induction, u, v) to turn the correction on and off
 //                If empty, all planes corrected.
 //
@@ -44,6 +57,7 @@ public:
 
   using Index = unsigned int;
   using Vector = std::vector<double>;
+  using Name = std::string;
 
   ExpTailRemover(fhicl::ParameterSet const& ps);
 
@@ -55,10 +69,14 @@ private:
 
   // Configuration data.
   int                m_LogLevel;
-  std::string        m_SignalUnit;
+  Index              m_SignalFlag;
+  Index              m_SignalIterationLimit;
+  Name               m_SignalTool;
   double             m_DecayTime;
-  double             m_SignalThreshold;
   std::vector<bool>  m_CorrectFlag;   // 0: U, 1: V, 2: Collection
+
+  // Derived from configuration.
+  AdcChannelTool* m_pSignalTool;
 
   // private methods
 

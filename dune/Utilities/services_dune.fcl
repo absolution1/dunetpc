@@ -472,8 +472,7 @@ protodune_dataprep_tools_nocal: [
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootAdc",    # correct undershoot
-  "adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
+  "adcCorrectUndershootAdc"     # correct undershoot
 ]
 ## Charge calibration, no noise removal.
 protodune_dataprep_tools_calib: [
@@ -483,9 +482,7 @@ protodune_dataprep_tools_calib: [
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe",     # correct undershoot
-  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
-  "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
+  "adcCorrectUndershootKe"      # correct undershoot
 ]
 ## Charge calibration, noise removal.
 protodune_dataprep_tools_calib_noiserem: [
@@ -496,12 +493,18 @@ protodune_dataprep_tools_calib_noiserem: [
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe",     # correct undershoot
-  "pdsp_noiseRemovalKe",        # Remove high frequency noise and coherent noise
-  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
-  "adcScaleKeToAdc"             # Scale samples to nominal ADC counts
+  "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
 ]
+## Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+protodune_dataprep_tools_wirecell: [
+  @sequence::protodune_dataprep_tools_calib_noiserem,
+  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
+  "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
+  "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
+]
+
 ## Set a default here.
-protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_calib
+protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
 
 #######################
 ### 35ton Prototype ###

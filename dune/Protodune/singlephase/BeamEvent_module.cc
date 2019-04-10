@@ -1658,7 +1658,9 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
   std::vector< double > XCET1_frac,       XCET2_frac;      
   std::vector< double > XCET1_coarse,     XCET2_coarse;    
 
-  bool fetched_XCET1, fetched_XCET2; 
+  bool fetched_XCET1=false;
+  bool fetched_XCET2=false;
+ 
   if( fXCET1 != "" ){
     try{ 
       XCET1_seconds    = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":SECONDS" , bfp_xcet);

@@ -224,7 +224,7 @@ namespace beam
 
   ////////////Fiber Monitor Access
   inline FBM ProtoDUNEBeamSpill::GetFBM(std::string FBMName, size_t theTrigger){
-    FBM dummy; 
+    FBM dummy={{{0}}}; 
     dummy.ID = -1;
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Error FBM not found" << std::endl;

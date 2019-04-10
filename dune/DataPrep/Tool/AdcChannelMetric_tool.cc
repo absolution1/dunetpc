@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <set>
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -61,6 +62,7 @@ void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
 AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_Metric(ps.get<Name>("Metric")),
+  m_MetricSummaryView(ps.get<Name>("MetricSummaryView")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_MetricMin(ps.get<float>("MetricMin")),
   m_MetricMax(ps.get<float>("MetricMax")),
@@ -76,6 +78,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_doSummary(false),
+  m_doSummaryError(false),
   m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
@@ -111,7 +114,38 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  // Set summary fields.
   m_doSummary = m_HistName.find("EVENT%") == string::npos;
+  if ( m_doSummary ) {
+    const std::set<Name> sumVals = {"count", "mean", "rms", "drms"};
+    if ( m_MetricSummaryView.size() == 0 ) {
+      m_MetricSummaryView = "mean:rms";
+      cout << myname << "WARNING: Missing metric summary view set to \"" << m_MetricSummaryView
+           << "\"." << endl;
+    }
+    Name vnam = m_MetricSummaryView;
+    Name enam;
+    Name::size_type ipos = vnam.find(":");
+    if ( ipos != Name::npos ) {
+      enam = vnam.substr(ipos+1);
+      vnam = vnam.substr(0, ipos);
+    }
+    if ( ! MetricSummary::isValueName(vnam) ) {
+      cout << myname << "WARNING: Invalid value for metric summary view reset from " << vnam
+           << " to mean." << endl;
+      vnam = "mean";
+    }
+    if ( enam.size() ) {
+      if ( ! MetricSummary::isValueName(enam) ) {
+        cout << myname << "WARNING: Ignoring invalid error for metric summary view: " << enam << endl;
+      } else {
+        m_doSummaryError = true;
+      }
+    }
+    m_summaryValue = vnam;
+    m_summaryError = enam;
+  }
+  // Fetch the channel status service.
   if ( m_PlotUsesStatus ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
@@ -125,6 +159,13 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "              Metric: " << m_Metric << endl;
+    cout << myname << "   MetricSummaryView: " << m_MetricSummaryView;
+    if ( m_summaryValue.size() ) {
+      cout << " (" << m_summaryValue;
+      if ( m_summaryError.size() ) cout << " +/- " << m_summaryError;
+      cout << ")";
+    }
+    cout << endl;
     cout << myname << "       ChannelRanges: [";
     bool first = true;
     for ( const IndexRange& ran : m_crs ) {
@@ -205,8 +246,10 @@ AdcChannelMetric::~AdcChannelMetric() {
         const MetricSummary& msum = msums[kcha];
         if ( msum.count ) {
           Metric& met = mets[icha];
-          met.setValue(msum.mean());
-          met.setError(msum.rms());
+          if ( m_summaryValue.size() ) {
+            met.setValue(msum.getValue(m_summaryValue));
+            if ( m_summaryError.size() ) met.setError(msum.getValue(m_summaryError));
+          }
         }
       }
       AdcChannelData acd;

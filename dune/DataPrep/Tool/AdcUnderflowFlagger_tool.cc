@@ -74,7 +74,7 @@ DataMap AdcUnderflowFlagger::update(AdcChannelData& acd) const {
   if ( icha < ncha ) sthr = m_AdcThresholds[icha];
   else sthr = m_DefaultThreshold;
   if ( sthr < 0 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "No threhold set for channel " << icha << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "No threshold set for channel " << icha << endl;
     return res.setStatus(2 + icha >= ncha);
   }
   AdcCount thr = sthr;
