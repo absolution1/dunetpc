@@ -28,6 +28,7 @@ namespace protoana {
     ~ProtoDUNETruthUtils();
 
     const simb::MCParticle* GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
+    const recob::Track* GetRecoTrackFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
     const simb::MCParticle* GetMCParticleFromRecoShower(const recob::Shower &shower, art::Event const & evt, std::string showerModule) const;
     const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
     const simb::MCParticle* GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const;
