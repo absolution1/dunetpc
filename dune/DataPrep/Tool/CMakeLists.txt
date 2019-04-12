@@ -48,6 +48,12 @@ simple_plugin(AdcCodeMitigator  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcSampleScaler   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcTimingMitigator  "tool"
                 dune_ArtSupport
                 dune_DuneCommon
@@ -142,6 +148,22 @@ simple_plugin(UndershootCorr   "tool"
                         ${CETLIB_LIBS}
                         ${MF_MESSAGELOGGER}
                         ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(ExpTailRemover   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                ${ART_FRAMEWORK_CORE}
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                art_Utilities canvas
+                ${CETLIB_LIBS}
+                ${MF_MESSAGELOGGER}
+                ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(VintageDeconvoluter   "tool"
@@ -240,6 +262,27 @@ simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 dune_DuneCommon
                 lardataobj_RawData
                 lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(PdspNoiseRemoval   "tool"
+               dune_ArtSupport
+               larcorealg_Geometry
+               dune_DuneCommon
+               lardataobj_RawData
+               lardataobj_RecoBase
+               art_Utilities canvas
+               cetlib cetlib_except
+               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+               ${ROOT_BASIC_LIB_LIST}
+               ${ROOT_SPECTRUM}
+             )
+
+simple_plugin(RemoveBadChannels   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
