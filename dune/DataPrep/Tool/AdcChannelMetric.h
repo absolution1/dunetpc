@@ -25,6 +25,19 @@
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
+//   MetricSummaryView - If not empty and a summary is requested, this speicifies the view
+//                       that is plotted, this view of the metric summary is plotted.
+//                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
+//                       can be any of the following. Default is "mean:rms".
+//                  count - Number of values
+//                  mean - Mean of the value
+//                  rms - RMS of the values
+//                  dmean - error on the mean = rms/sqrt(count)
+//                  min - Minimum value
+//                  max - Maximum value
+//                  center - 0.5*(min+max)
+//                  range - max - min
+//                  halfRange - 0.5*range
 //   ChannelRanges - Channel ranges for which metric channel histograms and plots are made.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
@@ -115,6 +128,7 @@ private:
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
   float          m_MetricMin;
@@ -134,8 +148,11 @@ private:
   // Channel ranges.
   IndexRangeVector m_crs;
   
-  // Flag indicating separate plots should be made based on status.
+  // Summary info.
   bool m_doSummary;
+  bool m_doSummaryError;
+  Name m_summaryValue;
+  Name m_summaryError;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -155,8 +172,16 @@ private:
     Index count = 0;
     double sum = 0.0;
     double sumsq = 0.0;
+    double minval = 0.0;
+    double maxval = 0.0;
     // Add an entry.
-    void add(double val) { ++count; sum+=val; sumsq+=val*val; }
+    void add(double val) {
+      if ( count == 0 || val < minval ) minval = val;
+      if ( count == 0 || val > maxval ) maxval = val;
+      ++count;
+      sum+=val;
+      sumsq+=val*val;
+    }
     double mean() const { return count ? sum/count : 0.0; }
     double meansq() const { return count ? sumsq/count : 0.0; }
     double rms() const {
@@ -165,6 +190,27 @@ private:
       return arg > 0 ? sqrt(arg) : 0.0;
     }
     double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
+    double center() const { return 0.5*(minval + maxval); }
+    double range() const { return  maxval - minval; }
+    // Return if the provided string is a value name.
+    static bool isValueName(Name vnam) {
+      const std::set<Name> sumVals =
+        {"count", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
+      return sumVals.find(vnam) != sumVals.end();
+    }
+    // Return a value by name.
+    float getValue(Name vnam) const {
+      if ( vnam == "count" ) return count;
+      if ( vnam == "mean" ) return mean();
+      if ( vnam == "rms" ) return rms();
+      if ( vnam == "min" ) return minval;
+      if ( vnam == "max" ) return maxval;
+      if ( vnam == "center" ) return center();
+      if ( vnam == "range" ) return range();
+      if ( vnam == "halfRange" ) return 0.5*range();
+      if ( vnam == "dmean" ) return dmean();
+      return 0.0;
+    }
   };
 
   class Metric {

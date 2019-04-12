@@ -127,6 +127,30 @@ tools.adcCorrectUndershootKe.SignalThreshold: [      0.50,      0.50,     0.50 ]
 
 tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 
+# Signal finder to use with tail removal.
+tools.adcTailSignalFinderAdc: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 20.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
+tools.adcTailSignalFinderKe.Threshold: 0.5
+
+tools.adcTailRemovalAdc: {
+  tool_type: ExpTailRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderAdc
+  CorrectFlag: [true, false, false]
+}
+
 ################################################################################
 # Event metrics.
 ################################################################################
@@ -447,6 +471,7 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
@@ -462,6 +487,7 @@ pdtps_template: {
 pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
@@ -678,6 +704,7 @@ tools.pdwzs_adcChannelPedestalDiffPlotter.PlotFileName: "chmet_pedd_%CRNAME%_run
 pdmet_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  MetricSummaryView: ""
   MetricBins: 100
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
@@ -813,3 +840,9 @@ tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
 
 tools.pdsp_noiseRemoval: @local::tools.pdsp_noiseRemovalAdc
 
+tools.pdsp_RemoveBadChannels: {
+  tool_type: RemoveBadChannels
+  LogLevel: 1
+  RemoveBadChs: true
+  RemoveNoisyChs: true
+}

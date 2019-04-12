@@ -151,17 +151,19 @@ simple_plugin(UndershootCorr   "tool"
              )
 
 simple_plugin(ExpTailRemover   "tool"
-              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-                        art_Utilities canvas
-                        ${CETLIB_LIBS}
-                        ${MF_MESSAGELOGGER}
-                        ${ROOT_BASIC_LIB_LIST}
+                dune_DuneCommon
+                dune_ArtSupport
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                ${ART_FRAMEWORK_CORE}
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                art_Utilities canvas
+                ${CETLIB_LIBS}
+                ${MF_MESSAGELOGGER}
+                ${ROOT_BASIC_LIB_LIST}
              )
 
 simple_plugin(VintageDeconvoluter   "tool"
@@ -277,6 +279,15 @@ simple_plugin(PdspNoiseRemoval   "tool"
                ${ROOT_BASIC_LIB_LIST}
                ${ROOT_SPECTRUM}
              )
+
+simple_plugin(RemoveBadChannels   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 install_source()
 
