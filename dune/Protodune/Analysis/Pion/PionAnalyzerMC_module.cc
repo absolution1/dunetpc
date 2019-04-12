@@ -510,6 +510,7 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("endZ", &endZ);
   fTree->Branch("len", &len);
   fTree->Branch("run", &run);
+  fTree->Branch("subrun", &subrun);
   fTree->Branch("event", &event);
   fTree->Branch("type", &type);
   fTree->Branch("nBeamParticles", &nBeamParticles);
