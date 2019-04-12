@@ -428,9 +428,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
             MC_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
           }
           else{
-            MC_daughter_true_PDGs.push_back( -1 );
-            MC_daughter_true_IDs.push_back( -1 );
-            MC_daughter_true_lens.push_back( -1. );
+
+            MC_daughter_true_PDGs.push_back( daughterParticleFromRecoTrack->PdgCode() );
+            MC_daughter_true_IDs.push_back( daughterParticleFromRecoTrack->TrackId() );
+            MC_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
           }
         }
 
@@ -441,8 +442,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
         bool found_daughter = false;
         const simb::MCParticle* daughterParticleFromRecoShower = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag); 
+        std::cout << "Shower daughter " << i << " " << daughterParticleFromRecoShower << std::endl;
 
         if( daughterParticleFromRecoShower ){
+          std::cout << "Shower daughter ID: " << daughterParticleFromRecoShower->TrackId() << std::endl;
           int loc = 0;
           for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
             if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
@@ -459,9 +462,9 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
             MC_shower_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
           }
           else{
-            MC_shower_daughter_true_PDGs.push_back( -1 );
-            MC_shower_daughter_true_IDs.push_back( -1 );
-            MC_shower_daughter_true_lens.push_back( -1. );
+            MC_shower_daughter_true_PDGs.push_back( daughterParticleFromRecoShower->PdgCode() );
+            MC_shower_daughter_true_IDs.push_back( daughterParticleFromRecoShower->TrackId() );
+            MC_shower_daughter_true_lens.push_back( daughterParticleFromRecoShower->Trajectory().TotalLength() );
           }
         }
 
