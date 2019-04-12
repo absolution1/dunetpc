@@ -98,10 +98,16 @@ private:
   std::vector< bool > MC_daughter_good_reco;
   std::vector< int > MC_daughter_true_PDGs;
   std::vector< int > MC_daughter_true_IDs;
+
+  std::vector< bool > MC_shower_daughter_good_reco;
+  std::vector< int > MC_shower_daughter_true_PDGs;
+  std::vector< int > MC_shower_daughter_true_IDs;
+
   std::vector< int > geantGood_daughter_PDGs;
   std::vector< int > geantGood_daughter_IDs;
   std::vector< double > geantGood_daughter_lens;
   std::vector< double > MC_daughter_true_lens;
+  std::vector< double > MC_shower_daughter_true_lens;
   std::vector< double > MC_daughter_reco_lens;
   std::vector< bool > MC_daughter_shower_good_reco;
   bool MC_good_reco;
@@ -430,6 +436,37 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
       }
 
+      for( size_t i = 0; i < showerDaughters.size(); ++i ){
+        auto daughterShowerFromRecoTrack = showerDaughters[i];
+
+        bool found_daughter = false;
+        const simb::MCParticle* daughterParticleFromRecoShower = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag); 
+
+        if( daughterParticleFromRecoShower ){
+          int loc = 0;
+          for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
+            if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
+              found_daughter = true;
+              loc = j;
+              break;
+            }
+          }
+
+          MC_shower_daughter_good_reco.push_back( found_daughter );
+          if( found_daughter ){
+            MC_shower_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
+            MC_shower_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
+            MC_shower_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
+          }
+          else{
+            MC_shower_daughter_true_PDGs.push_back( -1 );
+            MC_shower_daughter_true_IDs.push_back( -1 );
+            MC_shower_daughter_true_lens.push_back( -1. );
+          }
+        }
+
+      }
+
 
       geantGood_EndProcess = geantGoodParticle->EndProcess();
 
@@ -558,10 +595,16 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("MC_daughter_good_reco", &MC_daughter_good_reco);
   fTree->Branch("MC_daughter_true_PDGs", &MC_daughter_true_PDGs);
   fTree->Branch("MC_daughter_true_IDs", &MC_daughter_true_IDs);
+
+  fTree->Branch("MC_shower_daughter_good_reco", &MC_shower_daughter_good_reco);
+  fTree->Branch("MC_shower_daughter_true_PDGs", &MC_shower_daughter_true_PDGs);
+  fTree->Branch("MC_shower_daughter_true_IDs", &MC_shower_daughter_true_IDs);
+
   fTree->Branch("geantGood_daughter_PDGs", &geantGood_daughter_PDGs);
   fTree->Branch("geantGood_daughter_IDs", &geantGood_daughter_IDs);
   fTree->Branch("geantGood_daughter_lens", &geantGood_daughter_lens);
   fTree->Branch("MC_daughter_true_lens", &MC_daughter_true_lens);
+  fTree->Branch("MC_shower_daughter_true_lens", &MC_shower_daughter_true_lens);
   fTree->Branch("MC_daughter_reco_lens", &MC_daughter_reco_lens);
   fTree->Branch("MC_daughter_shower_good_reco", &MC_daughter_shower_good_reco);
 
@@ -603,9 +646,15 @@ void pionana::PionAnalyzerMC::reset()
   MC_daughter_good_reco.clear();
   MC_daughter_true_PDGs.clear();
   MC_daughter_true_IDs.clear();
+
+  MC_shower_daughter_good_reco.clear();
+  MC_shower_daughter_true_PDGs.clear();
+  MC_shower_daughter_true_IDs.clear();
+
   geantGood_daughter_PDGs.clear();
   geantGood_daughter_lens.clear();
   MC_daughter_true_lens.clear();
+  MC_shower_daughter_true_lens.clear();
   MC_daughter_reco_lens.clear();
   geantGood_daughter_IDs.clear();
   MC_daughter_shower_good_reco.clear();
