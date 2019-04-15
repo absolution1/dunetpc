@@ -748,7 +748,7 @@ EOF
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-      print CRYO <<EOF;
+      print TPC <<EOF;
   <physvol>
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>

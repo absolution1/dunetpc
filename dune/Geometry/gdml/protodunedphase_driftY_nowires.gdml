@@ -21,6 +21,15 @@
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
    <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
    <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
+
+   <rotation name="rot04"      unit="deg" x="0" y="270" z="90"/>
+   <rotation name="rot07"      unit="deg" x="0" y="90" z="90"/>
+
+   <rotation name="rot03"      unit="deg" x="0" y="90" z="270"/>
+   <rotation name="rot08"      unit="deg" x="0" y="270" z="270"/>
+
+   <rotation name="rot06"      unit="deg" x="180" y="270" z="0"/>
+   <rotation name="rot05"      unit="deg" x="180" y="90" z="0"/>
 </define>
 <materials>
   <element name="videRef" formula="VACUUM" Z="1">  <atom value="1"/> </element>
@@ -359,6 +368,302 @@
 
 
 
+ <tube name="PMTVolume"
+  rmax="16.51"
+  z="28.194"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+
+        
+	<xtru name="FIELD_SHAPER-SOL" lunit="mm">
+	<twoDimVertex x="3.174889" y="4.182078"/>
+	<twoDimVertex x="3.287192" y="4.163508"/>
+	<twoDimVertex x="3.392385" y="4.120019"/>
+	<twoDimVertex x="3.485016" y="4.053866"/>
+	<twoDimVertex x="3.560284" y="3.968476"/>
+	<twoDimVertex x="3.614289" y="3.868273"/>
+	<twoDimVertex x="3.640993" y="3.777188"/>
+	<twoDimVertex x="3.650003" y="3.682696"/>
+	<twoDimVertex x="3.650003" y="0.765841000000002"/>
+	<twoDimVertex x="3.635299" y="0.645475999999999"/>
+	<twoDimVertex x="3.59205" y="0.532188999999999"/>
+	<twoDimVertex x="3.522803" y="0.432644"/>
+	<twoDimVertex x="3.431628" y="0.352698"/>
+	<twoDimVertex x="3.323888" y="0.297053000000002"/>
+	<twoDimVertex x="3.226003" y="0.271650999999999"/>
+	<twoDimVertex x="3.125008" y="0.266466999999999"/>
+	<twoDimVertex x="3.044094" y="0.263959"/>
+	<twoDimVertex x="2.964646" y="0.248422999999999"/>
+	<twoDimVertex x="2.852753" y="0.201684"/>
+	<twoDimVertex x="2.755402" y="0.129382"/>
+	<twoDimVertex x="2.67832" y="0.0357690000000019"/>
+	<twoDimVertex x="2.626041" y="-0.0736460000000001"/>
+	<twoDimVertex x="2.60164" y="-0.192428"/>
+	<twoDimVertex x="2.606552" y="-0.313592"/>
+	<twoDimVertex x="2.640488" y="-0.430011"/>
+	<twoDimVertex x="2.701452" y="-0.534835000000001"/>
+	<twoDimVertex x="2.785858" y="-0.6219"/>
+	<twoDimVertex x="2.888742" y="-0.686086"/>
+	<twoDimVertex x="3.004052" y="-0.723614999999999"/>
+	<twoDimVertex x="3.125005" y="-0.732282000000001"/>
+	<twoDimVertex x="3.245956" y="-0.740949000000001"/>
+	<twoDimVertex x="3.361264" y="-0.778479999999998"/>
+	<twoDimVertex x="3.464146" y="-0.842666000000001"/>
+	<twoDimVertex x="3.548551" y="-0.929731"/>
+	<twoDimVertex x="3.609514" y="-1.034553"/>
+	<twoDimVertex x="3.639776" y="-1.131048"/>
+	<twoDimVertex x="3.650003" y="-1.231656"/>
+	<twoDimVertex x="3.650003" y="-4.051359"/>
+	<twoDimVertex x="3.636188" y="-4.168081"/>
+	<twoDimVertex x="3.595506" y="-4.278353"/>
+	<twoDimVertex x="3.530206" y="-4.376082"/>
+	<twoDimVertex x="3.443895" y="-4.455866"/>
+	<twoDimVertex x="3.341345" y="-4.513298"/>
+	<twoDimVertex x="3.247548" y="-4.54175"/>
+	<twoDimVertex x="3.150003" y="-4.551358"/>
+	<twoDimVertex x="2.599999" y="-4.551358"/>
+	<twoDimVertex x="2.521782" y="-4.557514"/>
+	<twoDimVertex x="2.44549" y="-4.57583"/>
+	<twoDimVertex x="2.338749" y="-4.625038"/>
+	<twoDimVertex x="2.246446" y="-4.697805"/>
+	<twoDimVertex x="2.173679" y="-4.790109"/>
+	<twoDimVertex x="2.124471" y="-4.89685"/>
+	<twoDimVertex x="2.10154" y="-5.012128"/>
+	<twoDimVertex x="2.106155" y="-5.129575"/>
+	<twoDimVertex x="2.138059" y="-5.2427"/>
+	<twoDimVertex x="2.19549" y="-5.345251"/>
+	<twoDimVertex x="2.275275" y="-5.431561"/>
+	<twoDimVertex x="2.373003" y="-5.496861"/>
+	<twoDimVertex x="2.483276" y="-5.537543"/>
+	<twoDimVertex x="2.599999" y="-5.551358"/>
+	<twoDimVertex x="4.449998" y="-5.551358"/>
+	<twoDimVertex x="4.547543" y="-5.54175"/>
+	<twoDimVertex x="4.64134" y="-5.513298"/>
+	<twoDimVertex x="4.743891" y="-5.455866"/>
+	<twoDimVertex x="4.830201" y="-5.376082"/>
+	<twoDimVertex x="4.895501" y="-5.278353"/>
+	<twoDimVertex x="4.936183" y="-5.168081"/>
+	<twoDimVertex x="4.949998" y="-5.051358"/>
+	<twoDimVertex x="4.949998" y="3.827153"/>
+	<twoDimVertex x="4.965356" y="3.950123"/>
+	<twoDimVertex x="5.010485" y="4.065541"/>
+	<twoDimVertex x="5.082615" y="4.166314"/>
+	<twoDimVertex x="5.177314" y="4.246251"/>
+	<twoDimVertex x="5.288764" y="4.300442"/>
+	<twoDimVertex x="5.389517" y="4.323481"/>
+	<twoDimVertex x="5.492853" y="4.325318"/>
+	<twoDimVertex x="9.961787" y="3.782179"/>
+	<twoDimVertex x="13.85859" y="2.875176"/>
+	<twoDimVertex x="17.583122" y="1.413806"/>
+	<twoDimVertex x="21.056972" y="-0.571162999999999"/>
+	<twoDimVertex x="21.410387" y="-0.867622000000001"/>
+	<twoDimVertex x="21.693333" y="-1.231946"/>
+	<twoDimVertex x="21.893082" y="-1.647748"/>
+	<twoDimVertex x="22.000649" y="-2.096324"/>
+	<twoDimVertex x="22.011195" y="-2.557496"/>
+	<twoDimVertex x="21.924246" y="-3.01052"/>
+	<twoDimVertex x="21.743713" y="-3.435018"/>
+	<twoDimVertex x="21.477717" y="-3.811897"/>
+	<twoDimVertex x="21.138223" y="-4.124202"/>
+	<twoDimVertex x="20.740501" y="-4.357886"/>
+	<twoDimVertex x="20.302442" y="-4.502438"/>
+	<twoDimVertex x="19.84375" y="-4.551358"/>
+	<twoDimVertex x="14.900003" y="-4.551358"/>
+	<twoDimVertex x="14.821786" y="-4.557514"/>
+	<twoDimVertex x="14.745494" y="-4.57583"/>
+	<twoDimVertex x="14.638754" y="-4.625038"/>
+	<twoDimVertex x="14.54645" y="-4.697805"/>
+	<twoDimVertex x="14.473683" y="-4.790109"/>
+	<twoDimVertex x="14.424475" y="-4.89685"/>
+	<twoDimVertex x="14.401544" y="-5.012128"/>
+	<twoDimVertex x="14.406159" y="-5.129575"/>
+	<twoDimVertex x="14.438063" y="-5.2427"/>
+	<twoDimVertex x="14.495494" y="-5.345251"/>
+	<twoDimVertex x="14.575279" y="-5.431561"/>
+	<twoDimVertex x="14.673007" y="-5.496862"/>
+	<twoDimVertex x="14.78328" y="-5.537543"/>
+	<twoDimVertex x="14.900003" y="-5.551358"/>
+	<twoDimVertex x="19.843727" y="-5.551355"/>
+	<twoDimVertex x="20.513314" y="-5.479951"/>
+	<twoDimVertex x="21.152782" y="-5.268942"/>
+	<twoDimVertex x="21.733367" y="-4.927821"/>
+	<twoDimVertex x="22.228955" y="-4.471929"/>
+	<twoDimVertex x="22.617251" y="-3.921775"/>
+	<twoDimVertex x="22.880791" y="-3.302104"/>
+	<twoDimVertex x="23.007719" y="-2.640792"/>
+	<twoDimVertex x="22.992327" y="-1.967586"/>
+	<twoDimVertex x="22.835306" y="-1.312766"/>
+	<twoDimVertex x="22.543721" y="-0.705788999999999"/>
+	<twoDimVertex x="22.130685" y="-0.173957000000001"/>
+	<twoDimVertex x="21.614779" y="0.258807000000001"/>
+	<twoDimVertex x="18.014949" y="2.315762"/>
+	<twoDimVertex x="14.155346" y="3.830128"/>
+	<twoDimVertex x="10.117223" y="4.770024"/>
+	<twoDimVertex x="4.51123" y="5.404618"/>
+	<twoDimVertex x="-1.128658" y="5.551358"/>
+	<twoDimVertex x="-10.117225" y="4.770024"/>
+	<twoDimVertex x="-14.155346" y="3.830128"/>
+	<twoDimVertex x="-18.014946" y="2.315762"/>
+	<twoDimVertex x="-21.614774" y="0.258808999999999"/>
+	<twoDimVertex x="-22.130682" y="-0.173954999999999"/>
+	<twoDimVertex x="-22.543718" y="-0.705787000000001"/>
+	<twoDimVertex x="-22.835302" y="-1.312765"/>
+	<twoDimVertex x="-22.992326" y="-1.967584"/>
+	<twoDimVertex x="-23.007719" y="-2.64079"/>
+	<twoDimVertex x="-22.880788" y="-3.302103"/>
+	<twoDimVertex x="-22.61725" y="-3.921773"/>
+	<twoDimVertex x="-22.228952" y="-4.471928"/>
+	<twoDimVertex x="-21.733366" y="-4.92782"/>
+	<twoDimVertex x="-21.15278" y="-5.268942"/>
+	<twoDimVertex x="-20.513313" y="-5.479951"/>
+	<twoDimVertex x="-19.843727" y="-5.551358"/>
+	<twoDimVertex x="-14.900001" y="-5.551358"/>
+	<twoDimVertex x="-14.821785" y="-5.545203"/>
+	<twoDimVertex x="-14.745493" y="-5.526886"/>
+	<twoDimVertex x="-14.638752" y="-5.477678"/>
+	<twoDimVertex x="-14.546447" y="-5.404911"/>
+	<twoDimVertex x="-14.47368" y="-5.312607"/>
+	<twoDimVertex x="-14.424472" y="-5.205866"/>
+	<twoDimVertex x="-14.401542" y="-5.090588"/>
+	<twoDimVertex x="-14.406156" y="-4.973141"/>
+	<twoDimVertex x="-14.438062" y="-4.860016"/>
+	<twoDimVertex x="-14.495493" y="-4.757466"/>
+	<twoDimVertex x="-14.575277" y="-4.671155"/>
+	<twoDimVertex x="-14.673006" y="-4.605854"/>
+	<twoDimVertex x="-14.783279" y="-4.565174"/>
+	<twoDimVertex x="-14.900001" y="-4.551358"/>
+	<twoDimVertex x="-19.84375" y="-4.551355"/>
+	<twoDimVertex x="-20.30244" y="-4.502438"/>
+	<twoDimVertex x="-20.740499" y="-4.357886"/>
+	<twoDimVertex x="-21.13822" y="-4.124202"/>
+	<twoDimVertex x="-21.477714" y="-3.811899"/>
+	<twoDimVertex x="-21.743711" y="-3.43502"/>
+	<twoDimVertex x="-21.924244" y="-3.010522"/>
+	<twoDimVertex x="-22.011194" y="-2.557498"/>
+	<twoDimVertex x="-22.000646" y="-2.096328"/>
+	<twoDimVertex x="-21.893081" y="-1.647752"/>
+	<twoDimVertex x="-21.693334" y="-1.23195"/>
+	<twoDimVertex x="-21.410389" y="-0.867626000000001"/>
+	<twoDimVertex x="-21.056972" y="-0.571165999999998"/>
+	<twoDimVertex x="-17.583122" y="1.413806"/>
+	<twoDimVertex x="-13.858589" y="2.875176"/>
+	<twoDimVertex x="-9.961782" y="3.782178"/>
+	<twoDimVertex x="-5.492853" y="4.325312"/>
+	<twoDimVertex x="-5.369017" y="4.320551"/>
+	<twoDimVertex x="-5.250157" y="4.285479"/>
+	<twoDimVertex x="-5.143572" y="4.222252"/>
+	<twoDimVertex x="-5.055813" y="4.134755"/>
+	<twoDimVertex x="-4.992267" y="4.028359"/>
+	<twoDimVertex x="-4.960678" y="3.929951"/>
+	<twoDimVertex x="-4.949997" y="3.827153"/>
+	<twoDimVertex x="-4.949997" y="-5.051358"/>
+	<twoDimVertex x="-4.940388" y="-5.148903"/>
+	<twoDimVertex x="-4.911935" y="-5.2427"/>
+	<twoDimVertex x="-4.854504" y="-5.345251"/>
+	<twoDimVertex x="-4.77472" y="-5.431561"/>
+	<twoDimVertex x="-4.676991" y="-5.496861"/>
+	<twoDimVertex x="-4.566719" y="-5.537543"/>
+	<twoDimVertex x="-4.449997" y="-5.551358"/>
+	<twoDimVertex x="-2.599997" y="-5.551358"/>
+	<twoDimVertex x="-2.52178" y="-5.545203"/>
+	<twoDimVertex x="-2.445489" y="-5.526886"/>
+	<twoDimVertex x="-2.338748" y="-5.477678"/>
+	<twoDimVertex x="-2.246443" y="-5.404911"/>
+	<twoDimVertex x="-2.173677" y="-5.312607"/>
+	<twoDimVertex x="-2.124468" y="-5.205866"/>
+	<twoDimVertex x="-2.101538" y="-5.090588"/>
+	<twoDimVertex x="-2.106153" y="-4.973141"/>
+	<twoDimVertex x="-2.138057" y="-4.860016"/>
+	<twoDimVertex x="-2.195489" y="-4.757466"/>
+	<twoDimVertex x="-2.275273" y="-4.671155"/>
+	<twoDimVertex x="-2.373002" y="-4.605854"/>
+	<twoDimVertex x="-2.483274" y="-4.565174"/>
+	<twoDimVertex x="-2.599997" y="-4.551358"/>
+	<twoDimVertex x="-3.150001" y="-4.551358"/>
+	<twoDimVertex x="-3.266724" y="-4.537543"/>
+	<twoDimVertex x="-3.376997" y="-4.496862"/>
+	<twoDimVertex x="-3.474725" y="-4.431561"/>
+	<twoDimVertex x="-3.55451" y="-4.345251"/>
+	<twoDimVertex x="-3.611941" y="-4.2427"/>
+	<twoDimVertex x="-3.640394" y="-4.148904"/>
+	<twoDimVertex x="-3.650001" y="-4.051359"/>
+	<twoDimVertex x="-3.650001" y="-1.231656"/>
+	<twoDimVertex x="-3.635296" y="-1.111289"/>
+	<twoDimVertex x="-3.592049" y="-0.998002"/>
+	<twoDimVertex x="-3.522801" y="-0.89846"/>
+	<twoDimVertex x="-3.431626" y="-0.818512999999999"/>
+	<twoDimVertex x="-3.323887" y="-0.762865999999999"/>
+	<twoDimVertex x="-3.226001" y="-0.737466000000001"/>
+	<twoDimVertex x="-3.125007" y="-0.732282000000001"/>
+	<twoDimVertex x="-3.049645" y="-0.722729999999999"/>
+	<twoDimVertex x="-2.976599" y="-0.701872999999999"/>
+	<twoDimVertex x="-2.875039" y="-0.650507999999999"/>
+	<twoDimVertex x="-2.787724" y="-0.577507999999998"/>
+	<twoDimVertex x="-2.719181" y="-0.486654000000002"/>
+	<twoDimVertex x="-2.672959" y="-0.382652"/>
+	<twoDimVertex x="-2.651454" y="-0.270893000000001"/>
+	<twoDimVertex x="-2.65578" y="-0.157163000000001"/>
+	<twoDimVertex x="-2.685712" y="-0.0473590000000002"/>
+	<twoDimVertex x="-2.739699" y="0.0528300000000002"/>
+	<twoDimVertex x="-2.814946" y="0.138217000000001"/>
+	<twoDimVertex x="-2.907552" y="0.204374999999999"/>
+	<twoDimVertex x="-3.012722" y="0.247876000000002"/>
+	<twoDimVertex x="-3.125003" y="0.266466999999999"/>
+	<twoDimVertex x="-3.245954" y="0.275136"/>
+	<twoDimVertex x="-3.361263" y="0.312666"/>
+	<twoDimVertex x="-3.464144" y="0.376850999999998"/>
+	<twoDimVertex x="-3.548549" y="0.463915"/>
+	<twoDimVertex x="-3.609512" y="0.568739000000001"/>
+	<twoDimVertex x="-3.639774" y="0.665232"/>
+	<twoDimVertex x="-3.650001" y="0.765841000000002"/>
+	<twoDimVertex x="-3.650001" y="3.682696"/>
+	<twoDimVertex x="-3.637045" y="3.795785"/>
+	<twoDimVertex x="-3.598845" y="3.903012"/>
+	<twoDimVertex x="-3.537384" y="3.998822"/>
+	<twoDimVertex x="-3.455846" y="4.078246"/>
+	<twoDimVertex x="-3.358455" y="4.137171"/>
+	<twoDimVertex x="-3.268812" y="4.168376"/>
+	<twoDimVertex x="-3.174888" y="4.182084"/>
+	
+	
+	<section zOrder="0" zPosition="-1523.5077" xOffset="0" yOffset="0" scalingFactor="1"/>
+	<section zOrder="1" zPosition="1431.2323" xOffset="0" yOffset="0" scalingFactor="1"/>
+	<section zOrder="2" zPosition="1523.5077" xOffset="0" yOffset="-48.2" scalingFactor="1"/>
+
+
+	</xtru>
+	
+   <box name="FieldCageModule" lunit="cm"
+      x="305.1"
+      y="6.199"
+      z="600"/>
+
+    
    <box name="CRM" lunit="cm" 
       x="301" 
       y="597.03" 
@@ -632,6 +937,749 @@
 
  </volume>
 
+
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
+  </physvol>
+
+ </volume>
+
+
+
+
+
+  <volume name="volFIELDSHAPER">
+  <materialref ref="ALUMINUM_Al"/>
+  <solidref ref="FIELD_SHAPER-SOL"/>
+  </volume>
+
+
+  <volume name="volFieldCageModule">
+  <materialref ref="LAr"/>
+  <solidref ref="FieldCageModule"/>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper0" unit="cm" x="0" y="2.41" z="297"/>
+   <rotation name="FShaperRot0" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper1" unit="cm" x="0" y="2.41" z="291"/>
+   <rotation name="FShaperRot1" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper2" unit="cm" x="0" y="2.41" z="285"/>
+   <rotation name="FShaperRot2" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper3" unit="cm" x="0" y="2.41" z="279"/>
+   <rotation name="FShaperRot3" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper4" unit="cm" x="0" y="2.41" z="273"/>
+   <rotation name="FShaperRot4" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper5" unit="cm" x="0" y="2.41" z="267"/>
+   <rotation name="FShaperRot5" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper6" unit="cm" x="0" y="2.41" z="261"/>
+   <rotation name="FShaperRot6" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper7" unit="cm" x="0" y="2.41" z="255"/>
+   <rotation name="FShaperRot7" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper8" unit="cm" x="0" y="2.41" z="249"/>
+   <rotation name="FShaperRot8" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper9" unit="cm" x="0" y="2.41" z="243"/>
+   <rotation name="FShaperRot9" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper10" unit="cm" x="0" y="2.41" z="237"/>
+   <rotation name="FShaperRot10" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper11" unit="cm" x="0" y="2.41" z="231"/>
+   <rotation name="FShaperRot11" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper12" unit="cm" x="0" y="2.41" z="225"/>
+   <rotation name="FShaperRot12" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper13" unit="cm" x="0" y="2.41" z="219"/>
+   <rotation name="FShaperRot13" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper14" unit="cm" x="0" y="2.41" z="213"/>
+   <rotation name="FShaperRot14" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper15" unit="cm" x="0" y="2.41" z="207"/>
+   <rotation name="FShaperRot15" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper16" unit="cm" x="0" y="2.41" z="201"/>
+   <rotation name="FShaperRot16" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper17" unit="cm" x="0" y="2.41" z="195"/>
+   <rotation name="FShaperRot17" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper18" unit="cm" x="0" y="2.41" z="189"/>
+   <rotation name="FShaperRot18" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper19" unit="cm" x="0" y="2.41" z="183"/>
+   <rotation name="FShaperRot19" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper20" unit="cm" x="0" y="2.41" z="177"/>
+   <rotation name="FShaperRot20" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper21" unit="cm" x="0" y="2.41" z="171"/>
+   <rotation name="FShaperRot21" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper22" unit="cm" x="0" y="2.41" z="165"/>
+   <rotation name="FShaperRot22" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper23" unit="cm" x="0" y="2.41" z="159"/>
+   <rotation name="FShaperRot23" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper24" unit="cm" x="0" y="2.41" z="153"/>
+   <rotation name="FShaperRot24" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper25" unit="cm" x="0" y="2.41" z="147"/>
+   <rotation name="FShaperRot25" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper26" unit="cm" x="0" y="2.41" z="141"/>
+   <rotation name="FShaperRot26" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper27" unit="cm" x="0" y="2.41" z="135"/>
+   <rotation name="FShaperRot27" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper28" unit="cm" x="0" y="2.41" z="129"/>
+   <rotation name="FShaperRot28" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper29" unit="cm" x="0" y="2.41" z="123"/>
+   <rotation name="FShaperRot29" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper30" unit="cm" x="0" y="2.41" z="117"/>
+   <rotation name="FShaperRot30" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper31" unit="cm" x="0" y="2.41" z="111"/>
+   <rotation name="FShaperRot31" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper32" unit="cm" x="0" y="2.41" z="105"/>
+   <rotation name="FShaperRot32" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper33" unit="cm" x="0" y="2.41" z="99"/>
+   <rotation name="FShaperRot33" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper34" unit="cm" x="0" y="2.41" z="93"/>
+   <rotation name="FShaperRot34" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper35" unit="cm" x="0" y="2.41" z="87"/>
+   <rotation name="FShaperRot35" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper36" unit="cm" x="0" y="2.41" z="81"/>
+   <rotation name="FShaperRot36" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper37" unit="cm" x="0" y="2.41" z="75"/>
+   <rotation name="FShaperRot37" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper38" unit="cm" x="0" y="2.41" z="69"/>
+   <rotation name="FShaperRot38" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper39" unit="cm" x="0" y="2.41" z="63"/>
+   <rotation name="FShaperRot39" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper40" unit="cm" x="0" y="2.41" z="57"/>
+   <rotation name="FShaperRot40" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper41" unit="cm" x="0" y="2.41" z="51"/>
+   <rotation name="FShaperRot41" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper42" unit="cm" x="0" y="2.41" z="45"/>
+   <rotation name="FShaperRot42" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper43" unit="cm" x="0" y="2.41" z="39"/>
+   <rotation name="FShaperRot43" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper44" unit="cm" x="0" y="2.41" z="33"/>
+   <rotation name="FShaperRot44" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper45" unit="cm" x="0" y="2.41" z="27"/>
+   <rotation name="FShaperRot45" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper46" unit="cm" x="0" y="2.41" z="21"/>
+   <rotation name="FShaperRot46" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper47" unit="cm" x="0" y="2.41" z="15"/>
+   <rotation name="FShaperRot47" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper48" unit="cm" x="0" y="2.41" z="9"/>
+   <rotation name="FShaperRot48" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper49" unit="cm" x="0" y="2.41" z="3"/>
+   <rotation name="FShaperRot49" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper50" unit="cm" x="0" y="2.41" z="-3"/>
+   <rotation name="FShaperRot50" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper51" unit="cm" x="0" y="2.41" z="-9"/>
+   <rotation name="FShaperRot51" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper52" unit="cm" x="0" y="2.41" z="-15"/>
+   <rotation name="FShaperRot52" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper53" unit="cm" x="0" y="2.41" z="-21"/>
+   <rotation name="FShaperRot53" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper54" unit="cm" x="0" y="2.41" z="-27"/>
+   <rotation name="FShaperRot54" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper55" unit="cm" x="0" y="2.41" z="-33"/>
+   <rotation name="FShaperRot55" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper56" unit="cm" x="0" y="2.41" z="-39"/>
+   <rotation name="FShaperRot56" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper57" unit="cm" x="0" y="2.41" z="-45"/>
+   <rotation name="FShaperRot57" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper58" unit="cm" x="0" y="2.41" z="-51"/>
+   <rotation name="FShaperRot58" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper59" unit="cm" x="0" y="2.41" z="-57"/>
+   <rotation name="FShaperRot59" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper60" unit="cm" x="0" y="2.41" z="-63"/>
+   <rotation name="FShaperRot60" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper61" unit="cm" x="0" y="2.41" z="-69"/>
+   <rotation name="FShaperRot61" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper62" unit="cm" x="0" y="2.41" z="-75"/>
+   <rotation name="FShaperRot62" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper63" unit="cm" x="0" y="2.41" z="-81"/>
+   <rotation name="FShaperRot63" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper64" unit="cm" x="0" y="2.41" z="-87"/>
+   <rotation name="FShaperRot64" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper65" unit="cm" x="0" y="2.41" z="-93"/>
+   <rotation name="FShaperRot65" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper66" unit="cm" x="0" y="2.41" z="-99"/>
+   <rotation name="FShaperRot66" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper67" unit="cm" x="0" y="2.41" z="-105"/>
+   <rotation name="FShaperRot67" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper68" unit="cm" x="0" y="2.41" z="-111"/>
+   <rotation name="FShaperRot68" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper69" unit="cm" x="0" y="2.41" z="-117"/>
+   <rotation name="FShaperRot69" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper70" unit="cm" x="0" y="2.41" z="-123"/>
+   <rotation name="FShaperRot70" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper71" unit="cm" x="0" y="2.41" z="-129"/>
+   <rotation name="FShaperRot71" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper72" unit="cm" x="0" y="2.41" z="-135"/>
+   <rotation name="FShaperRot72" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper73" unit="cm" x="0" y="2.41" z="-141"/>
+   <rotation name="FShaperRot73" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper74" unit="cm" x="0" y="2.41" z="-147"/>
+   <rotation name="FShaperRot74" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper75" unit="cm" x="0" y="2.41" z="-153"/>
+   <rotation name="FShaperRot75" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper76" unit="cm" x="0" y="2.41" z="-159"/>
+   <rotation name="FShaperRot76" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper77" unit="cm" x="0" y="2.41" z="-165"/>
+   <rotation name="FShaperRot77" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper78" unit="cm" x="0" y="2.41" z="-171"/>
+   <rotation name="FShaperRot78" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper79" unit="cm" x="0" y="2.41" z="-177"/>
+   <rotation name="FShaperRot79" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper80" unit="cm" x="0" y="2.41" z="-183"/>
+   <rotation name="FShaperRot80" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper81" unit="cm" x="0" y="2.41" z="-189"/>
+   <rotation name="FShaperRot81" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper82" unit="cm" x="0" y="2.41" z="-195"/>
+   <rotation name="FShaperRot82" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper83" unit="cm" x="0" y="2.41" z="-201"/>
+   <rotation name="FShaperRot83" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper84" unit="cm" x="0" y="2.41" z="-207"/>
+   <rotation name="FShaperRot84" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper85" unit="cm" x="0" y="2.41" z="-213"/>
+   <rotation name="FShaperRot85" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper86" unit="cm" x="0" y="2.41" z="-219"/>
+   <rotation name="FShaperRot86" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper87" unit="cm" x="0" y="2.41" z="-225"/>
+   <rotation name="FShaperRot87" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper88" unit="cm" x="0" y="2.41" z="-231"/>
+   <rotation name="FShaperRot88" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper89" unit="cm" x="0" y="2.41" z="-237"/>
+   <rotation name="FShaperRot89" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper90" unit="cm" x="0" y="2.41" z="-243"/>
+   <rotation name="FShaperRot90" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper91" unit="cm" x="0" y="2.41" z="-249"/>
+   <rotation name="FShaperRot91" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper92" unit="cm" x="0" y="2.41" z="-255"/>
+   <rotation name="FShaperRot92" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper93" unit="cm" x="0" y="2.41" z="-261"/>
+   <rotation name="FShaperRot93" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper94" unit="cm" x="0" y="2.41" z="-267"/>
+   <rotation name="FShaperRot94" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper95" unit="cm" x="0" y="2.41" z="-273"/>
+   <rotation name="FShaperRot95" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper96" unit="cm" x="0" y="2.41" z="-279"/>
+   <rotation name="FShaperRot96" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper97" unit="cm" x="0" y="2.41" z="-285"/>
+   <rotation name="FShaperRot97" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper98" unit="cm" x="0" y="2.41" z="-291"/>
+   <rotation name="FShaperRot98" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+   <physvol>
+   <volumeref ref="volFIELDSHAPER"/>
+   <position name="posFieldShaper99" unit="cm" x="0" y="2.41" z="-297"/>
+   <rotation name="FShaperRot99" unit="deg" x="0" y="270" z="0"/>
+  </physvol>
+
+
+</volume>
 
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
@@ -926,6 +1974,48 @@
    
    <position name="posPMT35" unit="cm" y="-376.5"  z="238" x="170" />
    <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule01" unit="cm" x="153.521" y="43.4699999999999" z="-309.593"/>
+   <rotation name="rotFC01" unit="deg" x="90" y="0" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule02" unit="cm" x="153.521" y="43.4699999999999" z="309.593"/>
+   <rotation name="rotFC02" unit="deg" x="270" y="0" z="0"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule05" unit="cm" x="309.593" y="43.4699999999999" z="153.521"/>
+   <rotation name="rotFC05" unit="deg" x="90" y="0" z="90"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule06" unit="cm" x="309.593" y="43.4699999999999" z="-153.521"/>
+   <rotation name="rotFC06" unit="deg" x="270" y="0" z="90"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule03" unit="cm" x="-309.593" y="43.4699999999999" z="-153.521"/>
+   <rotation name="rotFC06" unit="deg" x="90" y="0" z="270"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule04" unit="cm" x="-309.593" y="43.4699999999999" z="153.521"/>
+   <rotation name="rotFC06" unit="deg" x="270" y="0" z="270"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule07" unit="cm" x="-153.521" y="43.4699999999999" z="309.593"/>
+   <rotation name="rotFC01" unit="deg" x="90" y="0" z="180"/>
+
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule08" unit="cm" x="-153.521" y="43.4699999999999" z="-309.593"/>
+   <rotation name="rotFC01" unit="deg" x="270" y="0" z="180"/>
+
   </physvol>
     </volume>
 
@@ -1831,7 +2921,7 @@
     
     <physvol name="volSteelSupport_Top">
     <volumeref ref="volSteelSupport_TB"/>
-    <position name="posSteelSupport_Top" x="0" y="476+30.9" z="0" unit="cm"/>
+    <position name="posSteelSupport_Top" x="0" y="507.1" z="0" unit="cm"/>
     <rotation name="rotSteelSupport_Top" x="90" y="0" z="0" unit="deg"/>
     
     </physvol>
@@ -1839,35 +2929,35 @@
     
     <physvol name="volSteelSupport_Bottom">
     <volumeref ref="volSteelSupport_TB"/>
-    <position name="posSteelSupport_Bottom" x="0" y="-476-30.9" z="0" unit="cm"/>
+    <position name="posSteelSupport_Bottom" x="0" y="-507.1" z="0" unit="cm"/>
     <rotation name="rotSteelSupport_Bottom" x="-90" y="0" z="0" unit="deg"/>
     </physvol>
     
     
     <physvol>
     <volumeref ref="volSteelSupport_US"/>
-    <position name="posSteelSupport_US" x="0" y="0" z="-508.4-30.9" unit="cm"/>
+    <position name="posSteelSupport_US" x="0" y="0" z="-539.5" unit="cm"/>
     <rotation name="rotSteelSupport_Front" x="0" y="0" z="0" unit="deg"/>
     </physvol>
     
     
     <physvol name="volSteelSupport_DS">
     <volumeref ref="volSteelSupport_WS"/>
-    <position name="posSteelSupport_DS" x="0" y="0" z="508.4+30.9" unit="cm"/>
+    <position name="posSteelSupport_DS" x="0" y="0" z="539.5" unit="cm"/>
     <rotation name="rotSteelSupport_Back" x="0" y="0" z="" unit="deg"/>
     </physvol>
     
     
     <physvol name="volSteelSupport_LS">
     <volumeref ref="volSteelSupport_LR"/>
-    <position name="posSteelSupport_LS" x="508.4+30.9" y="0" z="0" unit="cm"/>
+    <position name="posSteelSupport_LS" x="539.5" y="0" z="0" unit="cm"/>
     <rotation name="rotSteelSupport_LS" x="0" y="-90" z="0" unit="deg"/>
     </physvol>
     
     
     <physvol name="volSteelSupport_RS">
     <volumeref ref="volSteelSupport_LR"/>
-    <position name="posSteelSupport_RS" x="-508.4-30.9" y="0" z="0" unit="cm"/>
+    <position name="posSteelSupport_RS" x="-539.5" y="0" z="0" unit="cm"/>
     <rotation name="rotSteelSupport_RS" x="0" y="90" z="0" unit="deg"/>
     </physvol>
     

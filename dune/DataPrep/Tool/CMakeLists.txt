@@ -245,6 +245,7 @@ simple_plugin(FembMappedAdcModifier   "tool"
 
 simple_plugin(AdcChannelFFT   "tool"
                 dune_ArtSupport
+                dune_DuneCommon
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

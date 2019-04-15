@@ -88,10 +88,12 @@ public:
 
   // These methods do the work of calling Root interface to FFTW and converting to conventions here.
   // They could be moved to a utility class.
-  int fftForward(Index normOpt, Index ntick, const float* psam,
-                 FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases) const;
-  int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
-                 FloatVector& xres, FloatVector& xims, FloatVector& sams) const;
+  static int fftForward(Index normOpt, Index ntick, const float* psam,
+                        FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases,
+                        Index logLevel);
+  static int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
+                        FloatVector& xres, FloatVector& xims, FloatVector& sams,
+                        Index logLevel);
 
   // This does all the work of view:
   //   deciding what action to take

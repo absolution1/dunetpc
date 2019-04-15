@@ -30,6 +30,8 @@ private:
 
   // Configuration data.
   int                m_LogLevel;
+  bool               m_RemoveBadChs;
+  bool               m_RemoveNoisyChs;
 
   // Channel status provider.
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;

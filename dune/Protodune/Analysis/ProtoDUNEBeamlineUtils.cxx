@@ -252,19 +252,21 @@ TVector3 protoana::ProtoDUNEBeamlineUtils::ConvertMonitorCoordinates(double x, d
 }
 
 void protoana::ProtoDUNEBeamlineUtils::BeamMonitorBasisVectors(){
-  MonitorBasisX = TVector3(1.,0.,0.);
-  MonitorBasisY = TVector3(0.,1.,0.);
-  MonitorBasisZ = TVector3(0.,0.,1.);
+  MonitorBasisX = TVector3( 1., 0., 0. );
+  MonitorBasisY = TVector3( 0., 1., 0. );
+  MonitorBasisZ = TVector3( 0., 0., 1. );
+
   RotateMonitorVector(MonitorBasisX);
   RotateMonitorVector(MonitorBasisY);
   RotateMonitorVector(MonitorBasisZ);
+  
 
   rotated = true;
 }
 
 void protoana::ProtoDUNEBeamlineUtils::RotateMonitorVector(TVector3 &vec){
-  vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
+  vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
+  vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
 }
 
 

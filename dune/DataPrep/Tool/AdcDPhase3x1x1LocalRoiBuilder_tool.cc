@@ -28,7 +28,6 @@ using std::ostream;
 using std::cout;
 using std::endl;
 using std::setw;
-using art::ServiceHandle;
 
 //**********************************************************************
 // Class methods.

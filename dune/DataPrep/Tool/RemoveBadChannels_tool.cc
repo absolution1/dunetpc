@@ -16,11 +16,15 @@ using Index = unsigned int;
 //**********************************************************************
 
 RemoveBadChannels::RemoveBadChannels(fhicl::ParameterSet const& ps)
-: m_LogLevel(ps.get<int>("LogLevel")) {
+: m_LogLevel(ps.get<int>("LogLevel"))
+, m_RemoveBadChs(ps.get<bool>("RemoveBadChs"))
+, m_RemoveNoisyChs(ps.get<bool>("RemoveNoisyChs")) {
   const string myname = "RemoveBadChannels::ctor: ";
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Parameters:" << endl;
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
+    cout << myname << "         RemoveBadChs: " << m_RemoveBadChs << endl;
+    cout << myname << "         RemoveNoisyChs: " << m_RemoveNoisyChs << endl;
   }
   m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
   if ( m_pChannelStatusProvider == nullptr ) {
@@ -37,8 +41,9 @@ DataMap RemoveBadChannels::update(AdcChannelData& acd) const {
   DataMap ret;
 
   //Set channel output to 0 for bad channels
-  if (m_pChannelStatusProvider->IsBad(acd.channel) ||
-      m_pChannelStatusProvider->IsNoisy(acd.channel)){
+  if ((m_pChannelStatusProvider->IsBad(acd.channel) && m_RemoveBadChs) ||
+       (m_pChannelStatusProvider->IsNoisy(acd.channel) && m_RemoveNoisyChs)){
+    if ( m_LogLevel >= 2 ) cout << "Zeroing " << acd.run << " event " << acd.event << " channel " << acd.channel << endl;
     for ( float& sam : acd.samples ) sam = 0;
   }
 
