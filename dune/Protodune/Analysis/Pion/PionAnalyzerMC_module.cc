@@ -179,6 +179,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
    
   // Get the PFParticle utility
   protoana::ProtoDUNEPFParticleUtils pfpUtil;
+  protoana::ProtoDUNETrackUtils trackUtil;
 
   // Get all of the PFParticles, by default from the "pandora" product
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
@@ -279,30 +280,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         std::cout << "Daughter " << daughterID << " PDG: " << daughterParticle->PdgCode() << std::endl; 
       }
  
-      // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
-      // We can use the utility to get a vector of track-like and a vector of shower-like daughters
-      const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
-      const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
-      std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
-      std::cout << std::endl;
-
-      for( size_t i = 0; i < trackDaughters.size(); ++i ){
-        std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
-        daughter_len.push_back( trackDaughters[i]->Length() );
-      }
-
-      for( size_t i = 0; i < showerDaughters.size(); ++i ){
-        std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
-        daughter_showerID.push_back( showerDaughters[i]->ID() );
-        daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
-        daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
-        daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
-      }
-
-      nTrackDaughters = trackDaughters.size();
-      nShowerDaughters = showerDaughters.size();
-
-
 
       art::ServiceHandle<cheat::BackTrackerService> bt_serv;
       art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
@@ -403,8 +380,47 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
       }
 
-      //Add in check between true good particles and the reconstructed tracks
+      // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
+      // We can use the utility to get a vector of track-like and a vector of shower-like daughters
+      const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
+      const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
+      std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+      std::cout << std::endl;
+
+
+      nTrackDaughters = trackDaughters.size();
+
       for( size_t i = 0; i < trackDaughters.size(); ++i ){
+        std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
+        daughter_len.push_back( trackDaughters[i]->Length() );
+
+        auto daughterTrack = trackDaughters.at(i);
+        
+        daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
+        daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
+        daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
+        daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
+        daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
+        daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+
+        daughter_trackID.push_back( daughterTrack->ID() );
+
+
+        std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
+        auto dummy_dQdx = dummy_calo[0].dQdx();
+        auto dummy_dEdx = dummy_calo[0].dEdx();
+        auto dummy_Range = dummy_calo[0].ResidualRange();
+ 
+        daughter_dQdX.push_back( std::vector<double>() );   
+        daughter_resRange.push_back( std::vector<double>() );
+        daughter_dEdX.push_back( std::vector<double>() );
+
+        for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
+          daughter_dQdX.back().push_back( dummy_dQdx[i] );
+          daughter_resRange.back().push_back( dummy_Range[i] );
+          daughter_dEdX.back().push_back( dummy_dEdx[i] );
+        }
+
 
         auto daughterTrackFromRecoTrack = trackDaughters[i];
 
@@ -434,10 +450,24 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
             MC_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
           }
         }
-
+        else{
+          MC_daughter_good_reco.push_back( false );
+          MC_daughter_true_PDGs.push_back( -1 );
+          MC_daughter_true_IDs.push_back( -1 );
+          MC_daughter_true_lens.push_back( -1 );
+        }
+          
       }
 
+      nShowerDaughters = showerDaughters.size();
+
       for( size_t i = 0; i < showerDaughters.size(); ++i ){
+        std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
+        daughter_showerID.push_back( showerDaughters[i]->ID() );
+        daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
+        daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
+        daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
+
         auto daughterShowerFromRecoTrack = showerDaughters[i];
 
         bool found_daughter = false;
@@ -487,7 +517,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
       //Calorimetry 
       //
-      protoana::ProtoDUNETrackUtils trackUtil;
       std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
       std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
       auto calo_dQdX = calo[0].dQdx();
@@ -502,35 +531,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       }
 
 
-      //Go through the track-like daughters and save their calorimetry
-      for( size_t i = 0; i < trackDaughters.size(); ++i ){
-        auto daughterTrack = trackDaughters.at(i);
-        
-        daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
-        daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
-        daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
-        daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
-        daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
-        daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
-
-        daughter_trackID.push_back( daughterTrack->ID() );
-
-
-        std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
-        auto dummy_dQdx = dummy_calo[0].dQdx();
-        auto dummy_dEdx = dummy_calo[0].dEdx();
-        auto dummy_Range = dummy_calo[0].ResidualRange();
- 
-        daughter_dQdX.push_back( std::vector<double>() );   
-        daughter_resRange.push_back( std::vector<double>() );
-        daughter_dEdX.push_back( std::vector<double>() );
-
-        for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
-          daughter_dQdX.back().push_back( dummy_dQdx[i] );
-          daughter_resRange.back().push_back( dummy_Range[i] );
-          daughter_dEdX.back().push_back( dummy_dEdx[i] );
-        }
-      }
 
     } 
 
