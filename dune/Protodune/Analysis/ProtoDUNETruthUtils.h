@@ -27,6 +27,11 @@ namespace protoana {
     ProtoDUNETruthUtils();
     ~ProtoDUNETruthUtils();
 
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoTrack(
+      const recob::Track &track, art::Event const & evt, std::string trackModule) const;
+    std::vector<std::pair<const recob::Track*, double>> GetRecoTrackListFromMCParticle(
+      const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
+
     const simb::MCParticle* GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
     const recob::Track* GetRecoTrackFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
     const simb::MCParticle* GetMCParticleFromRecoShower(const recob::Shower &shower, art::Event const & evt, std::string showerModule) const;
