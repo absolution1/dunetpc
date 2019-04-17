@@ -33,6 +33,12 @@ cet_test(test_RootPalette SOURCES test_RootPalette.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_DuneFFT SOURCES test_DuneFFT.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
 cet_test(test_coldelecResponse SOURCES test_coldelecResponse.cxx
   LIBRARIES
     dune_DuneCommon
@@ -58,6 +64,12 @@ cet_test(test_GausStepFitter SOURCES test_GausStepFitter.cxx
 )
 
 cet_test(test_GausRmsFitter SOURCES test_GausRmsFitter.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
+cet_test(test_SampleTailer SOURCES test_SampleTailer.cxx
   LIBRARIES
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}

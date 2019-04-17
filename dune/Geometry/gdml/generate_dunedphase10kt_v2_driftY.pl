@@ -820,7 +820,7 @@ for($ii=0;$ii<$$ExtractionGridSizeX;$ii=$ii+$ExtractionGridPitch)
   <physvol>
    <volumeref ref="volExtractionGridCable"/>
    <position name="posExtractionGridCable$ii" unit="cm" x="@{[$ii-0.5*$ExtractionGridSizeX]}" y="0" z="0"/>
-   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   <rotation name="GGrot$ii" unit="deg" x="90" y="0" z="0" /> 
    </physvol>
 EOF
  
@@ -832,7 +832,7 @@ for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
   <physvol>
    <volumeref ref="volExtractionGridCable"/>
    <position name="posExtractionGridCableLat$jj" unit="cm" x="0" y="0" z="@{[$jj-0.5*$ExtractionGridSizeZ]}"/>
-   <rotation name="GGrot$aux2" unit="deg" x="90" y="0" z="0" /> 
+   <rotation name="GGrot2$jj" unit="deg" x="90" y="0" z="0" /> 
    </physvol>
 EOF
  

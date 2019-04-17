@@ -200,22 +200,22 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
     cout << myname << "      KeepChannelBegin: " << m_KeepChannelBegin << endl;
     cout << myname << "        KeepChannelEnd: " << m_KeepChannelEnd << endl;
-    cout << myname << "          SkipChannels: " << "{";
+    cout << myname << "          SkipChannels: " << "[";
     first = true;
     for ( AdcChannel ich : m_SkipChannels ) {
       if ( first ) first = false;
       else cout << ", ";
       cout << ich;
     }
-    cout << "}" << endl;
-    cout << myname << "             KeepFembs: " << "{";
+    cout << "]" << endl;
+    cout << myname << "             KeepFembs: " << "[";
     first = true;
     for ( AdcChannel ifmb : m_KeepFembs ) {
       if ( first ) first = false;
       else cout << ", ";
       cout << ifmb;
     }
-    cout << "}" << endl;
+    cout << "]" << endl;
   }
 }
 

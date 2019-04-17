@@ -83,6 +83,7 @@ namespace filt{
 
     bool checkTriggerFlag = fTimingFlagSelectList.size() || fTimingFlagDeselectList.size();
 
+    std::string stinfo = "Trigger check disabled.";
     if ( keep && checkTriggerFlag ) {
       // Fetch the trigger and timing clock.
       art::Handle<std::vector<raw::RDTimeStamp>> htims;
@@ -92,8 +93,10 @@ namespace filt{
 
       if ( ! htims.isValid() ) {
         std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
+        if ( fLogLevel >=2 ) stinfo = "Timing clocks product not found.";
       } else if (  htims->size() != 1 ) {
         std::cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << std::endl;
+        if ( fLogLevel >=2 ) stinfo = "Unexpected timing clocks size.";
         for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
           std::cout << myname << "  " << htims->at(itim).GetTimeStamp() << std::endl;
         }
@@ -102,6 +105,7 @@ namespace filt{
 
         // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
         unsigned int trigFlag = tim.GetFlags();
+        if ( fLogLevel >=2 ) stinfo = "Trigger flag: " + std::to_string(trigFlag);
 
         // If TimingFlagSelectList has entries, the trigger flag must be there.
         if ( fTimingFlagSelectList.size() ) {
@@ -121,7 +125,8 @@ namespace filt{
       }
     }
 
-    if ( fLogLevel >=2 ) std::cout << myname << (keep ? "Keep" : "Reject") << "ing event." << endl;
+    if ( fLogLevel >=2 ) std::cout << myname << (keep ? "Keep" : "Reject") << "ing event " << evt.event()
+                                   << ". "  << stinfo << endl;
     return keep;
 
   }
