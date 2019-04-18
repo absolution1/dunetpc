@@ -867,7 +867,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	    }
 	}
     }
-  else  // get all the fragments in the event and look for the ones that say TPC in them
+  else  // get all the fragments in the event and look for the ones that say FELIX in them
     {
       std::vector<art::Handle<artdaq::Fragments> > fraghv;  // fragment handle vector
       evt.getManyByType(fraghv);
