@@ -10,22 +10,17 @@
 
 -->
 
-   <position name="posCryoInDetEnc"     unit="cm" x="0" y="0" z="0"/>
+   <position name="posCryoInDetEnc"     unit="cm" x="" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
-   <rotation name="rMinus90AboutX"       unit="deg" x="270" y="0" z="0"/>
-
+   <rotation name="rPlus90AboutY"       unit="deg" x="90" y="90" z="0"/>
+   <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
+   <rotation name="rPlus90AboutX"      unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
-   <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
-
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
-   <rotation name="rPlus180AboutZ"	unit="deg" x="0" y="0"   z="180"/>
-
-   <rotation name="rPlus90AboutY"       unit="deg" x="0" y="90" z="0"/>
-   <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
-
+   <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
+   <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
 
    <rotation name="rot04"      unit="deg" x="0" y="270" z="90"/>
    <rotation name="rot07"      unit="deg" x="0" y="90" z="90"/>
@@ -35,15 +30,6 @@
 
    <rotation name="rot06"      unit="deg" x="180" y="270" z="0"/>
    <rotation name="rot05"      unit="deg" x="180" y="90" z="0"/>
-
-   <rotation name="rPlus90AboutZ"      unit="deg" x="0" y="0" z="90"/>
-   <rotation name="rMinus90AboutZ"      unit="deg" x="0" y="0" z="270"/>
-
-    
-    <rotation name="rBeamW3"             unit="deg" x="0" y="-16.1824077173347" z="43.7252002244654"/>
-
-
-
 </define>
 <materials>
   <element name="videRef" formula="VACUUM" Z="1">  <atom value="1"/> </element>
@@ -352,8 +338,39 @@
 </materials>
 <solids>
  <tube name="PMTVolume"
-  rmax="(6.5*2.54)"
-  z="(11.1*2.54)"
+  rmax="16.51"
+  z="28.194"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
+    <union name="pmt0x7fb8f489dfe0">
+      <first ref="pmtMiddleCylinder"/>
+      <second ref="sphPartTop"/>
+      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
+    <union name="pmt0x7fb8f48a0d50">
+      <first ref="pmt0x7fb8f489dfe0"/>
+      <second ref="sphPartBtm"/>
+      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
+    </union>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
+    <union name="solidpmt">
+      <first ref="pmt0x7fb8f48a0d50"/>
+      <second ref="pmtBtmTube"/>
+      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
+    </union>
+    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
+    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
+
+
+
+ <tube name="PMTVolume"
+  rmax="16.51"
+  z="28.194"
   deltaphi="360"
   aunit="deg"
   lunit="cm"/>
@@ -652,7 +669,7 @@
      <box name="GroundGridInnerBoxBorder" x="1" y="4" z="313.5" lunit="cm"/>
      <box name="GroundGridInnerBox" x="2" y="4" z="313.5" lunit="cm"/>
     <box name="GroundGridModule" x="317.5" y="4"    z="317.5" lunit="cm"/>
-     <tube name="GroundGridCable" rmin="0" rmax="0.1" z="313.5" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+     <tube name="GroundGridCable" rmin="0" rmax="0.2" z="313.5" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
 
 
 
@@ -693,6 +710,7 @@
     <box name="CathodeSupportSeparators" x="2" y="16"    z="4" lunit="cm"/>
     <box name="CathodeSupportSeparatorsBorder" x="2" y="33"    z="4" lunit="cm"/>
      <tube name="CathodeCable" rmin="0" rmax="0.5" z="128" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
+     <tube name="CathodeSemiCable" rmin="0" rmax="0.5" z="63" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
      <tube name="CathodeCableShort" rmin="0" rmax="0.5" z="47.5" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
      <tube name="CathodeCableShortShort" rmin="0" rmax="0.5" z="44.5" deltaphi="360" startphi="0"  aunit="deg" lunit="cm"/>
 
@@ -765,26 +783,26 @@
 
 
       <tube name="solExtractionGridCable" rmin="0" rmax="0.05" z="600" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
-     <box name="solExtractionGrid" x="0.1" y="600" z="600" lunit="cm"/>
+     <box name="solExtractionGrid" x="600" y="0.1" z="600" lunit="cm"/>
 
-     <box name="solLEMs" x="0.1" y="600.64" z="600.64" lunit="cm"/>
+     <box name="solLEMs" x="600.64" y="0.1" z="600.64" lunit="cm"/>
 
 
    <box name="CRM" lunit="cm" 
-      x="597.03" 
-      y="301" 
+      x="301" 
+      y="597.03" 
       z="301"/>
    <box name="CRMVPlane" lunit="cm" 
-      x="0.015" 
-      y="300" 
-      z="300"/>
+     x="300" 
+     y="0.015"  
+     z="300"/>
    <box name="CRMZPlane" lunit="cm" 
-      x="0.015"
-      y="300"
+      x="300"
+      y="0.015"
       z="300"/>
    <box name="CRMActive" lunit="cm"
-      x="597"
-      y="300"
+      x="300"
+      y="597"
       z="300"/>
 
    <tube name="CRMWireV"
@@ -801,18 +819,18 @@
      lunit="cm"/>
 
     <box name="Cryostat" lunit="cm" 
-      x="790.4" 
-      y="855.2" 
+      x="855.2" 
+      y="790.4" 
       z="855.2"/>
 
     <box name="ArgonInterior" lunit="cm" 
-      x="790"
-      y="854.8"
+      x="854.8"
+      y="790"
       z="854.8"/>
 
     <box name="GaseousArgon" lunit="cm" 
-      x="51.5"
-      y="854.8"
+      x="854.8"
+      y="51.5"
       z="854.8"/>
 
     <subtraction name="SteelShell">
@@ -823,8 +841,8 @@
 
 
     <box name="FoamPadBlock" lunit="cm"
-      x="950.4"
-      y="1015.2"
+      x="1015.2"
+      y="950.4"
       z="1015.2" />
 
     <subtraction name="FoamPadding">
@@ -833,22 +851,20 @@
       <positionref ref="posCenter"/>
     </subtraction>
 
-    
     <box name="SteelSupportBlock" lunit="cm"
-        x="952.4"
-        y="1017.2"
-        z="1017.2" />
+      x="1017.2"
+      y="952.4"
+      z="1017.2" />
 
     <subtraction name="SteelSupport">
-        <first ref="SteelSupportBlock"/>
-        <second ref="FoamPadBlock"/>
-        <positionref ref="posCenter"/>
+      <first ref="SteelSupportBlock"/>
+      <second ref="FoamPadding"/>
+      <positionref ref="posCenter"/>
     </subtraction>
-    
-    
+
     <box name="DetEnclosure" lunit="cm" 
-      x="1352.4"
-      y="1217.2"
+      x="1417.2"
+      y="1152.4"
       z="1417.2"/>
 
     <box name="boxCryoTop" x="1016.8" y="1016.8" z="61.8" lunit="cm"/>
@@ -874,7 +890,7 @@
     <box name="box33" x="158.8" y="137.2" z="61.801" lunit="cm"/>
     <box name="box36" x="135.8" y="13.6" z="27.4" lunit="cm"/>
     <box name="box37" x="135.8" y="6.425" z="24.96" lunit="cm"/>
-    
+
     
     <subtraction name="boxHoll">
     <first ref="box1"/>
@@ -940,10 +956,10 @@
     
     <!--
     <subtraction name="boxCryoWallSmUS">
-        <first ref="boxCryoWallSm"/>
-        <second ref="BeamWindowStSu"/>
-        <position name="posBWCryoWallUS" x="-34.5198845542345" y="131.897988017573" z="0." unit="cm"/>
-        < rotationref ref="rBeamW3"/>
+    <first ref="boxCryoWallSm"/>
+    <second ref="BeamWindowStSu"/>
+    <position name="posBWCryoWallUS" x="-34.5198845542345" y="131.897988017573" z="0." unit="cm"/>
+    < rotationref ref="rBeamW3"/>
     </subtraction>
     -->
     
@@ -1010,17 +1026,17 @@
     <second ref="boxBarWallL"/>
     <position name="posUniWallL" x="-16.3" y="0" z="-17.2" unit="cm"/>
     </union>
-
+    
     
 
     <box name="World" lunit="cm" 
-      x="7352.4" 
-      y="7217.2" 
+      x="7417.2" 
+      y="7152.4" 
       z="7417.2"/>
 </solids>
 <structure>
  <volume name="pmtCoatVol">
-  <materialref ref="LAr"/>
+  <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
   </volume>
 
@@ -1035,15 +1051,43 @@
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
   </physvol>
 
  </volume>
+
+
+ <volume name="pmtCoatVol">
+  <materialref ref="TPB"/>
+  <solidref ref="pmt0x7fb8f48a1eb0"/>
+  </volume>
+
+ <volume name="allpmt">
+  <materialref ref="Glass"/>
+  <solidref ref="solidpmt"/>
+  </volume>
+
+<volume name="volPMT_coated">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive">
+  <volumeref ref="pmtCoatVol"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
+  </physvol>
+
+ </volume>
+
 
 
 
@@ -1788,134 +1832,134 @@
 
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBox0" unit="cm" x="-91.75" y="0" z="-1"/>
+   <position name="posGGInnerBox0" unit="cm" x="-93.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBox1" unit="cm" x="-26.75" y="0" z="-1"/>
+   <position name="posGGInnerBox1" unit="cm" x="-30.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBox2" unit="cm" x="38.25" y="0" z="-1"/>
+   <position name="posGGInnerBox2" unit="cm" x="32.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBox3" unit="cm" x="103.25" y="0" z="-1"/>
+   <position name="posGGInnerBox3" unit="cm" x="95.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable00" unit="cm" x="-145.916666666667" y="0" z="-1"/>
+   <position name="posGGCable00" unit="cm" x="-146.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable01" unit="cm" x="-135.083333333333" y="0" z="-1"/>
+   <position name="posGGCable01" unit="cm" x="-135.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable02" unit="cm" x="-124.25" y="0" z="-1"/>
+   <position name="posGGCable02" unit="cm" x="-125.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable03" unit="cm" x="-113.416666666667" y="0" z="-1"/>
+   <position name="posGGCable03" unit="cm" x="-114.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable04" unit="cm" x="-102.583333333333" y="0" z="-1"/>
+   <position name="posGGCable04" unit="cm" x="-104.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable10" unit="cm" x="-80.9166666666667" y="0" z="-1"/>
+   <position name="posGGCable10" unit="cm" x="-83.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable11" unit="cm" x="-70.0833333333333" y="0" z="-1"/>
+   <position name="posGGCable11" unit="cm" x="-72.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable12" unit="cm" x="-59.25" y="0" z="-1"/>
+   <position name="posGGCable12" unit="cm" x="-62.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable13" unit="cm" x="-48.4166666666667" y="0" z="-1"/>
+   <position name="posGGCable13" unit="cm" x="-51.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable14" unit="cm" x="-37.5833333333333" y="0" z="-1"/>
+   <position name="posGGCable14" unit="cm" x="-41.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable20" unit="cm" x="-15.9166666666667" y="0" z="-1"/>
+   <position name="posGGCable20" unit="cm" x="-20.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable21" unit="cm" x="-5.08333333333333" y="0" z="-1"/>
+   <position name="posGGCable21" unit="cm" x="-9.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable22" unit="cm" x="5.75" y="0" z="-1"/>
+   <position name="posGGCable22" unit="cm" x="0.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable23" unit="cm" x="16.5833333333333" y="0" z="-1"/>
+   <position name="posGGCable23" unit="cm" x="11.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable24" unit="cm" x="27.4166666666667" y="0" z="-1"/>
+   <position name="posGGCable24" unit="cm" x="21.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable30" unit="cm" x="49.0833333333333" y="0" z="-1"/>
+   <position name="posGGCable30" unit="cm" x="42.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable31" unit="cm" x="59.9166666666667" y="0" z="-1"/>
+   <position name="posGGCable31" unit="cm" x="53.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable32" unit="cm" x="70.75" y="0" z="-1"/>
+   <position name="posGGCable32" unit="cm" x="63.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable33" unit="cm" x="81.5833333333333" y="0" z="-1"/>
+   <position name="posGGCable33" unit="cm" x="74.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable34" unit="cm" x="92.4166666666667" y="0" z="-1"/>
+   <position name="posGGCable34" unit="cm" x="84.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable40" unit="cm" x="114.083333333333" y="0" z="-1"/>
+   <position name="posGGCable40" unit="cm" x="105.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable41" unit="cm" x="124.916666666667" y="0" z="-1"/>
+   <position name="posGGCable41" unit="cm" x="116.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable42" unit="cm" x="135.75" y="0" z="-1"/>
+   <position name="posGGCable42" unit="cm" x="126.75" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridCable"/>
-   <position name="posGGCable43" unit="cm" x="146.583333333333" y="0" z="-1"/>
+   <position name="posGGCable43" unit="cm" x="137.25" y="0" z="-1"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBoxLat0" unit="cm" x="-2" y="0" z="-90.75"/>
+   <position name="posGGInnerBoxLat0" unit="cm" x="-2" y="0" z="-92.75"/>
    <rotation name="GGrot9" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBoxLat1" unit="cm" x="-2" y="0" z="-25.75"/>
+   <position name="posGGInnerBoxLat1" unit="cm" x="-2" y="0" z="-29.75"/>
    <rotation name="GGrot10" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBoxLat2" unit="cm" x="-2" y="0" z="39.25"/>
+   <position name="posGGInnerBoxLat2" unit="cm" x="-2" y="0" z="33.25"/>
    <rotation name="GGrot11" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
-   <position name="posGGInnerBoxLat3" unit="cm" x="-2" y="0" z="104.25"/>
+   <position name="posGGInnerBoxLat3" unit="cm" x="-2" y="0" z="96.25"/>
    <rotation name="GGrot12" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
   
@@ -1940,6 +1984,10 @@
 <volume name="volCathodeCable">
   <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
   <solidref ref="CathodeCable"/>
+</volume>
+<volume name="volCathodeSemiCable">
+  <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+  <solidref ref="CathodeSemiCable"/>
 </volume>
 
 <volume name="volCathodeCableShort">
@@ -2024,100 +2072,196 @@
    <rotation name="Cathrot12" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable000" unit="cm" x="-145.916666666667" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable000" unit="cm" x="-145.916666666667" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable010" unit="cm" x="-135.083333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable010" unit="cm" x="-135.083333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable020" unit="cm" x="-124.25" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable020" unit="cm" x="-124.25" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable030" unit="cm" x="-113.416666666667" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable030" unit="cm" x="-113.416666666667" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable040" unit="cm" x="-102.583333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable040" unit="cm" x="-102.583333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable060" unit="cm" x="-80.9166666666667" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable060" unit="cm" x="-80.9166666666667" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable070" unit="cm" x="-70.0833333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable070" unit="cm" x="-70.0833333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable080" unit="cm" x="-59.25" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable080" unit="cm" x="-59.25" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable090" unit="cm" x="-48.4166666666667" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable090" unit="cm" x="-48.4166666666667" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable0100" unit="cm" x="-37.5833333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable0100" unit="cm" x="-37.5833333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable400" unit="cm" x="114.083333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable400" unit="cm" x="114.083333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable410" unit="cm" x="124.916666666667" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable410" unit="cm" x="124.916666666667" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable420" unit="cm" x="135.75" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable420" unit="cm" x="135.75" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable430" unit="cm" x="146.583333333333" y="10" z="-90.75"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable430" unit="cm" x="146.583333333333" y="10" z="-58.25"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable202" unit="cm" x="-15.9166666666667" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable202" unit="cm" x="-15.9166666666667" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable212" unit="cm" x="-5.08333333333333" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable212" unit="cm" x="-5.08333333333333" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable222" unit="cm" x="5.75" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable222" unit="cm" x="5.75" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable232" unit="cm" x="16.5833333333333" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable232" unit="cm" x="16.5833333333333" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable242" unit="cm" x="27.4166666666667" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable242" unit="cm" x="27.4166666666667" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable262" unit="cm" x="49.0833333333333" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable262" unit="cm" x="49.0833333333333" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable272" unit="cm" x="59.9166666666667" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable272" unit="cm" x="59.9166666666667" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable282" unit="cm" x="70.75" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable282" unit="cm" x="70.75" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable292" unit="cm" x="81.5833333333333" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable292" unit="cm" x="81.5833333333333" y="10" z="71.75"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable2102" unit="cm" x="92.4166666666667" y="10" z="39.25"/>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2102" unit="cm" x="92.4166666666667" y="10" z="71.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable000" unit="cm" x="-145.916666666667" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable010" unit="cm" x="-135.083333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable020" unit="cm" x="-124.25" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable030" unit="cm" x="-113.416666666667" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable040" unit="cm" x="-102.583333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable060" unit="cm" x="-80.9166666666667" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable070" unit="cm" x="-70.0833333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable080" unit="cm" x="-59.25" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable090" unit="cm" x="-48.4166666666667" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable0100" unit="cm" x="-37.5833333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable400" unit="cm" x="114.083333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable410" unit="cm" x="124.916666666667" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable420" unit="cm" x="135.75" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable430" unit="cm" x="146.583333333333" y="10" z="-123.25"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable202" unit="cm" x="-15.9166666666667" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable212" unit="cm" x="-5.08333333333333" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable222" unit="cm" x="5.75" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable232" unit="cm" x="16.5833333333333" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable242" unit="cm" x="27.4166666666667" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable262" unit="cm" x="49.0833333333333" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable272" unit="cm" x="59.9166666666667" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable282" unit="cm" x="70.75" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable292" unit="cm" x="81.5833333333333" y="10" z="6.75"/>
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2102" unit="cm" x="92.4166666666667" y="10" z="6.75"/>
  </physvol>
   <physvol>
    <volumeref ref="volCathodeCableShort"/>
@@ -2176,124 +2320,244 @@
    <position name="posCathCableShort434" unit="cm" x="146.583333333333" y="10" z="128"/>
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable002" unit="cm" x="-91.75" y="10" z="-14.9166666666667"/>
-   <rotation name="CathCablerot002" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2002" unit="cm" x="-59.25" y="10" z="-14.9166666666667"/>
+   <rotation name="CathCablerot2002" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable012" unit="cm" x="-91.75" y="10" z="-4.08333333333333"/>
-   <rotation name="CathCablerot012" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2012" unit="cm" x="-59.25" y="10" z="-4.08333333333333"/>
+   <rotation name="CathCablerot2012" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable022" unit="cm" x="-91.75" y="10" z="6.75"/>
-   <rotation name="CathCablerot022" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2022" unit="cm" x="-59.25" y="10" z="6.75"/>
+   <rotation name="CathCablerot2022" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable032" unit="cm" x="-91.75" y="10" z="17.5833333333333"/>
-   <rotation name="CathCablerot032" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2032" unit="cm" x="-59.25" y="10" z="17.5833333333333"/>
+   <rotation name="CathCablerot2032" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable042" unit="cm" x="-91.75" y="10" z="28.4166666666667"/>
-   <rotation name="CathCablerot042" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2042" unit="cm" x="-59.25" y="10" z="28.4166666666667"/>
+   <rotation name="CathCablerot2042" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable062" unit="cm" x="-91.75" y="10" z="50.0833333333333"/>
-   <rotation name="CathCablerot062" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2062" unit="cm" x="-59.25" y="10" z="50.0833333333333"/>
+   <rotation name="CathCablerot2062" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable072" unit="cm" x="-91.75" y="10" z="60.9166666666667"/>
-   <rotation name="CathCablerot072" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2072" unit="cm" x="-59.25" y="10" z="60.9166666666667"/>
+   <rotation name="CathCablerot2072" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable082" unit="cm" x="-91.75" y="10" z="71.75"/>
-   <rotation name="CathCablerot082" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2082" unit="cm" x="-59.25" y="10" z="71.75"/>
+   <rotation name="CathCablerot2082" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable092" unit="cm" x="-91.75" y="10" z="82.5833333333333"/>
-   <rotation name="CathCablerot092" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2092" unit="cm" x="-59.25" y="10" z="82.5833333333333"/>
+   <rotation name="CathCablerot2092" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable0102" unit="cm" x="-91.75" y="10" z="93.4166666666667"/>
-   <rotation name="CathCablerot0102" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable20102" unit="cm" x="-59.25" y="10" z="93.4166666666667"/>
+   <rotation name="CathCablerot20102" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable200" unit="cm" x="38.25" y="10" z="-144.916666666667"/>
-   <rotation name="CathCablerot200" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2200" unit="cm" x="70.75" y="10" z="-144.916666666667"/>
+   <rotation name="CathCablerot2200" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable210" unit="cm" x="38.25" y="10" z="-134.083333333333"/>
-   <rotation name="CathCablerot210" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2210" unit="cm" x="70.75" y="10" z="-134.083333333333"/>
+   <rotation name="CathCablerot2210" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable220" unit="cm" x="38.25" y="10" z="-123.25"/>
-   <rotation name="CathCablerot220" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2220" unit="cm" x="70.75" y="10" z="-123.25"/>
+   <rotation name="CathCablerot2220" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable230" unit="cm" x="38.25" y="10" z="-112.416666666667"/>
-   <rotation name="CathCablerot230" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2230" unit="cm" x="70.75" y="10" z="-112.416666666667"/>
+   <rotation name="CathCablerot2230" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable240" unit="cm" x="38.25" y="10" z="-101.583333333333"/>
-   <rotation name="CathCablerot240" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2240" unit="cm" x="70.75" y="10" z="-101.583333333333"/>
+   <rotation name="CathCablerot2240" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable260" unit="cm" x="38.25" y="10" z="-79.9166666666667"/>
-   <rotation name="CathCablerot260" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2260" unit="cm" x="70.75" y="10" z="-79.9166666666667"/>
+   <rotation name="CathCablerot2260" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable270" unit="cm" x="38.25" y="10" z="-69.0833333333333"/>
-   <rotation name="CathCablerot270" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2270" unit="cm" x="70.75" y="10" z="-69.0833333333333"/>
+   <rotation name="CathCablerot2270" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable280" unit="cm" x="38.25" y="10" z="-58.25"/>
-   <rotation name="CathCablerot280" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2280" unit="cm" x="70.75" y="10" z="-58.25"/>
+   <rotation name="CathCablerot2280" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable290" unit="cm" x="38.25" y="10" z="-47.4166666666667"/>
-   <rotation name="CathCablerot290" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2290" unit="cm" x="70.75" y="10" z="-47.4166666666667"/>
+   <rotation name="CathCablerot2290" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable2100" unit="cm" x="38.25" y="10" z="-36.5833333333333"/>
-   <rotation name="CathCablerot2100" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable22100" unit="cm" x="70.75" y="10" z="-36.5833333333333"/>
+   <rotation name="CathCablerot22100" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable204" unit="cm" x="38.25" y="10" z="115.083333333333"/>
-   <rotation name="CathCablerot204" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2204" unit="cm" x="70.75" y="10" z="115.083333333333"/>
+   <rotation name="CathCablerot2204" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable214" unit="cm" x="38.25" y="10" z="125.916666666667"/>
-   <rotation name="CathCablerot214" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2214" unit="cm" x="70.75" y="10" z="125.916666666667"/>
+   <rotation name="CathCablerot2214" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable224" unit="cm" x="38.25" y="10" z="136.75"/>
-   <rotation name="CathCablerot224" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2224" unit="cm" x="70.75" y="10" z="136.75"/>
+   <rotation name="CathCablerot2224" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
-   <volumeref ref="volCathodeCable"/>
-   <position name="posCathCable234" unit="cm" x="38.25" y="10" z="147.583333333333"/>
-   <rotation name="CathCablerot234" unit="deg" x="0" y="90" z="0" /> 
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2234" unit="cm" x="70.75" y="10" z="147.583333333333"/>
+   <rotation name="CathCablerot2234" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2002" unit="cm" x="-124.25" y="10" z="-14.9166666666667"/>
+   <rotation name="CathCablerot2002" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2012" unit="cm" x="-124.25" y="10" z="-4.08333333333333"/>
+   <rotation name="CathCablerot2012" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2022" unit="cm" x="-124.25" y="10" z="6.75"/>
+   <rotation name="CathCablerot2022" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2032" unit="cm" x="-124.25" y="10" z="17.5833333333333"/>
+   <rotation name="CathCablerot2032" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2042" unit="cm" x="-124.25" y="10" z="28.4166666666667"/>
+   <rotation name="CathCablerot2042" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2062" unit="cm" x="-124.25" y="10" z="50.0833333333333"/>
+   <rotation name="CathCablerot2062" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2072" unit="cm" x="-124.25" y="10" z="60.9166666666667"/>
+   <rotation name="CathCablerot2072" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2082" unit="cm" x="-124.25" y="10" z="71.75"/>
+   <rotation name="CathCablerot2082" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2092" unit="cm" x="-124.25" y="10" z="82.5833333333333"/>
+   <rotation name="CathCablerot2092" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable20102" unit="cm" x="-124.25" y="10" z="93.4166666666667"/>
+   <rotation name="CathCablerot20102" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2200" unit="cm" x="5.75" y="10" z="-144.916666666667"/>
+   <rotation name="CathCablerot2200" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2210" unit="cm" x="5.75" y="10" z="-134.083333333333"/>
+   <rotation name="CathCablerot2210" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2220" unit="cm" x="5.75" y="10" z="-123.25"/>
+   <rotation name="CathCablerot2220" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2230" unit="cm" x="5.75" y="10" z="-112.416666666667"/>
+   <rotation name="CathCablerot2230" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2240" unit="cm" x="5.75" y="10" z="-101.583333333333"/>
+   <rotation name="CathCablerot2240" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2260" unit="cm" x="5.75" y="10" z="-79.9166666666667"/>
+   <rotation name="CathCablerot2260" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2270" unit="cm" x="5.75" y="10" z="-69.0833333333333"/>
+   <rotation name="CathCablerot2270" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2280" unit="cm" x="5.75" y="10" z="-58.25"/>
+   <rotation name="CathCablerot2280" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2290" unit="cm" x="5.75" y="10" z="-47.4166666666667"/>
+   <rotation name="CathCablerot2290" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable22100" unit="cm" x="5.75" y="10" z="-36.5833333333333"/>
+   <rotation name="CathCablerot22100" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2204" unit="cm" x="5.75" y="10" z="115.083333333333"/>
+   <rotation name="CathCablerot2204" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2214" unit="cm" x="5.75" y="10" z="125.916666666667"/>
+   <rotation name="CathCablerot2214" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2224" unit="cm" x="5.75" y="10" z="136.75"/>
+   <rotation name="CathCablerot2224" unit="deg" x="0" y="90" z="0" /> 
+ </physvol>
+  <physvol>
+   <volumeref ref="volCathodeSemiCable"/>
+   <position name="posCathCable2234" unit="cm" x="5.75" y="10" z="147.583333333333"/>
+   <rotation name="CathCablerot2234" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
   <physvol>
    <volumeref ref="volCathodeCableShort"/>
@@ -2536,7 +2800,6 @@
   <solidref ref="solLEMs"/>
  </volume>
 
-
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
@@ -2558,25 +2821,21 @@
      <physvol>
        <volumeref ref="volTPCPlaneV"/>
        <position name="posPlaneV" unit="cm" 
-         x="298.4925" y="0" z="0"/>
-       <rotationref ref="rIdentity"/>
+         x="0" y="298.4925" z="0"/>
+     <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneZ"/>
        <position name="posPlaneZ" unit="cm" 
-         x="298.5075" y="0" z="0"/>
+         x="0" y="298.5075" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="-0.03" y="0" z="0"/>
+         x="0" y="-0.03" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
-  <physvol>
-   <volumeref ref="volExtractionGrid"/>
-   <position name="posExtractionGrid" unit="cm" x="297.965" y="0" z="0"/>
-  </physvol>
    </volume>
 
     <volume name="volSteelShell">
@@ -2586,10 +2845,9 @@
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
-
   <physvol>
    <volumeref ref="volLEMs"/>
-   <position name="posLEMs" unit="cm" x="-25.2" y="0" z="0"/>
+   <position name="posLEMs" unit="cm" x="0" y="-25.2" z="0"/>
 
   </physvol>
     </volume>
@@ -2599,8 +2857,8 @@
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="790/2-51.5/2" y="0" z="0"/>
-      </physvol>
+        <position name="posGaseousArgon" unit="cm" x="0" y="790/2-51.5/2"  z="0"/>
+         </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
@@ -2608,293 +2866,325 @@
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-0-0" unit="cm"
-           x="44.985" y="-150.5" z="-150.5"/>
+           x="-150.5" y="44.985" z="-150.5"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-0-1" unit="cm"
-           x="44.985" y="150.5" z="-150.5"/>
+           x="150.5" y="44.985" z="-150.5"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-1-0" unit="cm"
-           x="44.985" y="-150.5" z="150.5"/>
+           x="-150.5" y="44.985" z="150.5"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-1-1" unit="cm"
-           x="44.985" y="150.5" z="150.5"/>
+           x="150.5" y="44.985" z="150.5"/>
       </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT0" unit="cm" x="-376.5"  y="-238" z="-170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT0" unit="cm" y="-376.5"  z="-238" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT1" unit="cm" x="-376.5"  y="-238" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT1" unit="cm" y="-376.5"  z="-238" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT2" unit="cm" x="-376.5"  y="-238" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT2" unit="cm" y="-376.5"  z="-238" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT3" unit="cm" x="-376.5"  y="-238" z="170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT3" unit="cm" y="-376.5"  z="-238" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT4" unit="cm" x="-376.5"  y="-170" z="-238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT4" unit="cm" y="-376.5"  z="-170" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT5" unit="cm" x="-376.5"  y="-170" z="-102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT5" unit="cm" y="-376.5"  z="-170" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT6" unit="cm" x="-376.5"  y="-170" z="102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT6" unit="cm" y="-376.5"  z="-170" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT7" unit="cm" x="-376.5"  y="-170" z="238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT7" unit="cm" y="-376.5"  z="-170" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT8" unit="cm" x="-376.5"  y="-102" z="-170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT8" unit="cm" y="-376.5"  z="-102" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT9" unit="cm" x="-376.5"  y="-102" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT9" unit="cm" y="-376.5"  z="-102" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT10" unit="cm" x="-376.5"  y="-102" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT10" unit="cm" y="-376.5"  z="-102" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT11" unit="cm" x="-376.5"  y="-102" z="170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT11" unit="cm" y="-376.5"  z="-102" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT12" unit="cm" x="-376.5"  y="-34" z="-238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT12" unit="cm" y="-376.5"  z="-34" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT13" unit="cm" x="-376.5"  y="-34" z="-102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT13" unit="cm" y="-376.5"  z="-34" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT14" unit="cm" x="-376.5"  y="-34" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT14" unit="cm" y="-376.5"  z="-34" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT15" unit="cm" x="-376.5"  y="-34" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT15" unit="cm" y="-376.5"  z="-34" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT16" unit="cm" x="-376.5"  y="-34" z="102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT16" unit="cm" y="-376.5"  z="-34" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT17" unit="cm" x="-376.5"  y="-34" z="238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT17" unit="cm" y="-376.5"  z="-34" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT18" unit="cm" x="-376.5"  y="34" z="-238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT18" unit="cm" y="-376.5"  z="34" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT19" unit="cm" x="-376.5"  y="34" z="-102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT19" unit="cm" y="-376.5"  z="34" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT20" unit="cm" x="-376.5"  y="34" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT20" unit="cm" y="-376.5"  z="34" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT21" unit="cm" x="-376.5"  y="34" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT21" unit="cm" y="-376.5"  z="34" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT22" unit="cm" x="-376.5"  y="34" z="102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT22" unit="cm" y="-376.5"  z="34" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT23" unit="cm" x="-376.5"  y="34" z="238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT23" unit="cm" y="-376.5"  z="34" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT24" unit="cm" x="-376.5"  y="102" z="-170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT24" unit="cm" y="-376.5"  z="102" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT25" unit="cm" x="-376.5"  y="102" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT25" unit="cm" y="-376.5"  z="102" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT26" unit="cm" x="-376.5"  y="102" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT26" unit="cm" y="-376.5"  z="102" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT27" unit="cm" x="-376.5"  y="102" z="170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT27" unit="cm" y="-376.5"  z="102" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT28" unit="cm" x="-376.5"  y="170" z="-238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT28" unit="cm" y="-376.5"  z="170" x="-238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT29" unit="cm" x="-376.5"  y="170" z="-102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT29" unit="cm" y="-376.5"  z="170" x="-102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT30" unit="cm" x="-376.5"  y="170" z="102" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT30" unit="cm" y="-376.5"  z="170" x="102" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT31" unit="cm" x="-376.5"  y="170" z="238" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT31" unit="cm" y="-376.5"  z="170" x="238" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT32" unit="cm" x="-376.5"  y="238" z="-170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT32" unit="cm" y="-376.5"  z="238" x="-170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT33" unit="cm" x="-376.5"  y="238" z="-34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT33" unit="cm" y="-376.5"  z="238" x="-34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT34" unit="cm" x="-376.5"  y="238" z="34" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT34" unit="cm" y="-376.5"  z="238" x="34" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   <position name="posPMT35" unit="cm" x="-376.5"  y="238" z="170" />
-   <rotationref ref="rMinus90AboutY"/>
+   
+   <position name="posPMT35" unit="cm" y="-376.5"  z="238" x="170" />
+   <rotationref ref="rPlus90AboutX"/>
   </physvol>
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid01" unit="cm" x="-347.5" y="-158.75" z="158.75"/>
-   <rotation name="rotGG01" unit="deg" x="0" y="0" z="90" />
+   <position name="posGroundGrid01" unit="cm" x="158.75" y="-347.5" z="158.75"/>
+   <rotation name="rotGG01" unit="deg" x="0" y="0" z="0" />
   </physvol>
 
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid02" unit="cm" x="-347.5" y="-158.75" z="-158.75"/>
-   <rotation name="rotGG02" unit="deg" x="0" y="180" z="90"  />
+   <position name="posGroundGrid02" unit="cm" x="-158.75" y="-347.5" z="-158.75"/>
+   <rotation name="rotGG02" unit="deg" y="180"  />
   </physvol>
 
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid03" unit="cm" x="-347.5" y="158.75" z="-158.75"/>
-   <rotation name="rotGG03" unit="deg" x="180" y="0" z="90" />
+   <position name="posGroundGrid03" unit="cm" x="158.75" y="-347.5" z="-158.75"/>
+   <rotation name="rotGG03" unit="deg" y="270" />
   </physvol>
 
   <physvol>
    <volumeref ref="volGroundGrid"/>
-   <position name="posGroundGrid04" unit="cm" x="-347.5" y="158.75" z="158.75"/>
-   <rotation name="rotGG04" unit="deg" x="180" y="180" z="90"/>
-  </physvol>
-  <physvol>
-   <volumeref ref="volCathode"/>
-   <position name="posCathode01" unit="cm" x="-268.6" y="-158.75" z="158.75"/>
-   <rotation name="rotCath01" unit="deg" x="0" y="0" z="90" />
+   <position name="posGroundGrid04" unit="cm" x="-158.75" y="-347.5" z="158.75"/>
+   <rotation name="rotGG04" unit="deg" y="90"/>
   </physvol>
 
   <physvol>
    <volumeref ref="volCathode"/>
-   <position name="posCathode02" unit="cm" x="-268.6" y="-158.75" z="-158.75"/>
-   <rotation name="rotCath02" unit="deg" x="270" y="0" z="90"  />
+   <position name="posCathode01" unit="cm" x="158.75" y="-268.6" z="158.75"/>
   </physvol>
 
   <physvol>
    <volumeref ref="volCathode"/>
-   <position name="posCathode03" unit="cm" x="-268.6" y="158.75" z="-158.75"/>
-   <rotation name="rotCath03" unit="deg" x="180" y="0" z="90" />
+   <position name="posCathode02" unit="cm" x="-158.75" y="-268.6" z="158.75"/>
+   <rotation name="rotCath02" unit="deg" y="90"  />
   </physvol>
 
   <physvol>
    <volumeref ref="volCathode"/>
-   <position name="posCathode04" unit="cm" x="-268.6" y="158.75" z="158.75"/>
-   <rotation name="rotCath04" unit="deg" x="90" y="0" z="90"/>
+   <position name="posCathode03" unit="cm" x="158.75" y="-268.6" z="-158.75"/>
+   <rotation name="rotCath03" unit="deg" y="270" />
+  </physvol>
+  <physvol>
+   <volumeref ref="volCathode"/>
+   <position name="posCathode04" unit="cm" x="-158.75" y="-268.6" z="-158.75"/>
+   <rotation name="rotCath04" unit="deg" y="180"/>
+  </physvol>
+
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule01" unit="cm" x="153.521" y="43.4699999999999" z="-309.593"/>
+   <rotation name="rotFC01" unit="deg" x="90" y="0" z="0"/>
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule01" unit="cm" x="43.47" y="309.593" z="153.521"/>
-   <rotationref ref="rPlus90AboutY"/>
+   <position name="posFieldCageModule02" unit="cm" x="153.521" y="43.4699999999999" z="309.593"/>
+   <rotation name="rotFC02" unit="deg" x="270" y="0" z="0"/>
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule02" unit="cm" x="43.47" y="309.593" z="-153.521"/>
-   <rotationref ref="rMinus90AboutY"/>
+   <position name="posFieldCageModule05" unit="cm" x="309.593" y="43.4699999999999" z="153.521"/>
+   <rotation name="rotFC05" unit="deg" x="90" y="0" z="90"/>
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule05" unit="cm" x="43.47" y="-309.593" z="-153.521"/>
-   <rotationref ref="rot05"/>
+   <position name="posFieldCageModule06" unit="cm" x="309.593" y="43.4699999999999" z="-153.521"/>
+   <rotation name="rotFC06" unit="deg" x="270" y="0" z="90"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule03" unit="cm" x="-309.593" y="43.4699999999999" z="-153.521"/>
+   <rotation name="rotFC06" unit="deg" x="90" y="0" z="270"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule04" unit="cm" x="-309.593" y="43.4699999999999" z="153.521"/>
+   <rotation name="rotFC06" unit="deg" x="270" y="0" z="270"/>
+  </physvol>
+  <physvol>
+   <volumeref ref="volFieldCageModule"/>
+   <position name="posFieldCageModule07" unit="cm" x="-153.521" y="43.4699999999999" z="309.593"/>
+   <rotation name="rotFC01" unit="deg" x="90" y="0" z="180"/>
 
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule06" unit="cm" x="43.47" y="-309.593" z="153.521"/>
-   <rotationref ref="rot06"/>
-
-  </physvol>
-  <physvol>
-   <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule03" unit="cm" x="43.47" y="153.521" z="-309.593"/>
-   <rotationref ref="rot03"/>
-
-  </physvol>
-  <physvol>
-   <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule04" unit="cm" x="43.47" y="-153.521" z="-309.593"/>
-   <rotationref ref="rot04"/>
-
-  </physvol>
-  <physvol>
-   <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule07" unit="cm" x="43.47" y="-153.521" z="309.593"/>
-   <rotationref ref="rot07"/>
-
-  </physvol>
-  <physvol>
-   <volumeref ref="volFieldCageModule"/>
-   <position name="posFieldCageModule08" unit="cm" x="43.47" y="153.521" z="309.593"/>
-   <rotationref ref="rot08"/>
+   <position name="posFieldCageModule08" unit="cm" x="-153.521" y="43.4699999999999" z="-309.593"/>
+   <rotation name="rotFC01" unit="deg" x="270" y="0" z="180"/>
 
   </physvol>
     </volume>
@@ -2903,12 +3193,13 @@
       <materialref ref="foam_protoDUNEdp"/>
       <solidref ref="FoamPadding"/>
     </volume>
-    
-    <volume name="volSteelSupport">
-        <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
-        <solidref ref="SteelSupport"/>
-    </volume>
 
+    <volume name="volSteelSupport">
+      <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
+      <solidref ref="SteelSupport"/>
+    </volume>
+    
+    
     <volume name="volUnitCent">
     <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
     <solidref ref="UnitCent"/>
@@ -2927,16 +3218,16 @@
     </volume>
     
     <volume name="volSteelSupport_TB">
-        <materialref ref="Air"/>
-        <solidref ref="boxCryoTop"/>
-        <physvol name="volUnitTBCent_0-0">
-            <volumeref ref="volUnitCent"/>
-            <position name="posUnitTBCent_0-0" x="-320" y="-320" z="0" unit="cm"/>
-        </physvol>
-        <physvol name="volUnitTBCent_0-1">
-            <volumeref ref="volUnitCent"/>
-            <position name="posUnitTBCent_0-1" x="-320" y="-160" z="0" unit="cm"/>
-        </physvol>
+    <materialref ref="Air"/>
+    <solidref ref="boxCryoTop"/>
+    <physvol name="volUnitTBCent_0-0">
+    <volumeref ref="volUnitCent"/>
+    <position name="posUnitTBCent_0-0" x="-320" y="-320" z="0" unit="cm"/>
+    </physvol>
+    <physvol name="volUnitTBCent_0-1">
+    <volumeref ref="volUnitCent"/>
+    <position name="posUnitTBCent_0-1" x="-320" y="-160" z="0" unit="cm"/>
+    </physvol>
     <physvol name="volUnitTBCent_0-2">
     <volumeref ref="volUnitCent"/>
     <position name="posUnitTBCent_0-2" x="-320" y="0" z="0" unit="cm"/>
@@ -3588,7 +3879,7 @@
     </physvol>
     </volume>
     
-
+    
     <volume name="volSteelSupport_LR">
     <materialref ref="Air"/>
     <solidref ref="boxCryoWallLg"/>
@@ -3788,7 +4079,7 @@
     <rotation  name="rotUnitLRN_4" x="0" y="0" z="-270" unit="deg"/>
     </physvol>
     </volume>
-    
+
     <volume name="volDetEnclosure">
       <materialref ref="Air"/>
       <solidref ref="DetEnclosure"/>
@@ -3798,54 +4089,58 @@
            <positionref ref="posCryoInDetEnc"/>
        </physvol>
     
-    
     <physvol name="volSteelSupport_Top">
-        <volumeref ref="volSteelSupport_TB"/>
-        <position name="posSteelSupport_Top" x="476+31.1" y="0" z="0" unit="cm"/>
-        <rotation name="rotSteelSupport_Top" x="0" y="-90" z="0" unit="deg"/>
+    <volumeref ref="volSteelSupport_TB"/>
+    <position name="posSteelSupport_Top" x="0" y="507.1" z="0" unit="cm"/>
+    <rotation name="rotSteelSupport_Top" x="90" y="0" z="0" unit="deg"/>
     
     </physvol>
+    
     
     <physvol name="volSteelSupport_Bottom">
-        <volumeref ref="volSteelSupport_TB"/>
-        <position name="posSteelSupport_Bottom" x="-476-31.1" y="0" z="0" unit="cm"/>
-        <rotation name="rotSteelSupport_Bottom" x="0" y="90" z="0" unit="deg"/>
+    <volumeref ref="volSteelSupport_TB"/>
+    <position name="posSteelSupport_Bottom" x="0" y="-507.1" z="0" unit="cm"/>
+    <rotation name="rotSteelSupport_Bottom" x="-90" y="0" z="0" unit="deg"/>
     </physvol>
+    
     
     <physvol>
-        <volumeref ref="volSteelSupport_US"/>
-        <position name="posSteelSupport_US" x="0" y="0" z="-508.4-31.1" unit="cm"/>
-        <rotation name="rotSteelSupport_Front" x="0" y="0" z="90" unit="deg"/>
+    <volumeref ref="volSteelSupport_US"/>
+    <position name="posSteelSupport_US" x="0" y="0" z="-539.5" unit="cm"/>
+    <rotation name="rotSteelSupport_Front" x="0" y="0" z="0" unit="deg"/>
     </physvol>
     
+    
     <physvol name="volSteelSupport_DS">
-        <volumeref ref="volSteelSupport_WS"/>
-        <position name="posSteelSupport_DS" x="0" y="0" z="508.4+31.1" unit="cm"/>
-        <rotation name="rotSteelSupport_Back" x="0" y="0" z="90" unit="deg"/>
+    <volumeref ref="volSteelSupport_WS"/>
+    <position name="posSteelSupport_DS" x="0" y="0" z="539.5" unit="cm"/>
+    <rotation name="rotSteelSupport_Back" x="0" y="0" z="" unit="deg"/>
     </physvol>
     
     
     <physvol name="volSteelSupport_LS">
-        <volumeref ref="volSteelSupport_LR"/>
-        <position name="posSteelSupport_LS" x="0" y="-508.4+0-31.1" z="0" unit="cm"/>
-        <rotation name="rotSteelSupport_LS" x="-90" y="0" z="90" unit="deg"/>
+    <volumeref ref="volSteelSupport_LR"/>
+    <position name="posSteelSupport_LS" x="539.5" y="0" z="0" unit="cm"/>
+    <rotation name="rotSteelSupport_LS" x="0" y="-90" z="0" unit="deg"/>
     </physvol>
     
+    
     <physvol name="volSteelSupport_RS">
-        <volumeref ref="volSteelSupport_LR"/>
-        <position name="posSteelSupport_RS" x="0" y="508.4+0+31.1" z="0" unit="cm"/>
-        <rotation name="rotSteelSupport_RS" x="90" y="0" z="90" unit="deg"/>
+    <volumeref ref="volSteelSupport_LR"/>
+    <position name="posSteelSupport_RS" x="-539.5" y="0" z="0" unit="cm"/>
+    <rotation name="rotSteelSupport_RS" x="0" y="90" z="0" unit="deg"/>
     </physvol>
+    
     
     <physvol>
         <volumeref ref="volSteelSupport"/>
         <positionref ref="posCryoInDetEnc"/>
     </physvol>
     
-       <physvol>
+    <physvol>
            <volumeref ref="volCryostat"/>
            <positionref ref="posCryoInDetEnc"/>
-       </physvol>
+    </physvol>
     </volume>
 
     <volume name="volWorld" >
@@ -3854,7 +4149,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="-44.77" y="-5.6843418860808e-14" z="300.5"/>
+	<position name="posDetEnclosure" unit="cm" x="-5.6843418860808e-14" y="-44.9699999999999" z="300.5"/>
       </physvol>
 
     </volume>

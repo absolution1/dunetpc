@@ -1659,8 +1659,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
   std::vector< double > XCET1_coarse,     XCET2_coarse;    
 
   bool fetched_XCET1=false;
-  bool fetched_XCET2=false;
- 
+  bool fetched_XCET2=false; 
   if( fXCET1 != "" ){
     try{ 
       XCET1_seconds    = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":SECONDS" , bfp_xcet);
@@ -2069,8 +2068,10 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 }
 
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
-  vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
+  vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
+  vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
+
+  std::cout << "Rotated: " << vec.X() << " " << vec.Y() << " " << vec.Z() << std::endl;
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){

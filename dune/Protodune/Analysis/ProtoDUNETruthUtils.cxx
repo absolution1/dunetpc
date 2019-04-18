@@ -19,67 +19,87 @@ protoana::ProtoDUNETruthUtils::~ProtoDUNETruthUtils(){
 
 }
 
-// Function to find the best matched true particle to a reconstructed particle. In case of problems, returns a null pointer
-const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const{
+// Function to find a weighted and sorted vector of the true particles matched to
+// a track. Return an empty vector in case of trouble.
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromRecoTrack
+  (const recob::Track &track, art::Event const & evt, std::string trackModule) const {
 
-  const simb::MCParticle* mcParticle = 0x0;
+  using weightedMCPair = std::pair<const simb::MCParticle*, double>;
+
+  std::vector<weightedMCPair> outVec;
 
   // We must have MC for this module to make sense
-  if(evt.isRealData()) return mcParticle;
+  if(evt.isRealData()) return outVec;
 
   // Get the reconstructed tracks
   auto allRecoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
 
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
-
   unsigned int trackIndex = track.ID();
+  const std::vector<art::Ptr<recob::Hit>>& track_hits = findTrackHits.at(trackIndex);
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
-  std::unordered_map<int, double> trkIDE;
-  for (auto const & h : findTrackHits.at(trackIndex))
+  std::unordered_map<const simb::MCParticle*, double> trkIDE;
+
+  // Sum energy contribution by each track ID and compute total track energy
+  double track_E = 0;
+  for (auto const& h : track_hits)
   {
     for (auto const & ide : bt_serv->HitToTrackIDEs(h)) // loop over std::vector<sim::TrackIDE>
     {
-        trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
+      const simb::MCParticle* curr_part = pi_serv->TrackIdToParticle_P(ide.trackID);
+      trkIDE[curr_part] += ide.energy; // sum energy contribution by each MCParticle
+      track_E += ide.energy;
     }
   }
 
-  int best_id = 0;
-  double tot_e = 0, max_e = 0;
-  for (auto const & contrib : trkIDE)
+  // Fill and sort the output vector
+  for (weightedMCPair const& p : trkIDE)
   {
-    tot_e += contrib.second;     // sum total energy in these hits
-    if (contrib.second > max_e)  // find track ID corresponding to max energy
-    {
-        max_e = contrib.second;
-        best_id = contrib.first;
-    }
+    outVec.push_back(p);
   }
+  std::sort(outVec.begin(), outVec.end(),
+        [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
 
-  if ((max_e > 0) && (tot_e > 0)) // ok, found something reasonable
+  // Normalise the weights by the total track energy.
+  if (track_E < 1e-5) { track_E = 1; } // Protect against zero division
+  for (weightedMCPair& p : outVec)
   {
-    if (best_id < 0)            // NOTE: negative ID means this is EM activity
-    {                           // caused by track with the same but positive ID
-//        best_id = -best_id;     // --> we'll find mother MCParticle of these hits
-      return mcParticle;
-    }
-    mcParticle = pi_serv->TrackIdToParticle_P(best_id); // MCParticle corresponding to track ID
+    p.second /= track_E;
   }
 
-  return mcParticle;
+  return outVec;
 }
 
-// Function to find the best matched reconstructed particle track to a true
-// particle. In case of problems, or if the particle was not reconstruced as a
-// track, returns a null pointer.
-const recob::Track* protoana::ProtoDUNETruthUtils::GetRecoTrackFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const{
+// Function to find the best matched true particle to a reconstructed particle track. In case of problems, returns a null pointer
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const{
 
-  const recob::Track* outTrack = 0x0;
+  const simb::MCParticle* outPart = 0x0;
+
+  const std::vector<std::pair<const simb::MCParticle*, double>> inVec =
+    GetMCParticleListFromRecoTrack(track, evt, trackModule);
+
+  if (inVec.size() != 0) outPart = inVec[0].first;
+
+  return outPart;
+}
+
+// Function to find the best matched reconstructed particle tracks to a true
+// particle. In case of problems, or if the particle was not reconstruced as a
+// track, returns an empty vector.
+std::vector<std::pair<const recob::Track*, double>>
+  protoana::ProtoDUNETruthUtils::GetRecoTrackListFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const{
+
+  using weightedTrackPair = std::pair<const recob::Track*, double>;
+
+  std::vector<weightedTrackPair> outVec;
 
   // We must have MC for this module to make sense
-  if(evt.isRealData()) return outTrack;
+  if(evt.isRealData()) return outVec;
 
   // Get the reconstructed tracks
   auto allRecoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
@@ -91,43 +111,66 @@ const recob::Track* protoana::ProtoDUNETruthUtils::GetRecoTrackFromMCParticle(co
   std::unordered_map<int, double> recoTrack;
 
   // Record the energy contribution to the MCParticle of every relevant reco track
+  double part_E = 0;
   for (recob::Track const & track : *allRecoTracks)
   {
     // This finds all hits that are shared between a reconstructed track and MCParticle
     for (art::Ptr<recob::Hit> const & hptr :
           bt_serv->TrackIdToHits_Ps(part.TrackId(), findTrackHits.at(track.ID())))
     {
-      // Use the integral of the hit as a measure of energy
-      recoTrack[track.ID()] += hptr->Integral();
-    }
-  }
+      // Loop over hit IDEs to find our particle's part in it
+      for (const sim::IDE* ide : bt_serv->HitToSimIDEs_Ps(hptr))
+      {
+        if (ide->trackID == part.TrackId())
+        {
+          recoTrack[track.ID()] += ide->energy;
+          part_E += ide->energy;
+        }
+      } // sim::IDE*
+    } // art::Ptr<recob::Hit>
+  } // const recob::Track&
 
-  int best_id = 0;
-  double tot_e = 0, max_e = 0;
-  for (auto const & contrib : recoTrack)
+  // Fill and sort the output vector
+  for (std::pair<int, double> const& p : recoTrack)
   {
-    tot_e += contrib.second;     // sum total energy in these hits
-    if (contrib.second > max_e)  // find reco track ID corresponding to max energy
-    {
-        max_e = contrib.second;
-        best_id = contrib.first;
-    }
-  }
-
-  if ((max_e > 0) && (tot_e > 0)) // ok, found something reasonable
-  {
-    // Find a pointer to the right track
     auto const trackIt = std::find_if(allRecoTracks->begin(), allRecoTracks->end(),
-                            [&](recob::Track tr){ return tr.ID() == best_id; });
-    const simb::MCParticle* main_contrib =
-                        GetMCParticleFromRecoTrack(*trackIt, evt, trackModule);
-    // std::cout << "MAIN CONTRIB: " << main_contrib << '\n';
-    if (trackIt != allRecoTracks->end() && main_contrib != 0 &&
-        part.TrackId() == main_contrib->TrackId())
+                               [&](recob::Track tr){ return tr.ID() == p.first; });
+    outVec.push_back(std::make_pair(&*trackIt, p.second));
+  }
+  std::sort(outVec.begin(), outVec.end(),
+    [](weightedTrackPair a, weightedTrackPair b){ return a.second > b.second;});
+
+  // Normalise the vector weights
+  if (part_E < 1e-5) { part_E = 1; } // Protect against zero division
+  for (weightedTrackPair& p : outVec)
+  {
+    p.second /= part_E;
+  }
+
+  return outVec;
+}
+
+// Function to find the best matched reconstructed track to a true particle. In
+// case of problems, or if the true particle is not a primary contributor to any
+// track, return a null pointer
+const recob::Track* protoana::ProtoDUNETruthUtils::GetRecoTrackFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const {
+
+  const recob::Track* outTrack = 0x0;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outTrack;
+
+  // Get the list of contributing tracks for the MCParticle and see if any of
+  // them have the MCParticle as a primary contributor.
+  for (std::pair<const recob::Track*, double> p :
+                        GetRecoTrackListFromMCParticle(part, evt, trackModule))
+  {
+    const recob::Track* tr = p.first;
+    if (GetMCParticleFromRecoTrack(*tr, evt, trackModule)->TrackId() == part.TrackId())
     {
-      // If we get here, the track has been found in the list and the MCParticle
-      // is the main contributor to the track.
-      outTrack = &*trackIt;
+      outTrack = tr;
+      break;
     }
   }
 
