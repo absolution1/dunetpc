@@ -349,7 +349,7 @@ protodune_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
- ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ ChannelGroupService:          @local::changroup_apa_keepall
 }
 
 
@@ -390,7 +390,7 @@ protodune_data_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::pdsp_channel_status
- ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ ChannelGroupService:          @local::changroup_apa_keepall
 # Reco services for ProtoDUNE real data.
  RawDigitExtractService:       @local::rdx_std
  RawDigitPrepService:          @local::adcprep_with_services_sim
@@ -457,8 +457,6 @@ protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus
 protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
 # Use channel service for data
 protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
-# Make sure we can use cryostat-side APA hits
-protodune_data_reco_services.ChannelGroupService.ApaRops: []
 # Add the photon detector calibrator service
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 # ProtoDUNE detector properties service
