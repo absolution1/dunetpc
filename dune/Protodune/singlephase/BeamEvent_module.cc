@@ -18,7 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -322,6 +322,7 @@ private:
 
 // Constructor
 proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
+: EDProducer(p)
 {
   // Declare products this module will provide
   produces<std::vector<beam::ProtoDUNEBeamEvent>>();  

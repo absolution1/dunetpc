@@ -15,7 +15,6 @@
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rPlus90AboutY"       unit="deg" x="90" y="90" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
-   <rotation name="rPlus90AboutX"      unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
@@ -337,37 +336,6 @@
 
 </materials>
 <solids>
- <tube name="PMTVolume"
-  rmax="16.51"
-  z="28.194"
-  deltaphi="360"
-  aunit="deg"
-  lunit="cm"/>
-
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtMiddleCylinder" rmax="102.351822048586" rmin="100.351822048586" startphi="0" z="54"/>
-    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="sphPartTop" rmax="133" rmin="131" startphi="0" starttheta="0"/>
-    <union name="pmt0x7fb8f489dfe0">
-      <first ref="pmtMiddleCylinder"/>
-      <second ref="sphPartTop"/>
-      <position name="pmt0x7fb8f489dfe0_pos" unit="mm" x="0" y="0" z="-57.2051768689367"/>
-    </union>
-    <sphere aunit="deg" deltaphi="360" deltatheta="31.477975238527" lunit="mm" name="sphPartBtm" rmax="133" rmin="131" startphi="0" starttheta="130"/>
-    <union name="pmt0x7fb8f48a0d50">
-      <first ref="pmt0x7fb8f489dfe0"/>
-      <second ref="sphPartBtm"/>
-      <position name="pmt0x7fb8f48a0d50_pos" unit="mm" x="0" y="0" z="57.2051768689367"/>
-    </union>
-    <tube aunit="deg" deltaphi="360" lunit="mm" name="pmtBtmTube" rmax="44.25" rmin="42.25" startphi="0" z="72"/>
-    <union name="solidpmt">
-      <first ref="pmt0x7fb8f48a0d50"/>
-      <second ref="pmtBtmTube"/>
-      <position name="solidpmt_pos" unit="mm" x="0" y="0" z="-104.905637496842"/>
-    </union>
-    <sphere aunit="deg" deltaphi="360" deltatheta="50" lunit="mm" name="pmt0x7fb8f48a1eb0" rmax="133.2" rmin="133" startphi="0" starttheta="0"/>
-    <sphere aunit="deg" deltaphi="360" deltatheta="46.5" lunit="mm" name="pmt0x7fb8f48a4860" rmax="131" rmin="130.999" startphi="0" starttheta="0"/>
-
-
-
  <tube name="PMTVolume"
   rmax="16.51"
   z="28.194"
@@ -911,33 +879,6 @@
       z="7417.2"/>
 </solids>
 <structure>
- <volume name="pmtCoatVol">
-  <materialref ref="TPB"/>
-  <solidref ref="pmt0x7fb8f48a1eb0"/>
-  </volume>
-
- <volume name="allpmt">
-  <materialref ref="Glass"/>
-  <solidref ref="solidpmt"/>
-  </volume>
-
-<volume name="volPMT_coated">
-  <materialref ref="LAr"/>
-  <solidref ref="PMTVolume"/>
-
-  <physvol>
-   <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
-  </physvol>
-
- <physvol name="volOpDetSensitive">
-  <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
-  </physvol>
-
- </volume>
-
-
  <volume name="pmtCoatVol">
   <materialref ref="TPB"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
@@ -11607,23 +11548,23 @@
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule03" unit="cm" x="-309.593" y="43.4699999999999" z="-153.521"/>
-   <rotation name="rotFC06" unit="deg" x="90" y="0" z="270"/>
+   <rotation name="rotFC03" unit="deg" x="90" y="0" z="270"/>
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule04" unit="cm" x="-309.593" y="43.4699999999999" z="153.521"/>
-   <rotation name="rotFC06" unit="deg" x="270" y="0" z="270"/>
+   <rotation name="rotFC04" unit="deg" x="270" y="0" z="270"/>
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule07" unit="cm" x="-153.521" y="43.4699999999999" z="309.593"/>
-   <rotation name="rotFC01" unit="deg" x="90" y="0" z="180"/>
+   <rotation name="rotFC07" unit="deg" x="90" y="0" z="180"/>
 
   </physvol>
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule08" unit="cm" x="-153.521" y="43.4699999999999" z="-309.593"/>
-   <rotation name="rotFC01" unit="deg" x="270" y="0" z="180"/>
+   <rotation name="rotFC08" unit="deg" x="270" y="0" z="180"/>
 
   </physvol>
     </volume>

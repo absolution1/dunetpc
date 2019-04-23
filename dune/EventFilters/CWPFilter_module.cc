@@ -41,7 +41,7 @@ namespace filt{
    std::vector<int> fSecondSet;
   };
 
-   CWPFilter::CWPFilter(fhicl::ParameterSet const& pset)
+   CWPFilter::CWPFilter(fhicl::ParameterSet const& pset) : EDFilter{pset}
   {
     this->reconfigure(pset);
   }

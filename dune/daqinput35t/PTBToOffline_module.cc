@@ -72,6 +72,7 @@ private:
 
 
 DAQToOffline::PTBToOffline::PTBToOffline(fhicl::ParameterSet const & pset)
+: EDProducer(pset)
 {
 
   this->reconfigure(pset);
