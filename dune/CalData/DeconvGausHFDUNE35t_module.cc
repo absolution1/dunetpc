@@ -26,8 +26,8 @@
 #include "art/Framework/Principal/Handle.h" 
 #include "canvas/Persistency/Common/Ptr.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/ParameterSet.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 #include "cetlib_except/exception.h"
@@ -145,7 +145,7 @@ namespace deconvgaushf {
   DEFINE_ART_MODULE(DeconvGausHFDUNE35t)
   
   //-------------------------------------------------
-  DeconvGausHFDUNE35t::DeconvGausHFDUNE35t(fhicl::ParameterSet const& pset)
+  DeconvGausHFDUNE35t::DeconvGausHFDUNE35t(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     fSpillName="";
     this->reconfigure(pset);

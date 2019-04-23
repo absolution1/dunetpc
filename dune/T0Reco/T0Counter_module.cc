@@ -13,7 +13,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -125,7 +125,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 
 dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
-  : fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
+  : EDProducer{p}, fTriggerModuleLabel(p.get<std::string>("TriggerModuleLabel")),
     fClockSpeedCounter(p.get<double>("ClockSpeedCounter")), // MHz
     fCombinedTimeDelay(p.get<double>("CombinedTimeDelay")), // ns
     fCoincidenceTolerance(p.get<int>("CoincidenceTolerance")), // ticks
