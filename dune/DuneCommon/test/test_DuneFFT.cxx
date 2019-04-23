@@ -39,7 +39,7 @@ int test_DuneFFT(bool useExistingFcl, Index len) {
 #endif
   string line = "-----------------------------";
 
-  Index normOpt = 1;
+  Index normOpt = 21;
   Index logLevel = 1;
 
   cout << myname << line << endl;
@@ -57,8 +57,15 @@ int test_DuneFFT(bool useExistingFcl, Index len) {
   Index npha = (nsam+1)/2;
   cout << myname << "        # samples: " << nsam << endl;
   cout << myname << "Expected mag size: " << nmag << endl;
-  cout << myname << "Expected mag size: " << nmag << endl;
   cout << myname << "Expected pha size: " << npha << endl;
+
+  cout << myname << line << endl;
+  cout << myname << "Check normalization flag." << endl;
+  cout << myname << "        normOpt: " << normOpt << endl;
+  cout << myname << "  normOptGlobal: " << DuneFFT::getNormOptGlobal(normOpt) << endl;
+  cout << myname << "    normOptTerm: " << DuneFFT::getNormOptTerm(normOpt) << endl;
+  cout << myname << "       isSimple: " << DuneFFT::isSimple(normOpt) << endl;
+  cout << myname << "        isPower: " << DuneFFT::isPower(normOpt) << endl;
 
   cout << myname << line << endl;
   cout << myname << "Transform forward." << endl;

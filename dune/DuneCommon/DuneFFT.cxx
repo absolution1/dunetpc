@@ -1,5 +1,4 @@
 // DuneFFT.cxx
-
 #include "DuneFFT.h"
 #include <iostream>
 #include <sstream>
@@ -25,6 +24,8 @@ fftForward(Index normOpt, Index nsam, const float* psam,
            FloatVector& xres, FloatVector& xims,  FloatVector& mags, FloatVector& phases,
            Index logLevel) {
   const string myname = "DuneFFT::fftForward: ";
+  Index normOptGlobal = getNormOptGlobal(normOpt);
+  bool usePowerNormalization = isPower(normOpt);
   vector<double> sams(nsam);
   for ( Index isam=0; isam<nsam; ++isam ) sams[isam] = psam[isam];
   int nsamInt = nsam;
@@ -39,44 +40,41 @@ fftForward(Index normOpt, Index nsam, const float* psam,
   xims.resize(nsam);
   mags.resize(nmag);
   phases.resize(npha);
-  // Loop over the complex samples.
-  vector<double> xres2(nsam, 9.99);
-  vector<double> xims2(nsam, 9.99);
-  pfft->GetPointsComplex(&xres2[0], &xims2[0]);
-  for ( Index iptc=0; iptc<nsam; ++iptc ) {
+  // Loop over the compact samples.
+  for ( Index iptc=0; iptc<nmag; ++iptc ) {
     pfft->GetPointComplex(iptc, xre, xim);
-    double xmg = sqrt(xre*xre + xim*xim);
+    // For an even # samples (nmag = npha + 1), the Nyquist term is real
+    // and we store the sign with the magnitude.
+    double xmg = iptc < npha ? sqrt(xre*xre + xim*xim) : xre;
     double xph = atan2(xim, xre);
     xres[iptc] = xre;
     xims[iptc] = xim;
-    if ( iptc < npha ) {
-      mags[iptc] = xmg;
-      phases[iptc] = xph;
-    // For an even # samples (nmag = npha + 1), the Nyquist term is real.
-    } else if ( iptc < nmag ) {
-      mags[iptc] = xre;
-    }
-    if ( logLevel >= 2 ) {
+    mags[iptc] = xmg;
+    if ( iptc < npha ) phases[iptc] = xph;
+    if ( logLevel >= 3 ) {
       cout << myname << setw(4) << iptc << ": ("
            << setw(10) << fixed << xre << ", "
            << setw(10) << fixed << xim << "): "
-           << setw(10) << fixed << xmg << " @ "
-           << setw(10) << fixed << xph << endl;
-      cout << myname << "      ("
-           << setw(10) << fixed << xres2[iptc] << ", "
-           << setw(10) << fixed << xims2[iptc] << ")" << endl;
+           << setw(10) << fixed << xmg;
+      if ( iptc < npha ) cout << " @ " << setw(10) << fixed << xph;
+      cout << endl;
     }
   }
+  // Loop over the remaining complex samples.
+  for ( Index iptc=nmag; iptc<nsam; ++iptc ) {
+    xres[iptc] =  xres[nsam-iptc];
+    xims[iptc] = -xims[nsam-iptc];
+  }
   float nfac = 1.0;
-  if ( normOpt == 1 ) nfac = 1.0/sqrt(nsam);
-  if ( normOpt == 2 ) nfac = 1.0/nsam;
+  if ( normOptGlobal == 1 ) nfac = 1.0/sqrt(nsam);
+  if ( normOptGlobal == 2 ) nfac = 1.0/nsam;
   for ( Index ixsm=0; ixsm<nsam; ++ixsm ) {
     xres[ixsm] *= nfac;
     xims[ixsm] *= nfac;
   }
   for ( Index ixsm=0; ixsm<nmag; ++ixsm ) {
     float fac = nfac;
-    if ( ixsm > 0 && ixsm < npha ) fac *= sqrt(2.0);
+    if ( usePowerNormalization && ixsm > 0 && ixsm < npha ) fac *= sqrt(2.0);
     mags[ixsm] *= fac;
   }
   return 0;
@@ -98,6 +96,8 @@ fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
            FloatVector& xres, FloatVector& xims, FloatVector& sams,
            Index logLevel) {
   const string myname = "DuneFFT::fftInverse: ";
+  Index normOptGlobal = getNormOptGlobal(normOpt);
+  bool usePowerNormalization = isPower(normOpt);
   Index nmag = mags.size();
   Index npha = phases.size();
   if ( nmag == 0 || npha == 0 ) return 1;
@@ -112,7 +112,7 @@ fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
   xims.resize(nsam, 0.0);
   for ( Index imag=0; imag<nmag; ++imag ) {
     double mag = mags[imag];
-    if ( imag > 0 && imag != npha ) mag /= sqrt(2.0);
+    if ( usePowerNormalization && imag > 0 && imag != npha ) mag /= sqrt(2.0);
     double pha = imag<npha ? phases[imag] : 0.0;
     double xre = mag*cos(pha);
     double xim = mag*sin(pha);
@@ -149,8 +149,8 @@ fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
   pfft->Transform();
   sams.resize(nsam);
   float nfac = 1.0;
-  if ( normOpt == 1 ) nfac = 1.0/sqrt(nsam);
-  if ( normOpt == 0 ) nfac = 1.0/nsam;
+  if ( normOptGlobal == 1 ) nfac = 1.0/sqrt(nsam);
+  if ( normOptGlobal == 0 ) nfac = 1.0/nsam;
   for ( Index isam=0; isam<nsam; ++isam ) sams[isam] = nfac*pfft->GetPointReal(isam);
   return 0;
 }
