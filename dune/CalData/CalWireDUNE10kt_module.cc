@@ -95,7 +95,7 @@ DEFINE_ART_MODULE(CalWireDUNE10kt)
   
 //////////////////////////////////////////////////////
 
-CalWireDUNE10kt::CalWireDUNE10kt(fhicl::ParameterSet const& pset) {
+CalWireDUNE10kt::CalWireDUNE10kt(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   this->reconfigure(pset);
 
   produces< std::vector<recob::Wire> >(fSpillName);

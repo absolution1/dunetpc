@@ -87,7 +87,7 @@ namespace caldata {
   DEFINE_ART_MODULE(CalWireDUNE35t)
   
   //-------------------------------------------------
-  CalWireDUNE35t::CalWireDUNE35t(fhicl::ParameterSet const& pset)
+  CalWireDUNE35t::CalWireDUNE35t(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     this->reconfigure(pset);
 
