@@ -20,7 +20,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 #include <cmath>
@@ -154,6 +154,7 @@ private:
 
 
 IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
+: EDProducer(p)
 {
   std::vector<int> emptyivec;
   _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");

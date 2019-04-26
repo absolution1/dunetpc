@@ -10,7 +10,7 @@
 #include <cassert>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/RandomNumberGenerator.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/System/TriggerNamesService.h"
 
 #include "TFile.h"

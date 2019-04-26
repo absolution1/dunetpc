@@ -34,8 +34,8 @@ extern "C" {
 #include "canvas/Persistency/Common/Ptr.h" 
 #include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -85,7 +85,8 @@ void filter::ProtoDUNEUnstableHVFilter::reconfigure(fhicl::ParameterSet const& p
 }  
 
 
-filter::ProtoDUNEUnstableHVFilter::ProtoDUNEUnstableHVFilter(fhicl::ParameterSet const& pset) {
+filter::ProtoDUNEUnstableHVFilter::ProtoDUNEUnstableHVFilter(fhicl::ParameterSet const& pset)
+: EDFilter(pset) {
         this->reconfigure(pset);
 }
 filter::ProtoDUNEUnstableHVFilter::~ProtoDUNEUnstableHVFilter() { }

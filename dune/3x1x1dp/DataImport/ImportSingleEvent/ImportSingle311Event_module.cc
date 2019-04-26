@@ -90,6 +90,7 @@ namespace EventGen{
   DEFINE_ART_MODULE(EventGen::ImportSingle311Event)  
 
   ImportSingle311Event::ImportSingle311Event(fhicl::ParameterSet const & p)
+  : EDProducer(p)
   {
     fFilename = p.get<std::string>("Filename");
     fEvt_num = p.get<size_t>("Evt_num");

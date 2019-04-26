@@ -12182,6 +12182,10 @@
          x="-0.03" y="0" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
+  <physvol>
+   <volumeref ref="volExtractionGrid"/>
+   <position name="posExtractionGrid" unit="cm" x="297.965" y="0" z="0"/>
+  </physvol>
    </volume>
 
     <volume name="volSteelShell">
