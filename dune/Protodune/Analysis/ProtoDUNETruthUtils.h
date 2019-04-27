@@ -27,14 +27,24 @@ namespace protoana {
     ProtoDUNETruthUtils();
     ~ProtoDUNETruthUtils();
 
-    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoTrack(
-      const recob::Track &track, art::Event const & evt, std::string trackModule) const;
-    std::vector<std::pair<const recob::Track*, double>> GetRecoTrackListFromMCParticle(
-      const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
+    // Contributions of MCParticles to tracks and vice versa
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoTrack
+      (const recob::Track &track, art::Event const & evt, std::string trackModule) const;
+    std::vector<std::pair<const recob::Track*, double>> GetRecoTrackListFromMCParticle
+      (const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
 
+    // Contributions of MCParticles to showers and vice versa
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoShower
+      (const recob::Shower &shower, art::Event const & evt, std::string showerModule) const;
+    std::vector<std::pair<const recob::Shower*, double>> GetRecoShowerListFromMCParticle
+      (const simb::MCParticle &part, art::Event const & evt, std::string showerModule) const;
+
+    // Best match getters between MC and reconstruction
     const simb::MCParticle* GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
     const recob::Track* GetRecoTrackFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
     const simb::MCParticle* GetMCParticleFromRecoShower(const recob::Shower &shower, art::Event const & evt, std::string showerModule) const;
+    const recob::Shower* GetRecoShowerFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string showerModule) const;
+
     const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
     const simb::MCParticle* GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const;
 

@@ -412,13 +412,14 @@ EOF
 
 
 
-#GroundGrid SOLIDS
+#ExtractionGrid SOLIDS
+
 $ExtractionGridRadious = 0.05;
 $ExtractionGridPitch = 0.3;
 
 $ExtractionGridSizeY = 2*$ExtractionGridRadious;
-$ExtractionGridSizeX = 600.0;
-$ExtractionGridSizeZ = 600.0;
+$ExtractionGridSizeX =  $widthCRM_active;
+$ExtractionGridSizeZ = $lengthCRM_active;
 
 print ExtractionGrid <<EOF;
 
@@ -444,7 +445,7 @@ print ExtractionGrid <<EOF;
   <solidref ref="solExtractionGrid"/>
 EOF
 
-for($ii=0;$ii<$$ExtractionGridSizeZ;$ii=$ii+$ExtractionGridPitch)
+for($ii=0;$ii<$ExtractionGridSizeZ;$ii=$ii+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -456,7 +457,7 @@ EOF
  
 }
 
-for($jj=0;$jj<$$ExtractionGridSizeX;$jj=$jj+$ExtractionGridPitch)
+for($jj=0;$jj<$ExtractionGridSizeX;$jj=$jj+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -674,7 +675,7 @@ $ExtractionGridZ = 0;
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-      print CRYO <<EOF;
+      print TPC <<EOF;
   <physvol>
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="@{[$ExtractionGridX]}" y="@{[$ExtractionGridY]}" z="@{[$ExtractionGridZ]}"/>
