@@ -339,7 +339,6 @@ print DEF <<EOF;
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rPlus90AboutY"       unit="deg" x="90" y="90" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
-   <rotation name="rPlus90AboutX"      unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
    <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0"   z="0"/>
    <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180"   z="0"/>
@@ -413,13 +412,14 @@ EOF
 
 
 
-#GroundGrid SOLIDS
+#ExtractionGrid SOLIDS
+
 $ExtractionGridRadious = 0.05;
 $ExtractionGridPitch = 0.3;
 
 $ExtractionGridSizeY = 2*$ExtractionGridRadious;
-$ExtractionGridSizeX = 600.0;
-$ExtractionGridSizeZ = 600.0;
+$ExtractionGridSizeX =  $widthCRM_active;
+$ExtractionGridSizeZ = $lengthCRM_active;
 
 print ExtractionGrid <<EOF;
 
@@ -445,7 +445,7 @@ print ExtractionGrid <<EOF;
   <solidref ref="solExtractionGrid"/>
 EOF
 
-for($ii=0;$ii<$$ExtractionGridSizeZ;$ii=$ii+$ExtractionGridPitch)
+for($ii=0;$ii<$ExtractionGridSizeZ;$ii=$ii+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -457,7 +457,7 @@ EOF
  
 }
 
-for($jj=0;$jj<$$ExtractionGridSizeX;$jj=$jj+$ExtractionGridPitch)
+for($jj=0;$jj<$ExtractionGridSizeX;$jj=$jj+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -675,7 +675,7 @@ $ExtractionGridZ = 0;
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-      print CRYO <<EOF;
+      print TPC <<EOF;
   <physvol>
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="@{[$ExtractionGridX]}" y="@{[$ExtractionGridY]}" z="@{[$ExtractionGridZ]}"/>
@@ -1472,7 +1472,7 @@ if ($kk==2) {$ii=$ii+2;};
 	print Cathode <<EOF;
   <physvol>
    <volumeref ref="volCathodeSemiCable"/>
-   <position name="posCathCable$ii$jj$kk" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[$SemiCableShift-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk+1)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
+   <position name="posCathCable$ii$jj$kk$semi" unit="cm" x="@{[($xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+($jj+1)*$CathodeInnerStructureCableSeparation)]}" y="$yCathorigin" z="@{[$SemiCableShift-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk+1)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious]}"/>
  </physvol>
 EOF
    if($ii ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
@@ -1533,8 +1533,8 @@ if ($ii==0) {$kk=$kk+2;};
 	print Cathode <<EOF;
   <physvol>
    <volumeref ref="volCathodeSemiCable"/>
-   <position name="posCathCable2$ii$jj$kk" unit="cm" x="@{[$SemiCableShift+$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii+1)*$CathodeInnerStructureSeparation]}" y="$yCathorigin" z="@{[-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
-   <rotation name="CathCablerot2$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
+   <position name="posCathCable2$ii$jj$kk$semi" unit="cm" x="@{[$SemiCableShift+$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii+1)*$CathodeInnerStructureSeparation]}" y="$yCathorigin" z="@{[-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
+   <rotation name="rotCathCable2$ii$jj$kk$semi" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
 EOF
    if($kk ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-1 && $jj ==$CathodeInnerStructureNumberOfCablesPerInnerSquare-2) {$jj=2*$CathodeInnerStructureNumberOfCablesPerInnerSquare+1;}
@@ -1556,7 +1556,7 @@ $kk=2;
   <physvol>
    <volumeref ref="volCathodeCableShort"/>
    <position name="posCathCableShort$ii$jj$kk" unit="cm" x="@{[$xCathorigin-$CathodeTubeLength-$CathodeTorRad+$CathodeInnerStructureWidth+($ii)*$CathodeInnerStructureSeparation+0.5*$CathodeInnerCableLengthShort+1]}" y="$yCathorigin" z="@{[-0.5*$CathodeTubeLength+$CathodeInnerStructureWidth +($kk)*$CathodeInnerStructureSeparation - 0.5*$CathodeTorRad- 0.5*$CathodeOuterRadious +($jj+1)*$CathodeInnerStructureCableSeparation]}"/>
-   <rotation name="CathCablerot$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
+   <rotation name="rotCathCableShort$ii$jj$kk" unit="deg" x="0" y="90" z="0" /> 
  </physvol>
 EOF
 
@@ -1700,9 +1700,7 @@ sub gen_pmt {
     $PMT = ">" . $PMT;
     open(PMT) or die("Could not open file $PMT for writing");
 
-
 	print PMT <<EOF;
-
 
 <solids>
  <tube name="PMTVolume"
@@ -2019,7 +2017,7 @@ $FFSPositionX = -309.593;
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule03" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
-   <rotation name="rotFC06" unit="deg" x="90" y="0" z="270"/>
+   <rotation name="rotFC03" unit="deg" x="90" y="0" z="270"/>
   </physvol>
 EOF
 $FFSPositionY = -$OriginYSet-1.5;
@@ -2029,7 +2027,7 @@ $FFSPositionX = -309.593;
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule04" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
-   <rotation name="rotFC06" unit="deg" x="270" y="0" z="270"/>
+   <rotation name="rotFC04" unit="deg" x="270" y="0" z="270"/>
   </physvol>
 EOF
 
@@ -2041,7 +2039,7 @@ $FFSPositionX = -153.521;
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule07" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
-   <rotation name="rotFC01" unit="deg" x="90" y="0" z="180"/>
+   <rotation name="rotFC07" unit="deg" x="90" y="0" z="180"/>
 
   </physvol>
 EOF
@@ -2053,7 +2051,7 @@ $FFSPositionX = -153.521;
   <physvol>
    <volumeref ref="volFieldCageModule"/>
    <position name="posFieldCageModule08" unit="cm" x="$FFSPositionX" y="$FFSPositionY" z="$FFSPositionZ"/>
-   <rotation name="rotFC01" unit="deg" x="270" y="0" z="180"/>
+   <rotation name="rotFC08" unit="deg" x="270" y="0" z="180"/>
 
   </physvol>
 EOF
@@ -3409,7 +3407,6 @@ print "LEMs               : $LEMs_switch \n";
 print "PMTs               : $pmt_switch \n";
 
 # run the sub routines that generate the fragments
-if ( $pmt_switch eq "on" ) {  gen_pmt();	}
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used

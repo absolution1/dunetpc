@@ -80,7 +80,7 @@ namespace triggersim { // Declare that we are working in the triggersim namespac
   };
 
   //......................................................
-  TemplateTriggerProd::TemplateTriggerProd(fhicl::ParameterSet const & pset):
+  TemplateTriggerProd::TemplateTriggerProd(fhicl::ParameterSet const & pset): EDProducer{pset},
     TempTrig()
   {
     // --- Declare what this module is puttting in the art event.

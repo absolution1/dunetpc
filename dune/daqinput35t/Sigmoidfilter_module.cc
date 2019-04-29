@@ -16,8 +16,8 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -86,7 +86,7 @@ private:
 };
 
 //-------------------------------------------------------------------
-lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) {
+lbne::Sigmoidfilter::Sigmoidfilter(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   std::string colFilt               = pset.get<std::string>("ColFilter");
   fColFilterFunc = new TF1("colFilter", colFilt.c_str());
 

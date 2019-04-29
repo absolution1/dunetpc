@@ -52,7 +52,7 @@ private:
 };
 
 
-dune::CounterFilter::CounterFilter(fhicl::ParameterSet const & p)
+dune::CounterFilter::CounterFilter(fhicl::ParameterSet const & p) : EDFilter{p}
 {
   this->reconfigure(p);
 }
