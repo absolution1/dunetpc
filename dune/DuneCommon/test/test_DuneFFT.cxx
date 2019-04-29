@@ -67,7 +67,6 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
   cout << myname << line << endl;
   cout << myname << "Create empty DFT." << endl;
   DFT dft(gnorm, tnorm);
-  assert( dft.isValid() );
   assert( dft.size() == 0 );
 
   cout << myname << line << endl;
@@ -79,6 +78,12 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
   assert( dft.nCompact() == namp );
   assert( dft.nAmplitude() == namp );
   assert( dft.nPhase() == npha );
+  cout << "Frequency components:" << endl;
+  for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
+    cout << myname << setw(4) << ifrq << ": " << dft.amplitude(ifrq);
+    if ( ifrq < npha ) cout << " @ " << dft.phase(ifrq);
+    cout << endl;
+  }
 
   cout << myname << line << endl;
   cout << myname << "Check power." << endl;
@@ -91,8 +96,10 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
     float amp = dft.amplitude(ifrq);
     float xre = dft.real(ifrq);
     float xim = dft.imag(ifrq);
-    pwr3 += amp*amp;
-    pwr4 += xre*xre + xim*xim;
+    if ( !dft.isPower() || ifrq < dft.nCompact() ) {
+      pwr3 += amp*amp;
+      pwr4 += xre*xre + xim*xim;
+    }
   }
   double pfac = 1.0;
   if ( dft.isStandard() ) pfac = 1.0/nsam;

@@ -117,10 +117,10 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
   assert( dm.getFloatVector("fftMags").size() == nmag );
   assert( dm.haveFloatVector("fftPhases") );
   assert( dm.getFloatVector("fftPhases").size() == npha );
-  assert( dm.haveFloatVector("fftReals") );
-  assert( dm.getFloatVector("fftReals").size() == nsam );
-  assert( dm.haveFloatVector("fftImags") );
-  assert( dm.getFloatVector("fftImags").size() == nsam );
+  //assert( dm.haveFloatVector("fftReals") );
+  //assert( dm.getFloatVector("fftReals").size() == nsam );
+  //assert( dm.haveFloatVector("fftImags") );
+  //assert( dm.getFloatVector("fftImags").size() == nsam );
 
   cout << myname << line << endl;
   cout << myname << "Check power." << endl;

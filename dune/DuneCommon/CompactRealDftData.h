@@ -25,9 +25,15 @@ public:
   // Default ctor.
   CompactRealDftData() =default;
 
-  // Ctor from normalization.
+  // Ctor from normalization. Leaves object empty and so invalid.
   CompactRealDftData(GlobalNormalization gnorm, TermNormalization tnorm)
   : m_gnorm(gnorm), m_tnorm(tnorm) { }
+
+  // Ctor from normalization.
+  CompactRealDftData(GlobalNormalization gnorm, TermNormalization tnorm, Index nsam)
+  : m_gnorm(gnorm), m_tnorm(tnorm) {
+    reset(nsam);
+  }
 
   // Ctor from normalization and data.
   // Must have amps.size() - phas.size() = 0 or 1 for valid DFT.
@@ -84,6 +90,16 @@ public:
     m_phas.clear();
   }
 
+  // Reset the DFT data.
+  void reset(Index nsam) {
+    Index namp = nsam > 0 ? nsam/2 + 1 : 0;
+    Index npha = (nsam + 1)/2;
+    m_amps.resize(namp);
+    m_phas.resize(npha);
+    for ( F& amp : m_amps ) amp = 0.0;
+    for ( F& pha : m_phas ) pha = 0.0;
+  }
+
   // Move data in.
   int moveIn(FloatVector& amps, FloatVector& phas) {
     Index namp = amps.size();
@@ -107,6 +123,18 @@ public:
     }
     m_amps = amps;
     m_phas = phas;
+    return 0;
+  }
+
+  // Set the data.
+  int setAmplitude(Index ifrq, F val) {
+    if ( ifrq >= nAmplitude() ) return 1;
+    m_amps[ifrq] = val;
+    return 0;
+  }
+  int setPhase(Index ifrq, F val) {
+    if ( ifrq >= nPhase() ) return 1;
+    m_phas[ifrq] = val;
     return 0;
   }
 
@@ -143,7 +171,7 @@ public:
   F phase(Index ifrq) const {
     return ifrq < this->nPhase() ? this->compactPhase(ifrq) :
            2*ifrq == this->size() ? 0.0 :
-           ifrq < this->size() ? this->compactPhase(this->size()-ifrq) :
+           ifrq < this->size() ? -this->compactPhase(this->size()-ifrq) :
            this->badValue();
   }
   F real(Index ifrq) const {

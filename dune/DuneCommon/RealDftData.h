@@ -172,6 +172,9 @@ public:
   // The normalization is retained.
   virtual void clear() =0;
 
+  // Reset to nsam samples and zero the DFT.
+  virtual void reset(Index nsam) =0;
+
   // Check and return dimension information.
   // nSample = size = # samples
   // nCompact = # amplitudes in the compact representation
@@ -190,8 +193,8 @@ public:
   bool isAliased(Index ifrq) const { return ifrq < size() && !isZero(ifrq) && !isNyquist(ifrq); }
 
   // Check if this object is valid.
-  // Here this always returns true.
-  virtual bool isValid() const { return this->hasValidNormalization(); }
+  // Object must have an assigned size so that the frequency status methods work.
+  virtual bool isValid() const { return this->hasValidNormalization() && size() > 0; }
 
   // Value to return if caller requests a frequency out of range.
   virtual F badValue() const { return 0.0; }

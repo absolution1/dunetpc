@@ -22,7 +22,9 @@ using std::fixed;
 int DuneFFT::
 fftForward(Index nsam, const float* psam, DFT& dft, Index logLevel) {
   const string myname = "DuneFFT::fftForward: ";
+  dft.reset(nsam);
   if ( ! dft.isValid() ) return 1;
+  if ( nsam == 0 ) return 0;
   vector<double> sams(nsam);
   for ( Index isam=0; isam<nsam; ++isam ) sams[isam] = psam[isam];
   int nsamInt = nsam;
@@ -31,39 +33,36 @@ fftForward(Index nsam, const float* psam, DFT& dft, Index logLevel) {
   pfft->Transform();
   double xre = 0.0;
   double xim = 0.0;
-  Index namp = (nsam+2)/2;
-  Index npha = (nsam+1)/2;
+  Index namp = dft.nAmplitude();
+  Index npha = dft.nPhase();
   FloatVector amps(namp);
   FloatVector phas(npha);
-We need to set the size of the DFT for the following to work
   // Loop over the compact samples.
-  for ( Index iptc=0; iptc<namp; ++iptc ) {
-    pfft->GetPointComplex(iptc, xre, xim);
-    // For an even # samples (namp = npha + 1), the Nyquist term is real
-    // and we store the sign with the amplitude.
-    double xam = iptc < npha ? sqrt(xre*xre + xim*xim) : xre;
-    double xph = atan2(xim, xre);
-    if ( dft.isPower() && dft.isAliased(iptc) ) xam *= sqrt(2.0);
-    amps[iptc] = xam;
-    if ( iptc < npha ) phas[iptc] = xph;
-    if ( logLevel >= 3 ) {
-      cout << myname << setw(4) << iptc << ": ("
-           << setw(10) << fixed << xre << ", "
-           << setw(10) << fixed << xim << "): "
-           << setw(10) << fixed << xam;
-      if ( iptc < npha ) cout << " @ " << setw(10) << fixed << xph;
-      cout << endl;
-    }
-  }
   float nfac = 1.0;
   if ( dft.isConsistent() ) nfac = 1.0/sqrt(nsam);
   if ( dft.isBin() ) nfac = 1.0/nsam;
-  for ( Index ixsm=0; ixsm<namp; ++ixsm ) {
+  for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
+    pfft->GetPointComplex(ifrq, xre, xim);
+    // For an even # samples (namp = npha + 1), the Nyquist term is real
+    // and we store the sign with the amplitude.
+    double xam = ifrq < npha ? sqrt(xre*xre + xim*xim) : xre;
+    double xph = atan2(xim, xre);
     float fac = nfac;
-    if ( dft.isPower() && dft.isAliased(ixsm) ) fac *= sqrt(2.0);
-    amps[ixsm] *= fac;
+    if ( dft.isPower() && dft.isAliased(ifrq) ) fac *= sqrt(2.0);
+    xam *= fac;
+    dft.setAmplitude(ifrq, xam);
+    if ( ifrq < npha ) {
+      dft.setPhase(ifrq, xph);
+    }
+    if ( logLevel >= 3 ) {
+      cout << myname << setw(4) << ifrq << ": ("
+           << setw(10) << fixed << xre << ", "
+           << setw(10) << fixed << xim << "): "
+           << setw(10) << fixed << xam;
+      if ( ifrq < npha ) cout << " @ " << setw(10) << fixed << xph;
+      cout << endl;
+    }
   }
-  dft.moveIn(amps, phas);
   return 0;
 }
 
@@ -90,7 +89,7 @@ fftInverse(const DFT& dft, FloatVector& sams, Index logLevel) {
   TVirtualFFT* pfft = TVirtualFFT::FFT(1, &nsamInt, "C2R");
   vector<double> xdres(nsam, 0.0);
   vector<double> xdims(nsam, 0.0);
-  for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
+  for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
     double amp = dft.convAmplitude(ifrq);
     double pha = dft.phase(ifrq);
     double xre = amp*cos(pha);
@@ -101,7 +100,7 @@ fftInverse(const DFT& dft, FloatVector& sams, Index logLevel) {
   pfft->SetPointsComplex(&xdres[0], &xdims[0]);
   if ( logLevel >= 3 ) {
     cout << myname << "Inverting" << endl;
-    cout << myname << "Frequency components:" << endl;
+    cout << myname << "Real/imag components:" << endl;
     for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
       float xre = xdres[ifrq];
       float xim = xdims[ifrq];
