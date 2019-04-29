@@ -12,13 +12,13 @@ simple_plugin(OverlayRawDataDUNE35t "module"
               larcorealg_Geometry
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_IO_PRODUCTMIX}
-              ${ART_FRAMEWORK_IO_ROOT}
+              ${ART_ROOT_IO}
               ${ART_FRAMEWORK_MODULES}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
               ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
-              art_Framework_IO_Root_detail_sources
+              art_root_io_detail
               art_Persistency_Common
               art_Utilities canvas
               ifdh
@@ -35,12 +35,12 @@ simple_plugin(RawDigitOverlayDUNE35tAna "module"
               dune_RawDigitAdderAna
               lardataobj_RawData
               ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_IO_ROOT}
+              ${ART_ROOT_IO}
               ${ART_FRAMEWORK_MODULES}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${BOOST_LIB}
               ${FHICLCPP}

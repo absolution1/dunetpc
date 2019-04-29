@@ -44,8 +44,8 @@
 /*camj_includes*/
 #include "TH1.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 namespace DAQToOffline {
   class SSPTriggerAna;

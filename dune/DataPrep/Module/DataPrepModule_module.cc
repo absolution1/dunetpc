@@ -123,7 +123,7 @@ DEFINE_ART_MODULE(DataPrepModule)
   
 //**********************************************************************
 
-DataPrepModule::DataPrepModule(fhicl::ParameterSet const& pset) {
+DataPrepModule::DataPrepModule(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   this->reconfigure(pset);
   produces<std::vector<recob::Wire>>(m_WireName);
   if ( m_DoAssns ) {
