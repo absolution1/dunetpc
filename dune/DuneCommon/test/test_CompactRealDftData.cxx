@@ -1,11 +1,11 @@
-// test_RealDftData.cxx
+// test_CompactRealDftData.cxx
 //
 // David Adams
 // April 2019
 //
-// Test RealDftData.
+// Test CompactRealDftData.
 
-#include "dune/DuneCommon/RealDftDataCompact.h"
+#include "dune/DuneCommon/CompactRealDftData.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -26,26 +26,26 @@ using std::vector;
 using std::setw;
 using std::fixed;
 
-using DftSU = RealDftDataCompact<float, RealDftNormalization::Standard, RealDftNormalization::Unit>;
-using DftCP = RealDftDataCompact<float, RealDftNormalization::Consistent, RealDftNormalization::Power>;
-
-using Index = DftSU::Index;
-using FloatVector = DftSU::FloatVector;
+using Dft = CompactRealDftData<float>;
+using Index = Dft::Index;
+using FloatVector = Dft::FloatVector;
 
 //**********************************************************************
 
-int test_RealDftData(bool useExistingFcl) {
+int test_CompactRealDftData(bool useExistingFcl) {
   const string myname = "test_RealDftData: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
 #endif
   string line = "-----------------------------";
+  const RealDftNormalization::GlobalNormalization std = RealDftNormalization::Standard;
+  const RealDftNormalization::TermNormalization  unit = RealDftNormalization::Unit;
 
   cout << myname << line << endl;
   cout << myname << "Create DFT." << endl;
-  vector<float> amps = {   5.0, 4.0, 3.0, 2.0, 1.0 };
-  vector<float> phas = {   0.0, 0.5, 1.0, 2.0, 4.0 };
+  FloatVector amps = {   5.0, 4.0, 3.0, 2.0, 1.0 };
+  FloatVector phas = {   0.0, 0.5, 1.0, 2.0, 4.0 };
   Index namp = amps.size();
   Index npha = phas.size();
   Index nsam = namp + npha - 1;
@@ -56,14 +56,14 @@ int test_RealDftData(bool useExistingFcl) {
   cout << myname << line << endl;
   cout << myname << "Create invalid DFT objects." << endl;
   FloatVector badvals = {11.1, 22.2};
-  DftSU dftbad1(amps, badvals);
+  Dft dftbad1(std, unit, amps, badvals);
   assert ( ! dftbad1.size() );
-  DftSU dftbad2(badvals, phas);
+  Dft dftbad2(std, unit, badvals, phas);
   assert ( ! dftbad2.size() );
 
   cout << myname << line << endl;
   cout << myname << "Create DFT object with data." << endl;
-  DftSU dft(amps, phas);
+  Dft dft(std, unit, amps, phas);
   cout << myname << "  # samples: " << dft.size() << endl;
   cout << myname << "      Power: " << dft.power() << endl;
   assert( dft.hasValidNormalization() );
@@ -78,6 +78,34 @@ int test_RealDftData(bool useExistingFcl) {
   assert( ! dft.isBin() );
   assert( dft.isUnit() );
   assert( ! dft.isPower() );
+
+  // Copy data out.
+  cout << myname << line << endl;
+  cout << myname << "Copy data out." << endl;
+  FloatVector amps1, phas1;
+  dft.copyOut(amps1, phas1);
+  assert( dft.isValid() );
+  assert( dft.size() );
+  assert( dft.nCompact() == namp );
+  assert( dft.nAmplitude() == namp );
+  assert( dft.nPhase() == npha );
+  assert( dft.nSample() == nsam );
+  assert( amps1 == amps );
+  assert( phas1 == phas );
+
+  // Move data out.
+  cout << myname << line << endl;
+  cout << myname << "Move data out." << endl;
+  FloatVector amps2, phas2;
+  dft.moveOut(amps2, phas2);
+  assert( dft.isValid() );
+  assert( dft.size() == 0 );
+  assert( dft.nCompact() == 0 );
+  assert( dft.nAmplitude() == 0 );
+  assert( dft.nPhase() == 0 );
+  assert( dft.nSample() == 0 );
+  assert( amps2 == amps );
+  assert( phas2 == phas );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -97,7 +125,7 @@ int main(int argc, char* argv[]) {
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_RealDftData(useExistingFcl);
+  return test_CompactRealDftData(useExistingFcl);
 }
 
 //**********************************************************************

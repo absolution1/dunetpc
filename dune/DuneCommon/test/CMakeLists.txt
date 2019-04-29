@@ -33,7 +33,7 @@ cet_test(test_RootPalette SOURCES test_RootPalette.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
-cet_test(test_RealDftData SOURCES test_RealDftData.cxx
+cet_test(test_CompactRealDftData SOURCES test_CompactRealDftData.cxx
   LIBRARIES
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}

@@ -70,6 +70,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneCommon/DuneFFT.h"
 
 class AdcChannelFFT : AdcChannelTool {
 
@@ -77,6 +78,7 @@ public:
 
   using Index = unsigned int;
   using FloatVector = AdcSignalVector;
+  using DFT = DuneFFT::DFT;
 
   AdcChannelFFT(fhicl::ParameterSet const& ps);
 
@@ -86,20 +88,11 @@ public:
   DataMap view(const AdcChannelData& acd) const override;
   DataMap update(AdcChannelData& acd) const override;
 
-  // These methods do the work of calling Root interface to FFTW and converting to conventions here.
-  // They could be moved to a utility class.
-  static int fftForward(Index normOpt, Index ntick, const float* psam,
-                        FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases,
-                        Index logLevel);
-  static int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
-                        FloatVector& xres, FloatVector& xims, FloatVector& sams,
-                        Index logLevel);
-
   // This does all the work of view:
   //   deciding what action to take
   //   calling one of the above  to carry out the action
   //   constructing the result
-  void internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& mags, FloatVector& phas, DataMap& ret) const;
+  void internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& amps, FloatVector& phas, DataMap& ret) const;
 
 private:
 

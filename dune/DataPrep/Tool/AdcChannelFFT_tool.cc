@@ -15,6 +15,7 @@ using std::endl;
 using std::vector;
 using std::setw;
 using std::fixed;
+using DFT = DuneFFT::DFT;
 
 //**********************************************************************
 // Class methods.
@@ -80,7 +81,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
 //**********************************************************************
 
 void AdcChannelFFT::
-internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, FloatVector& xphs, DataMap& ret) const {
+internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, FloatVector& xphs, DataMap& ret) const {
   const string myname = "AdcChannelFFT::internalView: ";
   bool doForward = false;
   bool doInverse = false;
@@ -105,30 +106,38 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
     ret.setStatus(1);
     return;
   }
-  DataMap::FloatVector xres;
-  DataMap::FloatVector xims;
   Index isam0 = 0;
   Index nsam = 0;
+  RealDftNormalization::FullNormalization fnorm(m_NormOpt);
+  DFT dft(fnorm.global, fnorm.term);
   if ( doForward ) {
     isam0 = m_FirstTick;
     if ( isam0 >= acd.samples.size() ) {
-      cout << myname << "No data in range." << endl;
+      cout << myname << "WARNING: No data in range." << endl;
       ret.setStatus(11);
       return;
     }
     nsam = acd.samples.size() - isam0;
+    if ( m_LogLevel >= 3 ) cout << myname << "Forward FFT with " << nsam << " samples." << endl;
     if ( m_NTick > 0 && m_NTick < nsam ) nsam = m_NTick;
-    int rstat = DuneFFT::fftForward(m_NormOpt, nsam, &acd.samples[isam0], xres, xims, xmgs, xphs, m_LogLevel);
+    int rstat = DuneFFT::fftForward(nsam, &acd.samples[isam0], dft, m_LogLevel);
     if ( rstat ) {
       ret.setStatus(10+rstat);
+      cout << myname << "WARNING: Forward FFT failed." << endl;
       return;
     }
+cout << "A: " << xams.size() << endl;
+    dft.moveOut(xams, xphs);
+cout << "B: " << xams.size() << endl;
   } else if ( doInverse ) {
-    int rstat = DuneFFT::fftInverse(m_NormOpt, acd.dftmags, acd.dftphases, xres, xims, sams, m_LogLevel);
-    xmgs = acd.dftmags;
+    dft.copyIn(acd.dftmags, acd.dftphases);
+    int rstat = DuneFFT::fftInverse(dft, sams, m_LogLevel);
+    xams = acd.dftmags;
     xphs = acd.dftphases;
+    if ( m_LogLevel >= 3 ) cout << myname << "Inverse FFT for " << dft.size() << " samples." << endl;
     if ( rstat ) {
       ret.setStatus(20+rstat);
+      cout << myname << "WARNING: Inverse FFT failed." << endl;
       return;
     }
   }
@@ -138,16 +147,13 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xmgs, Fl
   }
   Index dftRet = m_ReturnOpt % 10;
   if ( dftRet >= 1 ) {
-    ret.setInt("fftNMag",   xmgs.size());
+cout << "C: " << xams.size() << endl;
+    ret.setInt("fftNMag",   xams.size());
     ret.setInt("fftNPhase", xphs.size());
   }
   if ( dftRet >= 2 ) {
-    ret.setFloatVector("fftMags",   xmgs);
+    ret.setFloatVector("fftMags",   xams);
     ret.setFloatVector("fftPhases", xphs);
-  }
-  if ( dftRet >= 3 ) {
-    ret.setFloatVector("fftReals",  xres);
-    ret.setFloatVector("fftImags",  xims);
   }
   if ( m_ReturnOpt >= 10 ) {
     if ( sams.size() ) ret.setFloatVector("fftSamples", sams);

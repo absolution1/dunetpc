@@ -100,16 +100,49 @@ public:
 
   using Index = unsigned int;
 
-  enum GlobalNormalization { Standard, Consistent, Bin };
-  enum TermNormalization { Unit, Power };
+  enum GlobalNormalization { Standard=1, Consistent=2, Bin=3 };
+  enum TermNormalization { Unit=1, Power=2 };
 
-  // Global normalization.
+  // Subclass that holds both normalizations.
+  // Provides conversion from two or one index.
+  class FullNormalization {
+  public:
+    GlobalNormalization global = defaultGlobalNormalization();
+    TermNormalization term = defaultTermNormalization();
+    FullNormalization() =default;
+    FullNormalization(GlobalNormalization gnorm, TermNormalization tnorm)
+    : global(gnorm), term(tnorm) { }
+    // Conversion from indices.
+    FullNormalization(Index ignorm, Index itnorm)
+    : global(getGlobalNormalization(ignorm)), term(getTermNormalization(itnorm)) { }
+    // Conversion from a single index: 10*term + global.
+    FullNormalization(Index inorm) : FullNormalization(inorm%10, inorm/10) { };
+  };
+
+  // Default normalizations.
+  static GlobalNormalization defaultGlobalNormalization() { return Standard; }
+  static TermNormalization defaultTermNormalization() { return Unit; }
+
+  // Normalization conversion from an index.
+  static GlobalNormalization getGlobalNormalization(Index iarg) {
+    if ( iarg == 1 ) return Standard;
+    if ( iarg == 2 ) return Consistent;
+    if ( iarg == 3 ) return Bin;
+    return defaultGlobalNormalization();
+  }
+  static TermNormalization getTermNormalization(Index iarg) {
+    if ( iarg == 1 ) return Unit;
+    if ( iarg == 2 ) return Power;
+    return defaultTermNormalization();
+  }
+  
+  // Return the global normalization.
   virtual Index globalNormalization() const =0;
   bool isStandard() const   { return globalNormalization() == Standard; }
   bool isConsistent() const { return globalNormalization() == Consistent; }
   bool isBin() const        { return globalNormalization() == Bin; }
 
-  // Term normalization.
+  // Return the term normalization.
   virtual Index termNormalization() const =0;
   bool isUnit() const { return termNormalization() == Unit; }
   bool isPower() const  { return termNormalization() == Power; }
@@ -154,10 +187,11 @@ public:
   bool isZero(Index ifrq) const { return ifrq == 0; }
   bool isNyquist(Index ifrq) const { return 2*ifrq == size(); }
   bool isNotAliased(Index ifrq) const { return isZero(ifrq) || isNyquist(ifrq); }
-  bool isAliased(Index ifrq) const { return ifrq < size() || !isZero(ifrq) || !isNyquist(ifrq); }
+  bool isAliased(Index ifrq) const { return ifrq < size() && !isZero(ifrq) && !isNyquist(ifrq); }
 
   // Check if this object is valid.
-  bool isValid() const { return size() > 0 && this->hasValidNormalization() && (this->isEven() || this->isOdd()); }
+  // Here this always returns true.
+  virtual bool isValid() const { return this->hasValidNormalization(); }
 
   // Value to return if caller requests a frequency out of range.
   virtual F badValue() const { return 0.0; }
@@ -190,13 +224,15 @@ public:
     F amp = amplitude(ifrq);
     F pwr = amp*amp;
     if ( isUnit() && isAliased(ifrq) ) pwr *= 2.0;
+    if ( isStandard() ) pwr /= size();
+    if ( isBin() ) pwr *= size();
     return pwr;
   }
 
   // Return the total power.
   F power() const {
     F pwr = 0.0;
-    for ( Index ifrq=0; ifrq<nCompact(); ++ ifrq ) {
+    for ( Index ifrq=0; ifrq<nCompact(); ++ifrq ) {
       pwr += compactPower(ifrq);
     }
     return pwr;
