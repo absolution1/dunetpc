@@ -1849,7 +1849,7 @@ EOF
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="0" y="$Argon_y/2-$HeightGaseousAr/2"  z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="@{[$Argon_y/2-$HeightGaseousAr/2]}"  z="0"/>
          </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
