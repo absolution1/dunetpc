@@ -142,7 +142,7 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   cout << myname << line << endl;
   cout << myname << "Create true samples." << endl;
   AdcSignalVector samsTru(nsam, 0.0);
-  samsTru[20] = 100.0;
+  samsTru[20] = 1000.0;
 
   cout << myname << line << endl;
   cout << myname << "Create data by direct convolution with response." << endl;
@@ -236,7 +236,7 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   timPlot.addHist(samsDatNoNoise, "DataNoNoise", 38, 4, 1);
   timPlot.addHist(samsDat, "Data", 1, 2, 1);
   timPlot.addHist(samsDco, "Deconvoluted", 2, 2, 1);
-  timPlot.print(mypre + "_time.png", -10, 30);
+  timPlot.print(mypre + "_time.png", -50, 200);
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -247,8 +247,8 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  float noiseLev = 2.0;
-  float sigmaFilter = 2.0;
+  float noiseLev = 4.0;
+  float sigmaFilter = 3.0;
   Index nsam = 200;
   if ( argc > 1 ) {
     string sarg(argv[1]);

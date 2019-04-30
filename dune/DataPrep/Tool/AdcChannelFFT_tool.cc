@@ -25,7 +25,6 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_FirstTick(ps.get<Index>("FirstTick")),
   m_NTick(ps.get<Index>("NTick")),
-  m_NormOpt(ps.get<Index>("NormOpt")),
   m_Action(ps.get<Index>("Action")),
   m_ReturnOpt(ps.get<Index>("ReturnOpt")) {
   const string myname = "AdcChannelFFT::ctor: ";
@@ -34,7 +33,6 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "           FirstTick: " << m_FirstTick << endl;
     cout << myname << "               NTick: " << m_NTick << endl;
-    cout << myname << "             NormOpt: " << m_NormOpt << endl;
     cout << myname << "              Action: " << m_Action << endl;
     cout << myname << "           ReturnOpt: " << m_ReturnOpt << endl;
   }
@@ -108,8 +106,7 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
   }
   Index isam0 = 0;
   Index nsam = 0;
-  RealDftNormalization::FullNormalization fnorm(m_NormOpt);
-  DFT dft(fnorm.global, fnorm.term);
+  DFT dft(DFT::Norm(AdcChannelData::dftNormalization()));
   if ( doForward ) {
     isam0 = m_FirstTick;
     if ( isam0 >= acd.samples.size() ) {
@@ -126,11 +123,13 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
       cout << myname << "WARNING: Forward FFT failed." << endl;
       return;
     }
-cout << "A: " << xams.size() << endl;
-    dft.moveOut(xams, xphs);
-cout << "B: " << xams.size() << endl;
   } else if ( doInverse ) {
     dft.copyIn(acd.dftmags, acd.dftphases);
+    if ( ! dft.isValid() ) {
+      ret.setStatus(20);
+      cout << "ERROR: Unable to find DFT in AdcChannelData." << endl;
+      return;
+    }
     int rstat = DuneFFT::fftInverse(dft, sams, m_LogLevel);
     xams = acd.dftmags;
     xphs = acd.dftphases;
@@ -141,13 +140,26 @@ cout << "B: " << xams.size() << endl;
       return;
     }
   }
+  // Fetch return data stored in the DFT.
+  Index dftRet = m_ReturnOpt % 10;
+  if ( dftRet >= 3 ) {
+    FloatVector fftres(nsam);
+    FloatVector fftims(nsam);
+    for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
+      fftres[ifrq] = dft.real(ifrq);
+      fftims[ifrq] = dft.imag(ifrq);
+    }
+    ret.setFloatVector("fftReals", fftres);
+    ret.setFloatVector("fftImags", fftims);
+  }
+  // Move data out of the DFT (leaving it invalid).
+  if ( doForward ) dft.moveOut(xams, xphs);
+  // Fetch return data not stored in the DFT.
   if ( m_ReturnOpt >= 1 ) {
     ret.setInt("fftTick0", isam0);
     ret.setInt("fftNTick", nsam);
   }
-  Index dftRet = m_ReturnOpt % 10;
   if ( dftRet >= 1 ) {
-cout << "C: " << xams.size() << endl;
     ret.setInt("fftNMag",   xams.size());
     ret.setInt("fftNPhase", xphs.size());
   }

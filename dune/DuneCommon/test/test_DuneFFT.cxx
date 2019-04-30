@@ -40,12 +40,10 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
 #endif
   string line = "-----------------------------";
 
-  DFT::FullNormalization fnorm(ignorm, itnorm);
-  DFT::GlobalNormalization gnorm = fnorm.global;
-  DFT::TermNormalization tnorm = fnorm.term;
+  DFT::FullNormalization norm(ignorm, itnorm);
   cout << line << endl;
-  cout << myname << " Global norm: " << gnorm << endl;
-  cout << myname << "   Term norm: " << tnorm << endl;
+  cout << myname << " Global norm: " << ignorm << endl;
+  cout << myname << "   Term norm: " << itnorm << endl;
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
@@ -66,7 +64,7 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
 
   cout << myname << line << endl;
   cout << myname << "Create empty DFT." << endl;
-  DFT dft(gnorm, tnorm);
+  DFT dft(norm);
   assert( dft.size() == 0 );
 
   cout << myname << line << endl;

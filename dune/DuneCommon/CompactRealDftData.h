@@ -19,28 +19,26 @@ public:
 
   using Index = RealDftNormalization::Index;
   using FloatVector = std::vector<F>;
-  using GlobalNormalization = RealDftNormalization::GlobalNormalization;
-  using TermNormalization = RealDftNormalization::TermNormalization;
+  using Norm = RealDftNormalization::FullNormalization;
 
   // Default ctor.
   CompactRealDftData() =default;
 
   // Ctor from normalization. Leaves object empty and so invalid.
-  CompactRealDftData(GlobalNormalization gnorm, TermNormalization tnorm)
-  : m_gnorm(gnorm), m_tnorm(tnorm) { }
+  explicit CompactRealDftData(Norm norm)
+  : m_norm(norm) { }
 
   // Ctor from normalization.
-  CompactRealDftData(GlobalNormalization gnorm, TermNormalization tnorm, Index nsam)
-  : m_gnorm(gnorm), m_tnorm(tnorm) {
+  CompactRealDftData(Norm norm, Index nsam)
+  : m_norm(norm) {
     reset(nsam);
   }
 
   // Ctor from normalization and data.
   // Must have amps.size() - phas.size() = 0 or 1 for valid DFT.
   // If not, the object is left empty.
-  CompactRealDftData(GlobalNormalization gnorm, TermNormalization tnorm,
-                     const FloatVector& amps, const FloatVector& phas)
-  : m_gnorm(gnorm), m_tnorm(tnorm), m_amps(amps), m_phas(phas) {
+  CompactRealDftData(Norm norm, const FloatVector& amps, const FloatVector& phas)
+  : m_norm(norm), m_amps(amps), m_phas(phas) {
     Index namp = amps.size();
     Index npha = phas.size();
     if ( namp < npha || namp > npha + 1 ) clear();
@@ -152,11 +150,8 @@ public:
     return 0;
   }
 
-  // Global normalization.
-  Index globalNormalization() const override { return m_gnorm; }
-
-  // Term normalization.
-  Index termNormalization() const override { return m_tnorm; }
+  // Normalization.
+  Norm fullNormalization() const override { return m_norm; }
 
   // Check and return dimension information.
   Index nSample() const override { return nCompact() ? nCompact() + nPhase() - 1 : 0; }
@@ -198,8 +193,7 @@ public:
 private:
 
   // Data.
-  GlobalNormalization m_gnorm = RealDftNormalization::defaultGlobalNormalization();
-  TermNormalization m_tnorm = RealDftNormalization::defaultTermNormalization();
+  Norm m_norm;
   FloatVector m_amps;
   FloatVector m_phas;
 

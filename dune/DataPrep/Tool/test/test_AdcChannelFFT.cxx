@@ -117,10 +117,10 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
   assert( dm.getFloatVector("fftMags").size() == nmag );
   assert( dm.haveFloatVector("fftPhases") );
   assert( dm.getFloatVector("fftPhases").size() == npha );
-  //assert( dm.haveFloatVector("fftReals") );
-  //assert( dm.getFloatVector("fftReals").size() == nsam );
-  //assert( dm.haveFloatVector("fftImags") );
-  //assert( dm.getFloatVector("fftImags").size() == nsam );
+  assert( dm.haveFloatVector("fftReals") );
+  assert( dm.getFloatVector("fftReals").size() == nsam );
+  assert( dm.haveFloatVector("fftImags") );
+  assert( dm.getFloatVector("fftImags").size() == nsam );
 
   cout << myname << line << endl;
   cout << myname << "Check power." << endl;
@@ -129,8 +129,11 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
   float pwr2 = 0.0;
   for ( float mag : dm.getFloatVector("fftMags") ) pwr2 += mag*mag;
   float pwr3 = 0.0;
-  for ( float x : dm.getFloatVector("fftReals") ) pwr3 += x*x;
-  for ( float x : dm.getFloatVector("fftImags") ) pwr3 += x*x;
+  for ( Index ifrq=0; ifrq<nmag; ++ifrq ) {     // We assume power normalization
+    float xre = dm.getFloatVector("fftReals")[ifrq];
+    float xim = dm.getFloatVector("fftImags")[ifrq];
+    pwr3 += xre*xre + xim*xim;
+  }
   cout << myname << "Tick power: " << pwr1 << endl;
   cout << myname << "Freq power: " << pwr2 << endl;
   cout << myname << "Frq2 power: " << pwr3 << endl;

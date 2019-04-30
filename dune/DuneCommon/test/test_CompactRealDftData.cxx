@@ -39,8 +39,7 @@ int test_CompactRealDftData(bool useExistingFcl) {
   abort();
 #endif
   string line = "-----------------------------";
-  const RealDftNormalization::GlobalNormalization std = RealDftNormalization::Standard;
-  const RealDftNormalization::TermNormalization  unit = RealDftNormalization::Unit;
+  const Dft::Norm mynorm(RealDftNormalization::Standard, RealDftNormalization::Unit);
 
   cout << myname << line << endl;
   cout << myname << "Create DFT." << endl;
@@ -56,14 +55,14 @@ int test_CompactRealDftData(bool useExistingFcl) {
   cout << myname << line << endl;
   cout << myname << "Create invalid DFT objects." << endl;
   FloatVector badvals = {11.1, 22.2};
-  Dft dftbad1(std, unit, amps, badvals);
+  Dft dftbad1(mynorm, amps, badvals);
   assert ( ! dftbad1.size() );
-  Dft dftbad2(std, unit, badvals, phas);
+  Dft dftbad2(mynorm, badvals, phas);
   assert ( ! dftbad2.size() );
 
   cout << myname << line << endl;
   cout << myname << "Create DFT object with data." << endl;
-  Dft dft(std, unit, amps, phas);
+  Dft dft(mynorm, amps, phas);
   cout << myname << "  # samples: " << dft.size() << endl;
   cout << myname << "      Power: " << dft.power() << endl;
   assert( dft.hasValidNormalization() );
@@ -98,7 +97,8 @@ int test_CompactRealDftData(bool useExistingFcl) {
   cout << myname << "Move data out." << endl;
   FloatVector amps2, phas2;
   dft.moveOut(amps2, phas2);
-  assert( dft.isValid() );
+  assert( ! dft.isValid() );
+  assert( dft.hasValidNormalization() );
   assert( dft.size() == 0 );
   assert( dft.nCompact() == 0 );
   assert( dft.nAmplitude() == 0 );

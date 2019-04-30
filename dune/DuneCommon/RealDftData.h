@@ -100,15 +100,15 @@ public:
 
   using Index = unsigned int;
 
-  enum GlobalNormalization { Standard=1, Consistent=2, Bin=3 };
-  enum TermNormalization { Unit=1, Power=2 };
+  enum GlobalNormalization { InvalidGlobalNormalization=0, Standard=1, Consistent=2, Bin=3 };
+  enum TermNormalization { InvalidTermNormalization=0, Unit=1, Power=2 };
 
   // Subclass that holds both normalizations.
   // Provides conversion from two or one index.
   class FullNormalization {
   public:
-    GlobalNormalization global = defaultGlobalNormalization();
-    TermNormalization term = defaultTermNormalization();
+    GlobalNormalization global = InvalidGlobalNormalization;
+    TermNormalization term = InvalidTermNormalization;
     FullNormalization() =default;
     FullNormalization(GlobalNormalization gnorm, TermNormalization tnorm)
     : global(gnorm), term(tnorm) { }
@@ -116,34 +116,33 @@ public:
     FullNormalization(Index ignorm, Index itnorm)
     : global(getGlobalNormalization(ignorm)), term(getTermNormalization(itnorm)) { }
     // Conversion from a single index: 10*term + global.
-    FullNormalization(Index inorm) : FullNormalization(inorm%10, inorm/10) { };
+    explicit FullNormalization(Index inorm) : FullNormalization(inorm%10, inorm/10) { };
   };
-
-  // Default normalizations.
-  static GlobalNormalization defaultGlobalNormalization() { return Standard; }
-  static TermNormalization defaultTermNormalization() { return Unit; }
 
   // Normalization conversion from an index.
   static GlobalNormalization getGlobalNormalization(Index iarg) {
     if ( iarg == 1 ) return Standard;
     if ( iarg == 2 ) return Consistent;
     if ( iarg == 3 ) return Bin;
-    return defaultGlobalNormalization();
+    return InvalidGlobalNormalization;
   }
   static TermNormalization getTermNormalization(Index iarg) {
     if ( iarg == 1 ) return Unit;
     if ( iarg == 2 ) return Power;
-    return defaultTermNormalization();
+    return InvalidTermNormalization;
   }
   
+  // Return the full normalization for this object.
+  virtual FullNormalization fullNormalization() const =0;
+
   // Return the global normalization.
-  virtual Index globalNormalization() const =0;
+  GlobalNormalization globalNormalization() const { return fullNormalization().global; }
   bool isStandard() const   { return globalNormalization() == Standard; }
   bool isConsistent() const { return globalNormalization() == Consistent; }
   bool isBin() const        { return globalNormalization() == Bin; }
 
   // Return the term normalization.
-  virtual Index termNormalization() const =0;
+  TermNormalization termNormalization() const { return fullNormalization().term; }
   bool isUnit() const { return termNormalization() == Unit; }
   bool isPower() const  { return termNormalization() == Power; }
 
@@ -151,6 +150,9 @@ public:
   bool hasValidGlobalNormalization() const { return isStandard() || isConsistent() || isBin(); }
   bool hasValidTermNormalization()   const { return isUnit() || isPower(); }
   bool hasValidNormalization() const { return hasValidGlobalNormalization() && hasValidTermNormalization(); }
+
+  // Normalization to use for convolution.
+  static FullNormalization convolutionNormalization() { return FullNormalization(Standard, Unit); }
 
 };
 

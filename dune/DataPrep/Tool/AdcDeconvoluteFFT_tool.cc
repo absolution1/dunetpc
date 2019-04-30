@@ -81,8 +81,8 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd.run << " event " << acd.event
                               << " channel " << acd.channel << endl;
   DataMap ret;
-  DFT::FullNormalization fnormConv(DFT::Standard, DFT::Unit);
-  DFT::FullNormalization fnormData(DFT::Consistent, DFT::Power);
+  DFT::Norm fnormConv(DFT::convolutionNormalization());
+  DFT::Norm fnormData(AdcChannelData::dftNormalization());
   Index rstat = 0;
   Index fftLogLevel = m_LogLevel > 0 ? m_LogLevel - 2 : 0.0;
 
@@ -116,7 +116,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   // Build response deconvolution.
   // Transform the response.
   // We may want to cache this result mapped by nsam.
-  DFT dftRes(fnormConv.global, fnormConv.term);
+  DFT dftRes(fnormConv);
   if ( m_useResponse && useFFT ) {
     if ( m_LogLevel >= 3 ) cout << myname << "Using FFT to build frequency-domain response vectors." << endl;
     rstat = DuneFFT::fftForward(xdasRes, dftRes, fftLogLevel);
@@ -135,7 +135,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   }
   
   // Transform the data to frequency domain.
-  DFT dftInp(fnormData.global, fnormData.term);
+  DFT dftInp(fnormData);
   FloatVector xamsInp, xphsInp;
   if ( useFFT ) {
     if ( m_LogLevel >= 3 ) cout << myname << "Using FFT to build frequency-domain input vectors." << endl;
@@ -161,7 +161,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   // In frequncy space, this is just a Gaussian with sima = N/(2*pi*sigma_t)
   const float xmin = 1.e-20;
   FloatVector xdasFil(nsam, 1.0);
-  DFT dftFil(fnormConv.global, fnormConv.term);
+  DFT dftFil(fnormConv);
   if ( m_useFilter ) {
     FloatVector xamsFil(namp);
     FloatVector xphsFil(npha, 0.0);
@@ -192,7 +192,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   // Deconvolute/convolute (divide/multiply) in frequency space.
   if ( useFFT ) {
     if ( m_LogLevel >= 3 ) cout << myname << "Building frequency-domain output vectors." << endl;
-    DFT dftOut(fnormData.global, fnormData.term, nsam);
+    DFT dftOut(fnormData, nsam);
     for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
       float xamOut = dftInp.amplitude(ifrq);
       float xphOut = dftInp.phase(ifrq);

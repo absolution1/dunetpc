@@ -16,8 +16,10 @@
 // so that the relative power for each term is the square of its value.
 // I.e. the DFT magnitudes only extend up to the Nyquist frequency and are normalized to
 // include the power for all alias (e.g. folded) frequencies. To convert to a complex array
-// of nsam terms all but the first and Nyquiset (last only for even # samples) must be scaled
+// of nsam terms all but the first and Nyquist (last only for even # samples) must be scaled
 // by 1/sqrt(2).
+//
+// This is the Consistent-Power normalization described in DuneCommon/RealDftData.h.
 //
 // The DFT phases
 //
@@ -25,13 +27,6 @@
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   FirstTick - First tick used in transform.
 //   NTick - # ticks to use in transform. To end if 0.
-//   NormOpt - Normalization:
-//     0 - Unnormalized ==> integrated raw power of transform is N times larger than input.
-//         Normalization of 1/N is applied on inverse to recover original waveform.
-//     1 - Normalized ==> Integrated power of transform or inverse is the same as its input.
-//         I.e. normalization of 1/sqrt(N) is applied both forward and backward.
-//     2 - Bin normalized ==> Integrated power of transform is 1/N times input.
-//         Normalization of 1/N on forward transform and one on inverse.
 //   Action -  0 - Use existing DFT
 //             1 - Evaluate DFT from WF. Do not save result.
 //             2 - Evaluate DFT if it is not already present. Do not save result.
@@ -100,7 +95,6 @@ private:
   int    m_LogLevel;
   Index  m_FirstTick;
   Index  m_NTick;
-  Index  m_NormOpt;
   Index  m_Action;
   Index  m_ReturnOpt;
 
