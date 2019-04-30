@@ -553,7 +553,7 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   m2=pset.get<int>("SSP_m2");
   i1=pset.get<int>("SSP_i1"); 
   i2=pset.get<int>("SSP_i2"); 
-  NOvAClockFrequency=pset.get<double>("NOvAClockFrequency"); // in MHz
+  //NOvAClockFrequency=pset.get<double>("NOvAClockFrequency"); // in MHz
   SPESize=pset.get<double>("SPESize");
                                                        
   std::cout << "Parameters from the fcl file" << std::endl;
@@ -561,7 +561,7 @@ void dune::SSPRawDecoder::reconfigure(fhicl::ParameterSet const& pset) {
   std::cout << "m2: " << m2 << std::endl;
   std::cout << "i1: " << i1 << std::endl;
   std::cout << "i2: " << i2 << std::endl;
-  std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
+  //std::cout << "NOvAClockFrequency: " << NOvAClockFrequency << std::endl; 
   std::cout << "SPESize: " << SPESize << std::endl;
   std::cout << std::endl;
 
@@ -837,9 +837,11 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       struct trig_variables trig;
       readHeader(daqHeader, &trig);
       
-      /// time
-      long double time = trig.timestamp_nova/(3.0*NOvAClockFrequency); //in expeirment microseconds
+      auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
       
+      /// time
+      long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
+      //std::cout << time << std::endl;
       unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
 
       //set external reference time to the first time stamp of the run, if a lower time stamp is found, adjust
@@ -1036,8 +1038,8 @@ recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned 
 {
   // Get basic information from the header
   unsigned short     OpChannel   = channel;         ///< Derived Optical channel
-  unsigned long      FirstSample = trig.timestamp_nova/3;
-  double             TimeStamp   = ((double)FirstSample)/(NOvAClockFrequency); ///< first sample experiment time in microseconds
+  unsigned long      FirstSample = trig.timestamp_nova;
+  double             TimeStamp   = ((double)FirstSample); ///< first sample experiment time in microseconds
 
   auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
   double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
