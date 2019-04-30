@@ -155,6 +155,10 @@ public:
   // Fill rois from signal.
   void roisFromSignal();
 
+  // Return normalization specifier for the DFT held here.
+  // See DuneCommon/RealDftData.h.
+  static AdcIndex dftNormalization() { return 22; }
+
 };
 
 //**********************************************************************
