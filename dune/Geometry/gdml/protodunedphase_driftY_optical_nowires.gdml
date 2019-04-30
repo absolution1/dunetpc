@@ -12802,7 +12802,7 @@
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="0" y="790/2-51.5/2"  z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="0" y="369.25"  z="0"/>
          </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>
