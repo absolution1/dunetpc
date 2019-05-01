@@ -19,10 +19,10 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Common/Assns.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 //LArSoft includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/geom/HardCodedGeometry.h"
+
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -90,7 +90,7 @@ class CRT::CRTTimingValidation: public art::EDAnalyzer {
   //Parameters for reading in CRT::Triggers and associated AuxDetSimChannels.
   art::InputTag fCRTLabel; //Label for the module that produced 
   art::InputTag fCTBLabel; 
-std::unique_ptr<CRT::Geometry> fGeom;
+
   TTree * fCRTTree;
   TTree * fCRTTreeF;
   TTree * fCRTTreeB;
@@ -153,7 +153,7 @@ std::unique_ptr<CRT::Geometry> fGeom;
 
 CRT::CRTTimingValidation::CRTTimingValidation(fhicl::ParameterSet
     const & p):
-  EDAnalyzer(p), fCRTLabel(p.get < art::InputTag > ("CRTLabel")), fCTBLabel(p.get<art::InputTag>("CTBLabel")), fGeom(std::unique_ptr<CRT::Geometry>(new CRT::HardCodedGeometry())) {
+  EDAnalyzer(p), fCRTLabel(p.get < art::InputTag > ("CRTLabel")), fCTBLabel(p.get<art::InputTag>("CTBLabel")) {
     consumes < std::vector < CRT::Trigger >> (fCRTLabel);
     consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel); // CRT art consumables
   fMCCSwitch=(p.get<bool>("MCC"));
