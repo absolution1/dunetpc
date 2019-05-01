@@ -3,49 +3,44 @@
 // David Adams
 // April 2019
 //
-// Utility perform forward and backward FFT.
+// This utility provides wrappers for performing forward and backward DFT (discrete
+// Fourier transform) of real (time-domain) data. It uses the the Root TVirtualFFT
+// interface which in turn uses FFTW by default.
 //
-// Normalization options:
-//     0 - Unnormalized ==> integrated raw power of transform is N times larger than input.
-//         Normalization of 1/N is applied on inverse to recover original waveform.
-//     1 - Normalized ==> Integrated power of transform or inverse is the same as its input.
-//         I.e. normalization of 1/sqrt(N) is applied both forward and backward.
-//     2 - Bin normalized ==> Integrated power of transform is 1/N times input.
-//         Normalization of 1/N on forward transform and one on inverse.
+// The real data is held in a vector of floats. The DFT is a vector of complex values
+// of the same length and so has a factor of two redundancy. The DFT data is returned
+// in an object with the RealDftData interface that provkdes methods to access the real,
+// imaginary, amplitude and phase parts of the terms in the complex vector.
+//
+// The concrete type for the returned data is
+//   CompactRealDftData<float>
 
 #ifndef DuneFFT_H
 #define DuneFFT_H
 
-#include <vector>
+#include "dune/DuneCommon/CompactRealDftData.h"
 
 class DuneFFT {
 
 public:
 
   using Index = unsigned int;
+  using DFT = CompactRealDftData<float>;
   using FloatVector = std::vector<float>;
 
   // Forward transform: real data (ntick starting at psam[0] --> complex freqs).
-  //   normOpt - Normalization (see above).
   //   ntick - # ticks to use in transform.
   //   psam - Address of the first element in the data array
-  //   xres, xims - Real and imaginary componets of the transformation.
-  //   xmgs, xphs - Magnitudes and phases for the transformation.
+  //   dft - the DFT
   //   logLevel - 0=silent, 1=init, 2=each event, >2=more
-  static int fftForward(Index normOpt, Index ntick, const float* psam,
-                        FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases,
-                        Index logLevel =0);
+  static int fftForward(Index ntick, const float* psam, DFT& dft, Index logLevel =0);
 
   // Same for a full sample vector sams.
-  static int fftForward(Index normOpt, const FloatVector& sams,
-                        FloatVector& xres, FloatVector& xims, FloatVector& mags, FloatVector& phases,
-                        Index logLevel =0);
+  static int fftForward(const FloatVector& sams, DFT& dft, Index logLevel =0);
 
   // Inverse transform: complex freqs mags, phases --> real data sams
   // Thr real and imag freq component are also recorded in xres, xims
-  static int fftInverse(Index normOpt, const FloatVector& mags, const FloatVector& phases,
-                        FloatVector& xres, FloatVector& xims, FloatVector& sams,
-                        Index logLevel =0);
+  static int fftInverse(const DFT& dft, FloatVector& sams, Index logLevel =0);
 
 };
 

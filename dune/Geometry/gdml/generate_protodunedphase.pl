@@ -484,9 +484,9 @@ $ExtractionGridRadious = 0.05;
 $ExtractionGridPitch = 0.3;
 
 $ExtractionGridSizeX = 2*$ExtractionGridRadious;
-$ExtractionGridSizeY = 600;
-$ExtractionGridSizeZ = 600;
 
+$ExtractionGridSizeY =  $widthCRM_active;
+$ExtractionGridSizeZ = $lengthCRM_active;
 
 print ExtractionGrid <<EOF;
 
@@ -512,7 +512,7 @@ print ExtractionGrid <<EOF;
   <solidref ref="solExtractionGrid"/>
 EOF
 
-for($ii=0;$ii<$$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
+for($ii=0;$ii<$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -524,7 +524,7 @@ EOF
  
 }
 
-for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
+for($jj=0;$jj<$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -1922,7 +1922,7 @@ EOF
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="$Argon_x/2-$HeightGaseousAr/2" y="0" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="@{[$Argon_x/2-$HeightGaseousAr/2]}" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>

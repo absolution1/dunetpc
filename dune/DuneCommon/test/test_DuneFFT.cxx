@@ -28,10 +28,11 @@ using std::fixed;
 
 using Index = unsigned int;
 using FloatVector = DuneFFT::FloatVector;
+using DFT = DuneFFT::DFT;
 
 //**********************************************************************
 
-int test_DuneFFT(bool useExistingFcl, Index len) {
+int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
   const string myname = "test_DuneFFT: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -39,8 +40,10 @@ int test_DuneFFT(bool useExistingFcl, Index len) {
 #endif
   string line = "-----------------------------";
 
-  Index normOpt = 1;
-  Index logLevel = 1;
+  DFT::FullNormalization norm(ignorm, itnorm);
+  cout << line << endl;
+  cout << myname << " Global norm: " << ignorm << endl;
+  cout << myname << "   Term norm: " << itnorm << endl;
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
@@ -53,42 +56,64 @@ int test_DuneFFT(bool useExistingFcl, Index len) {
   float samsum = 0.0;
   for ( float sam : sams ) samsum += sam;
   cout << myname << "Sample mean: " << samsum/nsam << endl;
-  Index nmag = (nsam+2)/2;
+  Index namp = (nsam+2)/2;
   Index npha = (nsam+1)/2;
   cout << myname << "        # samples: " << nsam << endl;
-  cout << myname << "Expected mag size: " << nmag << endl;
-  cout << myname << "Expected mag size: " << nmag << endl;
+  cout << myname << "Expected amp size: " << namp << endl;
   cout << myname << "Expected pha size: " << npha << endl;
 
   cout << myname << line << endl;
+  cout << myname << "Create empty DFT." << endl;
+  DFT dft(norm);
+  assert( dft.size() == 0 );
+
+  cout << myname << line << endl;
   cout << myname << "Transform forward." << endl;
-  FloatVector xmgs, xphs, xres, xims;
-  assert( DuneFFT::fftForward(normOpt, sams, xres, xims, xmgs, xphs, logLevel) == 0 );
+  assert( DuneFFT::fftForward(sams, dft, loglev) == 0 );
   assert( sams.size() == nsam );
-  assert( xmgs.size() == nmag );
-  assert( xphs.size() == npha );
-  assert( xres.size() == nsam );
-  assert( xims.size() == nsam );
+  cout << myname << "DFT size: " << dft.size() << endl;
+  assert( dft.size() == nsam );
+  assert( dft.nCompact() == namp );
+  assert( dft.nAmplitude() == namp );
+  assert( dft.nPhase() == npha );
+  cout << "Frequency components:" << endl;
+  for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
+    cout << myname << setw(4) << ifrq << ": " << dft.amplitude(ifrq);
+    if ( ifrq < npha ) cout << " @ " << dft.phase(ifrq);
+    cout << endl;
+  }
 
   cout << myname << line << endl;
   cout << myname << "Check power." << endl;
   float pwr1 = 0.0;
   for ( float sam : sams ) pwr1 += sam*sam;
-  float pwr2 = 0.0;
-  for ( float mag : xmgs ) pwr2 += mag*mag;
+  float pwr2 = dft.power();
   float pwr3 = 0.0;
-  for ( float x : xres ) pwr3 += x*x;
-  for ( float x : xims ) pwr3 += x*x;
+  float pwr4 = 0.0;
+  for ( Index ifrq=0; ifrq<nsam; ++ifrq ) {
+    float amp = dft.amplitude(ifrq);
+    float xre = dft.real(ifrq);
+    float xim = dft.imag(ifrq);
+    if ( !dft.isPower() || ifrq < dft.nCompact() ) {
+      pwr3 += amp*amp;
+      pwr4 += xre*xre + xim*xim;
+    }
+  }
+  double pfac = 1.0;
+  if ( dft.isStandard() ) pfac = 1.0/nsam;
+  if ( dft.isBin() ) pfac = nsam;
+  pwr3 *= pfac;
+  pwr4 *= pfac;
   cout << myname << "Tick power: " << pwr1 << endl;
-  cout << myname << "Freq power: " << pwr2 << endl;
-  cout << myname << "Frq2 power: " << pwr3 << endl;
+  cout << myname << " DFT power: " << pwr2 << endl;
+  cout << myname << " Amp power: " << pwr3 << endl;
+  cout << myname << " ReI power: " << pwr4 << endl;
   assert( fabs(pwr2 - pwr1) < 1.e-5*pwr1 );
-  assert( fabs(pwr3 - pwr1) < 1.e-5*pwr1 );
 
   cout << myname << line << endl;
   cout << myname << "Call inverse." << endl;
   FloatVector sams2, xres2, xims2;
-  int rstat = DuneFFT::fftInverse(normOpt, xmgs, xphs, xres, xims, sams2, logLevel);
+  int rstat = DuneFFT::fftInverse(dft, sams2, loglev);
   if ( rstat != 0 ) {
     cout << myname << "FFT invert returned " << rstat << endl;
     assert( false );
@@ -109,22 +134,31 @@ int test_DuneFFT(bool useExistingFcl, Index len) {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  bool useExistingFcl = false;
+  Index ignorm = 1;
+  Index itnorm = 1;
+  int loglev = 0;
   Index len = 0;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [ARG] [LEN]" << endl;
-      cout << "  If ARG = true, existing FCL file is used." << endl;
+      cout << "Usage: " << argv[0] << " [ignorm [itnorm [loglev [LEN]]]]" << endl;
       return 0;
     }
-    useExistingFcl = sarg == "true" || sarg == "1";
+    ignorm = std::stoi(sarg);
   }
   if ( argc > 2 ) {
     string sarg(argv[2]);
+    itnorm = std::stoi(sarg);
+  }
+  if ( argc > 3 ) {
+    string sarg(argv[3]);
+    loglev = std::stoi(sarg);
+  }
+  if ( argc > 4 ) {
+    string sarg(argv[4]);
     len = std::stoi(sarg);
   }
-  return test_DuneFFT(useExistingFcl, len);
+  return test_DuneFFT(ignorm, itnorm, loglev, len);
 }
 
 //**********************************************************************
