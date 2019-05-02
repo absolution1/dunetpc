@@ -48,6 +48,7 @@
 
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/Data/DataMap.h"
+#include <set>
 
 class AdcChannelTool {
 
@@ -121,14 +122,21 @@ inline
 DataMap AdcChannelTool::updateMap(AdcChannelDataMap& acds) const {
   if ( updateWithView() ) return viewMap(acds);
   DataMap ret;
-  int nfail = 0;
+  DataMap::IntVector failedChannels;
+  std::set<int> failedCodeSet;
   for ( AdcChannelDataMap::value_type& iacd : acds ) {
     DataMap dm = update(iacd.second);
     if ( dm.status() == interfaceNotImplemented() ) return DataMap(interfaceNotImplemented());
-    else if ( dm.status() ) ++nfail;
+    else if ( dm.status() ) {
+      failedChannels.push_back(iacd.first);
+      failedCodeSet.insert(dm.status());
+      if ( ! ret.status() ) ret.setStatus(dm.status());
+    }
     else ret += dm;
   }
-  ret.setStatus(nfail);
+  DataMap::IntVector failedCodes(failedCodeSet.begin(), failedCodeSet.end());
+  ret.setIntVector("failedChannels", failedChannels);
+  ret.setIntVector("failedCodes", failedCodes);
   return ret;
 }
 

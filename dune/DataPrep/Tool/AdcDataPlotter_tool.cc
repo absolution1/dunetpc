@@ -75,7 +75,10 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       m_tickRange = ptool->get(m_TickRange);
     }
     if ( ! m_tickRange.isValid() ) {
-      cout << myname << "WARNING: Tick range not found: " << m_TickRange << endl;
+      // Issue warning if the range does not have  label.
+      if ( m_tickRange.label(0) == "" ) {
+        cout << myname << "WARNING: Tick range not found: " << m_TickRange << endl;
+      }
     }
     descTickRange = m_TickRange + " " + m_tickRange.rangeString();
   }

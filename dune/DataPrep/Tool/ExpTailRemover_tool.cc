@@ -6,8 +6,9 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/DuneCommon/SampleTailer.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "TMath.h"
+#include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+//#include "TMath.h"
 
 using std::string;
 using std::cout;
@@ -28,7 +29,9 @@ ExpTailRemover::ExpTailRemover(fhicl::ParameterSet const& ps)
   m_SignalIterationLimit(ps.get<Index>("SignalIterationLimit")),
   m_SignalTool(ps.get<string>("SignalTool")),
   m_DecayTime(ps.get<double>("DecayTime")) ,
-  m_CorrectFlag(ps.get<std::vector<bool> >("CorrectFlag")),
+  m_IncludeChannelRanges(ps.get<NameVector>("IncludeChannelRanges")),
+  m_ExcludeChannelRanges(ps.get<NameVector>("ExcludeChannelRanges")),
+  m_useChannelRanges(false),
   m_pSignalTool(nullptr) {
   const string myname = "ExpTailRemover::ctor: ";
   if ( m_SignalFlag > 3 ) {
@@ -48,6 +51,41 @@ ExpTailRemover::ExpTailRemover(fhicl::ParameterSet const& ps)
       }
     }
   }
+  Index nchaCheck = 0;
+  if ( m_IncludeChannelRanges.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    const IndexRangeTool* pcrt = ptm->getShared<IndexRangeTool>("channelRanges");
+    if ( pcrt == nullptr ) {
+      cout << myname << "ERROR: IndexRangeTool not found: channelRanges" << endl;
+    } else {
+      for ( Name crn : m_IncludeChannelRanges ) {
+        IndexRange ran = pcrt->get(crn);
+        if ( ran.isValid() ) {
+          if ( ran.end > m_checkChannels.size() ) m_checkChannels.resize(ran.end, false);
+          for ( Index icha=ran.begin; icha<ran.end; ++icha ) m_checkChannels[icha] = true;
+        } else {
+          cout << myname << "WARNING: Ignoring invalid include channel range " << crn << endl;
+        }
+      }
+      if ( m_ExcludeChannelRanges.size() ) {
+        for ( Name crn : m_ExcludeChannelRanges ) {
+          if ( crn == "all" ) {
+            m_checkChannels.clear();
+            break;
+          }
+          IndexRange ran = pcrt->get(crn);
+          if ( ran.isValid() ) {
+            Index end = ran.end < m_checkChannels.size() ? ran.end : m_checkChannels.size();
+            for ( Index icha=ran.begin; icha<end; ++icha ) m_checkChannels[icha] = false;
+          } else {
+            cout << myname << "WARNING: Ignoring invalid exclude channel range " << crn << endl;
+          }
+        }
+      }
+      m_useChannelRanges = true;
+      for ( bool keep : m_checkChannels ) if ( keep ) ++nchaCheck;
+    }
+  }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Parameters:" << endl;
     cout << myname << "              LogLevel: " << m_LogLevel << endl;
@@ -55,42 +93,54 @@ ExpTailRemover::ExpTailRemover(fhicl::ParameterSet const& ps)
     cout << myname << "  SignalIterationLimit: " << m_SignalIterationLimit << endl;
     cout << myname << "            SignalTool: " << m_SignalTool << endl;
     cout << myname << "             DecayTime: " << m_DecayTime << endl;
-    cout << myname << "           CorrectFlag: [";
-    for ( Index iori=0; iori<m_CorrectFlag.size(); ++iori ) {
-      if ( iori ) cout << ", ";
-      cout  << (m_CorrectFlag[iori] ? "true" : "false" );
+    cout << myname << "  IncludeChannelRanges: [";
+    bool first = true;
+    for ( Name crn : m_IncludeChannelRanges ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout  << crn;
     }
-    cout << endl;
+    cout << "]" << endl;
+    cout << myname << "  ExcludeChannelRanges: [";
+    first = true;
+    for ( Name crn : m_ExcludeChannelRanges ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout  << crn;
+    }
+    cout << "]" << endl;
+    if ( m_useChannelRanges ) {
+      cout << myname << "Channel checking enabled for " << nchaCheck << " channel"
+           << ( nchaCheck == 1 ? "" : "s") << "." << endl;
+    } else {
+      cout << myname << "Channel checking disabled." << endl;
+    }
   }
 }
 
 //**********************************************************************
 
 DataMap ExpTailRemover::update(AdcChannelData& acd) const {
-  const string myname = "ExpTailRemover::view: ";
+  const string myname = "ExpTailRemover::update: ";
   DataMap ret;
 
   // Save the data before tail removal.
   AdcSignalVector samples = acd.samples;
   Index nsam = samples.size();
 
+  // Check the channel.
+  if ( m_useChannelRanges ) {
+    if ( acd.channel >= m_checkChannels.size() || ! m_checkChannels[acd.channel] ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Skipping channel " << acd.channel << endl;
+      return ret;
+    }
+  }
+
   // Check input data size.
   if ( nsam < 10 ) {
     cout << myname << "WARNING: Data for channel " << acd.channel << " has "
          << ( nsam==0 ? "no" : "too few" ) << " ticks." << endl;
-    return ret.setStatus(1);;
-  }
-
-  // Check plane.
-  if ( m_CorrectFlag.size() ) {
-    art::ServiceHandle<dune::PdspChannelMapService> channelMap;
-    size_t offlineChannel = acd.channel;
-    size_t plane = channelMap->PlaneFromOfflineChannel(offlineChannel);
-    if ( plane >= m_CorrectFlag.size() ) {
-      cout << myname << "WARNING: Unexpected plane index: " << plane << "." << endl;
-      return ret.setStatus(2);  
-    }
-    if ( ! m_CorrectFlag[plane] ) return ret.setStatus(3);
+    return ret.setStatus(1);
   }
 
   if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
@@ -176,8 +226,11 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
     // Invert matrix and solve for (ped, tau).
     double den = ktt*kpp - ktp*ktp;
     if ( den == 0.0 ) {
-      cout << myname << "WARNING: Unable to invert K-matrix with "
-           << nsamKeep << " samples--stopping iteration." << endl;
+      if ( acd.channelStatus == 0 || m_LogLevel >= 2 ) {
+        cout << myname << "WARNING: Unable to invert K-matrix with "
+             << nsamKeep << " of " << nsam << " samples--stopping iteration for channel "
+             << acd.channel << " with status " << acd.channelStatus << "." << endl;
+      }
       break;
     }
     double deninv = 1.0/den;

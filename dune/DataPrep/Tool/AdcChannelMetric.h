@@ -25,7 +25,7 @@
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
-//   MetricSummaryView - If not empty and a summary is requested, this speicifies the view
+//   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
 //                       can be any of the following. Default is "mean:rms".
