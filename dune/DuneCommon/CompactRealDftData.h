@@ -83,13 +83,13 @@ public:
   }
 
   // Clear data.
-  void clear() {
+  void clear() override {
     m_amps.clear();
     m_phas.clear();
   }
 
   // Reset the DFT data.
-  void reset(Index nsam) {
+  void reset(Index nsam) override {
     Index namp = nsam > 0 ? nsam/2 + 1 : 0;
     Index npha = (nsam + 1)/2;
     m_amps.resize(namp);
@@ -158,22 +158,22 @@ public:
   Index nCompact() const override { return nAmplitude(); }
 
   // Overide methods that return DFT terms for any representation.
-  F amplitude(Index ifrq) const {
+  F amplitude(Index ifrq) const override {
     return ifrq < this->nAmplitude() ? this->compactAmplitude(ifrq) :
            ifrq < this->size() ? this->compactAmplitude(this->size()-ifrq) :
            this->badValue();
   }
-  F phase(Index ifrq) const {
+  F phase(Index ifrq) const override {
     return ifrq < this->nPhase() ? this->compactPhase(ifrq) :
            2*ifrq == this->size() ? 0.0 :
            ifrq < this->size() ? -this->compactPhase(this->size()-ifrq) :
            this->badValue();
   }
-  F real(Index ifrq) const {
+  F real(Index ifrq) const override {
     return ifrq < this->size() ? amplitude(ifrq)*cos(phase(ifrq)) :
     this->badValue();
   }
-  F imag(Index ifrq) const {
+  F imag(Index ifrq) const override {
     return ifrq < this->nPhase() ? amplitude(ifrq)*sin(phase(ifrq)) :
            2*ifrq == this->size() ? 0.0 :
            ifrq < this->size() ? -amplitude(ifrq)*sin(phase(ifrq)) :

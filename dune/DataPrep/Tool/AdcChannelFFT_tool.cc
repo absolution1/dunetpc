@@ -106,7 +106,9 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
   }
   Index isam0 = 0;
   Index nsam = 0;
-  DFT dft(DFT::Norm(AdcChannelData::dftNormalization()));
+  DFT::FullNormalization dftNorm(AdcChannelData::dftNormalization());
+  DFT dft(dftNorm);
+  //DFT dft(DFT::FullNormalization(AdcChannelData::dftNormalization()));
   if ( doForward ) {
     isam0 = m_FirstTick;
     if ( isam0 >= acd.samples.size() ) {

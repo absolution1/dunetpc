@@ -158,7 +158,7 @@ namespace protoana{
     TH1D *processtot;//number of processes for each mc particle
     TH1D *processEl;
     TH1D *processInel;
-    bool    debug = false;
+    //bool    debug = false;
     double trueVtxX ;
     double trueVtxY ;
     double trueVtxZ ;

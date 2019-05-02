@@ -88,7 +88,7 @@ class CRT::SingleCRTMatching: public art::EDAnalyzer {
   bool moduleMatcherData(int module1, int module2);
   bool moduleMatcherMCC(int module1, int module2);
   void beginJob() override;
-  void endJob();
+  void endJob() override;
   double setAngle(double angle);
 int moduletoCTB(int module2, int module1);
   int nEvents = 0;

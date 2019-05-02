@@ -51,8 +51,8 @@
 #include "TTree.h"
 #include "TTimeStamp.h"
 
-const int kMaxTracks  = 1000;
-const int kMaxHits = 10000;
+//const int kMaxTracks  = 1000;
+//const int kMaxHits = 10000;
 
 using namespace std;
 

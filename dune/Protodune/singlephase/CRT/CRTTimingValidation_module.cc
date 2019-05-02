@@ -85,7 +85,7 @@ class CRT::CRTTimingValidation: public art::EDAnalyzer {
   bool moduleCheckX(int module);
   int moduletoCTB(int module2, int module1);
   void beginJob() override;
-  void endJob();
+  void endJob() override;
 
   //Parameters for reading in CRT::Triggers and associated AuxDetSimChannels.
   art::InputTag fCRTLabel; //Label for the module that produced 
