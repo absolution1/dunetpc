@@ -135,7 +135,7 @@ private:
   // m1, m2, i1, i2
   double m1,m2,i1,i2;
 
-  double NOvAClockFrequency;
+  //double NOvAClockFrequency;
   double SPESize;
 
   //const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
