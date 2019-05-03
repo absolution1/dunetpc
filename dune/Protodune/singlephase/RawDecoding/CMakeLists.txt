@@ -115,7 +115,8 @@ simple_plugin(PDSPTPCRawDecoder "module"
 
 simple_plugin(CRTRawDecoder "module"
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+                        dune_Geometry
+			artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}

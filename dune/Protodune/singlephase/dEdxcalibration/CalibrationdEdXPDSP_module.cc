@@ -168,7 +168,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           if (!normcorrection) normcorrection = 1.;
           if (!xcorrection) xcorrection = 1.;
           if (!yzcorrection) yzcorrection = 1.;
-          //vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
+          vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
           
           
           //set time to be trgger time so we don't do lifetime correction

@@ -39,6 +39,12 @@
 //   SignalIterationLimit - Maximum nimber of fit iterations.
 //   SignalTool - Name of the tool used identify signals. The method called is
 //                AdcChannelTool::update, i.e. single-channel signal finding.
+//   IncludeChannelRanges - List of channel ranges to correct. If empty, all channels
+//                          Use empty or "all" for all channels or "none" for no channels.
+//                          Tool channelRanges is used to map these names to channels.
+//   ExcludeChannelRanges - List of channel ranges whose channels are excluded from
+//                          the list to process derived from IncludeChannelRanges.
+//                          If "all", no channels are processed.
 //   CorrectFlag: switch per plane (induction, u, v) to turn the correction on and off
 //                If empty, all planes corrected.
 //
@@ -58,6 +64,7 @@ public:
   using Index = unsigned int;
   using Vector = std::vector<double>;
   using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   ExpTailRemover(fhicl::ParameterSet const& ps);
 
@@ -73,9 +80,12 @@ private:
   Index              m_SignalIterationLimit;
   Name               m_SignalTool;
   double             m_DecayTime;
-  std::vector<bool>  m_CorrectFlag;   // 0: U, 1: V, 2: Collection
+  NameVector         m_IncludeChannelRanges;
+  NameVector         m_ExcludeChannelRanges;
 
   // Derived from configuration.
+  bool m_useChannelRanges;  // If true, only channels in checkChannels are processed.
+  std::vector<bool> m_checkChannels;
   AdcChannelTool* m_pSignalTool;
 
   // private methods

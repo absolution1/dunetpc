@@ -197,7 +197,6 @@ cet_test(test_AdcChannelMetric SOURCES test_AdcChannelMetric.cxx
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
     ${ROOT_BASIC_LIB_LIST}
-
 )
 
 cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
@@ -376,6 +375,22 @@ cet_test(test_AdcChannelFFT
     art_Utilities
     canvas
     fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcDeconvoluteFFT
+  SOURCES
+    test_AdcDeconvoluteFFT.cxx
+  LIBRARIES
+    dune_ArtSupport
+    dune_DuneCommon
+    art_Utilities
+    canvas
+    fhiclcpp
+    ${ROOT_BASIC_LIB_LIST}
     cetlib cetlib_except
     cetlib_except
     ${SQLITE3}

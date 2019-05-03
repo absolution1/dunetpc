@@ -894,6 +894,16 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 			}
 		    }
 		}
+
+	      // we had swept in all the TPC fragments, possibly for a second time, so remove them
+	      // be even more aggressive and remove all cached fragments -- anyone who needs them
+	      // should read them in, and getManyByType had swept them all into memory.  Awaiting
+	      // a getManyLabelsByType if we go this route
+
+	      else // if (fraghv.at(ihandle).provenance()->inputTag().instance().find("TPC") != std::string::npos) 
+		{
+		  evt.removeCachedProduct(fraghv.at(ihandle));
+		}
 	    }
 	}
     }
