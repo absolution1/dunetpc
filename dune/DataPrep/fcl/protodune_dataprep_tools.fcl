@@ -147,7 +147,6 @@ tools.adcTailRemovalAdc: {
   SignalTool: adcTailSignalFinderAdc
   IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
   ExcludeChannelRanges: []
-  CorrectFlag: [false, false, true]     # U, V, X (collection)
 }
 
 tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
