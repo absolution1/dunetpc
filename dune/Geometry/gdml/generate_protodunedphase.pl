@@ -1806,6 +1806,7 @@ print PMT <<EOF;
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -1819,12 +1820,12 @@ print PMT <<EOF;
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>
 
  </volume>
