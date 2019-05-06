@@ -56,7 +56,8 @@ private:
 //*****************************************************************************
 
 DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
-: m_LogLevel(pset.get<Index>("LogLevel")),
+: EDFilter(pset),
+  m_LogLevel(pset.get<Index>("LogLevel")),
   m_SelectEventVector(pset.get<IndexVector>("SelectEvents")),
   m_RejectEventVector(pset.get<IndexVector>("RejectEvents")),
   m_EventBegin(pset.get<Index>("EventBegin")),

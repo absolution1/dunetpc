@@ -22,7 +22,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 #include <cmath>
@@ -169,7 +169,7 @@ private:
 };
 
 
-PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
+PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   std::vector<int> emptyivec;
   _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
@@ -867,7 +867,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	    }
 	}
     }
-  else  // get all the fragments in the event and look for the ones that say TPC in them
+  else  // get all the fragments in the event and look for the ones that say FELIX in them
     {
       std::vector<art::Handle<artdaq::Fragments> > fraghv;  // fragment handle vector
       evt.getManyByType(fraghv);
@@ -893,6 +893,16 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 			  return false;
 			}
 		    }
+		}
+
+	      // we had swept in all the TPC fragments, possibly for a second time, so remove them
+	      // be even more aggressive and remove all cached fragments -- anyone who needs them
+	      // should read them in, and getManyByType had swept them all into memory.  Awaiting
+	      // a getManyLabelsByType if we go this route
+
+	      else // if (fraghv.at(ihandle).provenance()->inputTag().instance().find("TPC") != std::string::npos) 
+		{
+		  evt.removeCachedProduct(fraghv.at(ihandle));
 		}
 	    }
 	}

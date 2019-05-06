@@ -142,8 +142,8 @@ simple_plugin(UndershootCorr   "tool"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Utilities canvas
                         ${CETLIB_LIBS}
                         ${MF_MESSAGELOGGER}
@@ -158,8 +158,8 @@ simple_plugin(ExpTailRemover   "tool"
                 ${ART_FRAMEWORK_CORE}
                 ${ART_FRAMEWORK_PRINCIPAL}
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                 art_Utilities canvas
                 ${CETLIB_LIBS}
                 ${MF_MESSAGELOGGER}
@@ -244,6 +244,13 @@ simple_plugin(FembMappedAdcModifier   "tool"
              )
 
 simple_plugin(AdcChannelFFT   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcDeconvoluteFFT   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
                 cetlib cetlib_except

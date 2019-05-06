@@ -138,9 +138,6 @@ tools.adcTailSignalFinderAdc: {
   FlagNegative: true
 }
 
-tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
-tools.adcTailSignalFinderKe.Threshold: 0.5
-
 tools.adcTailRemovalAdc: {
   tool_type: ExpTailRemover
   LogLevel: 1
@@ -148,8 +145,14 @@ tools.adcTailRemovalAdc: {
   SignalFlag: 3
   SignalIterationLimit: 10
   SignalTool: adcTailSignalFinderAdc
-  CorrectFlag: [true, false, false]
+  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
+  ExcludeChannelRanges: []
 }
+
+tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
+tools.adcTailSignalFinderKe.Threshold: 0.5
+tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
+tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 
 ################################################################################
 # Event metrics.

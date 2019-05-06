@@ -8,8 +8,10 @@
 # April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
-# Tools to display ADC data.
+# Ranges for channel-tick plots.
 ################################################################################
+
+# tools.tickRanges is defined in DuneCommon/fcl/dunecommon_tools.fcl
 
 tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
 tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }

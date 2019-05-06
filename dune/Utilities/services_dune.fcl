@@ -349,7 +349,7 @@ protodune_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::dunefd_channel_status
- ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ ChannelGroupService:          @local::changroup_apa_keepall
 }
 
 
@@ -390,7 +390,7 @@ protodune_data_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
  ChannelStatusService:         @local::pdsp_channel_status
- ChannelGroupService:          @local::changroup_apa_pd_drop_outer
+ ChannelGroupService:          @local::changroup_apa_keepall
 # Reco services for ProtoDUNE real data.
  RawDigitExtractService:       @local::rdx_std
  RawDigitPrepService:          @local::adcprep_with_services_sim
@@ -443,8 +443,16 @@ protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # Switch to tool-based dataprep for ProtoDUNE simulation.
-# Comment out the the following line to go back to the service-based dataprep.
+# Comment out the the following lines to go back to the service-based dataprep.
+# Process simulation using tool-based dataprep.
+protodune_dataprep_tools_sim: [
+    "digitReader",              # Read RawDigit
+    "adcSampleFiller",          # Subtract pedestal, trivial calibration
+    "adcVintageDeconvoluter",   # Deconvolution
+    "adcThresholdSignalFinder"  # ROI
+]
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
+protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
 # channel map service
@@ -457,8 +465,6 @@ protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus
 protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
 # Use channel service for data
 protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
-# Make sure we can use cryostat-side APA hits
-protodune_data_reco_services.ChannelGroupService.ApaRops: []
 # Add the photon detector calibrator service
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 # ProtoDUNE detector properties service
