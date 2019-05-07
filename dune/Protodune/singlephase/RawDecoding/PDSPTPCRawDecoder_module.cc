@@ -1275,6 +1275,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
 {
   size_t asiz = v_adc.size();
+  int imed=0;
   if (asiz == 0)
     {
       median = 0;
@@ -1285,9 +1286,28 @@ void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, fl
       // this is actually faster than the code below by about one second per event.
       // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
 
-      median = TMath::Median(asiz,v_adc.data());
+      imed = TMath::Median(asiz,v_adc.data()) + 0.01;  // add an offset to make sure the floor gets the right integer
+      median = imed;
       sigma = TMath::RMS(asiz,v_adc.data());
+
+      // add in a correction suggested by David Adams, May 6, 2019
+
+      size_t s1 = 0;
+      size_t sm = 0;
+      for (size_t i=0; i<asiz; ++i)
+	{
+	  if (v_adc[i] < imed) s1++;
+	  if (v_adc[i] == imed) sm++;
+	}
+      if (sm > 0)
+	{
+	  float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
+	  //if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
+	  median += mcorr;
+	}
     }
+
+
 
   // never do this, but keep the code around in case we want it later
 
