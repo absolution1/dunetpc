@@ -45,8 +45,6 @@
 //   ExcludeChannelRanges - List of channel ranges whose channels are excluded from
 //                          the list to process derived from IncludeChannelRanges.
 //                          If "all", no channels are processed.
-//   CorrectFlag: switch per plane (induction, u, v) to turn the correction on and off
-//                If empty, all planes corrected.
 //
 /////////////////////////////////////////////////////////////////////////
 #ifndef ExpTailRemover_H

@@ -121,7 +121,7 @@ public:
   // Subclasse may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
   virtual int
-  getMetric(const AdcChannelData& acd, float& metricValue, Name& metricUnits) const;
+  getMetric(const AdcChannelData& acd, Name met, float& metricValue, Name& metricUnits) const;
 
 private:
 
