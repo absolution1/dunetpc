@@ -239,10 +239,7 @@ GroupChannelMap PdspNoiseRemoval::makeGroupsByFEMBPlaneType(size_t gsize, const 
 void PdspNoiseRemoval::removeCoherent(const GroupChannelMap & ch_groups, AdcChannelDataMap& datamap) const {
   if(datamap.empty()) return;
   //PdspNoiseRemoval *th = const_cast <PdspNoiseRemoval *> (this); 
-  size_t n_samples = datamap.begin()->second.samples.size();
-  std::vector<float> correction(n_samples);   
-  std::vector<float> correctionFFT(n_samples/2);
-  //std::vector<float> correctionFFT(n_samples / 2);
+  //size_t n_samples = datamap.begin()->second.samples.size();
   for(const auto & entry : ch_groups) {   
     const auto & channels = entry.second;
     std::vector<float> correction;
@@ -257,6 +254,7 @@ void PdspNoiseRemoval::removeCoherent(const GroupChannelMap & ch_groups, AdcChan
       if(iacd == datamap.end()) continue;
       AdcChannelData & acd = iacd->second;
       if(acd.samples.size() == 0) continue;
+      if(acd.samples.size() > correction.size()) correction.resize(acd.samples.size(), 0.);
       for(size_t s = 0; s < acd.samples.size(); ++s) {
         acd.samples[s] -= correction[s];  
       }
@@ -273,28 +271,31 @@ std::vector<float> PdspNoiseRemoval::getMeanCorrection( const std::vector<unsign
     auto iacd = datamap.find(ch);
     if(iacd == datamap.end()) continue;
     const AdcChannelData & acd = iacd->second; 
-    
+    if(acd.samples.size()>n_samples) {
+      ch_averaged.resize(acd.samples.size(), 0.);	
+      correction.resize(acd.samples.size(), 0.);
+    }
     if(fUseBasicROIForCNR) {
       auto mask = roiMask(acd);  
-      for(size_t s = 0; s < n_samples; ++s) {
+      for(size_t s = 0; s < acd.samples.size(); ++s) {
         if (!mask[s]) { continue; }
-        AdcFlag flag = acd.flags.size() ? acd.flags[s] : AdcGood;
+        AdcFlag flag = (acd.flags.size()!=0 && s<acd.flags.size()) ? acd.flags[s] : AdcGood;
         if(flag != AdcGood) { continue; }
         correction[s] += acd.samples[s];
         ch_averaged[s]++;
       }
     }
     else {
-      for(size_t s = 0; s < n_samples; ++s) {
+      for(size_t s = 0; s < acd.samples.size(); ++s) {
 	      if(acd.signal[s]) { continue; }
-        AdcFlag flag = acd.flags.size() ? acd.flags[s] : AdcGood;
+        AdcFlag flag = (acd.flags.size()!=0 && s<acd.flags.size()) ? acd.flags[s] : AdcGood;
         if(flag != AdcGood) { continue; }
         correction[s] += acd.samples[s];
         ch_averaged[s]++;
       }
     }
   }
-  for(size_t s = 0; s < n_samples; ++s) {
+  for(size_t s = 0; s < correction.size(); ++s) {
     if(ch_averaged[s] > 0) { 
     	correction[s] /= ch_averaged[s]; 
     }
@@ -308,26 +309,27 @@ std::vector<float> PdspNoiseRemoval::getMedianCorrection( const std::vector<unsi
     auto iacd = datamap.find(ch);
     if(iacd == datamap.end()) continue;
     const AdcChannelData & acd = iacd->second;
+    if(acd.samples.size()>n_samples) samples.resize(acd.samples.size());
     if(fUseBasicROIForCNR) {
       auto mask = roiMask(acd); 
-      for(size_t s = 0; s < n_samples; ++s) {
+      for(size_t s = 0; s < acd.samples.size(); ++s) {
         if (!mask[s]) { continue; }
-        AdcFlag flag = acd.flags.size() ? acd.flags[s] : AdcGood;
+        AdcFlag flag = (acd.flags.size()!=0 && s<acd.flags.size()) ? acd.flags[s] : AdcGood;
         if(flag != AdcGood) { continue; }
         samples[s].push_back(acd.samples[s]);
       }
     }
     else {
-      for(size_t s = 0; s < n_samples; ++s) {
+      for(size_t s = 0; s < acd.samples.size(); ++s) {
 	      if(acd.signal[s]) { continue; }
-	      AdcFlag flag = acd.flags.size() ? acd.flags[s] : AdcGood;
+	      AdcFlag flag = (acd.flags.size()!=0 && s<acd.flags.size()) ? acd.flags[s] : AdcGood;
         if(flag != AdcGood) { continue; }
         samples[s].push_back(acd.samples[s]);
       }
     }
   }
-  std::vector<float> correction(n_samples);
-  for(size_t s = 0; s < n_samples; ++s) {
+  std::vector<float> correction(samples.size());
+  for(size_t s = 0; s < samples.size(); ++s) {
     size_t n = samples[s].size();
     if(n < 2) { correction[s] = 0; continue; }
     std::sort(samples[s].begin(), samples[s].end());
