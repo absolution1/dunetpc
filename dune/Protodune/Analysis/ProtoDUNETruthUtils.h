@@ -42,16 +42,16 @@ namespace protoana {
     std::vector<const recob::Hit*> GetMCParticleHits(const simb::MCParticle &mcpart,
       const art::Event &evt, std::string hitModule) const;
     
-    // Get purity and completeness of reconstructed objects.
+    // Get completeness and purity of reconstructed objects.
     template <typename T>
-    double GetPurity(const T &recobj, const art::Event &evt,
+    double GetCompleteness(const T &recobj, const art::Event &evt,
       std::string recoModule, std::string hitModule) const;
 
-    double GetCompleteness(const recob::PFParticle &pfpart, const art::Event &evt,
+    double GetPurity(const recob::PFParticle &pfpart, const art::Event &evt,
       std::string pfparticleModule) const;
-    double GetCompleteness(const recob::Track &track, const art::Event &evt,
+    double GetPurity(const recob::Track &track, const art::Event &evt,
       std::string trackModule) const;
-    double GetCompleteness(const recob::Shower &shower, const art::Event &evt,
+    double GetPurity(const recob::Shower &shower, const art::Event &evt,
       std::string showerModule) const;
 
     // Get MCParticle list from a hit vector depending on whether the hits came from a shower or track.
