@@ -38,6 +38,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
         IndexRange ran = pcrt->get(crn);
         if ( ran.isValid() ) {
           if ( m_crmap.find(crn) == m_crmap.end() ) {
+            m_crns.push_back(crn);
             m_crmap[crn] = ran;
           } else {
             cout << myname << "WARNING: Ignoring duplicate channel range " << crn << endl;
@@ -78,9 +79,8 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   if ( doRanges ) {
     // Make a plot for each range that overlaps the data.
     if ( getLogLevel() >= 4 ) cout << myname << "Creating plots for channel ranges." << endl;
-    for ( ChannelRangeMap::value_type namedRange : m_crmap ) {
-      Name crn = namedRange.first;
-      const IndexRange& ran = namedRange.second;
+    for ( Name crn : m_crns ) {
+      const IndexRange& ran = m_crmap.at(crn);
       if ( getLogLevel() >= 5 ) cout << myname << "  Range " << crn << ": " << ran << endl;
       AdcChannelDataMap::const_iterator iacd1 = acds.lower_bound(ran.first());
       if ( iacd1 == acds.end() ) {

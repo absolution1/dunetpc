@@ -85,6 +85,7 @@ private:
   Index m_PlotSplitY;
 
   // Derived from configuration.
+  NameVector m_crns;
   ChannelRangeMap m_crmap;
 
   // ADC string tools.
