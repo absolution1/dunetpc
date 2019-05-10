@@ -53,7 +53,7 @@ public:
 
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
-  int viewMapChannel(const AdcChannelData& acd, DataMap& ret, TPadManipulator& man) const override;
+  int viewMapChannels(Name crn, const AcdVector& acds, DataMap& ret, TPadManipulator& man) const override;
   bool updateWithView() const override { return true; }
 
 private:
@@ -73,7 +73,7 @@ private:
   const AdcChannelStringTool* m_adcStringBuilder;
 
   // Internal method to view a channel and put hist/graph in result.
-  DataMap viewLocal(const AdcChannelData& acd) const;
+  DataMap viewLocal(Name crn, const AcdVector& acds) const;
 
   // Fill the pad for a channel.
   // Histogram "pedestal" from dm is drawn.
