@@ -36,7 +36,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
-  m_PlotName(ps.get<Name>("PlotName")) {
+  m_PlotName(ps.get<Name>("PlotName")),
+  m_pstate(new State) {
   const string myname = "AdcChannelDftPlotter::ctor: ";
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -75,6 +76,18 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   }
 }
 
+//**********************************************************************
+
+AdcChannelDftPlotter::~AdcChannelDftPlotter() {
+  const string myname = "AdcChannelDftPlotter::dtor: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Closing." << endl;
+    cout << myname << "     CR name    count" << endl;
+    for ( IndexMap::value_type icnt : getState().counts ) {
+      cout << myname << setw(12) << icnt.first << ":" << setw(8) << icnt.second << endl;
+    }
+  }
+}
 
 //**********************************************************************
 
@@ -82,6 +95,26 @@ int AdcChannelDftPlotter::
 viewMapChannels(Name crn, const AcdVector& acds, DataMap&, TPadManipulator& man) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
   DataMap chret = viewLocal(crn, acds);
+  bool doState = true;
+  if ( doState ) {
+    ++getState().count(crn);
+    Index count = getState().count(crn);
+    bool doPwr = m_Variable == "power";
+    bool doPwt = m_Variable == "power/tick";
+    if ( doPwr || doPwt ) {
+      TH1* ph = chret.getHist("dftHist");
+      if ( ph != nullptr ) {
+        TH1*& phsum = getState().hist(crn);
+        if ( phsum == nullptr ) {
+          if ( count == 1 ) phsum = dynamic_cast<TH1*>(ph->Clone());
+          else cout << myname << "ERROR: Hist missing for count " << count << endl;
+        } else {
+          if ( count > 1 ) phsum->Add(ph);
+          else cout << myname << "ERROR: Hist existing for count " << count << endl;
+        }
+      }
+    }
+  }
   fillChannelPad(chret, man);
   return 0;
 }

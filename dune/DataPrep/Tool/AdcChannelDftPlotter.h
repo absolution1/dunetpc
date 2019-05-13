@@ -36,6 +36,8 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DataPrep/Utility/AdcMultiChannelPlotter.h"
+#include "TH1.h"
+#include <memory>
 
 class AdcChannelStringTool;
 class TPadManipulator;
@@ -49,7 +51,7 @@ public:
 
   AdcChannelDftPlotter(fhicl::ParameterSet const& ps);
 
-  ~AdcChannelDftPlotter() override =default;
+  ~AdcChannelDftPlotter() override;
 
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
@@ -71,6 +73,35 @@ private:
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;
+
+  // Subclass holding state.
+  // For each channel, keep a count and a histogram with sum over calls
+  // if the variable is power.
+  //   counts: # calls for each channel range
+  //    hists: histogram with sum over calls for each channel range
+  //
+  using IndexMap = std::map<Name, Index>;  
+  using HistMap = std::map<Name, TH1*>;  
+  class State {
+  public:
+    ~State() {
+      for ( HistMap::value_type ihst : hists ) delete ihst.second;;
+    }
+    Index& count(Name crn) {
+      if ( ! counts.count(crn) ) counts[crn] = 0;
+      return counts[crn];
+    }
+    TH1*& hist(Name crn) {
+      if ( ! hists.count(crn) ) hists[crn] = nullptr;
+      return hists[crn];
+    }
+    IndexMap counts;
+    HistMap hists;
+  };
+
+  // State.
+  std::shared_ptr<State> m_pstate;   // Shared allows copy/assignment
+  State& getState() const { return *m_pstate; };
 
   // Internal method to view a channel and put hist/graph in result.
   DataMap viewLocal(Name crn, const AcdVector& acds) const;

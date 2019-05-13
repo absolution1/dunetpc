@@ -470,7 +470,6 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 # ADC channel metric plotters.
 ################################################################################
 
-
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
@@ -849,3 +848,19 @@ tools.pdsp_RemoveBadChannels: {
   RemoveBadChs: true
   RemoveNoisyChs: true
 }
+
+################################################################################
+# Other diagnostics.
+
+# Set uniform length for DFT analysis.
+tools.pdsp_setSampleLength: {
+  tool_type: AdcChannelTrimmer
+  LogLevel: 1
+  Length: 6000
+  MaxTrim: 100
+}
+
+################################################################################
+
+
+################################################################################
