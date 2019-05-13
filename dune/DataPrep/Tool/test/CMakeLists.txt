@@ -68,6 +68,18 @@ cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcChannelTrimmer SOURCES test_AdcChannelTrimmer.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
   LIBRARIES
     dune_ArtSupport

@@ -36,7 +36,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
-  m_PlotName(ps.get<Name>("PlotName")) {
+  m_PlotName(ps.get<Name>("PlotName")),
+  m_pstate(new State) {
   const string myname = "AdcChannelDftPlotter::ctor: ";
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -75,13 +76,45 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   }
 }
 
+//**********************************************************************
+
+AdcChannelDftPlotter::~AdcChannelDftPlotter() {
+  const string myname = "AdcChannelDftPlotter::dtor: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Closing." << endl;
+    cout << myname << "     CR name    count" << endl;
+    for ( IndexMap::value_type icnt : getState().counts ) {
+      cout << myname << setw(12) << icnt.first << ":" << setw(8) << icnt.second << endl;
+    }
+  }
+}
 
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapChannel(const AdcChannelData& acd, DataMap&, TPadManipulator& man) const {
+viewMapChannels(Name crn, const AcdVector& acds, DataMap&, TPadManipulator& man) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
-  DataMap chret = viewLocal(acd);
+  DataMap chret = viewLocal(crn, acds);
+  bool doState = true;
+  if ( doState ) {
+    ++getState().count(crn);
+    Index count = getState().count(crn);
+    bool doPwr = m_Variable == "power";
+    bool doPwt = m_Variable == "power/tick";
+    if ( doPwr || doPwt ) {
+      TH1* ph = chret.getHist("dftHist");
+      if ( ph != nullptr ) {
+        TH1*& phsum = getState().hist(crn);
+        if ( phsum == nullptr ) {
+          if ( count == 1 ) phsum = dynamic_cast<TH1*>(ph->Clone());
+          else cout << myname << "ERROR: Hist missing for count " << count << endl;
+        } else {
+          if ( count > 1 ) phsum->Add(ph);
+          else cout << myname << "ERROR: Hist existing for count " << count << endl;
+        }
+      }
+    }
+  }
   fillChannelPad(chret, man);
   return 0;
 }
@@ -90,7 +123,8 @@ viewMapChannel(const AdcChannelData& acd, DataMap&, TPadManipulator& man) const 
 
 DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelDftPlotter::view: ";
-  DataMap chret = viewLocal(acd);
+  AcdVector acds(1, &acd);
+  DataMap chret = viewLocal("", acds);
   if ( getPlotName().size() ) {
     string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
@@ -102,9 +136,13 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
 
 //**********************************************************************
 
-DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
+DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   const string myname = "AdcChannelDftPlotter::viewLocal: ";
   DataMap ret;
+  if ( acds.size() == 0 ) return ret;
+  const AdcChannelData* pacd = acds.front();
+  if ( pacd == nullptr ) return ret;
+  const AdcChannelData& acd = *pacd;
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
   bool doPwr = m_Variable == "power";
@@ -125,8 +163,20 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
     cout << myname << "DFT is not valid." << endl;
     return ret.setStatus(3);
   }
+  // Check consisistency of input data.
+  for ( const AdcChannelData* pacd : acds ) {
+    if ( pacd == nullptr ) return ret;
+    if ( pacd->dftmags.size() != nmag ) return ret;
+    if ( pacd->dftphases.size() != npha ) return ret;
+  }
   string hname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistName);
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
+  StringManipulator smanName(hname);
+  smanName.replace("%CRNAME%", crn);
+  hname = smanName.string();
+  StringManipulator smanTitl(htitl);
+  smanTitl.replace("%CRNAME%", crn);
+  htitl = smanTitl.string();
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
@@ -135,6 +185,7 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
   string dopt;
   string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
   if ( doMag || doPha ) {  
+    if ( acds.size() != 1 ) return ret;
     string ytitl = "Phase";
     if ( doMag ) {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, "Amplitude% [SUNIT]%");
@@ -183,11 +234,15 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
     ph->GetYaxis()->SetTitle(ytitl.c_str());
-    float pwrFac = doPwr ? 1.0 : 1.0/nsam;
+    float pwrFac = 1.0/acds.size();
+    if ( ! doPwr ) pwrFac /= nsam;
     for ( Index ipha=0; ipha<nmag; ++ipha ) {
-      float mag = acd.dftmags[ipha];
       float x = ipha*xFac;
-      float y = pwrFac*mag*mag;
+      float y = 0.0;
+      for ( const AdcChannelData* pacd : acds ) {
+        float mag = pacd->dftmags[ipha];
+        y += pwrFac*mag*mag;
+      }
       ph->Fill(x, y);
     }
     if ( ph->GetBinContent(m_NBinX+1) ) {
@@ -201,7 +256,12 @@ DataMap AdcChannelDftPlotter::viewLocal(const AdcChannelData& acd) const {
     ret.setHist("dftHist", ph, true);
     ret.setString("dftDopt", "hist");
   }
+  DataMap::IntVector dftChannels;
+  for ( const AdcChannelData* pacd : acds ) {
+    dftChannels.push_back(pacd->channel);
+  }
   ret.setFloat("dftYValMax", yValMax);
+  ret.setIntVector("dftChannels", dftChannels);
   return ret;
 }
 
@@ -255,9 +315,19 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
   if ( doPwt ) {
     ostringstream ssout;
     ssout.precision(2);
+    double xlab = 0.75;
+    double ylab = 0.80;
+    double dylab = 0.05;
     double sum = ph->Integral(0, ph->GetNbinsX()+1);
     ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
-    TLatex* ptxt = new TLatex(0.75, 0.80, ssout.str().c_str());
+    TLatex* ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    man.add(ptxt);
+    ylab -= dylab;
+    ssout.str("");
+    ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+    ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
     man.add(ptxt);

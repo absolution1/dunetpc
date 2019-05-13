@@ -10,7 +10,9 @@
 // defualt (500 x 700?) if either is zero.
 //
 // Configuration (XXX is prefix supplied in ctor):
-//   LogLevel  - Logginf opiot (0=none, 1=init only, 2=every call, ...)
+//   LogLevel  - Logging opt (0=none, 1=init only, 2=every call, ...)
+//   XXXChannelRanges - If not empty, a plot is created for each named range.
+//                      If empty, a plot is created for each channel.
 //   XXXName   - Name for the multi-plot file
 //   XXXSizeX  - XSize in pixels of the multi-plot file.
 //   XXXSizeY  - YSize in pixels of the multi-plot file.
@@ -22,6 +24,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
 class AdcChannelStringTool;
@@ -32,7 +35,10 @@ class AdcMultiChannelPlotter : public AdcChannelTool {
 public:
 
   using Name = std::string;
+  using NameVector = std::vector<Name>;
   using Index = unsigned int;
+  using AcdVector = std::vector<const AdcChannelData*>;
+  using ChannelRangeMap = std::map<Name, IndexRange>;
 
   AdcMultiChannelPlotter(const fhicl::ParameterSet& ps, Name prefix ="Plot");
 
@@ -48,10 +54,19 @@ public:
   //   acd - Data for the current channel
   //   ret - Result of processing previous channels. Append channel results here.
   //   man - Empty pad to be filled with the plot for this channel.
-  virtual int viewMapChannel(const AdcChannelData& acd, DataMap& ret, TPadManipulator& man) const =0;
+  //virtual int viewMapChannel(const AdcChannelData& acd, DataMap& ret, TPadManipulator& man) const =0;
+
+  // Subclass provides this method to process the channels in one range.
+  //    crn - Name for this set of channels
+  //   acds - Data for the channels
+  //    ret - Result of processing previous channels. Append channel results here.
+  //    man - Empty pad to be filled with the plot for this channel.
+  virtual int viewMapChannels(Name crn, const AcdVector& acds, DataMap& ret, TPadManipulator& man) const =0;
 
   // Provide read access to configuration.
   Index getLogLevel() const { return m_LogLevel; }
+  const NameVector& getChannelRangeNames() const { return m_PlotChannelRanges; }
+  bool haveChannelRanges() const { return getChannelRangeNames().size(); }
   Name  getPlotName() const { return m_PlotName; }
   Index getPlotSizeX() const { return m_PlotSizeX; }
   Index getPlotSizeY() const { return m_PlotSizeY; }
@@ -62,11 +77,16 @@ private:
 
   // Configuration data.
   Index m_LogLevel;
+  NameVector m_PlotChannelRanges;
   Name  m_PlotName;
   Index m_PlotSizeX;
   Index m_PlotSizeY;
   Index m_PlotSplitX;
   Index m_PlotSplitY;
+
+  // Derived from configuration.
+  NameVector m_crns;
+  ChannelRangeMap m_crmap;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;

@@ -48,6 +48,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "  LogLevel: 2" << endl;
     fout << "  SampleFreq: 2000" << endl;
     fout << "  YMinLog: 0.0" << endl;
+    fout << "  PlotChannelRanges: []" << endl;
     fout << "  PlotSizeX: 1000" << endl;
     fout << "  PlotSizeY:  700" << endl;
     fout << "  PlotSplitX: 2" << endl;
