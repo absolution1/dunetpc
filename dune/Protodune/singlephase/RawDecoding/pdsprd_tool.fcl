@@ -1,0 +1,46 @@
+BEGIN_PROLOG
+
+pdsprd_tool: 
+  {
+  tool_type: "PDSPTPCDataInterface"
+  RCEDropEventsWithSmallFrags: false
+  RCEDropSmallFrags: true
+  RCESmallFragSize: 500000
+  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEHexDump: false
+  RCESaveFragsToFiles: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
+  RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
+  RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
+
+  FELIXDropFragsWithBadCSF: true
+  FELIXHexDump: false
+  FELIXDropEventsWithSmallFrags: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
+
+# enforcement flags.  If these are set to true and the data completeness 
+# conditions are not met, then an emtpy collection of raw::RawDigits is 
+# put in the event
+
+# requires that we don't see the same channel twice in in an event
+
+  EnforceNoDuplicateChannels: true
+
+# requires that all channels have the same number of ticks (on each event separately)
+
+  EnforceSameTickCount: false
+
+# requires that all channels have the specified number of ticks
+
+  EnforceFullTickCount: false
+  FullTickCount: 6000
+
+# requires that no errors are reported by the unpacker (checksum or capture errors)
+
+  EnforceErrorFree: false
+  }
+END_PROLOG
