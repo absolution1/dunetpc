@@ -30,6 +30,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : AdcMultiChannelPlotter(ps, "Plot"),
   m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
+  m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
   m_YMax(0.0),
   m_YMinLog(ps.get<float>("YMinLog")),
@@ -61,18 +62,27 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
   }
+  // Derived config.
+  m_skipBad = m_ChannelStatusFlag==1 || m_ChannelStatusFlag==3;
+  m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
   // Display the configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "         LogLevel: " << m_LogLevel << endl;
-    cout << myname << "         Variable: " << m_Variable << endl;
-    cout << myname << "       SampleFreq: " << m_SampleFreq << endl;
-    if ( doMag || doPwr || doPwt ) cout << myname << "             YMax: " << m_YMax << endl;
-    if ( doPwr || doPwt )          cout << myname << "            NBinX: " << m_NBinX << endl;
-    cout << myname << "          YMinLog: " << m_YMinLog << endl;
-    cout << myname << "         HistName: " << m_HistName << endl;
-    cout << myname << "        HistTitle: " << m_HistTitle << endl;
-    cout << myname << " HistSummaryTitle: " << m_HistSummaryTitle << endl;
+    cout << myname << "           LogLevel: " << m_LogLevel << endl;
+    cout << myname << "           Variable: " << m_Variable << endl;
+    cout << myname << "  ChannelStatusFlag: " << m_ChannelStatusFlag;
+    if ( m_skipBad ) {
+      if ( m_skipNoisy ) cout << " (skip bad and noisy)";
+      else cout << " (skip bad)";
+    } else if ( m_skipNoisy ) cout << " (skip noisy)";
+    cout << endl;
+    cout << myname << "         SampleFreq: " << m_SampleFreq << endl;
+    if ( doMag || doPwr || doPwt ) cout << myname << "               YMax: " << m_YMax << endl;
+    if ( doPwr || doPwt )          cout << myname << "              NBinX: " << m_NBinX << endl;
+    cout << myname << "            YMinLog: " << m_YMinLog << endl;
+    cout << myname << "           HistName: " << m_HistName << endl;
+    cout << myname << "          HistTitle: " << m_HistTitle << endl;
+    cout << myname << "   HistSummaryTitle: " << m_HistSummaryTitle << endl;
   }
 }
 
@@ -205,6 +215,17 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     cout << myname << "DFT is not valid." << endl;
     return ret.setStatus(3);
   }
+  // Build list of retained channels.
+  DataMap::IntVector dftChannels;
+  AcdVector keepAcds;
+  for ( const AdcChannelData* pacd : acds ) {
+    if ( m_ChannelStatusFlag ) {
+      if ( m_skipBad && pacd->channelStatus==1 ) continue;
+      if ( m_skipNoisy && pacd->channelStatus==2 ) continue;
+    }
+    dftChannels.push_back(pacd->channel);
+    keepAcds.push_back(pacd);
+  }
   // Check consisistency of input data.
   for ( const AdcChannelData* pacd : acds ) {
     if ( pacd == nullptr ) return ret;
@@ -274,12 +295,12 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
     ph->GetYaxis()->SetTitle(ytitl.c_str());
-    float pwrFac = 1.0/acds.size();
+    float pwrFac = 1.0/keepAcds.size();
     if ( ! doPwr ) pwrFac /= nsam;
     for ( Index ipha=0; ipha<nmag; ++ipha ) {
       float x = ipha*xFac;
       float y = 0.0;
-      for ( const AdcChannelData* pacd : acds ) {
+      for ( const AdcChannelData* pacd : keepAcds ) {
         float mag = pacd->dftmags[ipha];
         y += pwrFac*mag*mag;
       }
@@ -295,10 +316,6 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     dopt = "hist";
     ret.setHist("dftHist", ph, true);
     ret.setString("dftDopt", "hist");
-  }
-  DataMap::IntVector dftChannels;
-  for ( const AdcChannelData* pacd : acds ) {
-    dftChannels.push_back(pacd->channel);
   }
   ret.setFloat("dftYValMax", yValMax);
   ret.setIntVector("dftChannels", dftChannels);

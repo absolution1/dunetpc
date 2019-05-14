@@ -18,6 +18,11 @@
 //                phase      - graph of DFT phase
 //                power      - histogram of power
 //                power/tick - histogram of power/tick
+//   ChannelStatusFlag - Indicates channels to skip for multi-channel plots.
+//                         0 - keep all
+//                         1 - skip bad channels
+//                         2 - skip noisy channels
+//                         3 - skip bad and noisy channels
 //   SampleFreq - Sampling frequency in kHz used to define the x-axis.
 //                If zero, frequency index is used instead.
 //   YMax - Specifies the maximum value for the Y-axis in the plot:
@@ -65,6 +70,7 @@ private:
   // Configuration data.
   int    m_LogLevel;
   Name   m_Variable;
+  Index  m_ChannelStatusFlag;
   float  m_SampleFreq;
   float  m_YMax;
   float  m_YMinLog;
@@ -72,6 +78,10 @@ private:
   Name   m_HistName;
   Name   m_HistTitle;
   Name   m_HistSummaryTitle;
+
+  // Derived from configuration.
+  bool m_skipBad;
+  bool m_skipNoisy;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;
