@@ -28,6 +28,7 @@
 //   NbinX - # bins in the power histogram
 //   HistName - Histogram/graph name
 //   HistTitle - Histogram/graph title
+//   HistSummaryTitle - Histogram/graph title
 
 #ifndef AdcChannelDftPlotter_H
 #define AdcChannelDftPlotter_H
@@ -55,7 +56,8 @@ public:
 
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
-  int viewMapChannels(Name crn, const AcdVector& acds, DataMap& ret, TPadManipulator& man) const override;
+  int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const override;
+  int viewMapSummary(Name crn, TPadManipulator& man) const override;
   bool updateWithView() const override { return true; }
 
 private:
@@ -69,7 +71,7 @@ private:
   Index  m_NBinX;
   Name   m_HistName;
   Name   m_HistTitle;
-  Name   m_PlotName;
+  Name   m_HistSummaryTitle;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -78,6 +80,7 @@ private:
   // For each channel, keep a count and a histogram with sum over calls
   // if the variable is power.
   //   counts: # calls for each channel range
+  //   nchans: summed # channels for each channel range
   //    hists: histogram with sum over calls for each channel range
   //
   using IndexMap = std::map<Name, Index>;  
@@ -91,11 +94,16 @@ private:
       if ( ! counts.count(crn) ) counts[crn] = 0;
       return counts[crn];
     }
+    Index& nchan(Name crn) {
+      if ( ! nchans.count(crn) ) nchans[crn] = 0;
+      return nchans[crn];
+    }
     TH1*& hist(Name crn) {
       if ( ! hists.count(crn) ) hists[crn] = nullptr;
       return hists[crn];
     }
     IndexMap counts;
+    IndexMap nchans;
     HistMap hists;
   };
 
@@ -107,8 +115,8 @@ private:
   DataMap viewLocal(Name crn, const AcdVector& acds) const;
 
   // Fill the pad for a channel.
-  // Histogram "pedestal" from dm is drawn.
-  int fillChannelPad(DataMap& dm, TPadManipulator& man) const;
+  // Histogram "dftHist" or graph "dftGraph" from dm is drawn.
+  int fillPad(DataMap& dm, TPadManipulator& man) const;
 
 };
 
