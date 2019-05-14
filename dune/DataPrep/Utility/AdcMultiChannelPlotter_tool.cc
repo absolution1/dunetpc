@@ -189,7 +189,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
   Index npadx = 0;
   Index npady = 0;
   Index npad = 0;
-  if ( getPlotName().size() && m_PlotSplitX > 0 ) {
+  if ( getPlotSummaryName().size() && m_PlotSplitX > 0 ) {
     npadx = m_PlotSplitX;
     npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
     npad = npadx*npady;
