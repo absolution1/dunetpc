@@ -102,12 +102,12 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
-protodunedphase_rot_geo:
+protodunedphase_driftY_geo:
 {
- Name:      "protodunedphase_rot"
+ Name:      "protodunedphase_driftY"
 
- GDML:      "protodunedphase_rot.gdml"
- ROOT:      "protodunedphase_rot.gdml"
+ GDML:      "protodunedphase_driftY.gdml"
+ ROOT:      "protodunedphase_driftY.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833

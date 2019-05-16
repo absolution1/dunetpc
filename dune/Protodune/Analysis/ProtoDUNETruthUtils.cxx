@@ -1,4 +1,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -18,13 +21,365 @@ protoana::ProtoDUNETruthUtils::~ProtoDUNETruthUtils(){
 
 }
 
-// Function to find the best matched true particle to a reconstructed particle. In case of problems, returns a null pointer
-const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const{
+// Function that produces a vector of hit pointers that appear in both the given MCParticle and
+// PFParticle.
+std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
+  (const simb::MCParticle& mcpart, const recob::PFParticle& pfpart, const art::Event& evt, std::string pfparticleModule) const {
 
-  const simb::MCParticle* mcParticle = 0x0;
+  std::vector<const recob::Hit*> outVec;
+
+  // Get the hits associated with this PFParticle
+  protoana::ProtoDUNEPFParticleUtils pfpUtils;
+  std::vector<const recob::Hit*> pfpHits = pfpUtils.GetPFParticleHits(pfpart, evt, pfparticleModule);
+
+  // Push back all hits that are shared with this MCParticle
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  for(const recob::Hit* hitp : pfpHits) {
+    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
+      if(trackId == mcpart.TrackId()) {
+        outVec.push_back(hitp);
+        break;
+      }
+    }
+  }
+
+  return outVec;
+}
+
+// Function that produces a vector of hit pointers that appear in both the given MCParticle and
+// reconstructed track.
+std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
+  (const simb::MCParticle& mcpart, const recob::Track& track, const art::Event& evt, std::string trackModule) const {
+
+  std::vector<const recob::Hit*> outVec;
+
+  // Get the hits associated with this track
+  protoana::ProtoDUNETrackUtils trackUtils;
+  std::vector<const recob::Hit*> trackHits = trackUtils.GetRecoTrackHits(track, evt, trackModule);
+
+  // Push back all hits that are shared with this MCParticle
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  for(const recob::Hit* hitp : trackHits) {
+    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
+      if(trackId == mcpart.TrackId()) {
+        outVec.push_back(hitp);
+        break;
+      }
+    }
+  }
+
+  return outVec;
+}
+
+// Function that produces a vector of hit pointers that appear in both the given MCParticle and
+// reconstructed shower.
+std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
+  (const simb::MCParticle& mcpart, const recob::Shower& shower, const art::Event& evt, std::string showerModule) const {
+
+  std::vector<const recob::Hit*> outVec;
+
+  // Get the hits associated with this shower
+  protoana::ProtoDUNEShowerUtils shUtils;
+  std::vector<const recob::Hit*> shHits = shUtils.GetRecoShowerHits(shower, evt, showerModule);
+
+  // Push back all hits that are shared with this MCParticle
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  for(const recob::Hit* hitp : shHits) {
+    for(const sim::TrackIDE& ide : bt_serv->HitToEveTrackIDEs(*hitp)) {
+      if(ide.trackID == mcpart.TrackId()) {
+        outVec.push_back(hitp);
+        break;
+      }
+    }
+  }
+
+  return outVec;
+}
+
+// Function that loops over all hits in an event and returns those that an MCParticle
+// contributed to.
+std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetMCParticleHits(
+  const simb::MCParticle &mcpart, const art::Event &evt, std::string hitModule) const {
+
+  std::vector<const recob::Hit*> outVec;
+  
+  art::Handle<std::vector<recob::Hit>> hitHandle;
+  if(!evt.getByLabel(hitModule, hitHandle)) {
+    std::cout << "protoana::ProtoDUNETruthUtils::GetMCParticleHits: could not find hits in event.\n";
+    return outVec;
+  }
+
+  // Backtrack all hits to verify whether they belong to the current MCParticle.
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  for(const recob::Hit& hit : *hitHandle) {
+    for(const int trackId : bt_serv->HitToTrackIds(hit)) {
+      if(pi_serv->TrackIdToParticle_P(trackId) == &mcpart) {
+        outVec.push_back(&hit);
+        break;
+      }
+    }
+  }
+
+  return outVec;
+}
+
+// Function to return the completeness of a reconstructed object. By definition:
+// Completeness = number of shared hits between MCParticle and reco object /
+//                number of hits in MCParticle
+template <typename T>
+double protoana::ProtoDUNETruthUtils::GetCompleteness(const T &recobj,
+  const art::Event &evt, std::string recoModule, std::string hitModule) const {
+
+  // Find the hits of the corresponding MCParticle.
+  const simb::MCParticle* mcmatch = GetMCParticleFromReco(recobj, evt, recoModule);
+  if(mcmatch == 0x0) { return 0; }
+  // std::cout << "MCmatch: " << mcmatch << '\n';
+  const std::vector<const recob::Hit*> MCHits = GetMCParticleHits(*mcmatch, evt, hitModule);
+  if(MCHits.size() == 0) { return 0; }
+  // Get shared hits between reco object and MCParticle.
+  const std::vector<const recob::Hit*> sharedHits = GetSharedHits(*mcmatch, recobj, evt, recoModule);
+
+  return (double)sharedHits.size() / MCHits.size();
+}
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::PFParticle>
+  (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::Track>
+  (const recob::Track&, const art::Event&, std::string, std::string) const;
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::Shower>
+  (const recob::Shower&, const art::Event&, std::string, std::string) const;
+
+// Function to return the purity of a PFParticle. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::PFParticle &pfpart,
+  const art::Event &evt, std::string pfparticleModule) const {
+  
+  // Find the corresponding MCParticle and shared hits.
+  const simb::MCParticle* mcmatch = GetMCParticleFromReco(pfpart, evt, pfparticleModule);
+  if(mcmatch == 0x0) { return 0; }
+  // Get shared hits between PFParticle and MCParticle.
+  const std::vector<const recob::Hit*> sharedHits = GetSharedHits(*mcmatch, pfpart, evt, pfparticleModule);
+
+  // Get the hits associated with this PFParticle
+  protoana::ProtoDUNEPFParticleUtils pfpUtils;
+  std::vector<const recob::Hit*> pfpHits = pfpUtils.GetPFParticleHits(pfpart, evt, pfparticleModule);
+
+  return (double)sharedHits.size() / pfpHits.size();
+}
+
+// Function to return the purity of a reco track. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::Track &track,
+  const art::Event &evt, std::string trackModule) const {
+  
+  // Find the corresponding MCParticle and shared hits.
+  const simb::MCParticle* mcmatch = GetMCParticleFromReco(track, evt, trackModule);
+  if(mcmatch == 0x0) { return 0; }
+  // Get shared hits between track and MCParticle.
+  const std::vector<const recob::Hit*> sharedHits = GetSharedHits(*mcmatch, track, evt, trackModule);
+
+  // Get the hits associated with this track
+  protoana::ProtoDUNETrackUtils trackUtils;
+  std::vector<const recob::Hit*> trackHits = trackUtils.GetRecoTrackHits(track, evt, trackModule);
+
+  return (double)sharedHits.size() / trackHits.size();
+}
+
+// Function to return the purity of a reco shower. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::Shower &shower,
+  const art::Event &evt, std::string showerModule) const {
+  
+  // Find the corresponding MCParticle and shared hits.
+  const simb::MCParticle* mcmatch = GetMCParticleFromReco(shower, evt, showerModule);
+  if(mcmatch == 0x0) { return 0; }
+  // Get shared hits between shower and MCParticle.
+  const std::vector<const recob::Hit*> sharedHits = GetSharedHits(*mcmatch, shower, evt, showerModule);
+
+  // Get the hits associated with this shower
+  protoana::ProtoDUNEShowerUtils showerUtils;
+  std::vector<const recob::Hit*> showerHits = showerUtils.GetRecoShowerHits(shower, evt, showerModule);
+
+  return (double)sharedHits.size() / showerHits.size();
+}
+
+// Function to find a weighted and sorted vector of the true particles matched to a
+// vector of reconstructed track hits. In case of trouble, return an empty vector.
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromTrackHits
+  (const std::vector<const recob::Hit*>& hitVec) const {
+
+  using weightedMCPair = std::pair<const simb::MCParticle*, double>;
+  std::vector<weightedMCPair> outVec;
+  
+  // Loop over all hits in the input vector and record the contributing MCParticles.
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  std::unordered_map<const simb::MCParticle*, double> mcEMap;
+  double hitTotalE = 0;
+  for(const recob::Hit* hitp : hitVec) {
+    for(const sim::TrackIDE& ide : bt_serv->HitToTrackIDEs(*hitp)) {
+      const simb::MCParticle* curr_part = pi_serv->TrackIdToParticle_P(ide.trackID);
+      mcEMap[curr_part] += ide.energy;
+      hitTotalE += ide.energy;
+    }
+  }
+
+  // Fill and sort the output vector
+  for (weightedMCPair const& p : mcEMap) {
+    outVec.push_back(p);
+  }
+  std::sort(outVec.begin(), outVec.end(),
+        [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
+
+  // Normalise the weights by the total track energy.
+  if (hitTotalE < 1e-5) { hitTotalE = 1; } // Protect against zero division
+  for (weightedMCPair& p : outVec) {
+    p.second /= hitTotalE;
+  }
+
+  return outVec;
+}
+
+// Function to find a weighted and sorted vector of the true particles matched to a
+// vector of reconstructed shower hits. In case of trouble, return an empty vector.
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromShowerHits
+  (const std::vector<const recob::Hit*>& hitVec) const {
+
+  using weightedMCPair = std::pair<const simb::MCParticle*, double>;
+  std::vector<weightedMCPair> outVec;
+  
+  // Loop over all hits in the input vector and record the contributing MCParticles.
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+  std::unordered_map<const simb::MCParticle*, double> mcEMap;
+  double hitTotalE = 0;
+  for(const recob::Hit* hitp : hitVec) {
+    for(const sim::TrackIDE& ide : bt_serv->HitToEveTrackIDEs(*hitp)) {
+      const simb::MCParticle* curr_part = pi_serv->TrackIdToParticle_P(ide.trackID);
+      mcEMap[curr_part] += ide.energy;
+      hitTotalE += ide.energy;
+    }
+  }
+
+  // Fill and sort the output vector
+  for (weightedMCPair const& p : mcEMap) {
+    outVec.push_back(p);
+  }
+  std::sort(outVec.begin(), outVec.end(),
+        [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
+
+  // Normalise the weights by the total track energy.
+  if (hitTotalE < 1e-5) { hitTotalE = 1; } // Protect against zero division
+  for (weightedMCPair& p : outVec) {
+    p.second /= hitTotalE;
+  }
+
+  return outVec;
+}
+
+// Function to find a weighted and sorted vector of the true particles matched to
+// a PFParticle. Return an empty vector in case of trouble.
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromPFParticle
+  (const recob::PFParticle &pfpart, art::Event const & evt, std::string pfparticleModule) const {
+
+  std::vector<std::pair<const simb::MCParticle*, double>> outVec;
 
   // We must have MC for this module to make sense
-  if(evt.isRealData()) return mcParticle;
+  if(evt.isRealData()) return outVec;
+
+  // Get the hits associated with this PFParticle
+  protoana::ProtoDUNEPFParticleUtils pfpUtils;
+  std::vector<const recob::Hit*> pfpHits = pfpUtils.GetPFParticleHits(pfpart, evt, pfparticleModule);
+
+  // Call the appropriate function to determine MC matches.
+  if(abs(pfpart.PdgCode()) == 11 || pfpart.PdgCode() == 22) {
+    outVec = GetMCParticleListFromShowerHits(pfpHits);
+  } else {
+    outVec = GetMCParticleListFromTrackHits(pfpHits);
+  }
+
+  return outVec;
+}
+
+std::vector<std::pair<const recob::PFParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetPFParticleListFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string pfparticleModule) const {
+
+  using weightedPFPair = std::pair<const recob::PFParticle*, double>;
+
+  std::vector<weightedPFPair> outVec;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outVec;
+
+  // Get the reconstructed PFParticles
+  auto allPFParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(pfparticleModule);
+
+  // Loop over all PFParticles and save the energetic overlap with each MCParticle in a map
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  std::unordered_map<const recob::PFParticle*, double> pfpEMap;
+  double pfpTotalE = 0;
+  for(const recob::PFParticle& pfpart : *allPFParticles) {
+    for(const recob::Hit* hitp : GetSharedHits(part, pfpart, evt, pfparticleModule)) {
+      for(const sim::TrackIDE& ide : bt_serv->HitToTrackIDEs(*hitp)) {
+        if(ide.trackID == part.TrackId()) {
+          pfpEMap[&pfpart] += ide.energy;
+        }
+        pfpTotalE += ide.energy;
+      }
+    }
+  }
+
+  // Fill and sort the output vector
+  for (weightedPFPair const& p : pfpEMap) {
+    outVec.push_back(p);
+  }
+  std::sort(outVec.begin(), outVec.end(),
+        [](weightedPFPair a, weightedPFPair b){ return a.second > b.second;});
+
+  // Normalise the weights by the total track energy.
+  if (pfpTotalE < 1e-5) { pfpTotalE = 1; } // Protect against zero division
+  for (weightedPFPair& p : outVec) {
+    p.second /= pfpTotalE;
+  }
+
+  return outVec;
+}
+
+// Function to find a weighted and sorted vector of the true particles matched to
+// a track. Return an empty vector in case of trouble.
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromRecoTrack
+  (const recob::Track &track, art::Event const & evt, std::string trackModule) const {
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return {};
+
+  // Get the reconstructed track hits
+  protoana::ProtoDUNETrackUtils trackUtils;
+  std::vector<const recob::Hit*> trackHits = trackUtils.GetRecoTrackHits(track, evt, trackModule);
+  return GetMCParticleListFromTrackHits(trackHits);
+}
+
+// Function to find the best matched reconstructed particle tracks to a true
+// particle. In case of problems, or if the particle was not reconstruced as a
+// track, returns an empty vector.
+std::vector<std::pair<const recob::Track*, double>>
+  protoana::ProtoDUNETruthUtils::GetRecoTrackListFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const{
+
+  using weightedTrackPair = std::pair<const recob::Track*, double>;
+
+  std::vector<weightedTrackPair> outVec;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outVec;
 
   // Get the reconstructed tracks
   auto allRecoTracks = evt.getValidHandle<std::vector<recob::Track> >(trackModule);
@@ -32,54 +387,294 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrac
   // We need the association between the tracks and the hits
   const art::FindManyP<recob::Hit> findTrackHits(allRecoTracks, evt, trackModule);
 
-  unsigned int trackIndex = track.ID();
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  std::unordered_map<int, double> recoTrack;
+
+  // Record the energy contribution to the MCParticle of every relevant reco track
+  double part_E = 0;
+  for (recob::Track const & track : *allRecoTracks)
+  {
+    // This finds all hits that are shared between a reconstructed track and MCParticle
+    for (art::Ptr<recob::Hit> const & hptr :
+          bt_serv->TrackIdToHits_Ps(part.TrackId(), findTrackHits.at(track.ID())))
+    {
+      // Loop over hit IDEs to find our particle's part in it
+      for (const sim::IDE* ide : bt_serv->HitToSimIDEs_Ps(hptr))
+      {
+        if (ide->trackID == part.TrackId())
+        {
+          recoTrack[track.ID()] += ide->energy;
+        }
+        part_E += ide->energy;
+      } // sim::IDE*
+    } // art::Ptr<recob::Hit>
+  } // const recob::Track&
+
+  // Fill and sort the output vector
+  for (std::pair<int, double> const& p : recoTrack)
+  {
+    auto const trackIt = std::find_if(allRecoTracks->begin(), allRecoTracks->end(),
+                               [&](recob::Track tr){ return tr.ID() == p.first; });
+    outVec.push_back(std::make_pair(&*trackIt, p.second));
+  }
+  std::sort(outVec.begin(), outVec.end(),
+    [](weightedTrackPair a, weightedTrackPair b){ return a.second > b.second;});
+
+  // Normalise the vector weights
+  if (part_E < 1e-5) { part_E = 1; } // Protect against zero division
+  for (weightedTrackPair& p : outVec)
+  {
+    p.second /= part_E;
+  }
+
+  return outVec;
+}
+
+// Function to find the best matched true particle to a reconstructed particle
+// shower. In case of problems, returns a null pointer
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromRecoShower
+  (const recob::Shower &shower, art::Event const & evt, std::string showerModule) const{
+    
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return {};
+
+  // Get the reconstructed shower hits
+  protoana::ProtoDUNEShowerUtils showerUtils;
+  std::vector<const recob::Hit*> showerHits = showerUtils.GetRecoShowerHits(shower, evt, showerModule);
+  return GetMCParticleListFromShowerHits(showerHits);
+}
+
+// Function to find the best matched reconstructed particle tracks to a true
+// particle. In case of problems, or if the particle was not reconstruced as a
+// shower, returns an empty vector.
+std::vector<std::pair<const recob::Shower*, double>>
+  protoana::ProtoDUNETruthUtils::GetRecoShowerListFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string showerModule) const{
+
+  using weightedShowerPair = std::pair<const recob::Shower*, double>;
+
+  std::vector<weightedShowerPair> outVec;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outVec;
+
+  // Get the reconstructed showers
+  auto allRecoShowers = evt.getValidHandle<std::vector<recob::Shower> >(showerModule);
+
+  // We need the association between the showers and the hits
+  const art::FindManyP<recob::Hit> findShowerHits(allRecoShowers, evt, showerModule);
 
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
-  std::unordered_map<int, double> trkIDE;
-  for (auto const & h : findTrackHits.at(trackIndex))
+  ProtoDUNEShowerUtils shUtils;
+  std::unordered_map<int, double> recoShower;
+
+  // Record the energy contribution to the MCParticle of every relevant reco shower
+  double part_E = 0;
+  for (recob::Shower const & shower : *allRecoShowers)
   {
-    for (auto const & ide : bt_serv->HitToTrackIDEs(h)) // loop over std::vector<sim::TrackIDE>
+    const unsigned showerIndex = shUtils.GetShowerIndex(shower, evt, showerModule);
+    // Since MCParticles do not have shower hits associated with them, loop over all shower hits
+    for (art::Ptr<recob::Hit> hit : findShowerHits.at(showerIndex))
     {
-        trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
-    }
-  }
+      // Loop over hit IDEs to find our particle's part in it
+      for (const sim::TrackIDE& ide : bt_serv->HitToEveTrackIDEs(hit))
+      {
+        if (ide.trackID == part.TrackId())
+        {
+          recoShower[showerIndex] += ide.energy;
+        }
+        part_E += ide.energy;
+      } // sim::IDE*
+    } // art::Ptr<recob::Hit>
+  } // const recob::Shower&
 
-  int best_id = 0;
-  double tot_e = 0, max_e = 0;
-  for (auto const & contrib : trkIDE)
+  // Fill and sort the output vector
+  for (std::pair<int, double> const& p : recoShower)
   {
-    tot_e += contrib.second;     // sum total energy in these hits
-    if (contrib.second > max_e)  // find track ID corresponding to max energy
-    {
-        max_e = contrib.second;
-        best_id = contrib.first;
-    }
+    auto const showerIt = std::find_if(allRecoShowers->begin(), allRecoShowers->end(),
+      [&](recob::Shower sh){ return shUtils.GetShowerIndex(sh, evt, showerModule) == p.first; });
+    outVec.push_back(std::make_pair(&*showerIt, p.second));
   }
+  std::sort(outVec.begin(), outVec.end(),
+    [](weightedShowerPair a, weightedShowerPair b){ return a.second > b.second;});
 
-  if ((max_e > 0) && (tot_e > 0)) // ok, found something reasonable
-  {
-    if (best_id < 0)            // NOTE: negative ID means this is EM activity
-    {                           // caused by track with the same but positive ID
-//        best_id = -best_id;     // --> we'll find mother MCParticle of these hits
-      return mcParticle;
-    }
-    mcParticle = pi_serv->TrackIdToParticle_P(best_id); // MCParticle corresponding to track ID
-  }
+  // Normalise the vector weights
+  if (part_E < 1e-5) { part_E = 1; } // Protect against zero division
+  std::for_each(outVec.begin(), outVec.end(),
+          [&](weightedShowerPair& p){ p.second /= part_E; });
 
-  return mcParticle;
+  return outVec;
 }
+
+// Function to find the best matched true particle to a reconstructed PFParticle.
+// In case of problems, returns a null pointer
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromPFParticle
+  (const recob::PFParticle &pfpart, art::Event const & evt, std::string pfparticleModule) const{
+
+  const simb::MCParticle* outPart = 0x0;
+
+  const std::vector<std::pair<const simb::MCParticle*, double>> inVec =
+    GetMCParticleListFromPFParticle(pfpart, evt, pfparticleModule);
+
+  if (inVec.size() != 0) outPart = inVec[0].first;
+
+  return outPart;
+}
+
+// Function to find the best matched reconstructed PFParticle to a true particle. In
+// case of problems, or if the true particle is not a primary contributor to any
+// PFParticle, return a null pointer
+const recob::PFParticle* protoana::ProtoDUNETruthUtils::GetPFParticleFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string pfparticleModule) const {
+
+  const recob::PFParticle* outPFPart = 0x0;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outPFPart;
+
+  // Get the list of contributing PFParticles for the MCParticle and see if any of
+  // them have the MCParticle as a primary contributor.
+  for (std::pair<const recob::PFParticle*, double> p :
+                        GetPFParticleListFromMCParticle(part, evt, pfparticleModule))
+  {
+    const recob::PFParticle* pfp = p.first;
+    if (GetMCParticleFromPFParticle(*pfp, evt, pfparticleModule)->TrackId() == part.TrackId())
+    {
+      outPFPart = pfp;
+      break;
+    }
+  }
+
+  return outPFPart;
+}
+
+// Function to find the best matched true particle to a reconstructed particle
+// track. In case of problems, returns a null pointer
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoTrack
+  (const recob::Track &track, art::Event const & evt, std::string trackModule) const{
+
+  const simb::MCParticle* outPart = 0x0;
+
+  const std::vector<std::pair<const simb::MCParticle*, double>> inVec =
+    GetMCParticleListFromRecoTrack(track, evt, trackModule);
+
+  if (inVec.size() != 0) outPart = inVec[0].first;
+
+  return outPart;
+}
+
+// Function to find the best matched reconstructed track to a true particle. In
+// case of problems, or if the true particle is not a primary contributor to any
+// track, return a null pointer
+const recob::Track* protoana::ProtoDUNETruthUtils::GetRecoTrackFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const {
+
+  const recob::Track* outTrack = 0x0;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outTrack;
+
+  // Get the list of contributing tracks for the MCParticle and see if any of
+  // them have the MCParticle as a primary contributor.
+  for (std::pair<const recob::Track*, double> p :
+                        GetRecoTrackListFromMCParticle(part, evt, trackModule))
+  {
+    const recob::Track* tr = p.first;
+    if (GetMCParticleFromRecoTrack(*tr, evt, trackModule)->TrackId() == part.TrackId())
+    {
+      outTrack = tr;
+      break;
+    }
+  }
+
+  return outTrack;
+}
+
+// Function to find the best matched true particle to a reconstructed particle
+// shower. In case of problems, returns a null pointer
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromRecoShower
+  (const recob::Shower &shower, art::Event const & evt, std::string showerModule) const{
+
+  const simb::MCParticle* outPart = 0x0;
+
+  const std::vector<std::pair<const simb::MCParticle*, double>> inVec =
+    GetMCParticleListFromRecoShower(shower, evt, showerModule);
+
+  if (inVec.size() != 0) outPart = inVec[0].first;
+
+  return outPart;
+}
+
+// Function to find the best matched reconstructed shower to a true particle. In
+// case of problems, or if the true particle is not a primary contributor to any
+// shower, returns a null pointer
+const recob::Shower* protoana::ProtoDUNETruthUtils::GetRecoShowerFromMCParticle
+  (const simb::MCParticle &part, art::Event const & evt, std::string showerModule) const {
+
+  const recob::Shower* outShower = 0x0;
+
+  // We must have MC for this module to make sense
+  if(evt.isRealData()) return outShower;
+
+  // Get the list of contributing showers for the MCParticle and see if any of
+  // them have the MCParticle as a primary contributor.
+  for (std::pair<const recob::Shower*, double> p :
+                        GetRecoShowerListFromMCParticle(part, evt, showerModule))
+  {
+    const recob::Shower* tr = p.first;
+    if (GetMCParticleFromRecoShower(*tr, evt, showerModule)->TrackId() == part.TrackId())
+    {
+      outShower = tr;
+      break;
+    }
+  }
+
+  return outShower;
+}
+
+// General overloaded functions to get the best MCParticle match for reconstructed objects
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromReco
+  (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const {
+  return GetMCParticleFromPFParticle(pfpart, evt, pfparticleModule);
+}
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromReco
+  (const recob::Track &track, art::Event const &evt, std::string trackModule) const {
+  return GetMCParticleFromRecoTrack(track, evt, trackModule);
+}
+const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetMCParticleFromReco
+  (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const {
+  return GetMCParticleFromRecoShower(shower, evt, showerModule);
+}
+
+// General overloaded functions to get the contributing MCParticles to a reconstructed object
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromReco
+  (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const {
+  return GetMCParticleListFromPFParticle(pfpart, evt, pfparticleModule);
+}
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromReco
+  (const recob::Track &track, art::Event const &evt, std::string trackModule) const {
+  return GetMCParticleListFromRecoTrack(track, evt, trackModule);
+}
+std::vector<std::pair<const simb::MCParticle*, double>>
+  protoana::ProtoDUNETruthUtils::GetMCParticleListFromReco
+  (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const {
+  return GetMCParticleListFromRecoShower(shower, evt, showerModule);
+}
+
 
 const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt )
 {  // Function that will match the protoDUNE MC particle to the Geant 4 MC particle, and return the matched particle (or a null pointer).
 
   // Find the energy of the procided MC Particle
   double pDuneEnergy = pDunePart.E();
-  
+
   // Get list of the g4 particles. plist should be a std::map< int, simb::MCParticle* >
   art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
   const sim::ParticleList & plist = pi_serv->ParticleList();
-  
+
   // Check if plist is empty
   if ( !plist.size() ) {
     std::cerr << "\n\n#####################################\n"
@@ -89,10 +684,10 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
               << "#####################################\n\n";
     return nullptr;
   }
-  
+
   // Go through the list of G4 particles
   for ( auto partIt = plist.begin() ; partIt != plist.end() ; partIt++ ) {
-    
+
     const simb::MCParticle* pPart = partIt->second;
     if (!pPart) {
       std::cerr << "\n\n#####################################\n"
@@ -104,17 +699,17 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const s
                 << "#####################################\n\n";
       continue;
     }
-    
+
     // If the initial energy of the g4 particle is very close to the energy of the protoDUNE particle, call it a day and have a cuppa.
     if ( (pDunePart.PdgCode() == pPart->PdgCode()) && fabs(pPart->E() - pDuneEnergy) < 0.00001 ) {
       return pPart;
     }
-    
+
   }  // G4 particle list loop end.
-  
+
   std::cout << "No G4 particle was matched for Event " << evt.id().event() << ". Null pointer returned\n";
   return nullptr;
-  
+
 }  // End MatchPduneMCtoG4
 
 const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const{
@@ -145,7 +740,7 @@ const simb::MCParticle* protoana::ProtoDUNETruthUtils::GetGeantGoodParticle(cons
     if((goodPart.PdgCode() == part.second->PdgCode()) && fabs(part.second->E() - goodPart.E()) < 1e-5){
       return part.second;
     }
-  } 
+  }
 
   // If we get here something has gone wrong
   std::cerr << "No G4 version of the good particle was found, returning null pointer" << std::endl;
@@ -215,11 +810,11 @@ int protoana::ProtoDUNETruthUtils::GetProcessKey(std::string process){
   else if(process.compare("phot") == 0)                  return 42; // Photoelectric Effect
   else if(process.compare("conv") == 0)                  return 43; // Pair production
   else if(process.compare("CoupledTransportation") == 0) return 44; //
-  
+
   else return -1;
 }
 
-// Get estimated particle energy deposit. The G4 trackId must be provided 
+// Get estimated particle energy deposit. The G4 trackId must be provided
 double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo::GeometryCore const * fGeom, int trackid, int whichview) const {
 
   double edep = 0.0;
@@ -243,9 +838,9 @@ double protoana::ProtoDUNETruthUtils::GetDepEnergyMC(const art::Event &evt, geo:
       }
     }
   }
-  
+
   return edep;
-  
+
 }
 
 // Get first trajectory point in TPC active volume
@@ -274,7 +869,7 @@ double protoana::ProtoDUNETruthUtils::GetMCParticleLengthInTPCActiveVolume(const
   TVector3 pos =  mcpart.Position(firstpoint).Vect();
   for(unsigned int i = firstpoint+1; i < mcpart.NumberTrajectoryPoints(); ++i) {
     if(mcpart.Vx(i) >= tpcactiveXlow && mcpart.Vx(i) <= tpcactiveXhigh && mcpart.Vy(i) >= tpcactiveYlow && mcpart.Vy(i) <= tpcactiveYhigh && mcpart.Vz(i) >= tpcactiveZlow && mcpart.Vz(i) <= tpcactiveZhigh){
-      
+
       pos -= mcpart.Position(i).Vect();
       length += pos.Mag();
       pos = mcpart.Position(i).Vect();

@@ -51,7 +51,7 @@ services.RawDrawingOptions.TotalTicks:               5200
 services.RawDrawingOptions.StartTick:               0
 
 services.RawDrawingOptions.TPC: 1  #TPC 1 is the main drift volume in 35t
-services.RawDrawingOptions.RawDataLabel: "SplitterInput:TPC"    #slicer
+services.RawDrawingOptions.RawDataLabels: ["SplitterInput:TPC"]    #slicer
 
 services.RecoDrawingOptions.DrawClusters:               0
 services.RecoDrawingOptions.DrawTracks:                 0

@@ -12,7 +12,7 @@
 #include "art/Framework/Core/EDFilter.h" 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Principal/Event.h" 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -41,7 +41,7 @@ namespace filt{
   };
 
   ProtoDUNEFembFilter::ProtoDUNEFembFilter::ProtoDUNEFembFilter(fhicl::ParameterSet const & pset):
-    fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
+    EDFilter(pset), fDataUtils(pset.get<fhicl::ParameterSet>("DataUtils"))
   {
 
     fLogLevel = pset.get<unsigned int>("LogLevel");

@@ -8,8 +8,10 @@
 # April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
-# Tools to display ADC data.
+# Ranges for channel-tick plots.
 ################################################################################
+
+# tools.tickRanges is defined in DuneCommon/fcl/dunecommon_tools.fcl
 
 tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
 tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }
@@ -251,14 +253,19 @@ tools.adcChannelPedestalRmsPlotter: {
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-   SampleFreq: @local::adcSampleFreq
-      YMinLog: 0.0
-    PlotSizeX: 1400
-    PlotSizeY: 1000
-   PlotSplitX: 4
-   PlotSplitY: 4
+          tool_type: AdcChannelDftPlotter
+           LogLevel: 1
+  ChannelStatusFlag: 0
+         SampleFreq: @local::adcSampleFreq
+           PlotName: ""
+    PlotSummaryName: ""
+   HistSummaryTitle: ""
+            YMinLog: 0.0
+  PlotChannelRanges: []    # Empty makes one plot for each channel
+          PlotSizeX: 1400
+          PlotSizeY: 1000
+         PlotSplitX: 4
+         PlotSplitY: 4
 }
 
 # DFT amplitudes
@@ -297,8 +304,8 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 
 # DFT power/tick with log scale.
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
-tools.adcPlotDftTickPowerLog.YMinLog: 0.001
-tools.adcPlotDftTickPowerLog.YMax: 20.0
+tools.adcPlotDftTickPowerLog.YMinLog: 0.01
+tools.adcPlotDftTickPowerLog.YMax: 100.0
 tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -345,10 +352,19 @@ tools.adcSubtractBaseline: {
   BaseVarCut: 5.
 }
 
-# Find one ADC signals that includes all samples.
+# Find one ROI signals that includes all samples.
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+}
+
+# Scale samples from ke to ADC count.
+tools.adcScaleKeToAdc: {
+  tool_type: AdcSampleScaler
+  LogLevel: 1
+  ScaleFactor: 40.0
+  OutputUnit: "ADC count"
+  InputUnit: "ke/tick"
 }
 
 # Find ADC signals with simple threshold algorithm.

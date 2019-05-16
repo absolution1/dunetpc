@@ -75,7 +75,10 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       m_tickRange = ptool->get(m_TickRange);
     }
     if ( ! m_tickRange.isValid() ) {
-      cout << myname << "WARNING: Tick range not found: " << m_TickRange << endl;
+      // Issue warning if the range does not have  label.
+      if ( m_tickRange.label(0) == "" ) {
+        cout << myname << "WARNING: Tick range not found: " << m_TickRange << endl;
+      }
     }
     descTickRange = m_TickRange + " " + m_tickRange.rangeString();
   }
@@ -240,7 +243,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       szunits = acdFirst.sampleUnit;
       if ( szunits.find(" ") != string::npos ) szunits = "(" + szunits + ")";
     }
-    htitl += "; Tick; Channel; Signal [" + szunits + "/Tick/Channel]";
+    string zunit = szunits;
+    if ( zunit.find(" ") != string::npos ) zunit = "(" + zunit + ")";
+    bool zhasTick = zunit.find("Tick") != string::npos || zunit.find("tick") != string::npos;
+    if ( ! zhasTick ) zunit += "/tick";
+    zunit += "/channel";
+    htitl += "; Tick; Channel; Signal [" + zunit + "]";
     // Set flag indicating we want to show empty bins with the color m_EmptyColor.
     // We initialize all bins below zmin and fill with zmin where the value would be lower.
     // We do not attempt this this where rebinning is done.

@@ -78,7 +78,8 @@ private:
 
 
 pdune::BeamHitFinder::BeamHitFinder(fhicl::ParameterSet const & p)
-  : fHitModuleLabel(p.get< art::InputTag>("HitModuleLabel"))
+  : EDProducer(p)
+  , fHitModuleLabel(p.get< art::InputTag>("HitModuleLabel"))
   , fTolerance(p.get< double >("Tolerance"))
   , fToleranceWire(p.get< double >("ToleranceWire"))
 {

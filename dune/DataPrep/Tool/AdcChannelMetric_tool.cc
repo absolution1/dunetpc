@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <set>
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -61,6 +62,7 @@ void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
 AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_Metric(ps.get<Name>("Metric")),
+  m_MetricSummaryView(ps.get<Name>("MetricSummaryView")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_MetricMin(ps.get<float>("MetricMin")),
   m_MetricMax(ps.get<float>("MetricMax")),
@@ -76,6 +78,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_doSummary(false),
+  m_doSummaryError(false),
   m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
@@ -111,7 +114,38 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  // Set summary fields.
   m_doSummary = m_HistName.find("EVENT%") == string::npos;
+  if ( m_doSummary ) {
+    const std::set<Name> sumVals = {"count", "mean", "rms", "drms"};
+    if ( m_MetricSummaryView.size() == 0 ) {
+      m_MetricSummaryView = "mean:rms";
+      cout << myname << "WARNING: Missing metric summary view set to \"" << m_MetricSummaryView
+           << "\"." << endl;
+    }
+    Name vnam = m_MetricSummaryView;
+    Name enam;
+    Name::size_type ipos = vnam.find(":");
+    if ( ipos != Name::npos ) {
+      enam = vnam.substr(ipos+1);
+      vnam = vnam.substr(0, ipos);
+    }
+    if ( ! MetricSummary::isValueName(vnam) ) {
+      cout << myname << "WARNING: Invalid value for metric summary view reset from " << vnam
+           << " to mean." << endl;
+      vnam = "mean";
+    }
+    if ( enam.size() ) {
+      if ( ! MetricSummary::isValueName(enam) ) {
+        cout << myname << "WARNING: Ignoring invalid error for metric summary view: " << enam << endl;
+      } else {
+        m_doSummaryError = true;
+      }
+    }
+    m_summaryValue = vnam;
+    m_summaryError = enam;
+  }
+  // Fetch the channel status service.
   if ( m_PlotUsesStatus ) {
     if ( m_LogLevel >= 1 ) cout << myname << "Fetching channel status service." << endl;
     m_pChannelStatusProvider = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
@@ -125,6 +159,13 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "              Metric: " << m_Metric << endl;
+    cout << myname << "   MetricSummaryView: " << m_MetricSummaryView;
+    if ( m_summaryValue.size() ) {
+      cout << " (" << m_summaryValue;
+      if ( m_summaryError.size() ) cout << " +/- " << m_summaryError;
+      cout << ")";
+    }
+    cout << endl;
     cout << myname << "       ChannelRanges: [";
     bool first = true;
     for ( const IndexRange& ran : m_crs ) {
@@ -205,8 +246,10 @@ AdcChannelMetric::~AdcChannelMetric() {
         const MetricSummary& msum = msums[kcha];
         if ( msum.count ) {
           Metric& met = mets[icha];
-          met.setValue(msum.mean());
-          met.setError(msum.rms());
+          if ( m_summaryValue.size() ) {
+            met.setValue(msum.getValue(m_summaryValue));
+            if ( m_summaryError.size() ) met.setError(msum.getValue(m_summaryError));
+          }
         }
       }
       AdcChannelData acd;
@@ -261,7 +304,7 @@ DataMap AdcChannelMetric::view(const AdcChannelData& acd) const {
   DataMap ret;
   float val = 0.0;
   Name sunits;
-  int rstat = getMetric(acd, val, sunits);
+  int rstat = getMetric(acd, m_Metric, val, sunits);
   if ( rstat ) return ret.setStatus(rstat);
   ret.setString("metricName", m_Metric);
   ret.setFloat("metricValue", val);
@@ -311,7 +354,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     const AdcChannelData& acd = iacd->second;
     float met;
     Name sunits;
-    int rstat = getMetric(acd, met, sunits);
+    int rstat = getMetric(acd, m_Metric, met, sunits);
     if ( rstat ) {
       cout << myname << "WARNING: Metric evaluation failed for channel " << acd.channel << endl;
       continue;
@@ -338,14 +381,14 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
 
 //**********************************************************************
 
-int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sunits) const {
+int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val, Name& sunits) const {
   const string myname = "AdcChannelMetric::getMetric: ";
   val = 0.0;
   sunits = "";
-  if ( m_Metric == "pedestal" ) {
+  if ( met == "pedestal" ) {
     val = acd.pedestal;
     sunits = "ADC count";
-  } else if ( m_Metric == "pedestalDiff" ) {
+  } else if ( met == "pedestalDiff" ) {
     float ped = acd.pedestalRms;
     val = 0.0;
     Index icha = acd.channel;
@@ -357,20 +400,20 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
       val = ped - ipdr->second.value;
     }
     sunits = "ADC count";
-  } else if ( m_Metric == "pedestalRms" ) {
+  } else if ( met == "pedestalRms" ) {
     val = acd.pedestalRms;
     sunits = "ADC count";
-  } else if ( m_Metric == "fembID" ) {
+  } else if ( met == "fembID" ) {
     val = acd.fembID;
-  } else if ( m_Metric == "apaFembID" ) {
+  } else if ( met == "apaFembID" ) {
     val = acd.fembID%20;
-  } else if ( m_Metric == "nraw" ) {
+  } else if ( met == "nraw" ) {
     val = acd.raw.size();
-  } else if ( m_Metric == "nsam" ) {
+  } else if ( met == "nsam" ) {
     val = acd.samples.size();
-  } else if ( m_Metric == "fembChannel" ) {
+  } else if ( met == "fembChannel" ) {
     val = acd.fembChannel;
-  } else if ( m_Metric == "rawRms" ) {
+  } else if ( met == "rawRms" ) {
     double sum = 0.0;
     double ped = acd.pedestal;
     double nsam = acd.raw.size();
@@ -379,7 +422,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
       sum += dif*dif;
     }
     val = acd.raw.size() == 0 ? 0.0 : sqrt(sum/nsam);
-  } else if ( m_Metric == "rawTailFraction" ) {
+  } else if ( met == "rawTailFraction" ) {
     Index ntail = 0;
     double lim = 3.0*acd.pedestalRms;
     double ped = acd.pedestal;
@@ -389,29 +432,34 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, float& val, Name& sun
       if ( fabs(dif) > lim ) ++ntail;
     }
     val = acd.raw.size() == 0 ? 0.0 : double(ntail)/nsam;
-  } else if ( acd.hasMetadata(m_Metric) ) {
-    val = acd.metadata.find(m_Metric)->second;
+  } else if ( acd.hasMetadata(met) ) {
+    val = acd.metadata.find(met)->second;
   // Compound metric: met1+met2
   // TODO: Move this to ctor.
-  } else if ( m_Metric.find("+") != string::npos ) {
+  } else if ( met.find("+") != string::npos ) {
     vector<string> nams;
-    string metsrem = m_Metric;
+    string metsrem = met;
     string::size_type ipos = 0;
     val = 0.0;
     while ( ipos != string::npos ) {
       ipos = metsrem.find("+");
-      string met = metsrem.substr(0, ipos);
-      if ( ! acd.hasMetadata(met) ) {
-        cout << myname << "ERROR: Invalid sub-metric name: " << met << endl;
+      string newmet = metsrem.substr(0, ipos);
+      float newval = 0.0;
+      int sstat = getMetric(acd, newmet, newval, sunits);
+      if ( sstat ) {
+        cout << myname << "ERROR: Invalid sub-metric name: " << newmet << endl;
         return 2;
       }
-      val += acd.metadata.find(met)->second;
+      val += newval;
       if ( ipos == string::npos ) break;
       metsrem = metsrem.substr(ipos + 1);
     }
   } else {
-    cout << myname << "ERROR: Invalid metric name: " << m_Metric << endl;
+    cout << myname << "ERROR: Invalid metric name: " << met << endl;
     return 1;
+  }
+  if ( m_LogLevel >= 4 ) {
+    cout << myname << setw(20) << met << ": " << val << endl;
   }
   return 0;
 }
@@ -447,7 +495,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   Name htitl = ph->GetTitle();
   // # channels vs. metric
   if ( m_MetricBins > 0 ) {
-    if ( m_LogLevel >= 2 ) cout << "Plotting # channels vs. metric. Count is " << mets.size() << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "Plotting # channels vs. metric. Count is " << mets.size() << endl;
     for ( MetricMap::value_type imet : mets ) {
       float met = imet.second.value;
       ph->Fill(met);
@@ -466,7 +514,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     Name slaby = ph->GetYaxis()->GetTitle();
     TGraphVector graphs(ngraph, nullptr);
     TGraphErrorsVector egraphs(ngraph, nullptr);
-    if ( m_LogLevel >= 2 ) cout << "Plotting metric vs. channel. Count is " << mets.size() << endl;
+    if ( m_LogLevel >= 2 ) cout << myname << "Plotting metric vs. channel. Count is " << mets.size() << endl;
     for ( Index igra=0; igra<ngraph; ++igra ) {
       string gname = hname;
       string gtitl = htitl;
