@@ -46,8 +46,14 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "tools.mytemplate: {" << endl;
     fout << "  tool_type: AdcChannelDftPlotter" << endl;
     fout << "  LogLevel: 2" << endl;
+    fout << "  ChannelStatusFlag: 0" << endl;
     fout << "  SampleFreq: 2000" << endl;
     fout << "  YMinLog: 0.0" << endl;
+    fout << "  HistName: \"\"" << endl;
+    fout << "  HistTitle: \"\"" << endl;
+    fout << "  HistSummaryTitle: \"\"" << endl;
+    fout << "  PlotName: \"\"" << endl;
+    fout << "  PlotSummaryName: \"\"" << endl;
     fout << "  PlotChannelRanges: []" << endl;
     fout << "  PlotSizeX: 1000" << endl;
     fout << "  PlotSizeY:  700" << endl;

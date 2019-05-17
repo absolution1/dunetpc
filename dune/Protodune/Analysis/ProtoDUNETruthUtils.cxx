@@ -114,7 +114,8 @@ std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetMCParticleHits(
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   for(const recob::Hit& hit : *hitHandle) {
     for(const int trackId : bt_serv->HitToTrackIds(hit)) {
-      if(pi_serv->TrackIdToParticle_P(trackId) == &mcpart) {
+      if(pi_serv->TrackIdToParticle_P(trackId) == 
+         pi_serv->TrackIdToParticle_P(mcpart.TrackId())) {
         outVec.push_back(&hit);
         break;
       }

@@ -56,8 +56,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
  private:
 
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
-  bool          _enforce_full_channel_count;
-  unsigned int  _full_channel_count;
   bool          _enforce_same_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;
@@ -82,8 +80,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   size_t        _felix_frag_small_size;
   bool          _felix_check_buffer_size;
   size_t        _felix_buffer_size_checklimit;
-
-  bool          _print_coldata_convert_count;
 
   unsigned int  _tick_count_this_event; // for use in comparing tick counts for all channels
   bool          _initialized_tick_count_this_event;
