@@ -253,14 +253,19 @@ tools.adcChannelPedestalRmsPlotter: {
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-   SampleFreq: @local::adcSampleFreq
-      YMinLog: 0.0
-    PlotSizeX: 1400
-    PlotSizeY: 1000
-   PlotSplitX: 4
-   PlotSplitY: 4
+          tool_type: AdcChannelDftPlotter
+           LogLevel: 1
+  ChannelStatusFlag: 0
+         SampleFreq: @local::adcSampleFreq
+           PlotName: ""
+    PlotSummaryName: ""
+   HistSummaryTitle: ""
+            YMinLog: 0.0
+  PlotChannelRanges: []    # Empty makes one plot for each channel
+          PlotSizeX: 1400
+          PlotSizeY: 1000
+         PlotSplitX: 4
+         PlotSplitY: 4
 }
 
 # DFT amplitudes
@@ -299,8 +304,8 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 
 # DFT power/tick with log scale.
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
-tools.adcPlotDftTickPowerLog.YMinLog: 0.001
-tools.adcPlotDftTickPowerLog.YMax: 20.0
+tools.adcPlotDftTickPowerLog.YMinLog: 0.01
+tools.adcPlotDftTickPowerLog.YMax: 100.0
 tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
