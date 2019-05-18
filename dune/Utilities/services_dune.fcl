@@ -449,7 +449,8 @@ protodune_dataprep_tools_sim: [
     "digitReader",              # Read RawDigit
     "adcSampleFiller",          # Subtract pedestal, trivial calibration
     "adcVintageDeconvoluter",   # Deconvolution
-    "adcThresholdSignalFinder"  # ROI
+    "adcThresholdSignalFinder", # ROI
+    "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
 ]
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
@@ -457,6 +458,8 @@ protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodu
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
 # channel map service
 protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
+# channel status service
+protodune_reco_services.ChannelStatusService:       @local::pdsp_channel_status
 
 # Reco services for ProtoDUNE data
 protodune_data_reco_services:                       @local::protodune_reco_services
