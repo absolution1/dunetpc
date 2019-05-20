@@ -28,24 +28,39 @@
 
 class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 
-public:
+ public:
 
   PDSPTPCDataInterface(fhicl::ParameterSet const& ps);
 
   int retrieveData(art::Event &evt, std::string inputlabel, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
 		   art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, std::vector<raw::RDStatus> &rdstatuses, std::string outputLabel );
+
+  // method to get raw digits, RDTimeStamps, RDStatuses and associations from all input fragments specified by an input label (like "daq:ContainerTPC") but ony for
+  // APA's (== crate numbers) on a list.  If the list contains a -1 in it, it returns all APA data found in the input label.
+
+  int retrieveDataAPAListWithLabels(art::Event &evt, std::string inputlabel, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
+				    art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, std::vector<raw::RDStatus> &rdstatuses, std::string outputLabel,
+				    std::vector<int> &apalist);
+
+  // method to get raw digits, RDTimeStamps, RDStatuses and associations for a specified list of APA's.  The list of possible labels on which to find
+  // APA data is proved by fcl configuration.
+
+  int retrieveDataForSpecifiedAPAs(art::Event &evt, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
+				   art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, std::vector<raw::RDStatus> &rdstatuses, std::string outputLabel, 
+				   std::vector<int> &apalist);
+
   // inputLabel examples:  "daq:TPC" or "daq::ContainerTPC" for RCE, "daq:FELIX" or "daq::ContainerFELIX" for FELIX
   // outputLabel is needed for the association maker
   // returns:  0:  success, or   1: discarded corrupted data, or 2: kept some corrupted data
 
-private:
+ private:
 
+  std::map<int,std::vector<std::string>> _input_labels_by_apa;
   bool          _enforce_same_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
-  bool          _drop_events_with_small_rce_frags;
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
   bool          _rce_drop_frags_with_badcsf;
@@ -61,7 +76,6 @@ private:
 
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badcsf;
-  bool          _drop_events_with_small_felix_frags;
   bool          _drop_small_felix_frags;
   size_t        _felix_frag_small_size;
   bool          _felix_check_buffer_size;
@@ -89,7 +103,8 @@ private:
 		   RDTimeStamps &timestamps, 
 		   RDTsAssocs &tsassocs, 
 		   RDPmkr &rdpm, 
-		   TSPmkr &tspm);
+		   TSPmkr &tspm,
+		   std::vector<int> &apalist);
 
   bool _rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
 			   size_t &n_rce_frags, 
@@ -99,14 +114,16 @@ private:
 			   RDTimeStamps &timestamps, 
 			   RDTsAssocs &tsassocs, 
 			   RDPmkr &rdpm, 
-			   TSPmkr &tspm);
+			   TSPmkr &tspm,
+			   std::vector<int> &apalist);
 
   bool _process_RCE_AUX(const artdaq::Fragment& frag, 
 			RawDigits& raw_digits, 
 			RDTimeStamps &timestamps, 
 			RDTsAssocs &tsassocs, 
 			RDPmkr &rdpm, 
-			TSPmkr &tspm);
+			TSPmkr &tspm,
+			std::vector<int> &apalist);
 
   bool _processFELIX(art::Event &evt, 
 		     std::string inputLabel, 
@@ -114,7 +131,8 @@ private:
 		     RDTimeStamps &timestamps, 
 		     RDTsAssocs &tsassocs, 
 		     RDPmkr &rdpm, 
-		     TSPmkr &tspm);
+		     TSPmkr &tspm,
+		     std::vector<int> &apalist);
 
   bool _felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
 			     size_t &n_felix_frags, 
@@ -124,14 +142,16 @@ private:
 			     RDTimeStamps &timestamps, 
 			     RDTsAssocs &tsassocs, 
 			     RDPmkr &rdpm, 
-			     TSPmkr &tspm);
+			     TSPmkr &tspm,
+			     std::vector<int> &apalist);
 
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, 
 			  RawDigits& raw_digits, 
 			  RDTimeStamps &timestamps, 
 			  RDTsAssocs &tsassocs, 
 			  RDPmkr &rdpm, 
-			  TSPmkr &tspm);
+			  TSPmkr &tspm,
+			  std::vector<int> &apalist);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, 
 			  float &median, 
