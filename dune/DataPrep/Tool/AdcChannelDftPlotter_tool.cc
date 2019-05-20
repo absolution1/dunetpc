@@ -30,13 +30,15 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : AdcMultiChannelPlotter(ps, "Plot"),
   m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
+  m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
   m_YMax(0.0),
   m_YMinLog(ps.get<float>("YMinLog")),
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
-  m_PlotName(ps.get<Name>("PlotName")) {
+  m_HistSummaryTitle(ps.get<Name>("HistSummaryTitle")),
+  m_pstate(new State) {
   const string myname = "AdcChannelDftPlotter::ctor: ";
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -60,29 +62,112 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << snameBuilder << endl;
   }
+  // Derived config.
+  m_skipBad = m_ChannelStatusFlag==1 || m_ChannelStatusFlag==3;
+  m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
   // Display the configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "         LogLevel: " << m_LogLevel << endl;
-    cout << myname << "         Variable: " << m_Variable << endl;
-    cout << myname << "       SampleFreq: " << m_SampleFreq << endl;
-    if ( doMag || doPwr || doPwt ) cout << myname << "             YMax: " << m_YMax << endl;
-    if ( doPwr || doPwt )          cout << myname << "            NBinX: " << m_NBinX << endl;
-    cout << myname << "          YMinLog: " << m_YMinLog << endl;
-    cout << myname << "         HistName: " << m_HistName << endl;
-    cout << myname << "        HistTitle: " << m_HistTitle << endl;
-    cout << myname << "         PlotName: " << m_PlotName << endl;
+    cout << myname << "           LogLevel: " << m_LogLevel << endl;
+    cout << myname << "           Variable: " << m_Variable << endl;
+    cout << myname << "  ChannelStatusFlag: " << m_ChannelStatusFlag;
+    if ( m_skipBad ) {
+      if ( m_skipNoisy ) cout << " (skip bad and noisy)";
+      else cout << " (skip bad)";
+    } else if ( m_skipNoisy ) cout << " (skip noisy)";
+    cout << endl;
+    cout << myname << "         SampleFreq: " << m_SampleFreq << endl;
+    if ( doMag || doPwr || doPwt ) cout << myname << "               YMax: " << m_YMax << endl;
+    if ( doPwr || doPwt )          cout << myname << "              NBinX: " << m_NBinX << endl;
+    cout << myname << "            YMinLog: " << m_YMinLog << endl;
+    cout << myname << "           HistName: " << m_HistName << endl;
+    cout << myname << "          HistTitle: " << m_HistTitle << endl;
+    cout << myname << "   HistSummaryTitle: " << m_HistSummaryTitle << endl;
   }
 }
 
+//**********************************************************************
+
+AdcChannelDftPlotter::~AdcChannelDftPlotter() {
+  const string myname = "AdcChannelDftPlotter::dtor: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Closing." << endl;
+    cout << myname << "     CR name    count nch/evt" << endl;
+    for ( Name crn : getChannelRangeNames() ) {
+      Index count = getState().count(crn);
+      double nchan = getState().nchan(crn);
+      cout << myname << setw(15) << crn << ":"
+           << setw(8) << count << setw(8) << nchan/count << endl;
+    }
+  }
+  viewSummary();
+}
 
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapChannels(Name crn, const AcdVector& acds, DataMap&, TPadManipulator& man) const {
+viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
   DataMap chret = viewLocal(crn, acds);
-  fillChannelPad(chret, man);
+  bool doState = true;
+  if ( doState ) {
+    ++getState().count(crn);
+    Index count = getState().count(crn);
+    bool doPwr = m_Variable == "power";
+    bool doPwt = m_Variable == "power/tick";
+    if ( doPwr || doPwt ) {
+      TH1* ph = chret.getHist("dftHist");
+      if ( ph != nullptr ) {
+        TH1*& phsum = getState().hist(crn);
+        if ( phsum == nullptr ) {
+          if ( count == 1 ) {
+            phsum = dynamic_cast<TH1*>(ph->Clone());
+            phsum->SetDirectory(nullptr);
+            phsum->SetStats(0);
+          } else {
+            cout << myname << "ERROR: Hist missing for count " << count << endl;
+          }
+        } else {
+          if ( count > 1 ) phsum->Add(ph);
+          else cout << myname << "ERROR: Hist existing for count " << count << endl;
+        }
+        getState().nchan(crn) += chret.getIntVector("dftChannels").size();
+      }
+    }
+  }
+  fillPad(chret, man);
+  return 0;
+}
+
+//**********************************************************************
+
+int AdcChannelDftPlotter::
+viewMapSummary(Name crn, TPadManipulator& man) const {
+  const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
+  Index count = getState().count(crn);
+  Index nchanTot = getState().nchan(crn);
+  float nchanEvt = double(nchanTot)/count;
+  if ( count == 0 ) return 1;
+  TH1* phin = getState().hist(crn);
+  if ( phin == nullptr ) return 2;
+  TH1* ph = dynamic_cast<TH1*>(phin->Clone());
+  if ( ph == nullptr ) return 3;
+  ph->SetDirectory(nullptr);
+  Name htitl = m_HistSummaryTitle;
+  StringManipulator smanTitl(htitl);
+  smanTitl.replace("%CRNAME%", crn);
+  smanTitl.replace("%RUN%", getBaseState().run());
+  ph->SetTitle(htitl.c_str());
+  double fac = 1.0/count;
+  ph->Scale(fac);
+  DataMap dm;
+  dm.setHist("dftHist", ph, true);
+  dm.setInt("dftEventCount", count);
+  dm.setFloat("dftChanPerEventCount", nchanEvt);
+  dm.setString("dftDopt", "hist");
+  fillPad(dm, man);
+  //man.add(ph, "hist");
+  //delete ph;
   return 0;
 }
 
@@ -95,7 +180,7 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
   if ( getPlotName().size() ) {
     string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
-    fillChannelPad(chret, man);
+    fillPad(chret, man);
     man.print(pname);
   }
   return chret;
@@ -130,6 +215,17 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     cout << myname << "DFT is not valid." << endl;
     return ret.setStatus(3);
   }
+  // Build list of retained channels.
+  DataMap::IntVector dftChannels;
+  AcdVector keepAcds;
+  for ( const AdcChannelData* pacd : acds ) {
+    if ( m_ChannelStatusFlag ) {
+      if ( m_skipBad && pacd->channelStatus==1 ) continue;
+      if ( m_skipNoisy && pacd->channelStatus==2 ) continue;
+    }
+    dftChannels.push_back(pacd->channel);
+    keepAcds.push_back(pacd);
+  }
   // Check consisistency of input data.
   for ( const AdcChannelData* pacd : acds ) {
     if ( pacd == nullptr ) return ret;
@@ -140,10 +236,8 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
   StringManipulator smanName(hname);
   smanName.replace("%CRNAME%", crn);
-  hname = smanName.string();
   StringManipulator smanTitl(htitl);
   smanTitl.replace("%CRNAME%", crn);
-  htitl = smanTitl.string();
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
@@ -201,12 +295,12 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
     ph->GetYaxis()->SetTitle(ytitl.c_str());
-    float pwrFac = 1.0/acds.size();
+    float pwrFac = 1.0/keepAcds.size();
     if ( ! doPwr ) pwrFac /= nsam;
     for ( Index ipha=0; ipha<nmag; ++ipha ) {
       float x = ipha*xFac;
       float y = 0.0;
-      for ( const AdcChannelData* pacd : acds ) {
+      for ( const AdcChannelData* pacd : keepAcds ) {
         float mag = pacd->dftmags[ipha];
         y += pwrFac*mag*mag;
       }
@@ -223,10 +317,6 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ret.setHist("dftHist", ph, true);
     ret.setString("dftDopt", "hist");
   }
-  DataMap::IntVector dftChannels;
-  for ( const AdcChannelData* pacd : acds ) {
-    dftChannels.push_back(pacd->channel);
-  }
   ret.setFloat("dftYValMax", yValMax);
   ret.setIntVector("dftChannels", dftChannels);
   return ret;
@@ -234,8 +324,8 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
 
 //**********************************************************************
 
-int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) const {
-  const string myname = "AdcChannelDftPlotter::fillChannelPad: ";
+int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
+  const string myname = "AdcChannelDftPlotter::fillPad: ";
   TGraph* pg = dm.getGraph("dftGraph");
   TH1* ph = dm.getHist("dftHist");
   float yValMax = dm.getFloat("dftYValMax");
@@ -282,7 +372,7 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
   if ( doPwt ) {
     ostringstream ssout;
     ssout.precision(2);
-    double xlab = 0.75;
+    double xlab = 0.70;
     double ylab = 0.80;
     double dylab = 0.05;
     double sum = ph->Integral(0, ph->GetNbinsX()+1);
@@ -293,11 +383,25 @@ int AdcChannelDftPlotter::fillChannelPad(DataMap& dm, TPadManipulator& man) cons
     man.add(ptxt);
     ylab -= dylab;
     ssout.str("");
-    ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+    if ( dm.haveFloat("dftChanPerEventCount") ) {
+      ssout.precision(1);
+      ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+    } else {
+      ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+    }
     ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
     man.add(ptxt);
+    if ( dm.haveInt("dftEventCount") ) {
+      ylab -= dylab;
+      ssout.str("");
+      ssout << "N_{ev} = " << dm.getInt("dftEventCount");
+      ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+      ptxt->SetNDC();
+      ptxt->SetTextFont(42);
+      man.add(ptxt);
+    }
   }
   return 0;
 }

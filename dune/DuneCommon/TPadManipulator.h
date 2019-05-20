@@ -59,6 +59,8 @@ public:
   using TObjPtr = std::shared_ptr<TObject>;
   using TObjVector = std::vector<TObjPtr>;
   using BoundsVector = std::vector<Bounds>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -294,6 +296,11 @@ public:
   int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0, int isty =3);
   int addHorizontalModLines(double ymod, double yoff =0.0, double lenfrac =1.0, int isty =3);
 
+  // Set text bin labels. 
+  // Only used if primary object is a histogram (2D for y).
+  int setBinLabelsX(const NameVector& labs);
+  int setBinLabelsY(const NameVector& labs);
+
   // Add histogram function ifun to the pad.
   int addHistFun(unsigned int ifun =0);
 
@@ -376,6 +383,8 @@ private:
   std::vector<double> m_slYoff;
   std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  NameVector m_binLabelsX;
+  NameVector m_binLabelsY;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
 
