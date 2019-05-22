@@ -44,6 +44,12 @@ tools.channelRanges: {
   ExtraRanges: ""
 }
 
+tools.channelGroups: {
+  tool_type: ProtoDuneChannelGroups
+  LogLevel: 0
+  IndexRangeTool: channelRanges
+}
+
 ################################################################################
 # Reco.
 ################################################################################

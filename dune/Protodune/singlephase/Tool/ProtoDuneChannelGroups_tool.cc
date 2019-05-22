@@ -45,7 +45,7 @@ ProtoDuneChannelGroups::ProtoDuneChannelGroups(fhicl::ParameterSet const& ps)
     Name sapa = ssapa.str();
     m_groups["tpss"].push_back("tps" + stps);
     m_groups["apas"].push_back("apa" + sapa);
-    for ( Name sori : {"z", "c", "u", "v"} ) {
+    for ( Name sori : {"z", "c", "x", "u", "v"} ) {
       m_groups["tpp" + sori + "s"].push_back("tpp" + stps + sori);
       m_groups["apa" + sori + "s"].push_back("apa" + sapa + sori);
     }
