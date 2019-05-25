@@ -23,9 +23,8 @@ services:
    fileName:  "%ifb_match.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
- 
-  IFBeam:            {}
 
+  IFDH:              {}
 }
 
 #protodune_match:
@@ -62,6 +61,7 @@ physics:
 	
 	CRTCTBOffset: -87
         CRTWindow: 12		
+	MC: true
 	
 	SelectEvents: [ produce ]
     }   
@@ -92,6 +92,7 @@ outputs:
     compressionLevel: 1
     module_type: RootOutput
     fileName: "%ifb_match.root"
+    dataTier: "full-reconstructed"
   }
 
 }
