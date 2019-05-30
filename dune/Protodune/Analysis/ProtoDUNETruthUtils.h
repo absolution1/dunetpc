@@ -9,8 +9,11 @@
 ///////////////////////////////////////////////////////////////
 
 
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -27,10 +30,83 @@ namespace protoana {
     ProtoDUNETruthUtils();
     ~ProtoDUNETruthUtils();
 
-    const simb::MCParticle* GetMCParticleFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
-    std::vector< std::pair< const simb::MCParticle*, double > > GetAllMCParticlesFromRecoTrack(const recob::Track &track, art::Event const & evt, std::string trackModule) const;
-    const recob::Track* GetRecoTrackFromMCParticle(const simb::MCParticle &part, art::Event const & evt, std::string trackModule) const;
-    const simb::MCParticle* GetMCParticleFromRecoShower(const recob::Shower &shower, art::Event const & evt, std::string showerModule) const;
+    // Get shared hits between reco objects and MCParticle.
+    std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
+      const recob::PFParticle &pfpart, const art::Event &evt, std::string pfparticleModule) const;
+    std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
+      const recob::Track &track, const art::Event &evt, std::string trackModule) const;
+    std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
+      const recob::Shower &shower, const art::Event &evt, std::string showerModule) const;
+
+    // Get hits associated with an MCParticle.
+    std::vector<const recob::Hit*> GetMCParticleHits(const simb::MCParticle &mcpart,
+      const art::Event &evt, std::string hitModule) const;
+    
+    // Get completeness and purity of reconstructed objects.
+    template <typename T>
+    double GetCompleteness(const T &recobj, const art::Event &evt,
+      std::string recoModule, std::string hitModule) const;
+
+    double GetPurity(const recob::PFParticle &pfpart, const art::Event &evt,
+      std::string pfparticleModule) const;
+    double GetPurity(const recob::Track &track, const art::Event &evt,
+      std::string trackModule) const;
+    double GetPurity(const recob::Shower &shower, const art::Event &evt,
+      std::string showerModule) const;
+
+    // Get MCParticle list from a hit vector depending on whether the hits came from a shower or track.
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromTrackHits
+      (const std::vector<const recob::Hit*>& hitVec) const;
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromShowerHits
+      (const std::vector<const recob::Hit*>& hitVec) const;
+
+    // Contributions of MCParticles to PFParticles and vice versa
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromPFParticle
+      (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const;
+    std::vector<std::pair<const recob::PFParticle*, double>> GetPFParticleListFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string pfparticleModule) const;
+
+    // Contributions of MCParticles to tracks and vice versa
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoTrack
+      (const recob::Track &track, art::Event const &evt, std::string trackModule) const;
+    std::vector<std::pair<const recob::Track*, double>> GetRecoTrackListFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string trackModule) const;
+
+    // Contributions of MCParticles to showers and vice versa
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromRecoShower
+      (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const;
+    std::vector<std::pair<const recob::Shower*, double>> GetRecoShowerListFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string showerModule) const;
+
+    // Best match getters between MC and reconstruction
+    const simb::MCParticle* GetMCParticleFromPFParticle
+      (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const;
+    const recob::PFParticle* GetPFParticleFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string pfparticleModule) const;
+    const simb::MCParticle* GetMCParticleFromRecoTrack
+      (const recob::Track &track, art::Event const &evt, std::string trackModule) const;
+    const recob::Track* GetRecoTrackFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string trackModule) const;
+    const simb::MCParticle* GetMCParticleFromRecoShower
+      (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const;
+    const recob::Shower* GetRecoShowerFromMCParticle
+      (const simb::MCParticle &part, art::Event const &evt, std::string showerModule) const;
+
+    // General overloaded MCParticle match getters
+    const simb::MCParticle* GetMCParticleFromReco
+      (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const;
+    const simb::MCParticle* GetMCParticleFromReco
+      (const recob::Track &track, art::Event const &evt, std::string trackModule) const;
+    const simb::MCParticle* GetMCParticleFromReco
+      (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const;
+
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromReco
+      (const recob::PFParticle &pfpart, art::Event const &evt, std::string pfparticleModule) const;
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromReco
+      (const recob::Track &track, art::Event const &evt, std::string trackModule) const;
+    std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromReco
+      (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const;
+
     const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
     const simb::MCParticle* GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const;
 
@@ -55,8 +131,6 @@ namespace protoana {
     double GetMCParticleLengthInTPCActiveVolume(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh);
 
   private:
-
-
 
 
   };

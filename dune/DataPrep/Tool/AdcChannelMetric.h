@@ -25,7 +25,7 @@
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
-//   MetricSummaryView - If not empty and a summary is requested, this speicifies the view
+//   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
 //                       can be any of the following. Default is "mean:rms".
@@ -121,7 +121,7 @@ public:
   // Subclasse may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
   virtual int
-  getMetric(const AdcChannelData& acd, float& metricValue, Name& metricUnits) const;
+  getMetric(const AdcChannelData& acd, Name met, float& metricValue, Name& metricUnits) const;
 
 private:
 

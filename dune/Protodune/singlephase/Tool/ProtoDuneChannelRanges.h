@@ -4,6 +4,7 @@
 // July 2018
 //
 // Tool to return channel ranges for protoDUNE. The following are created:
+//       all - all channels
 //      tpsS - for TPC set S, e.g. tps0
 //     tppSP - TPC plane or plane pair P in TPC set S, e.g. tps0z
 //      apaA - APA, e.g. apa3
@@ -21,7 +22,7 @@
 //   US-RaS, US-DaS, MS-RaS, MS-DaS, DS-RaS, DS-DaS
 // and a third label indication the APA, e.g. APA3.
 //
-// Note there is the option to append another indexx range tool which can
+// Note there is the option to append another index range tool which can
 // oveerride or extend the above set of ranges.
 //
 // The TPC set numbering follows the convention:

@@ -18,7 +18,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "TH1D.h"
 #include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
-#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RawData/RawDigit.h"
 
 namespace dune {

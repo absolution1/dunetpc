@@ -22,7 +22,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include <memory>
 #include <cmath>
@@ -169,7 +169,7 @@ private:
 };
 
 
-PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p)
+PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer{p}
 {
   std::vector<int> emptyivec;
   _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
@@ -867,7 +867,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	    }
 	}
     }
-  else  // get all the fragments in the event and look for the ones that say TPC in them
+  else  // get all the fragments in the event and look for the ones that say FELIX in them
     {
       std::vector<art::Handle<artdaq::Fragments> > fraghv;  // fragment handle vector
       evt.getManyByType(fraghv);
@@ -893,6 +893,16 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 			  return false;
 			}
 		    }
+		}
+
+	      // we had swept in all the TPC fragments, possibly for a second time, so remove them
+	      // be even more aggressive and remove all cached fragments -- anyone who needs them
+	      // should read them in, and getManyByType had swept them all into memory.  Awaiting
+	      // a getManyLabelsByType if we go this route
+
+	      else // if (fraghv.at(ihandle).provenance()->inputTag().instance().find("TPC") != std::string::npos) 
+		{
+		  evt.removeCachedProduct(fraghv.at(ihandle));
 		}
 	    }
 	}
@@ -1265,6 +1275,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
 {
   size_t asiz = v_adc.size();
+  int imed=0;
   if (asiz == 0)
     {
       median = 0;
@@ -1275,9 +1286,28 @@ void PDSPTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, fl
       // this is actually faster than the code below by about one second per event.
       // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
 
-      median = TMath::Median(asiz,v_adc.data());
+      imed = TMath::Median(asiz,v_adc.data()) + 0.01;  // add an offset to make sure the floor gets the right integer
+      median = imed;
       sigma = TMath::RMS(asiz,v_adc.data());
+
+      // add in a correction suggested by David Adams, May 6, 2019
+
+      size_t s1 = 0;
+      size_t sm = 0;
+      for (size_t i=0; i<asiz; ++i)
+	{
+	  if (v_adc[i] < imed) s1++;
+	  if (v_adc[i] == imed) sm++;
+	}
+      if (sm > 0)
+	{
+	  float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
+	  //if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
+	  median += mcorr;
+	}
     }
+
+
 
   // never do this, but keep the code around in case we want it later
 

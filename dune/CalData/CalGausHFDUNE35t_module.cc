@@ -145,7 +145,7 @@ namespace calgaushf {
   
 
   //-------------------------------------------------
-  CalGausHFDUNE35t::CalGausHFDUNE35t(fhicl::ParameterSet const& pset)
+  CalGausHFDUNE35t::CalGausHFDUNE35t(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     fSpillName="";
     this->reconfigure(pset);

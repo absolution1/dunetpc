@@ -1,0 +1,53 @@
+BEGIN_PROLOG
+
+pdsprd_tool: 
+  {
+  tool_type: "PDSPTPCDataInterface"
+
+  APA1InputLabels: [ "daq:TPC001", "daq:ContainerTPC001", "daq:FELIX001", "daq:ContainerFELIX001",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA2InputLabels: [ "daq:TPC002", "daq:ContainerTPC002", "daq:FELIX002", "daq:ContainerFELIX002",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA3InputLabels: [ "daq:TPC003", "daq:ContainerTPC003", "daq:FELIX003", "daq:ContainerFELIX003",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA4InputLabels: [ "daq:TPC004", "daq:ContainerTPC004", "daq:FELIX004", "daq:ContainerFELIX004",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA5InputLabels: [ "daq:TPC005", "daq:ContainerTPC005", "daq:FELIX005", "daq:ContainerFELIX005",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA6InputLabels: [ "daq:TPC006", "daq:ContainerTPC006", "daq:FELIX006", "daq:ContainerFELIX006",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  MISCAPAInputLabels: [ "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]  # use for example for coldbox-test data
+
+  RCEDropSmallFrags: true
+  RCESmallFragSize: 500000
+  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEHexDump: false
+  RCESaveFragsToFiles: false
+  RCECheckBufferSize: true
+  RCEBufferSizeCheckLimit: 10000000
+  RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
+  RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
+
+  FELIXDropFragsWithBadCSF: true
+  FELIXHexDump: false
+  FELIXDropSmallFrags: true
+  FELIXSmallFragSize: 10000
+  FELIXCheckBufferSize: true
+  FELIXBufferSizeCheckLimit: 10000000
+
+# enforcement flags.  If these are set to true and the data completeness 
+# conditions are not met, then an emtpy collection of raw::RawDigits is 
+# put in the event
+
+# requires that we don't see the same channel twice in in an event
+
+  EnforceNoDuplicateChannels: true
+
+# requires that all channels have the same number of ticks (on each event separately)
+
+  EnforceSameTickCount: false
+
+# requires that all channels have the specified number of ticks
+
+  EnforceFullTickCount: false
+  FullTickCount: 6000
+
+# requires that no errors are reported by the unpacker (checksum or capture errors)
+
+  EnforceErrorFree: false
+  }
+END_PROLOG

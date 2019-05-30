@@ -18,7 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "IFBeam_service.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -322,6 +322,7 @@ private:
 
 // Constructor
 proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
+: EDProducer(p)
 {
   // Declare products this module will provide
   produces<std::vector<beam::ProtoDUNEBeamEvent>>();  
@@ -1013,10 +1014,15 @@ void proto::BeamEvent::produce(art::Event & e){
 
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
-          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
         catch( std::exception e ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
+        }
+        try{
+          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
+        }
+        catch( std::exception e ){
+          MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
         }
 
         if( fPrintDebug ){
@@ -1659,8 +1665,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
   std::vector< double > XCET1_coarse,     XCET2_coarse;    
 
   bool fetched_XCET1=false;
-  bool fetched_XCET2=false;
- 
+  bool fetched_XCET2=false; 
   if( fXCET1 != "" ){
     try{ 
       XCET1_seconds    = FetchAndReport( time + fXCETFetchShift, fXCET1 + ":SECONDS" , bfp_xcet);
@@ -2069,8 +2074,8 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 }
 
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
-  vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
+  vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
+  vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){

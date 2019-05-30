@@ -72,7 +72,8 @@ private:
 
 
 dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
-  : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
+  : EDProducer(p)
+  , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
   , fModBoxA               (p.get< double >("ModBoxA"))
@@ -167,7 +168,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           if (!normcorrection) normcorrection = 1.;
           if (!xcorrection) xcorrection = 1.;
           if (!yzcorrection) yzcorrection = 1.;
-          //vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
+          vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
           
           
           //set time to be trgger time so we don't do lifetime correction

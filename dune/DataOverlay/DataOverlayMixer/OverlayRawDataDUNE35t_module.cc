@@ -13,7 +13,7 @@
 
  */
 
-
+#include "art_root_io/RootIOPolicy.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Modules/MixFilter.h"
 #include "art/Framework/IO/ProductMix/MixHelper.h"
@@ -66,7 +66,7 @@
 
 namespace mix {
   class OverlayRawDataDetailDUNE35t;
-  typedef art::MixFilter<OverlayRawDataDetailDUNE35t> OverlayRawDataDUNE35t;
+  typedef art::MixFilter<OverlayRawDataDetailDUNE35t,art::RootIOPolicy> OverlayRawDataDUNE35t;
 }
 
 class mix::OverlayRawDataDetailDUNE35t : public boost::noncopyable {

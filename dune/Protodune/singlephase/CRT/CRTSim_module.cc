@@ -115,7 +115,7 @@ private:
 };
 
 
-CRT::CRTSim::CRTSim(fhicl::ParameterSet const & p): fSimLabel(p.get<art::InputTag>("SimLabel")), 
+CRT::CRTSim::CRTSim(fhicl::ParameterSet const & p): EDProducer{p}, fSimLabel(p.get<art::InputTag>("SimLabel")), 
                                                               /*fScintillationYield(p.get<double>("ScintillationYield")), 
                                                               fQuantumEff(p.get<double>("QuantumEff")), 
                                                               fDummyGain(p.get<double>("DummyGain")),*/

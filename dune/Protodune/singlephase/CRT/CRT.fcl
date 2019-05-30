@@ -27,14 +27,69 @@ CRTSimValidation_standard:
 CRTOnlineMonitor_standard:
 {
   module_type: "CRTOnlineMonitor"
-  CRTLabel: "crtrawdecoder"
+  CRTLabel: "crt"
+}
+
+CRTRecoValidation_standard:
+{
+  module_type: "CRTRecoValidation"
+  CRTLabel: "crt"
+}
+
+TwoCRTMatching_standard:
+{
+module_type: "TwoCRTMatching"
+CRTLabel: "crt"
+MCC: "true"
+CTBLabel: "ctbrawdecoder:daq"
+}
+
+TwoCRTMatching_data:
+{
+module_type: "TwoCRTMatching"
+CRTLabel: "crtrawdecoder"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+}
+
+TwoCRTMatching_dataDecode:
+{
+module_type: "TwoCRTMatching"
+CRTLabel: "crtrawdecoderNew"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+}
+
+CRTTimingValidation_data:
+{
+module_type: "CRTTimingValidation"
+CRTLabel: "crtrawdecoder"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
 }
 
 CRTTimeOffset_standard:
 {
-  module_type: "TimeOffset"
-  CRTLabel: "crtrawdecoder"
-  TimestampLabel: "timingrawdecoder:daq"
+module_type: "TimeOffset"
+CRTLabel: "crtrawdecoder"
+TimestampLabel: "timingrawdecoder:daq"
 }
+
+SingleCRTMatching_standard:
+{
+module_type: "SingleCRTMatching"
+CRTLabel: "crt"
+MCC: "true"
+CTBLabel: "ctbrawdecoder:daq"
+}
+
+SingleCRTMatching_data:
+{
+module_type: "SingleCRTMatching"
+CRTLabel: "crtrawdecoder"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+}
+
 
 END_PROLOG
