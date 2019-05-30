@@ -23,6 +23,7 @@
 #include <memory>
 #include "TLatex.h"
 #include "TLine.h"
+#include "TLegend.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -146,6 +147,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
+  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj].get() : nullptr; }
   TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
@@ -196,6 +198,9 @@ public:
   // Add a legend.
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
+
+  // Return the legend.
+  TLegend* getLegend() const { return dynamic_cast<TLegend*>(object(m_iobjLegend)); }
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
@@ -387,6 +392,7 @@ private:
   NameVector m_binLabelsY;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
+  Index m_iobjLegend;
 
 };
 

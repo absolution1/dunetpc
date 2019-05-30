@@ -48,7 +48,8 @@ DataMap AdcChannelTrimmer::view(const AdcChannelData& acd) const {
   ret.setInt("trimLength", idsam);
   if ( m_MaxTrim && udsam > m_MaxTrim ) {
     ret.setInt("trimAction", 2);
-    cout << "ERROR: Sample length " << nsam << " is outside of trim range." << endl;
+    cout << myname << "ERROR: Channel " << acd.channel << " sample length " << nsam
+         << " is outside of trim range " << m_MaxTrim  << "." << endl;
   } else {
     ret.setInt("trimAction", -1);
     if ( m_LogLevel >= 2 ) cout << myname << "Trimming channel " << acd.channel << " from "
