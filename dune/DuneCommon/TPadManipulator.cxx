@@ -150,6 +150,8 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_slYoff = rhs.m_slYoff;
   m_slStyl = rhs.m_slStyl;
   m_vmlLines.clear();
+  m_binLabelsX = rhs.m_binLabelsX;
+  m_binLabelsY = rhs.m_binLabelsY;
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
     m_subMans.emplace_back(man);
@@ -477,7 +479,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
         char ch = sopt[ipos];
         if ( ch == 'a' || ch == 'A' ) {
-          cout << myname << "WARNING: Dropping " << ch << " from drawing option string for graph "
+          cout << myname << "WARNING: Dropping \"" << ch << "\" from drawing option string for graph "
                << pgc->GetName() << "." << endl;
         } else {
           soptOut += ch;
@@ -763,6 +765,24 @@ int TPadManipulator::update() {
   getYaxis()->SetTitleOffset(yttl);
   getXaxis()->SetTickLength(ticklenx);
   getYaxis()->SetTickLength(tickleny);
+  // May 2019. Ensure frame axis has same binning as histogram.
+  // And set bin labels.
+  if ( haveHist() ) {
+    TAxis* pah = m_ph->GetXaxis();
+    getXaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
+    if ( m_binLabelsX.size() ) {
+      for ( Index ilab=0; ilab<m_binLabelsX.size(); ++ilab ) {
+        getXaxis()->SetBinLabel(ilab+1, m_binLabelsX[ilab].c_str());
+      }
+    }
+    pah = m_ph->GetYaxis();
+    getYaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
+    if ( dynamic_cast<TH2*>(m_ph.get()) != nullptr ) {
+      for ( Index ilab=0; ilab<m_binLabelsY.size(); ++ilab ) {
+        getXaxis()->SetBinLabel(ilab+1, m_binLabelsY[ilab].c_str());
+      }
+    }
+  }
   // Primary object.
   if ( haveHist() ) {
     if ( m_flowHist != nullptr ) {
@@ -1038,6 +1058,20 @@ int TPadManipulator::addHorizontalModLines(double xmod, double xoff, double lenf
   m_hmlXStyle.push_back(isty);
   m_hmlXLength.push_back(lenfrac);
   drawLines();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setBinLabelsX(const NameVector& labs) {
+  m_binLabelsX = labs;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setBinLabelsY(const NameVector& labs) {
+  m_binLabelsY = labs;
   return 0;
 }
 
