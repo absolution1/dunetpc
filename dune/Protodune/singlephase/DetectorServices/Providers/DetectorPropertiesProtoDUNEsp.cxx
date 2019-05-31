@@ -139,8 +139,18 @@ namespace spdp{
 
     if(fGetHVDriftfromMetaData){
       retVal = true;
-    
-    
+      
+      int run = 0;
+      std::string run_str="Runs: ";
+      if(metadata.find(run_str)!=std::string::npos){
+        int n1 = metadata.find(run_str);
+        n1 += run_str.length();
+        int n2 = metadata.find(".", n1);
+        //std::cout<<metadata.substr(n1, n2-n1)<<std::endl;
+        run = std::stoi(metadata.substr(n1, n2-n1));
+        std::cout<<"Run number from metadata: "<<run<<std::endl;
+      }
+
       std::string hv_str="detector.hv_value: ";
       if(metadata.find(hv_str)!=std::string::npos){
         int n1 = metadata.find(hv_str);
@@ -173,6 +183,15 @@ namespace spdp{
       //fEfield[1]=std::fabs(Gplane_bias-Uplane_bias)/0.475;
       //fEfield[2]=std::fabs(Uplane_bias-Vplane_bias)/0.475;
       //fEfield[3]=std::fabs(Vplane_bias-Xplane_bias)/0.475;
+      if (std::abs(fHV_cath-180) < 1e-6){
+        // Use the corrected E field from Flavio and Francesco
+        if (run < 6725){ //first run in Feb 8, 2019
+          fEfield[0] = 0.4936;
+        }
+        else{
+          fEfield[0] = 0.4995;
+        }
+      }
       std::cout<<"Calculated E field in 4 plane gaps as: "<<fEfield[0]<<","<<fEfield[1]<<","<<fEfield[2]<<","<<fEfield[3]<<std::endl;
     }//End GetHVDriftfromRunTable if  
    
