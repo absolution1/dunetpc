@@ -70,7 +70,7 @@ dune35t_milliblock_detproperties.ReadOutWindowSize: 15000
 protodune_detproperties:                   @local::standard_detproperties
 protodune_detproperties.Temperature:       87.68
 protodune_detproperties.Electronlifetime:  12.0e3
-protodune_detproperties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
+protodune_detproperties.Efield:           [0.4936,0.666,0.8]  #(predicted for microBooNE)
 protodune_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
 protodune_detproperties.NumberTimeSamples: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
 protodune_detproperties.ReadOutWindowSize: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
@@ -93,7 +93,7 @@ protodunesp_detproperties :
 
   # Drift properties 
 Temperature:      87.68           #Kelvin
-Efield:           [0.5,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
+Efield:           [0.4936,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
 Electronlifetime: 12.0e3               #microseconds  
 SternheimerA:     0.1956  # Ar Sternheimer parameter a.
 SternheimerK:     3.0000  # Ar Sternheimer parameter k.
