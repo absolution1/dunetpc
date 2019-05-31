@@ -18,32 +18,47 @@
 //   Metric - Name of the plotted metric. This can be the name of any
 //            metadata field or any of the following:
 //              pedestal 
-//              pedestalRms
+//              pedestalDiff - pedestal - (pedestal for first event)
+//              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
-//   ChannelRanges - Names of channel ranges to display.
+//   MetricSummaryView - If not empty and a summary is requested, this specifies the view
+//                       that is plotted, this view of the metric summary is plotted.
+//                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
+//                       can be any of the following. Default is "mean:rms".
+//                  count - Number of values
+//                  mean - Mean of the value
+//                  rms - RMS of the values
+//                  dmean - error on the mean = rms/sqrt(count)
+//                  min - Minimum value
+//                  max - Maximum value
+//                  center - 0.5*(min+max)
+//                  range - max - min
+//                  halfRange - 0.5*range
+//   ChannelRanges - Channel ranges for which metric channel histograms and plots are made.
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
 //                   If the list is empty, all are plotted.
 //   MetricMin - Minimum for the metric axis.
 //   MetricMax - Maximum for the metric axis.
+//   MetricBins - If nonzero, # channels vs metric is plotted with this binning instead of
+//                metric vs channel.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
 //   ChannelLinePattern - Pattern for horizontal lines
 //   HistName - Histogram name (should be unique within Root file)
-//              If the name has the field "%STATUS%, then separate histograms are also
-//              made for bad, noisy and good (not bad or noisy) channels.
 //              If the HistName name does not include "EVENT%", then only summary histogram
 //              and plot are created.
 //   HistTitle - Histogram title
-//   MetricLabel - Histogram lable for the metric axis
+//   MetricLabel - Histogram label for the metric axis
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
 //                         Root default (700x500?) is used if either is zero.
 //   PlotFileName - Name for output plot file.
 //                  If blank, no file is written.
 //                  Existing file with the same name is replaced.
+//   PlotUsesStatus - If nonzero plot colors indicate channel status (good, bad noisy).
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
@@ -92,6 +107,11 @@ public:
 
   ~AdcChannelMetric() override;
 
+  // Initialize this tool.
+  // We cache the status for each channel.
+  // Does nothing if already called unlesss force is true.
+  void initialize(bool force =false);
+
   // Tool interface.
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
@@ -101,17 +121,19 @@ public:
   // Subclasse may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
   virtual int
-  getMetric(const AdcChannelData& acd, float& metricValue, Name& metricUnits) const;
+  getMetric(const AdcChannelData& acd, Name met, float& metricValue, Name& metricUnits) const;
 
 private:
 
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
   float          m_MetricMin;
   float          m_MetricMax;
+  Index          m_MetricBins;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   Name           m_HistName;
@@ -120,14 +142,17 @@ private:
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
   Name           m_PlotFileName;
+  int            m_PlotUsesStatus;
   Name           m_RootFileName;
 
   // Channel ranges.
   IndexRangeVector m_crs;
   
-  // Flag indicating separate plots should be made based on status.
-  bool m_useStatus;
+  // Summary info.
   bool m_doSummary;
+  bool m_doSummaryError;
+  Name m_summaryValue;
+  Name m_summaryError;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -147,8 +172,16 @@ private:
     Index count = 0;
     double sum = 0.0;
     double sumsq = 0.0;
+    double minval = 0.0;
+    double maxval = 0.0;
     // Add an entry.
-    void add(double val) { ++count; sum+=val; sumsq+=val*val; }
+    void add(double val) {
+      if ( count == 0 || val < minval ) minval = val;
+      if ( count == 0 || val > maxval ) maxval = val;
+      ++count;
+      sum+=val;
+      sumsq+=val*val;
+    }
     double mean() const { return count ? sum/count : 0.0; }
     double meansq() const { return count ? sumsq/count : 0.0; }
     double rms() const {
@@ -157,6 +190,27 @@ private:
       return arg > 0 ? sqrt(arg) : 0.0;
     }
     double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
+    double center() const { return 0.5*(minval + maxval); }
+    double range() const { return  maxval - minval; }
+    // Return if the provided string is a value name.
+    static bool isValueName(Name vnam) {
+      const std::set<Name> sumVals =
+        {"count", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
+      return sumVals.find(vnam) != sumVals.end();
+    }
+    // Return a value by name.
+    float getValue(Name vnam) const {
+      if ( vnam == "count" ) return count;
+      if ( vnam == "mean" ) return mean();
+      if ( vnam == "rms" ) return rms();
+      if ( vnam == "min" ) return minval;
+      if ( vnam == "max" ) return maxval;
+      if ( vnam == "center" ) return center();
+      if ( vnam == "range" ) return range();
+      if ( vnam == "halfRange" ) return 0.5*range();
+      if ( vnam == "dmean" ) return dmean();
+      return 0.0;
+    }
   };
 
   class Metric {
@@ -175,6 +229,7 @@ private:
   // after initialization.
   class State {
   public:
+    Index initCount = 0;
     Index callCount = 0;
     Index firstRun =0;
     Index lastRun =0;

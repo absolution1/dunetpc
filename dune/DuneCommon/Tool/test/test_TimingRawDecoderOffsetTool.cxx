@@ -45,6 +45,8 @@ int test_TimingRawDecoderOffsetTool(bool useExistingFcl =false) {
     fout << "    LogLevel: 2" << endl;
     fout << "    TpcTickPhase: 0" << endl;
     fout << "    Unit: \"tick\"" << endl;
+    fout << "    FembScaleIds: []" << endl;
+    fout << "    FembScaleValues: []" << endl;
     fout << "    RunDataTool: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;

@@ -46,8 +46,17 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "tools.mytemplate: {" << endl;
     fout << "  tool_type: AdcChannelDftPlotter" << endl;
     fout << "  LogLevel: 2" << endl;
+    fout << "  ChannelStatusFlag: 0" << endl;
     fout << "  SampleFreq: 2000" << endl;
     fout << "  YMinLog: 0.0" << endl;
+    fout << "  HistName: \"\"" << endl;
+    fout << "  HistTitle: \"\"" << endl;
+    fout << "  HistSummaryTitle: \"\"" << endl;
+    fout << "  PlotName: \"\"" << endl;
+    fout << "  PlotSummaryName: \"\"" << endl;
+    fout << "  PlotChannelRanges: []" << endl;
+    fout << "  PlotChannelGroups: []" << endl;
+    fout << "  PlotOverlayGroups: 1" << endl;
     fout << "  PlotSizeX: 1000" << endl;
     fout << "  PlotSizeY:  700" << endl;
     fout << "  PlotSplitX: 2" << endl;
@@ -109,7 +118,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.channel = 100123;
+  acd.channel = 123456;
   acd.run = 123;
   acd.subRun = 45;
   acd.event = 2468;

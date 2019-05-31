@@ -8,8 +8,8 @@ art_make(BASENAME_ONLY
   ${ART_FRAMEWORK_PRINCIPAL}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   ${ART_PERSISTENCY_COMMON}
   canvas
   art_Persistency_Provenance
@@ -20,7 +20,9 @@ art_make(BASENAME_ONLY
   lardataobj_RecoBase
   lardata_Utilities
   larcorealg_Geometry
+  larcore_Geometry_Geometry_service
   nusimdata_SimulationBase
+  larsim_Simulation
   lardataobj_RawData
   lardataobj_Simulation
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service

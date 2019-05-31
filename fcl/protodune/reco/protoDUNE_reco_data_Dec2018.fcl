@@ -16,6 +16,7 @@
 #include "particleid.fcl"
 #include "opticaldetectormodules_dune.fcl"
 #include "showerfindermodules_dune.fcl"
+#include "OpSlicer.fcl"
 
 BEGIN_PROLOG
 
@@ -41,15 +42,16 @@ protoDUNE_reco_data_producers:
     # Hit finder
     gaushit:            @local::protodunespmc_gaushitfinder
     # Space point finder
-    reco3d:             @local::protodunespmc_spacepointsolver
+    reco3d:             @local::protodunespdata_spacepointsolver
     # Hit disambiguation
     hitpdune:           @local::pdune_disambigfromsp
     # CNN track/shower ID
-    emtrkmichelid:      @local::protodune_emtrkmichelid
+    emtrkmichelid:      @local::protodunespdata_emtrkmichelid
     # Clustering
     linecluster:        @local::protodunespmc_linecluster
     # Pandora and its track and shower building
     pandora:            @local::protodune_pandora
+    pandoraWriter:      @local::dune_pandorawriter
     pandoraTrack:       @local::dune_pandoraTrackCreation
     pandoraShower:      @local::dune_pandoraShowerCreation
     # Calorimetry and PID for pandora
@@ -64,6 +66,8 @@ protoDUNE_reco_data_producers:
     ophitExternal:      @local::protodune_ophit_data_external
     opflashInternal:    @local::protodune_opflash_data_internal
     opflashExternal:    @local::protodune_opflash_data_external
+    opslicerInternal:   @local::protodune_opslicer_data_internal
+    opslicerExternal:   @local::protodune_opslicer_data_external
 }
 
 ### Below are a list of convenient sequences that can be used for production/typical users. ###
@@ -82,9 +86,10 @@ protoDUNE_reco_data: [ caldata,
                        gaushit,
                        reco3d,
                        hitpdune,
-#                       emtrkmichelid,
                        linecluster,
+                       emtrkmichelid,
                        pandora,
+                       pandoraWriter,
                        pandoraTrack,
                        pandoraShower,
                        pandoracalo,
@@ -95,7 +100,9 @@ protoDUNE_reco_data: [ caldata,
                        ophitInternal,
                        ophitExternal,
                        opflashInternal,
-                       opflashExternal
+                       opflashExternal,
+                       opslicerInternal,
+                       opslicerExternal
                      ]
 
 protoDUNE_reco_data_producers.caldata.DigitLabel: "tpcrawdecoder:daq"
@@ -106,8 +113,8 @@ protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.TrackLikeThreshold: 0.0
 
 # Basic noise mitigation
 protoDUNE_reco_data_producers.gaushit.CalDataModuleLabel: "digitwire"
-protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.RoiThreshold: 10.0
-protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.RoiThreshold: 10.0
+protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane0.RoiThreshold: 3.0
+protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane1.RoiThreshold: 3.0
 protoDUNE_reco_data_producers.gaushit.HitFinderToolVec.CandidateHitsPlane2.RoiThreshold: 3.0
 
 # Make sure we can use cryostat-side APA hits
@@ -117,8 +124,8 @@ protoDUNE_reco_data_producers.hitpdune.ExcludeTPCs: []
 protoDUNE_reco_data_producers.linecluster.HitFinderModuleLabel:    "hitpdune"
 
 protoDUNE_reco_data_producers.pmtrack.HitModuleLabel:                         "linecluster"
-#protoDUNE_reco_data_producers.pmtrack.ClusterModuleLabel:                     "emtrkmichelid:emtrkmichel"
-#protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.TrackLikeThreshold:       0.63
+protoDUNE_reco_data_producers.pmtrack.ClusterModuleLabel:                     "emtrkmichelid:emtrkmichel"
+protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.TrackLikeThreshold:       0.63
 protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.MinSeedSize2ndPass:       3
 protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.Validation:               "adc"
 protoDUNE_reco_data_producers.pmtrack.PMAlgTracking.AdcValidationThr:         [0.8, 0.8, 1.0]
@@ -137,7 +144,8 @@ protoDUNE_reco_data_producers.pmtrackpid.CalorimetryModuleLabel:  "pmtrackcalo"
 protoDUNE_reco_data_producers.pmtrackpid.TrackModuleLabel:        "pmtrack"
 
 #Pandora configurations
-protoDUNE_reco_data_producers.pandora.HitFinderModuleLabel:             "linecluster"
+protoDUNE_reco_data_producers.pandora.HitFinderModuleLabel:             "hitpdune"
+protoDUNE_reco_data_producers.pandoraWriter.HitFinderModuleLabel:       "hitpdune"
 protoDUNE_reco_data_producers.pandoraTrack.PFParticleLabel:             "pandora"
 protoDUNE_reco_data_producers.pandoraShower.PFParticleLabel:            "pandora"
 

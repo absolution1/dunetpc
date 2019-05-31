@@ -15,7 +15,7 @@
 #include <string>
 
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "lardata/Utilities/LArFFT.h"
@@ -358,6 +358,7 @@ ReadOutWindowSize: 4492         # drift length/drift velocity*sampling rate = (3
 TimeOffsetU:       0.
 TimeOffsetV:       0.
 TimeOffsetZ:       0.
+DriftVelFudgeFactor: 1.
 
 SimpleBoundaryProcess: true  #enable opticalBoundaryProcessSimple instead of G4 default
 

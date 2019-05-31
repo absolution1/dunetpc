@@ -30,8 +30,8 @@ art_make( MODULE_LIBRARIES
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+			${ART_ROOT_IO_TFILESERVICE_SERVICE}
  			art_Persistency_Common canvas
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
@@ -56,3 +56,11 @@ add_subdirectory(XYZcalibration)
 add_subdirectory(PhotonDetectors)
 add_subdirectory(fcl)
 add_subdirectory(DetectorServices)
+add_subdirectory(michelremoving)
+add_subdirectory(protonanalysis)
+add_subdirectory(pionanalysis)
+add_subdirectory(pionanalysismc)
+add_subdirectory(truepionXsection)
+add_subdirectory(truepion)
+add_subdirectory(velocity)
+add_subdirectory(driftvel)

@@ -79,7 +79,7 @@ namespace caldata {
   DEFINE_ART_MODULE(CalWireDUNEDPhase)
   
   //-------------------------------------------------
-  CalWireDUNEDPhase::CalWireDUNEDPhase(fhicl::ParameterSet const& pset)
+  CalWireDUNEDPhase::CalWireDUNEDPhase(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     this->reconfigure(pset);
 

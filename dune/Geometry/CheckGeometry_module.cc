@@ -13,7 +13,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -150,6 +150,15 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   for (size_t i = 0; i<geo->NTPC(); ++i){
     std::cout<<"TPC "<<i<<" has "<<nwires_tpc[i]<<" wires"<<std::endl;
   }
+
+  //CRT
+  for (size_t i = 0; i<geo->NAuxDets(); ++i){
+    auto& auxdet = geo->AuxDet(i);
+    double xyz[3];
+    auxdet.GetCenter(xyz);
+    std::cout<<"Aux "<<i<<" "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<std::endl;
+  }
+
 }
 
 void dune::CheckGeometry::reconfigure(fhicl::ParameterSet const & p)

@@ -7,7 +7,7 @@
 #include "art/Framework/IO/Sources/SourceHelper.h"
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "canvas/Persistency/Provenance/EventID.h"
 #include "canvas/Persistency/Provenance/RunID.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
@@ -589,7 +589,7 @@ namespace {
 //==========================================================================
 namespace raw {
   // Enable 'pset.get<raw::Compress_t>("compression")'
-  void decode (boost::any const & a, Compress_t & result ){
+  void decode (std::any const & a, Compress_t & result ){
     unsigned tmp;
     fhicl::detail::decode(a,tmp);
     result = static_cast<Compress_t>(tmp);

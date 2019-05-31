@@ -20,6 +20,7 @@
 //   % ((SUNIT))% --> add preceding space to this if sunit is not blank
 //   %[SUNIT]% --> "[sunit]" or "" if sunit is empty
 //   % [SUNIT]% --> " [sunit]" or "" if sunit is empty
+//   Same patterns with ASUNIT substitute sunit-tick
 //   %COUNT% --> dm.getInt("count") passed in call to build
 //   %CHAN1% --> dm.getInt("chan1") passed in call to build
 //   %CHAN2% --> dm.getInt("chan2") passed in call to build
@@ -27,7 +28,7 @@
 //   %TRIGNAME% --> TrigNames[acd.trigger]
 //   %TRIGNAMECAP% --> TrigNames[acd.trigger] with first letter capitalized.
 //   %TIMEUTC% --> Time string in UTC (implicit), e.g. "2018-10-23 15:31:12"
-//   %TIMEUTCn% --> Previous plus fracional seconds to n digits for n=0-9.
+//   %TIMEUTCn% --> Previous plus fractional seconds to n digits for n=0-9.
 // where acd is the AdcChannelData object and dm is the DataMap object
 // passed in the call to build.
 //

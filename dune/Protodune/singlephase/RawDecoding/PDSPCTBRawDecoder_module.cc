@@ -68,7 +68,7 @@ private:
 
 
 PDSPCTBRawDecoder::PDSPCTBRawDecoder(fhicl::ParameterSet const & p)
-// :
+  : EDProducer{p}
 // Initialize member data here.
 {
   fInputLabel = p.get<std::string>("InputLabel");

@@ -14,6 +14,8 @@ using std::vector;
 using std::ostringstream;
 using raw::RawDigit;
 
+using Index = unsigned int;
+
 //**********************************************************************
 
 ToolBasedRawDigitPrepService::
@@ -65,7 +67,19 @@ prepare(AdcChannelDataMap& datamap,
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Running tool " << nt.name << endl;
       DataMap ret = nt.tool->updateMap(datamap);
-      if ( ret ) cout << myname << "WARNING: Tool " << nt.name << " failed with error " << ret.status() << endl;
+      if ( ret ) {
+        cout << myname << "WARNING: Tool " << nt.name << " failed";
+        if ( ret.haveIntVector("failedChannels") ) {
+          Index ncha = ret.getIntVector("failedChannels").size();
+          cout << " for " << ncha << " channel" << (ncha == 1 ? "" : "s");
+        }
+        cout << " with error " << ret.status();
+        if ( ret.haveIntVector("failedCodes") ) {
+          Index ncod = ret.getIntVector("failedCodes").size();
+          if ( ncod > 1 ) cout << " and "  << ncod - 1 << " other errors";
+        }
+        cout << "." << endl;
+      }
       if ( m_LogLevel >= 4 ) {
         cout << myname << "----------------------------" << endl;
         ret.print();

@@ -137,7 +137,7 @@ namespace calgaushf {
   DEFINE_ART_MODULE(CalGausHFDUNE10kt)
   
   //-------------------------------------------------
-  CalGausHFDUNE10kt::CalGausHFDUNE10kt(fhicl::ParameterSet const& pset)
+  CalGausHFDUNE10kt::CalGausHFDUNE10kt(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     fSpillName="";
     this->reconfigure(pset);

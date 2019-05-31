@@ -13,6 +13,8 @@ proto_beamevent:
   IFBeamDebug:         0
   OutputLabel:         "BeamEvent"
 
+  PrintDebug:          "false"
+
   NRetries:             5
   TimeWindow: 120  # width of time window in seconds
   BundleName: "DUNE_CERN_SEP2018"
@@ -110,10 +112,18 @@ proto_beamevent:
   ################################
 
 
-  //RotateMonitorXZ:   -10.3
-  RotateMonitorYZ:    11.7
-  RotateMonitorXZ:     15.676709377408265
+  #Angles originally used - taken from Leigh's MC module
+  #RotateMonitorXZ:   -10.3
+  #RotateMonitorYZ:    11.7
+   
+  ###Angles taken from Paola (actual direction of beamline)
+  #RotateMonitorXZ:     15.676709377408265
   RotateMonitorYX:     227.18669653445150
+  
+  ###New rotations - same final z axis as those 
+  ###from Paola, but the X axis is kept horizontal 
+  RotateMonitorYZ: 11.4328
+  RotateMonitorXZ: -10.7985
 
 # Position of beam monitor in z in [mm] 
   #FirstTrackingProfZ: 707479

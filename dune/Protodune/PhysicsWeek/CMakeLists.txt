@@ -10,8 +10,8 @@ simple_plugin(MichelHitCounter "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}
@@ -31,8 +31,8 @@ simple_plugin(MichelEventSelection "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}
