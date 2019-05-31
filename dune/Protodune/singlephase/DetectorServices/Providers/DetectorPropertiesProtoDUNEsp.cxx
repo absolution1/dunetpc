@@ -39,18 +39,18 @@ namespace spdp{
   
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
-                                         const geo::GeometryCore* geo,
-                                         const detinfo::LArProperties* lp,
-                                         const detinfo::DetectorClocks* c,
-                                         std::set<std::string> const& ignore_params /* = {} */
-                                         ):
+                                                               const geo::GeometryCore* geo,
+                                                               const detinfo::LArProperties* lp,
+                                                               const detinfo::DetectorClocks* c,
+                                                               std::set<std::string> const& ignore_params /* = {} */
+                                                               ):
     fLP(lp), fClocks(c), fGeo(geo)
   {
     {
-       mf::LogInfo debug("setupProvider<DetectorPropertiesStandard>");
+      mf::LogInfo debug("setupProvider<DetectorPropertiesStandard>");
        
-       debug << "Asked to ignore " << ignore_params.size() << " keys:";
-       for (auto const& key: ignore_params) debug << " '" << key << "'";
+      debug << "Asked to ignore " << ignore_params.size() << " keys:";
+      for (auto const& key: ignore_params) debug << " '" << key << "'";
     }
     
     ValidateAndConfigure(pset, ignore_params);
@@ -61,16 +61,16 @@ namespace spdp{
     
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
-                                         providers_type providers,
-                                         std::set<std::string> const& ignore_params /* = {} */
-                                         ):
+                                                               providers_type providers,
+                                                               std::set<std::string> const& ignore_params /* = {} */
+                                                               ):
     DetectorPropertiesProtoDUNEsp(pset,
-      providers.get<geo::GeometryCore>(),
-      providers.get<detinfo::LArProperties>(),
-      providers.get<detinfo::DetectorClocks>(),
-      ignore_params
-      )
-    {}
+                                  providers.get<geo::GeometryCore>(),
+                                  providers.get<detinfo::LArProperties>(),
+                                  providers.get<detinfo::DetectorClocks>(),
+                                  ignore_params
+                                  )
+  {}
   
   //--------------------------------------------------------------------
   bool DetectorPropertiesProtoDUNEsp::Update(uint64_t)
@@ -99,61 +99,71 @@ namespace spdp{
 
 
 
-bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string metadata){
+  bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string metadata){
 
-  bool retVal=false;
+    bool retVal=false;
 
-  if(fGetReadOutWindowSizefromMetaData){
-    retVal = true;
-    std::string window_str="DUNE_data.readout_window: ";
-    if(metadata.find(window_str)!=std::string::npos){
-      int n1 = metadata.find(window_str);
-      n1 += window_str.length();
-      int n2 = metadata.find("\n", n1);
-      double window=std::stod(metadata.substr(n1, n2-n1)); //milliseconds
-      double ticks=window*1000/(fTPCClock.TickPeriod()); //sampling rate 2Mhz 
-      fNumberTimeSamples=ticks;
-      fReadOutWindowSize=ticks;
-      std::cout<<"Setting ReadOutWindowSize and NumberTimeSamples as : "<<fReadOutWindowSize<<" (Ticks), Value retrieved from Metadata"<<std::endl; 
+    if(fGetReadOutWindowSizefromMetaData){
+      retVal = true;
+      std::string window_str="DUNE_data.readout_window: ";
+      if(metadata.find(window_str)!=std::string::npos){
+        int n1 = metadata.find(window_str);
+        n1 += window_str.length();
+        int n2 = metadata.find("\n", n1);
+        double window=std::stod(metadata.substr(n1, n2-n1)); //milliseconds
+        double ticks=window*1000/(fTPCClock.TickPeriod()); //sampling rate 2Mhz 
+        fNumberTimeSamples=ticks;
+        fReadOutWindowSize=ticks;
+        std::cout<<"Setting ReadOutWindowSize and NumberTimeSamples as : "<<fReadOutWindowSize<<" (Ticks), Value retrieved from Metadata"<<std::endl; 
       }
       else{
         std::cout<<"Run has no specific readout window size entry in Metadata, default to fcl configured value : "<<fReadOutWindowSize<<" (Ticks)"<<std::endl;
       } 
     }
      
-  return retVal;
+    return retVal;
 
-}
-
-
+  }
 
 
 
 
-bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata) 
-{
+
+
+  bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata) 
+  {
   
 
  
-  bool retVal=false;
+    bool retVal=false;
 
-  if(fGetHVDriftfromMetaData){
-     retVal = true;
-    
-    
-    std::string hv_str="detector.hv_value: ";
-    if(metadata.find(hv_str)!=std::string::npos){
-      int n1 = metadata.find(hv_str);
-      n1 += hv_str.length();
-      int n2 = metadata.find("\n", n1);
-    
-      fHV_cath=std::stod(metadata.substr(n1, n2-n1)); 
-      std::cout<<"Using HV on cathode as: "<<fHV_cath<<"KV,  Value retreived from samweb MetaData"<<std::endl; 
+    if(fGetHVDriftfromMetaData){
+      retVal = true;
+      
+      int run = 0;
+      std::string run_str="Runs: ";
+      if(metadata.find(run_str)!=std::string::npos){
+        int n1 = metadata.find(run_str);
+        n1 += run_str.length();
+        int n2 = metadata.find(".", n1);
+        //std::cout<<metadata.substr(n1, n2-n1)<<std::endl;
+        run = std::stoi(metadata.substr(n1, n2-n1));
+        std::cout<<"Run number from metadata: "<<run<<std::endl;
       }
-    else{
-      std::cout<<"HV Metadata entry not found"<<std::endl;
-      std::cout<<"Run has no nomninal HV value entered in Metadata, default to 180KV"<<std::endl;
-      fHV_cath=180;
+
+      std::string hv_str="detector.hv_value: ";
+      if(metadata.find(hv_str)!=std::string::npos){
+        int n1 = metadata.find(hv_str);
+        n1 += hv_str.length();
+        int n2 = metadata.find("\n", n1);
+    
+        fHV_cath=std::stod(metadata.substr(n1, n2-n1)); 
+        std::cout<<"Using HV on cathode as: "<<fHV_cath<<"KV,  Value retreived from samweb MetaData"<<std::endl; 
+      }
+      else{
+        std::cout<<"HV Metadata entry not found"<<std::endl;
+        std::cout<<"Run has no nomninal HV value entered in Metadata, default to 180KV"<<std::endl;
+        fHV_cath=180;
       }
 
 
@@ -173,8 +183,17 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
       //fEfield[1]=std::fabs(Gplane_bias-Uplane_bias)/0.475;
       //fEfield[2]=std::fabs(Uplane_bias-Vplane_bias)/0.475;
       //fEfield[3]=std::fabs(Vplane_bias-Xplane_bias)/0.475;
+      if (std::abs(fHV_cath-180) < 1e-6){
+        // Use the corrected E field from Flavio and Francesco
+        if (run < 6725){ //first run in Feb 8, 2019
+          fEfield[0] = 0.4936;
+        }
+        else{
+          fEfield[0] = 0.4995;
+        }
+      }
       std::cout<<"Calculated E field in 4 plane gaps as: "<<fEfield[0]<<","<<fEfield[1]<<","<<fEfield[2]<<","<<fEfield[3]<<std::endl;
-  }//End GetHVDriftfromRunTable if  
+    }//End GetHVDriftfromRunTable if  
    
 
     return retVal;
@@ -236,9 +255,9 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::Configuration_t
   DetectorPropertiesProtoDUNEsp::ValidateConfiguration(
-    fhicl::ParameterSet const& p,
-    std::set<std::string> const& ignore_params /* = {} */
-  ) {
+                                                       fhicl::ParameterSet const& p,
+                                                       std::set<std::string> const& ignore_params /* = {} */
+                                                       ) {
     std::set<std::string> ignorable_keys = lar::IgnorableProviderConfigKeys();
     ignorable_keys.insert(ignore_params.begin(), ignore_params.end());
     
@@ -251,9 +270,9 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
   
   //--------------------------------------------------------------------
   void DetectorPropertiesProtoDUNEsp::ValidateAndConfigure(
-    fhicl::ParameterSet const& p,
-    std::set<std::string> const& ignore_params /* = {} */
-  ) {
+                                                           fhicl::ParameterSet const& p,
+                                                           std::set<std::string> const& ignore_params /* = {} */
+                                                           ) {
     Configure(ValidateConfiguration(p, ignore_params));
   } // ValidateAndConfigure()
   
@@ -381,75 +400,75 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
   } // DetectorPropertiesStandard::ElossVar()
   //------------------------------------------------------------------------------------//
   double DetectorPropertiesProtoDUNEsp::DriftVelocity(double efield, double temperature) const {
-  // Drift Velocity as a function of Electric Field and LAr Temperature
-  // from : W. Walkowiak, NIM A 449 (2000) 288-294
-  //
-  // Efield should have units of kV/cm
-  // Temperature should have units of Kelvin
-  // Default Efield, use internal value.
-  if(efield == 0.)
-    efield = Efield();
-  //
-  if(efield > 4.0)
-    mf::LogWarning("DetectorPropertiesStandard") << "DriftVelocity Warning! : E-field value of "
-                                    << efield
-                                    << " kV/cm is outside of range covered by drift"
-                                    << " velocity parameterization. Returned value"
-                                    << " may not be correct";
-  // Default temperature use internal value.
-  if(temperature == 0.)
-    temperature = Temperature();
-  if(temperature < 87.0 || temperature > 94.0)
-    mf::LogWarning("DetectorPropertiesStandard") << "DriftVelocity Warning! : Temperature value of "
-                                    << temperature
-                                    << " K is outside of range covered by drift velocity"
-                                    << " parameterization. Returned value may not be"
-                                    << " correct";
-  double tshift = -87.203+temperature;
-  double xFit = 0.0938163-0.0052563*tshift-0.0001470*tshift*tshift;
-  double uFit = 5.18406+0.01448*tshift-0.003497*tshift*tshift-0.000516*tshift*tshift*tshift;
-  double vd;
-// Icarus Parameter Set, use as default
-  double  P1 = -0.04640; // K^-1
-  double  P2 = 0.01712;  // K^-1
-  double  P3 = 1.88125;   // (kV/cm)^-1
-  double  P4 =  0.99408;    // kV/cm
-  double  P5 =  0.01172;   // (kV/cm)^-P6
-  double  P6 =  4.20214;
-  double  T0 =  105.749;  // K
-      // Walkowiak Parameter Set
-  double    P1W = -0.01481; // K^-1
-  double  P2W = -0.0075;  // K^-1
-  double   P3W =  0.141;   // (kV/cm)^-1
-  double   P4W =  12.4;    // kV/cm
-  double   P5W =  1.627;   // (kV/cm)^-P6
-  double   P6W =  0.317;
-  double   T0W =  90.371;  // K
-// From Craig Thorne . . . currently not documented
-// smooth transition from linear at small fields to 
-//     icarus fit at most fields to Walkowiak at very high fields
-   if (efield < xFit) vd=efield*uFit;
-   else if (efield<0.619) { 
-     vd = ((P1*(temperature-T0)+1)
-               *(P3*efield*std::log(1+P4/efield) + P5*std::pow(efield,P6))
-               +P2*(temperature-T0));
-   }
-   else if (efield<0.699) {
-     vd = 12.5*(efield-0.619)*((P1W*(temperature-T0W)+1)
-               *(P3W*efield*std::log(1+P4W/efield) + P5W*std::pow(efield,P6W))
-               +P2W*(temperature-T0W))+
-       12.5*(0.699-efield)*((P1*(temperature-T0)+1)
-               *(P3*efield*std::log(1+P4/efield) + P5*std::pow(efield,P6))
-               +P2*(temperature-T0));
-   }
-   else {
-     vd = ((P1W*(temperature-T0W)+1)
-               *(P3W*efield*std::log(1+P4W/efield) + P5W*std::pow(efield,P6W))
-               +P2W*(temperature-T0W));     
-   }
-  vd /= 10.;
-  return vd; // in cm/us
-}
+    // Drift Velocity as a function of Electric Field and LAr Temperature
+    // from : W. Walkowiak, NIM A 449 (2000) 288-294
+    //
+    // Efield should have units of kV/cm
+    // Temperature should have units of Kelvin
+    // Default Efield, use internal value.
+    if(efield == 0.)
+      efield = Efield();
+    //
+    if(efield > 4.0)
+      mf::LogWarning("DetectorPropertiesStandard") << "DriftVelocity Warning! : E-field value of "
+                                                   << efield
+                                                   << " kV/cm is outside of range covered by drift"
+                                                   << " velocity parameterization. Returned value"
+                                                   << " may not be correct";
+    // Default temperature use internal value.
+    if(temperature == 0.)
+      temperature = Temperature();
+    if(temperature < 87.0 || temperature > 94.0)
+      mf::LogWarning("DetectorPropertiesStandard") << "DriftVelocity Warning! : Temperature value of "
+                                                   << temperature
+                                                   << " K is outside of range covered by drift velocity"
+                                                   << " parameterization. Returned value may not be"
+                                                   << " correct";
+    double tshift = -87.203+temperature;
+    double xFit = 0.0938163-0.0052563*tshift-0.0001470*tshift*tshift;
+    double uFit = 5.18406+0.01448*tshift-0.003497*tshift*tshift-0.000516*tshift*tshift*tshift;
+    double vd;
+    // Icarus Parameter Set, use as default
+    double  P1 = -0.04640; // K^-1
+    double  P2 = 0.01712;  // K^-1
+    double  P3 = 1.88125;   // (kV/cm)^-1
+    double  P4 =  0.99408;    // kV/cm
+    double  P5 =  0.01172;   // (kV/cm)^-P6
+    double  P6 =  4.20214;
+    double  T0 =  105.749;  // K
+    // Walkowiak Parameter Set
+    double    P1W = -0.01481; // K^-1
+    double  P2W = -0.0075;  // K^-1
+    double   P3W =  0.141;   // (kV/cm)^-1
+    double   P4W =  12.4;    // kV/cm
+    double   P5W =  1.627;   // (kV/cm)^-P6
+    double   P6W =  0.317;
+    double   T0W =  90.371;  // K
+    // From Craig Thorne . . . currently not documented
+    // smooth transition from linear at small fields to 
+    //     icarus fit at most fields to Walkowiak at very high fields
+    if (efield < xFit) vd=efield*uFit;
+    else if (efield<0.619) { 
+      vd = ((P1*(temperature-T0)+1)
+            *(P3*efield*std::log(1+P4/efield) + P5*std::pow(efield,P6))
+            +P2*(temperature-T0));
+    }
+    else if (efield<0.699) {
+      vd = 12.5*(efield-0.619)*((P1W*(temperature-T0W)+1)
+                                *(P3W*efield*std::log(1+P4W/efield) + P5W*std::pow(efield,P6W))
+                                +P2W*(temperature-T0W))+
+        12.5*(0.699-efield)*((P1*(temperature-T0)+1)
+                             *(P3*efield*std::log(1+P4/efield) + P5*std::pow(efield,P6))
+                             +P2*(temperature-T0));
+    }
+    else {
+      vd = ((P1W*(temperature-T0W)+1)
+            *(P3W*efield*std::log(1+P4W/efield) + P5W*std::pow(efield,P6W))
+            +P2W*(temperature-T0W));     
+    }
+    vd /= 10.;
+    return vd; // in cm/us
+  }
   //----------------------------------------------------------------------------------
   // The below function assumes that the user has applied the lifetime correction and
   // effective pitch between the wires (usually after 3D reconstruction). Using with
@@ -570,23 +589,23 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
           // FIXME the offset should be plane-dependent
           geo::View_t view = pgeom.View();
           switch (view) {
-            case geo::kU:
-              fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetU;
-              break;
-            case geo::kV:
-              fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetV;
-              break;
-            case geo::kZ:
-              fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetZ;
-              break;
-            case geo::kY:
-              fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetY;
-              break;
-            case geo::kX:
-              fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetX;
-              break;
-            default:
-              throw cet::exception(__FUNCTION__) << "Bad view = " << view << "\n" ;
+          case geo::kU:
+            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetU;
+            break;
+          case geo::kV:
+            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetV;
+            break;
+          case geo::kZ:
+            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetZ;
+            break;
+          case geo::kY:
+            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetY;
+            break;
+          case geo::kX:
+            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetX;
+            break;
+          default:
+            throw cet::exception(__FUNCTION__) << "Bad view = " << view << "\n" ;
           } // switch
         }
       }
@@ -613,7 +632,7 @@ bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata)
   
   //--------------------------------------------------------------------
   std::string DetectorPropertiesProtoDUNEsp::CheckTimeOffsetConfigurationAfterSetup
-    () const
+  () const
   {
     
     std::ostringstream errors;

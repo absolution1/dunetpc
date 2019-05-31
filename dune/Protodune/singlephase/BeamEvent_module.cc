@@ -1014,10 +1014,15 @@ void proto::BeamEvent::produce(art::Event & e){
 
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
-          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
         catch( std::exception e ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
+        }
+        try{
+          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
+        }
+        catch( std::exception e ){
+          MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
         }
 
         if( fPrintDebug ){
@@ -2071,8 +2076,6 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
   vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
   vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
-
-  std::cout << "Rotated: " << vec.X() << " " << vec.Y() << " " << vec.Z() << std::endl;
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
