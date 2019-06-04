@@ -42,7 +42,7 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -93,6 +93,11 @@ private:
   std::string geantGood_EndProcess;
   std::string MC_true_EndProcess;
   std::string MC_true_Process;
+
+
+  double geantGood_EndVertex_X;
+  double geantGood_EndVertex_Y;
+  double geantGood_EndVertex_Z;
 
   int MC_origin;
   std::vector< bool > MC_daughter_good_reco;
@@ -196,102 +201,145 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
   // We can now look at these particles
   const recob::PFParticle* particle = beamParticles.at(0);
-    const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
-    const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
-    if(thisTrack != 0x0){
-      std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
-      type = 13;
-    }
-    if(thisShower != 0x0){
-      std::cout << "Beam particle is shower-like" << std::endl;
-      type = 11;
-    }
+  const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
+  const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
+  if(thisTrack != 0x0){
+    std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
+    type = 13;
+  }
+  if(thisShower != 0x0){
+    std::cout << "Beam particle is shower-like" << std::endl;
+    type = 11;
+  }
 
 
 
-    // Find the particle vertex. We need the tracker tag here because we need to do a bit of
-    // additional work if the PFParticle is track-like to find the vertex. 
-    const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-    std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
+  // Find the particle vertex. We need the tracker tag here because we need to do a bit of
+  // additional work if the PFParticle is track-like to find the vertex. 
+  const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+  std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
 
-    //Get the TPC ID for the beginning of the track
-    if( thisTrack ){
+  //Get the TPC ID for the beginning of the track
+  if( thisTrack ){
 
 
-      startX = thisTrack->Trajectory().Start().X();
-      startY = thisTrack->Trajectory().Start().Y();
-      startZ = thisTrack->Trajectory().Start().Z();
-      endX = thisTrack->Trajectory().End().X();
-      endY = thisTrack->Trajectory().End().Y();
-      endZ = thisTrack->Trajectory().End().Z();
+    startX = thisTrack->Trajectory().Start().X();
+    startY = thisTrack->Trajectory().Start().Y();
+    startZ = thisTrack->Trajectory().Start().Z();
+    endX = thisTrack->Trajectory().End().X();
+    endY = thisTrack->Trajectory().End().Y();
+    endZ = thisTrack->Trajectory().End().Z();
 
-      auto startDir = thisTrack->StartDirection();
-      auto endDir   = thisTrack->EndDirection();
+    auto startDir = thisTrack->StartDirection();
+    auto endDir   = thisTrack->EndDirection();
 
-      //try flipping
-      if( startZ > endZ ){
-        std::cout << "startZ > endZ: " << startZ << " " << endZ << std::endl;
-        endX = thisTrack->Trajectory().Start().X();
-        endY = thisTrack->Trajectory().Start().Y();
-        endZ = thisTrack->Trajectory().Start().Z();
-        startX = thisTrack->Trajectory().End().X();
-        startY = thisTrack->Trajectory().End().Y();
-        startZ = thisTrack->Trajectory().End().Z();
-        
-        trackDirX =  -1. * endDir.X(); 
-        trackDirY =  -1. * endDir.Y(); 
-        trackDirZ =  -1. * endDir.Z(); 
-
-      }
-      else{
-        std::cout << "endZ > startZ: " << startZ << " " << endZ << std::endl;
-        trackDirX =  startDir.X(); 
-        trackDirY =  startDir.Y(); 
-        trackDirZ =  startDir.Z(); 
-      }
-      std::cout << "StartDir: " << startDir.Z() << std::endl;
-      std::cout << "EndDir: "   << endDir.Z() << std::endl;
-
-      std::cout << "trackDirX: " << trackDirX << std::endl;
-      std::cout << "trackDirY: " << trackDirY << std::endl;
-      std::cout << "trackDirZ: " << trackDirZ << std::endl;
-
-      len  = thisTrack->Length();    
-      beamTrackID = thisTrack->ID();
+    //try flipping
+    if( startZ > endZ ){
+      std::cout << "startZ > endZ: " << startZ << " " << endZ << std::endl;
+      endX = thisTrack->Trajectory().Start().X();
+      endY = thisTrack->Trajectory().Start().Y();
+      endZ = thisTrack->Trajectory().Start().Z();
+      startX = thisTrack->Trajectory().End().X();
+      startY = thisTrack->Trajectory().End().Y();
+      startZ = thisTrack->Trajectory().End().Z();
       
-      std::cout << "Start: " << startX << " " << startY << " " << startZ << std::endl;
-      std::cout << "End: " << endX << " " << endY << " " << endZ << std::endl;
-      std::cout << "len: " << len << std::endl;
+      trackDirX =  -1. * endDir.X(); 
+      trackDirY =  -1. * endDir.Y(); 
+      trackDirZ =  -1. * endDir.Z(); 
 
-      // Now we can look for the interaction point of the particle if one exists, i.e where the particle
-      // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
-      // check this by making sure we get a sensible position
-      const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-      vtxX = interactionVtx.X();
-      vtxY = interactionVtx.Y();
-      vtxZ = interactionVtx.Z();
-      std::cout << "Interaction Vertex: " << vtxX << " " <<  vtxY << " " <<  vtxZ << std::endl;
-      
+    }
+    else{
+      std::cout << "endZ > startZ: " << startZ << " " << endZ << std::endl;
+      trackDirX =  startDir.X(); 
+      trackDirY =  startDir.Y(); 
+      trackDirZ =  startDir.Z(); 
+    }
+    std::cout << "StartDir: " << startDir.Z() << std::endl;
+    std::cout << "EndDir: "   << endDir.Z() << std::endl;
 
-      // Let's get the daughter PFParticles... we can do this simply without the utility
-      for(const int daughterID : particle->Daughters()){
-        // Daughter ID is the element of the original recoParticle vector
-        const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-        std::cout << "Daughter " << daughterID << " PDG: " << daughterParticle->PdgCode() << std::endl; 
-      }
+    std::cout << "trackDirX: " << trackDirX << std::endl;
+    std::cout << "trackDirY: " << trackDirY << std::endl;
+    std::cout << "trackDirZ: " << trackDirZ << std::endl;
+
+    len  = thisTrack->Length();    
+    beamTrackID = thisTrack->ID();
+    
+    std::cout << "Start: " << startX << " " << startY << " " << startZ << std::endl;
+    std::cout << "End: " << endX << " " << endY << " " << endZ << std::endl;
+    std::cout << "len: " << len << std::endl;
+
+    // Now we can look for the interaction point of the particle if one exists, i.e where the particle
+    // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
+    // check this by making sure we get a sensible position
+    const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+    vtxX = interactionVtx.X();
+    vtxY = interactionVtx.Y();
+    vtxZ = interactionVtx.Z();
+    std::cout << "Interaction Vertex: " << vtxX << " " <<  vtxY << " " <<  vtxZ << std::endl;
+    
+
+    // Let's get the daughter PFParticles... we can do this simply without the utility
+    for(const int daughterID : particle->Daughters()){
+      // Daughter ID is the element of the original recoParticle vector
+      const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
+      std::cout << "Daughter " << daughterID << " PDG: " << daughterParticle->PdgCode() << std::endl; 
+    }
  
 
-      art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-      art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+    art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+    art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
 
-      MC = 1;
-      // Get the truth utility to help us out
-      protoana::ProtoDUNETruthUtils truthUtil;
-      // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
-      // simulation has fGeneratorTag = "generator"
-      auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
-      std::cout << "MCTruth origin: ";
-      switch( (*mcTruths)[0].Origin() ){
+    MC = 1;
+    // Get the truth utility to help us out
+    protoana::ProtoDUNETruthUtils truthUtil;
+    // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
+    // simulation has fGeneratorTag = "generator"
+    auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+    std::cout << "MCTruth origin: ";
+    switch( (*mcTruths)[0].Origin() ){
+      case simb::kCosmicRay: 
+        std::cout << "Cosmic" << std::endl;
+        break;
+      case simb::kSingleParticle:
+        std::cout << "Beam" << std::endl;
+        break;
+      default:
+        std::cout << "Other" << std::endl;
+    }
+
+    // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
+    // of these, so we pass the first element into the function to get the good particle
+    const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+
+    //Remove or move this if statement.
+    if(geantGoodParticle){
+      geantGood_PDG = geantGoodParticle->PdgCode();
+      std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
+      std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
+      std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
+
+
+      geantGood_EndVertex_X = geantGoodParticle->EndX();
+      geantGood_EndVertex_Y = geantGoodParticle->EndY();
+      geantGood_EndVertex_Z = geantGoodParticle->EndZ();
+    }
+    std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
+
+
+    //This gets the MCParticle contributing the most to the track
+    const simb::MCParticle* trueParticle = truthUtil.GetMCParticleFromRecoTrack(*thisTrack, evt, fTrackerTag);
+    if( trueParticle ){ 
+      std::cout << "True particle from beam track: " << trueParticle->PdgCode() << std::endl;
+      MC_true_PDG = trueParticle->PdgCode();
+      MC_true_EndProcess = trueParticle->EndProcess();
+      MC_true_Process = trueParticle->Process();
+
+      MC_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
+      std::cout << "Track-to-True ID: " << trueParticle->TrackId() << std::endl;
+
+      //What created the MCPraticle that created the track?
+      std::cout << "Track-to-True origin: ";
+      switch( MC_origin ){
         case simb::kCosmicRay: 
           std::cout << "Cosmic" << std::endl;
           break;
@@ -302,237 +350,201 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
           std::cout << "Other" << std::endl;
       }
 
-      // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
-      // of these, so we pass the first element into the function to get the good particle
-      const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
-      if(geantGoodParticle){
-        geantGood_PDG = geantGoodParticle->PdgCode();
-        std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
-        std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
-        std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
-      }
-      std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
-
-
-      //This gets the MCParticle contributing the most to the track
-      const simb::MCParticle* trueParticle = truthUtil.GetMCParticleFromRecoTrack(*thisTrack, evt, fTrackerTag);
-      if( trueParticle ){ 
-        std::cout << "True particle from beam track: " << trueParticle->PdgCode() << std::endl;
-        MC_true_PDG = trueParticle->PdgCode();
-        MC_true_EndProcess = trueParticle->EndProcess();
-        MC_true_Process = trueParticle->Process();
-
-        MC_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
-        std::cout << "Track-to-True ID: " << trueParticle->TrackId() << std::endl;
-
-        //What created the MCPraticle that created the track?
-        std::cout << "Track-to-True origin: ";
-        switch( MC_origin ){
-          case simb::kCosmicRay: 
-            std::cout << "Cosmic" << std::endl;
-            break;
-          case simb::kSingleParticle:
-            std::cout << "Beam" << std::endl;
-            break;
-          default:
-            std::cout << "Other" << std::endl;
-        }
-
-        //Reconstructed beam track corresponds to the true beam particle
-        if( trueParticle->TrackId() == geantGoodParticle->TrackId() ){
-          MC_good_reco = true;
-        }
-
-        std::cout << "MCParticle trajectory:" << std::endl;
-        //Get the beginning of the MCParticle and project this to z=0 as if it was the beamline
-        std::cout << trueParticle->Trajectory().X(0) << " " << trueParticle->Trajectory().Y(0) << " " << trueParticle->Trajectory().Z(0) << std::endl;
-        size_t nT = trueParticle->Trajectory().size();
-        if( nT > 0 ) std::cout << trueParticle->Trajectory().X(nT-1) << " " << trueParticle->Trajectory().Y(nT-1) << " " << trueParticle->Trajectory().Z(nT-1) << std::endl;
-        
-      }
-      else std::cout << "Couldn't get trueParticle" << std::endl;
-       
-
-      const sim::ParticleList & plist = pi_serv->ParticleList(); 
-
-
-      for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
-        int daughterID = geantGoodParticle->Daughter(i);
-
-        //Skip photons, neutrons, the nucleus
-      //  if( plist[ daughterID ]->PdgCode() == 22 || plist[ daughterID ]->PdgCode() == 2112 || plist[ daughterID ]->PdgCode() > 1000000000  ) continue;
-
-        std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
-        auto part = plist[ daughterID ];
-        int pid = part->PdgCode();
-        geantGood_daughter_PDGs.push_back(pid);
-        geantGood_daughter_IDs.push_back( part->TrackId() );      
-        geantGood_daughter_lens.push_back( part->Trajectory().TotalLength() );
-        std::cout << "PID: " << pid << std::endl;
-        std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
-        std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
-        std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
-
-        if( pid == 211 )  nPiPlus_truth++;
-        if( pid == -211 ) nPiMinus_truth++;
-        if( pid == 111 )  nPi0_truth++;
-        if( pid == 2212 ) nProton_truth++;
-
+      //Reconstructed beam track corresponds to the true beam particle
+      if( trueParticle->TrackId() == geantGoodParticle->TrackId() ){
+        MC_good_reco = true;
       }
 
-      // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
-      // We can use the utility to get a vector of track-like and a vector of shower-like daughters
-      const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
-      const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
-      std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
-      std::cout << std::endl;
+      std::cout << "MCParticle trajectory:" << std::endl;
+      //Get the beginning of the MCParticle and project this to z=0 as if it was the beamline
+      std::cout << trueParticle->Trajectory().X(0) << " " << trueParticle->Trajectory().Y(0) << " " << trueParticle->Trajectory().Z(0) << std::endl;
+      size_t nT = trueParticle->Trajectory().size();
+      if( nT > 0 ) std::cout << trueParticle->Trajectory().X(nT-1) << " " << trueParticle->Trajectory().Y(nT-1) << " " << trueParticle->Trajectory().Z(nT-1) << std::endl;
+      
+    }
+    else std::cout << "Couldn't get trueParticle" << std::endl;
+     
+
+    const sim::ParticleList & plist = pi_serv->ParticleList(); 
 
 
-      nTrackDaughters = trackDaughters.size();
+    for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
+      int daughterID = geantGoodParticle->Daughter(i);
 
-      for( size_t i = 0; i < trackDaughters.size(); ++i ){
-        std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
-        daughter_len.push_back( trackDaughters[i]->Length() );
+      //Skip photons, neutrons, the nucleus
+    //  if( plist[ daughterID ]->PdgCode() == 22 || plist[ daughterID ]->PdgCode() == 2112 || plist[ daughterID ]->PdgCode() > 1000000000  ) continue;
 
-        auto daughterTrack = trackDaughters.at(i);
-        
-        daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
-        daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
-        daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
-        daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
-        daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
-        daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+      std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
+      auto part = plist[ daughterID ];
+      int pid = part->PdgCode();
+      geantGood_daughter_PDGs.push_back(pid);
+      geantGood_daughter_IDs.push_back( part->TrackId() );      
+      geantGood_daughter_lens.push_back( part->Trajectory().TotalLength() );
+      std::cout << "PID: " << pid << std::endl;
+      std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
+      std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
+      std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
 
-        daughter_trackID.push_back( daughterTrack->ID() );
+      if( pid == 211 )  nPiPlus_truth++;
+      if( pid == -211 ) nPiMinus_truth++;
+      if( pid == 111 )  nPi0_truth++;
+      if( pid == 2212 ) nProton_truth++;
+
+    }
+
+    // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
+    // We can use the utility to get a vector of track-like and a vector of shower-like daughters
+    const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
+    const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
+    std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
+    std::cout << std::endl;
 
 
-        std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
-        auto dummy_dQdx = dummy_calo[0].dQdx();
-        auto dummy_dEdx = dummy_calo[0].dEdx();
-        auto dummy_Range = dummy_calo[0].ResidualRange();
+    nTrackDaughters = trackDaughters.size();
+
+    for( size_t i = 0; i < trackDaughters.size(); ++i ){
+      std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
+      daughter_len.push_back( trackDaughters[i]->Length() );
+
+      auto daughterTrack = trackDaughters.at(i);
+      
+      daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
+      daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
+      daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
+      daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
+      daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
+      daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+
+      daughter_trackID.push_back( daughterTrack->ID() );
+
+
+      std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
+      auto dummy_dQdx = dummy_calo[0].dQdx();
+      auto dummy_dEdx = dummy_calo[0].dEdx();
+      auto dummy_Range = dummy_calo[0].ResidualRange();
  
-        daughter_dQdX.push_back( std::vector<double>() );   
-        daughter_resRange.push_back( std::vector<double>() );
-        daughter_dEdX.push_back( std::vector<double>() );
+      daughter_dQdX.push_back( std::vector<double>() );   
+      daughter_resRange.push_back( std::vector<double>() );
+      daughter_dEdX.push_back( std::vector<double>() );
 
-        for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
-          daughter_dQdX.back().push_back( dummy_dQdx[i] );
-          daughter_resRange.back().push_back( dummy_Range[i] );
-          daughter_dEdX.back().push_back( dummy_dEdx[i] );
+      for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
+        daughter_dQdX.back().push_back( dummy_dQdx[i] );
+        daughter_resRange.back().push_back( dummy_Range[i] );
+        daughter_dEdX.back().push_back( dummy_dEdx[i] );
+      }
+
+
+      auto daughterTrackFromRecoTrack = trackDaughters[i];
+
+      bool found_daughter = false;
+      const simb::MCParticle* daughterParticleFromRecoTrack = truthUtil.GetMCParticleFromRecoTrack(*daughterTrackFromRecoTrack, evt, fTrackerTag); 
+
+      if( daughterParticleFromRecoTrack ){
+        int loc = 0;
+        for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
+          if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoTrack->TrackId() ){
+            found_daughter = true;
+            loc = j;
+            break;
+          }
         }
 
-
-        auto daughterTrackFromRecoTrack = trackDaughters[i];
-
-        bool found_daughter = false;
-        const simb::MCParticle* daughterParticleFromRecoTrack = truthUtil.GetMCParticleFromRecoTrack(*daughterTrackFromRecoTrack, evt, fTrackerTag); 
-
-        if( daughterParticleFromRecoTrack ){
-          int loc = 0;
-          for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
-            if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoTrack->TrackId() ){
-              found_daughter = true;
-              loc = j;
-              break;
-            }
-          }
-
-          MC_daughter_good_reco.push_back( found_daughter );
-          if( found_daughter ){
-            MC_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
-            MC_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
-            MC_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
-          }
-          else{
-
-            MC_daughter_true_PDGs.push_back( daughterParticleFromRecoTrack->PdgCode() );
-            MC_daughter_true_IDs.push_back( daughterParticleFromRecoTrack->TrackId() );
-            MC_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
-          }
+        MC_daughter_good_reco.push_back( found_daughter );
+        if( found_daughter ){
+          MC_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
+          MC_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
+          MC_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
         }
         else{
-          MC_daughter_good_reco.push_back( false );
-          MC_daughter_true_PDGs.push_back( -1 );
-          MC_daughter_true_IDs.push_back( -1 );
-          MC_daughter_true_lens.push_back( -1 );
+
+          MC_daughter_true_PDGs.push_back( daughterParticleFromRecoTrack->PdgCode() );
+          MC_daughter_true_IDs.push_back( daughterParticleFromRecoTrack->TrackId() );
+          MC_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
         }
-          
       }
+      else{
+        MC_daughter_good_reco.push_back( false );
+        MC_daughter_true_PDGs.push_back( -1 );
+        MC_daughter_true_IDs.push_back( -1 );
+        MC_daughter_true_lens.push_back( -1 );
+      }
+        
+    }
 
-      nShowerDaughters = showerDaughters.size();
+    nShowerDaughters = showerDaughters.size();
 
-      for( size_t i = 0; i < showerDaughters.size(); ++i ){
-        std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
-        daughter_showerID.push_back( showerDaughters[i]->ID() );
-        daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
-        daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
-        daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
+    for( size_t i = 0; i < showerDaughters.size(); ++i ){
+      std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
+      daughter_showerID.push_back( showerDaughters[i]->ID() );
+      daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
+      daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
+      daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
 
-        auto daughterShowerFromRecoTrack = showerDaughters[i];
+      auto daughterShowerFromRecoTrack = showerDaughters[i];
 
-        bool found_daughter = false;
-        const simb::MCParticle* daughterParticleFromRecoShower = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag); 
-        std::cout << "Shower daughter " << i << " " << daughterParticleFromRecoShower << std::endl;
+      bool found_daughter = false;
+      const simb::MCParticle* daughterParticleFromRecoShower = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag); 
+      std::cout << "Shower daughter " << i << " " << daughterParticleFromRecoShower << std::endl;
 
-        if( daughterParticleFromRecoShower ){
-          std::cout << "Shower daughter ID: " << daughterParticleFromRecoShower->TrackId() << std::endl;
-          int loc = 0;
-          for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
-            if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
-              found_daughter = true;
-              loc = j;
-              break;
-            }
-          }
-
-          MC_shower_daughter_good_reco.push_back( found_daughter );
-          if( found_daughter ){
-            MC_shower_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
-            MC_shower_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
-            MC_shower_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
-          }
-          else{
-            MC_shower_daughter_true_PDGs.push_back( daughterParticleFromRecoShower->PdgCode() );
-            MC_shower_daughter_true_IDs.push_back( daughterParticleFromRecoShower->TrackId() );
-            MC_shower_daughter_true_lens.push_back( daughterParticleFromRecoShower->Trajectory().TotalLength() );
+      if( daughterParticleFromRecoShower ){
+        std::cout << "Shower daughter ID: " << daughterParticleFromRecoShower->TrackId() << std::endl;
+        int loc = 0;
+        for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
+          if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
+            found_daughter = true;
+            loc = j;
+            break;
           }
         }
 
+        MC_shower_daughter_good_reco.push_back( found_daughter );
+        if( found_daughter ){
+          MC_shower_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
+          MC_shower_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
+          MC_shower_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
+        }
+        else{
+          MC_shower_daughter_true_PDGs.push_back( daughterParticleFromRecoShower->PdgCode() );
+          MC_shower_daughter_true_IDs.push_back( daughterParticleFromRecoShower->TrackId() );
+          MC_shower_daughter_true_lens.push_back( daughterParticleFromRecoShower->Trajectory().TotalLength() );
+        }
       }
 
-
-      geantGood_EndProcess = geantGoodParticle->EndProcess();
-
+    }
 
 
-      //Want to see all of the truth particles that contributed to this track
-      std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetAllMCParticlesFromRecoTrack(*thisTrack, evt, fTrackerTag);
-      std::cout << contribParts.size() << " Truth Particles Contributed to this track" << std::endl;
-      for( size_t ip = 0; ip < contribParts.size(); ++ip ){
-        auto part = contribParts.at( ip ).first;
-        double energy = contribParts.at( ip ).second;
-        std::cout << ip << " " << part->TrackId() << " " << part->PdgCode() << " " << energy << std::endl;
-      }
-
-
-      //Calorimetry 
-      //
-      std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
-      std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
-      auto calo_dQdX = calo[0].dQdx();
-      auto calo_dEdX = calo[0].dEdx();
-      auto calo_range = calo[0].ResidualRange();
-      for( size_t i = 0; i < calo_dQdX.size(); ++i ){
-
-        std::cout << calo_dQdX[i] << " " << calo_dEdX[i] << " " << calo_range[i] << std::endl;
-        dQdX.push_back( calo_dQdX[i] );
-        dEdX.push_back( calo_dEdX[i] );
-        resRange.push_back( calo_range[i] );
-      }
+    geantGood_EndProcess = geantGoodParticle->EndProcess();
 
 
 
-    } 
+    //Want to see all of the truth particles that contributed to this track
+    std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetMCParticleListFromRecoTrack(*thisTrack, evt, fTrackerTag);
+    std::cout << contribParts.size() << " Truth Particles Contributed to this track" << std::endl;
+    for( size_t ip = 0; ip < contribParts.size(); ++ip ){
+      auto part = contribParts.at( ip ).first;
+      double energy = contribParts.at( ip ).second;
+      std::cout << ip << " " << part->TrackId() << " " << part->PdgCode() << " " << energy << std::endl;
+    }
+
+
+    //Calorimetry 
+    //
+    std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
+    std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
+    auto calo_dQdX = calo[0].dQdx();
+    auto calo_dEdX = calo[0].dEdx();
+    auto calo_range = calo[0].ResidualRange();
+    for( size_t i = 0; i < calo_dQdX.size(); ++i ){
+
+      std::cout << calo_dQdX[i] << " " << calo_dEdX[i] << " " << calo_range[i] << std::endl;
+      dQdX.push_back( calo_dQdX[i] );
+      dEdX.push_back( calo_dEdX[i] );
+      resRange.push_back( calo_range[i] );
+    }
+
+
+
+  } 
 
 
   fTree->Fill();
@@ -589,8 +601,13 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
   fTree->Branch("MC_true_PDG", &MC_true_PDG);
+
   fTree->Branch("geantGood_PDG", &geantGood_PDG);
   fTree->Branch("geantGood_EndProcess", &geantGood_EndProcess);
+  fTree->Branch("geantGood_EndVertex_X", &geantGood_EndVertex_X);
+  fTree->Branch("geantGood_EndVertex_Y", &geantGood_EndVertex_Y);
+  fTree->Branch("geantGood_EndVertex_Z", &geantGood_EndVertex_Z);
+
   fTree->Branch("MC_true_EndProcess", &MC_true_EndProcess);
   fTree->Branch("MC_true_Process", &MC_true_Process);
   fTree->Branch("MC_origin", &MC_origin);
@@ -641,6 +658,9 @@ void pionana::PionAnalyzerMC::reset()
   MC_true_PDG = 0;
   geantGood_PDG = 0;
   geantGood_EndProcess ="";
+  geantGood_EndVertex_X = 0.;
+  geantGood_EndVertex_Y = 0.;
+  geantGood_EndVertex_Z = 0.;
   MC_true_EndProcess ="";
   MC_true_Process ="";
   MC_origin = -1;

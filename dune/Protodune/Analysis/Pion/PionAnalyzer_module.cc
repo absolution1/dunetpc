@@ -42,7 +42,7 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -528,7 +528,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
 
 
         //Want to see all of the truth particles that contributed to this track
-        std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetAllMCParticlesFromRecoTrack(*thisTrack, evt, fTrackerTag);
+        std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetMCParticleListFromRecoTrack(*thisTrack, evt, fTrackerTag);
         std::cout << contribParts.size() << " Truth Particles Contributed to this track" << std::endl;
         for( size_t ip = 0; ip < contribParts.size(); ++ip ){
           auto part = contribParts.at( ip ).first;
