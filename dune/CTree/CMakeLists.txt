@@ -8,7 +8,7 @@ art_make(
     lardata_Utilities
     lardataobj_RawData
     lardataobj_RecoBase
-    lardata_RecoObjects larreco_Deprecated
+    lardata_RecoObjects
 	  larana_OpticalDetector
 	  larana_OpticalDetector_OpHitFinder
 	  larcorealg_Geometry
