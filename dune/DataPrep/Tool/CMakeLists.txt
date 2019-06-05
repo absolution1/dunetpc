@@ -24,6 +24,13 @@ simple_plugin(AdcChannelDumper   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcChannelTrimmer  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
                 dune_DuneCommon

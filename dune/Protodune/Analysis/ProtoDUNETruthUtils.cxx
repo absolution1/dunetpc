@@ -114,7 +114,8 @@ std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetMCParticleHits(
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
   for(const recob::Hit& hit : *hitHandle) {
     for(const int trackId : bt_serv->HitToTrackIds(hit)) {
-      if(pi_serv->TrackIdToParticle_P(trackId) == &mcpart) {
+      if(pi_serv->TrackIdToParticle_P(trackId) == 
+         pi_serv->TrackIdToParticle_P(mcpart.TrackId())) {
         outVec.push_back(&hit);
         break;
       }
@@ -124,11 +125,12 @@ std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetMCParticleHits(
   return outVec;
 }
 
-// Function to return the purity of a reconstructed object. By definition:
-// Purity = number of shared hits between MCParticle and reco object / number of hits in MCParticle
+// Function to return the completeness of a reconstructed object. By definition:
+// Completeness = number of shared hits between MCParticle and reco object /
+//                number of hits in MCParticle
 template <typename T>
-double protoana::ProtoDUNETruthUtils::GetPurity(const T &recobj, const art::Event &evt,
-  std::string recoModule, std::string hitModule) const {
+double protoana::ProtoDUNETruthUtils::GetCompleteness(const T &recobj,
+  const art::Event &evt, std::string recoModule, std::string hitModule) const {
 
   // Find the hits of the corresponding MCParticle.
   const simb::MCParticle* mcmatch = GetMCParticleFromReco(recobj, evt, recoModule);
@@ -141,17 +143,17 @@ double protoana::ProtoDUNETruthUtils::GetPurity(const T &recobj, const art::Even
 
   return (double)sharedHits.size() / MCHits.size();
 }
-template double protoana::ProtoDUNETruthUtils::GetPurity<recob::PFParticle>
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::PFParticle>
   (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
-template double protoana::ProtoDUNETruthUtils::GetPurity<recob::Track>
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::Track>
   (const recob::Track&, const art::Event&, std::string, std::string) const;
-template double protoana::ProtoDUNETruthUtils::GetPurity<recob::Shower>
+template double protoana::ProtoDUNETruthUtils::GetCompleteness<recob::Shower>
   (const recob::Shower&, const art::Event&, std::string, std::string) const;
 
-// Function to return the completeness of a PFParticle. By definition:
-// Completeness = number of shared hits between MCParticle and reco object /
-//                number of hits in reco object
-double protoana::ProtoDUNETruthUtils::GetCompleteness(const recob::PFParticle &pfpart,
+// Function to return the purity of a PFParticle. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::PFParticle &pfpart,
   const art::Event &evt, std::string pfparticleModule) const {
   
   // Find the corresponding MCParticle and shared hits.
@@ -167,10 +169,10 @@ double protoana::ProtoDUNETruthUtils::GetCompleteness(const recob::PFParticle &p
   return (double)sharedHits.size() / pfpHits.size();
 }
 
-// Function to return the completeness of a reco track. By definition:
-// Completeness = number of shared hits between MCParticle and reco object /
-//                number of hits in reco object
-double protoana::ProtoDUNETruthUtils::GetCompleteness(const recob::Track &track,
+// Function to return the purity of a reco track. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::Track &track,
   const art::Event &evt, std::string trackModule) const {
   
   // Find the corresponding MCParticle and shared hits.
@@ -186,10 +188,10 @@ double protoana::ProtoDUNETruthUtils::GetCompleteness(const recob::Track &track,
   return (double)sharedHits.size() / trackHits.size();
 }
 
-// Function to return the completeness of a reco shower. By definition:
-// Completeness = number of shared hits between MCParticle and reco object /
-//                number of hits in reco object
-double protoana::ProtoDUNETruthUtils::GetCompleteness(const recob::Shower &shower,
+// Function to return the purity of a reco shower. By definition:
+// Purity = number of shared hits between MCParticle and reco object /
+//          number of hits in reco object
+double protoana::ProtoDUNETruthUtils::GetPurity(const recob::Shower &shower,
   const art::Event &evt, std::string showerModule) const {
   
   // Find the corresponding MCParticle and shared hits.

@@ -54,7 +54,6 @@ typedef std::numeric_limits< double > dbl;
 class proto::BeamEvent : public art::EDProducer {
 public:
   explicit BeamEvent(fhicl::ParameterSet const & p);
-  //  virtual ~BeamEvent();
 
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
@@ -66,14 +65,13 @@ public:
   BeamEvent & operator = (BeamEvent &&) = delete;
 
   // Required functions.
-  void reconfigure(fhicl::ParameterSet const & p);
+  //void reconfigure(fhicl::ParameterSet const & p);
+  void reset();
   void produce(art::Event & e) override;
 
   // Selected optional functions.
   void beginJob() override;
 
-
-  //std::bitset<sizeof(double)*CHAR_BIT> toBinary(const long num);  
   uint64_t joinHighLow(double,double);
 
   TVector3 ConvertProfCoordinates(double x, double y, double z, double zOffset);
@@ -81,7 +79,8 @@ public:
   bool rotated = false;
   void RotateMonitorVector(TVector3 &vec); 
 
-  uint64_t GetRawDecoderInfo(art::Event &);
+  void GetRawDecoderInfo(art::Event &);
+
   void TimeIn(art::Event &, uint64_t);
   void GetSpillInfo(art::Event &);
   void MatchBeamToTPC();
@@ -100,7 +99,6 @@ public:
   void  parseXBPF(uint64_t);
 
   void  parseXTOF(uint64_t);
-  void  parseXCET(uint64_t);
   void  parseXCETDB(uint64_t);
 
 
@@ -164,17 +162,7 @@ private:
 
   double acqTime;
   double acqStampMBPL;
-  int HLTWord;
-  long long int HLTTS;
-  int BeamOn;
-  int BITrigger;
-  int Upstream;
-  int C1;
-  int C2;
-  int BP1;
-  int BP2;
-  int BP3;
-  int BP4;
+
   int C1DB;
   int C2DB;
 
@@ -191,7 +179,6 @@ private:
   TVector3 fBMBasisY = TVector3(0.,1.,0.);
   TVector3 fBMBasisZ = TVector3(0.,0.,1.);
 
-  // Declare member data here.
   double  fTimeWindow;
   std::string fBundleName;
   std::string fXCETBundleName;
@@ -201,7 +188,6 @@ private:
   double fXCETFetchShift;
   int fIFBeamDebug;
   uint64_t fFixedTime;
-  //std::vector< uint64_t > fMultipleTimes;
 
   std::string firstUpstreamName;
   std::string secondUpstreamName;
@@ -305,8 +291,6 @@ private:
   art::ServiceHandle<ifbeam_ns::IFBeam> ifb;
 
   art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
-
-  uint64_t validTimeStamp;
 
 //  double L1=1.980, L2=1.69472, L3=2.11666;
   double magnetLen, magnetField;
@@ -473,7 +457,7 @@ std::vector<double> proto::BeamEvent::FetchAndReport(long long time, std::string
 //(i.e. coming from beam)
 //
 //Returns the timestamp of the high level trigger.
-uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
+void proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
 
   if( fPrintDebug ){ 
     MF_LOG_INFO("BeamEvent") << "\n";
@@ -510,150 +494,6 @@ uint64_t proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     RDTSTimeNano = 20.    * RDTSTickNano;
 
   }
-
-  auto const CTBHandle = e.getValidHandle< std::vector< raw::ctb::pdspctb > >("ctbrawdecoder:daq");
-  if(CTBHandle.isValid()){
-
-    auto const & CTB = (*CTBHandle)[0];
-    bool noHLT = true;
-        
-    if( fPrintDebug )
-      MF_LOG_INFO("BeamEvent") << "NTriggers: " << CTB.GetNTriggers() << "\n";
-
-    for (size_t nTrig = 0; nTrig < CTB.GetNTriggers(); ++nTrig){
-
-      raw::ctb::Trigger ctbTrig = CTB.GetTrigger(nTrig);      
-      uint32_t  theType  = ctbTrig.word_type;
-      ULong64_t theWord  = ctbTrig.trigger_word;
-      ULong64_t theTS    = ctbTrig.timestamp;
-     
-      if (theType == 2 ){
-
-        long long deltaCTBtoRDTS = RDTSTime - (long long)theTS;        
-
-        if( fPrintDebug )
-          MF_LOG_INFO("BeamEvent") << "Type 2. deltaT: " << deltaCTBtoRDTS << "\n";
-
-        if( deltaCTBtoRDTS <= (fOffsetCTBtoRDTS + fToleranceCTBtoRDTS) 
-        &&  deltaCTBtoRDTS >= (fOffsetCTBtoRDTS - fToleranceCTBtoRDTS) ){
-        
-       
-          HLTWord = theWord;
-          HLTTS = theTS;
-
-          //The High Level Trigger consists of 8 bits
-          //HLT7 -> HLT0
-          std::bitset<8> theHLT(theWord);
-
-          if( fPrintDebug ){
-            MF_LOG_INFO("BeamEvent") << "Found the High Level Trigger" << "\n";
-            MF_LOG_INFO("BeamEvent") << HLTTS << "\n";
-            MF_LOG_INFO("BeamEvent") << "High Level Trigger: " << theHLT << "\n";
-          }
-          
-          //HLT5 corresponds to excluding Low Level Triggers
-          //from the Beamline
-          //So return 0, we'll skip this event
-          if (theHLT[5]) {         
-            if( fPrintDebug )
-              MF_LOG_INFO("BeamEvent") << "HLT 5 activated. This is a Beam-Excluded event." << "\n";
-
-            noHLT = false;
-            break;
-          }
-          else if (theHLT[0] && (theHLT.count() == 1)) {
-            if( fPrintDebug )
-              MF_LOG_INFO("BeamEvent") << "Only HLT 0 activated. This is just a random trigger. No beamline info was activated." << "\n";
-
-            noHLT = false;
-            break;
-          }
-          else{
-            if( fPrintDebug )
-              MF_LOG_INFO("BeamEvent") << "Found valid beam event." << "\n";
-
-            noHLT = false;
-            break;
-          }
-        }
-      }       
-    }
-
-    if(noHLT){
-      //This happens sometimes
-      //Just skip the event
-      if( fPrintDebug )
-        MF_LOG_INFO("BeamEvent") << "No High Level Trigger Found!" << "\n";
-
-      return 0;
-    }
-    else{
-
-      //Now check the channel statuses        
-      if( fPrintDebug )
-        MF_LOG_INFO("BeamEvent") << "ChStatuses: " << CTB.GetNChStatuses() << "\n";
-
-      for(size_t iStat = 0; iStat < CTB.GetNChStatuses(); ++ iStat){
-        raw::ctb::ChStatus theStatus = CTB.GetChStatuse(iStat);
-
-        uint32_t the_beam_hi    = theStatus.beam_hi; 
-        uint32_t the_beam_lo    = theStatus.beam_lo; 
-        long long the_timestamp = theStatus.timestamp; 
-        
-        if( fPrintDebug )
-          MF_LOG_INFO("BeamEvent") << "Timestamp : " << the_timestamp << "\n";
-
-        int delta = HLTTS - the_timestamp;
-        if( delta < 2 && delta >= 0 ){
-
-    
-          std::bitset<4> beam_lo(the_beam_lo);
-          std::bitset<5> beam_hi(the_beam_hi);
-    
-          BeamOn     =  beam_lo[0];
-          BITrigger  =  beam_lo[1];
-          Upstream   =  beam_lo[2];
-          C1         =  beam_lo[3];
-          C2         =  beam_hi[0];
-          BP1        =  beam_hi[1];
-          BP2        =  beam_hi[2];
-          BP3        =  beam_hi[3];
-          BP4        =  beam_hi[4];
-    
-    
-          if( fPrintDebug ){
-            MF_LOG_INFO("BeamEvent") << "Found Channel status matching  HLT timestamp" << "\n";
-            MF_LOG_INFO("BeamEvent") << "beam_hi   : " << beam_hi << "\n"; 
-            MF_LOG_INFO("BeamEvent") << "beam_lo   : " << beam_lo << "\n"; 
-  
-            MF_LOG_INFO("BeamEvent") << "%%%%Decoding the beam channels%%%" << "\n";
-            MF_LOG_INFO("BeamEvent") << "Beam On:    " << BeamOn    << "\n"
-                      << "BI Trigger: " << BITrigger << "\n"
-                      << "Upstream:   " << Upstream  << "\n"
-                      << "C1:         " << C1        << "\n"
-                      << "C2:         " << C2        << "\n"
-                      << "BP1:        " << BP1       << "\n"
-                      << "BP2:        " << BP2       << "\n"
-                      << "BP3:        " << BP3       << "\n"
-                      << "BP4:        " << BP4       << "\n";
-            MF_LOG_INFO("BeamEvent") << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << "\n" << std::endl;        
-          }
-    
-
-          //This means the beamline wasn't triggered
-          if(!BITrigger) return 0;
-    
-          return HLTTS;
-
-        }
-      }
-      return 0;
-    }
-  }
-
-  
-  MF_LOG_WARNING("BeamEvent") << "Error! Invalid CTB Handle!" << "\n";
-  return 0;
 
 }
 
@@ -725,7 +565,6 @@ void proto::BeamEvent::MatchS11ToGen(){
 
     double diff = GenTrigSec - s11Sec;
     diff += 1.e-9*(GenTrigNano - s11Nano);
-    //MF_LOG_INFO("BeamEvent") << iT << " " << diff  << "\n";
 
     if( fS11DiffLower < diff && diff < fS11DiffUpper ){
 
@@ -776,7 +615,6 @@ void proto::BeamEvent::MatchBeamToTPC(){
     }
 
     double diff = diffSec + diffNano; 
-//    MF_LOG_INFO("BeamEvent") << diff << "\n";
   
     if( ( fTimingCalibration - fCalibrationTolerance < diff ) && (fTimingCalibration + fCalibrationTolerance > diff) ){
 
@@ -849,35 +687,30 @@ void proto::BeamEvent::SetBeamEvent(){
   C2DB = beamspill->GetCKov1Status( activeTrigger );
 }
 
-////////////////////////
-// Producer Method (reads in the event and derives values)
-void proto::BeamEvent::produce(art::Event & e){
-  //Reset 
+
+void proto::BeamEvent::reset(){
   acqTime = 0;
   acqStampMBPL = 0;
-  HLTWord = 0;
-  HLTTS = 0;
-  BeamOn      = -1;
-  BITrigger   = -1;
   RDTSTrigger = -1;
-  Upstream    = -1;
-  C1          = -1;
-  C2          = -1;
   C1DB        = -1;
   C2DB        = -1;
-  BP1         = -1;
-  BP2         = -1;
-  BP3         = -1;
-  BP4         = -1; 
   SpillStart  = -1;
   SpillEnd    = -1;
   SpillOffset = -1;
-
+  
   s11Nano     = -1.;
   s11Sec      = -1.;
-
+  
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
+}
+
+
+////////////////////////
+// Producer Method (reads in the event and derives values)
+void proto::BeamEvent::produce(art::Event & e){
+
+  reset();
 
   eventNum = e.event();
   runNum = e.run();
@@ -892,7 +725,9 @@ void proto::BeamEvent::produce(art::Event & e){
   beamevt = new beam::ProtoDUNEBeamEvent();
   beamspill = new beam::ProtoDUNEBeamSpill();
 
-  validTimeStamp = GetRawDecoderInfo(e);
+  //Get the information from the timing system
+  //This gets RDTSTrigger and RDTSTime
+  GetRawDecoderInfo(e);
   
   //Get Spill Information
   //This stores Spill Start, Spill End, 
@@ -1014,10 +849,15 @@ void proto::BeamEvent::produce(art::Event & e){
 
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
-          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
         catch( std::exception e ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
+        }
+        try{
+          bfp_xcet->FillCache( fetch_time - fFillCacheDown );
+        }
+        catch( std::exception e ){
+          MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
         }
 
         if( fPrintDebug ){
@@ -1177,11 +1017,12 @@ void proto::BeamEvent::produce(art::Event & e){
     prev_beamspill = *beamspill;   
   }
   
-  beamevt->SetBITrigger(BITrigger);
+  //Can Remove BITrigger,CTBTimestamp
+  beamevt->SetBITrigger(-1);
   beamevt->SetTimingTrigger(RDTSTrigger);
   beamevt->SetSpillStart(SpillStart);
   beamevt->SetSpillOffset(SpillOffset);
-  beamevt->SetCTBTimestamp( HLTTS );
+  beamevt->SetCTBTimestamp( -1. );
   beamevt->SetRDTimestamp( RDTSTime );
 
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
@@ -1780,36 +1621,6 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
 
 }
 
-void proto::BeamEvent::parseXCET(uint64_t time){
-  if(fCKov1 != ""){  
-
-    try{
-      std::vector< double > pressureCKov1   = FetchAndReport(time, fXCETPrefix + fCKov1 + ":pressure", bfp);
-      CKov1Pressure = pressureCKov1[0];
-    }
-    catch( std::exception e){
-      MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 1 Pressure\n";
-      CKov1Pressure = 0.; 
-    }
-
-  }
-  
-  if(fCKov2 != ""){
-    try{
-      std::vector< double > pressureCKov2   = FetchAndReport(time, fXCETPrefix + fCKov2 + ":pressure", bfp);
-      CKov2Pressure = pressureCKov2[0];
-    }
-    catch( std::exception e){
-      MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 2 Pressure\n";
-      CKov2Pressure = 0.; 
-    }  
-  }
-
-}
-// END BeamEvent::parseXCET
-////////////////////////
-
-
 
 ////////////////////////
 // 
@@ -1953,19 +1764,8 @@ void proto::BeamEvent::beginJob()
     fOutTree->Branch("Counts2", &CKov2Counts);
     fOutTree->Branch("acqTime",        &acqTime);
     fOutTree->Branch("acqStampMBPL",   &acqStampMBPL);
-    fOutTree->Branch("HLTWord",     &HLTWord);
-    fOutTree->Branch("HLTTS",       &HLTTS);
-    fOutTree->Branch("BeamOn",      &BeamOn);
-    fOutTree->Branch("BITrigger",   &BITrigger);
-    fOutTree->Branch("Upstream",    &Upstream);
-    fOutTree->Branch("C1",          &C1);
-    fOutTree->Branch("C2",          &C2);
     fOutTree->Branch("C1DB",        &C1DB);
     fOutTree->Branch("C2DB",        &C2DB);
-    fOutTree->Branch("BP1",         &BP1);
-    fOutTree->Branch("BP2",         &BP2);
-    fOutTree->Branch("BP3",         &BP3);
-    fOutTree->Branch("BP4",         &BP4);
     fOutTree->Branch("s11Sec",      &s11Sec);
     fOutTree->Branch("s11Nano",      &s11Nano);
   }    
@@ -1999,8 +1799,7 @@ void proto::BeamEvent::beginJob()
     fXTOF2BTree->Branch("diff2B", &diff2B);
   }
 
-  // Read in and cache the beam bundle folder for a specific time
-
+  //Tells IFBeam to print out debug statements
   ifbeam_ns::BeamFolder::_debug = fIFBeamDebug;
 
   bfp = ifb->getBeamFolder(fBundleName,fURLStr,fTimeWindow);
@@ -2071,8 +1870,6 @@ void proto::BeamEvent::BeamMonitorBasisVectors(){
 void proto::BeamEvent::RotateMonitorVector(TVector3 &vec){
   vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
   vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
-
-  std::cout << "Rotated: " << vec.X() << " " << vec.Y() << " " << vec.Z() << std::endl;
 }
 
 void proto::BeamEvent::MakeTrack(size_t theTrigger){
