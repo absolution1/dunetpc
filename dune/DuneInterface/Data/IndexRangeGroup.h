@@ -31,12 +31,20 @@ public:
   NameVector labels; // Label
   RangeVector ranges;
 
-  // Ctors.
+  // Ctor for empty (invalid) group.
   IndexRangeGroup() { };
+
+  // Ctor from name, labels and ranges.
   IndexRangeGroup(Name a_name, const NameVector& a_labels, const RangeVector& a_ranges)
   : name(a_name), labels(a_labels), ranges(a_ranges) { }
+
+  // Ctor from name and ranges (no labels).
   IndexRangeGroup(Name a_name, const RangeVector& a_ranges)
   : name(a_name), ranges(a_ranges) { }
+
+  // Ctor from a single range.
+  IndexRangeGroup(const IndexRange& ran)
+  : name(ran.name), labels(ran.labels), ranges(1, ran) { }
 
   // Length of the range.
   Index size() const { return ranges.size(); }
