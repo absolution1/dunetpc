@@ -11,21 +11,67 @@
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 
-#include <iostream>
+#include "lardataobj/RawData/RawDigit.h"
+
 #include <fstream>
 #include <string>
-#include <ctime>
 #include <vector>
-#include <stdint.h>
+//#include <stdint.h>
 
-// this namespace lris seems to be used for other raw data converters
-namespace lris  
+#define EVDQFLAG(info) ( (info & 0x3F ) == 0 )
+#define GETDCFLAG(info) (CHECKBYTEBIT(info, DCBITFLAG)>0)
+
+// anonymous namespace
+namespace 
 {
-  //typedef struct timespec trigstamp_t; // time_t tv_sec, long tv_nsec
-  typedef std::vector<uint16_t> adcdata_t;
+  typedef struct timespec trigstamp_t; // time_t tv_sec, long tv_nsec
+  //typedef std::vector<uint16_t> adcdata_t;
+  typedef std::vector< raw::RawDigit::ADCvector_t > adcbuf_t;
   typedef std::vector<uint8_t>  eflags_t;
   typedef char BYTE;
 
+  //
+  struct DaqEvent
+  {
+    // event has been correctly loaded
+    //bool valid;
+
+    // global event quality flag
+    bool good;
+    
+    // run info
+    uint32_t runnum;       // run number
+    uint8_t  runflags;
+    
+    // event info
+    uint32_t evnum;
+    eflags_t evflags;
+    
+    // trigger info
+    uint8_t     trigtype;
+    uint32_t    trignum;
+    trigstamp_t trigstamp;
+    
+    // unpacked CRO ADC buffer
+    adcbuf_t crodata;
+
+    // unpacked CRO ADC data
+    //adcdata_t lrodata;
+      
+    // number of decoded channels
+    unsigned chcro() const { return crodata.size(); }
+
+    // CRO data compression
+    raw::Compress_t compression;
+  };
+}
+
+//
+// this namespace lris seems to be used for other raw data converters
+namespace lris  
+{
+
+  ///
   class PDDPRawInputDriver 
   {
   public: 
@@ -47,16 +93,20 @@ namespace lris
   private: 
     art::SourceHelper const&	__sourceHelper;
     art::SubRunID 		__currentSubRunID;
-    uint16_t 			__eventCnt; 
-    uint16_t                    __eventNum;
+    uint32_t 			__eventCtr; 
+    uint32_t                    __eventNum;
 
+    // number of uncompressed samples per channel
+    size_t __nsacro;
 
-    void __open(std::string finname);
+    // close binary file
     void __close();
 
     // read a chunk of binary data
     void __readChunk( std::vector<BYTE> &bytes, size_t sz );
-    bool __unpackEvent( std::vector<BYTE> &buf );
+
+    // unpack binary data written by each L1 evb builder
+    bool __unpackEvent( std::vector<BYTE> &buf, DaqEvent &event );
 
     // file locations
     std::vector<std::streampos> __events;
@@ -94,13 +144,13 @@ namespace lris
     {
       eveinfo_t ei;
       const BYTE* bytes;
-      adcdata_t crodata;
-      adcdata_t lrodata;
+      adcbuf_t crodata;
+      //adcbuf_t lrodata;
     } fragment_t;
 
     //
     unsigned __unpack_evtable();
     unsigned __unpack_eve_info( const char *buf, eveinfo_t &ei );
- 
   };
 }
+
