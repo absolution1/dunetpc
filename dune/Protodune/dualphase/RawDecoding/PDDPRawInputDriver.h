@@ -16,8 +16,6 @@
 #include <fstream>
 #include <string>
 
-#define EVDQFLAG(info) ( (info & 0x3F ) == 0 )
-#define GETDCFLAG(info) (CHECKBYTEBIT(info, DCBITFLAG)>0)
 
 // anonymous namespace 
 namespace 
