@@ -10,12 +10,10 @@
 
 #include "PDDPRawInputDriver.h"
 
-#include <sstream>
-#include <cstdlib>
-#include <cstring>
+#include <exception>
 #include <thread>
 #include <mutex>
-#include <bitset>
+#include <regex>
 
 
 //
@@ -143,6 +141,7 @@ namespace lris
       }
 
     __currentSubRunID = art::SubRunID();
+    __file_seqno      = __get_file_seqno( name );
   }
 
 
@@ -179,7 +178,7 @@ namespace lris
     //if( not ok ) return true;
     
     art::RunNumber_t rn     = event.runnum;
-    art::SubRunNumber_t srn = __subrn; // seq no from file name
+    art::SubRunNumber_t srn = __file_seqno; // seq no from file name
     
     uint32_t sec  = event.trigstamp.tv_sec;
     uint32_t nsec =  event.trigstamp.tv_nsec;
@@ -212,24 +211,23 @@ namespace lris
 					      event.evnum, tstamp );
     
 
-    std::unique_ptr<raw::ExternalTrigger>  trig_data ( new std::vector<raw::ExternalTrigger>  );
-    std::unique_ptr<std::vector<raw::RawDigit> >  cro_data ( new std::vector<raw::RawDigit>  );
-
-    trig_data = raw::ExternalTrigger( event.trigtype, tval );
+    std::unique_ptr<raw::ExternalTrigger> trig_data (new raw::ExternalTrigger(event.trigtype, tval));
+    std::unique_ptr< std::vector<raw::RawDigit> > cro_data ( new std::vector<raw::RawDigit>  );
 
     event.crodata.reserve(event.crodata.size() + it->crodata.size());
     std::move( std::begin( it->crodata ), std::end( it->crodata ), 
 	       std::back_inserter( event.crodata ));
     it->crodata.clear();
 	
-    cro_data->reserve( event.crodata.size() );
-    
+    cro_data->resize( event.crodata.size() );
     for( size_t i=0;i<event.crodata.size();i++ )
       {
-	raw::ChannelID_t ch = i;
-	size_t nsamples = event.crodata[i].size();
-	raw::RawDigit rd(ch, nsamples, &event.crodata[i], event.compression);
-	cro_data->push_back( rd );
+	// This ch Id is based on the order the channel data are stored in file (always the same)
+	raw::ChannelID_t ch = i; 
+	cro_data[i]->push_back( raw::RawDigit(ch, 
+					      nsamples, 
+					      std::move( event.crodata[i] ), 
+					      event.compression) );
       }
 
     art::put_product_in_principal(std::move(trig_data), *outE, "daq");
@@ -278,7 +276,7 @@ namespace lris
     __readChunk( buf, msz);
     if( buf.size() != msz )
       {
-	mf::LogError(__FUNCTION__)<<"Could not read number of events from file\n";
+	mf::LogError(__FUNCTION__)<<"Could not read number of events\n";
 	return 0;
       }
   
@@ -354,7 +352,7 @@ namespace lris
     unsigned rval = 0;
   
     //
-    memset(&ei, 0, sizeof(ei));
+    //memset(&ei, 0, sizeof(ei));
     try
       {
 	// check for delimiting words
@@ -504,6 +502,38 @@ namespace lris
   
     return true;
   }
+
+
+  // assumed file name form <runno>_<seqno>_<L2evbID>.<extension>
+  // e.g., 198_129_b.test
+  unsigned PDDPRawInputDriver::__get_file_seqno( std::string s )
+  {
+    unsigned rval = 0;
+    
+    std::cout << "input " << s << std::endl;
+    std::regex r("[[:digit:]]+_([[:digit:]]+)_[:alnum:]\\.[[:alnum:]]+");
+    std::smatch m; 
+  
+    if( !regex_search( s, m, r ) ) 
+      {
+	mf::LogWarning(__FUNCTION__) << "Unable to extract seqno from file name "<< s <<"\n";
+	return rval;
+      }
+  
+    // 
+    try 
+      {
+	// str() is the entire match 
+	rval = std::stoi( m.str(1) );
+      }
+    catch (const std::invalid_argument& ia) 
+      {
+	rval = 0;
+	mf::LogWarning(__FUNCTION__) << "This should never happen\n";
+      }
+  
+    return rval;
+  }
   
 
-}
+} //namespace lris

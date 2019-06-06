@@ -15,13 +15,11 @@
 
 #include <fstream>
 #include <string>
-#include <vector>
-//#include <stdint.h>
 
 #define EVDQFLAG(info) ( (info & 0x3F ) == 0 )
 #define GETDCFLAG(info) (CHECKBYTEBIT(info, DCBITFLAG)>0)
 
-// anonymous namespace
+// anonymous namespace 
 namespace 
 {
   typedef struct timespec trigstamp_t; // time_t tv_sec, long tv_nsec
@@ -115,6 +113,7 @@ namespace lris
     // input file
     size_t __filesz;
     std::ifstream __file;
+    unsigned __file_seqno;
 
     // header sizes
     enum { evinfoSz = 44 };
@@ -151,6 +150,7 @@ namespace lris
     //
     unsigned __unpack_evtable();
     unsigned __unpack_eve_info( const char *buf, eveinfo_t &ei );
+    unsigned __get_file_seqno( std::string s);
   };
 }
 
