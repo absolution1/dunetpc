@@ -168,7 +168,7 @@ tools.pd_evtviewNfemb: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
-  EventGraphs: ["event:0:0:nfemb:0:125"]
+  EventGraphs: ["event:1:1:nfemb:0:125"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -179,7 +179,7 @@ tools.pd_evtviewPed: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["meanPed:80:0:4000"]
-  EventGraphs: ["event:0:0:meanPed:0:0"]
+  EventGraphs: ["event:1:1:meanPed:0:0"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -190,7 +190,7 @@ tools.pd_evtviewPedpwr: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["rmPedPower:50:0:25"]
-  EventGraphs: ["event:0:0:rmPedPower:0:14"]
+  EventGraphs: ["event:1:1:rmPedPower:0:14"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -201,7 +201,7 @@ tools.pd_evtviewNfembByTps: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:21:0:21"]
-  EventGraphs: ["event:0:0:nfemb:0:21"]
+  EventGraphs: ["event:1:1:nfemb:0:21"]
   ChannelRanges: @local::data.pd_tpsChannelRanges
   ChannelRangeLabel: "%CRLABEL% (%CRLABEL2% %CRLABEL1%)"
   ClockUnit: @local::data.pd_ClockUnit

@@ -16,7 +16,9 @@
 //                The name fields may contain any of the above plus
 //                  event - Event number
 //                  clock - Timing clock count
-//                For both histograms and graphs min >= max gives auto scaling
+//                For both histograms and graphs min > max gives auto scaling
+//                If xmax > xmin the displayed range is [min, xmax]
+//                For graphs, if xmax == xmin and xmax >= 0, plotted range is [dmin-xmax, dmax+xmax]
 //  ChannelRanges - If this is not empty, then a separate histogram an graph plots
 //                  are made for each channel range. Otherwise all channels are included.
 //                  The tool channelRanges is used to map the names in this list to ranges.
@@ -27,6 +29,10 @@
 //                      XXX = CRLABEL2 to replace with cr.label(2)
 //      ClockUnit - Unit for plotting clock counts: tick, ktick or Mtick
 //      ClockRate - # clock ticks per second. Used to conver to time.
+//
+// Histogram specifiers are string with the form 
+// Graph specifiers are xnam:xmin:xmax:ynam:ymin:ymax
+//   where [dmin, dmax] are the graph data limits.
 #ifndef AdcEventViewer_H
 #define AdcEventViewer_H
 
@@ -116,9 +122,9 @@ public:
   // after initialization.
   class State {
   public:
-    Index run;
-    Index event;             // Current event.
-    LongIndex clock;         // Current timing clock.
+    Index beginEventCount;   // # calls to beginEvent
+    Index endEventCount;     // # calls to endEvent
+    DuneEventInfo eventInfo; // Event info
     IndexVector events;      // Events in processed order.
     LongIndexVector clocks;  // Timing clocks in processed order.
     LongIndex firstClock;    // First timing clock.
@@ -126,6 +132,12 @@ public:
     IndexSet eventSet;       // Events ordered.
     Index ngroup;            // # groups processed for this event
     ChannelRangeStates crstates;
+    // Methods.
+    bool haveEvent() const { return eventInfo.event; }               // Is there a current event?
+    Index run() const { return eventInfo.run; }                      // Current run number.
+    std::string runString() const { return eventInfo.runString(); }  // RUN-SUBRUN
+    Index event() const { return eventInfo.event; }                  // Current event.
+    LongIndex clock() const { return eventInfo.triggerClock; }       // Current timing clock.
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -135,6 +147,8 @@ public:
   ~AdcEventViewer() override;
 
   // AdcChannelTool methods.
+  DataMap beginEvent(const DuneEventInfo& devt) const override;
+  DataMap endEvent(const DuneEventInfo& devt) const override;
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
@@ -146,10 +160,10 @@ public:
   ChannelRangeState& crstate(Name crn) const;
 
   // Initialize the state for a new event.
-  void startEvent(const AdcChannelData& acd) const;
+  void beginEventState(const DuneEventInfo& devt) const;
 
   // End current event in state.
-  void endEvent() const;
+  void endEventState(const DuneEventInfo& devt) const;
 
   // Print a report.
   void printReport() const;
