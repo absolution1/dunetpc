@@ -96,3 +96,4 @@ install_source()
 install_scripts()
 
 add_subdirectory(Light)
+add_subdirectory(RawDecoding)
