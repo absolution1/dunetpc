@@ -588,7 +588,7 @@ void AdcEventViewer::displayGraphs() const {
         double ydmin = 0.0;
         double ydmax = 0.0;
         double xpt, ypt;
-        for ( Index ipt=0; ipt<pg->GetN(); ++ipt ) {
+        for ( int ipt=0; ipt<pg->GetN(); ++ipt ) {
           pg->GetPoint(ipt, xpt, ypt);
           if ( ipt == 0 ) {
             xdmin = xpt;
