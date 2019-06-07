@@ -13,7 +13,8 @@
 
 tools.jobRanges: {
   tool_type: FclIndexRangeTool
-  events: { begin:0, end:0, labels: [] }  # Event range for selection and plotting.
+  LogLevel: 1
+  events: { begin:0 end:0 labels: [] }  # Event range for selection and plotting.
 }
 
 ################################################################################

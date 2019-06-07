@@ -11,7 +11,7 @@
 //                The field name must contain the histogramed variable. Allowed values:
 //                  nfemb - # FEMBs with data 
 //                  rmPedPower - sqrt(<(ped noise)^2>)
-//                  meanPedPower - <ped>
+//                  meanPed - <ped>
 //  EventGraphs - Array of graph specifiers with format xname:xmin:xmax:yname:ymin:ymax
 //                The name fields may contain any of the above plus
 //                  event - Event number
