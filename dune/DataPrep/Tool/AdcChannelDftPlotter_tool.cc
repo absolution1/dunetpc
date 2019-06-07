@@ -4,6 +4,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/LineColors.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "canvas/Utilities/Exception.h"
 #include <iostream>
@@ -142,7 +143,7 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapSummary(Name crn, TPadManipulator& man) const {
+viewMapSummary(Name crn, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
   Index count = getState().count(crn);
   Index nchanTot = getState().nchan(crn);
@@ -165,6 +166,11 @@ viewMapSummary(Name crn, TPadManipulator& man) const {
   dm.setInt("dftEventCount", count);
   dm.setFloat("dftChanPerEventCount", nchanEvt);
   dm.setString("dftDopt", "hist");
+  dm.setString("dftCRLabel", crn);
+  if ( ncr > 1 ) {
+    dm.setInt("dftCRCount", ncr);
+    dm.setInt("dftCRIndex", icr);
+  }
   fillPad(dm, man);
   //man.add(ph, "hist");
   //delete ph;
@@ -181,6 +187,7 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
     fillPad(chret, man);
+    if ( m_LogLevel >= 3 ) cout << myname << "Printing " << pname << endl;
     man.print(pname);
   }
   return chret;
@@ -352,55 +359,97 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   }
   double xmin = 0.0;
   double xmax = 0.0;
+  Index ncr = dm.getInt("dftCRCount");
+  Index icr = 0;
+  bool manyCR = ncr > 1;  // Does this plot have multiple CRs?
+  bool lastCR = true;     // Is this the last CR on this plot?
+  if ( manyCR ) {
+    icr = dm.getInt("dftCRIndex");
+    lastCR = icr + 1 == ncr;
+  }
   if ( pg != nullptr ) {
     xmax = pg->GetXaxis()->GetXmax();
     xmin = -0.02*xmax;
     xmax *= 1.02;
+    if ( manyCR ) {
+      int icol = LineColors::color(icr, ncr);
+      pg->SetMarkerColor(icol);
+    }
     man.add(pg, dopt);
   } else if ( ph != nullptr ) {
+    if ( manyCR ) {
+      if ( icr > 0 ) dopt += " same";
+      int icol = LineColors::color(icr, ncr);
+      ph->SetLineColor(icol);
+    }
     man.add(ph, dopt);
   } else {
     cout << myname << "ERROR: Neither hist or graph is defined." << endl;
     return 1;
   }
-  man.addAxis();
-  if ( xmax > xmin ) man.setRangeX(xmin, xmax);
-  if ( ymax > ymin ) man.setRangeY(ymin, ymax);
-  if ( doPwr || doPwt ) man.showUnderflow();
-  if ( logy ) man.setLogY();
-  if ( logy ) man.setGridY();
-  if ( doPwt ) {
-    ostringstream ssout;
-    ssout.precision(2);
-    double xlab = 0.70;
-    double ylab = 0.80;
-    double dylab = 0.05;
-    double sum = ph->Integral(0, ph->GetNbinsX()+1);
-    ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
-    TLatex* ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-    ptxt->SetNDC();
-    ptxt->SetTextFont(42);
-    man.add(ptxt);
-    ylab -= dylab;
-    ssout.str("");
-    if ( dm.haveFloat("dftChanPerEventCount") ) {
-      ssout.precision(1);
-      ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
-    } else {
-      ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
-    }
-    ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-    ptxt->SetNDC();
-    ptxt->SetTextFont(42);
-    man.add(ptxt);
-    if ( dm.haveInt("dftEventCount") ) {
+  // If this is the last object added to the plot.
+  if ( lastCR ) {
+    man.addAxis();
+    if ( xmax > xmin ) man.setRangeX(xmin, xmax);
+    if ( ymax > ymin ) man.setRangeY(ymin, ymax);
+    if ( doPwr || doPwt ) man.showUnderflow();
+    if ( logy ) man.setLogY();
+    if ( logy ) man.setGridY();
+    if ( doPwt && ! manyCR ) {
+      ostringstream ssout;
+      ssout.precision(2);
+      double xlab = 0.70;
+      double ylab = 0.80;
+      double dylab = 0.05;
+      double sum = ph->Integral(0, ph->GetNbinsX()+1);
+      ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
+      TLatex* ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+      ptxt->SetNDC();
+      ptxt->SetTextFont(42);
+      man.add(ptxt);
       ylab -= dylab;
       ssout.str("");
-      ssout << "N_{ev} = " << dm.getInt("dftEventCount");
+      if ( dm.haveFloat("dftChanPerEventCount") ) {
+        ssout.precision(1);
+        ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+      } else {
+        ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+      }
       ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
       ptxt->SetNDC();
       ptxt->SetTextFont(42);
       man.add(ptxt);
+      if ( dm.haveInt("dftEventCount") ) {
+        ylab -= dylab;
+        ssout.str("");
+        ssout << "N_{ev} = " << dm.getInt("dftEventCount");
+        ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(42);
+        man.add(ptxt);
+      }
+    }
+  }
+  // Update legend.
+  if ( manyCR ) {
+    TObject* pobj = man.object();
+    Name lopt = pg == nullptr ? "l" : "p";
+    if ( icr == 0 ) {
+      double xlmin = 0.75;
+      double xlmax = 0.90;
+      double ylmax = 0.90;
+      double ylmin = ylmax - 0.05*(ncr+0.5);
+      if ( ylmin < 0.40 ) ylmin = 0.40;
+      man.addLegend(xlmin, ylmin, xlmax, ylmax);
+    } else {
+      pobj = man.object(icr - 1);
+    }
+    TLegend* pleg = man.getLegend();
+    if ( pleg == nullptr ) {
+      cout << myname << "ERROR: Legend not found." << endl;
+    } else {
+      Name slab = dm.getString("dftCRLabel");
+      pleg->AddEntry(pobj, slab.c_str(), lopt.c_str());
     }
   }
   return 0;

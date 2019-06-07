@@ -271,6 +271,8 @@ adcPlotDftTemplate: {
    HistSummaryTitle: ""
             YMinLog: 0.0
   PlotChannelRanges: []    # Empty makes one plot for each channel
+  PlotChannelGroups: []    # Empty makes one plot for each channel
+  PlotOverlayGroups: 1     # Rnages in a group are drawn on the same pad.
           PlotSizeX: 1400
           PlotSizeY: 1000
          PlotSplitX: 4
