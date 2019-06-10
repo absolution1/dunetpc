@@ -255,7 +255,7 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
               xmin = ran.begin;
               xmax = ran.end;
             } else {
-              cout << myname << "ERROR: Unable to fund job range " << ranName << endl;
+              cout << myname << "ERROR: Unable to find job range " << ranName << endl;
             }
           }
           ipos = jpos + 1;
