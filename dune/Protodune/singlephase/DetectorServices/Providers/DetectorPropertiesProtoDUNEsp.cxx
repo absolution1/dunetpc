@@ -98,6 +98,17 @@ namespace spdp{
   }
 
 
+  bool DetectorPropertiesProtoDUNEsp::UpdateTemp(int run)
+  {
+    if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
+      fTemperature = 87.36;
+    }
+    else if (run >= 6930)
+    {
+      fTemperature = 87.65;
+    }
+    return true;
+  }
 
   bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string metadata){
 

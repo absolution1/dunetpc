@@ -85,9 +85,16 @@ namespace spdp{
 
     void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run& run)
   {
-//this is data specific now.
       isNewRun=true;
       std::cout<<"New run, Num is: "<<run.run()<<" Updating DetectorProperties."<<std::endl;
+      // make it into a TTimeStamp
+
+      //Get run dependent temperature  correction  
+
+      //  Before 11/17/18, temperature = 87.68 and is stable 
+      // Between 11/17/18 and 3/1/19, temperature = 87.36 and has a rather large fluctuation. first run in this period 5903
+      // After 3/1/19, temperature = 87.65 and is stable.  first run 6930
+      fProp->UpdateTemp(run.run());
     }
 
 
@@ -115,7 +122,7 @@ namespace spdp{
       art::ServiceHandle<ifdh_ns::IFDH> ifdh;
       auto metadata=ifdh->getMetadata(filename_s);
       fProp->UpdateHV(metadata); //update HV value from MetaData
-      fProp->UpdateReadoutWindowSize(metadata); //update Readout windo value from MetaData
+      fProp->UpdateReadoutWindowSize(metadata); //update Readout window value from MetaData
       isNewRun=false;
 
     }

@@ -87,8 +87,8 @@ protodunesp_detproperties :
 
 
 
- GetHVDriftfromRunTable: true   #will look up drift HV voltage from table of runs and update Efield accordingly 
- GetReadOutWindowSizefromRunTable: true #will look up readout window size from table of runs
+ GetHVDriftfromSamweb: true   #will attempt to look up nominal drift HV voltage from samweb metadata
+ GetReadOutWindowSizefromSamweb: true #will attempt to look up readout window size samweb metadata
 
 
   # Drift properties 
