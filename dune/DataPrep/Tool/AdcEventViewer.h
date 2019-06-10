@@ -79,17 +79,19 @@ public:
     FloatVector xvals;
     float xmin;
     float xmax;
+    float xoff;  // display range is (xmin-xoff, xmax+xoff);
     Name vary;
     FloatVector yvals;
     Name ylab;
     Name yunit;
     float ymin;
     float ymax;
+    float yoff;
     GraphInfo() { };
-    GraphInfo(Name avarx, Name axlab, Name axunit, float axmin, float axmax,
-              Name avary, Name aylab, Name ayunit, float aymin, float aymax)
-    : varx(avarx), xlab(axlab), xunit(axunit), xmin(axmin), xmax(axmax),
-      vary(avary), ylab(aylab), yunit(ayunit), ymin(aymin), ymax(aymax) { }
+    GraphInfo(Name avarx, Name axlab, Name axunit, float axmin, float axmax, float axoff,
+              Name avary, Name aylab, Name ayunit, float aymin, float aymax, float ayoff)
+    : varx(avarx), xlab(axlab), xunit(axunit), xmin(axmin), xmax(axmax), xoff(axoff),
+      vary(avary), ylab(aylab), yunit(ayunit), ymin(aymin), ymax(aymax), yoff(ayoff) { }
     // Add value to vector if name matches.
     void add(Name var, float val) {
       if ( var == varx ) xvals.push_back(val);
