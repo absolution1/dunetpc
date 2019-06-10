@@ -219,67 +219,132 @@ AdcEventViewer::AdcEventViewer(fhicl::ParameterSet const& ps)
       if ( m_LogLevel>= 1 ) cout << myname << "Created histogram " << hname << endl;
     }
     for ( string gspec : m_EventGraphs ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Building graph info" << endl;
       string xname;
       string yname;
       float xmin = 0.0;
       float xmax = 0.0;
+      float xoff = 0.0;
       float ymin = 0.0;
       float ymax = 0.0;
-      bool ok = false;
+      float yoff = 0.0;
       string::size_type ipos = 0;
       string::size_type jpos = 0;
       istringstream ssin;
       jpos = gspec.find(":");
+      // x name
       if ( jpos != npos ) {
         xname = gspec.substr(ipos, jpos-ipos);
         ipos = jpos + 1;
         jpos = gspec.find(":", ipos);
-        if ( jpos != npos && jpos > ipos ) {
-          istringstream ssnbin(gspec.substr(ipos, jpos-ipos));
-          ssnbin >> xmin;
+        if ( m_LogLevel >= 2 ) cout << myname << "  xname: " << xname << endl;
+      }
+      // x range
+      if ( jpos != npos && jpos > ipos ) {
+        // Range from job range tool:   name:ranName:xoff
+        if ( isalpha(gspec[ipos]) ) {
+          if ( m_LogLevel >= 2 ) cout << myname << "  Taking x range from tool." << endl;
+          istringstream ssnran(gspec.substr(ipos, jpos-ipos));
+          Name ranName = gspec.substr(ipos, jpos-ipos);
+          const IndexRangeTool* pcrt = ptm->getShared<IndexRangeTool>("jobRanges");
+          if ( pcrt == nullptr ) {
+            cout << myname << "ERROR: Unable to find index range tool jobRanges" << endl;
+          } else {
+            IndexRange ran = pcrt->get(ranName);
+            if ( ran.isValid() ) {
+              xmin = ran.begin;
+              xmax = ran.end;
+            } else {
+              cout << myname << "ERROR: Unable to fund job range " << ranName << endl;
+            }
+          }
           ipos = jpos + 1;
           jpos = gspec.find(":", ipos);
           if ( jpos != npos && jpos > ipos ) {
-            istringstream ssxmin(gspec.substr(ipos, jpos-ipos));
-            ssxmin >> xmax;
-            ipos = jpos + 1;
-            jpos = gspec.find(":", ipos);
-            if ( jpos != npos && jpos > ipos ) {
-              yname = gspec.substr(ipos, jpos-ipos);
-              ipos = jpos + 1;
-              jpos = gspec.find(":", ipos);
-              if ( jpos != npos && jpos > ipos ) {
-                istringstream ssxmin(gspec.substr(ipos, jpos-ipos));
-                ssxmin >> ymin;
-                ipos = jpos + 1;
-                jpos = gspec.size();
-                istringstream ssxmax(gspec.substr(ipos, jpos-ipos));
-                ssxmax >> ymax;
-                ok = true;
-              }
+            istringstream ssxoff(gspec.substr(ipos, jpos-ipos));
+            ssxoff >> xoff;
+          }
+        // Explicit range
+        } else {
+          if ( m_LogLevel >= 2 ) cout << myname << "  Using explicit x range." << endl;
+          istringstream ssxmin(gspec.substr(ipos, jpos-ipos));
+          ssxmin >> xmin;
+          ipos = jpos + 1;
+          jpos = gspec.find(":", ipos);
+          if ( jpos != npos && jpos > ipos ) {
+            istringstream ssxmax(gspec.substr(ipos, jpos-ipos));
+            ssxmax >> xmax;
+          }
+        }
+      }
+      ipos = jpos + 1;
+      jpos = gspec.find(":", ipos);
+      // y name
+      if ( jpos != npos && jpos > ipos ) {
+        yname = gspec.substr(ipos, jpos-ipos);
+        ipos = jpos + 1;
+        jpos = gspec.find(":", ipos);
+        if ( m_LogLevel >= 2 ) cout << myname << "  yname: " << yname << endl;
+      }
+      // y range
+      if ( jpos != npos && jpos > ipos ) {
+        // Range from job range tool:   name:ranName:yoff
+        if ( isalpha(gspec[ipos]) ) {
+          if ( m_LogLevel >= 2 ) cout << myname << "  Taking y range from tool." << endl;
+          istringstream ssnran(gspec.substr(ipos, jpos-ipos));
+          Name ranName = gspec.substr(ipos, jpos-ipos);
+          cout << myname << "Taking y-range from job range " << ranName << endl;
+          const IndexRangeTool* pcrt = ptm->getShared<IndexRangeTool>("jobRanges");
+          if ( pcrt == nullptr ) {
+            cout << myname << "ERROR: Unable to find index range tool jobRanges" << endl;
+          } else {
+            IndexRange ran = pcrt->get(ranName);
+            if ( ran.isValid() ) {
+              ymin = ran.begin;
+              ymax = ran.end;
+            } else {
+              cout << myname << "ERROR: Unable to fund job range " << ranName << endl;
             }
+          }
+          ipos = jpos + 1;
+          jpos = gspec.find(":", ipos);
+          if ( jpos != npos && jpos > ipos ) {
+            istringstream ssyoff(gspec.substr(ipos, jpos-ipos));
+            ssyoff >> yoff;
+          }
+        // Explicit range
+        } else {
+          if ( m_LogLevel >= 2 ) cout << myname << "  Using explicit y range." << endl;
+          istringstream ssymin(gspec.substr(ipos, jpos-ipos));
+          ssymin >> ymin;
+          ipos = jpos + 1;
+          jpos = gspec.find(":", ipos);
+          if ( jpos > ipos ) {
+            istringstream ssymax(gspec.substr(ipos, jpos-ipos));
+            ssymax >> ymax;
           }
         }
       }
       VarInfo xvin(xname, cr, m_ClockUnit);
-      ok &= xvin.isValid();
       VarInfo yvin(yname, cr, m_ClockUnit);
-      ok &= yvin.isValid();
+      bool ok = xvin.isValid() && yvin.isValid();
       if ( ! ok ) {
-        cout << "WARNING: Invalid graph configuration string: " << gspec << endl;
+        cout << myname << "WARNING: Invalid graph configuration string: " << gspec << endl;
         continue;
       }
       string sttl = yvin.label + " vs. " + xvin.label;
       if ( m_LogLevel >= 2 ) {
         cout << myname << "Creating graph of " << yname;
-        if ( ymax > ymin ) cout << " range=(" << ymin << ", " << ymax << ")";
+        if ( ymax > ymin ) cout << " range=(" << ymin - yoff << ", " << ymax + yoff << ")";
+        else if ( ymax >= 0.0 ) cout << " range from data with border " << yoff << endl;
         cout << " vs. " << xname;
         if ( xmax > xmin ) cout << " range=(" << xmin << ", " << xmax << ")";
+        else if ( xmax >= 0.0 ) cout << " range from data with border " << xoff << endl;
         cout << endl;
       } 
-      crstate.graphs.emplace_back(xname, xvin.label, xvin.unit, xmin, xmax,
-                                  yname, yvin.label, yvin.unit, ymin, ymax);
-      if ( m_LogLevel>= 1 ) cout << myname << "Created graph of " << yname << " vs. " << xname << endl;
+      crstate.graphs.emplace_back(xname, xvin.label, xvin.unit, xmin, xmax, xoff,
+                                  yname, yvin.label, yvin.unit, ymin, ymax, yoff );
+      if ( m_LogLevel>= 1 ) cout << myname << "Created graph info for " << yname << " vs. " << xname << endl;
     }
   }  // end loop over channel ranges
 }
@@ -576,12 +641,14 @@ void AdcEventViewer::displayGraphs() const {
       pg->GetXaxis()->SetTitle(gin.xAxisLabel().c_str());
       pg->GetYaxis()->SetTitle(gin.yAxisLabel().c_str());
       pg->SetMarkerStyle(2);
-      bool setXLimitsFromData = pg->GetN() && gin.xmax == gin.xmin && gin.xmax >= 0.0;
-      bool setYLimitsFromData = pg->GetN() && gin.ymax == gin.ymin && gin.ymax >= 0.0;
       double xmin = gin.xmin;
       double xmax = gin.xmax;
+      double xoff = gin.xoff;
       double ymin = gin.ymin;
       double ymax = gin.ymax;
+      double yoff = gin.yoff;
+      bool setXLimitsFromData = pg->GetN() && xmax == xmin && xmax >= 0.0;
+      bool setYLimitsFromData = pg->GetN() && ymax == ymin && ymax >= 0.0;
       if ( setXLimitsFromData || setYLimitsFromData ) {
         double xdmin = 0.0;
         double xdmax = 0.0;
@@ -603,26 +670,26 @@ void AdcEventViewer::displayGraphs() const {
           }
         }
         if ( setXLimitsFromData ) {
-          double xdel = xmax;
-          xmin = xdmin - xdel;
-          xmax = xdmax + xdel;
+          xoff = xmax;
+          xmin = xdmin;
+          xmax = xdmax;
           if ( m_LogLevel >= 2 ) {
             cout << myname << "  Setting graph X range from data (" << xdmin << ", " << xdmax << ") to ("
-                 << xmin << ", " << xmax << ")" << endl;
+                 << xmin-xoff << ", " << xmax+xoff << ")" << endl;
           }
         }
         if ( setYLimitsFromData ) {
-          double ydel = ymax;
-          ymin = ydmin - ydel;
-          ymax = ydmax + ydel;
+          yoff = ymax;
+          ymin = ydmin;
+          ymax = ydmax;
           if ( m_LogLevel >= 2 ) {
             cout << myname << "  Setting graph Y range from data (" << ydmin << ", " << ydmax << ") to ("
-                 << ymin << ", " << ymax << ")" << endl;
+                 << ymin-yoff << ", " << ymax+yoff << ")" << endl;
           }
         }
       }
-      if ( xmax > xmin ) pg->GetXaxis()->SetRangeUser(xmin, xmax);
-      if ( ymax > ymin ) pg->GetYaxis()->SetRangeUser(ymin, ymax);
+      if ( xmax > xmin ) pg->GetXaxis()->SetRangeUser(xmin-xoff, xmax+xoff);
+      if ( ymax > ymin ) pg->GetYaxis()->SetRangeUser(ymin-yoff, ymax+yoff);
       TPadManipulator man(1400, 500);
       man.add(pg, "P");
       string sttl = gin.ylab + " vs. " + gin.xlab + sttlSuf;
@@ -632,8 +699,8 @@ void AdcEventViewer::displayGraphs() const {
       man.addAxis();
       man.setGridX();
       man.setGridY();
-      if ( xmax > xmin ) man.setRangeX(xmin, xmax);
-      if ( ymax > ymin ) man.setRangeY(ymin, ymax);
+      if ( xmax > xmin ) man.setRangeX(xmin-xoff, xmax+xoff);
+      if ( ymax > ymin ) man.setRangeY(ymin-yoff, ymax+yoff);
       ostringstream ssfname;
       ssfname << "eviewg_" << gin.varx;
       if ( gin.xmax > gin.xmin ) ssfname << "-" << gin.xmin << "-" << gin.xmax;
