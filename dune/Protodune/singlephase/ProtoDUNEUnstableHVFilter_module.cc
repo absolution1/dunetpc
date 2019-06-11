@@ -140,7 +140,7 @@ bool filter::ProtoDUNEUnstableHVFilter::filter(art::Event &evt) {
         if (fDebug) std::cout << "Event time:  " << evtTTS -> AsString() << std::endl;
         // Requested time range lower end
 
-        for (auto TimeRange : fTimeRanges){ //loop through beam side APAs
+        for (auto TimeRange : fTimeRanges){ //loop through unstable hv time ranges
 
             fTimeRangeLow=TimeRange.first;
             fTimeRangeHigh=TimeRange.second;

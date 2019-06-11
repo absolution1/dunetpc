@@ -168,7 +168,7 @@ tools.pd_evtviewNfemb: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
-  EventGraphs: ["event:1:1:nfemb:0:125"]
+  EventGraphs: ["event:events:1:nfemb:0:125"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -201,7 +201,7 @@ tools.pd_evtviewNfembByTps: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:21:0:21"]
-  EventGraphs: ["event:1:1:nfemb:0:21"]
+  EventGraphs: ["event:events:1:nfemb:0:21"]
   ChannelRanges: @local::data.pd_tpsChannelRanges
   ChannelRangeLabel: "%CRLABEL% (%CRLABEL2% %CRLABEL1%)"
   ClockUnit: @local::data.pd_ClockUnit
