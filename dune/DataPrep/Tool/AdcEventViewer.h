@@ -124,22 +124,23 @@ public:
   // after initialization.
   class State {
   public:
-    Index beginEventCount;   // # calls to beginEvent
-    Index endEventCount;     // # calls to endEvent
-    DuneEventInfo eventInfo; // Event info
-    IndexVector events;      // Events in processed order.
-    LongIndexVector clocks;  // Timing clocks in processed order.
-    LongIndex firstClock;    // First timing clock.
-    LongIndex minClock;      // Minimum timing clock.
-    IndexSet eventSet;       // Events ordered.
-    Index ngroup;            // # groups processed for this event
+    Index beginEventCount =0;   // # calls to beginEvent
+    Index endEventCount =0;     // # calls to endEvent
+    DuneEventInfo eventInfo;    // Event info
+    IndexVector events;         // Events in processed order.
+    LongIndexVector clocks;     // Timing clocks in processed order.
+    LongIndex firstClock =0;    // First timing clock.
+    LongIndex minClock =0;      // Minimum timing clock.
+    IndexSet eventSet;          // Events ordered.
+    IndexSet runSet;          // Events ordered.
+    Index ngroup =0;            // # groups processed for this event
     ChannelRangeStates crstates;
     // Methods.
     bool haveEvent() const { return eventInfo.event; }               // Is there a current event?
     Index run() const { return eventInfo.run; }                      // Current run number.
-    std::string runString() const { return eventInfo.runString(); }  // RUN-SUBRUN
     Index event() const { return eventInfo.event; }                  // Current event.
     LongIndex clock() const { return eventInfo.triggerClock; }       // Current timing clock.
+    std::string runString() const;   // Run string in DuneEventInfo format for current or run from set.
   };
 
   using StatePtr = std::shared_ptr<State>;
