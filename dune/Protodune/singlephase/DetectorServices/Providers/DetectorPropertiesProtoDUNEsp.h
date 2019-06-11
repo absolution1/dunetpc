@@ -50,11 +50,11 @@ namespace spdp{
     
 
        fhicl::Atom<bool        > fGetHVDriftfromMetaData {
-          Name("GetHVDriftfromRunTable"),
+          Name("GetHVDriftfromSamweb"),
           Comment("option to get HV drift field from MetaData")
         };
           fhicl::Atom<bool        > fGetReadOutWindowSizefromMetaData{
-          Name("GetReadOutWindowSizefromRunTable"),
+          Name("GetReadOutWindowSizefromSamweb"),
           Comment("option to get ReadoutWindowSize and NumberTimeSamples from MetaData")
         };
 
@@ -183,6 +183,7 @@ namespace spdp{
       bool Update(uint64_t ts); 
       bool UpdateHV(std::string metadata);
       bool UpdateReadoutWindowSize(std::string metadata);
+      bool UpdateTemp(int run);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
       /**

@@ -4,6 +4,7 @@
 //
 // David Adams
 // October 2018
+// June 2019: Update using event range "events" from the job IndexRangeTool.
 //
 // Configuration:
 //   LogLevel: 0=quiet, 1=ctor message, 2=status of each event
@@ -11,11 +12,18 @@
 //   RejectEvents: Event is rejected if it is in this list.
 //   EventBegin, EventEnd: if EventEnd > EventBegin, event must be in (EventBegin, EventEnd].
 //   EventModFreq, EventModVal: keep events for which ievt%EventModFreq == EventModVal
+//   JobIndexRangeTool: Name of the job IndexRangeTool, e.g. jobRanges.
+//
+// The range of event to process is (EventBegin, EventEnd] if EventEnd > EventBegin.
+// Otherwise the range is taken from the index range "events"  in the job IndexRangeTool.
+// If that range does not exist or is not valid, all events are processed.
 
 #include <iostream>
 #include <vector>
 #include <set>
 
+#include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "dune/ArtSupport/DuneToolManager.h"
 #include "art/Framework/Core/EDFilter.h" 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Principal/Event.h" 
@@ -27,6 +35,7 @@ public:
   using Index = unsigned int;
   using IndexVector = std::vector<Index>;
   using IndexSet = std::set<Index>;
+  using Name = std::string;
 
   explicit DuneEventFilter(fhicl::ParameterSet const & pset);
   virtual ~DuneEventFilter();
@@ -42,8 +51,11 @@ private:
   Index m_EventEnd;
   Index m_EventModFreq;
   Index m_EventModVal;
+  Name m_JobIndexRangeTool;
 
   // Derived from configuration.
+  Index m_beginEvent;
+  Index m_endEvent;
   IndexSet m_SelectEvents;
   IndexSet m_RejectEvents;
 
@@ -64,6 +76,8 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
   m_EventEnd(pset.get<Index>("EventEnd")),
   m_EventModFreq(pset.get<Index>("EventModFreq")),
   m_EventModVal(pset.get<Index>("EventModVal")),
+  m_JobIndexRangeTool(pset.get<Name>("JobIndexRangeTool")),
+  m_beginEvent(0), m_endEvent(0),
   m_nproc(0), m_nsel(0) {
   using std::cout;
   using std::endl;
@@ -89,10 +103,35 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
       cout << ievt;
     }
     cout << "]" << endl;
-    cout << myname << "    EventBegin: " << m_EventBegin << endl;
-    cout << myname << "      EventEnd: " << m_EventEnd << endl;
-    cout << myname << "   EventModVal: " << m_EventModVal << endl;
-    cout << myname << "  EventModFreq: " << m_EventModFreq << endl;
+    cout << myname << "         EventBegin: " << m_EventBegin << endl;
+    cout << myname << "           EventEnd: " << m_EventEnd << endl;
+    cout << myname << "        EventModVal: " << m_EventModVal << endl;
+    cout << myname << "       EventModFreq: " << m_EventModFreq << endl;
+    cout << myname << "  JobIndexRangeTool: " << m_JobIndexRangeTool << endl;
+    if ( m_EventEnd > m_EventBegin ) {
+      m_beginEvent = m_EventBegin;
+      m_endEvent = m_EventEnd;
+    } else if ( m_JobIndexRangeTool.size() ) {
+      DuneToolManager* ptm = DuneToolManager::instance();
+      const IndexRangeTool* pjrt = ptm->getShared<IndexRangeTool>(m_JobIndexRangeTool);
+      if ( pjrt == nullptr ) {
+        cout << "ERROR: Job index range tool not found: " << m_JobIndexRangeTool << endl;
+      } else {
+        IndexRange ran = pjrt->get("events");
+        if ( ! ran.isValid() ) {
+          cout << "ERROR: Job index range tool does not have range \"events\"" << endl;
+        } else {
+          m_beginEvent = ran.begin;
+          m_endEvent = ran.end;
+        }
+      }
+    }
+    if ( m_endEvent > m_beginEvent ) {
+      cout << myname << "Event selection range is [" << m_beginEvent << ", "
+           << m_endEvent << ")." << endl;
+    } else {
+      cout << myname << "No event selection range." << endl;
+    }
   }
 }
 
@@ -108,7 +147,7 @@ bool DuneEventFilter::filter(art::Event & evt) {
   bool keep = true;
   if ( keep && m_SelectEvents.size() ) keep = m_SelectEvents.count(ievt);
   if ( keep ) keep = m_RejectEvents.count(ievt) == 0;
-  if ( keep && m_EventEnd > m_EventBegin ) keep = ievt >= m_EventBegin && ievt < m_EventEnd;
+  if ( keep && m_endEvent > m_beginEvent ) keep = ievt >= m_beginEvent && ievt < m_endEvent;
   if ( keep && m_EventModFreq ) keep = (ievt % m_EventModFreq) == m_EventModVal;
   if ( m_LogLevel >= 2) {
     cout << myname << (keep ? "Sel" : "Rej") << "ecting event " << ievt << endl;
