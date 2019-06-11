@@ -68,9 +68,9 @@ dune35t_milliblock_detproperties.ReadOutWindowSize: 15000
 
 # Implement new 6000 tick readout window (500 before trigger)
 protodune_detproperties:                   @local::standard_detproperties
-protodune_detproperties.Temperature:       87
-protodune_detproperties.Electronlifetime:  3.0e3
-protodune_detproperties.Efield:           [0.5,0.666,0.8]  #(predicted for microBooNE)
+protodune_detproperties.Temperature:       87.68
+protodune_detproperties.Electronlifetime:  12.0e3
+protodune_detproperties.Efield:           [0.4936,0.666,0.8]  #(predicted for microBooNE)
 protodune_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
 protodune_detproperties.NumberTimeSamples: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
 protodune_detproperties.ReadOutWindowSize: 6000         # 1 drift window = 4492 = drift length/drift velocity*sampling rate = (359.4 cm)/(0.16 cm/us)*(2 MHz)
@@ -87,14 +87,14 @@ protodunesp_detproperties :
 
 
 
- GetHVDriftfromRunTable: true   #will look up drift HV voltage from table of runs and update Efield accordingly 
- GetReadOutWindowSizefromRunTable: true #will look up readout window size from table of runs
+ GetHVDriftfromSamweb: true   #will attempt to look up nominal drift HV voltage from samweb metadata
+ GetReadOutWindowSizefromSamweb: true #will attempt to look up readout window size samweb metadata
 
 
   # Drift properties 
-Temperature:      87              #Kelvin
-Efield:           [0.5,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
-Electronlifetime: 3.0e3               #microseconds  
+Temperature:      87.68           #Kelvin
+Efield:           [0.4936,0.619423,0.776903,1.72178]     #calc from 180KV drift and wire biases will be overwritten if GetHVvaluefromTable is enabled
+Electronlifetime: 12.0e3               #microseconds  
 SternheimerA:     0.1956  # Ar Sternheimer parameter a.
 SternheimerK:     3.0000  # Ar Sternheimer parameter k.
 SternheimerX0:    0.2000  # Ar Sternheimer parameter x0.

@@ -48,6 +48,7 @@
 #include <string>
 #include <map>
 #include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/DuneEventInfo.h"
 
 namespace raw {
   class RawDigit;
@@ -93,6 +94,16 @@ public:
   AdcSignalVector dftmags;
   AdcSignalVector dftphases;
   FloatMap metadata;
+
+  // Return event info.
+  DuneEventInfo getEventInfo() const {
+    DuneEventInfo devt;
+    devt.event = event;
+    devt.run = run;
+    devt.subRun = subRun;
+    devt.triggerClock = triggerClock;
+    return devt;
+  }
 
   // Hide copy and assignment but allow move.
   // Root dictionary (6.08/06) requires we keep copy.

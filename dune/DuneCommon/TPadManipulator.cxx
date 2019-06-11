@@ -15,7 +15,6 @@
 #include "TFrame.h"
 #include "TLine.h"
 #include "TF1.h"
-#include "TLegend.h"
 #include "TPaletteAxis.h"
 #include "TError.h"
 #include "TSystem.h"
@@ -49,7 +48,7 @@ TPadManipulator::TPadManipulator()
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
   m_gflowMrk(0), m_gflowCol(0),
-  m_top(false), m_right(false) {
+  m_top(false), m_right(false), m_iobjLegend(0) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
   m_label.SetNDC();
@@ -135,6 +134,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_gflowCol = rhs.m_gflowCol;
   m_top = rhs.m_top;
   m_right = rhs.m_right;
+  m_iobjLegend = rhs.m_iobjLegend;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
   rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
@@ -503,6 +503,7 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
   TLegend leg(x1, y1, x2, y2);
   add(0, &leg, "");
   TLegend* pleg = dynamic_cast<TLegend*>(objects().back().get());
+  m_iobjLegend = objects().size() - 1;
   pleg->SetBorderSize(0);
   pleg->SetFillStyle(0);
   return pleg;
