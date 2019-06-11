@@ -468,7 +468,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
   //Get the high/low pressure Cerenkov info
   int high_pressure_status, low_pressure_status; 
   
-  std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
+  //std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
   if( beamevt.GetCKov0Pressure() < beamevt.GetCKov1Pressure() ){
     high_pressure_status = beamevt.GetCKov1Status();
     low_pressure_status = beamevt.GetCKov0Status();
