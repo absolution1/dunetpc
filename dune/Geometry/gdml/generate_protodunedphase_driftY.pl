@@ -22,7 +22,8 @@ GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires,
-	    "optical|opt:s" => \$optical);
+	    "optical|opt:s" => \$optical,
+	    "pmtdist|pmt:s" => \$pmtdist);
 
 if ( defined $help )
 {
@@ -74,10 +75,17 @@ if (defined $optical)
     }
 }
 
+if ($pmtdist == 1 )
+{
+
+   $basename = $basename."_uniform";
+}
+
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
 }
+
 
 #if ( $workspace == 1 )
 #{
@@ -169,6 +177,11 @@ $FFSPositionZ = 309.593;
  $HeightPMT = 37.0;
 
 #pmts not equally spaced:
+
+
+if ( $pmtdist == 0) #new non uniform distribution
+{
+
  @pmt_pos = ( ' z="-238" x="-170" ', #pmt35
 		' z="-238" x="-34" ', #pmt34
 		' z="-238" x="34" ', #pmt33
@@ -205,7 +218,47 @@ $FFSPositionZ = 309.593;
 		' z="170" x="238" ', #pmt2
 		' z="238" x="-34" ', #pmt1
 		' z="238" x="34" '); #pmt0
+}
+else #old and deprecated uniform distribution.
+{
 
+ @pmt_pos = ( ' z="-238" x="-170" ', #pmt35
+		' z="-238" x="-34" ', #pmt34
+		' z="-238" x="34" ', #pmt33
+		' z="-238" x="170" ', #pmt32
+		' z="-170" x="-238" ', #pmt31
+		' z="-170" x="-102" ', #pmt30
+		' z="-170" x="102" ', #pmt29
+		' z="-170" x="238" ', #pmt28
+		' z="-102" x="-170" ', #pmt27
+		' z="-102" x="-34" ', #pmt26
+		' z="-102" x="34" ', #pmt25
+		' z="-102" x="170" ', #pmt24
+		' z="-34" x="-238" ', #pmt23TPB
+		' z="-34" x="-102" ', #pmt22TPB
+		' z="-34" x="-34" ', #pmt21TPB
+		' z="-34" x="34" ', #pmt20TPB
+		' z="-34" x="102" ', #pmt19TPB
+		' z="-34" x="238" ', #pmt18TPB
+		' z="34" x="-238" ', #pmt17
+		' z="34" x="-102" ', #pmt16
+		' z="34" x="-34" ', #pmt15
+		' z="34" x="34" ', #pmt14
+		' z="34" x="102" ', #pmt13
+		' z="34" x="238" ', #pmt12
+		' z="102" x="-170" ', #pmt11
+		' z="102" x="-34" ', #pmt10
+		' z="102" x="34" ', #pmt9
+		' z="102" x="170" ', #pmt8
+		' z="170" x="-238" ', #pmt7
+		' z="170" x="-102" ', #pmt6
+		' z="170" x="102" ', #pmt5
+		' z="170" x="238" ', #pmt4
+		' z="238" x="-170" ', #pmt3
+		' z="238" x="-34" ', #pmt2
+		' z="238" x="34" ', #pmt1
+		' z="238" x="170" '), #PMT0
+}
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
