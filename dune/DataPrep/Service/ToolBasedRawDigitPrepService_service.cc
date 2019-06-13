@@ -56,6 +56,52 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
 
 //**********************************************************************
 
+int ToolBasedRawDigitPrepService::beginEvent(const DuneEventInfo& devt) const {
+  const string myname = "ToolBasedRawDigitPrepService:beginEvent: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Begin processing run " << devt.runString();
+    cout << " event " << devt.event;
+    cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
+  }
+  Index nfail = 0;
+  if ( m_AdcChannelNamedTools.size() ) {
+    for ( NamedTool nt : m_AdcChannelNamedTools ) {
+      DataMap ret = nt.tool->beginEvent(devt);
+      if ( ret.status() ) {
+        ++nfail;
+        cout << myname << "WARNING: Iniitalization for tool " << nt.name
+             << " failed for event " << devt.event << " with status code " << ret.status() << endl;
+      }
+    }
+  }
+  return nfail;
+}
+
+//**********************************************************************
+
+int ToolBasedRawDigitPrepService::endEvent(const DuneEventInfo& devt) const {
+  const string myname = "ToolBasedRawDigitPrepService:endEvent: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "End processing run " << devt.runString();
+    cout << " event " << devt.event;
+    cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
+  }
+  Index nfail = 0;
+  if ( m_AdcChannelNamedTools.size() ) {
+    for ( NamedTool nt : m_AdcChannelNamedTools ) {
+      DataMap ret = nt.tool->endEvent(devt);
+      if ( ret.status() ) {
+        ++nfail;
+        cout << myname << "WARNING: Finalization for tool " << nt.name
+             << " failed for event " << devt.event << " with status code " << ret.status() << endl;
+      }
+    }
+  }
+  return nfail;
+}
+
+//**********************************************************************
+
 int ToolBasedRawDigitPrepService::
 prepare(AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {

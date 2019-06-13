@@ -8,6 +8,16 @@
 # April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
+# Job ranges.
+################################################################################
+
+tools.jobRanges: {
+  tool_type: FclIndexRangeTool
+  LogLevel: 1
+  events: { begin:0 end:0 labels: [] }  # Event range for selection and plotting.
+}
+
+################################################################################
 # Ranges for channel-tick plots.
 ################################################################################
 
