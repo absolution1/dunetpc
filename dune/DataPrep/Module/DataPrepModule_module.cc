@@ -532,6 +532,14 @@ void DataPrepModule::produce(art::Event& evt) {
     cout << myname << "  # channels to be processed: " << nproc << endl;
   }
 
+  DuneEventInfo devt;
+  devt.run = evt.run();
+  devt.subRun = evt.subRun();
+  devt.event = evt.event();
+  devt.triggerClock = timingClock;
+  int bstat = m_pRawDigitPrepService->beginEvent(devt);
+  if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
+
   for ( AdcChannelDataMap& datamap : datamaps ) {
 
     if ( datamap.size() == 0 ) continue;
@@ -561,6 +569,9 @@ void DataPrepModule::produce(art::Event& evt) {
     datamap.erase(datamap.begin(), datamap.end());
 
   }  // end loop over groups
+
+  int estat = m_pRawDigitPrepService->endEvent(devt);
+  if ( estat ) cout << myname << "WARNING: Event finalization failed." << endl;
 
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Created wire count: " << pwires->size() << endl;
