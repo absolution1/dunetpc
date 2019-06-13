@@ -18,13 +18,14 @@
 //   Metric - Name of the plotted metric. This can be the name of any
 //            metadata field or any of the following:
 //              pedestal 
-//              pedestalDiff - pedestal - (pedestal for first event)
+//              pedestalDiff - pedestal - (pedestal reference)
 //              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
+//   PedestalReference - Name of the FloatArrayTool that holds the pedestal reference values.
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
@@ -93,6 +94,8 @@ namespace lariov {
   class ChannelStatusProvider;
 }
 
+class FloatArrayTool;
+
 class AdcChannelMetric : AdcChannelTool {
 
 public:
@@ -128,6 +131,7 @@ private:
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_PedestalReference;
   Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
@@ -153,6 +157,9 @@ private:
   bool m_doSummaryError;
   Name m_summaryValue;
   Name m_summaryError;
+
+  // Pedestal reference tool.
+  const FloatArrayTool* m_pPedestalReference;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;

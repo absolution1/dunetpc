@@ -7,6 +7,7 @@
 #include <set>
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "dune/DuneInterface/Tool/FloatArrayTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
@@ -62,6 +63,7 @@ void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
 AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_Metric(ps.get<Name>("Metric")),
+  m_PedestalReference(ps.get<Name>("PedestalReference")),
   m_MetricSummaryView(ps.get<Name>("MetricSummaryView")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
   m_MetricMin(ps.get<float>("MetricMin")),
@@ -109,6 +111,19 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   }
   // Initialize the state.
   for ( const IndexRange& cr : m_crs ) getState().crsums[cr].resize(cr.size());
+  // Fetch the pedestalreference tool.
+  if ( m_PedestalReference.size() ) {
+    m_pPedestalReference = ptm->getShared<FloatArrayTool>(m_PedestalReference);
+    if ( m_pPedestalReference == nullptr ) {
+      cout << "WARNING: Pedestal reference tool not found: " << m_PedestalReference << endl;
+    }
+    Index nref = m_pPedestalReference->size();
+    Index off = m_pPedestalReference->offset();
+    cout << myname << "Pedestal reference array has " << nref << " value"
+         << ( nref == 1 ? "" : "s" );
+    if ( nref ) cout << " starting at channel " << off;
+    cout << "." << endl;
+  }
   // Fetch the naming tool.
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
@@ -159,6 +174,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "              Metric: " << m_Metric << endl;
+    cout << myname << "   PedestalReference: " << m_PedestalReference << endl;
     cout << myname << "   MetricSummaryView: " << m_MetricSummaryView;
     if ( m_summaryValue.size() ) {
       cout << " (" << m_summaryValue;
@@ -389,15 +405,20 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
     val = acd.pedestal;
     sunits = "ADC count";
   } else if ( met == "pedestalDiff" ) {
-    float ped = acd.pedestalRms;
-    val = 0.0;
-    Index icha = acd.channel;
-    MetricMap& pedRefs = getState().pedRefs;
-    MetricMap::const_iterator ipdr = pedRefs.find(icha);
-    if ( ipdr == pedRefs.end() ) {
-      pedRefs[icha].value = ped;
-    } else {
-      val = ped - ipdr->second.value;
+    val = acd.pedestal;
+    if ( m_pPedestalReference != nullptr ) {
+      float pedRef = m_pPedestalReference->value(acd.channel, 0.0);
+      val -= pedRef;
+    } else if ( m_PedestalReference == "first" ) {
+      Index icha = acd.channel;
+      MetricMap& pedRefs = getState().pedRefs;
+      MetricMap::const_iterator ipdr = pedRefs.find(icha);
+      if ( ipdr == pedRefs.end() ) {
+        pedRefs[icha].value = val;
+        val = 0.0;
+      } else {
+        val -= ipdr->second.value;
+      }
     }
     sunits = "ADC count";
   } else if ( met == "pedestalRms" ) {

@@ -479,6 +479,7 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  PedestalReference: ""
   MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
@@ -495,6 +496,7 @@ pdtps_template: {
 pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  PedestalReference: ""
   MetricSummaryView: ""
   MetricBins: 0
   MetricMin: 0.0
