@@ -86,65 +86,95 @@ private:
 
   int MC;
 
+
+
+
+  /******************************/
+  //Truth level info of the primary beam particle
+  //that generated the event
+  int true_beam_PDG;
+  std::string true_beam_EndProcess;
+  double true_beam_EndVertex_X;
+  double true_beam_EndVertex_Y;
+  double true_beam_EndVertex_Z;
+  double true_beam_Start_X;
+  double true_beam_Start_Y;
+  double true_beam_Start_Z;
+
+    //Truth level info of the daughter MCParticles coming out of the 
+    //true primary particle
+  std::vector< int > true_beam_daughter_PDGs;
+  std::vector< int > true_beam_daughter_IDs;
+  std::vector< double > true_beam_daughter_lens;
+
+  //How many of each true particle came out of the true primary beam particle?
   int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
   int nProton_truth, nNeutron_truth;
-  int MC_true_PDG;
-  int geantGood_PDG;
-  std::string geantGood_EndProcess;
-  std::string MC_true_EndProcess;
-  std::string MC_true_Process;
+  /*****************************/
+  
 
 
-  double geantGood_EndVertex_X;
-  double geantGood_EndVertex_Y;
-  double geantGood_EndVertex_Z;
 
-  int MC_origin;
-  std::vector< bool > MC_daughter_good_reco;
-  std::vector< int > MC_daughter_true_PDGs;
-  std::vector< int > MC_daughter_true_IDs;
-
-  std::vector< bool > MC_shower_daughter_good_reco;
-  std::vector< int > MC_shower_daughter_true_PDGs;
-  std::vector< int > MC_shower_daughter_true_IDs;
-
-  std::vector< int > geantGood_daughter_PDGs;
-  std::vector< int > geantGood_daughter_IDs;
-  std::vector< double > geantGood_daughter_lens;
-  std::vector< double > MC_daughter_true_lens;
-  std::vector< double > MC_shower_daughter_true_lens;
-  std::vector< double > MC_daughter_reco_lens;
-  std::vector< bool > MC_daughter_shower_good_reco;
-  bool MC_good_reco;
-
-
+  //Reconstructed track info
   double startX, startY, startZ;
   double endX, endY, endZ;
-  double len;
-  int broken_candidate;
-  double trackDirX, trackDirY, trackDirZ;
-  int beamTrackID;
-  std::vector< int > daughter_trackID;
-  std::vector< int > daughter_showerID;
-
-  std::vector< double > dEdX, dQdX, resRange;
-  std::vector< std::vector< double > > daughter_dEdX, daughter_dQdX, daughter_resRange;
   double vtxX, vtxY, vtxZ; 
-  std::vector< double > daughter_startX, daughter_endX;
-  std::vector< double > daughter_startY, daughter_endY;
-  std::vector< double > daughter_startZ, daughter_endZ;
-  std::vector< double > daughter_shower_startX;
-  std::vector< double > daughter_shower_startY;
-  std::vector< double > daughter_shower_startZ;
-  std::vector< double > daughter_len;
+  double len;
+  double trackDirX, trackDirY, trackDirZ;
+  std::vector< double > dEdX, dQdX, resRange;
+  int beamTrackID;
+
+  std::string reco_beam_truth_EndProcess; //What process ended the reco beam particle
+  std::string reco_beam_truth_Process;    //What process created the reco beam particle
+  
+  int reco_beam_truth_PDG; //What is the PDG of the true MC particle contributing the most to 
+                           //the reconstructed beam track
+
+  
+  bool reco_beam_good; //Does the true particle contributing most to the 
+                       //reconstructed beam track coincide with the actual
+                       //beam particle that generated the event
+                       
+
+  int reco_beam_truth_origin; //What is the origin of the reconstructed beam track?
+
+
+
+  //Truth-level info of the reconstructed particles coming out of the 
+  //reconstructed beam track
+  std::vector< bool >   reco_beam_truth_daughter_good_reco;
+  std::vector< int >    reco_beam_truth_daughter_true_PDGs;
+  std::vector< int >    reco_beam_truth_daughter_true_IDs;
+  std::vector< double > reco_beam_truth_daughter_true_lens;
+
+  std::vector< double > reco_beam_truth_daughter_shower_true_lens;
+  std::vector< bool >   reco_beam_truth_daughter_shower_good_reco;
+  std::vector< int >    reco_beam_truth_daughter_shower_true_PDGs;
+  std::vector< int >    reco_beam_truth_daughter_shower_true_IDs;
+
+
+  //Reco-level info of the reconstructed daughters coming out of the
+  //reconstructed beam tracl
+  std::vector< int > reco_daughter_trackID;
+  std::vector< int > reco_daughter_showerID;
+  std::vector< std::vector< double > > reco_daughter_dEdX, reco_daughter_dQdX, reco_daughter_resRange;
+  std::vector< double > reco_daughter_startX, reco_daughter_endX;
+  std::vector< double > reco_daughter_startY, reco_daughter_endY;
+  std::vector< double > reco_daughter_startZ, reco_daughter_endZ;
+  std::vector< double > reco_daughter_shower_startX;
+  std::vector< double > reco_daughter_shower_startY;
+  std::vector< double > reco_daughter_shower_startZ;
+  std::vector< double > reco_daughter_len;
 
   int nTrackDaughters, nShowerDaughters;
 
   int type;
   int nBeamParticles;
 
+
+
+  //FCL pars
   std::string fCalorimetryTag;
-  
   std::string fTrackerTag;    
   std::string fShowerTag;     
   std::string fPFParticleTag; 
@@ -182,9 +212,21 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   event = evt.id().event();
 
    
-  // Get the PFParticle utility
-  protoana::ProtoDUNEPFParticleUtils pfpUtil;
-  protoana::ProtoDUNETrackUtils trackUtil;
+  // Get various utilities 
+  protoana::ProtoDUNEPFParticleUtils                    pfpUtil;
+  protoana::ProtoDUNETrackUtils                         trackUtil;
+  art::ServiceHandle<cheat::BackTrackerService>         bt_serv;
+  art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
+  protoana::ProtoDUNETruthUtils                         truthUtil;
+  ////////////////////////////////////////
+  
+
+
+  // This gets the true beam particle that generated the event
+  auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+  const simb::MCParticle* true_beam_particle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+  ////////////////////////////
+
 
   // Get all of the PFParticles, by default from the "pandora" product
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
@@ -196,32 +238,160 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cerr << "We found no beam particles for this event... moving on" << std::endl;
     return;
   }
+  //////////////////////////////////////////////////////////////////
 
-  std::cout << "Found " << nBeamParticles << " beamParticles" << std::endl;
 
-  // We can now look at these particles
+  // Get the reconstructed PFParticle tagged as beam by Pandora
   const recob::PFParticle* particle = beamParticles.at(0);
+
+
+  //Reco track vertex and direction/length
+  const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+  std::cout << "PFParticle Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
+
+
+
+  // Determine if the beam particle is track-like or shower-like
   const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
   const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
-  if(thisTrack != 0x0){
-    std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
-    type = 13;
-  }
+  const simb::MCParticle* trueParticle = 0x0;
   if(thisShower != 0x0){
     std::cout << "Beam particle is shower-like" << std::endl;
     type = 11;
+    //This gets the MCParticle contributing the most to the shower
+    trueParticle = truthUtil.GetMCParticleFromRecoShower(*thisShower, evt, fShowerTag);
+  }
+  if(thisTrack != 0x0){
+
+    //This gets the MCParticle contributing the most to the track
+    trueParticle = truthUtil.GetMCParticleFromRecoTrack(*thisTrack, evt, fTrackerTag);
+
+
+    std::cout << "Beam particle is track-like " << thisTrack->ID() << std::endl;
+    type = 13;
+
+    // Now we can look for the interaction point of the particle if one exists, i.e where the particle
+    // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
+    // check this by making sure we get a sensible position
+    const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+    vtxX = interactionVtx.X();
+    vtxY = interactionVtx.Y();
+    vtxZ = interactionVtx.Z();
+    std::cout << "Secondary Vertex: " << vtxX << " " <<  vtxY << " " <<  vtxZ << std::endl;
+    ////////////////////////////////////////////
+    
+  }
+  //////////////////////////////////////////////////
+
+  if( trueParticle ){
+
+    //Check that this is the correct true particle
+    if( trueParticle->TrackId() == true_beam_particle->TrackId() ){
+      reco_beam_good = true;
+    }
+
+  }
+  //////////////////////////////////////////////////////////////
+
+  reco_beam_truth_PDG = trueParticle->PdgCode();
+
+  reco_beam_truth_Process = trueParticle->Process();
+  reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
+  //What created the MCPraticle that created the track?
+  std::cout << "Track-to-True origin: ";
+  switch( reco_beam_truth_origin ){
+    case simb::kCosmicRay: 
+      std::cout << "Cosmic" << std::endl;
+      break;
+    case simb::kSingleParticle:
+      std::cout << "Beam" << std::endl;
+      break;
+    default:
+      std::cout << "Other" << std::endl;
   }
 
 
 
-  // Find the particle vertex. We need the tracker tag here because we need to do a bit of
-  // additional work if the PFParticle is track-like to find the vertex. 
-  const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-  std::cout << "Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
 
-  //Get the TPC ID for the beginning of the track
+  //Some truth information
+  //
+  //
+  //What created the true particle
+  true_beam_EndProcess = true_beam_particle->EndProcess();
+
+  ///////////////////////////////////////
+    
+  
+  true_beam_PDG         = true_beam_particle->PdgCode();
+  true_beam_EndVertex_X = true_beam_particle->EndX();
+  true_beam_EndVertex_Y = true_beam_particle->EndY();
+  true_beam_EndVertex_Z = true_beam_particle->EndZ();
+  true_beam_Start_X     = true_beam_particle->Position(0).X();
+  true_beam_Start_Y     = true_beam_particle->Position(0).Y();
+  true_beam_Start_Z     = true_beam_particle->Position(0).Z();
+
+
+  //Look at true daughters coming out of the true beam particle
+  std::cout << "Has " << true_beam_particle->NumberDaughters() << " daughters" << std::endl;
+
+  const sim::ParticleList & plist = pi_serv->ParticleList(); 
+  for( int i = 0; i < true_beam_particle->NumberDaughters(); ++i ){
+    int daughterID = true_beam_particle->Daughter(i);
+
+    std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
+    auto part = plist[ daughterID ];
+    int pid = part->PdgCode();
+    true_beam_daughter_PDGs.push_back(pid);
+    true_beam_daughter_IDs.push_back( part->TrackId() );      
+    true_beam_daughter_lens.push_back( part->Trajectory().TotalLength() );
+    std::cout << "PID: " << pid << std::endl;
+    std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
+    std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
+    std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
+
+    if( pid == 211 )  ++nPiPlus_truth;
+    if( pid == -211 ) ++nPiMinus_truth;
+    if( pid == 111 )  ++nPi0_truth;
+    if( pid == 2212 ) ++nProton_truth;
+    if( pid == 2112 ) ++nNeutron_truth;
+
+  }
+
+
   if( thisTrack ){
 
+/*
+    if( trueParticle ){
+
+      //Check that this is the correct true particle
+      if( trueParticle->TrackId() == true_beam_particle->TrackId() ){
+        reco_beam_good = true;
+      }
+
+    }
+    //////////////////////////////////////////////////////////////
+    
+    
+    beamTrackID = thisTrack->ID();
+    
+
+    reco_beam_truth_Process = trueParticle->Process();
+    reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
+    //What created the MCPraticle that created the track?
+    std::cout << "Track-to-True origin: ";
+    switch( reco_beam_truth_origin ){
+      case simb::kCosmicRay: 
+        std::cout << "Cosmic" << std::endl;
+        break;
+      case simb::kSingleParticle:
+        std::cout << "Beam" << std::endl;
+        break;
+      default:
+        std::cout << "Other" << std::endl;
+    }
+
+    reco_beam_truth_PDG = trueParticle->PdgCode();
+    */
 
     startX = thisTrack->Trajectory().Start().X();
     startY = thisTrack->Trajectory().Start().Y();
@@ -262,138 +432,30 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cout << "trackDirZ: " << trackDirZ << std::endl;
 
     len  = thisTrack->Length();    
-    beamTrackID = thisTrack->ID();
-    
     std::cout << "Start: " << startX << " " << startY << " " << startZ << std::endl;
     std::cout << "End: " << endX << " " << endY << " " << endZ << std::endl;
     std::cout << "len: " << len << std::endl;
+    ////////////////////////////////////////////////////////////////
 
-    // Now we can look for the interaction point of the particle if one exists, i.e where the particle
-    // scatters off an argon nucleus. Shower-like objects won't have an interaction point, so we can
-    // check this by making sure we get a sensible position
-    const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-    vtxX = interactionVtx.X();
-    vtxY = interactionVtx.Y();
-    vtxZ = interactionVtx.Z();
-    std::cout << "Interaction Vertex: " << vtxX << " " <<  vtxY << " " <<  vtxZ << std::endl;
-    
 
-    // Let's get the daughter PFParticles... we can do this simply without the utility
-    for(const int daughterID : particle->Daughters()){
-      // Daughter ID is the element of the original recoParticle vector
-      const recob::PFParticle *daughterParticle = &(recoParticles->at(daughterID));
-      std::cout << "Daughter " << daughterID << " PDG: " << daughterParticle->PdgCode() << std::endl; 
+
+
+    //Primary Track Calorimetry 
+    std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
+    std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
+    auto calo_dQdX = calo[0].dQdx();
+    auto calo_dEdX = calo[0].dEdx();
+    auto calo_range = calo[0].ResidualRange();
+    for( size_t i = 0; i < calo_dQdX.size(); ++i ){
+      dQdX.push_back( calo_dQdX[i] );
+      dEdX.push_back( calo_dEdX[i] );
+      resRange.push_back( calo_range[i] );
     }
- 
-
-    art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-    art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
-
-    MC = 1;
-    // Get the truth utility to help us out
-    protoana::ProtoDUNETruthUtils truthUtil;
-    // Firstly we need to get the list of MCTruth objects from the generator. The standard protoDUNE
-    // simulation has fGeneratorTag = "generator"
-    auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
-    std::cout << "MCTruth origin: ";
-    switch( (*mcTruths)[0].Origin() ){
-      case simb::kCosmicRay: 
-        std::cout << "Cosmic" << std::endl;
-        break;
-      case simb::kSingleParticle:
-        std::cout << "Beam" << std::endl;
-        break;
-      default:
-        std::cout << "Other" << std::endl;
-    }
-
-    // mcTruths is basically a pointer to an std::vector of simb::MCTruth objects. There should only be one
-    // of these, so we pass the first element into the function to get the good particle
-    const simb::MCParticle* geantGoodParticle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
-
-    //Remove or move this if statement.
-    if(geantGoodParticle){
-      geantGood_PDG = geantGoodParticle->PdgCode();
-      std::cout << "Found GEANT particle corresponding to the good particle with pdg = " << geantGoodParticle->PdgCode() << std::endl;
-      std::cout << "ID: " << geantGoodParticle->TrackId() << std::endl;
-      std::cout << "Mother: " << geantGoodParticle->Mother() << std::endl;
+    ////////////////////////////////////////////
 
 
-      geantGood_EndVertex_X = geantGoodParticle->EndX();
-      geantGood_EndVertex_Y = geantGoodParticle->EndY();
-      geantGood_EndVertex_Z = geantGoodParticle->EndZ();
-    }
-    std::cout << "Has " << geantGoodParticle->NumberDaughters() << " daughters" << std::endl;
 
-
-    //This gets the MCParticle contributing the most to the track
-    const simb::MCParticle* trueParticle = truthUtil.GetMCParticleFromRecoTrack(*thisTrack, evt, fTrackerTag);
-    if( trueParticle ){ 
-      std::cout << "True particle from beam track: " << trueParticle->PdgCode() << std::endl;
-      MC_true_PDG = trueParticle->PdgCode();
-      MC_true_EndProcess = trueParticle->EndProcess();
-      MC_true_Process = trueParticle->Process();
-
-      MC_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
-      std::cout << "Track-to-True ID: " << trueParticle->TrackId() << std::endl;
-
-      //What created the MCPraticle that created the track?
-      std::cout << "Track-to-True origin: ";
-      switch( MC_origin ){
-        case simb::kCosmicRay: 
-          std::cout << "Cosmic" << std::endl;
-          break;
-        case simb::kSingleParticle:
-          std::cout << "Beam" << std::endl;
-          break;
-        default:
-          std::cout << "Other" << std::endl;
-      }
-
-      //Reconstructed beam track corresponds to the true beam particle
-      if( trueParticle->TrackId() == geantGoodParticle->TrackId() ){
-        MC_good_reco = true;
-      }
-
-      std::cout << "MCParticle trajectory:" << std::endl;
-      //Get the beginning of the MCParticle and project this to z=0 as if it was the beamline
-      std::cout << trueParticle->Trajectory().X(0) << " " << trueParticle->Trajectory().Y(0) << " " << trueParticle->Trajectory().Z(0) << std::endl;
-      size_t nT = trueParticle->Trajectory().size();
-      if( nT > 0 ) std::cout << trueParticle->Trajectory().X(nT-1) << " " << trueParticle->Trajectory().Y(nT-1) << " " << trueParticle->Trajectory().Z(nT-1) << std::endl;
-      
-    }
-    else std::cout << "Couldn't get trueParticle" << std::endl;
-     
-
-    const sim::ParticleList & plist = pi_serv->ParticleList(); 
-
-
-    for( int i = 0; i < geantGoodParticle->NumberDaughters(); ++i ){
-      int daughterID = geantGoodParticle->Daughter(i);
-
-      //Skip photons, neutrons, the nucleus
-    //  if( plist[ daughterID ]->PdgCode() == 22 || plist[ daughterID ]->PdgCode() == 2112 || plist[ daughterID ]->PdgCode() > 1000000000  ) continue;
-
-      std::cout << "Daughter " << i << " ID: " << daughterID << std::endl;
-      auto part = plist[ daughterID ];
-      int pid = part->PdgCode();
-      geantGood_daughter_PDGs.push_back(pid);
-      geantGood_daughter_IDs.push_back( part->TrackId() );      
-      geantGood_daughter_lens.push_back( part->Trajectory().TotalLength() );
-      std::cout << "PID: " << pid << std::endl;
-      std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
-      std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
-      std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
-
-      if( pid == 211 )  nPiPlus_truth++;
-      if( pid == -211 ) nPiMinus_truth++;
-      if( pid == 111 )  nPi0_truth++;
-      if( pid == 2212 ) nProton_truth++;
-
-    }
-
-    // For actually studying the objects, it is easier to have the daughters in their track and shower forms.
-    // We can use the utility to get a vector of track-like and a vector of shower-like daughters
+    //Looking at reco daughters from the reco beam track
     const std::vector<const recob::Track*> trackDaughters = pfpUtil.GetPFParticleDaughterTracks(*particle,evt,fPFParticleTag,fTrackerTag);  
     const std::vector<const recob::Shower*> showerDaughters = pfpUtil.GetPFParticleDaughterShowers(*particle,evt,fPFParticleTag,fShowerTag);  
     std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
@@ -404,18 +466,16 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
     for( size_t i = 0; i < trackDaughters.size(); ++i ){
       std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
-      daughter_len.push_back( trackDaughters[i]->Length() );
-
       auto daughterTrack = trackDaughters.at(i);
       
-      daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
-      daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
-      daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
-      daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
-      daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
-      daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
-
-      daughter_trackID.push_back( daughterTrack->ID() );
+      reco_daughter_len.push_back( daughterTrack->Length() );
+      reco_daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
+      reco_daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
+      reco_daughter_startZ.push_back( daughterTrack->Trajectory().Start().Z() );
+      reco_daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
+      reco_daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
+      reco_daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+      reco_daughter_trackID.push_back( daughterTrack->ID() );
 
 
       std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
@@ -423,50 +483,52 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       auto dummy_dEdx = dummy_calo[0].dEdx();
       auto dummy_Range = dummy_calo[0].ResidualRange();
  
-      daughter_dQdX.push_back( std::vector<double>() );   
-      daughter_resRange.push_back( std::vector<double>() );
-      daughter_dEdX.push_back( std::vector<double>() );
+      reco_daughter_dQdX.push_back( std::vector<double>() );   
+      reco_daughter_resRange.push_back( std::vector<double>() );
+      reco_daughter_dEdX.push_back( std::vector<double>() );
 
-      for( size_t i = 0; i < dummy_dQdx.size(); ++i ){
-        daughter_dQdX.back().push_back( dummy_dQdx[i] );
-        daughter_resRange.back().push_back( dummy_Range[i] );
-        daughter_dEdX.back().push_back( dummy_dEdx[i] );
+      for( size_t j = 0; j < dummy_dQdx.size(); ++j ){
+        reco_daughter_dQdX.back().push_back( dummy_dQdx[j] );
+        reco_daughter_resRange.back().push_back( dummy_Range[j] );
+        reco_daughter_dEdX.back().push_back( dummy_dEdx[j] );
       }
 
 
-      auto daughterTrackFromRecoTrack = trackDaughters[i];
-
+      ///Try to match the reconstructed daughter tracks from the reco'd/tagged beam track
+      //   to the true daughter particles coming out of the true beam track
       bool found_daughter = false;
-      const simb::MCParticle* daughterParticleFromRecoTrack = truthUtil.GetMCParticleFromRecoTrack(*daughterTrackFromRecoTrack, evt, fTrackerTag); 
+      const simb::MCParticle* daughterParticleFromRecoTrack = truthUtil.GetMCParticleFromRecoTrack(*daughterTrack, evt, fTrackerTag); 
 
       if( daughterParticleFromRecoTrack ){
         int loc = 0;
-        for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
-          if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoTrack->TrackId() ){
+        for( size_t j = 0; j < true_beam_daughter_IDs.size(); ++j ){
+          
+          //do the checking
+          if ( true_beam_daughter_IDs[j] == daughterParticleFromRecoTrack->TrackId() ){
             found_daughter = true;
             loc = j;
             break;
           }
         }
 
-        MC_daughter_good_reco.push_back( found_daughter );
+        reco_beam_truth_daughter_good_reco.push_back( found_daughter );
         if( found_daughter ){
-          MC_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
-          MC_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
-          MC_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
+          reco_beam_truth_daughter_true_PDGs.push_back( true_beam_daughter_PDGs[loc] ); 
+          reco_beam_truth_daughter_true_IDs.push_back( true_beam_daughter_IDs[loc] );
+          reco_beam_truth_daughter_true_lens.push_back( true_beam_daughter_lens[loc] );
         }
         else{
 
-          MC_daughter_true_PDGs.push_back( daughterParticleFromRecoTrack->PdgCode() );
-          MC_daughter_true_IDs.push_back( daughterParticleFromRecoTrack->TrackId() );
-          MC_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
+          reco_beam_truth_daughter_true_PDGs.push_back( daughterParticleFromRecoTrack->PdgCode() );
+          reco_beam_truth_daughter_true_IDs.push_back( daughterParticleFromRecoTrack->TrackId() );
+          reco_beam_truth_daughter_true_lens.push_back( daughterParticleFromRecoTrack->Trajectory().TotalLength() );
         }
       }
       else{
-        MC_daughter_good_reco.push_back( false );
-        MC_daughter_true_PDGs.push_back( -1 );
-        MC_daughter_true_IDs.push_back( -1 );
-        MC_daughter_true_lens.push_back( -1 );
+        reco_beam_truth_daughter_good_reco.push_back( false );
+        reco_beam_truth_daughter_true_PDGs.push_back( -1 );
+        reco_beam_truth_daughter_true_IDs.push_back( -1 );
+        reco_beam_truth_daughter_true_lens.push_back( -1 );
       }
         
     }
@@ -475,10 +537,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
     for( size_t i = 0; i < showerDaughters.size(); ++i ){
       std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
-      daughter_showerID.push_back( showerDaughters[i]->ID() );
-      daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
-      daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
-      daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
+      reco_daughter_showerID.push_back( showerDaughters[i]->ID() );
+      reco_daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
+      reco_daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
+      reco_daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
 
       auto daughterShowerFromRecoTrack = showerDaughters[i];
 
@@ -489,62 +551,34 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       if( daughterParticleFromRecoShower ){
         std::cout << "Shower daughter ID: " << daughterParticleFromRecoShower->TrackId() << std::endl;
         int loc = 0;
-        for( size_t j = 0; j < geantGood_daughter_IDs.size(); ++j ){
-          if ( geantGood_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
+        for( size_t j = 0; j < true_beam_daughter_IDs.size(); ++j ){
+          if ( true_beam_daughter_IDs[j] == daughterParticleFromRecoShower->TrackId() ){
             found_daughter = true;
             loc = j;
             break;
           }
         }
 
-        MC_shower_daughter_good_reco.push_back( found_daughter );
+        reco_beam_truth_daughter_shower_good_reco.push_back( found_daughter );
         if( found_daughter ){
-          MC_shower_daughter_true_PDGs.push_back( geantGood_daughter_PDGs[loc] ); 
-          MC_shower_daughter_true_IDs.push_back( geantGood_daughter_IDs[loc] );
-          MC_shower_daughter_true_lens.push_back( geantGood_daughter_lens[loc] );
+          reco_beam_truth_daughter_shower_true_PDGs.push_back( true_beam_daughter_PDGs[loc] ); 
+          reco_beam_truth_daughter_shower_true_IDs.push_back( true_beam_daughter_IDs[loc] );
+          reco_beam_truth_daughter_shower_true_lens.push_back( true_beam_daughter_lens[loc] );
         }
         else{
-          MC_shower_daughter_true_PDGs.push_back( daughterParticleFromRecoShower->PdgCode() );
-          MC_shower_daughter_true_IDs.push_back( daughterParticleFromRecoShower->TrackId() );
-          MC_shower_daughter_true_lens.push_back( daughterParticleFromRecoShower->Trajectory().TotalLength() );
+          reco_beam_truth_daughter_shower_true_PDGs.push_back( daughterParticleFromRecoShower->PdgCode() );
+          reco_beam_truth_daughter_shower_true_IDs.push_back( daughterParticleFromRecoShower->TrackId() );
+          reco_beam_truth_daughter_shower_true_lens.push_back( daughterParticleFromRecoShower->Trajectory().TotalLength() );
         }
       }
 
     }
 
+  }
+  else if( thisShower ){
+    beamTrackID = thisShower->ID();
+  }
 
-    geantGood_EndProcess = geantGoodParticle->EndProcess();
-
-
-
-    //Want to see all of the truth particles that contributed to this track
-    std::vector< std::pair< const simb::MCParticle*, double > > contribParts = truthUtil.GetMCParticleListFromRecoTrack(*thisTrack, evt, fTrackerTag);
-    std::cout << contribParts.size() << " Truth Particles Contributed to this track" << std::endl;
-    for( size_t ip = 0; ip < contribParts.size(); ++ip ){
-      auto part = contribParts.at( ip ).first;
-      double energy = contribParts.at( ip ).second;
-      std::cout << ip << " " << part->TrackId() << " " << part->PdgCode() << " " << energy << std::endl;
-    }
-
-
-    //Calorimetry 
-    //
-    std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
-    std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
-    auto calo_dQdX = calo[0].dQdx();
-    auto calo_dEdX = calo[0].dEdx();
-    auto calo_range = calo[0].ResidualRange();
-    for( size_t i = 0; i < calo_dQdX.size(); ++i ){
-
-      std::cout << calo_dQdX[i] << " " << calo_dEdX[i] << " " << calo_range[i] << std::endl;
-      dQdX.push_back( calo_dQdX[i] );
-      dEdX.push_back( calo_dEdX[i] );
-      resRange.push_back( calo_range[i] );
-    }
-
-
-
-  } 
 
 
   fTree->Fill();
@@ -554,6 +588,13 @@ void pionana::PionAnalyzerMC::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("beamana","beam analysis tree");
+
+  fTree->Branch("run", &run);
+  fTree->Branch("subrun", &subrun);
+  fTree->Branch("event", &event);
+  fTree->Branch("type", &type);
+  fTree->Branch("MC", &MC);
+
   fTree->Branch("startX", &startX);
   fTree->Branch("startY", &startY);
   fTree->Branch("startZ", &startZ);
@@ -561,72 +602,73 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("endY", &endY);
   fTree->Branch("endZ", &endZ);
   fTree->Branch("len", &len);
-  fTree->Branch("run", &run);
-  fTree->Branch("subrun", &subrun);
-  fTree->Branch("event", &event);
-  fTree->Branch("type", &type);
-  fTree->Branch("nBeamParticles", &nBeamParticles);
-
   fTree->Branch("trackDirX", &trackDirX);
   fTree->Branch("trackDirY", &trackDirY);
   fTree->Branch("trackDirZ", &trackDirZ);
-  fTree->Branch("beamTrackID", &beamTrackID);
-  fTree->Branch("daughter_trackID", &daughter_trackID);
-  fTree->Branch("daughter_showerID", &daughter_showerID);
-
-  fTree->Branch("MC", &MC);
-  fTree->Branch("dQdX", &dQdX);
-  fTree->Branch("dEdX", &dEdX);
-  fTree->Branch("resRange", &resRange);
-  fTree->Branch("daughter_dQdX", &daughter_dQdX);
-  fTree->Branch("daughter_dEdX", &daughter_dEdX);
-  fTree->Branch("daughter_resRange", &daughter_resRange);
-  fTree->Branch("daughter_len", &daughter_len);
-  fTree->Branch("daughter_startX", &daughter_startX);
-  fTree->Branch("daughter_startY", &daughter_startY);
-  fTree->Branch("daughter_startZ", &daughter_startZ);
   fTree->Branch("vtxX", &vtxX);
   fTree->Branch("vtxY", &vtxY);
   fTree->Branch("vtxZ", &vtxZ);
-  fTree->Branch("daughter_endX", &daughter_endX);
-  fTree->Branch("daughter_endY", &daughter_endY);
-  fTree->Branch("daughter_endZ", &daughter_endZ);
-  fTree->Branch("daughter_shower_startX", &daughter_shower_startX);
-  fTree->Branch("daughter_shower_startY", &daughter_shower_startY);
-  fTree->Branch("daughter_shower_startZ", &daughter_shower_startZ);
+  fTree->Branch("beamTrackID", &beamTrackID);
+  fTree->Branch("dQdX", &dQdX);
+  fTree->Branch("dEdX", &dEdX);
+  fTree->Branch("resRange", &resRange);
+  fTree->Branch("nBeamParticles", &nBeamParticles);
+
+
+  fTree->Branch("reco_daughter_trackID", &reco_daughter_trackID);
+  fTree->Branch("reco_daughter_showerID", &reco_daughter_showerID);
+  fTree->Branch("reco_daughter_dQdX", &reco_daughter_dQdX);
+  fTree->Branch("reco_daughter_dEdX", &reco_daughter_dEdX);
+  fTree->Branch("reco_daughter_resRange", &reco_daughter_resRange);
+  fTree->Branch("reco_daughter_len", &reco_daughter_len);
+  fTree->Branch("reco_daughter_startX", &reco_daughter_startX);
+  fTree->Branch("reco_daughter_startY", &reco_daughter_startY);
+  fTree->Branch("reco_daughter_startZ", &reco_daughter_startZ);
+  fTree->Branch("reco_daughter_endX", &reco_daughter_endX);
+  fTree->Branch("reco_daughter_endY", &reco_daughter_endY);
+  fTree->Branch("reco_daughter_endZ", &reco_daughter_endZ);
+  fTree->Branch("reco_daughter_shower_startX", &reco_daughter_shower_startX);
+  fTree->Branch("reco_daughter_shower_startY", &reco_daughter_shower_startY);
+  fTree->Branch("reco_daughter_shower_startZ", &reco_daughter_shower_startZ);
   fTree->Branch("nTrackDaughters", &nTrackDaughters);
   fTree->Branch("nShowerDaughters", &nShowerDaughters);
-  fTree->Branch("nProton_truth", &nProton_truth);
+
+  fTree->Branch("true_beam_PDG", &true_beam_PDG);
+  fTree->Branch("true_beam_EndProcess", &true_beam_EndProcess);
+  fTree->Branch("true_beam_EndVertex_X", &true_beam_EndVertex_X);
+  fTree->Branch("true_beam_EndVertex_Y", &true_beam_EndVertex_Y);
+  fTree->Branch("true_beam_EndVertex_Z", &true_beam_EndVertex_Z);
+  fTree->Branch("true_beam_Start_X", &true_beam_Start_X);
+  fTree->Branch("true_beam_Start_Y", &true_beam_Start_Y);
+  fTree->Branch("true_beam_Start_Z", &true_beam_Start_Z);
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
+  fTree->Branch("nProton_truth", &nProton_truth);
+  fTree->Branch("nNeutron_truth", &nNeutron_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
-  fTree->Branch("MC_true_PDG", &MC_true_PDG);
 
-  fTree->Branch("geantGood_PDG", &geantGood_PDG);
-  fTree->Branch("geantGood_EndProcess", &geantGood_EndProcess);
-  fTree->Branch("geantGood_EndVertex_X", &geantGood_EndVertex_X);
-  fTree->Branch("geantGood_EndVertex_Y", &geantGood_EndVertex_Y);
-  fTree->Branch("geantGood_EndVertex_Z", &geantGood_EndVertex_Z);
+  fTree->Branch("true_beam_daughter_PDGs", &true_beam_daughter_PDGs);
+  fTree->Branch("true_beam_daughter_IDs", &true_beam_daughter_IDs);
+  fTree->Branch("true_beam_daughter_lens", &true_beam_daughter_lens);
 
-  fTree->Branch("MC_true_EndProcess", &MC_true_EndProcess);
-  fTree->Branch("MC_true_Process", &MC_true_Process);
-  fTree->Branch("MC_origin", &MC_origin);
-  fTree->Branch("MC_good_reco", &MC_good_reco);
-  fTree->Branch("MC_daughter_good_reco", &MC_daughter_good_reco);
-  fTree->Branch("MC_daughter_true_PDGs", &MC_daughter_true_PDGs);
-  fTree->Branch("MC_daughter_true_IDs", &MC_daughter_true_IDs);
+  fTree->Branch("reco_beam_truth_EndProcess", &reco_beam_truth_EndProcess);
+  fTree->Branch("reco_beam_truth_Process", &reco_beam_truth_Process);
+  fTree->Branch("reco_beam_truth_origin", &reco_beam_truth_origin);
+  fTree->Branch("reco_beam_truth_PDG", &reco_beam_truth_PDG);
+  fTree->Branch("reco_beam_good", &reco_beam_good);
 
-  fTree->Branch("MC_shower_daughter_good_reco", &MC_shower_daughter_good_reco);
-  fTree->Branch("MC_shower_daughter_true_PDGs", &MC_shower_daughter_true_PDGs);
-  fTree->Branch("MC_shower_daughter_true_IDs", &MC_shower_daughter_true_IDs);
 
-  fTree->Branch("geantGood_daughter_PDGs", &geantGood_daughter_PDGs);
-  fTree->Branch("geantGood_daughter_IDs", &geantGood_daughter_IDs);
-  fTree->Branch("geantGood_daughter_lens", &geantGood_daughter_lens);
-  fTree->Branch("MC_daughter_true_lens", &MC_daughter_true_lens);
-  fTree->Branch("MC_shower_daughter_true_lens", &MC_shower_daughter_true_lens);
-  fTree->Branch("MC_daughter_reco_lens", &MC_daughter_reco_lens);
-  fTree->Branch("MC_daughter_shower_good_reco", &MC_daughter_shower_good_reco);
+  fTree->Branch("reco_beam_truth_daughter_good_reco", &reco_beam_truth_daughter_good_reco);
+  fTree->Branch("reco_beam_truth_daughter_true_PDGs", &reco_beam_truth_daughter_true_PDGs);
+  fTree->Branch("reco_beam_truth_daughter_true_IDs", &reco_beam_truth_daughter_true_IDs);
+
+  fTree->Branch("reco_beam_truth_daughter_shower_good_reco", &reco_beam_truth_daughter_shower_good_reco);
+  fTree->Branch("reco_beam_truth_daughter_shower_true_PDGs", &reco_beam_truth_daughter_shower_true_PDGs);
+  fTree->Branch("reco_beam_truth_daughter_shower_true_IDs", &reco_beam_truth_daughter_shower_true_IDs);
+
+  fTree->Branch("reco_beam_truth_daughter_true_lens", &reco_beam_truth_daughter_true_lens);
+  fTree->Branch("reco_beam_truth_daughter_shower_true_lens", &reco_beam_truth_daughter_shower_true_lens);
+  fTree->Branch("reco_beam_truth_daughter_shower_good_reco", &reco_beam_truth_daughter_shower_good_reco);
 
 
 }
@@ -646,41 +688,43 @@ void pionana::PionAnalyzerMC::reset()
   endZ = -1;
 
   len = -1;
-  broken_candidate = 0;
   type = -1;
   nBeamParticles = 0;
 
   MC = 0;
   nProton_truth = 0;
+  nNeutron_truth = 0;
   nPi0_truth = 0;
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
-  MC_true_PDG = 0;
-  geantGood_PDG = 0;
-  geantGood_EndProcess ="";
-  geantGood_EndVertex_X = 0.;
-  geantGood_EndVertex_Y = 0.;
-  geantGood_EndVertex_Z = 0.;
-  MC_true_EndProcess ="";
-  MC_true_Process ="";
-  MC_origin = -1;
+  reco_beam_truth_PDG = 0;
+  true_beam_PDG = 0;
+  true_beam_EndProcess ="";
+  true_beam_EndVertex_X = 0.;
+  true_beam_EndVertex_Y = 0.;
+  true_beam_EndVertex_Z = 0.;
+  true_beam_Start_X = 0.;
+  true_beam_Start_Y = 0.;
+  true_beam_Start_Z = 0.;
+  reco_beam_truth_EndProcess ="";
+  reco_beam_truth_Process ="";
+  reco_beam_truth_origin = -1;
 
-  MC_good_reco = false;
-  MC_daughter_good_reco.clear();
-  MC_daughter_true_PDGs.clear();
-  MC_daughter_true_IDs.clear();
+  reco_beam_good = false;
+  reco_beam_truth_daughter_good_reco.clear();
+  reco_beam_truth_daughter_true_PDGs.clear();
+  reco_beam_truth_daughter_true_IDs.clear();
 
-  MC_shower_daughter_good_reco.clear();
-  MC_shower_daughter_true_PDGs.clear();
-  MC_shower_daughter_true_IDs.clear();
+  reco_beam_truth_daughter_shower_good_reco.clear();
+  reco_beam_truth_daughter_shower_true_PDGs.clear();
+  reco_beam_truth_daughter_shower_true_IDs.clear();
 
-  geantGood_daughter_PDGs.clear();
-  geantGood_daughter_lens.clear();
-  MC_daughter_true_lens.clear();
-  MC_shower_daughter_true_lens.clear();
-  MC_daughter_reco_lens.clear();
-  geantGood_daughter_IDs.clear();
-  MC_daughter_shower_good_reco.clear();
+  true_beam_daughter_PDGs.clear();
+  true_beam_daughter_lens.clear();
+  reco_beam_truth_daughter_true_lens.clear();
+  reco_beam_truth_daughter_shower_true_lens.clear();
+  true_beam_daughter_IDs.clear();
+  reco_beam_truth_daughter_shower_good_reco.clear();
 
   nTrackDaughters = -1;
   nShowerDaughters = -1;
@@ -690,27 +734,27 @@ void pionana::PionAnalyzerMC::reset()
   vtxX = -1.;
   vtxY = -1.;
   vtxZ = -1.;
-  daughter_startX.clear();
-  daughter_startY.clear();
-  daughter_startZ.clear();
-  daughter_endX.clear();
-  daughter_endY.clear();
-  daughter_endZ.clear();
+  reco_daughter_startX.clear();
+  reco_daughter_startY.clear();
+  reco_daughter_startZ.clear();
+  reco_daughter_endX.clear();
+  reco_daughter_endY.clear();
+  reco_daughter_endZ.clear();
 
-  daughter_shower_startX.clear();
-  daughter_shower_startY.clear();
-  daughter_shower_startZ.clear();
+  reco_daughter_shower_startX.clear();
+  reco_daughter_shower_startY.clear();
+  reco_daughter_shower_startZ.clear();
 
   resRange.clear();
 
-  daughter_dQdX.clear();
-  daughter_dEdX.clear();
-  daughter_resRange.clear();
-  daughter_len.clear();
+  reco_daughter_dQdX.clear();
+  reco_daughter_dEdX.clear();
+  reco_daughter_resRange.clear();
+  reco_daughter_len.clear();
 
   beamTrackID = -1;
-  daughter_trackID.clear();
-  daughter_showerID.clear();
+  reco_daughter_trackID.clear();
+  reco_daughter_showerID.clear();
 
 }
 
