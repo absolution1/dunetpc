@@ -26,6 +26,7 @@
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
 //   PedestalReference - Name of the FloatArrayTool that holds the pedestal reference values.
+//                       If the value is "first", the pedestal for the first event is used.
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error

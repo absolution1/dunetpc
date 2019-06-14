@@ -480,7 +480,7 @@ pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   PedestalReference: ""
-  MetricSummaryView: ""
+  MetricSummaryView: "mean:dmean"
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
@@ -497,7 +497,7 @@ pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   PedestalReference: ""
-  MetricSummaryView: ""
+  MetricSummaryView: "mean:dmean"
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
@@ -588,8 +588,8 @@ tools.pdtps_adcChannelPedestalUscPlotter.PlotFileName: "chmet_pedoffusc_%CRNAME%
 # Pedestal diff for each TPS channel.
 tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
-tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -25
-tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  25
+tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -10
+tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  10
 tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpd%CRNAME%_peddiff_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricLabel: "#DeltaPedestal [ADC count]"

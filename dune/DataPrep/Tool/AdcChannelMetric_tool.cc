@@ -81,6 +81,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_doSummary(false),
   m_doSummaryError(false),
+  m_pPedestalReference(nullptr),
   m_pChannelStatusProvider(nullptr),
   m_state(new State) {
   const string myname = "AdcChannelMetric::ctor: ";
@@ -116,13 +117,14 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     m_pPedestalReference = ptm->getShared<FloatArrayTool>(m_PedestalReference);
     if ( m_pPedestalReference == nullptr ) {
       cout << "WARNING: Pedestal reference tool not found: " << m_PedestalReference << endl;
+    } else {
+      Index nref = m_pPedestalReference->size();
+      Index off = m_pPedestalReference->offset();
+      cout << myname << "Pedestal reference array has " << nref << " value"
+           << ( nref == 1 ? "" : "s" );
+      if ( nref ) cout << " starting at channel " << off;
+      cout << "." << endl;
     }
-    Index nref = m_pPedestalReference->size();
-    Index off = m_pPedestalReference->offset();
-    cout << myname << "Pedestal reference array has " << nref << " value"
-         << ( nref == 1 ? "" : "s" );
-    if ( nref ) cout << " starting at channel " << off;
-    cout << "." << endl;
   }
   // Fetch the naming tool.
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
@@ -419,6 +421,8 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       } else {
         val -= ipdr->second.value;
       }
+    } else {
+      cout << myname << "WARNING: Pedestal difference requested without reference." << endl;
     }
     sunits = "ADC count";
   } else if ( met == "pedestalRms" ) {
