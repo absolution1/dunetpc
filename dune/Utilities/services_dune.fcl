@@ -251,7 +251,7 @@ protodunedphase_services: {
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
  Geometry: 			 @local::protodunedphase_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService: 	 @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
@@ -274,7 +274,7 @@ protodunedphase_simulation_services: {
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService: 	 @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
