@@ -90178,7 +90178,7 @@
            <position name="posvolAuxDet_CRTModule_U1" unit="cm"
             x="272" 
             y="133.1" 
-            z="-639.15"/>
+            z="-630.95"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90186,7 +90186,7 @@
            <position name="posvolAuxDet_CRTModule_U2" unit="cm"
             x="443.2" 
             y="133.1" 
-            z="-639.15"/>
+            z="-630.95"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90194,7 +90194,7 @@
            <position name="posvolAuxDet_CRTModule_U3" unit="cm"
             x="357.6" 
             y="47.5" 
-            z="-630.95"/>
+            z="-639.15"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90202,7 +90202,7 @@
            <position name="posvolAuxDet_CRTModule_U4" unit="cm"
             x="357.6" 
             y="218.7" 
-            z="-630.95"/>
+            z="-639.15"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90210,7 +90210,7 @@
            <position name="posvolAuxDet_CRTModule_U5" unit="cm"
             x="272.54" 
             y="-200.05" 
-            z="-654.98"/>
+            z="-664.34"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90218,7 +90218,7 @@
            <position name="posvolAuxDet_CRTModule_U6" unit="cm"
             x="443.74" 
             y="-200.05" 
-            z="-654.98"/>
+            z="-664.34"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90226,7 +90226,7 @@
            <position name="posvolAuxDet_CRTModule_U7" unit="cm"
             x="358.14" 
             y="-285.65" 
-            z="-664.34"/>
+            z="-654.98"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90234,7 +90234,7 @@
            <position name="posvolAuxDet_CRTModule_U8" unit="cm"
             x="358.14" 
             y="-114.45" 
-            z="-664.34"/>
+            z="-654.98"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90242,7 +90242,7 @@
            <position name="posvolAuxDet_CRTModule_U9" unit="cm"
             x="-160.45" 
             y="133.58" 
-            z="-1335.07"/>
+            z="-1343.05"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90250,7 +90250,7 @@
            <position name="posvolAuxDet_CRTModule_U10" unit="cm"
             x="10.75" 
             y="133.58" 
-            z="-1335.07"/>
+            z="-1343.05"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90258,7 +90258,7 @@
            <position name="posvolAuxDet_CRTModule_U11" unit="cm"
             x="-74.85" 
             y="47.9799999999999" 
-            z="-1343.05"/>
+            z="-1335.07"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90266,7 +90266,7 @@
            <position name="posvolAuxDet_CRTModule_U12" unit="cm"
             x="-74.85" 
             y="219.18" 
-            z="-1343.05"/>
+            z="-1335.07"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90274,7 +90274,7 @@
            <position name="posvolAuxDet_CRTModule_U13" unit="cm"
             x="-153.07" 
             y="-200.7" 
-            z="-1366.35"/>
+            z="-1359.11"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90282,7 +90282,7 @@
            <position name="posvolAuxDet_CRTModule_U14" unit="cm"
             x="18.13" 
             y="-200.7" 
-            z="-1366.35"/>
+            z="-1359.11"/>
            <rotationref ref="rPlus90AboutX"/>
        </physvol>
        <physvol>
@@ -90290,7 +90290,7 @@
            <position name="posvolAuxDet_CRTModule_U15" unit="cm"
             x="-67.47" 
             y="-286.3" 
-            z="-1359.11"/>
+            z="-1366.35"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
@@ -90298,7 +90298,7 @@
            <position name="posvolAuxDet_CRTModule_U16" unit="cm"
             x="-67.47" 
             y="-115.1" 
-            z="-1359.11"/>
+            z="-1366.35"/>
            <rotationref ref="rMinus90AboutYMinus90AboutX"/>
        </physvol>
        <physvol>
