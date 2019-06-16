@@ -352,6 +352,24 @@ protodune_services: {
  ChannelGroupService:          @local::changroup_apa_keepall
 }
 
+protodunev6_services: {
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protodunev6_geo
+ DetectorClocksService:        @local::protodune_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ LArFFT:                       @local::dunefd_larfft
+ DatabaseUtil:                 @local::dunefd_database
+ BackTrackerService:           @local::dunefd_backtrackerservice
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
+ SpaceCharge:                  @local::protodune_spacecharge
+ NuRandomService:              @local::dune_seedservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
+ ChannelStatusService:         @local::dunefd_channel_status
+ ChannelGroupService:          @local::changroup_apa_keepall
+}
+
 
 protodune_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
@@ -363,6 +381,18 @@ protodune_rawdecoding_services: {
   DatabaseUtil:                 @local::dunefd_database
   ChannelStatusService:         @local::dunefd_channel_status
 #  ChannelGroupService:          @local::changroup_apa
+  PdspChannelMapService:        @local::pdspchannelmap
+}
+
+protodunev6_rawdecoding_services: {
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  Geometry:                     @local::protodunev6_geo
+  DetectorClocksService:        @local::protodune_detectorclocks
+  DetectorPropertiesService:    @local::protodune_detproperties
+  LArPropertiesService:         @local::dunefd_properties
+  LArFFT:                       @local::dunefd_larfft  
+  DatabaseUtil:                 @local::dunefd_database
+  ChannelStatusService:         @local::dunefd_channel_status
   PdspChannelMapService:        @local::pdspchannelmap
 }
 
@@ -381,6 +411,27 @@ iceberg_rawdecoding_services: {
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  Geometry:                     @local::protodune_geo
+ DetectorClocksService:        @local::protodune_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ LArFFT:                       @local::dunefd_larfft
+ DatabaseUtil:                 @local::dunefd_database
+ SpaceCharge:                  @local::protodune_spacecharge
+ NuRandomService:              @local::dune_seedservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
+ ChannelStatusService:         @local::pdsp_channel_status
+ ChannelGroupService:          @local::changroup_apa_keepall
+# Reco services for ProtoDUNE real data.
+ RawDigitExtractService:       @local::rdx_std
+ RawDigitPrepService:          @local::adcprep_with_services_sim
+ AdcDeconvolutionService:      @local::adcdco_dunefd
+ AdcRoiBuildingService:        @local::adcroi_dunefd
+ AdcWireBuildingService:       @local::adcwire_std
+}
+
+protodunev6_data_services: {
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protodunev6_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -418,6 +469,25 @@ protodune_simulation_services: {
  ChannelStatusService:         @local::dunefd_channel_status
 }
 
+protodunev6_simulation_services: {
+ LArFFT:                       @local::dunefd_larfft
+ LArG4Parameters:              @local::protodune_largeantparameters
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protodunev6_geo
+ DetectorClocksService:        @local::protodune_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
+ MagneticField:                @local::no_mag_larsoft
+ SpaceCharge:                  @local::protodune_spacecharge
+ NuRandomService:              @local::dune_seedservice
+ SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
+ PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+ OpDetResponseInterface:       @local::protodune_opdetresponse
+ ChannelStatusService:         @local::dunefd_channel_status
+}
+
 # Enable photon simulation for protoDUNE by default
 
 protodune_simulation_services.LArPropertiesService.ScintYield: 24000
@@ -434,6 +504,22 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "Stopping",
                                                                 "NeutronTrackingCut" ]
 
+
+# Enable photon simulation for protoDUNE by default
+
+protodunev6_simulation_services.LArPropertiesService.ScintYield: 24000
+protodunev6_simulation_services.LArPropertiesService.ScintPreScale: 0.05
+protodunev6_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+protodunev6_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodunev6_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                                "FastOptical",
+                                                                "SynchrotronAndGN",
+                                                                "Ion",
+                                                                "Hadron",
+                                                                "Decay",
+                                                                "HadronElastic",
+                                                                "Stopping",
+                                                                "NeutronTrackingCut" ]
 
 # Reco services for ProtoDUNE simulation.
 protodune_reco_services:                            @local::protodune_services
