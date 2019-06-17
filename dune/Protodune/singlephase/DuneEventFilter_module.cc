@@ -13,6 +13,8 @@
 //   EventBegin, EventEnd: if EventEnd > EventBegin, event must be in (EventBegin, EventEnd].
 //   EventModFreq, EventModVal: keep events for which ievt%EventModFreq == EventModVal
 //   JobIndexRangeTool: Name of the job IndexRangeTool, e.g. jobRanges.
+//   SkipEventTool: Name of a tool (IndexVectorTool) that lists events to be skipped
+//                  indexed by run number. Blank means no tool.
 //
 // The range of event to process is (EventBegin, EventEnd] if EventEnd > EventBegin.
 // Otherwise the range is taken from the index range "events"  in the job IndexRangeTool.
@@ -23,6 +25,7 @@
 #include <set>
 
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
+#include "dune/DuneInterface/Tool/IndexVectorMapTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "art/Framework/Core/EDFilter.h" 
 #include "art/Framework/Core/ModuleMacros.h" 
@@ -52,12 +55,14 @@ private:
   Index m_EventModFreq;
   Index m_EventModVal;
   Name m_JobIndexRangeTool;
+  Name m_SkipEventTool;
 
   // Derived from configuration.
   Index m_beginEvent;
   Index m_endEvent;
   IndexSet m_SelectEvents;
   IndexSet m_RejectEvents;
+  const IndexVectorMapTool* m_pSkipEventTool;
 
   // Counters.
   Index m_nproc;
@@ -77,7 +82,9 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
   m_EventModFreq(pset.get<Index>("EventModFreq")),
   m_EventModVal(pset.get<Index>("EventModVal")),
   m_JobIndexRangeTool(pset.get<Name>("JobIndexRangeTool")),
+  m_SkipEventTool(pset.get<Name>("SkipEventTool")),
   m_beginEvent(0), m_endEvent(0),
+  m_pSkipEventTool(nullptr),
   m_nproc(0), m_nsel(0) {
   using std::cout;
   using std::endl;
@@ -108,29 +115,39 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
     cout << myname << "        EventModVal: " << m_EventModVal << endl;
     cout << myname << "       EventModFreq: " << m_EventModFreq << endl;
     cout << myname << "  JobIndexRangeTool: " << m_JobIndexRangeTool << endl;
-    if ( m_EventEnd > m_EventBegin ) {
-      m_beginEvent = m_EventBegin;
-      m_endEvent = m_EventEnd;
-    } else if ( m_JobIndexRangeTool.size() ) {
-      DuneToolManager* ptm = DuneToolManager::instance();
-      const IndexRangeTool* pjrt = ptm->getShared<IndexRangeTool>(m_JobIndexRangeTool);
-      if ( pjrt == nullptr ) {
-        cout << "ERROR: Job index range tool not found: " << m_JobIndexRangeTool << endl;
+    cout << myname << "      SkipEventTool: " << m_SkipEventTool << endl;
+  }
+  if ( m_EventEnd > m_EventBegin ) {
+    m_beginEvent = m_EventBegin;
+    m_endEvent = m_EventEnd;
+  } else if ( m_JobIndexRangeTool.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    const IndexRangeTool* pjrt = ptm->getShared<IndexRangeTool>(m_JobIndexRangeTool);
+    if ( pjrt == nullptr ) {
+      cout << "ERROR: Job index range tool not found: " << m_JobIndexRangeTool << endl;
+    } else {
+      IndexRange ran = pjrt->get("events");
+      if ( ! ran.isValid() ) {
+        cout << "ERROR: Job index range tool does not have range \"events\"" << endl;
       } else {
-        IndexRange ran = pjrt->get("events");
-        if ( ! ran.isValid() ) {
-          cout << "ERROR: Job index range tool does not have range \"events\"" << endl;
-        } else {
-          m_beginEvent = ran.begin;
-          m_endEvent = ran.end;
-        }
+        m_beginEvent = ran.begin;
+        m_endEvent = ran.end;
       }
     }
-    if ( m_endEvent > m_beginEvent ) {
-      cout << myname << "Event selection range is [" << m_beginEvent << ", "
-           << m_endEvent << ")." << endl;
+  }
+  if ( m_endEvent > m_beginEvent ) {
+    cout << myname << "Event selection range is [" << m_beginEvent << ", "
+         << m_endEvent << ")." << endl;
+  } else {
+    cout << myname << "No event selection range." << endl;
+  }
+  if ( m_SkipEventTool.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    m_pSkipEventTool = ptm->getShared<IndexVectorMapTool>(m_SkipEventTool);
+    if ( m_pSkipEventTool == nullptr ) {
+      cout << "WARNING: Unable to find SkipEventTool " << m_SkipEventTool << endl;
     } else {
-      cout << myname << "No event selection range." << endl;
+      cout << myname << "Using SkipEventTool @" << m_pSkipEventTool << endl;
     }
   }
 }
@@ -149,7 +166,16 @@ bool DuneEventFilter::filter(art::Event & evt) {
   if ( keep ) keep = m_RejectEvents.count(ievt) == 0;
   if ( keep && m_endEvent > m_beginEvent ) keep = ievt >= m_beginEvent && ievt < m_endEvent;
   if ( keep && m_EventModFreq ) keep = (ievt % m_EventModFreq) == m_EventModVal;
-  if ( m_LogLevel >= 2) {
+  if ( keep && m_pSkipEventTool != nullptr ) {
+    const IndexVector& skipEvents = m_pSkipEventTool->get(evt.run());
+    if ( find(skipEvents.begin(), skipEvents.end(), ievt) != skipEvents.end() ) {
+      keep = false;
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "  Event " << ievt << " rejected by SkipEventTool" << endl;
+      }
+    }
+  }
+  if ( m_LogLevel >= 2 ) {
     cout << myname << (keep ? "Sel" : "Rej") << "ecting event " << ievt << endl;
   }
   if ( keep ) ++m_nsel;
