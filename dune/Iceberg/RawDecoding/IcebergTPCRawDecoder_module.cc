@@ -47,6 +47,7 @@
 #include "dam/access/TpcRanges.hh"
 #include "dam/access/TpcToc.hh"
 #include "dam/access/TpcPacket.hh"
+#include "dam/RceFragmentUnpack.hh"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
@@ -144,7 +145,7 @@ private:
 
   bool _processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
-  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm, uint32_t runNumber);
   bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
@@ -338,6 +339,8 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
   bool have_data=false;
   bool have_data_nc=false;
 
+  uint32_t runNumber = evt.run();
+
   if (cont_frags.isValid())
     {
       have_data = true;
@@ -380,7 +383,7 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 	      artdaq::ContainerFragment cont_frag(cont);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
 		}
 	    }
 	}
@@ -432,7 +435,7 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 
 	  if (process_flag)
 	    {
-	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
 	    }
 	}
       evt.removeCachedProduct(frags);
@@ -454,7 +457,9 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 					 RawDigits& raw_digits,
 					 RDTimeStamps &timestamps,
 					 RDTsAssocs &tsassocs,
-					 RDPmkr &rdpm, TSPmkr &tspm
+					 RDPmkr &rdpm, 
+					 TSPmkr &tspm,
+					 uint32_t runNumber
 					 )
 {
 
@@ -512,6 +517,20 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
        std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
     }
 
+  artdaq::Fragment cfragloc(frag);
+  size_t cdsize = cfragloc.dataSizeBytes();
+  const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
+  HeaderFragmentUnpack const cdheader(cdptr);
+  //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
+  if (cdsize>16) cdsize -= 16;
+  bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
+  if (!isOkay)
+    {
+      MF_LOG_WARNING("_process_RCE_AUX:") << "RCE Fragment isOkay failed: " << cdsize << " Discarding this fragment"; 
+      error_counter++;
+      _DiscardedCorruptData = true;
+      return false; 
+    }
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
@@ -537,6 +556,18 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	    }
 	  _KeptCorruptData = true;
 	}
+
+      // two cable swaps on June 7, 2019
+
+      //if (runNumber > 1332)
+      //	{
+	  //  auto oldfiber = fiberNumber;
+	  // if (slotNumber == 1 || slotNumber == 2)  // similar swaps on WIB002 and WIB003 (slots 1 and 2)
+	  // {
+	  //  if (oldfiber == 1) fiberNumber = 2;
+	  //   if (oldfiber == 2) fiberNumber = 1;
+	  // }
+      //	}
 
       // skip the fake TPC data
 
@@ -676,8 +707,9 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
-      //std::cout << "RCE raw decoder trj: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
+      //std::cout << "RCE raw decoder trj -- adjusted slot and fibers after run 1332: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
+      
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
