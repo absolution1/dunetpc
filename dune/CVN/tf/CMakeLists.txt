@@ -28,7 +28,7 @@ art_make(BASENAME_ONLY
   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   ${ART_PERSISTENCY_COMMON}
   pthread
-  ${PROTOBUFLIB}
+  ${PROTOBUF}
   canvas
   art_Persistency_Provenance
   ${ART_UTILITIES}
@@ -55,4 +55,4 @@ install_source()
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories ( $ENV{TENSORFLOW_INC}/eigen )
 include_directories ( $ENV{TENSORFLOW_INC} )
-#include_directories ( $ENV{PROTOBUF_INC} )
+include_directories ( $ENV{PROTOBUF_INC} )

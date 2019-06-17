@@ -75,19 +75,12 @@ void protoana::ProtoDUNEBeamlineReco::reconfigure(fhicl::ParameterSet const& pse
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
 
-//  std::vector< recob::Track > tracks = fBeamlineUtils.MakeTracks( evt );
-//  std::cout << "Got " << tracks.size() << " tracks" << std::endl;
-//
-//  std::vector< double > momenta = fBeamlineUtils.MomentumSpec( evt );
-//  std::cout << "Got " << momenta.size() << " reconstructed momenta" << std::endl;
-//  for( size_t i = 0; i < momenta.size(); ++i ){
-//    std::cout << "\t" << momenta[i] << std::endl;
-//  }
-//  std::cout << std::endl;
+  //std::cout << "Computed TOF "      << fBeamlineUtils.ComputeTOF( kProton, 2.0 ) << std::endl;
+  //std::cout << "Computed Momentum " << fBeamlineUtils.ComputeMomentum( kProton, 130. ) << std::endl;
 
-  std::cout << "Computed TOF "      << fBeamlineUtils.ComputeTOF( kProton, 2.0 ) << std::endl;
-  std::cout << "Computed Momentum " << fBeamlineUtils.ComputeMomentum( kProton, 130. ) << std::endl;
 
+
+  //Access the Beam Event
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
   
   std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
@@ -95,27 +88,79 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
     art::fill_ptr_vector(beamVec, beamHandle);
   }
 
-  //Should just have one
-  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
-  if( beamEvent.GetTimingTrigger() != 12) return;
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0)); //Should just have one
+  /////////////////////////////////////////////////////////////
+  
+  
+  //Check the quality of the event
+  std::cout << "Timing Trigger: " << beamEvent.GetTimingTrigger() << std::endl; 
+  std::cout << "Is Matched: "     << beamEvent.CheckIsMatched() << std::endl << std::endl;
 
+  if( !fBeamlineUtils.IsGoodBeamlineTrigger( evt ) ){
+    std::cout << "Failed quality check" << std::endl;
+    return;
+  }
+
+  std::cout << "Passed quality check!" << std::endl << std::endl;  
+  /////////////////////////////////////////////////////////////
+  
+
+  //Access momentum
   const std::vector< double > & momenta = beamEvent.GetRecoBeamMomenta();
-  if( momenta.size() == 1 ) std::cout << "Measured Momentum: " << momenta.at(0) << std::endl;
-  if( beamEvent.GetTOFChan() > -1 ) std::cout << "Measured TOF: " << beamEvent.GetTOF() << std::endl;
+  std::cout << "Number of reconstructed momenta: " << momenta.size() << std::endl;
 
+  if( momenta.size() > 0 ) 
+    std::cout << "Measured Momentum: " << momenta.at(0) << std::endl;
+  ///////////////////////////////////////////////////////////// 
+
+
+
+  //Access time of flight
+  const std::vector< double > & the_tofs  = beamEvent.GetTOFs();
+  const std::vector< int    > & the_chans = beamEvent.GetTOFChans();
+
+  std::cout << "Number of measured TOF: " << the_tofs.size() << std::endl;
+  std::cout << "First TOF: "              << beamEvent.GetTOF()         << std::endl;
+  std::cout << "First TOF Channel: "      << beamEvent.GetTOFChan()     << std::endl << std::endl;
+
+  std::cout << "All (TOF, Channels): " << std::endl;
+  for( size_t i = 0; i < the_tofs.size(); ++i ){
+    std::cout << "\t(" << the_tofs[i] << ", " << the_chans[i] << ")" << std::endl;
+  }
+  std::cout << std::endl;
+  /////////////////////////////////////////////////////////////
+  
+
+  //Access Cerenkov info
+  std::cout << "Cerenkov status, pressure:" << std::endl;
+  std::cout << "C0: " << beamEvent.GetCKov0Status() << ", " << beamEvent.GetCKov0Pressure() << std::endl;
+  std::cout << "C1: " << beamEvent.GetCKov1Status() << ", " << beamEvent.GetCKov1Pressure() << std::endl << std::endl;
+  ///////////////////////////////////////////////////////////// 
+
+
+
+  //Access PID
   std::vector< int > pids = fBeamlineUtils.GetPID( beamEvent, 1. );
+
+  std::cout << "Possible particles" << std::endl;
+
   for( size_t i = 0; i < pids.size(); ++i ){ 
     std::cout << pids[i] << std::endl;
   }
+  std::cout << std::endl;
 
   PossibleParticleCands candidates = fBeamlineUtils.GetPIDCandidates( beamEvent, 1. );
-  std::cout << "electron " << candidates.electron << std::endl;
-  std::cout << "muon " << candidates.muon << std::endl;
-  std::cout << "pion " << candidates.pion << std::endl;
-  std::cout << "kaon " << candidates.kaon << std::endl;
-  std::cout << "proton " << candidates.proton << std::endl;
+  std::cout << std::left << std::setw(10) << "electron " << candidates.electron << std::endl;
+  std::cout << std::left << std::setw(10) << "muon "     << candidates.muon     << std::endl;
+  std::cout << std::left << std::setw(10) << "pion "     << candidates.pion     << std::endl;
+  std::cout << std::left << std::setw(10) << "kaon "     << candidates.kaon     << std::endl;
+  std::cout << std::left << std::setw(10) << "proton "   << candidates.proton   << std::endl << std::endl;
 
-  std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+  std::string candidates_string = fBeamlineUtils.GetPIDCandidates( beamEvent, 1. );
+  std::cout << candidates_string << std::endl;
+  ///////////////////////////////////////////////////////////// 
+  
+
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}

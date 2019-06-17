@@ -44,7 +44,7 @@ void FclFileFloatArray::init() {
     gSystem->FindFile(fclPath.c_str(), ts);
     Name pfname = ts.Data();
     if ( pfname.size() == 0 ) {
-      cout << myname << "Warning: Unable to find file " << fname << endl;
+      cout << myname << "WARNING: Unable to find file " << fname << endl;
       continue;
     }
     fhicl::intermediate_table tbl;

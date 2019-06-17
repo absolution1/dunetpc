@@ -43,7 +43,7 @@ art_make(
   lardataobj_RawData
   larreco_Calorimetry
   lardataobj_AnalysisBase
-  nutools_RandomUtils_NuRandomService_service
+  nurandom_RandomUtils_NuRandomService_service
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}
