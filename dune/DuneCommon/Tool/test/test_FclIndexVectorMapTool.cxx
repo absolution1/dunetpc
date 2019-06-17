@@ -68,7 +68,7 @@ int test_FclIndexVectorMapTool(bool useExistingFcl =false, Index runin =0) {
   assert( pvm != nullptr );
 
   cout << myname << line << endl;
-  cout << "Fetch index 100." << endl;
+  cout << myname << "Check get." << endl;
   const IndexVector& vec0 = pvm->get(100);
   assert( vec0.size() == 2 );
   const IndexVector& vec1 = pvm->get(101);
@@ -77,7 +77,7 @@ int test_FclIndexVectorMapTool(bool useExistingFcl =false, Index runin =0) {
   assert( vec2.size() == 0 );
   
   cout << myname << line << endl;
-  cout << "Check contains." << endl;
+  cout << myname << "Check contains." << endl;
   assert( pvm->contains(100, 2) );
   assert( pvm->contains(100, 3) );
   assert( ! pvm->contains(100, 4) );

@@ -34,7 +34,7 @@ FclIndexVectorMapTool::FclIndexVectorMapTool(fhicl::ParameterSet const& ps)
     if ( m_LogLevel > 1 ) {
       cout << ":" << endl;
       for ( const IndexVectorMap::value_type& ent : m_entryMap ) {
-        cout << "  " << ent.first << ": [";
+        cout << myname << "  " << ent.first << ": [";
         bool first = true;
         for ( Index val : ent.second ) {
           if ( first ) first = false;

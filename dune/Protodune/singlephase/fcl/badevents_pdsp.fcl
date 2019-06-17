@@ -12,7 +12,7 @@ tools.pdsp_unpack_crash_events: {
   tool_type: FclIndexVectorMapTool
   LogLevel: 1
   Entries: [
-    [4644, 116]
+    [4644, 116, 1177, 1620]      # Intermittent crashes 17-jun-2019
   ]
 }
 
