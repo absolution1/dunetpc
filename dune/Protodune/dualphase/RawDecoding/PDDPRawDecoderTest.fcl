@@ -1,0 +1,35 @@
+process_name: PDDPRawDecoderTest
+
+services:
+{
+  TFileService: { fileName: "pddp_rawevd.root" }
+  TimeTracker:       {}
+  RandomNumberGenerator: {} 
+}
+
+
+source:
+{
+  module_type: RootInput
+  maxEvents: 1
+  fileNames: [ "198_12_c_pddprawdata.root" ]
+}
+
+outputs: {}
+
+
+physics:
+{
+  analyzers:
+  {
+    rawdraw:
+    {
+    	module_type:   "PDDPTPCRawDecoderTest"
+	RawDigitLabel: "daq"
+	Ticks:          10000
+	Chans:          7680
+    }
+  }
+  analysis: [ rawdraw ] //Directory for histograms
+  end_paths: [ analysis ]
+}

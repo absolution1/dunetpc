@@ -13,12 +13,13 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art_root_io/TFileService.h" 
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "lardataobj/RawData/raw.h"
+#include "lardataobj/RawData/RawDigit.h"
 
 //#include "TH1.h"
 #include "TH2.h"
@@ -71,25 +72,26 @@ PDDPTPCRawDecoderTest::PDDPTPCRawDecoderTest(fhicl::ParameterSet const& p)
 void PDDPTPCRawDecoderTest::analyze(art::Event const& e)
 {
   art::Handle< std::vector<raw::RawDigit> > Raw;
-  event.getByLabel(__RawDigitLabel, Raw);
+  e.getByLabel(__RawDigitLabel, Raw);
   std::vector< art::Ptr<raw::RawDigit> >  Digits;
   art::fill_ptr_vector(Digits, Raw);
 
   //loop through all RawDigits (over entire channels)
-  mf::LogInfo("") << "Size "<<Digits.size();
+  mf::LogInfo("") << "Total number of channels "<<Digits.size();
   
   for(auto &digit : Digits)
     {
       auto chan    = digit->Channel();
       auto samples = digit->Samples();
-      mf::LogInfo("") << "vector size " << chan << sampes;
+      //mf::LogInfo("") << "vector size " << chan <<" "<< samples;
 
-      ADCvector_t data(samples);
+      raw::RawDigit::ADCvector_t data(samples);
+      // note: only works with uncompressed data for now
       raw::Uncompress(digit->ADCs(), data, digit->Compression());
       
       if( chan >= __Chans ) break; //continue;
       unsigned tick = 0;
-      for( auto adc : data )
+      for( auto &adc : data )
 	{
 	  if( tick >= __Ticks ) break;
 	  __AdcData->Fill( chan, tick++, adc );
@@ -100,10 +102,10 @@ void PDDPTPCRawDecoderTest::analyze(art::Event const& e)
 void PDDPTPCRawDecoderTest::beginJob()
 {
   // Implementation of optional member function here.
-  art::ServiceHandle<art::TFileService> fs;
+  art::ServiceHandle<art::TFileService> tfs;
   
   // put all channels in single histogram
-  __AdcData = tfs->make<TH2I>( "AMCDataALL","AMCDataAll",
+  __AdcData = tfs->make<TH2I>( "amc_data","AMC Data",
 			       __Chans, 0, __Chans, __Ticks, 0, __Ticks );
 }
 
