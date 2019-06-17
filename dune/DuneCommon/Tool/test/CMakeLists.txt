@@ -33,6 +33,19 @@ cet_test(test_FclIndexRangeTool SOURCES test_FclIndexRangeTool.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_FclIndexVectorMapTool SOURCES test_FclIndexVectorMapTool.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_FixedTimeOffsetTool SOURCES test_FixedTimeOffsetTool.cxx
   LIBRARIES
     dune_ArtSupport
