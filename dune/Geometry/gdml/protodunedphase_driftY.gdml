@@ -312,17 +312,61 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <material name="NiGas1atm80K">
+   <D value="0.0039" unit="g/cm3"/>
+   <fraction n="1.000" ref="nitrogen"/>
+  </material>
+
   <material name="NiGas">
    <D value="0.001165" unit="g/cm3"/>
    <fraction n="1.000" ref="nitrogen"/>
   </material>
 
   <material name="PolyurethaneFoam">
-   <D value="0.09" unit="g/cm3"/>
+   <D value="0.088" unit="g/cm3"/>
    <composite n="17" ref="carbon"/>
    <composite n="16" ref="hydrogen"/>
    <composite n="2" ref="nitrogen"/>
    <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEFoam">
+   <D value="0.135" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="LightPolyurethaneFoam">
+   <D value="0.009" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEBWFoam">
+   <D value="0.021" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="GlassWool">
+   <D value="0.035" unit="g/cm3"/>
+   <fraction n="0.65" ref="SiO2"/>
+   <fraction n="0.09" ref="Al2O3"/>
+   <fraction n="0.07" ref="CaO"/>
+   <fraction n="0.03" ref="MgO"/>
+   <fraction n="0.16" ref="Na2O"/>
+  </material>
+
+  <material name="Polystyrene">
+   <D value="1.06" unit="g/cm3"/>
+   <composite n="8" ref="carbon"/>
+   <composite n="8" ref="hydrogen"/>
   </material>
 
 
