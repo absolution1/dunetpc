@@ -458,7 +458,9 @@ namespace lris
 	threads[i-1] = std::thread([&iomutex, i, nsa, afrag] {
 	    {
 	      std::lock_guard<std::mutex> iolock(iomutex);
+	      // make it look like we're using i so clang doesn't complain.  This had been commented out
 	      //msg_info << "Unpack thread #" << i << " is running\n";
+	      if (i==100000) std::cout << "Unpack thread #" << i << " is running\n";
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
