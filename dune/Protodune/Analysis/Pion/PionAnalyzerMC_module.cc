@@ -101,6 +101,15 @@ private:
   double true_beam_Start_Y;
   double true_beam_Start_Z;
 
+  double true_beam_Start_DirX;
+  double true_beam_Start_DirY;
+  double true_beam_Start_DirZ;
+
+  double true_beam_Start_Px;
+  double true_beam_Start_Py;
+  double true_beam_Start_Pz;
+  double true_beam_Start_P;
+
     //Truth level info of the daughter MCParticles coming out of the 
     //true primary particle
   std::vector< int > true_beam_daughter_PDGs;
@@ -121,6 +130,7 @@ private:
   double vtxX, vtxY, vtxZ; 
   double len;
   double trackDirX, trackDirY, trackDirZ;
+  double trackEndDirX, trackEndDirY, trackEndDirZ;
   std::vector< double > dEdX, dQdX, resRange;
   int beamTrackID;
 
@@ -129,7 +139,7 @@ private:
   
   int reco_beam_truth_PDG; //What is the PDG of the true MC particle contributing the most to 
                            //the reconstructed beam track
-
+  int reco_beam_truth_ID;
   
   bool reco_beam_good; //Does the true particle contributing most to the 
                        //reconstructed beam track coincide with the actual
@@ -152,11 +162,27 @@ private:
   std::vector< int >    reco_beam_truth_daughter_shower_true_PDGs;
   std::vector< int >    reco_beam_truth_daughter_shower_true_IDs;
 
+  double reco_beam_truth_End_Px;
+  double reco_beam_truth_End_Py;
+  double reco_beam_truth_End_Pz;
+  double reco_beam_truth_End_E;
+  double reco_beam_truth_End_P;
+
+  double reco_beam_truth_Start_Px;
+  double reco_beam_truth_Start_Py;
+  double reco_beam_truth_Start_Pz;
+  double reco_beam_truth_Start_E;
+  double reco_beam_truth_Start_P;
+
 
   //Reco-level info of the reconstructed daughters coming out of the
   //reconstructed beam tracl
   std::vector< int > reco_daughter_trackID;
+  std::vector< int > reco_daughter_truth_PDG;
+  std::vector< int > reco_daughter_truth_ID;
   std::vector< int > reco_daughter_showerID;
+  std::vector< int > reco_daughter_shower_truth_PDG;
+  std::vector< int > reco_daughter_shower_truth_ID;
   std::vector< std::vector< double > > reco_daughter_dEdX, reco_daughter_dQdX, reco_daughter_resRange;
   std::vector< double > reco_daughter_startX, reco_daughter_endX;
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
@@ -225,6 +251,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   // This gets the true beam particle that generated the event
   auto mcTruths = evt.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
   const simb::MCParticle* true_beam_particle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+  if( !true_beam_particle ){
+    std::cout << "No true beam particle" << std::endl;
+    return;
+  }
   ////////////////////////////
 
 
@@ -250,11 +280,18 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   std::cout << "PFParticle Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
 
 
+  std::cout << "particle " << particle << std::endl;
 
   // Determine if the beam particle is track-like or shower-like
   const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
   const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
   const simb::MCParticle* trueParticle = 0x0;
+
+  std::cout << "thisTrack " << thisTrack << std::endl;
+  std::cout << "thisShower " << thisShower << std::endl;
+  std::cout << "trueParticle " << trueParticle << std::endl;
+
+
   if(thisShower != 0x0){
     std::cout << "Beam particle is shower-like" << std::endl;
     type = 11;
@@ -290,37 +327,53 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_beam_good = true;
     }
 
+    reco_beam_truth_PDG = trueParticle->PdgCode();
+    reco_beam_truth_ID = trueParticle->TrackId();
+
+    reco_beam_truth_Process = trueParticle->Process();
+    reco_beam_truth_EndProcess = trueParticle->EndProcess();
+    reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
+    //What created the MCPraticle that created the track?
+    std::cout << "Track-to-True origin: ";
+    switch( reco_beam_truth_origin ){
+      case simb::kCosmicRay: 
+        std::cout << "Cosmic" << std::endl;
+        break;
+      case simb::kSingleParticle:
+        std::cout << "Beam" << std::endl;
+        break;
+      default:
+        std::cout << "Other" << std::endl;
+    }
+
+
+    reco_beam_truth_Start_Px = trueParticle->Px();
+    reco_beam_truth_Start_Py = trueParticle->Py();
+    reco_beam_truth_Start_Pz = trueParticle->Pz();
+    reco_beam_truth_Start_P  = sqrt( reco_beam_truth_Start_Px*reco_beam_truth_Start_Px 
+                                   + reco_beam_truth_Start_Py*reco_beam_truth_Start_Py 
+                                   + reco_beam_truth_Start_Pz*reco_beam_truth_Start_Pz );
+    reco_beam_truth_Start_E = trueParticle->E();
+
+    size_t np = trueParticle->NumberTrajectoryPoints();
+    if( np > 1 ){
+      reco_beam_truth_End_Px = trueParticle->Px( np - 2 );
+      reco_beam_truth_End_Py = trueParticle->Py( np - 2 );
+      reco_beam_truth_End_Pz = trueParticle->Pz( np - 2 );
+      reco_beam_truth_End_P  = sqrt( reco_beam_truth_End_Px*reco_beam_truth_End_Px 
+                                   + reco_beam_truth_End_Py*reco_beam_truth_End_Py 
+                                   + reco_beam_truth_End_Pz*reco_beam_truth_End_Pz );
+      reco_beam_truth_End_E  = trueParticle->E( np - 2 );
+    }
+
   }
   //////////////////////////////////////////////////////////////
-
-  reco_beam_truth_PDG = trueParticle->PdgCode();
-
-  reco_beam_truth_Process = trueParticle->Process();
-  reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
-  //What created the MCPraticle that created the track?
-  std::cout << "Track-to-True origin: ";
-  switch( reco_beam_truth_origin ){
-    case simb::kCosmicRay: 
-      std::cout << "Cosmic" << std::endl;
-      break;
-    case simb::kSingleParticle:
-      std::cout << "Beam" << std::endl;
-      break;
-    default:
-      std::cout << "Other" << std::endl;
-  }
 
 
 
 
   //Some truth information
-  //
-  //
-  //What created the true particle
   true_beam_EndProcess = true_beam_particle->EndProcess();
-
-  ///////////////////////////////////////
-    
   
   true_beam_PDG         = true_beam_particle->PdgCode();
   true_beam_EndVertex_X = true_beam_particle->EndX();
@@ -329,6 +382,16 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   true_beam_Start_X     = true_beam_particle->Position(0).X();
   true_beam_Start_Y     = true_beam_particle->Position(0).Y();
   true_beam_Start_Z     = true_beam_particle->Position(0).Z();
+
+  true_beam_Start_Px    = true_beam_particle->Px();
+  true_beam_Start_Py    = true_beam_particle->Py();
+  true_beam_Start_Pz    = true_beam_particle->Pz();
+
+  true_beam_Start_P     = true_beam_particle->P();
+
+  true_beam_Start_DirX  = true_beam_Start_Px / true_beam_Start_P;
+  true_beam_Start_DirY  = true_beam_Start_Py / true_beam_Start_P;
+  true_beam_Start_DirZ  = true_beam_Start_Pz / true_beam_Start_P;
 
 
   //Look at true daughters coming out of the true beam particle
@@ -360,38 +423,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
   if( thisTrack ){
 
-/*
-    if( trueParticle ){
-
-      //Check that this is the correct true particle
-      if( trueParticle->TrackId() == true_beam_particle->TrackId() ){
-        reco_beam_good = true;
-      }
-
-    }
-    //////////////////////////////////////////////////////////////
-    
-    
     beamTrackID = thisTrack->ID();
-    
-
-    reco_beam_truth_Process = trueParticle->Process();
-    reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
-    //What created the MCPraticle that created the track?
-    std::cout << "Track-to-True origin: ";
-    switch( reco_beam_truth_origin ){
-      case simb::kCosmicRay: 
-        std::cout << "Cosmic" << std::endl;
-        break;
-      case simb::kSingleParticle:
-        std::cout << "Beam" << std::endl;
-        break;
-      default:
-        std::cout << "Other" << std::endl;
-    }
-
-    reco_beam_truth_PDG = trueParticle->PdgCode();
-    */
 
     startX = thisTrack->Trajectory().Start().X();
     startY = thisTrack->Trajectory().Start().Y();
@@ -417,12 +449,18 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       trackDirY =  -1. * endDir.Y(); 
       trackDirZ =  -1. * endDir.Z(); 
 
+      trackEndDirX =  -1. * startDir.X(); 
+      trackEndDirY =  -1. * startDir.Y(); 
+      trackEndDirZ =  -1. * startDir.Z(); 
     }
     else{
       std::cout << "endZ > startZ: " << startZ << " " << endZ << std::endl;
-      trackDirX =  startDir.X(); 
-      trackDirY =  startDir.Y(); 
-      trackDirZ =  startDir.Z(); 
+      trackDirX    =  startDir.X(); 
+      trackDirY    =  startDir.Y(); 
+      trackDirZ    =  startDir.Z(); 
+      trackEndDirX =  endDir.X(); 
+      trackEndDirY =  endDir.Y(); 
+      trackEndDirZ =  endDir.Z(); 
     }
     std::cout << "StartDir: " << startDir.Z() << std::endl;
     std::cout << "EndDir: "   << endDir.Z() << std::endl;
@@ -477,6 +515,16 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
       reco_daughter_trackID.push_back( daughterTrack->ID() );
 
+      //For this reco daughter track, get the actual particle contributing to it
+      const simb::MCParticle* trueDaughterParticle = truthUtil.GetMCParticleFromRecoTrack(*daughterTrack, evt, fTrackerTag);
+      if( trueDaughterParticle ){
+        reco_daughter_truth_PDG.push_back( trueDaughterParticle->PdgCode() );
+        reco_daughter_truth_ID.push_back( trueDaughterParticle->TrackId() );
+      }
+      else{
+        reco_daughter_truth_PDG.push_back( -1 );
+        reco_daughter_truth_ID.push_back( -1 );
+      }
 
       std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
       auto dummy_dQdx = dummy_calo[0].dQdx();
@@ -536,13 +584,25 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     nShowerDaughters = showerDaughters.size();
 
     for( size_t i = 0; i < showerDaughters.size(); ++i ){
-      std::cout << "Shower daughter " << i << " Starts at " << showerDaughters[i]->ShowerStart().X() << " " << showerDaughters[i]->ShowerStart().Y() << " " << showerDaughters[i]->ShowerStart().Z() << std::endl;
-      reco_daughter_showerID.push_back( showerDaughters[i]->ID() );
-      reco_daughter_shower_startX.push_back( showerDaughters[i]->ShowerStart().X() );
-      reco_daughter_shower_startY.push_back( showerDaughters[i]->ShowerStart().Y() );
-      reco_daughter_shower_startZ.push_back( showerDaughters[i]->ShowerStart().Z() );
-
       auto daughterShowerFromRecoTrack = showerDaughters[i];
+
+      std::cout << "Shower daughter " << i << " Starts at " << daughterShowerFromRecoTrack->ShowerStart().X() << " " << daughterShowerFromRecoTrack->ShowerStart().Y() << " " << daughterShowerFromRecoTrack->ShowerStart().Z() << std::endl;
+      reco_daughter_showerID.push_back( daughterShowerFromRecoTrack->ID() );
+      reco_daughter_shower_startX.push_back( daughterShowerFromRecoTrack->ShowerStart().X() );
+      reco_daughter_shower_startY.push_back( daughterShowerFromRecoTrack->ShowerStart().Y() );
+      reco_daughter_shower_startZ.push_back( daughterShowerFromRecoTrack->ShowerStart().Z() );
+
+      //For this reco daughter track, get the actual particle contributing to it
+      const simb::MCParticle* trueDaughterParticle = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag);
+      if( trueDaughterParticle ){
+        reco_daughter_shower_truth_PDG.push_back( trueDaughterParticle->PdgCode() );
+        reco_daughter_shower_truth_ID.push_back( trueDaughterParticle->TrackId() );
+      }
+      else{
+        reco_daughter_shower_truth_PDG.push_back( -1 );
+        reco_daughter_shower_truth_ID.push_back( -1 );
+      }
+
 
       bool found_daughter = false;
       const simb::MCParticle* daughterParticleFromRecoShower = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag); 
@@ -605,6 +665,9 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("trackDirX", &trackDirX);
   fTree->Branch("trackDirY", &trackDirY);
   fTree->Branch("trackDirZ", &trackDirZ);
+  fTree->Branch("trackEndDirX", &trackEndDirX);
+  fTree->Branch("trackEndDirY", &trackEndDirY);
+  fTree->Branch("trackEndDirZ", &trackEndDirZ);
   fTree->Branch("vtxX", &vtxX);
   fTree->Branch("vtxY", &vtxY);
   fTree->Branch("vtxZ", &vtxZ);
@@ -616,6 +679,11 @@ void pionana::PionAnalyzerMC::beginJob()
 
 
   fTree->Branch("reco_daughter_trackID", &reco_daughter_trackID);
+  fTree->Branch("reco_daughter_truth_PDG", &reco_daughter_truth_PDG);
+  fTree->Branch("reco_daughter_truth_ID", &reco_daughter_truth_ID);
+  fTree->Branch("reco_daughter_shower_truth_PDG", &reco_daughter_shower_truth_PDG);
+  fTree->Branch("reco_daughter_shower_truth_ID", &reco_daughter_shower_truth_ID);
+
   fTree->Branch("reco_daughter_showerID", &reco_daughter_showerID);
   fTree->Branch("reco_daughter_dQdX", &reco_daughter_dQdX);
   fTree->Branch("reco_daughter_dEdX", &reco_daughter_dEdX);
@@ -641,6 +709,16 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("true_beam_Start_X", &true_beam_Start_X);
   fTree->Branch("true_beam_Start_Y", &true_beam_Start_Y);
   fTree->Branch("true_beam_Start_Z", &true_beam_Start_Z);
+
+  fTree->Branch("true_beam_Start_Px", &true_beam_Start_Px);
+  fTree->Branch("true_beam_Start_Py", &true_beam_Start_Py);
+  fTree->Branch("true_beam_Start_Pz", &true_beam_Start_Pz);
+  fTree->Branch("true_beam_Start_P", &true_beam_Start_P);
+
+  fTree->Branch("true_beam_Start_DirX", &true_beam_Start_DirX);
+  fTree->Branch("true_beam_Start_DirY", &true_beam_Start_DirY);
+  fTree->Branch("true_beam_Start_DirZ", &true_beam_Start_DirZ);
+
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
   fTree->Branch("nProton_truth", &nProton_truth);
@@ -655,8 +733,20 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_beam_truth_Process", &reco_beam_truth_Process);
   fTree->Branch("reco_beam_truth_origin", &reco_beam_truth_origin);
   fTree->Branch("reco_beam_truth_PDG", &reco_beam_truth_PDG);
+  fTree->Branch("reco_beam_truth_ID", &reco_beam_truth_ID);
   fTree->Branch("reco_beam_good", &reco_beam_good);
 
+  fTree->Branch("reco_beam_truth_End_Px", &reco_beam_truth_End_Px);
+  fTree->Branch("reco_beam_truth_End_Py", &reco_beam_truth_End_Py);
+  fTree->Branch("reco_beam_truth_End_Pz", &reco_beam_truth_End_Pz);
+  fTree->Branch("reco_beam_truth_End_E", &reco_beam_truth_End_E);
+  fTree->Branch("reco_beam_truth_End_P", &reco_beam_truth_End_P);
+
+  fTree->Branch("reco_beam_truth_Start_Px", &reco_beam_truth_Start_Px);
+  fTree->Branch("reco_beam_truth_Start_Py", &reco_beam_truth_Start_Py);
+  fTree->Branch("reco_beam_truth_Start_Pz", &reco_beam_truth_Start_Pz);
+  fTree->Branch("reco_beam_truth_Start_E", &reco_beam_truth_Start_E);
+  fTree->Branch("reco_beam_truth_Start_P", &reco_beam_truth_Start_P);
 
   fTree->Branch("reco_beam_truth_daughter_good_reco", &reco_beam_truth_daughter_good_reco);
   fTree->Branch("reco_beam_truth_daughter_true_PDGs", &reco_beam_truth_daughter_true_PDGs);
@@ -698,6 +788,7 @@ void pionana::PionAnalyzerMC::reset()
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
   reco_beam_truth_PDG = 0;
+  reco_beam_truth_ID = 0;
   true_beam_PDG = 0;
   true_beam_EndProcess ="";
   true_beam_EndVertex_X = 0.;
@@ -706,9 +797,32 @@ void pionana::PionAnalyzerMC::reset()
   true_beam_Start_X = 0.;
   true_beam_Start_Y = 0.;
   true_beam_Start_Z = 0.;
+
+  true_beam_Start_Px   = 0.; 
+  true_beam_Start_Py   = 0.; 
+  true_beam_Start_Pz   = 0.; 
+
+  true_beam_Start_P    = 0.; 
+
+  true_beam_Start_DirX = 0.; 
+  true_beam_Start_DirY = 0.; 
+  true_beam_Start_DirZ = 0.; 
+
   reco_beam_truth_EndProcess ="";
   reco_beam_truth_Process ="";
   reco_beam_truth_origin = -1;
+
+  reco_beam_truth_End_Px = 0.;
+  reco_beam_truth_End_Py = 0.;
+  reco_beam_truth_End_Pz = 0.;
+  reco_beam_truth_End_E = 0.;
+  reco_beam_truth_End_P = 0.;
+
+  reco_beam_truth_Start_Px = 0.;
+  reco_beam_truth_Start_Py = 0.;
+  reco_beam_truth_Start_Pz = 0.;
+  reco_beam_truth_Start_E = 0.;
+  reco_beam_truth_Start_P = 0.;
 
   reco_beam_good = false;
   reco_beam_truth_daughter_good_reco.clear();
@@ -754,7 +868,12 @@ void pionana::PionAnalyzerMC::reset()
 
   beamTrackID = -1;
   reco_daughter_trackID.clear();
+  reco_daughter_truth_PDG.clear();
+  reco_daughter_truth_ID.clear();
+
   reco_daughter_showerID.clear();
+  reco_daughter_shower_truth_PDG.clear();
+  reco_daughter_shower_truth_ID.clear();
 
 }
 
