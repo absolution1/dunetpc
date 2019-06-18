@@ -41,4 +41,3 @@ physics:
 
 outputs: {}
 
-physics.analyzers.beamreco.BeamlineUtils.UseCERNCalibSelection: true
