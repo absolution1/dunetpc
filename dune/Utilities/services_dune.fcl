@@ -352,9 +352,9 @@ protodune_services: {
  ChannelGroupService:          @local::changroup_apa_keepall
 }
 
-protodunev6_services: {
+protodunev7_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodunev6_geo
+ Geometry:                     @local::protodunev7_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -384,9 +384,9 @@ protodune_rawdecoding_services: {
   PdspChannelMapService:        @local::pdspchannelmap
 }
 
-protodunev6_rawdecoding_services: {
+protodunev7_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
-  Geometry:                     @local::protodunev6_geo
+  Geometry:                     @local::protodunev7_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
   LArPropertiesService:         @local::dunefd_properties
@@ -429,9 +429,9 @@ protodune_data_services: {
  AdcWireBuildingService:       @local::adcwire_std
 }
 
-protodunev6_data_services: {
+protodunev7_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodunev6_geo
+ Geometry:                     @local::protodunev7_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -469,11 +469,11 @@ protodune_simulation_services: {
  ChannelStatusService:         @local::dunefd_channel_status
 }
 
-protodunev6_simulation_services: {
+protodunev7_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodunev6_geo
+ Geometry:                     @local::protodunev7_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -507,11 +507,11 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
 
 # Enable photon simulation for protoDUNE by default
 
-protodunev6_simulation_services.LArPropertiesService.ScintYield: 24000
-protodunev6_simulation_services.LArPropertiesService.ScintPreScale: 0.05
-protodunev6_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-protodunev6_simulation_services.LArG4Parameters.UseCustomPhysics: true
-protodunev6_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+protodunev7_simulation_services.LArPropertiesService.ScintYield: 24000
+protodunev7_simulation_services.LArPropertiesService.ScintPreScale: 0.0287
+protodunev7_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+protodunev7_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodunev7_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "FastOptical",
                                                                 "SynchrotronAndGN",
                                                                 "Ion",

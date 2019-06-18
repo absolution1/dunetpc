@@ -17,7 +17,7 @@
 #include "dune/Geometry/ChannelMapAPAAlg.h"
 #include "dune/Geometry/ChannelMapCRMAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
-#include "dune/Geometry/ProtoDUNEChannelMapAlgv6.h"
+#include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
@@ -63,8 +63,8 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
     } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlg" ) {
       fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
-    } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv6" ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv6>(pset);
+    } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv7" ) {
+      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }
@@ -80,7 +80,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       if (( detectorVersion.find("v3") != std::string::npos )
        || ( detectorVersion.find("v4") != std::string::npos )
        || ( detectorVersion.find("v5") != std::string::npos )
-       || ( detectorVersion.find("v6") != std::string::npos )) {
+       || ( detectorVersion.find("v7") != std::string::npos )) {
         useApaMap = true;
         is35t = true;
       } else {
@@ -115,8 +115,8 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
 
     // protoDUNE with arapucas
-    } else if ( detectorName.find("protodunev6") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv6>(pset);
+    } else if ( detectorName.find("protodunev7") != std::string::npos ) {
+      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
 
     // iceberg
     } else if ( detectorName.find("iceberg") != std::string::npos ) {

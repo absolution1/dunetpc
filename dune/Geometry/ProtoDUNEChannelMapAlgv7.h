@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ProtoDUNEChannelMapAlgv6.h
+/// \file  ProtoDUNEChannelMapAlgv7.h
 /// \brief Interface to algorithm class for a specific detector channel mapping in protoDUNE
 ///
 /// \version $Id:  $
@@ -12,8 +12,8 @@
 /// specific to the photon detectors in protoDUNE.
 ///
 ////////////////////////////////////////////////////////////////////////
-#ifndef geo_ProtoDUNEChannelMapAlgv6_H
-#define geo_ProtoDUNEChannelMapAlgv6_H
+#ifndef geo_ProtoDUNEChannelMapAlgv7_H
+#define geo_ProtoDUNEChannelMapAlgv7_H
 
 #include <map>
 #include "cetlib_except/exception.h"
@@ -27,13 +27,13 @@
 
 namespace geo{
 
-  class ProtoDUNEChannelMapAlgv6 : public DuneApaChannelMapAlg {
+  class ProtoDUNEChannelMapAlgv7 : public DuneApaChannelMapAlg {
 
   public:
   
     typedef unsigned int Index;
   
-    ProtoDUNEChannelMapAlgv6(const fhicl::ParameterSet& pset);
+    ProtoDUNEChannelMapAlgv7(const fhicl::ParameterSet& pset);
   
     void Initialize(GeometryData_t const& geodata) override;
     void Uninitialize() override;
@@ -65,7 +65,7 @@ namespace geo{
     std::map<Index, Index> fHWChannel;
 
   
-  }; // class ProtoDUNEChannelMapAlgv6
+  }; // class ProtoDUNEChannelMapAlgv7
   
   //----------------------------------------------------------------------------
   

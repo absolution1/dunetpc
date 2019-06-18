@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ProtoDUNEChannelMapAlgv6.cxx
+/// \file  ProtoDUNEChannelMapAlgv7.cxx
 /// \brief Interface to algorithm class for a specific detector channel mapping
 ///
 /// \version $Id:  $
 /// \author  tylerdalion@gmail.com
 ////////////////////////////////////////////////////////////////////////
 
-#include "dune/Geometry/ProtoDUNEChannelMapAlgv6.h"
+#include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
 #include "dune/Geometry/DuneApaChannelMapAlg.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
@@ -23,7 +23,7 @@
 #include <iomanip>
 
 using std::map;
-using geo::ProtoDUNEChannelMapAlgv6;
+using geo::ProtoDUNEChannelMapAlgv7;
 using std::cout;
 using std::endl;
 using std::setw;
@@ -34,7 +34,7 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  ProtoDUNEChannelMapAlgv6::ProtoDUNEChannelMapAlgv6(const fhicl::ParameterSet& p)
+  ProtoDUNEChannelMapAlgv7::ProtoDUNEChannelMapAlgv7(const fhicl::ParameterSet& p)
     : DuneApaChannelMapAlg(p), 
       fMaxOpChannel(0), fNOpChannels(0)
   {
@@ -44,7 +44,7 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  void ProtoDUNEChannelMapAlgv6::Initialize(GeometryData_t const& geodata) {
+  void ProtoDUNEChannelMapAlgv7::Initialize(GeometryData_t const& geodata) {
     Uninitialize();
   
     // Call the base-class version to perform TPC-related actions
@@ -55,7 +55,7 @@ namespace geo {
     //
     // That gives SSP and channel ranges from OpDet. These offline channels correspond
     // to the APAs listed. This is for the geometry that includes the arapuca bar with its
-    // 16 optical windows (protodune geometry v6).
+    // 16 optical windows (protodune geometry v7).
     //
     //   USDaS(APA5)   MSDaS(APA6)  DSDaS(APA4)
     //   19-28         10-18+29-44   0-9
@@ -196,26 +196,26 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  void ProtoDUNEChannelMapAlgv6::Uninitialize() {
+  void ProtoDUNEChannelMapAlgv7::Uninitialize() {
     // Call the base-class version to perform TPC-related actions
     DuneApaChannelMapAlg::Uninitialize();
   }
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::NOpChannels(Index /*NOpDets*/) const {
+  Index ProtoDUNEChannelMapAlgv7::NOpChannels(Index /*NOpDets*/) const {
     return fNOpChannels;
   }
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::MaxOpChannel(Index /*NOpDets*/) const {
+  Index ProtoDUNEChannelMapAlgv7::MaxOpChannel(Index /*NOpDets*/) const {
     return fMaxOpChannel;
   }
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::NOpHardwareChannels(Index opDet) const {
+  Index ProtoDUNEChannelMapAlgv7::NOpHardwareChannels(Index opDet) const {
 
     // ARAPUCAs
     if ((opDet > 28 && opDet < 61))
@@ -226,14 +226,14 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::OpChannel(Index detNum, Index channel) const {
+  Index ProtoDUNEChannelMapAlgv7::OpChannel(Index detNum, Index channel) const {
 
     Index sspch = fSSPChOne.at(detNum) + channel;
     Index ssp   = fSSP.at(detNum);
     
     // Special handling of ARAPUCA in MSDaS which cross between SSP 62 and 63
     if (sspch > 12) {
-        mf::LogError("ProtoDUNEChannelMapAlgv6") << "Invalid address: SSP #" << ssp << ", SSP channel" << sspch;
+        mf::LogError("ProtoDUNEChannelMapAlgv7") << "Invalid address: SSP #" << ssp << ", SSP channel" << sspch;
     }
 
     return OpChannelFromSSP(ssp, sspch);
@@ -241,9 +241,9 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::OpDetFromOpChannel(Index opChannel) const {
+  Index ProtoDUNEChannelMapAlgv7::OpDetFromOpChannel(Index opChannel) const {
     if (!IsValidOpChannel(opChannel, 90)) {
-      mf::LogWarning("ProtoDUNEChannelMapAlgv6") << "Requesting an OpDet number for an uninstrumented channel, " << opChannel;
+      mf::LogWarning("ProtoDUNEChannelMapAlgv7") << "Requesting an OpDet number for an uninstrumented channel, " << opChannel;
       return 99999;
     }
     return fOpDet.at(opChannel);
@@ -251,9 +251,9 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::HardwareChannelFromOpChannel(Index opChannel) const {
+  Index ProtoDUNEChannelMapAlgv7::HardwareChannelFromOpChannel(Index opChannel) const {
     if (!IsValidOpChannel(opChannel, 90)) {
-      mf::LogWarning("ProtoDUNEChannelMapAlgv6") << "Requesting an OpDet number for an uninstrumented channel, " << opChannel;
+      mf::LogWarning("ProtoDUNEChannelMapAlgv7") << "Requesting an OpDet number for an uninstrumented channel, " << opChannel;
       return 99999;
     }
     return fHWChannel.at(opChannel);
@@ -262,7 +262,7 @@ namespace geo {
 
 //----------------------------------------------------------------------------
 
-  Index ProtoDUNEChannelMapAlgv6::OpChannelFromSSP(Index ssp, Index sspch) const {
+  Index ProtoDUNEChannelMapAlgv7::OpChannelFromSSP(Index ssp, Index sspch) const {
     // Expects SSP #'s of the from NM where N is APA number and M is SSP within the APA
     // So, IP 504 -> AP # 54
 
@@ -276,7 +276,7 @@ namespace geo {
 //----------------------------------------------------------------------------
 
 
-  void ProtoDUNEChannelMapAlgv6::PrintChannelMaps() const {
+  void ProtoDUNEChannelMapAlgv7::PrintChannelMaps() const {
 
 
     cout << "---------------------------------------------------------------" << endl;
