@@ -48,11 +48,14 @@
 
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/Data/DataMap.h"
+#include "dune/DuneInterface/Data/DuneEventInfo.h"
 #include <set>
 
 class AdcChannelTool {
 
 public:
+
+  using Index = unsigned int;
 
   virtual ~AdcChannelTool() =default;
 
@@ -92,6 +95,12 @@ public:
   // and default calls to viewMap are forwarded to updateMap.
   // In both cases, the passed dat is first copied.
   virtual bool viewWithUpdate() const { return false; }
+
+  // Optional call at the start of processing an event.
+  virtual DataMap beginEvent(const DuneEventInfo& devt) const { return DataMap(); }
+
+  // Optional call at the start of processing an event.
+  virtual DataMap endEvent(const DuneEventInfo& devt) const { return DataMap(); }
 
 };
 

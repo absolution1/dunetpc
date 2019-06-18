@@ -11,6 +11,10 @@
 // The DFT magnitude and phase are drawn with graphs with one point for
 // each relevant frequency, i.e. (Nsam + 2)/2 values.
 //
+// The power and power/tick are drawn as binned histograms with range half the
+// sampling frequency. That value and the and binning are specified in the
+// configuration.
+//
 // Configuration:
 //   AdcMultiChannelPlotter params with XXX = Plot
 //   Variable - Variable to plot:
@@ -34,6 +38,7 @@
 //   HistName - Histogram/graph name
 //   HistTitle - Histogram/graph title
 //   HistSummaryTitle - Histogram/graph title
+//   Plus the parameters specified in AdcMultiChannelPlotter with XXX = Plot.
 
 #ifndef AdcChannelDftPlotter_H
 #define AdcChannelDftPlotter_H
@@ -62,7 +67,7 @@ public:
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
   int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const override;
-  int viewMapSummary(Name crn, TPadManipulator& man) const override;
+  int viewMapSummary(Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
   bool updateWithView() const override { return true; }
 
 private:

@@ -3,7 +3,7 @@ BEGIN_PROLOG
 standard_protodunebeamlineutils:
 {
    BeamEventTag:            "beamevent"
-   UseCERNCalibSelection:   false
+   UseCERNCalibSelection:   true #false
 
    #Angles originally used - taken from Leigh's MC module
    #RotateMonitorXZ:   -10.3

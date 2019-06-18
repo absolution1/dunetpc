@@ -44,5 +44,5 @@ echo "                   lar - Run the art/larsoft event looop e.g. to process e
 echo "  product_sizes_dumper - Display the products and size in an event data file."
 echo "               fcldump - Display the resolved configuration for a fcl file."
 echo "               liblist - List available plugin libraries."
-echo "        pdChannelRange - Display protoDUNE channel ranges."
+echo "        pdChannelRange - Display protoDUNE channel grops and ranges."
 echo "Use option \"-h\" with any of these for more information."
