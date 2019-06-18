@@ -25,6 +25,7 @@
 #include "dam/access/TpcRanges.hh"
 #include "dam/access/TpcToc.hh"
 #include "dam/access/TpcPacket.hh"
+#include "dam/RceFragmentUnpack.hh"
 
 PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
 {
@@ -329,6 +330,21 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
       outfilename+=".fragment";
       rce.save(outfilename.Data());
       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+    }
+
+
+  artdaq::Fragment cfragloc(frag);
+  size_t cdsize = cfragloc.dataSizeBytes();
+  const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
+  HeaderFragmentUnpack const cdheader(cdptr);
+  //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
+  if (cdsize>16) cdsize -= 16;
+  bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
+  if (!isOkay)
+    {
+      MF_LOG_WARNING("_process_RCE_AUX:") << "RCE Fragment isOkay failed: " << cdsize << " Discarding this fragment";
+      _DiscardedCorruptData = true;
+      return false;
     }
 
 
