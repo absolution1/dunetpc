@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--<!DOCTYPE gdml [
+<!ENTITY materials SYSTEM "materials.xml">
+]>
+-->
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+
+<!--<!DOCTYPE gdml [
+<!ENTITY materials SYSTEM "materials.xml">
+]>
+-->
+
+<!-- below we insert the schema to demonstrate a simple extension of the gdml schema which allows to select visualization properties like color and visualization to gdml -->
+<!--<gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
+                       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
+                       xs:noNamespaceSchemaLocation="SimpleExtension.xsd"> 
+
+    <extension>
+        <color name="magenta"     R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+        <color name="green"       R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+        <color name="red"         R="1.0"  G="0.0"  B="0.0"  A="1.0" />
+        <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
+        <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
+    </extension>
+-->
+ <!-- the content of the materials.xml file will be included here. This file summarizes the material and optical properties of liquid Ar. -->
+<!-- &materials; -->
+
 <define>
 
 <!--
@@ -943,6 +969,8 @@
       <materialref ref="LAr"/>
       <solidref ref="InnerActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.01"/>
+      <auxiliary auxtype="Efield" auxvalue="500."/>
     </volume>
 
     <volume name="volTPCPlaneUInner">
@@ -992,6 +1020,8 @@
       <materialref ref="LAr"/>
       <solidref ref="OuterActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.01"/>
+      <auxiliary auxtype="Efield" auxvalue="0."/>
     </volume>
 
     <volume name="volTPCPlaneUOuter">
@@ -3082,6 +3112,7 @@
     <volume name="volFoamPadding">
       <materialref ref="ProtoDUNEFoam"/>
       <solidref ref="FoamPadding"/>
+      <!--colorref ref="green"/-->
     </volume>
     <volume name="volSteelPlate">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
