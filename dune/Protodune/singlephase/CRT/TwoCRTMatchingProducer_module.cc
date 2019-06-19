@@ -56,7 +56,7 @@
 
 //Local includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrack.h"
+
 
 
 //ROOT includes
