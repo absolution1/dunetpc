@@ -96,7 +96,7 @@ public:
   double setAngle(double angle);
   void produce(art::Event & event) override;
   void beginJob() override;
-  void endJob();
+  void endJob() override ;
     std::string fTrackModuleLabel = "pandoraTrack";
   std::string fopModuleLabel= "opflash";
 
