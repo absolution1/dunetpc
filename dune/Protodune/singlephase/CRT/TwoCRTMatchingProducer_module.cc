@@ -99,7 +99,7 @@ public:
   double setAngle(double angle);
   void produce(art::Event & event) override;
   void beginJob() override;
-  void endJob();
+  void endJob() override;
 
   int nEvents = 0;
   int nHitsPerEvent=0;
@@ -725,8 +725,8 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
            for (unsigned int iCombinatorialTrack = 0; iCombinatorialTrack < combTrackHits.size(); iCombinatorialTrack++) {
 
       if (combTrackHits[iCombinatorialTrack].t0_F>combTrackHits[iCombinatorialTrack].t0_B)
-	T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 1,1,iCombinatorialTrack));
-    else T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 0,1,iCombinatorialTrack));
+	T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 0,1,iCombinatorialTrack));
+    else T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 1,1,iCombinatorialTrack));
 
      std::vector<float> hitF;
 	std::vector<float> hitB;
@@ -874,7 +874,7 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
         double averageSignedDistance = 0;
         double averageSignedDistanceYZ = 0;
         double averageSignedDistanceXZ = 0;
-        double averageSignedDistanceXY = 0;
+        
 
         for (int trackpoint = 0; trackpoint < lastPoint; trackpoint++) {
 	  double trackPosX=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).X()+xOffset;
@@ -1085,7 +1085,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	hitF.push_back(X_F); hitF.push_back(Y_F); hitF.push_back(Z_F);
 	hitB.push_back(X_B); hitB.push_back(Y_B); hitB.push_back(Z_B);
 	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kNotTagged));
-T0col->push_back(anab::T0(measuredT0, 0,1,CRTTrackId));
+T0col->push_back(anab::T0(measuredT0, 13,2,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos) ));
 	auto const crtTrackPtr = crtPtr(CRTTrack->size()-1);
 	auto const t0CP = t0CandPtr(CRTTrackId);
 	CRTT0assn->addSingle(crtTrackPtr,t0CP);
