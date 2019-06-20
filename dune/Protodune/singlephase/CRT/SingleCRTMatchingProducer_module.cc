@@ -224,6 +224,22 @@ CRT::SingleCRTMatchingProducer::SingleCRTMatchingProducer(fhicl::ParameterSet
   }
 
 
+
+// v6 Geo Channel Map
+bool CRT::SingleCRTMatchingProducer::moduleMatcherMCC(int module1, int module2) {
+  // Function checking if two hits could reasonably be matched into a 2D hit
+  if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
+  else return 0;
+
+}
+
+bool CRT::SingleCRTMatchingProducer::moduleMatcherData(int module1, int module2) {
+  // Function checking if two hits could reasonably be matched into a 2D hit
+  if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
+  else return 0;
+
+}
+/* v5 Geo
 // Function to match CRT modules below is for MCC and the 2nd is for data
 bool CRT::SingleCRTMatchingProducer::moduleMatcherMCC(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
@@ -239,7 +255,7 @@ bool CRT::SingleCRTMatchingProducer::moduleMatcherData(int module1, int module2)
   else return 0;
 
 }
-
+*/
 
 int CRT::SingleCRTMatchingProducer::moduletoCTB(int module2, int module1){
   if (module1 == 13 && module2 == 6 ) return 15;
@@ -906,8 +922,8 @@ double xOffset=0;
 	std::vector<float> hitB;
 	hitF.push_back(X_CRT); hitF.push_back(Y_CRT); hitF.push_back(Z_CRT);
 	hitB.push_back(trackX1); hitB.push_back(trackY1); hitB.push_back(trackZ1);
-	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kNotTagged));
-	T0col->push_back(anab::T0(CRTT0, 0,1,CRTTrackId));
+	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kUnknown));
+	if (Z_CRT<100) T0col->push_back(anab::T0(CRTT0, -1, -1,CRTTrackId));
 	auto const crtTrackPtr = crtPtr(CRTTrack->size()-1);
 	auto const t0CP = t0CandPtr(CRTTrackId);
 	CRTT0assn->addSingle(crtTrackPtr,t0CP);
