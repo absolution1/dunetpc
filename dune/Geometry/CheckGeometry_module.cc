@@ -26,6 +26,7 @@
 #include "TLegend.h"
 
 #include <iostream>
+#include <vector>
 
 //constexpr unsigned short kMaxAuxDets = 100; // unused
 //constexpr unsigned short kMaxTkIDs = 100; // unused
@@ -206,134 +207,115 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
     }
   }
 
-  pixel_x[0] = module_x[23];
-  pixel_y[0] = module_y[29];
-  pixel_z[0] = module_z[29];
+  //Get the pixel map
+  std::vector< std::pair <int,int> > vect; 
+  vect.push_back( std::make_pair(1,2)); 
+  vect.push_back( std::make_pair(0,2)); 
+  vect.push_back( std::make_pair(15,13)); 
+  vect.push_back( std::make_pair(14,13)); 
+  vect.push_back( std::make_pair(14,12)); 
+  vect.push_back( std::make_pair(9,11)); 
+  vect.push_back( std::make_pair(9,10)); 
+  vect.push_back( std::make_pair(8,10)); 
+  vect.push_back( std::make_pair(7,5)); 
+  vect.push_back( std::make_pair(6,5)); 
+  vect.push_back( std::make_pair(6,4)); 
+  vect.push_back( std::make_pair(1,3)); 
+  vect.push_back( std::make_pair(0,3)); 
+  vect.push_back( std::make_pair(15,12)); 
+  vect.push_back( std::make_pair(8,11)); 
+  vect.push_back( std::make_pair(7,4)); 
+  vect.push_back( std::make_pair(17,18)); 
+  vect.push_back( std::make_pair(16,18)); 
+  vect.push_back( std::make_pair(31,29)); 
+  vect.push_back( std::make_pair(30,29)); 
+  vect.push_back( std::make_pair(30,28)); 
+  vect.push_back( std::make_pair(25,27)); 
+  vect.push_back( std::make_pair(25,26)); 
+  vect.push_back( std::make_pair(24,26)); 
+  vect.push_back( std::make_pair(23,21)); 
+  vect.push_back( std::make_pair(22,21)); 
+  vect.push_back( std::make_pair(22,20)); 
+  vect.push_back( std::make_pair(17,19)); 
+  vect.push_back( std::make_pair(16,19)); 
+  vect.push_back( std::make_pair(31,28)); 
+  vect.push_back( std::make_pair(24,27)); 
+  vect.push_back( std::make_pair(23,20));
+  //module map
+  std::vector<size_t> fChannelMap;
+  fChannelMap.push_back(24);
+  fChannelMap.push_back(25);
+  fChannelMap.push_back(30);
+  fChannelMap.push_back(18);
+  fChannelMap.push_back(15);
+  fChannelMap.push_back(7);
+  fChannelMap.push_back(13);
+  fChannelMap.push_back(12);
+  fChannelMap.push_back(11);
+  fChannelMap.push_back(10);
+  fChannelMap.push_back(6);
+  fChannelMap.push_back(14);
+  fChannelMap.push_back(19);
+  fChannelMap.push_back(31);
+  fChannelMap.push_back(26);
+  fChannelMap.push_back(27);
+  fChannelMap.push_back(22);
+  fChannelMap.push_back(23);
+  fChannelMap.push_back(29);
+  fChannelMap.push_back(17);
+  fChannelMap.push_back(8);
+  fChannelMap.push_back(0);
+  fChannelMap.push_back(3);
+  fChannelMap.push_back(2);
+  fChannelMap.push_back(5);
+  fChannelMap.push_back(4);
+  fChannelMap.push_back(1);
+  fChannelMap.push_back(9);
+  fChannelMap.push_back(16);
+  fChannelMap.push_back(28);
+  fChannelMap.push_back(20);
+  fChannelMap.push_back(21);
 
-  pixel_x[1] = module_x[22];
-  pixel_y[1] = module_y[29];
-  pixel_z[1] = module_z[29];
-
-  pixel_x[2] = module_x[21];
-  pixel_y[2] = module_y[28];
-  pixel_z[2] = module_z[28];
-
-  pixel_x[3] = module_x[20];
-  pixel_y[3] = module_y[28];
-  pixel_z[3] = module_z[28];
-
-  pixel_x[4] = module_x[20];
-  pixel_y[4] = module_y[16];
-  pixel_z[4] = module_z[16];
-
-  pixel_x[5] = module_x[4];
-  pixel_y[5] = module_y[12];
-  pixel_z[5] = module_z[12];
-
-  pixel_x[6] = module_x[4];
-  pixel_y[6] = module_y[0];
-  pixel_z[6] = module_z[0];
-
-  pixel_x[7] = module_x[5];
-  pixel_y[7] = module_y[0];
-  pixel_z[7] = module_z[0];
-
-  pixel_x[8] = module_x[6];
-  pixel_y[8] = module_y[1];
-  pixel_z[8] = module_z[1];
-
-  pixel_x[9] = module_x[7];
-  pixel_y[9] = module_y[1];
-  pixel_z[9] = module_z[1];
-
-  pixel_x[10] = module_x[7];
-  pixel_y[10] = module_y[13];
-  pixel_z[10] = module_z[13];
-
-  pixel_x[11] = module_x[23];
-  pixel_y[11] = module_y[17];
-  pixel_z[11] = module_z[17];
-
-  pixel_x[12] = module_x[22];
-  pixel_y[12] = module_y[17];
-  pixel_z[12] = module_z[17];
-
-  pixel_x[13] = module_x[21];
-  pixel_y[13] = module_y[16];
-  pixel_z[13] = module_z[16];
-
-  pixel_x[14] = module_x[5];
-  pixel_y[14] = module_y[12];
-  pixel_z[14] = module_z[12];
-
-  pixel_x[15] = module_x[6];
-  pixel_y[15] = module_y[13];
-  pixel_z[15] = module_z[13];
-
-  pixel_x[16] = module_x[26];
-  pixel_y[16] = module_y[30];
-  pixel_z[16] = module_z[30];
-
-  pixel_x[17] = module_x[27];
-  pixel_y[17] = module_y[30];
-  pixel_z[17] = module_z[30];
-
-  pixel_x[18] = module_x[24];
-  pixel_y[18] = module_y[31];
-  pixel_z[18] = module_z[31];
-
-  pixel_x[19] = module_x[25];
-  pixel_y[19] = module_y[31];
-  pixel_z[19] = module_z[31];
-
-  pixel_x[20] = module_x[25];
-  pixel_y[20] = module_y[19];
-  pixel_z[20] = module_z[19];
-  
-  pixel_x[21] = module_x[11];
-  pixel_y[21] = module_y[14];
-  pixel_z[21] = module_z[14];
-  
-  pixel_x[22] = module_x[11];
-  pixel_y[22] = module_y[2];
-  pixel_z[22] = module_z[2];
-  
-  pixel_x[23] = module_x[10];
-  pixel_y[23] = module_y[2];
-  pixel_z[23] = module_z[2];
-  
-  pixel_x[24] = module_x[9];
-  pixel_y[24] = module_y[3];
-  pixel_z[24] = module_z[3];
-  
-  pixel_x[25] = module_x[8];
-  pixel_y[25] = module_y[3];
-  pixel_z[25] = module_z[3];
-  
-  pixel_x[26] = module_x[8];
-  pixel_y[26] = module_y[15];
-  pixel_z[26] = module_z[15];
-  
-  pixel_x[27] = module_x[26];
-  pixel_y[27] = module_y[18];
-  pixel_z[27] = module_z[18];
-  
-  pixel_x[28] = module_x[27];
-  pixel_y[28] = module_y[18];
-  pixel_z[28] = module_z[18];
-  
-  pixel_x[29] = module_x[24];
-  pixel_y[29] = module_y[19];
-  pixel_z[29] = module_z[19];
-  
-  pixel_x[30] = module_x[10];
-  pixel_y[30] = module_y[14];
-  pixel_z[30] = module_z[14];
-  
-  pixel_x[31] = module_x[9];
-  pixel_y[31] = module_y[15];
-  pixel_z[31] = module_z[15];
-  
+  for (size_t i = 0; i<32; ++i){
+    int module[2];
+    double x[2];
+    double y[2];
+    double z[2];
+    double x0[2];
+    double x1[2];
+//    double y0[2];
+//    double y1[2];
+    module[0] = fChannelMap[vect[i].first];
+    module[1] = fChannelMap[vect[i].second];
+    for (size_t j = 0; j<2; ++j){
+      auto& auxdet = geo->AuxDet(module[j]);
+      double xyz[3];
+      auxdet.GetCenter(xyz);
+      x[j] = xyz[0];
+      y[j] = xyz[1];
+      z[j] = xyz[2];
+      double auxdet0[3] = {-auxdet.HalfWidth1(), auxdet.HalfHeight(), -auxdet.Length()/2};
+      double world0[3];
+      auxdet.LocalToWorld(auxdet0, world0);
+      double auxdet1[3] = {auxdet.HalfWidth1(), auxdet.HalfHeight(), auxdet.Length()/2};
+      double world1[3];
+      auxdet.LocalToWorld(auxdet1, world1);
+      x0[j] = world0[0];
+      x1[j] = world1[0];
+//      y0[j] = world0[1];
+//      y1[j] = world1[1];
+    }
+    if (std::abs(x0[0]-x1[0])<std::abs(x0[1]-x1[1])){
+      pixel_x[i] = x[0];
+      pixel_y[i] = y[1];
+    }
+    else{
+      pixel_x[i] = x[1];
+      pixel_y[i] = y[0];
+    }
+    pixel_z[i] = (z[0]+z[1])/2;
+  }
+   
   TLatex tex;
   tex.SetTextSize(0.02);
 
@@ -354,7 +336,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   }
   //leg0->Draw();
   for (int i = 0; i<16; ++i){
-    //tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
+    tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
   }
   TLatex tt;
   tt.SetTextSize(0.02);
@@ -389,7 +371,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   }
   //leg1->Draw();
   for (int i = 16; i<32; ++i){
-    //tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
+    tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
   }
 
   for (unsigned int i = 0; i < geo->NAuxDets(); ++i){
@@ -474,9 +456,12 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
     }
     cstp[i]->Print(Form("cstp_%d.png",i));
   }
+  std::ofstream outfile("pixel.txt");
   for (int i = 0; i<32; ++i){
-    std::cout<<pixel_x[i]<<" "<<pixel_y[i]<<" "<<pixel_z[i]<<std::endl;
+    outfile<<pixel_x[i]<<" "<<pixel_y[i]<<" "<<pixel_z[i]<<std::endl;
   }
+  outfile.close();
+
   cancrt->Print("crt.pdf");
   cancrt->Print("crt.png");
 
