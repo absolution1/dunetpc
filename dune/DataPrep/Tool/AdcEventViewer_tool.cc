@@ -71,6 +71,30 @@ VarInfo::VarInfo(string aname, const IndexRange& cr, string clockUnit) : name(an
 }  // end unnamed namespace
 
 //**********************************************************************
+// Subclass methods.
+//**********************************************************************
+
+std::string AdcEventViewer::State::runString() const {
+  const string myname = "AdcEventViewer::State::runString: ";
+  if ( eventInfo.isValid() ) return eventInfo.runString();
+  if ( runSet.size() == 0 ) return "<no-runs>";
+  if ( runSet.size() > 1 ) {
+    cout << myname << "WARNING: Multiple runs have been processed:";
+    bool first = true;
+    for ( Index irun : runSet ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << irun;
+    }
+    cout << endl;
+    return "<multiple-runs>";
+  }
+  DuneEventInfo evi;
+  evi.run = *runSet.begin();
+  return evi.runString();
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -477,9 +501,11 @@ void AdcEventViewer::beginEventState(const DuneEventInfo& devt) const {
     return;
   }
   Index ievt = devt.event;
+  Index irun = devt.run;
   state().eventInfo = devt;
   state().events.push_back(ievt);
   state().eventSet.insert(ievt);
+  state().runSet.insert(irun);
   LongIndex clk = devt.triggerClock;
   if ( state().firstClock == 0 ) state().firstClock = clk;
   if ( clk < state().minClock ) state().minClock = clk;
