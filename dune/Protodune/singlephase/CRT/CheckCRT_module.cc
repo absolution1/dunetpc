@@ -211,6 +211,7 @@ void pdsp::CheckCRT::analyze(art::Event const& e)
     t0_pandora.push_back(t0);
   }
 
+  /*
   art::Handle< std::vector<recob::Track> > pmtracktrkHandle;
   std::vector< art::Ptr<recob::Track> > pmtracktrks;
   if (e.getByLabel("pmtrack", pmtracktrkHandle))
@@ -233,7 +234,7 @@ void pdsp::CheckCRT::analyze(art::Event const& e)
     }
     t0_pmtrack.push_back(t0);
   }
-
+  */
   fTree->Fill();
 }
 
