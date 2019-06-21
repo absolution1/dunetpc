@@ -38,6 +38,7 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
 
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -434,9 +435,7 @@ void CRT::TwoCRTMatching::analyze(art::Event
   }
   int nHits = 0;
 
-  art::ServiceHandle < cheat::BackTrackerService > backTracker;
-  art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
-const sim::ParticleList & plist = partInventory -> ParticleList();
+
 
 
 	//Detector properties service
@@ -470,18 +469,14 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
     for (const auto & hit: hits) { // Collect hits on all modules
-	//cout<<hits.size()<<','<<hit.ADC()<<endl;
       if (hit.ADC() > fADCThreshold) { // Keep if they are above threshold
 
         tempHits tHits;
 	if (!fMCCSwitch){
 	art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
-	int stripChannel=hit.Channel();
-	if (hit.Channel()<32) stripChannel=(hit.Channel())*2;
-	else stripChannel=2*(hit.Channel()-32)+1;
-	//cout<<stripChannel<<endl;
+
         tHits.module = trigger.Channel(); // Values to add to array
-        tHits.channelGeo = stripChannel;
+        tHits.channelGeo = hit.Channel();
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
 	tHits.triggerTime=trigger.Timestamp()-timingHandle->at(0).GetTimeStamp();
@@ -493,7 +488,6 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
         tHits.adc = hit.ADC();
 	tHits.triggerTime=trigger.Timestamp();
 	}
-	 //cout<<trigger.Channel()<<','<<hit.Channel()<<','<<hit.ADC()<<endl;
         nHits++;
 
         const auto & trigGeo = geom -> AuxDet(trigger.Channel()); // Get geo  
@@ -516,20 +510,18 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
 	int flipChannel=tempHits_F[f].channelGeo;
 	int flipX=1;
-	if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
-	if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
-	cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
+	// v5 geo fixes
+	//if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
+	//if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
+	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
+	//if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
+	//cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-     //if (tempHits_F[f].adc>10000) cout<<"Hit Position: "<<tempHits_F[f].module<<','<<tempHits_F[f].channelGeo<<','<<tempHits_F[f].adc<<','<<hit1Center.X()<<','<<hit1Center.Y()<<','<<hit1Center.Z()<<endl;
-      //const auto hit1Center = trigGeo.GetCenter();
       // Create 2D hits from geo of the Y and X modules
 	flipChannel=tempHits_F[f_test].channelGeo;
 	int flipY=1;
-	if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
-	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
        const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
-	//const auto hit2Center = hit2Geo.GetCenter();
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
       if(fModuleSwitch) moduleMatched=moduleMatcherMCC(tempHits_F[f_test].module, tempHits_F[f].module);
@@ -548,8 +540,7 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
 	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-flipY)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	
-	if(!fMCCSwitch && (tempHits_F[f_test].module==16 || tempHits_F[f_test].module==28 || tempHits_F[f_test].module==29 || tempHits_F[f_test].module==17)) hitYPrelim=hitYPrelim-50+11;
-	else if(!fMCCSwitch) hitYPrelim=hitYPrelim-50+20;
+
 	
 	double hitY=hitYPrelim;
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
@@ -567,14 +558,14 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
 	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
-//	primaryHits_F.push_back(rHits);  
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
 	int channelFlipCheck=tempHits_B[f].module;
-	if (!fMCCSwitch){
+	/* Code to fix v5 geo issues in data
+	if (!fMCCSwitch){   
 	if (channelFlipCheck==8) channelFlipCheck=11;
 	else if (channelFlipCheck==11) channelFlipCheck=8;
          else if (channelFlipCheck==10) channelFlipCheck=9;
@@ -585,23 +576,22 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
 	else if (channelFlipCheck==24) channelFlipCheck=27;
 	else if (channelFlipCheck==27) channelFlipCheck=24;
 	}
-     int flipX=1;
-	if (fabs(tempHits_B[f].triggerTime-tempHits_B[f_test].triggerTime)<1 && tempHits_B[f].module!=tempHits_B[f_test].module){
-	cout<<tempHits_B[f].module<<','<<tempHits_B[f_test].module<<endl;}
-     int flipChannel=tempHits_B[f].channelGeo;
+
      if (!fMCCSwitch && (tempHits_B[f].module==25 || tempHits_B[f].module==11 || tempHits_B[f].module==24 || tempHits_B[f].module==10)){flipX=-1; flipChannel=flipChannel^63;}
 
-     //if (tempHits_B[f].module==27 || tempHits_B[f].module==26 || tempHits_B[f].module==25 || tempHits_B[f].module==24) flipChannel=flipChannel^63; 
+	//if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+	*/
+     int flipX=1;
+     int flipY=1;
+     int flipChannel=tempHits_B[f].channelGeo;
+
+ 
       const auto & trigGeo = geom -> AuxDet(channelFlipCheck);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-     //if (tempHits_B[f].adc>10000) cout<<"Hit Position: "<<tempHits_B[f].module<<','<<tempHits_B[f].channelGeo<<','<<tempHits_B[f].adc<<','<<hit1Center.X()<<','<<hit1Center.Y()<<','<<hit1Center.Z()<<endl;
-      //const auto hit2Center = trigGeo2.GetCenter();
-      //const auto hit1Center=trigGeo.GetCenter();
-	int flipY=1;
-	 flipChannel=tempHits_B[f_test].channelGeo;
-	//if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+      flipChannel=tempHits_B[f_test].channelGeo;
+
       const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
@@ -624,11 +614,7 @@ const sim::ParticleList & plist = partInventory -> ParticleList();
 	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-flipY)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	double hitY=hitYPrelim;
-	if (!fMCCSwitch) hitY=hitYPrelim-145;
-	
-	if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3 || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) hitY=hitYPrelim-144+5;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==31)) hitY=hitYPrelim-144+28;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==30 || tempHits_B[f_test].module==18 || tempHits_B[f_test].module==19)) hitY=hitYPrelim-144+28;
+
 	
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
 
@@ -690,6 +676,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 // Make tracks from all front and back CRT hits
 for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
     for (unsigned int b = 0; b < primaryHits_B.size(); b++) {
+   //if (fabs(primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg)<1000) cout<<primaryHits_F[f].geoX<<','<<primaryHits_B[b].geoX<<','<<primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg<<endl;
    if (!fMCCSwitch && fCTBTriggerOnly){
    if (fabs(primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg)<fFronttoBackTimingCut && moduletoCTB(primaryHits_F[f].geoX, primaryHits_F[f].geoY)==pixel0 && moduletoCTB(primaryHits_B[b].geoX, primaryHits_B[b].geoY)==pixel1 ){
 	//cout<<"Reconstructed Hits Converted to CTB: "<<moduletoCTB(primaryHits_F[f].geoX, primaryHits_F[f].geoY)<<','<<moduletoCTB(primaryHits_B[b].geoX, primaryHits_B[b].geoY)<<endl;
@@ -752,15 +739,24 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
   vector < art::Ptr < recob::Track > > trackList;
   art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
   vector<art::Ptr<recob::PFParticle> > pfplist;
+
+
   if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
+
+
   if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
 
   art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
+  art::FindManyP<recob::Hit> trackHits(trackListHandle, event, "pandoraTrack");
   int nTracksReco = trackList.size();
   //cout<<"Number of Potential CRT Reconstructed Through-Going Muon: "<<combTrackHits.size()<<endl;
+    art::Handle< std::vector<recob::Hit> > hitListHandle; // to get information about the hits
+    std::vector<art::Ptr<recob::Hit>> hitlist;
+    if(event.getByLabel("hitpdune", hitListHandle))
+      art::fill_ptr_vector(hitlist, hitListHandle);
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
   int tempId = 0;
   allTracksPair.clear();
@@ -821,14 +817,39 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 
     if ((trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE < 50) || (trackStartPositionZ_noSCE > 660 && trackEndPositionZ_noSCE < 50)) {
 
-	if (fMCCSwitch){
-  for (const auto & PartPair: plist) {
-    const simb::MCParticle *particle =  (PartPair.second);
+
+if(fMCCSwitch){
+
+      art::ServiceHandle < cheat::BackTrackerService > backTracker;
+      art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
+      art::Ptr<recob::Track> ptrack(trackListHandle, iRecoTrack);
+
+      std::vector<art::Ptr<recob::Hit>> allHits=trackHits.at(iRecoTrack); //storing hits for ith track
+ 
+      int trackid=-1;
+      std::map<int,double> trkide;
+      std::map<int,double> trknumelec;
 
 
-	if (particle->Position(0).Z()<-250 && particle->EndPosition().Z()>1100){
-	//cout<<"Initial: "<<particle->Position(0).Y()<<','<<particle->Position(0).Z()<<endl;
-	//cout<<"Final: "<<particle->EndPosition().Z()<<endl;
+      for(size_t h=0; h<allHits.size();h++){
+	art::Ptr<recob::Hit> hit=allHits[h];
+	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(hit);
+	for(size_t e=0;e<eveIDs.size(); ++e){
+	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
+	}
+      }
+      double  maxe = -1;
+      double tote = 0;
+      for(std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+	tote += ii->second;
+	if((ii->second)>maxe){
+	  maxe = ii->second;
+	  trackid = ii->first;
+	 
+	}
+      }
+	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(trackid);
+
 	
 	int nTrajectory=particle->NumberTrajectoryPoints();
 
@@ -841,37 +862,23 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 	int beamLeft=0;
 	for (int i=0; i<nTrajectory-2; i++){
 	beamLeft=i;
-	if (particle->Position(i).Z()>-1000) break;
+	if (particle->Position(i).Z()>-254) break;
 	}
 
 	int beamRight=0;
 	for (int i=0; i<nTrajectory-2; i++){
 	beamRight=i;
-	if (particle->Position(i).Z()>-280) break;
+	if (particle->Position(i).Z()>-1000) break;
 	}
-	int tpcCheck=0;
-	for (int i=0; i<nTrajectory-2; i++){
-	beamRight=i;
-	if (particle->Position(i).Z()>350) break;
-	}
-	cout<<"BL Initial: "<<particle->Position(beamLeft).X()<<','<<particle->Position(beamLeft).Y()<<','<<particle->Position(beamLeft).Z()<<endl;
-	cout<<"BR Initial: "<<particle->Position(beamRight).X()<<','<<particle->Position(beamRight).Y()<<','<<particle->Position(beamRight).Z()<<endl;
-	cout<<"DS: "<<particle->Position(approxExit).X()<<','<<particle->Position(approxExit).Y()<<','<<particle->Position(approxExit).Z()<<endl;
-	cout<<"________________________"<<endl;
-	if (particle->Process() == "primary" && fabs(particle->PdgCode()) == fabs(13) && particle->Position(tpcCheck).Y()<600 && particle->Position(tpcCheck).Y()>0 && abs(particle->Position(tpcCheck).X())<400){ 
-mccTrackId=particle->TrackId();
+	cout<<beamRight<<beamLeft<<approxExit<<endl;
+	if (((particle->Position(beamLeft).Y()<620 && particle->Position(beamLeft).Y()>-43 && (particle->Position(beamLeft).X())<133 && (particle->Position(beamLeft).X())>-196) || (particle->Position(beamRight).Y()<620 && particle->Position(beamRight).Y()>-43 && (particle->Position(beamRight).X())<401  && (particle->Position(beamRight).X())>229) )  && (particle->Position(beamRight).Y()<548 && particle->Position(beamRight).Y()>-147 && (particle->Position(beamRight).X())<336  && (particle->Position(beamRight).X())>-333) ){
+truthEnergy=particle->E();
+mccTrackId=trackid;
+fMCCMuon->Fill();
 
-truthEnergy=particle->E();  fMCCMuon->Fill();  
-
-
-
-
-}
 }
 
 }
-}
-
 
       
       for (unsigned int iCombinatorialTrack = 0; iCombinatorialTrack < combTrackHits.size(); iCombinatorialTrack++) {
@@ -976,12 +983,6 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	TVector3 trackVector = (v5-v4).Unit();
 	TVector3 hitVector=(v2-v1).Unit();
 
-
-
-
-
-
-
               double predictedHitPositionY1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
               double predictedHitPositionY2 = (v2.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
 
@@ -999,8 +1000,6 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 
         double deltaY2 = (predictedHitPositionY2-Y2);
 	double deltaY=fabs(deltaY2)+fabs(deltaY1);
-	//cout<<dotProductCos<<','<<combTrackHits[iCombinatorialTrack].adcX1<<','<<combTrackHits[iCombinatorialTrack].adcY1<<','<<combTrackHits[iCombinatorialTrack].adcX2<<','<<combTrackHits[iCombinatorialTrack].adcY2<<endl;
-
         tracksPair tPair;
         tPair.tempId = tempId;
         tPair.CRTTrackId = iCombinatorialTrack;

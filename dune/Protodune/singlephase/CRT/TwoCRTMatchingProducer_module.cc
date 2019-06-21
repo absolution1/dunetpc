@@ -487,38 +487,36 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
       const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
 	int flipChannel=tempHits_F[f].channelGeo;
-	int flipX=1;
-	if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
+	//int flipX=1;
+	// v5 geo fixes
+	//if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
+	//if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
+	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
+	//if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
+	//cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-      //const auto hit1Center = trigGeo.GetCenter();
       // Create 2D hits from geo of the Y and X modules
 	flipChannel=tempHits_F[f_test].channelGeo;
-	int flipY=1;
-	if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
-	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
+	//int flipY=1;
        const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
-	//const auto hit2Center = hit2Geo.GetCenter();
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
-      if(fModuleSwitch) moduleMatched=moduleMatcher(tempHits_F[f_test].module, tempHits_F[f].module);
-      else moduleMatched=moduleMatcher(tempHits_F[f_test].module, tempHits_F[f].module);
-
+      moduleMatched=moduleMatcher(tempHits_F[f_test].module, tempHits_F[f].module);
       if (moduleMatched) {
         // Get the center of the hits (CRT_Res=2.5 cm)
         double hitX = hit1Center.X();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo-flipX)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
 	}
 	double hitYPrelim=hit2Center.Y();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-flipY)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	
-	if(!fMCCSwitch && (tempHits_F[f_test].module==16 || tempHits_F[f_test].module==28 || tempHits_F[f_test].module==29 || tempHits_F[f_test].module==17)) hitYPrelim=hitYPrelim-50+11;
-	else if(!fMCCSwitch) hitYPrelim=hitYPrelim-50+20;
+
 	
 	double hitY=hitYPrelim;
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
@@ -536,14 +534,14 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
 	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
-//	primaryHits_F.push_back(rHits);  
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
 	int channelFlipCheck=tempHits_B[f].module;
-	if (!fMCCSwitch){
+	/* Code to fix v5 geo issues in data
+	if (!fMCCSwitch){   
 	if (channelFlipCheck==8) channelFlipCheck=11;
 	else if (channelFlipCheck==11) channelFlipCheck=8;
          else if (channelFlipCheck==10) channelFlipCheck=9;
@@ -554,24 +552,26 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	else if (channelFlipCheck==24) channelFlipCheck=27;
 	else if (channelFlipCheck==27) channelFlipCheck=24;
 	}
-     int flipX=1;
-     int flipChannel=tempHits_B[f].channelGeo;
+
      if (!fMCCSwitch && (tempHits_B[f].module==25 || tempHits_B[f].module==11 || tempHits_B[f].module==24 || tempHits_B[f].module==10)){flipX=-1; flipChannel=flipChannel^63;}
-     //if (tempHits_B[f].module==27 || tempHits_B[f].module==26 || tempHits_B[f].module==25 || tempHits_B[f].module==24) flipChannel=flipChannel^63; 
+
+	//if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+	*/
+     int flipX=1;
+     int flipY=1;
+     int flipChannel=tempHits_B[f].channelGeo;
+
+ 
       const auto & trigGeo = geom -> AuxDet(channelFlipCheck);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-      //const auto hit2Center = trigGeo2.GetCenter();
-      //const auto hit1Center=trigGeo.GetCenter();
-	int flipY=1;
-	 flipChannel=tempHits_B[f_test].channelGeo;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+      flipChannel=tempHits_B[f_test].channelGeo;
+
       const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
-      if(fModuleSwitch) moduleMatched=moduleMatcher(tempHits_B[f_test].module, tempHits_B[f].module);
-      else moduleMatched=moduleMatcher(tempHits_B[f_test].module, tempHits_B[f].module);
+      moduleMatched=moduleMatcher(tempHits_B[f_test].module, tempHits_B[f].module);
 
       if (moduleMatched) {
         double hitX = hit1Center.X();
@@ -589,11 +589,7 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-flipY)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	double hitY=hitYPrelim;
-	if (!fMCCSwitch) hitY=hitYPrelim-145;
-	
-	if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3 || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) hitY=hitYPrelim-144+5;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==31)) hitY=hitYPrelim-144+28;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==30 || tempHits_B[f_test].module==18 || tempHits_B[f_test].module==19)) hitY=hitYPrelim-144+28;
+
 	
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
 
@@ -609,6 +605,7 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	rHits.stripY=flipChannel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
        if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
+     //primaryHits_B.push_back(rHits);
 	 }
     }
   }
