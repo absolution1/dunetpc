@@ -543,7 +543,7 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
 
-      std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
+      //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
 	{
@@ -624,7 +624,7 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  continue;
 	}
 
-      std::cout << "  After cable swap : WIB: " << slotNumber+1 << " FEMB: " << fiberNumber-1 << std::endl;
+      //std::cout << "  After cable swap : WIB: " << slotNumber+1 << " FEMB: " << fiberNumber-1 << std::endl;
 
       if (_print_coldata_convert_count)
 	{
