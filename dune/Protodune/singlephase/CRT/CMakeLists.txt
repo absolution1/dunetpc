@@ -16,6 +16,7 @@ art_make( MODULE_LIBRARIES
 			lardataobj_RecoBase
 			lardataobj_AnalysisBase
 			larsim_MCCheater_ParticleInventoryService_service
+			larsim_MCCheater_BackTrackerService_service
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
