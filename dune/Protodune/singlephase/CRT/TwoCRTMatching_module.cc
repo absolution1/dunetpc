@@ -101,7 +101,7 @@ class CRT::TwoCRTMatching: public art::EDAnalyzer {
   double signedPointToLineDistance(double firstPoint1, double firstPoint2,   double secondPoint1, double secondPoint2, double trackPoint1, double trackPoint2);
   double signed3dDistance(double firstPoint1, double firstPoint2, double firstPoint3, double secondPoint1, double secondPoint2, double secondPoint3, TVector3 trackPos);
   void beginJob() override;
-  void endJob();
+  void endJob() override;
   void createPNG(TH1D * histo);
   double setAngle(double angle);
 int moduletoCTB(int module2, int module1);
@@ -126,7 +126,7 @@ int moduletoCTB(int module2, int module1);
     int fFronttoBackTimingCut;
 
 
-    double averageSignedDistanceXY;
+  //double averageSignedDistanceXY;
     double averageSignedDistanceYZ;
     double averageSignedDistanceXZ;
     double averageSignedDistance;
