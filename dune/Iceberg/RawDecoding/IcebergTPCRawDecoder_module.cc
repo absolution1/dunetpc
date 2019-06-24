@@ -557,17 +557,60 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
-      // two cable swaps on June 7, 2019
+      // two cable swaps on June 20, 2019
 
-      //if (runNumber > 1332)
-      //	{
-	  //  auto oldfiber = fiberNumber;
-	  // if (slotNumber == 1 || slotNumber == 2)  // similar swaps on WIB002 and WIB003 (slots 1 and 2)
-	  // {
-	  //  if (oldfiber == 1) fiberNumber = 2;
-	  //   if (oldfiber == 2) fiberNumber = 1;
-	  // }
-      //	}
+      if (runNumber > 1530)
+      	{
+	  auto oldfiber = fiberNumber;
+	  auto oldslot = slotNumber;
+
+	  // second swap, June 21 -- see Slack
+
+	  if (oldslot == 2 && oldfiber == 1)
+	    {
+	      slotNumber = 2;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 1)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 2 && oldfiber == 3)
+	    {
+	      slotNumber = 2;
+	      fiberNumber = 1;
+	    }
+	  if (oldslot == 1 && oldfiber == 3)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 1;
+	    }
+
+	  oldfiber = fiberNumber;
+	  oldslot = slotNumber;
+
+	  if (oldslot == 0 && oldfiber == 4)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 4)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 0 && oldfiber == 3)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 4;
+	    }
+	  if (oldslot == 1 && oldfiber == 3)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 4;
+	    }
+     	}
 
       // skip the fake TPC data
 
@@ -580,6 +623,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	{
 	  continue;
 	}
+
+      //std::cout << "  After cable swap : WIB: " << slotNumber+1 << " FEMB: " << fiberNumber-1 << std::endl;
 
       if (_print_coldata_convert_count)
 	{
@@ -1206,6 +1251,7 @@ void IcebergTPCRawDecoder::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc,
       sigma = TMath::RMS(asiz,v_adc.data());
     }
 
+  //  std::cout << "sigma: " << sigma << std::endl;
 }
 
 DEFINE_ART_MODULE(IcebergTPCRawDecoder)

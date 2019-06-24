@@ -158,20 +158,20 @@ namespace CRT
           frag.module_num() == 26 ||
           frag.module_num() == 27 ||
           frag.module_num() == 20 ||
-          frag.module_num() == 21){ //Strips do not need to be flipped (TY)
-        if (hit.channel<32){
-          hits.emplace_back(hit.channel*2, hit.adc);
-        }
-        else{
-          hits.emplace_back((hit.channel-32)*2+1, hit.adc);
-        }
-      }
-      else{//Strips need to be flipped
+          frag.module_num() == 21){ //Strips need to be flipped (TY)
         if (hit.channel<32){
           hits.emplace_back((31-hit.channel)*2, hit.adc);
         }
         else{
           hits.emplace_back((95-hit.channel-32)*2+1, hit.adc);
+        }
+      }
+      else{//Strips do not need to be flipped
+        if (hit.channel<32){
+          hits.emplace_back(hit.channel*2, hit.adc);
+        }
+        else{
+          hits.emplace_back((hit.channel-32)*2+1, hit.adc);
         }
       }
       //MF_LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
