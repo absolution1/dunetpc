@@ -93,6 +93,7 @@ private:
   //Truth level info of the primary beam particle
   //that generated the event
   int true_beam_PDG;
+  int true_beam_ID;
   std::string true_beam_EndProcess;
   double true_beam_EndVertex_X;
   double true_beam_EndVertex_Y;
@@ -116,9 +117,13 @@ private:
   std::vector< int > true_beam_daughter_IDs;
   std::vector< double > true_beam_daughter_lens;
 
+
+  //Decay products from pi0s
+  std::vector< int > true_beam_Pi0_decay_PDGs, true_beam_Pi0_decay_IDs;
+
   //How many of each true particle came out of the true primary beam particle?
   int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
-  int nProton_truth, nNeutron_truth;
+  int nProton_truth, nNeutron_truth, nNucleus_truth;
   /*****************************/
   
 
@@ -180,9 +185,11 @@ private:
   std::vector< int > reco_daughter_trackID;
   std::vector< int > reco_daughter_truth_PDG;
   std::vector< int > reco_daughter_truth_ID;
+  std::vector< int > reco_daughter_truth_Origin;
   std::vector< int > reco_daughter_showerID;
   std::vector< int > reco_daughter_shower_truth_PDG;
   std::vector< int > reco_daughter_shower_truth_ID;
+  std::vector< int > reco_daughter_shower_truth_Origin;
   std::vector< std::vector< double > > reco_daughter_dEdX, reco_daughter_dQdX, reco_daughter_resRange;
   std::vector< double > reco_daughter_startX, reco_daughter_endX;
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
@@ -376,6 +383,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   true_beam_EndProcess = true_beam_particle->EndProcess();
   
   true_beam_PDG         = true_beam_particle->PdgCode();
+  true_beam_ID          = true_beam_particle->TrackId();
   true_beam_EndVertex_X = true_beam_particle->EndX();
   true_beam_EndVertex_Y = true_beam_particle->EndY();
   true_beam_EndVertex_Z = true_beam_particle->EndZ();
@@ -412,11 +420,23 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
     std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
 
-    if( pid == 211 )  ++nPiPlus_truth;
+    if( pid == 211  ) ++nPiPlus_truth;
     if( pid == -211 ) ++nPiMinus_truth;
-    if( pid == 111 )  ++nPi0_truth;
+    if( pid == 111  ) ++nPi0_truth;
     if( pid == 2212 ) ++nProton_truth;
     if( pid == 2112 ) ++nNeutron_truth;
+    if( pid > 2212  ) ++nNucleus_truth; 
+
+    //Look for the gammas coming out of the pi0s
+    if( pid == 111 ){
+      std::cout << "Found pi0. Looking at true daughters" << std::endl;
+      for( int j = 0; j < part->NumberDaughters(); ++j ){
+        int pi0_decay_daughter_ID = part->Daughter(j);
+        auto pi0_decay_part = plist[ pi0_decay_daughter_ID ];
+        true_beam_Pi0_decay_PDGs.push_back( pi0_decay_part->PdgCode() );
+        true_beam_Pi0_decay_IDs.push_back( pi0_decay_part->TrackId() );
+      }
+    }
 
   }
 
@@ -520,10 +540,14 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       if( trueDaughterParticle ){
         reco_daughter_truth_PDG.push_back( trueDaughterParticle->PdgCode() );
         reco_daughter_truth_ID.push_back( trueDaughterParticle->TrackId() );
+        reco_daughter_truth_Origin.push_back( 
+          pi_serv->TrackIdToMCTruth_P(trueDaughterParticle->TrackId())->Origin()
+        );
       }
       else{
         reco_daughter_truth_PDG.push_back( -1 );
         reco_daughter_truth_ID.push_back( -1 );
+        reco_daughter_truth_Origin.push_back( -1 );
       }
 
       std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
@@ -597,10 +621,16 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       if( trueDaughterParticle ){
         reco_daughter_shower_truth_PDG.push_back( trueDaughterParticle->PdgCode() );
         reco_daughter_shower_truth_ID.push_back( trueDaughterParticle->TrackId() );
+        reco_daughter_shower_truth_Origin.push_back( 
+          pi_serv->TrackIdToMCTruth_P(trueDaughterParticle->TrackId())->Origin()
+        );
+
       }
       else{
         reco_daughter_shower_truth_PDG.push_back( -1 );
         reco_daughter_shower_truth_ID.push_back( -1 );
+        reco_daughter_truth_Origin.push_back( -1 );
+
       }
 
 
@@ -681,8 +711,10 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_trackID", &reco_daughter_trackID);
   fTree->Branch("reco_daughter_truth_PDG", &reco_daughter_truth_PDG);
   fTree->Branch("reco_daughter_truth_ID", &reco_daughter_truth_ID);
+  fTree->Branch("reco_daughter_truth_Origin", &reco_daughter_truth_Origin);
   fTree->Branch("reco_daughter_shower_truth_PDG", &reco_daughter_shower_truth_PDG);
   fTree->Branch("reco_daughter_shower_truth_ID", &reco_daughter_shower_truth_ID);
+  fTree->Branch("reco_daughter_shower_truth_Origin", &reco_daughter_shower_truth_Origin);
 
   fTree->Branch("reco_daughter_showerID", &reco_daughter_showerID);
   fTree->Branch("reco_daughter_dQdX", &reco_daughter_dQdX);
@@ -702,6 +734,7 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("nShowerDaughters", &nShowerDaughters);
 
   fTree->Branch("true_beam_PDG", &true_beam_PDG);
+  fTree->Branch("true_beam_ID", &true_beam_ID);
   fTree->Branch("true_beam_EndProcess", &true_beam_EndProcess);
   fTree->Branch("true_beam_EndVertex_X", &true_beam_EndVertex_X);
   fTree->Branch("true_beam_EndVertex_Y", &true_beam_EndVertex_Y);
@@ -724,10 +757,13 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("nProton_truth", &nProton_truth);
   fTree->Branch("nNeutron_truth", &nNeutron_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
+  fTree->Branch("nNucleus_truth", &nNucleus_truth);
 
   fTree->Branch("true_beam_daughter_PDGs", &true_beam_daughter_PDGs);
   fTree->Branch("true_beam_daughter_IDs", &true_beam_daughter_IDs);
   fTree->Branch("true_beam_daughter_lens", &true_beam_daughter_lens);
+  fTree->Branch("true_beam_Pi0_decay_IDs", &true_beam_Pi0_decay_IDs);
+  fTree->Branch("true_beam_Pi0_decay_PDGs", &true_beam_Pi0_decay_PDGs);
 
   fTree->Branch("reco_beam_truth_EndProcess", &reco_beam_truth_EndProcess);
   fTree->Branch("reco_beam_truth_Process", &reco_beam_truth_Process);
@@ -784,12 +820,14 @@ void pionana::PionAnalyzerMC::reset()
   MC = 0;
   nProton_truth = 0;
   nNeutron_truth = 0;
+  nNucleus_truth = 0;
   nPi0_truth = 0;
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
   reco_beam_truth_PDG = 0;
   reco_beam_truth_ID = 0;
   true_beam_PDG = 0;
+  true_beam_ID = 0;
   true_beam_EndProcess ="";
   true_beam_EndVertex_X = 0.;
   true_beam_EndVertex_Y = 0.;
@@ -835,6 +873,8 @@ void pionana::PionAnalyzerMC::reset()
 
   true_beam_daughter_PDGs.clear();
   true_beam_daughter_lens.clear();
+  true_beam_Pi0_decay_IDs.clear();
+  true_beam_Pi0_decay_PDGs.clear();
   reco_beam_truth_daughter_true_lens.clear();
   reco_beam_truth_daughter_shower_true_lens.clear();
   true_beam_daughter_IDs.clear();
@@ -870,10 +910,12 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_trackID.clear();
   reco_daughter_truth_PDG.clear();
   reco_daughter_truth_ID.clear();
+  reco_daughter_truth_Origin.clear();
 
   reco_daughter_showerID.clear();
   reco_daughter_shower_truth_PDG.clear();
   reco_daughter_shower_truth_ID.clear();
+  reco_daughter_shower_truth_Origin.clear();
 
 }
 
