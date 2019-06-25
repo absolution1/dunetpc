@@ -142,8 +142,38 @@ namespace CRT
       const auto hit = *(frag.hit(hitNum));
       MF_LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
                           << "ADC: " << hit.adc << "\n";
-                                                                                                                                                   
-      hits.emplace_back(hit.channel, hit.adc);
+
+      if (frag.module_num() == 14 ||
+          frag.module_num() == 15 ||
+          frag.module_num() == 8 ||
+          frag.module_num() == 9 ||
+          frag.module_num() == 10 ||
+          frag.module_num() == 11 ||
+          frag.module_num() == 4 ||
+          frag.module_num() == 5 ||
+          frag.module_num() == 30 ||
+          frag.module_num() == 31 ||
+          frag.module_num() == 24 ||
+          frag.module_num() == 25 ||
+          frag.module_num() == 26 ||
+          frag.module_num() == 27 ||
+          frag.module_num() == 20 ||
+          frag.module_num() == 21){ //Strips need to be flipped (TY)
+        if (hit.channel<32){
+          hits.emplace_back((31-hit.channel)*2, hit.adc);
+        }
+        else{
+          hits.emplace_back((95-hit.channel-32)*2+1, hit.adc);
+        }
+      }
+      else{//Strips do not need to be flipped
+        if (hit.channel<32){
+          hits.emplace_back(hit.channel*2, hit.adc);
+        }
+        else{
+          hits.emplace_back((hit.channel-32)*2+1, hit.adc);
+        }
+      }
       //MF_LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
                                                                     //      function template from namespace CRT.  using namespace CRT seems like 
                                                                     //      it should solve this, but it doesn't seem to.
@@ -248,10 +278,43 @@ namespace CRT
     const auto nModules = geom->NAuxDets();
     if(fMatchOfflineMapping) 
     {
-      std::vector<const geo::AuxDetGeo*> auxDets; //The function to retrieve this vector seems to have been made protected
-      for(size_t auxDet = 0; auxDet < nModules; ++auxDet) auxDets.push_back(&geom->AuxDet(auxDet));
-
-      fChannelMap = CRTSorter::Mapping(auxDets); //Match whatever the current AuxDet sorter does.  
+//      std::vector<const geo::AuxDetGeo*> auxDets; //The function to retrieve this vector seems to have been made protected
+//      for(size_t auxDet = 0; auxDet < nModules; ++auxDet) auxDets.push_back(&geom->AuxDet(auxDet));
+//
+//      fChannelMap = CRTSorter::Mapping(auxDets); //Match whatever the current AuxDet sorter does.  
+      //Based on v6 geometry (TY)
+      fChannelMap.push_back(24);
+      fChannelMap.push_back(25);
+      fChannelMap.push_back(30);
+      fChannelMap.push_back(18);
+      fChannelMap.push_back(15);
+      fChannelMap.push_back(7);
+      fChannelMap.push_back(13);
+      fChannelMap.push_back(12);
+      fChannelMap.push_back(11);
+      fChannelMap.push_back(10);
+      fChannelMap.push_back(6);
+      fChannelMap.push_back(14);
+      fChannelMap.push_back(19);
+      fChannelMap.push_back(31);
+      fChannelMap.push_back(26);
+      fChannelMap.push_back(27);
+      fChannelMap.push_back(22);
+      fChannelMap.push_back(23);
+      fChannelMap.push_back(29);
+      fChannelMap.push_back(17);
+      fChannelMap.push_back(8);
+      fChannelMap.push_back(0);
+      fChannelMap.push_back(3);
+      fChannelMap.push_back(2);
+      fChannelMap.push_back(5);
+      fChannelMap.push_back(4);
+      fChannelMap.push_back(1);
+      fChannelMap.push_back(9);
+      fChannelMap.push_back(16);
+      fChannelMap.push_back(28);
+      fChannelMap.push_back(20);
+      fChannelMap.push_back(21);
     }
     else 
     {
