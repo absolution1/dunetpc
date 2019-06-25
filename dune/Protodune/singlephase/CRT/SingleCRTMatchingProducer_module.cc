@@ -1,15 +1,18 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       SingleCRTMatching
-// Plugin Type: analyzer (art v2_11_02)
-// File:        SingleCRTMatching_module.cc
+// Class:       SingleCRTMatchingProducer
+// Plugin Type: producer (art v2_10_03)
+// File:        SingleCRTMatchingProducer_module.cc
 //
-// Written by: Richard Diurba
-// Adapted from MCC Code by: Arbin Timilsina 
-// CRT Trigger Architecture by: Andrew Olivier 
+// Generated at Wed Jun 27 04:09:39 2018 by Andrew Olivier using cetskelgen
+// from cetlib version v3_02_00.
 ////////////////////////////////////////////////////////////////////////
 
 //Framework includes
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDProducer.h"
+#include "art/Persistency/Common/PtrMaker.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "lardata/Utilities/AssociationUtil.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -30,13 +33,15 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nutools/ParticleNavigation/ParticleList.h"
 
+
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
-
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/CosmicTag.h"
 
 
 
@@ -68,38 +73,38 @@
 using namespace std;   // Namespaces established to make life easier
 using namespace ROOT::Math;
 namespace CRT {
-  class SingleCRTMatching;
+  class SingleCRTMatchingProducer;
 }
 
 
-class CRT::SingleCRTMatching: public art::EDAnalyzer {
-  public: // Setup functions and variables
-    explicit SingleCRTMatching(fhicl::ParameterSet
-      const & p);
-  std::string fTrackModuleLabel = "pandoraTrack";
-  std::string fopModuleLabel= "opflash";
+class CRT::SingleCRTMatchingProducer : public art::EDProducer {
+public:
+  explicit SingleCRTMatchingProducer(fhicl::ParameterSet const & p);
+
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
+
   // Plugins should not be copied or assigned.
-  SingleCRTMatching(SingleCRTMatching
-    const & ) = delete;
-  SingleCRTMatching(SingleCRTMatching && ) = delete;
-  SingleCRTMatching & operator = (SingleCRTMatching
-    const & ) = delete;
-  SingleCRTMatching & operator = (SingleCRTMatching && ) = delete;
-  void analyze(art::Event
-    const & e) override;
-// Declare functions and variables for validation
-  bool moduleMatcherData(int module1, int module2);
+  SingleCRTMatchingProducer(SingleCRTMatchingProducer const &) = delete;
+  SingleCRTMatchingProducer(SingleCRTMatchingProducer &&) = delete;
+  SingleCRTMatchingProducer & operator = (SingleCRTMatchingProducer const &) = delete;
+  SingleCRTMatchingProducer & operator = (SingleCRTMatchingProducer &&) = delete;
+  
   bool moduleMatcherMCC(int module1, int module2);
-  void beginJob() override;
-  void endJob() override;
+  bool moduleMatcherData(int module1, int module2);
+  // Required functions.
   double setAngle(double angle);
+  void produce(art::Event & event) override;
+  void beginJob() override;
+  void endJob() override ;
+    std::string fTrackModuleLabel = "pandoraTrack";
+  std::string fopModuleLabel= "opflash";
+
 int moduletoCTB(int module2, int module1);
   int nEvents = 0;
   int nHaloMuons = 0;
   private: ofstream logFile;
-
+  const std::string reco="reco";
   //Parameters for reading in CRT::Triggers and associated AuxDetSimChannels.
   art::InputTag fCRTLabel; //Label for the module that produced 
   art::InputTag fCTBLabel;
@@ -204,25 +209,31 @@ int moduletoCTB(int module2, int module1);
   std::vector < tracksPair > tracksPair_B;
 };
 
-CRT::SingleCRTMatching::SingleCRTMatching(fhicl::ParameterSet
+CRT::SingleCRTMatchingProducer::SingleCRTMatchingProducer(fhicl::ParameterSet
     const & p):
-  EDAnalyzer(p), fCRTLabel(p.get < art::InputTag > ("CRTLabel")), fCTBLabel(p.get<art::InputTag>("CTBLabel")) {
+  EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel")), fCTBLabel(p.get<art::InputTag>("CTBLabel")) {
     consumes < std::vector < CRT::Trigger >> (fCRTLabel);
     consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel); // CRT art consumables
   fMCCSwitch=(p.get<bool>("MCC"));
+  produces< std::vector<anab::T0> >();
+  produces< std::vector<anab::CosmicTag> >();
+  produces< art::Assns<recob::Track, anab::T0> >();
+  produces< art::Assns<recob::Track, anab::CosmicTag> >();
+  produces< art::Assns<anab::CosmicTag, anab::T0> >();
+
   }
 
 
 
 // v6 Geo Channel Map
-bool CRT::SingleCRTMatching::moduleMatcherMCC(int module1, int module2) {
+bool CRT::SingleCRTMatchingProducer::moduleMatcherMCC(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
   if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
   else return 0;
 
 }
 
-bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
+bool CRT::SingleCRTMatchingProducer::moduleMatcherData(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
   if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
   else return 0;
@@ -230,7 +241,7 @@ bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
 }
 /* v5 Geo
 // Function to match CRT modules below is for MCC and the 2nd is for data
-bool CRT::SingleCRTMatching::moduleMatcherMCC(int module1, int module2) {
+bool CRT::SingleCRTMatchingProducer::moduleMatcherMCC(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
   if ((module1 == 0 && (module2 == 5 || module2 == 4)) || (module1 == 12 && (module2 == 5 || module2 == 4)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 1 && (module2 == 6 || module2 == 7)) || (module1 == 13 && (module2 == 6 || module2 == 7)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23)) || (module1 == 2 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 24 || module2 == 25)) || (module1 == 31 && (module2 == 24 || module2 == 25)) || (module1 == 3 && (module2 == 8 || module2 == 9)) || (module1 == 15 && (module2 == 8 || module2 == 9)) || (module1 == 18 && (module2 == 26 || module2 == 27)) || (module1 == 30 && (module2 == 26 || module2 == 27))) return 1;
   else return 0;
@@ -238,15 +249,15 @@ bool CRT::SingleCRTMatching::moduleMatcherMCC(int module1, int module2) {
 }
 
 // Function to match CRT modules below is for MCC and the 2nd is for data
-bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
+bool CRT::SingleCRTMatchingProducer::moduleMatcherData(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
   if ((module1 == 0 && (module2 == 5 || module2 == 4)) || (module1 == 12 && (module2 == 5 || module2 == 4)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 1 && (module2 == 6 || module2 == 7)) || (module1 == 13 && (module2 == 6 || module2 == 7)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23)) || (module1 == 2 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 24 || module2 == 25)) || (module1 == 31 && (module2 == 24 || module2 == 25)) || (module1 == 3 && (module2 == 8 || module2 == 9)) || (module1 == 15 && (module2 == 8 || module2 == 9)) || (module1 == 18 && (module2 == 26 || module2 == 27)) || (module1 == 30 && (module2 == 26 || module2 == 27))) return 1;
   else return 0;
 
 }
-
 */
-int CRT::SingleCRTMatching::moduletoCTB(int module2, int module1){
+
+int CRT::SingleCRTMatchingProducer::moduletoCTB(int module2, int module1){
   if (module1 == 13 && module2 == 6 ) return 15;
   else if (module1 == 13 &&  module2 == 7) return 10;
   else if (module1 == 1 &&  module2 == 6) return 8;
@@ -282,7 +293,7 @@ int CRT::SingleCRTMatching::moduletoCTB(int module2, int module1){
   else return -1;
 }
 
-double CRT::SingleCRTMatching::setAngle(double angle) {
+double CRT::SingleCRTMatchingProducer::setAngle(double angle) {
   if (angle < 0) {
     angle += 3.14159265359;
   }
@@ -290,10 +301,18 @@ double CRT::SingleCRTMatching::setAngle(double angle) {
   return angle;
 }
 
-
-void CRT::SingleCRTMatching::analyze(art::Event
-  const & event) // Analysis module
+//Turn sim::AuxDetSimChannels into CRT::Hits. 
+void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 {
+
+  std::unique_ptr< std::vector<anab::T0> > T0col( new std::vector<anab::T0>);
+ 
+  auto CRTTrack=std::make_unique< std::vector< anab::CosmicTag > > ();
+
+ std::unique_ptr< art::Assns<anab::CosmicTag, anab::T0> > CRTT0assn( new art::Assns<anab::CosmicTag, anab::T0>);
+
+ std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
+ std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
 
   if (fMCCSwitch){
     fModuleSwitch=1;
@@ -318,9 +337,9 @@ void CRT::SingleCRTMatching::analyze(art::Event
    //const auto& pdspctbs = event.getValidHandle<std::vector<raw::ctb::pdspctb>>(fCTB_tag);
 
 	const raw::RDTimeStamp& timeStamp = timingHandle->at(0);
-	if(timeStamp.GetFlags()!= 13) return;
+	if(timeStamp.GetFlags()!= 13) {event.put(std::move(CRTTrack)); event.put(std::move(T0col)); event.put(std::move(TPCCRTassn)); event.put(std::move(CRTT0assn));  event.put(std::move(TPCT0assn)); return;
   }
-
+ }
 
   int nHits = 0;
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
@@ -540,13 +559,12 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	      { 
 		//cout<<chs[k].timestamp<<endl;
 		int num = chs[k].crt;
-		//cout<<num<<endl;
+
 	
         const std::string binary = std::bitset<32>(num).to_string();	
 	const auto crtmask=chs[k].crt;
          pixel0 = -1;
          pixel1 = -1;
-	//cout<<crtmask<<endl;
         for (int i = 0; i<32; ++i){
           if (crtmask & (1<<i)){
             if (i<16){
@@ -558,13 +576,15 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
           }
    	}
         if (pixel0!=-1 && pixel1!=1) {
-	//cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
 	}
-	else return;
+	
 	      }
 	  }
 	}
-	
+
+
+     auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
+     auto const crtPtr = art::PtrMaker<anab::CosmicTag>(event);	
   // Reconstruciton information
  art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
@@ -616,18 +636,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
     double trackEndPositionX_noSCE = trackList[iRecoTrack] -> End().X();
     double trackEndPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
-   /* if (trackStartPositionZ_noSCE>trackEndPositionZ_noSCE){
-    //trackEndPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
-    //trackStartPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
-    trackEndPositionX_noSCE = trackList[iRecoTrack]->Vertex().X();
-    trackEndPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
 
-
-    trackStartPositionX_noSCE = trackList[iRecoTrack] -> End().X();
-    trackStartPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
-        firstHit=lastHit;
-    lastHit=0;
-    }*/
  if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50)) {
       for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
    double xOffset=0;
@@ -753,8 +762,6 @@ double xOffset=0;
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
-		//cout<<(primaryHits_B[iHit_B].timeAvg+RDOffset)<<endl;
-		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
 		if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
 		else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
@@ -774,18 +781,6 @@ double xOffset=0;
    double trackEndPositionY=trackEndPositionY_noSCE;
    double trackEndPositionZ=trackEndPositionZ_noSCE;
 
-    /*
-    cout<<fSCECorrection<<endl;
-    if (fSCECorrection){
-     trackStartPositionX=trackStartPositionX_noSCE-SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).X();
-     trackStartPositionY=trackStartPositionY_noSCE+SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).Y();
-     trackStartPositionZ=trackStartPositionZ_noSCE+SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).Z();
-
-
-     trackEndPositionX=trackEndPositionX_noSCE-SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).X();
-     trackEndPositionY=trackEndPositionY_noSCE+SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).Y();
-     trackEndPositionZ=trackEndPositionZ_noSCE+SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).Z();
-	}*/
 	if (!fMCCSwitch && moduletoCTB(primaryHits_B[iHit_B].moduleX, primaryHits_B[iHit_B].moduleY)!=pixel1) continue;
         double X1 = primaryHits_B[iHit_B].hitPositionX;
 
@@ -877,8 +872,7 @@ double xOffset=0;
      //Sort pair by ascending order of absolute distance
     sort(tracksPair_F.begin(), tracksPair_F.end(), sortPair());
     sort(tracksPair_B.begin(), tracksPair_B.end(), sortPair());
-    // Compare, sort, and eliminate CRT hits for just the best one
-    // Compare, sort, and eliminate CRT hits for just the best one
+
 
     vector < tracksPair > allUniqueTracksPair;
     while (tracksPair_F.size()) {
@@ -894,11 +888,11 @@ double xOffset=0;
     }
 
 	cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
-// For the best one, add the validation metrics to a tree
     if (allUniqueTracksPair.size() > 0) {
       for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
 
-
+	int CRTTrackId=allUniqueTracksPair[u].CRTTrackId;
+	int TPCTrackId=allUniqueTracksPair[u].recoId;
 	deltaX=allUniqueTracksPair[u].deltaX;
 
 	deltaY=allUniqueTracksPair[u].deltaY;
@@ -932,17 +926,33 @@ double xOffset=0;
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
-	   
+	std::vector<float> hitF;
+	std::vector<float> hitB;
+	hitF.push_back(X_CRT); hitF.push_back(Y_CRT); hitF.push_back(Z_CRT);
+	hitB.push_back(trackX1); hitB.push_back(trackY1); hitB.push_back(trackZ1);
+	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kUnknown));
+	if (Z_CRT<100) T0col->push_back(anab::T0(CRTT0, -1, -1,CRTTrackId));
+        else T0col->push_back(anab::T0(CRTT0, -2, -1,CRTTrackId));
+	auto const crtTrackPtr = crtPtr(CRTTrack->size()-1);
+	auto const t0CP = t0CandPtr(CRTTrackId);
+	CRTT0assn->addSingle(crtTrackPtr,t0CP);
+	
+	
+       
+	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
+	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
 
         }
       }
     }
   nEvents++;
- }
+event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTT0assn));
+
+}
 
 
-// Setup CRT 
-void CRT::SingleCRTMatching::beginJob() {
+void CRT::SingleCRTMatchingProducer::beginJob() {
+
 	art::ServiceHandle<art::TFileService> fileServiceHandle;
        fCRTTree = fileServiceHandle->make<TTree>("Displacement", "event by event info");
 	fCRTTree->Branch("nEvents", &nEvents, "fnEvents/I");
@@ -983,7 +993,7 @@ void CRT::SingleCRTMatching::beginJob() {
 
 }
 // Endjob actions
-void CRT::SingleCRTMatching::endJob() 
+void CRT::SingleCRTMatchingProducer::endJob() 
 {
 
 
@@ -991,16 +1001,4 @@ void CRT::SingleCRTMatching::endJob()
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-DEFINE_ART_MODULE(CRT::SingleCRTMatching)
+DEFINE_ART_MODULE(CRT::SingleCRTMatchingProducer)
