@@ -21,6 +21,7 @@ pionanalysis:
 
   CalorimetryTag:         "pandoracalo"
   TrackerTag:             "pandoraTrack"
+  HitTag:                 "linecluster"
   ShowerTag:              "pandoraShower"
   PFParticleTag:          "pandora"
   GeneratorTag:           "generator"

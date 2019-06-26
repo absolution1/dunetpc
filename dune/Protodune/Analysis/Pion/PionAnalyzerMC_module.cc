@@ -183,6 +183,7 @@ private:
   //Reco-level info of the reconstructed daughters coming out of the
   //reconstructed beam tracl
   std::vector< int > reco_daughter_trackID;
+  std::vector< double > reco_daughter_completeness;
   std::vector< int > reco_daughter_truth_PDG;
   std::vector< int > reco_daughter_truth_ID;
   std::vector< int > reco_daughter_truth_Origin;
@@ -209,6 +210,7 @@ private:
   //FCL pars
   std::string fCalorimetryTag;
   std::string fTrackerTag;    
+  std::string fHitTag;    
   std::string fShowerTag;     
   std::string fPFParticleTag; 
   std::string fGeneratorTag;
@@ -223,6 +225,7 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
 
   fCalorimetryTag(p.get<std::string>("CalorimetryTag")),
   fTrackerTag(p.get<std::string>("TrackerTag")),
+  fHitTag(p.get<std::string>("HitTag")),
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
@@ -440,6 +443,20 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
   }
 
+  //Go through the true processes within the MCTrajectory
+  const simb::MCTrajectory & true_beam_trajectory = true_beam_particle->Trajectory();
+  auto true_beam_proc_map = true_beam_trajectory.TrajectoryProcesses();
+  std::cout << "Processes: " << std::endl;
+  for( auto itProc = true_beam_proc_map.begin(); itProc != true_beam_proc_map.end(); ++itProc ){
+    int index = itProc->first;
+    std::cout << index << " " << true_beam_trajectory.KeyToProcess(itProc->second) << std::endl;
+
+    std::cout << "At "  
+    << true_beam_trajectory.X( index ) << " " 
+    << true_beam_trajectory.Y( index ) << " " 
+    << true_beam_trajectory.Z( index ) << std::endl;
+  }
+
 
   if( thisTrack ){
 
@@ -534,6 +551,8 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
       reco_daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
       reco_daughter_trackID.push_back( daughterTrack->ID() );
+
+      reco_daughter_completeness.push_back( truthUtil.GetCompleteness( *daughterTrack, evt, fTrackerTag, fHitTag ) );
 
       //For this reco daughter track, get the actual particle contributing to it
       const simb::MCParticle* trueDaughterParticle = truthUtil.GetMCParticleFromRecoTrack(*daughterTrack, evt, fTrackerTag);
@@ -709,6 +728,7 @@ void pionana::PionAnalyzerMC::beginJob()
 
 
   fTree->Branch("reco_daughter_trackID", &reco_daughter_trackID);
+  fTree->Branch("reco_daughter_completeness", &reco_daughter_completeness);
   fTree->Branch("reco_daughter_truth_PDG", &reco_daughter_truth_PDG);
   fTree->Branch("reco_daughter_truth_ID", &reco_daughter_truth_ID);
   fTree->Branch("reco_daughter_truth_Origin", &reco_daughter_truth_Origin);
@@ -908,6 +928,7 @@ void pionana::PionAnalyzerMC::reset()
 
   beamTrackID = -1;
   reco_daughter_trackID.clear();
+  reco_daughter_completeness.clear();
   reco_daughter_truth_PDG.clear();
   reco_daughter_truth_ID.clear();
   reco_daughter_truth_Origin.clear();
