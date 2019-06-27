@@ -6,7 +6,8 @@ art_make( NO_PLUGINS
   	                wda
 	                nutools_IFDatabase
                         larcorealg_Geometry
-                        
+                        art_Framework_Core
+                        art_Utilities
                         ${MF_MESSAGELOGGER}
                         
                         cetlib cetlib_except
