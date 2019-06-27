@@ -247,38 +247,38 @@ bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
 
 */
 int CRT::SingleCRTMatching::moduletoCTB(int module2, int module1){
-  if (module1 == 13 && module2 == 6 ) return 15;
-  else if (module1 == 13 &&  module2 == 7) return 10;
-  else if (module1 == 1 &&  module2 == 6) return 8;
-  else if (module1 == 1 &&  module2 == 7) return 9;
-  else if (module1 == 16 &&  module2 == 20) return 4;
-  else if (module1 == 16 &&  module2 == 21) return 13;
-  else if (module1 == 28 &&  module2 == 20) return 3;
-  else if (module1 == 28 &&  module2 == 21) return 2;
-  else if (module1 == 29 &&  module2 == 22) return 1;
-  else if (module1 == 29 &&  module2 == 23) return 0;
-  else if (module1 == 17 &&  module2 == 22) return 12;
-  else if (module1 == 17 &&  module2 == 23) return 11;
-  else if (module1 == 0  &&  module2 == 5) return 7;
-  else if (module1 == 0 &&  module2 == 4) return 6;
-  else if (module1 == 12  &&  module2 == 5) return 14;
-  else if (module1 == 12 &&  module2 == 4) return 5;
-  else if (module1 == 3 &&  module2 == 8) return 25;
-  else if (module1 == 3 &&  module2 == 9) return 24;
-  else if (module1 == 15 &&  module2 == 8) return 26;
-  else if (module1 == 15 &&  module2 == 9) return 31;
-  else if (module1 == 18 &&  module2 == 26) return 27;
-  else if (module1 == 18 &&  module2 == 27) return 28;
-  else if (module1 == 30 &&  module2 == 26) return 16;
-  else if (module1 == 30 &&  module2 == 27) return 17;
-  else if (module1 == 31 &&  module2 == 24) return 18;
-  else if (module1 == 31 &&  module2 == 25) return 19;
-  else if (module1 == 19 &&  module2 == 24) return 29;
-  else if (module1 == 19 &&  module2 == 25) return 20;
-  else if (module1 == 14 &&  module2 == 10) return 30;
-  else if (module1 == 14 &&  module2 == 11) return 21;
-  else if (module1 == 2 &&  module2 == 10) return 23;
-  else if (module1 == 2 &&  module2 == 11) return 22;
+  if (module1 == 14 && module2 == 11 ) return 15;
+  else if (module1 == 14 &&  module2 == 10) return 10;
+  else if (module1 == 6 &&  module2 == 11) return 8;
+  else if (module1 == 6 &&  module2 == 10) return 9;
+  else if (module1 == 18 &&  module2 == 25) return 4;
+  else if (module1 == 18 &&  module2 == 24) return 13;
+  else if (module1 == 30 &&  module2 == 25) return 3;
+  else if (module1 == 30 &&  module2 == 24) return 2;
+  else if (module1 == 31 &&  module2 == 27) return 1;
+  else if (module1 == 31 &&  module2 == 26) return 0;
+  else if (module1 == 19 &&  module2 == 27) return 12;
+  else if (module1 == 19 &&  module2 == 26) return 11;
+  else if (module1 == 7  &&  module2 == 12) return 7;
+  else if (module1 == 7 &&  module2 == 13) return 6;
+  else if (module1 == 15  &&  module2 == 12) return 14;
+  else if (module1 == 15 &&  module2 == 13) return 5;
+  else if (module1 == 1 &&  module2 == 4) return 25;
+  else if (module1 == 1 &&  module2 == 5) return 24;
+  else if (module1 == 9 &&  module2 == 4) return 26;
+  else if (module1 == 9 &&  module2 == 5) return 31;
+  else if (module1 == 16 &&  module2 == 20) return 27;
+  else if (module1 == 16 &&  module2 == 21) return 28;
+  else if (module1 == 28 &&  module2 == 20) return 16;
+  else if (module1 == 28 &&  module2 == 21) return 17;
+  else if (module1 == 29 &&  module2 == 22) return 18;
+  else if (module1 == 29 &&  module2 == 23) return 19;
+  else if (module1 == 17 &&  module2 == 22) return 29;
+  else if (module1 == 17 &&  module2 == 23) return 20;
+  else if (module1 == 8 &&  module2 == 2) return 30;
+  else if (module1 == 8 &&  module2 == 3) return 21;
+  else if (module1 == 0 &&  module2 == 2) return 23;
+  else if (module1 == 0 &&  module2 == 3) return 22;
   else return -1;
 }
 
@@ -297,7 +297,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
   if (fMCCSwitch){
     fModuleSwitch=1;
-    fADCThreshold=800;
+    fADCThreshold=200;
     fModuletoModuleTimingCut=4;
     fFronttoBackTimingCut=100;
     fOpCRTTDiffCut=200;
@@ -305,7 +305,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=20;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
     fOpCRTTDiffCut=1000000;
@@ -490,7 +490,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
       if (moduleMatched) {
         double hitX = hit1Center.X();
-	if (!fMCCSwitch) hitX=hit1Center.X()-42;
+	
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
