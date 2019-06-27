@@ -387,3 +387,90 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
   }
   return theBrokenTrack;
 }
+
+
+std::map< int, double > protoana::ProtoDUNETrackUtils::Chi2PIDFromTrack_MC( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const std::map< int, TProfile * > & templates ){
+
+  //Add in some check to the templates?
+
+  std::map< int, double > pid_chi2; 
+
+  std::vector< anab::Calorimetry> calo = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
+  std::vector< double > calo_dEdX;
+  std::vector< double > calo_range;
+  for( size_t i = 0; i < calo[0].dEdx().size(); ++i ){
+    calo_dEdX.push_back( calo[0].dEdx()[i] );
+    calo_range.push_back( calo[0].ResidualRange()[i] );
+  }
+
+  return Chi2PID( calo_dEdX, calo_range, templates );
+
+}
+
+std::map< int, double > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, const std::map< int, TProfile * > & templates ){
+
+  //Add in some check to the templates?
+
+  std::map< int, double > pid_chi2; 
+  /*TProfile * dedx_range_pro = (TProfile*)dEdX_template.Get("dedx_range_pro");
+  TProfile * dedx_range_ka = (TProfile*)dEdX_template.Get("dedx_range_ka");
+  TProfile * dedx_range_pi = (TProfile*)dEdX_template.Get("dedx_range_pi");
+  TProfile * dedx_range_mu = (TProfile*)dEdX_template.Get("dedx_range_mu");
+
+  std::map< int, TProfile* > templates = {
+    { 2212, dedx_range_pro },
+    { 211,  dedx_range_pi  }, 
+    { 13,   dedx_range_mu  }, 
+    { 321,  dedx_range_ka  }
+  }*/
+
+  int npt = 0;
+  pid_chi2[211]  = 0.;
+  pid_chi2[2212] = 0.;
+  pid_chi2[321]  = 0.;
+  pid_chi2[13]   = 0.;
+
+  for( size_t i = 1; i <= track_dedx.size()-1; ++i ){
+
+    //Skip large pulse heights
+    if( track_dedx[i] > 1000. )
+      continue;
+
+    for( auto itPID_chi2 = pid_chi2.begin(); itPID_chi2 != pid_chi2.end(); ++itPID_chi2 ){
+      int thePID = itPID_chi2->first; 
+      
+      TProfile * profile = templates.at( thePID );
+
+      int bin = profile->FindBin( range[i] );
+      if( bin >= 1 && bin <= profile->GetNbinsX() ){
+        double template_dedx = profile->GetBinContent( bin );
+
+        if( template_dedx < 1.e-6 )
+          template_dedx = ( profile->GetBinContent( bin - 1 ) + profile->GetBinContent( bin + 1 ) ) / 2.;        
+
+        double template_dedx_err = profile->GetBinError( bin );
+        if( template_dedx_err < 1.e-6 )
+          template_dedx_err = ( profile->GetBinError( bin - 1 ) + profile->GetBinError( bin + 1 ) ) / 2.;        
+
+        double dedx_res = 0.04231 + 0.0001783 * track_dedx[i] * track_dedx[i];
+        dedx_res *= track_dedx[i]; 
+
+        itPID_chi2->second += ( pow( (track_dedx[i] - template_dedx), 2 ) / ( pow(template_dedx_err, 2) + pow(dedx_res, 2) ) ); 
+      }
+    }
+    ++npt;
+  }
+
+  if( npt == 0 ){
+    pid_chi2[211]  = 9999.;
+    pid_chi2[321]  = 9999.;
+    pid_chi2[2212] = 9999.;
+    pid_chi2[13]   = 9999.;
+    return pid_chi2;
+  }
+    
+  for( auto itPID_chi2 = pid_chi2.begin(); itPID_chi2 != pid_chi2.end(); ++itPID_chi2 ){
+    itPID_chi2->second = itPID_chi2->second / npt;
+  }
+  return pid_chi2; 
+}
