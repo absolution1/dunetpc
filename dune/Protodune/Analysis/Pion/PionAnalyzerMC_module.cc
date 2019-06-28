@@ -43,6 +43,8 @@
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
 #include "art_root_io/TFileService.h"
+#include "TProfile.h"
+#include "TFile.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -153,8 +155,11 @@ private:
 
   int reco_beam_truth_origin; //What is the origin of the reconstructed beam track?
 
+  double reco_beam_Chi2_proton;
+  int    reco_beam_Chi2_ndof;
 
-
+  std::vector< double > reco_daughter_Chi2_proton;
+  std::vector< int >    reco_daughter_Chi2_ndof;
   //Truth-level info of the reconstructed particles coming out of the 
   //reconstructed beam track
   std::vector< bool >   reco_beam_truth_daughter_good_reco;
@@ -205,7 +210,7 @@ private:
   int type;
   int nBeamParticles;
 
-
+  std::map< int, TProfile* > templates;
 
   //FCL pars
   std::string fCalorimetryTag;
@@ -214,6 +219,8 @@ private:
   std::string fShowerTag;     
   std::string fPFParticleTag; 
   std::string fGeneratorTag;
+  std::string dEdX_template_name;
+  TFile dEdX_template_file;
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
 };
@@ -229,11 +236,17 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
   fGeneratorTag(p.get<std::string>("GeneratorTag")),
+  dEdX_template_name(p.get<std::string>("dEdX_template_name")),
+  dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
-
-
 {
+
+  templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
+  templates[ 321 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_ka"  );
+  templates[ 13 ]   = (TProfile*)dEdX_template_file.Get( "dedx_range_mu"  );
+  templates[ 2212 ] = (TProfile*)dEdX_template_file.Get( "dedx_range_pro" );
+
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
 
@@ -584,6 +597,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_dEdX.back().push_back( dummy_dEdx[j] );
       }
 
+      std::pair< double, int > this_chi2_ndof = trackUtil.Chi2PID( reco_daughter_dEdX.back(), reco_daughter_resRange.back(), templates[ 2212 ] );
+      reco_daughter_Chi2_proton.push_back( this_chi2_ndof.first );
+      reco_daughter_Chi2_ndof.push_back( this_chi2_ndof.second );
+
 
       ///Try to match the reconstructed daughter tracks from the reco'd/tagged beam track
       //   to the true daughter particles coming out of the true beam track
@@ -682,6 +699,12 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       }
 
     }
+
+    std::pair< double, int > pid_chi2_ndof = trackUtil.Chi2PID( dEdX, resRange, templates[ 2212 ] );
+    reco_beam_Chi2_proton = pid_chi2_ndof.first; 
+    reco_beam_Chi2_ndof = pid_chi2_ndof.second;
+  
+    std::cout << "Proton chi2: " << reco_beam_Chi2_proton << std::endl;
 
   }
   else if( thisShower ){
@@ -792,6 +815,12 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_beam_truth_ID", &reco_beam_truth_ID);
   fTree->Branch("reco_beam_good", &reco_beam_good);
 
+  fTree->Branch("reco_beam_Chi2_proton", &reco_beam_Chi2_proton);
+  fTree->Branch("reco_beam_Chi2_ndof", &reco_beam_Chi2_ndof);
+
+  fTree->Branch("reco_daughter_Chi2_proton", &reco_daughter_Chi2_proton);
+  fTree->Branch("reco_daughter_Chi2_ndof", &reco_daughter_Chi2_ndof);
+
   fTree->Branch("reco_beam_truth_End_Px", &reco_beam_truth_End_Px);
   fTree->Branch("reco_beam_truth_End_Py", &reco_beam_truth_End_Py);
   fTree->Branch("reco_beam_truth_End_Pz", &reco_beam_truth_End_Pz);
@@ -816,12 +845,11 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_beam_truth_daughter_shower_true_lens", &reco_beam_truth_daughter_shower_true_lens);
   fTree->Branch("reco_beam_truth_daughter_shower_good_reco", &reco_beam_truth_daughter_shower_good_reco);
 
-
 }
 
 void pionana::PionAnalyzerMC::endJob()
 {
-
+  dEdX_template_file.Close();
 }
 
 void pionana::PionAnalyzerMC::reset()
@@ -883,6 +911,12 @@ void pionana::PionAnalyzerMC::reset()
   reco_beam_truth_Start_P = 0.;
 
   reco_beam_good = false;
+  reco_beam_Chi2_proton = 999.;
+  reco_beam_Chi2_ndof = -1;
+
+  reco_daughter_Chi2_proton.clear();
+  reco_daughter_Chi2_ndof.clear();
+  
   reco_beam_truth_daughter_good_reco.clear();
   reco_beam_truth_daughter_true_PDGs.clear();
   reco_beam_truth_daughter_true_IDs.clear();
