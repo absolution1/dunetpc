@@ -99,6 +99,7 @@ CRTLabel: "crt"
 MCC: "true"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
+SCECorrection: "false"
 }
 
 SingleCRTMatching_data:
@@ -108,7 +109,7 @@ CRTLabel: "crtrawdecoder"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 SingleCRTMatching_dataDecode:
@@ -128,7 +129,7 @@ CRTLabel: "crt"
 MCC: "true"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 
@@ -139,7 +140,7 @@ CRTLabel: "crtrawdecoder"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 TwoCRTMatching_producerData:
@@ -149,7 +150,7 @@ CRTLabel: "crtrawdecoder"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 SingleCRTMatching_producerDataNew:
@@ -159,7 +160,7 @@ CRTLabel: "crtrawdecoderNew"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 TwoCRTMatching_producerDataNew:
@@ -169,7 +170,7 @@ CRTLabel: "crtrawdecoderNew"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
-
+SCECorrection: "false"
 }
 
 
