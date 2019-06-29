@@ -253,8 +253,8 @@ int moduletoCTB(int module2, int module1);
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
 
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
-        //return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+        return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
 	//return ((fabs(pair1.dotProductCos)>.998 && pair1.deltaY<pair2.deltaY && pair1.deltaX<pair2.deltaX));
 
   }

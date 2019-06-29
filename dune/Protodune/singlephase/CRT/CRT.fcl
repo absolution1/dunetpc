@@ -59,8 +59,8 @@ SCECorrection: "false"
 TwoCRTMatching_producer:
 {
 module_type: "TwoCRTMatchingProducer"
-CRTLabel: "crtrawdecoder"
-MCC: "false"
+CRTLabel: "crt"
+MCC: "true"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
 SCECorrection: "false"
@@ -72,7 +72,7 @@ module_type: "TwoCRTMatching"
 CRTLabel: "crtrawdecoderNew"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "true"
+CTBOnly: "false"
 SCECorrection: "false"
 }
 
@@ -111,10 +111,40 @@ CTBOnly: "false"
 
 }
 
+SingleCRTMatching_dataDecode:
+{
+module_type: "SingleCRTMatching"
+CRTLabel: "crtrawdecoderNew"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+CTBOnly: "false"
+SCECorrection: "false"
+}
 
 SingleCRTMatching_producer:
 {
 module_type: "SingleCRTMatchingProducer"
+CRTLabel: "crt"
+MCC: "true"
+CTBLabel: "ctbrawdecoder:daq"
+CTBOnly: "false"
+
+}
+
+
+SingleCRTMatching_producerData:
+{
+module_type: "SingleCRTMatchingProducer"
+CRTLabel: "crtrawdecoder"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+CTBOnly: "false"
+
+}
+
+TwoCRTMatching_producerData:
+{
+module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crtrawdecoder"
 MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"

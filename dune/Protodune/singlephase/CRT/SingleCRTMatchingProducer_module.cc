@@ -196,7 +196,8 @@ int moduletoCTB(int module2, int module1);
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
      
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	return (fabs(pair1.deltaX)+fabs(pair1.deltaY)<fabs(pair2.deltaX)+fabs(pair2.deltaY));
 
   }
   };
@@ -324,7 +325,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=20;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
     fOpCRTTDiffCut=1000000;
@@ -332,13 +333,13 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
 }
 
-   if(!fMCCSwitch){
+/*   if(!fMCCSwitch){
    art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
    //const auto& pdspctbs = event.getValidHandle<std::vector<raw::ctb::pdspctb>>(fCTB_tag);
 
 	//const raw::RDTimeStamp& timeStamp = timingHandle->at(0);
 	//if(timeStamp.GetFlags()!= 13) {event.put(std::move(CRTTrack)); event.put(std::move(T0col)); event.put(std::move(TPCCRTassn)); event.put(std::move(CRTT0assn));  event.put(std::move(TPCT0assn)); return;}
- }
+ }*/
 
   int nHits = 0;
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
@@ -379,12 +380,13 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
         tempHits tHits;
 	if (!fMCCSwitch){
-	int stripChannel=hit.Channel();
+	art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
+
         tHits.module = trigger.Channel(); // Values to add to array
-        tHits.channelGeo = stripChannel;
+        tHits.channelGeo = hit.Channel();
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
-	tHits.triggerTime=trigger.Timestamp();
+	tHits.triggerTime=trigger.Timestamp()-timingHandle->at(0).GetTimeStamp();
 	}
 	else{
         tHits.module = trigger.Channel(); // Values to add to array
@@ -619,7 +621,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	  cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
-    //int lastHit=allHits.size()-2;
+    int lastHit=allHits.size()-2;
 
 
 // Get track positions and find angles
@@ -634,7 +636,19 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
     double trackEndPositionX_noSCE = trackList[iRecoTrack] -> End().X();
     double trackEndPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
 
- if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50)) {
+   if (trackStartPositionZ_noSCE>trackEndPositionZ_noSCE){
+    trackEndPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    trackStartPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
+    trackEndPositionX_noSCE = trackList[iRecoTrack]->Vertex().X();
+    trackEndPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
+
+
+    trackStartPositionX_noSCE = trackList[iRecoTrack] -> End().X();
+    trackStartPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+    firstHit=lastHit;
+    lastHit=0;
+    }
+ if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<600) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 600 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<600)) {
       for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
    double xOffset=0;
 
@@ -748,7 +762,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
       }
 	}
- if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50)) {
+ if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50) || (trackStartPositionZ_noSCE>660 && trackEndPositionZ_noSCE < 620 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50)) {
       for (unsigned int iHit_B = 0; iHit_B < primaryHits_B.size(); iHit_B++) {
 double xOffset=0;
     
@@ -919,7 +933,7 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99) {
+        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();

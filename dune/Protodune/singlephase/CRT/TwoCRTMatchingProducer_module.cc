@@ -245,8 +245,9 @@ typedef struct // Structures for arrays to move hits from raw to reco to validat
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
 
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
 	//return ((fabs(pair1.dotProductCos)>.998 && pair1.deltaY<pair2.deltaY && pair1.deltaX<pair2.deltaX));
+        return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
 
   }
   };
@@ -411,7 +412,7 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=50;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
 
@@ -1086,7 +1087,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	measuredXOffset=allUniqueTracksPair[u].xOffset;
         
 	CRT_TOF=allUniqueTracksPair[u].timeDiff;	
-        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99) {
+        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
         cout<<allUniqueTracksPair[u].timeDiff<<endl;
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
