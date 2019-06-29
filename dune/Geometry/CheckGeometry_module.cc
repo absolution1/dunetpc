@@ -187,20 +187,33 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       CRTBox0.back()->SetFillStyle(0);
       //CRTBox0.back()->SetLineStyle(i/8+1);
       CRTBox0.back()->SetLineColor(i%8+1);
+      if (i%8+1==5){
+        CRTBox0.back()->SetLineColor(kOrange);
+      }
       CRTBox0.back()->SetLineWidth(2);
       modules0.push_back(i);
       text0.push_back(new TText((world0[0]+world1[0])/2,(world0[1]+world1[1])/2,Form("%d",i)));
       text0.back()->SetTextColor(i%8+1);
+      if (i%8+1==5){
+        text0.back()->SetTextColor(kOrange);
+      }
+
     }
     else{
       CRTBox1.push_back(new TBox(world0[0],world0[1],world1[0],world1[1]));
       CRTBox1.back()->SetFillStyle(0);
       //CRTBox1.back()->SetLineStyle(i/8+1);
       CRTBox1.back()->SetLineColor(i%8+1);
+      if (i%8+1==5){
+        CRTBox1.back()->SetLineColor(kOrange);
+      }
       CRTBox1.back()->SetLineWidth(2);
       modules1.push_back(i);
       text1.push_back(new TText((world0[0]+world1[0])/2,(world0[1]+world1[1])/2,Form("%d",i)));
       text1.back()->SetTextColor(i%8+1);
+      if (i%8+1==5){
+        text1.back()->SetTextColor(kOrange);
+      }
     }
     if (i==0){
       std::cout<<"Aux "<<i<<" has "<<auxdet.NSensitiveVolume()<<std::endl;
@@ -319,8 +332,8 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   TLatex tex;
   tex.SetTextSize(0.02);
 
-  TH2F *frcrt0 = new TH2F("frcrt0","Front",100,-300, 600, 100, -100, 650);
-  TH2F *frcrt1 = new TH2F("frcrt1","Back",100,-400, 450, 100, -200, 600);
+  TH2F *frcrt0 = new TH2F("frcrt0","Upstream;x(cm);y(cm)",100,-300, 600, 100, -100, 650);
+  TH2F *frcrt1 = new TH2F("frcrt1","Downstream;x(cm);y(cm)",100,-400, 450, 100, -200, 600);
   frcrt0->SetStats(0);
   frcrt1->SetStats(0);
   TCanvas *cancrt = new TCanvas("cancrt","cancrt",1600,800);
@@ -336,7 +349,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   }
   //leg0->Draw();
   for (int i = 0; i<16; ++i){
-    tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
+    //tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
   }
   TLatex tt;
   tt.SetTextSize(0.02);
@@ -371,7 +384,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   }
   //leg1->Draw();
   for (int i = 16; i<32; ++i){
-    tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
+    //tex.DrawLatex(pixel_x[i], pixel_y[i], Form("CH %d",i));
   }
 
   for (unsigned int i = 0; i < geo->NAuxDets(); ++i){
