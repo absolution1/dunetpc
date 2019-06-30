@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!--<!DOCTYPE gdml [
-<!ENTITY materials SYSTEM "materials.xml">
-]>
--->
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+<gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
+		                   xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
+		                   xs:noNamespaceSchemaLocation="GDMLSchema/SimpleExtension.xsd"> 
 
-<!--<!DOCTYPE gdml [
-<!ENTITY materials SYSTEM "materials.xml">
-]>
--->
-
-<!-- below we insert the schema to demonstrate a simple extension of the gdml schema which allows to select visualization properties like color and visualization to gdml -->
-<!--<gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
-                       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
-                       xs:noNamespaceSchemaLocation="SimpleExtension.xsd"> 
 
     <extension>
         <color name="magenta"     R="0.0"  G="1.0"  B="0.0"  A="1.0" />
@@ -24,37 +11,29 @@
         <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
         <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
     </extension>
--->
- <!-- the content of the materials.xml file will be included here. This file summarizes the material and optical properties of liquid Ar. -->
-<!-- &materials; -->
+
+
 
 <define>
-
-<!--
-
-
-
--->
-
    <position name="posCryoInDetEnc"     unit="cm" x="0" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
    <position name="posBeamWAr3"         unit="cm" x="-62.6632985614103" y="104.979865300476" z="-405.1"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
-   <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
-   <rotation name="rPlusUAngleAboutX"	unit="deg" x="54.293" y="0"   z="0"/>
-   <rotation name="rPlusVAngleAboutX"	unit="deg" x="125.707" y="0"   z="0"/>
-   <rotation name="rPlus180AboutX"	unit="deg" x="180" y="0" z="0"/>
-   <rotation name="rPlus180AboutY"	unit="deg" x="0" y="180" z="0"/>
-   <rotation name="rPlus180AboutZ"      unit="deg" x="0" y="0" z="180"/>
-   <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
-   <rotation name="rPlus90AboutXPlus90AboutZ"       unit="deg" x="90" y="0" z="90"/>
-   <rotation name="rPlus180AboutXPlus180AboutZ"   unit="deg" x="180" y="0" z="180"/>
-   <rotation name="rIdentity"		unit="deg" x="0" y="0"   z="0"/>
-   <rotation name="rBeamW2" 		unit="deg" x="0" y="-13.8670486253842" z="54.3427194175429"/>
+   <rotation name="rPlusUAngleAboutX"	  unit="deg" x="54.293" y="0"   z="0"/>
+   <rotation name="rPlusVAngleAboutX"	  unit="deg" x="125.707" y="0"   z="0"/>
+   <rotation name="rIdentity"		        unit="deg" x="0" y="0"   z="0"/>
+   <rotation name="rBeamW2" 		        unit="deg" x="0" y="-13.8670486253842" z="54.3427194175429"/>
    <rotation name="rBeamWRev2"          unit="deg" x="-11.342" y="8.03118195044" z="-55.1415281209"/>
    <rotation name="rBeamW3"             unit="deg" x="0" y="-16.1824077173347" z="43.7252002244654"/>
    <rotation name="rBeamWRev3"          unit="deg" x="-11.342" y="11.6190450403" z="-44.8829268772"/>
+   <rotation name="rPlus180AboutX"	    unit="deg" x="180" y="0" z="0"/>
+   <rotation name="rPlus180AboutY"	    unit="deg" x="0" y="180" z="0"/>
+   <rotation name="rPlus180AboutZ"      unit="deg" x="0" y="0" z="180"/>
+   <rotation name="rMinus90AboutYMinus90AboutX" unit="deg" x="270" y="270" z="0"/>
+   <rotation name="rPlus180AboutXPlus180AboutY"	unit="deg" x="180" y="180"   z="0"/>
+   <rotation name="rPlus90AboutXPlus90AboutZ"   unit="deg" x="90" y="0" z="90"/>
+   <rotation name="rPlus180AboutXPlus180AboutZ" unit="deg" x="180" y="0" z="180"/>
 </define>
 <materials>
   <element name="videRef" formula="VACUUM" Z="1">  <atom value="1"/> </element>
@@ -971,6 +950,7 @@
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
       <auxiliary auxtype="StepLimit" auxvalue="0.01"/>
       <auxiliary auxtype="Efield" auxvalue="500."/>
+      <colorref ref="blue"/>
     </volume>
 
     <volume name="volTPCPlaneUInner">
@@ -3112,7 +3092,7 @@
     <volume name="volFoamPadding">
       <materialref ref="ProtoDUNEFoam"/>
       <solidref ref="FoamPadding"/>
-      <!--colorref ref="green"/-->
+      <colorref ref="green"/>
     </volume>
     <volume name="volSteelPlate">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni"/>
@@ -29047,10 +29027,10 @@
       </physvol>
 
     </volume>
-</structure>
+  </structure>
 
-<setup name="Default" version="1.0">
-  <world ref="volWorld" />
-</setup>
+  <setup version="1.0" name="Default">
+    <world ref="volWorld"/>
+  </setup>
 
-</gdml>
+</gdml_simple_extension>
