@@ -1087,7 +1087,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	measuredXOffset=allUniqueTracksPair[u].xOffset;
         
 	CRT_TOF=allUniqueTracksPair[u].timeDiff;	
-        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
+        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
         cout<<allUniqueTracksPair[u].timeDiff<<endl;
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
