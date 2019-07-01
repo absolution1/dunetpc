@@ -14,6 +14,7 @@ art_make(BASENAME_ONLY
   cetlib cetlib_except
   lardataobj_RecoBase
   lardata_Utilities
+  lardata_ArtDataHelper
   larcorealg_Geometry
   nusimdata_SimulationBase
   larsim_MCCheater_PhotonBackTrackerService_service           

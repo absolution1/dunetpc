@@ -42,6 +42,8 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 
+#include "lardata/ArtDataHelper/MVAReader.h"
+
 #include "art_root_io/TFileService.h"
 #include "TProfile.h"
 #include "TFile.h"
@@ -204,6 +206,15 @@ private:
   std::vector< double > reco_daughter_shower_startY;
   std::vector< double > reco_daughter_shower_startZ;
   std::vector< double > reco_daughter_len;
+  std::vector< double > reco_daughter_track_score;
+  std::vector< double > reco_daughter_em_score;
+  std::vector< double > reco_daughter_none_score;
+  std::vector< double > reco_daughter_michel_score;
+
+  std::vector< double > reco_daughter_shower_track_score;
+  std::vector< double > reco_daughter_shower_em_score;
+  std::vector< double > reco_daughter_shower_none_score;
+  std::vector< double > reco_daughter_shower_michel_score;
 
   int nTrackDaughters, nShowerDaughters;
 
@@ -279,7 +290,20 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     return;
   }
   ////////////////////////////
+  
+  
 
+  // Helper to get hits and the 4 associated CNN outputs
+  // CNN Outputs: EM, Track, Michel, Empty
+  // outputNames: track, em, none, michel
+  anab::MVAReader<recob::Hit,4> hitResults(evt, /*fNNetModuleLabel*/ "emtrkmichelid:emtrkmichel" );
+
+
+  auto recoTracks = evt.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
+  art::FindManyP<recob::Hit> findHits(recoTracks,evt,fTrackerTag);
+
+  auto recoShowers = evt.getValidHandle< std::vector< recob::Shower > >(fShowerTag);
+  art::FindManyP<recob::Hit> findHitsFromShowers(recoShowers,evt,fShowerTag);
 
   // Get all of the PFParticles, by default from the "pandora" product
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
@@ -602,6 +626,35 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_daughter_Chi2_ndof.push_back( this_chi2_ndof.second );
 
 
+      //Go through the hits of each daughter and check the CNN scores 
+      //Look at the hits from the track:
+      std::vector< art::Ptr< recob::Hit > > daughter_hits = findHits.at( daughterTrack->ID() );
+
+      double track_total = 0.;
+      double em_total = 0.;
+      double none_total = 0.;
+      double michel_total = 0.;   
+      for( size_t h = 0; h < daughter_hits.size(); ++h ){
+        std::array<float,4> cnn_out = hitResults.getOutput( daughter_hits[h ] );
+        track_total  += cnn_out[ hitResults.getIndex("track") ];
+        em_total     += cnn_out[ hitResults.getIndex("em") ];
+        none_total   += cnn_out[ hitResults.getIndex("none") ];
+        michel_total += cnn_out[ hitResults.getIndex("michel") ];
+      }
+
+      if( daughter_hits.size() > 0 ){
+        reco_daughter_track_score.push_back( track_total / daughter_hits.size() );
+        reco_daughter_em_score.push_back( em_total / daughter_hits.size() );
+        reco_daughter_none_score.push_back( none_total / daughter_hits.size() );
+        reco_daughter_michel_score.push_back( michel_total / daughter_hits.size() );
+      }
+      else{
+        reco_daughter_track_score.push_back( -999. );
+        reco_daughter_em_score.push_back( -999. );
+        reco_daughter_none_score.push_back( -999. );
+        reco_daughter_michel_score.push_back( -999. );
+      }
+
       ///Try to match the reconstructed daughter tracks from the reco'd/tagged beam track
       //   to the true daughter particles coming out of the true beam track
       bool found_daughter = false;
@@ -668,6 +721,38 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_truth_Origin.push_back( -1 );
 
       }
+/*
+      //Go through the hits of each daughter and check the CNN scores 
+      //Look at the hits from the track:
+      std::vector< art::Ptr< recob::Hit > > daughter_hits = findHitsFromShowers.at( daughterShowerFromRecoTrack->ID() );
+      std::cout << "Got " << daughter_hits.size() << " hits from shower " << daughterShowerFromRecoTrack->ID() << std::endl;
+
+      double track_total = 0.;
+      double em_total = 0.;
+      double none_total = 0.;
+      double michel_total = 0.;   
+      for( size_t h = 0; h < daughter_hits.size(); ++h ){
+        std::array<float,4> cnn_out = hitResults.getOutput( daughter_hits[h ] );
+        track_total  += cnn_out[ hitResults.getIndex("track") ];
+        em_total     += cnn_out[ hitResults.getIndex("em") ];
+        none_total   += cnn_out[ hitResults.getIndex("none") ];
+        michel_total += cnn_out[ hitResults.getIndex("michel") ];
+      }
+
+      if( daughter_hits.size() > 0 ){
+        reco_daughter_shower_track_score.push_back( track_total / daughter_hits.size() );
+        reco_daughter_shower_em_score.push_back( em_total / daughter_hits.size() );
+        reco_daughter_shower_none_score.push_back( none_total / daughter_hits.size() );
+        reco_daughter_shower_michel_score.push_back( michel_total / daughter_hits.size() );
+      }
+      else{
+        reco_daughter_shower_track_score.push_back( -999. );
+        reco_daughter_shower_em_score.push_back( -999. );
+        reco_daughter_shower_none_score.push_back( -999. );
+        reco_daughter_shower_michel_score.push_back( -999. );
+      }
+      */
+
 
 
       bool found_daughter = false;
@@ -705,6 +790,44 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     reco_beam_Chi2_ndof = pid_chi2_ndof.second;
   
     std::cout << "Proton chi2: " << reco_beam_Chi2_proton << std::endl;
+
+
+    //Looking at shower/track discrimination
+    std::cout << "MVA" << std::endl;
+    //Look at the hits from the track:
+    std::vector< art::Ptr< recob::Hit > > track_hits = findHits.at( thisTrack->ID() );
+
+    double track_total = 0.;
+    double em_total = 0.;
+    double none_total = 0.;
+    double michel_total = 0.;   
+    for( size_t h = 0; h < track_hits.size(); ++h ){
+      std::array<float,4> cnn_out = hitResults.getOutput( track_hits[h ] );
+      track_total  += cnn_out[ hitResults.getIndex("track") ];
+      em_total     += cnn_out[ hitResults.getIndex("em") ];
+      none_total   += cnn_out[ hitResults.getIndex("none") ];
+      michel_total += cnn_out[ hitResults.getIndex("michel") ];
+    }
+    std::cout << "track Total "  << track_total  << " " << track_hits.size() << std::endl;
+    std::cout << "em Total "     << em_total     << " " << track_hits.size() << std::endl;
+    std::cout << "none Total "   << none_total   << " " << track_hits.size() << std::endl;
+    std::cout << "michel Total " << michel_total << " " << track_hits.size() << std::endl;
+/*
+    for( size_t h = 0; h < hitResults.size(); ++h ){
+      
+      // Get cnn output for hit h 
+      std::array<float,4> cnn_out = hitResults.getOutput(h);
+
+      // Compare michel cnn output to treshold to decide if Michel hit 
+      // Example using 0.5, needs to be optimised with clustering
+      // e.g. 0.9 used for event selection
+      if (cnn_out[hitResults.getIndex("michel")] > 0.5) {
+        fNMichelHits += 1;
+      }
+
+    }
+*/
+
 
   }
   else if( thisShower ){
@@ -821,6 +944,16 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_Chi2_proton", &reco_daughter_Chi2_proton);
   fTree->Branch("reco_daughter_Chi2_ndof", &reco_daughter_Chi2_ndof);
 
+  fTree->Branch("reco_daughter_track_score", &reco_daughter_track_score);
+  fTree->Branch("reco_daughter_em_score", &reco_daughter_em_score);
+  fTree->Branch("reco_daughter_none_score", &reco_daughter_none_score);
+  fTree->Branch("reco_daughter_michel_score", &reco_daughter_michel_score);
+
+  fTree->Branch("reco_daughter_shower_track_score", &reco_daughter_shower_track_score);
+  fTree->Branch("reco_daughter_shower_em_score", &reco_daughter_shower_em_score);
+  fTree->Branch("reco_daughter_shower_none_score", &reco_daughter_shower_none_score);
+  fTree->Branch("reco_daughter_shower_michel_score", &reco_daughter_shower_michel_score);
+
   fTree->Branch("reco_beam_truth_End_Px", &reco_beam_truth_End_Px);
   fTree->Branch("reco_beam_truth_End_Py", &reco_beam_truth_End_Py);
   fTree->Branch("reco_beam_truth_End_Pz", &reco_beam_truth_End_Pz);
@@ -916,7 +1049,17 @@ void pionana::PionAnalyzerMC::reset()
 
   reco_daughter_Chi2_proton.clear();
   reco_daughter_Chi2_ndof.clear();
+
+  reco_daughter_track_score.clear();
+  reco_daughter_em_score.clear();
+  reco_daughter_none_score.clear();
+  reco_daughter_michel_score.clear();
   
+  reco_daughter_shower_track_score.clear();
+  reco_daughter_shower_em_score.clear();
+  reco_daughter_shower_none_score.clear();
+  reco_daughter_shower_michel_score.clear();
+
   reco_beam_truth_daughter_good_reco.clear();
   reco_beam_truth_daughter_true_PDGs.clear();
   reco_beam_truth_daughter_true_IDs.clear();
