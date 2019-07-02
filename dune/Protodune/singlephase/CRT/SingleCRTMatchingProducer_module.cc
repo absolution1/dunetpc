@@ -187,7 +187,7 @@ int moduletoCTB(int module2, int module1);
     removePairIndex(const tracksPair & tracksPair0): tracksPair1(tracksPair0) {}
 
     bool operator()(const tracksPair & tracksPair2) {
-      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.tempId == tracksPair2.tempId);
+      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.CRTTrackId == tracksPair2.CRTTrackId || (tracksPair1.stripX1==tracksPair2.stripX1 && tracksPair1.moduleX1==tracksPair2.moduleX1) || (tracksPair1.stripY1==tracksPair2.stripY1 && tracksPair1.moduleY1==tracksPair2.moduleY1));
     }
   };
 
@@ -648,7 +648,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
     firstHit=lastHit;
     lastHit=0;
     }
- if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<600) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 600 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<600)) {
+ if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 660 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<660) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 660 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<660)) {
       for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
    double xOffset=0;
 
@@ -933,7 +933,7 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
+        if ( fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
