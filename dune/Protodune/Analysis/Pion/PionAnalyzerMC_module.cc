@@ -275,6 +275,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   // Get various utilities 
   protoana::ProtoDUNEPFParticleUtils                    pfpUtil;
   protoana::ProtoDUNETrackUtils                         trackUtil;
+  protoana::ProtoDUNEShowerUtils                        showerUtil;
   art::ServiceHandle<cheat::BackTrackerService>         bt_serv;
   art::ServiceHandle< cheat::ParticleInventoryService > pi_serv;
   protoana::ProtoDUNETruthUtils                         truthUtil;
@@ -628,6 +629,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
       //Go through the hits of each daughter and check the CNN scores 
       //Look at the hits from the track:
+      std::cout << "Getting hits from daughter" << std::endl;
       std::vector< art::Ptr< recob::Hit > > daughter_hits = findHits.at( daughterTrack->ID() );
 
       double track_total = 0.;
@@ -721,11 +723,12 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_truth_Origin.push_back( -1 );
 
       }
-/*
+
       //Go through the hits of each daughter and check the CNN scores 
       //Look at the hits from the track:
-      std::vector< art::Ptr< recob::Hit > > daughter_hits = findHitsFromShowers.at( daughterShowerFromRecoTrack->ID() );
-      std::cout << "Got " << daughter_hits.size() << " hits from shower " << daughterShowerFromRecoTrack->ID() << std::endl;
+      int shower_index = showerUtil.GetShowerIndex( *daughterShowerFromRecoTrack, evt, fShowerTag );
+      std::vector< art::Ptr< recob::Hit > > daughter_hits = findHitsFromShowers.at( shower_index );
+      std::cout << "Got " << daughter_hits.size() << " hits from shower " << daughterShowerFromRecoTrack->ID() << " " << shower_index << std::endl;
 
       double track_total = 0.;
       double em_total = 0.;
@@ -751,7 +754,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_shower_none_score.push_back( -999. );
         reco_daughter_shower_michel_score.push_back( -999. );
       }
-      */
+      
 
 
 
@@ -812,22 +815,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cout << "em Total "     << em_total     << " " << track_hits.size() << std::endl;
     std::cout << "none Total "   << none_total   << " " << track_hits.size() << std::endl;
     std::cout << "michel Total " << michel_total << " " << track_hits.size() << std::endl;
-/*
-    for( size_t h = 0; h < hitResults.size(); ++h ){
-      
-      // Get cnn output for hit h 
-      std::array<float,4> cnn_out = hitResults.getOutput(h);
-
-      // Compare michel cnn output to treshold to decide if Michel hit 
-      // Example using 0.5, needs to be optimised with clustering
-      // e.g. 0.9 used for event selection
-      if (cnn_out[hitResults.getIndex("michel")] > 0.5) {
-        fNMichelHits += 1;
-      }
-
-    }
-*/
-
 
   }
   else if( thisShower ){
