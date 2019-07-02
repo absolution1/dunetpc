@@ -408,6 +408,9 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vect
   double pid_chi2 = 0.; 
   int npt = 0;
 
+  if( track_dedx.size() < 1 || range.size() < 1 )
+    return std::make_pair(9999., -1);
+
   //Ignore first and last point
   for( size_t i = 1; i < track_dedx.size()-1; ++i ){
 
@@ -439,9 +442,9 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vect
     }
   }
 
-  if( npt == 0 ){
+  if( npt == 0 )
     return std::make_pair(9999., -1);
-  }
+  
     
   pid_chi2 = pid_chi2 / npt;
   return std::make_pair(pid_chi2, npt); 
