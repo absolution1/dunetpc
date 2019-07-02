@@ -222,7 +222,7 @@ rm protodunedphase_nowires_*.gdml
 echo "--- Generating protoDUNEDP Geometry Drift in Y ---"
 
 # with wires for larcore
-perl generate_protodunedphase_driftY.pl -w 1 -opt 0 -o protodunedphase_driftY_geo.xml
+perl generate_protodunedphase_driftY.pl -w 1 -opt 0 -o protodunedphase_driftY_geo.xml -pmt 0
 perl make_gdml.pl -i protodunedphase_driftY_geo.xml -o protodunedphase_driftY.gdml
 
 # clean up
@@ -230,12 +230,31 @@ rm protodunedphase_driftY_geo.xml
 rm protodunedphase_driftY_*.gdml
 
 # no wires for geant
-perl generate_protodunedphase_driftY.pl -w 0 -opt 0 -o protodunedphase_driftY_nowires_geo.xml
+perl generate_protodunedphase_driftY.pl -w 0 -opt 0 -o protodunedphase_driftY_nowires_geo.xml -pmt 0
 perl make_gdml.pl -i protodunedphase_driftY_nowires_geo.xml -o protodunedphase_driftY_nowires.gdml
 
 # clean up
 rm protodunedphase_driftY_nowires_geo.xml
 rm protodunedphase_driftY_nowires_*.gdml
+
+
+echo "--- Generating protoDUNEDP Geometry Drift in Y - Uniform PMT Layout - to be deprecated ---"
+
+# with wires for larcore
+perl generate_protodunedphase_driftY.pl -w 1 -opt 0 -o protodunedphase_driftY_uniform_geo.xml -pmt 1
+perl make_gdml.pl -i protodunedphase_driftY_uniform_geo.xml -o protodunedphase_driftY_uniform.gdml
+
+# clean up
+rm protodunedphase_driftY_uniform_geo.xml
+rm protodunedphase_driftY_uniform_*.gdml
+
+# no wires for geant
+perl generate_protodunedphase_driftY.pl -w 0 -opt 0 -o protodunedphase_driftY_uniform_nowires_geo.xml -pmt 1
+perl make_gdml.pl -i protodunedphase_driftY_uniform_nowires_geo.xml -o protodunedphase_driftY_uniform_nowires.gdml
+
+# clean up
+rm protodunedphase_driftY_uniform_nowires_geo.xml
+rm protodunedphase_driftY_uniform_nowires_*.gdml
 
 
 ##################################################
@@ -263,7 +282,7 @@ rm protodunedphase_optical_nowires_*.gdml
 echo "--- Generating protoDUNEDP OPTICAL Geometry Drift in Y ---"
 
 # all detail to generate photon libraries
-perl generate_protodunedphase_driftY.pl -w 1 -opt 1 -o protodunedphase_driftY_optical_geo.xml
+perl generate_protodunedphase_driftY.pl -w 1 -opt 1 -o protodunedphase_driftY_optical_geo.xml -pmt 0
 perl make_gdml.pl -i protodunedphase_driftY_optical_geo.xml -o protodunedphase_driftY_optical.gdml
 
 # clean up
@@ -271,7 +290,7 @@ rm protodunedphase_driftY_optical_geo.xml
 rm protodunedphase_driftY_optical_*.gdml
 
 # no wires for geant
-perl generate_protodunedphase_driftY.pl -w 0 -opt 1 -o protodunedphase_driftY_optical_nowires_geo.xml
+perl generate_protodunedphase_driftY.pl -w 0 -opt 1 -o protodunedphase_driftY_optical_nowires_geo.xml -pmt 0
 perl make_gdml.pl -i protodunedphase_driftY_optical_nowires_geo.xml -o protodunedphase_driftY_optical_nowires.gdml
 
 # clean up
