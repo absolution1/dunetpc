@@ -431,8 +431,7 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "Hadron",
                                                                 "Decay",
                                                                 "HadronElastic",
-                                                                "Stopping",
-                                                                "NeutronTrackingCut" ]
+                                                                "Stopping" ]
 
 
 # Reco services for ProtoDUNE simulation.
