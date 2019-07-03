@@ -3,10 +3,8 @@ art_make( BASENAME_ONLY
                            lardataobj_AnalysisBase
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
-                           lardataobj_RawData
                            lardata_Utilities
                            larsim_Simulation
-			   nutools_ParticleNavigation
 			   lardataobj_Simulation
                            larsim_MCCheater_BackTrackerService_service
                            larsim_MCCheater_ParticleInventoryService_service
