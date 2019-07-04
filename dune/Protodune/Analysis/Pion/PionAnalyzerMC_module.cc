@@ -306,9 +306,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   auto recoShowers = evt.getValidHandle< std::vector< recob::Shower > >(fShowerTag);
   art::FindManyP<recob::Hit> findHitsFromShowers(recoShowers,evt,fShowerTag);
 
-  // Get all of the PFParticles, by default from the "pandora" product
-  auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
-
   std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
   nBeamParticles = beamParticles.size();
 

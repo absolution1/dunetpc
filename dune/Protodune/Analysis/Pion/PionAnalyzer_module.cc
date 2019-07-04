@@ -505,6 +505,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
           if( pid == -211 ) nPiMinus_truth++;
           if( pid == 111 )  nPi0_truth++;
           if( pid == 2212 ) nProton_truth++;
+          if( pid == 2112 ) nNeutron_truth++;
 
           MC_daughter_particleIDs.push_back( part->TrackId() );
         
@@ -677,6 +678,7 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("nTrackDaughters", &nTrackDaughters);
   fTree->Branch("nShowerDaughters", &nShowerDaughters);
   fTree->Branch("nProton_truth", &nProton_truth);
+  fTree->Branch("nNeutron_truth", &nNeutron_truth);
   fTree->Branch("nPi0_truth", &nPi0_truth);
   fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
@@ -717,6 +719,7 @@ void pionana::PionAnalyzer::reset()
 
   MC = 0;
   nProton_truth = 0;
+  nNeutron_truth = 0;
   nPi0_truth = 0;
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
