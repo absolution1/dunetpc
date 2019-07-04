@@ -194,10 +194,13 @@ private:
   std::vector< int > reco_daughter_truth_PDG;
   std::vector< int > reco_daughter_truth_ID;
   std::vector< int > reco_daughter_truth_Origin;
+  std::vector< int > reco_daughter_truth_ParID;
+  std::vector< std::string > reco_daughter_truth_Process;
   std::vector< int > reco_daughter_showerID;
   std::vector< int > reco_daughter_shower_truth_PDG;
   std::vector< int > reco_daughter_shower_truth_ID;
   std::vector< int > reco_daughter_shower_truth_Origin;
+  std::vector< int > reco_daughter_shower_truth_ParID;
   std::vector< std::vector< double > > reco_daughter_dEdX, reco_daughter_dQdX, reco_daughter_resRange;
   std::vector< double > reco_daughter_startX, reco_daughter_endX;
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
@@ -205,6 +208,7 @@ private:
   std::vector< double > reco_daughter_shower_startX;
   std::vector< double > reco_daughter_shower_startY;
   std::vector< double > reco_daughter_shower_startZ;
+  std::vector< double > reco_daughter_shower_len;
   std::vector< double > reco_daughter_len;
   std::vector< double > reco_daughter_track_score;
   std::vector< double > reco_daughter_em_score;
@@ -597,11 +601,15 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_truth_Origin.push_back( 
           pi_serv->TrackIdToMCTruth_P(trueDaughterParticle->TrackId())->Origin()
         );
+        reco_daughter_truth_ParID.push_back( trueDaughterParticle->Mother() );
+        reco_daughter_truth_Process.push_back( trueDaughterParticle->Process() );
       }
       else{
         reco_daughter_truth_PDG.push_back( -1 );
         reco_daughter_truth_ID.push_back( -1 );
         reco_daughter_truth_Origin.push_back( -1 );
+        reco_daughter_truth_ParID.push_back( -1 );
+        reco_daughter_truth_Process.push_back( "empty" );
       }
 
       std::vector< anab::Calorimetry > dummy_calo = trackUtil.GetRecoTrackCalorimetry(*daughterTrack, evt, fTrackerTag, fCalorimetryTag);
@@ -704,6 +712,11 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_daughter_shower_startY.push_back( daughterShowerFromRecoTrack->ShowerStart().Y() );
       reco_daughter_shower_startZ.push_back( daughterShowerFromRecoTrack->ShowerStart().Z() );
 
+      reco_daughter_shower_len.push_back( daughterShowerFromRecoTrack->Length() );
+
+      std::cout << "Looking at shower dedx: ";
+      std::cout << daughterShowerFromRecoTrack->dEdx().size() << std::endl;
+
       //For this reco daughter track, get the actual particle contributing to it
       const simb::MCParticle* trueDaughterParticle = truthUtil.GetMCParticleFromRecoShower(*daughterShowerFromRecoTrack, evt, fShowerTag);
       if( trueDaughterParticle ){
@@ -712,12 +725,14 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_shower_truth_Origin.push_back( 
           pi_serv->TrackIdToMCTruth_P(trueDaughterParticle->TrackId())->Origin()
         );
+        reco_daughter_shower_truth_ParID.push_back( trueDaughterParticle->Mother() );
 
       }
       else{
         reco_daughter_shower_truth_PDG.push_back( -1 );
         reco_daughter_shower_truth_ID.push_back( -1 );
-        reco_daughter_truth_Origin.push_back( -1 );
+        reco_daughter_shower_truth_Origin.push_back( -1 );
+        reco_daughter_shower_truth_ParID.push_back( -1 );
 
       }
 
@@ -862,9 +877,12 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_truth_PDG", &reco_daughter_truth_PDG);
   fTree->Branch("reco_daughter_truth_ID", &reco_daughter_truth_ID);
   fTree->Branch("reco_daughter_truth_Origin", &reco_daughter_truth_Origin);
+  fTree->Branch("reco_daughter_truth_ParID", &reco_daughter_truth_ParID);
+  fTree->Branch("reco_daughter_truth_Process", &reco_daughter_truth_Process);
   fTree->Branch("reco_daughter_shower_truth_PDG", &reco_daughter_shower_truth_PDG);
   fTree->Branch("reco_daughter_shower_truth_ID", &reco_daughter_shower_truth_ID);
   fTree->Branch("reco_daughter_shower_truth_Origin", &reco_daughter_shower_truth_Origin);
+  fTree->Branch("reco_daughter_shower_truth_ParID", &reco_daughter_shower_truth_ParID);
 
   fTree->Branch("reco_daughter_showerID", &reco_daughter_showerID);
   fTree->Branch("reco_daughter_dQdX", &reco_daughter_dQdX);
@@ -880,6 +898,7 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_shower_startX", &reco_daughter_shower_startX);
   fTree->Branch("reco_daughter_shower_startY", &reco_daughter_shower_startY);
   fTree->Branch("reco_daughter_shower_startZ", &reco_daughter_shower_startZ);
+  fTree->Branch("reco_daughter_shower_len", &reco_daughter_shower_len);
   fTree->Branch("nTrackDaughters", &nTrackDaughters);
   fTree->Branch("nShowerDaughters", &nShowerDaughters);
 
@@ -1080,6 +1099,8 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_shower_startY.clear();
   reco_daughter_shower_startZ.clear();
 
+  reco_daughter_shower_len.clear(); 
+
   resRange.clear();
 
   reco_daughter_dQdX.clear();
@@ -1093,11 +1114,14 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_truth_PDG.clear();
   reco_daughter_truth_ID.clear();
   reco_daughter_truth_Origin.clear();
+  reco_daughter_truth_ParID.clear();
+  reco_daughter_truth_Process.clear();
 
   reco_daughter_showerID.clear();
   reco_daughter_shower_truth_PDG.clear();
   reco_daughter_shower_truth_ID.clear();
   reco_daughter_shower_truth_Origin.clear();
+  reco_daughter_shower_truth_ParID.clear();
 
 }
 
