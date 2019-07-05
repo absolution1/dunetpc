@@ -89,7 +89,17 @@ int test_TPadManipulator() {
   pmantop->draw();
   assert( man.pad() != nullptr );
 
+  cout << myname << line << endl;
+  cout << myname << "Draw." << endl;
   pmantop->print("test_TPadManipulator.png");
+
+  cout << myname << line << endl;
+  cout << myname << "Copy the full plot." << endl;
+  TPadManipulator man2(*pmantop);
+
+  cout << myname << line << endl;
+  cout << myname << "Draw copy." << endl;
+  man2.print("test_TPadManipulator2.png");
 
   cout << myname << line << endl;
   cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;

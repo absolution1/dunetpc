@@ -152,10 +152,12 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_vmlLines.clear();
   m_binLabelsX = rhs.m_binLabelsX;
   m_binLabelsY = rhs.m_binLabelsY;
+  m_subBounds = rhs.m_subBounds;
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
     m_subMans.emplace_back(man);
   }
+  m_iobjLegend = rhs.m_iobjLegend;
   update();
   return *this;
 }
