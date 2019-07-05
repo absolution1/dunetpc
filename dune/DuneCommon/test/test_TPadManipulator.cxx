@@ -82,6 +82,10 @@ int test_TPadManipulator() {
   cout << myname << line << endl;
   cout << myname << "Copy the pad." << endl;
   *pmantop->man(1) = *pmantop->man(0);
+  pmantop->man(1)->setRangeX(0, 8000);
+  pmantop->man(1)->setTitle("Zoom of above");
+  pmantop->man(1)->setRangeX(2000, 8000);
+  pmantop->man(1)->setRangeY(10, 90);
 
   cout << myname << line << endl;
   cout << myname << "Draw." << endl;
