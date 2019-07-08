@@ -124,6 +124,7 @@ private:
 
   //Decay products from pi0s
   std::vector< int > true_beam_Pi0_decay_PDGs, true_beam_Pi0_decay_IDs;
+  std::vector< int > true_beam_grand_daughter_PDGs, true_beam_grand_daughter_IDs, true_beam_grand_daughter_ParIDs;
 
   //How many of each true particle came out of the true primary beam particle?
   int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
@@ -478,6 +479,14 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         true_beam_Pi0_decay_PDGs.push_back( pi0_decay_part->PdgCode() );
         true_beam_Pi0_decay_IDs.push_back( pi0_decay_part->TrackId() );
       }
+    }
+
+    for( int j = 0; j < part->NumberDaughters(); ++j ){
+      int grand_daughter_ID = part->Daughter(j);
+      auto grand_daughter_part = plist[ grand_daughter_ID ];
+      true_beam_grand_daughter_PDGs.push_back( grand_daughter_part->PdgCode() );
+      true_beam_grand_daughter_IDs.push_back(  grand_daughter_part->TrackId() );
+      true_beam_grand_daughter_ParIDs.push_back(  part->TrackId() );
     }
 
   }
@@ -933,6 +942,9 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("true_beam_daughter_lens", &true_beam_daughter_lens);
   fTree->Branch("true_beam_Pi0_decay_IDs", &true_beam_Pi0_decay_IDs);
   fTree->Branch("true_beam_Pi0_decay_PDGs", &true_beam_Pi0_decay_PDGs);
+  fTree->Branch("true_beam_grand_daughter_IDs", &true_beam_grand_daughter_IDs);
+  fTree->Branch("true_beam_grand_daughter_ParIDs", &true_beam_grand_daughter_ParIDs);
+  fTree->Branch("true_beam_grand_daughter_PDGs", &true_beam_grand_daughter_PDGs);
 
   fTree->Branch("reco_beam_truth_EndProcess", &reco_beam_truth_EndProcess);
   fTree->Branch("reco_beam_truth_Process", &reco_beam_truth_Process);
@@ -1075,6 +1087,9 @@ void pionana::PionAnalyzerMC::reset()
   true_beam_daughter_lens.clear();
   true_beam_Pi0_decay_IDs.clear();
   true_beam_Pi0_decay_PDGs.clear();
+  true_beam_grand_daughter_IDs.clear();
+  true_beam_grand_daughter_ParIDs.clear();
+  true_beam_grand_daughter_PDGs.clear();
   reco_beam_truth_daughter_true_lens.clear();
   reco_beam_truth_daughter_shower_true_lens.clear();
   true_beam_daughter_IDs.clear();
