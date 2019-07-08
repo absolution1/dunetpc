@@ -232,8 +232,8 @@ dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 
 protodune_geo: @local::dune10kt_geo
 protodune_geo.Name: "protodune" # will be made lower case anyway
-protodune_geo.GDML: "protodune_v7.gdml"
-protodune_geo.ROOT: "protodune_v7.gdml"
+protodune_geo.GDML: "protodune_v6.gdml"
+protodune_geo.ROOT: "protodune_v6.gdml"
 
 protodunev7_geo: @local::dune10kt_geo
 protodunev7_geo.Name: "protodunev7" # will be made lower case anyway
