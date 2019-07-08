@@ -245,8 +245,28 @@ typedef struct // Structures for arrays to move hits from raw to reco to validat
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
 
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
 	//return ((fabs(pair1.dotProductCos)>.998 && pair1.deltaY<pair2.deltaY && pair1.deltaX<pair2.deltaX));
+        return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
+
+  }
+  };
+  struct removeCand // Struct to remove tracks after sorting
+  {
+    const combHits track1;
+   removeCand(combHits & track0): track1(track0) {}
+
+    bool operator()(const combHits & track2) {
+      return (track1.moduleX1 == track2.moduleX1);
+    }
+  };
+
+  struct sortCand // Struct to sort to find best CRT track for TPC track
+  {
+    bool operator()(const combHits & track1,
+      const combHits & track2) {
+
+	return ((track1.adcX1+track1.adcY1+track1.adcX2+track1.adcY2)>(track2.adcX1+track2.adcY1+track2.adcX2+track2.adcY2));
 
   }
   };
@@ -331,38 +351,38 @@ bool CRT::TwoCRTMatchingProducer::moduleMatcher(int module1, int module2) {
 }
 
 int CRT::TwoCRTMatchingProducer::moduletoCTB(int module2, int module1){
-  if (module1 == 13 && module2 == 6 ) return 15;
-  else if (module1 == 13 &&  module2 == 7) return 10;
-  else if (module1 == 1 &&  module2 == 6) return 8;
-  else if (module1 == 1 &&  module2 == 7) return 9;
-  else if (module1 == 16 &&  module2 == 20) return 4;
-  else if (module1 == 16 &&  module2 == 21) return 13;
-  else if (module1 == 28 &&  module2 == 20) return 3;
-  else if (module1 == 28 &&  module2 == 21) return 2;
-  else if (module1 == 29 &&  module2 == 22) return 1;
-  else if (module1 == 29 &&  module2 == 23) return 0;
-  else if (module1 == 17 &&  module2 == 22) return 12;
-  else if (module1 == 17 &&  module2 == 23) return 11;
-  else if (module1 == 0  &&  module2 == 5) return 7;
-  else if (module1 == 0 &&  module2 == 4) return 6;
-  else if (module1 == 12  &&  module2 == 5) return 14;
-  else if (module1 == 12 &&  module2 == 4) return 5;
-  else if (module1 == 3 &&  module2 == 8) return 25;
-  else if (module1 == 3 &&  module2 == 9) return 24;
-  else if (module1 == 15 &&  module2 == 8) return 26;
-  else if (module1 == 15 &&  module2 == 9) return 31;
-  else if (module1 == 18 &&  module2 == 26) return 27;
-  else if (module1 == 18 &&  module2 == 27) return 28;
-  else if (module1 == 30 &&  module2 == 26) return 16;
-  else if (module1 == 30 &&  module2 == 27) return 17;
-  else if (module1 == 31 &&  module2 == 24) return 18;
-  else if (module1 == 31 &&  module2 == 25) return 19;
-  else if (module1 == 19 &&  module2 == 24) return 29;
-  else if (module1 == 19 &&  module2 == 25) return 20;
-  else if (module1 == 14 &&  module2 == 10) return 30;
-  else if (module1 == 14 &&  module2 == 11) return 21;
-  else if (module1 == 2 &&  module2 == 10) return 23;
-  else if (module1 == 2 &&  module2 == 11) return 22;
+  if (module1 == 14 && module2 == 11 ) return 15;
+  else if (module1 == 14 &&  module2 == 10) return 10;
+  else if (module1 == 6 &&  module2 == 11) return 8;
+  else if (module1 == 6 &&  module2 == 10) return 9;
+  else if (module1 == 18 &&  module2 == 25) return 4;
+  else if (module1 == 18 &&  module2 == 24) return 13;
+  else if (module1 == 30 &&  module2 == 25) return 3;
+  else if (module1 == 30 &&  module2 == 24) return 2;
+  else if (module1 == 31 &&  module2 == 27) return 1;
+  else if (module1 == 31 &&  module2 == 26) return 0;
+  else if (module1 == 19 &&  module2 == 27) return 12;
+  else if (module1 == 19 &&  module2 == 26) return 11;
+  else if (module1 == 7  &&  module2 == 12) return 7;
+  else if (module1 == 7 &&  module2 == 13) return 6;
+  else if (module1 == 15  &&  module2 == 12) return 14;
+  else if (module1 == 15 &&  module2 == 13) return 5;
+  else if (module1 == 1 &&  module2 == 4) return 25;
+  else if (module1 == 1 &&  module2 == 5) return 24;
+  else if (module1 == 9 &&  module2 == 4) return 26;
+  else if (module1 == 9 &&  module2 == 5) return 31;
+  else if (module1 == 16 &&  module2 == 20) return 27;
+  else if (module1 == 16 &&  module2 == 21) return 28;
+  else if (module1 == 28 &&  module2 == 20) return 16;
+  else if (module1 == 28 &&  module2 == 21) return 17;
+  else if (module1 == 29 &&  module2 == 22) return 18;
+  else if (module1 == 29 &&  module2 == 23) return 19;
+  else if (module1 == 17 &&  module2 == 22) return 29;
+  else if (module1 == 17 &&  module2 == 23) return 20;
+  else if (module1 == 8 &&  module2 == 2) return 30;
+  else if (module1 == 8 &&  module2 == 3) return 21;
+  else if (module1 == 0 &&  module2 == 2) return 23;
+  else if (module1 == 0 &&  module2 == 3) return 22;
   else return -1;
 }
 
@@ -392,7 +412,7 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=50;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
 
@@ -451,8 +471,6 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	if (!fMCCSwitch){
 	art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
 	int stripChannel=hit.Channel();
-	if (hit.Channel()<32) stripChannel=(hit.Channel())*2;
-	else stripChannel=2*(hit.Channel()-32)+1;
         tHits.module = trigger.Channel(); // Values to add to array
         tHits.channelGeo = stripChannel;
 	tHits.channel=hit.Channel();
@@ -575,7 +593,7 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 
       if (moduleMatched) {
         double hitX = hit1Center.X();
-	if (!fMCCSwitch) hitX=hit1Center.X()-42;
+	
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
@@ -715,15 +733,21 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 }
 
   }
-     
+    vector < combHits > candidateTracks=combTrackHits;
+    sort(candidateTracks.begin(), candidateTracks.end(), sortCand());
+    while (candidateTracks.size()) {
+    candidateTracks.erase(remove_if(candidateTracks.begin(), candidateTracks.end(), removeCand(candidateTracks.front())),
+        candidateTracks.end());
+
+    } 
      auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
      auto const crtCandPtr = art::PtrMaker<anab::CosmicTag>(event);
      auto const crtPtr = art::PtrMaker<anab::CosmicTag>(event);
            for (unsigned int iCombinatorialTrack = 0; iCombinatorialTrack < combTrackHits.size(); iCombinatorialTrack++) {
 
       if (combTrackHits[iCombinatorialTrack].t0_F>combTrackHits[iCombinatorialTrack].t0_B)
-	T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 0,1,iCombinatorialTrack));
-    else T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 1,1,iCombinatorialTrack));
+	T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 1,2,iCombinatorialTrack, -1.f));
+    else T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 2,2,iCombinatorialTrack,-1.f));
 
      std::vector<float> hitF;
 	std::vector<float> hitB;
@@ -1063,7 +1087,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	measuredXOffset=allUniqueTracksPair[u].xOffset;
         
 	CRT_TOF=allUniqueTracksPair[u].timeDiff;	
-        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99) {
+        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
         cout<<allUniqueTracksPair[u].timeDiff<<endl;
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 

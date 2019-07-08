@@ -879,3 +879,52 @@ double protoana::ProtoDUNETruthUtils::GetMCParticleLengthInTPCActiveVolume(const
 
   return length;
 }
+
+// Estimate last point energy loss
+double protoana::ProtoDUNETruthUtils::GetDepEnergyAtLastTrajPoint(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh){
+
+  // First trajectory point inside TPC active volume
+  int firstpoint = GetFirstTrajectoryPointInTPCActiveVolume(mcpart, tpcactiveXlow, tpcactiveXhigh, tpcactiveYlow, tpcactiveYhigh, tpcactiveZlow, tpcactiveZhigh);
+  if(firstpoint < 0) return 0.0;
+
+  // True track length in TPC active volume
+  double length = GetMCParticleLengthInTPCActiveVolume(mcpart, tpcactiveXlow, tpcactiveXhigh, tpcactiveYlow, tpcactiveYhigh, tpcactiveZlow, tpcactiveZhigh);
+
+  // Get the true track length up to the next to the last trajectory point
+  int ntrajpoints = mcpart.NumberTrajectoryPoints();
+  double plength = 0.0;
+  TVector3 pos =  mcpart.Position(firstpoint).Vect();
+  for(int i = firstpoint+1; i < ntrajpoints-1; ++i) {
+    if(mcpart.Vx(i) >= tpcactiveXlow && mcpart.Vx(i) <= tpcactiveXhigh && mcpart.Vy(i) >= tpcactiveYlow && mcpart.Vy(i) <= tpcactiveYhigh && mcpart.Vz(i) >= tpcactiveZlow && mcpart.Vz(i) <= tpcactiveZhigh){
+
+      pos -= mcpart.Position(i).Vect();
+      plength += pos.Mag();
+      pos = mcpart.Position(i).Vect();
+    }
+  }
+  if(plength == 0.0) return 0.0;
+
+  double length_laststep = length - plength;
+  if(length_laststep <= 0.0) return 0.0;
+  
+  // Kinetic energy of the track
+  double kinene_start = std::sqrt(mcpart.P(firstpoint)*mcpart.P(firstpoint) + mcpart.Mass()*mcpart.Mass()) - mcpart.Mass();
+  double kinene_end = std::sqrt(mcpart.P(ntrajpoints-2)*mcpart.P(ntrajpoints-2) + mcpart.Mass()*mcpart.Mass()) - mcpart.Mass();
+  double eneloss = (kinene_start - kinene_end);
+  if(eneloss < 0.0 || kinene_start <= 0.0) return 0.0;
+
+  // Average energy loss due to last trajectory point
+  double aveneloss_laststep = length_laststep*eneloss/plength;
+
+  return aveneloss_laststep;
+  
+}
+
+// Get particle's kinetic energy at the interaction vertex
+double protoana::ProtoDUNETruthUtils::GetKinEnergyAtVertex(const simb::MCParticle& mcpart, double kinene_lastpoint){
+
+  int ntrajpoints = mcpart.NumberTrajectoryPoints();
+  double kinene_end = std::sqrt(mcpart.P(ntrajpoints-2)*mcpart.P(ntrajpoints-2) + mcpart.Mass()*mcpart.Mass()) - mcpart.Mass();
+  
+  return (kinene_end - kinene_lastpoint);
+}

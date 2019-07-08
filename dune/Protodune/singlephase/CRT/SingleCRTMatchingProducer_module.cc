@@ -187,7 +187,7 @@ int moduletoCTB(int module2, int module1);
     removePairIndex(const tracksPair & tracksPair0): tracksPair1(tracksPair0) {}
 
     bool operator()(const tracksPair & tracksPair2) {
-      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.tempId == tracksPair2.tempId);
+      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.CRTTrackId == tracksPair2.CRTTrackId || (tracksPair1.stripX1==tracksPair2.stripX1 && tracksPair1.moduleX1==tracksPair2.moduleX1) || (tracksPair1.stripY1==tracksPair2.stripY1 && tracksPair1.moduleY1==tracksPair2.moduleY1));
     }
   };
 
@@ -196,7 +196,8 @@ int moduletoCTB(int module2, int module1);
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
      
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	return (fabs(pair1.deltaX)+fabs(pair1.deltaY)<fabs(pair2.deltaX)+fabs(pair2.deltaY));
 
   }
   };
@@ -258,38 +259,38 @@ bool CRT::SingleCRTMatchingProducer::moduleMatcherData(int module1, int module2)
 */
 
 int CRT::SingleCRTMatchingProducer::moduletoCTB(int module2, int module1){
-  if (module1 == 13 && module2 == 6 ) return 15;
-  else if (module1 == 13 &&  module2 == 7) return 10;
-  else if (module1 == 1 &&  module2 == 6) return 8;
-  else if (module1 == 1 &&  module2 == 7) return 9;
-  else if (module1 == 16 &&  module2 == 20) return 4;
-  else if (module1 == 16 &&  module2 == 21) return 13;
-  else if (module1 == 28 &&  module2 == 20) return 3;
-  else if (module1 == 28 &&  module2 == 21) return 2;
-  else if (module1 == 29 &&  module2 == 22) return 1;
-  else if (module1 == 29 &&  module2 == 23) return 0;
-  else if (module1 == 17 &&  module2 == 22) return 12;
-  else if (module1 == 17 &&  module2 == 23) return 11;
-  else if (module1 == 0  &&  module2 == 5) return 7;
-  else if (module1 == 0 &&  module2 == 4) return 6;
-  else if (module1 == 12  &&  module2 == 5) return 14;
-  else if (module1 == 12 &&  module2 == 4) return 5;
-  else if (module1 == 3 &&  module2 == 8) return 25;
-  else if (module1 == 3 &&  module2 == 9) return 24;
-  else if (module1 == 15 &&  module2 == 8) return 26;
-  else if (module1 == 15 &&  module2 == 9) return 31;
-  else if (module1 == 18 &&  module2 == 26) return 27;
-  else if (module1 == 18 &&  module2 == 27) return 28;
-  else if (module1 == 30 &&  module2 == 26) return 16;
-  else if (module1 == 30 &&  module2 == 27) return 17;
-  else if (module1 == 31 &&  module2 == 24) return 18;
-  else if (module1 == 31 &&  module2 == 25) return 19;
-  else if (module1 == 19 &&  module2 == 24) return 29;
-  else if (module1 == 19 &&  module2 == 25) return 20;
-  else if (module1 == 14 &&  module2 == 10) return 30;
-  else if (module1 == 14 &&  module2 == 11) return 21;
-  else if (module1 == 2 &&  module2 == 10) return 23;
-  else if (module1 == 2 &&  module2 == 11) return 22;
+  if (module1 == 14 && module2 == 11 ) return 15;
+  else if (module1 == 14 &&  module2 == 10) return 10;
+  else if (module1 == 6 &&  module2 == 11) return 8;
+  else if (module1 == 6 &&  module2 == 10) return 9;
+  else if (module1 == 18 &&  module2 == 25) return 4;
+  else if (module1 == 18 &&  module2 == 24) return 13;
+  else if (module1 == 30 &&  module2 == 25) return 3;
+  else if (module1 == 30 &&  module2 == 24) return 2;
+  else if (module1 == 31 &&  module2 == 27) return 1;
+  else if (module1 == 31 &&  module2 == 26) return 0;
+  else if (module1 == 19 &&  module2 == 27) return 12;
+  else if (module1 == 19 &&  module2 == 26) return 11;
+  else if (module1 == 7  &&  module2 == 12) return 7;
+  else if (module1 == 7 &&  module2 == 13) return 6;
+  else if (module1 == 15  &&  module2 == 12) return 14;
+  else if (module1 == 15 &&  module2 == 13) return 5;
+  else if (module1 == 1 &&  module2 == 4) return 25;
+  else if (module1 == 1 &&  module2 == 5) return 24;
+  else if (module1 == 9 &&  module2 == 4) return 26;
+  else if (module1 == 9 &&  module2 == 5) return 31;
+  else if (module1 == 16 &&  module2 == 20) return 27;
+  else if (module1 == 16 &&  module2 == 21) return 28;
+  else if (module1 == 28 &&  module2 == 20) return 16;
+  else if (module1 == 28 &&  module2 == 21) return 17;
+  else if (module1 == 29 &&  module2 == 22) return 18;
+  else if (module1 == 29 &&  module2 == 23) return 19;
+  else if (module1 == 17 &&  module2 == 22) return 29;
+  else if (module1 == 17 &&  module2 == 23) return 20;
+  else if (module1 == 8 &&  module2 == 2) return 30;
+  else if (module1 == 8 &&  module2 == 3) return 21;
+  else if (module1 == 0 &&  module2 == 2) return 23;
+  else if (module1 == 0 &&  module2 == 3) return 22;
   else return -1;
 }
 
@@ -324,7 +325,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=20;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
     fOpCRTTDiffCut=1000000;
@@ -332,14 +333,13 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
 }
 
-   if(!fMCCSwitch){
+/*   if(!fMCCSwitch){
    art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
    //const auto& pdspctbs = event.getValidHandle<std::vector<raw::ctb::pdspctb>>(fCTB_tag);
 
-	const raw::RDTimeStamp& timeStamp = timingHandle->at(0);
-	if(timeStamp.GetFlags()!= 13) {event.put(std::move(CRTTrack)); event.put(std::move(T0col)); event.put(std::move(TPCCRTassn)); event.put(std::move(CRTT0assn));  event.put(std::move(TPCT0assn)); return;
-  }
- }
+	//const raw::RDTimeStamp& timeStamp = timingHandle->at(0);
+	//if(timeStamp.GetFlags()!= 13) {event.put(std::move(CRTTrack)); event.put(std::move(T0col)); event.put(std::move(TPCCRTassn)); event.put(std::move(CRTT0assn));  event.put(std::move(TPCT0assn)); return;}
+ }*/
 
   int nHits = 0;
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
@@ -380,15 +380,13 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
         tempHits tHits;
 	if (!fMCCSwitch){
-	int stripChannel=hit.Channel();
-	if (hit.Channel()<32) stripChannel=hit.Channel()*2;
-	else stripChannel=2*(hit.Channel()-32)+1;
-	//cout<<stripChannel<<endl;
+	art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
+
         tHits.module = trigger.Channel(); // Values to add to array
-        tHits.channelGeo = stripChannel;
+        tHits.channelGeo = hit.Channel();
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
-	tHits.triggerTime=trigger.Timestamp();
+	tHits.triggerTime=trigger.Timestamp()-timingHandle->at(0).GetTimeStamp();
 	}
 	else{
         tHits.module = trigger.Channel(); // Values to add to array
@@ -509,7 +507,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
       if (moduleMatched) {
         double hitX = hit1Center.X();
-	if (!fMCCSwitch) hitX=hit1Center.X()-42;
+
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
@@ -543,7 +541,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 	 }
     }
   }
-	
+	/*
         int pixel0 = -1;
         int pixel1 = -1;
 	if (!fMCCSwitch)
@@ -581,6 +579,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	      }
 	  }
 	}
+	*/
 
 
      auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
@@ -622,7 +621,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	  cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
-    //int lastHit=allHits.size()-2;
+    int lastHit=allHits.size()-2;
 
 
 // Get track positions and find angles
@@ -637,7 +636,19 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
     double trackEndPositionX_noSCE = trackList[iRecoTrack] -> End().X();
     double trackEndPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
 
- if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50)) {
+   if (trackStartPositionZ_noSCE>trackEndPositionZ_noSCE){
+    trackEndPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    trackStartPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
+    trackEndPositionX_noSCE = trackList[iRecoTrack]->Vertex().X();
+    trackEndPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
+
+
+    trackStartPositionX_noSCE = trackList[iRecoTrack] -> End().X();
+    trackStartPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+    firstHit=lastHit;
+    lastHit=0;
+    }
+ if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 660 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<660) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 660 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<660)) {
       for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
    double xOffset=0;
 
@@ -667,7 +678,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
    double trackEndPositionX=trackEndPositionX_noSCE;
    double trackEndPositionY=trackEndPositionY_noSCE;
    double trackEndPositionZ=trackEndPositionZ_noSCE;
-	if (!fMCCSwitch && moduletoCTB(primaryHits_F[iHit_F].moduleX, primaryHits_F[iHit_F].moduleY)!=pixel0) continue;
+	//if (!fMCCSwitch && moduletoCTB(primaryHits_F[iHit_F].moduleX, primaryHits_F[iHit_F].moduleY)!=pixel0) continue;
         double X1 = primaryHits_F[iHit_F].hitPositionX;
 
         double Y1 = primaryHits_F[iHit_F].hitPositionY;
@@ -751,7 +762,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
       }
 	}
- if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50)) {
+ if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50) || (trackStartPositionZ_noSCE>660 && trackEndPositionZ_noSCE < 620 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50)) {
       for (unsigned int iHit_B = 0; iHit_B < primaryHits_B.size(); iHit_B++) {
 double xOffset=0;
     
@@ -781,7 +792,7 @@ double xOffset=0;
    double trackEndPositionY=trackEndPositionY_noSCE;
    double trackEndPositionZ=trackEndPositionZ_noSCE;
 
-	if (!fMCCSwitch && moduletoCTB(primaryHits_B[iHit_B].moduleX, primaryHits_B[iHit_B].moduleY)!=pixel1) continue;
+	//if (!fMCCSwitch && moduletoCTB(primaryHits_B[iHit_B].moduleX, primaryHits_B[iHit_B].moduleY)!=pixel1) continue;
         double X1 = primaryHits_B[iHit_B].hitPositionX;
 
         double Y1 = primaryHits_B[iHit_B].hitPositionY;
@@ -922,7 +933,7 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(deltaY)<40 && fabs(deltaX)<40 && fabs(allUniqueTracksPair[u].dotProductCos)>0.998) {
+        if ( fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
@@ -931,8 +942,8 @@ double xOffset=0;
 	hitF.push_back(X_CRT); hitF.push_back(Y_CRT); hitF.push_back(Z_CRT);
 	hitB.push_back(trackX1); hitB.push_back(trackY1); hitB.push_back(trackZ1);
 	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kUnknown));
-	if (Z_CRT<100) T0col->push_back(anab::T0(CRTT0, -1, -1,CRTTrackId));
-        else T0col->push_back(anab::T0(CRTT0, -2, -1,CRTTrackId));
+	if (Z_CRT<100) T0col->push_back(anab::T0(CRTT0, 1, 1,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos)));
+        else T0col->push_back(anab::T0(CRTT0, 2, 1,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos) ));
 	auto const crtTrackPtr = crtPtr(CRTTrack->size()-1);
 	auto const t0CP = t0CandPtr(CRTTrackId);
 	CRTT0assn->addSingle(crtTrackPtr,t0CP);
