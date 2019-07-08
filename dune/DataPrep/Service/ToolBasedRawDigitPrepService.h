@@ -31,6 +31,7 @@ class ToolBasedRawDigitPrepService : public RawDigitPrepService {
 
 public:
 
+  using Index = unsigned int;
   using AdcChannelToolPtr = std::unique_ptr<AdcChannelTool>;
   struct NamedTool {
     std::string name;
@@ -41,6 +42,11 @@ public:
   using AdcChannelNamedToolVector = std::vector<NamedTool>;
 
   ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
+
+  // Called at begin and end of event processing.
+  // Calls the same method for each tool.
+  int beginEvent(const DuneEventInfo& devt) const override;
+  int endEvent(const DuneEventInfo& devt) const override;
 
   int prepare(AdcChannelDataMap& prepdigs,
               std::vector<recob::Wire>* pwires,

@@ -9,6 +9,7 @@ cet_find_library( IFBEAM NAMES ifbeam PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
 
 
 art_make( MODULE_LIBRARIES
+                        dune_ArtSupport
 			${IFBEAM}
 			${IFBEAMSERVICE}
                         lardataobj_RawData

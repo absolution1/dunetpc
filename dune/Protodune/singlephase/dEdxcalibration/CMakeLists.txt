@@ -32,7 +32,7 @@ art_make(
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larevt_Filters
-  lardata_RecoObjects larreco_Deprecated
+  lardata_RecoObjects
   lardataobj_RecoBase
   lardataobj_MCBase
   larreco_RecoAlg
@@ -43,7 +43,7 @@ art_make(
   lardataobj_RawData
   larreco_Calorimetry
   lardataobj_AnalysisBase
-  nutools_RandomUtils_NuRandomService_service
+  nurandom_RandomUtils_NuRandomService_service
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}

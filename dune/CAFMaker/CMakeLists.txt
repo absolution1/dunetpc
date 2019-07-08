@@ -56,8 +56,8 @@ cet_find_library( GREINSEHGAL NAMES ${GRSSPELLING} PATHS ENV GENIE_LIB NO_DEFAUL
 ##cet_find_library( SYSTTOOLS NAMES systematicstools_interface systematicstools_interpreters systematicstools_utility PATHS ENV SYSTEMATICSTOOLS_LIB NO_DEFAULT_PATH )
 
 simple_plugin(CAFMaker   "module"
-                        nutools_NuReweight
-                        nutools_NuReweight_art
+                        nugen_NuReweight
+                        nugen_NuReweight_art
 			nusimdata_SimulationBase
                         ${GHEP}
                         ${GEVGCORE}

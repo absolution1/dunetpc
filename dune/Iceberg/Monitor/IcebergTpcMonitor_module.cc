@@ -345,21 +345,32 @@ namespace tpc_monitor{
     
     // protodune, but the first 10 are Iceberg labels
 
-    unsigned int fembmap_by_fiberID[120] =
-      {
-	703,727,715,723,721,706,726,716,704,709,308,303,317,312,307,302,316,311,306,301,505,510,515,520,504,509,514,519,503,508,513,518,502,507,512,517,501,506,511,516,220,215,210,205,219,
-	214,209,204,218,213,208,203,217,212,207,202,216,211,206,201,605,610,615,620,604,609,614,619,603,608,613,618,602,607,612,617,601,606,611,616,120,115,110,105,119,114,109,104,118,113,
-        108,103,117,112,107,102,116,111,106,101,405,410,415,420,404,409,414,419,403,408,413,418,402,407,412,417,401,406,411,416
-      };
+    // unsigned int fembmap_by_fiberID[120] =
+    //   {
+    //     703,727,715,723,721,706,726,716,704,709,
+    //     308,303,317,312,307,302,316,311,306,301,505,510,515,520,504,509,514,519,503,508,513,518,502,507,512,517,501,506,511,516,220,215,210,205,219,
+    //     214,209,204,218,213,208,203,217,212,207,202,216,211,206,201,605,610,615,620,604,609,614,619,603,608,613,618,602,607,612,617,601,606,611,616,120,115,110,105,119,114,109,104,118,113,
+    //     108,103,117,112,107,102,116,111,106,101,405,410,415,420,404,409,414,419,403,408,413,418,402,407,412,417,401,406,411,416
+    //   };
+    // latest Run 2 FEMB placement
+    std::pair<std::string, std::string> fembmapstr_by_fiberID[10] = 
+    {
+      {"727", "WIB1-FEMB1"}, {"726", "WIB3-FEMB1"},{"716","WIB2-FEMB1"},{"723","WIB1-FEMB2"},{"703","WIB3-FEMB3"},
+      {"FM015", "WIB1-FEMB4"},{"FM012","WIB2-FEMB4"},{"FM140","WIB3-FEMB4"},{"721","WIB1-FEMB3"},{"706","WIB2-FEMB3"}
+    };
 
   
     // FFT's by fiber
     for(int i=0;i<10;i++) {
-      unsigned int imb = fembmap_by_fiberID[i];
+      // re-order by Z - plane channels
+      unsigned int z_i = (i > 4) ? 14 - i : i;
+      // unsigned int imb = fembmap_by_fiberID[i];
+      std::pair<std::string, std::string> fembstr = fembmapstr_by_fiberID[i];
       //fPersistentFFT_by_Fiber.push_back(tfs->make<TH2F>(Form("Persistent_FFT_FEMB_%d", imb), Form("FFT FEMB%d WIB%d", imb, ( (i/4) % 5)+1), fNticks/2, 0, fNticks/2*fBinWidth, 150, -100, 50));
       //fPersistentFFT_by_Fiber[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fPersistentFFT_by_Fiber[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
       // still keep the profiled FFT's by FEMB
-      fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_FEMB_%d", imb), Form("Profiled FFT FEMB_%d WIB%d", imb, ( (i/4) %5)+1), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
+      // fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_FEMB_%02d", imb), Form("Profiled FFT FEMB_%d WIB%d", imb, ( (i/4) %5)+1), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
+      fFFT_by_Fiber_pfx.push_back(tfs->make<TProfile>(Form("Profiled_FFT_FEMB_%02d", z_i+1), Form("Profiled FFT FEMB_%s %s", fembstr.first.c_str(), fembstr.second.c_str()), fNticks/2, 0, fNticks/2*fBinWidth, -100, 50));
       fFFT_by_Fiber_pfx[i]->GetXaxis()->SetTitle("Frequency [kHz]"); fFFT_by_Fiber_pfx[i]->GetYaxis()->SetTitle("Amplitude [dB]"); 
     }
     // persistent FFT now by APA

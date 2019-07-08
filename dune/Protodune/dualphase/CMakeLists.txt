@@ -61,7 +61,7 @@ simple_plugin(
 	  larevt_Filters
 	  lardataobj_RawData
 	  lardataobj_RecoBase
-	  lardata_RecoObjects larreco_Deprecated
+	  lardata_RecoObjects
 	  lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
@@ -96,3 +96,4 @@ install_source()
 install_scripts()
 
 add_subdirectory(Light)
+add_subdirectory(RawDecoding)

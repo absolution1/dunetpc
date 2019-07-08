@@ -41,3 +41,4 @@ install_fhicl()
 install_source()
 
 add_subdirectory(BeamExample)
+add_subdirectory(Pion)

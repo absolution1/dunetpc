@@ -1,0 +1,18 @@
+# badevents_pdsp.fcl
+#
+# David Adams
+# June 2019
+#
+# Bad events for protoDUNE single phase.
+# These are events that should be skipped in data processing
+#
+# The format for entries is [RUN, EVT1, EVT2, ...]
+
+tools.pdsp_unpack_crash_events: {
+  tool_type: FclIndexVectorMapTool
+  LogLevel: 1
+  Entries: [
+    [4644, 116, 1177, 1620]      # Intermittent crashes 17-jun-2019
+  ]
+}
+

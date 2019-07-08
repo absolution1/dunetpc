@@ -152,10 +152,12 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_vmlLines.clear();
   m_binLabelsX = rhs.m_binLabelsX;
   m_binLabelsY = rhs.m_binLabelsY;
+  m_subBounds = rhs.m_subBounds;
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
     m_subMans.emplace_back(man);
   }
+  m_iobjLegend = rhs.m_iobjLegend;
   update();
   return *this;
 }
@@ -573,7 +575,10 @@ int TPadManipulator::update() {
   }
   // If frame is not yet drawn, use the primary object to draw it.
   if ( ! haveFrameHist() ) {
-    if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
+    // Fetch the set bounds.
+    if ( m_ph != nullptr ) {
+      m_ph->Draw(m_dopt.c_str());
+    }
     else if ( m_pg != nullptr ) {
       // If the graph has no points, we add one because root (6.12/06) raises an
       // exception if we draw an empty graph.
@@ -768,19 +773,21 @@ int TPadManipulator::update() {
   getYaxis()->SetTickLength(tickleny);
   // May 2019. Ensure frame axis has same binning as histogram.
   // And set bin labels.
+  // July 2019: The calls to TAxis::Set cause problems if the drawing bounds are
+  // set here. Make those calls iff bin labels are set.
   if ( haveHist() ) {
-    TAxis* pah = m_ph->GetXaxis();
-    getXaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
     if ( m_binLabelsX.size() ) {
+      TAxis* pah = m_ph->GetXaxis();
+      getXaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
       for ( Index ilab=0; ilab<m_binLabelsX.size(); ++ilab ) {
         getXaxis()->SetBinLabel(ilab+1, m_binLabelsX[ilab].c_str());
       }
     }
-    pah = m_ph->GetYaxis();
-    getYaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
-    if ( dynamic_cast<TH2*>(m_ph.get()) != nullptr ) {
+    if ( dynamic_cast<TH2*>(m_ph.get()) != nullptr && m_binLabelsY.size() ) {
+      TAxis* pah = m_ph->GetYaxis();
+      getYaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
       for ( Index ilab=0; ilab<m_binLabelsY.size(); ++ilab ) {
-        getXaxis()->SetBinLabel(ilab+1, m_binLabelsY[ilab].c_str());
+        getYaxis()->SetBinLabel(ilab+1, m_binLabelsY[ilab].c_str());
       }
     }
   }

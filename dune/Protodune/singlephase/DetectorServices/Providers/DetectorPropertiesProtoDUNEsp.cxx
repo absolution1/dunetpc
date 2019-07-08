@@ -98,6 +98,17 @@ namespace spdp{
   }
 
 
+  bool DetectorPropertiesProtoDUNEsp::UpdateTemp(int run)
+  {
+    if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
+      fTemperature = 87.36;
+    }
+    else if (run >= 6930)
+    {
+      fTemperature = 87.65;
+    }
+    return true;
+  }
 
   bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string metadata){
 
@@ -184,9 +195,10 @@ namespace spdp{
       //fEfield[2]=std::fabs(Uplane_bias-Vplane_bias)/0.475;
       //fEfield[3]=std::fabs(Vplane_bias-Xplane_bias)/0.475;
       if (std::abs(fHV_cath-180) < 1e-6){
-        // Use the corrected E field from Flavio and Francesco
+        // Use the corrected E field from Flavio, Francesco and Stefania
+        // Ref: https://indico.fnal.gov/event/20939/contribution/1/material/slides/0.pdf
         if (run < 6725){ //first run in Feb 8, 2019
-          fEfield[0] = 0.4936;
+          fEfield[0] = 0.4867;
         }
         else{
           fEfield[0] = 0.4995;
