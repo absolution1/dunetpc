@@ -542,9 +542,18 @@ void DataPrepModule::produce(art::Event& evt) {
 
   for ( AdcChannelDataMap& datamap : datamaps ) {
 
-    if ( datamap.size() == 0 ) continue;
+    Index nacd = datamap.size();
+    if ( nacd == 0 ) {
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "Skipping empty data map." << endl;
+      }
+      continue;
+    }
 
     // Use the data preparation service to build the wires and intermediate states.
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "Preparing " << nacd << " channel" << (nacd == 1 ? "" : "s") << "." << endl;
+    }
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
 
