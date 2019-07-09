@@ -83,6 +83,8 @@ namespace protoana {
 
     void reconfigure(fhicl::ParameterSet const &pset);
 
+    const beam::ProtoDUNEBeamEvent GetBeamEvent(art::Event const & evt);
+
     void GetFibers( art::Event const & evt); 
     void GetCurrent( art::Event const & evt);
 

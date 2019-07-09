@@ -1,6 +1,7 @@
 #include "PionAnalyzer.fcl"
 #include "services_dune.fcl"
 
+#include "PionAbsCexSelection.fcl"
 
 process_name: PionAna
 
@@ -26,17 +27,6 @@ source:
   fileNames: ["input_file.root"]
 }
 
-#outputs:
-#{
-# out1:
-# {
-#   module_type: RootOutput
-#   fileName:    "Beam.root"    #default file name, can override from command line with -o or --output
-#   dataTier: "reconstructed"
-#   fastCloning: false
-# } 
-#}
-
 physics:
 {
 
@@ -45,7 +35,8 @@ physics:
  }
 
  filters: { 
-   f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
+   #f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
+   f1: @local::pion_abscex_filter
  }
 
  fpath: [f1]

@@ -15,6 +15,15 @@ protoana::ProtoDUNEBeamlineUtils::~ProtoDUNEBeamlineUtils(){
 
 }
 
+const beam::ProtoDUNEBeamEvent protoana::ProtoDUNEBeamlineUtils::GetBeamEvent(art::Event const & evt){
+  std::vector< art::Ptr< beam::ProtoDUNEBeamEvent > > beamVec;
+  auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent> >(fBeamEventTag);
+  if( beamHandle.isValid() ){
+    art::fill_ptr_vector( beamVec, beamHandle );
+  }
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0)); 
+  return beamEvent;
+}
 void protoana::ProtoDUNEBeamlineUtils::GetCurrent( art::Event const & evt ){
 
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
