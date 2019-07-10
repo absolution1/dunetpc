@@ -189,15 +189,9 @@ $Argon_y                =       790.0;
 $Argon_z                =       854.8;
 
 if($protoDune==1){
-<<<<<<< HEAD
-    $APAToSouthCrWall	=     27.7; #center APA to cryostat
-    $CPAToWestCrWall	=     45.5; #center CPA to beam window side
-    $DetCentToFloor	=     376.0; # center CPA to cryostat floor, y axis
-=======
     $APAToSouthCrWall   =     27.7; #center APA to cryostat
     $CPAToWestCrWall    =     45.5; #center CPA to beam window side
     $DetCentToFloor     =     376.0; # center CPA to cryostat floor, y axis
->>>>>>> feature/mtzanov_pdsp_geo61
     $CPACentToWestWall  =     396.2; # center CPA to beam window side, z axis
     $CPACentToEastWall  =     458.6;
     $CPACentToSaleWall  =     391.4; # center CPA to Saleve, x axis
@@ -218,19 +212,13 @@ if($protoDune==1){
 #Distance to floor  3760.2 mm
 #Distance to ceiling  4139.8 mm
 #Floor to ceiling  7900
-<<<<<<< HEAD
-=======
 
->>>>>>> feature/mtzanov_pdsp_geo61
 }
 
  #InnerDrift is the max distance form the edge of the CPA to the edge of the first wire plane
 #$InnerDrift              = 359.4;
 $InnerDrift              = 357.135;
-<<<<<<< HEAD
-=======
 
->>>>>>> feature/mtzanov_pdsp_geo61
 $APAFrame_x              = 3*$inch; # ~2in -- this does not include the wire spacing
 
 $TPCWireThickness        = 0.015;
@@ -288,15 +276,9 @@ $APA_UtoU_x   = $APAFrame_x + 6*$APAWirePlaneSpacing + (6-1)*$TPCWirePlaneThickn
                                                                                # outer wire planes (center to center)
 #$TPCInner_x   = $InnerDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness;
 $TPCInner_x   = $InnerDrift + 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
-<<<<<<< HEAD
-#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall.
-$TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
-
-=======
 #$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall. 
 $TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness + 8;
  
->>>>>>> feature/mtzanov_pdsp_geo61
 print "TPCInner_x=".$TPCInner_x."\n";
 print "TPCOuter_x=".$TPCOuter_x."\n";
 print "APA_UtoU_x=".$APA_UtoU_x."\n";
@@ -317,6 +299,7 @@ $Cathode_x                 =    0.13*$inch;
 #$Cathode_z                 =    $APAphys_z - $CPATube_OD;   
 #$Cathode_y                 =    610.4;
 $Cathode_z                 =    715.5;
+
 
 $APAToAPA =   $APAFrame_x 
             + 2*$TPCInner_x
@@ -1716,10 +1699,6 @@ EOF
 
     my $BottomOfAPA = - $TPC_y/2 + $APAGap_y/2;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> feature/mtzanov_pdsp_geo61
     $posZplane[0]   = -$_[0]/2 + $APAWirePlaneSpacing + $TPCWirePlaneThickness/2;
     $posZplane[1]   = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y/2;
     $posZplane[2]   = 0;
