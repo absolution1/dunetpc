@@ -45,6 +45,11 @@ standard_protodunebeamlineutils:
    L2: 1.69472
    L3: 2.11666
 
+      ##Calibrated Positions##
+   BProf1Shift:  0.
+   BProf2Shift:  0.
+   BProf3Shift:  1.45
+
    ##################################
    ### For Justin Hugon's old cuts ##
    ##################################
