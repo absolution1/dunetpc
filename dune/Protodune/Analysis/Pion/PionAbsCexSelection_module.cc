@@ -114,9 +114,11 @@ bool PionAbsCexSelection::filter(art::Event& e)
   protoana::ProtoDUNEPFParticleUtils  pfpUtil;
   protoana::ProtoDUNETrackUtils       trackUtil;
   
-  if( !fBeamlineUtils.IsGoodBeamlineTrigger( e ) ){
-    MF_LOG_INFO("AbsCexSelection") << "Failed Beamline Trigger Check" << "\n";
-    return false;
+  if( e.isRealData() ){
+    if( !fBeamlineUtils.IsGoodBeamlineTrigger( e ) ){
+      MF_LOG_INFO("AbsCexSelection") << "Failed Beamline Trigger Check" << "\n";
+      return false;
+    }
   }
 
 

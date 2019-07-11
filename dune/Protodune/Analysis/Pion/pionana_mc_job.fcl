@@ -35,12 +35,6 @@ physics:
  
  }
 
-# filters: { 
-#   f1: @local::beam_filter
-# }
-#
-# fpath: [f1]
-
  analyzers:
  {
   pionana:          @local::pionanalysis
@@ -55,7 +49,4 @@ physics:
 }
 
 outputs: {}
-
 physics.analyzers.pionana.SelectEvents: []
-#physics.filters.f1.PDG: [211]
-#physics.filters.f1.IsVerbose: true

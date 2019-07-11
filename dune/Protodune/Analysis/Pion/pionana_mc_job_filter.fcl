@@ -1,6 +1,6 @@
-#include "PionAnalyzer.fcl"
+#include "PionAnalyzerMC.fcl"
 #include "services_dune.fcl"
-
+#include "ProtoDUNETruthBeamFilter.fcl"
 #include "PionAbsCexSelection.fcl"
 
 process_name: PionAna
@@ -8,7 +8,7 @@ process_name: PionAna
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "pionana.root" }
+  TFileService: { fileName: "pionana_mc.root" }
   TimeTracker:       {}
   MemoryTracker:     {}
   RandomNumberGenerator: {} #ART native random number generator
@@ -53,4 +53,4 @@ physics:
 
 outputs: {}
 
-
+#physics.analyzers.pionana.SelectEvents: []
