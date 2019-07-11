@@ -19,6 +19,7 @@ pion_abscex_filter: {
     calib_factor: 6.155e-3
     X_correction: "/dune/app/users/apaudel/v071100/run5387_new/run_5387_Xcalibration.root"
   }
+  GeneratorTag:           "generator"
   BeamlineUtils: @local::standard_protodunebeamlineutils
 
   #Cuts in cm

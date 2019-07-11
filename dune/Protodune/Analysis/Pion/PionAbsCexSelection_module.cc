@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 
@@ -28,6 +29,8 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardata/ArtDataHelper/MVAReader.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
 
 #include "TFile.h"
 #include "TProfile.h"
@@ -59,6 +62,7 @@ private:
   std::string fCalorimetryTag;
 
   fhicl::ParameterSet fCalorimetryParameters;
+  std::string fGeneratorTag;
   
   std::pair< double, double > fTrackStartXCut;
   std::pair< double, double > fTrackStartYCut;
@@ -79,12 +83,15 @@ private:
 
 PionAbsCexSelection::PionAbsCexSelection(fhicl::ParameterSet const& p)
   : EDFilter{p} ,
-  beamlineUtil( p.get<fhicl::ParameterSet>("BeamlineUtils")),
-  fPFParticleTag( p.get<std::string>("PFParticleTag")),
-  fTrackerTag( p.get<std::string>("TrackerTag")),
-  fShowerTag( p.get<std::string>("ShowerTag")),
-  fCalorimetryTag( p.get<std::string>("CalorimetryTag")),
-  fCalorimetryParameters( p.get<fhicl::ParameterSet>("CalorimetryParameters")),
+
+  beamlineUtil( p.get< fhicl::ParameterSet >("BeamlineUtils")),
+  fPFParticleTag( p.get< std::string >("PFParticleTag")),
+  fTrackerTag( p.get< std::string >("TrackerTag")),
+  fShowerTag( p.get< std::string >("ShowerTag")),
+  fCalorimetryTag( p.get< std::string >("CalorimetryTag")),
+  fCalorimetryParameters( p.get< fhicl::ParameterSet >("CalorimetryParameters")),
+  fGeneratorTag( p.get< std::string >("GeneratorTag") ),
+
   fTrackStartXCut( p.get< std::pair< double, double> >("TrackStartXCut") ),
   fTrackStartYCut( p.get< std::pair< double, double> >("TrackStartYCut") ),
   fTrackStartZCut( p.get< std::pair< double, double> >("TrackStartZCut") ),
@@ -93,6 +100,7 @@ PionAbsCexSelection::PionAbsCexSelection(fhicl::ParameterSet const& p)
   fStrictNTracks( p.get< bool >("StrictNTracks") ),
   fDaughterCNNCut( p.get< double >("DaughterCNNCut") ),
   fChi2PIDCut( p.get< double >("Chi2PIDCut") ),
+
   dEdX_template_name(p.get<std::string>("dEdX_template_name")),
   dEdX_template_file( dEdX_template_name.c_str(), "OPEN" )
 
@@ -138,12 +146,13 @@ bool PionAbsCexSelection::filter(art::Event& e)
   }
   ////////////////////////////////////////////////////////////////////
   
+  /*
   //Get some objects to use for CNN output checking later
-  anab::MVAReader<recob::Hit,4> hitResults(e, /*fNNetModuleLabel*/ "emtrkmichelid:emtrkmichel" );
+  anab::MVAReader<recob::Hit,4> hitResults(e, "emtrkmichelid:emtrkmichel" );
   auto recoTracks = e.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
   art::FindManyP<recob::Hit> findHits(recoTracks,e,fTrackerTag);
   ////////////////////////////
-  
+  */
   
   //Here add in the cuts for the position of the beam and the incident angle
   //First: need to switch reversed tracks    
@@ -185,46 +194,83 @@ bool PionAbsCexSelection::filter(art::Event& e)
   std::cout << startX << " " << endX << std::endl;
   std::cout << dirX << " " << dirY << " " << dirZ << std::endl;
 
-  auto beamEvent = fBeamlineUtils.GetBeamEvent(e);
-  std::cout << beamEvent.GetTOF() << std::endl;
+  if( e.isRealData() ){
+    auto beamEvent = fBeamlineUtils.GetBeamEvent(e);
+    std::cout << beamEvent.GetTOF() << std::endl;
 
-  const std::vector< recob::Track > & beamEventTracks = beamEvent.GetBeamTracks();
-  if( beamEventTracks.size() < 1 ){
-    MF_LOG_INFO("AbsCexSelection") << "No tracks associated to beam event" << "\n";   
-    return false;
+    const std::vector< recob::Track > & beamEventTracks = beamEvent.GetBeamTracks();
+    if( beamEventTracks.size() < 1 ){
+      MF_LOG_INFO("AbsCexSelection") << "No tracks associated to beam event" << "\n";   
+      return false;
+    }
+    else if( fStrictNTracks && (beamEventTracks.size() > 1) ){
+      MF_LOG_INFO("AbsCexSelection") << "Too many tracks associated to beam event" << "\n";   
+      return false;
+    }
+
+    auto beamEventTrack = beamEventTracks.at(0);
+    double deltaX = startX - beamEventTrack.End().X();
+    double deltaY = startY - beamEventTrack.End().Y();
+    double deltaZ = startZ - beamEventTrack.End().Z();
+
+    if( !InRange(deltaZ, fTrackStartZCut.first, fTrackStartZCut.second) ||
+        !InRange(deltaY, fTrackStartYCut.first, fTrackStartYCut.second) ||
+        !InRange(deltaX, fTrackStartXCut.first, fTrackStartXCut.second) ){
+
+      MF_LOG_INFO("AbsCexSelection") << "Beam track is outside of good start region" << "\n";
+      return false;
+    }
+
+    double beamDirX  = beamEventTrack.EndDirection().X();
+    double beamDirY  = beamEventTrack.EndDirection().Y();
+    double beamDirZ  = beamEventTrack.EndDirection().Z();
+
+    double cos_theta = (beamDirX*dirX + beamDirY*dirY + beamDirZ*dirZ);
+    if( cos_theta < fTrackDirCut ){
+      MF_LOG_INFO("AbsCexSelection") << "Bad track angle" << "\n"; 
+      return false;
+    }
   }
-  else if( fStrictNTracks && (beamEventTracks.size() > 1) ){
-    MF_LOG_INFO("AbsCexSelection") << "Too many tracks associated to beam event" << "\n";   
-    return false;
-  }
+  else{
 
-  auto beamEventTrack = beamEventTracks.at(0);
-  double deltaX = startX - beamEventTrack.End().X();
-  double deltaY = startY - beamEventTrack.End().Y();
-  double deltaZ = startZ - beamEventTrack.End().Z();
+    protoana::ProtoDUNETruthUtils truthUtil;
+   
+    auto mcTruths = e.getValidHandle<std::vector<simb::MCTruth>>(fGeneratorTag);
+    const simb::MCParticle* true_beam_particle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],e);
+    if( !true_beam_particle ){
+      MF_LOG_INFO("AbsCexSelection") << "No true beam particle" << "\n";
+      return false;
+    }
+    
+    double deltaX = startX - true_beam_particle->Position(0).X();      
+    double deltaY = startY - true_beam_particle->Position(0).Y();      
+    double deltaZ = startZ - true_beam_particle->Position(0).Z();      
 
-  if( !InRange(deltaZ, fTrackStartZCut.first, fTrackStartZCut.second) ||
-      !InRange(deltaY, fTrackStartYCut.first, fTrackStartYCut.second) ||
-      !InRange(deltaX, fTrackStartXCut.first, fTrackStartXCut.second) ){
+    if( !InRange(deltaZ, fTrackStartZCut.first, fTrackStartZCut.second) ||
+        !InRange(deltaY, fTrackStartYCut.first, fTrackStartYCut.second) ||
+        !InRange(deltaX, fTrackStartXCut.first, fTrackStartXCut.second) ){
 
-    MF_LOG_INFO("AbsCexSelection") << "Beam track is outside of good start region" << "\n";
-    return false;
-  }
+      MF_LOG_INFO("AbsCexSelection") << "Beam track is outside of good start region" << "\n";
+      return false;
+    }
 
-  double beamDirX  = beamEventTrack.EndDirection().X();
-  double beamDirY  = beamEventTrack.EndDirection().Y();
-  double beamDirZ  = beamEventTrack.EndDirection().Z();
+    double beamDirX  = true_beam_particle->Px() / true_beam_particle->P();
+    double beamDirY  = true_beam_particle->Py() / true_beam_particle->P();
+    double beamDirZ  = true_beam_particle->Pz() / true_beam_particle->P();
 
-  double cos_theta = (beamDirX*dirX + beamDirY*dirY + beamDirZ*dirZ);
-  if( cos_theta < fTrackDirCut ){
-    MF_LOG_INFO("AbsCexSelection") << "Bad track angle" << "\n"; 
-    return true;
+    double cos_theta = (beamDirX*dirX + beamDirY*dirY + beamDirZ*dirZ);
+    if( cos_theta < fTrackDirCut ){
+      MF_LOG_INFO("AbsCexSelection") << "Bad track angle" << "\n"; 
+      return false;
+    }
+
+
   }
    
   //Cut for track length to cut out muons/keep the track within the APA3? 
   if( endZ > fTrackEndZCut ){
     MF_LOG_INFO("AbsCexSelection") << "Failed End Z cut" << "\n";
-    return true;
+    return false;
   }
   
   //Look at the daughters and check for track-like daughters that look like showers
@@ -233,6 +279,8 @@ bool PionAbsCexSelection::filter(art::Event& e)
 
   for( size_t i = 0; i < trackDaughters.size(); ++i ){
     auto daughterTrack = trackDaughters.at(i);
+
+    /*
     auto daughterHits = findHits.at( daughterTrack->ID() ); 
 
     double track_total = 0.;  
@@ -243,6 +291,7 @@ bool PionAbsCexSelection::filter(art::Event& e)
 
     if( track_total < fDaughterCNNCut ) 
       continue;
+    */
 
     //Now: If it's not a potential gamma, pass the calorimetry through the 
     //     Chi2 PID and see if any MIP-like daughters are associated
