@@ -282,7 +282,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%ASUNIT%]";
     else if ( hvarx == "sigWidth" ) xlab = "Width [Tick]";
     else if ( hvarx == "timeSec" ) xlab = stimepre + " [sec]";
-    else if ( hvarx == "timeHour" ) xlab = stimepre + "[hour]";
+    else if ( hvarx == "timeHour" ) xlab = stimepre + " [hour]";
+    else if ( hvarx == "timeDay" ) xlab = stimepre + " [day]";
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
     }
@@ -352,10 +353,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
     }
-    const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
-    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end()
-         && etype.substr(0, 3) != "rms" ) {
-      cout << myname << "ERROR: Channel summary histogram has invalid error type: " << etype << endl;
+    const NameVector errTypes = {"none", "zero", "rms", "meanError", "rmsError", "fitSigma"};
+    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
+      cout << myname << "ERROR: Channel summary histogram has invalid error type: \"" << etype << '"' << endl;
       continue;
     }
     TH1* phval = ivh->second.ph;
@@ -1083,6 +1083,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     else if ( varx == "fitCSNormDof" )       vals = dm.getFloatVector("roiFitChiSquareDofs");
     else if ( varx == "timeSec" )           ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeHour" )          ivals = dm.getIntVector("roiTimes");
+    else if ( varx == "timeDay" )           ivals = dm.getIntVector("roiTimes");
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << varx << endl;
@@ -1130,6 +1131,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       varfac = 1.0/pulserQin;
     }
     if ( varx == "timeHour" ) varfac = 1/3600.0;
+    if ( varx == "timeDay" ) varfac = 1/(24*3600.0);
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     // Create histogram if it does not yet exist or is empty and we have data here.
     //if ( ph == nullptr && vals.size() ) {
@@ -1638,6 +1640,12 @@ void AdcRoiViewer::fillChanSumHists() const {
       } else if ( errtype.substr(0,3) == "rms" ) {
         dval = phvar->GetRMS();
         if ( dval < errmin ) dval = errmin;
+      } else if ( errtype == "meanError" ) {
+        dval = phvar->GetMeanError();
+        if ( dval < errmin ) dval = errmin;
+      } else if ( errtype == "rmsError" ) {
+        dval = phvar->GetRMSError();
+        if ( dval < errmin ) dval = errmin;
       } else if ( errtype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
@@ -1653,6 +1661,9 @@ void AdcRoiViewer::fillChanSumHists() const {
         } else {
           dval = pf->GetParameter(ipar);
         }
+      } else {
+        cout << myname << "Invalid error type: " << errtype << endl;
+        abort();
       }
       if ( ph->GetEntries() == 0 ) {
         TAxis* paxis = isDist ? ph->GetXaxis() : ph->GetYaxis();

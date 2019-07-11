@@ -64,6 +64,7 @@
 //            fitCSNorm - Chi-square/(ped RMS)^2
 //            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
 //            timingPhase_fitToffPulserMod10 - 2D plot of timing phase (0 to 1) vs offset tick
+//            timeSec, timeHour, timeDay - DAQ time sine StartTime
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -95,6 +96,8 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                 rms - Root GetRMS()
+//           meanError - Root GetMeanError()
+//            rmsError - Root GetRMSError()
 //               rmsFF - max(Root GetRMS(), FF)
 //                zero - Set the error to zero
 //     bins - if > 0,  plot # channels vs. variable in nbins bins

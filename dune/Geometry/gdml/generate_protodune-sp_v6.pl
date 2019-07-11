@@ -189,9 +189,9 @@ $Argon_y                =       790.0;
 $Argon_z                =       854.8;
 
 if($protoDune==1){
-    $APAToSouthCrWall	=     27.7; #center APA to cryostat
-    $CPAToWestCrWall	=     45.5; #center CPA to beam window side
-    $DetCentToFloor	=     376.0; # center CPA to cryostat floor, y axis
+    $APAToSouthCrWall   =     27.7; #center APA to cryostat
+    $CPAToWestCrWall    =     45.5; #center CPA to beam window side
+    $DetCentToFloor     =     376.0; # center CPA to cryostat floor, y axis
     $CPACentToWestWall  =     396.2; # center CPA to beam window side, z axis
     $CPACentToEastWall  =     458.6;
     $CPACentToSaleWall  =     391.4; # center CPA to Saleve, x axis
@@ -212,11 +212,13 @@ if($protoDune==1){
 #Distance to floor  3760.2 mm
 #Distance to ceiling  4139.8 mm
 #Floor to ceiling  7900
+
 }
 
  #InnerDrift is the max distance form the edge of the CPA to the edge of the first wire plane
 #$InnerDrift              = 359.4;
 $InnerDrift              = 357.135;
+
 $APAFrame_x              = 3*$inch; # ~2in -- this does not include the wire spacing
 
 $TPCWireThickness        = 0.015;
@@ -274,9 +276,9 @@ $APA_UtoU_x   = $APAFrame_x + 6*$APAWirePlaneSpacing + (6-1)*$TPCWirePlaneThickn
                                                                                # outer wire planes (center to center)
 #$TPCInner_x   = $InnerDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness;
 $TPCInner_x   = $InnerDrift + 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
-#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall.
-$TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
-
+#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall. 
+$TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness + 8;
+ 
 print "TPCInner_x=".$TPCInner_x."\n";
 print "TPCOuter_x=".$TPCOuter_x."\n";
 print "APA_UtoU_x=".$APA_UtoU_x."\n";
@@ -297,6 +299,7 @@ $Cathode_x                 =    0.13*$inch;
 #$Cathode_z                 =    $APAphys_z - $CPATube_OD;   
 #$Cathode_y                 =    610.4;
 $Cathode_z                 =    715.5;
+
 
 $APAToAPA =   $APAFrame_x 
             + 2*$TPCInner_x
@@ -654,8 +657,19 @@ $ModuleSMDist        = 85.6;
 $ModuleOff_z         = 1;    # approx. correction for the center of a Module. Survey measures Z to the outside surface. Negative for the most US CRTs (surveyed from behind).
 $ModuleLongCorr      = 5.6;  # allign the the modules at the frame's edge
 
-####################### End of Survey data ##########
+# Beam Spot on the inside of the cryostat
 
+$BeamSpotDSS_x          = -20.58; 
+$BeamSpotDSS_y          = -425.41;
+$BeamSpotDSS_z          = -82.96;
+
+$BeamSpot_x = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $BeamSpotDSS_x +  $OriginXSet;;
+$BeamSpot_y = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $BeamSpotDSS_y +  $OriginYSet;;
+$BeamSpot_z = $posCryoInDetEnc_z + $CRTSurveyOrigin_z + $BeamSpotDSS_z +  $OriginZSet;;
+
+print "BeamSpot_x =".$BeamSpot_x.", BeamSpot_y =".$BeamSpot_y.", BeamSpot_z =".$BeamSpot_z."\n";
+
+####################### End of Survey data ##########
 
 my @posCRTDS_x = ();
 my @posCRTDS_y = ();
@@ -747,7 +761,6 @@ my @posCRTUS_x = ();
 my @posCRTUS_y = ();
 my @posCRTUS_z = ();
 my @posCRTUS_rot = ();
-
 
 $posCRTUS_x[0] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x - $ModuleSMDist;
 $posCRTUS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y - $ModuleLongCorr;
@@ -1686,7 +1699,6 @@ EOF
 
     my $BottomOfAPA = - $TPC_y/2 + $APAGap_y/2;
 
-
     $posZplane[0]   = -$_[0]/2 + $APAWirePlaneSpacing + $TPCWirePlaneThickness/2;
     $posZplane[1]   = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y/2;
     $posZplane[2]   = 0;
@@ -1702,6 +1714,7 @@ EOF
     $posTPCActive[0] = $posUplane[0] + $TPCWirePlaneThickness/2 + $TPCActive_x/2;
     $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
     $posTPCActive[2] = 0;
+
 
 #wrap up the TPC file
 print TPC <<EOF;

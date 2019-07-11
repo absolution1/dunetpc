@@ -409,7 +409,7 @@
       lunit="cm"/>
 
     <box name="Outer" lunit="cm" 
-      x="1.965" 
+      x="9.965" 
       y="607.49875" 
       z="231.66"/>
     <box name="OuterUPlane" lunit="cm" 
@@ -425,7 +425,7 @@
       y="598.39" 
       z="229.5368"/>
     <box name="OuterActive" lunit="cm"
-      x="0.49125"
+      x="8.49125"
       y="600.22375"
       z="231.66"/>
 
@@ -1034,19 +1034,19 @@
      <physvol>
        <volumeref ref="volTPCPlaneZOuter"/>
        <position name="posOuterPlaneZ" unit="cm" 
-         x="-0.49875" y="-3.05562500000008" z="0"/>
+         x="-4.49875" y="-3.05562500000008" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVOuter"/>
        <position name="posOuterPlaneV" unit="cm" 
-         x="-0.00750000000000008" y="-3.22312500000004" z="0"/>
+         x="-4.0075" y="-3.22312500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUOuter"/>
        <position name="posOuterPlaneU" unit="cm" 
-         x="0.48375" y="-3.39062500000006" z="0"/>
+         x="-3.51625" y="-3.39062500000006" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -1773,7 +1773,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-0" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="-263.26"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2029,7 +2029,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-3" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="-263.26"/> 
         <rotationref ref="rPlus180AboutX"/>
@@ -2226,7 +2226,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-4" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="-31.2"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2482,7 +2482,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-7" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="-31.2"/> 
         <rotationref ref="rPlus180AboutX"/>
@@ -2679,7 +2679,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-8" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="200.86"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2935,7 +2935,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-11" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="200.86"/> 
         <rotationref ref="rPlus180AboutX"/>
