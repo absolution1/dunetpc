@@ -49,6 +49,7 @@
 #include "dam/access/TpcRanges.hh"
 #include "dam/access/TpcToc.hh"
 #include "dam/access/TpcPacket.hh"
+#include "dam/RceFragmentUnpack.hh"
 
 // larsoft includes
 #include "lardataobj/RawData/RawDigit.h"
@@ -156,7 +157,8 @@ private:
   bool _processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, size_t &n_rce_frags, bool is_container, 
 			   art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
-  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm, size_t ntickscheck);
+  void _process_RCE_nticksvf(const artdaq::Fragment& frag, std::vector<size_t> &nticksvec);
 
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, size_t &n_felix_frags, bool is_container, art::Event &evt, RawDigits& raw_digits,
@@ -462,6 +464,44 @@ bool PDSPTPCRawDecoder::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags
       fFragSizeRCE->Fill(rcebytes);
     }
     
+
+  // figure out what the median number of ticks is
+
+  std::vector<size_t> nticksvec;
+  for (auto const& frag : *frags)
+    {
+      //std::cout << "RCE fragment size bytes: " << frag.sizeBytes() << std::endl; 
+
+      // skip small fragments even here
+
+      if (frag.sizeBytes() >= _rce_frag_small_size || (!_drop_small_rce_frags && !_drop_events_with_small_rce_frags))
+	{
+	  if (is_container)
+	    {
+	      artdaq::ContainerFragment cont_frag(frag);
+	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+		{
+		  _process_RCE_nticksvf(*cont_frag[ii], nticksvec);
+		}
+	    }
+	  else
+	    {
+	      _process_RCE_nticksvf(frag, nticksvec);
+	    }
+	}
+    }
+  if (nticksvec.size() == 0)
+    {
+      MF_LOG_WARNING("_process_RCE:") << " No valid nticks to check.  Discarding Event.";
+      _discard_data = true; 
+      _DiscardedCorruptData = true;
+      evt.removeCachedProduct(frags);
+      return false;
+    }
+  size_t nticksmedian = TMath::Median(nticksvec.size(),nticksvec.data()) + 0.01;  // returns a double -- want to make sure it gets truncated to the right integer
+
+
+  // actually process the 
   for (auto const& frag : *frags)
     {
       //std::cout << "RCE fragment size bytes: " << frag.sizeBytes() << std::endl; 
@@ -492,12 +532,12 @@ bool PDSPTPCRawDecoder::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, nticksmedian)) ++n_rce_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, nticksmedian)) ++n_rce_frags;
 	    }
 	}
     }
@@ -505,14 +545,10 @@ bool PDSPTPCRawDecoder::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags
   return true;
 }
 
-
-bool PDSPTPCRawDecoder::_process_RCE_AUX(
-					 const artdaq::Fragment& frag, 
-					 RawDigits& raw_digits,
-					 RDTimeStamps &timestamps,
-					 RDTsAssocs &tsassocs,
-					 RDPmkr &rdpm, TSPmkr &tspm
-					 )
+void PDSPTPCRawDecoder::_process_RCE_nticksvf(
+					       const artdaq::Fragment& frag, 
+					       std::vector<size_t> &nticksvec
+					     )
 {
 
   if (_rce_hex_dump)
@@ -544,6 +580,68 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       std::cout.copyfmt(oldState);
     }
 
+  dune::RceFragment rce(frag);
+
+  if (_rce_save_frags_to_files)
+    {
+       TString outfilename="rce";
+       outfilename += frag.sequenceID();
+       outfilename += "_";
+       outfilename += frag.fragmentID();
+       outfilename+=".fragment";
+       rce.save(outfilename.Data());
+       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+    }
+
+  artdaq::Fragment cfragloc(frag);
+  size_t cdsize = cfragloc.dataSizeBytes();
+  const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
+  HeaderFragmentUnpack const cdheader(cdptr);
+  //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
+  if (cdsize>16) cdsize -= 16;
+  bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
+  if (!isOkay) return;
+
+  // // skip if damaged but not FEMB 302
+  // if (cdheader.isData())
+  //   {
+  //     DataFragmentUnpack df(cdptr);
+  //     if (df.isTpcDamaged())
+  // 	{
+  // 	  bool found302 = false;
+  // 	   for (int i = 0; i < rce.size(); ++i)
+  //            {
+  //              auto const * rce_stream = rce.get_stream(i);
+  //              auto const identifier = rce_stream->getIdentifier();
+  //              uint32_t crateNumber = identifier.getCrate();
+  //              uint32_t slotNumber = identifier.getSlot();
+  //              uint32_t fiberNumber = identifier.getFiber();
+  // 	       if (crateNumber == 3 && slotNumber == 3 && fiberNumber == 2) found302 = true;
+  //            } 
+  // 	   if (!found302) return;
+  // 	}
+  //   }
+
+  for (int i = 0; i < rce.size(); ++i)
+    {
+      auto const * rce_stream = rce.get_stream(i);
+      //size_t n_ch = rce_stream->getNChannels();
+      size_t n_ticks = rce_stream->getNTicks();
+      nticksvec.push_back(n_ticks);
+    }
+
+}
+
+bool PDSPTPCRawDecoder::_process_RCE_AUX(
+					 const artdaq::Fragment& frag, 
+					 RawDigits& raw_digits,
+					 RDTimeStamps &timestamps,
+					 RDTsAssocs &tsassocs,
+					 RDPmkr &rdpm, TSPmkr &tspm,
+					 size_t ntickscheck
+					 )
+{
+
   if (_rce_enforce_fragment_type_match && (frag.type() != _rce_fragment_type)) 
     {
       MF_LOG_WARNING("_process_RCE_AUX:") << " RCE fragment type " << (int) frag.type() << " doesn't match expected value: " << _rce_fragment_type << " Discarding RCE fragment";
@@ -556,17 +654,21 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
   //<< "   fragmentType = " << (unsigned)frag.type()
   //<< "   Timestamp =  " << frag.timestamp();
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
+
   dune::RceFragment rce(frag);
-  
-  if (_rce_save_frags_to_files)
+  artdaq::Fragment cfragloc(frag);
+  size_t cdsize = cfragloc.dataSizeBytes();
+  const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
+  HeaderFragmentUnpack const cdheader(cdptr);
+  //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
+  if (cdsize>16) cdsize -= 16;
+  bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
+  if (!isOkay)
     {
-       TString outfilename="rce";
-       outfilename += frag.sequenceID();
-       outfilename += "_";
-       outfilename += frag.fragmentID();
-       outfilename+=".fragment";
-       rce.save(outfilename.Data());
-       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+      MF_LOG_WARNING("_process_RCE_AUX:") << "RCE Fragment isOkay failed: " << cdsize << " Discarding this fragment"; 
+      error_counter++;
+      _DiscardedCorruptData = true;
+      return false; 
     }
 
 
@@ -652,6 +754,22 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  //log the participating RCE channels
 	  rcechans=rcechans+n_ch;
 	}
+
+      // check the number of ticks and allow FEMB302 to have 10% fewer
+      size_t ntc10 = ( 0.9 * (float) ntickscheck );
+      if (!(
+	    n_ticks == ntickscheck ||
+	    (
+	     (crateNumber == 3 && slotNumber == 3 && fiberNumber == 2) &&
+	     n_ticks < ntickscheck && n_ticks > ntc10)
+	    )
+	  )
+	{
+	  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks differs from median or FEMB302 nticks not expected: " << n_ticks << " " 
+					      << ntickscheck << " Discarding this fragment";
+	  _DiscardedCorruptData = true;
+	  return false;
+	} 
 
       if (n_ticks != _full_tick_count)
 	{

@@ -230,6 +230,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
@@ -248,6 +249,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 11

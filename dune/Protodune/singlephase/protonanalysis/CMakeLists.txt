@@ -33,7 +33,7 @@ art_make(
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larevt_Filters
-  lardata_RecoObjects larreco_Deprecated
+  lardata_RecoObjects
   lardataobj_RecoBase
   lardataobj_MCBase
   larreco_RecoAlg

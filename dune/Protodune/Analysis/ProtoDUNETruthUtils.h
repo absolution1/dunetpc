@@ -130,6 +130,14 @@ namespace protoana {
     // Get MC Particle length in TPC active volume
     double GetMCParticleLengthInTPCActiveVolume(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh);
 
+    // Estimate last point energy loss
+    // By default the kinetic energy at the last trajectory point is zero. Estimate the energy loss of the last trajectory by using the average energy loss of the track in the TPC active volume
+    double GetDepEnergyAtLastTrajPoint(const simb::MCParticle& mcpart, double tpcactiveXlow, double tpcactiveXhigh, double tpcactiveYlow, double tpcactiveYhigh, double tpcactiveZlow, double tpcactiveZhigh);
+
+    // Get particle's kinetic energy at the interaction vertex
+    // It takes the particle's energy at the next to the final trajectory point and subtracts the estimated kinetic energy of the last trajectory point (by default is zero)
+    double GetKinEnergyAtVertex(const simb::MCParticle& mcpart, double kinene_lastpoint=0.0);
+
   private:
 
 
