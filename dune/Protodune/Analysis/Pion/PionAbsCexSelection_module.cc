@@ -148,13 +148,13 @@ bool PionAbsCexSelection::filter(art::Event& e)
   }
   ////////////////////////////////////////////////////////////////////
   
-  /*
+  
   //Get some objects to use for CNN output checking later
   anab::MVAReader<recob::Hit,4> hitResults(e, "emtrkmichelid:emtrkmichel" );
   auto recoTracks = e.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
   art::FindManyP<recob::Hit> findHits(recoTracks,e,fTrackerTag);
   ////////////////////////////
-  */
+  
   
   //Here add in the cuts for the position of the beam and the incident angle
   //First: need to switch reversed tracks    
@@ -282,7 +282,7 @@ bool PionAbsCexSelection::filter(art::Event& e)
   for( size_t i = 0; i < trackDaughters.size(); ++i ){
     auto daughterTrack = trackDaughters.at(i);
 
-    /*
+    
     auto daughterHits = findHits.at( daughterTrack->ID() ); 
 
     double track_total = 0.;  
@@ -291,9 +291,11 @@ bool PionAbsCexSelection::filter(art::Event& e)
       track_total  += cnn_out[ hitResults.getIndex("track") ]; 
     }
 
-    if( track_total < fDaughterCNNCut ) 
+    if( track_total < fDaughterCNNCut ){ 
+      MF_LOG_INFO("AbsCexSelection") << "Found daughter track that looks like shower" << "\n";
       continue;
-    */
+    }
+    
 
     //Now: If it's not a potential gamma, pass the calorimetry through the 
     //     Chi2 PID and see if any MIP-like daughters are associated

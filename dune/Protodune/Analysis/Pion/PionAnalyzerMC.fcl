@@ -30,7 +30,7 @@ pionanalysis:
   Verbose:                true
   DataUtils: @local::standard_protodunedatautils
 
-  SelectEvents: [fpath]
+  SelectEvents: []
 
 
 

@@ -761,6 +761,13 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         em_total     += cnn_out[ hitResults.getIndex("em") ];
         none_total   += cnn_out[ hitResults.getIndex("none") ];
         michel_total += cnn_out[ hitResults.getIndex("michel") ];
+
+
+        //In addition, try to get the dQ from each hit
+        auto theHit = daughter_hits[ h ];
+        double dQ = theHit->Integral();
+        std::cout << "Hit: " << h << " has dQ " << dQ << std::endl;
+        
       }
 
       if( daughter_hits.size() > 0 ){
