@@ -291,7 +291,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         Index& iplt = iplts[type];
         Index nplt = nplts[type];
         TH1* ph = res.getHist(type);
-        if ( m_LogLevel >= 3 ) cout << "  Adding subplot " << iplt << " for type " << type << "." << endl;
+        if ( m_LogLevel >= 3 ) cout << myname << "  Adding subplot " << iplt << " for type " << type << "." << endl;
         TPadManipulator& man = *mans[type].man(iplt);
         man.add(ph, "hist", false);
         if ( type == "raw" || type == "prepared" ) {

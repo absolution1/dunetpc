@@ -189,15 +189,36 @@ $Argon_y                =       790.0;
 $Argon_z                =       854.8;
 
 if($protoDune==1){
-    $APAToSouthCrWall	=     27.7; #center APA to cryostat
-    $CPAToWestCrWall	=     45.5; #center CPA to beam window side
-    $DetCentToFloor	=     376.0;  #center of detector to cryostat floor
-    $CPACentToWestWall  =     396.2; # center CPA to beam window side
+    $APAToSouthCrWall   =     27.7; #center APA to cryostat
+    $CPAToWestCrWall    =     45.5; #center CPA to beam window side
+    $DetCentToFloor     =     376.0; # center CPA to cryostat floor, y axis
+    $CPACentToWestWall  =     396.2; # center CPA to beam window side, z axis
     $CPACentToEastWall  =     458.6;
+    $CPACentToSaleWall  =     391.4; # center CPA to Saleve, x axis
+    $CPACentToJuraWall  =     463.4; # center CPA to Jura, x axis
+    $APAGap_y           =     0;
+
+#Beam direction
+#Distance to upstream wall  3962 mm
+#Distance to downstream wall 4586 mm
+#Distance wall to wall  8548 mm
+
+#Drift direction
+#Distance to Jura wall 4634 mm
+#Distance to Saleve wall 3914 mm
+#Distance wall to wall  8548 mm
+
+#Vertical
+#Distance to floor  3760.2 mm
+#Distance to ceiling  4139.8 mm
+#Floor to ceiling  7900
+
 }
 
  #InnerDrift is the max distance form the edge of the CPA to the edge of the first wire plane
-$InnerDrift              = 359.4;
+#$InnerDrift              = 359.4;
+$InnerDrift              = 357.135;
+
 $APAFrame_x              = 3*$inch; # ~2in -- this does not include the wire spacing
 
 $TPCWireThickness        = 0.015;
@@ -249,19 +270,18 @@ print "APAphys_y=".$APAphys_y."\n";
 #print "=".$."\n";
 #print "=".$."\n";
 
-$APA_UtoU_x   = $APAFrame_x + 6*$APAWirePlaneSpacing;# + $TPCWirePlaneThickness; # thickness of APA between its 
-$SpaceAPAToCryoWall      = $APAToSouthCrWall - ($APA_UtoU_x + $TPCWireThickness)/2;
-$OuterDrift              = $SpaceAPAToCryoWall - 10.; #Subtract some to avoid overlaping.
+$APA_UtoU_x   = $APAFrame_x + 6*$APAWirePlaneSpacing + (6-1)*$TPCWirePlaneThickness; # thickness of APA between center U wire to center U wire
+#$SpaceAPAToCryoWall      = $APAToSouthCrWall - ($APA_UtoU_x + $TPCWireThickness)/2;
+#$OuterDrift              = $SpaceAPAToCryoWall - 20.; #Subtract some to avoid overlaping.
                                                                                # outer wire planes (center to center)
-$TPCInner_x   = $InnerDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness;
-$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall.
-print "APAphys_z=".$APAphys_z."\n";
+#$TPCInner_x   = $InnerDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness;
+$TPCInner_x   = $InnerDrift + 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
+#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall. 
+$TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness + 8;
+ 
 print "TPCInner_x=".$TPCInner_x."\n";
 print "TPCOuter_x=".$TPCOuter_x."\n";
-
 print "APA_UtoU_x=".$APA_UtoU_x."\n";
-print "TPCInner_x=".$TPCInner_x."\n";
-print "TPCOuter_x=".$TPCOuter_x."\n";
 
 $TPC_z    =   $APAphys_z;# + $APAGap_z;
 $TPC_y    =   $APAphys_y;# + $APAGap_y;
@@ -273,7 +293,8 @@ print "TPC_z=".$TPC_z."\n";
 #$CPATube_OD = 5.08;
 #$CPATube_ID = 4.747;
 
-$Cathode_x                 =    0.016;
+#$Cathode_x                 =    0.016;
+$Cathode_x                 =    0.13*$inch;
 #$Cathode_y                 =    $APAphys_y - $CPATube_OD;
 #$Cathode_z                 =    $APAphys_z - $CPATube_OD;   
 #$Cathode_y                 =    610.4;
@@ -285,9 +306,14 @@ $APAToAPA =   $APAFrame_x
             + $Cathode_x; # center to center
 
 $CPAToAPA =   $APAFrame_x/2
-            + $TPCInner_x - #2*$APAWirePlaneSpacing
+            + $TPCInner_x #2*$APAWirePlaneSpacing
             + $Cathode_x/2; # center to center
 
+$SpaceAPAToCryoWall      =   $CPACentToSaleWall
+                           - $CPAToAPA
+                           - ($APA_UtoU_x + $TPCWireThickness)/2;
+
+print "SpaceAPAToCryoWall=".$SpaceAPAToCryoWall."\n";
 print "APAToAPA=".$APAToAPA."\n";
 print "CPAToAPA=".$CPAToAPA."\n";
 
@@ -418,7 +444,8 @@ print "DetCentToFloor = ".$DetCentToFloor."\n";
 #    $OriginYSet = $OriginYSet + $APAphys_y + $APAGap_y/2;
 #}
 
-$OriginXSet             =        ($APAToNorthCrWall - $APAToSouthCrWall)/2;
+#$OriginXSet             =        ($APAToNorthCrWall - $APAToSouthCrWall)/2;
+$OriginXSet             =        ($CPACentToJuraWall - $CPACentToSaleWall)/2;
 
 print "OriginXSet =".$OriginXSet.", OriginYSet =".$OriginYSet.", OriginZSet =".$OriginZSet."\n";
 
@@ -627,10 +654,22 @@ $CRTSurveyOrigin_z   = -344.1;
 
 # Distance between CRT module centers and CRT SuperModule Centers
 $ModuleSMDist        = 85.6;
-$ModuleOff_z         = 2;
+$ModuleOff_z         = 1;    # approx. correction for the center of a Module. Survey measures Z to the outside surface. Negative for the most US CRTs (surveyed from behind).
+$ModuleLongCorr      = 5.6;  # allign the the modules at the frame's edge
+
+# Beam Spot on the inside of the cryostat
+
+$BeamSpotDSS_x          = -20.58; 
+$BeamSpotDSS_y          = -425.41;
+$BeamSpotDSS_z          = -82.96;
+
+$BeamSpot_x = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $BeamSpotDSS_x +  $OriginXSet;;
+$BeamSpot_y = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $BeamSpotDSS_y +  $OriginYSet;;
+$BeamSpot_z = $posCryoInDetEnc_z + $CRTSurveyOrigin_z + $BeamSpotDSS_z +  $OriginZSet;;
+
+print "BeamSpot_x =".$BeamSpot_x.", BeamSpot_y =".$BeamSpot_y.", BeamSpot_z =".$BeamSpot_z."\n";
 
 ####################### End of Survey data ##########
-
 
 my @posCRTDS_x = ();
 my @posCRTDS_y = ();
@@ -638,83 +677,83 @@ my @posCRTDS_z = ();
 my @posCRTDS_rot = ();
 
 $posCRTDS_x[0] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x - $ModuleSMDist;
-$posCRTDS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y;
-$posCRTDS_z[0] = $CRTSurveyOrigin_z + $CRT_DSTopLeftBa_z;
+$posCRTDS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y - $ModuleLongCorr;
+$posCRTDS_z[0] = $CRTSurveyOrigin_z + $CRT_DSTopLeftBa_z + $ModuleOff_z;
 $posCRTDS_rot[0] = "rPlus90AboutX";
 
 $posCRTDS_x[1] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x + $ModuleSMDist;
-$posCRTDS_y[1] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y;
-$posCRTDS_z[1] = $CRTSurveyOrigin_z + $CRT_DSTopLeftBa_z;
+$posCRTDS_y[1] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y - $ModuleLongCorr;
+$posCRTDS_z[1] = $CRTSurveyOrigin_z + $CRT_DSTopLeftBa_z + $ModuleOff_z;
 $posCRTDS_rot[1] = "rPlus90AboutX";
 
-$posCRTDS_x[2] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x;
+$posCRTDS_x[2] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x - $ModuleLongCorr;
 $posCRTDS_y[2] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y - $ModuleSMDist;
-$posCRTDS_z[2] = $CRTSurveyOrigin_z + $CRT_DSTopLeftFr_z;
+$posCRTDS_z[2] = $CRTSurveyOrigin_z + $CRT_DSTopLeftFr_z + $ModuleOff_z;
 $posCRTDS_rot[2] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTDS_x[3] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x;
+$posCRTDS_x[3] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopLeft_x - $ModuleLongCorr;
 $posCRTDS_y[3] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopLeft_y + $ModuleSMDist;
-$posCRTDS_z[3] = $CRTSurveyOrigin_z + $CRT_DSTopLeftFr_z;
+$posCRTDS_z[3] = $CRTSurveyOrigin_z + $CRT_DSTopLeftFr_z + $ModuleOff_z;
 $posCRTDS_rot[3] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTDS_x[4] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x - $ModuleSMDist;
-$posCRTDS_y[4] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y;
-$posCRTDS_z[4] = $CRTSurveyOrigin_z + $CRT_DSBotLeftFr_z;
+$posCRTDS_y[4] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y + $ModuleLongCorr;
+$posCRTDS_z[4] = $CRTSurveyOrigin_z + $CRT_DSBotLeftFr_z + $ModuleOff_z;
 $posCRTDS_rot[4] = "rPlus90AboutX";
 
 $posCRTDS_x[5] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x + $ModuleSMDist;
-$posCRTDS_y[5] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y;
-$posCRTDS_z[5] = $CRTSurveyOrigin_z + $CRT_DSBotLeftFr_z;
+$posCRTDS_y[5] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y + $ModuleLongCorr;
+$posCRTDS_z[5] = $CRTSurveyOrigin_z + $CRT_DSBotLeftFr_z + $ModuleOff_z;
 $posCRTDS_rot[5] = "rPlus90AboutX";
 
-$posCRTDS_x[6] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x;
+$posCRTDS_x[6] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x - $ModuleLongCorr;
 $posCRTDS_y[6] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y - $ModuleSMDist;
-$posCRTDS_z[6] = $CRTSurveyOrigin_z + $CRT_DSBotLeftBa_z;
+$posCRTDS_z[6] = $CRTSurveyOrigin_z + $CRT_DSBotLeftBa_z + $ModuleOff_z;
 $posCRTDS_rot[6] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTDS_x[7] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x;
+$posCRTDS_x[7] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotLeft_x - $ModuleLongCorr;
 $posCRTDS_y[7] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotLeft_y + $ModuleSMDist;
-$posCRTDS_z[7] = $CRTSurveyOrigin_z + $CRT_DSBotLeftBa_z;
+$posCRTDS_z[7] = $CRTSurveyOrigin_z + $CRT_DSBotLeftBa_z + $ModuleOff_z;
 $posCRTDS_rot[7] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTDS_x[8] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x - $ModuleSMDist;
-$posCRTDS_y[8] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y;
-$posCRTDS_z[8] = $CRTSurveyOrigin_z + $CRT_DSTopRightFr_z;
+$posCRTDS_y[8] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y - $ModuleLongCorr;
+$posCRTDS_z[8] = $CRTSurveyOrigin_z + $CRT_DSTopRightFr_z + $ModuleOff_z;
 $posCRTDS_rot[8] = "rPlus90AboutX";
 
 $posCRTDS_x[9] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x + $ModuleSMDist;
-$posCRTDS_y[9] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y;
-$posCRTDS_z[9] = $CRTSurveyOrigin_z + $CRT_DSTopRightFr_z;
+$posCRTDS_y[9] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y - $ModuleLongCorr;
+$posCRTDS_z[9] = $CRTSurveyOrigin_z + $CRT_DSTopRightFr_z + $ModuleOff_z;
 $posCRTDS_rot[9] = "rPlus90AboutX";
 
-$posCRTDS_x[10] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x;
+$posCRTDS_x[10] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x + $ModuleLongCorr;
 $posCRTDS_y[10] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y - $ModuleSMDist;
-$posCRTDS_z[10] = $CRTSurveyOrigin_z + $CRT_DSTopRightBa_z;
+$posCRTDS_z[10] = $CRTSurveyOrigin_z + $CRT_DSTopRightBa_z + $ModuleOff_z;
 $posCRTDS_rot[10] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTDS_x[11] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x;
+$posCRTDS_x[11] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSTopRight_x + $ModuleLongCorr;
 $posCRTDS_y[11] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSTopRight_y + $ModuleSMDist;
-$posCRTDS_z[11] = $CRTSurveyOrigin_z + $CRT_DSTopRightBa_z;
+$posCRTDS_z[11] = $CRTSurveyOrigin_z + $CRT_DSTopRightBa_z + $ModuleOff_z;
 $posCRTDS_rot[11] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTDS_x[12] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x - $ModuleSMDist;
-$posCRTDS_y[12] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y;
-$posCRTDS_z[12] = $CRTSurveyOrigin_z + $CRT_DSBotRightBa_z;
+$posCRTDS_y[12] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y + $ModuleLongCorr;
+$posCRTDS_z[12] = $CRTSurveyOrigin_z + $CRT_DSBotRightBa_z + $ModuleOff_z;
 $posCRTDS_rot[12] = "rPlus90AboutX";
 
 $posCRTDS_x[13] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x + $ModuleSMDist;
-$posCRTDS_y[13] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y;
-$posCRTDS_z[13] = $CRTSurveyOrigin_z + $CRT_DSBotRightBa_z;
+$posCRTDS_y[13] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y + $ModuleLongCorr;
+$posCRTDS_z[13] = $CRTSurveyOrigin_z + $CRT_DSBotRightBa_z + $ModuleOff_z;
 $posCRTDS_rot[13] = "rPlus90AboutX";
 
-$posCRTDS_x[14] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x;
+$posCRTDS_x[14] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x + $ModuleLongCorr;
 $posCRTDS_y[14] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y - $ModuleSMDist;
-$posCRTDS_z[14] = $CRTSurveyOrigin_z + $CRT_DSBotRightFr_z;
+$posCRTDS_z[14] = $CRTSurveyOrigin_z + $CRT_DSBotRightFr_z + $ModuleOff_z;
 $posCRTDS_rot[14] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTDS_x[15] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x;
+$posCRTDS_x[15] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_DSBotRight_x + $ModuleLongCorr;
 $posCRTDS_y[15] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_DSBotRight_y + $ModuleSMDist;
-$posCRTDS_z[15] = $CRTSurveyOrigin_z + $CRT_DSBotRightFr_z;
+$posCRTDS_z[15] = $CRTSurveyOrigin_z + $CRT_DSBotRightFr_z + $ModuleOff_z;
 $posCRTDS_rot[15] = "rMinus90AboutYMinus90AboutX";
 
 
@@ -723,85 +762,84 @@ my @posCRTUS_y = ();
 my @posCRTUS_z = ();
 my @posCRTUS_rot = ();
 
-
 $posCRTUS_x[0] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x - $ModuleSMDist;
-$posCRTUS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y;
-$posCRTUS_z[0] = $CRTSurveyOrigin_z + $CRT_USTopLeftBa_z;
+$posCRTUS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y - $ModuleLongCorr;
+$posCRTUS_z[0] = $CRTSurveyOrigin_z + $CRT_USTopLeftBa_z + $ModuleOff_z;
 $posCRTUS_rot[0] = "rPlus90AboutX";
 
 $posCRTUS_x[1] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x + $ModuleSMDist;
-$posCRTUS_y[1] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y;
-$posCRTUS_z[1] = $CRTSurveyOrigin_z + $CRT_USTopLeftBa_z;
+$posCRTUS_y[1] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y - $ModuleLongCorr;
+$posCRTUS_z[1] = $CRTSurveyOrigin_z + $CRT_USTopLeftBa_z + $ModuleOff_z;
 $posCRTUS_rot[1] = "rPlus90AboutX";
 
-$posCRTUS_x[2] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x;
+$posCRTUS_x[2] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x - $ModuleLongCorr;
 $posCRTUS_y[2] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y - $ModuleSMDist;
-$posCRTUS_z[2] = $CRTSurveyOrigin_z + $CRT_USTopLeftFr_z;
+$posCRTUS_z[2] = $CRTSurveyOrigin_z + $CRT_USTopLeftFr_z + $ModuleOff_z;
 $posCRTUS_rot[2] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTUS_x[3] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x;
+$posCRTUS_x[3] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x - $ModuleLongCorr;
 $posCRTUS_y[3] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y + $ModuleSMDist;
-$posCRTUS_z[3] = $CRTSurveyOrigin_z + $CRT_USTopLeftFr_z;
+$posCRTUS_z[3] = $CRTSurveyOrigin_z + $CRT_USTopLeftFr_z + $ModuleOff_z;
 $posCRTUS_rot[3] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTUS_x[4] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x - $ModuleSMDist;
-$posCRTUS_y[4] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y;
-$posCRTUS_z[4] = $CRTSurveyOrigin_z + $CRT_USBotLeftFr_z;
+$posCRTUS_y[4] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y + $ModuleLongCorr;
+$posCRTUS_z[4] = $CRTSurveyOrigin_z + $CRT_USBotLeftFr_z + $ModuleOff_z;
 $posCRTUS_rot[4] = "rPlus90AboutX";
 
 $posCRTUS_x[5] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x + $ModuleSMDist;
-$posCRTUS_y[5] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y;
-$posCRTUS_z[5] = $CRTSurveyOrigin_z + $CRT_USBotLeftFr_z;
+$posCRTUS_y[5] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y + $ModuleLongCorr;
+$posCRTUS_z[5] = $CRTSurveyOrigin_z + $CRT_USBotLeftFr_z + $ModuleOff_z;
 $posCRTUS_rot[5] = "rPlus90AboutX";
 
-$posCRTUS_x[6] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x;
+$posCRTUS_x[6] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x - $ModuleLongCorr;
 $posCRTUS_y[6] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y - $ModuleSMDist;
-$posCRTUS_z[6] = $CRTSurveyOrigin_z + $CRT_USBotLeftBa_z;
+$posCRTUS_z[6] = $CRTSurveyOrigin_z + $CRT_USBotLeftBa_z + $ModuleOff_z;
 $posCRTUS_rot[6] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTUS_x[7] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x;
+$posCRTUS_x[7] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotLeft_x - $ModuleLongCorr;
 $posCRTUS_y[7] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotLeft_y + $ModuleSMDist;
-$posCRTUS_z[7] = $CRTSurveyOrigin_z + $CRT_USBotLeftBa_z;
+$posCRTUS_z[7] = $CRTSurveyOrigin_z + $CRT_USBotLeftBa_z + $ModuleOff_z;
 $posCRTUS_rot[7] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTUS_x[8] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x - $ModuleSMDist;
-$posCRTUS_y[8] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y;
-$posCRTUS_z[8] = $CRTSurveyOrigin_z + $CRT_USTopRightFr_z;
+$posCRTUS_y[8] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y - $ModuleLongCorr;
+$posCRTUS_z[8] = $CRTSurveyOrigin_z + $CRT_USTopRightFr_z - $ModuleOff_z;
 $posCRTUS_rot[8] = "rPlus90AboutX";
 
 $posCRTUS_x[9] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x + $ModuleSMDist;
-$posCRTUS_y[9] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y;
-$posCRTUS_z[9] = $CRTSurveyOrigin_z + $CRT_USTopRightFr_z;
+$posCRTUS_y[9] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y - $ModuleLongCorr;
+$posCRTUS_z[9] = $CRTSurveyOrigin_z + $CRT_USTopRightFr_z - $ModuleOff_z;
 $posCRTUS_rot[9] = "rPlus90AboutX";
 
-$posCRTUS_x[10] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x;
+$posCRTUS_x[10] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x + $ModuleLongCorr;
 $posCRTUS_y[10] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y - $ModuleSMDist;
-$posCRTUS_z[10] = $CRTSurveyOrigin_z + $CRT_USTopRightBa_z;
+$posCRTUS_z[10] = $CRTSurveyOrigin_z + $CRT_USTopRightBa_z - $ModuleOff_z;
 $posCRTUS_rot[10] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTUS_x[11] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x;
+$posCRTUS_x[11] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopRight_x + $ModuleLongCorr;
 $posCRTUS_y[11] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopRight_y + $ModuleSMDist;
-$posCRTUS_z[11] = $CRTSurveyOrigin_z + $CRT_USTopRightBa_z;
+$posCRTUS_z[11] = $CRTSurveyOrigin_z + $CRT_USTopRightBa_z - $ModuleOff_z;
 $posCRTUS_rot[11] = "rMinus90AboutYMinus90AboutX";
 
 $posCRTUS_x[12] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x - $ModuleSMDist;
-$posCRTUS_y[12] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y;
-$posCRTUS_z[12] = $CRTSurveyOrigin_z + $CRT_USBotRightBa_z;
+$posCRTUS_y[12] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y + $ModuleLongCorr;
+$posCRTUS_z[12] = $CRTSurveyOrigin_z + $CRT_USBotRightBa_z - $ModuleOff_z;
 $posCRTUS_rot[12] = "rPlus90AboutX";
 
 $posCRTUS_x[13] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x + $ModuleSMDist;
-$posCRTUS_y[13] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y;
-$posCRTUS_z[13] = $CRTSurveyOrigin_z + $CRT_USBotRightBa_z;
+$posCRTUS_y[13] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y + $ModuleLongCorr;
+$posCRTUS_z[13] = $CRTSurveyOrigin_z + $CRT_USBotRightBa_z - $ModuleOff_z;
 $posCRTUS_rot[13] = "rPlus90AboutX";
 
-$posCRTUS_x[14] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x;
+$posCRTUS_x[14] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x + $ModuleLongCorr;
 $posCRTUS_y[14] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y - $ModuleSMDist;
-$posCRTUS_z[14] = $CRTSurveyOrigin_z + $CRT_USBotRightFr_z;
+$posCRTUS_z[14] = $CRTSurveyOrigin_z + $CRT_USBotRightFr_z - $ModuleOff_z;
 $posCRTUS_rot[14] = "rMinus90AboutYMinus90AboutX";
 
-$posCRTUS_x[15] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x;
+$posCRTUS_x[15] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USBotRight_x + $ModuleLongCorr;
 $posCRTUS_y[15] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USBotRight_y + $ModuleSMDist;
-$posCRTUS_z[15] = $CRTSurveyOrigin_z + $CRT_USBotRightFr_z;
+$posCRTUS_z[15] = $CRTSurveyOrigin_z + $CRT_USBotRightFr_z - $ModuleOff_z;
 $posCRTUS_rot[15] = "rMinus90AboutYMinus90AboutX";
 
 ###################################################################
@@ -946,8 +984,8 @@ sub gen_TPC
 # $_[2] = $TPC_z
 # $_[3] = 'name'
 
-    my $TPCActive_x   =  $_[0]-(3*$APAWirePlaneSpacing);
-    my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap ; #TODO: make the Active height more accurate
+    my $TPCActive_x   =  $_[0] - 3*$APAWirePlaneSpacing -3*$TPCWirePlaneThickness;
+    my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap + $G10thickness; #TODO: make the Active height more accurate
     my $TPCActive_z   =  $_[2];
 
 
@@ -1661,22 +1699,22 @@ EOF
 
     my $BottomOfAPA = - $TPC_y/2 + $APAGap_y/2;
 
-
-    $posZplane[0]   = -$_[0]/2 + $APAWirePlaneSpacing - $TPCWirePlaneThickness/2;
+    $posZplane[0]   = -$_[0]/2 + $APAWirePlaneSpacing + $TPCWirePlaneThickness/2;
     $posZplane[1]   = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y/2;
     $posZplane[2]   = 0;
 
-    $posVplane[0]   = $posZplane[0] + $APAWirePlaneSpacing;
+    $posVplane[0]   = $posZplane[0] + $APAWirePlaneSpacing + $TPCWirePlaneThickness;
     $posVplane[1]   = $BottomOfAPA + $WrapCover + 3*$G10thickness + $Vactive_y/2;
     $posVplane[2]   = $posZplane[2];
 
-    $posUplane[0]   = $posVplane[0] + $APAWirePlaneSpacing;
+    $posUplane[0]   = $posVplane[0] + $APAWirePlaneSpacing + $TPCWirePlaneThickness;
     $posUplane[1]   = $BottomOfAPA + $WrapCover + 2*$G10thickness + $Uactive_y/2;
     $posUplane[2]   = $posZplane[2];
 
-    $posTPCActive[0] = $posUplane[0] + ($TPCWirePlaneThickness/2 + $TPCActive_x/2);
+    $posTPCActive[0] = $posUplane[0] + $TPCWirePlaneThickness/2 + $TPCActive_x/2;
     $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
     $posTPCActive[2] = 0;
+
 
 #wrap up the TPC file
 print TPC <<EOF;
@@ -2466,7 +2504,7 @@ if ($tpc_on==1) {
 		                 + $SpaceAPAToCryoWall + $APA_UtoU_x/2 + $TPCWirePlaneThickness/2
                                  + $i*$APAToAPA;
 
-		$CPA_x        =  $APACenter_x  +  $CPAToAPA + $Cathode_x;
+		$CPA_x        =  $APACenter_x  +  $CPAToAPA;
 #                print "$i".", $nAPAWide".", CPA_x = $CPA_x"."\n";
 
 		place_APA($APACenter_x, $APACenter_y, $APACenter_z, $apa_i, $j);
@@ -2513,7 +2551,7 @@ EOF
 
 if( $i < $nAPAWide - 1 ){ # avoid placeing the last row of CPAs since the APAs are on the outside
 
-#print "$cpa_i".". CPA_x = $CPA_x".", APACenter_y = $APACenter_y".", APACenter_z = $APACenter_z"."\n";
+print "$cpa_i".". CPA_x = $CPA_x".", APACenter_y = $APACenter_y".", APACenter_z = $APACenter_z"."\n";
 $CPAmodbarGap = 1.8*$inch;
 $FCmodRight_x[$cpa_i]  = $CPA_x + 3 + 352/2; # CPAmodCenter_x to FCmodCenter_x 
 $FCmodLeft_x[$cpa_i]   = $CPA_x - 3 - 352/2;
