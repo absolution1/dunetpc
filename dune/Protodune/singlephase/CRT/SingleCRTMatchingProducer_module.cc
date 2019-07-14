@@ -954,7 +954,7 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if ( fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
+        if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
