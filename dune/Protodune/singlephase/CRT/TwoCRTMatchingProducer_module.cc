@@ -663,7 +663,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
           }
    	}
         if (pixel0!=-1 && pixel1!=-1) {
-	cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
+	//cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
 	}
 	else if (fCTBTriggerOnly) {event.put(std::move(CRTCand), candidate); event.put(std::move(T0col));   event.put(std::move(CRTTrack));   event.put(std::move(T0cand), candidate); event.put(std::move(CRTT0assn)); event.put(std::move(TPCT0assn));event.put(std::move(TrigCandassn),candidate); event.put(std::move(CRTTriggerassn)); return;}
 	      }
@@ -812,9 +812,9 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
 	if(t0s.size()){ 
-	  auto t0=t0s.at(0);
-	  int t_zero=t0->Time();
-	  cout<<"Pandora T0: "<<t_zero<<endl;
+	  //auto t0=t0s.at(0);
+	  //int t_zero=t0->Time();
+	  //cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     
 
@@ -866,8 +866,8 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
-		cout<<(combTrackHits[iCombinatorialTrack].t0+RDOffset)<<endl;
-		cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+		//cout<<(combTrackHits[iCombinatorialTrack].t0+RDOffset)<<endl;
+		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
 		if (!fMCCSwitch) ticksOffset = (combTrackHits[iCombinatorialTrack].t0+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
 		else if (fMCCSwitch) ticksOffset = (combTrackHits[iCombinatorialTrack].t0/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
@@ -888,7 +888,7 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
    double trackEndPositionZ=trackEndPositionZ_noSCE;
 
 
-    cout<<fSCECorrection<<endl;
+    //cout<<fSCECorrection<<endl;
     if (fSCECorrection){
      trackStartPositionX=trackStartPositionX_noSCE-SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).X();
      trackStartPositionY=trackStartPositionY_noSCE+SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).Y();
@@ -1051,7 +1051,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
         allTracksPair.end());
     }
 
-	cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
+	//cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
 // For the best one, add the validation metrics to a tree
     if (allUniqueTracksPair.size() > 0) {
       for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
@@ -1110,18 +1110,8 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
         
 	CRT_TOF=allUniqueTracksPair[u].timeDiff;	
         if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
-        cout<<allUniqueTracksPair[u].timeDiff<<endl;
-	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
-
-          cout << "Displacement: " << averageSignedDistance << ',' << averageSignedDistanceYZ << ',' << averageSignedDistanceXZ << endl;
-	  cout<< "Delta X and Y: "<<deltaX_F<<','<<deltaY_F<<','<<deltaX_B<<','<<deltaY_B<<endl;
-	  cout<< "Predicted X and Y: "<< deltaX_F+X_F<<','<<deltaY_F+Y_F<<','<<deltaX_B+X_B<<','<<deltaY_B+Y_B<<endl;
-	  cout<< "Detected X and Y: "<< X_F<<','<<Y_F<<','<<X_B<<','<<Y_B<<endl;
-	  cout<<moduleX_F<<','<<stripX_F<<endl;
-	  cout<<moduleY_F<<','<<stripY_F<<endl;
-	  cout<<moduleX_B<<','<<stripX_B<<endl;
-	  cout<<moduleY_B<<','<<stripY_B<<endl;
-	  cout<<"ADC Values: "<<adcX_F<<','<<adcY_F<<','<<adcX_B<<','<<adcY_B<<endl;
+        //cout<<allUniqueTracksPair[u].timeDiff<<endl;
+	cout<<"Found a matched through-going track with TPC*CRT: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 	fCRTTree->Fill();
 	std::vector<float> hitF;
 	std::vector<float> hitB;

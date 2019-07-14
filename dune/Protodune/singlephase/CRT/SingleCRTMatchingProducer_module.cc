@@ -382,12 +382,10 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   //Mapping from channel to trigger
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
-  cout << "Looking for hits in Triggers" << endl;
   int trigID=0;
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
     for (const auto & hit: hits) { // Collect hits on all modules
-	//cout<<hits.size()<<','<<hit.ADC()<<endl;
       if (hit.ADC() > fADCThreshold) { // Keep if they are above threshold
 
         tempHits tHits;
@@ -633,9 +631,9 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
 	if(t0s.size()){ 
-	  auto t0=t0s.at(0);
-	  int t_zero=t0->Time();
-	  cout<<"Pandora T0: "<<t_zero<<endl;
+	  //auto t0=t0s.at(0);
+	  //int t_zero=t0->Time();
+	  //cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
     int lastHit=allHits.size()-2;
@@ -746,7 +744,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
                     if(fabs(timeDifference) < fabs(minTimeDifference))
                         {
                             minTimeDifference = timeDifference;
-			   if (minTimeDifference<1000) cout<<"Min Time: "<<minTimeDifference<<endl;
+			   //if (minTimeDifference<1000) cout<<"Min Time: "<<minTimeDifference<<endl;
                         }
 		    }
                 }
@@ -919,7 +917,7 @@ double xOffset=0;
         tracksPair_B.end());
     }
 
-	cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
+	//cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
     if (allUniqueTracksPair.size() > 0) {
       for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
 
@@ -955,7 +953,7 @@ double xOffset=0;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
         if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
-	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
+	cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
 	std::vector<float> hitF;
