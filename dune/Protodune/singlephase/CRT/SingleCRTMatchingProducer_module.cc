@@ -135,6 +135,7 @@ int moduletoCTB(int module2, int module1);
     int channelGeo;
     int adc;
     int triggerTime;
+    int triggerNumber;
   }
   tempHits;
 
@@ -151,6 +152,7 @@ int moduletoCTB(int module2, int module1);
     int moduleY;
     int stripX;
     int stripY;
+    int trigNumberX, trigNumberY;
   }
   recoHits;
 
@@ -177,7 +179,8 @@ int moduletoCTB(int module2, int module1);
     int moduleX1, moduleY1;
     int stripX1, stripY1;
     double flashTDiff;
-    double timeAvg; 
+    double timeAvg;
+    int trigNumberX, trigNumberY; 
   }
   tracksPair;
 
@@ -221,6 +224,7 @@ CRT::SingleCRTMatchingProducer::SingleCRTMatchingProducer(fhicl::ParameterSet
   produces< art::Assns<recob::Track, anab::T0> >();
   produces< art::Assns<recob::Track, anab::CosmicTag> >();
   produces< art::Assns<anab::CosmicTag, anab::T0> >();
+  produces< art::Assns<CRT::Trigger, anab::CosmicTag> >();
 
   }
 
@@ -315,6 +319,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
  std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
  std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
 
+ std::unique_ptr< art::Assns<CRT::Trigger, anab::CosmicTag>> CRTTriggerassn( new art::Assns<CRT::Trigger, anab::CosmicTag>);
+
   if (fMCCSwitch){
     fModuleSwitch=1;
     fADCThreshold=800;
@@ -364,6 +370,12 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
 
+  art::Handle < vector < CRT::Trigger > > crtListHandle;
+  vector < art::Ptr < CRT::Trigger > > crtList;
+  if (event.getByLabel(fCRTLabel, crtListHandle)) {
+    art::fill_ptr_vector(crtList, crtListHandle);
+  }
+
   //Get a handle to the Geometry service to look up AuxDetGeos from module numbers
   art::ServiceHandle < geo::Geometry > geom;
 
@@ -371,7 +383,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
   cout << "Looking for hits in Triggers" << endl;
-
+  int trigID=0;
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
     for (const auto & hit: hits) { // Collect hits on all modules
@@ -394,6 +406,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
 	tHits.triggerTime=trigger.Timestamp();
+        tHits.triggerNumber=trigID;
 	}
 	 //cout<<trigger.Channel()<<','<<hit.Channel()<<','<<hit.ADC()<<endl;
         nHits++;
@@ -406,6 +419,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         hitID++;
       }
     }
+    trigID++;
   }
 
   cout << "Hits compiled for event: " << nEvents << endl;
@@ -460,7 +474,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         rHits.hitPositionZ = hitZ;
 	rHits.moduleX=tempHits_F[f].module;
 	rHits.moduleY=tempHits_F[f_test].module;
-
+	rHits.trigNumberX=tempHits_F[f].triggerNumber;
+	rHits.trigNumberY=tempHits_F[f_test].triggerNumber;
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
@@ -534,6 +549,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 	rHits.moduleX=tempHits_B[f].module;
 	rHits.moduleY=tempHits_B[f_test].module;
 	rHits.stripX=tempHits_B[f].channel;
+	rHits.trigNumberX=tempHits_B[f].triggerNumber;
+	rHits.trigNumberY=tempHits_B[f_test].triggerNumber;
 	rHits.stripY=flipChannel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
        if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
@@ -751,6 +768,8 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
         tPair.stripX1 = primaryHits_F[iHit_F].stripX;
         tPair.stripY1 = primaryHits_F[iHit_F].stripY;
+        tPair.trigNumberX = primaryHits_F[iHit_F].trigNumberX;
+        tPair.trigNumberY = primaryHits_F[iHit_F].trigNumberY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
@@ -865,6 +884,8 @@ double xOffset=0;
 
         tPair.stripX1 = primaryHits_B[iHit_B].stripX;
         tPair.stripY1 = primaryHits_B[iHit_B].stripY;
+       tPair.trigNumberX = primaryHits_B[iHit_B].trigNumberX;
+        tPair.trigNumberY = primaryHits_B[iHit_B].trigNumberY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
@@ -952,12 +973,14 @@ double xOffset=0;
        
 	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
 	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX], *CRTTriggerassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY], *CRTTriggerassn);
 
         }
       }
     }
   nEvents++;
-event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTT0assn));
+event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTT0assn)); event.put(std::move(CRTTriggerassn));
 
 }
 
