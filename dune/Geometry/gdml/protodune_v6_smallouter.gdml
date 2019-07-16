@@ -21409,8 +21409,8 @@
     </subtraction>
 
     <box name="boxFCEW-BP-Subtract" x="50.8" y="151.2" z="1.301" lunit="cm"/>
-    <tube name="tubBePlHolemod" rmin="0" rmax="15.25" z="12.801" lunit="cm"/>
-    <tube name="tubBePlHoleFiSh" rmin="0" rmax="15.25" z="1.301" lunit="cm"/>
+    <tube name="tubBePlHolemod" rmin="0" rmax="15.25" z="12.801" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubBePlHoleFiSh" rmin="0" rmax="15.25" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <box name="boxFCEW-BPFla-VerSupp" x="50.8" y="151.2" z="1.3" lunit="cm"/>
     <box name="boxFCEW-BPFla-Subtr" x="25.4" y="64" z="1.301" lunit="cm"/>
     <tube name="tubFCEW-BPFla-Subtr" rmin="0" rmax="14.0" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
