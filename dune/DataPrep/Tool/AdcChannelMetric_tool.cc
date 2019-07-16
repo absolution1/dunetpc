@@ -478,6 +478,22 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
              << ": " << nsum << "/" << nsam << "." << endl;
       }
     }
+  } else if ( met == "sigFrac" ) {
+    Index nsam = acd.samples.size();
+    if ( acd.signal.size() != nsam ) {
+      cout << myname << "WARNING: For sigFrac, signal and sample sizes differ: "
+           << acd.signal.size() << " != " << nsam << "." << endl;
+      val = 0.0;
+    } else if ( nsam == 0 ) {
+      cout << myname << "WARNING: For sigFrac, ther are no samples." << endl;
+      val = 0.0;
+    } else {
+      Index nsig = 0;
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        if ( acd.signal[isam] ) ++nsig;
+      }
+      val = float(nsig)/float(nsam);
+    }
   } else if ( met == "rawTailFraction" ) {
     Index ntail = 0;
     double lim = 3.0*acd.pedestalRms;
