@@ -19,7 +19,7 @@
 
 
 #define CHECKBYTEBIT(var, pos) ( (var) & (1<<pos) )
-#define DCBITFLAG 0x6 // 0x0 LSB -> 0x7 MSB
+#define DCBITFLAG 0x0 // 0x0 LSB -> 0x7 MSB
 #define GETDCFLAG(info) (CHECKBYTEBIT(info, DCBITFLAG)>0)
 
 // event data quality flag
@@ -464,7 +464,7 @@ namespace lris
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
-			   GETDCFLAG(afrag->ei.evflag), nsa, afrag->crodata );
+			   GETDCFLAG(afrag->ei.runflags), nsa, afrag->crodata );
 	  });
       }
   
@@ -482,13 +482,13 @@ namespace lris
     event.trigstamp = f0->ei.ti.ts;
   
     //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
-    unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.evflag),
+    unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.runflags),
 		   nsa, event.crodata );
     
     event.compression = raw::kNone;
     // the compression should be set for all L1 event builders, 
     // since this depends on loaded AMC firmware
-    if( GETDCFLAG(f0->ei.evflag) ) 
+    if( GETDCFLAG(f0->ei.runflags) ) 
       event.compression = raw::kHuffman;
   
     // wait for other threads to complete
