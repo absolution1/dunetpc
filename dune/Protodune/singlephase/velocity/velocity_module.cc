@@ -107,6 +107,8 @@ namespace protoana{
     ProtoDUNEDataUtils fDataUtils;
     TTree* fEventTree;
 
+    geo::GeometryCore const * fGeometry;
+
     //These are the tree variables I will be using
     Int_t    run;                  
     Int_t    subrun;               
@@ -151,6 +153,7 @@ namespace protoana{
     std::vector< std::vector<float> > trkhitx2;
     std::vector< std::vector<float> > trkhity2;
     std::vector< std::vector<float> > trkhitz2;
+    std::vector< std::vector<float> > trkhitz_wire2;
     std::vector< std::vector<float> > trkdq_amp2;
     std::vector< std::vector<float> >trkdq_int2;
     std::string fHitsModuleLabel;
@@ -227,6 +230,7 @@ namespace protoana{
     fEventTree->Branch("trkhitx2",&trkhitx2);
     fEventTree->Branch("trkhity2",&trkhity2);
     fEventTree->Branch("trkhitz2",&trkhitz2);
+    fEventTree->Branch("trkhitz_wire2",&trkhitz_wire2);
     fEventTree->Branch("trkdq_int2",&trkdq_int2);
     fEventTree->Branch("trkdq_amp2",&trkdq_amp2);
 
@@ -250,6 +254,10 @@ namespace protoana{
 
   void velocity::analyze( const art::Event& evt){//analyze
     reset();  
+
+    // art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
+    fGeometry = &*(art::ServiceHandle<geo::Geometry>());
+
    
     art::Handle< std::vector<recob::Track> > trackListHandle;
     art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
@@ -302,6 +310,7 @@ namespace protoana{
     std::vector<float> hitx_0; std::vector<float> hitx_1; std::vector<float> hitx_2;
     std::vector<float> hity_0; std::vector<float> hity_1; std::vector<float> hity_2;
     std::vector<float> hitz_0; std::vector<float> hitz_1; std::vector<float> hitz_2;
+    std::vector<float> hitz_wire2;
    
     float max_value;
     float min_value;
@@ -319,7 +328,7 @@ namespace protoana{
       hitx_0.clear();  hitx_1.clear();  hitx_2.clear();
       hity_0.clear();  hity_1.clear();  hity_2.clear();
       hitz_0.clear();  hitz_1.clear();  hitz_2.clear();
-   
+      hitz_wire2.clear();
 
 
 
@@ -423,7 +432,12 @@ namespace protoana{
 	    channel_2.push_back(vhit[ii]->Channel());
 	    hitx_2.push_back(xpos);
 	    hity_2.push_back(ypos);
-	    hitz_2.push_back(zpos);	
+	    hitz_2.push_back(zpos);
+	    double xyzStart[3];
+	    double xyzEnd[3];
+	    unsigned int wireno=vhit[ii]->WireID().Wire;
+	    fGeometry->WireEndPoints(0,vhit[ii]->WireID().TPC,2,wireno, xyzStart, xyzEnd);
+	    hitz_wire2.push_back(xyzStart[2]);
 	  }//planenum 2
 	}//loop over vhit
       }//fmthm valid
@@ -461,8 +475,10 @@ namespace protoana{
       trkhitx2.push_back(hitx_2);
       trkhity2.push_back(hity_2);
       trkhitz2.push_back(hitz_2);
+      trkhitz_wire2.push_back(hitz_wire2);
       trkdq_amp2.push_back(amp_2);
       trkdq_int2.push_back(int_2);
+
 
 
      
@@ -530,6 +546,7 @@ namespace protoana{
     trkhitx2.clear();
     trkhity2.clear();
     trkhitz2.clear();
+    trkhitz_wire2.clear();
     trkdq_int2.clear();
     trkdq_amp2.clear();
     hit_channel2.clear();
