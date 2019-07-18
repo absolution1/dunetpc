@@ -109,14 +109,14 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
              || ( detectorName.find("lbne34kt") != std::string::npos ) ) {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
 
+    // protoDUNE with arapucas
+    } else if ( detectorName.find("protodunev7") != std::string::npos ) {
+      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
+
     // protoDUNE
     } else if ( ( detectorName.find("protodune") != std::string::npos )
              || ( detectorName.find("protolbne") != std::string::npos ) ) {
       fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
-
-    // protoDUNE with arapucas
-    } else if ( detectorName.find("protodunev7") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
 
     // iceberg
     } else if ( detectorName.find("iceberg") != std::string::npos ) {
