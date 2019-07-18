@@ -39,171 +39,20 @@
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/identity.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/range/iterator_range.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/optional.hpp>
 #include <boost/range.hpp>
 #include <boost/range/adaptors.hpp>
 
 #include <iostream>
 #include <iomanip>
 #include <utility>
-#include <set>
-#include <vector>
-#include <string>
-#include <sstream>
 
-#include "DPChannelId.h"
+#include "PDDPChannelMap.h"
 
-using namespace boost::multi_index;
+
 using namespace dune;
 
-class PDDPChannelMap;
+//class PDDPChannelMap;
 
-
-namespace
-{
-  //
-  // define multi_index container to implement channel mapping
-  //
-  
-  // container tags 
-  struct IndexRawSeqn{};
-  struct IndexRawSeqnHash{};   // hashed 
-  struct IndexCrate{};         // hashed
-  struct IndexCrateCard{};     // hashed
-  struct IndexCrateCardChan{}; // ordered
-  struct IndexCrateCardChanHash{}; 
-  struct IndexCrp{};           // hashed
-  struct IndexCrpView{};       // hashed 
-  struct IndexCrpViewChan{};   // ordered
-  struct IndexCrpViewChanHash{};
-  
-  // boost multi index container
-  typedef multi_index_container<
-    DPChannelId,
-    indexed_by<
-    ordered_unique< tag<IndexRawSeqn>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
-    hashed_unique< tag<IndexRawSeqnHash>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
-    hashed_non_unique< tag<IndexCrate>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate > >,
-    hashed_non_unique< tag<IndexCrateCard>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card > > >,
-    ordered_unique< tag<IndexCrateCardChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
-    hashed_unique< tag<IndexCrateCardChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
-    hashed_non_unique< tag<IndexCrp>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp > >,
-    hashed_non_unique< tag<IndexCrpView>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view > > >,
-    ordered_unique< tag<IndexCrpViewChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >,
-    hashed_unique< tag<IndexCrpViewChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >
-    >
-    > ChannelTable; //
-}
-
-
-//
-//
-//
-class PDDPChannelMap {
-public:
-  explicit PDDPChannelMap(fhicl::ParameterSet const& p, art::ActivityRegistry& areg);
-  // The compiler-generated destructor is fine for non-base
-  // classes without bare pointers or other resource use.
-
-  std::string getMapName() const { return mapname_; }
-  
-  // old style map functions 
-  int MapToCRP(int seqch, int &crp, int &view, int &chv) const;
-  int MapToDAQ(int crp, int view, int chv, int &seqch) const;
-  
-  //                          //
-  // retrive various map data //
-  //                          //
-    
-  // from seq num in raw data file
-  boost::optional<DPChannelId> find_by_seqn( unsigned seqn ) const;
-  std::vector<DPChannelId> find_by_seqn( unsigned from, unsigned to ) const;
-  
-  // from crate info
-  std::vector<DPChannelId> find_by_crate( unsigned crate, bool ordered = true ) const;
-  std::vector<DPChannelId> find_by_crate_card( unsigned crate, unsigned card, 
-					     bool ordered = true ) const;
-  boost::optional<DPChannelId> find_by_crate_card_chan( unsigned crate, 
-						      unsigned card, unsigned chan ) const;
-  // from CRP info
-  std::vector<DPChannelId> find_by_crp( unsigned crp, bool ordered = true ) const;
-  std::vector<DPChannelId> find_by_crp_view( unsigned crp, unsigned view, bool ordered = true ) const;
-  boost::optional<DPChannelId> find_by_crp_view_chan( unsigned crp,
-						      unsigned view, unsigned chan ) const;
-    
-  unsigned ncrates() const { return ncrates_; }
-  unsigned ncrps() const { return ncrps_; }
-  unsigned ntot() const { return ntot_; }
-  unsigned ncards( unsigned crate ) const;
-  unsigned nviews( unsigned crp ) const;
-    
-  //
-  void print( std::vector<DPChannelId> &vec );
-
-  std::set< unsigned > get_crateidx(){ return crateidx_; }
-  std::set< unsigned > get_crpidx(){ return crpidx_; }
-
-private:
-
-  //
-  void clearMap();
-  
-  void initMap( std::string mapname, unsigned ncrates = 1, 
-		unsigned ncards = 10, unsigned nviews = 1 );
-
-  void add( unsigned seq, unsigned crate, unsigned card, unsigned cch,
-	    unsigned crp, unsigned view, unsigned vch, unsigned short state = 0);
-  
-  template<typename Index,typename KeyExtractor>
-  std::size_t cdistinct(const Index& i, KeyExtractor key)
-  {
-    std::size_t res = 0;
-    for(auto it=i.begin(),it_end=i.end();it!=it_end;)
-      {
-	++res;
-	it = i.upper_bound( key(*it) );
-      }
-    return res;
-  }
-
-  // simple map
-  void simpleMap( unsigned ncrates, unsigned ncards, unsigned nviews );
-
-  // ProtoDUNE DP map with 2 CRPs + 2 x 2 anodes
-  void pddp2crpMap();
-
-  // ProtoDUNE DP map with 4 CRPs instrumented
-  void pddp4crpMap();
-
-  // Just remove by hand channels which do not exists here 
-  // since I do not want to be bothered anymore with this ...
-  std::vector<DPChannelId> filter( std::vector<DPChannelId> &sel ) const
-  {
-    std::vector<DPChannelId> res;
-    for( auto &c : sel )
-      if( c.exists() ) res.push_back( c );
-    return res;
-  }
-  
-  //
-  ChannelTable chanTable;
-    
-  std::string mapname_;
-  std::set< unsigned > crateidx_;
-  std::set< unsigned > crpidx_;
-  unsigned ncrates_;
-  unsigned ncrps_;
-  unsigned ntot_;
-  unsigned nch_;
-};
 
 
 //
@@ -805,6 +654,5 @@ void PDDPChannelMap::print( std::vector<DPChannelId> &vec )
 }
 
 
-
-DECLARE_ART_SERVICE(PDDPChannelMap, LEGACY)
-DEFINE_ART_SERVICE(PDDPChannelMap)
+ 
+ DEFINE_ART_SERVICE(dune::PDDPChannelMap)
