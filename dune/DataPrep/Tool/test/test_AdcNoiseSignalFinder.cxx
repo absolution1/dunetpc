@@ -39,6 +39,7 @@ int test_AdcNoiseSignalFinder(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcNoiseSignalFinder" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    SigFracMax: 0.2" << endl;
     fout << "    ThresholdMin: 20" << endl;
     fout << "    ThresholdRatio: 5" << endl;
     fout << "    ThresholdRatioTol: 0.1" << endl;
@@ -91,7 +92,7 @@ int test_AdcNoiseSignalFinder(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Checking results." << endl;
   assert( resmod == 0 );
-  assert( resmod.getInt("nsfLoopCount") == 2 );
+  assert( resmod.getInt("nsfLoopCount") > 1 );
   assert( resmod.getInt("nsfRoiCount") == 1 );
   assert( data.signal.size() == 100 );
   assert( data.rois.size() == 1 );

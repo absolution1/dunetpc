@@ -11,18 +11,20 @@
 // An ROI is created for each range of contiguous signal samples.
 //
 // For
+//   sigfrac = fraction of samples flagged as signal
 //   noise = sample RMS for non-signal samples
 //   tr = threshold/noise
 //   trmin = ThresholdRatio - ThresholdRatioTol and
 //   trmax = ThresholdRatio + ThresholdRatioTol:
-// If tr < trmin, the threshold is increased
-// If tr > trmax and threshold > thresholdMin, the threshold is decreased
+// If sigfrac > SigFracMax or tr < trmin, the threshold is increased
+// Else if tr > trmax and threshold > thresholdMin, the threshold is decreased
 //
 // The signal finding is repeated until there is not change in threshold or
 // the loop count reaches MaxLoop.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   SigFracMax - maximum allowed value for sigfrac
 //   ThresholdMin  - minimum and starting threshold
 //   ThresholdRatio - Target threshold/noise
 //   ThresholdRatioTol - Tolerance for threshold/noise
@@ -65,6 +67,7 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  float m_SigFracMax;
   float m_ThresholdMin;
   float m_ThresholdRatio;
   float m_ThresholdRatioTol;

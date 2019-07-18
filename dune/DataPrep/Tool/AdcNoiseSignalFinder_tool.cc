@@ -25,6 +25,7 @@ string boolToString(bool val) {
 
 AdcNoiseSignalFinder::AdcNoiseSignalFinder(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_SigFracMax(ps.get<float>("SigFracMax")),
   m_ThresholdMin(ps.get<float>("ThresholdMin")),
   m_ThresholdRatio(ps.get<float>("ThresholdRatio")),
   m_ThresholdRatioTol(ps.get<float>("ThresholdRatioTol")),
@@ -37,6 +38,7 @@ AdcNoiseSignalFinder::AdcNoiseSignalFinder(fhicl::ParameterSet const& ps)
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "          LogLevel: " << m_LogLevel << endl;
+    cout << myname << "        SigFracMax: " << m_SigFracMax << endl;
     cout << myname << "      ThresholdMin: " << m_ThresholdMin << endl;
     cout << myname << "    ThresholdRatio: " << m_ThresholdRatio << endl;
     cout << myname << " ThresholdRatioTol: " << m_ThresholdRatioTol << endl;
@@ -76,6 +78,8 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
   float trtgt = m_ThresholdRatio;
   float trmin = trtgt - m_ThresholdRatioTol;
   float trmax = trtgt + m_ThresholdRatioTol;
+  float thrTooLow = m_ThresholdMin;  // We know threshold is at or above this value
+  float thrTooHigh = 1.e20;          // We know threshold is below this value
   while ( true ) {
     // Find the and flag the signal.
     AdcIndex nsamlo = m_BinsBefore;
@@ -120,25 +124,48 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
       cout << myname << "  Loop " << nloop << endl;
       cout << myname << "    Threshold: " << thr << endl;
       cout << myname << "    Noise: " << noise << endl;
+      cout << myname << "    Thr/noise: " << (noise > 0.0 ? thr/noise : -999) << endl;
       cout << myname << "    # ticks above threshold: " << nsamAbove << endl;
+      cout << myname << "    SigFrac: " << sigfrac << endl;
       acd.roisFromSignal();
       cout << myname << "    # ROI: " << acd.rois.size() << endl;
     }
-    if ( nloop >= m_MaxLoop ) break;
+    if ( nloop >= m_MaxLoop ) {
+      cout << myname << "WARNING: Channel " << acd.channel << " exiting after "
+           << nloop << " loops." << endl;
+      break;
+    }
     // Use current noise estimate to evaluate the target threshold and range.
     float thrtgt = trtgt*noise;
     float thrmin = trmin*noise;
     float thrmax = trmax*noise;
+    float thrOld = thr;
     // Noise level too high ==> raise threshold.
-    if ( thrmin > thr ) {
-      thr = 2.0*thrtgt;
-      continue;
+    if ( sigfrac > m_SigFracMax || thrmin > thr ) {
+      thrTooLow = thr;
+      // Double the threshold unless that goes past the known upper limit.
+      // In that case, go halfway.
+      float thrEst = thrtgt > thr ? 2.0*thrtgt : 2.0*thr;
+      if ( thrEst < thrTooHigh ) thr = thrEst;
+      else thr = 0.5*(thr + thrTooHigh);
+    } else if ( thr <= m_ThresholdMin ) {
+      break;
+    } else if ( thrmax >= thr ) {
+      break;
+    } else {
+      // Noise level too low ==> lower threshold.
+      thrTooHigh = thr;
+      // Use the target as the next estimate unless it below the thw known lower
+      // limit. In the latter case, go halfway to that limit.
+      if ( thrtgt > thrTooLow ) thr = thrtgt;
+      else thr = 0.5*(thr + thrTooLow);
     }
-    if ( thr <= m_ThresholdMin ) break;
-    if ( thrmax >= thr ) break;
-    // Noise level too low ==> lower threshold.
-    thr = thrtgt;
-    if ( thr < m_ThresholdMin ) thr = m_ThresholdMin;
+    float dthrmax = 0.001*thrOld;
+    if ( fabs(thr - thrOld) < dthrmax ) {
+      cout << myname << "WARNING: Channel " << acd.channel
+           << " exiting prematurely due to threshold convergence." << endl;
+      break;
+    }
   }
   acd.roisFromSignal();
   ret.setFloat(  "nsfSigFrac", sigfrac);

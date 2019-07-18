@@ -821,7 +821,8 @@ tools.pd_tickmodViewer: {
   PhasePlotSplitY:    0
 }
 
-# Remove coherent noise and high frequency noise
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ADC scale.
 tools.pdsp_noiseRemovalAdc: {
   tool_type: PdspNoiseRemoval
   LogLevel: 1
@@ -844,9 +845,16 @@ tools.pdsp_noiseRemovalAdc: {
   RoiPadHigh: 20                    # high bin extension
 }
 
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ke scale.
 tools.pdsp_noiseRemovalKe: @local::tools.pdsp_noiseRemovalAdc
 tools.pdsp_noiseRemovalKe.RoiStartThreshold: 0.5
 tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
+
+# Remove coherent noise and high frequency noise with ROIs taken
+# from data.
+tools.pdsp_noiseRemovalData: @local::tools.pdsp_noiseRemovalAdc
+tools.pdsp_noiseRemovalData.UseBasicROIForCNR: false
 
 tools.pdsp_noiseRemoval: @local::tools.pdsp_noiseRemovalAdc
 
