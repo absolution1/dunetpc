@@ -19,7 +19,7 @@
 // viewch - view channel number 
 // 
 // Boost multi_index_container provides interface to search and order various 
-// indicies. The container structure is defined in ChannelTable, which has
+// indicies. The container structure is defined in DPChannelTable, which has
 // the following interfaces:
 //  - raw sequence index, tag IndexRawSeqn
 //  - crate number, tag IndexCrate, to get all channels to a given crate
@@ -55,45 +55,9 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <sstream>
 
+//
 using namespace boost::multi_index;
-
-namespace
-{
-  //
-  // define multi_index container to implement channel mapping
-  //
-  
-  // container tags 
-  struct IndexRawSeqn{};
-  struct IndexRawSeqnHash{};   // hashed 
-  struct IndexCrate{};         // hashed
-  struct IndexCrateCard{};     // hashed
-  struct IndexCrateCardChan{}; // ordered
-  struct IndexCrateCardChanHash{}; 
-  struct IndexCrp{};           // hashed
-  struct IndexCrpView{};       // hashed 
-  struct IndexCrpViewChan{};   // ordered
-  struct IndexCrpViewChanHash{};
-  
-  // boost multi index container
-  typedef multi_index_container<
-    DPChannelId,
-    indexed_by<
-    ordered_unique< tag<IndexRawSeqn>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
-    hashed_unique< tag<IndexRawSeqnHash>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
-    hashed_non_unique< tag<IndexCrate>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate > >,
-    hashed_non_unique< tag<IndexCrateCard>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card > > >,
-    ordered_unique< tag<IndexCrateCardChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
-    hashed_unique< tag<IndexCrateCardChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
-    hashed_non_unique< tag<IndexCrp>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp > >,
-    hashed_non_unique< tag<IndexCrpView>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view > > >,
-    ordered_unique< tag<IndexCrpViewChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >,
-    hashed_unique< tag<IndexCrpViewChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >
-    >
-    > ChannelTable; //
-}
 
 //
 namespace dune
@@ -130,6 +94,40 @@ namespace dune
     const bool exists() const { return (state_ == 0); }
   };
 
+
+  //
+  // define multi_index container to implement channel mapping
+  //
+
+  // container tags 
+  struct IndexRawSeqn{};
+  struct IndexRawSeqnHash{};   // hashed 
+  struct IndexCrate{};         // hashed
+  struct IndexCrateCard{};     // hashed
+  struct IndexCrateCardChan{}; // ordered
+  struct IndexCrateCardChanHash{}; 
+  struct IndexCrp{};           // hashed
+  struct IndexCrpView{};       // hashed 
+  struct IndexCrpViewChan{};   // ordered
+  struct IndexCrpViewChanHash{};
+  
+  // boost multi index container
+  typedef multi_index_container<
+    DPChannelId,
+    indexed_by<
+    ordered_unique< tag<IndexRawSeqn>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
+    hashed_unique< tag<IndexRawSeqnHash>, const_mem_fun< DPChannelId, const unsigned, &DPChannelId::seqn > >,
+    hashed_non_unique< tag<IndexCrate>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate > >,
+    hashed_non_unique< tag<IndexCrateCard>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card > > >,
+    ordered_unique< tag<IndexCrateCardChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
+    hashed_unique< tag<IndexCrateCardChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crate >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::card >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::cardch > > >,
+    hashed_non_unique< tag<IndexCrp>, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp > >,
+    hashed_non_unique< tag<IndexCrpView>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view > > >,
+    ordered_unique< tag<IndexCrpViewChan>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >,
+    hashed_unique< tag<IndexCrpViewChanHash>, composite_key< DPChannelId, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::crp >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::view >, const_mem_fun< DPChannelId, const unsigned short, &DPChannelId::viewch > > >
+    >
+    > DPChannelTable; //
+
   //
   //
   //
@@ -156,14 +154,14 @@ namespace dune
     // from crate info
     std::vector<DPChannelId> find_by_crate( unsigned crate, bool ordered = true ) const;
     std::vector<DPChannelId> find_by_crate_card( unsigned crate, unsigned card, 
-					     bool ordered = true ) const;
+						 bool ordered = true ) const;
     boost::optional<DPChannelId> find_by_crate_card_chan( unsigned crate, 
-						      unsigned card, unsigned chan ) const;
+							  unsigned card, unsigned chan ) const;
     // from CRP info
     std::vector<DPChannelId> find_by_crp( unsigned crp, bool ordered = true ) const;
     std::vector<DPChannelId> find_by_crp_view( unsigned crp, unsigned view, bool ordered = true ) const;
     boost::optional<DPChannelId> find_by_crp_view_chan( unsigned crp,
-						      unsigned view, unsigned chan ) const;
+							unsigned view, unsigned chan ) const;
     
     unsigned ncrates() const { return ncrates_; }
     unsigned ncrps() const { return ncrps_; }
@@ -220,7 +218,7 @@ namespace dune
       }
   
     //
-    ChannelTable chanTable;
+    DPChannelTable chanTable;
     
     std::string mapname_;
     std::set< unsigned > crateidx_;
@@ -230,9 +228,7 @@ namespace dune
     unsigned ntot_;
     unsigned nch_;
   };
- 
-} // namespace dune
-
+} //namespace dune
 
 DECLARE_ART_SERVICE(dune::PDDPChannelMap, LEGACY)
 #endif

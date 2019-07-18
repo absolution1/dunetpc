@@ -19,7 +19,7 @@
 // viewch - view channel number 
 // 
 // Boost multi_index_container provides interface to search and order various 
-// indicies. The container structure is defined in ChannelTable, which has
+// indicies. The container structure is defined in DPChannelTable, which has
 // the following interfaces:
 //  - raw sequence index, tag IndexRawSeqn
 //  - crate number, tag IndexCrate, to get all channels to a given crate
@@ -34,10 +34,6 @@
 //    a given view channel in a given CRP
 // 
 ////////////////////////////////////////////////////////////////////////
-
-#include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceMacros.h"
-#include "fhiclcpp/ParameterSet.h"
 
 #include <boost/range.hpp>
 #include <boost/range/adaptors.hpp>
@@ -103,7 +99,7 @@ void PDDPChannelMap::initMap(  std::string mapname, unsigned ncrates,
 // clearMap 
 void PDDPChannelMap::clearMap()
 {
-  ChannelTable().swap( chanTable );
+  DPChannelTable().swap( chanTable );
   ncrates_ = 0;
   ncrps_   = 0;
   ntot_    = 0;
