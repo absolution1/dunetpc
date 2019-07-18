@@ -387,3 +387,65 @@ protoana::BrokenTrack protoana::ProtoDUNETrackUtils::IsBrokenTrack( const recob:
   }
   return theBrokenTrack;
 }
+
+
+std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PIDFromTrack_MC( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, TProfile * profile ){
+
+  std::vector< anab::Calorimetry> calo = GetRecoTrackCalorimetry(track, evt, trackModule, caloModule);
+  std::vector< double > calo_dEdX;
+  std::vector< double > calo_range;
+  for( size_t i = 0; i < calo[0].dEdx().size(); ++i ){
+    calo_dEdX.push_back( calo[0].dEdx()[i] );
+    calo_range.push_back( calo[0].ResidualRange()[i] );
+  }
+
+  return Chi2PID( calo_dEdX, calo_range, profile );
+
+}
+
+std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile ){
+
+  double pid_chi2 = 0.; 
+  int npt = 0;
+
+  if( track_dedx.size() < 1 || range.size() < 1 )
+    return std::make_pair(9999., -1);
+
+  //Ignore first and last point
+  for( size_t i = 1; i < track_dedx.size()-1; ++i ){
+
+    //Skip large pulse heights
+    if( track_dedx[i] > 1000. )
+      continue;
+
+    int bin = profile->FindBin( range[i] );
+    if( bin >= 1 && bin <= profile->GetNbinsX() ){
+
+      double template_dedx = profile->GetBinContent( bin );
+      if( template_dedx < 1.e-6 ){
+        template_dedx = ( profile->GetBinContent( bin - 1 ) + profile->GetBinContent( bin + 1 ) ) / 2.;        
+      }
+
+      double template_dedx_err = profile->GetBinError( bin );
+      if( template_dedx_err < 1.e-6 ){
+        template_dedx_err = ( profile->GetBinError( bin - 1 ) + profile->GetBinError( bin + 1 ) ) / 2.;        
+      }
+
+
+      double dedx_res = 0.04231 + 0.0001783 * track_dedx[i] * track_dedx[i];
+      dedx_res *= track_dedx[i]; 
+
+      //Chi2 += ( track_dedx - template_dedx )^2  / ( (template_dedx_err)^2 + (dedx_res)^2 )
+      pid_chi2 += ( pow( (track_dedx[i] - template_dedx), 2 ) / ( pow(template_dedx_err, 2) + pow(dedx_res, 2) ) ); 
+
+      ++npt;
+    }
+  }
+
+  if( npt == 0 )
+    return std::make_pair(9999., -1);
+  
+    
+  pid_chi2 = pid_chi2 / npt;
+  return std::make_pair(pid_chi2, npt); 
+}

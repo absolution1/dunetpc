@@ -8,7 +8,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 	  lardataobj_RawData
 	  lardataobj_RecoBase
 	  lardataobj_AnalysisBase
-	  lardata_RecoObjects larreco_Deprecated
+	  lardata_RecoObjects
     lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface

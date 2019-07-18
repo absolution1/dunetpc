@@ -447,6 +447,53 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       sum += dif*dif;
     }
     val = acd.raw.size() == 0 ? 0.0 : sqrt(sum/nsam);
+  } else if ( met == "samRms" ) {
+    double sum = 0.0;
+    Index nsum = 0;
+    for ( float sig : acd.samples ) {
+      sum += sig*sig;
+      ++nsum;
+    }
+    val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
+  } else if ( met == "sigRms" || met == "nsgRms" ) {
+    Index nsam = acd.samples.size();
+    if ( acd.signal.size() != nsam ) {
+      cout << myname << "WARNING: signal and sample sizes differ: " << acd.signal.size()
+           << " != " << nsam << "." << endl;
+      val = 0.0;
+    } else {
+      double sum = 0.0;
+      Index nsum = 0;
+      bool doSignal = met == "sigRms";
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        if ( acd.signal[isam] == doSignal ) {
+          float sig = acd.samples[isam];
+          sum += sig*sig;
+          ++nsum;
+        }
+      }
+      val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
+      if ( m_LogLevel >= 4 ) {
+        cout << myname << "Sample count for " << met << " for channel " << acd.channel
+             << ": " << nsum << "/" << nsam << "." << endl;
+      }
+    }
+  } else if ( met == "sigFrac" ) {
+    Index nsam = acd.samples.size();
+    if ( acd.signal.size() != nsam ) {
+      cout << myname << "WARNING: For sigFrac, signal and sample sizes differ: "
+           << acd.signal.size() << " != " << nsam << "." << endl;
+      val = 0.0;
+    } else if ( nsam == 0 ) {
+      cout << myname << "WARNING: For sigFrac, ther are no samples." << endl;
+      val = 0.0;
+    } else {
+      Index nsig = 0;
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        if ( acd.signal[isam] ) ++nsig;
+      }
+      val = float(nsig)/float(nsam);
+    }
   } else if ( met == "rawTailFraction" ) {
     Index ntail = 0;
     double lim = 3.0*acd.pedestalRms;

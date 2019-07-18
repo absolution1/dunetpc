@@ -50,7 +50,6 @@
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larreco/Deprecated/BezierTrack.h"
 #include "larreco/RecoAlg/TrackMomentumCalculator.h"
 #include "larreco/RecoAlg/TrajectoryMCSFitter.h" //uBoone fitter
 #include "lardataobj/AnalysisBase/CosmicTag.h"
@@ -209,11 +208,11 @@ namespace dune {
           Float_t hittrky[10000];
           Float_t hittrkz[10000];
 
-	  Float_t hittrklocaltrackdirectionx[10000];
-	  Float_t hittrklocaltrackdirectiony[10000];
-	  Float_t hittrklocaltrackdirectionz[10000];
-	  Float_t hittrklocaltrackdirectiontheta[10000];
-	  Float_t hittrklocaltrackdirectionphi[10000];
+          Float_t hittrklocaltrackdirectionx[10000];
+          Float_t hittrklocaltrackdirectiony[10000];
+          Float_t hittrklocaltrackdirectionz[10000];
+          Float_t hittrklocaltrackdirectiontheta[10000];
+          Float_t hittrklocaltrackdirectionphi[10000];
 
           Float_t hittrkpitchC[10000];
 
@@ -225,7 +224,7 @@ namespace dune {
           Short_t hittrkwire[10000];
           Float_t hittrkpeakT[10000];
           Float_t hittrkchargeintegral[10000];
-	  Float_t hittrkph[10000];
+          Float_t hittrkph[10000];
           Float_t hittrkchargesum[10000];
           Float_t hittrkstarT[10000];
           Float_t hittrkendT[10000];
@@ -278,7 +277,7 @@ namespace dune {
           TrackData_t<Float_t> trkchi2PerNDF;        // length along trajectory.
           TrackData_t<Float_t> trkNDF;        // length along trajectory.
           TrackData_t<Float_t> trklen;        // length along trajectory.
-	  TrackData_t<Float_t> trklenstraightline; // shortest distance betweem start and end point of track
+          TrackData_t<Float_t> trklenstraightline; // shortest distance betweem start and end point of track
           TrackData_t<Float_t> trkmomrange;    // track momentum from range using CSDA tables
           TrackData_t<Float_t> trkmommschi2;   // track momentum from multiple scattering Chi2 method
           TrackData_t<Float_t> trkmommsllhd;   // track momentum from multiple scattering LLHD method
@@ -497,12 +496,12 @@ namespace dune {
         tdAuxDet = 0x01,
         tdCry = 0x02,
         tdGenie = 0x04,
-	tdPhotons = 0x08,
+        tdPhotons = 0x08,
         tdGenerator = 0x10,
         tdGeant = 0x20,
-	tdGeantInAV = 0x40,
-	tdGeantTrajectory = 0x80,
-	tdSimEnergyDepositTPCActive = 0x100,
+        tdGeantInAV = 0x40,
+        tdGeantTrajectory = 0x80,
+        tdSimEnergyDepositTPCActive = 0x100,
         tdHit = 0x200,
         tdTrack = 0x400,
         tdVertex = 0x800,
@@ -512,7 +511,7 @@ namespace dune {
         tdMCtrk  = 0x8000,
         tdCluster = 0x10000,
         tdRawDigit = 0x20000,
-	tdRecobWire = 0x40000,
+        tdRecobWire = 0x40000,
         tdPandoraNuVertex = 0x80000,
         tdPFParticle = 0x100000,
         tdCount = 0x200000,
@@ -1185,7 +1184,7 @@ namespace dune {
       void ResizeGEANTTrajectory(int nTrajectoryPoints);
 
        /// Resize the data strutcure for SimEnergyDepositTPCActive info
-      void ResizeSimEnergyDepositsTPCActive(int nSimEnergyDepositsTPCActive, int nParticlesWithSimEnergyDepositsTPCActive);   
+      void ResizeSimEnergyDepositsTPCActive(int nSimEnergyDepositsTPCActive, int nParticlesWithSimEnergyDepositsTPCActive);
 
       /// Resize the data strutcure for Genie primaries
       void ResizeGenie(int nPrimaries);
@@ -3999,7 +3998,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fTree(nullptr),
   //  fPOT(nullptr),
 
-  fLogLevel	            (pset.get< short >("LogLevel")        ),
+  fLogLevel                 (pset.get< short >("LogLevel")        ),
   fEventsPerSubrun          (pset.get< short >("EventsPerSubrun")        ),
   fRawDigitModuleLabel         (pset.get< std::string >("RawDigitModuleLabel")        ),
   fHitsModuleLabel          (pset.get< std::string >("HitsModuleLabel")         ),
@@ -4028,7 +4027,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fMCT0FinderLabel          (pset.get< std::vector<std::string> >("MCT0FinderLabel")   ),
   fPOTModuleLabel           (pset.get< std::string >("POTModuleLabel")),
   fCosmicClusterTaggerAssocLabel (pset.get< std::string >("CosmicClusterTaggerAssocLabel")),
-  fIsMC                	    (pset.get< bool >("IsMC", false)),
+  fIsMC                     (pset.get< bool >("IsMC", false)),
   fUseBuffer                (pset.get< bool >("UseBuffers", false)),
   fSaveAuxDetInfo           (pset.get< bool >("SaveAuxDetInfo", false)),
   fSaveCryInfo              (pset.get< bool >("SaveCryInfo", false)),
@@ -4042,7 +4041,7 @@ dune::AnaRootParser::AnaRootParser(fhicl::ParameterSet const& pset) :
   fSaveSimEnergyDepositTPCActiveInfo (pset.get< bool >("SaveSimEnergyDepositTPCActiveInfo", false)),
   fSaveMCShowerInfo	    (pset.get< bool >("SaveMCShowerInfo", false)),
   fSaveMCTrackInfo	    (pset.get< bool >("SaveMCTrackInfo", false)),
-  fSaveHitInfo	            (pset.get< bool >("SaveHitInfo", false)),
+  fSaveHitInfo              (pset.get< bool >("SaveHitInfo", false)),
   fSaveRawDigitInfo	    (pset.get< bool >("SaveRawDigitInfo", false)),
   fSaveRecobWireInfo	    (pset.get< bool >("SaveRecobWireInfo", false)),
   fSaveTrackInfo	    (pset.get< bool >("SaveTrackInfo", false)),
@@ -4304,13 +4303,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 
       for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
       {
-	if( std::find(tempparticleID.begin(), tempparticleID.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == tempparticleID.end() ) //check if current particle ID is already in the vector. if true: not in vector
-	{
-	  tempparticleID[nParticlesWithSimEnergyDepositsTPCActive] = energyDepositTPCActivelist[sedavit]->TrackID();
-	  nParticlesWithSimEnergyDepositsTPCActive++;
-	}
-	if(energyDepositTPCActivelist[sedavit]->TrackID() < nLowestParticleIDSimEnergyDepositsTPCActive) nLowestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
-	if(energyDepositTPCActivelist[sedavit]->TrackID() > nHighestParticleIDSimEnergyDepositsTPCActive) nHighestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
+        if( std::find(tempparticleID.begin(), tempparticleID.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == tempparticleID.end() ) //check if current particle ID is already in the vector. if true: not in vector
+        {
+          tempparticleID[nParticlesWithSimEnergyDepositsTPCActive] = energyDepositTPCActivelist[sedavit]->TrackID();
+          nParticlesWithSimEnergyDepositsTPCActive++;
+        }
+        if(energyDepositTPCActivelist[sedavit]->TrackID() < nLowestParticleIDSimEnergyDepositsTPCActive) nLowestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
+        if(energyDepositTPCActivelist[sedavit]->TrackID() > nHighestParticleIDSimEnergyDepositsTPCActive) nHighestParticleIDSimEnergyDepositsTPCActive=energyDepositTPCActivelist[sedavit]->TrackID();
       }
 
     }
@@ -4428,13 +4427,13 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
       {
         const simb::MCParticle* pPart = (itPart++)->second;
         if (!pPart)
-	{
+        {
           throw art::Exception(art::errors::LogicError)
             << "GEANT particle #" << iPart << " returned a null pointer";
         }
         nGEANTtrajectorysteps += pPart->NumberTrajectoryPoints();
 
-	if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
+        if(pPart->Mother() == 0 && pPart->Process() == pri) nGeneratorParticles++;
 
         TLorentzVector mcstart, mcend;
         unsigned int pstarti, pendi;
@@ -4454,10 +4453,10 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
           {
             for(int i = 0; i < itphoton->second ; i++)
             {
-	      nPhotons++;
-	    }
+              nPhotons++;
+            }
           }
-	}
+        }
       }
     } // if have MC truth
     MF_LOG_DEBUG("AnaRootParser") << "Expected "
@@ -4675,7 +4674,7 @@ if (fSaveRecobWireInfo){
       {
         fData->recoW_Tick[RecoWTick] = j+range.begin_index();
         fData->recoW_ADC[RecoWTick] = signal.at(j);
-	RecoWTick++;
+        RecoWTick++;
       }
       fData->recoW_NTicks[i] += NTicksInThisROI;
     }
@@ -5313,49 +5312,22 @@ if (fSaveTrackInfo) {
       double tlen = 0., mom = 0.;
       int TrackID = -1;
 
-      int ntraj = 0;
-      //we need to use Bezier methods for Bezier tracks
-      if (fTrackModuleLabel[iTracker].find("beziertracker")!=std::string::npos) {
-        trkf::BezierTrack btrack(*ptrack);
-        ntraj = btrack.NSegments();
-        if(ntraj > 0) {
-          double xyz[3];
-          btrack.GetTrackPoint(0,xyz);
-          pos.SetXYZ(xyz[0],xyz[1],xyz[2]);
-          btrack.GetTrackDirection(0,xyz);
-          dir_start.SetXYZ(xyz[0],xyz[1],xyz[2]);
-          btrack.GetTrackDirection(1,xyz);
-          dir_end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-          btrack.GetTrackPoint(1,xyz);
-          end.SetXYZ(xyz[0],xyz[1],xyz[2]);
-
-          tlen = btrack.GetLength();
-          if (btrack.GetTrajectory().NPoints() > 0)
-            mom = btrack.GetTrajectory().StartMomentum();
-          // fill bezier track reco branches
-          TrackID = iTrk;  //bezier has some screwed up track IDs
-        }
-      }
-      else {   //use the normal methods for other kinds of tracks
-        ntraj = track.NumberTrajectoryPoints();
-        if (ntraj > 0) {
-          pos       = track.Vertex<TVector3>();
-          dir_start = track.VertexDirection<TVector3>();
-          dir_end   = track.EndDirection<TVector3>();
-          end       = track.End<TVector3>();
-
-          dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
-          dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
-
-          tlen        = length(track);
-          if(track.NumberTrajectoryPoints() > 0)
-            mom = track.VertexMomentum();
-          // fill non-bezier-track reco branches
-          TrackID = track.ID();
-        }
-      }
-
+      int ntraj = track.NumberTrajectoryPoints();
       if (ntraj > 0) {
+        pos       = track.Vertex<TVector3>();
+        dir_start = track.VertexDirection<TVector3>();
+        dir_end   = track.EndDirection<TVector3>();
+        end       = track.End<TVector3>();
+
+        dir_start_flipped.SetXYZ(dir_start.Z(), dir_start.Y(), dir_start.X());
+        dir_end_flipped.SetXYZ(dir_end.Z(), dir_end.Y(), dir_end.X());
+
+        tlen        = length(track);
+        if(track.NumberTrajectoryPoints() > 0)
+          mom = track.VertexMomentum();
+        // fill non-bezier-track reco branches
+        TrackID = track.ID();
+
         double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
         double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
         double dpos = bdist(pos);  // FIXME - Passing an uncorrected position....
@@ -5376,32 +5348,32 @@ if (fSaveTrackInfo) {
         TrackerData.trkstartdirectiony[iTrk]	= dir_start.Y();
         TrackerData.trkstartdirectionz[iTrk]	= dir_start.Z();
 
-	if(fLogLevel >= 2)
-	{
-	  std::cout << std::endl;
-	  std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
-	  std::cout << "end.X(): " << end.X() << "\t" << "end.Y(): " << end.Y() << "\t" << "end.Z(): " << end.Z() << std::endl;
-	  std::cout << "dir_start.X(): " << dir_start.X() << "\t" << "dir_start.Y(): " << dir_start.Y() << "\t" << "dir_start.Z(): " << dir_start.Z() << std::endl;
-	  std::cout << "dir_end.X(): " << dir_end.X() << "\t" << "dir_end.Y(): " << dir_end.Y() << "\t" << "dir_end.Z(): " << dir_end.Z() << std::endl;
-	  std::cout << "dir_start_flipped.Theta(): " << (180.0/3.14159)*dir_start_flipped.Theta() << "\t" << "dir_start_flipped.Phi(): " << (180.0/3.14159)*dir_start_flipped.Phi() << std::endl;
-	  std::cout << "dir_end_flipped.Theta(): " << (180.0/3.14159)*dir_end_flipped.Theta() << "\t" << "dir_end_flipped.Phi(): " << (180.0/3.14159)*dir_end_flipped.Phi() << std::endl;
-	  std::cout << std::endl;
-	}
+        if(fLogLevel >= 2)
+        {
+          std::cout << std::endl;
+          std::cout << "start.X(): " << pos.X() << "\t" << "start.Y(): " << pos.Y() << "\t" << "start.Z(): " << pos.Z() << std::endl;
+          std::cout << "end.X(): " << end.X() << "\t" << "end.Y(): " << end.Y() << "\t" << "end.Z(): " << end.Z() << std::endl;
+          std::cout << "dir_start.X(): " << dir_start.X() << "\t" << "dir_start.Y(): " << dir_start.Y() << "\t" << "dir_start.Z(): " << dir_start.Z() << std::endl;
+          std::cout << "dir_end.X(): " << dir_end.X() << "\t" << "dir_end.Y(): " << dir_end.Y() << "\t" << "dir_end.Z(): " << dir_end.Z() << std::endl;
+          std::cout << "dir_start_flipped.Theta(): " << (180.0/3.14159)*dir_start_flipped.Theta() << "\t" << "dir_start_flipped.Phi(): " << (180.0/3.14159)*dir_start_flipped.Phi() << std::endl;
+          std::cout << "dir_end_flipped.Theta(): " << (180.0/3.14159)*dir_end_flipped.Theta() << "\t" << "dir_end_flipped.Phi(): " << (180.0/3.14159)*dir_end_flipped.Phi() << std::endl;
+          std::cout << std::endl;
+        }
 
         TrackerData.trkendtheta[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Theta();
         TrackerData.trkendphi[iTrk]	  = (180.0/3.14159)*dir_end_flipped.Phi();
-        TrackerData.trkenddirectionx[iTrk] 	  = dir_end.X();
-        TrackerData.trkenddirectiony[iTrk] 	  = dir_end.Y();
-        TrackerData.trkenddirectionz[iTrk] 	  = dir_end.Z();
+        TrackerData.trkenddirectionx[iTrk]        = dir_end.X();
+        TrackerData.trkenddirectiony[iTrk]        = dir_end.Y();
+        TrackerData.trkenddirectionz[iTrk]        = dir_end.Z();
 
-        TrackerData.trkthetaxz[iTrk]  	     = theta_xz;
-        TrackerData.trkthetayz[iTrk]  	     = theta_yz;
+        TrackerData.trkthetaxz[iTrk]         = theta_xz;
+        TrackerData.trkthetayz[iTrk]         = theta_yz;
         TrackerData.trkmom[iTrk]	     = mom;
-	TrackerData.trkchi2PerNDF[iTrk]	     = track.Chi2PerNdof();
-	TrackerData.trkNDF[iTrk]	     = track.Ndof();
+        TrackerData.trkchi2PerNDF[iTrk]	     = track.Chi2PerNdof();
+        TrackerData.trkNDF[iTrk]	     = track.Ndof();
         TrackerData.trklen[iTrk]	     = tlen;
         TrackerData.trklenstraightline[iTrk] = sqrt(pow(pos.X()-end.X(),2) + pow(pos.Y()-end.Y(),2) + pow(pos.Z()-end.Z(),2));
-        TrackerData.trkmomrange[iTrk] 	     = trkm.GetTrackMomentum(tlen,13);
+        TrackerData.trkmomrange[iTrk]        = trkm.GetTrackMomentum(tlen,13);
         TrackerData.trkmommschi2[iTrk]	     = trkm.GetMomentumMultiScatterChi2(ptrack);
         TrackerData.trkmommsllhd[iTrk]	     = trkm.GetMomentumMultiScatterLLHD(ptrack);
 
@@ -5515,82 +5487,82 @@ if (fSaveTrackInfo) {
         art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle[iTracker], evt, "pmtrack");
 
 //      if (fmthm.isValid()){
-	auto vhit = fmthm.at(iTrk);
-	auto vmeta = fmthm.data(iTrk);
+        auto vhit = fmthm.at(iTrk);
+        auto vmeta = fmthm.data(iTrk);
 
         TrackerData.NHitsPerTrack[iTrk] = vhit.size();
-      	art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
+        art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
 
-	int NHitsView0 = 0;
-	int NHitsView1 = 0;
+        int NHitsView0 = 0;
+        int NHitsView1 = 0;
 
-	if(fLogLevel >= 2)
-	{
-	  std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
-	  std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
-	  std::cout << "vhit.size(): " << vhit.size() << std::endl;
-	  std::cout << "vmeta.size(): " << vmeta.size() << std::endl;
-	  std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
-	}
+        if(fLogLevel >= 2)
+        {
+          std::cout << "track.NumberTrajectoryPoints(): " << track.NumberTrajectoryPoints() << std::endl;
+          std::cout << "track.NPoints(): " << track.NPoints() << std::endl;
+          std::cout << "vhit.size(): " << vhit.size() << std::endl;
+          std::cout << "vmeta.size(): " << vmeta.size() << std::endl;
+          std::cout << "fmspts.size(): " << fmspts.size() << std::endl;
+        }
 
-  	  for (unsigned int h = 0; h < vhit.size(); h++)
-  	  {
-	    //corrected pitch
-  	    double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
-  	    const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint<TVector3>(h);
-  	    const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint<TVector3>(h);
-  	    double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
-
-
-	    TrackerData.hittrklocaltrackdirectionx[HitIterator2] = dir.X();
-	    TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
-	    TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
+          for (unsigned int h = 0; h < vhit.size(); h++)
+          {
+            //corrected pitch
+            double angleToVert = geomhandle->WireAngleToVertical(vhit[h]->View(), vhit[h]->WireID().TPC, vhit[h]->WireID().Cryostat) - 0.5*::util::pi<>();
+            const TVector3& dir = tracklist[iTracker][iTrk]->DirectionAtPoint<TVector3>(h);
+            const TVector3& loc = tracklist[iTracker][iTrk]->LocationAtPoint<TVector3>(h);
+            double cosgamma = std::abs(std::sin(angleToVert)*dir.Y() + std::cos(angleToVert)*dir.Z());
 
 
-	    //XYZ
-	    std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
-	    TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
-	    TrackerData.hittrky[HitIterator2] = sptv[0]->XYZ()[1];
-	    TrackerData.hittrkz[HitIterator2] = sptv[0]->XYZ()[2];
+            TrackerData.hittrklocaltrackdirectionx[HitIterator2] = dir.X();
+            TrackerData.hittrklocaltrackdirectiony[HitIterator2] = dir.Y();
+            TrackerData.hittrklocaltrackdirectionz[HitIterator2] = dir.Z();
 
-      	    TVector3 dir_hit_flipped;
+
+            //XYZ
+            std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+            TrackerData.hittrkx[HitIterator2] = sptv[0]->XYZ()[0];
+            TrackerData.hittrky[HitIterator2] = sptv[0]->XYZ()[1];
+            TrackerData.hittrkz[HitIterator2] = sptv[0]->XYZ()[2];
+
+            TVector3 dir_hit_flipped;
             dir_hit_flipped.SetXYZ(dir.Z(), dir.Y(), dir.X());
 
-	    TrackerData.hittrklocaltrackdirectiontheta[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Theta();
-	    TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
+            TrackerData.hittrklocaltrackdirectiontheta[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Theta();
+            TrackerData.hittrklocaltrackdirectionphi[HitIterator2] = (180.0/3.14159)*dir_hit_flipped.Phi();
 
-	    //dx
-    	    if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
-    	    if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
+            //dx
+            if(vhit[h]->WireID().Plane == 0) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*sin(dir_hit_flipped.Phi()) ));
+            if(vhit[h]->WireID().Plane == 1) TrackerData.hittrkpitchC[HitIterator2] = std::abs(geomhandle->WirePitch()/( sin(dir_hit_flipped.Theta())*cos(dir_hit_flipped.Phi()) ));
 
-	    TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
+            TrackerData.hittrkds[HitIterator2] = vmeta[h]->Dx();
 
-	    if(fLogLevel >= 2)
-	    {
-	      std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
-	      std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
-	      std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
-	      std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
-	      std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
-	      std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
-	      std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
-	      std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
-	    }
+            if(fLogLevel >= 2)
+            {
+              std::cout << "pos.X(): " << sptv[0]->XYZ()[0] << "\t" << "pos.Y(): " << sptv[0]->XYZ()[1] << "\t" << "pos.Z(): " << sptv[0]->XYZ()[2] << std::endl;
+              std::cout << "pos2.X(): " << loc.X() << "\t" << "pos2.Y(): " << loc.Y() << "\t" << "pos2.Z(): " << loc.Z() << std::endl;
+              std::cout << "dir.X(): " << dir.X() << "\t" << "dir.Y(): " << dir.Y() << "\t" << "dir.Z(): " << dir.Z() << std::endl;
+              std::cout << "dir_hit_flipped.Theta(): " << (180.0/3.14159)*dir_hit_flipped.Theta() << "\t" << "dir_hit_flipped.Phi(): " << (180.0/3.14159)*dir_hit_flipped.Phi() << std::endl;
+              std::cout << "vmeta[h]->Dx(): " << vmeta[h]->Dx() << std::endl;
+              std::cout << "Dx corrected pitch old: " << geomhandle->WirePitch()/cosgamma << std::endl;
+              std::cout << "Dx corrected pitch new: " << TrackerData.hittrkpitchC[HitIterator2] << std::endl;
+              std::cout << "view: " << vhit[h]->WireID().Plane << std::endl;
+            }
 
-	    //hit variables
-	    TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
-	    TrackerData.hittrktpc[HitIterator2] = vhit[h]->WireID().TPC;
-	    TrackerData.hittrkview[HitIterator2] = vhit[h]->WireID().Plane;
-	    TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
-	    TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
-	    TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
-	    TrackerData.hittrkph[HitIterator2] = vhit[h]->PeakAmplitude();
-	    TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
-	    TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
-	    TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
-	    TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
-	    TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
-	    TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
+            //hit variables
+            TrackerData.hittrkchannel[HitIterator2] = vhit[h]->Channel();
+            TrackerData.hittrktpc[HitIterator2] = vhit[h]->WireID().TPC;
+            TrackerData.hittrkview[HitIterator2] = vhit[h]->WireID().Plane;
+            TrackerData.hittrkwire[HitIterator2] = vhit[h]->WireID().Wire;
+            TrackerData.hittrkpeakT[HitIterator2] = vhit[h]->PeakTime();
+            TrackerData.hittrkchargeintegral[HitIterator2] = vhit[h]->Integral();
+            TrackerData.hittrkph[HitIterator2] = vhit[h]->PeakAmplitude();
+            TrackerData.hittrkchargesum[HitIterator2] = vhit[h]->SummedADC();
+            TrackerData.hittrkstarT[HitIterator2] = vhit[h]->StartTick();
+            TrackerData.hittrkendT[HitIterator2] = vhit[h]->EndTick();
+            TrackerData.hittrkrms[HitIterator2] = vhit[h]->RMS();
+            TrackerData.hittrkgoddnessofFit[HitIterator2] = vhit[h]->GoodnessOfFit();
+            TrackerData.hittrkmultiplicity[HitIterator2] = vhit[h]->Multiplicity();
 
       //quantities from backtracker are different from the real value in MC
       if( fIsMC )
@@ -5602,16 +5574,16 @@ if (fSaveTrackInfo) {
 
             HitIterator2++;
 
-	    if(vhit[h]->WireID().Plane == 0) NHitsView0++;
-	    if(vhit[h]->WireID().Plane == 1) NHitsView1++;
-	  }
+            if(vhit[h]->WireID().Plane == 0) NHitsView0++;
+            if(vhit[h]->WireID().Plane == 1) NHitsView1++;
+          }
         TrackerData.ntrkhitsperview[iTrk][0] = NHitsView0;
         TrackerData.ntrkhitsperview[iTrk][1] = NHitsView1;
 
 //      }
 
 /*
-	std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
+        std::cout << "tracklist[iTracker][iTrk]->NumberTrajectoryPoints(): " << tracklist[iTracker][iTrk]->NumberTrajectoryPoints() << std::endl;
       for(size_t itp = 0; itp < tracklist[iTracker][iTrk]->NumberTrajectoryPoints(); ++itp)
       {
         const TVector3& pos = tracklist[iTracker][iTrk]->LocationAtPoint(itp);
@@ -5624,20 +5596,20 @@ if (fSaveTrackInfo) {
 //
 /*
       art::FindManyP<recob::SpacePoint> fmspts(vhit, evt, "pmtrack");
-	for (size_t h = 0; h < vhit.size(); ++h)
-	{
-	  std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
+        for (size_t h = 0; h < vhit.size(); ++h)
+        {
+          std::vector< art::Ptr<recob::SpacePoint> > sptv = fmspts.at(h);
 
-	  for (size_t j = 0; j < sptv.size(); ++j)
-	  {
-	    std::cout << "sptv[j]->XYZ()[0]: " << sptv[j]->XYZ()[0] << std::endl;
-	    std::cout << "sptv[j]->XYZ()[1]: " << sptv[j]->XYZ()[1] << std::endl;
-	    std::cout << "sptv[j]->XYZ()[2]: " << sptv[j]->XYZ()[2] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[0]: " << sptv[j]->ErrXYZ()[0] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[1]: " << sptv[j]->ErrXYZ()[1] << std::endl;
-	    std::cout << "sptv[j]->ErrXYZ()[2]: " << sptv[j]->ErrXYZ()[2] << std::endl;
-	  }
-	}
+          for (size_t j = 0; j < sptv.size(); ++j)
+          {
+            std::cout << "sptv[j]->XYZ()[0]: " << sptv[j]->XYZ()[0] << std::endl;
+            std::cout << "sptv[j]->XYZ()[1]: " << sptv[j]->XYZ()[1] << std::endl;
+            std::cout << "sptv[j]->XYZ()[2]: " << sptv[j]->XYZ()[2] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[0]: " << sptv[j]->ErrXYZ()[0] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[1]: " << sptv[j]->ErrXYZ()[1] << std::endl;
+            std::cout << "sptv[j]->ErrXYZ()[2]: " << sptv[j]->ErrXYZ()[2] << std::endl;
+          }
+        }
 */
 //
 
@@ -5699,7 +5671,7 @@ if (fSaveTrackInfo) {
         } // for calorimetry info
 
 
-	//best plane
+        //best plane
         if(TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][1] && TrackerData.ntrkhitsperview[iTrk][0] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 0;
         else if(TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][1] > TrackerData.ntrkhitsperview[iTrk][2]) TrackerData.trkpidbestplane[iTrk] = 1;
         else if(TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][0] && TrackerData.ntrkhitsperview[iTrk][2] > TrackerData.ntrkhitsperview[iTrk][1]) TrackerData.trkpidbestplane[iTrk] = 2;
@@ -6076,7 +6048,7 @@ if (fSaveTrackInfo) {
           TLorentzVector tpcstart, tpcend, tpcmom;
           double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
           fData->mctrk_origin[trk]          = mctrk.Origin();
-          fData->mctrk_pdg[trk]	            = mctrk.PdgCode();
+          fData->mctrk_pdg[trk]             = mctrk.PdgCode();
           fData->mctrk_TrackId[trk]	    = mctrk.TrackID();
           fData->mctrk_Process[trk]	    = mctrk.Process();
           fData->mctrk_startX[trk]          = mctrk.Start().X();
@@ -6168,8 +6140,8 @@ if (fSaveTrackInfo) {
           if (iPart < fData->GetMaxGeneratorparticles()) {
 
             std::string pri("primary");
-	    if( pPart->Mother() == 0 && pPart->Process() == pri )
-	    {
+            if( pPart->Mother() == 0 && pPart->Process() == pri )
+            {
               fData->TrackId[generator_particle]=pPart->TrackId();
               fData->pdg[generator_particle]=pPart->PdgCode();
               fData->status[generator_particle] = pPart->StatusCode();
@@ -6184,12 +6156,12 @@ if (fSaveTrackInfo) {
               fData->StartPointz[generator_particle]=pPart->Vz();
               fData->StartT[generator_particle] = pPart->T();
 
-      	      TVector3 momentum_start_flipped;
+              TVector3 momentum_start_flipped;
               momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
 
-	      fData->theta[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
-	      fData->phi[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
-	    }
+              fData->theta[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+              fData->phi[generator_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+            }
             ++generator_particle;
           }
           else if (iPart == fData->GetMaxGeneratorparticles()) {
@@ -6253,13 +6225,13 @@ if (fSaveTrackInfo) {
 //            double plendrifted = driftedLength(*pPart, mcstartdrifted, mcenddrifted, pstartdriftedi, penddriftedi);
 //            bool isDrifted = plendrifted!= 0;
 
-	    if(fLogLevel >= 3)
-	    {
-	      std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
-	      std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
-	      std::cout << "pPart->PdgCode():" << pPart->PdgCode() << std::endl;
-	      std::cout << std::endl;
-	    }
+            if(fLogLevel >= 3)
+            {
+              std::cout << "pPart->TrackId():" << pPart->TrackId() << std::endl;
+              std::cout << "pPart->Mother():" << pPart->Mother() << std::endl;
+              std::cout << "pPart->PdgCode():" << pPart->PdgCode() << std::endl;
+              std::cout << std::endl;
+            }
 
 
             fData->process_primary[geant_particle] = int(isPrimary);
@@ -6284,16 +6256,16 @@ if (fSaveTrackInfo) {
             fData->EndPointz[geant_particle]=pPart->EndPosition()[2];
             fData->EndT[geant_particle] = pPart->EndT();
 
-	    fData->NTrajectoryPointsPerParticle[geant_particle] = pPart->NumberTrajectoryPoints();
+            fData->NTrajectoryPointsPerParticle[geant_particle] = pPart->NumberTrajectoryPoints();
 
-	    //fData->theta[geant_particle] = pPart->Momentum().Theta();
-	    //fData->phi[geant_particle] = pPart->Momentum().Phi();
-	    //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
-      	    TVector3 momentum_start_flipped;
+            //fData->theta[geant_particle] = pPart->Momentum().Theta();
+            //fData->phi[geant_particle] = pPart->Momentum().Phi();
+            //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+            TVector3 momentum_start_flipped;
             momentum_start_flipped.SetXYZ(pPart->Pz(), pPart->Py(), pPart->Px());
 
-	    fData->theta[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
-	    fData->phi[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
+            fData->theta[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Theta();
+            fData->phi[geant_particle] = (180.0/3.14159)*momentum_start_flipped.Phi();
 
             fData->theta_xz[geant_particle] = std::atan2(pPart->Px(), pPart->Pz());
             fData->theta_yz[geant_particle] = std::atan2(pPart->Py(), pPart->Pz());
@@ -6309,8 +6281,8 @@ if (fSaveTrackInfo) {
 
             if (isActive && fSaveGeantInAVInfo){
               fData->pathlen_tpcAV[active]  = plen;
-	      fData->TrackId_tpcAV[active] =  pPart->TrackId();
-	      fData->PDGCode_tpcAV[active] = pPart->PdgCode();
+              fData->TrackId_tpcAV[active] =  pPart->TrackId();
+              fData->PDGCode_tpcAV[active] = pPart->PdgCode();
 
               fData->StartPointx_tpcAV[active] = mcstart.X();
               fData->StartPointy_tpcAV[active] = mcstart.Y();
@@ -6331,10 +6303,10 @@ if (fSaveTrackInfo) {
               fData->EndPy_tpcAV[active] = pPart->Py(pendi);
               fData->EndPz_tpcAV[active] = pPart->Pz(pendi);
 
-	      //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
-      	      TVector3 momentum_start_tpcAv_flipped;
+              //Change definition of theta and phi (swap x and z coordinate since x is "up" in dual phase)
+              TVector3 momentum_start_tpcAv_flipped;
               momentum_start_tpcAv_flipped.SetXYZ(pPart->Pz(pstarti), pPart->Py(pstarti), pPart->Px(pstarti));
-      	      TVector3 momentum_end_tpcAv_flipped;
+              TVector3 momentum_end_tpcAv_flipped;
               momentum_end_tpcAv_flipped.SetXYZ(pPart->Pz(pendi), pPart->Py(pendi), pPart->Px(pendi));
 
               fData->thetastart_tpcAV[active] = (180.0/3.14159)*momentum_start_tpcAv_flipped.Theta();
@@ -6343,7 +6315,7 @@ if (fSaveTrackInfo) {
               fData->thetaend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Theta();
               fData->phiend_tpcAV[active] = (180.0/3.14159)*momentum_end_tpcAv_flipped.Phi();
 
-	      active++;
+              active++;
             }
 
 /*
@@ -6491,13 +6463,13 @@ if (fSaveTrackInfo) {
         const sim::ParticleList& plist = pi_serv->ParticleList();
         sim::ParticleList::const_iterator itPart = plist.begin(),
           pend = plist.end(); // iterator to pairs (track id, particle)
-	int trajpointcounter = 0;
+        int trajpointcounter = 0;
 
         for(size_t iPart = 0; (iPart < plist.size()) && (itPart != pend); ++iPart)
-	{
+        {
           const simb::MCParticle* pPart = (itPart++)->second;
           if (!pPart)
-	  {
+          {
             throw art::Exception(art::errors::LogicError)
               << "GEANT particle #" << iPart << " returned a null pointer";
           }
@@ -6508,49 +6480,49 @@ if (fSaveTrackInfo) {
             const TLorentzVector& trajpointPosition= pPart->Position(trajpoint);
             //const TLorentzVector& trajpointMomentum= pPart->Momentum(trajpoint);
 
-	    fData->TrajTrackId[trajpointcounter] = pPart->TrackId();
-	    fData->TrajPDGCode[trajpointcounter] = pPart->PdgCode();
+            fData->TrajTrackId[trajpointcounter] = pPart->TrackId();
+            fData->TrajPDGCode[trajpointcounter] = pPart->PdgCode();
 
-	    fData->TrajX[trajpointcounter] = trajpointPosition.X();
-	    fData->TrajY[trajpointcounter] = trajpointPosition.Y();
-	    fData->TrajZ[trajpointcounter] = trajpointPosition.Z();
-	    fData->TrajT[trajpointcounter] = pPart->T(trajpoint);
-	    fData->TrajE[trajpointcounter] = pPart->E(trajpoint);
-	    fData->TrajP[trajpointcounter] = pPart->P(trajpoint);
-	    fData->TrajPx[trajpointcounter] = pPart->Px(trajpoint);
-	    fData->TrajPy[trajpointcounter] = pPart->Py(trajpoint);
-	    fData->TrajPz[trajpointcounter] = pPart->Pz(trajpoint);
+            fData->TrajX[trajpointcounter] = trajpointPosition.X();
+            fData->TrajY[trajpointcounter] = trajpointPosition.Y();
+            fData->TrajZ[trajpointcounter] = trajpointPosition.Z();
+            fData->TrajT[trajpointcounter] = pPart->T(trajpoint);
+            fData->TrajE[trajpointcounter] = pPart->E(trajpoint);
+            fData->TrajP[trajpointcounter] = pPart->P(trajpoint);
+            fData->TrajPx[trajpointcounter] = pPart->Px(trajpoint);
+            fData->TrajPy[trajpointcounter] = pPart->Py(trajpoint);
+            fData->TrajPz[trajpointcounter] = pPart->Pz(trajpoint);
 
-      	    TVector3 trajpointMomentum_flipped;
+            TVector3 trajpointMomentum_flipped;
             trajpointMomentum_flipped.SetXYZ(pPart->Pz(trajpoint), pPart->Py(trajpoint), pPart->Px(trajpoint));
 
             fData->TrajTheta[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Theta();
             fData->TrajPhi[trajpointcounter] = (180.0/3.14159)*trajpointMomentum_flipped.Phi();
 
-	    if(fLogLevel >= 4)
-	    {
-	    std::cout << std::endl;
-	    std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
-	    std::cout << "fData->TrajTrackId[trajpointcounter]: " << fData->TrajTrackId[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPDGCode[trajpointcounter]: " << fData->TrajPDGCode[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajT[trajpointcounter]: " << fData->TrajT[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajE[trajpointcounter]: " << fData->TrajE[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajP[trajpointcounter]: " << fData->TrajP[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPx[trajpointcounter]: " << fData->TrajPx[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPy[trajpointcounter]: " << fData->TrajPy[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPz[trajpointcounter]: " << fData->TrajPz[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajTheta[trajpointcounter]: " << fData->TrajTheta[trajpointcounter] << std::endl;
-	    std::cout << "fData->TrajPhi[trajpointcounter]: " << fData->TrajPhi[trajpointcounter] << std::endl;
-	    }
+            if(fLogLevel >= 4)
+            {
+            std::cout << std::endl;
+            std::cout << "trajpointcounter: " << trajpointcounter << std::endl;
+            std::cout << "fData->TrajTrackId[trajpointcounter]: " << fData->TrajTrackId[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPDGCode[trajpointcounter]: " << fData->TrajPDGCode[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajX[trajpointcounter]: " << fData->TrajX[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajY[trajpointcounter]: " << fData->TrajY[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajZ[trajpointcounter]: " << fData->TrajZ[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajT[trajpointcounter]: " << fData->TrajT[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajE[trajpointcounter]: " << fData->TrajE[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajP[trajpointcounter]: " << fData->TrajP[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPx[trajpointcounter]: " << fData->TrajPx[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPy[trajpointcounter]: " << fData->TrajPy[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPz[trajpointcounter]: " << fData->TrajPz[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajTheta[trajpointcounter]: " << fData->TrajTheta[trajpointcounter] << std::endl;
+            std::cout << "fData->TrajPhi[trajpointcounter]: " << fData->TrajPhi[trajpointcounter] << std::endl;
+            }
 
-	    trajpointcounter++;
-	  }
+            trajpointcounter++;
+          }
         } // for particles
 
-	fData->geant_trajectory_size = trajpointcounter;
+        fData->geant_trajectory_size = trajpointcounter;
       }// if (fSaveGeantTrajectoryInfo)
 
 
@@ -6560,182 +6532,182 @@ if (fSaveTrackInfo) {
         fData->particleswithsimenergydeposit_size = nParticlesWithSimEnergyDepositsTPCActive;
 
         // Find particle ID's for each particle with sim energy deposit in this event
-	int particlewithsedit=0;
-	for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
-	{
-	  if (std::find(fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.begin(), fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end() ) //check if current particle ID is already in the vector. if true: not in vector
-	  {
-	     fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[particlewithsedit] = energyDepositTPCActivelist[sedavit]->TrackID();
+        int particlewithsedit=0;
+        for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+        {
+          if (std::find(fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.begin(), fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end(), energyDepositTPCActivelist[sedavit]->TrackID()) == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end() ) //check if current particle ID is already in the vector. if true: not in vector
+          {
+             fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[particlewithsedit] = energyDepositTPCActivelist[sedavit]->TrackID();
 
-	     particlewithsedit++;
-	  }
-	}
+             particlewithsedit++;
+          }
+        }
 
-	//Sort particle ID's for each particle with sim energy deposit in this event by particle ID.
+        //Sort particle ID's for each particle with sim energy deposit in this event by particle ID.
         std::sort(fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.begin(), fData->ParticleIDSimEnergyDepositsTPCActivePerParticle.end());
 
 
         // Find number of sim energy deposits for each particle in this event and sort all SEDs by Particle ID.
         std::vector<int> it_sortedbyparticleID;
 
-	int totalsed = 0;
-	for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
-	{
-	  int NSEDForThisParticle = 0;
-	  for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
-	  {
-	    if(energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit])
-	    {
-	      NSEDForThisParticle++;
-	      it_sortedbyparticleID.push_back(sedavit);
-	    }
-	  }
+        int totalsed = 0;
+        for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
+        {
+          int NSEDForThisParticle = 0;
+          for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+          {
+            if(energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit])
+            {
+              NSEDForThisParticle++;
+              it_sortedbyparticleID.push_back(sedavit);
+            }
+          }
 
-	  fData->NSimEnergyDepositsTPCActivePerParticle[psedavit] = NSEDForThisParticle;
-	  totalsed += NSEDForThisParticle;
-	}
+          fData->NSimEnergyDepositsTPCActivePerParticle[psedavit] = NSEDForThisParticle;
+          totalsed += NSEDForThisParticle;
+        }
 
 /*
-	std::cout << std::endl;
-	std::cout << "it_sortedbyparticleID.size(): " << it_sortedbyparticleID.size() << std::endl;
+        std::cout << std::endl;
+        std::cout << "it_sortedbyparticleID.size(): " << it_sortedbyparticleID.size() << std::endl;
 
-	for(int sedavit=0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
-	{
-	  std::cout << std::endl;
-	  std::cout << "energyDepositTPCActivelist[" << sedavit << "]->TrackID(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID() << std::endl;
-	  std::cout << "energyDepositTPCActivelist[" << sedavit << "]->Time(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() << std::endl;
-	}
+        for(int sedavit=0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+        {
+          std::cout << std::endl;
+          std::cout << "energyDepositTPCActivelist[" << sedavit << "]->TrackID(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID() << std::endl;
+          std::cout << "energyDepositTPCActivelist[" << sedavit << "]->Time(): " << energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() << std::endl;
+        }
 */
 
 
-//Algorithm to sort SEDs by time 
+//Algorithm to sort SEDs by time
 /*
-	//Now also sort SEDs by time
-	//Sort by time (after sorting by particle ID)
+        //Now also sort SEDs by time
+        //Sort by time (after sorting by particle ID)
         std::vector<int> it_sortedbyparticleIDandtime;
 
-	int sedavit_currentparticle=0;
-	int sedavit_mintime_currentparticle = -1;
+        int sedavit_currentparticle=0;
+        int sedavit_mintime_currentparticle = -1;
 
 
-	for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
-	{
-	  for(int NSEDForThisParticle = 0; NSEDForThisParticle < fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; NSEDForThisParticle++)
-	  {
-	    double mintime_currentparticle = 1e9;
+        for(int psedavit = 0; psedavit < nParticlesWithSimEnergyDepositsTPCActive; psedavit++)
+        {
+          for(int NSEDForThisParticle = 0; NSEDForThisParticle < fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; NSEDForThisParticle++)
+          {
+            double mintime_currentparticle = 1e9;
 
-	    for(int sedavit = sedavit_currentparticle; sedavit < sedavit_currentparticle + fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; sedavit++)
-	    {
-	      if( energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() < mintime_currentparticle && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
-	      {
-	        mintime_currentparticle = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
-	        sedavit_mintime_currentparticle = sedavit;
-	      }
-	    }
-	    it_sortedbyparticleIDandtime.push_back(sedavit_mintime_currentparticle);
-	  }
-	  sedavit_currentparticle+=fData->NSimEnergyDepositsTPCActivePerParticle[psedavit];
-	}
+            for(int sedavit = sedavit_currentparticle; sedavit < sedavit_currentparticle + fData->NSimEnergyDepositsTPCActivePerParticle[psedavit]; sedavit++)
+            {
+              if( energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time() < mintime_currentparticle && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
+              {
+                mintime_currentparticle = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
+                sedavit_mintime_currentparticle = sedavit;
+              }
+            }
+            it_sortedbyparticleIDandtime.push_back(sedavit_mintime_currentparticle);
+          }
+          sedavit_currentparticle+=fData->NSimEnergyDepositsTPCActivePerParticle[psedavit];
+        }
 
 */
 
 
-//Alternative algorithm to sort SEDs by time 
+//Alternative algorithm to sort SEDs by time
 /*
-	//Sort by time (after sorting by particle ID)
+        //Sort by time (after sorting by particle ID)
         std::vector<int> it_sortedbyparticleIDandtime;
         it_sortedbyparticleIDandtime.resize(nSimEnergyDepositsTPCActive);
         FillWith(it_sortedbyparticleIDandtime, -1);
 
-	int sedavit_sortedbyparticleIDandtime = 0;
-	int mintime_sedavit = -1;
-	int psedavit=0;
+        int sedavit_sortedbyparticleIDandtime = 0;
+        int mintime_sedavit = -1;
+        int psedavit=0;
 
-	//for(int sedavit_sortedbyparticleIDandtime = 0; sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive; i++)
-	//{
-	while(sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive )
-	{
-	  double mintime = 1e9;
-	  bool FoundSEDForThisParticleID = false;
-	  int NSEDForThisParticle = 0;
+        //for(int sedavit_sortedbyparticleIDandtime = 0; sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive; i++)
+        //{
+        while(sedavit_sortedbyparticleIDandtime < nSimEnergyDepositsTPCActive )
+        {
+          double mintime = 1e9;
+          bool FoundSEDForThisParticleID = false;
+          int NSEDForThisParticle = 0;
 
-	  for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
-	  {
-	    if( energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit] )
-	    {
-	      if( energyDepositTPCActivelist[sedavit]->Time() < mintime && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
-	      {
-		mintime = energyDepositTPCActivelist[sedavit]->Time();
-		mintime_sedavit = sedavit;
-	 	FoundSEDForThisParticleID = true;
-	      }
-	    }
-	  }
+          for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+          {
+            if( energyDepositTPCActivelist[sedavit]->TrackID() == fData->ParticleIDSimEnergyDepositsTPCActivePerParticle[psedavit] )
+            {
+              if( energyDepositTPCActivelist[sedavit]->Time() < mintime && ( std::find(it_sortedbyparticleIDandtime.begin(), it_sortedbyparticleIDandtime.end(), sedavit) == it_sortedbyparticleIDandtime.end() ) )
+              {
+                mintime = energyDepositTPCActivelist[sedavit]->Time();
+                mintime_sedavit = sedavit;
+                FoundSEDForThisParticleID = true;
+              }
+            }
+          }
 
-	  if( FoundSEDForThisParticleID )
-	  {
-	    it_sortedbyparticleIDandtime[sedavit_sortedbyparticleIDandtime] = mintime_sedavit;
-	    sedavit_sortedbyparticleIDandtime++;
-	  }
-	  else
-	  {
-	    psedavit++;
-	  }
-	}
+          if( FoundSEDForThisParticleID )
+          {
+            it_sortedbyparticleIDandtime[sedavit_sortedbyparticleIDandtime] = mintime_sedavit;
+            sedavit_sortedbyparticleIDandtime++;
+          }
+          else
+          {
+            psedavit++;
+          }
+        }
 */
 
         // For each energy deposit in this event (sorted by particle ID, not by time)
 
-	for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
-	{
-	  fData->SEDTPCAVTrackID[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID();
-	  fData->SEDTPCAVPDGCode[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->PdgCode();
-	  fData->SEDTPCAVEnergy[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Energy();
-	  fData->SEDTPCAVNumPhotons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumPhotons();
-	  fData->SEDTPCAVNumElectrons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumElectrons();
-	  fData->SEDTPCAVLength[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StepLength();
+        for(int sedavit = 0; sedavit < nSimEnergyDepositsTPCActive; sedavit++)
+        {
+          fData->SEDTPCAVTrackID[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->TrackID();
+          fData->SEDTPCAVPDGCode[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->PdgCode();
+          fData->SEDTPCAVEnergy[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Energy();
+          fData->SEDTPCAVNumPhotons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumPhotons();
+          fData->SEDTPCAVNumElectrons[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->NumElectrons();
+          fData->SEDTPCAVLength[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StepLength();
 
-	  fData->SEDTPCAVStartTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartT();
-	  fData->SEDTPCAVStartX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartX();
-	  fData->SEDTPCAVStartY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartY();
-	  fData->SEDTPCAVStartZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartZ();
+          fData->SEDTPCAVStartTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartT();
+          fData->SEDTPCAVStartX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartX();
+          fData->SEDTPCAVStartY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartY();
+          fData->SEDTPCAVStartZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->StartZ();
 
-	  fData->SEDTPCAVMidTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
-	  fData->SEDTPCAVMidX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointX();
-	  fData->SEDTPCAVMidY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointY();
-	  fData->SEDTPCAVMidZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointZ();
+          fData->SEDTPCAVMidTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->Time();
+          fData->SEDTPCAVMidX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointX();
+          fData->SEDTPCAVMidY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointY();
+          fData->SEDTPCAVMidZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->MidPointZ();
 
-	  fData->SEDTPCAVEndTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndT();
-	  fData->SEDTPCAVEndX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndX();
-	  fData->SEDTPCAVEndY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndY();
-	  fData->SEDTPCAVEndZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndZ();
+          fData->SEDTPCAVEndTime[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndT();
+          fData->SEDTPCAVEndX[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndX();
+          fData->SEDTPCAVEndY[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndY();
+          fData->SEDTPCAVEndZ[sedavit] = energyDepositTPCActivelist[it_sortedbyparticleID[sedavit]]->EndZ();
 
 
-	  if(fLogLevel >= 5)
-	  {
-	    std::cout << std::endl;
-	    std::cout << "sedavit: " << sedavit << std::endl;
-	    std::cout << "fData->SEDTPCAVTrackID[" << sedavit << "]: " << fData->SEDTPCAVTrackID[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVPDGCode[" << sedavit << "]: " << fData->SEDTPCAVPDGCode[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVEnergy[" << sedavit << "]: " << fData->SEDTPCAVEnergy[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVNumPhotons[" << sedavit << "]: " << fData->SEDTPCAVNumPhotons[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVNumElectrons[" << sedavit << "]: " << fData->SEDTPCAVNumElectrons[sedavit] << std::endl;
+          if(fLogLevel >= 5)
+          {
+            std::cout << std::endl;
+            std::cout << "sedavit: " << sedavit << std::endl;
+            std::cout << "fData->SEDTPCAVTrackID[" << sedavit << "]: " << fData->SEDTPCAVTrackID[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVPDGCode[" << sedavit << "]: " << fData->SEDTPCAVPDGCode[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVEnergy[" << sedavit << "]: " << fData->SEDTPCAVEnergy[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVNumPhotons[" << sedavit << "]: " << fData->SEDTPCAVNumPhotons[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVNumElectrons[" << sedavit << "]: " << fData->SEDTPCAVNumElectrons[sedavit] << std::endl;
 
-	    std::cout << "fData->SEDTPCAVLength[" << sedavit << "]: " << fData->SEDTPCAVLength[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVStartTime[" << sedavit << "]: " << fData->SEDTPCAVStartTime[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVStartX[" << sedavit << "]: " << fData->SEDTPCAVStartX[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVStartY[" << sedavit << "]: " << fData->SEDTPCAVStartY[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVStartZ[" << sedavit << "]: " << fData->SEDTPCAVStartZ[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVMidTime[" << sedavit << "]: " << fData->SEDTPCAVMidTime[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVMidX[" << sedavit << "]: " << fData->SEDTPCAVMidX[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVMidY[" << sedavit << "]: " << fData->SEDTPCAVMidY[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVMidZ[" << sedavit << "]: " << fData->SEDTPCAVMidZ[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVEndTime[" << sedavit << "]: " << fData->SEDTPCAVEndTime[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVEndX[" << sedavit << "]: " << fData->SEDTPCAVEndX[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVEndY[" << sedavit << "]: " << fData->SEDTPCAVEndY[sedavit] << std::endl;
-	    std::cout << "fData->SEDTPCAVEndZ[" << sedavit << "]: " << fData->SEDTPCAVEndZ[sedavit] << std::endl;
-	  }
-	}
+            std::cout << "fData->SEDTPCAVLength[" << sedavit << "]: " << fData->SEDTPCAVLength[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVStartTime[" << sedavit << "]: " << fData->SEDTPCAVStartTime[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVStartX[" << sedavit << "]: " << fData->SEDTPCAVStartX[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVStartY[" << sedavit << "]: " << fData->SEDTPCAVStartY[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVStartZ[" << sedavit << "]: " << fData->SEDTPCAVStartZ[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVMidTime[" << sedavit << "]: " << fData->SEDTPCAVMidTime[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVMidX[" << sedavit << "]: " << fData->SEDTPCAVMidX[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVMidY[" << sedavit << "]: " << fData->SEDTPCAVMidY[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVMidZ[" << sedavit << "]: " << fData->SEDTPCAVMidZ[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVEndTime[" << sedavit << "]: " << fData->SEDTPCAVEndTime[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVEndX[" << sedavit << "]: " << fData->SEDTPCAVEndX[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVEndY[" << sedavit << "]: " << fData->SEDTPCAVEndY[sedavit] << std::endl;
+            std::cout << "fData->SEDTPCAVEndZ[" << sedavit << "]: " << fData->SEDTPCAVEndZ[sedavit] << std::endl;
+          }
+        }
       }
     }//if (mcevts_truth)
   }//if (fIsMC){
@@ -7072,17 +7044,17 @@ if (fSaveTrackInfo) {
 
     //......................................................................
     int dune::AnaRootParser::CountHits(const art::Event&    evt,
-                              	       const art::InputTag& which,
+                                       const art::InputTag& which,
                                        unsigned int         cryostat,
-                              	       unsigned int         tpc,
-                              	       unsigned int         plane)
+                                       unsigned int         tpc,
+                                       unsigned int         plane)
     {
       std::vector<const recob::Hit*> temp;
       int NumberOfHitsBeforeThisPlane=0;
       evt.getView(which, temp);   //temp.size() = total number of hits for this event (number of all hits in all Cryostats, TPC's, planes and wires)
       for(size_t t = 0; t < temp.size(); ++t){
-	if( temp[t]->WireID().Cryostat == cryostat&& temp[t]->WireID().TPC == tpc && temp[t]->WireID().Plane == plane ) break;
-	NumberOfHitsBeforeThisPlane++;
+        if( temp[t]->WireID().Cryostat == cryostat&& temp[t]->WireID().TPC == tpc && temp[t]->WireID().Plane == plane ) break;
+        NumberOfHitsBeforeThisPlane++;
       }
       return NumberOfHitsBeforeThisPlane;
     }
