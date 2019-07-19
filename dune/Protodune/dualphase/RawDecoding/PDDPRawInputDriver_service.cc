@@ -22,8 +22,11 @@
 #define DCBITFLAG 0x0 // 0x0 LSB -> 0x7 MSB
 #define GETDCFLAG(info) (CHECKBYTEBIT(info, DCBITFLAG)>0)
 
+//
 // event data quality flag
-#define EVDQFLAG(info) ( (info & 0x3F ) == 0 )
+// number of non instrumented cards for L1 builders
+#define EVCARD0 0x19   
+#define EVDQFLAG(info) ( (info & 0x3F ) == EVCARD0 )
 
 
 //
@@ -497,7 +500,7 @@ namespace lris
     // merge with other fragments
     for (auto it = frags.begin() + 1; it != frags.end(); ++it )
       {
-	event.good = ( event.good && EVDQFLAG( f0->ei.evflag ) );
+	event.good = ( event.good && EVDQFLAG( it->ei.evflag ) );
 	event.evflags.push_back( it->ei.evflag );
 	
 	// 
