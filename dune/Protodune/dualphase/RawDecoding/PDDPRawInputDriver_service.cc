@@ -112,7 +112,7 @@ namespace lris
     __output_label = pset.get<std::string>("OutputDataLabel", "daq");
     helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
     helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
-    helper.reconstitutes<art::Assns<raw::RawDigit,raw::RDTimeStamp>, art::InEvent>(__output_label);
+    //helper.reconstitutes<art::Assns<raw::RawDigit,raw::RDTimeStamp>, art::InEvent>(__output_label);
     helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
 
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
@@ -235,7 +235,7 @@ namespace lris
 
     std::unique_ptr< std::vector<raw::RawDigit> > cro_data ( new std::vector<raw::RawDigit>  );
     std::unique_ptr< std::vector<raw::RDTimeStamp> > cro_rdtm ( new std::vector<raw::RDTimeStamp>  );
-    std::unique_ptr< art::Assns<raw::RawDigit,raw::RDTimeStamp> > cro_asso ( new art::Assns<raw::RawDigit,raw::RDTimeStamp> );
+    //std::unique_ptr< art::Assns<raw::RawDigit,raw::RDTimeStamp> > cro_asso ( new art::Assns<raw::RawDigit,raw::RDTimeStamp> );
     std::unique_ptr< std::vector<raw::RDStatus> > cro_stat ( new std::vector<raw::RDStatus>  );
     
     // move data
@@ -271,7 +271,7 @@ namespace lris
     cro_stat->emplace_back( discarded, kept, statword );
     art::put_product_in_principal(std::move(cro_data), *outE, __output_label);
     art::put_product_in_principal(std::move(cro_rdtm), *outE, __output_label);
-    art::put_product_in_principal(std::move(cro_asso), *outE, __output_label);
+    //art::put_product_in_principal(std::move(cro_asso), *outE, __output_label);
     art::put_product_in_principal(std::move(cro_stat), *outE, __output_label);
     
     return true;
