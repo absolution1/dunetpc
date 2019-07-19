@@ -89,6 +89,7 @@ namespace lris
   private: 
     art::SourceHelper const&	__sourceHelper;
     art::SubRunID 		__currentSubRunID;
+    std::string                 __output_label;
     uint32_t 			__eventCtr; 
     uint32_t                    __eventNum;
 
