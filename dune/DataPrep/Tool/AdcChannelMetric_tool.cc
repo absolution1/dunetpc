@@ -137,7 +137,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   if ( m_doSummary ) {
     const std::set<Name> sumVals = {"count", "mean", "rms", "drms"};
     if ( m_MetricSummaryView.size() == 0 ) {
-      m_MetricSummaryView = "mean:rms";
+      m_MetricSummaryView = "mean:dmean";
       cout << myname << "WARNING: Missing metric summary view set to \"" << m_MetricSummaryView
            << "\"." << endl;
     }
@@ -560,7 +560,6 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       val = sqrt(sum/samSums.size());
       weight = samSums.size();
     }
-cout << "XXX: val = " << val << ", wt = " << weight << endl;
   } else if ( met == "sigFrac" ) {
     Index nsam = acd.samples.size();
     if ( acd.signal.size() != nsam ) {

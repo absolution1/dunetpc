@@ -33,12 +33,13 @@
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
-//                       can be any of the following. Default is "mean:rms".
+//                       can be any of the following. Default is "mean:dmean".
 //                  count - Number of values
 //                  mean - Mean of the value
-//                  rms - RMS of the values
-//                  sdev - RMS from the mean of the values
 //                  dmean - error on the mean = rms/sqrt(count)
+//                  rms - RMS of the values
+//                  drms - error on the RMS
+//                  sdev - RMS from the mean of the values
 //                  min - Minimum value
 //                  max - Maximum value
 //                  center - 0.5*(min+max)
@@ -200,15 +201,16 @@ private:
       sumsq += weight*val*val;
     }
     double mean() const { return weightSum ? sum/weightSum : 0.0; }
-    double dmean() const { return weightSum ? rms()/sqrt(double(weightSum)) : 0.0; }
+    double dmean() const { return weightSum > 0.0 ? sdev()/sqrt(weightSum) : 0.0; }
     double meansq() const { return weightSum ? sumsq/weightSum : 0.0; }
     double rms() const {
       return sqrt(meansq());
     }
     double drms() const {
+      if ( weightSum <= 0.0 ) return 0.0;
       double rmsVal = rms();
-      double drmsSq = meansq() + rmsVal*(rmsVal - 2.0*mean());
-      return drmsSq > 0.0 ? sqrt(drmsSq) : 0.0;
+      double rmsVar = meansq() + rmsVal*(rmsVal - 2.0*mean());
+      return rmsVar > 0.0 ? sqrt(rmsVar/weightSum) : 0.0;
     }
     double sdev() const {
       double valm = mean();
