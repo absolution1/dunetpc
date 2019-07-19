@@ -127,8 +127,11 @@ public:
   // Local method that directly returns the metric value and units.
   // Subclasse may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
+  // The weight is used when averaging over events, e.g. the number
+  // of samples or ROIs contributing to the metric value.
   virtual int
-  getMetric(const AdcChannelData& acd, Name met, float& metricValue, Name& metricUnits) const;
+  getMetric(const AdcChannelData& acd, Name met, float& metricValue,
+            Name& metricUnits, float& metricWeight) const;
 
 private:
 
@@ -180,38 +183,42 @@ private:
   // Summary data for one channel.
   class MetricSummary {
   public:
-    Index count = 0;
+    Index eventCount = 0;
+    double weightSum;
     double sum = 0.0;
     double sumsq = 0.0;
     double minval = 0.0;
     double maxval = 0.0;
     // Add an entry.
-    void add(double val) {
-      if ( count == 0 || val < minval ) minval = val;
-      if ( count == 0 || val > maxval ) maxval = val;
-      ++count;
-      sum+=val;
-      sumsq+=val*val;
+    void add(double val, double weight) {
+      if ( weightSum == 0 || val < minval ) minval = val;
+      if ( weightSum == 0 || val > maxval ) maxval = val;
+      ++eventCount;
+      double wval = weight*val;
+      weightSum += weight;
+      sum += wval;
+      sumsq += wval*wval;
     }
-    double mean() const { return count ? sum/count : 0.0; }
-    double meansq() const { return count ? sumsq/count : 0.0; }
+    double mean() const { return weightSum ? sum/weightSum : 0.0; }
+    double meansq() const { return weightSum ? sumsq/weightSum : 0.0; }
     double rms() const {
       double valm = mean();
       double arg = meansq() - valm*valm;
       return arg > 0 ? sqrt(arg) : 0.0;
     }
-    double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
+    double dmean() const { return weightSum ? rms()/sqrt(double(weightSum)) : 0.0; }
     double center() const { return 0.5*(minval + maxval); }
     double range() const { return  maxval - minval; }
     // Return if the provided string is a value name.
     static bool isValueName(Name vnam) {
       const std::set<Name> sumVals =
-        {"count", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
+        {"eventCount", "weightSum", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
       return sumVals.find(vnam) != sumVals.end();
     }
     // Return a value by name.
     float getValue(Name vnam) const {
-      if ( vnam == "count" ) return count;
+      if ( vnam == "eventCount" ) return eventCount;
+      if ( vnam == "weightSum" ) return weightSum;
       if ( vnam == "mean" ) return mean();
       if ( vnam == "rms" ) return rms();
       if ( vnam == "min" ) return minval;
