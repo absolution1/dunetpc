@@ -37,6 +37,7 @@
 //                  count - Number of values
 //                  mean - Mean of the value
 //                  rms - RMS of the values
+//                  sdev - RMS from the mean of the values
 //                  dmean - error on the mean = rms/sqrt(count)
 //                  min - Minimum value
 //                  max - Maximum value
@@ -194,25 +195,33 @@ private:
       if ( weightSum == 0 || val < minval ) minval = val;
       if ( weightSum == 0 || val > maxval ) maxval = val;
       ++eventCount;
-      double wval = weight*val;
       weightSum += weight;
-      sum += wval;
-      sumsq += wval*wval;
+      sum += weight*val;
+      sumsq += weight*val*val;
     }
     double mean() const { return weightSum ? sum/weightSum : 0.0; }
+    double dmean() const { return weightSum ? rms()/sqrt(double(weightSum)) : 0.0; }
     double meansq() const { return weightSum ? sumsq/weightSum : 0.0; }
     double rms() const {
+      return sqrt(meansq());
+    }
+    double drms() const {
+      double rmsVal = rms();
+      double drmsSq = meansq() + rmsVal*(rmsVal - 2.0*mean());
+      return drmsSq > 0.0 ? sqrt(drmsSq) : 0.0;
+    }
+    double sdev() const {
       double valm = mean();
       double arg = meansq() - valm*valm;
       return arg > 0 ? sqrt(arg) : 0.0;
     }
-    double dmean() const { return weightSum ? rms()/sqrt(double(weightSum)) : 0.0; }
     double center() const { return 0.5*(minval + maxval); }
     double range() const { return  maxval - minval; }
     // Return if the provided string is a value name.
     static bool isValueName(Name vnam) {
       const std::set<Name> sumVals =
-        {"eventCount", "weightSum", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
+        {"eventCount", "weightSum", "mean", "rms", "sdev", "min", "max", "dmean", "drms",
+         "center", "range", "halfRange"};
       return sumVals.find(vnam) != sumVals.end();
     }
     // Return a value by name.
@@ -221,12 +230,14 @@ private:
       if ( vnam == "weightSum" ) return weightSum;
       if ( vnam == "mean" ) return mean();
       if ( vnam == "rms" ) return rms();
+      if ( vnam == "sdev" ) return sdev();
       if ( vnam == "min" ) return minval;
       if ( vnam == "max" ) return maxval;
       if ( vnam == "center" ) return center();
       if ( vnam == "range" ) return range();
       if ( vnam == "halfRange" ) return 0.5*range();
       if ( vnam == "dmean" ) return dmean();
+      if ( vnam == "drms" ) return drms();
       return 0.0;
     }
   };

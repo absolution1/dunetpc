@@ -469,6 +469,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
     weight = nsum;
   } else if ( met.substr(0, 6) == "samRms" ) {   // samRmsNN, NN is integer
     val = 0.0;
+    weight = 0.0;
     istringstream sscnt(met.substr(6));
     Index ncnt = 0;
     sscnt >> ncnt;
@@ -522,11 +523,12 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
     }
   } else if ( met.substr(0, 6) == "nsgRms" ) {
     val = 0.0;
+    weight = 0.0;
     istringstream sscnt(met.substr(6));
     Index ncnt = 0;
     sscnt >> ncnt;
     Index nsam = acd.samples.size();
-    std::vector<float> samSums;  // Sum over samples for each group of cnt samples.
+    std::vector<float> samSums;  // Sum over samples for each group of ncnt samples.
     if ( ncnt == 0 ) {
       cout << myname << "WARNING: Invalid metric: " << met << endl;
     } else if ( acd.signal.size() != nsam ) {
@@ -536,7 +538,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       Index samCount = 0;
       float samSum = 0.0;
       for ( Index isam=0; isam<nsam; ++isam ) {
-        bool reset = ! acd.signal[isam];
+        bool reset = acd.signal[isam];
         if ( ! reset ) {
           float sam = acd.samples[isam];
           samSum += sam;
@@ -558,6 +560,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       val = sqrt(sum/samSums.size());
       weight = samSums.size();
     }
+cout << "XXX: val = " << val << ", wt = " << weight << endl;
   } else if ( met == "sigFrac" ) {
     Index nsam = acd.samples.size();
     if ( acd.signal.size() != nsam ) {
