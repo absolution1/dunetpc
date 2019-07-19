@@ -33,6 +33,8 @@
 //      ChannelRanges - Ranges of channels for channel summary plots.
 //                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
+// ChannelLineModulus - Repeat spacing for horizontal lines in summary plots
+// ChannelLinePattern - Pattern for horizontal lines in summary plots
 //        RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                      ROI is assigned a charge corresponding to the pulser setting.
 //     TickOffsetTool - Name of the tool that provides the tick offset.
@@ -147,6 +149,13 @@
 //           int roiChannelCount - # channels
 //     int roiFailedChannelCount - # failed channels
 //   int[nfail]   failedChannels - List of failed channels
+//
+// Lines are draw at N*ChannelLineModulus + ChannelLinePattern[i] for any
+// integer N and any value if i in range of the array which are within
+// the drawn channel range.
+// If ChannelLineModulus is zero, then lines are drawn for the channels in
+// ChannelLinePattern.
+
 
 #ifndef AdcRoiViewer_H
 #define AdcRoiViewer_H
@@ -169,6 +178,7 @@ class AdcRoiViewer : AdcChannelTool {
 public:
 
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
@@ -311,6 +321,8 @@ private:
   bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;
+  Index          m_ChannelLineModulus;
+  IndexVector    m_ChannelLinePattern;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
   Name m_ChannelRangeTool ="channelRanges";

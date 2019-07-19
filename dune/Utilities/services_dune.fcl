@@ -399,6 +399,7 @@ protodune_data_services: {
  AdcWireBuildingService:       @local::adcwire_std
 }
 
+
 protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
@@ -513,6 +514,36 @@ protodune_dataprep_tools_wirecell: [
 
 ## Set a default here.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
+
+
+
+
+##################################################
+### Make Parallel Services for the v7 geometry ###
+##################################################
+
+protodunev7_services:  @local::protodune_services
+protodunev7_services.Geometry: @local::protodunev7_geo
+
+protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
+protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_services:  @local::protodune_data_services
+protodunev7_data_services.Geometry: @local::protodunev7_geo
+
+protodunev7_reco_services:  @local::protodune_reco_services
+protodunev7_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_reco_services:  @local::protodune_data_reco_services
+protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_simulation_services:  @local::protodune_simulation_services
+protodunev7_simulation_services.Geometry: @local::protodunev7_geo
+protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
+
+
+
+
 
 #######################
 ### 35ton Prototype ###

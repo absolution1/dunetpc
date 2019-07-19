@@ -142,7 +142,8 @@ namespace CRT
       const auto hit = *(frag.hit(hitNum));
       MF_LOG_DEBUG("CRTRaw") << "Channel: " << (int)(hit.channel) << "\n"
                           << "ADC: " << hit.adc << "\n";
-
+      //Determine the offline channel number for each strip
+      size_t offline_channel = hit.channel;
       if (frag.module_num() == 14 ||
           frag.module_num() == 15 ||
           frag.module_num() == 8 ||
@@ -160,20 +161,24 @@ namespace CRT
           frag.module_num() == 20 ||
           frag.module_num() == 21){ //Strips need to be flipped (TY)
         if (hit.channel<32){
-          hits.emplace_back((31-hit.channel)*2, hit.adc);
+          offline_channel = (31-hit.channel)*2;
         }
         else{
-          hits.emplace_back((95-hit.channel-32)*2+1, hit.adc);
+          offline_channel = (63-hit.channel)*2+1;
         }
       }
       else{//Strips do not need to be flipped
         if (hit.channel<32){
-          hits.emplace_back(hit.channel*2, hit.adc);
+          offline_channel = hit.channel*2;
         }
         else{
-          hits.emplace_back((hit.channel-32)*2+1, hit.adc);
+          offline_channel = (hit.channel-32)*2+1;
         }
       }
+      //Flip the two layers
+      if (offline_channel%2==0) ++offline_channel;
+      else --offline_channel;
+      hits.emplace_back(offline_channel, hit.adc);
       //MF_LOG_DEBUG("CRT Hits") CRT::operator << hits.back() << "\n"; //TODO: Some function template from the message service interferes with my  
                                                                     //      function template from namespace CRT.  using namespace CRT seems like 
                                                                     //      it should solve this, but it doesn't seem to.

@@ -182,6 +182,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_SumNegate(ps.get<bool>("SumNegate")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
+  m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
+  m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
   m_TickOffsetTool(ps.get<string>("TickOffsetTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -503,6 +505,15 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "            SumNegate: " << (m_SumNegate ? "true" : "false") << endl;
     cout << myname << "          SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "          SumPlotPadY: " << m_SumPlotPadY << endl;
+    cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
+    cout << myname << "  ChannelLinePattern: {";
+    bool first = true;
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << icha;
+    }
+    cout << "}" << endl;
     cout << myname << "      RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "      SumRootFileName: " << m_SumRootFileName << endl;
     cout << myname << "  ChanSumRootFileName: " << m_ChanSumRootFileName << endl;
@@ -531,7 +542,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       }
     }
     cout << myname << "        PlotLabels: [";
-    bool first = true;
+    first = true;
     for ( Name slab : m_PlotLabels ) {
       if ( first ) first = false;
       else cout << ", ";
@@ -1833,6 +1844,15 @@ void AdcRoiViewer::writeChanSumPlots() const {
       }
       if ( nnoi ) pman->add(phn, "P same");
       if ( nbad ) pman->add(phb, "P same");
+    }
+    if ( m_ChannelLineModulus ) {
+      for ( Index icha : m_ChannelLinePattern ) {
+        pman->addVerticalModLines(m_ChannelLineModulus, icha);
+      }
+    } else {
+      for ( Index icha : m_ChannelLinePattern ) {
+        pman->addVerticalLine(icha, 1.0, 3);
+      }
     }
     if ( m_LogLevel >= 1 ) cout << myname << "Plotting channel summary " << pnam << endl;
     pman->print(pnam);

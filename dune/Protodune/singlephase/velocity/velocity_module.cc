@@ -106,7 +106,6 @@ namespace protoana{
   private:
     ProtoDUNEDataUtils fDataUtils;
     TTree* fEventTree;
-
     geo::GeometryCore const * fGeometry;
 
     //These are the tree variables I will be using
@@ -120,6 +119,8 @@ namespace protoana{
     std::vector<float> trkstartx;
     std::vector<float> trkstarty;
     std::vector<float> trkstartz;
+    std::vector< std::vector<float> > trkstartcosxyz;
+    std::vector< std::vector<float> > trkendcosxyz;
     std::vector<float> trkendx;
     std::vector<float> trkendy;
     std::vector<float> trkendz;
@@ -233,6 +234,8 @@ namespace protoana{
     fEventTree->Branch("trkhitz_wire2",&trkhitz_wire2);
     fEventTree->Branch("trkdq_int2",&trkdq_int2);
     fEventTree->Branch("trkdq_amp2",&trkdq_amp2);
+    fEventTree->Branch("trkstartcosxyz",&trkstartcosxyz);
+    fEventTree->Branch("trkendcosxyz",&trkendcosxyz);
 
 
   }
@@ -310,7 +313,7 @@ namespace protoana{
     std::vector<float> hitx_0; std::vector<float> hitx_1; std::vector<float> hitx_2;
     std::vector<float> hity_0; std::vector<float> hity_1; std::vector<float> hity_2;
     std::vector<float> hitz_0; std::vector<float> hitz_1; std::vector<float> hitz_2;
-    std::vector<float> hitz_wire2;
+    std::vector<float> hitz_wire2; std::vector<float> startcosxyz; std::vector<float> endcosxyz;
    
     float max_value;
     float min_value;
@@ -328,7 +331,7 @@ namespace protoana{
       hitx_0.clear();  hitx_1.clear();  hitx_2.clear();
       hity_0.clear();  hity_1.clear();  hity_2.clear();
       hitz_0.clear();  hitz_1.clear();  hitz_2.clear();
-      hitz_wire2.clear();
+      hitz_wire2.clear(); startcosxyz.clear();endcosxyz.clear();
 
 
 
@@ -362,7 +365,7 @@ namespace protoana{
       const recob::Track& track = *ptrack;
       auto pos = track.Vertex();
       auto dir_start = track.VertexDirection();
-      //auto dir_end   = track.EndDirection();
+      auto dir_end   = track.EndDirection();
       auto end = track.End();
       double theta_xz = std::atan2(dir_start.X(), dir_start.Z());
       double theta_yz = std::atan2(dir_start.Y(), dir_start.Z());
@@ -489,6 +492,15 @@ namespace protoana{
       trkstartx.push_back(pos.X());
       trkstarty.push_back(pos.Y());
       trkstartz.push_back(pos.Z());
+      startcosxyz.push_back(dir_start.X());
+      startcosxyz.push_back(dir_start.Y());
+      startcosxyz.push_back(dir_start.Z());
+      endcosxyz.push_back(dir_end.X());
+      endcosxyz.push_back(dir_end.Y());
+      endcosxyz.push_back(dir_end.Z());
+
+      trkstartcosxyz.push_back(startcosxyz);
+      trkendcosxyz.push_back(endcosxyz);
       trkendx.push_back(end.X());
       trkendy.push_back(end.Y());
       trkendz.push_back(end.Z());
@@ -514,6 +526,8 @@ namespace protoana{
     trkstartx.clear();
     trkstarty.clear();
     trkstartz.clear();
+    trkstartcosxyz.clear();
+    trkendcosxyz.clear();
     trkendx.clear();
     trkendy.clear();
     trkendz.clear();
