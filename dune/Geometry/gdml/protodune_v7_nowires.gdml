@@ -12,7 +12,7 @@
 
    <position name="posCryoInDetEnc"     unit="cm" x="0" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
-   <position name="posBeamWAr3"         unit="cm" x="-62.7768065409091" y="104.871299164159" z="-404.558744740604"/>
+   <position name="posBeamWAr3"         unit="cm" x="-62.776806540909" y="104.871299164159" z="-404.558744740604"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rMinus90AboutY"      unit="deg" x="0" y="270" z="0"/>
    <rotation name="rMinus90AboutYMinus90AboutX"       unit="deg" x="270" y="270" z="0"/>
@@ -441,7 +441,7 @@
       y="598.39" 
       z="229.5368"/>
     <box name="OuterActive" lunit="cm"
-      x="8.49125"
+      x="1.47375"
       y="600.22375"
       z="231.66"/>
 
@@ -1165,7 +1165,7 @@
      <physvol>
        <volumeref ref="volTPCActiveOuter"/>
        <position name="posOuterActive" unit="cm" 
-         x="0.736875" y="-3.63749999999999" z="0"/>
+         x="-2.771875" y="-3.63749999999999" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
     </volume>
