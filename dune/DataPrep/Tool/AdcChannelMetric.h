@@ -183,9 +183,24 @@ private:
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
   // Summary data for one channel.
+  // Calculates mean, RMS, their uncertainties and more from accumulated data.
+  // Note that the RMS may be more appropriate for RMS-like variables like noise
+  // as it averages squares instead of values.
+  //
+  // The value for each event is added with a weight that is used in the calculation
+  // of the mea, RMS and other values. Only the relative values of the weights
+  // affects these calculations.
+  //
+  // Uncertainties are evaluated by dividing the variance by sqrt(Neff) where Neff
+  // is the effective number independent measurements. Its value depends on
+  // the the weight flag:
+  //   0 - Neff = # events with weight > 0
+  //   1 - Neff = sum of weights
   class MetricSummary {
   public:
+    Index weightFlag = 0;
     Index eventCount = 0;
+    Index weightedEventCount = 0;
     double weightSum;
     double sum = 0.0;
     double sumsq = 0.0;
@@ -193,15 +208,18 @@ private:
     double maxval = 0.0;
     // Add an entry.
     void add(double val, double weight) {
+      ++eventCount;
+      if ( weight <= 0.0 ) return;
+      ++weightedEventCount;
       if ( weightSum == 0 || val < minval ) minval = val;
       if ( weightSum == 0 || val > maxval ) maxval = val;
-      ++eventCount;
       weightSum += weight;
       sum += weight*val;
       sumsq += weight*val*val;
     }
+    double neff() const { return weightFlag ? weightSum : weightedEventCount; }
     double mean() const { return weightSum ? sum/weightSum : 0.0; }
-    double dmean() const { return weightSum > 0.0 ? sdev()/sqrt(weightSum) : 0.0; }
+    double dmean() const { return weightSum > 0.0 ? sdev()/sqrt(neff()) : 0.0; }
     double meansq() const { return weightSum ? sumsq/weightSum : 0.0; }
     double rms() const {
       return sqrt(meansq());
@@ -210,7 +228,7 @@ private:
       if ( weightSum <= 0.0 ) return 0.0;
       double rmsVal = rms();
       double rmsVar = meansq() + rmsVal*(rmsVal - 2.0*mean());
-      return rmsVar > 0.0 ? sqrt(rmsVar/weightSum) : 0.0;
+      return rmsVar > 0.0 ? sqrt(rmsVar/neff()) : 0.0;
     }
     double sdev() const {
       double valm = mean();
@@ -222,12 +240,15 @@ private:
     // Return if the provided string is a value name.
     static bool isValueName(Name vnam) {
       const std::set<Name> sumVals =
-        {"eventCount", "weightSum", "mean", "rms", "sdev", "min", "max", "dmean", "drms",
+        {"weightFlag", "eventCount", "weightedEventCount", "weightSum",
+         "mean", "rms", "sdev", "min", "max", "dmean", "drms",
          "center", "range", "halfRange"};
       return sumVals.find(vnam) != sumVals.end();
     }
     // Return a value by name.
     float getValue(Name vnam) const {
+      if ( vnam == "weightFlag" ) return weightFlag;
+      if ( vnam == "weightedEventCount" ) return weightedEventCount;
       if ( vnam == "eventCount" ) return eventCount;
       if ( vnam == "weightSum" ) return weightSum;
       if ( vnam == "mean" ) return mean();

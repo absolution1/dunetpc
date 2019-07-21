@@ -241,8 +241,7 @@ AdcChannelMetric::~AdcChannelMetric() {
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Channel range " << cr.name << endl;
     }
-    for ( Index kcha=0; kcha<cr.size(); ++ kcha ) {
-      Index icha = cr.first() + kcha;
+    for ( Index kcha=0; kcha<cr.size(); ++kcha ) {
       const MetricSummary& ms = msums[kcha];
       ++ncha;
       if ( ms.eventCount ) {
@@ -256,9 +255,6 @@ AdcChannelMetric::~AdcChannelMetric() {
         if ( ms.weightSum > weightSumMax ) {
           weightSumMax = ms.weightSum;
         }
-      }
-      if ( m_LogLevel >= 3 ) {
-        cout << myname << setw(8) << icha << ":" << ms.mean() << " +/- " << ms.dmean() << endl;
       }
     }
     if ( m_doSummary ) {
@@ -298,6 +294,26 @@ AdcChannelMetric::~AdcChannelMetric() {
     cout << myname << "           # channels without data: " << setw(w) << ncha - nchaData << endl;
     cout << myname << "              # channels with data: " << setw(w) << nchaData << endl;
     cout << myname << "     # channels with max # entries: " << setw(w) << nchaDataMax << endl;
+    if ( m_LogLevel >= 3 ) {
+      Index icnt = 0;
+      for ( const MetricSummaryMap::value_type& imsm : getState().crsums ) {
+        IndexRange cr = imsm.first;
+        cout << "============= Channel range " << cr.name << endl;
+        const MetricSummaryVector& msums = imsm.second;
+        for ( const MetricSummary& msum : msums ) {
+          if ( msum.eventCount ) {
+            cout << "------------- " << m_Metric << "[" << icnt++ << "]" << endl;
+            cout << myname << "        weight flag: " << setw(w) << msum.weightFlag << endl;
+            cout << myname << "           # events: " << setw(w) << msum.eventCount << endl;
+            cout << myname << "  # weighted events: " << setw(w) << msum.weightedEventCount << endl;
+            cout << myname << "               Neff: " << setw(w) << msum.neff() << endl;
+            cout << myname << "               mean: " << setw(w) << msum.mean() << " +/- " << setw(w) << msum.dmean() << endl;
+            cout << myname << "                RMS: " << setw(w) << msum.rms() << " +/- " << setw(w) << msum.drms() << endl;
+          }
+        }
+        cout << "===================================" << endl;
+      }
+    }
   }
 }
 
