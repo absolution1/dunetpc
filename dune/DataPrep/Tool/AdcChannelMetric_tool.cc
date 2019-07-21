@@ -398,7 +398,8 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     Name sunits;
     int rstat = getMetric(acd, m_Metric, met, sunits, wt);
     if ( rstat ) {
-      cout << myname << "WARNING: Metric evaluation failed for channel " << acd.channel << endl;
+      cout << myname << "WARNING: Metric evaluation failed for metric " << m_Metric
+           << " channel " << acd.channel << endl;
       continue;
     }
     Index icha = iacd->first;
