@@ -100,6 +100,12 @@ std::vector<anab::CosmicTag> protoana::ProtoDUNEPFParticleUtils::GetPFParticleCo
 // Get the T0(s) from a given PFParticle
 std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const{
 
+  return GetPFParticleT0(particle,evt,particleLabel,particleLabel);
+
+}
+
+std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel, std::string t0Label) const{
+
   try{
     auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle> >(particleLabel);
 
@@ -107,7 +113,7 @@ std::vector<anab::T0> protoana::ProtoDUNEPFParticleUtils::GetPFParticleT0(const 
 
     std::vector<anab::T0> pT0s;
 
-    const art::FindManyP<anab::T0> findParticleT0s(recoParticles,evt,particleLabel);
+    const art::FindManyP<anab::T0> findParticleT0s(recoParticles,evt,t0Label);
     for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
       pT0s.push_back((*(findParticleT0s.at(pIndex)[p])));
     }
