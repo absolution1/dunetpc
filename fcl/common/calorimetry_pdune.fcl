@@ -1,4 +1,5 @@
 #include "calorimetry.fcl"
+#include "ShowerCalorimetry.fcl"
 
 BEGIN_PROLOG
 
@@ -11,7 +12,7 @@ pdune_sp_calorimetryalgmc.CalAmpConstants:  [ 0.9033e-3, 1.0287e-3, 0.8800e-3 ]
 pdune_sp_calorimetryalgmc.CalAreaConstants: [ 4.833e-3, 4.815e-3, 4.966e-3 ]
 
 pdune_sp_calodata:                       @local::standard_calodata
-pdune_sp_calodata.CaloAlg:               @local::pdune_sp_calorimetryalgdata
+pdune_sp_calodata.CaloAlg:               @local::pdune_sp_calorimetryalgmc
 pdune_sp_calodata.CaloAlg.CaloUseModBox: true
 
 pdune_sp_calomc:                         @local::standard_calomc
@@ -22,6 +23,12 @@ pdune_sp_calorimetryalgmcc10mc:          @local::standard_calorimetryalgmc
 # pdune_sp_calorimetryalgmcc10mc.CalAreaConstants:  [ 0.4911, 0.4911, 0.4911 ]
 pdune_sp_calorimetryalgmcc10mc.CalAreaConstants: [ 4.833e-3, 4.815e-3, 4.966e-3 ]
 pdune_sp_calorimetryalgmcc10mc.CaloDoLifeTimeCorrection: false
+
+pdune_sp_showercalodata:                 @local::shower_calorimetry
+pdune_sp_showercalodata.CalorimetryAlg:  @local::pdune_sp_calorimetryalgmc
+
+pdune_sp_showercalomc:                   @local::shower_calorimetry
+pdune_sp_showercalomc.CalorimetryAlg:    @local::pdune_sp_calorimetryalgmc
 
 # Double-Phase 6x6x6 parameters (***BLINDLY*** copied from SP above, changing to 2 planes and same constants!)
 

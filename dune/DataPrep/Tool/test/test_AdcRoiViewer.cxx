@@ -62,6 +62,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  SumHists: []" << endl;
     fout << "  ChannelRanges: []" << endl;
     fout << "  ChanSumHists: []" << endl;
+    fout << "  ChannelLineModulus:  0" << endl;
+    fout << "  ChannelLinePattern:  []" << endl;
     fout << "  RoiRootFileName: \"roi.root\"" << endl;
     fout << "  SumRootFileName: \"\"" << endl;
     fout << "  ChanSumRootFileName: \"\"" << endl;

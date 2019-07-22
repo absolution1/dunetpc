@@ -109,5 +109,25 @@ int protoana::ProtoDUNEShowerUtils::GetShowerIndex(const recob::Shower &shower, 
 }
 
 
+std::vector<anab::Calorimetry> protoana::ProtoDUNEShowerUtils::GetRecoShowerCalorimetry(const recob::Shower &shower, art::Event const &evt, const std::string showerModule, const std::string caloModule) const{
+
+  auto recoShowers = evt.getValidHandle<std::vector<recob::Shower> >(showerModule);
+  std::vector<anab::Calorimetry> caloInfo;
+  
+  try{
+    const art::FindManyP<anab::Calorimetry> findCalorimetry(recoShowers,evt,caloModule);
+    int actualIndex = GetShowerIndex(shower,evt,showerModule);
+    std::vector<art::Ptr<anab::Calorimetry>> theseCalos = findCalorimetry.at(actualIndex);
+
+    for( auto calo : theseCalos){
+      caloInfo.push_back(*calo);
+    }
+  }
+  catch(...){
+    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+  }
+
+  return caloInfo;
 
 
+}
