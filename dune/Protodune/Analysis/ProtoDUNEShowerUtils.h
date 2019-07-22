@@ -38,7 +38,8 @@ namespace protoana {
     std::vector<double> EstimateEnergyFromHitCharge(const std::vector<const recob::Hit*> &hits, calo::CalorimetryAlg caloAlg);
     /// If the shower.ID() isn't filled we must find the actual shower index ourselves
     int GetShowerIndex(const recob::Shower &shower, art::Event const &evt, const std::string showerModule) const;
-
+    /// Get shower calo info
+    std::vector<anab::Calorimetry> GetRecoShowerCalorimetry(const recob::Shower &shower, art::Event const &evt, const std::string showerModule, const std::string caloModule) const;
   private:
 
 

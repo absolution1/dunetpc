@@ -603,6 +603,20 @@ const std::vector<double> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHitsC
   return hitchargevec;
 }
 
+// Get the earliest hit peak time
+const double protoana::ProtoDUNEPFParticleUtils::GetPFParticleEarliestHitPeakTime(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const {
+
+  const std::vector<const recob::Hit*> hitvector = GetPFParticleHits(particle, evt, particleLabel);
+  
+  double earliesthittime = 999999.0;
+  for(auto hit : hitvector){
+    if(hit->PeakTime() < earliesthittime)
+      earliesthittime = (double)hit->PeakTime();
+  }
+  
+  return earliesthittime;
+}
+
 // Get the daughter tracks from the PFParticle
 const std::vector<const recob::Track*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, 
                                                                                                        const std::string particleLabel, const std::string trackLabel) const{
