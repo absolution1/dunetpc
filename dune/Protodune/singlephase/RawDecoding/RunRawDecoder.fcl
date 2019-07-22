@@ -13,7 +13,7 @@ services:
 
   TFileService: { 
    closeFileFast: true  # default
-   fileName:  "%ifb_raw_anal.root"
+   fileName:  "%ifb_raw_ana.root"
    tmpDir: "<parent-path-of-filename>"  # default
   }
  
