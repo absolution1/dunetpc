@@ -13,7 +13,7 @@
 
 void setExpectedValues(ExpectedValues& ev) {
   ev.gname = "protodune_geo";
-  ev.fullname = "protodune";
+  ev.fullname = "protodunev7";
   // Geometry counts.
   ev.ncry = 1;
   ev.ntpc = 12;
@@ -78,8 +78,8 @@ void setExpectedValues(ExpectedValues& ev) {
   // Space points.
   #include "setProtoDuneSpacePoints.dat"
   // Optical detectors.
-  // ... # detectors
-  ev.nopdet = 10*ev.napa;
+  // ... # detectors    Modified for 2 ARAPUCAS
+  ev.nopdet = 10*ev.napa - 2 + 2*16;
   // ... # channels in each detector
   ev.nopdetcha.resize(ev.nopdet, 4);
   ev.nopdetcha[30] = 12;
