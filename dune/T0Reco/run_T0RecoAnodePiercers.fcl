@@ -1,24 +1,72 @@
+#include "services_dune.fcl"
+#include "triggeralgo_service.fcl"
+#include "ProtoDUNEUnstableHVFilter.fcl"
+#include "ProtoDUNEFembFilter.fcl"
 #include "T0RecoAnodePiercers.fcl"
 #include "protodune_tools_dune.fcl"
 
-services.TFileService.fileName: "T0RecoAnodePiercers_reco.root"
+process_name: T0RecoAnodePiercers
 
-physics.producers.t0reco.MC: false
+services:
+{
+    scheduler:                  { defaultExceptions: false }    # Make all uncaught exceptions fatal.
+    # Load the service that manages root files for histograms.
+    TFileService:               { fileName: "T0RecoAnodePiercers_recot0.root" }
+    TimeTracker:                {}
+    ExptGeoHelperInterface:     @local::dune_geometry_helper
+    Geometry:                   @local::protodune_geo
+    DetectorProperties:         @local::protodune_detproperties
+    LArProperties:              @local::dunefd_properties
+    DetectorClocksService:      @local::protodune_detectorclocks
+    MemoryTracker:              {} # default is one
+    RandomNumberGenerator:      {} #ART native random number generator
+    message:                    @local::dune_message_services_prod_debug
+    IFDH:                   {}
+    FileCatalogMetadata:      @local::art_file_catalog_mc
+                          @table::protodune_services
+                        @table::protodune_data_reco_services
+}
 
 #source is now a root file
-source: {
+source:
+{
   	module_type: 	RootInput
-  	maxEvents:   	20	# Number of events to create
-	}
+  	maxEvents:   	10	# Number of events to create
+}
 
-outputs: {
-
- out1:
+outputs: 
+{
+  out1:
 	{
-	module_type: 		RootOutput
-	fileName:    		"T0RecoAnodePiercers.root"
-	dataTier:    		"recot0"
-	compressionLevel: 	1
+	  module_type: 		RootOutput
+	  fileName:    		"T0RecoAnodePiercers.root"
+	  dataTier:    		"recot0"
+	  compressionLevel: 	1
 	}
 }
+
+
+physics:
+{
+  filters:
+  {
+    FEMB:   @local::pdsp_fembfilter_all
+    HV:     @local::HVfilter
+  }
+
+  producers:
+  {
+    t0reco: @local::T0RecoAnodePiercers
+  }
+
+  recot0:     [FEMB,HV,t0reco]
+  trigger_paths: [ recot0 ]
+  stream: [out1]
+  end_paths:  [stream]
+
+}
+
+services.TFileService.fileName: "T0RecoAnodePiercers_recot0.root"
+
+physics.producers.t0reco.Debug: false
 

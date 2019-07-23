@@ -140,8 +140,6 @@ class T0RecoAnodePiercers : public art::EDProducer {
     	bool 		anode_piercing_candidate;
     	bool 		cathode_crossing_track;
 	
-    	int		 	ev_ctr;
-
 		double 		dtMin;
     	double 		dtMax;
 		//double 	fPurity;
@@ -154,7 +152,7 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
     EDProducer(fcl) {
 
 	fDebug 				= fcl.get<bool>		("Debug"  	);
-	fMC					= fcl.get<bool>		("MC");
+//	fMC					= fcl.get<bool>		("MC");
 
 	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  		);
 	fTrackProducer     	= fcl.get<std::string>	("TrackProducer"    	);
@@ -231,7 +229,7 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
 	produces < std::vector<anab::T0> >();
 	produces < art::Assns<recob::PFParticle, anab::T0> >();
 
-	dtMin = -99.;
+/*	dtMin = -99.;
     dtMax = 99.;
 
     //fPurity = 0.;
@@ -252,23 +250,35 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
 		<< fMinTrackLength << ", Min PE: " << fMinPE << 
 		" and flash-reco time difference between " << dtMin << " and " 
 		<< dtMax << " us." << std::endl;
-
+*/
 	}
 
 void T0RecoAnodePiercers::produce(art::Event& event){
+
+  fMC = !(event.isRealData());
+
+  if(fMC) {
+    dtMin = fMinDtMC; //us
+    dtMax = fMaxDtMC; //us
+  }
+  else {
+    dtMin = fMinDtData; //us
+    dtMax = fMaxDtData; //us
+  }
+ 
+//  std::cout << "is MC? " << fMC << " with time range " << dtMin << " to " << dtMax << std::endl;
 
 	auto t0_v    = std::make_unique<std::vector<anab::T0>>();
 	auto pfp_t0  = std::make_unique<art::Assns<recob::PFParticle, anab::T0>>();
 
 	int track_number = 0;
-	ev_ctr++;
 
 	// Load detector clocks for later
 	auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
 
 	double TPC_trigger_offset = 0.0;
 
-	std::cout << "Event number: " << ev_ctr << std::endl;
+//	std::cout << "Event number: " << event.event() << std::endl;
 	if(fDebug) std::cout << "Set event number: " << event.event() << "\nTop: " 
 		<< det_top << "\nBottom: " << det_bottom << "\nFront: " << det_front 
 		<< "\nBack: " << det_back << "\nEdge width: " << fEdgeWidth << std::endl;  
@@ -301,7 +311,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			<< fTriggerProducer << std::endl;
 		event.getByLabel(fTriggerProducer, trigger_h);
 		trigger_time = trigger_h->at(0).Time();
-		}
+	}
 
 
   // load PFParticles
@@ -311,18 +321,18 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	if(!reco_particles_h.isValid()) {
 		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate PFParticles!"<<std::endl;
 		throw std::exception(); 
-		}
+	}
 
 	// Utilities for PFParticles and tracks
 	protoana::ProtoDUNEPFParticleUtils pfpUtil;
 	protoana::ProtoDUNETrackUtils trackUtil;
 
 	// Get trigger to TPC Offset
-	if(fMC) {
-		TPC_trigger_offset = detclock->TriggerOffsetTPC();
-		if(fDebug) std::cout << "TPC time offset from trigger: " 
+//	if(fMC) {
+  TPC_trigger_offset = detclock->TriggerOffsetTPC();
+	if(fDebug) std::cout << "TPC time offset from trigger: " 
 		<< TPC_trigger_offset << " us" << std::endl;
-		}
+//	}
 
 	// Prepare a vector of optical flash times, if flash above some PE cut value
 
@@ -331,9 +341,9 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		if (flash.TotalPE() > fMinPE){
 			op_times.push_back(flash.Time() - trigger_time);
 			flash_id_v.push_back(flash_ctr);
-			//if (fDebug) std::cout << "\t Flash: " << flash_ctr 
-			//<< " has time : " << flash.Time() - trigger_time 
-			//<< ", PE : " << flash.TotalPE() << std::endl;
+			if (fDebug) std::cout << "\t Flash: " << flash_ctr 
+			<< " has time : " << flash.Time() - trigger_time 
+			<< ", PE : " << flash.TotalPE() << std::endl;
 		}
 		flash_ctr++;
 	} // for all flashes
@@ -349,10 +359,15 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		ev_particle_ctr++;
 
 		const recob::PFParticle &pfparticle = (*reco_particles_h)[particle];
+
+    // Only consider primary particles
+    if(!pfparticle.IsPrimary()) continue;
+
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 
 			if(fDebug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
-			continue; } 
+			continue; 
+    } 
 
 		if (fDebug) std::cout << "\tLooping through reco PFParticle " << ev_particle_ctr << std::endl;  
 
