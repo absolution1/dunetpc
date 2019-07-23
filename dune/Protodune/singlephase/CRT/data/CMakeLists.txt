@@ -11,6 +11,7 @@ art_make( LIB_LIBRARIES
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			cetlib cetlib_except
+			lardataobj_AnalysisBase
 			${ROOT_BASIC_LIB_LIST}
 )
 

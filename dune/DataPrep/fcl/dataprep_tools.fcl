@@ -443,6 +443,8 @@ tools.adcRoiViewer: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []
@@ -466,6 +468,8 @@ tools.adcRoiFitter: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []

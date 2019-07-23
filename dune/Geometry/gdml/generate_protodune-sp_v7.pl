@@ -862,6 +862,38 @@ $SiPM_z                   =    0;
 # to the CENTER of a paddle, including the 4" part of the frame. This variable's
 # primary purpose is to position the lowest paddle in each APA.
 
+####################################################################
+######################## ARAPUCA Dimensions ########################
+
+$ArapucaOut_x = 6.0;
+$ArapucaOut_y = 96.0;
+$ArapucaOut_z = 10.0*$LightPaddle_z; 
+$ArapucaIn_x = 3.0;
+$ArapucaIn_y = 80.0;
+$ArapucaIn_z = 100.0;
+$ArapucaAcceptanceWindow_x =1.0;
+$ArapucaAcceptanceWindow_y =80.0;
+$ArapucaAcceptanceWindow_z =100.0;
+$pos_subtraction_arapuca_x = 2.0;
+$gapCenterLeft_arapuca_z = 50.0;#if not simmetrical, positioning of windows for odd APAs needs to change
+$gapCenterRight_arapuca_z = 100.0-$gapCenterLeft_arapuca_z;
+$nAraAPA1 = 0;
+$nAraAPA2 = 3;
+$nSlotAra1 = 6;
+$nSlotAra2 = 4;
+
+$list_pos[0]=-$gapCenterLeft_arapuca_z-0.5*$ArapucaIn_z;
+for($list=1; $list<8; $list++){
+$list_pos[$list]=$list_pos[$i-1]-1.0*$ArapucaIn_z-2.0;
+}
+$list_pos[8]=$gapCenterRight_arapuca_z+0.5*$ArapucaIn_z;
+for($list=9; $list<16; $list++){
+$list_pos[$list]=$list_pos[$i-1]+$ArapucaIn_z+2.0;
+}
+
+#nAraAPAi is the number of the APA that the ith arapuca bar goes into and nSlotArai, its slot in that APA. If you don't want arapucas, use this numbers out of the range (e.g. negative)
+
+
 
 
 
@@ -929,6 +961,22 @@ print DEF <<EOF;
    <rotation name="rBeamWRev2"          unit="deg" x="-11.342" y="8.03118195044" z="-55.1415281209"/>
    <rotation name="rBeamW3"             unit="deg" x="0" y="-$BeamTheta3Deg" z="$BeamPhi3Deg"/>
    <rotation name="rBeamWRev3"          unit="deg" x="-11.342" y="11.6190450403" z="-44.8829268772"/>
+   <position name="posArapucaSub0"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[0]]}"/>
+   <position name="posArapucaSub1"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[1]]}"/>
+   <position name="posArapucaSub2"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[2]]}"/>
+   <position name="posArapucaSub3"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[3]]}"/>
+   <position name="posArapucaSub4"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[4]]}"/>
+   <position name="posArapucaSub5"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[5]]}"/>
+   <position name="posArapucaSub6"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[6]]}"/>
+   <position name="posArapucaSub7"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[7]]}"/>
+   <position name="posArapucaSub8"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[8]]}"/>
+   <position name="posArapucaSub9"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[9]]}"/>
+   <position name="posArapucaSub10"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[10]]}"/>
+   <position name="posArapucaSub11"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[11]]}"/>
+   <position name="posArapucaSub12"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[12]]}"/>
+   <position name="posArapucaSub13"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[13]]}"/>
+   <position name="posArapucaSub14"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[14]]}"/>
+   <position name="posArapucaSub15"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[15]]}"/>
 </define>
 </gdml>
 EOF
@@ -2115,6 +2163,103 @@ print CRYO <<EOF;
       y="$LightPaddle_y"
       z="$LigthPaddleSiPM_z"/>
 
+    <box name="ArapucaOut" lunit="mm"
+      x="@{[$ArapucaOut_x]}"
+      y="@{[$ArapucaOut_y]}"
+      z="@{[$ArapucaOut_z]}"/>
+
+    <box name="ArapucaIn" lunit="mm"
+      x="@{[$ArapucaIn_x]}"
+      y="@{[$ArapucaIn_y]}"
+      z="@{[$ArapucaIn_z]}"/>
+
+     <subtraction name="ArapucaWalls0">
+      <first  ref="ArapucaOut"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub0"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls1">
+      <first  ref="ArapucaWalls0"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub1"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls2">
+      <first  ref="ArapucaWalls1"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub2"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls3">
+      <first  ref="ArapucaWalls2"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub3"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls4">
+      <first  ref="ArapucaWalls3"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub4"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls5">
+      <first  ref="ArapucaWalls4"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub5"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls6">
+      <first  ref="ArapucaWalls5"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub6"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls7">
+      <first  ref="ArapucaWalls6"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub7"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls8">
+      <first  ref="ArapucaWalls7"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub8"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls9">
+      <first  ref="ArapucaWalls8"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub9"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls10">
+      <first  ref="ArapucaWalls9"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub10"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls11">
+      <first  ref="ArapucaWalls10"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub11"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls12">
+      <first  ref="ArapucaWalls11"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub12"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls13">
+      <first  ref="ArapucaWalls12"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub13"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls14">
+      <first  ref="ArapucaWalls13"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub14"/>
+      </subtraction>
+     <subtraction name="ArapucaWalls">
+      <first  ref="ArapucaWalls14"/>
+      <second ref="ArapucaIn"/>
+      <positionref ref="posArapucaSub15"/>
+      </subtraction>
+
+
+    <box name="ArapucaAcceptanceWindow" lunit="mm"
+      x="@{[$ArapucaAcceptanceWindow_x]}"
+      y="@{[$ArapucaAcceptanceWindow_y]}"
+      z="@{[$ArapucaAcceptanceWindow_z]}"/>
+
      <box name="APAFrameYSideHollow" lunit="cm"
       x="$APAFrameYSideHollow_x"
       y="$APAFrameYSideHollow_y"
@@ -2238,6 +2383,25 @@ print CRYO <<EOF;
       <solidref ref="LightPaddle"/>
     </volume>
 EOF
+}
+}
+
+for($i=0 ; $i<$nAPAs ; $i++){
+if($i==$nAraAPA1 || $i==$nAraAPA2){
+print CRYO <<EOF;
+    <volume name="volArapuca_$i">
+      <materialref ref="G10" />
+      <solidref ref="ArapucaWalls" />
+    </volume>
+EOF
+for($p=0 ; $p<16 ; $p++){
+print CRYO <<EOF;
+    <volume name="volOpDetSensitive_Arapuca_$i\-$p">
+      <materialref ref="LAr"/>
+      <solidref ref="ArapucaAcceptanceWindow"/>
+    </volume>
+EOF
+}
 }
 }
 
@@ -2792,6 +2956,8 @@ sub place_OpDets()
     $APACenter_z = $_[2];
     $apa_i = $_[3];
 
+    $test = 0;
+
 for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
 {
 
@@ -2808,6 +2974,14 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
                             + (1-$j)*($LightPaddle_y/2 + $APAFrameZSide_y) 
                             + $PaddleYInterval*$paddle; 
 
+     if($apa_i==$nAraAPA1){
+	if($paddle==$nSlotAra1) {$test=1;}
+    } #where the arapuca bar goes for pDUNE
+    if($apa_i==$nAraAPA2){
+	if($paddle==$nSlotAra2) {$test=1;}
+    }
+
+    if(($test!=1)){
              # Alternate the paddle orientations
              if ( $paddle % 2 == 0 ) { $rot = "rIdentity"; }
              else                    { $rot = "rPlus180AboutY"; }
@@ -2823,8 +2997,41 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
        <rotationref ref="$rot"/>
      </physvol>
 EOF
-
+$test = 0;
+    }else{
+	if ( $apa_i % 2 == 0 ) { 
+	    $rot = "rIdentity"; 
+	    $posArax = ($APACenter_x+0.05*$ArapucaOut_x-0.05*$ArapucaAcceptanceWindow_x-0.01);
+	}else{ 
+	    $rot = "rPlus180AboutY"; 
+	    $posArax = ($APACenter_x-0.05*$ArapucaOut_x+0.05*$ArapucaAcceptanceWindow_x+0.01);
+	}
+	
+	print CRYO <<EOF;
+     <physvol>
+       <volumeref ref="volArapuca_$apa_i"/>
+       <position name="posArapuca$apa_i-TPC\-$i\-$j\-$k" unit="cm" 
+         x="@{[$APACenter_x]}"
+	 y="@{[$Paddle_Y]}" 
+	 z="@{[$APACenter_z]}"/>
+       <rotationref ref="$rot"/>
+     </physvol>
+EOF
+	for ($ara = 0; $ara<16; $ara++){
+	    print CRYO <<EOF;
+     <physvol>
+       <volumeref ref="volOpDetSensitive_Arapuca_$apa_i\-$ara"/>
+       <position name="posOpArapuca$apa_i\-$ara\-TPC\-$i\-$j\-$k" unit="cm" 
+         x="@{[$posArax]}"
+	 y="@{[$Paddle_Y]}" 
+	 z="@{[(0.1*$list_pos[$ara]+$APACenter_z)]}"/>
+     </physvol>
+EOF
+}
+$test = 0;
+}
 }#end Paddle for-loop
+
 
 }
 
