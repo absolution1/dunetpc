@@ -1,0 +1,68 @@
+#include "services_dune.fcl"
+#include "triggeralgo_service.fcl"
+#include "ProtoDUNEUnstableHVFilter.fcl"
+#include "ProtoDUNEFembFilter.fcl"
+
+BEGIN_PROLOG
+
+T0RecoAnodePiercers: {
+ 	module_type: 		"T0RecoAnodePiercers"
+ 	TrackProducer: 		"pandoraTrack"
+ 	HitProducer: 		"pandoraTrack"
+ 	PFPProducer: 		"pandora"
+ 	EdgeWidth: 			40.0  # cm
+	DataFlashProducer: 	"opflashInternal"
+	MCFlashProducer: 	"opflash"
+	TriggerProducer: 	"opflashExternal"
+	FlashScaleFactor: 	1.0
+	FlashTPCOffset:		0 #us
+	MinTrackLength: 	50 #cm
+	MinPE: 				1000
+	MinDtFlashRecoData:	-1 #us
+	MaxDtFlashRecoData:	1.5 #us
+	MinDtFlashRecoMC:	-1.4 #us
+	MaxDtFlashRecoMC:	0 #us
+	Debug: 				false
+	}
+
+END_PROLOG
+
+process_name: T0RecoAnodePiercers
+
+services:
+{
+    scheduler:                	{ defaultExceptions: false }    # Make all uncaught exceptions fatal.
+    # Load the service that manages root files for histograms.
+    TFileService:             	{ fileName: "T0RecoAnodePiercers_reco.root" }
+    TimeTracker:              	{}
+    ExptGeoHelperInterface:     @local::dune_geometry_helper
+    Geometry:                   @local::protodune_geo
+    DetectorProperties:         @local::protodune_detproperties
+    LArProperties:              @local::dunefd_properties
+    DetectorClocksService:      @local::protodune_detectorclocks
+    MemoryTracker:            	{} # default is one
+    RandomNumberGenerator:    	{} #ART native random number generator
+    message:                  	@local::dune_message_services_prod_debug
+  	IFDH:             			{}
+    FileCatalogMetadata:    	@local::art_file_catalog_mc
+                  				@table::protodune_services
+                				@table::protodune_data_reco_services
+}
+
+physics:
+{
+    filters: {
+    	FEMB:   @local::pdsp_fembfilter_all
+    	HV:   	@local::HVfilter
+    	}
+
+  	producers: {
+		t0reco: @local::T0RecoAnodePiercers
+    	}
+
+  recot0:     	[FEMB,HV,t0reco]
+  trigger_paths: [ recot0 ]
+  stream: 		[out1]
+  end_paths:  	[stream]
+
+}

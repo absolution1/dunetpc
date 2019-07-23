@@ -1,0 +1,24 @@
+#include "T0RecoAnodePiercers.fcl"
+#include "protodune_tools_dune.fcl"
+
+services.TFileService.fileName: "T0RecoAnodePiercers_reco.root"
+
+physics.producers.t0reco.MC: false
+
+#source is now a root file
+source: {
+  	module_type: 	RootInput
+  	maxEvents:   	20	# Number of events to create
+	}
+
+outputs: {
+
+ out1:
+	{
+	module_type: 		RootOutput
+	fileName:    		"T0RecoAnodePiercers.root"
+	dataTier:    		"recot0"
+	compressionLevel: 	1
+	}
+}
+
