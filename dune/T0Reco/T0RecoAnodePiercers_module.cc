@@ -333,12 +333,12 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 	for(unsigned int particle = 0; particle < reco_particles_h->size(); ++particle){
 
-		ev_particle_ctr++;
-
 		const recob::PFParticle &pfparticle = (*reco_particles_h)[particle];
 
     	// Only consider primary particles
     	if(!pfparticle.IsPrimary()) continue;
+
+		ev_particle_ctr++;
 
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 

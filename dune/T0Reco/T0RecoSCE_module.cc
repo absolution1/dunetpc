@@ -489,10 +489,14 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
 	for(unsigned int p = 0; p < reco_particles_h->size(); ++p){
 
+		recob::PFParticle particle = (*reco_particles_h)[p];
+
+    	// Only consider primary particles
+    	if(!pfparticle.IsPrimary()) continue;
+
 		ev_particle_ctr++;
 		total_particle_ctr++;
 
-		recob::PFParticle particle = (*reco_particles_h)[p];
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(particle,evt,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 
 			if(fDebug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
