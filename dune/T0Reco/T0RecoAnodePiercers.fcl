@@ -1,4 +1,3 @@
-
 BEGIN_PROLOG
 
 T0RecoAnodePiercers: {
@@ -18,7 +17,7 @@ T0RecoAnodePiercers: {
 	MaxDtFlashRecoData:	1.0 #us
 	MinDtFlashRecoMC:	-1.4 #us
 	MaxDtFlashRecoMC:	0 #us
-	}
+  Debug: false
+}
 
 END_PROLOG
-
