@@ -108,27 +108,29 @@ class T0RecoAnodePiercers : public art::EDProducer {
     	std::vector<size_t> 	flash_id_v;
     	art::Handle<std::vector<recob::OpFlash> > 	flash_h;
 
-    	bool		fMC;
+    	bool		MC;
 
     	// Track parameters
     	double 		anode_rc_time;
     	double 		length;
-    	double 		rc_xs, rc_xe, rc_xs_corr, rc_xe_corr;
+    	double 		rc_xs, rc_xe;
+		//double		rc_xs_corr, rc_xe_corr;
     	double 		rc_ys, rc_ye;
     	double 		rc_zs, rc_ze;
 
     	// Flash parameters
-    	double 		matched_flash_pe;	
     	double 		matched_flash_time;
-    	double 		matched_flash_time_width;
     	double 		corrected_matched_flash_time;
-    	double		matched_flash_centre_y;
-    	double		matched_flash_centre_z;
-    	double		matched_flash_max_pe_det_x;
-    	double		matched_flash_max_pe_det_y;
-    	double		matched_flash_max_pe_det_z;
-    	double		matched_flash_width_y;
-    	double		matched_flash_width_z;
+    	//double 		matched_flash_time_width;
+
+    	double 		matched_flash_pe;	
+    	//double		matched_flash_centre_y;
+    	//double		matched_flash_centre_z;
+    	//double		matched_flash_max_pe_det_x;
+    	//double		matched_flash_max_pe_det_y;
+    	//double		matched_flash_max_pe_det_z;
+    	//double		matched_flash_width_y;
+    	//double		matched_flash_width_z;
 	
     	// Reco results
     	double 		dt_flash_reco;
@@ -142,9 +144,6 @@ class T0RecoAnodePiercers : public art::EDProducer {
 	
 		double 		dtMin;
     	double 		dtMax;
-		//double 	fPurity;
-
-
 	};
 
 T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
@@ -152,7 +151,6 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
     EDProducer(fcl) {
 
 	fDebug 				= fcl.get<bool>		("Debug"  	);
-//	fMC					= fcl.get<bool>		("MC");
 
 	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  		);
 	fTrackProducer     	= fcl.get<std::string>	("TrackProducer"    	);
@@ -228,45 +226,25 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
 
 	produces < std::vector<anab::T0> >();
 	produces < art::Assns<recob::PFParticle, anab::T0> >();
-
-/*	dtMin = -99.;
-    dtMax = 99.;
-
-    //fPurity = 0.;
-
-	if(fMC) {
-		dtMin = fMinDtMC; //us
-		dtMax = fMaxDtMC; //us
-		//fPurity = 0.98;
-	}
-
-	if(!fMC) {
-		dtMin = fMinDtData; //us
-		dtMax = fMaxDtData; //us
-		//fPurity = 0.96;
-	}
-
-	std::cout << "\tAnode piercing tracks selected by cuts.\n\t\t Min length: " 
-		<< fMinTrackLength << ", Min PE: " << fMinPE << 
-		" and flash-reco time difference between " << dtMin << " and " 
-		<< dtMax << " us." << std::endl;
-*/
 	}
 
 void T0RecoAnodePiercers::produce(art::Event& event){
 
-  fMC = !(event.isRealData());
+	MC = !(event.isRealData());
 
-  if(fMC) {
-    dtMin = fMinDtMC; //us
-    dtMax = fMaxDtMC; //us
-  }
-  else {
-    dtMin = fMinDtData; //us
-    dtMax = fMaxDtData; //us
-  }
+	if(MC) {
+		dtMin = fMinDtMC; //us
+		dtMax = fMaxDtMC; //us
+		}
+	else {
+		dtMin = fMinDtData; //us
+		dtMax = fMaxDtData; //us
+		}
  
-//  std::cout << "is MC? " << fMC << " with time range " << dtMin << " to " << dtMax << std::endl;
+	if(fDebug) std::cout << "\tAnode piercing tracks selected by cuts.\n\t\t Min length: " 
+		<< fMinTrackLength << ", Min PE: " << fMinPE << 
+		" and flash-reco time difference between " << dtMin << " and " 
+		<< dtMax << " us." << std::endl;
 
 	auto t0_v    = std::make_unique<std::vector<anab::T0>>();
 	auto pfp_t0  = std::make_unique<art::Assns<recob::PFParticle, anab::T0>>();
@@ -278,7 +256,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 	double TPC_trigger_offset = 0.0;
 
-//	std::cout << "Event number: " << event.event() << std::endl;
+	//std::cout << "Event number: " << event.event() << std::endl;
 	if(fDebug) std::cout << "Set event number: " << event.event() << "\nTop: " 
 		<< det_top << "\nBottom: " << det_bottom << "\nFront: " << det_front 
 		<< "\nBack: " << det_back << "\nEdge width: " << fEdgeWidth << std::endl;  
@@ -287,10 +265,10 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	flash_id_v.clear();
 	flash_h.clear();
 
-	//Set flash producer to MC or data names
+	//Set flash producer to MC or data
 
-	if(!fMC) fFlashProducer = fFlashProducerData;
-	if(fMC) fFlashProducer = fFlashProducerMC;
+	if(!MC) fFlashProducer = fFlashProducerData;
+	if(MC) fFlashProducer = fFlashProducerMC;
 
 	// load Flashes
 	if (fDebug) std::cout << "Loading flash from producer " << fFlashProducer << std::endl;
@@ -306,33 +284,32 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	art::Handle<std::vector<recob::OpFlash> > trigger_h;
 	double trigger_time = 0;
 
-	if(!fMC){
+	if(!MC){
 		if(fDebug) std::cout << "Loading trigger time from producer " 
 			<< fTriggerProducer << std::endl;
 		event.getByLabel(fTriggerProducer, trigger_h);
 		trigger_time = trigger_h->at(0).Time();
-	}
+		}
 
 
-  // load PFParticles
+	// load PFParticles
 
 	auto reco_particles_h = event.getValidHandle<std::vector<recob::PFParticle>>(fPFPProducer);
 
 	if(!reco_particles_h.isValid()) {
 		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate PFParticles!"<<std::endl;
 		throw std::exception(); 
-	}
+		}
 
 	// Utilities for PFParticles and tracks
 	protoana::ProtoDUNEPFParticleUtils pfpUtil;
 	protoana::ProtoDUNETrackUtils trackUtil;
 
 	// Get trigger to TPC Offset
-//	if(fMC) {
-  TPC_trigger_offset = detclock->TriggerOffsetTPC();
+
+	TPC_trigger_offset = detclock->TriggerOffsetTPC();
 	if(fDebug) std::cout << "TPC time offset from trigger: " 
 		<< TPC_trigger_offset << " us" << std::endl;
-//	}
 
 	// Prepare a vector of optical flash times, if flash above some PE cut value
 
@@ -344,9 +321,9 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			if (fDebug) std::cout << "\t Flash: " << flash_ctr 
 			<< " has time : " << flash.Time() - trigger_time 
 			<< ", PE : " << flash.TotalPE() << std::endl;
-		}
+			}
 		flash_ctr++;
-	} // for all flashes
+		} // for all flashes
 
 	if(fDebug) std::cout << "Selected a total of " << op_times.size() << " OpFlashes" << std::endl;
 
@@ -360,14 +337,14 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		const recob::PFParticle &pfparticle = (*reco_particles_h)[particle];
 
-    // Only consider primary particles
-    if(!pfparticle.IsPrimary()) continue;
+    	// Only consider primary particles
+    	if(!pfparticle.IsPrimary()) continue;
 
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 
 			if(fDebug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
 			continue; 
-    } 
+    		} 
 
 		if (fDebug) std::cout << "\tLooping through reco PFParticle " << ev_particle_ctr << std::endl;  
 
@@ -378,8 +355,8 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		length = 0.;
 		rc_xs = ReadoutWindow/10.;
 		rc_xe = -ReadoutWindow/10.; 
-		rc_xs_corr = 399.;
-		rc_xe_corr = -399.;
+		//rc_xs_corr = 399.;
+		//rc_xe_corr = -399.;
 		rc_ys = -99.;
 		rc_ye = -99.; 
 		rc_zs = -99.; 
@@ -387,15 +364,16 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		matched_flash_time = -ReadoutWindow;
 		corrected_matched_flash_time = -ReadoutWindow;
-		matched_flash_time_width = -1.;
+		//matched_flash_time_width = -1.;
+
 		matched_flash_pe = 0.;
-		matched_flash_centre_y = -99.;
-		matched_flash_centre_z = -99.;
-		matched_flash_width_y = -99.;
-		matched_flash_width_z = -99.;
-		matched_flash_max_pe_det_x = 0.;
-		matched_flash_max_pe_det_y = -99.;
-		matched_flash_max_pe_det_z = -99.;
+		//matched_flash_centre_y = -99.;
+		//matched_flash_centre_z = -99.;
+		//matched_flash_width_y = -99.;
+		//matched_flash_width_z = -99.;
+		//matched_flash_max_pe_det_x = 0.;
+		//matched_flash_max_pe_det_y = -99.;
+		//matched_flash_max_pe_det_z = -99.;
 
 		dt_flash_reco = 999;
 
@@ -414,9 +392,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			<< track_start.Y() << ", " << track_start.Z() << ") --> (" << track_end.X() << ", " 
 			<< track_end.Y() << ", " << track_end.Z() << ")" << std::endl;
 
-		if(sqrt(pow(track_start.X() - track_end.X(),2.0) 
-			+ pow(track_start.Y() - track_end.Y(),2.0)
-			+ pow(track_start.Z() - track_end.Z(),2.0)) < fMinTrackLength )	{
+		if(track->Length() < fMinTrackLength )	{
 				if(fDebug) std::cout << "\t\t\tParticle track too short. Skipping." << std::endl;
 				continue;
 			}
@@ -443,8 +419,8 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		// ------------------------------------------------------------------------------------
 		// ANODE PIERCERS 
 
-		// if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC <<
-		//" which has a drift direction of " << driftDir_start << std::endl; 
+		if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC 
+		<< " which has a drift direction of " << driftDir_start << std::endl; 
 
 		// create root trees variables
 
@@ -525,8 +501,8 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			continue; 
     		}
 
-		rc_xs_corr = rc_xs + driftDir_start*anode_rc_time*DriftVelocity;
-		rc_xe_corr = rc_xe + driftDir_end*anode_rc_time*DriftVelocity;
+		//rc_xs_corr = rc_xs + driftDir_start*anode_rc_time*DriftVelocity;
+		//rc_xe_corr = rc_xe + driftDir_end*anode_rc_time*DriftVelocity;
 
 		// FLASH MATCHING
 
@@ -536,17 +512,17 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		matched_flash_time = flash_ptr->Time() - trigger_time;
 		corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
-		matched_flash_time_width = flash_ptr->TimeWidth();
+		//matched_flash_time_width = flash_ptr->TimeWidth();
 
 		dt_flash_reco = corrected_matched_flash_time - (anode_rc_time + TPC_trigger_offset);
 
 		matched_flash_pe = flash_ptr->TotalPE();
-		matched_flash_centre_y = flash_ptr->YCenter();
-		matched_flash_centre_z = flash_ptr->ZCenter();
-		matched_flash_width_y = flash_ptr->YWidth();
-		matched_flash_width_z = flash_ptr->ZWidth();
+		//matched_flash_centre_y = flash_ptr->YCenter();
+		//matched_flash_centre_z = flash_ptr->ZCenter();
+		//matched_flash_width_y = flash_ptr->YWidth();
+		//matched_flash_width_z = flash_ptr->ZWidth();
 
-		unsigned int max_pe_channel = 9999;
+		/*unsigned int max_pe_channel = 9999;
 		double max_pe = 0;
 		unsigned int pd_ch;
 		for(pd_ch = 0; pd_ch <= geom->MaxOpChannel(); pd_ch++) {
@@ -561,7 +537,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		matched_flash_max_pe_det_x = -det_width;
 		if(max_pe_channel>143) matched_flash_max_pe_det_x = det_width;
-
+		*/
 		/*double max_pe_det_v[3];
 			geom->OpDetGeoFromOpChannel(max_pe_channel).GetCenter(max_pe_det_v);
 			matched_flash_max_pe_det_x = max_pe_det_v[0];
@@ -569,11 +545,11 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			matched_flash_max_pe_det_z = max_pe_det_v[2];
 		*/
 
-		if(fDebug) std::cout << "\t\tOpChannel " << max_pe_channel << 
+		/*if(fDebug) std::cout << "\t\tOpChannel " << max_pe_channel << 
 			" has maximum PE, and is located at: (" << 
 			matched_flash_max_pe_det_x << ", " << 
 			matched_flash_max_pe_det_y << ", " << 
-			matched_flash_max_pe_det_z << ")" << std::endl;
+			matched_flash_max_pe_det_z << ")" << std::endl; */
 
 		if(fDebug) std::cout << "\t\t Matched to flash w/ index " << op_match_result 
 			<< " w/ PE " << matched_flash_pe << ", corrected time " << 
@@ -587,7 +563,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		if(length>fMinTrackLength&&matched_flash_pe>fMinPE&&
 			dt_flash_reco>dtMin&&dt_flash_reco<dtMax) {
-			std::cout << "\t\tPFParticle: " << particle << 
+			if(fDebug) std::cout << "\t\tPFParticle: " << particle << 
 			" has a matched flash and passes cuts. Assigning T0: " 
 			<< anode_rc_time << " us." << std::endl;
 
@@ -627,7 +603,7 @@ void	T0RecoAnodePiercers::SortTrackPoints(const recob::Track& track, std::vector
 		if (trk_loc.Y() < end_y){
 			end_y = trk_loc.Y();
 			track_end = {trk_loc.X(), trk_loc.Y(), trk_loc.Z()};
-		}
+			}
 
 		if (trk_loc.Y() > start_y){
 			start_y = trk_loc.Y();

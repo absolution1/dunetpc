@@ -3,13 +3,13 @@
 
 services.TFileService.fileName: "T0RecoSCE_data_ana.root"
 
-physics.analyzers.t0ana.debug: 					false
+physics.analyzers.t0ana.Debug: 					false
 physics.analyzers.t0ana.UseMC: 					false
 physics.analyzers.t0ana.CathodeCrossers: 		false
 physics.analyzers.t0ana.AnodePiercers: 			true
 physics.analyzers.t0ana.FlashProducer : 		"opflashInternal"
 physics.analyzers.t0ana.TriggerProducer : 		"opflashExternal"
-physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:	false
+physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:	true
 
 physics.analyzers.t0ana.FlashScaleFactor: 		1.0
 physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
@@ -21,6 +21,8 @@ physics.analyzers.t0ana.LastOpChannel: 			63
 
 physics.analyzers.t0ana.MinTrackLength: 		20 #cm
 physics.analyzers.t0ana.MinPE: 					100
+
+physics.analyzers.t0ana.CheckAssignedAnodeT0:	false
 
 #source is now a root file
 source:

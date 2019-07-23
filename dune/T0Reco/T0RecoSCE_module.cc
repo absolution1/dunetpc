@@ -112,6 +112,8 @@ private:
 	double		fDriftVelocity; // [cm/us]
 	unsigned int 	fReadoutWindow;
 
+	bool		fAnodeT0Check;
+
 	double		det_top;
 	double 		det_bottom;
 	double 		det_front;
@@ -171,7 +173,6 @@ private:
 	double	mc_particle_y_anode;
 	double	mc_particle_z_anode;
 	double 	dt_mc_reco;
-//	double 	dt_mc_flash;
 	bool	true_anode_piercer;
 
 	// Tree for flash info
@@ -228,6 +229,8 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fUseOpHits			= fcl.get<bool>			("UseOpHits"		);
 	fFirstOpChannel		= fcl.get<int>			("FirstOpChannel"	);
 	fLastOpChannel		= fcl.get<int>			("LastOpChannel"	);
+
+	fAnodeT0Check		= fcl.get<bool>			("CheckAssignedAnodeT0"	);
 
 	// get boundaries based on detector bounds
 	auto const* geom = lar::providerFrom<geo::Geometry>();
@@ -439,11 +442,9 @@ void T0RecoSCE::analyze(art::Event const & evt){
 		}
 
 	// Get trigger to TPC Offset
-	if(fUseMC) {
 		TPC_trigger_offset = detclock->TriggerOffsetTPC();
 		if(fDebug) std::cout << "TPC time offset from trigger: " 
 			<< TPC_trigger_offset << " us" << std::endl;
-		}
 
 	// Prepare a vector of optical flash times, if flash above some PE cut value
 
@@ -839,16 +840,15 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
 					}
 
+				dt_mc_reco = 999.;
+				true_anode_piercer = false;
+
+				mc_particle_x_anode = 0;
+				mc_particle_y_anode = -99;
+				mc_particle_z_anode = -99;
+
 				// if we should use MC info -> continue w/ MC validation
       			if (fUseMC){
-
-					dt_mc_reco = 999.;
-					true_anode_piercer = false;
-
-					mc_particle_x_anode = 0;
-					mc_particle_y_anode = -99;
-					mc_particle_z_anode = -99;
-				
 
 					for(int mc_hit_i=0; mc_hit_i<last_mc_point; mc_hit_i++) {
 
@@ -880,27 +880,29 @@ void T0RecoSCE::analyze(art::Event const & evt){
 					} // ^ if we should use MCParticles
 
 			// For verifying anode piercer T0 assigned by producer module
+			
+			if(fAnodeT0Check) {
+				bool HasT0 = false;
 
-			bool HasT0 = false;
+    			unsigned int pIndex = particle.Self();
 
-    		unsigned int pIndex = particle.Self();
+    			std::vector<anab::T0> t0_apt_v;
 
-    		std::vector<anab::T0> t0_apt_v;
-
-    		const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,"t0reco");
+    			const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,"t0reco");
    				
-			for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
-      			t0_apt_v.push_back((*(findParticleT0s.at(pIndex)[p])));
-    			}
+				for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
+      				t0_apt_v.push_back((*(findParticleT0s.at(pIndex)[p])));
+    				}
 
-			if(t0_apt_v.size() != 0) HasT0 = true;
+				if(t0_apt_v.size() != 0) HasT0 = true;
 
-			if(HasT0) {
-				auto t0_apt = t0_apt_v.at(0);
+				if(HasT0) {
+					auto t0_apt = t0_apt_v.at(0);
 
-				std::cout << "PFParticle has T0: " << (t0_apt.Time()/1000) << 
-				" us against anode reco time: " << anode_rc_time << 
-				" us with dt_flash_reco " << dt_flash_reco << " us." << std::endl;
+					std::cout << "PFParticle has T0: " << (t0_apt.Time()/1000) << 
+					" us against anode reco time: " << anode_rc_time << 
+					" us with dt_flash_reco " << dt_flash_reco << " us." << std::endl;
+					}
 				}
 
 			if (!fCathode||!cathode_crossing_track) rc_time = anode_rc_time;
@@ -1014,9 +1016,9 @@ size_t  T0RecoSCE::FlashMatch(const double reco_time, std::vector<double> op_tim
   	for (size_t i=0; i < op_times_v.size(); i++){
 		double op_time_i = op_times_v[i];
     	double corrected_op_time_i = op_time_i*fFlashScaleFactor + fFlashTPCOffset;
-    	corrected_flash_reco_time_diff = corrected_op_time_i - reco_time;
-    	if (fabs(corrected_flash_reco_time_diff) < dt_min){
-      		dt_min  = fabs(corrected_flash_reco_time_diff);
+    	flash_reco_time_diff = corrected_op_time_i - reco_time;
+    	if (fabs(flash_reco_time_diff) < dt_min){
+      		dt_min  = fabs(flash_reco_time_diff);
       		if(!fUseOpHits) matched_op_id = flash_id_v[i];
 			if(fUseOpHits) matched_op_id = op_id_v[i];
     		}

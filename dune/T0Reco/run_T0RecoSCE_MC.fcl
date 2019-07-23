@@ -22,6 +22,8 @@ physics.analyzers.t0ana.LastOpChannel: 			143
 physics.analyzers.t0ana.MinTrackLength: 		20 #cm
 physics.analyzers.t0ana.MinPE: 					100
 
+physics.analyzers.t0ana.CheckAssignedAnodeT0:	false
+
 #source is now a root file
 source:
 {
