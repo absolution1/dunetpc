@@ -171,7 +171,7 @@ private:
 	double	mc_particle_y_anode;
 	double	mc_particle_z_anode;
 	double 	dt_mc_reco;
-	double 	dt_mc_flash;
+//	double 	dt_mc_flash;
 	bool	true_anode_piercer;
 
 	// Tree for flash info
