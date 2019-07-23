@@ -106,12 +106,13 @@ void check(string name, T val) {
 }
 
 template<class T, class V>
-void check(string name, T val, V checkval, bool print =true) {
+void check(string name, T val, V checkval, bool print =true, bool doAssert =true) {
   if ( print ) check(name, val);
   T eval = checkval;
   if ( val != eval ) {
     cout << val << " != " << checkval << endl;
-    assert(false);
+    assert(! doAssert);
+    cout << "************** Assertion not made!!! *************" << endl;
   }
 }
 
@@ -174,7 +175,8 @@ struct ExpectedValues {
   vector<double> posWco;         // Wire coordinates for space points
   // Photon detectors.
   Index nopdet = 0;
-  Index nopcha = 0;
+  Index nopcha = 0;              // # readout channels
+  Index nopchaHardware = 0;      // # harware channels (0 means same as readout)
   Vector<Index> nopdetcha;
   TwoVector<Index> opdetcha;
 };
@@ -493,18 +495,26 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
   }
   // Optical detectors.
   bool dophot = true;
+  bool doAssert = true;   // Flag to turn off assertions while testing the test
   if ( dophot ) {
     Index nopt = pgeo->NOpDets();
-    check("# Optical detectors", nopt, ev.nopdet);
-    check("# Optical channels", pgeo->NOpChannels(), ev.nopcha);
-    cout << " Optical detect channel counts:" << endl;
+    check("# Optical detectors expected", nopt, ev.nopdet, true, doAssert);
+    Index nopchaReadout = ev.nopcha;
+    Index nopchaHardware = ev.nopchaHardware ? ev.nopchaHardware : nopchaReadout;
+    cout << " Expected optical readout channel count: " << nopchaReadout << endl;
+    cout << "Expected optical hardware channel count: " << nopchaHardware << endl;
+    cout << "         Geometry optical channel count: " << pgeo->NOpChannels() << endl;
+    check("# Optical channels", pgeo->NOpChannels(), nopchaHardware, true, doAssert);
+    cout << "Per-detector optical channel counts:" << endl;
     assert( ev.nopdetcha.size() == nopt );
+    bool doAssert = true;  // True enable assertions in the indvidual channel checks.
     for ( Index iopt=0; iopt<nopt; ++iopt ) {
       ostringstream sslab;
       sslab << "  # channels for optical detector " << iopt;
       //bool print = iopt < maxchanprint;
-      check(sslab.str(), pgeo->NOpHardwareChannels(iopt), ev.nopdetcha[iopt], true);
+      check(sslab.str(), pgeo->NOpHardwareChannels(iopt), ev.nopdetcha[iopt], true, doAssert);
     }
+    assert(doAssert);
     cout << " Opdet channels:" << endl;
     for ( Index iopt=0; iopt<nopt; ++iopt ) {
       Index noch = pgeo->NOpHardwareChannels(iopt);
@@ -512,9 +522,11 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
         ostringstream sslab;
         sslab << "  Det " << iopt << ", chan " << ioch;
         Index icha = pgeo->OpChannel(iopt, ioch);
-        check(sslab.str() + " (channel)", icha, ev.opdetcha[iopt][ioch]);
-        check(sslab.str() + " (OpDet)", pgeo->OpDetFromOpChannel(icha), iopt, false);
-        check(sslab.str() + " (HardwareChannel)", pgeo->HardwareChannelFromOpChannel(icha), ioch, false);
+        check(sslab.str() + " (channel)", icha, ev.opdetcha[iopt][ioch], true, doAssert);
+        if ( nopchaHardware == nopchaReadout ) {
+          check(sslab.str() + " (OpDet)", pgeo->OpDetFromOpChannel(icha), iopt, true, doAssert);
+        }
+        check(sslab.str() + " (HardwareChannel)", pgeo->HardwareChannelFromOpChannel(icha), ioch, true, doAssert);
       }
     }
   }

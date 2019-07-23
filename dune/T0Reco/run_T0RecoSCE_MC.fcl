@@ -1,0 +1,43 @@
+#include "T0RecoSCE.fcl"
+#include "protodune_tools_dune.fcl"
+
+services.TFileService.fileName: "T0RecoSCE_MC_ana.root"
+
+physics.analyzers.t0ana.debug: 					false
+physics.analyzers.t0ana.UseMC: 					true
+physics.analyzers.t0ana.CathodeCrossers: 		false
+physics.analyzers.t0ana.AnodePiercers: 			true
+physics.analyzers.t0ana.FlashProducer: 			"opflash"
+physics.analyzers.t0ana.TriggerProducer: 		"opflashExternal"
+physics.analyzers.t0ana.AllFlashToTrackTimeDiffs: 	false
+
+physics.analyzers.t0ana.FlashScaleFactor: 		1.0
+physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
+
+physics.analyzers.t0ana.UseOpHits: 				false
+physics.analyzers.t0ana.OpHitProducer: 			"ophit"
+physics.analyzers.t0ana.FirstOpChannel: 		132
+physics.analyzers.t0ana.LastOpChannel: 			143
+
+physics.analyzers.t0ana.MinTrackLength: 		20 #cm
+physics.analyzers.t0ana.MinPE: 					100
+
+#source is now a root file
+source:
+{
+  module_type: 	RootInput
+  maxEvents:   	10	# Number of events to create
+}
+
+outputs:{
+
+ out1:
+ {
+	module_type: 		RootOutput
+	SelectEvents: 		[goodevents]
+   	fileName:    		"T0RecoSCE_MC.root"
+   	dataTier:    		"ana"
+   	compressionLevel: 	1
+ }
+}
+

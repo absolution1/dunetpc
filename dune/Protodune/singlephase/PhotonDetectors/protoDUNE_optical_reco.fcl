@@ -3,6 +3,8 @@
 #include "opticaldetectormodules_dune.fcl"
 #include "opticaldetectorservices_dune.fcl"
 
+#include "tools_dune.fcl"
+#include "protodune_tools_dune.fcl"
 
 process_name: OpDetReco
 
@@ -13,15 +15,17 @@ services:
   TimeTracker:       {}
   @table::protodune_rawdecoding_services
   @table::protodune_data_reco_services
-  message:      @local::standard_info 
+  message:      @local::standard_info
+
+  IFDH:              {} 
+
 }
 
-#services.OpDigiProperties:        @local::dunefd_opdigiproperties
 
 source:
 {
   module_type: RootInput
-  maxEvents : 200
+  maxEvents : 1000
 }
 
 
@@ -44,20 +48,20 @@ physics:
    {
       # photon detector reconstruction
       ssprawdecoder:   @local::ssp_raw_decoder_split
-      ophitInternalNew:   @local::protodune_ophit_data_internal
-      ophitExternalNew:   @local::protodune_ophit_data_external
-      opflashInternalNew: @local::protodune_opflash_data_internal
-      opflashExternalNew: @local::protodune_opflash_data_external
+      ophitInternal:   @local::protodune_ophit_data_internal
+      ophitExternal:   @local::protodune_ophit_data_external
+      opflashInternal: @local::protodune_opflash_data_internal
+      opflashExternal: @local::protodune_opflash_data_external
       rns:       { module_type: "RandomNumberSaver" }
    }
 
  analyzers:
  {
-   opflashanaInternalNew:  @local::standard_opflashana
-   opflashanaExternalNew:  @local::standard_opflashana
+   opflashanaInternal:  @local::standard_opflashana
+   opflashanaExternal:  @local::standard_opflashana
  }
- produceIt: [ssprawdecoder, ophitInternalNew, ophitExternalNew, opflashInternalNew, opflashExternalNew]
- analyzeIt: [opflashanaInternalNew, opflashanaExternalNew]
+ produceIt: [ssprawdecoder, ophitInternal, ophitExternal, opflashInternal, opflashExternal]
+ analyzeIt: [opflashanaInternal, opflashanaExternal]
 
    
  #define the output stream, there could be more than one if using filters 
@@ -72,9 +76,9 @@ physics:
  end_paths:     [analyzeIt, stream1]  
 }
 
-physics.analyzers.opflashanaInternalNew.OpHitModuleLabel:   "ophitInternalNew"
-physics.analyzers.opflashanaInternalNew.OpFlashModuleLabel: "opflashInternalNew"
-physics.analyzers.opflashanaExternalNew.OpHitModuleLabel:   "ophitExternalNew"
-physics.analyzers.opflashanaExternalNew.OpFlashModuleLabel: "opflashExternalNew"
+physics.analyzers.opflashanaInternal.OpHitModuleLabel:   "ophitInternal"
+physics.analyzers.opflashanaInternal.OpFlashModuleLabel: "opflashInternal"
+physics.analyzers.opflashanaExternal.OpHitModuleLabel:   "ophitExternal"
+physics.analyzers.opflashanaExternal.OpFlashModuleLabel: "opflashExternal"
 
 
