@@ -587,7 +587,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		if(length>fMinTrackLength&&matched_flash_pe>fMinPE&&
 			dt_flash_reco>dtMin&&dt_flash_reco<dtMax) {
-			std::cout << "\t\tPFParticle: " << particle << 
+			if(fDebug) std::cout << "\t\tPFParticle: " << particle << 
 			" has a matched flash and passes cuts. Assigning T0: " 
 			<< anode_rc_time << " us." << std::endl;
 
