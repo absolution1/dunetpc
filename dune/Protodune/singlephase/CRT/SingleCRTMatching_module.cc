@@ -28,7 +28,7 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"

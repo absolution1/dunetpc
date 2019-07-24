@@ -44,7 +44,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 #include "lardataobj/Simulation/sim.h"
 
 // ROOT & C++ includes
