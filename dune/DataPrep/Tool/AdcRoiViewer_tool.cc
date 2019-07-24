@@ -1593,7 +1593,6 @@ void AdcRoiViewer::fillChanSumHists() const {
     Index icha2 = getState().chanSumChaEnd[hnam];
     //for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
     //  Index icha = ph->GetBinCenter(ibin);
-    Index ibin = 0;
     for ( Index icha=icha1; icha<icha2; ++icha ) {
       Index ichaBin = icha + 1 - icha1;
       acd.channel = icha;
