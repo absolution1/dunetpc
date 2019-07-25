@@ -178,7 +178,7 @@ private:
 	// Tree for flash info
 	TTree 	*flash_tree;
 	double 	flash_reco_time_diff;
-	double 	corrected_flash_reco_time_diff;
+//	double 	corrected_flash_reco_time_diff;
 	double 	flash_time;
 	double 	flash_time_width;
 	double 	corrected_flash_time;
