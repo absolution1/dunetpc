@@ -54,7 +54,7 @@ simple_plugin(
 simple_plugin(
 	  AnaRootParser "module"
 	  larcore_Geometry_Geometry_service
-	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+	  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
           larsim_MCCheater_ParticleInventoryService_service
 	  lardata_Utilities
