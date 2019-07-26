@@ -1593,8 +1593,8 @@ void AdcRoiViewer::fillChanSumHists() const {
     Index icha2 = getState().chanSumChaEnd[hnam];
     //for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
     //  Index icha = ph->GetBinCenter(ibin);
-    Index ibin = 0;
     for ( Index icha=icha1; icha<icha2; ++icha ) {
+      Index ichaBin = icha + 1 - icha1;
       acd.channel = icha;
       Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       //Index chanStat = getState().getChannelStatus(hnam);
@@ -1695,8 +1695,8 @@ void AdcRoiViewer::fillChanSumHists() const {
       if ( isDist ) {
         ph->Fill(val);
       } else {
-        ph->SetBinContent(++ibin, val);
-        if ( haveErr ) ph->SetBinError(ibin, dval);
+        ph->SetBinContent(ichaBin, val);
+        if ( haveErr ) ph->SetBinError(ichaBin, dval);
       }
       ++nchaGood;
     }
