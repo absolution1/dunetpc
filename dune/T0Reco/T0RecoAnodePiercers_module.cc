@@ -316,7 +316,9 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	size_t flash_ctr = 0;
 	for (auto const& flash : *flash_h){
 		if (flash.TotalPE() > fMinPE){
-			op_times.push_back(flash.Time() - trigger_time);
+			double op_flash_time = flash.Time() - trigger_time;
+			if(MC) op_flash_time = op_flash_time + TPC_trigger_offset;
+      		op_times.push_back(op_flash_time);
 			flash_id_v.push_back(flash_ctr);
 			if (fDebug) std::cout << "\t Flash: " << flash_ctr 
 			<< " has time : " << flash.Time() - trigger_time 
@@ -333,12 +335,12 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 	for(unsigned int particle = 0; particle < reco_particles_h->size(); ++particle){
 
-		ev_particle_ctr++;
-
 		const recob::PFParticle &pfparticle = (*reco_particles_h)[particle];
 
     	// Only consider primary particles
     	if(!pfparticle.IsPrimary()) continue;
+
+		ev_particle_ctr++;
 
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 
@@ -439,17 +441,20 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		readout_edge = false;
 		for (auto& hits : hit_v) {
 			auto hit_tick = hits->PeakTime();
-			double hit_time = detclock->TPCTick2Time(hit_tick);
-			//if(fDebug) std::cout << "\t\tHit from track " << trk_ctr << 
-			//" at tick: " << hit_tick << ", in TPC " << hits->WireID().TPC
-			// << ", plane " << hits->WireID().Plane << " and wire "
-			// << hits->WireID().Wire << std::endl;
 			if(hit_tick < 20.0 || hit_tick > (ReadoutWindow - 20.0)){
 				readout_edge = true;
 				if(fDebug) std::cout << "\tTrack hits edge of readout window. "
 					"Skipping." << std::endl;
 				continue;
  				}
+
+			double hit_time = detclock->TPCTick2TrigTime(hit_tick);
+
+			//if(fDebug) std::cout << "\t\tHit from track " << trk_ctr << 
+			//" at tick: " << hit_tick << ", in TPC " << hits->WireID().TPC
+			// << ", plane " << hits->WireID().Plane << " and wire "
+			// << hits->WireID().Wire << std::endl;
+
 			// If track within window, get reco time from earliest hit time
 			if (hit_time < anode_rc_time) anode_rc_time = hit_time;
 			}
@@ -506,15 +511,16 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		// FLASH MATCHING
 
-		auto const& op_match_result = FlashMatch((anode_rc_time + TPC_trigger_offset),op_times);
+		auto const& op_match_result = FlashMatch((anode_rc_time),op_times);
 
 		const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
 		matched_flash_time = flash_ptr->Time() - trigger_time;
 		corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
+		if(MC) corrected_matched_flash_time = corrected_matched_flash_time - TPC_trigger_offset;
 		//matched_flash_time_width = flash_ptr->TimeWidth();
 
-		dt_flash_reco = corrected_matched_flash_time - (anode_rc_time + TPC_trigger_offset);
+		dt_flash_reco = corrected_matched_flash_time - anode_rc_time;
 
 		matched_flash_pe = flash_ptr->TotalPE();
 		//matched_flash_centre_y = flash_ptr->YCenter();
@@ -554,7 +560,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		if(fDebug) std::cout << "\t\t Matched to flash w/ index " << op_match_result 
 			<< " w/ PE " << matched_flash_pe << ", corrected time " << 
 			corrected_matched_flash_time << " us vs corrected reco time " << 
-			anode_rc_time + TPC_trigger_offset << " us" << std::endl;
+			anode_rc_time << " us" << std::endl;
 
 		// ---------------------------------------------------------------
 		// CREATE T0 OBJECT AND ASSIGN TO PFPARTICLE

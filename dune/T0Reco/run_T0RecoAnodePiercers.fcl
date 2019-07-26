@@ -40,7 +40,7 @@ outputs:
 	{
 	  module_type: 		RootOutput
 	  fileName:    		"T0RecoAnodePiercers.root"
-	  dataTier:    		"recot0"
+	  dataTier:    		"reco"
 	  compressionLevel: 	1
 	}
 }
@@ -56,17 +56,17 @@ physics:
 
   producers:
   {
-    t0reco: @local::T0RecoAnodePiercers
+    anodepiercerst0: @local::T0RecoAnodePiercers
   }
 
-  recot0:     [FEMB,HV,t0reco]
-  trigger_paths: [ recot0 ]
+  recot0:     [FEMB,HV,anodepiercerst0]
+  trigger_paths: [ anodepiercerst0 ]
   stream: [out1]
   end_paths:  [stream]
 
 }
 
-services.TFileService.fileName: "T0RecoAnodePiercers_recot0.root"
+services.TFileService.fileName: "T0RecoAnodePiercers_reco.root"
 
-physics.producers.t0reco.Debug: false
+physics.producers.anodepiercerst0.Debug: false
 
