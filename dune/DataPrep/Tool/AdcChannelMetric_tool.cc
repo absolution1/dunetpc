@@ -521,6 +521,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
              << ": " << nsum << "/" << nsam << "." << endl;
       }
     }
+  // nsgRmsNN - Coherent noise with NN samples.
   } else if ( met.substr(0, 6) == "nsgRms" ) {
     val = 0.0;
     weight = 0.0;
@@ -535,23 +536,20 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       cout << myname << "WARNING: signal and sample sizes differ for metric "
            << met << ": " << acd.signal.size() << " != " << nsam << "." << endl;
     } else {
-      Index samCount = 0;
-      float samSum = 0.0;
-      for ( Index isam=0; isam<nsam; ++isam ) {
-        bool reset = acd.signal[isam];
-        if ( ! reset ) {
+      for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
+        bool foundSignal = false;
+        float samSum = 0.0;
+        for ( Index icnt=isam0; icnt<ncnt; ++icnt ) {
+          Index isam = isam0 + icnt;
+          if ( acd.signal[isam] ) {
+            foundSignal = true;
+            break;
+          }
           float sam = acd.samples[isam];
           samSum += sam;
-          ++samCount;
-          if ( samCount == ncnt ) {
-            samSums.push_back(samSum);
-            reset = true;
-          }
         }
-        if ( reset ) {
-          samSum = 0.0;
-          samCount = 0;
-        }
+        if ( foundSignal ) break;
+        samSums.push_back(samSum);
       }
     }
     if ( samSums.size() ) {
