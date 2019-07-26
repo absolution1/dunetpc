@@ -261,7 +261,7 @@ typedef struct // Structures for arrays to move hits from raw to reco to validat
    removeCand(combHits & track0): track1(track0) {}
 
     bool operator()(const combHits & track2) {
-      return (track1.moduleX1 == track2.moduleX1);
+      return (track1.moduleX1 == track2.moduleX1 || track1.moduleY1 == track2.moduleY1);
     }
   };
 
@@ -519,22 +519,14 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 
   for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
+       if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)>fModuletoModuleTimingCut) continue;
       const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
-	int flipChannel=tempHits_F[f].channelGeo;
-	//int flipX=1;
-	// v5 geo fixes
-	//if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
-	//if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
-	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
-	//if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
-	//cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
-      const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
+
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_F[f].channelGeo);
       const auto hit1Center = hit1Geo.GetCenter();
       // Create 2D hits from geo of the Y and X modules
-	flipChannel=tempHits_F[f_test].channelGeo;
-	//int flipY=1;
-       const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
+       const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_F[f_test].channelGeo);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
       moduleMatched=moduleMatcher(tempHits_F[f_test].module, tempHits_F[f].module);
@@ -543,12 +535,12 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
         double hitX = hit1Center.X();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo-1)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
 	}
 	double hitYPrelim=hit2Center.Y();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-1)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	
 
@@ -569,25 +561,20 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
-	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
+       primaryHits_F.push_back(rHits); // Add array
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
-     int channelFlipCheck=tempHits_B[f].module;
-     int flipX=1;
-     int flipY=1;
-     int flipChannel=tempHits_B[f].channelGeo;
+       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)>fModuletoModuleTimingCut) continue;
 
- 
-      const auto & trigGeo = geom -> AuxDet(channelFlipCheck);
+      const auto & trigGeo = geom -> AuxDet(tempHits_B[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
-      const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_B[f].channelGeo);
       const auto hit1Center = hit1Geo.GetCenter();
-      flipChannel=tempHits_B[f_test].channelGeo;
 
-      const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
+      const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_B[f_test].channelGeo);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
       moduleMatched=moduleMatcher(tempHits_B[f_test].module, tempHits_B[f].module);
@@ -598,14 +585,14 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
-	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channelGeo-flipX)==tempHits_B[f].channelGeo) hitX=hit1Center.X()+1.25;
+	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channelGeo-1)==tempHits_B[f].channelGeo) hitX=hit1Center.X()+1.25;
 	}
 	
         double hitYPrelim = hit2Center.Y();
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
-	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-flipY)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
+	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-1)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	double hitY=hitYPrelim;
 
@@ -623,10 +610,10 @@ std::unique_ptr< std::vector<anab::T0> > T0cand( new std::vector<anab::T0>);
 	rHits.stripX=tempHits_B[f].channel;
 	rHits.trigNumberX=tempHits_B[f].triggerNumber;
 	rHits.trigNumberY=tempHits_B[f_test].triggerNumber;
-	rHits.stripY=flipChannel;
+	rHits.stripY=tempHits_B[f_test].channel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
-       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
-     //primaryHits_B.push_back(rHits);
+	 primaryHits_B.push_back(rHits); 
+
 	 }
     }
   }
@@ -669,8 +656,8 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	      }
 	  }
 	}
-
-cout<<'1'<<endl;
+   cout<<primaryHits_F.size()<<','<<primaryHits_B.size()<<endl;
+//cout<<'1'<<endl;
 // Make tracks from all front and back CRT hits
 for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
     for (unsigned int b = 0; b < primaryHits_B.size(); b++) {
@@ -744,36 +731,41 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
 }
 
   }
-    vector < combHits > candidateTracks=combTrackHits;
-    sort(candidateTracks.begin(), candidateTracks.end(), sortCand());
-    while (candidateTracks.size()) {
-    candidateTracks.erase(remove_if(candidateTracks.begin(), candidateTracks.end(), removeCand(candidateTracks.front())),
-        candidateTracks.end());
+	
+     auto const crtPtr = art::PtrMaker<anab::CosmicTag>(event);
+     auto const t0Ptr = art::PtrMaker<anab::T0>(event);
+    vector < combHits > combTracksForPtr=combTrackHits;
+    vector<combHits> candidateTracks;
+    sort(combTracksForPtr.begin(), combTracksForPtr.end(), sortCand());
+    while (combTracksForPtr.size()) {
+      candidateTracks.push_back(combTracksForPtr.front());
+    combTracksForPtr.erase(remove_if(combTracksForPtr.begin(), combTracksForPtr.end(), removeCand(combTracksForPtr.front())),
+        combTracksForPtr.end());
 
     } 
-     auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
-     auto const crtCandPtr = art::PtrMaker<anab::CosmicTag>(event);
-     auto const crtPtr = art::PtrMaker<anab::CosmicTag>(event);
-           for (unsigned int iCombinatorialTrack = 0; iCombinatorialTrack < combTrackHits.size(); iCombinatorialTrack++) {
 
-      if (combTrackHits[iCombinatorialTrack].t0_F>combTrackHits[iCombinatorialTrack].t0_B)
-	T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 1,2,iCombinatorialTrack, -1.f));
-    else T0cand->push_back(anab::T0(combTrackHits[iCombinatorialTrack].t0, 2,2,iCombinatorialTrack,-1.f));
+
+     auto const crtCandPtr = art::PtrMaker<anab::CosmicTag>(event);
+     auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
+           for (unsigned int iCombinatorialTrack = 0; iCombinatorialTrack < candidateTracks.size(); iCombinatorialTrack++) {
+      if (candidateTracks[iCombinatorialTrack].t0_F>candidateTracks[iCombinatorialTrack].t0_B)
+	T0cand->push_back(anab::T0(candidateTracks[iCombinatorialTrack].t0, 1,2,iCombinatorialTrack, -1.f));
+    else T0cand->push_back(anab::T0(candidateTracks[iCombinatorialTrack].t0, 2,2,iCombinatorialTrack,-1.f));
 
      std::vector<float> hitF;
 	std::vector<float> hitB;
-	hitF.push_back(combTrackHits[iCombinatorialTrack].hitPositionX1);
-	hitF.push_back(combTrackHits[iCombinatorialTrack].hitPositionY1);
-	hitF.push_back(combTrackHits[iCombinatorialTrack].hitPositionZ1);
+	hitF.push_back(candidateTracks[iCombinatorialTrack].hitPositionX1);
+	hitF.push_back(candidateTracks[iCombinatorialTrack].hitPositionY1);
+	hitF.push_back(candidateTracks[iCombinatorialTrack].hitPositionZ1);
 
-	hitB.push_back(combTrackHits[iCombinatorialTrack].hitPositionX2);
-	hitB.push_back(combTrackHits[iCombinatorialTrack].hitPositionY2);
-	hitB.push_back(combTrackHits[iCombinatorialTrack].hitPositionZ2);
+	hitB.push_back(candidateTracks[iCombinatorialTrack].hitPositionX2);
+	hitB.push_back(candidateTracks[iCombinatorialTrack].hitPositionY2);
+	hitB.push_back(candidateTracks[iCombinatorialTrack].hitPositionZ2);
 
         CRTCand->push_back(anab::CosmicTag(hitF,hitB, -1.f,anab::CosmicTagID_t::kNotTagged));
 		
 	auto const crtCP = crtCandPtr(CRTCand->size()-1);
-	auto const t0CP = t0CandPtr(T0col->size()-1);
+	auto const t0CP = t0CandPtr(T0cand->size()-1);
 	Candassn->addSingle(crtCP,t0CP);
 	
 	util::CreateAssn(*this, event, *CRTCand,crtList[combTrackHits[iCombinatorialTrack].trigNumberX_F], *TrigCandassn);
@@ -915,9 +907,11 @@ for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
         
 
         for (int trackpoint = 0; trackpoint < lastPoint; trackpoint++) {
-	  double trackPosX=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).X()+xOffset;
+	  
+	double trackPosX=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).X()+xOffset;
 	  double trackPosY=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).Y();
 	  double trackPosZ=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).Z();
+	  if (trackPosY==-999) continue;
 	   TVector3 trackPos(trackPosX, trackPosY, trackPosZ);
 			double distanceYZ = signedPointToLineDistance( Y1,Z1, Y2,Z2, trackPos.Y(), trackPos.Z() ); //only the Y and Z of trackpos will be used
 			double distanceXZ = signedPointToLineDistance( X1,Z1, X2,Z2, trackPos.X(), trackPos.Z() );
@@ -1120,15 +1114,15 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kNotTagged));
 T0col->push_back(anab::T0(measuredT0, 13,2,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos) ));
 	auto const crtTrackPtr = crtPtr(CRTTrack->size()-1);
-	auto const t0CP = t0CandPtr(CRTTrackId);
-	CRTT0assn->addSingle(crtTrackPtr,t0CP);
+	auto const t0TrackCP = t0Ptr(CRTTrackId);
+	CRTT0assn->addSingle(crtTrackPtr,t0TrackCP);
 	
 	
        
 	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
 	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
 
-	cout<<crtList[0]->Channel()<<endl;
+	//cout<<crtList[0]->Channel()<<endl;
 	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_F], *CRTTriggerassn);
 	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_B], *CRTTriggerassn);
 	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY_F],* CRTTriggerassn);

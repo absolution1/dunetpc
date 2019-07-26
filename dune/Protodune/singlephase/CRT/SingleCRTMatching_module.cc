@@ -399,6 +399,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
  for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
+	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)>fModuletoModuleTimingCut) continue;
       const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
 	int flipChannel=tempHits_F[f].channelGeo;
@@ -450,12 +451,13 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
-	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
+	 primaryHits_F.push_back(rHits); // Add array
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
+	if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)>fModuletoModuleTimingCut) continue;
 	int channelFlipCheck=tempHits_B[f].module;
 	/* Code to fix v5 geo issues in data
 	if (!fMCCSwitch){   
@@ -522,7 +524,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripX=tempHits_B[f].channel;
 	rHits.stripY=flipChannel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
-       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
+        primaryHits_B.push_back(rHits); 
      //primaryHits_B.push_back(rHits);
 	 }
     }
@@ -1030,7 +1032,7 @@ double xOffset=0;
         //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 	//cout<<allUniqueTracksPair[u].recoId<<endl;
 	cout<<"CRT Reco: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
