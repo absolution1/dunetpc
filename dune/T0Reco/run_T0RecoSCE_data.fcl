@@ -1,7 +1,34 @@
+#include "ProtoDUNEUnstableHVFilter.fcl"
+#include "ProtoDUNEFembFilter.fcl"
 #include "T0RecoSCE.fcl"
 #include "protodune_tools_dune.fcl"
 
 services.TFileService.fileName: "T0RecoSCE_data_ana.root"
+
+#source is now a root file
+source:
+{
+  module_type: 	RootInput
+  maxEvents:   	200	# Number of events to create
+}
+
+physics:
+{
+	filters: {
+		FEMB: 	@local::pdsp_fembfilter_all
+		HV: 	@local::HVfilter
+		}
+
+	goodevents: [FEMB,HV]
+
+ 	analyzers: {
+       		t0ana:	@local::T0RecoSCE
+		}
+
+	ana:     [t0ana]
+	end_paths:  [ana]
+
+}
 
 physics.analyzers.t0ana.Debug: 					false
 physics.analyzers.t0ana.UseMC: 					false
@@ -22,24 +49,17 @@ physics.analyzers.t0ana.LastOpChannel: 			63
 physics.analyzers.t0ana.MinTrackLength: 		20 #cm
 physics.analyzers.t0ana.MinPE: 					100
 
-physics.analyzers.t0ana.CheckAssignedAnodeT0:	false
-
-#source is now a root file
-source:
-{
-  module_type: 	RootInput
-  maxEvents:   	20	# Number of events to create
-}
+physics.analyzers.t0ana.CheckAssignedAnodeT0:	true
 
 outputs:{
 
  	out1:
  	{
-   		module_type: 		RootOutput
+   	module_type: 		RootOutput
 		SelectEvents: 		[goodevents]
-   		fileName:    		"T0RecoSCE_data.root"
+   	fileName:    		"T0RecoSCE_data.root"
   		dataTier:    		"ana"
-   		compressionLevel: 	1
+   	compressionLevel: 	1
  }
 }
 
