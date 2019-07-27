@@ -556,7 +556,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
         bool foundSignal = false;
         float samSum = 0.0;
-        for ( Index icnt=isam0; icnt<ncnt; ++icnt ) {
+        for ( Index icnt=0; icnt<ncnt; ++icnt ) {
           Index isam = isam0 + icnt;
           if ( acd.signal[isam] ) {
             foundSignal = true;
