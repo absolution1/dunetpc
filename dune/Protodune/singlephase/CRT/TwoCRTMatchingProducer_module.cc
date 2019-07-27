@@ -259,7 +259,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
     art::fill_ptr_vector(trackList, trackListHandle);
   }
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, fTrackModuleLabel);
-  int trackNum=0;
   for (auto const& track : trackList){
     
     std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(track.key());
@@ -370,7 +369,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
 
         CRTTrack->push_back(anab::CosmicTag(hitF,hitB, std::abs(best_dotProductCos),anab::CosmicTagID_t::kNotTagged));
 
-        CRTT0->push_back(anab::T0(best_T, 13,2,trackNum,best_dotProductCos));
+        CRTT0->push_back(anab::T0(best_T, 13,2,track.key(),best_dotProductCos));
         util::CreateAssn(*this, e, *CRTTrack, track, *TPCCRTassn);
  	util::CreateAssn(*this, e, *CRTT0, track, *TPCT0assn);
         util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigXF], *CRTTrigassn);
@@ -381,9 +380,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
         util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigYB], *CRTTrigassn);
 
 
-	 }
+      }
     }
-  trackNum++;
   }
   e.put(std::move(CRTTrack)); 
   e.put(std::move(TPCCRTassn));
