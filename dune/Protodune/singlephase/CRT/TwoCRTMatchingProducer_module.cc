@@ -216,7 +216,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
             auto const& hitGeo = trigGeo.SensitiveVolume(ytrig->Hits()[ystrip].Channel());
             auto const& hitCenter = hitGeo.GetCenter();
             hity += hitCenter.Y();
-            if (!hitz0) hitz1 = hitCenter.Z();
+            if (!hitz1) hitz1 = hitCenter.Z();
             if (!t1) t1 = ytrig->Timestamp();
           }
           hit3d.x = hitx/grpx.size();
