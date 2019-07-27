@@ -27,6 +27,7 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "lardataobj/AnalysisBase/T0.h"
 
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
@@ -89,12 +90,18 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p
 {
   produces< std::vector<anab::CosmicTag> >();
   produces< art::Assns<recob::Track, anab::CosmicTag> >();
+  produces< std::vector<anab::T0> >();
+  produces< art::Assns<recob::Track, anab::T0> >();
 }
 
 void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
 {
   auto CRTTrack=std::make_unique< std::vector< anab::CosmicTag > > (); 
   std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
+
+  auto CRTT0=std::make_unique< std::vector< anab::T0> > (); 
+
+  std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
 
   fMCCSwitch = !(e.isRealData());
 
@@ -234,7 +241,9 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
     art::fill_ptr_vector(trackList, trackListHandle);
   }
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, fTrackModuleLabel);
+  int trackNum=0;
   for (auto const& track : trackList){
+    
     std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(track.key());
     if (allHits.empty()) continue;
 
@@ -261,6 +270,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
       double best_deltaYF = DBL_MAX;
       double best_deltaXB = DBL_MAX;
       double best_deltaYB = DBL_MAX;
+      double best_T=DBL_MAX;
       for (auto const& fronthit : hits3d_F){
         for (auto const& backhit : hits3d_B){
           if (int(util::absDiff(fronthit.t, backhit.t))>fFronttoBackTimingCut) continue;
@@ -305,37 +315,45 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
 
           double deltaY1 = (predictedHitPositionY1-v1.Y());
           double deltaY2 = (predictedHitPositionY2-v2.Y());
-          double deltaY  = std::abs(deltaY2)+std::abs(deltaY1);
-          if (min_delta > deltaX + deltaY){
-            min_delta = deltaX + deltaY;
+          double deltaY  = std::abs(deltaY2)+std::abs(deltaY1); 
+	  if (std::abs(deltaY2)<20) std::cout<<v2.Y()<<std::endl;      
+	  if (min_delta > std::abs(deltaX) + std::abs(deltaY)){
+            min_delta = std::abs(deltaX) + std::abs(deltaY);
             best_XF = fronthit.x;
             best_YF = fronthit.y;
             best_ZF = fronthit.z;
-            best_XB = fronthit.x;
-            best_YB = fronthit.y;
-            best_ZB = fronthit.z;
+            best_XB = backhit.x;
+            best_YB = backhit.y;
+            best_ZB = backhit.z;
             best_dotProductCos = dotProductCos;
             best_deltaXF = deltaX1;
             best_deltaYF = deltaY1;
             best_deltaXB = deltaX2;
             best_deltaYB = deltaY2;
+	    best_T=(fronthit.t+backhit.t)/2;
           }
         }
       }
       if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
-        std::cout<<track.key()<<" "<<best_deltaXF<<" "<<best_deltaYF<<" "<<best_deltaXB<<" "<<best_deltaYB<<" "<<best_XF<<" "<<best_YF<<" "<<best_XB<<" "<<best_YB<<std::endl;
+        std::cout<<track.key()<<" "<<best_deltaXF<<" "<<best_deltaYF<<" "<<best_deltaXB<<" "<<best_deltaYB<<" "<<best_XF<<" "<<best_YF<<" "<<best_XB<<" "<<best_YB<<','<<best_T<<std::endl;
         std::vector<float> hitF;
 	std::vector<float> hitB;
 	hitF.push_back(best_XF); hitF.push_back(best_YF); hitF.push_back(best_ZF);
 	hitB.push_back(best_XB); hitB.push_back(best_YB); hitB.push_back(best_ZB);
 
         CRTTrack->push_back(anab::CosmicTag(hitF,hitB, std::abs(best_dotProductCos),anab::CosmicTagID_t::kNotTagged));
+
+        CRTT0->push_back(anab::T0(best_T, 13,2,trackNum,best_dotProductCos));
         util::CreateAssn(*this, e, *CRTTrack, track, *TPCCRTassn);
+ 	util::CreateAssn(*this, e, *CRTT0, track, *TPCT0assn);
       }
     }
+  trackNum++;
   }
   e.put(std::move(CRTTrack)); 
   e.put(std::move(TPCCRTassn));
+  e.put(std::move(CRTT0)); 
+  e.put(std::move(TPCT0assn));
 }
 
 // v6 Geo Channel Map
