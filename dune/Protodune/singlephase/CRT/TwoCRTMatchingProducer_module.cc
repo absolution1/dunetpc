@@ -341,7 +341,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
             best_deltaYF = deltaY1;
             best_deltaXB = deltaX2;
             best_deltaYB = deltaY2;
-	    best_T=(fronthit.t+backhit.t)/2;
+	   if (!fMCCSwitch) best_T=((fronthit.t+backhit.t)/2-rdtimestamp+RDOffset)/50.f;
+	   else best_T=(fronthit.t+backhit.t)/1000.f;
           }
         }
       }
