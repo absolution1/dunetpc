@@ -178,7 +178,6 @@ private:
 	// Tree for flash info
 	TTree 	*flash_tree;
 	double 	flash_reco_time_diff;
-//	double 	corrected_flash_reco_time_diff;
 	double 	flash_time;
 	double 	flash_time_width;
 	double 	corrected_flash_time;
@@ -451,23 +450,25 @@ void T0RecoSCE::analyze(art::Event const & evt){
 	if((fAnode||fAllFlash)&&!fUseOpHits) {
   		size_t flash_ctr = 0;
   		for (auto const& flash : *flash_h){
-    			if (flash.TotalPE() > fMinPE){
-      				op_times.push_back(flash.Time() - trigger_time);
-      				flash_id_v.push_back(flash_ctr);
-      				//if (fDebug) std::cout << "\t Flash: " << flash_ctr 
-						//<< " has time : " << flash.Time() - trigger_time 
-						//<< ", PE : " << flash.TotalPE() << std::endl;
-   					}
-    			flash_ctr++;
-  				} // for all flashes
+    		if (flash.TotalPE() > fMinPE){
+				double op_flash_time = flash.Time() - trigger_time;
+				if(fUseMC) op_flash_time = op_flash_time - TPC_trigger_offset;
+      			op_times.push_back(op_flash_time);
+      			flash_id_v.push_back(flash_ctr);
+      			//if (fDebug) std::cout << "\t Flash: " << flash_ctr 
+					//<< " has time : " << flash.Time() - trigger_time 
+					//<< ", PE : " << flash.TotalPE() << std::endl;
+   				}
+    		flash_ctr++;
+  			} // for all flashes
 
-  			if(!fAnode) {
-				auto const& output_flash = FlashMatch(0.0,op_times);
-				if (fDebug) std::cout << "Output all flashes - closest flash to trigger time is: "
-					<< output_flash << std::endl; }
+  		if(!fAnode) {
+			auto const& output_flash = FlashMatch(0.0,op_times);
+			if (fDebug) std::cout << "Output all flashes - closest flash to trigger time is: "
+				<< output_flash << std::endl; }
 
-   			if(fDebug) std::cout << "Selected a total of " << op_times.size() << " OpFlashes/OpHits" << std::endl;
-			}
+   		if(fDebug) std::cout << "Selected a total of " << op_times.size() << " OpFlashes/OpHits" << std::endl;
+		}
 
 	if(fUseOpHits) {
 		size_t op_ctr = 0;
@@ -475,6 +476,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 			int op_hit_channel = op_hit.OpChannel();
 			if(op_hit_channel>=fFirstOpChannel&&op_hit_channel<=fLastOpChannel) {
 				double op_hit_time = op_hit.PeakTime() - trigger_time;
+				//if(fUseMC) op_hit_time = op_hit_time - TPC_trigger_offset;
 				op_times.push_back(op_hit_time);
 				op_id_v.push_back(op_ctr);
 				//if(fDebug) std::cout << "OpHit channel: " << op_hit_channel << std::endl;
@@ -489,10 +491,14 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
 	for(unsigned int p = 0; p < reco_particles_h->size(); ++p){
 
+		recob::PFParticle particle = (*reco_particles_h)[p];
+
+    	// Only consider primary particles
+    	if(!particle.IsPrimary()) continue;
+
 		ev_particle_ctr++;
 		total_particle_ctr++;
 
-		recob::PFParticle particle = (*reco_particles_h)[p];
 		const recob::Track* track = pfpUtil.GetPFParticleTrack(particle,evt,fPFPProducer,fTrackProducer);
 		if(track == 0x0) { 
 			if(fDebug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
@@ -589,12 +595,13 @@ void T0RecoSCE::analyze(art::Event const & evt){
 				continue; 
 				}
 
-			mc_particle_ts = mc_particle->T(0)/1000;
+			mc_particle_ts = mc_particle->T(0);
 
 			last_mc_point = mc_particle->NumberTrajectoryPoints()-1;
 			mc_particle_te = mc_particle->T(last_mc_point)/1000;
 
-			mc_time = mc_particle_ts; 
+			mc_time = detclock->G4ToElecTime(mc_particle_ts) + TPC_trigger_offset;
+
 			if(fDebug&&fabs(mc_particle_te - mc_particle_ts)>1) std::cout << 
 			"\t\t\tMC Particle end time: " << mc_particle_te << 
 			" us is significantly different from start time: " << mc_particle_ts << 
@@ -706,7 +713,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
     			readout_edge = false;
     			for (auto& hits : hit_v) {
     				auto hit_tick = hits->PeakTime();
-					double hit_time = detclock->TPCTick2Time(hit_tick);
+					double hit_time = detclock->TPCTick2TrigTime(hit_tick);
     				//if(fDebug) std::cout << "\t\tHit from track " << trk_ctr << 
 						//" at tick: " << hit_tick << ", in TPC " 
 						//<< hits->WireID().TPC << ", plane " << hits->WireID().Plane 
@@ -772,15 +779,16 @@ void T0RecoSCE::analyze(art::Event const & evt){
     			rc_xe_corr = rc_xe + x_shift + driftDir_end*anode_rc_time*fDriftVelocity;
 
     			// FLASH MATCHING
-    			auto const& op_match_result = FlashMatch((anode_rc_time + TPC_trigger_offset),op_times);
+    			auto const& op_match_result = FlashMatch(anode_rc_time,op_times);
     			if(!fUseOpHits) {	
 					const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
     				matched_flash_time = flash_ptr->Time() - trigger_time;
 					corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
+					if(fUseMC) corrected_matched_flash_time = corrected_matched_flash_time - TPC_trigger_offset;
 					matched_flash_time_width = flash_ptr->TimeWidth();
 
-	    			dt_flash_reco = corrected_matched_flash_time - (anode_rc_time + TPC_trigger_offset);
+	    			dt_flash_reco = corrected_matched_flash_time - anode_rc_time;
 	    
 	    			matched_flash_pe = flash_ptr->TotalPE();
 					matched_flash_centre_y = flash_ptr->YCenter();
@@ -824,19 +832,22 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
    					if(fDebug) std::cout << "\t\t Matched to flash w/ index " << op_match_result << " w/ PE " 
     					<< matched_flash_pe << ", corrected time " << corrected_matched_flash_time << 
-						" us vs corrected reco time " << anode_rc_time + TPC_trigger_offset << " us" << std::endl;
+						" us vs corrected reco time " << anode_rc_time << " us" << std::endl;
 					}
 
 				if(fUseOpHits) {
 					const art::Ptr<recob::OpHit> op_ptr(op_hit_h, op_match_result);
 
 					matched_flash_time = op_ptr->PeakTime() - trigger_time;
+
+					if(fUseMC) matched_flash_time = matched_flash_time - TPC_trigger_offset;
+
 	
 					if(fDebug) std::cout << "\t\t Matched to op hit w/ index " << op_match_result << 
 						" w/ time " << matched_flash_time << " us vs corrected reco time " 
-						<< anode_rc_time + TPC_trigger_offset << " us" << std::endl;
+						<< anode_rc_time << " us" << std::endl;
 
-	    			dt_flash_reco = matched_flash_time - (anode_rc_time + TPC_trigger_offset);
+	    			dt_flash_reco = matched_flash_time - anode_rc_time;
 
 					}
 
@@ -888,7 +899,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
     			std::vector<anab::T0> t0_apt_v;
 
-    			const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,"t0reco");
+    			const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,"anodepiercerst0");
    				
 				for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
       				t0_apt_v.push_back((*(findParticleT0s.at(pIndex)[p])));

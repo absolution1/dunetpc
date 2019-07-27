@@ -38,7 +38,7 @@ art_make(
   larreco_RecoAlg
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
-  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   lardata_Utilities
   lardataobj_RawData
   larreco_Calorimetry
