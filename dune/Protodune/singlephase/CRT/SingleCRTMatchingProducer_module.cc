@@ -911,6 +911,9 @@ double xOffset=0;
 	adcY=allUniqueTracksPair[u].adcY1;
 
 	CRTT0=allUniqueTracksPair[u].timeAvg;
+
+	if (!fMCCSwitch) CRTT0=allUniqueTracksPair[u].timeAvg/50.f;
+	else CRTT0=allUniqueTracksPair[u].timeAvg/1000.f;
 	stripX=allUniqueTracksPair[u].stripX1;
 	stripY=allUniqueTracksPair[u].stripY1;
 
