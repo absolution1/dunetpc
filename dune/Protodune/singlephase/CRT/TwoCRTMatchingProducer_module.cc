@@ -78,6 +78,8 @@ private:
     double y;
     double z;
     unsigned long long t;
+    int trigX;
+    int trigY;
   }
     recoHits;
 
@@ -97,6 +99,7 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p
   produces< art::Assns<recob::Track, anab::CosmicTag> >();
   produces< std::vector<anab::T0> >();
   produces< art::Assns<recob::Track, anab::T0> >();
+  produces< art::Assns<CRT::Trigger, anab::CosmicTag>>();
 }
 
 void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
@@ -107,6 +110,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   auto CRTT0=std::make_unique< std::vector< anab::T0> > (); 
 
   std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
+
+  std::unique_ptr< art::Assns<CRT::Trigger, anab::CosmicTag>> CRTTrigassn( new art::Assns<CRT::Trigger, anab::CosmicTag>);
 
   fMCCSwitch = !(e.isRealData());
 
@@ -234,7 +239,9 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
           hit3d.y = hity/grpy.size();
           hit3d.z = (hitz0+hitz1)/2;
           hit3d.t = (t0+t1)/2;
-          if (hit3d.z < 100) hits3d_F.push_back(hit3d);
+          hit3d.trigY=jtrg;
+	  hit3d.trigX=itrg;
+	  if (hit3d.z < 100) hits3d_F.push_back(hit3d);
           else hits3d_B.push_back(hit3d);
         }
       }
@@ -282,6 +289,10 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
       double best_deltaXB = DBL_MAX;
       double best_deltaYB = DBL_MAX;
       double best_T=DBL_MAX;
+      int best_trigXF=0;
+      int best_trigYF=0;
+      int best_trigXB=0;
+      int best_trigYB=0;
       for (auto const& fronthit : hits3d_F){
         for (auto const& backhit : hits3d_B){
           if (int(util::absDiff(fronthit.t, backhit.t))>fFronttoBackTimingCut) continue;
@@ -341,6 +352,10 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
             best_deltaYF = deltaY1;
             best_deltaXB = deltaX2;
             best_deltaYB = deltaY2;
+	    best_trigXF=fronthit.trigX;
+	    best_trigYF=fronthit.trigY;
+	    best_trigXB=backhit.trigX;
+	    best_trigYB=backhit.trigY;
 	   if (!fMCCSwitch) best_T=((fronthit.t+backhit.t)/2-rdtimestamp+RDOffset)/50.f;
 	   else best_T=(fronthit.t+backhit.t)/1000.f;
           }
@@ -358,7 +373,15 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
         CRTT0->push_back(anab::T0(best_T, 13,2,trackNum,best_dotProductCos));
         util::CreateAssn(*this, e, *CRTTrack, track, *TPCCRTassn);
  	util::CreateAssn(*this, e, *CRTT0, track, *TPCT0assn);
-      }
+        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigXF], *CRTTrigassn);
+        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigYF], *CRTTrigassn);
+
+        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigXB], *CRTTrigassn);
+
+        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigYB], *CRTTrigassn);
+
+
+	 }
     }
   trackNum++;
   }
@@ -366,6 +389,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   e.put(std::move(TPCCRTassn));
   e.put(std::move(CRTT0)); 
   e.put(std::move(TPCT0assn));
+  e.put(std::move(CRTTrigassn));
 }
 
 // v6 Geo Channel Map
