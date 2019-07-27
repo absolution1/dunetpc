@@ -71,6 +71,7 @@ private:
   int fADCThreshold;
   int fModuletoModuleTimingCut;
   int fFronttoBackTimingCut;
+  unsigned short fMaxHitsinGroup;
 
   typedef struct {
     double x;
@@ -88,7 +89,8 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p
   : EDProducer{p},
   fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  
   fCTBLabel(p.get<art::InputTag>("CTBLabel")),
-  fTrackModuleLabel(p.get<art::InputTag>("TrackModuleLabel","pandoraTrack"))
+  fTrackModuleLabel(p.get<art::InputTag>("TrackModuleLabel","pandoraTrack")),
+  fMaxHitsinGroup(p.get<unsigned short>("MaxHitsinGroup",2))
   // More initializers here.
 {
   produces< std::vector<anab::CosmicTag> >();
@@ -151,26 +153,32 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
         hitchannelmap[hits[j].Channel()].push_back(j);
       }
     }
-    size_t k = 0;
     for (const auto & [channel, indices] : hitchannelmap){
       for (const auto &index : indices){
-        std::cout<<i<<" "<<channel<<" "<<index<<std::endl;
-        if (k==0){
+        if (crthits.empty()){
           crthits.push_back(index);
         }
         else{
-          //The current crt::Hit is adjacent to the last crt::Hit
-          if (channel == hits[crthits.back()].Channel() + 1){
-            crthits.push_back(index);
-          }
-          else{
-            //Start a new group
+          //reach the limit on the number of hits
+          if (crthits.size()==fMaxHitsinGroup){
             crthitsgroup[i].push_back(crthits);
             crthits.clear();
             crthits.push_back(index);
           }
+          else{
+            //The current crt::Hit is adjacent to the last crt::Hit
+            if (channel == hits[crthits.back()].Channel() + 1){
+              crthits.push_back(index);
+              
+            }
+            else{
+              //Start a new group
+              crthitsgroup[i].push_back(crthits);
+              crthits.clear();
+              crthits.push_back(index);
+            }
+          }
         }
-        ++k;
       }
     }
     if (!crthits.empty()) crthitsgroup[i].push_back(crthits);
@@ -230,12 +238,12 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
           else hits3d_B.push_back(hit3d);
         }
       }
-      std::cout<<itrg<<" "<<jtrg<<" "<<crthitsgroup[itrg].size()<<" "<<crthitsgroup[jtrg].size()<<std::endl;
+      //std::cout<<itrg<<" "<<jtrg<<" "<<crthitsgroup[itrg].size()<<" "<<crthitsgroup[jtrg].size()<<std::endl;
       nmatch += crthitsgroup[itrg].size() * crthitsgroup[jtrg].size();
     }
   }
 
-  std::cout<<"Total matches: "<<nmatch<<" "<<hits3d_F.size()<<" "<<hits3d_B.size()<<std::endl;
+  //std::cout<<"Total matches: "<<nmatch<<" "<<hits3d_F.size()<<" "<<hits3d_B.size()<<std::endl;
 
   // Reconstruciton information
   art::Handle < std::vector < recob::Track > > trackListHandle;
@@ -319,7 +327,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
           double deltaY1 = (predictedHitPositionY1-v1.Y());
           double deltaY2 = (predictedHitPositionY2-v2.Y());
           double deltaY  = std::abs(deltaY2)+std::abs(deltaY1); 
-	  if (std::abs(deltaY2)<20) std::cout<<v2.Y()<<std::endl;      
+	  //if (std::abs(deltaY2)<20) std::cout<<v2.Y()<<std::endl;      
 	  if (min_delta > std::abs(deltaX) + std::abs(deltaY)){
             min_delta = std::abs(deltaX) + std::abs(deltaY);
             best_XF = fronthit.x;
@@ -338,7 +346,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
         }
       }
       if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
-        std::cout<<track.key()<<" "<<best_deltaXF<<" "<<best_deltaYF<<" "<<best_deltaXB<<" "<<best_deltaYB<<" "<<best_XF<<" "<<best_YF<<" "<<best_XB<<" "<<best_YB<<','<<best_T<<std::endl;
+        std::cout<<"Track ID = "<<track.key()<<" best_deltaXF =  "<<best_deltaXF<<" best_deltaYF = "<<best_deltaYF<<" best_deltaXB = "<<best_deltaXB<<" best_deltaYB = "<<best_deltaYB<<" best_XF = "<<best_XF<<" best_YF = "<<best_YF<<" best_XB = "<<best_XB<<" best_YB = "<<best_YB<<" best_dotProductCos = "<<best_dotProductCos<<std::endl;
         std::vector<float> hitF;
 	std::vector<float> hitB;
 	hitF.push_back(best_XF); hitF.push_back(best_YF); hitF.push_back(best_ZF);
