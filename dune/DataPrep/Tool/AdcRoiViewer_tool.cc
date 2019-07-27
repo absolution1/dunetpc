@@ -283,9 +283,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "sigArea" ) xlab = "Area [%ASUNIT%]";
     else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%ASUNIT%]";
     else if ( hvarx == "sigWidth" ) xlab = "Width [Tick]";
-    else if ( hvarx == "timeSec" ) xlab = stimepre + " [sec]";
-    else if ( hvarx == "timeHour" ) xlab = stimepre + " [hour]";
-    else if ( hvarx == "timeDay" ) xlab = stimepre + " [day]";
+    else if ( hvarx == "timeSec"   || hvarx == "procTimeSec" ) xlab = stimepre + " [sec]";
+    else if ( hvarx == "timeHour"  || hvarx == "procTimeHour") xlab = stimepre + " [hour]";
+    else if ( hvarx == "timeDay"   || hvarx == "procTimeDay" ) xlab = stimepre + " [day]";
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
     }
@@ -1095,6 +1095,10 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     else if ( varx == "timeSec" )           ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeHour" )          ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeDay" )           ivals = dm.getIntVector("roiTimes");
+    else if ( varx == "procEvent" )         ivals.push_back(acd.event);
+    else if ( varx == "procTimeSec" )       ivals.push_back(int(acd.time) - int(m_StartTime));
+    else if ( varx == "procTimeHour" )      ivals.push_back(int(acd.time) - int(m_StartTime));
+    else if ( varx == "procTimeDay" )       ivals.push_back(int(acd.time) - int(m_StartTime));
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << varx << endl;
@@ -1141,8 +1145,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       varfac = 1.0/pulserQin;
     }
-    if ( varx == "timeHour" ) varfac = 1/3600.0;
-    if ( varx == "timeDay" ) varfac = 1/(24*3600.0);
+    if ( varx == "timeHour" || varx == "procTimeHour" ) varfac = 1/3600.0;
+    if ( varx == "timeDay" || varx == "procTimeDay" ) varfac = 1/(24*3600.0);
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     // Create histogram if it does not yet exist or is empty and we have data here.
     //if ( ph == nullptr && vals.size() ) {
@@ -1593,8 +1597,8 @@ void AdcRoiViewer::fillChanSumHists() const {
     Index icha2 = getState().chanSumChaEnd[hnam];
     //for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
     //  Index icha = ph->GetBinCenter(ibin);
-    Index ibin = 0;
     for ( Index icha=icha1; icha<icha2; ++icha ) {
+      Index ichaBin = icha + 1 - icha1;
       acd.channel = icha;
       Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       //Index chanStat = getState().getChannelStatus(hnam);
@@ -1695,8 +1699,8 @@ void AdcRoiViewer::fillChanSumHists() const {
       if ( isDist ) {
         ph->Fill(val);
       } else {
-        ph->SetBinContent(++ibin, val);
-        if ( haveErr ) ph->SetBinError(ibin, dval);
+        ph->SetBinContent(ichaBin, val);
+        if ( haveErr ) ph->SetBinError(ichaBin, dval);
       }
       ++nchaGood;
     }

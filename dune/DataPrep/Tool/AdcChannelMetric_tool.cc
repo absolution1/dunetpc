@@ -241,8 +241,7 @@ AdcChannelMetric::~AdcChannelMetric() {
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Channel range " << cr.name << endl;
     }
-    for ( Index kcha=0; kcha<cr.size(); ++ kcha ) {
-      Index icha = cr.first() + kcha;
+    for ( Index kcha=0; kcha<cr.size(); ++kcha ) {
       const MetricSummary& ms = msums[kcha];
       ++ncha;
       if ( ms.eventCount ) {
@@ -256,9 +255,6 @@ AdcChannelMetric::~AdcChannelMetric() {
         if ( ms.weightSum > weightSumMax ) {
           weightSumMax = ms.weightSum;
         }
-      }
-      if ( m_LogLevel >= 3 ) {
-        cout << myname << setw(8) << icha << ":" << ms.mean() << " +/- " << ms.dmean() << endl;
       }
     }
     if ( m_doSummary ) {
@@ -298,6 +294,26 @@ AdcChannelMetric::~AdcChannelMetric() {
     cout << myname << "           # channels without data: " << setw(w) << ncha - nchaData << endl;
     cout << myname << "              # channels with data: " << setw(w) << nchaData << endl;
     cout << myname << "     # channels with max # entries: " << setw(w) << nchaDataMax << endl;
+    if ( m_LogLevel >= 3 ) {
+      Index icnt = 0;
+      for ( const MetricSummaryMap::value_type& imsm : getState().crsums ) {
+        IndexRange cr = imsm.first;
+        cout << "============= Channel range " << cr.name << endl;
+        const MetricSummaryVector& msums = imsm.second;
+        for ( const MetricSummary& msum : msums ) {
+          if ( msum.eventCount ) {
+            cout << "------------- " << m_Metric << "[" << icnt++ << "]" << endl;
+            cout << myname << "        weight flag: " << setw(w) << msum.weightFlag << endl;
+            cout << myname << "           # events: " << setw(w) << msum.eventCount << endl;
+            cout << myname << "  # weighted events: " << setw(w) << msum.weightedEventCount << endl;
+            cout << myname << "               Neff: " << setw(w) << msum.neff() << endl;
+            cout << myname << "               mean: " << setw(w) << msum.mean() << " +/- " << setw(w) << msum.dmean() << endl;
+            cout << myname << "                RMS: " << setw(w) << msum.rms() << " +/- " << setw(w) << msum.drms() << endl;
+          }
+        }
+        cout << "===================================" << endl;
+      }
+    }
   }
 }
 
@@ -382,7 +398,8 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     Name sunits;
     int rstat = getMetric(acd, m_Metric, met, sunits, wt);
     if ( rstat ) {
-      cout << myname << "WARNING: Metric evaluation failed for channel " << acd.channel << endl;
+      cout << myname << "WARNING: Metric evaluation failed for metric " << m_Metric
+           << " channel " << acd.channel << endl;
       continue;
     }
     Index icha = iacd->first;
@@ -521,6 +538,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
              << ": " << nsum << "/" << nsam << "." << endl;
       }
     }
+  // nsgRmsNN - Coherent noise with NN samples.
   } else if ( met.substr(0, 6) == "nsgRms" ) {
     val = 0.0;
     weight = 0.0;
@@ -535,23 +553,20 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       cout << myname << "WARNING: signal and sample sizes differ for metric "
            << met << ": " << acd.signal.size() << " != " << nsam << "." << endl;
     } else {
-      Index samCount = 0;
-      float samSum = 0.0;
-      for ( Index isam=0; isam<nsam; ++isam ) {
-        bool reset = acd.signal[isam];
-        if ( ! reset ) {
+      for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
+        bool foundSignal = false;
+        float samSum = 0.0;
+        for ( Index icnt=0; icnt<ncnt; ++icnt ) {
+          Index isam = isam0 + icnt;
+          if ( acd.signal[isam] ) {
+            foundSignal = true;
+            break;
+          }
           float sam = acd.samples[isam];
           samSum += sam;
-          ++samCount;
-          if ( samCount == ncnt ) {
-            samSums.push_back(samSum);
-            reset = true;
-          }
         }
-        if ( reset ) {
-          samSum = 0.0;
-          samCount = 0;
-        }
+        if ( foundSignal ) break;
+        samSums.push_back(samSum);
       }
     }
     if ( samSums.size() ) {
