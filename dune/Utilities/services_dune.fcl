@@ -28,6 +28,7 @@
 #include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
 
 BEGIN_PROLOG
 
