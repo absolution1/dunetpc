@@ -121,6 +121,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   ULong64_t rdtimestamp = 0;
+  int RDOffset=0;
 
   if (fMCCSwitch){
     fADCThreshold=800;
@@ -133,6 +134,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
     fFronttoBackTimingCut=8;
     art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = e.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
     rdtimestamp = timingHandle->at(0).GetTimeStamp();
+    RDOffset=111;
   }
 
   //Get triggers
@@ -297,8 +299,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
           if (int(util::absDiff(fronthit.t, backhit.t))>fFronttoBackTimingCut) continue;
           //t0 correction
           double xOffset = 0;
-          int RDOffset=0;
-          if (!fMCCSwitch) RDOffset=111;
           double ticksOffset = 0;
           if (!fMCCSwitch) ticksOffset = ((fronthit.t+backhit.t)/2.-rdtimestamp+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
           else ticksOffset = (fronthit.t+backhit.t)/2./500.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
@@ -355,11 +355,13 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
 	    best_trigYF=fronthit.trigY;
 	    best_trigXB=backhit.trigX;
 	    best_trigYB=backhit.trigY;
-	   if (!fMCCSwitch) best_T=((fronthit.t+backhit.t)/2-rdtimestamp+RDOffset)/50.f;
-	   else best_T=(fronthit.t+backhit.t)/1000.f;
+	    best_T = (fronthit.t+backhit.t)/2.;
           }
         }
       }
+      if (!fMCCSwitch) best_T=(best_T-rdtimestamp+RDOffset)/50.;
+      else best_T=best_T/1000.;
+
       if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
         std::cout<<"Track ID = "<<track.key()<<" best_deltaXF =  "<<best_deltaXF<<" best_deltaYF = "<<best_deltaYF<<" best_deltaXB = "<<best_deltaXB<<" best_deltaYB = "<<best_deltaYB<<" best_XF = "<<best_XF<<" best_YF = "<<best_YF<<" best_XB = "<<best_XB<<" best_YB = "<<best_YB<<" best_dotProductCos = "<<best_dotProductCos<<std::endl;
         std::vector<float> hitF;
