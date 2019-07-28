@@ -28,6 +28,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
@@ -260,11 +261,35 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   if (e.getByLabel(fTrackModuleLabel, trackListHandle)) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
+
+  //Get PFParticles
+  art::Handle< std::vector<recob::PFParticle> > pfpListHandle;
+  e.getByLabel("pandora", pfpListHandle);
+  
+  //Get hits associated with track
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, fTrackModuleLabel);
+
+  //Get PFParticle-Track association
+  art::FindManyP<recob::PFParticle> fmpfp(trackListHandle, e, "pandoraTrack");
+
+  //Get T0-PFParticle association
+  art::FindManyP<anab::T0> fmt0pandora(pfpListHandle, e, "pandora");
+
+
   for (auto const& track : trackList){
     
     std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(track.key());
     if (allHits.empty()) continue;
+
+    bool foundpandorat0 = false;
+    auto const &pfps = fmpfp.at(track.key());
+    if(!pfps.empty()){
+      //Find T0 for PFParticle
+      auto const &t0s = fmt0pandora.at(pfps[0].key());
+      if(!t0s.empty()){
+        foundpandorat0 = true;
+      }
+    }
 
     double trackStartPositionX = track->Vertex().X();
     double trackStartPositionY = track->Vertex().Y();
@@ -297,16 +322,20 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
       for (auto const& fronthit : hits3d_F){
         for (auto const& backhit : hits3d_B){
           if (int(util::absDiff(fronthit.t, backhit.t))>fFronttoBackTimingCut) continue;
-          //t0 correction
-          double xOffset = 0;
-          double ticksOffset = 0;
-          if (!fMCCSwitch) ticksOffset = ((fronthit.t+backhit.t)/2.-rdtimestamp+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
-          else ticksOffset = (fronthit.t+backhit.t)/2./500.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
-		
-          xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[0]->WireID());
 
-          trackStartPositionX=trackStartPositionX-xOffset;
-          trackEndPositionX=trackEndPositionX-xOffset;
+          if (!foundpandorat0){
+            //if the track does not have a Pandora t0 tag, we need to make x correction based on crt timing
+            //otherwise Pandora has already corrected x coordinate since it is a anode/cathode crossing track
+            double xOffset = 0;
+            double ticksOffset = 0;
+            if (!fMCCSwitch) ticksOffset = ((fronthit.t+backhit.t)/2.-rdtimestamp+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
+            else ticksOffset = (fronthit.t+backhit.t)/2./500.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
+            
+            xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[0]->WireID());
+            
+            trackStartPositionX=trackStartPositionX-xOffset;
+            trackEndPositionX=trackEndPositionX-xOffset;
+          }
 
           TVector3 v1(fronthit.x, fronthit.y, fronthit.z);
           TVector3 v2(backhit.x, backhit.y, backhit.z);
