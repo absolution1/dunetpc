@@ -32,6 +32,7 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
@@ -93,6 +94,7 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p
   fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  
   fCTBLabel(p.get<art::InputTag>("CTBLabel")),
   fTrackModuleLabel(p.get<art::InputTag>("TrackModuleLabel","pandoraTrack")),
+  fSCECorrection(p.get<bool>("SCECorrection")),
   fMaxHitsinGroup(p.get<unsigned short>("MaxHitsinGroup",2))
   // More initializers here.
 {
@@ -120,6 +122,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   art::ServiceHandle < geo::Geometry > geom;
   //Detector properties service
   auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  //Space charge service
+  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   ULong64_t rdtimestamp = 0;
   int RDOffset=0;
@@ -270,7 +274,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, fTrackModuleLabel);
 
   //Get PFParticle-Track association
-  art::FindManyP<recob::PFParticle> fmpfp(trackListHandle, e, "pandoraTrack");
+  art::FindManyP<recob::PFParticle> fmpfp(trackListHandle, e, fTrackModuleLabel);
 
   //Get T0-PFParticle association
   art::FindManyP<anab::T0> fmt0pandora(pfpListHandle, e, "pandora");
@@ -335,6 +339,14 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
             
             trackStartPositionX=trackStartPositionX-xOffset;
             trackEndPositionX=trackEndPositionX-xOffset;
+          }
+
+          //Correct for space charge effects
+          if (fSCECorrection && SCE->EnableCalSpatialSCE()){
+            auto const & posOffsets = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), allHits[0]->WireID().TPC);
+            trackStartPositionX -= posOffsets.X();
+            trackStartPositionY += posOffsets.Y();
+            trackStartPositionZ += posOffsets.Z();
           }
 
           TVector3 v1(fronthit.x, fronthit.y, fronthit.z);
