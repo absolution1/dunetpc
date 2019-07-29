@@ -29,7 +29,7 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 
 #include "larsim/MCCheater/BackTrackerService.h"
@@ -343,38 +343,38 @@ bool CRT::TwoCRTMatching::moduleMatcherData(int module1, int module2) {
 }*/
 
 int CRT::TwoCRTMatching::moduletoCTB(int module2, int module1){
-  if (module1 == 14 && module2 == 11 ) return 15;
-  else if (module1 == 14 &&  module2 == 10) return 10;
-  else if (module1 == 6 &&  module2 == 11) return 8;
-  else if (module1 == 6 &&  module2 == 10) return 9;
-  else if (module1 == 18 &&  module2 == 25) return 4;
-  else if (module1 == 18 &&  module2 == 24) return 13;
-  else if (module1 == 30 &&  module2 == 25) return 3;
-  else if (module1 == 30 &&  module2 == 24) return 2;
-  else if (module1 == 31 &&  module2 == 27) return 1;
-  else if (module1 == 31 &&  module2 == 26) return 0;
-  else if (module1 == 19 &&  module2 == 27) return 12;
-  else if (module1 == 19 &&  module2 == 26) return 11;
-  else if (module1 == 7  &&  module2 == 12) return 7;
-  else if (module1 == 7 &&  module2 == 13) return 6;
-  else if (module1 == 15  &&  module2 == 12) return 14;
-  else if (module1 == 15 &&  module2 == 13) return 5;
-  else if (module1 == 1 &&  module2 == 4) return 25;
-  else if (module1 == 1 &&  module2 == 5) return 24;
-  else if (module1 == 9 &&  module2 == 4) return 26;
-  else if (module1 == 9 &&  module2 == 5) return 31;
-  else if (module1 == 16 &&  module2 == 20) return 27;
-  else if (module1 == 16 &&  module2 == 21) return 28;
-  else if (module1 == 28 &&  module2 == 20) return 16;
-  else if (module1 == 28 &&  module2 == 21) return 17;
-  else if (module1 == 29 &&  module2 == 22) return 18;
-  else if (module1 == 29 &&  module2 == 23) return 19;
-  else if (module1 == 17 &&  module2 == 22) return 29;
-  else if (module1 == 17 &&  module2 == 23) return 20;
-  else if (module1 == 8 &&  module2 == 2) return 30;
-  else if (module1 == 8 &&  module2 == 3) return 21;
-  else if (module1 == 0 &&  module2 == 2) return 23;
-  else if (module1 == 0 &&  module2 == 3) return 22;
+  if (module1 == 15 && module2 == 12 ) return 15;
+  else if (module1 == 15 &&  module2 == 13) return 10;
+  else if (module1 == 7 &&  module2 == 12) return 8;
+  else if (module1 == 7 &&  module2 == 13) return 9;
+  else if (module1 == 19 &&  module2 == 26) return 4;
+  else if (module1 == 19 &&  module2 == 27) return 13;
+  else if (module1 == 31 &&  module2 == 26) return 3;
+  else if (module1 == 31 &&  module2 == 27) return 2;
+  else if (module1 == 30 &&  module2 == 24) return 1;
+  else if (module1 == 30 &&  module2 == 25) return 0;
+  else if (module1 == 18 &&  module2 == 24) return 12;
+  else if (module1 == 18 &&  module2 == 25) return 11;
+  else if (module1 == 6  &&  module2 == 11) return 7;
+  else if (module1 == 6 &&  module2 == 10) return 6;
+  else if (module1 == 14  &&  module2 == 11) return 14;
+  else if (module1 == 14 &&  module2 == 10) return 5;
+  else if (module1 == 0 &&  module2 == 3) return 25;
+  else if (module1 == 0 &&  module2 == 2) return 24;
+  else if (module1 == 8 &&  module2 == 3) return 26;
+  else if (module1 == 8 &&  module2 == 2) return 31;
+  else if (module1 == 17 &&  module2 == 23) return 27;
+  else if (module1 == 17 &&  module2 == 22) return 28;
+  else if (module1 == 29 &&  module2 == 23) return 16;
+  else if (module1 == 29 &&  module2 == 22) return 17;
+  else if (module1 == 28 &&  module2 == 21) return 18;
+  else if (module1 == 28 &&  module2 == 20) return 19;
+  else if (module1 == 16 &&  module2 == 21) return 29;
+  else if (module1 == 16 &&  module2 == 20) return 20;
+  else if (module1 == 9 &&  module2 == 5) return 30;
+  else if (module1 == 9 &&  module2 == 4) return 21;
+  else if (module1 == 1 &&  module2 == 5) return 23;
+  else if (module1 == 1 &&  module2 == 4) return 22;
   else return -1;
 }
 void CRT::TwoCRTMatching::createPNG(TH1D * histo) {
@@ -410,14 +410,14 @@ void CRT::TwoCRTMatching::analyze(art::Event
   mccTrackId=-1;
   if (fMCCSwitch){
     fModuleSwitch=1;
-    fADCThreshold=200;
+    fADCThreshold=800;
     fModuletoModuleTimingCut=4;
     fFronttoBackTimingCut=100;
     
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=10;
+    fADCThreshold=20;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
 
@@ -668,7 +668,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
           }
    	}
         if (pixel0!=-1 && pixel1!=-1) {
-	cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
+	//cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
 	}
 	else if (fCTBTriggerOnly) return;
 	      }
@@ -677,6 +677,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 // Make tracks from all front and back CRT hits
 for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
     for (unsigned int b = 0; b < primaryHits_B.size(); b++) {
+    //cout<<moduletoCTB(primaryHits_F[f].geoX, primaryHits_F[f].geoY)<<','<<moduletoCTB(primaryHits_B[b].geoX, primaryHits_B[b].geoY)<<endl;
    //if (fabs(primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg)<1000) cout<<primaryHits_F[f].geoX<<','<<primaryHits_B[b].geoX<<','<<primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg<<endl;
    if (!fMCCSwitch && fCTBTriggerOnly){
    if (fabs(primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg)<fFronttoBackTimingCut && moduletoCTB(primaryHits_F[f].geoX, primaryHits_F[f].geoY)==pixel0 && moduletoCTB(primaryHits_B[b].geoX, primaryHits_B[b].geoY)==pixel1 ){
@@ -944,7 +945,8 @@ fMCCMuon->Fill();
 	  double trackPosX=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).X()+xOffset;
 	  double trackPosY=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).Y();
 	  double trackPosZ=trackList[iRecoTrack] -> LocationAtPoint(trackpoint).Z();
-	   TVector3 trackPos(trackPosX, trackPosY, trackPosZ);
+	   if (trackPosY==-999) continue;
+	TVector3 trackPos(trackPosX, trackPosY, trackPosZ);
 			double distanceYZ = signedPointToLineDistance( Y1,Z1, Y2,Z2, trackPos.Y(), trackPos.Z() ); //only the Y and Z of trackpos will be used
 			double distanceXZ = signedPointToLineDistance( X1,Z1, X2,Z2, trackPos.X(), trackPos.Z() );
 
@@ -1125,7 +1127,7 @@ averageSignedDistanceXY += distanceXY/(lastPoint+1);
 	measuredXOffset=allUniqueTracksPair[u].xOffset;
         cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 	CRT_TOF=allUniqueTracksPair[u].timeDiff;	
-        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99) {
+        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40) {
         //cout<<allUniqueTracksPair[u].timeDiff<<endl;
 	//cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
@@ -1201,7 +1203,7 @@ void CRT::TwoCRTMatching::beginJob() {
 
 	fCRTTree->Branch("hstripX_F", &stripX_F, "stripX_F/I");
 	fCRTTree->Branch("hstripX_B", &stripX_B, "stripX_B/I");
-	fCRTTree->Branch("hstripY_F", &moduleY_F, "stripY_F/I");
+	fCRTTree->Branch("hstripY_F", &stripY_F, "stripY_F/I");
 	fCRTTree->Branch("hstripY_B", &stripY_B, "stripY_B/I");
 
 	fCRTTree->Branch("hadcX_F", &adcX_F, "adcX_F/I");

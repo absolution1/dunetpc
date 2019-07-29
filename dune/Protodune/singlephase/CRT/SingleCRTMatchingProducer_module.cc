@@ -31,7 +31,7 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 
 #include "larsim/MCCheater/BackTrackerService.h"
@@ -135,6 +135,7 @@ int moduletoCTB(int module2, int module1);
     int channelGeo;
     int adc;
     int triggerTime;
+    int triggerNumber;
   }
   tempHits;
 
@@ -151,6 +152,7 @@ int moduletoCTB(int module2, int module1);
     int moduleY;
     int stripX;
     int stripY;
+    int trigNumberX, trigNumberY;
   }
   recoHits;
 
@@ -177,7 +179,8 @@ int moduletoCTB(int module2, int module1);
     int moduleX1, moduleY1;
     int stripX1, stripY1;
     double flashTDiff;
-    double timeAvg; 
+    double timeAvg;
+    int trigNumberX, trigNumberY; 
   }
   tracksPair;
 
@@ -221,6 +224,7 @@ CRT::SingleCRTMatchingProducer::SingleCRTMatchingProducer(fhicl::ParameterSet
   produces< art::Assns<recob::Track, anab::T0> >();
   produces< art::Assns<recob::Track, anab::CosmicTag> >();
   produces< art::Assns<anab::CosmicTag, anab::T0> >();
+  produces< art::Assns<CRT::Trigger, anab::CosmicTag> >();
 
   }
 
@@ -315,6 +319,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
  std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
  std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
 
+ std::unique_ptr< art::Assns<CRT::Trigger, anab::CosmicTag>> CRTTriggerassn( new art::Assns<CRT::Trigger, anab::CosmicTag>);
+
   if (fMCCSwitch){
     fModuleSwitch=1;
     fADCThreshold=800;
@@ -364,18 +370,22 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
 
+  art::Handle < vector < CRT::Trigger > > crtListHandle;
+  vector < art::Ptr < CRT::Trigger > > crtList;
+  if (event.getByLabel(fCRTLabel, crtListHandle)) {
+    art::fill_ptr_vector(crtList, crtListHandle);
+  }
+
   //Get a handle to the Geometry service to look up AuxDetGeos from module numbers
   art::ServiceHandle < geo::Geometry > geom;
 
   //Mapping from channel to trigger
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
-  cout << "Looking for hits in Triggers" << endl;
-
+  int trigID=0;
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
     for (const auto & hit: hits) { // Collect hits on all modules
-	//cout<<hits.size()<<','<<hit.ADC()<<endl;
       if (hit.ADC() > fADCThreshold) { // Keep if they are above threshold
 
         tempHits tHits;
@@ -394,6 +404,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
 	tHits.triggerTime=trigger.Timestamp();
+        tHits.triggerNumber=trigID;
 	}
 	 //cout<<trigger.Channel()<<','<<hit.Channel()<<','<<hit.ADC()<<endl;
         nHits++;
@@ -406,29 +417,22 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         hitID++;
       }
     }
+    trigID++;
   }
 
   cout << "Hits compiled for event: " << nEvents << endl;
   cout << "Number of Hits above Threshold:  " << hitID << endl;
 
- for (unsigned int f = 0; f < tempHits_F.size(); f++) {
+  for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
+       if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)>fModuletoModuleTimingCut) continue;
       const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
-	int flipChannel=tempHits_F[f].channelGeo;
-	int flipX=1;
-	// v5 geo fixes
-	//if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
-	//if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
-	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
-	//if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
-	//cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
-      const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
+
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_F[f].channelGeo);
       const auto hit1Center = hit1Geo.GetCenter();
       // Create 2D hits from geo of the Y and X modules
-	flipChannel=tempHits_F[f_test].channelGeo;
-	int flipY=1;
-       const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
+       const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_F[f_test].channelGeo);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
       if(fModuleSwitch) moduleMatched=moduleMatcherMCC(tempHits_F[f_test].module, tempHits_F[f].module);
@@ -439,12 +443,12 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         double hitX = hit1Center.X();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo-flipX)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channelGeo-1)==tempHits_F[f].channelGeo) hitX=hit1Center.X()+1.25;
 	}
 	double hitYPrelim=hit2Center.Y();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
-	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-flipY)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
+	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-1)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	
 
@@ -458,67 +462,45 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         rHits.hitPositionX = hitX;
         rHits.hitPositionY = hitY;
         rHits.hitPositionZ = hitZ;
-	rHits.moduleX=tempHits_F[f].module;
-	rHits.moduleY=tempHits_F[f_test].module;
-
+	rHits.trigNumberX=tempHits_F[f].triggerNumber;
+	rHits.trigNumberY=tempHits_F[f_test].triggerNumber;
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
-	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
+       primaryHits_F.push_back(rHits); // Add array
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
-	int channelFlipCheck=tempHits_B[f].module;
-	/* Code to fix v5 geo issues in data
-	if (!fMCCSwitch){   
-	if (channelFlipCheck==8) channelFlipCheck=11;
-	else if (channelFlipCheck==11) channelFlipCheck=8;
-         else if (channelFlipCheck==10) channelFlipCheck=9;
-	else if (channelFlipCheck==9) channelFlipCheck=10;
+       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)>fModuletoModuleTimingCut) continue;
 
-	else if (channelFlipCheck==26) channelFlipCheck=25;
-        else if (channelFlipCheck==25) channelFlipCheck=26;
-	else if (channelFlipCheck==24) channelFlipCheck=27;
-	else if (channelFlipCheck==27) channelFlipCheck=24;
-	}
-
-     if (!fMCCSwitch && (tempHits_B[f].module==25 || tempHits_B[f].module==11 || tempHits_B[f].module==24 || tempHits_B[f].module==10)){flipX=-1; flipChannel=flipChannel^63;}
-
-	//if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
-	*/
-     int flipX=1;
-     int flipY=1;
-     int flipChannel=tempHits_B[f].channelGeo;
-
- 
-      const auto & trigGeo = geom -> AuxDet(channelFlipCheck);
+      const auto & trigGeo = geom -> AuxDet(tempHits_B[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
-      const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_B[f].channelGeo);
       const auto hit1Center = hit1Geo.GetCenter();
-      flipChannel=tempHits_B[f_test].channelGeo;
 
-      const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
+      const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_B[f_test].channelGeo);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
-      if(fModuleSwitch) moduleMatched=moduleMatcherMCC(tempHits_B[f_test].module, tempHits_B[f].module);
-      else moduleMatched=moduleMatcherData(tempHits_B[f_test].module, tempHits_B[f].module);
+      if(fModuleSwitch) moduleMatched=moduleMatcherMCC(tempHits_F[f_test].module, tempHits_F[f].module);
+      else moduleMatched=moduleMatcherData(tempHits_F[f_test].module, tempHits_F[f].module);
+
 
       if (moduleMatched) {
         double hitX = hit1Center.X();
-
+	
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
-	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channelGeo-flipX)==tempHits_B[f].channelGeo) hitX=hit1Center.X()+1.25;
+	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channelGeo-1)==tempHits_B[f].channelGeo) hitX=hit1Center.X()+1.25;
 	}
 	
         double hitYPrelim = hit2Center.Y();
 	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
-	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-flipY)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
+	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-1)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	double hitY=hitYPrelim;
 
@@ -531,13 +513,13 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         rHits.hitPositionX = hitX;
         rHits.hitPositionY = hitY;
         rHits.hitPositionZ = hitZ;
-	rHits.moduleX=tempHits_B[f].module;
-	rHits.moduleY=tempHits_B[f_test].module;
 	rHits.stripX=tempHits_B[f].channel;
-	rHits.stripY=flipChannel;
+	rHits.trigNumberX=tempHits_B[f].triggerNumber;
+	rHits.trigNumberY=tempHits_B[f_test].triggerNumber;
+	rHits.stripY=tempHits_B[f_test].channel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
-       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
-     //primaryHits_B.push_back(rHits);
+	 primaryHits_B.push_back(rHits); 
+
 	 }
     }
   }
@@ -616,9 +598,9 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
 	if(t0s.size()){ 
-	  auto t0=t0s.at(0);
-	  int t_zero=t0->Time();
-	  cout<<"Pandora T0: "<<t_zero<<endl;
+	  //auto t0=t0s.at(0);
+	  //int t_zero=t0->Time();
+	  //cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
     int lastHit=allHits.size()-2;
@@ -729,7 +711,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
                     if(fabs(timeDifference) < fabs(minTimeDifference))
                         {
                             minTimeDifference = timeDifference;
-			   if (minTimeDifference<1000) cout<<"Min Time: "<<minTimeDifference<<endl;
+			   //if (minTimeDifference<1000) cout<<"Min Time: "<<minTimeDifference<<endl;
                         }
 		    }
                 }
@@ -751,6 +733,8 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
         tPair.stripX1 = primaryHits_F[iHit_F].stripX;
         tPair.stripY1 = primaryHits_F[iHit_F].stripY;
+        tPair.trigNumberX = primaryHits_F[iHit_F].trigNumberX;
+        tPair.trigNumberY = primaryHits_F[iHit_F].trigNumberY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
@@ -865,6 +849,8 @@ double xOffset=0;
 
         tPair.stripX1 = primaryHits_B[iHit_B].stripX;
         tPair.stripY1 = primaryHits_B[iHit_B].stripY;
+       tPair.trigNumberX = primaryHits_B[iHit_B].trigNumberX;
+        tPair.trigNumberY = primaryHits_B[iHit_B].trigNumberY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
@@ -898,7 +884,7 @@ double xOffset=0;
         tracksPair_B.end());
     }
 
-	cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
+	//cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
     if (allUniqueTracksPair.size() > 0) {
       for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
 
@@ -925,6 +911,9 @@ double xOffset=0;
 	adcY=allUniqueTracksPair[u].adcY1;
 
 	CRTT0=allUniqueTracksPair[u].timeAvg;
+
+	if (!fMCCSwitch) CRTT0=allUniqueTracksPair[u].timeAvg/50.f;
+	else CRTT0=allUniqueTracksPair[u].timeAvg/1000.f;
 	stripX=allUniqueTracksPair[u].stripX1;
 	stripY=allUniqueTracksPair[u].stripY1;
 
@@ -933,8 +922,8 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if ( fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.9993 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
-	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
+        if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60) {
+	cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
 	fCRTTree->Fill();
 	std::vector<float> hitF;
@@ -952,12 +941,14 @@ double xOffset=0;
        
 	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
 	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX], *CRTTriggerassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY], *CRTTriggerassn);
 
         }
       }
     }
   nEvents++;
-event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTT0assn));
+event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTT0assn)); event.put(std::move(CRTTriggerassn));
 
 }
 

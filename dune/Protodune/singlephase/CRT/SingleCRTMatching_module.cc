@@ -28,7 +28,7 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"
@@ -125,6 +125,7 @@ int moduletoCTB(int module2, int module1);
     double flashTime;
     double opCRTTDiff;
     double measuredXOffset;
+    double recoPandoraT0;
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
 
@@ -177,6 +178,7 @@ int moduletoCTB(int module2, int module1);
     double flashTDiff;
     double timeAvg; 
     double xOffset;
+    double pandoraT0Check;
   }
   tracksPair;
 
@@ -397,6 +399,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
  for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
+	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)>fModuletoModuleTimingCut) continue;
       const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
 	int flipChannel=tempHits_F[f].channelGeo;
@@ -448,12 +451,13 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
-	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
+	 primaryHits_F.push_back(rHits); // Add array
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
+	if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)>fModuletoModuleTimingCut) continue;
 	int channelFlipCheck=tempHits_B[f].module;
 	/* Code to fix v5 geo issues in data
 	if (!fMCCSwitch){   
@@ -520,7 +524,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripX=tempHits_B[f].channel;
 	rHits.stripY=flipChannel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
-       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
+        primaryHits_B.push_back(rHits); 
      //primaryHits_B.push_back(rHits);
 	 }
     }
@@ -599,10 +603,11 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(iRecoTrack);
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
+        //int t_zero=-999;
 	if(t0s.size()){ 
-	  //auto t0=t0s.at(0);
-	  //int t_zero=t0->Time();
-	  //cout<<"Pandora T0: "<<t_zero<<endl;
+	  auto t0=t0s.at(0);
+	  int t_zero=t0->Time();
+	  cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
     int lastHit=allHits.size()-2;
@@ -631,7 +636,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
     firstHit=lastHit;
     lastHit=0;
     }
- if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 600 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<600) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 600 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<600)) {
+ if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 660 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<660) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 660 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<660)) {
 
 
 	//cout<<trackid<<endl;
@@ -790,6 +795,8 @@ else if (beamLeft!=-1){cout<<"MC Truth: "<<particle->Position(beamLeft).X()<<','
         tPair.trackStartPosition=trackStart;
 	tPair.flashTDiff=minTimeDifference;
 	tPair.trackEndPosition=trackEnd;
+	if (t0s.empty()) tPair.pandoraT0Check=0;
+	else tPair.pandoraT0Check=1;
         tracksPair_B.push_back(tPair);
 
       }
@@ -960,6 +967,8 @@ double xOffset=0;
 	tPair.flashTDiff=minTimeDifference;
         tPair.trackStartPosition=trackStart;
 	tPair.trackEndPosition=trackEnd;
+	if (t0s.empty()) tPair.pandoraT0Check=0;
+	else tPair.pandoraT0Check=1;
         tracksPair_B.push_back(tPair);
 
       }
@@ -1016,14 +1025,14 @@ double xOffset=0;
 	CRTT0=allUniqueTracksPair[u].timeAvg;
 	stripX=allUniqueTracksPair[u].stripX1;
 	stripY=allUniqueTracksPair[u].stripY1;
-
+	recoPandoraT0=allUniqueTracksPair[u].pandoraT0Check;
 	X_CRT=allUniqueTracksPair[u].X1;
 	Y_CRT=allUniqueTracksPair[u].Y1;
 	Z_CRT=allUniqueTracksPair[u].Z1;
         //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<300 &&  fabs(trackX2)<300 && fabs(allUniqueTracksPair[u].dotProductCos)>0.99 && fabs(deltaX)<40 &&  fabs(deltaY)<40) {
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60) {
 	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 	//cout<<allUniqueTracksPair[u].recoId<<endl;
 	cout<<"CRT Reco: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
@@ -1056,6 +1065,8 @@ void CRT::SingleCRTMatching::beginJob() {
 	fCRTTree->Branch("hZ_CRT", &Z_CRT, "Z_CRT/D");
 
 	fCRTTree->Branch("hCRTT0", &CRTT0, "CRTT0/D");
+
+        fCRTTree->Branch("htrkT0", &recoPandoraT0, "recoPandoraT0/D");
 
 
 	fCRTTree->Branch("htrackStartX", &trackX1, "trackX1/D");

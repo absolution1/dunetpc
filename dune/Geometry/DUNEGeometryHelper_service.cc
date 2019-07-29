@@ -17,6 +17,7 @@
 #include "dune/Geometry/ChannelMapAPAAlg.h"
 #include "dune/Geometry/ChannelMapCRMAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
+#include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
@@ -62,6 +63,8 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
     } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlg" ) {
       fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
+    } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv7" ) {
+      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }
@@ -105,6 +108,10 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     } else if ( ( detectorName.find("dune34kt") != std::string::npos )
              || ( detectorName.find("lbne34kt") != std::string::npos ) ) {
       fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+
+    // protoDUNE with arapucas
+    } else if ( detectorName.find("protodunev7") != std::string::npos ) {
+      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
 
     // protoDUNE
     } else if ( ( detectorName.find("protodune") != std::string::npos )
