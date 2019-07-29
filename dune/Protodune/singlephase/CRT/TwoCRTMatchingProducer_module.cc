@@ -68,7 +68,7 @@ private:
   art::InputTag fCTBLabel;
   art::InputTag fTrackModuleLabel;
   bool fMCCSwitch;
-  bool fCTBTriggerOnly;
+  //bool fCTBTriggerOnly;
   bool fSCECorrection;
   int fADCThreshold;
   int fModuletoModuleTimingCut;
@@ -94,6 +94,7 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p
   fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  
   fCTBLabel(p.get<art::InputTag>("CTBLabel")),
   fTrackModuleLabel(p.get<art::InputTag>("TrackModuleLabel","pandoraTrack")),
+  //fCTBTriggerOnly(p.get<art::InputTag>("CTBTriggerOnly"),
   fSCECorrection(p.get<bool>("SCECorrection")),
   fMaxHitsinGroup(p.get<unsigned short>("MaxHitsinGroup",2))
   // More initializers here.
