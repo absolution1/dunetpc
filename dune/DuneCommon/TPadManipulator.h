@@ -258,6 +258,18 @@ public:
   int setLogRangeY(double y1, double y2);
   int setLogRangeZ(double y1, double y2);
 
+  // Set the time offset in second for axes using time format.
+  // 0 (default) is UTC (GMT).
+  int setTimeOffset(double toff);
+
+  // Set the time format for an axis.
+  // If blank (default), time format is not used.
+  // The format is similar to that of strftime.
+  // See TAxis::SetTimeFormat for more information.
+  // Append "%Fyyyy-mm-dd hh:mm:ss" to set the time offset.
+  int setTimeFormatX(std::string sfmt);
+  int setTimeFormatY(std::string sfmt);
+
   // Add or remove top and right axis.
   int addAxis(bool flag =true);
 
@@ -390,6 +402,9 @@ private:
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
   NameVector m_binLabelsX;
   NameVector m_binLabelsY;
+  double m_timeOffset =0.0;
+  std::string m_timeFormatX;
+  std::string m_timeFormatY;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
   Index m_iobjLegend;
