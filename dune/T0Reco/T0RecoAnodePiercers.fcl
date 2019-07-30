@@ -13,11 +13,11 @@ T0RecoAnodePiercers: {
 	FlashTPCOffset:		0 #us
 	MinTrackLength: 	50 #cm
 	MinPE: 				1000
-	MinDtFlashRecoData:	-1.5 #us
-	MaxDtFlashRecoData:	1.0 #us
+	MinDtFlashRecoData:	-1 #us
+	MaxDtFlashRecoData:	1.5 #us
 	MinDtFlashRecoMC:	-1.4 #us
-	MaxDtFlashRecoMC:	0 #us
-  	Debug: false
-}
+	MaxDtFlashRecoMC:	0.2 #us
+	Debug: 				false
+	}
 
 END_PROLOG
