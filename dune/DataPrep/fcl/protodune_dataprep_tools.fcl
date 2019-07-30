@@ -44,6 +44,12 @@ tools.channelRanges: {
   ExtraRanges: ""
 }
 
+tools.channelGroups: {
+  tool_type: ProtoDuneChannelGroups
+  LogLevel: 0
+  IndexRangeTool: channelRanges
+}
+
 ################################################################################
 # Reco.
 ################################################################################
@@ -162,7 +168,7 @@ tools.pd_evtviewNfemb: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:125:0:125"]
-  EventGraphs: ["event:0:0:nfemb:0:125"]
+  EventGraphs: ["event:events:1:nfemb:0:125"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -173,7 +179,7 @@ tools.pd_evtviewPed: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["meanPed:80:0:4000"]
-  EventGraphs: ["event:0:0:meanPed:0:0"]
+  EventGraphs: ["event:1:1:meanPed:0:0"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -184,7 +190,7 @@ tools.pd_evtviewPedpwr: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["rmPedPower:50:0:25"]
-  EventGraphs: ["event:0:0:rmPedPower:0:14"]
+  EventGraphs: ["event:1:1:rmPedPower:0:14"]
   ChannelRanges: []
   ChannelRangeLabel: "%CRLABEL%"
   ClockUnit: @local::data.pd_ClockUnit
@@ -195,7 +201,7 @@ tools.pd_evtviewNfembByTps: {
   tool_type: AdcEventViewer
   LogLevel: 2
   EventHists: ["hnfemb:21:0:21"]
-  EventGraphs: ["event:0:0:nfemb:0:21"]
+  EventGraphs: ["event:events:1:nfemb:0:21"]
   ChannelRanges: @local::data.pd_tpsChannelRanges
   ChannelRangeLabel: "%CRLABEL% (%CRLABEL2% %CRLABEL1%)"
   ClockUnit: @local::data.pd_ClockUnit
@@ -473,7 +479,8 @@ tools.pdchtp_Apa3z.ChannelRanges: [tpp0z]
 pdtps_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
-  MetricSummaryView: ""
+  PedestalReference: ""
+  MetricSummaryView: "mean:dmean"
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
@@ -489,7 +496,8 @@ pdtps_template: {
 pdwz_template: {
   tool_type: AdcChannelMetric
   LogLevel: 1
-  MetricSummaryView: ""
+  PedestalReference: ""
+  MetricSummaryView: "mean:dmean"
   MetricBins: 0
   MetricMin: 0.0
   ChannelRanges: [tpp0z, tpp1z, tpp2z, tpp3z, tpp4z, tpp5z]
@@ -580,8 +588,8 @@ tools.pdtps_adcChannelPedestalUscPlotter.PlotFileName: "chmet_pedoffusc_%CRNAME%
 # Pedestal diff for each TPS channel.
 tools.pdtps_adcChannelPedestalDiffPlotter: @local::pdtps_template
 tools.pdtps_adcChannelPedestalDiffPlotter.Metric: pedestalDiff
-tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -25
-tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  25
+tools.pdtps_adcChannelPedestalDiffPlotter.MetricMin: -10
+tools.pdtps_adcChannelPedestalDiffPlotter.MetricMax:  10
 tools.pdtps_adcChannelPedestalDiffPlotter.HistName: "hchpd%CRNAME%_peddiff_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalDiffPlotter.HistTitle: "ADC pedestal diffs for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalDiffPlotter.MetricLabel: "#DeltaPedestal [ADC count]"
@@ -640,6 +648,55 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# -- Here and below merging events --
+
+# Noise signal finder noise level at ADC scale.
+tools.pdtps_nsfNoise: @local::pdtps_template
+tools.pdtps_nsfNoise.Metric: nsfNoise
+tools.pdtps_nsfNoise.MetricMax: 14
+tools.pdtps_nsfNoise.MetricLabel: "Noise [(ADC count)/tick]"
+tools.pdtps_nsfNoise.HistName: "hchpd%CRNAME%_nsfnoise_%0RUN%"
+tools.pdtps_nsfNoise.HistTitle: "NSF noise for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_nsfNoise.PlotFileName: "chmet_nsfnoise_%CRNAME%_run%0RUN%.png"
+
+# Noise signal finder threshold at ADC scale.
+tools.pdtps_nsfThresh: @local::pdtps_template
+tools.pdtps_nsfThresh.Metric: nsfThreshold
+tools.pdtps_nsfThresh.MetricMax: 100
+tools.pdtps_nsfThresh.MetricLabel: "Threshold [ADC count]"
+tools.pdtps_nsfThresh.HistName: "hchpd%CRNAME%_nsfthresh_%0RUN%"
+tools.pdtps_nsfThresh.HistTitle: "NSF threshold for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_nsfThresh.PlotFileName: "chmet_nsfthresh_%CRNAME%_run%0RUN%.png"
+
+# Noise signal finder signal fraction.
+tools.pdtps_nsfSigFrac: @local::pdtps_template
+tools.pdtps_nsfSigFrac.Metric: nsfSigFrac
+tools.pdtps_nsfSigFrac.MetricMax: 0.25
+tools.pdtps_nsfSigFrac.MetricLabel: "Signal fraction"
+tools.pdtps_nsfSigFrac.HistName: "hchpd%CRNAME%_nsfsigfrac_%0RUN%"
+tools.pdtps_nsfSigFrac.HistTitle: "NSF signal fraction for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_nsfSigFrac.PlotFileName: "chmet_nsfsigfrac_%CRNAME%_run%0RUN%.png"
+
+# Noise signal finder loop count.
+tools.pdtps_nsfNloop: @local::pdtps_template
+tools.pdtps_nsfNloop.Metric: nsfLoopCount
+tools.pdtps_nsfNloop.MetricMax: 21
+tools.pdtps_nsfNloop.MetricLabel: "# loops"
+tools.pdtps_nsfNloop.HistName: "hchpd%CRNAME%_nsfnloop_%0RUN%"
+tools.pdtps_nsfNloop.HistTitle: "NSF loop count for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_nsfNloop.PlotFileName: "chmet_nsfnloop_%CRNAME%_run%0RUN%.png"
+
+# Noise signal finder loop count.
+tools.pdtps_nsfNroi: @local::pdtps_template
+tools.pdtps_nsfNroi.Metric: nsfRoiCount
+tools.pdtps_nsfNroi.MetricMax: 12
+tools.pdtps_nsfNroi.MetricLabel: "# ROI"
+tools.pdtps_nsfNroi.HistName: "hchpd%CRNAME%_nsfnroi_%0RUN%"
+tools.pdtps_nsfNroi.HistTitle: "NSF ROI count for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_nsfNroi.PlotFileName: "chmet_nsfnroi_%CRNAME%_run%0RUN%.png"
+
+# -- End merging events --
 
 # As above but including multiple events.
 
@@ -813,7 +870,8 @@ tools.pd_tickmodViewer: {
   PhasePlotSplitY:    0
 }
 
-# Remove coherent noise and high frequency noise
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ADC scale.
 tools.pdsp_noiseRemovalAdc: {
   tool_type: PdspNoiseRemoval
   LogLevel: 1
@@ -836,9 +894,16 @@ tools.pdsp_noiseRemovalAdc: {
   RoiPadHigh: 20                    # high bin extension
 }
 
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ke scale.
 tools.pdsp_noiseRemovalKe: @local::tools.pdsp_noiseRemovalAdc
 tools.pdsp_noiseRemovalKe.RoiStartThreshold: 0.5
 tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
+
+# Remove coherent noise and high frequency noise with ROIs taken
+# from data.
+tools.pdsp_noiseRemovalData: @local::tools.pdsp_noiseRemovalAdc
+tools.pdsp_noiseRemovalData.UseBasicROIForCNR: false
 
 tools.pdsp_noiseRemoval: @local::tools.pdsp_noiseRemovalAdc
 

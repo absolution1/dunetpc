@@ -13,6 +13,8 @@
 #include <iomanip>
 #include <cassert>
 #include "TH1F.h"
+#include "TGraph.h"
+#include "TTimeStamp.h"
 #include "TCanvas.h"
 #include "TROOT.h"
 
@@ -80,8 +82,13 @@ int test_TPadManipulator() {
   assert( man.getLabel().size() );
 
   cout << myname << line << endl;
-  cout << myname << "Copy the pad." << endl;
+  cout << myname << "Copy the pad and draw copy with time format." << endl;
   *pmantop->man(1) = *pmantop->man(0);
+  pmantop->man(1)->setRangeX(0, 8000);
+  pmantop->man(1)->setTitle("Zoom of above");
+  pmantop->man(1)->setRangeX(2000, 8000);
+  pmantop->man(1)->setRangeY(10, 90);
+  pmantop->man(1)->setTimeFormatX("%H:%M");
 
   cout << myname << line << endl;
   cout << myname << "Draw." << endl;
@@ -89,7 +96,40 @@ int test_TPadManipulator() {
   pmantop->draw();
   assert( man.pad() != nullptr );
 
+  cout << myname << line << endl;
+  cout << myname << "Draw." << endl;
   pmantop->print("test_TPadManipulator.png");
+
+  cout << myname << line << endl;
+  cout << myname << "Copy the full plot." << endl;
+  TPadManipulator man2(*pmantop);
+
+  cout << myname << line << endl;
+  cout << myname << "Draw copy." << endl;
+  man2.print("test_TPadManipulator2.png");
+
+  cout << myname << line << endl;
+  cout << myname << "Create time graph." << endl;
+  TGraph* pg = new TGraph;
+  pg->SetTitle("Clock");
+  pg->GetXaxis()->SetTitle("March 6 daytime minutes");
+  pg->GetYaxis()->SetTitle("Minute");
+  pg->SetMarkerStyle(2);
+  srand(12345);
+  TTimeStamp ts0(2019, 3, 6, 6, 0, 0);
+  for ( int i=0; i<12*60; ++i ) {
+    double tsec = ts0 + 60*i;
+    double min = fmod(i, 60);
+    pg->SetPoint(i, tsec, min);
+  }
+  TPadManipulator mant(1400, 500);
+  mant.add(pg, "P");
+  mant.addAxis();
+  double t0 = ts0.AsDouble();
+  mant.setRangeX(t0 - 7200, t0+14*3600);
+  mant.setRangeY(0, 61);
+  mant.setTimeFormatX("%H:%M%F2019-06-06 00:00:00");
+  mant.print("test_TPadManipulator-time.png");
 
   cout << myname << line << endl;
   cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;

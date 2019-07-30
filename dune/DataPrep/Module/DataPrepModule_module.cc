@@ -532,11 +532,28 @@ void DataPrepModule::produce(art::Event& evt) {
     cout << myname << "  # channels to be processed: " << nproc << endl;
   }
 
+  DuneEventInfo devt;
+  devt.run = evt.run();
+  devt.subRun = evt.subRun();
+  devt.event = evt.event();
+  devt.triggerClock = timingClock;
+  int bstat = m_pRawDigitPrepService->beginEvent(devt);
+  if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
+
   for ( AdcChannelDataMap& datamap : datamaps ) {
 
-    if ( datamap.size() == 0 ) continue;
+    Index nacd = datamap.size();
+    if ( nacd == 0 ) {
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "Skipping empty data map." << endl;
+      }
+      continue;
+    }
 
     // Use the data preparation service to build the wires and intermediate states.
+    if ( m_LogLevel >= 3 ) {
+      cout << myname << "Preparing " << nacd << " channel" << (nacd == 1 ? "" : "s") << "." << endl;
+    }
     int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
 
@@ -561,6 +578,9 @@ void DataPrepModule::produce(art::Event& evt) {
     datamap.erase(datamap.begin(), datamap.end());
 
   }  // end loop over groups
+
+  int estat = m_pRawDigitPrepService->endEvent(devt);
+  if ( estat ) cout << myname << "WARNING: Event finalization failed." << endl;
 
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Created wire count: " << pwires->size() << endl;

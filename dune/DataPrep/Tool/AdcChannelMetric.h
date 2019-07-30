@@ -18,21 +18,28 @@
 //   Metric - Name of the plotted metric. This can be the name of any
 //            metadata field or any of the following:
 //              pedestal 
-//              pedestalDiff - pedestal - (pedestal for first event)
+//              pedestalDiff - pedestal - (pedestal reference)
 //              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
+//              sigFrac: Fraction of samples that are signal.
+//              sigRms: RMS of the signal samples.
+//              nsgRms: RMS of the not-signal samples.
+//   PedestalReference - Name of the FloatArrayTool that holds the pedestal reference values.
+//                       If the value is "first", the pedestal for the first event is used.
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
 //                       that is plotted, this view of the metric summary is plotted.
 //                       The format is is VVV or VVV:EEE where VVV=position and EEE=error
-//                       can be any of the following. Default is "mean:rms".
+//                       can be any of the following. Default is "mean:dmean".
 //                  count - Number of values
 //                  mean - Mean of the value
-//                  rms - RMS of the values
 //                  dmean - error on the mean = rms/sqrt(count)
+//                  rms - RMS of the values
+//                  drms - error on the RMS
+//                  sdev - RMS from the mean of the values
 //                  min - Minimum value
 //                  max - Maximum value
 //                  center - 0.5*(min+max)
@@ -93,6 +100,8 @@ namespace lariov {
   class ChannelStatusProvider;
 }
 
+class FloatArrayTool;
+
 class AdcChannelMetric : AdcChannelTool {
 
 public:
@@ -120,14 +129,18 @@ public:
   // Local method that directly returns the metric value and units.
   // Subclasse may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
+  // The weight is used when averaging over events, e.g. the number
+  // of samples or ROIs contributing to the metric value.
   virtual int
-  getMetric(const AdcChannelData& acd, Name met, float& metricValue, Name& metricUnits) const;
+  getMetric(const AdcChannelData& acd, Name met, float& metricValue,
+            Name& metricUnits, float& metricWeight) const;
 
 private:
 
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_PedestalReference;
   Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
@@ -154,6 +167,9 @@ private:
   Name m_summaryValue;
   Name m_summaryError;
 
+  // Pedestal reference tool.
+  const FloatArrayTool* m_pPedestalReference;
+
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
@@ -167,48 +183,84 @@ private:
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
 
   // Summary data for one channel.
+  // Calculates mean, RMS, their uncertainties and more from accumulated data.
+  // Note that the RMS may be more appropriate for RMS-like variables like noise
+  // as it averages squares instead of values.
+  //
+  // The value for each event is added with a weight that is used in the calculation
+  // of the mea, RMS and other values. Only the relative values of the weights
+  // affects these calculations.
+  //
+  // Uncertainties are evaluated by dividing the variance by sqrt(Neff) where Neff
+  // is the effective number independent measurements. Its value depends on
+  // the the weight flag:
+  //   0 - Neff = # events with weight > 0
+  //   1 - Neff = sum of weights
   class MetricSummary {
   public:
-    Index count = 0;
+    Index weightFlag = 0;
+    Index eventCount = 0;
+    Index weightedEventCount = 0;
+    double weightSum;
     double sum = 0.0;
     double sumsq = 0.0;
     double minval = 0.0;
     double maxval = 0.0;
     // Add an entry.
-    void add(double val) {
-      if ( count == 0 || val < minval ) minval = val;
-      if ( count == 0 || val > maxval ) maxval = val;
-      ++count;
-      sum+=val;
-      sumsq+=val*val;
+    void add(double val, double weight) {
+      ++eventCount;
+      if ( weight <= 0.0 ) return;
+      ++weightedEventCount;
+      if ( weightSum == 0 || val < minval ) minval = val;
+      if ( weightSum == 0 || val > maxval ) maxval = val;
+      weightSum += weight;
+      sum += weight*val;
+      sumsq += weight*val*val;
     }
-    double mean() const { return count ? sum/count : 0.0; }
-    double meansq() const { return count ? sumsq/count : 0.0; }
+    double neff() const { return weightFlag ? weightSum : weightedEventCount; }
+    double mean() const { return weightSum ? sum/weightSum : 0.0; }
+    double dmean() const { return weightSum > 0.0 ? sdev()/sqrt(neff()) : 0.0; }
+    double meansq() const { return weightSum ? sumsq/weightSum : 0.0; }
     double rms() const {
+      return sqrt(meansq());
+    }
+    double drms() const {
+      if ( weightSum <= 0.0 ) return 0.0;
+      double rmsVal = rms();
+      double rmsVar = meansq() + rmsVal*(rmsVal - 2.0*mean());
+      return rmsVar > 0.0 ? sqrt(rmsVar/neff()) : 0.0;
+    }
+    double sdev() const {
       double valm = mean();
       double arg = meansq() - valm*valm;
       return arg > 0 ? sqrt(arg) : 0.0;
     }
-    double dmean() const { return count ? rms()/sqrt(double(count)) : 0.0; }
     double center() const { return 0.5*(minval + maxval); }
     double range() const { return  maxval - minval; }
     // Return if the provided string is a value name.
     static bool isValueName(Name vnam) {
       const std::set<Name> sumVals =
-        {"count", "mean", "rms", "min", "max", "dmean", "center", "range", "halfRange"};
+        {"weightFlag", "eventCount", "weightedEventCount", "weightSum",
+         "mean", "rms", "sdev", "min", "max", "dmean", "drms",
+         "center", "range", "halfRange"};
       return sumVals.find(vnam) != sumVals.end();
     }
     // Return a value by name.
     float getValue(Name vnam) const {
-      if ( vnam == "count" ) return count;
+      if ( vnam == "weightFlag" ) return weightFlag;
+      if ( vnam == "weightedEventCount" ) return weightedEventCount;
+      if ( vnam == "eventCount" ) return eventCount;
+      if ( vnam == "weightSum" ) return weightSum;
       if ( vnam == "mean" ) return mean();
       if ( vnam == "rms" ) return rms();
+      if ( vnam == "sdev" ) return sdev();
       if ( vnam == "min" ) return minval;
       if ( vnam == "max" ) return maxval;
       if ( vnam == "center" ) return center();
       if ( vnam == "range" ) return range();
       if ( vnam == "halfRange" ) return 0.5*range();
       if ( vnam == "dmean" ) return dmean();
+      if ( vnam == "drms" ) return drms();
       return 0.0;
     }
   };

@@ -3,7 +3,15 @@ BEGIN_PROLOG
 pdsprd_tool: 
   {
   tool_type: "PDSPTPCDataInterface"
-  RCEDropEventsWithSmallFrags: false
+
+  APA1InputLabels: [ "daq:TPC001", "daq:ContainerTPC001", "daq:FELIX001", "daq:ContainerFELIX001",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA2InputLabels: [ "daq:TPC002", "daq:ContainerTPC002", "daq:FELIX002", "daq:ContainerFELIX002",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA3InputLabels: [ "daq:TPC003", "daq:ContainerTPC003", "daq:FELIX003", "daq:ContainerFELIX003",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA4InputLabels: [ "daq:TPC004", "daq:ContainerTPC004", "daq:FELIX004", "daq:ContainerFELIX004",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA5InputLabels: [ "daq:TPC005", "daq:ContainerTPC005", "daq:FELIX005", "daq:ContainerFELIX005",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA6InputLabels: [ "daq:TPC006", "daq:ContainerTPC006", "daq:FELIX006", "daq:ContainerFELIX006",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  MISCAPAInputLabels: [ "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]  # use for example for coldbox-test data
+
   RCEDropSmallFrags: true
   RCESmallFragSize: 500000
   RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
@@ -16,7 +24,6 @@ pdsprd_tool:
 
   FELIXDropFragsWithBadCSF: true
   FELIXHexDump: false
-  FELIXDropEventsWithSmallFrags: false
   FELIXDropSmallFrags: true
   FELIXSmallFragSize: 10000
   FELIXCheckBufferSize: true

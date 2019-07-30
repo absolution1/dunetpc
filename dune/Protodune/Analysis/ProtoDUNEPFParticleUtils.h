@@ -72,6 +72,7 @@ namespace protoana {
 
     /// Get the T0(s) from a given PFParticle
     std::vector<anab::T0> GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel) const;
+    std::vector<anab::T0> GetPFParticleT0(const recob::PFParticle &particle, art::Event const &evt, std::string particleLabel, std::string t0Label) const;
 
     /// Access the BDT output used to decide if a slice is beam-like or cosmic-like
     float GetBeamCosmicScore(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
@@ -130,6 +131,9 @@ namespace protoana {
 
     /// Get the total hit charge for each view
     const std::vector<double> GetPFParticleHitsCharge(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
+
+    /// Get the earliest hit peak time
+    const double GetPFParticleEarliestHitPeakTime(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
 
     /// Get the daughter tracks from the PFParticle
     const std::vector<const recob::Track*> GetPFParticleDaughterTracks(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, const std::string trackLabel) const;

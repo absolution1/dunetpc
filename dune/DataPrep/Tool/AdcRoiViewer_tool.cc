@@ -182,6 +182,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_SumNegate(ps.get<bool>("SumNegate")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
+  m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
+  m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
   m_RunDataTool(ps.get<string>("RunDataTool")),
   m_TickOffsetTool(ps.get<string>("TickOffsetTool")),
   m_RoiRootFileName(ps.get<string>("RoiRootFileName")),
@@ -281,8 +283,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     else if ( hvarx == "sigArea" ) xlab = "Area [%ASUNIT%]";
     else if ( hvarx == "sigAreaNeg" ) xlab = "-Area [%ASUNIT%]";
     else if ( hvarx == "sigWidth" ) xlab = "Width [Tick]";
-    else if ( hvarx == "timeSec" ) xlab = stimepre + " [sec]";
-    else if ( hvarx == "timeHour" ) xlab = stimepre + "[hour]";
+    else if ( hvarx == "timeSec"   || hvarx == "procTimeSec" ) xlab = stimepre + " [sec]";
+    else if ( hvarx == "timeHour"  || hvarx == "procTimeHour") xlab = stimepre + " [hour]";
+    else if ( hvarx == "timeDay"   || hvarx == "procTimeDay" ) xlab = stimepre + " [day]";
     else {
       cout << myname << "WARNING: Unknown summary variable: " << hvarx << endl;
     }
@@ -352,10 +355,9 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
     }
-    const NameVector errTypes = {"none", "zero", "rms", "fitSigma"};
-    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end()
-         && etype.substr(0, 3) != "rms" ) {
-      cout << myname << "ERROR: Channel summary histogram has invalid error type: " << etype << endl;
+    const NameVector errTypes = {"none", "zero", "rms", "meanError", "rmsError", "fitSigma"};
+    if ( std::find(errTypes.begin(), errTypes.end(), etype) == errTypes.end() ) {
+      cout << myname << "ERROR: Channel summary histogram has invalid error type: \"" << etype << '"' << endl;
       continue;
     }
     TH1* phval = ivh->second.ph;
@@ -503,6 +505,15 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "            SumNegate: " << (m_SumNegate ? "true" : "false") << endl;
     cout << myname << "          SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "          SumPlotPadY: " << m_SumPlotPadY << endl;
+    cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
+    cout << myname << "  ChannelLinePattern: {";
+    bool first = true;
+    for ( Index icha : m_ChannelLinePattern ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << icha;
+    }
+    cout << "}" << endl;
     cout << myname << "      RoiRootFileName: " << m_RoiRootFileName << endl;
     cout << myname << "      SumRootFileName: " << m_SumRootFileName << endl;
     cout << myname << "  ChanSumRootFileName: " << m_ChanSumRootFileName << endl;
@@ -531,7 +542,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       }
     }
     cout << myname << "        PlotLabels: [";
-    bool first = true;
+    first = true;
     for ( Name slab : m_PlotLabels ) {
       if ( first ) first = false;
       else cout << ", ";
@@ -1083,6 +1094,11 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
     else if ( varx == "fitCSNormDof" )       vals = dm.getFloatVector("roiFitChiSquareDofs");
     else if ( varx == "timeSec" )           ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeHour" )          ivals = dm.getIntVector("roiTimes");
+    else if ( varx == "timeDay" )           ivals = dm.getIntVector("roiTimes");
+    else if ( varx == "procEvent" )         ivals.push_back(acd.event);
+    else if ( varx == "procTimeSec" )       ivals.push_back(int(acd.time) - int(m_StartTime));
+    else if ( varx == "procTimeHour" )      ivals.push_back(int(acd.time) - int(m_StartTime));
+    else if ( varx == "procTimeDay" )       ivals.push_back(int(acd.time) - int(m_StartTime));
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << varx << endl;
@@ -1129,7 +1145,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) con
       }
       varfac = 1.0/pulserQin;
     }
-    if ( varx == "timeHour" ) varfac = 1/3600.0;
+    if ( varx == "timeHour" || varx == "procTimeHour" ) varfac = 1/3600.0;
+    if ( varx == "timeDay" || varx == "procTimeDay" ) varfac = 1/(24*3600.0);
     if ( varfac != 1.0 ) for ( float& val : vals ) val *= varfac;
     // Create histogram if it does not yet exist or is empty and we have data here.
     //if ( ph == nullptr && vals.size() ) {
@@ -1580,8 +1597,8 @@ void AdcRoiViewer::fillChanSumHists() const {
     Index icha2 = getState().chanSumChaEnd[hnam];
     //for ( int ibin=1; ibin<=ph->GetNbinsX(); ++ibin ) {
     //  Index icha = ph->GetBinCenter(ibin);
-    Index ibin = 0;
     for ( Index icha=icha1; icha<icha2; ++icha ) {
+      Index ichaBin = icha + 1 - icha1;
       acd.channel = icha;
       Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       //Index chanStat = getState().getChannelStatus(hnam);
@@ -1638,6 +1655,12 @@ void AdcRoiViewer::fillChanSumHists() const {
       } else if ( errtype.substr(0,3) == "rms" ) {
         dval = phvar->GetRMS();
         if ( dval < errmin ) dval = errmin;
+      } else if ( errtype == "meanError" ) {
+        dval = phvar->GetMeanError();
+        if ( dval < errmin ) dval = errmin;
+      } else if ( errtype == "rmsError" ) {
+        dval = phvar->GetRMSError();
+        if ( dval < errmin ) dval = errmin;
       } else if ( errtype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
@@ -1653,6 +1676,9 @@ void AdcRoiViewer::fillChanSumHists() const {
         } else {
           dval = pf->GetParameter(ipar);
         }
+      } else {
+        cout << myname << "Invalid error type: " << errtype << endl;
+        abort();
       }
       if ( ph->GetEntries() == 0 ) {
         TAxis* paxis = isDist ? ph->GetXaxis() : ph->GetYaxis();
@@ -1673,8 +1699,8 @@ void AdcRoiViewer::fillChanSumHists() const {
       if ( isDist ) {
         ph->Fill(val);
       } else {
-        ph->SetBinContent(++ibin, val);
-        if ( haveErr ) ph->SetBinError(ibin, dval);
+        ph->SetBinContent(ichaBin, val);
+        if ( haveErr ) ph->SetBinError(ichaBin, dval);
       }
       ++nchaGood;
     }
@@ -1822,6 +1848,15 @@ void AdcRoiViewer::writeChanSumPlots() const {
       }
       if ( nnoi ) pman->add(phn, "P same");
       if ( nbad ) pman->add(phb, "P same");
+    }
+    if ( m_ChannelLineModulus ) {
+      for ( Index icha : m_ChannelLinePattern ) {
+        pman->addVerticalModLines(m_ChannelLineModulus, icha);
+      }
+    } else {
+      for ( Index icha : m_ChannelLinePattern ) {
+        pman->addVerticalLine(icha, 1.0, 3);
+      }
     }
     if ( m_LogLevel >= 1 ) cout << myname << "Plotting channel summary " << pnam << endl;
     pman->print(pnam);

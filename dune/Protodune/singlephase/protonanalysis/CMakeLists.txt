@@ -33,18 +33,18 @@ art_make(
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larevt_Filters
-  lardata_RecoObjects larreco_Deprecated
+  lardata_RecoObjects
   lardataobj_RecoBase
   lardataobj_MCBase
   larreco_RecoAlg
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
-  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   lardata_Utilities
   lardataobj_RawData
   larreco_Calorimetry
   lardataobj_AnalysisBase
-  nutools_RandomUtils_NuRandomService_service
+  nurandom_RandomUtils_NuRandomService_service
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}

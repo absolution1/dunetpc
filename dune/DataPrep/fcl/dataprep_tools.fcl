@@ -8,6 +8,16 @@
 # April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
+# Job ranges.
+################################################################################
+
+tools.jobRanges: {
+  tool_type: FclIndexRangeTool
+  LogLevel: 1
+  events: { begin:0 end:0 labels: [] }  # Event range for selection and plotting.
+}
+
+################################################################################
 # Ranges for channel-tick plots.
 ################################################################################
 
@@ -220,6 +230,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
@@ -238,6 +249,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 11
@@ -262,6 +274,8 @@ adcPlotDftTemplate: {
    HistSummaryTitle: ""
             YMinLog: 0.0
   PlotChannelRanges: []    # Empty makes one plot for each channel
+  PlotChannelGroups: []    # Empty makes one plot for each channel
+  PlotOverlayGroups: 1     # Rnages in a group are drawn on the same pad.
           PlotSizeX: 1400
           PlotSizeY: 1000
          PlotSplitX: 4
@@ -429,6 +443,8 @@ tools.adcRoiViewer: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []
@@ -452,6 +468,8 @@ tools.adcRoiFitter: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []

@@ -25,10 +25,18 @@
 #include "dam/access/TpcRanges.hh"
 #include "dam/access/TpcToc.hh"
 #include "dam/access/TpcPacket.hh"
+#include "dam/RceFragmentUnpack.hh"
 
 PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
 {
-  _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
+  _input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
+  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
+  _input_labels_by_apa[3] = p.get< std::vector<std::string> >("APA3InputLabels");
+  _input_labels_by_apa[4] = p.get< std::vector<std::string> >("APA4InputLabels");
+  _input_labels_by_apa[5] = p.get< std::vector<std::string> >("APA5InputLabels");
+  _input_labels_by_apa[6] = p.get< std::vector<std::string> >("APA6InputLabels");
+  _input_labels_by_apa[-1] = p.get< std::vector<std::string> >("MISCAPAInputLabels");
+  
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
   _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
@@ -44,7 +52,6 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
 
   _felix_drop_frags_with_badcsf = p.get<bool>("FELIXDropFragsWithBadCSF",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
-  _drop_events_with_small_felix_frags = p.get<bool>("FELIXDropEventsWithSmallFrags",false);
   _drop_small_felix_frags = p.get<bool>("FELIXDropSmallFrags",true);
   _felix_frag_small_size = p.get<unsigned int>("FELIXSmallFragSize",10000);
   _felix_check_buffer_size = p.get<bool>("FELIXCheckBufferSize",true);
@@ -57,6 +64,8 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
   _enforce_no_duplicate_channels = p.get<bool>("EnforceNoDuplicateChannels", true);
 }
 
+// wrapper for backward compatibility.  Return data for all APA's represented in the fragments on these labels
+
 int PDSPTPCDataInterface::retrieveData(art::Event &evt, 
 				       std::string inputLabel, 
 				       std::vector<raw::RawDigit> &raw_digits, 
@@ -64,6 +73,52 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 		                       art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 				       std::vector<raw::RDStatus> &rdstatuses, 
 				       std::string outputLabel )
+{
+  std::vector<int> apalist;
+  apalist.push_back(-1);
+  int retcode = retrieveDataAPAListWithLabels(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, outputLabel, apalist );
+  return retcode;
+}
+
+// get data for specified APAs.  Loop over labels specified in the fcl configuration looking for the data so the caller doesn't have to
+// keep track of all the branch labels an APA's data might be on.
+
+int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt, 
+							std::vector<raw::RawDigit> &raw_digits, 
+							std::vector<raw::RDTimeStamp> &rd_timestamps,
+							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
+							std::vector<raw::RDStatus> &rdstatuses, 
+							std::string outputLabel,
+							std::vector<int> &apalist)
+{
+  int totretcode = 0;
+
+  for (size_t i=0; i<apalist.size(); ++i)
+    { 
+      auto lli = _input_labels_by_apa.find(apalist.at(i));
+      if (lli == _input_labels_by_apa.end())
+	{
+	  MF_LOG_WARNING("PDSPTPCDataInterface:") << " No list of input labels known for APA " << apalist.at(i) << " Returning no data.";
+	}
+      for (size_t j=0; j<lli->second.size(); ++j)
+	{
+	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, outputLabel, apalist );
+	  if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
+	}
+    }
+  return totretcode;
+}
+
+// get data for a specific label, but only return those raw digits that correspond to APA's on the list
+
+int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt, 
+							std::string inputLabel, 
+							std::vector<raw::RawDigit> &raw_digits, 
+							std::vector<raw::RDTimeStamp> &rd_timestamps,
+							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
+							std::vector<raw::RDStatus> &rdstatuses, 
+							std::string outputLabel,
+							std::vector<int> &apalist)
 {
 
   RDPmkr rdpm(evt, outputLabel);
@@ -76,16 +131,18 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 
   if (inputLabel.find("TPC") != std::string::npos)
     {
-      _processRCE(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdpm, tspm);
+      _processRCE(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdpm, tspm, apalist);
     }
   else if (inputLabel.find("FELIX") != std::string::npos)
     {
-      _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdpm, tspm);
+      _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdpm, tspm, apalist);
     }
   else
     {
       throw cet::exception("PDSPTPCInterface_tool") << "ununderstood fragment branch label: \"" << inputLabel << "\"";
     }
+
+  bool flagged_duplicate = false;
 
   if (_enforce_no_duplicate_channels)
     {
@@ -106,6 +163,7 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 	      rd_timestamps.clear();
 	      RDTsAssocs nullassocs;
 	      rd_ts_assocs = nullassocs;
+	      flagged_duplicate = true;
 	      break;
 	    }
 	}
@@ -115,18 +173,20 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
   if (_DiscardedCorruptData) statword |= 1;
   if (_KeptCorruptData) statword |= 2;
   rdstatuses.emplace_back(_DiscardedCorruptData,_KeptCorruptData,statword);
+  if (flagged_duplicate) statword = 4;  // a flag to the caller indicating that the entire event's worth of raw digits is to be dropped
   return statword;
 }
 
 
 
 bool PDSPTPCDataInterface::_processRCE(art::Event &evt, 
-				    std::string inputLabel,  
-				    RawDigits& raw_digits, 
-				    RDTimeStamps &timestamps, 
-				    RDTsAssocs &tsassocs, 
-				    RDPmkr &rdpm, 
-				    TSPmkr &tspm)
+				       std::string inputLabel,  
+				       RawDigits& raw_digits, 
+				       RDTimeStamps &timestamps, 
+				       RDTsAssocs &tsassocs, 
+				       RDPmkr &rdpm, 
+				       TSPmkr &tspm,
+				       std::vector<int> &apalist)
 {
   size_t n_rce_frags = 0;
   bool have_data=false;
@@ -139,7 +199,7 @@ bool PDSPTPCDataInterface::_processRCE(art::Event &evt,
       if (cont_frags.isValid())
 	{
 	  have_data = true;
-	  if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
+	  if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm, apalist))
 	    {
 	      return false;
 	    }
@@ -153,7 +213,7 @@ bool PDSPTPCDataInterface::_processRCE(art::Event &evt,
       if (frags.isValid())
 	{
 	  have_data_nc = true;
-	  if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
+	  if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm, apalist))
 	    {
 	      return false;
 	    }
@@ -167,14 +227,15 @@ bool PDSPTPCDataInterface::_processRCE(art::Event &evt,
 }
 
 bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-					    size_t &n_rce_frags, 
-					    bool is_container, 
-					    art::Event &evt, 
-					    RawDigits& raw_digits, 
-					    RDTimeStamps &timestamps, 
-					    RDTsAssocs &tsassocs, 
-					    RDPmkr &rdpm, 
-					    TSPmkr &tspm)
+					       size_t &n_rce_frags, 
+					       bool is_container, 
+					       art::Event &evt, 
+					       RawDigits& raw_digits, 
+					       RDTimeStamps &timestamps, 
+					       RDTsAssocs &tsassocs, 
+					       RDPmkr &rdpm, 
+					       TSPmkr &tspm,
+					       std::vector<int> &apalist)
 {
     
   for (auto const& frag : *frags)
@@ -184,14 +245,6 @@ bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
       bool process_flag = true;
       if (frag.sizeBytes() < _rce_frag_small_size)
 	{
-	  if ( _drop_events_with_small_rce_frags )
-	    { 
-	      MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
-	      _discard_data = true; 
-	      _DiscardedCorruptData = true;
-	      evt.removeCachedProduct(frags);
-	      return false;
-	    }
 	  if ( _drop_small_rce_frags )
 	    { 
 	      MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
@@ -207,27 +260,28 @@ bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_rce_frags;
+		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, apalist)) ++n_rce_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_rce_frags;
+	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, apalist)) ++n_rce_frags;
 	    }
 	}
     }
-  evt.removeCachedProduct(frags);
+  evt.removeCachedProduct(frags);  // do this always, even if we need to re-read a TBranch
   return true;
 }
 
 
 bool PDSPTPCDataInterface::_process_RCE_AUX(
-					 const artdaq::Fragment& frag, 
-					 RawDigits& raw_digits,
-					 RDTimeStamps &timestamps,
-					 RDTsAssocs &tsassocs,
-					 RDPmkr &rdpm, TSPmkr &tspm
-					 )
+					    const artdaq::Fragment& frag, 
+					    RawDigits& raw_digits,
+					    RDTimeStamps &timestamps,
+					    RDTsAssocs &tsassocs,
+					    RDPmkr &rdpm, TSPmkr &tspm,
+					    std::vector<int> &apalist
+					    )
 {
 
   if (_rce_hex_dump)
@@ -269,13 +323,28 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
   
   if (_rce_save_frags_to_files)
     {
-       TString outfilename="rce";
-       outfilename += frag.sequenceID();
-       outfilename += "_";
-       outfilename += frag.fragmentID();
-       outfilename+=".fragment";
-       rce.save(outfilename.Data());
-       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+      TString outfilename="rce";
+      outfilename += frag.sequenceID();
+      outfilename += "_";
+      outfilename += frag.fragmentID();
+      outfilename+=".fragment";
+      rce.save(outfilename.Data());
+      std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+    }
+
+
+  artdaq::Fragment cfragloc(frag);
+  size_t cdsize = cfragloc.dataSizeBytes();
+  const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
+  HeaderFragmentUnpack const cdheader(cdptr);
+  //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
+  if (cdsize>16) cdsize -= 16;
+  bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
+  if (!isOkay)
+    {
+      MF_LOG_WARNING("_process_RCE_AUX:") << "RCE Fragment isOkay failed: " << cdsize << " Discarding this fragment";
+      _DiscardedCorruptData = true;
+      return false;
     }
 
 
@@ -290,6 +359,18 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
 
+      // only take this rce stream if it has data from an APA we are interested in
+      bool foundapainlist = false;
+      for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
+	{
+	  if (apalist[ialist] == -1 || apalist[ialist] == (int) crateNumber)
+	    {
+	      foundapainlist = true;
+	      break;
+	    }
+	}
+      if (!foundapainlist) continue;
+      
       //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
@@ -297,7 +378,7 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	  if (_rce_drop_frags_with_badcsf)
 	    {
 	      MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
-					   << crateNumber << " " << slotNumber << " " << fiberNumber;
+					      << crateNumber << " " << slotNumber << " " << fiberNumber;
               _DiscardedCorruptData = true;
 	      return false;
 	    }
@@ -309,7 +390,7 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	  if (_enforce_full_tick_count)
 	    {
 	      MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
-					       << _full_tick_count << " Discarding Data";
+						  << _full_tick_count << " Discarding Data";
 	      _discard_data = true;
               _DiscardedCorruptData = true;
 	      return false; 
@@ -329,7 +410,7 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	      if (_enforce_same_tick_count)
 		{
 		  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
+						      << " vs " << _tick_count_this_event << " Discarding Data";
 		  _discard_data = true;
 		  _DiscardedCorruptData = true;
 		  return false;
@@ -372,7 +453,7 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	  if (_enforce_error_free)
 	    {
 	      MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
-					       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
+						  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
               _DiscardedCorruptData = true;
 	      return false;
 	    }
@@ -441,12 +522,13 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 
 
 bool PDSPTPCDataInterface::_processFELIX(art::Event &evt, 
-				      std::string inputLabel, 
-				      RawDigits& raw_digits, 
-				      RDTimeStamps &timestamps, 
-				      RDTsAssocs &tsassocs, 
-				      RDPmkr &rdpm, 
-				      TSPmkr &tspm)
+					 std::string inputLabel, 
+					 RawDigits& raw_digits, 
+					 RDTimeStamps &timestamps, 
+					 RDTsAssocs &tsassocs, 
+					 RDPmkr &rdpm, 
+					 TSPmkr &tspm,
+					 std::vector<int> &apalist)
 {
   size_t n_felix_frags = 0;
   bool have_data=false;
@@ -459,7 +541,7 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
       if (cont_frags.isValid())
 	{
 	  have_data = true;
-	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
+	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm, apalist))
 	    {
 	      return false;
 	    }
@@ -473,7 +555,7 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
       if (frags.isValid())
 	{
 	  have_data_nc = true;
-	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
+	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm, apalist))
 	    {
 	      return false;
 	    }
@@ -487,14 +569,15 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
 }
 
 bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-					      size_t &n_felix_frags, 
-					      bool is_container, 
-					      art::Event &evt, 
-					      RawDigits& raw_digits, 
-					      RDTimeStamps &timestamps, 
-					      RDTsAssocs &tsassocs, 
-					      RDPmkr &rdpm, 
-					      TSPmkr &tspm)
+						 size_t &n_felix_frags, 
+						 bool is_container, 
+						 art::Event &evt, 
+						 RawDigits& raw_digits, 
+						 RDTimeStamps &timestamps, 
+						 RDTsAssocs &tsassocs, 
+						 RDPmkr &rdpm, 
+						 TSPmkr &tspm,
+						 std::vector<int> &apalist)
 {
   for (auto const& frag : *frags)
     {
@@ -503,14 +586,6 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
       bool process_flag = true;
       if (frag.sizeBytes() < _felix_frag_small_size)
 	{
-	  if ( _drop_events_with_small_felix_frags )
-	    { 
-	      MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
-	      _discard_data = true; 
-	      _DiscardedCorruptData = true;
-	      evt.removeCachedProduct(frags);
-	      return false;
-	    }
 	  if ( _drop_small_felix_frags )
 	    { 
 	      MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
@@ -526,12 +601,12 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm)) ++n_felix_frags;
+		  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, apalist)) ++n_felix_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_FELIX_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm)) ++n_felix_frags;
+	      if (_process_FELIX_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, apalist)) ++n_felix_frags;
 	    }
 	}
     }
@@ -541,9 +616,10 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 
 
 bool PDSPTPCDataInterface::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
-					   RDTimeStamps &timestamps,
-					   RDTsAssocs &tsassocs,
-					   RDPmkr &rdpm, TSPmkr &tspm)
+					      RDTimeStamps &timestamps,
+					      RDTsAssocs &tsassocs,
+					      RDPmkr &rdpm, TSPmkr &tspm,
+					      std::vector<int> &apalist)
 {
 
   //std::cout 
@@ -603,6 +679,18 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       _KeptCorruptData = true;
     }
 
+  // only take this felix fragment if it has data from an APA we are interested in
+  bool foundapainlist = false;
+  for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
+    {
+      if (apalist[ialist] == -1 || apalist[ialist] == (int) crate)
+	{
+	  foundapainlist = true;
+	  break;
+	}
+    }
+  if (!foundapainlist) return true;
+
   //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
 
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
@@ -634,7 +722,7 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 	    {
 	      _DiscardedCorruptData = true;
 	      MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
-						 << " Discarding Data";
+						    << " Discarding Data";
 	      // drop just this fragment
 	      //_discard_data = true;
 	      return true;
@@ -693,7 +781,7 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 	if (_enforce_full_tick_count)
 	  {
 	    MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
-					       << _full_tick_count << " Discarding Data";
+						  << _full_tick_count << " Discarding Data";
 	    _discard_data = true;
 	    _DiscardedCorruptData = true;
 	    return true; 
@@ -713,7 +801,7 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 	    if (v_adc.size() != _tick_count_this_event)
 	      {
 		MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
+						      << " vs " << _tick_count_this_event << " Discarding Data";
 		_discard_data = true;
 		_DiscardedCorruptData = true;
 		return true;
@@ -758,7 +846,7 @@ void PDSPTPCDataInterface::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc,
     }
   else
     {
-       // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
+      // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
 
       imed = TMath::Median(asiz,v_adc.data()) + 0.01;  // add an offset to make sure the floor gets the right integer
       median = imed;

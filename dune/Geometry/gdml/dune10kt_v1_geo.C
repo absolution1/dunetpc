@@ -10,7 +10,7 @@ void dune10kt_v1_geo(TString volName="")
   gSystem->Load("libGdml");
 
 //  TGeoManager::Import("dune10kt_v1_workspace.gdml");
-  TGeoManager::Import("protodune_v4.gdml");
+  TGeoManager::Import("protodune_v6_nowires.gdml");
 //  TGeoManager::Import("dune10kt_v1_3mmPitch.gdml");
 //  TGeoManager::Import("dune10kt_v1_45deg.gdml");
 //  TGeoManager::Import("dune10kt_v1_workspace_nowires.gdml");

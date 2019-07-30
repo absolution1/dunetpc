@@ -16,6 +16,7 @@
 #include "lardataobj/AnalysisBase/ParticleID.h"
 
 #include "art/Framework/Principal/Event.h"
+#include "TProfile.h"
 
 namespace protoana {
 
@@ -58,6 +59,9 @@ namespace protoana {
     std::vector<anab::ParticleID> GetRecoTrackPID(const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string pidModule) const;
     /// Try to determine if it's a broken track
     BrokenTrack IsBrokenTrack( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, const fhicl::ParameterSet & BrokenTrackPars, const fhicl::ParameterSet & CalorimetryPars );
+   /// Until we have fully calibrated calorimetry, use this PID algo
+   std::pair< double, int > Chi2PIDFromTrack_MC( const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule, TProfile * profile );
+   std::pair< double, int > Chi2PID( const std::vector< double > & track_dedx, const std::vector< double > & range, TProfile * profile );
 
   private:
 

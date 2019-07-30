@@ -9,6 +9,7 @@ cet_find_library( IFBEAM NAMES ifbeam PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
 
 
 art_make( MODULE_LIBRARIES
+                        dune_ArtSupport
 			${IFBEAM}
 			${IFBEAMSERVICE}
                         lardataobj_RawData
@@ -25,7 +26,7 @@ art_make( MODULE_LIBRARIES
                         dune_DuneObj
                         larsim_MCCheater_BackTrackerService_service
                         larsim_MCCheater_ParticleInventoryService_service
-                        nutools_ParticleNavigation 
+                        nug4_ParticleNavigation 
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}

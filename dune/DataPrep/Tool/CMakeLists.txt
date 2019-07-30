@@ -202,6 +202,11 @@ simple_plugin(AdcThresholdSignalFinder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcNoiseSignalFinder   "tool"
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcRoiShifter   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

@@ -61,16 +61,21 @@ std::vector<const recob::PCAxis*> protoana::ProtoDUNEShowerUtils::GetRecoShowerP
 
 std::vector<double> protoana::ProtoDUNEShowerUtils::EstimateEnergyFromHitCharge(const std::vector<const recob::Hit*> &hits, calo::CalorimetryAlg caloAlg) 
 {
-  double kGeVtoElectrons  { 4.237e7 }; // obtained from utils class.. Copied for now, should use class.
+  double kGeVtoElectrons { 4.237e7 }; // obtained from utils class.. Copied for now, should use class (although this is a physical constant, so hopefully doesn't change).
+  double recombination   { 1/0.63 };
 
   std::vector<double> showerEnergy = {0,0,0};
   
-       // Find the total charge on each plane
+  // Find the total charge on each plane
   for ( size_t h{0} ; h < hits.size() ; h++ ) {
     const recob::Hit* hit = hits[h];
     const int plane = hit->WireID().Plane;
     showerEnergy[ plane ] += ( caloAlg.ElectronsFromADCArea( hit->Integral(), plane) * caloAlg.LifetimeCorrection(hit->PeakTime()) ) / kGeVtoElectrons;
   }
+  
+  showerEnergy[0] *= recombination;
+  showerEnergy[1] *= recombination;
+  showerEnergy[2] *= recombination;
 
   // caloAlg.ElectronsFromADCArea( hit->Integral(), plane) -> Does hit->Integral()/AreaConstants(plane)
   // AreaConstants(plane) is defined in calorimetry_pdune.fcl. Although that fcl file has a typo.
@@ -104,5 +109,25 @@ int protoana::ProtoDUNEShowerUtils::GetShowerIndex(const recob::Shower &shower, 
 }
 
 
+std::vector<anab::Calorimetry> protoana::ProtoDUNEShowerUtils::GetRecoShowerCalorimetry(const recob::Shower &shower, art::Event const &evt, const std::string showerModule, const std::string caloModule) const{
+
+  auto recoShowers = evt.getValidHandle<std::vector<recob::Shower> >(showerModule);
+  std::vector<anab::Calorimetry> caloInfo;
+  
+  try{
+    const art::FindManyP<anab::Calorimetry> findCalorimetry(recoShowers,evt,caloModule);
+    int actualIndex = GetShowerIndex(shower,evt,showerModule);
+    std::vector<art::Ptr<anab::Calorimetry>> theseCalos = findCalorimetry.at(actualIndex);
+
+    for( auto calo : theseCalos){
+      caloInfo.push_back(*calo);
+    }
+  }
+  catch(...){
+    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+  }
+
+  return caloInfo;
 
 
+}

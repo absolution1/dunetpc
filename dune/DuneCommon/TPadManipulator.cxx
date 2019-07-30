@@ -15,7 +15,6 @@
 #include "TFrame.h"
 #include "TLine.h"
 #include "TF1.h"
-#include "TLegend.h"
 #include "TPaletteAxis.h"
 #include "TError.h"
 #include "TSystem.h"
@@ -49,7 +48,7 @@ TPadManipulator::TPadManipulator()
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
   m_gflowMrk(0), m_gflowCol(0),
-  m_top(false), m_right(false) {
+  m_top(false), m_right(false), m_iobjLegend(0) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
   m_label.SetNDC();
@@ -135,6 +134,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_gflowCol = rhs.m_gflowCol;
   m_top = rhs.m_top;
   m_right = rhs.m_right;
+  m_iobjLegend = rhs.m_iobjLegend;
   rhs.m_title.Copy(m_title); m_title.SetNDC();
   rhs.m_label.Copy(m_label); m_label.SetNDC();
   m_histFuns = rhs.m_histFuns;
@@ -150,10 +150,17 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_slYoff = rhs.m_slYoff;
   m_slStyl = rhs.m_slStyl;
   m_vmlLines.clear();
+  m_binLabelsX = rhs.m_binLabelsX;
+  m_binLabelsY = rhs.m_binLabelsY;
+  m_timeOffset = rhs.m_timeOffset;
+  m_timeFormatX = rhs.m_timeFormatX;
+  m_timeFormatY = rhs.m_timeFormatY;
+  m_subBounds = rhs.m_subBounds;
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
     m_subMans.emplace_back(man);
   }
+  m_iobjLegend = rhs.m_iobjLegend;
   update();
   return *this;
 }
@@ -477,7 +484,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
         char ch = sopt[ipos];
         if ( ch == 'a' || ch == 'A' ) {
-          cout << myname << "WARNING: Dropping " << ch << " from drawing option string for graph "
+          cout << myname << "WARNING: Dropping \"" << ch << "\" from drawing option string for graph "
                << pgc->GetName() << "." << endl;
         } else {
           soptOut += ch;
@@ -501,6 +508,7 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
   TLegend leg(x1, y1, x2, y2);
   add(0, &leg, "");
   TLegend* pleg = dynamic_cast<TLegend*>(objects().back().get());
+  m_iobjLegend = objects().size() - 1;
   pleg->SetBorderSize(0);
   pleg->SetFillStyle(0);
   return pleg;
@@ -569,9 +577,13 @@ int TPadManipulator::update() {
     }
   }
   // If frame is not yet drawn, use the primary object to draw it.
+  // Note that we will later redraw the frame.
   if ( ! haveFrameHist() ) {
-    if ( m_ph != nullptr ) m_ph->Draw(m_dopt.c_str());
-    else if ( m_pg != nullptr ) {
+    // Fetch the set bounds.
+    if ( m_ph ) {
+      m_ph->Draw(m_dopt.c_str());
+    }
+    else if ( m_pg ) {
       // If the graph has no points, we add one because root (6.12/06) raises an
       // exception if we draw an empty graph.
       if ( m_pg->GetN() == 0 ) {
@@ -763,6 +775,40 @@ int TPadManipulator::update() {
   getYaxis()->SetTitleOffset(yttl);
   getXaxis()->SetTickLength(ticklenx);
   getYaxis()->SetTickLength(tickleny);
+  if ( m_timeFormatX.size() ) {
+    getXaxis()->SetTimeDisplay(1);
+    getXaxis()->SetTimeFormat(m_timeFormatX.c_str());
+    getXaxis()->SetTimeOffset(m_timeOffset, "gmt");
+  } else {
+    getXaxis()->SetTimeDisplay(0);
+  }
+  if ( m_timeFormatY.size() ) {
+    getYaxis()->SetTimeDisplay(1);
+    getYaxis()->SetTimeFormat(m_timeFormatY.c_str());
+    getYaxis()->SetTimeOffset(m_timeOffset, "gmt");
+  } else {
+    getYaxis()->SetTimeDisplay(0);
+  }
+  // May 2019. Ensure frame axis has same binning as histogram.
+  // And set bin labels.
+  // July 2019: The calls to TAxis::Set cause problems if the drawing bounds are
+  // set here. Make those calls iff bin labels are set.
+  if ( haveHist() ) {
+    if ( m_binLabelsX.size() ) {
+      TAxis* pah = m_ph->GetXaxis();
+      getXaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
+      for ( Index ilab=0; ilab<m_binLabelsX.size(); ++ilab ) {
+        getXaxis()->SetBinLabel(ilab+1, m_binLabelsX[ilab].c_str());
+      }
+    }
+    if ( dynamic_cast<TH2*>(m_ph.get()) != nullptr && m_binLabelsY.size() ) {
+      TAxis* pah = m_ph->GetYaxis();
+      getYaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
+      for ( Index ilab=0; ilab<m_binLabelsY.size(); ++ilab ) {
+        getYaxis()->SetBinLabel(ilab+1, m_binLabelsY[ilab].c_str());
+      }
+    }
+  }
   // Primary object.
   if ( haveHist() ) {
     if ( m_flowHist != nullptr ) {
@@ -926,6 +972,27 @@ int TPadManipulator::setLogRangeZ(double z1, double z2) {
 
 //**********************************************************************
 
+int TPadManipulator::setTimeOffset(double toff) {
+  m_timeOffset = toff;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setTimeFormatX(string sfmt) {
+  m_timeFormatX = sfmt;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setTimeFormatY(string sfmt) {
+  m_timeFormatY = sfmt;
+  return 0;
+}
+
+//**********************************************************************
+
 int TPadManipulator::addAxis(bool flag) {
   return addAxisTop(flag) + addAxisRight(flag);
 }
@@ -1038,6 +1105,20 @@ int TPadManipulator::addHorizontalModLines(double xmod, double xoff, double lenf
   m_hmlXStyle.push_back(isty);
   m_hmlXLength.push_back(lenfrac);
   drawLines();
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setBinLabelsX(const NameVector& labs) {
+  m_binLabelsX = labs;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setBinLabelsY(const NameVector& labs) {
+  m_binLabelsY = labs;
   return 0;
 }
 

@@ -23,6 +23,7 @@
 #include <memory>
 #include "TLatex.h"
 #include "TLine.h"
+#include "TLegend.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -59,6 +60,8 @@ public:
   using TObjPtr = std::shared_ptr<TObject>;
   using TObjVector = std::vector<TObjPtr>;
   using BoundsVector = std::vector<Bounds>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -144,6 +147,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
+  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj].get() : nullptr; }
   TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
@@ -194,6 +198,9 @@ public:
   // Add a legend.
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
+
+  // Return the legend.
+  TLegend* getLegend() const { return dynamic_cast<TLegend*>(object(m_iobjLegend)); }
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
@@ -251,6 +258,18 @@ public:
   int setLogRangeY(double y1, double y2);
   int setLogRangeZ(double y1, double y2);
 
+  // Set the time offset in second for axes using time format.
+  // 0 (default) is UTC (GMT).
+  int setTimeOffset(double toff);
+
+  // Set the time format for an axis.
+  // If blank (default), time format is not used.
+  // The format is similar to that of strftime.
+  // See TAxis::SetTimeFormat for more information.
+  // Append "%Fyyyy-mm-dd hh:mm:ss" to set the time offset.
+  int setTimeFormatX(std::string sfmt);
+  int setTimeFormatY(std::string sfmt);
+
   // Add or remove top and right axis.
   int addAxis(bool flag =true);
 
@@ -293,6 +312,11 @@ public:
   // The lines are draw with style isty from the low edge to lenfrac*width
   int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0, int isty =3);
   int addHorizontalModLines(double ymod, double yoff =0.0, double lenfrac =1.0, int isty =3);
+
+  // Set text bin labels. 
+  // Only used if primary object is a histogram (2D for y).
+  int setBinLabelsX(const NameVector& labs);
+  int setBinLabelsY(const NameVector& labs);
 
   // Add histogram function ifun to the pad.
   int addHistFun(unsigned int ifun =0);
@@ -376,8 +400,14 @@ private:
   std::vector<double> m_slYoff;
   std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  NameVector m_binLabelsX;
+  NameVector m_binLabelsY;
+  double m_timeOffset =0.0;
+  std::string m_timeFormatX;
+  std::string m_timeFormatY;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
+  Index m_iobjLegend;
 
 };
 
