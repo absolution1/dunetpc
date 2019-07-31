@@ -31,6 +31,7 @@ pionanalysis:
 
   SelectEvents: []
 
+  dEdX_template_name:     "/dune/data/users/calcuttj/dEdxrestemplates.root"
   
   #####Track stitching
   BrokenTrackZ_low:   220
