@@ -70,6 +70,7 @@ private:
   double fTrackEndZCut;
   double fTrackDirCut;
   bool fStrictNTracks;
+  bool fUseMVA;
   double fDaughterCNNCut;
   double fChi2PIDCut;
 
@@ -98,6 +99,7 @@ PionAbsCexSelection::PionAbsCexSelection(fhicl::ParameterSet const& p)
   fTrackEndZCut( p.get< double >("TrackEndZCut") ),
   fTrackDirCut( p.get< double>("TrackDirCut") ),
   fStrictNTracks( p.get< bool >("StrictNTracks") ),
+  fUseMVA( p.get< bool >("UseMVA") ),
   fDaughterCNNCut( p.get< double >("DaughterCNNCut") ),
   fChi2PIDCut( p.get< double >("Chi2PIDCut") ),
 
@@ -150,7 +152,8 @@ bool PionAbsCexSelection::filter(art::Event& e)
   
   
   //Get some objects to use for CNN output checking later
-  anab::MVAReader<recob::Hit,4> hitResults(e, "emtrkmichelid:emtrkmichel" );
+  anab::MVAReader< recob::Hit, 4 > * hitResults = 0x0;
+  if( fUseMVA )  hitResults = new anab::MVAReader<recob::Hit,4>(e, "emtrkmichelid:emtrkmichel" );
   auto recoTracks = e.getValidHandle<std::vector<recob::Track> >(fTrackerTag);
   art::FindManyP<recob::Hit> findHits(recoTracks,e,fTrackerTag);
   ////////////////////////////
@@ -285,24 +288,27 @@ bool PionAbsCexSelection::filter(art::Event& e)
     
     auto daughterHits = findHits.at( daughterTrack->ID() ); 
 
-    double track_total = 0.;  
-    for( size_t h = 0; h < daughterHits.size(); ++h ){
-      std::array<float,4> cnn_out = hitResults.getOutput( daughterHits[h] );
-      track_total  += cnn_out[ hitResults.getIndex("track") ]; 
-    }
+    if( fUseMVA ){
+      double track_total = 0.;  
+      for( size_t h = 0; h < daughterHits.size(); ++h ){
+        std::array<float,4> cnn_out = hitResults->getOutput( daughterHits[h] );
+        track_total  += cnn_out[ hitResults->getIndex("track") ]; 
+      }
 
-    if( track_total < fDaughterCNNCut ){ 
-      MF_LOG_INFO("AbsCexSelection") << "Found daughter track that looks like shower" << "\n";
-      continue;
+      if( track_total < fDaughterCNNCut ){ 
+        MF_LOG_INFO("AbsCexSelection") << "Found daughter track that looks like shower" << "\n";
+        continue;
+      }
     }
-    
 
     //Now: If it's not a potential gamma, pass the calorimetry through the 
     //     Chi2 PID and see if any MIP-like daughters are associated
 
     auto daughter_calo = trackUtil.GetRecoTrackCalorimetry( *daughterTrack, e, fTrackerTag, fCalorimetryTag );
     std::vector<float> calo_range = daughter_calo[0].ResidualRange();
-    std::vector<float> calo_dEdX  = trackUtil.CalibrateCalorimetry( *daughterTrack, e, fTrackerTag, fCalorimetryTag, fCalorimetryParameters );
+    std::vector<float> calo_dEdX;
+    if( e.isRealData() ) calo_dEdX = trackUtil.CalibrateCalorimetry( *daughterTrack, e, fTrackerTag, fCalorimetryTag, fCalorimetryParameters );
+    else calo_dEdX = daughter_calo[0].dEdx();
 
     std::vector<double> daughter_range, daughter_dEdX;
     for( size_t j = 0; j < calo_range.size(); ++j ){

@@ -22,6 +22,8 @@ pion_abscex_filter: {
   GeneratorTag:           "generator"
   BeamlineUtils: @local::standard_protodunebeamlineutils
 
+  UseMVA: "false"
+
   #Cuts in cm
   TrackStartXCut: [6., 14.]
   TrackStartYCut: [-5., 10.]
