@@ -4,12 +4,13 @@
 #include "protodune_tools_dune.fcl"
 
 services.TFileService.fileName: "T0RecoSCE_data_ana.root"
+services.Geometry: @local::protodunev6_geo
 
 #source is now a root file
 source:
 {
   module_type: 	RootInput
-  maxEvents:   	200	# Number of events to create
+  maxEvents:   	2000		# Number of events to create
 }
 
 physics:
@@ -22,7 +23,7 @@ physics:
 	goodevents: [FEMB,HV]
 
  	analyzers: {
-       		t0ana:	@local::T0RecoSCE
+       	t0ana:	@local::T0RecoSCE
 		}
 
 	ana:     [t0ana]
@@ -36,7 +37,7 @@ physics.analyzers.t0ana.CathodeCrossers: 		false
 physics.analyzers.t0ana.AnodePiercers: 			true
 physics.analyzers.t0ana.FlashProducer : 		"opflashInternal"
 physics.analyzers.t0ana.TriggerProducer : 		"opflashExternal"
-physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:	true
+physics.analyzers.t0ana.AllFlashToTrackTimeDiffs:	false
 
 physics.analyzers.t0ana.FlashScaleFactor: 		1.0
 physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
@@ -50,16 +51,16 @@ physics.analyzers.t0ana.MinTrackLength: 		20 #cm
 physics.analyzers.t0ana.MinPE: 					100
 
 physics.analyzers.t0ana.CheckAssignedAnodeT0:	true
+physics.analyzers.t0ana.AnodeT0Producer:		anodet0reco
 
-outputs:{
+outputs: {
 
- 	out1:
- 	{
-   	module_type: 		RootOutput
+ 	out1: {
+   		module_type: 		RootOutput
 		SelectEvents: 		[goodevents]
-   	fileName:    		"T0RecoSCE_data.root"
+   		fileName:  			"T0RecoSCE_data.root"
   		dataTier:    		"ana"
-   	compressionLevel: 	1
- }
-}
+   		compressionLevel: 	1
+		}
+	}
 
