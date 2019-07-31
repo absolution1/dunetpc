@@ -155,6 +155,8 @@ private:
                        //reconstructed beam track coincide with the actual
                        //beam particle that generated the event
                        
+  bool elastic_candidate;
+  bool daughter_is_primary;
 
   int reco_beam_truth_origin; //What is the origin of the reconstructed beam track?
 
@@ -203,6 +205,7 @@ private:
   std::vector< int > reco_daughter_shower_truth_Origin;
   std::vector< int > reco_daughter_shower_truth_ParID;
   std::vector< std::vector< double > > reco_daughter_dEdX, reco_daughter_dQdX, reco_daughter_resRange;
+  std::vector< std::vector< double > > reco_daughter_shower_dEdX, reco_daughter_shower_dQdX, reco_daughter_shower_resRange;
   std::vector< double > reco_daughter_startX, reco_daughter_endX;
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
   std::vector< double > reco_daughter_startZ, reco_daughter_endZ;
@@ -491,21 +494,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
   }
 
-  //Go through the true processes within the MCTrajectory
-  const simb::MCTrajectory & true_beam_trajectory = true_beam_particle->Trajectory();
-  auto true_beam_proc_map = true_beam_trajectory.TrajectoryProcesses();
-  std::cout << "Processes: " << std::endl;
-  for( auto itProc = true_beam_proc_map.begin(); itProc != true_beam_proc_map.end(); ++itProc ){
-    int index = itProc->first;
-    std::cout << index << " " << true_beam_trajectory.KeyToProcess(itProc->second) << std::endl;
-
-    std::cout << "At "  
-    << true_beam_trajectory.X( index ) << " " 
-    << true_beam_trajectory.Y( index ) << " " 
-    << true_beam_trajectory.Z( index ) << std::endl;
-  }
-
-
   if( thisTrack ){
 
     beamTrackID = thisTrack->ID();
@@ -561,6 +549,41 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     ////////////////////////////////////////////////////////////////
 
 
+    //Go through the true processes within the MCTrajectory
+    const simb::MCTrajectory & true_beam_trajectory = true_beam_particle->Trajectory();
+    auto true_beam_proc_map = true_beam_trajectory.TrajectoryProcesses();
+    std::cout << "Processes: " << std::endl;
+    for( auto itProc = true_beam_proc_map.begin(); itProc != true_beam_proc_map.end(); ++itProc ){
+      int index = itProc->first;
+      std::string process = true_beam_trajectory.KeyToProcess(itProc->second);
+      std::cout << index << " " << process << std::endl;
+
+      if( process == "hadElastic" ){
+        double process_X = true_beam_trajectory.X( index );
+        double process_Y = true_beam_trajectory.Y( index );
+        double process_Z = true_beam_trajectory.Z( index );
+
+        std::cout << "At "  
+                  << process_X << " " 
+                  << process_Y << " " 
+                  << process_Z << std::endl;
+
+        double delta = sqrt( 
+          (process_X - endX)*(process_X - endX) +
+          (process_Y - endY)*(process_Y - endY) +
+          (process_Z - endZ)*(process_Z - endZ)
+        );
+
+        //for now: 10cm
+        if( delta < 10. ){
+          std::cout << "Found possible elastic scatter with vertex" << std::endl;
+          elastic_candidate = true;
+        }
+      }
+    }
+
+
+
 
 
     //Primary Track Calorimetry 
@@ -607,6 +630,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       if( trueDaughterParticle ){
         reco_daughter_truth_PDG.push_back( trueDaughterParticle->PdgCode() );
         reco_daughter_truth_ID.push_back( trueDaughterParticle->TrackId() );
+        if( trueDaughterParticle->TrackId() == true_beam_particle->TrackId() ){
+          daughter_is_primary = true;
+        }
+          
         reco_daughter_truth_Origin.push_back( 
           pi_serv->TrackIdToMCTruth_P(trueDaughterParticle->TrackId())->Origin()
         );
@@ -743,6 +770,21 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_daughter_shower_truth_Origin.push_back( -1 );
         reco_daughter_shower_truth_ParID.push_back( -1 );
 
+      }
+
+      std::vector< anab::Calorimetry > dummy_calo = showerUtil.GetRecoShowerCalorimetry(*daughterShowerFromRecoTrack, evt, fShowerTag, "showercalo");
+      auto dummy_dQdx = dummy_calo[0].dQdx();
+      auto dummy_dEdx = dummy_calo[0].dEdx();
+      auto dummy_Range = dummy_calo[0].ResidualRange();
+ 
+      reco_daughter_shower_dQdX.push_back( std::vector<double>() );   
+      reco_daughter_shower_resRange.push_back( std::vector<double>() );
+      reco_daughter_shower_dEdX.push_back( std::vector<double>() );
+
+      for( size_t j = 0; j < dummy_dQdx.size(); ++j ){
+        reco_daughter_shower_dQdX.back().push_back( dummy_dQdx[j] );
+        reco_daughter_shower_resRange.back().push_back( dummy_Range[j] );
+        reco_daughter_shower_dEdX.back().push_back( dummy_dEdx[j] );
       }
 
       //Go through the hits of each daughter and check the CNN scores 
@@ -904,6 +946,9 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_dQdX", &reco_daughter_dQdX);
   fTree->Branch("reco_daughter_dEdX", &reco_daughter_dEdX);
   fTree->Branch("reco_daughter_resRange", &reco_daughter_resRange);
+  fTree->Branch("reco_daughter_shower_dQdX", &reco_daughter_shower_dQdX);
+  fTree->Branch("reco_daughter_shower_dEdX", &reco_daughter_shower_dEdX);
+  fTree->Branch("reco_daughter_shower_resRange", &reco_daughter_shower_resRange);
   fTree->Branch("reco_daughter_len", &reco_daughter_len);
   fTree->Branch("reco_daughter_startX", &reco_daughter_startX);
   fTree->Branch("reco_daughter_startY", &reco_daughter_startY);
@@ -959,6 +1004,8 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_beam_truth_PDG", &reco_beam_truth_PDG);
   fTree->Branch("reco_beam_truth_ID", &reco_beam_truth_ID);
   fTree->Branch("reco_beam_good", &reco_beam_good);
+  fTree->Branch("elastic_candidate", &elastic_candidate);
+  fTree->Branch("daughter_is_primary", &daughter_is_primary);
 
   fTree->Branch("reco_beam_Chi2_proton", &reco_beam_Chi2_proton);
   fTree->Branch("reco_beam_Chi2_ndof", &reco_beam_Chi2_ndof);
@@ -1066,6 +1113,8 @@ void pionana::PionAnalyzerMC::reset()
   reco_beam_truth_Start_P = 0.;
 
   reco_beam_good = false;
+  elastic_candidate = false;
+  daughter_is_primary = false;
   reco_beam_Chi2_proton = 999.;
   reco_beam_Chi2_ndof = -1;
 
@@ -1128,6 +1177,9 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_dQdX.clear();
   reco_daughter_dEdX.clear();
   reco_daughter_resRange.clear();
+  reco_daughter_shower_dQdX.clear();
+  reco_daughter_shower_dEdX.clear();
+  reco_daughter_shower_resRange.clear();
   reco_daughter_len.clear();
 
   beamTrackID = -1;

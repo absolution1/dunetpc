@@ -1,6 +1,5 @@
 #include "PionAnalyzerMC.fcl"
 #include "services_dune.fcl"
-#include "ProtoDUNETruthBeamFilter.fcl"
 
 
 
@@ -20,6 +19,7 @@ services:
   ChannelStatusService:         @local::pdsp_channel_status
 }
 services.message.destinations.LogStandardOut.threshold: "INFO"
+services.Geometry: @local::protodunev6_geo
 
 source:
 {
