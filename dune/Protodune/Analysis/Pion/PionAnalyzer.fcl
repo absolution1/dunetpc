@@ -29,7 +29,7 @@ pionanalysis:
   DataUtils: @local::standard_protodunedatautils
   BeamlineUtils: @local::standard_protodunebeamlineutils
 
-  SelectEvents: [fpath]
+  SelectEvents: []
 
   
   #####Track stitching

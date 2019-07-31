@@ -85,16 +85,6 @@ private:
   int subrun;
   int event;
 
-  int MC;
-
-  int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
-  int nProton_truth, nNeutron_truth;
-  int PDG_truth;
-  int geantGood_PDG;
-  int MC_origin;
-  std::vector< bool > MC_daughter_good_reco;
-  std::vector< bool > MC_daughter_shower_good_reco;
-  bool MC_good_reco;
 
 
   double startX, startY, startZ;
@@ -151,8 +141,6 @@ private:
   double fStitchTrackZ_low, fStitchTrackZ_high;
   double fStitchXTol, fStitchYTol;
 
-  double good_startZ, good_startY, good_startX;
-  double delta_startZ, delta_startY, delta_startX;
 
   fhicl::ParameterSet fCalorimetryParameters;
   fhicl::ParameterSet fBrokenTrackParameters;
@@ -180,12 +168,6 @@ pionana::PionAnalyzer::PionAnalyzer(fhicl::ParameterSet const& p)
   fStitchTrackZ_high( p.get<double>("StitchTrackZ_high") ),
   fStitchXTol( p.get<double>("StitchXTol") ),
   fStitchYTol( p.get<double>("StitchYTol") ),
-  good_startZ( p.get<double>("good_startZ") ),
-  good_startY( p.get<double>("good_startY") ),
-  good_startX( p.get<double>("good_startX") ),
-  delta_startZ( p.get<double>("delta_startZ") ),
-  delta_startY( p.get<double>("delta_startY") ),
-  delta_startX( p.get<double>("delta_startX") ),
 
   fCalorimetryParameters( p.get< fhicl::ParameterSet > ("CalorimetryParameters") ),
   fBrokenTrackParameters( p.get< fhicl::ParameterSet > ("BrokenTrackParameters") )
@@ -218,6 +200,7 @@ void pionana::PionAnalyzer::analyze(art::Event const& evt)
   std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
   nBeamParticles = beamParticles.size();
   std::cout << "Found " << nBeamParticles << " beamParticles" << std::endl;
+  if( nBeamParticles < 1 ) return;
 
   const recob::PFParticle* particle = beamParticles.at(0);
   const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
@@ -451,7 +434,6 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("combined_dEdX", &combined_dEdX);
   fTree->Branch("combined_resRange", &combined_resRange);
 
-  fTree->Branch("MC", &MC);
   fTree->Branch("dQdX", &dQdX);
   fTree->Branch("dEdX", &dEdX);
   fTree->Branch("calibrated_dEdX", &calibrated_dEdX);
@@ -474,19 +456,6 @@ void pionana::PionAnalyzer::beginJob()
   fTree->Branch("daughter_shower_startZ", &daughter_shower_startZ);
   fTree->Branch("nTrackDaughters", &nTrackDaughters);
   fTree->Branch("nShowerDaughters", &nShowerDaughters);
-  fTree->Branch("nProton_truth", &nProton_truth);
-  fTree->Branch("nNeutron_truth", &nNeutron_truth);
-  fTree->Branch("nPi0_truth", &nPi0_truth);
-  fTree->Branch("nPiPlus_truth", &nPiPlus_truth);
-  fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
-  fTree->Branch("PDG_truth", &PDG_truth);
-  fTree->Branch("geantGood_PDG", &geantGood_PDG);
-  fTree->Branch("MC_origin", &MC_origin);
-  fTree->Branch("MC_good_reco", &MC_good_reco);
-  fTree->Branch("MC_daughter_good_reco", &MC_daughter_good_reco);
-  fTree->Branch("MC_daughter_shower_good_reco", &MC_daughter_shower_good_reco);
-
-  
 }
 
 void pionana::PionAnalyzer::endJob()
@@ -513,20 +482,6 @@ void pionana::PionAnalyzer::reset()
   nBeamParticles = 0;
   beam_costheta = -100;
   new_beam_costheta = -100;
-
-  MC = 0;
-  nProton_truth = 0;
-  nNeutron_truth = 0;
-  nPi0_truth = 0;
-  nPiPlus_truth = 0;
-  nPiMinus_truth = 0;
-  PDG_truth = 0;
-  geantGood_PDG = 0;
-  MC_origin = -1;
-
-  MC_good_reco = false;
-  MC_daughter_good_reco.clear();
-  MC_daughter_shower_good_reco.clear();
 
   nTrackDaughters = -1;
   nShowerDaughters = -1;
