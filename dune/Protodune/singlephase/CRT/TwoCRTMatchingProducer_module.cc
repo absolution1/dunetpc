@@ -1,437 +1,208 @@
 ////////////////////////////////////////////////////////////////////////
 // Class:       TwoCRTMatchingProducer
-// Plugin Type: producer (art v3_02_06)
+// Plugin Type: producer (art v2_10_03)
 // File:        TwoCRTMatchingProducer_module.cc
 //
-// author: diurb001@umn.edu
-//         tjyang@fnal.gov
-//
-// Generated at Thu Jul 25 22:15:30 2019 by Tingjun Yang using cetskelgen
-// from cetlib version v3_07_02.
+// Generated at Wed Jun 27 04:09:39 2018 by Andrew Olivier using cetskelgen
+// from cetlib version v3_02_00.
 ////////////////////////////////////////////////////////////////////////
 
+//Framework includes
+#include "art/Persistency/Common/PtrMaker.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "art/Framework/Core/EDProducer.h"
+#include "lardata/Utilities/AssociationUtil.h"
+
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Utilities/InputTag.h"
-#include "canvas/Persistency/Common/FindManyP.h"
-#include "canvas/Persistency/Common/Assns.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/FindManyP.h"
+#include "art_root_io/TFileService.h"
 
+//LArSoft includes
+
+#include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcorealg/CoreUtils/NumericUtils.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/Utilities/AssociationUtil.h"
-#include "lardataobj/RecoBase/Hit.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
+
+
+#include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/TrackTrajectory.h"
+#include "lardataobj/RecoBase/Hit.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/PFParticle.h"
-#include "lardataobj/RawData/RDTimeStamp.h"
-#include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/CosmicTag.h"
+
+
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+
+#include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
+
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
+
+//Local includes
 #include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 
-#include <memory>
-#include <map>
-#include <vector>
+
+//ROOT includes
+#include "TH1.h"
+#include "TH2.h"
+#include "TCanvas.h"
+#include "TImage.h"
+#include "TTree.h"
+#include "TH1D.h"
+#include "TStyle.h"
+#include "TString.h"
+
+//c++ includes
+#include <numeric> //std::accumulate was moved from <algorithm> to <numeric> in c++14
 #include <iostream>
+#include <cmath>
+using namespace std;   // Namespaces established to make life easier
+using namespace ROOT::Math;
 
 namespace CRT {
   class TwoCRTMatchingProducer;
 }
 
-
 class CRT::TwoCRTMatchingProducer : public art::EDProducer {
 public:
-  explicit TwoCRTMatchingProducer(fhicl::ParameterSet const& p);
+  explicit TwoCRTMatchingProducer(fhicl::ParameterSet const & p);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
   // Plugins should not be copied or assigned.
-  TwoCRTMatchingProducer(TwoCRTMatchingProducer const&) = delete;
-  TwoCRTMatchingProducer(TwoCRTMatchingProducer&&) = delete;
-  TwoCRTMatchingProducer& operator=(TwoCRTMatchingProducer const&) = delete;
-  TwoCRTMatchingProducer& operator=(TwoCRTMatchingProducer&&) = delete;
-
+  TwoCRTMatchingProducer(TwoCRTMatchingProducer const &) = delete;
+  TwoCRTMatchingProducer(TwoCRTMatchingProducer &&) = delete;
+  TwoCRTMatchingProducer & operator = (TwoCRTMatchingProducer const &) = delete;
+  TwoCRTMatchingProducer & operator = (TwoCRTMatchingProducer &&) = delete;
+  bool moduleMatcher(int module1, int module2);
   // Required functions.
-  void produce(art::Event& e) override;
+
+  void produce(art::Event & event) override;
+
+  int nEvents = 0;
+  int nHitsPerEvent=0;
+  std::string fTrackModuleLabel = "pandoraTrack";
+
 
 private:
+    art::InputTag fCRTLabel; //Label for the module that analyzed 
+    art::InputTag fCTBLabel;
+    bool fCTBTriggerOnly;
+    bool fSCECorrection;
+    bool fModuleSwitch;
+    int fADCThreshold;
+    int fModuletoModuleTimingCut;
+    int fFronttoBackTimingCut;
+    long long timeStamp;
 
-  art::InputTag fCRTLabel; //Label for the module that analyzed 
-  art::InputTag fCTBLabel;
-  art::InputTag fTrackModuleLabel;
-  bool fMCCSwitch;
-  //bool fCTBTriggerOnly;
-  bool fSCECorrection;
-  int fADCThreshold;
-  int fModuletoModuleTimingCut;
-  int fFronttoBackTimingCut;
-  unsigned short fMaxHitsinGroup;
+
+typedef struct // Structures for arrays to move hits from raw to reco to validation
+  {
+    int triggerNumber;
+    int channel;
+    int module;
+    int adc;
+    int triggerTime;
+  }
+  tempHits;
 
   typedef struct {
-    double x;
-    double y;
-    double z;
-    unsigned long long t;
-    int trigX;
-    int trigY;
+    int tempId;	
+    int trigNumberX;
+    int trigNumberY;
+    double hitPositionX;
+    double hitPositionY;
+    double hitPositionZ;
+    double timeAvg;
   }
-    recoHits;
+  recoHits;
 
-  bool moduleMatcher(int module1, int module2);
+
+  typedef struct // These are displacement metrics for track and hit reco
+  {
+    int tempId;
+    int CRTTrackId;
+    int recoId;
+    double deltaX_F;
+    double deltaX_B;
+    double deltaY_F;
+    double deltaY_B;
+    double dotProductCos;
+    double X1;
+    double Y1;
+    double Z1;
+    double X2;
+    double Y2;
+    double Z2;
+    int trackID;
+    double t0;
+    int trigNumberX_F, trigNumberX_B;
+    int trigNumberY_F, trigNumberY_B;
+    
+  }
+  tracksPair;
+
+  struct removePairIndex // Struct to remove tracks after sorting
+  {
+    const tracksPair tracksPair1;
+    removePairIndex(const tracksPair & tracksPair0): tracksPair1(tracksPair0) {}
+
+    bool operator()(const tracksPair & tracksPair2) {
+      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.tempId == tracksPair2.tempId);
+    }
+  };
+
+  struct sortPair // Struct to sort to find best CRT track for TPC track
+  {
+    bool operator()(const tracksPair & pair1,
+      const tracksPair & pair2) {
+
+        return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
+
+  }
+  };
+
+  std::vector < recoHits > primaryHits_F;
+  std::vector < recoHits > primaryHits_B;
+
+  std::vector < tempHits > tempHits_F;
+  std::vector < tempHits > tempHits_B;
+  std::vector < tracksPair > allTracksPair;
+
+
+
 };
 
 
-CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const& p)
-  : EDProducer{p},
-  fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  
-  fCTBLabel(p.get<art::InputTag>("CTBLabel")),
-  fTrackModuleLabel(p.get<art::InputTag>("TrackModuleLabel","pandoraTrack")),
-  //fCTBTriggerOnly(p.get<art::InputTag>("CTBTriggerOnly"),
-  fSCECorrection(p.get<bool>("SCECorrection")),
-  fMaxHitsinGroup(p.get<unsigned short>("MaxHitsinGroup",2))
-  // More initializers here.
+CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const & p): EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  fCTBLabel(p.get<art::InputTag>("CTBLabel")) 
 {
-  produces< std::vector<anab::CosmicTag> >();
-  produces< art::Assns<recob::Track, anab::CosmicTag> >();
+  consumes < std::vector < CRT::Trigger >> (fCRTLabel);
+  consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel);
   produces< std::vector<anab::T0> >();
+
+  produces< std::vector<anab::CosmicTag> >();  
   produces< art::Assns<recob::Track, anab::T0> >();
-  produces< art::Assns<CRT::Trigger, anab::CosmicTag>>();
-}
+  produces< art::Assns<recob::Track, anab::CosmicTag> >();
+  produces< art::Assns<CRT::Trigger, anab::CosmicTag> >();
 
-void CRT::TwoCRTMatchingProducer::produce(art::Event& e)
-{
-  auto CRTTrack=std::make_unique< std::vector< anab::CosmicTag > > (); 
-  std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
-
-  auto CRTT0=std::make_unique< std::vector< anab::T0> > (); 
-
-  std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
-
-  std::unique_ptr< art::Assns<CRT::Trigger, anab::CosmicTag>> CRTTrigassn( new art::Assns<CRT::Trigger, anab::CosmicTag>);
-
-  fMCCSwitch = !(e.isRealData());
-
-  //Geometry service
-  art::ServiceHandle < geo::Geometry > geom;
-  //Detector properties service
-  auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  //Space charge service
-  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
-
-  ULong64_t rdtimestamp = 0;
-  int RDOffset=0;
-
-  if (fMCCSwitch){
-    fADCThreshold=800;
-    fModuletoModuleTimingCut=4;
-    fFronttoBackTimingCut=100;
-  }
-  else {
-    fADCThreshold=10;
-    fModuletoModuleTimingCut=5;
-    fFronttoBackTimingCut=8;
-    art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = e.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
-    rdtimestamp = timingHandle->at(0).GetTimeStamp();
-    RDOffset=111;
-  }
-
-  //Get triggers
-  art::Handle < std::vector < CRT::Trigger > > crtListHandle;
-  std::vector < art::Ptr < CRT::Trigger > > crtList;
-  if (e.getByLabel(fCRTLabel, crtListHandle)) {
-    art::fill_ptr_vector(crtList, crtListHandle);
-  }
-
-  //Group adjacent CRT strips together
-  //0 1 2 3 4 5 6 7 8
-  //|   | |   |   | |
-  //suppose those strips on a module are hit, strip 0 will in group 0, strips 2,3 will be in group 1, strip 5 will be in group 2, strips 7,8 will be in group 3, etc.
-  std::vector<std::vector<std::vector<unsigned int>>> crthitsgroup(crtList.size()); //[trigger index][group index][hit index]
-  for (size_t i = 0; i<crtList.size(); ++i){
-    const auto& trigger = crtList[i];
-    std::vector<unsigned int> crthits;
-    auto & hits = trigger->Hits();
-    //The map sorts the crt::Hit index based on the channel number
-    std::map<unsigned short, std::vector<unsigned int>> hitchannelmap; //[hit channel, hit indices]
-    for (size_t j = 0; j<hits.size(); ++j){
-      if (hits[j].ADC() > fADCThreshold){
-        hitchannelmap[hits[j].Channel()].push_back(j);
-      }
-    }
-    for (const auto & [channel, indices] : hitchannelmap){
-      for (const auto &index : indices){
-        if (crthits.empty()){
-          crthits.push_back(index);
-        }
-        else{
-          //reach the limit on the number of hits
-          if (crthits.size()==fMaxHitsinGroup){
-            crthitsgroup[i].push_back(crthits);
-            crthits.clear();
-            crthits.push_back(index);
-          }
-          else{
-            //The current crt::Hit is adjacent to the last crt::Hit
-            if (channel == hits[crthits.back()].Channel() + 1){
-              crthits.push_back(index);
-              
-            }
-            else{
-              //Start a new group
-              crthitsgroup[i].push_back(crthits);
-              crthits.clear();
-              crthits.push_back(index);
-            }
-          }
-        }
-      }
-    }
-    if (!crthits.empty()) crthitsgroup[i].push_back(crthits);
-  }
-  
-  /*
-  for (size_t i = 0; i<crthitsgroup.size(); ++i){
-    std::cout<<"Trigger "<<i<<std::endl;
-    for (size_t j = 0; j<crthitsgroup[i].size(); ++j){
-      std::cout<<"Group "<<j<<std::endl;
-      for (size_t k = 0; k<crthitsgroup[i][j].size(); ++k){
-        std::cout<<k<<" "<<crtList[i]->Hits()[crthitsgroup[i][j][k]].Channel()<<std::endl;
-      }
-    }
-  }
-  */
-  int nmatch = 0;
-
-  //Construct matches between X strips and Y strips
-  std::vector< recoHits> hits3d_F;
-  std::vector< recoHits> hits3d_B;
-
-  for (size_t itrg = 0; itrg<crtList.size(); ++itrg){
-    for (size_t jtrg = 0; jtrg<crtList.size(); ++jtrg){
-      auto & xtrig = crtList[itrg];
-      auto & ytrig = crtList[jtrg];
-      if (!moduleMatcher(ytrig->Channel(), xtrig->Channel())) continue;
-      if (int(util::absDiff(xtrig->Timestamp(), ytrig->Timestamp()))>fModuletoModuleTimingCut) continue;
-      for (auto const& grpx : crthitsgroup[itrg]){
-        for (auto const& grpy : crthitsgroup[jtrg]){
-          recoHits hit3d;
-          double hitx = 0, hity = 0, hitz0 = 0, hitz1 = 0;
-          unsigned long long t0 = 0, t1 = 0;
-          //Get the average x value from all crt::Hits in the group
-          for (auto const& xstrip : grpx){
-            auto const& trigGeo = geom->AuxDet(xtrig->Channel());
-            auto const& hitGeo = trigGeo.SensitiveVolume(xtrig->Hits()[xstrip].Channel());
-            auto const& hitCenter = hitGeo.GetCenter();
-            hitx += hitCenter.X();
-            if (!hitz0) hitz0 = hitCenter.Z();
-            if (!t0) t0 = xtrig->Timestamp();
-          }
-          //Get the average y value from all crt::Hits in the group
-          for (auto const& ystrip : grpy){
-            auto const& trigGeo = geom->AuxDet(ytrig->Channel());
-            auto const& hitGeo = trigGeo.SensitiveVolume(ytrig->Hits()[ystrip].Channel());
-            auto const& hitCenter = hitGeo.GetCenter();
-            hity += hitCenter.Y();
-            if (!hitz1) hitz1 = hitCenter.Z();
-            if (!t1) t1 = ytrig->Timestamp();
-          }
-          hit3d.x = hitx/grpx.size();
-          hit3d.y = hity/grpy.size();
-          hit3d.z = (hitz0+hitz1)/2;
-          hit3d.t = (t0+t1)/2;
-          hit3d.trigY=jtrg;
-	  hit3d.trigX=itrg;
-	  if (hit3d.z < 100) hits3d_F.push_back(hit3d);
-          else hits3d_B.push_back(hit3d);
-        }
-      }
-      //std::cout<<itrg<<" "<<jtrg<<" "<<crthitsgroup[itrg].size()<<" "<<crthitsgroup[jtrg].size()<<std::endl;
-      nmatch += crthitsgroup[itrg].size() * crthitsgroup[jtrg].size();
-    }
-  }
-
-  //std::cout<<"Total matches: "<<nmatch<<" "<<hits3d_F.size()<<" "<<hits3d_B.size()<<std::endl;
-
-  // Reconstruciton information
-  art::Handle < std::vector < recob::Track > > trackListHandle;
-  std::vector < art::Ptr < recob::Track > > trackList;
-  if (e.getByLabel(fTrackModuleLabel, trackListHandle)) {
-    art::fill_ptr_vector(trackList, trackListHandle);
-  }
-
-  //Get PFParticles
-  art::Handle< std::vector<recob::PFParticle> > pfpListHandle;
-  e.getByLabel("pandora", pfpListHandle);
-  
-  //Get hits associated with track
-  art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, fTrackModuleLabel);
-
-  //Get PFParticle-Track association
-  art::FindManyP<recob::PFParticle> fmpfp(trackListHandle, e, fTrackModuleLabel);
-
-  //Get T0-PFParticle association
-  art::FindManyP<anab::T0> fmt0pandora(pfpListHandle, e, "pandora");
-
-
-  for (auto const& track : trackList){
-    
-    std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(track.key());
-    if (allHits.empty()) continue;
-
-    bool foundpandorat0 = false;
-    auto const &pfps = fmpfp.at(track.key());
-    if(!pfps.empty()){
-      //Find T0 for PFParticle
-      auto const &t0s = fmt0pandora.at(pfps[0].key());
-      if(!t0s.empty()){
-        foundpandorat0 = true;
-      }
-    }
-
-    double trackStartPositionX = track->Vertex().X();
-    double trackStartPositionY = track->Vertex().Y();
-    double trackStartPositionZ = track->Vertex().Z();
-    double trackEndPositionX = track->End().X();
-    double trackEndPositionY = track->End().Y();
-    double trackEndPositionZ = track->End().Z();
-    TVector3 trackStart(trackStartPositionX, trackStartPositionY, trackStartPositionZ);
-    TVector3 trackEnd(trackEndPositionX, trackEndPositionY, trackEndPositionZ);
-
-    if ((trackEndPositionZ > 660 && trackStartPositionZ < 50) || (trackStartPositionZ > 660 && trackEndPositionZ < 50)) {
-
-      double min_delta = DBL_MAX;
-      double best_XF = DBL_MAX;
-      double best_YF = DBL_MAX;
-      double best_ZF = DBL_MAX;
-      double best_XB = DBL_MAX;
-      double best_YB = DBL_MAX;
-      double best_ZB = DBL_MAX;
-      double best_dotProductCos = DBL_MAX;
-      double best_deltaXF = DBL_MAX;
-      double best_deltaYF = DBL_MAX;
-      double best_deltaXB = DBL_MAX;
-      double best_deltaYB = DBL_MAX;
-      double best_T=DBL_MAX;
-      int best_trigXF=0;
-      int best_trigYF=0;
-      int best_trigXB=0;
-      int best_trigYB=0;
-      for (auto const& fronthit : hits3d_F){
-        for (auto const& backhit : hits3d_B){
-          if (int(util::absDiff(fronthit.t, backhit.t))>fFronttoBackTimingCut) continue;
-
-          if (!foundpandorat0){
-            //if the track does not have a Pandora t0 tag, we need to make x correction based on crt timing
-            //otherwise Pandora has already corrected x coordinate since it is a anode/cathode crossing track
-            double xOffset = 0;
-            double ticksOffset = 0;
-            if (!fMCCSwitch) ticksOffset = ((fronthit.t+backhit.t)/2.-rdtimestamp+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
-            else ticksOffset = (fronthit.t+backhit.t)/2./500.f+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
-            
-            xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[0]->WireID());
-            
-            trackStartPositionX=trackStartPositionX-xOffset;
-            trackEndPositionX=trackEndPositionX-xOffset;
-          }
-
-          //Correct for space charge effects
-          if (fSCECorrection && SCE->EnableCalSpatialSCE()){
-            auto const & posOffsets = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), allHits[0]->WireID().TPC);
-            trackStartPositionX -= posOffsets.X();
-            trackStartPositionY += posOffsets.Y();
-            trackStartPositionZ += posOffsets.Z();
-          }
-
-          TVector3 v1(fronthit.x, fronthit.y, fronthit.z);
-          TVector3 v2(backhit.x, backhit.y, backhit.z);
-
-          TVector3 v4(trackStartPositionX,
-                      trackStartPositionY,
-                      trackStartPositionZ);
-
-          TVector3 v5(trackEndPositionX,
-                      trackEndPositionY,
-                      trackEndPositionZ);
-
-          TVector3 trackVector = (v5-v4).Unit();
-          TVector3 hitVector=(v2-v1).Unit();
-
-          double predictedHitPositionY1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
-          double predictedHitPositionY2 = (v2.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
-
-          double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
-          double predictedHitPositionX2 = (v2.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
-
-          double dotProductCos=trackVector*hitVector;
-          
-          double deltaX1 = (predictedHitPositionX1-v1.X());
-          double deltaX2 = (predictedHitPositionX2-v2.X());
-          double deltaX  = std::abs(deltaX2)+std::abs(deltaX1);
-
-          double deltaY1 = (predictedHitPositionY1-v1.Y());
-          double deltaY2 = (predictedHitPositionY2-v2.Y());
-          double deltaY  = std::abs(deltaY2)+std::abs(deltaY1); 
-	  //if (std::abs(deltaY2)<20) std::cout<<v2.Y()<<std::endl;      
-	  if (min_delta > std::abs(deltaX) + std::abs(deltaY)){
-            min_delta = std::abs(deltaX) + std::abs(deltaY);
-            best_XF = fronthit.x;
-            best_YF = fronthit.y;
-            best_ZF = fronthit.z;
-            best_XB = backhit.x;
-            best_YB = backhit.y;
-            best_ZB = backhit.z;
-            best_dotProductCos = dotProductCos;
-            best_deltaXF = deltaX1;
-            best_deltaYF = deltaY1;
-            best_deltaXB = deltaX2;
-            best_deltaYB = deltaY2;
-	    best_trigXF=fronthit.trigX;
-	    best_trigYF=fronthit.trigY;
-	    best_trigXB=backhit.trigX;
-	    best_trigYB=backhit.trigY;
-	    best_T = (fronthit.t+backhit.t)/2.;
-          }
-        }
-      }
-      if (!fMCCSwitch) best_T=(best_T-rdtimestamp+RDOffset)/50.;
-      else best_T=best_T/1000.;
-
-      if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
-        std::cout<<"Track ID = "<<track.key()<<" best_deltaXF =  "<<best_deltaXF<<" best_deltaYF = "<<best_deltaYF<<" best_deltaXB = "<<best_deltaXB<<" best_deltaYB = "<<best_deltaYB<<" best_XF = "<<best_XF<<" best_YF = "<<best_YF<<" best_XB = "<<best_XB<<" best_YB = "<<best_YB<<" best_dotProductCos = "<<best_dotProductCos<<std::endl;
-        std::vector<float> hitF;
-	std::vector<float> hitB;
-	hitF.push_back(best_XF); hitF.push_back(best_YF); hitF.push_back(best_ZF);
-	hitB.push_back(best_XB); hitB.push_back(best_YB); hitB.push_back(best_ZB);
-
-        CRTTrack->push_back(anab::CosmicTag(hitF,hitB, std::abs(best_dotProductCos),anab::CosmicTagID_t::kNotTagged));
-
-        CRTT0->push_back(anab::T0(best_T, 13,2,track.key(),best_dotProductCos));
-        util::CreateAssn(*this, e, *CRTTrack, track, *TPCCRTassn);
- 	util::CreateAssn(*this, e, *CRTT0, track, *TPCT0assn);
-        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigXF], *CRTTrigassn);
-        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigYF], *CRTTrigassn);
-
-        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigXB], *CRTTrigassn);
-
-        util::CreateAssn(*this, e, *CRTTrack, crtList[best_trigYB], *CRTTrigassn);
-
-
-      }
-    }
-  }
-  e.put(std::move(CRTTrack)); 
-  e.put(std::move(TPCCRTassn));
-  e.put(std::move(CRTT0)); 
-  e.put(std::move(TPCT0assn));
-  e.put(std::move(CRTTrigassn));
+  fSCECorrection=(p.get<bool>("SCECorrection"));
 }
 
 // v6 Geo Channel Map
@@ -441,6 +212,446 @@ bool CRT::TwoCRTMatchingProducer::moduleMatcher(int module1, int module2) {
   else return 0;
 
 }
+
+
+//Turn sim::AuxDetSimChannels into CRT::Hits. 
+void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
+{
+    bool fMCCSwitch=!event.isRealData();
+    nEvents++;	
+  std::unique_ptr< std::vector<anab::T0> > T0col( new std::vector<anab::T0>);
+  auto CRTTrack=std::make_unique< std::vector< anab::CosmicTag > > (); 
+
+
+ std::unique_ptr< art::Assns<CRT::Trigger, anab::CosmicTag>> CRTTriggerassn( new art::Assns<CRT::Trigger, anab::CosmicTag>);
+
+ std::unique_ptr< art::Assns<recob::Track, anab::CosmicTag> > TPCCRTassn( new art::Assns<recob::Track, anab::CosmicTag>);
+ std::unique_ptr< art::Assns<recob::Track, anab::T0> > TPCT0assn( new art::Assns<recob::Track, anab::T0>);
+   
+
+  if (fMCCSwitch){
+    fModuleSwitch=1;
+    fADCThreshold=800;
+    fModuletoModuleTimingCut=2;
+    fFronttoBackTimingCut=100;
+    
+}
+  else {
+    fModuleSwitch=0;
+    fADCThreshold=10;
+    fModuletoModuleTimingCut=5;
+    fFronttoBackTimingCut=8;
+    art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
+    timeStamp=timingHandle->at(0).GetTimeStamp();
+} 
+  int nHits = 0;
+
+	//Detector properties service
+	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
+
+  primaryHits_F.clear();
+  primaryHits_B.clear();
+  allTracksPair.clear();
+  tempHits_F.clear();
+  tempHits_B.clear(); // Arrays to compile hits and move them through
+
+
+  //Get triggers
+  cout << "Getting triggers" << endl;
+  art::Handle < vector < CRT::Trigger > > crtListHandle;
+  vector < art::Ptr < CRT::Trigger > > crtList;
+  if (event.getByLabel(fCRTLabel, crtListHandle)) {
+    art::fill_ptr_vector(crtList, crtListHandle);
+  }
+  const auto & triggers = event.getValidHandle < std::vector < CRT::Trigger >> (fCRTLabel);
+
+  art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
+
+  //Get a handle to the Geometry service to look up AuxDetGeos from module numbers
+  art::ServiceHandle < geo::Geometry > geom;
+
+  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
+
+  //Mapping from channel to trigger
+  std::unordered_map < size_t, double > prevTimes;
+  int hitID = 0;
+  cout << "Looking for hits in Triggers" << endl;
+  int trigID=0;
+  for (const auto & trigger: * triggers) {
+    const auto & hits = trigger.Hits();
+    for (const auto & hit: hits) { // Collect hits on all modules
+	//cout<<hits.size()<<','<<hit.ADC()<<endl;
+      if (hit.ADC() > fADCThreshold) { // Keep if they are above threshold
+
+        tempHits tHits;
+	if (!fMCCSwitch){
+
+        tHits.module = trigger.Channel(); // Values to add to array
+	tHits.channel=hit.Channel();
+        tHits.adc = hit.ADC();
+	tHits.triggerTime=trigger.Timestamp()-timeStamp;
+	}
+	else{
+        tHits.module = trigger.Channel(); // Values to add to array
+	tHits.channel=hit.Channel();
+        tHits.adc = hit.ADC();
+	tHits.triggerTime=trigger.Timestamp();
+	}
+	 //cout<<trigger.Channel()<<','<<hit.Channel()<<','<<hit.ADC()<<endl;
+        nHits++;
+	tHits.triggerNumber=trigID;
+        const auto & trigGeo = geom -> AuxDet(trigger.Channel()); // Get geo  
+        const auto & csens = trigGeo.SensitiveVolume(hit.Channel());
+        const auto center = csens.GetCenter();
+        if (center.Z() < 100) tempHits_F.push_back(tHits); // Sort F/B from Z
+        else tempHits_B.push_back(tHits);
+        hitID++;
+      }
+    }
+    trigID++;
+  }
+  nHitsPerEvent=nHits;
+  cout << "Hits compiled for event: " << nEvents << endl;
+  cout << "Number of Hits above Threshold:  " << hitID << endl;
+
+  for (unsigned int f = 0; f < tempHits_F.size(); f++) {
+    for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
+       if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)>fModuletoModuleTimingCut) continue;
+      const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
+      const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
+
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_F[f].channel);
+      const auto hit1Center = hit1Geo.GetCenter();
+      // Create 2D hits from geo of the Y and X modules
+       const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_F[f_test].channel);
+      const auto hit2Center = hit2Geo.GetCenter();
+      bool moduleMatched;
+      moduleMatched=moduleMatcher(tempHits_F[f_test].module, tempHits_F[f].module);
+      if (moduleMatched) {
+        // Get the center of the hits (CRT_Res=2.5 cm)
+        double hitX = hit1Center.X();
+	for (unsigned int a = 0; a < tempHits_F.size(); a++)
+	{
+	if(tempHits_F[a].module==tempHits_F[f].module && (tempHits_F[a].channel-1)==tempHits_F[f].channel) hitX=hit1Center.X()+1.25;
+	}
+	double hitYPrelim=hit2Center.Y();
+	for (unsigned int a = 0; a < tempHits_F.size(); a++)
+	{
+	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channel-1)==tempHits_F[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
+	}
+	
+
+	
+	double hitY=hitYPrelim;
+        double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
+
+        recoHits rHits;
+        rHits.hitPositionX = hitX;
+        rHits.hitPositionY = hitY;
+        rHits.hitPositionZ = hitZ;
+	rHits.trigNumberX=tempHits_F[f].triggerNumber;
+	rHits.trigNumberY=tempHits_F[f_test].triggerNumber;
+	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
+       primaryHits_F.push_back(rHits); // Add array
+    }
+    }
+  }
+  for (unsigned int f = 0; f < tempHits_B.size(); f++) {
+    for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
+       if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)>fModuletoModuleTimingCut) continue;
+
+      const auto & trigGeo = geom -> AuxDet(tempHits_B[f].module);
+      const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
+      const auto & hit1Geo = trigGeo.SensitiveVolume(tempHits_B[f].channel);
+      const auto hit1Center = hit1Geo.GetCenter();
+
+      const auto & hit2Geo = trigGeo2.SensitiveVolume(tempHits_B[f_test].channel);
+      const auto hit2Center = hit2Geo.GetCenter();
+      bool moduleMatched;
+      moduleMatched=moduleMatcher(tempHits_B[f_test].module, tempHits_B[f].module);
+
+      if (moduleMatched) {
+        double hitX = hit1Center.X();
+	
+	
+	for (unsigned int a = 0; a < tempHits_B.size(); a++)
+	{
+	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channel-1)==tempHits_B[f].channel) hitX=hit1Center.X()+1.25;
+	}
+	
+        double hitYPrelim = hit2Center.Y();
+	
+	for (unsigned int a = 0; a < tempHits_B.size(); a++)
+	{
+	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-1)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
+	}
+	double hitY=hitYPrelim;
+
+	
+        double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
+
+        recoHits rHits;
+        rHits.hitPositionX = hitX;
+        rHits.hitPositionY = hitY;
+        rHits.hitPositionZ = hitZ;
+	rHits.trigNumberX=tempHits_B[f].triggerNumber;
+	rHits.trigNumberY=tempHits_B[f_test].triggerNumber;
+	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
+	 primaryHits_B.push_back(rHits); 
+
+	 }
+    }
+  }
+
+  art::Handle < vector < recob::Track > > trackListHandle;
+  vector < art::Ptr < recob::Track > > trackList;
+  if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
+    art::fill_ptr_vector(trackList, trackListHandle);
+  }
+
+  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
+  vector<art::Ptr<recob::PFParticle> > pfplist;
+  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+
+  art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
+    art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
+  int nTracksReco = trackList.size();
+  art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
+
+  allTracksPair.clear();
+  for (int iRecoTrack = 0; iRecoTrack < nTracksReco; ++iRecoTrack) {
+    std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(iRecoTrack);
+
+      art::Ptr<recob::Track> ptrack(trackListHandle, iRecoTrack);
+     
+	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(iRecoTrack);
+	if(!pfps.size()) continue;
+	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
+	if(t0s.size()){ 
+	  //auto t0=t0s.at(0);
+	  //int t_zero=t0->Time();
+	  //cout<<"Pandora T0: "<<t_zero<<endl;
+   	}
+    
+
+    double trackStartPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    double trackEndPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
+
+    double trackStartPositionX_notCorrected = trackList[iRecoTrack]->Vertex().X();
+    double trackStartPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
+
+
+    double trackEndPositionX_notCorrected = trackList[iRecoTrack] -> End().X();
+    double trackEndPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+
+    int firstHit=0;
+    int lastHit=allHits.size()-2;
+    if (trackStartPositionZ_noSCE>trackEndPositionZ_noSCE){
+    trackEndPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    trackStartPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
+    trackEndPositionX_notCorrected = trackList[iRecoTrack]->Vertex().X();
+    trackEndPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
+
+
+    trackStartPositionX_notCorrected=trackList[iRecoTrack] -> End().X();
+    trackStartPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+    firstHit=lastHit;
+    lastHit=0;
+    }
+
+
+
+   
+
+
+
+    if ((trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE < 50) || (trackStartPositionZ_noSCE > 660 && trackEndPositionZ_noSCE < 50)) {
+
+    for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
+        for (unsigned int b = 0; b < primaryHits_B.size(); b++) {
+
+      double X1 = primaryHits_F[f].hitPositionX;
+      double Y1 = primaryHits_F[f].hitPositionY;
+      double Z1 = primaryHits_F[f].hitPositionZ;
+      double X2 = primaryHits_B[b].hitPositionX;
+      double Y2 = primaryHits_B[b].hitPositionY;
+      double Z2= primaryHits_B[b].hitPositionZ;
+     
+
+	        if (fabs(primaryHits_F[f].timeAvg-primaryHits_B[b].timeAvg)>fFronttoBackTimingCut) continue;
+		double t0=(primaryHits_F[f].timeAvg+primaryHits_B[b].timeAvg)/2.f;
+  		int tempId = 0;
+		double xOffset=0;
+    
+
+		double trackStartPositionX_noSCE=trackStartPositionX_notCorrected;
+		double trackEndPositionX_noSCE=trackEndPositionX_notCorrected;
+		if (t0s.empty()){
+		int RDOffset=0;
+		if (!fMCCSwitch) RDOffset=111;
+		double ticksOffset=0;
+
+		if (!fMCCSwitch) ticksOffset = (t0+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+
+		else if (fMCCSwitch) ticksOffset = (t0/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		
+	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		//double xOffset=.08*ticksOffset
+		
+	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
+         trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	}
+
+   double trackStartPositionX=trackStartPositionX_noSCE;
+   double trackStartPositionY=trackStartPositionY_noSCE;
+   double trackStartPositionZ=trackStartPositionZ_noSCE;
+
+   double trackEndPositionX=trackEndPositionX_noSCE;
+   double trackEndPositionY=trackEndPositionY_noSCE;
+   double trackEndPositionZ=trackEndPositionZ_noSCE;
+   if (fSCECorrection && SCE->EnableCalSpatialSCE()){
+            auto const & posOffsets_F = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), allHits[0]->WireID().TPC);
+            trackStartPositionX -= posOffsets_F.X();
+            trackStartPositionY += posOffsets_F.Y();
+            trackStartPositionZ += posOffsets_F.Z();
+            auto const & posOffsets_B = SCE->GetCalPosOffsets(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ), allHits[lastHit]->WireID().TPC);
+            trackEndPositionX -= posOffsets_B.X();
+            trackEndPositionY += posOffsets_B.Y();
+            trackEndPositionZ += posOffsets_B.Z();
+
+    }
+
+
+
+
+
+	// Make metrics for a CRT pair to compare later
+	TVector3 trackStart(trackStartPositionX, trackStartPositionY, trackStartPositionZ);
+	TVector3 trackEnd(trackEndPositionX, trackEndPositionY, trackEndPositionZ);
+	TVector3 v1(X1,Y1,Z1);
+	TVector3 v2(X2, Y2, Z2);
+
+            TVector3 v4(trackStartPositionX,
+                        trackStartPositionY,
+                        trackStartPositionZ);
+            TVector3 v5(trackEndPositionX,
+                        trackEndPositionY,
+                        trackEndPositionZ);
+	TVector3 trackVector = (v5-v4).Unit();
+	TVector3 hitVector=(v2-v1).Unit();
+
+
+
+
+              double predictedHitPositionY1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
+              double predictedHitPositionY2 = (v2.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.Y()-v5.Y())+v5.Y();
+
+              double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
+              double predictedHitPositionX2 = (v2.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
+
+	double dotProductCos=trackVector*hitVector;
+
+        double deltaX1 = (predictedHitPositionX1-X1);
+        double deltaX2 = (predictedHitPositionX2-X2);
+
+        double deltaY1 = (predictedHitPositionY1-Y1);
+
+        double deltaY2 = (predictedHitPositionY2-Y2);
+
+        tracksPair tPair;
+        tPair.tempId = tempId;
+        tPair.CRTTrackId = f+b;
+        tPair.recoId = iRecoTrack;
+        tPair.deltaX_F = deltaX1;
+ 
+        tPair.deltaX_B = deltaX2;
+        tPair.deltaY_F = deltaY1;
+        tPair.deltaY_B = deltaY2;
+        tPair.dotProductCos=dotProductCos;
+
+        tPair.trigNumberX_F = primaryHits_F[f].trigNumberX;
+        tPair.trigNumberX_B = primaryHits_B[b].trigNumberX;
+        tPair.trigNumberY_F = primaryHits_F[f].trigNumberY;
+        tPair.trigNumberY_B =  primaryHits_B[b].trigNumberY;
+        tPair.X1 = X1;
+        tPair.Y1 = Y1;
+        tPair.Z1 = Z1;
+        tPair.X2 = X2;
+        tPair.Y2 = Y2;
+        tPair.Z2 = Z2;
+	tPair.t0=t0;
+        allTracksPair.push_back(tPair);
+         
+
+      tempId++;
+      }
+      }
+    } //iRecoTrack
+    }
+
+     //Sort pair by ascending order of absolute distance
+    sort(allTracksPair.begin(), allTracksPair.end(), sortPair());
+
+    // Compare, sort, and eliminate CRT hits for just the best one
+
+
+    vector < tracksPair > allUniqueTracksPair;
+    while (allTracksPair.size()) {
+      allUniqueTracksPair.push_back(allTracksPair.front());
+      allTracksPair.erase(remove_if(allTracksPair.begin(), allTracksPair.end(), removePairIndex(allTracksPair.front())),
+        allTracksPair.end());
+    }
+
+    if (allUniqueTracksPair.size() > 0) {
+   
+      for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
+	 int CRTTrackId=allUniqueTracksPair[u].CRTTrackId;
+	 int TPCTrackId=allUniqueTracksPair[u].recoId;
+	double measuredT0=allUniqueTracksPair[u].t0;
+	if (!fMCCSwitch) measuredT0=measuredT0*20.f;
+	double deltaX_F=allUniqueTracksPair[u].deltaX_F;
+	double deltaX_B=allUniqueTracksPair[u].deltaX_B;
+	double deltaY_F=allUniqueTracksPair[u].deltaY_F;
+	double deltaY_B=allUniqueTracksPair[u].deltaY_B;
+	double dotCos=allUniqueTracksPair[u].dotProductCos;
+	double X_F=allUniqueTracksPair[u].X1;
+	double Y_F=allUniqueTracksPair[u].Y1;
+	double Z_F=allUniqueTracksPair[u].Z1;
+
+	double X_B=allUniqueTracksPair[u].X2;
+	double Y_B=allUniqueTracksPair[u].Y2;
+	double Z_B=allUniqueTracksPair[u].Z2;
+        	
+        if (fabs(dotCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
+        //cout<<allUniqueTracksPair[u].timeDiff<<endl;
+	cout<<"Found a matched through-going track with TPC*CRT: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
+	cout<<"Displacements F and B: "<<deltaX_F<<','<<deltaY_F<<','<<deltaX_B<<','<<deltaY_B<<endl;
+	std::vector<float> hitF;
+	std::vector<float> hitB;
+	hitF.push_back(X_F); hitF.push_back(Y_F); hitF.push_back(Z_F);
+	hitB.push_back(X_B); hitB.push_back(Y_B); hitB.push_back(Z_B);
+	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kNotTagged));
+T0col->push_back(anab::T0(measuredT0, 13,2,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos) ));
+	
+	
+       
+	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
+	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
+
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_F], *CRTTriggerassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_B], *CRTTriggerassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY_F],* CRTTriggerassn);
+	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY_B], *CRTTriggerassn);
+	
+        }
+      }
+    }
+
+
+ event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTTriggerassn));
+}
+
+
 
 
 DEFINE_ART_MODULE(CRT::TwoCRTMatchingProducer)
