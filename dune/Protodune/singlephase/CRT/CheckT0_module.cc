@@ -201,42 +201,55 @@ void pdsp::CheckT0::analyze(art::Event const& e)
     double this_crt2y1 = -DBL_MAX;
     double this_crt2z1 = -DBL_MAX;
     
-    auto const& vt0crt2 = fmt0crt2.at(track.key());
-    if (!vt0crt2.empty()) this_t0crt2 = vt0crt2[0]->Time();
-
-    auto const& vt0crt1 = fmt0crt1.at(track.key());
-    if (!vt0crt1.empty()) this_t0crt1 = vt0crt1[0]->Time();
-
-    auto const& vctcrt2 = fmctcrt2.at(track.key());
-    if (!vctcrt2.empty()){
-      this_crt2x0 = vctcrt2[0]->EndPoint1()[0];
-      this_crt2y0 = vctcrt2[0]->EndPoint1()[1];
-      this_crt2z0 = vctcrt2[0]->EndPoint1()[2];
-      this_crt2x1 = vctcrt2[0]->EndPoint2()[0];
-      this_crt2y1 = vctcrt2[0]->EndPoint2()[1];
-      this_crt2z1 = vctcrt2[0]->EndPoint2()[2];
+    if (fmt0crt2.isValid()){
+      auto const& vt0crt2 = fmt0crt2.at(track.key());
+      if (!vt0crt2.empty()) this_t0crt2 = vt0crt2[0]->Time();
     }
 
-    auto const& vctcrt1 = fmctcrt1.at(track.key());
-    if (!vctcrt1.empty()){
-      this_crt1x = vctcrt1[0]->EndPoint1()[0];
-      this_crt1y = vctcrt1[0]->EndPoint1()[1];
-      this_crt1z = vctcrt1[0]->EndPoint1()[2];
+    if (fmt0crt1.isValid()){
+      auto const& vt0crt1 = fmt0crt1.at(track.key());
+      if (!vt0crt1.empty()) this_t0crt1 = vt0crt1[0]->Time();
     }
 
-    auto const &pfps = fmpfp.at(track.key());
-    if(!pfps.empty()){
-      //Find T0 for PFParticle
-      auto const &t0s = fmt0pandora.at(pfps[0].key());
-      if(!t0s.empty()){
-        this_t0pandora = t0s[0]->Time();
-      }
-      auto const &t0aps = fmt0anodepiercer.at(pfps[0].key());
-      if (!t0aps.empty()){
-        this_t0anodep = t0aps[0]->Time();
+    if (fmctcrt2.isValid()){
+      auto const& vctcrt2 = fmctcrt2.at(track.key());
+      if (!vctcrt2.empty()){
+        this_crt2x0 = vctcrt2[0]->EndPoint1()[0];
+        this_crt2y0 = vctcrt2[0]->EndPoint1()[1];
+        this_crt2z0 = vctcrt2[0]->EndPoint1()[2];
+        this_crt2x1 = vctcrt2[0]->EndPoint2()[0];
+        this_crt2y1 = vctcrt2[0]->EndPoint2()[1];
+        this_crt2z1 = vctcrt2[0]->EndPoint2()[2];
       }
     }
 
+    if (fmctcrt1.isValid()){
+      auto const& vctcrt1 = fmctcrt1.at(track.key());
+      if (!vctcrt1.empty()){
+        this_crt1x = vctcrt1[0]->EndPoint1()[0];
+        this_crt1y = vctcrt1[0]->EndPoint1()[1];
+        this_crt1z = vctcrt1[0]->EndPoint1()[2];
+      }
+    }
+
+    if (fmpfp.isValid()){
+      auto const &pfps = fmpfp.at(track.key());
+      if(!pfps.empty()){
+        //Find T0 for PFParticle
+        if (fmt0pandora.isValid()){
+          auto const &t0s = fmt0pandora.at(pfps[0].key());
+          if(!t0s.empty()){
+            this_t0pandora = t0s[0]->Time();
+          }
+        }
+        if (fmt0anodepiercer.isValid()){
+          auto const &t0aps = fmt0anodepiercer.at(pfps[0].key());
+          if (!t0aps.empty()){
+            this_t0anodep = t0aps[0]->Time();
+          }
+        }
+      }
+    }
     if (this_t0crt2 > -DBL_MAX ||
         this_t0crt1 > -DBL_MAX ||
         this_t0pandora > -DBL_MAX ||
