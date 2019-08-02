@@ -2,6 +2,8 @@
 // Class:       TwoCRTMatchingProducer
 // Plugin Type: producer (art v2_10_03)
 // File:        TwoCRTMatchingProducer_module.cc
+// Author: Richie Diurba (rdiurba@fnal.gov)
+//	   Tingjun Yang (tjyang@fnal.gov)
 //
 // Generated at Wed Jun 27 04:09:39 2018 by Andrew Olivier using cetskelgen
 // from cetlib version v3_02_00.
@@ -103,8 +105,6 @@ public:
 
 private:
     art::InputTag fCRTLabel; //Label for the module that analyzed 
-    art::InputTag fCTBLabel;
-    bool fCTBTriggerOnly;
     bool fSCECorrection;
     bool fModuleSwitch;
     int fADCThreshold;
@@ -191,7 +191,7 @@ typedef struct // Structures for arrays to move hits from raw to reco to validat
 };
 
 
-CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const & p): EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel")),  fCTBLabel(p.get<art::InputTag>("CTBLabel")) 
+CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const & p): EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel"))
 {
   consumes < std::vector < CRT::Trigger >> (fCRTLabel);
   consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel);

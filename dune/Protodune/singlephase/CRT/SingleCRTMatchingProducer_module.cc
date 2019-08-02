@@ -99,7 +99,6 @@ public:
   const std::string reco="reco";
   //Parameters for reading in CRT::Triggers and associated AuxDetSimChannels.
   art::InputTag fCRTLabel; //Label for the module that produced 
-  art::InputTag fCTBLabel;
     bool fMCCSwitch;
     bool fModuleSwitch;
     int fADCThreshold;
@@ -199,7 +198,7 @@ public:
 
 CRT::SingleCRTMatchingProducer::SingleCRTMatchingProducer(fhicl::ParameterSet
     const & p):
-  EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel")), fCTBLabel(p.get<art::InputTag>("CTBLabel")) {
+  EDProducer{p}, fCRTLabel(p.get < art::InputTag > ("CRTLabel")) {
     consumes < std::vector < CRT::Trigger >> (fCRTLabel);
     consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel); // CRT art consumables
   fMCCSwitch=(p.get<bool>("MCC"));
