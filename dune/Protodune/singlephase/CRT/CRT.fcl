@@ -62,6 +62,7 @@ module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crt"
 MCC: "true"
 SCECorrection: "true"
+MaxCandidates: 5000000
 }
 
 TwoCRTMatching_dataDecode:
@@ -72,6 +73,7 @@ MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
 SCECorrection: "false"
+MaxCandidates: 1000000
 }
 
 CRTTimingValidation_data:
@@ -143,6 +145,7 @@ module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crtrawdecoder"
 MCC: "false"
 SCECorrection: "true"
+MaxCandidates: 5000000
 }
 
 SingleCRTMatching_producerDataNew:
@@ -159,6 +162,7 @@ module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crtrawdecoderNew"
 MCC: "false"
 SCECorrection: "false"
+MaxCandidates: 5000000
 }
 
 

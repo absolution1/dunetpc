@@ -107,6 +107,7 @@ private:
     art::InputTag fCRTLabel; //Label for the module that analyzed 
     bool fSCECorrection;
     bool fModuleSwitch;
+    unsigned int fMaxCandidates;
     int fADCThreshold;
     int fModuletoModuleTimingCut;
     int fFronttoBackTimingCut;
@@ -203,6 +204,7 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const & 
   produces< art::Assns<CRT::Trigger, anab::CosmicTag> >();
 
   fSCECorrection=(p.get<bool>("SCECorrection"));
+  fMaxCandidates=(p.get<int>("MaxCandidates"));
 }
 
 // v6 Geo Channel Map
@@ -402,7 +404,12 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	 }
     }
   }
+  if (primaryHits_F.size()*primaryHits_B.size()>fMaxCandidates)
+  {
+    event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTTriggerassn));
 
+    return;
+  }
   art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
   if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
@@ -427,11 +434,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(iRecoTrack);
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
-	if(t0s.size()){ 
-	  //auto t0=t0s.at(0);
-	  //int t_zero=t0->Time();
-	  //cout<<"Pandora T0: "<<t_zero<<endl;
-   	}
     
 
     double trackStartPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
