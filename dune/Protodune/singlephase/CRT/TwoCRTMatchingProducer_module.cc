@@ -107,7 +107,6 @@ private:
     art::InputTag fCRTLabel; //Label for the module that analyzed 
     bool fSCECorrection;
     bool fModuleSwitch;
-    unsigned int fMaxCandidates;
     int fADCThreshold;
     int fModuletoModuleTimingCut;
     int fFronttoBackTimingCut;
@@ -136,56 +135,11 @@ typedef struct // Structures for arrays to move hits from raw to reco to validat
   recoHits;
 
 
-  typedef struct // These are displacement metrics for track and hit reco
-  {
-    int tempId;
-    int CRTTrackId;
-    int recoId;
-    double deltaX_F;
-    double deltaX_B;
-    double deltaY_F;
-    double deltaY_B;
-    double dotProductCos;
-    double X1;
-    double Y1;
-    double Z1;
-    double X2;
-    double Y2;
-    double Z2;
-    int trackID;
-    double t0;
-    int trigNumberX_F, trigNumberX_B;
-    int trigNumberY_F, trigNumberY_B;
-    
-  }
-  tracksPair;
-
-  struct removePairIndex // Struct to remove tracks after sorting
-  {
-    const tracksPair tracksPair1;
-    removePairIndex(const tracksPair & tracksPair0): tracksPair1(tracksPair0) {}
-
-    bool operator()(const tracksPair & tracksPair2) {
-      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.tempId == tracksPair2.tempId);
-    }
-  };
-
-  struct sortPair // Struct to sort to find best CRT track for TPC track
-  {
-    bool operator()(const tracksPair & pair1,
-      const tracksPair & pair2) {
-
-        return (fabs(pair1.deltaX_F)+fabs(pair1.deltaY_F)+fabs(pair1.deltaX_B)+fabs(pair1.deltaY_B)<fabs(pair2.deltaX_F)+fabs(pair2.deltaY_F)+fabs(pair2.deltaX_B)+fabs(pair2.deltaY_B));
-
-  }
-  };
-
   std::vector < recoHits > primaryHits_F;
   std::vector < recoHits > primaryHits_B;
 
   std::vector < tempHits > tempHits_F;
   std::vector < tempHits > tempHits_B;
-  std::vector < tracksPair > allTracksPair;
 
 
 
@@ -204,7 +158,6 @@ CRT::TwoCRTMatchingProducer::TwoCRTMatchingProducer(fhicl::ParameterSet const & 
   produces< art::Assns<CRT::Trigger, anab::CosmicTag> >();
 
   fSCECorrection=(p.get<bool>("SCECorrection"));
-  fMaxCandidates=(p.get<int>("MaxCandidates"));
 }
 
 // v6 Geo Channel Map
@@ -253,7 +206,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 
   primaryHits_F.clear();
   primaryHits_B.clear();
-  allTracksPair.clear();
   tempHits_F.clear();
   tempHits_B.clear(); // Arrays to compile hits and move them through
 
@@ -404,12 +356,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	 }
     }
   }
-  if (primaryHits_F.size()*primaryHits_B.size()>fMaxCandidates)
-  {
-    event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTTriggerassn));
-
-    return;
-  }
   art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
   if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
@@ -425,7 +371,6 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
   int nTracksReco = trackList.size();
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
 
-  allTracksPair.clear();
   for (int iRecoTrack = 0; iRecoTrack < nTracksReco; ++iRecoTrack) {
     std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(iRecoTrack);
 
@@ -468,6 +413,24 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 
 
     if ((trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE < 50) || (trackStartPositionZ_noSCE > 660 && trackEndPositionZ_noSCE < 50)) {
+
+      double min_delta = DBL_MAX;
+      double best_XF = DBL_MAX;
+      double best_YF = DBL_MAX;
+      double best_ZF = DBL_MAX;
+      double best_XB = DBL_MAX;
+      double best_YB = DBL_MAX;
+      double best_ZB = DBL_MAX;
+      double best_dotProductCos = DBL_MAX;
+      double best_deltaXF = DBL_MAX;
+      double best_deltaYF = DBL_MAX;
+      double best_deltaXB = DBL_MAX;
+      double best_deltaYB = DBL_MAX;
+      double best_T=DBL_MAX;
+      int best_trigXF=0;
+      int best_trigYF=0;
+      int best_trigXB=0;
+      int best_trigYB=0;
 
     for (unsigned int f = 0; f < primaryHits_F.size(); f++) {
         for (unsigned int b = 0; b < primaryHits_B.size(); b++) {
@@ -560,95 +523,58 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 
         double deltaY2 = (predictedHitPositionY2-Y2);
 
-        tracksPair tPair;
-        tPair.tempId = tempId;
-        tPair.CRTTrackId = f+b;
-        tPair.recoId = iRecoTrack;
-        tPair.deltaX_F = deltaX1;
- 
-        tPair.deltaX_B = deltaX2;
-        tPair.deltaY_F = deltaY1;
-        tPair.deltaY_B = deltaY2;
-        tPair.dotProductCos=dotProductCos;
 
-        tPair.trigNumberX_F = primaryHits_F[f].trigNumberX;
-        tPair.trigNumberX_B = primaryHits_B[b].trigNumberX;
-        tPair.trigNumberY_F = primaryHits_F[f].trigNumberY;
-        tPair.trigNumberY_B =  primaryHits_B[b].trigNumberY;
-        tPair.X1 = X1;
-        tPair.Y1 = Y1;
-        tPair.Z1 = Z1;
-        tPair.X2 = X2;
-        tPair.Y2 = Y2;
-        tPair.Z2 = Z2;
-	tPair.t0=t0;
-        allTracksPair.push_back(tPair);
-         
 
       tempId++;
+
+     //iRecoTrack
+      if (min_delta > std::abs(deltaX1)+std::abs(deltaX2) + std::abs(deltaY1)+std::abs(deltaY2) ){
+
+	   min_delta=std::abs(deltaX1)+std::abs(deltaX2) + std::abs(deltaY1)+std::abs(deltaY2);
+            best_XF = X1;
+            best_YF = Y1;
+            best_ZF = Z1;
+            best_XB = X2;
+            best_YB = Y2;
+            best_ZB = Z2;
+            best_dotProductCos = dotProductCos;
+            best_deltaXF = deltaX1;
+            best_deltaYF = deltaY1;
+            best_deltaXB = deltaX2;
+            best_deltaYB = deltaY2;
+	    best_trigXF=primaryHits_F[f].trigNumberX;
+	    best_trigYF=primaryHits_F[f].trigNumberY;
+	    best_trigXB=primaryHits_B[b].trigNumberX;
+	    best_trigYB=primaryHits_B[b].trigNumberY;
+	    best_T = (t0)/2.;
+	    if (!fMCCSwitch) best_T=best_T*20.f;
+          }
+        }
       }
-      }
-    } //iRecoTrack
-    }
+      if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
+        std::cout<<"Found match with TPC*CRT "<<best_dotProductCos<<std::endl;
 
-     //Sort pair by ascending order of absolute distance
-    sort(allTracksPair.begin(), allTracksPair.end(), sortPair());
-
-    // Compare, sort, and eliminate CRT hits for just the best one
-
-
-    vector < tracksPair > allUniqueTracksPair;
-    while (allTracksPair.size()) {
-      allUniqueTracksPair.push_back(allTracksPair.front());
-      allTracksPair.erase(remove_if(allTracksPair.begin(), allTracksPair.end(), removePairIndex(allTracksPair.front())),
-        allTracksPair.end());
-    }
-
-    if (allUniqueTracksPair.size() > 0) {
-   
-      for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
-	 int CRTTrackId=allUniqueTracksPair[u].CRTTrackId;
-	 int TPCTrackId=allUniqueTracksPair[u].recoId;
-	double measuredT0=allUniqueTracksPair[u].t0;
-	if (!fMCCSwitch) measuredT0=measuredT0*20.f;
-	double deltaX_F=allUniqueTracksPair[u].deltaX_F;
-	double deltaX_B=allUniqueTracksPair[u].deltaX_B;
-	double deltaY_F=allUniqueTracksPair[u].deltaY_F;
-	double deltaY_B=allUniqueTracksPair[u].deltaY_B;
-	double dotCos=allUniqueTracksPair[u].dotProductCos;
-	double X_F=allUniqueTracksPair[u].X1;
-	double Y_F=allUniqueTracksPair[u].Y1;
-	double Z_F=allUniqueTracksPair[u].Z1;
-
-	double X_B=allUniqueTracksPair[u].X2;
-	double Y_B=allUniqueTracksPair[u].Y2;
-	double Z_B=allUniqueTracksPair[u].Z2;
-        	
-        if (fabs(dotCos)>0.99 && fabs(deltaX_F)+fabs(deltaX_B)<40 && fabs(deltaY_F)+fabs(deltaY_B)<40 ) {
-        //cout<<allUniqueTracksPair[u].timeDiff<<endl;
-	cout<<"Found a matched through-going track with TPC*CRT: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
-	cout<<"Displacements F and B: "<<deltaX_F<<','<<deltaY_F<<','<<deltaX_B<<','<<deltaY_B<<endl;
-	std::vector<float> hitF;
+std::cout<<"Displacement in front and back "<<best_deltaXF<<","<<best_deltaYF<<","<<best_deltaXB<<","<<best_deltaYB<<std::endl;
+        std::vector<float> hitF;
 	std::vector<float> hitB;
-	hitF.push_back(X_F); hitF.push_back(Y_F); hitF.push_back(Z_F);
-	hitB.push_back(X_B); hitB.push_back(Y_B); hitB.push_back(Z_B);
-	CRTTrack->push_back(anab::CosmicTag(hitF,hitB, fabs(allUniqueTracksPair[u].dotProductCos),anab::CosmicTagID_t::kNotTagged));
-T0col->push_back(anab::T0(measuredT0, 13,2,CRTTrackId,fabs(allUniqueTracksPair[u].dotProductCos) ));
-	
-	
-       
-	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
-	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
+	hitF.push_back(best_XF); hitF.push_back(best_YF); hitF.push_back(best_ZF);
+	hitB.push_back(best_XB); hitB.push_back(best_YB); hitB.push_back(best_ZB);
 
-	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_F], *CRTTriggerassn);
-	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX_B], *CRTTriggerassn);
-	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY_F],* CRTTriggerassn);
-	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberY_B], *CRTTriggerassn);
+        CRTTrack->push_back(anab::CosmicTag(hitF,hitB, std::abs(best_dotProductCos),anab::CosmicTagID_t::kNotTagged));
+
+        T0col->push_back(anab::T0(best_T, 13,2,iRecoTrack,best_dotProductCos));
+        util::CreateAssn(*this, event, *CRTTrack, trackList[iRecoTrack], *TPCCRTassn);
+ 	util::CreateAssn(*this, event, *T0col, trackList[iRecoTrack], *TPCT0assn);
+        util::CreateAssn(*this, event, *CRTTrack, crtList[best_trigXF], *CRTTriggerassn);
+        util::CreateAssn(*this, event, *CRTTrack, crtList[best_trigYF], *CRTTriggerassn);
+
+        util::CreateAssn(*this, event, *CRTTrack, crtList[best_trigXB], *CRTTriggerassn);
+
+        util::CreateAssn(*this, event, *CRTTrack, crtList[best_trigYB], *CRTTriggerassn);
 	
         }
       }
     }
-
 
  event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTTriggerassn));
 }
