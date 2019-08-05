@@ -546,7 +546,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	    best_trigYF=primaryHits_F[f].trigNumberY;
 	    best_trigXB=primaryHits_B[b].trigNumberX;
 	    best_trigYB=primaryHits_B[b].trigNumberY;
-	    best_T = (t0)/2.;
+	    best_T = t0;
 	    if (!fMCCSwitch) best_T=best_T*20.f;
           }
         }
