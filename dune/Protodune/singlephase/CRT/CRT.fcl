@@ -61,9 +61,8 @@ TwoCRTMatching_producer:
 module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crt"
 MCC: "true"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
+
 }
 
 TwoCRTMatching_dataDecode:
@@ -74,6 +73,7 @@ MCC: "false"
 CTBLabel: "ctbrawdecoder:daq"
 CTBOnly: "false"
 SCECorrection: "false"
+
 }
 
 CRTTimingValidation_data:
@@ -127,9 +127,7 @@ SingleCRTMatching_producer:
 module_type: "SingleCRTMatchingProducer"
 CRTLabel: "crt"
 MCC: "true"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
 }
 
 
@@ -138,9 +136,7 @@ SingleCRTMatching_producerData:
 module_type: "SingleCRTMatchingProducer"
 CRTLabel: "crtrawdecoder"
 MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
 }
 
 TwoCRTMatching_producerData:
@@ -148,9 +144,8 @@ TwoCRTMatching_producerData:
 module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crtrawdecoder"
 MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
+
 }
 
 SingleCRTMatching_producerDataNew:
@@ -158,9 +153,7 @@ SingleCRTMatching_producerDataNew:
 module_type: "SingleCRTMatchingProducer"
 CRTLabel: "crtrawdecoderNew"
 MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
 }
 
 TwoCRTMatching_producerDataNew:
@@ -168,9 +161,8 @@ TwoCRTMatching_producerDataNew:
 module_type: "TwoCRTMatchingProducer"
 CRTLabel: "crtrawdecoderNew"
 MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
 SCECorrection: "false"
+MaxCandidates: 5000000
 }
 
 
