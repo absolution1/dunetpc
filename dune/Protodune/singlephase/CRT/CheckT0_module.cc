@@ -147,7 +147,8 @@ void pdsp::CheckT0::analyze(art::Event const& e)
   if (e.getByLabel("pandoraTrack", trackListHandle)) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
-  
+  else return;
+
   //Get hits associated with track
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, e, "pandoraTrack");
 
