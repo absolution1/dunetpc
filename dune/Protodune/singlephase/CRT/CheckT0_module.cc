@@ -296,8 +296,8 @@ void pdsp::CheckT0::analyze(art::Event const& e)
       if (std::abs(this_t0anodep+DBL_MAX)<1e-10){
         //no pandora t0 found, correct for t0
         double ticksOffset = 0;
-        if (this_t0crt2 > -DBL_MAX) ticksOffset = this_t0crt2/2.+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
-        else if (this_t0crt1 > -DBL_MAX) ticksOffset = this_t0crt1/2.+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
+        if (this_t0crt2 > -DBL_MAX) ticksOffset = this_t0crt2/2000.+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
+        else if (this_t0crt1 > -DBL_MAX) ticksOffset = this_t0crt1/2000.+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
         else if (this_t0anodep > -DBL_MAX) ticksOffset = this_t0anodep/2000.+detectorPropertiesService->GetXTicksOffset(allHits[0]->WireID());
         double xOffset = detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[0]->WireID());
         this_trackstartx -= xOffset;
