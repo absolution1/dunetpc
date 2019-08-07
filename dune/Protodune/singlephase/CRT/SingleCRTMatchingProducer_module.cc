@@ -760,7 +760,7 @@ double xOffset=0;
 
 	CRTT0=allUniqueTracksPair[u].timeAvg;
 
-	if (!fMCCSwitch) CRTT0=(111+allUniqueTracksPair[u].timeAvg)*20.f;
+	if (!fMCCSwitch) CRTT0=(111.f+allUniqueTracksPair[u].timeAvg)*20.f;
 	// Added 111 tick CRT-CTB Timing Offset
 	stripX=allUniqueTracksPair[u].stripX1;
 	stripY=allUniqueTracksPair[u].stripY1;

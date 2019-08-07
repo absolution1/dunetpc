@@ -551,7 +551,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	    best_trigXB=primaryHits_B[b].trigNumberX;
 	    best_trigYB=primaryHits_B[b].trigNumberY;
 	    best_T = t0;
-	    if (!fMCCSwitch) best_T=(111+best_T)*20.f;
+	    if (!fMCCSwitch) best_T=(111.f+best_T)*20.f;
 	    // Added 111 tick CRT-CTB offset
           }
         }
