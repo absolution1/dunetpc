@@ -2,13 +2,14 @@
 #include "protodune_tools_dune.fcl"
 
 services.TFileService.fileName: "T0RecoSCE_MC_ana.root"
+services.Geometry: @local::protodunev6_geo
 
 
 #source is now a root file
 source:
 {
   module_type: 	RootInput
-  maxEvents:   	100		# Number of events to create
+  maxEvents:   	1000		# Number of events to create
 }
 
 physics:
@@ -28,7 +29,7 @@ physics.analyzers.t0ana.CathodeCrossers: 		false
 physics.analyzers.t0ana.AnodePiercers: 			true
 physics.analyzers.t0ana.FlashProducer: 			"opflash"
 physics.analyzers.t0ana.TriggerProducer: 		"opflashExternal"
-physics.analyzers.t0ana.AllFlashToTrackTimeDiffs: 	true
+physics.analyzers.t0ana.AllFlashToTrackTimeDiffs: 	false
 
 physics.analyzers.t0ana.FlashScaleFactor: 		1.0
 physics.analyzers.t0ana.FlashTPCOffset: 		0 #us
@@ -41,7 +42,9 @@ physics.analyzers.t0ana.LastOpChannel: 			143
 physics.analyzers.t0ana.MinTrackLength: 		20 #cm
 physics.analyzers.t0ana.MinPE: 					100
 
-physics.analyzers.t0ana.CheckAssignedAnodeT0:	false
+physics.analyzers.t0ana.CheckAssignedAnodeT0:	true
+physics.analyzers.t0ana.AnodeT0Producer:		anodet0reco
+
 
 outputs:{
 
