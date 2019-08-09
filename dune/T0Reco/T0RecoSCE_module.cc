@@ -113,6 +113,7 @@ private:
 	unsigned int 	fReadoutWindow;
 
 	bool		fAnodeT0Check;
+	std::string fAnodeT0Producer;
 
 	double		det_top;
 	double 		det_bottom;
@@ -230,6 +231,8 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fLastOpChannel		= fcl.get<int>			("LastOpChannel"	);
 
 	fAnodeT0Check		= fcl.get<bool>			("CheckAssignedAnodeT0"	);
+	fAnodeT0Producer	= fcl.get<std::string>	("AnodeT0Producer"		);
+
 
 	// get boundaries based on detector bounds
 	auto const* geom = lar::providerFrom<geo::Geometry>();
@@ -604,7 +607,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
 			if(fDebug&&fabs(mc_particle_te - mc_particle_ts)>1) std::cout << 
 			"\t\t\tMC Particle end time: " << mc_particle_te << 
-			" us is significantly different from start time: " << mc_particle_ts << 
+			" us is significantly different from start time: " << mc_time << 
 			" us" << std::endl;
 			}
 
@@ -784,8 +787,8 @@ void T0RecoSCE::analyze(art::Event const & evt){
 					const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
     				matched_flash_time = flash_ptr->Time() - trigger_time;
-					corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
-					if(fUseMC) corrected_matched_flash_time = corrected_matched_flash_time - TPC_trigger_offset;
+					if(!fUseMC) corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
+					if(fUseMC) corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset - TPC_trigger_offset;
 					matched_flash_time_width = flash_ptr->TimeWidth();
 
 	    			dt_flash_reco = corrected_matched_flash_time - anode_rc_time;
@@ -899,7 +902,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
     			std::vector<anab::T0> t0_apt_v;
 
-    			const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,"anodepiercerst0");
+    			const art::FindManyP<anab::T0> findParticleT0s(reco_particles_h,evt,fAnodeT0Producer);
    				
 				for(unsigned int p = 0; p < findParticleT0s.at(pIndex).size(); ++p){
       				t0_apt_v.push_back((*(findParticleT0s.at(pIndex)[p])));

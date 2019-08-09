@@ -95,7 +95,7 @@ class CRT::SingleCRTMatching: public art::EDAnalyzer {
   void beginJob() override;
   void endJob() override;
   double setAngle(double angle);
-int moduletoCTB(int module2, int module1);
+  int moduletoCTB(int module2, int module1);
   int nEvents = 0;
   int nHaloMuons = 0;
   int track=0;

@@ -130,9 +130,20 @@ uint64_t filter::ProtoDUNEUnstableHVFilter::GetRawDecoderInfo(art::Event & e){
 
 bool filter::ProtoDUNEUnstableHVFilter::filter(art::Event &evt) {   
 
+
+        fTotalEvents->Fill(1);
+
+
+
+        if(!evt.isRealData()){
+            fSelectedEvents->Fill(1); 
+            return true;   //Filter is designed for Data only. Don't want to filter on MC
+            }
+
+
+
         const std::string myname = "ProtoDUNEUnstableHVFilter::filter: ";
         bool keep = true;
-        fTotalEvents->Fill(1);
         TTimeStamp * evtTTS;
         evtTTS = new TTimeStamp(GetRawDecoderInfo(evt));
         // if (evtTime.timeHigh() == 0) { evtTTS = new TTimeStamp(evtTime.timeLow()); }
