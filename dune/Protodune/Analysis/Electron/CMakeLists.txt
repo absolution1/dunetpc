@@ -1,6 +1,3 @@
-
-include_directories( $ENV{PANDORA_INC} )
-
 art_make(BASENAME_ONLY
   LIBRARY_NAME      ProtoDUNEAnaUtils
   LIB_LIBRARIES CVNFunc
@@ -40,6 +37,3 @@ install_headers()
 install_fhicl()
 install_source()
 
-add_subdirectory(BeamExample)
-add_subdirectory(Pion)
-add_subdirectory(Electron)

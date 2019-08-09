@@ -316,13 +316,13 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	size_t flash_ctr = 0;
 	for (auto const& flash : *flash_h){
 		if (flash.TotalPE() > fMinPE){
-			double op_flash_time = flash.Time() - trigger_time;
-			if(MC) op_flash_time = op_flash_time + TPC_trigger_offset;
+			double op_flash_time;
+			if(!MC) op_flash_time = flash.Time() - trigger_time;
+			if(MC) op_flash_time = flash.Time() - trigger_time - TPC_trigger_offset;
       		op_times.push_back(op_flash_time);
 			flash_id_v.push_back(flash_ctr);
-			if (fDebug) std::cout << "\t Flash: " << flash_ctr 
-			<< " has time : " << flash.Time() - trigger_time 
-			<< ", PE : " << flash.TotalPE() << std::endl;
+			if (fDebug) std::cout << "\t Flash: " << flash_ctr << " has time : " 
+			<< op_flash_time << ", PE : " << flash.TotalPE() << std::endl;
 			}
 		flash_ctr++;
 		} // for all flashes
@@ -511,18 +511,24 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		// FLASH MATCHING
 
-		auto const& op_match_result = FlashMatch((anode_rc_time),op_times);
+		size_t op_match_result = FlashMatch((anode_rc_time),op_times);
+
+		if(op_match_result==99999) {
+			if(fDebug) std::cout << "Unable to match flash to track." << std::endl;
+			continue;
+			}
 
 		const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
 		matched_flash_time = flash_ptr->Time() - trigger_time;
-		corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
-		if(MC) corrected_matched_flash_time = corrected_matched_flash_time - TPC_trigger_offset;
+		if(!MC) corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset;
+		if(MC) corrected_matched_flash_time = fFlashScaleFactor*matched_flash_time + fFlashTPCOffset - TPC_trigger_offset;
 		//matched_flash_time_width = flash_ptr->TimeWidth();
 
 		dt_flash_reco = corrected_matched_flash_time - anode_rc_time;
 
 		matched_flash_pe = flash_ptr->TotalPE();
+
 		//matched_flash_centre_y = flash_ptr->YCenter();
 		//matched_flash_centre_z = flash_ptr->ZCenter();
 		//matched_flash_width_y = flash_ptr->YWidth();
@@ -626,8 +632,8 @@ size_t  T0RecoAnodePiercers::FlashMatch(const double reco_time, std::vector<doub
 	// loop through all reco'd flash times and see if one matches
 	// the time from the track/particle
 
-	double dt_min = 2*ReadoutWindow; // us
-	size_t matched_op_id = -1;
+	double dt_min = 9999999.; 
+	size_t matched_op_id = 99999;
 
 	for (size_t i=0; i < op_times_v.size(); i++){
 		double op_time_i = op_times_v[i];
