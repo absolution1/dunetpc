@@ -245,6 +245,14 @@ public:
   int setTickLengthX(double len) { m_tickLengthX = len; return update(); }
   int setTickLengthY(double len) { m_tickLengthY = len; return update(); }
 
+  // Set the tick/label division guides.
+  int setNdivisionsX(int ndiv) { m_ndivX = ndiv; return 0; };
+  int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
+
+  // Set the axis label sizes.
+  int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
+  int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
   int setRangeX(double x1, double x2);
@@ -376,6 +384,10 @@ private:
   bool m_logZ;
   double m_tickLengthX;
   double m_tickLengthY;
+  int m_ndivX;
+  int m_ndivY;
+  double m_labSizeX;
+  double m_labSizeY;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
