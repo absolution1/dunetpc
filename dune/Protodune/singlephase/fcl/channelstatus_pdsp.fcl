@@ -73,7 +73,6 @@ pdsp_channel_status: {
      5361,  # femb217u39, no signal
         4,  # femb311u36, very sticky pedestal 5308-76
      1632,  # femb320x33, very sticky pedestal 5308-76
-     2169,  # femb302x07, Mostly stuck on one bad code, 5308-76
      3541,  # femb516v22, very sticky--signal near zero half the time (5308-81)
      3543,  # femb516v24, very sticky--signal near zero half the time (5308-81)
      3661,  # femb513v22, most signal near zero (5308-81)
@@ -201,6 +200,7 @@ pdsp_channel_status: {
      2146,
      2158,
      2161,
+     2169,  # femb302x07, Mostly stuck on one bad code, 5308-76
     # femb513u
      2674,  # 2-value pedestal
    # femb518u

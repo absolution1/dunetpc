@@ -1,4 +1,14 @@
+#include "BeamEvent.fcl"
 #include "services_dune.fcl"
+#include "RawDecoder.fcl"
+
+#include "ProtoDUNEDataUtils.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
+#include "ProtoDUNEBeamlineReco.fcl"
+
+#include "ProtoDUNEUnstableHVFilter.fcl"
+#include "ProtoDUNEFembFilter.fcl"
+#
 #include "hitfindermodules_dune.fcl"
 #include "filters.fcl"
 #include "signalservices_dune.fcl"
@@ -7,8 +17,7 @@
 #include "ecalibration.fcl"
 #include "triggeralgo_service.fcl"
 #include "photpropservices_dune.fcl"
-#include "ProtoDUNEDataUtils.fcl"
-#include "ProtoDUNEBeamlineFilter.fcl"
+#include "protodune_tools_dune.fcl"
 
 process_name: pionanalysis
 
@@ -25,9 +34,17 @@ services:
 {
   #Load the service that manages root files for histograms.
   TFileService: { fileName: "Beam.root" }
+
+  TimeTracker:       {}
+  MemoryTracker:     {}
   RandomNumberGenerator: {}                     #ART native random number generator
-  @table::protodune_services
+  IFDH :{}
+
+  #@table::protodune_services
+  @table::protodune_data_reco_services
   message:      @local::standard_info
+  message:      @local::dune_message_services_prod_debug
+
   FileCatalogMetadata: @local::art_file_catalog_mc
 }
 
@@ -52,15 +69,17 @@ outputs:
 physics:
 {
  producers:{
-
+  beamevent: @local::proto_beamevent
   }
  filters:  {
-    f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
-    #f7: @local::standard_protodunebeamlinefilter_Proton_7GeV
+    f2: @local::pdsp_fembfilter_beamside
+    f1: @local::HVfilter
+    #f1: @local::standard_protodunebeamlinefilter_Proton_1GeV
 	
  }
  
- fpath: [f1]
+ #fpath: [f1, f2, f3]
+ fpath: [f1, f2] #for the mcc12 test sample v2, hv filter seemed not working
 
  analyzers:{
    pionanalysis:
@@ -68,26 +87,36 @@ physics:
      module_type: "pionanalysis"
 
      SpacePointModuleLabel:  "reco3d"
+     BeamlineUtils:        @local::standard_protodunebeamlineutils
      BeamModuleLabel:        "beamevent"
      TrackModuleLabel:       "pandoraTrack"
      TimeDecoderModuleLabel: "timingrawdecoder:daq"
 
-     CalorimetryTag:         "pandoracalo"
+     #CalorimetryTag:         "pandoracalo"
+     CalorimetryTag:         "pandoracaloSCE"
      TrackerTag:             "pandoraTrack"
      ShowerTag:              "pandoraShower"
      PFParticleTag:          "pandora"
      GeneratorTag:           "generator"
      Verbose:                true
      DataUtils: @local::standard_protodunedatautils
+     #beamreco:          @local::beamline_reco
+
+     BeamPars: {
+       Momentum: 1.0
+     } 
 
      SelectEvents: [fpath]
    }
  }
  
+   reco: [beamevent]
+   trigger_paths: [reco,fpath]
  
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
  ana:  [ pionanalysis ]
+
  #ana: []
  
  #define the output stream, there could be more than one if using filters 
@@ -100,7 +129,7 @@ physics:
  #end_paths is a keyword and contains the paths that do not modify the art::Event, 
  #ie analyzers and output streams.  these all run simultaneously
  #end_paths:     [ stream1, ana ] 
- end_paths:     [  ana ] 
+ end_paths:     [ ana ] 
 }
 
 # define the list of LArSoft modules to run through the simulate path
@@ -108,13 +137,22 @@ physics:
 #physics.analyzers.pionanalysis.TrackModuleLabel:        "pmtrack"
 #physics.analyzers.pionanalysis.CalorimetryModuleLabel:  "pmtrackcalo"
 #physics.analyzers.pionanalysis.HitsModuleLabel:  "gaushit"
-
 #physics.analyzers.pionanalysis.rawdecoderlabel: "beamevent"
 
-#physics.analyzers.pionanalysis.TrackModuleLabel:        "pandoraTrack"
+physics.analyzers.ana.SelectEvents: [fpath]
+services.IFBeam:  {}
+#physics.filters.f1.BeamlineUtils.TOFOffset: 0.
+#physics.filters.f1.BeamlineUtils.UseCERNCalibSelection: true
+services.PdspChannelMapService:        @local::pdspchannelmap
+physics.analyzers.pionanalysis.BeamlineUtils.UseCERNCalibSelection: true
+
+
+physics.analyzers.pionanalysis.TrackModuleLabel:        "pandoraTrack"
 #physics.analyzers.pionanalysis.CalorimetryModuleLabel:  "pandoracalo"
+physics.analyzers.pionanalysis.CalorimetryModuleLabel:  "pandoracalo"
 #physics.analyzers.pionanalysis.HitsModuleLabel:  "linecluster"
-#physics.analyzers.pionanalysis.SaveTrackInfo: true
+physics.analyzers.pionanalysis.HitsModuleLabel:  "hitpdune"
+physics.analyzers.pionanalysis.SaveTrackInfo: true
 
 #physics.analyzers.pionanalysis.CalorimetryTag:  "pandoracalo"
 #physics.analyzers.pionanalysis.TrackerTag:        "pandoraTrack"
@@ -123,8 +161,6 @@ physics:
 #physics.analyzers.pionanalysis.PGeneratorTag:"generator"
 #physics.analyzers.pionanalysis.Verbose: false
 #physics.analyzers.pionanalysis.DataUtils: @local::standard_protodunedatautils
-
-#physics.filters.ProtoDUNEBeamlineFilter: @local::standard_protodunebeamlinefilter_Proton_1GeV
 
 
 #services.SpaceCharge.EnableSimSpatialSCE: true
