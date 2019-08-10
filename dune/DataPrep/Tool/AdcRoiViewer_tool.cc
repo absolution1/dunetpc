@@ -1618,8 +1618,10 @@ void AdcRoiViewer::fillChanSumHists() const {
         val = phvar->GetBinCenter(ibin);
       } else if ( vartype == "rms" ) {
         val = phvar->GetRMS();
-      } else if ( vartype == "count" ) {
+      } else if ( vartype == "entries" ) {
         val = phvar->GetEntries();
+      } else if ( vartype == "count" ) {
+        val = phvar->Integral();
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
