@@ -350,7 +350,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"count", "mean", "peak", "rms", "fitMean", "fitSigma"};
+    const NameVector valTypes = {"entries", "count", "mean", "peak", "rms", "fitMean", "fitSigma"};
     if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
@@ -373,6 +373,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       yttl = "Fit mean of " + valLabel;
     } else if ( valType == "fitSigma" ) {
       yttl = "Fit sigma of " + valLabel;
+    } else if ( valType == "entries" ) {
+      yttl = "# ROI";
     } else if ( valType == "count" ) {
       yttl = "# ROI";
     }
@@ -1618,8 +1620,10 @@ void AdcRoiViewer::fillChanSumHists() const {
         val = phvar->GetBinCenter(ibin);
       } else if ( vartype == "rms" ) {
         val = phvar->GetRMS();
-      } else if ( vartype == "count" ) {
+      } else if ( vartype == "entries" ) {
         val = phvar->GetEntries();
+      } else if ( vartype == "count" ) {
+        val = phvar->Integral();
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
