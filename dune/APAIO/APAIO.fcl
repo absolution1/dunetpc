@@ -1,0 +1,22 @@
+BEGIN_PROLOG
+
+# APAIORdWriter is an analyzer
+
+APAIORdWriter:
+{
+  module_type:         "APAIORdWriter"
+  RawDigitLabel:       "daq"
+  OutputDirBaseName:   "APAIO"
+}
+
+# APAIORdReader is a producer
+
+APAIORdReader:
+{
+  module_type:         "APAIORdReader"
+  InputDirBaseName:    "APAIO"
+  APAMin:              0
+  APAMax:              150
+}
+
+END_PROLOG

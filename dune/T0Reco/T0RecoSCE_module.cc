@@ -782,7 +782,13 @@ void T0RecoSCE::analyze(art::Event const & evt){
     			rc_xe_corr = rc_xe + x_shift + driftDir_end*anode_rc_time*fDriftVelocity;
 
     			// FLASH MATCHING
-    			auto const& op_match_result = FlashMatch(anode_rc_time,op_times);
+    			size_t op_match_result = FlashMatch(anode_rc_time,op_times);
+
+				if(op_match_result==99999) {
+					if(fDebug) std::cout << "Unable to match flash to track." << std::endl;
+					continue;
+					}
+
     			if(!fUseOpHits) {	
 					const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
@@ -1014,8 +1020,8 @@ size_t  T0RecoSCE::FlashMatch(const double reco_time, std::vector<double> op_tim
 {
   	// loop through all reco'd flash times and see if one matches
   	// the time from the track/particle
-  	double dt_min = 2*fReadoutWindow; // us
-  	size_t matched_op_id = -1;
+  	double dt_min = 9999999.; 
+  	size_t matched_op_id = 99999;
 
 	flash_time = fReadoutWindow;
 	corrected_flash_time = fReadoutWindow;

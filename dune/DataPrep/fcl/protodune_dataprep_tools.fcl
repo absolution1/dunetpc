@@ -911,7 +911,7 @@ tools.pdsp_RemoveBadChannels: {
   tool_type: RemoveBadChannels
   LogLevel: 1
   RemoveBadChs: true
-  RemoveNoisyChs: true
+  RemoveNoisyChs: false
 }
 
 ################################################################################

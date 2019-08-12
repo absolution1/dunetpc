@@ -93,6 +93,8 @@
 //    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
+//             entries - Root GetEntries() (Includes under and overflow. The following do not.)
+//               count - Root Integral()
 //                mean - Root GetMean()
 //                peak - Root GetMaximumBin()
 //                 rms - Root GetRMS()
