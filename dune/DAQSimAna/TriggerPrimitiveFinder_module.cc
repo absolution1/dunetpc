@@ -52,7 +52,7 @@ private:
 
 
 TriggerPrimitiveFinder::TriggerPrimitiveFinder(fhicl::ParameterSet const & p)
-    : m_inputTag(p.get<std::string>("InputTag", "daq")),
+    : EDProducer{p}, m_inputTag(p.get<std::string>("InputTag", "daq")),
       m_finder{art::make_tool<TriggerPrimitiveFinderTool>(p.get<fhicl::ParameterSet>("finder"))}
 {
     produces<std::vector<recob::Hit>>();

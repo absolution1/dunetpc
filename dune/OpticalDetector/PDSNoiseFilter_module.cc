@@ -33,7 +33,7 @@
 
 
 // ART extensions
-#include "nutools/RandomUtils/NuRandomService.h"
+#include "nurandom/RandomUtils/NuRandomService.h"
 
 // LArSoft includes
 #include "lardataobj/RawData/OpDetWaveform.h"
@@ -92,7 +92,7 @@ namespace opdet {
   //---------------------------------------------------------------------------
   // Constructor
   PDSNoiseFilter::PDSNoiseFilter(Parameters const & config)
-    : art::EDProducer(), 
+    : EDProducer{config},
       fInputModule(config().InputModule()),
       fInputLabels(config().InputLabels())
       // Additional fhicl parameters here

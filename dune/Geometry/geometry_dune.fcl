@@ -102,12 +102,24 @@ protodunedphase_geo:
  DisableWiresInG4:   true
 } 
 
-protodunedphase_rot_geo:
+protodunedphase_driftY_geo:
 {
- Name:      "protodunedphase_rot"
+ Name:      "protodunedphase_driftY"
 
- GDML:      "protodunedphase_rot.gdml"
- ROOT:      "protodunedphase_rot.gdml"
+ GDML:      "protodunedphase_driftY.gdml"
+ ROOT:      "protodunedphase_driftY.gdml"
+
+ SortingParameters:    {ChannelsPerOpDet:    1}
+ SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
+ DisableWiresInG4:   true
+} 
+
+protodunedphase_driftY_uniform_geo:
+{
+ Name:      "protodunedphase_driftY_uniform"
+
+ GDML:      "protodunedphase_driftY_uniform.gdml"
+ ROOT:      "protodunedphase_driftY_uniform.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
@@ -218,10 +230,19 @@ dune10kt_3mmpitch_1x2x6_geo.Name: "dune10kt_v1_3mmpitch_1x2x6"
 dune10kt_3mmpitch_1x2x6_geo.GDML: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
 
-protodune_geo: @local::dune10kt_geo
-protodune_geo.Name: "protodune" # will be made lower case anyway
-protodune_geo.GDML: "protodune_v5.gdml"
-protodune_geo.ROOT: "protodune_v5.gdml"
+#Updated CRT locations, shorter grid-anode distance, 1.5 cm outer volume
+protodunev6_geo: @local::dune10kt_geo
+protodunev6_geo.Name: "protodune" # will be made lower case anyway
+protodunev6_geo.GDML: "protodune_v6.gdml"
+protodunev6_geo.ROOT: "protodune_v6.gdml"
+
+#ARAPUCA geometry
+protodunev7_geo: @local::dune10kt_geo
+protodunev7_geo.Name: "protodunev7" # will be made lower case anyway
+protodunev7_geo.GDML: "protodune_v7.gdml"
+protodunev7_geo.ROOT: "protodune_v7.gdml"
+
+protodune_geo: @local::protodunev7_geo
 
 iceberg_geo: @local::dune10kt_geo
 iceberg_geo.Name: "iceberg" # will be made lower case anyway

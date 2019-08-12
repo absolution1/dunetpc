@@ -34,8 +34,8 @@ extern "C" {
 #include "canvas/Persistency/Common/Ptr.h" 
 #include "canvas/Persistency/Common/PtrVector.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
-#include "art/Framework/Services/Optional/TFileDirectory.h" 
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "messagefacility/MessageLogger/MessageLogger.h" 
 
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -85,7 +85,8 @@ void filter::ProtoDUNEUnstableHVFilter::reconfigure(fhicl::ParameterSet const& p
 }  
 
 
-filter::ProtoDUNEUnstableHVFilter::ProtoDUNEUnstableHVFilter(fhicl::ParameterSet const& pset) {
+filter::ProtoDUNEUnstableHVFilter::ProtoDUNEUnstableHVFilter(fhicl::ParameterSet const& pset)
+: EDFilter(pset) {
         this->reconfigure(pset);
 }
 filter::ProtoDUNEUnstableHVFilter::~ProtoDUNEUnstableHVFilter() { }
@@ -129,9 +130,20 @@ uint64_t filter::ProtoDUNEUnstableHVFilter::GetRawDecoderInfo(art::Event & e){
 
 bool filter::ProtoDUNEUnstableHVFilter::filter(art::Event &evt) {   
 
+
+        fTotalEvents->Fill(1);
+
+
+
+        if(!evt.isRealData()){
+            fSelectedEvents->Fill(1); 
+            return true;   //Filter is designed for Data only. Don't want to filter on MC
+            }
+
+
+
         const std::string myname = "ProtoDUNEUnstableHVFilter::filter: ";
         bool keep = true;
-        fTotalEvents->Fill(1);
         TTimeStamp * evtTTS;
         evtTTS = new TTimeStamp(GetRawDecoderInfo(evt));
         // if (evtTime.timeHigh() == 0) { evtTTS = new TTimeStamp(evtTime.timeLow()); }
@@ -139,7 +151,7 @@ bool filter::ProtoDUNEUnstableHVFilter::filter(art::Event &evt) {
         if (fDebug) std::cout << "Event time:  " << evtTTS -> AsString() << std::endl;
         // Requested time range lower end
 
-        for (auto TimeRange : fTimeRanges){ //loop through beam side APAs
+        for (auto TimeRange : fTimeRanges){ //loop through unstable hv time ranges
 
             fTimeRangeLow=TimeRange.first;
             fTimeRangeHigh=TimeRange.second;

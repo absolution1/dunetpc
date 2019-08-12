@@ -252,19 +252,21 @@ TVector3 protoana::ProtoDUNEBeamlineUtils::ConvertMonitorCoordinates(double x, d
 }
 
 void protoana::ProtoDUNEBeamlineUtils::BeamMonitorBasisVectors(){
-  MonitorBasisX = TVector3(1.,0.,0.);
-  MonitorBasisY = TVector3(0.,1.,0.);
-  MonitorBasisZ = TVector3(0.,0.,1.);
+  MonitorBasisX = TVector3( 1., 0., 0. );
+  MonitorBasisY = TVector3( 0., 1., 0. );
+  MonitorBasisZ = TVector3( 0., 0., 1. );
+
   RotateMonitorVector(MonitorBasisX);
   RotateMonitorVector(MonitorBasisY);
   RotateMonitorVector(MonitorBasisZ);
+  
 
   rotated = true;
 }
 
 void protoana::ProtoDUNEBeamlineUtils::RotateMonitorVector(TVector3 &vec){
-  vec.RotateY(fRotateMonitorXZ * TMath::Pi()/180.);
-  vec.RotateZ(fRotateMonitorYX * TMath::Pi()/180.);
+  vec.RotateX( fRotateMonitorYZ * TMath::Pi()/180. );
+  vec.RotateY( fRotateMonitorXZ * TMath::Pi()/180. );
 }
 
 
@@ -466,7 +468,7 @@ protoana::PossibleParticleCands protoana::ProtoDUNEBeamlineUtils::GetPIDCandidat
   //Get the high/low pressure Cerenkov info
   int high_pressure_status, low_pressure_status; 
   
-  std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
+  //std::cout << "Pressures: " << beamevt.GetCKov0Pressure() << " " << beamevt.GetCKov1Pressure() << std::endl;
   if( beamevt.GetCKov0Pressure() < beamevt.GetCKov1Pressure() ){
     high_pressure_status = beamevt.GetCKov1Status();
     low_pressure_status = beamevt.GetCKov0Status();

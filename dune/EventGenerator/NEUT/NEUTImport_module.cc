@@ -37,8 +37,8 @@
 #include "fhiclcpp/types/Sequence.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
@@ -46,7 +46,7 @@
 // nutools includes
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/EventGeneratorBase/evgenbase.h"
+#include "nugen/EventGeneratorBase/evgenbase.h"
 
 // lar includes
 #include "larcore/Geometry/Geometry.h"
@@ -212,7 +212,7 @@ void evgendp::NEUTImport::beginJob(){
   neutTree->SetBranchAddress("StdHepStatus",&tStdHepStatus);
   neutTree->SetBranchAddress("StdHepPdg",&tStdHepPdg);
 
-  TTree *neutTreeRot;
+  TTree *neutTreeRot = NULL;
 
   if(fUseRotatedStartMomentum)
   {

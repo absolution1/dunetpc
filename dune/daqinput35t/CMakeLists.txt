@@ -32,8 +32,8 @@ simple_plugin(TpcMilliSliceDump "module"
   lardataobj_RawData
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   ${ART_PERSISTENCY_PROVENANCE}
   cetlib cetlib_except
   ${ROOT_HIST})
@@ -45,8 +45,8 @@ simple_plugin(SSPDump "module"
   lardataobj_RawData
   nusimdata_SimulationBase
   art_Framework_Services_Registry
-  art_Framework_Services_Optional
-  art_Framework_Services_Optional_TFileService_service
+  art_root_io_tfile_support ${ROOT_CORE}
+  art_root_io_TFileService_service
   art_Persistency_Provenance
   cetlib cetlib_except
   ${ROOT_HIST})
@@ -84,8 +84,8 @@ nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 cetlib cetlib_except
 art_Framework_Services_Registry
-art_Framework_Services_Optional
-art_Framework_Services_Optional_TFileService_service
+art_root_io_tfile_support ${ROOT_CORE}
+art_root_io_TFileService_service
 ${ROOT_BASIC_LIB_LIST}
 ${ROOT_HIST}
 )
@@ -100,8 +100,8 @@ nusimdata_SimulationBase
 ${MF_MESSAGELOGGER}
 cetlib cetlib_except
 art_Framework_Services_Registry
-art_Framework_Services_Optional
-art_Framework_Services_Optional_TFileService_service
+art_root_io_tfile_support ${ROOT_CORE}
+art_root_io_TFileService_service
 ${ROOT_HIST}
 ${ROOT_SPECTRUM}
 )
@@ -115,8 +115,8 @@ larcore_Geometry_Geometry_service
 larcorealg_Geometry
 lardataobj_RawData
 art_Framework_Services_Registry
-art_Framework_Services_Optional
-${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+art_root_io_tfile_support ${ROOT_CORE}
+${ART_ROOT_IO_TFILESERVICE_SERVICE}
 ${FHICLCPP}
 cetlib cetlib_except
 ${ROOT_BASIC_LIB_LIST}
@@ -132,8 +132,8 @@ simple_plugin(NoiseCorrelation "module"
                                ${ART_FRAMEWORK_CORE}
                                ${ART_FRAMEWORK_PRINCIPAL}
                                ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                               ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                               ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                               ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                               ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                                art_Persistency_Common canvas
                                art_Persistency_Provenance canvas
                                art_Utilities canvas
@@ -146,7 +146,7 @@ simple_plugin(NoiseCorrelation "module"
 simple_plugin(FilterWF "module"
 
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
@@ -157,14 +157,14 @@ simple_plugin(FilterWF "module"
  ${MF_MESSAGELOGGER}
  cetlib cetlib_except
  art_Framework_Services_Registry
- art_Framework_Services_Optional
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ art_root_io_tfile_support ${ROOT_CORE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(CheckRawDigit "module"
 
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
@@ -175,14 +175,14 @@ simple_plugin(CheckRawDigit "module"
  ${MF_MESSAGELOGGER}
  cetlib cetlib_except
  art_Framework_Services_Registry
- art_Framework_Services_Optional
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ art_root_io_tfile_support ${ROOT_CORE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(Sigmoidfilter "module"
 
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
@@ -193,13 +193,13 @@ simple_plugin(Sigmoidfilter "module"
  ${MF_MESSAGELOGGER}
  cetlib cetlib_except
  art_Framework_Services_Registry
- art_Framework_Services_Optional
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ art_root_io_tfile_support ${ROOT_CORE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(FilterAnalyzer "module"
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
@@ -210,13 +210,13 @@ simple_plugin(FilterAnalyzer "module"
  ${MF_MESSAGELOGGER}
  cetlib cetlib_except
  art_Framework_Services_Registry
- art_Framework_Services_Optional
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ art_root_io_tfile_support ${ROOT_CORE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(FilterAnalyzerRunList "module"
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
  lbne-raw-data_Overlays
  lbne_daqinput35t_utilities
@@ -227,8 +227,8 @@ simple_plugin(FilterAnalyzerRunList "module"
  ${MF_MESSAGELOGGER}
  art_Framework_Services_Registry
  cetlib cetlib_except
- art_Framework_Services_Optional
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ art_root_io_tfile_support ${ROOT_CORE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 )
 
 simple_plugin(GoodRun "module"
@@ -238,7 +238,7 @@ simple_plugin(GoodRun "module"
  lardataobj_RawData
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
  cetlib cetlib_except
  ${ROOT_BASIC_LIB_LIST}
  ${ROOT_CORE}
@@ -251,7 +251,7 @@ simple_plugin(BadTimings "module"
  lardataobj_RawData
  ${ART_FRAMEWORK_CORE}
  ${ART_FRAMEWORK_PRINCIPAL}
- ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+ ${ART_ROOT_IO_TFILESERVICE_SERVICE}
  cetlib cetlib_except
  ${ROOT_BASIC_LIB_LIST}
  ${ROOT_CORE}
@@ -259,9 +259,9 @@ simple_plugin(BadTimings "module"
 
 simple_plugin(SplitterInput "source"
  lbne_daqinput35t
- art_Framework_IO_Root
+ art_root_io
  art_Framework_IO_Sources
- larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+ larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
  ${ROOT_TREE}
  ${ROOT_RIO}
  ${MF_MESSAGELOGGER}

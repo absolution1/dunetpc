@@ -86,6 +86,7 @@ dunefd_ophit_single.SPEShift:    0.304
 dunefd_ophit_threegang:          @local::dunefd_ophit_single
 dunefd_ophit_threegang.SPEArea:  264
 dunefd_ophit_threegang.SPEShift: 0.430
+dunefd_ophit_threegang.HitAlgoPset.ADCThreshold: 6
 
 dunefd_ophit: @local::dunefd_ophit_threegang
 
@@ -106,6 +107,7 @@ protodune_ophit_data_unsplit: @local::protodune_ophit
 protodune_ophit_data_unsplit.InputModule:  ssprawdecoder
 protodune_ophit_data_unsplit.InputLabels: [ "daq" ]
 protodune_ophit_data_unsplit.UseCalibrator: true
+protodune_ophit_data_unsplit.HitAlgoPset.ADCThreshold: 10
 
 # Make variants for internal/external split waveforms
 protodune_ophit_data_internal: @local::protodune_ophit_data_unsplit
@@ -219,6 +221,31 @@ dunedphase3x1x1_opdigi:
 }
 
 dunedphase3x1x1_opdigiana: @local::dunefd_opdigiana
+
+protodunedphase_opdigi: @local::dunedphase3x1x1_opdigi
+protodunedphase_opdigi.FullWaveformOutput: false
+protodunedphase_opdigi.Gain:            10.25        # in ADC counts x ticks
+protodunedphase_opdigi.DefaultSimWindow: false
+protodunedphase_opdigi.PreTrigger: 0
+protodunedphase_opdigi.ReadoutWindow: 5e5
+protodunedphase_opdigi.Padding: 4000
+protodunedphase_opdigi.CustomQEperOpDet: true
+protodunedphase_opdigi.QEVector:
+[0.036,0.036,0.120,0.036,0.036,0.036,0.036,0.036,0.036,0.036,
+ 0.120,0.036,0.036,0.036,0.036,0.120,0.036,0.036,0.036,0.036,
+ 0.036,0.120,0.036,0.036,0.036,0.036,0.120,0.036,0.036,0.036,
+ 0.036,0.036,0.036,0.036,0.120,0.036]
+protodunedphase_opdigi.algo_threshold: #algorith used to split the waveforms when FullWaveformOutput: false
+{
+    Name:            "SSP_LED"
+    ADCThreshold:    4
+    Pedestal:        100
+    DWindow:         10
+    ReadoutWd:       4000
+    PreTrg:          300
+}
+
+protodunedphase_opdigiana: @local::dunefd_opdigiana
 
 dunefddphase_opdigi: @local::dunedphase3x1x1_opdigi
 dunefddphase_opdigi.FullWaveformOutput: false

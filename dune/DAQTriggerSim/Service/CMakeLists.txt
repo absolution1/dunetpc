@@ -6,9 +6,9 @@
 # CMake instructions for DAQTriggerSim/Services
 
 simple_plugin(TemplateTriggerService   "service"
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                 ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-                nutools_RandomUtils_NuRandomService_service
+                nurandom_RandomUtils_NuRandomService_service
                 ${ART_FRAMEWORK_CORE}
                 ${ART_FRAMEWORK_PRINCIPAL}
                 art_Utilities canvas
@@ -23,7 +23,7 @@ simple_plugin(HardwareMapperService   "service"
                 ${ART_FRAMEWORK_CORE}
                 ${ART_FRAMEWORK_PRINCIPAL}
                 ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                ${ART_FRAMEWORK_SERVICES_OPTIONAL}
+                ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
                 ${ART_PERSISTENCY_PROVENANCE}
                 ${MF_MESSAGELOGGER}
                 ${ROOT_BASIC_LIB_LIST}

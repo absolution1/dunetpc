@@ -13,7 +13,7 @@
 
 void setExpectedValues(ExpectedValues& ev) {
   ev.gname = "protodune_geo";
-  ev.fullname = "protodune";
+  ev.fullname = "protodunev7";
   // Geometry counts.
   ev.ncry = 1;
   ev.ntpc = 12;
@@ -78,20 +78,22 @@ void setExpectedValues(ExpectedValues& ev) {
   // Space points.
   #include "setProtoDuneSpacePoints.dat"
   // Optical detectors.
-  // ... # detectors
-  ev.nopdet = 10*ev.napa;
+  // ... # detectors    Modified for 2 ARAPUCAS
+  ev.nopdet = 10*ev.napa - 2 + 2*16;
   // ... # channels in each detector
   ev.nopdetcha.resize(ev.nopdet, 4);
-  ev.nopdetcha[31] = 12;
-  ev.nopdetcha[46] = 12;
+  for ( Index icha=29; icha<=60; ++icha ) ev.nopdetcha[icha] =  1;
   // ... First channel in each detector
   vector<Index> firstChan = {
-      0, 144,   4, 148,   8, 152,  12, 156,  16, 160,
-     20, 164,  24, 168,  28, 172,  32, 176,  36, 180,
-     48, 240,  52, 244,  56, 248,  60, 252,  64, 256,
-     68, 264,  72, 260,  76, 276,  80, 280,  84, 284,
-     96, 216, 100, 220, 104, 224, 132, 228, 108, 192,
-    112, 232, 116, 196, 120, 200, 124, 236, 128, 204
+    144, 148, 152, 156, 160, 164, 168, 172, 176, 180,
+    240, 244, 248, 252, 256, 260, 276, 280, 284, 216,
+    220, 224, 228, 192, 232, 196, 200, 236, 204, 264,
+    264, 265, 265, 266, 266, 267, 267, 268, 269, 270,
+    271, 272, 273, 274, 275, 132, 132, 133, 133, 134,
+    134, 135, 135, 136, 137, 138, 139, 140, 141, 142,
+    143,   0,   4,   8,  12,  16,  20,  24,  28,  32,
+     36,  48,  52,  56,  60,  64,  68,  72,  76,  80,
+     84,  96, 100, 104, 108, 112, 116, 120, 124, 128
   };
   ev.opdetcha.resize(ev.nopdet);
   Index ncha = 0;
@@ -104,7 +106,8 @@ void setExpectedValues(ExpectedValues& ev) {
       ++ncha;
     }
   }
-  ev.nopcha = ncha;
+  ev.nopchaHardware = ncha;
+  ev.nopcha = ncha - 8;
 }
 
 //**********************************************************************

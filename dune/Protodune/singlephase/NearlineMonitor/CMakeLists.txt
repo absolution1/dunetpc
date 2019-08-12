@@ -8,8 +8,8 @@ simple_plugin(SPLifetime "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               art_Persistency_Common
               art_Utilities
@@ -32,8 +32,8 @@ simple_plugin(PlotTrackT0 "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               art_Persistency_Common
               art_Utilities
@@ -56,8 +56,8 @@ simple_plugin(PlotTrackDetails "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               art_Persistency_Common
               art_Utilities
@@ -80,8 +80,8 @@ simple_plugin(PlotEventDetails "module"
       ${ART_FRAMEWORK_CORE}
       ${ART_FRAMEWORK_PRINCIPAL}
       ${ART_FRAMEWORK_SERVICES_REGISTRY}
-      ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-      ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+      ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+      ${ART_ROOT_IO_TFILESERVICE_SERVICE}
       ${ART_PERSISTENCY_PROVENANCE}
       art_Persistency_Common
       art_Utilities 
@@ -100,8 +100,8 @@ simple_plugin(PlotOpticalDetails "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               art_Persistency_Common
               art_Utilities
@@ -122,8 +122,8 @@ simple_plugin(RawEventDisplay "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
@@ -139,8 +139,8 @@ simple_plugin(TpcMonitor "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}
@@ -156,8 +156,8 @@ simple_plugin(SSPMonitor "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}
@@ -169,8 +169,8 @@ simple_plugin(PDSPNearlineHeader "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               art_Persistency_Common
               art_Utilities
               canvas
@@ -188,8 +188,8 @@ simple_plugin(PDSPHitMonitor "module"
               ${ART_FRAMEWORK_CORE}
               ${ART_FRAMEWORK_PRINCIPAL}
               ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-              ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
               ${ART_PERSISTENCY_PROVENANCE}
               ${MF_MESSAGELOGGER}
               ${CETLIB}

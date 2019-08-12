@@ -484,9 +484,9 @@ $ExtractionGridRadious = 0.05;
 $ExtractionGridPitch = 0.3;
 
 $ExtractionGridSizeX = 2*$ExtractionGridRadious;
-$ExtractionGridSizeY = 600;
-$ExtractionGridSizeZ = 600;
 
+$ExtractionGridSizeY =  $widthCRM_active;
+$ExtractionGridSizeZ = $lengthCRM_active;
 
 print ExtractionGrid <<EOF;
 
@@ -512,7 +512,7 @@ print ExtractionGrid <<EOF;
   <solidref ref="solExtractionGrid"/>
 EOF
 
-for($ii=0;$ii<$$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
+for($ii=0;$ii<$ExtractionGridSizeY;$ii=$ii+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -524,7 +524,7 @@ EOF
  
 }
 
-for($jj=0;$jj<$$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
+for($jj=0;$jj<$ExtractionGridSizeZ;$jj=$jj+$ExtractionGridPitch)
 {
 	print ExtractionGrid <<EOF;
   <physvol>
@@ -748,7 +748,7 @@ EOF
   if ( $ExtractionGrid_switch eq "on" )
   {
 
-      print CRYO <<EOF;
+      print TPC <<EOF;
   <physvol>
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="$ExtractionGridX" y="$ExtractionGridY" z="$ExtractionGridZ"/>
@@ -1806,6 +1806,7 @@ print PMT <<EOF;
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -1819,12 +1820,12 @@ print PMT <<EOF;
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>
 
  </volume>
@@ -1922,7 +1923,7 @@ EOF
       <solidref ref="Cryostat" />
       <physvol>
         <volumeref ref="volGaseousArgon"/>
-        <position name="posGaseousArgon" unit="cm" x="$Argon_x/2-$HeightGaseousAr/2" y="0" z="0"/>
+        <position name="posGaseousArgon" unit="cm" x="@{[$Argon_x/2-$HeightGaseousAr/2]}" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volSteelShell"/>

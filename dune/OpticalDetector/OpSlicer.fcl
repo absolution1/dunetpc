@@ -1,0 +1,25 @@
+BEGIN_PROLOG
+
+standard_opslicer:
+{
+   module_type:          "OpSlicer"
+   OpHitModuleLabel:     "ophit"
+
+   TScale:                "0.15" # distance scale in cm
+   RScale:                "600" # time scale in ns
+   R0:                    "1" # distance cut around centroid for delayed light
+   BreakTime:             "5" # max time delay for integrating up delayed light
+   MinN:                  "3" # min # of ophits to make a cluster
+
+   TrigCoinc:             "2.5" # max time (us) to beam spill for coincidence
+}
+
+protodune_opslicer: @local::standard_opslicer
+
+protodune_opslicer_data_internal: @local::protodune_opslicer
+protodune_opslicer_data_internal.OpHitModuleLabel: "ophitInternal"
+protodune_opslicer_data_external: @local::protodune_opslicer
+protodune_opslicer_data_external.OpHitModuleLabel: "ophitExternal"
+
+
+END_PROLOG

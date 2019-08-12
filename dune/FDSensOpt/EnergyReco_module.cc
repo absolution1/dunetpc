@@ -19,10 +19,10 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "fhiclcpp/ParameterSet.h" 
 #include "messagefacility/MessageLogger/MessageLogger.h" 
-#include "art/Framework/Services/Optional/TFileService.h" 
+#include "art_root_io/TFileService.h"
 #include "art/Persistency/Common/PtrMaker.h"
 
-#include "nutools/NuReweight/art/NuReweight.h"
+#include "nugen/NuReweight/art/NuReweight.h"
 #include "Utils/AppInit.h"
 #include "nusimdata/SimulationBase/GTruth.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
@@ -124,7 +124,7 @@ namespace dune {
 
   //------------------------------------------------------------------------------
   EnergyReco::EnergyReco(fhicl::ParameterSet const& pset)
-    : fCaloAlg (pset.get<fhicl::ParameterSet>("CalorimetryAlg"))
+    : EDProducer(pset), fCaloAlg (pset.get<fhicl::ParameterSet>("CalorimetryAlg"))
   {
     produces<dune::EnergyRecoOutput>();
     produces<art::Assns<dune::EnergyRecoOutput, recob::Track>>();

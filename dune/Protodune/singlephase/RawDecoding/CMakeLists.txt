@@ -1,3 +1,29 @@
+include_directories( "$ENV{DUNEPDSPRCE_INC}" )
+cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
+
+simple_plugin(PDSPTPCDataInterface   "tool"
+				     art_utilities
+				     canvas
+				     cetlib
+				     cetlib_except
+                        lardataobj_RawData
+                        dune-raw-data_Overlays
+                        artdaq-core_Data
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                        ${ART_PERSISTENCY_PROVENANCE}
+                        ${MF_MESSAGELOGGER}
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${RCEDAMLIB}
+                        z
+             )
+
+
 simple_plugin(TimingRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
@@ -5,8 +31,8 @@ simple_plugin(TimingRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -23,8 +49,8 @@ simple_plugin(SSPRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -42,8 +68,8 @@ simple_plugin(PDWaveform "module"
                          ${ART_FRAMEWORK_CORE}
                          ${ART_FRAMEWORK_PRINCIPAL}
                          ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                         ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                         ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                         ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                          ${MF_MESSAGELOGGER}
 			 dune_Geometry
 			 ${CETLIB}
@@ -53,8 +79,6 @@ simple_plugin(PDWaveform "module"
 )
 ]]
 
-include_directories( "$ENV{DUNEPDSPRCE_INC}" )
-cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
 
 simple_plugin(RceRawDecoder "module"
                         lardataobj_RawData
@@ -64,8 +88,8 @@ simple_plugin(RceRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -83,8 +107,8 @@ simple_plugin(FelixRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -102,8 +126,8 @@ simple_plugin(PDSPTPCRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -115,12 +139,13 @@ simple_plugin(PDSPTPCRawDecoder "module"
 
 simple_plugin(CRTRawDecoder "module"
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+                        dune_Geometry
+			artdaq-core_Data
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${CETLIB}
@@ -135,8 +160,8 @@ simple_plugin(PDSPCTBRawDecoder "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         ${ART_PERSISTENCY_PROVENANCE}
                         ${MF_MESSAGELOGGER}
                         ${MF_MESSAGELOGGER}
@@ -156,8 +181,8 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
                   ${ART_FRAMEWORK_CORE}
                   ${ART_FRAMEWORK_PRINCIPAL}
                   ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
  #                 art_Persistency_Common canvas_Persistency_Common
  #                 art_Persistency_Provenance canvas_Persistency_Provenance
  #                 art_Utilities canvas_Utilities

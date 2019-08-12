@@ -72,7 +72,8 @@ private:
 
 
 dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
-  : fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
+  : EDProducer(p)
+  , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
   , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
   , fModBoxA               (p.get< double >("ModBoxA"))
@@ -167,7 +168,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           if (!normcorrection) normcorrection = 1.;
           if (!xcorrection) xcorrection = 1.;
           if (!yzcorrection) yzcorrection = 1.;
-          //vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
+          vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
           
           
           //set time to be trgger time so we don't do lifetime correction
@@ -184,7 +185,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0., 0., 0.};
           
-          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()});
+          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()},planeID.TPC);
           
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();

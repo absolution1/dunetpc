@@ -1,0 +1,42 @@
+#include "filters.fcl"
+#include "triggeralgo_service.fcl"
+
+#include "hitfindermodules_dune.fcl"
+#include "signalservices_dune.fcl"
+#include "caldata_dune.fcl"
+#include "trackfindermodules_dune.fcl"
+#include "ecalibration.fcl"
+#include "ProtoDUNEDataUtils.fcl"
+#include "photpropservices_dune.fcl"
+#include "ProtoDUNEBeamlineFilter.fcl"
+#include "ProtoDUNEBeamlineUtils.fcl"
+
+BEGIN_PROLOG
+
+pionanalysis:
+{
+  module_type: "PionAnalyzerMC"
+  SpacePointModuleLabel:  "reco3d"
+  TrackModuleLabel:       "pandoraTrack"
+  TimeDecoderModuleLabel: "timingrawdecoder:daq"
+
+  CalorimetryTag:         "pandoracalo"
+  TrackerTag:             "pandoraTrack"
+  HitTag:                 "linecluster"
+  ShowerTag:              "pandoraShower"
+  PFParticleTag:          "pandora"
+  GeneratorTag:           "generator"
+  dEdX_template_name:     "/dune/data/users/calcuttj/dEdxrestemplates.root"
+  Verbose:                true
+  DataUtils: @local::standard_protodunedatautils
+
+  SelectEvents: [fpath]
+
+
+
+}
+
+END_PROLOG
+
+
+

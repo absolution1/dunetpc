@@ -23,6 +23,7 @@
 #include <memory>
 #include "TLatex.h"
 #include "TLine.h"
+#include "TLegend.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -59,6 +60,8 @@ public:
   using TObjPtr = std::shared_ptr<TObject>;
   using TObjVector = std::vector<TObjPtr>;
   using BoundsVector = std::vector<Bounds>;
+  using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -144,6 +147,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
+  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj].get() : nullptr; }
   TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
@@ -195,6 +199,9 @@ public:
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
 
+  // Return the legend.
+  TLegend* getLegend() const { return dynamic_cast<TLegend*>(object(m_iobjLegend)); }
+
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
   // The title is drawn as specified in the promary object, i.e. typically
@@ -238,6 +245,14 @@ public:
   int setTickLengthX(double len) { m_tickLengthX = len; return update(); }
   int setTickLengthY(double len) { m_tickLengthY = len; return update(); }
 
+  // Set the tick/label division guides.
+  int setNdivisionsX(int ndiv) { m_ndivX = ndiv; return 0; };
+  int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
+
+  // Set the axis label sizes.
+  int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
+  int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
   int setRangeX(double x1, double x2);
@@ -250,6 +265,18 @@ public:
   int setLogRangeX(double x1, double x2);
   int setLogRangeY(double y1, double y2);
   int setLogRangeZ(double y1, double y2);
+
+  // Set the time offset in second for axes using time format.
+  // 0 (default) is UTC (GMT).
+  int setTimeOffset(double toff);
+
+  // Set the time format for an axis.
+  // If blank (default), time format is not used.
+  // The format is similar to that of strftime.
+  // See TAxis::SetTimeFormat for more information.
+  // Append "%Fyyyy-mm-dd hh:mm:ss" to set the time offset.
+  int setTimeFormatX(std::string sfmt);
+  int setTimeFormatY(std::string sfmt);
 
   // Add or remove top and right axis.
   int addAxis(bool flag =true);
@@ -293,6 +320,11 @@ public:
   // The lines are draw with style isty from the low edge to lenfrac*width
   int addVerticalModLines(double xmod, double xoff =0.0, double lenfrac =1.0, int isty =3);
   int addHorizontalModLines(double ymod, double yoff =0.0, double lenfrac =1.0, int isty =3);
+
+  // Set text bin labels. 
+  // Only used if primary object is a histogram (2D for y).
+  int setBinLabelsX(const NameVector& labs);
+  int setBinLabelsY(const NameVector& labs);
 
   // Add histogram function ifun to the pad.
   int addHistFun(unsigned int ifun =0);
@@ -352,6 +384,10 @@ private:
   bool m_logZ;
   double m_tickLengthX;
   double m_tickLengthY;
+  int m_ndivX;
+  int m_ndivY;
+  double m_labSizeX;
+  double m_labSizeY;
   std::shared_ptr<TH1> m_flowHist;
   bool m_showUnderflow;
   bool m_showOverflow;
@@ -376,8 +412,14 @@ private:
   std::vector<double> m_slYoff;
   std::vector<int> m_slStyl;
   std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  NameVector m_binLabelsX;
+  NameVector m_binLabelsY;
+  double m_timeOffset =0.0;
+  std::string m_timeFormatX;
+  std::string m_timeFormatY;
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
+  Index m_iobjLegend;
 
 };
 

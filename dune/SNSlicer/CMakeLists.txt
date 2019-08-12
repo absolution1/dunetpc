@@ -11,13 +11,13 @@ simple_plugin(SNSlicer "module"
                         lardataobj_RawData
 			lardataobj_RecoBase
 			nusimdata_SimulationBase
-                        nutools_ParticleNavigation
+                        nug4_ParticleNavigation
                         lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas_Persistency_Common
                         art_Persistency_Provenance canvas_Persistency_Provenance
                         art_Utilities canvas_Utilities

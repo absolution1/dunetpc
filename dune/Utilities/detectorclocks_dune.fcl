@@ -28,6 +28,8 @@ dunefddphase_detectorclocks.ClockSpeedTrigger:   16.  # Trigger clock speed in M
 dunefddphase_detectorclocks.DefaultTrigTime:      0.  # Default trigger time [us].
 dunefddphase_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
 
+protodunedphase_detectorclocks: @local::standard_detectorclocks
+protodunedphase_detectorclocks.ClockSpeedOptical:   62.5 # Optical clock speed in MHz
 
 dune35t_detectorclocks: @local::standard_detectorclocks
 

@@ -7,7 +7,7 @@ art_make( BASENAME_ONLY
 			   larevt_Filters
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
-                           lardata_RecoObjects larreco_Deprecated
+                           lardata_RecoObjects
 			   larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
                            lardata_Utilities
@@ -17,8 +17,8 @@ art_make( BASENAME_ONLY
    			   ${ART_FRAMEWORK_PRINCIPAL}
 			   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			   ${ART_FRAMEWORK_SERVICES_BASIC}
-			   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+			   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                            ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
 			   art_Persistency_Common canvas
 		       	   art_Persistency_Provenance canvas
@@ -39,14 +39,14 @@ art_make( BASENAME_ONLY
 			   larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
                            lardata_Utilities
-			   nutools_RandomUtils_NuRandomService_service
+			   nurandom_RandomUtils_NuRandomService_service
 			   nusimdata_SimulationBase
  			   ${ART_FRAMEWORK_CORE}
 			   ${ART_FRAMEWORK_PRINCIPAL}
 			   ${ART_FRAMEWORK_SERVICES_REGISTRY}
 			   ${ART_FRAMEWORK_SERVICES_BASIC}
-			   ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			   ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+			   ${ART_ROOT_IO_TFILESERVICE_SERVICE}
 			   art_Persistency_Common canvas
 			   art_Utilities canvas
 			   ${MF_MESSAGELOGGER}

@@ -56,8 +56,8 @@ cet_find_library( GREINSEHGAL NAMES ${GRSSPELLING} PATHS ENV GENIE_LIB NO_DEFAUL
 ##cet_find_library( SYSTTOOLS NAMES systematicstools_interface systematicstools_interpreters systematicstools_utility PATHS ENV SYSTEMATICSTOOLS_LIB NO_DEFAULT_PATH )
 
 simple_plugin(CAFMaker   "module"
-                        nutools_NuReweight
-                        nutools_NuReweight_art
+                        nugen_NuReweight
+                        nugen_NuReweight_art
 			nusimdata_SimulationBase
                         ${GHEP}
                         ${GEVGCORE}
@@ -65,8 +65,8 @@ simple_plugin(CAFMaker   "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas

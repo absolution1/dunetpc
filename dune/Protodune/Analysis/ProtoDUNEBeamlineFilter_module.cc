@@ -12,7 +12,7 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
@@ -84,7 +84,7 @@ private:
   
 //-----------------------------------------------------------------------
 protoana::ProtoDUNEBeamlineFilter::ProtoDUNEBeamlineFilter(fhicl::ParameterSet const& pset):
-  fBeamlineUtils(pset.get<fhicl::ParameterSet>("BeamlineUtils"))
+  EDFilter(pset), fBeamlineUtils(pset.get<fhicl::ParameterSet>("BeamlineUtils"))
 {
 
   this->reconfigure(pset);

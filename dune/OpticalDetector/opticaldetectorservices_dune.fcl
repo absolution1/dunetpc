@@ -4,20 +4,6 @@
 BEGIN_PROLOG
 
 
-##
-# Opdigi Properties for both detectors
-##
-
-dunefd_opdigiproperties:           @local::standard_opdigiproperties
-dunefd_opdigiproperties.WaveformFile: "dune/OpticalDetector/sensl_1.dat"
-dunefd_opdigiproperties.UseEmpiricalShape: true
-dunefd_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
-
-dune35t_opdigiproperties:           @local::standard_opdigiproperties
-dune35t_opdigiproperties.WaveformFile: "dune/OpticalDetector/sensl_1.dat"
-dune35t_opdigiproperties.UseEmpiricalShape: true
-dune35t_opdigiproperties_3windows:  @local::standard_opdigiproperties_3windows
-
 #
 ## dune photon backtracker
 #
@@ -143,6 +129,12 @@ dunedphase3x1x1_opdigiproperties:
   VoltageAmpForSPE:        0.04  # 40mV/p.e.
   WaveformChargeNormalized: true
 }
+
+protodunedphase_opdigiproperties:           @local::dunedphase3x1x1_opdigiproperties
+protodunedphase_opdigiproperties.QE: 0.036  #
+protodunedphase_opdigiproperties.SampleFreq: 62.5  #  https://www.caen.it/products/v1740/
+protodunedphase_opdigiproperties.TimeBegin: -4000  #
+protodunedphase_opdigiproperties.TimeEnd: 4000  #
 
 dunefddphase_opdigiproperties:           @local::dunedphase3x1x1_opdigiproperties
 dunefddphase_opdigiproperties.QE: 0.12  # as stablished in arxiv:1807.07123

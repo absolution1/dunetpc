@@ -19,17 +19,16 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "canvas/Utilities/Exception.h"
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Optional/TFileService.h" //vitor
-#include "art/Framework/Services/Optional/TFileDirectory.h"//vitor
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 
 
 // ART extensions
-#include "nutools/RandomUtils/NuRandomService.h"
+#include "nurandom/RandomUtils/NuRandomService.h"
 
 // LArSoft includes
 
@@ -285,7 +284,7 @@ namespace opdet {
                                            << " is too large.  It is larger than the prescaling applied during simulation, "
                                            << LarProp->ScintPreScale()
                                            << ".  Final QE must be equalt to or smaller than the QE applied at simulation time.";
-        assert(false);
+        std::abort();
       }
     }
     if (tempRefQE > 0) {
@@ -300,7 +299,7 @@ namespace opdet {
                                            << " is too large.  It is larger than the prescaling applied during simulation, "
                                            << LarProp->ScintPreScale()
                                            << ".  Final QE must be equalt to or smaller than the QE applied at simulation time.";
-        assert(false);
+        std::abort();
       }
     }
 
@@ -343,11 +342,7 @@ namespace opdet {
     
     // Initializing random number engines
     unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
-    createEngine(seed);
-
-    art::ServiceHandle< art::RandomNumberGenerator > rng;
-    CLHEP::HepRandomEngine &engine = rng->getEngine(art::ScheduleID::first(),
-                                                    pset.get<std::string>("module_label"));
+    auto& engine = createEngine(seed);
     fRandGauss       = std::make_unique< CLHEP::RandGauss       >(engine);
     fRandExponential = std::make_unique< CLHEP::RandExponential >(engine);
     fRandFlat        = std::make_unique< CLHEP::RandFlat        >(engine);

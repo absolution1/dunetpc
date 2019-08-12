@@ -14,8 +14,8 @@ art_make(
   ${ART_FRAMEWORK_PRINCIPAL}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
   art_Persistency_Common
   art_Utilities
@@ -32,25 +32,25 @@ art_make(
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larevt_Filters
-  lardata_RecoObjects larreco_Deprecated
+  lardata_RecoObjects
   lardataobj_RecoBase
   lardataobj_MCBase
   larreco_RecoAlg
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
-  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   lardata_Utilities
   lardataobj_RawData
   larreco_Calorimetry
   lardataobj_AnalysisBase
-  nutools_RandomUtils_NuRandomService_service
+  nurandom_RandomUtils_NuRandomService_service
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_CORE}
   ${ART_FRAMEWORK_PRINCIPAL}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
   ${ART_PERSISTENCY_PROVENANCE}
   art_Persistency_Common
@@ -68,8 +68,8 @@ art_make(
   ${ART_FRAMEWORK_PRINCIPAL}
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
   art_Persistency_Common
   art_Utilities
   canvas

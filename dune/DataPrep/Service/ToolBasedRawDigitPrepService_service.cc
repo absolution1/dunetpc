@@ -14,6 +14,8 @@ using std::vector;
 using std::ostringstream;
 using raw::RawDigit;
 
+using Index = unsigned int;
+
 //**********************************************************************
 
 ToolBasedRawDigitPrepService::
@@ -54,6 +56,52 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
 
 //**********************************************************************
 
+int ToolBasedRawDigitPrepService::beginEvent(const DuneEventInfo& devt) const {
+  const string myname = "ToolBasedRawDigitPrepService:beginEvent: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Begin processing run " << devt.runString();
+    cout << " event " << devt.event;
+    cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
+  }
+  Index nfail = 0;
+  if ( m_AdcChannelNamedTools.size() ) {
+    for ( NamedTool nt : m_AdcChannelNamedTools ) {
+      DataMap ret = nt.tool->beginEvent(devt);
+      if ( ret.status() ) {
+        ++nfail;
+        cout << myname << "WARNING: Iniitalization for tool " << nt.name
+             << " failed for event " << devt.event << " with status code " << ret.status() << endl;
+      }
+    }
+  }
+  return nfail;
+}
+
+//**********************************************************************
+
+int ToolBasedRawDigitPrepService::endEvent(const DuneEventInfo& devt) const {
+  const string myname = "ToolBasedRawDigitPrepService:endEvent: ";
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "End processing run " << devt.runString();
+    cout << " event " << devt.event;
+    cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
+  }
+  Index nfail = 0;
+  if ( m_AdcChannelNamedTools.size() ) {
+    for ( NamedTool nt : m_AdcChannelNamedTools ) {
+      DataMap ret = nt.tool->endEvent(devt);
+      if ( ret.status() ) {
+        ++nfail;
+        cout << myname << "WARNING: Finalization for tool " << nt.name
+             << " failed for event " << devt.event << " with status code " << ret.status() << endl;
+      }
+    }
+  }
+  return nfail;
+}
+
+//**********************************************************************
+
 int ToolBasedRawDigitPrepService::
 prepare(AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
@@ -65,7 +113,19 @@ prepare(AdcChannelDataMap& datamap,
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Running tool " << nt.name << endl;
       DataMap ret = nt.tool->updateMap(datamap);
-      if ( ret ) cout << myname << "WARNING: Tool " << nt.name << " failed with error " << ret.status() << endl;
+      if ( ret ) {
+        cout << myname << "WARNING: Tool " << nt.name << " failed";
+        if ( ret.haveIntVector("failedChannels") ) {
+          Index ncha = ret.getIntVector("failedChannels").size();
+          cout << " for " << ncha << " channel" << (ncha == 1 ? "" : "s");
+        }
+        cout << " with error " << ret.status();
+        if ( ret.haveIntVector("failedCodes") ) {
+          Index ncod = ret.getIntVector("failedCodes").size();
+          if ( ncod > 1 ) cout << " and "  << ncod - 1 << " other errors";
+        }
+        cout << "." << endl;
+      }
       if ( m_LogLevel >= 4 ) {
         cout << myname << "----------------------------" << endl;
         ret.print();

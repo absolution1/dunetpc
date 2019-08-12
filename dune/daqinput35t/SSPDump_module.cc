@@ -9,7 +9,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
+#include "art_root_io/TFileService.h"
 
 #include "canvas/Utilities/Exception.h"
 #include "lbne-raw-data/Overlays/SSPFragment.hh"

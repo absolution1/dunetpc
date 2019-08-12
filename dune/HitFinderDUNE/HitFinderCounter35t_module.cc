@@ -27,8 +27,8 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Core/EDProducer.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 
 // LArSoft Includes
 #include "larcore/Geometry/Geometry.h"
@@ -47,7 +47,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Seed Service
-#include "nutools/RandomUtils/NuRandomService.h"
+#include "nurandom/RandomUtils/NuRandomService.h"
 #include "CLHEP/Random/RandomEngine.h"
 
 // Want to include the CounterPositionMapFunction

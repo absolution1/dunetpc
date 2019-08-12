@@ -13,7 +13,7 @@
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "CLHEP/Random/RandFlat.h"
-
+#include <boost/algorithm/string.hpp>
 
 namespace opdet{
 
@@ -71,7 +71,7 @@ namespace opdet{
                                                       << " is too large.  It is larger than the prescaling applied during simulation, "
                                                       << LarProp->ScintPreScale()
                                                       << ".  Final QE must be equalt to or smaller than the QE applied at simulation time.";
-            assert(false);
+            std::abort();
         }
 
     }
@@ -136,7 +136,7 @@ namespace opdet{
             }
             else {
                 mf::LogError("DUNEOpDetResponse") << "Unknown axis, fLongAxis = " << fLongAxis;
-                assert(false);
+                std::abort();
             }
 
 

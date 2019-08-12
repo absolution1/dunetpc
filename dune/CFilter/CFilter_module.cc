@@ -61,7 +61,7 @@ namespace filt{
 
   };
 
-   CFilter::CFilter(fhicl::ParameterSet const& pset)
+   CFilter::CFilter(fhicl::ParameterSet const& pset) : EDFilter{pset}
   {
     this->reconfigure(pset);
 

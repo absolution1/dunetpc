@@ -74,7 +74,7 @@ namespace unstick {
   DEFINE_ART_MODULE(UnstickADCCodes)
   
   //-------------------------------------------------
-  UnstickADCCodes::UnstickADCCodes(fhicl::ParameterSet const& pset)
+  UnstickADCCodes::UnstickADCCodes(fhicl::ParameterSet const& pset) : EDProducer{pset}
   {
     this->reconfigure(pset);
     produces< std::vector<raw::RawDigit>   >(fSpillName);

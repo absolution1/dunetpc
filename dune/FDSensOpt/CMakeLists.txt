@@ -68,15 +68,15 @@ simple_plugin(NueAna   "module"
 		        larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
 			nusimdata_SimulationBase
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
  			art_Persistency_Common canvas
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
@@ -89,8 +89,8 @@ simple_plugin(NueAna   "module"
 
 simple_plugin(MVASelect   "module"
                         MVAAlg
-                        nutools_NuReweight
-                        nutools_NuReweight_art
+                        nugen_NuReweight
+                        nugen_NuReweight_art
 			nusimdata_SimulationBase
                         ${GHEP}
                         ${GEVGCORE}
@@ -98,8 +98,8 @@ simple_plugin(MVASelect   "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
@@ -160,15 +160,15 @@ simple_plugin(IniSegReco "module"
 		      larcorealg_Geometry
 		      larcore_Geometry_Geometry_service
 		      lardata_Utilities
-		      larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+		      larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 		      larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
 		      nusimdata_SimulationBase
       		      ${ART_FRAMEWORK_CORE}
 		      ${ART_FRAMEWORK_PRINCIPAL}
 		      ${ART_FRAMEWORK_SERVICES_REGISTRY}
-      		      ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-      		      ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+      		      ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+      		      ${ART_ROOT_IO_TFILESERVICE_SERVICE}
  		      art_Persistency_Common canvas
 		      art_Persistency_Provenance canvas
 		      art_Utilities canvas
@@ -189,7 +189,7 @@ simple_plugin(ShSeg   "module"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			
 			
 			larsim_MCCheater_BackTrackerService_service
@@ -198,8 +198,8 @@ simple_plugin(ShSeg   "module"
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL}
-			${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+			${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+			${ART_ROOT_IO_TFILESERVICE_SERVICE}
  			art_Persistency_Common canvas
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
@@ -212,8 +212,8 @@ simple_plugin(ShSeg   "module"
 
 simple_plugin(EnergyReco   "module"
                         MVAAlg
-                        nutools_NuReweight
-                        nutools_NuReweight_art
+                        nugen_NuReweight
+                        nugen_NuReweight_art
                         nusimdata_SimulationBase
                         larcore_Geometry_Geometry_service
                         larreco_Calorimetry
@@ -226,8 +226,8 @@ simple_plugin(EnergyReco   "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
@@ -280,8 +280,8 @@ simple_plugin(EnergyReco   "module"
 )
 
 simple_plugin(CheckRecoEnergy   "module"
-                        nutools_NuReweight
-                        nutools_NuReweight_art
+                        nugen_NuReweight
+                        nugen_NuReweight_art
                         nusimdata_SimulationBase
                         ${GHEP}
                         ${GEVGCORE}
@@ -289,8 +289,8 @@ simple_plugin(CheckRecoEnergy   "module"
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-                        ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
