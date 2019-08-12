@@ -832,7 +832,7 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
 
               double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
 
-	if (predictedHitPositionX1<-220 || predictedHitPositionX1>580 || predictedHitPositionY1<-50 || predictedHitPositionY1>620) continue;
+	if (predictedHitPositionX1<-200 || predictedHitPositionX1>580 || predictedHitPositionY1<-50 || predictedHitPositionY1>620) continue;
 
 	double dotProductCos=trackVector*hitVector;
 
