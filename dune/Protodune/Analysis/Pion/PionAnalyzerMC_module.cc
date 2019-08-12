@@ -209,6 +209,7 @@ private:
   std::vector< double > reco_daughter_startX, reco_daughter_endX;
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
   std::vector< double > reco_daughter_startZ, reco_daughter_endZ;
+  std::vector< double > reco_daughter_deltaR;
   std::vector< double > reco_daughter_shower_startX;
   std::vector< double > reco_daughter_shower_startY;
   std::vector< double > reco_daughter_shower_startZ;
@@ -621,6 +622,17 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       reco_daughter_endX.push_back( daughterTrack->Trajectory().End().X() );
       reco_daughter_endY.push_back( daughterTrack->Trajectory().End().Y() );
       reco_daughter_endZ.push_back( daughterTrack->Trajectory().End().Z() );
+
+      double delta_start = sqrt( ( reco_daughter_startX.back() - endX )*( reco_daughter_startX.back() - endX ) + 
+                                 ( reco_daughter_startY.back() - endY )*( reco_daughter_startY.back() - endY ) +
+                                 ( reco_daughter_startZ.back() - endZ )*( reco_daughter_startZ.back() - endZ ) );
+
+      double delta_end =   sqrt( ( reco_daughter_endX.back() - endX )*( reco_daughter_endX.back() - endX ) + 
+                                 ( reco_daughter_endY.back() - endY )*( reco_daughter_endY.back() - endY ) +
+                                 ( reco_daughter_endZ.back() - endZ )*( reco_daughter_endZ.back() - endZ ) );
+
+      reco_daughter_deltaR.push_back( ( delta_start < delta_end ) ? delta_start : delta_end );
+
       reco_daughter_trackID.push_back( daughterTrack->ID() );
 
       reco_daughter_completeness.push_back( truthUtil.GetCompleteness( *daughterTrack, evt, fTrackerTag, fHitTag ) );
@@ -773,20 +785,23 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       }
 
       std::vector< anab::Calorimetry > dummy_calo = showerUtil.GetRecoShowerCalorimetry(*daughterShowerFromRecoTrack, evt, fShowerTag, "showercalo");
-      auto dummy_dQdx = dummy_calo[0].dQdx();
-      auto dummy_dEdx = dummy_calo[0].dEdx();
-      auto dummy_Range = dummy_calo[0].ResidualRange();
- 
+
       reco_daughter_shower_dQdX.push_back( std::vector<double>() );   
       reco_daughter_shower_resRange.push_back( std::vector<double>() );
       reco_daughter_shower_dEdX.push_back( std::vector<double>() );
 
-      for( size_t j = 0; j < dummy_dQdx.size(); ++j ){
-        reco_daughter_shower_dQdX.back().push_back( dummy_dQdx[j] );
-        reco_daughter_shower_resRange.back().push_back( dummy_Range[j] );
-        reco_daughter_shower_dEdX.back().push_back( dummy_dEdx[j] );
+      if( dummy_calo.size() ){
+        std::cout << "Plane: " << dummy_calo[0].PlaneID().toString() << std::endl;      
+        auto dummy_dQdx = dummy_calo[0].dQdx();
+        auto dummy_dEdx = dummy_calo[0].dEdx();
+        auto dummy_Range = dummy_calo[0].ResidualRange();
+ 
+        for( size_t j = 0; j < dummy_dQdx.size(); ++j ){
+          reco_daughter_shower_dQdX.back().push_back( dummy_dQdx[j] );
+          reco_daughter_shower_resRange.back().push_back( dummy_Range[j] );
+          reco_daughter_shower_dEdX.back().push_back( dummy_dEdx[j] );
+        }
       }
-
       //Go through the hits of each daughter and check the CNN scores 
       //Look at the hits from the track:
       int shower_index = showerUtil.GetShowerIndex( *daughterShowerFromRecoTrack, evt, fShowerTag );
@@ -956,6 +971,7 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_endX", &reco_daughter_endX);
   fTree->Branch("reco_daughter_endY", &reco_daughter_endY);
   fTree->Branch("reco_daughter_endZ", &reco_daughter_endZ);
+  fTree->Branch("reco_daughter_deltaR", &reco_daughter_deltaR);
   fTree->Branch("reco_daughter_shower_startX", &reco_daughter_shower_startX);
   fTree->Branch("reco_daughter_shower_startY", &reco_daughter_shower_startY);
   fTree->Branch("reco_daughter_shower_startZ", &reco_daughter_shower_startZ);
@@ -1165,6 +1181,7 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_endX.clear();
   reco_daughter_endY.clear();
   reco_daughter_endZ.clear();
+  reco_daughter_deltaR.clear();
 
   reco_daughter_shower_startX.clear();
   reco_daughter_shower_startY.clear();
