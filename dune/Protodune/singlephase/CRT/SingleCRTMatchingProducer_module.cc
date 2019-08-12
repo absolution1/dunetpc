@@ -571,6 +571,9 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
               double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
 
+
+	if (predictedHitPositionX1<-220 || predictedHitPositionX1>580 || predictedHitPositionY1<50 || predictedHitPositionY1>620) continue;
+
 	double dotProductCos=trackVector*hitVector;
 
         double deltaX1 = (predictedHitPositionX1-X1);
@@ -669,6 +672,8 @@ double xOffset=0;
 
 
               double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
+
+	if (abs(predictedHitPositionX1)>340 || predictedHitPositionY1<-160 || predictedHitPositionY1>560) continue;
 
 	double dotProductCos=trackVector*hitVector;
 
