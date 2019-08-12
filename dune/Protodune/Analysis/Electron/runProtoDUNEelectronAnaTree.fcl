@@ -18,6 +18,7 @@ services:
   ChannelStatusService:         @local::pdsp_channel_status
   Geometry:                     @local::protodune_geo
   LArG4Parameters:              @local::protodune_largeantparameters
+  IFDH :{}
 }
 services.message.destinations.LogStandardOut.threshold: "INFO"
 
@@ -35,7 +36,6 @@ physics:
  {
   pdAnaTree:          @local::proto_AnaTree
  }
- 
  ana:  [ pdAnaTree ]
  
  end_paths:     [ ana ]
@@ -43,5 +43,4 @@ physics:
 }
 
 outputs: {}
-
-pdAnaTree.ShowerCalorimetryTag: "pandoraShowercalo"
+physics.analyzers.pdAnaTree.ShowerCalorimetryTag: "pandoraShowercaloSCE" 
