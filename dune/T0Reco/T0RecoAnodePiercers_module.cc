@@ -140,7 +140,7 @@ class T0RecoAnodePiercers : public art::EDProducer {
     	bool 		TPC_entering_candidate;
     	bool 		TPC_exiting_candidate;
     	bool 		anode_piercing_candidate;
-    	bool 		cathode_crossing_track;
+    	//bool 		cathode_crossing_track;
 	
 		double 		dtMin;
     	double 		dtMax;
@@ -281,13 +281,21 @@ void T0RecoAnodePiercers::produce(art::Event& event){
     	throw std::exception();
 		}
 
-	art::Handle<std::vector<recob::OpFlash> > trigger_h;
+
 	double trigger_time = 0;
 
 	if(!MC){
+		art::Handle<std::vector<recob::OpFlash> > trigger_h;
+		event.getByLabel(fTriggerProducer, trigger_h);
+
+		if(!trigger_h.isValid()) {
+    		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Trigger!"<<std::endl;
+    		throw std::exception();
+		}
+
 		if(fDebug) std::cout << "Loading trigger time from producer " 
 			<< fTriggerProducer << std::endl;
-		event.getByLabel(fTriggerProducer, trigger_h);
+
 		trigger_time = trigger_h->at(0).Time();
 		}
 
@@ -380,7 +388,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		dt_flash_reco = 999;
 
 		anode_piercing_candidate = false;
-		cathode_crossing_track = false;
+		//cathode_crossing_track = false;
 
 		// Get sorted points for the track object [assuming downwards going]
 
@@ -400,7 +408,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 			}
 	
 		// Determine if the track crosses the cathode 
-		auto const* geom = lar::providerFrom<geo::Geometry>();   
+		/*auto const* geom = lar::providerFrom<geo::Geometry>();   
 		auto const* hit = hit_v.at(0);
 		const geo::WireID wireID = hit->WireID();
 		const auto TPCGeoObject = geom->TPC(wireID.TPC,wireID.Cryostat);
@@ -417,6 +425,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 				continue;
 				}
 			}
+		*/
 
 		// ------------------------------------------------------------------------------------
 		// ANODE PIERCERS 
@@ -449,11 +458,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
  				}
 
 			double hit_time = detclock->TPCTick2TrigTime(hit_tick);
-
-			//if(fDebug) std::cout << "\t\tHit from track " << trk_ctr << 
-			//" at tick: " << hit_tick << ", in TPC " << hits->WireID().TPC
-			// << ", plane " << hits->WireID().Plane << " and wire "
-			// << hits->WireID().Wire << std::endl;
 
 			// If track within window, get reco time from earliest hit time
 			if (hit_time < anode_rc_time) anode_rc_time = hit_time;
@@ -489,7 +493,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 					"anode. Reco t0:" << anode_rc_time << " us" << std::endl;
 				}
 			}
-
 
 		if(TPC_entering_candidate||TPC_exiting_candidate) 
 			anode_piercing_candidate = true;
@@ -570,8 +573,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		// ---------------------------------------------------------------
 		// CREATE T0 OBJECT AND ASSIGN TO PFPARTICLE
-
-		// Purity estimated in data from background extrapolation
 
 		if(length>fMinTrackLength&&matched_flash_pe>fMinPE&&
 			dt_flash_reco>dtMin&&dt_flash_reco<dtMax) {
