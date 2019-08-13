@@ -281,7 +281,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
     	throw std::exception();
 		}
 
-
 	double trigger_time = 0;
 
 	if(!MC){
@@ -289,8 +288,10 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		event.getByLabel(fTriggerProducer, trigger_h);
 
 		if(trigger_h->empty()) {
-    		if(Debug) std::cout << "\tTrigger not found. Skipping." << std::endl;
-    		continue;
+    		if(fDebug) std::cout << "\tTrigger not found. Skipping." << std::endl;
+			event.put(std::move(t0_v));
+			event.put(std::move(pfp_t0));
+    		return;
 		}
 
 		if(fDebug) std::cout << "Loading trigger time from producer " 
@@ -406,31 +407,30 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 				if(fDebug) std::cout << "\t\t\tParticle track too short. Skipping." << std::endl;
 				continue;
 			}
-	
-		// Determine if the track crosses the cathode 
-		/*auto const* geom = lar::providerFrom<geo::Geometry>();   
-		auto const* hit = hit_v.at(0);
-		const geo::WireID wireID = hit->WireID();
-		const auto TPCGeoObject = geom->TPC(wireID.TPC,wireID.Cryostat);
-		short int driftDir_start = TPCGeoObject.DetectDriftDirection();
+
+		auto const* geom = lar::providerFrom<geo::Geometry>();   
+		auto const* first_hit = hit_v.at(0);
+		const geo::WireID wireID_start = first_hit->WireID();
+		const auto TPCGeoObject_start = geom->TPC(wireID_start.TPC,wireID_start.Cryostat);
+		short int driftDir_start = TPCGeoObject_start.DetectDriftDirection();
+
 		short int driftDir_end = 0;
+		//cathode_crossing_track = false;
 
-		for (size_t ii = 1; ii < hit_v.size(); ii++) {
-			const geo::WireID wireID2 = hit_v.at(ii)->WireID();
-			const auto TPCGeoObject2 = geom->TPC(wireID2.TPC,wireID2.Cryostat);
-			driftDir_end = TPCGeoObject2.DetectDriftDirection(); 
-
-			if(driftDir_end + driftDir_start == 0) {
-				cathode_crossing_track = true;
-				continue;
+	    for (size_t ii = 1; ii < hit_v.size(); ii++) {
+    		const geo::WireID wireID_end = hit_v.at(ii)->WireID();
+			const auto TPCGeoObject_end = geom->TPC(wireID_end.TPC,wireID_end.Cryostat);
+			driftDir_end = TPCGeoObject_end.DetectDriftDirection(); 
+		
+			if(driftDir_end + driftDir_start == 0){
+				//cathode_crossing_track = true;
+				ii = hit_v.size();
 				}
 			}
-		*/
-
 		// ------------------------------------------------------------------------------------
 		// ANODE PIERCERS 
 
-		if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC 
+		if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID_start.TPC 
 		<< " which has a drift direction of " << driftDir_start << std::endl; 
 
 		// create root trees variables
