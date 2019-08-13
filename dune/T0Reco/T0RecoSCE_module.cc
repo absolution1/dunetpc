@@ -403,13 +403,22 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
     if(fUseOpHits) evt.getByLabel(fOpHitProducer, op_hit_h);
 
-  	art::Handle<std::vector<recob::OpFlash> > trigger_h;
+  	
 	double trigger_time = 0;
 
   	if(!fUseMC){
+		art::Handle<std::vector<recob::OpFlash> > trigger_h;
+
+  		evt.getByLabel(fTriggerProducer, trigger_h);
+
+		if(!trigger_h.isValid()) {
+    		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Trigger!"<<std::endl;
+    		throw std::exception();
+		}
+
 		if(fDebug) std::cout << "Loading trigger time from producer " 
 		<< fTriggerProducer << std::endl;
-  		evt.getByLabel(fTriggerProducer, trigger_h);
+
   		trigger_time = trigger_h->at(0).Time();
   	}
 
