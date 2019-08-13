@@ -38,6 +38,8 @@
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/AnalysisBase/T0.h"
 
+#include "larsim/MCCheater/PhotonBackTrackerService.h"
+
 
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -134,6 +136,7 @@ int moduletoCTB(int module2, int module1);
     int partProcess;
     double mccE;
     double mccT0;
+    double opCRTDiff, opTime, cTime;
    
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
@@ -349,7 +352,50 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
 	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
+	art::Handle< std::vector<recob::OpFlash> > opListHandle;
+	std::vector<art::Ptr<recob::OpFlash> > opHitList;
 
+	if (event.getByLabel(fopModuleLabel, opListHandle))
+	    {
+		art::fill_ptr_vector(opHitList, opListHandle);
+	    }
+
+
+/*
+    std::set<int> signal_trackids;
+    geo::PlaneID planeid;
+
+    try {
+      auto MClistHandle = event.getValidHandle<std::vector<simb::MCTruth> >("generator");
+
+      art::Ptr<simb::MCTruth> mctruth(MClistHandle, 0);
+      if (mctruth->NParticles() == 0) {
+        mf::LogError("FlashMatchAna") << "No MCTruth Particles";
+      }
+
+      // Get all the track ids associated with the signal event.
+      art::FindManyP<simb::MCParticle> SignalGeantAssns(MClistHandle,event,"largeant");
+      for ( size_t i = 0; i < SignalGeantAssns.size(); i++) {
+        auto parts = SignalGeantAssns.at(i);
+        for (auto part = parts.begin(); part != parts.end(); part++) {
+          signal_trackids.emplace((*part)->TrackId());
+        }
+      }
+    }
+    catch (art::Exception const& err){
+    }
+art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
+for(unsigned int i = 0; i < opHitList.size(); ++i) {
+       recob::OpFlash TheFlash = *opHitList[i];
+       art::Ptr<recob::OpFlash> FlashP = opHitList[i];
+       std::vector< art::Ptr<recob::OpHit> > hitFromFlash = pbt->OpFlashToOpHits_Ps(FlashP);
+       std::vector< art::Ptr<recob::OpHit> > matchedHits = pbt->OpFlashToOpHits_Ps(FlashP);
+ 
+       // Calculate the flash purity
+       double purity = pbt->OpHitCollectionPurity(signal_trackids, matchedHits);
+	cout<<"Optical Purity:"<<purity<<endl;
+}
+*/
   primaryHits_F.clear();
   primaryHits_B.clear();
   tracksPair_F.clear();
@@ -373,6 +419,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
   //cout << "Looking for hits in Triggers" << endl;
+
 
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
@@ -598,13 +645,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
   art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
   art::FindManyP<recob::Hit> trackHits(trackListHandle, event, "pandoraTrack");
-	art::Handle< std::vector<recob::OpFlash> > opListHandle;
-	std::vector<art::Ptr<recob::OpFlash> > opHitList;
 
-	if (event.getByLabel(fopModuleLabel, opListHandle))
-	    {
-		art::fill_ptr_vector(opHitList, opListHandle);
-	    }
   int nTracksReco = trackList.size();
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
   int tempId = 0;
@@ -619,10 +660,10 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(iRecoTrack);
 	if(!pfps.size()) continue;
 	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
-        //int t_zero=-999;
+        int t_zero=-99999;
 	if(t0s.size()){ 
-	  //auto t0=t0s.at(0);
-	  //int t_zero=t0->Time();
+	  auto t0=t0s.at(0);
+	   t_zero=t0->Time();
 	 // cout<<"Pandora T0: "<<t_zero<<endl;
    	}
     int firstHit=0;
@@ -774,7 +815,12 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
 
 		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
 		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t_zero-(primaryHits_F[iHit_F].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t_zero-primaryHits_F[iHit_F].timeAvg)>100000) continue;
+		}
 		if (t0s.empty()){
+
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
@@ -789,6 +835,7 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
          trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
 	}
 
    double trackStartPositionX=trackStartPositionX_noSCE;
@@ -848,12 +895,15 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
 	double minTimeDifference=999999.99;
         for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
                 {
-		    if (opHitList[iFlash]->TotalPE()>100){
+		    if (opHitList[iFlash]->TotalPE()>10){
 
-                    double flashTime = opHitList[iFlash]->Time();
-
-                    double timeDifference = primaryHits_F[iHit_F].timeAvg - flashTime*1000;
-		     //cout<<flashTime<<','<<primaryHits_F[iHit_F].timeAvg <<endl;
+                    double hitTime = opHitList[iFlash]->Time();
+                    double corrected_hitTime=hitTime;
+	
+                //if(!event.isRealData()) corrected_hitTime = hitTime;
+                //else corrected_hitTime= (hitTime-tpcTrigger) - TPC_trigger_offset;
+                 double timeDifference = primaryHits_F[iHit_F].timeAvg - corrected_hitTime*1000;
+		 if (event.isRealData()) timeDifference = 20.f*primaryHits_F[iHit_F].timeAvg - corrected_hitTime*1000.f;
                     if(fabs(timeDifference) < fabs(minTimeDifference))
                         {
                             minTimeDifference = timeDifference;
@@ -861,7 +911,7 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
                         }
 		    }
                 }
-	 if (minTimeDifference>100000) continue;
+	 //if (minTimeDifference>100000) continue;
          tracksPair tPair;
         tPair.tempId = tempId;
         tPair.CRTTrackId = iHit_F;
@@ -945,6 +995,8 @@ if (fMCCSwitch){
 	mccE=particle->E();
 	mccT0=particle->T();
 	int approxExit=-1;
+	art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
+
 	for (int i=0; i<nTrajectory-2; i++){
 	if (particle->Position(i).Z()>1077 && particle->Position(i).Z()<1080 && particle->Position(i).Y()>-140 && ((particle->Position(i).Y()<540 && particle->Position(i).Y()>230) || (particle->Position(i).Y()<170 && particle->Position(i).Y()>-140)) && fabs(particle->Position(i).X())<340 && fabs(particle->Position(i).X())>30 ) { approxExit=i; break;}
 	}
@@ -997,7 +1049,13 @@ double xOffset=0;
 
 		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
 		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t_zero-(primaryHits_B[iHit_B].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t_zero-primaryHits_B[iHit_B].timeAvg)>100000) continue;
+	}
 		if (t0s.empty()){
+
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
@@ -1012,6 +1070,7 @@ double xOffset=0;
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
          trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
 	}
 
    double trackStartPositionX=trackStartPositionX_noSCE;
@@ -1076,9 +1135,9 @@ double xOffset=0;
         double deltaY1 = (predictedHitPositionY1-Y1);
 
 	double deltaY=(deltaY1);
-	//cout<<"Delta B: "<<deltaX<<','<<deltaY<<endl;
+	if (nEvents==3) cout<<"Delta B: "<<deltaX<<','<<deltaY<<endl;
 
-
+	
 
 //if (mccTruthCheck==1 && fMCCSwitch) cout<<iRecoTrack<<','<<deltaX<<','<<deltaY<<endl;
 
@@ -1086,9 +1145,15 @@ double xOffset=0;
 	double minTimeDifference=999999.99;
        for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
                 {
-   		    if (opHitList[iFlash]->TotalPE()>100){
+   		    if (opHitList[iFlash]->TotalPE()>10 ){
                     double hitTime = opHitList[iFlash]->Time();
-                    double timeDifference = primaryHits_B[iHit_B].timeAvg - hitTime*1000;
+                    double corrected_hitTime=hitTime;
+	
+                //if(!event.isRealData()) corrected_hitTime = fFlashScaleFactor*hitTime + fFlashTPCOffset;
+                //else corrected_hitTime= fFlashScaleFactor*(matched_flash_time-tpcTrigger) + fFlashTPCOffset - TPC_trigger_offset;
+                    double timeDifference = primaryHits_B[iHit_B].timeAvg - corrected_hitTime*1000;
+		    if (event.isRealData()) timeDifference = 20.f*primaryHits_B[iHit_B].timeAvg - corrected_hitTime*1000.f;
+		   
 
                     if(fabs(timeDifference) < fabs(minTimeDifference))
                         {
@@ -1096,7 +1161,7 @@ double xOffset=0;
                         }
 			}
                 }
-	if (minTimeDifference>100000) continue;
+	//if (minTimeDifference>100000) continue;
         tracksPair tPair;
         tPair.tempId = tempId;
         tPair.CRTTrackId = iHit_B;
@@ -1201,12 +1266,28 @@ double xOffset=0;
         //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60) {
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.999) {
 	track++;
+	cout<<dotCos<<endl;
 	cout<<mccTruthCheck<<endl;
 	cout<<"CRT1-TruthT: "<<mccT0-CRTT0<<endl;
 	if (fabs(mccT0-CRTT0)>5000) {
-        
+        if (Z_CRT<100){
+	for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
+	cout<<"Candidate CRTT0:"<<primaryHits_F[iHit_F].timeAvg<<endl;
+
+
+}
+}
+	else{
+	for (unsigned int iHit_F = 0; iHit_F < primaryHits_B.size(); iHit_F++) {
+	cout<<"Candidate CRTT0:"<<primaryHits_B[iHit_F].timeAvg<<endl;
+
+
+}
+
+
+}
 	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(allUniqueTracksPair[u].truthId);
 	auto const startPos=particle->Position(0);
 	auto const endPos=particle->EndPosition();
@@ -1216,15 +1297,14 @@ double xOffset=0;
 	cout<<"Possible Mismatch CRT Hit:"<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	cout<<deltaX<<','<<deltaY<<endl;
 	cout<<"MCC Hit:"<<mccHitX<<','<<mccHitY<<','<<Z_CRT<<','<<particle->T()<<endl;
+	cout<<"X offset:"<<measuredXOffset<<endl;
 	cout<<"Reco CRT Hit: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<','<<CRTT0<<endl;
 	cout<<"Track Z:"<<trackZ1<<','<<trackZ2<<endl;
-	if (fabs(mccHitX-X_CRT)>60 && fabs(mccHitY-Y_CRT)>60) misMatchedTrack++;
-	else{ matchedTrack++;
-	mccTruthCheck=1;
+	misMatchedTrack++;
 	truthPosX=mccHitX;
 	truthPosY=mccHitY;
 	truthPosZ=Z_CRT;
-        fMCCTree->Fill();}
+        //fMCCTree->Fill();
 	}
 		fCRTTree->Fill();
         }
