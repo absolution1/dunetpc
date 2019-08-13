@@ -505,6 +505,10 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
 		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
 		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t0s.at(0)->Time()-(primaryHits_F[iHit_F].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t0s.at(0)->Time()-primaryHits_F[iHit_F].timeAvg)>100000) continue;
+		}
 		if (t0s.empty()){
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
@@ -520,6 +524,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
          trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
 	}
 
    double trackStartPositionX=trackStartPositionX_noSCE;
@@ -620,6 +625,10 @@ double xOffset=0;
 
 		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
 		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t0s.at(0)->Time()-(primaryHits_B[iHit_B].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t0s.at(0)->Time()-primaryHits_B[iHit_B].timeAvg)>100000) continue;
+	}
 		if (t0s.empty()){
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
@@ -633,6 +642,8 @@ double xOffset=0;
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
          trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
 	}
 
    double trackStartPositionX=trackStartPositionX_noSCE;
@@ -775,7 +786,7 @@ double xOffset=0;
 	Z_CRT=allUniqueTracksPair[u].Z1;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60) {
+        if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.999 ) {
 	cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 	cout<<"Displacement of match:"<<deltaX<<','<<deltaY<<endl;
 
