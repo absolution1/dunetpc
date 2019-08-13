@@ -140,7 +140,7 @@ class T0RecoAnodePiercers : public art::EDProducer {
     	bool 		TPC_entering_candidate;
     	bool 		TPC_exiting_candidate;
     	bool 		anode_piercing_candidate;
-    	bool 		cathode_crossing_track;
+    	//bool 		cathode_crossing_track;
 	
 		double 		dtMin;
     	double 		dtMax;
@@ -281,13 +281,22 @@ void T0RecoAnodePiercers::produce(art::Event& event){
     	throw std::exception();
 		}
 
-	art::Handle<std::vector<recob::OpFlash> > trigger_h;
 	double trigger_time = 0;
 
 	if(!MC){
+		art::Handle<std::vector<recob::OpFlash> > trigger_h;
+		event.getByLabel(fTriggerProducer, trigger_h);
+
+		if(trigger_h->empty()) {
+    		if(fDebug) std::cout << "\tTrigger not found. Skipping." << std::endl;
+			event.put(std::move(t0_v));
+			event.put(std::move(pfp_t0));
+    		return;
+		}
+
 		if(fDebug) std::cout << "Loading trigger time from producer " 
 			<< fTriggerProducer << std::endl;
-		event.getByLabel(fTriggerProducer, trigger_h);
+
 		trigger_time = trigger_h->at(0).Time();
 		}
 
@@ -380,7 +389,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		dt_flash_reco = 999;
 
 		anode_piercing_candidate = false;
-		cathode_crossing_track = false;
+		//cathode_crossing_track = false;
 
 		// Get sorted points for the track object [assuming downwards going]
 
@@ -398,30 +407,30 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 				if(fDebug) std::cout << "\t\t\tParticle track too short. Skipping." << std::endl;
 				continue;
 			}
-	
-		// Determine if the track crosses the cathode 
+
 		auto const* geom = lar::providerFrom<geo::Geometry>();   
-		auto const* hit = hit_v.at(0);
-		const geo::WireID wireID = hit->WireID();
-		const auto TPCGeoObject = geom->TPC(wireID.TPC,wireID.Cryostat);
-		short int driftDir_start = TPCGeoObject.DetectDriftDirection();
+		auto const* first_hit = hit_v.at(0);
+		const geo::WireID wireID_start = first_hit->WireID();
+		const auto TPCGeoObject_start = geom->TPC(wireID_start.TPC,wireID_start.Cryostat);
+		short int driftDir_start = TPCGeoObject_start.DetectDriftDirection();
+
 		short int driftDir_end = 0;
+		//cathode_crossing_track = false;
 
-		for (size_t ii = 1; ii < hit_v.size(); ii++) {
-			const geo::WireID wireID2 = hit_v.at(ii)->WireID();
-			const auto TPCGeoObject2 = geom->TPC(wireID2.TPC,wireID2.Cryostat);
-			driftDir_end = TPCGeoObject2.DetectDriftDirection(); 
-
-			if(driftDir_end + driftDir_start == 0) {
-				cathode_crossing_track = true;
-				continue;
+	    for (size_t ii = 1; ii < hit_v.size(); ii++) {
+    		const geo::WireID wireID_end = hit_v.at(ii)->WireID();
+			const auto TPCGeoObject_end = geom->TPC(wireID_end.TPC,wireID_end.Cryostat);
+			driftDir_end = TPCGeoObject_end.DetectDriftDirection(); 
+		
+			if(driftDir_end + driftDir_start == 0){
+				//cathode_crossing_track = true;
+				ii = hit_v.size();
 				}
 			}
-
 		// ------------------------------------------------------------------------------------
 		// ANODE PIERCERS 
 
-		if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID.TPC 
+		if(fDebug) std::cout << "\t\tThis track starts in TPC " << wireID_start.TPC 
 		<< " which has a drift direction of " << driftDir_start << std::endl; 
 
 		// create root trees variables
@@ -449,11 +458,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
  				}
 
 			double hit_time = detclock->TPCTick2TrigTime(hit_tick);
-
-			//if(fDebug) std::cout << "\t\tHit from track " << trk_ctr << 
-			//" at tick: " << hit_tick << ", in TPC " << hits->WireID().TPC
-			// << ", plane " << hits->WireID().Plane << " and wire "
-			// << hits->WireID().Wire << std::endl;
 
 			// If track within window, get reco time from earliest hit time
 			if (hit_time < anode_rc_time) anode_rc_time = hit_time;
@@ -489,7 +493,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 					"anode. Reco t0:" << anode_rc_time << " us" << std::endl;
 				}
 			}
-
 
 		if(TPC_entering_candidate||TPC_exiting_candidate) 
 			anode_piercing_candidate = true;
@@ -570,8 +573,6 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		// ---------------------------------------------------------------
 		// CREATE T0 OBJECT AND ASSIGN TO PFPARTICLE
-
-		// Purity estimated in data from background extrapolation
 
 		if(length>fMinTrackLength&&matched_flash_pe>fMinPE&&
 			dt_flash_reco>dtMin&&dt_flash_reco<dtMax) {
