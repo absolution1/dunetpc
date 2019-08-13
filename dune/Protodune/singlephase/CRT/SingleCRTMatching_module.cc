@@ -1266,7 +1266,7 @@ double xOffset=0;
         //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.999) {
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.9995) {
 	track++;
 	cout<<dotCos<<endl;
 	cout<<mccTruthCheck<<endl;
