@@ -288,7 +288,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		art::Handle<std::vector<recob::OpFlash> > trigger_h;
 		event.getByLabel(fTriggerProducer, trigger_h);
 
-		if(!trigger_h.isValid()) {
+		if(trigger_h->empty()) {
     		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Trigger!"<<std::endl;
     		throw std::exception();
 		}

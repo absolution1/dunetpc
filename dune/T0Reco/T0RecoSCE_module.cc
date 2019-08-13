@@ -411,7 +411,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
   		evt.getByLabel(fTriggerProducer, trigger_h);
 
-		if(!trigger_h.isValid()) {
+		if(trigger_h->empty()) {
     		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Trigger!"<<std::endl;
     		throw std::exception();
 		}
