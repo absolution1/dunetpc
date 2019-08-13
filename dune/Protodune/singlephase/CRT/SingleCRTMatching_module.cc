@@ -136,7 +136,6 @@ int moduletoCTB(int module2, int module1);
     int partProcess;
     double mccE;
     double mccT0;
-    double opCRTDiff, opTime, cTime;
    
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
