@@ -412,8 +412,8 @@ void T0RecoSCE::analyze(art::Event const & evt){
   		evt.getByLabel(fTriggerProducer, trigger_h);
 
 		if(trigger_h->empty()) {
-    		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate Trigger!"<<std::endl;
-    		throw std::exception();
+    		if(Debug) std::cout << "\tTrigger not found. Skipping." << std::endl;
+    		continue;
 		}
 
 		if(fDebug) std::cout << "Loading trigger time from producer " 
