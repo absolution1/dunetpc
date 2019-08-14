@@ -314,6 +314,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
 	tHits.triggerTime=trigger.Timestamp()-timingHandle->at(0).GetTimeStamp();
+        tHits.triggerNumber=trigID;
 	}
 	else{
         tHits.module = trigger.Channel(); // Values to add to array
@@ -802,7 +803,7 @@ double xOffset=0;
 	CRTT0assn->addSingle(crtTrackPtr,t0CP);
 	
 	
-       
+       cout<<"I'm here:"<<u<<','<<crtList.size()<<','<<allUniqueTracksPair[u].trigNumberX<<endl;
 	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
 	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
 	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX], *CRTTriggerassn);
