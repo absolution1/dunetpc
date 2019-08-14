@@ -450,6 +450,10 @@ void protoana::ProtoDUNEelectronAnaTree::analyze(art::Event const & evt){
     }
   }//for data
 
+  //check for reco pandora stuff
+  art::Handle<std::vector<recob::PFParticle>> recoParticleHandle;
+  if( !evt.getByLabel(fPFParticleTag,recoParticleHandle) ) return;
+
   // Get all of the PFParticles, by default from the "pandora" product
   auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
 
@@ -466,21 +470,16 @@ void protoana::ProtoDUNEelectronAnaTree::analyze(art::Event const & evt){
     fprimaryVertex[0] = vtx.X(); fprimaryVertex[1] = vtx.Y(); fprimaryVertex[2] = vtx.Z();
     const TVector3 interactionVtx = pfpUtil.GetPFParticleSecondaryVertex(*particle,evt,fPFParticleTag,fTrackerTag);
     fdaughterVertex[0] = interactionVtx.X(); fdaughterVertex[1] = interactionVtx.Y(); fdaughterVertex[2] = interactionVtx.Z();
-
-    fNDAUGHTERS =0; //particle->NumDaughters();
-    if(particle->NumDaughters() > NMAXDAUGTHERS)
-      //std::cout << "INFO::Number of daughters is " << particle->NumDaughters() << ". Only the first NMAXDAUGTHERS are processed." << std::endl;
-
-    // Let's get the daughter PFParticles... we can do this simply without the utility
-    for(const int daughterID : particle->Daughters()){
-      // Daughter ID is the element of the original recoParticle vector
-      const recob::PFParticle *daughterParticle      = &(recoParticles->at(daughterID));
-      // Fill tree with daughter info
-      FillPrimaryDaughterPFParticle(evt, daughterParticle, daughterID);
+    
+    fNDAUGHTERS =0;
+    for( const int didx :  particle->Daughters() ){
+      const recob::PFParticle *daughterParticle      =&(recoParticles->at(didx));
+      FillPrimaryDaughterPFParticle(evt, daughterParticle, didx);
       // Only process NMAXDAUGTHERS
       if(fNDAUGHTERS > NMAXDAUGTHERS) break;
-      
+      fNDAUGHTERS ++;
     } 
+    
     // For now only consider the first primary track. Need a proper treatment if more than one primary particles are found.
     break;
   }
