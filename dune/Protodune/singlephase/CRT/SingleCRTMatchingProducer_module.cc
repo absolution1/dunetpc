@@ -802,8 +802,6 @@ double xOffset=0;
 	auto const t0CP = t0CandPtr(CRTTrackId);
 	CRTT0assn->addSingle(crtTrackPtr,t0CP);
 	
-	
-       cout<<"I'm here:"<<u<<','<<crtList.size()<<','<<allUniqueTracksPair[u].trigNumberX<<endl;
 	util::CreateAssn(*this, event, *T0col, trackList[TPCTrackId], *TPCT0assn);
 	util::CreateAssn(*this, event, *CRTTrack, trackList[TPCTrackId], *TPCCRTassn);
 	util::CreateAssn(*this, event, *CRTTrack, crtList[allUniqueTracksPair[u].trigNumberX], *CRTTriggerassn);
