@@ -27,6 +27,7 @@
 #include <iomanip>
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "larcorealg/Geometry/Exceptions.h"
 
 using std::string;
 using std::cout;
