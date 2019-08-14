@@ -206,21 +206,6 @@ private:
   double fprimaryT0;
 
   int fNDAUGHTERS =0;
-//  int fNDAUGHTERSnCal[NMAXDAUGTHERS];
-//  int fdaughter_mother[NMAXDAUGTHERS];
-//  int fdaughter_trkID[NMAXDAUGTHERS];
-//  int fdaughterTruth_pdg[NMAXDAUGTHERS];
-//  double fdaughterTruth_E[NMAXDAUGTHERS];
-//  double fdaughterTruth_Px[NMAXDAUGTHERS];
-//  double fdaughterTruth_Py[NMAXDAUGTHERS];
-//  double fdaughterTruth_Pz[NMAXDAUGTHERS];
-//  double fdaughterdEdx[NMAXDAUGTHERS][1000];
-//  double fdaughterdQdx[NMAXDAUGTHERS][1000];
-//  double fdaughter_calX[NMAXDAUGTHERS][1000];
-//  double fdaughter_calY[NMAXDAUGTHERS][1000];
-//  double fdaughter_calZ[NMAXDAUGTHERS][1000];
-//  double fdaughterResidualRange[NMAXDAUGTHERS][1000];
- 
   double fdaughterVertex[3];
   int fdaughterIstrack[NMAXDAUGTHERS];
   int fdaughterIsshower[NMAXDAUGTHERS];
@@ -228,46 +213,14 @@ private:
   double fdaughterTheta[NMAXDAUGTHERS];
   double fdaughterPhi[NMAXDAUGTHERS];
   double fdaughterLength[NMAXDAUGTHERS];
-//  double fdaughterMomentum[NMAXDAUGTHERS];
-//  double fdaughterEndMomentum[NMAXDAUGTHERS];
   double fdaughterEndPosition[NMAXDAUGTHERS][3];
   double fdaughterStartPosition[NMAXDAUGTHERS][3];
   double fdaughterEndDirection[NMAXDAUGTHERS][3];
   double fdaughterStartDirection[NMAXDAUGTHERS][3];
   double fdaughterOpeningAngle[NMAXDAUGTHERS];
-//  double fdaughterShowerEnergy[NMAXDAUGTHERS];
-//  double fdaughterShowerCharge[NMAXDAUGTHERS];
-//  double fdaughterShowerMIPEnergy[NMAXDAUGTHERS];
-//  double fdaughterShowerdEdx[NMAXDAUGTHERS];
-//  double fdaughterShowerdQdx[NMAXDAUGTHERS];
-//  int    fdaughterShower_nHits[NMAXDAUGTHERS];
-//  int    fdaughterShower_hit_w[NMAXDAUGTHERS][5000];
-//  double fdaughterShower_hit_q[NMAXDAUGTHERS][5000];
-//  double fdaughterShower_hit_pitch[NMAXDAUGTHERS][5000];
-//  double fdaughterShower_hit_t[NMAXDAUGTHERS][5000]; 
-//  double fdaughterShower_hit_X[NMAXDAUGTHERS][5000]; 
-//  double fdaughterShower_hit_Y[NMAXDAUGTHERS][5000]; 
-//  double fdaughterShower_hit_Z[NMAXDAUGTHERS][5000]; 
   int fdaughterShowerBestPlane[NMAXDAUGTHERS];
-//  double fdaughterMomentumByRangeProton[NMAXDAUGTHERS];
-//  double fdaughterMomentumByRangeMuon[NMAXDAUGTHERS];
-//  double fdaughterKineticEnergy[NMAXDAUGTHERS][3];
-//  double fdaughterRange[NMAXDAUGTHERS][3];
-//  double fdaughterTrkPitchC[NMAXDAUGTHERS][3];
   int fdaughterID[NMAXDAUGTHERS];
   double fdaughterT0[NMAXDAUGTHERS];
-
-//  int fdaughterPID_Pdg[NMAXDAUGTHERS][3];
-//  int fdaughterPID_Ndf[NMAXDAUGTHERS][3];
-//  double fdaughterPID_MinChi2[NMAXDAUGTHERS][3];
-//  double fdaughterPID_DeltaChi2[NMAXDAUGTHERS][3];
-//  double fdaughterPID_Chi2Proton[NMAXDAUGTHERS][3];
-//  double fdaughterPID_Chi2Kaon[NMAXDAUGTHERS][3];
-//  double fdaughterPID_Chi2Pion[NMAXDAUGTHERS][3];
-//  double fdaughterPID_Chi2Muon[NMAXDAUGTHERS][3];
-//  double fdaughterPID_MissingE[NMAXDAUGTHERS][3];
-//  double fdaughterPID_MissingEavg[NMAXDAUGTHERS][3];
-//  double fdaughterPID_PIDA[NMAXDAUGTHERS][3];
 
 };
 

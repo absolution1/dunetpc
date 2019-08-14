@@ -45,13 +45,13 @@
 #include "TH2D.h"
 
 // pdg
-#include "PDG/PDGCodes.h"
-#include "PDG/PDGUtils.h"
-#include "PDG/PDGLibrary.h"
+#include "Framework/ParticleData/PDGCodes.h"
+#include "Framework/ParticleData/PDGUtils.h"
+#include "Framework/ParticleData/PDGLibrary.h"
 
 // genie
-#include "EVGCore/EventRecord.h"
-#include "GHEP/GHepParticle.h"
+#include "Framework/EventGen/EventRecord.h"
+#include "Framework/GHEP/GHepParticle.h"
 
 constexpr int knShifts = 100; // number of shifts
 constexpr int kmaxRwgts = 100; // Largest number of reweights in a shift
