@@ -2,6 +2,7 @@
 #include "services_dune.fcl"
 
 #include "PionAbsCexSelection.fcl"
+#include "ProtoDUNEBeamlineFilter.fcl"
 
 process_name: PionAna
 
@@ -34,10 +35,16 @@ physics:
  
  }
 
- filters: { 
-   f1: @local::pion_abscex_filter
+# filters: { 
+#   #f1: @local::pion_abscex_filter
+# }
+  
+ filters: {
+   f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
+   f2: @local::pion_abscex_filter
  }
 
+ #fpath: [f1,f2]
  fpath: [f1]
 
  analyzers:
@@ -53,4 +60,5 @@ physics:
 
 outputs: {}
 
-
+physics.analyzers.pionana.SelectEvents: [fpath]
+physics.filters.f1.BeamlineUtils.UseCERNCalibSelection: false
