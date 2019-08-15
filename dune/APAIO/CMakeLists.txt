@@ -1,15 +1,10 @@
-
 art_make( BASENAME_ONLY
-          MODULE_LIBRARIES lardataobj_RecoBase
-                           lardataobj_AnalysisBase
+          MODULE_LIBRARIES lardataobj_RawData
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service
                            lardata_Utilities
                            larsim_Simulation
 			   lardataobj_Simulation
-                           larsim_MCCheater_BackTrackerService_service
-                           larsim_MCCheater_ParticleInventoryService_service
-                           nusimdata_SimulationBase
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -24,8 +19,6 @@ art_make( BASENAME_ONLY
                            ${FHICLCPP}
                            cetlib cetlib_except
                            ${ROOT_BASIC_LIB_LIST}
-
-	   		   ProtoDUNEAnaUtils
          )
 
 install_headers()

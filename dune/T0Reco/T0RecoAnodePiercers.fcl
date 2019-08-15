@@ -6,6 +6,7 @@ T0RecoAnodePiercers: {
  	HitProducer: 		"pandoraTrack"
  	PFPProducer: 		"pandora"
  	EdgeWidth: 			40.0  # cm
+	ReadoutEdgeTicks:	50
 	DataFlashProducer: 	"opflashInternal"
 	MCFlashProducer: 	"opflash"
 	TriggerProducer: 	"opflashExternal"

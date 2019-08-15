@@ -535,7 +535,8 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       weight = nsum;
       if ( m_LogLevel >= 4 ) {
         cout << myname << "Sample count for " << met << " for channel " << acd.channel
-             << ": " << nsum << "/" << nsam << "." << endl;
+             << ": " << nsum << "/" << nsam << "."
+             << " " << met << " = " << val << endl;
       }
     }
   // nsgRmsNN - Coherent noise with NN samples.
