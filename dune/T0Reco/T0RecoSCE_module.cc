@@ -90,6 +90,7 @@ private:
 	bool		fUseMC;
 
 	double		fEdgeWidth; // [cm]
+	int			fReadoutEdgeTicks;
 	
 	bool 		fCathode;
 	bool 		fAnode;
@@ -205,15 +206,16 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fHitProducer		= fcl.get<std::string>	("HitProducer"      	);
 	fFlashProducer     	= fcl.get<std::string>	("FlashProducer"    	);
 	fTriggerProducer	= fcl.get<std::string>	("TriggerProducer"  	);
-	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  	);
+	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  		);
 
-	fOpHitProducer		= fcl.get<std::string>	("OpHitProducer"	);
+	fOpHitProducer		= fcl.get<std::string>	("OpHitProducer"		);
 
 	fUseMC            	= fcl.get<bool>			("UseMC"            	);
 
-	fEdgeWidth			= fcl.get<double>		("EdgeWidth"       	);
+	fEdgeWidth			= fcl.get<double>		("EdgeWidth"       		);
+	fReadoutEdgeTicks	= fcl.get<int>			("ReadoutEdgeTicks"		);
 
-	fMinPE				= fcl.get<double> 		("MinPE"           	);
+	fMinPE				= fcl.get<double> 		("MinPE"           		);
 	fMinTrackLength		= fcl.get<double>		("MinTrackLength"    	);
 
 	fCathode			= fcl.get<bool>  		("CathodeCrossers"  	);
@@ -224,11 +226,11 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fAllFlash			= fcl.get<bool>  		("AllFlashToTrackTimeDiffs");
 
 	fFlashScaleFactor	= fcl.get<double>		("FlashScaleFactor" 	);
-	fFlashTPCOffset		= fcl.get<double>		("FlashTPCOffset"	);
+	fFlashTPCOffset		= fcl.get<double>		("FlashTPCOffset"		);
 	
-	fUseOpHits			= fcl.get<bool>			("UseOpHits"		);
-	fFirstOpChannel		= fcl.get<int>			("FirstOpChannel"	);
-	fLastOpChannel		= fcl.get<int>			("LastOpChannel"	);
+	fUseOpHits			= fcl.get<bool>			("UseOpHits"			);
+	fFirstOpChannel		= fcl.get<int>			("FirstOpChannel"		);
+	fLastOpChannel		= fcl.get<int>			("LastOpChannel"		);
 
 	fAnodeT0Check		= fcl.get<bool>			("CheckAssignedAnodeT0"	);
 	fAnodeT0Producer	= fcl.get<std::string>	("AnodeT0Producer"		);
@@ -403,13 +405,22 @@ void T0RecoSCE::analyze(art::Event const & evt){
 
     if(fUseOpHits) evt.getByLabel(fOpHitProducer, op_hit_h);
 
-  	art::Handle<std::vector<recob::OpFlash> > trigger_h;
+  	
 	double trigger_time = 0;
 
   	if(!fUseMC){
+		art::Handle<std::vector<recob::OpFlash> > trigger_h;
+
+  		evt.getByLabel(fTriggerProducer, trigger_h);
+
+		if(trigger_h->empty()) {
+    		if(fDebug) std::cout << "\tTrigger not found. Skipping." << std::endl;
+    		return;
+		}
+
 		if(fDebug) std::cout << "Loading trigger time from producer " 
 		<< fTriggerProducer << std::endl;
-  		evt.getByLabel(fTriggerProducer, trigger_h);
+
   		trigger_time = trigger_h->at(0).Time();
   	}
 
@@ -721,7 +732,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 						//" at tick: " << hit_tick << ", in TPC " 
 						//<< hits->WireID().TPC << ", plane " << hits->WireID().Plane 
 						//<< " and wire " << hits->WireID().Wire << std::endl;
-    				if(hit_tick < 20.0 || hit_tick > (fReadoutWindow - 20.0)){
+    				if(hit_tick < fReadoutEdgeTicks || hit_tick > (fReadoutWindow - fReadoutEdgeTicks)){
     		 			readout_edge = true;
     		 			if(fDebug) std::cout << "\tTrack hits edge of readout window. "
 							"Skipping." << std::endl;
@@ -782,7 +793,13 @@ void T0RecoSCE::analyze(art::Event const & evt){
     			rc_xe_corr = rc_xe + x_shift + driftDir_end*anode_rc_time*fDriftVelocity;
 
     			// FLASH MATCHING
-    			auto const& op_match_result = FlashMatch(anode_rc_time,op_times);
+    			size_t op_match_result = FlashMatch(anode_rc_time,op_times);
+
+				if(op_match_result==99999) {
+					if(fDebug) std::cout << "Unable to match flash to track." << std::endl;
+					continue;
+					}
+
     			if(!fUseOpHits) {	
 					const art::Ptr<recob::OpFlash> flash_ptr(flash_h, op_match_result);
 
@@ -1014,8 +1031,8 @@ size_t  T0RecoSCE::FlashMatch(const double reco_time, std::vector<double> op_tim
 {
   	// loop through all reco'd flash times and see if one matches
   	// the time from the track/particle
-  	double dt_min = 2*fReadoutWindow; // us
-  	size_t matched_op_id = -1;
+  	double dt_min = 9999999.; 
+  	size_t matched_op_id = 99999;
 
 	flash_time = fReadoutWindow;
 	corrected_flash_time = fReadoutWindow;

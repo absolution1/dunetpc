@@ -361,6 +361,10 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
   if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
+  else{
+    event.put(std::move(T0col)); event.put(std::move(CRTTrack)); event.put(std::move(TPCCRTassn));  event.put(std::move(TPCT0assn)); event.put(std::move(CRTTriggerassn));
+    return;
+  }
 
   art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
   vector<art::Ptr<recob::PFParticle> > pfplist;
@@ -547,7 +551,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	    best_trigXB=primaryHits_B[b].trigNumberX;
 	    best_trigYB=primaryHits_B[b].trigNumberY;
 	    best_T = t0;
-	    if (!fMCCSwitch) best_T=best_T*20.f;
+	    if (!fMCCSwitch) best_T=(111.f+best_T)*20.f;
+	    // Added 111 tick CRT-CTB offset
           }
         }
       }

@@ -6,62 +6,74 @@
 // from cetlib version v3_03_01.
 ////////////////////////////////////////////////////////////////////////
 
+// Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
-#include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
+#include "art/Framework/Core/ModuleMacros.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/ParameterSet.h"
+
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art_root_io/TFileService.h" 
+
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindManyP.h"
-#include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
+
 #include "lardataobj/AnalysisBase/CosmicTag.h"
 #include "lardataobj/AnalysisBase/T0.h"
+#include "lardataobj/AnalysisBase/Calorimetry.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/PointCharge.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
-
-#include "lardataobj/RecoBase/SpacePoint.h"
-#include "lardataobj/RecoBase/PointCharge.h"
-#include "lardataobj/RecoBase/Track.h"
-
-#include "lardataobj/RawData/RDTimeStamp.h"
-#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
 
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
-
-#include "lardataobj/AnalysisBase/Calorimetry.h"
-
 
 // ROOT includes
 #include "TTree.h"
 #include "TTimeStamp.h"
+#include "TVector3.h"
+#include "TFile.h"
+#include "TString.h"
+#include "TH1.h"
+#include "TLorentzVector.h"
+#include "TProfile.h" 
 
 //const int kMaxTracks  = 1000;
 //const int kMaxHits = 10000;
 
 using namespace std;
 
-namespace proto {
+namespace protoana {
   class pionanalysis;
 }
 
 
-class proto::pionanalysis : public art::EDAnalyzer {
+
+
+class protoana::pionanalysis : public art::EDAnalyzer {
 public:
   explicit pionanalysis(fhicl::ParameterSet const & p);
   // The compiler-generated destructor is fine for non-base
@@ -84,25 +96,22 @@ public:
 
 private:
 
-  const art::InputTag fSpacePointModuleLabel;
-  const art::InputTag fBeamModuleLabel;
+  //const art::InputTag fSpacePointModuleLabel;
   const art::InputTag fTrackModuleLabel;
-  const art::InputTag fTimeDecoderModuleLabel;
+  //const art::InputTag fTimeDecoderModuleLabel;
+
+  const art::InputTag fBeamModuleLabel;
+  //std::string fBeamModuleLabel;
+
 
   TTree *fTree;
   // Run information
   int run;
   int subrun;
   int event;
-  int trigger;
+  //int trigger;
   double evttime;
-
-  // space point information
-  std::vector<double> vx;
-  std::vector<double> vy;
-  std::vector<double> vz;
-  std::vector<double> vcharge;
-  std::vector<int> vtrackid;
+  int fNactivefembs[6];
 
   // beam information
   std::vector<double> beamPosx;
@@ -116,22 +125,39 @@ private:
   std::vector<double> beamMomentum;
 
   double tof;
-  short ckov0status;
-  short ckov1status;
+  std::vector<double> tofs;
+  std::vector<int> ch_tofs;
+  short low_pressure_status;
+  short high_pressure_status;
+  double low_pressure;
+  double high_pressure;
+
+  //Beamline utils    
+  protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
+  protoana::ProtoDUNEDataUtils dataUtil;
 
   // fcl parameters for PFP particles
   std::string fCalorimetryTag;
   std::string fTrackerTag;
   std::string fShowerTag;
   std::string fPFParticleTag;
-  std::string fGeneratorTag;
+  //std::string fGeneratorTag;
+  
+  //Beam Momentum
+  fhicl::ParameterSet fBeamPars;
+  //bool fUseCERNCalibSelection;
   bool fVerbose;
-  protoana::ProtoDUNEDataUtils dataUtil;
+
 
   // define parameters for primary tracks
   std::vector<double> primtrk_startx;
   std::vector<double> primtrk_starty;
   std::vector<double> primtrk_startz;
+
+  std::vector<double> primtrk_endx;
+  std::vector<double> primtrk_endy;
+  std::vector<double> primtrk_endz;
+
   std::vector<double> primtrk_Dirx;
   std::vector<double> primtrk_Diry;
   std::vector<double> primtrk_Dirz;
@@ -140,9 +166,6 @@ private:
   std::vector<int> primtrk_trktag;
   
   //carlo info
-  //std::vector< std::vector<double> > *primtrk_dqdx=0;
-  //std::vector< std::vector<double> > *primtrk_resrange=0;
-  //std::vector< std::vector<double> > *primtrk_dedx=0;
   std::vector< std::vector<double> > primtrk_dqdx;
   std::vector< std::vector<double> > primtrk_resrange;
   std::vector< std::vector<double> > primtrk_dedx;
@@ -164,30 +187,144 @@ private:
 };
 
 
-proto::pionanalysis::pionanalysis(fhicl::ParameterSet const & p)
+protoana::pionanalysis::pionanalysis(fhicl::ParameterSet const & p)
   :
   EDAnalyzer(p),
-  fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
-  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
+  //fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
-  fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel")),
+  fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
+  fBeamlineUtils(p.get<fhicl::ParameterSet>("BeamlineUtils")),
+  //fBeamModuleLabel(p.get<std::string>("BeamModuleLabel")),
+  
+  //fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel")),
 
+  dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
   fCalorimetryTag(p.get<std::string>("CalorimetryTag")),
   fTrackerTag(p.get<std::string>("TrackerTag")),
   fShowerTag(p.get<std::string>("ShowerTag")),
   fPFParticleTag(p.get<std::string>("PFParticleTag")),
-  fGeneratorTag(p.get<std::string>("GeneratorTag")),
-  fVerbose(p.get<bool>("Verbose")),
-  dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
+  //fGeneratorTag(p.get<std::string>("GeneratorTag")),
+  fBeamPars(p.get<fhicl::ParameterSet>("BeamPars")),
+  //fUseCERNCalibSelection(p.get<bool>("UseCERNCalibSelection")),
+  fVerbose(p.get<bool>("Verbose"))
 {
     //if (fSaveTrackInfo == false) fSaveCaloInfo = false;
+
 }
 
-void proto::pionanalysis::analyze(art::Event const & evt)
+void protoana::pionanalysis::analyze(art::Event const & evt)
 {
   //reset containers
-  proto::pionanalysis::reset();  
+  protoana::pionanalysis::reset();  
 
+
+  //Access the Beam Event ======================================================================//
+  auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
+  std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+  if( beamHandle.isValid()){
+    art::fill_ptr_vector(beamVec, beamHandle);
+  }
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0)); //Should just have one
+  /////////////////////////////////////////////////////////////
+  
+  //Check the quality of the event
+  std::cout << "Timing Trigger: " << beamEvent.GetTimingTrigger() << std::endl; 
+  std::cout << "Is Matched: "     << beamEvent.CheckIsMatched() << std::endl;
+
+  if( !fBeamlineUtils.IsGoodBeamlineTrigger( evt ) ){
+    std::cout << "Failed quality check!\n" << std::endl;
+    return; //returns, does nothing when !=IsGoodBeamlineTrigger
+  }
+
+  std::cout << "Passed quality check!" << std::endl << std::endl;
+  /////////////////////////////////////////////////////////////
+
+  //Access momentum
+  const std::vector< double > & momenta = beamEvent.GetRecoBeamMomenta();
+  std::cout << "Number of reconstructed momenta: " << momenta.size() << std::endl;
+
+  if( momenta.size() > 0 ) 
+    std::cout << "Measured Momentum: " << momenta.at(0) << std::endl;
+  ///////////////////////////////////////////////////////////// 
+
+  //Access time of flight
+  const std::vector< double > & the_tofs  = beamEvent.GetTOFs();
+  const std::vector< int    > & the_chans = beamEvent.GetTOFChans();
+
+  std::cout<<"run/subrun/event:"<<evt.run()<<"/"<<evt.subRun()<<"/"<<evt.id().event()<<std::endl;	
+  std::cout << "Number of measured TOF: " << the_tofs.size() << std::endl;
+  std::cout << "First TOF: "              << beamEvent.GetTOF()         << std::endl;
+  std::cout << "First TOF Channel: "      << beamEvent.GetTOFChan()     << std::endl << std::endl;
+
+  std::cout << "All (TOF, Channels): " << std::endl;
+  for( size_t i = 0; i < the_tofs.size(); ++i ){
+    std::cout << "\t(" << the_tofs[i] << ", " << the_chans[i] << ")" << std::endl;
+  }
+  std::cout << std::endl;
+  /////////////////////////////////////////////////////////////
+  
+  //Access Cerenkov info
+  std::cout << "Cerenkov status, pressure:" << std::endl;
+  std::cout << "C0: " << beamEvent.GetCKov0Status() << ", " << beamEvent.GetCKov0Pressure() << std::endl;
+  std::cout << "C1: " << beamEvent.GetCKov1Status() << ", " << beamEvent.GetCKov1Pressure() << std::endl << std::endl;
+
+  //if (beamEvent.GetBITrigger() == 1) {
+   //ckov0status = beamEvent.GetCKov0Status(); //low_pressure_status
+   //ckov1status = beamEvent.GetCKov1Status(); //high_pressure_status
+
+   //ckov0pressure=beamEvent.GetCKov0Pressure();
+   //ckov1pressure=beamEvent.GetCKov1Pressure();
+  //}
+
+  if(beamEvent.GetCKov0Pressure() < beamEvent.GetCKov1Pressure() ){
+    high_pressure_status = beamEvent.GetCKov1Status();
+    low_pressure_status = beamEvent.GetCKov0Status();
+
+    high_pressure=beamEvent.GetCKov1Pressure();
+    low_pressure=beamEvent.GetCKov0Pressure(); 
+  }
+  else{
+    high_pressure_status = beamEvent.GetCKov0Status();
+    low_pressure_status = beamEvent.GetCKov1Status();
+
+    high_pressure=beamEvent.GetCKov0Pressure();
+    low_pressure=beamEvent.GetCKov1Pressure(); 
+  }
+
+  ///////////////////////////////////////////////////////////// 
+  
+  double nom_beam_mon=fBeamPars.get<double>("Momentum");
+  std::cout<<"Selected nominal beam momentum is: "<<nom_beam_mon<<" GeV/c"<<std::endl;
+
+  //Access PID
+  //std::vector< int > pids = fBeamlineUtils.GetPID( beamEvent, nom_beam_mon);
+  //for( size_t i = 0; i < pids.size(); ++i ){
+    //std::cout << "pid["<<i<<"]: "<< pids[i] << std::endl;
+  //}
+
+  PossibleParticleCands candidates = fBeamlineUtils.GetPIDCandidates( beamEvent, nom_beam_mon);
+  std::cout << "electron " << candidates.electron << std::endl;
+  std::cout << "muon "     << candidates.muon     << std::endl;
+  std::cout << "pion "     << candidates.pion     << std::endl;
+  std::cout << "kaon "     << candidates.kaon     << std::endl;
+  std::cout << "proton "   << candidates.proton   << std::endl;
+
+  std::cout << std::endl;
+  //if (candidates.proton==0) {
+   //std::cout<<"no proton!!!!!!"<<std::endl;
+  //}
+  /////////////////////////////////////////////////////////////
+
+  //Manual Event Selection -----------------------------------------------------------------------------------------------------------------------------------------------//
+  /*bool IsProton=false;
+  //old Tof: (!fUseCERNCalibSelection&&tof>170.)
+  if (nom_beam_mon==1.) { 
+    if ((beamEvent.GetTOF()>110.&&beamEvent.GetTOF()<160.)&&low_pressure_status==0) {
+      IsProton=true;
+      std::cout<<"-->> This is a proton candidate..."<<std::endl;
+    }
+  }
+*/
 
   //HY::For Carlo info
   art::Handle< std::vector<recob::Track> > trackListHandle;
@@ -196,10 +333,6 @@ void proto::pionanalysis::analyze(art::Event const & evt)
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryTag);
   art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle, evt, "pandoraTrack");
 
-
-
-
-
   // Implementation of required member function here.
   run = evt.run();
   subrun = evt.subRun();
@@ -207,82 +340,43 @@ void proto::pionanalysis::analyze(art::Event const & evt)
   art::Timestamp ts = evt.time();
   //std::cout<<ts.timeHigh()<<" "<<ts.timeLow()<<std::endl;
   if (ts.timeHigh() == 0){
-    TTimeStamp tts(ts.timeLow());
-    evttime = tts.AsDouble();
+    //TTimeStamp tts(ts.timeLow());
+    //evttime = tts.AsDouble();
+    TTimeStamp ts2(ts.timeLow());
+    evttime = ts2.AsDouble();
   }
   else{
-    TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-    evttime = tts.AsDouble();
+    //TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+    //evttime = tts.AsDouble();
+    TTimeStamp ts2(ts.timeHigh(), ts.timeLow());
+    evttime = ts2.AsDouble();
   }
 
-  // Access the trigger information
-  trigger = -1;
-  art::ValidHandle<std::vector<raw::RDTimeStamp>> timeStamps = evt.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeDecoderModuleLabel);
-
-  // Check that we have good information
-  if(timeStamps.isValid() && timeStamps->size() == 1){
-    // Access the trigger information. Beam trigger flag = 0xc
-    const raw::RDTimeStamp& timeStamp = timeStamps->at(0);
-    trigger = timeStamp.GetFlags();
+  // Get number of active fembs
+  if(!evt.isRealData()){
+    for(int ik=0; ik<6; ik++)
+      fNactivefembs[ik]=20;
   }
-
-  art::Handle< std::vector<recob::SpacePoint> > spsHandle;
-  std::vector< art::Ptr<recob::SpacePoint> > sps;
-  if (evt.getByLabel(fSpacePointModuleLabel, spsHandle))
-    art::fill_ptr_vector(sps, spsHandle);
-
-  art::Handle< std::vector<recob::PointCharge> > pcsHandle;
-  std::vector< art::Ptr<recob::PointCharge> > pcs;
-  if (evt.getByLabel(fSpacePointModuleLabel, pcsHandle))
-    art::fill_ptr_vector(pcs, pcsHandle);
-
-  for (size_t i = 0; i<sps.size(); ++i){
-    vx.push_back(sps[i]->XYZ()[0]);
-    vy.push_back(sps[i]->XYZ()[1]);
-    vz.push_back(sps[i]->XYZ()[2]);
-    vcharge.push_back(pcs[i]->charge());
-    vtrackid.push_back(-1);
-  }
-
-  art::Handle< std::vector<recob::Track> > trkHandle;
-  std::vector< art::Ptr<recob::Track> > trks;
-  if (evt.getByLabel(fTrackModuleLabel, trkHandle))
-    art::fill_ptr_vector(trks, trkHandle);
-
-  for (size_t i = 0; i<trks.size(); ++i){
-    auto & trk = trks[i];
-    for (size_t j = 0; j<trk->NPoints(); ++j){
-      if (trk->HasValidPoint(j)){
-        vx.push_back(trk->TrajectoryPoint(j).position.X());
-        vy.push_back(trk->TrajectoryPoint(j).position.Y());
-        vz.push_back(trk->TrajectoryPoint(j).position.Z());
-        vcharge.push_back(0);
-        vtrackid.push_back(trk->ID());
-      }
-    }
-  }
-
-  art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
-  std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
-  if (evt.getByLabel(fBeamModuleLabel, pdbeamHandle))
-    art::fill_ptr_vector(beaminfo, pdbeamHandle);
   else{
-    std::cout<<"No beam information from "<<fBeamModuleLabel<<std::endl;
+    for(int ik=0; ik<6; ik++)
+     fNactivefembs[ik]=dataUtil.GetNActiveFembsForAPA(evt,ik);
   }
 
-  tof = -1;
-  ckov0status = -1;
-  ckov1status = -1;
-  if (beaminfo.size()){
-    if (beaminfo[0]->GetTimingTrigger() == 12){ //get beam timing trigger
-      if (beaminfo[0]->CheckIsMatched()){ //if CheckIsMatched
+
+  if (beamVec.size()&&candidates.pion==1) { //if beam pion
+    if (beamEvent.GetTimingTrigger()==12) { //get beam timing trigger
+      if (beamEvent.CheckIsMatched()){ //if CheckIsMatched
         //Get TOF info
-        if (beaminfo[0]->GetTOFChan() != -1){//if TOFChan == -1, then there was not a successful match, if it's 0, 1, 2, or 3, then there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
-          tof = beaminfo[0]->GetTOF();
+        if (beamEvent.GetTOFChan() != -1) {//if TOFChan == -1, then there was not a successful match, if it's 0, 1, 2, or 3, then there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
+          tof = beamEvent.GetTOF();
+  	  for( size_t ii = 0; ii < the_tofs.size(); ++ii ){
+	    tofs.push_back(the_tofs[ii]);
+	    ch_tofs.push_back(the_chans[ii]);
+          } 
         }
         //Get beam particle trajectory info
-        auto & tracks = beaminfo[0]->GetBeamTracks();
-	std::cout<<"###############################################################"<<std::endl;
+        //auto & tracks = beaminfo[0]->GetBeamTracks();
+        auto & tracks = beamEvent.GetBeamTracks();
 	std::cout<<"ToF:"<<tof<<" [ns]"<<std::endl;
 	std::cout<<"beam trk size:"<<tracks.size()<<std::endl;
         for (size_t i = 0; i<tracks.size(); ++i){
@@ -297,17 +391,18 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 	  std::cout<<"beamPosx/beamPosy/beamPosz:"<<tracks[i].End().X()<<"/"<<tracks[i].End().Y()<<"/"<<tracks[i].End().Z()<<std::endl;
 	  std::cout<<"beamDirx/beamDiry/beamDirz:"<<tracks[i].StartDirection().X()<<"/"<<tracks[i].StartDirection().Y()<<"/"<<tracks[i].StartDirection().Z()<<std::endl;
 	  //std::cout<<"beamDirx^2+beamDiry^2+beamDirz^2:"<<tracks[i].StartDirection().X()*tracks[i].StartDirection().X()+tracks[i].StartDirection().Y()*tracks[i].StartDirection().Y()+tracks[i].StartDirection().Z()*tracks[i].StartDirection().Z()<<std::endl;
-	std::cout<<"###############################################################"<<std::endl;
         }
         //Get reconstructed beam momentum info
-        auto & beammom = beaminfo[0]->GetRecoBeamMomenta();
-	std::cout<<"==============================================================="<<std::endl;
-	std::cout<<"beam mom size:"<<beammom.size()<<std::endl;
-        for (size_t i = 0; i<beammom.size(); ++i){
-          beamMomentum.push_back(beammom[i]);
-	  std::cout<<"beam mom["<<i<<"]:"<<beammom[i]<<" [GeV]"<<std::endl;
+        //auto & beammom = beaminfo[0]->GetRecoBeamMomenta();
+        //auto & beammom = beamEvent.GetRecoBeamMomenta();
+        //auto & beammom = beamEvent.GetRecoBeamMomenta();
+	//std::cout<<"==============================================================="<<std::endl;
+	std::cout<<"beam mom size:"<<momenta.size()<<std::endl;
+        for (size_t i = 0; i<momenta.size(); ++i){
+          beamMomentum.push_back(momenta[i]);
+	  std::cout<<"beam mom["<<i<<"]:"<<momenta[i]<<" [GeV]"<<std::endl;
         }
-	std::cout<<"==============================================================="<<std::endl;
+	//std::cout<<"==============================================================="<<std::endl;
 
         //put the track parameters in the cryo here ----------------------------------------------------------------------------//
   	/*
@@ -343,19 +438,14 @@ void proto::pionanalysis::analyze(art::Event const & evt)
   	// are tagged as either beam or cosmic for ProtoDUNE. This function automatically considers only those 
   	// PFParticles considered as primary
   	
-
-
-    	bool beamTriggerEvent = dataUtil.IsBeamTrigger(evt);
-        if(beamTriggerEvent){
-      		std::cout << "This data event has a beam trigger" << std::endl;
-    	}
         /// Use the pandora metadata to tell us if this is a beam particle or not
         //bool isBeamParticle=dataUtil.IsBeamParticle(fPFParticleTag, evt, );
         //bool IsBeamParticle(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const;
         
 
-	//	std::vector<recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
-	auto beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+  	//std::vector<const recob::PFParticle*> beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+  	auto beamParticles = pfpUtil.GetPFParticlesFromBeamSlice(evt,fPFParticleTag);
+        //HY:: From the new version, prepend recob::PFParticle* with "const"
   	if(beamParticles.size() == 0){
     		std::cerr << "We found no beam particles for this event... moving on" << std::endl;
     		return;
@@ -402,8 +492,8 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 		      					tmp_primtrk_hitx.push_back(primtrk_pos.X());
 		      					tmp_primtrk_hity.push_back(primtrk_pos.Y());
 		      					tmp_primtrk_hitz.push_back(primtrk_pos.Z());
-		      					std::cout<<"dqdx="<<calo.dQdx()[ihit]<<"; resrange="<<calo.ResidualRange()[ihit]<<std::endl;
-		      					std::cout<<"(X,Y,Z)="<<"("<<calo.XYZ()[ihit].X()<<","<<calo.XYZ()[ihit].Y()<<","<<calo.XYZ()[ihit].Z()<<")"<<std::endl;
+		      					//std::cout<<"dqdx="<<calo.dQdx()[ihit]<<"; resrange="<<calo.ResidualRange()[ihit]<<std::endl;
+		      					//std::cout<<"(X,Y,Z)="<<"("<<calo.XYZ()[ihit].X()<<","<<calo.XYZ()[ihit].Y()<<","<<calo.XYZ()[ihit].Z()<<")"<<std::endl;
 		      					//std::cout<<"(X,Y,Z)="<<"("<<primtrk_pos.X()<<","<<primtrk_pos.Y()<<","<<primtrk_pos.Z()<<")"<<std::endl;
 		      					//std::cout<<"(X,Y,Z)="<<"("<<tmp_primtrk_hitx[ihit]<<","<<tmp_primtrk_hity[ihit]<<","<<tmp_primtrk_hitz[ihit]<<")"<<std::endl;
                     				  } //loop over hits
@@ -412,13 +502,15 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 					//primtrk_dqdx->push_back(tmp_primtrk_dqdx);
 					//primtrk_resrange->push_back(tmp_primtrk_resrange);
 					//primtrk_dedx->push_back(tmp_primtrk_dedx);
-					primtrk_dqdx.push_back(tmp_primtrk_dqdx);
-					primtrk_resrange.push_back(tmp_primtrk_resrange);
-					primtrk_dedx.push_back(tmp_primtrk_dedx);
-					primtrk_hitx.push_back(tmp_primtrk_hitx);
-					primtrk_hity.push_back(tmp_primtrk_hity);
-					primtrk_hitz.push_back(tmp_primtrk_hitz);
-					primtrk_pitch.push_back(tmp_primtrk_pitch);
+					if (tmp_primtrk_hitz.size()!=0) { //prevent the zero vectors being push_back
+					  primtrk_dqdx.push_back(tmp_primtrk_dqdx);
+					  primtrk_resrange.push_back(tmp_primtrk_resrange);
+					  primtrk_dedx.push_back(tmp_primtrk_dedx);
+					  primtrk_hitx.push_back(tmp_primtrk_hitx);
+					  primtrk_hity.push_back(tmp_primtrk_hity);
+					  primtrk_hitz.push_back(tmp_primtrk_hitz);
+					  primtrk_pitch.push_back(tmp_primtrk_pitch);
+					} //prevent the zero vectors being push_back
 
 					tmp_primtrk_dqdx.clear();
 					tmp_primtrk_resrange.clear();
@@ -427,6 +519,29 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 					tmp_primtrk_hity.clear();
 					tmp_primtrk_hitz.clear();
 					tmp_primtrk_pitch.clear();
+
+
+					//HY::Here comes the start/end position of primary track
+    					// Find the particle vertex. We need the tracker tag here because we need to do a bit of
+    					// additional work if the PFParticle is track-like to find the vertex. 
+   					const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
+	      				const TVector3 vtx_end(thisTrack->Trajectory().End().X(), thisTrack->Trajectory().End().Y(), thisTrack->Trajectory().End().Z());
+      					primtrk_startx.push_back(vtx.X());
+      					primtrk_starty.push_back(vtx.Y());
+      					primtrk_startz.push_back(vtx.Z());
+      					std::cout<<"vtx_X:"<<vtx.X()<<" ; vtx_Y:"<<vtx.Y()<<" ; vtx_Z:"<<vtx.Z()<<std::endl;
+                
+      					primtrk_endx.push_back(vtx_end.X());
+      					primtrk_endy.push_back(vtx_end.Y());
+      					primtrk_endz.push_back(vtx_end.Z());
+      					std::cout<<"vtx_end_X:"<<vtx_end.X()<<" ; vtx_end_Y:"<<vtx_end.Y()<<" ; vtx_end_Z:"<<vtx_end.Z()<<std::endl;
+
+					if (vtx.Z()==vtx_end.Z()) { //warning message if Z_start=Z_end
+					  std::cout<<"WARNING!! StartZ and EndZ are the same!!"<<std::endl;	
+					}
+
+
+
 				     }
     		if(thisShower != 0x0) { 
 					std::cout << "Beam particle is shower-like" << std::endl;
@@ -459,16 +574,7 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 		   pfp_daughter.push_back(-99);
 		}
 
-    		// Find the particle vertex. We need the tracker tag here because we need to do a bit of
-    		// additional work if the PFParticle is track-like to find the vertex. 
-    		const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
 
-		//HY::Add parameters for the primary tracks here ---------------//
-      		primtrk_startx.push_back(vtx.X());
-      		primtrk_starty.push_back(vtx.Y());
-      		primtrk_startz.push_back(vtx.Z());
-      		std::cout<<"vtx_X:"<<vtx.X()<<" ; vtx_Y:"<<vtx.Y()<<" ; vtx_Z:"<<vtx.Z()<<std::endl;
-                 
 		//int pdg_code=pfpUtil.PdgCode(*particle,evt,fPFParticleTag,fShowerTag);
 		//std::cout<<"IsDaughters:"<<particle->Daughters()<<std::endl;	
 		//HY::Add parameters for the primary tracks here ---------------//
@@ -533,30 +639,23 @@ void proto::pionanalysis::analyze(art::Event const & evt)
 
       } //if CheckIsMatched
     } //get beam timing trigger
-    if (beaminfo[0]->GetBITrigger() == 1){ //additional info for ckov light if BItrigger==1 (only for e-)
-      //Get CKov status
-      ckov0status = beaminfo[0]->GetCKov0Status();
-      ckov1status = beaminfo[0]->GetCKov1Status();
-    } //additional info for ckov light if BItrigger==1 (only for e-)
-  }
+
+  } //if beam proton
 
   fTree->Fill();
 }
 
-void proto::pionanalysis::beginJob()
+void protoana::pionanalysis::beginJob()
 {
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("beamana","beam analysis tree");
   fTree->Branch("run",&run,"run/I");
   fTree->Branch("subrun",&subrun,"subrun/I");
   fTree->Branch("event",&event,"event/I");
-  fTree->Branch("trigger",&trigger,"trigger/I");
+  //fTree->Branch("trigger",&trigger,"trigger/I");
   fTree->Branch("evttime",&evttime,"evttime/D");
-  fTree->Branch("vx",&vx);
-  fTree->Branch("vy",&vy);
-  fTree->Branch("vz",&vz);
-  fTree->Branch("vcharge",&vcharge);
-  fTree->Branch("vtrackid",&vtrackid);
+  fTree->Branch("Nactivefembs",&fNactivefembs,"Nactivefembs[5]/I");
+
   fTree->Branch("beamPosx",&beamPosx);
   fTree->Branch("beamPosy",&beamPosy);
   fTree->Branch("beamPosz",&beamPosz);
@@ -565,13 +664,22 @@ void proto::pionanalysis::beginJob()
   fTree->Branch("beamDirz",&beamDirz);
   fTree->Branch("beamMomentum",&beamMomentum);
   fTree->Branch("tof", &tof, "tof/D");
-  fTree->Branch("ckov0status", &ckov0status, "ckov0status/S");
-  fTree->Branch("ckov1status", &ckov1status, "ckov1status/S");
+  fTree->Branch("tofs",&tofs);
+  fTree->Branch("ch_tofs",&ch_tofs);
+  fTree->Branch("low_pressure_status", &low_pressure_status, "low_pressure_status/S");
+  fTree->Branch("high_pressure_status", &high_pressure_status, "high_pressure_status/S");
+  fTree->Branch("low_pressure", &low_pressure, "low_pressure/D");
+  fTree->Branch("high_pressure", &high_pressure, "high_pressure/D");
 
   fTree->Branch("cosine_beam_primtrk", &cosine_beam_primtrk, "cosine_beam_primtrk/D");
   fTree->Branch("primtrk_startx",&primtrk_startx);
   fTree->Branch("primtrk_starty",&primtrk_starty);
   fTree->Branch("primtrk_startz",&primtrk_startz);
+
+  fTree->Branch("primtrk_endx",&primtrk_endx);
+  fTree->Branch("primtrk_endy",&primtrk_endy);
+  fTree->Branch("primtrk_endz",&primtrk_endz);
+
   fTree->Branch("primtrk_Dirx",&primtrk_Dirx);
   fTree->Branch("primtrk_Diry",&primtrk_Diry);
   fTree->Branch("primtrk_Dirz",&primtrk_Dirz);
@@ -598,18 +706,25 @@ void proto::pionanalysis::beginJob()
 
 }
 
-void proto::pionanalysis::endJob()
+void protoana::pionanalysis::endJob()
 {
 
 }
 
-void proto::pionanalysis::reset()
+void protoana::pionanalysis::reset()
 {
-  vx.clear();
-  vy.clear();
-  vz.clear();
-  vcharge.clear();
-  vtrackid.clear();
+  for(int k=0; k < 5; k++)
+    fNactivefembs[k] = -999;
+
+  tof = -1;
+  tofs.clear();
+  ch_tofs.clear();
+
+  low_pressure_status = -1;
+  high_pressure_status = -1;
+  low_pressure = -99;
+  high_pressure = -99;
+
   beamPosx.clear();
   beamPosy.clear();
   beamPosz.clear();
@@ -621,6 +736,11 @@ void proto::pionanalysis::reset()
   primtrk_startx.clear();
   primtrk_starty.clear();
   primtrk_startz.clear();  
+
+  primtrk_endx.clear();
+  primtrk_endy.clear();
+  primtrk_endz.clear();  
+
   primtrk_Dirx.clear();
   primtrk_Diry.clear();
   primtrk_Dirz.clear();
@@ -653,4 +773,4 @@ void proto::pionanalysis::reset()
 
 }
 
-DEFINE_ART_MODULE(proto::pionanalysis)
+DEFINE_ART_MODULE(protoana::pionanalysis)
