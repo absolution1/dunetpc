@@ -71,6 +71,13 @@ namespace filt{
   bool ProtoDUNEFembFilter::filter(art::Event & evt) {
 
 
+    fTotalEvents->Fill(1); //count total events
+
+    
+    if(!evt.isRealData()){
+        fSelectedEvents->Fill(1); 
+        return true;   //Filter is designed for Data only. Don't want to filter on MC
+      }
 
 
 

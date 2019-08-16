@@ -9,6 +9,7 @@ T0RecoSCE: {
  	HitProducer: 		"pandoraTrack"
  	PFPProducer: 		"pandora"
  	EdgeWidth: 			40.0  # cm
+	ReadoutEdgeTicks:	50
  }
  
 END_PROLOG
