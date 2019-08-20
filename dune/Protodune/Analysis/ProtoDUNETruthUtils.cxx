@@ -928,3 +928,42 @@ double protoana::ProtoDUNETruthUtils::GetKinEnergyAtVertex(const simb::MCParticl
   
   return (kinene_end - kinene_lastpoint);
 }
+
+// Get the sim::IDEs from the MCParticle, organized by the trajectory points
+std::map< size_t, std::vector< const sim::IDE * > > protoana::ProtoDUNETruthUtils::GetSimIDEs( const simb::MCParticle & mcpart ){
+  art::ServiceHandle< cheat::BackTrackerService >       bt_serv;
+  //art::ServiceHandle< geo::Geometry >                   geom;
+
+  const simb::MCTrajectory & mctraj = mcpart.Trajectory();
+
+  //Get all ides from the MCParticle
+  std::vector< const sim::IDE * > ides = bt_serv->TrackIdToSimIDEs_Ps( mcpart.TrackId()/*, geom->View(2)*/ );
+  //Sort by z position, assume traveling in beam direction.
+  std::sort( ides.begin(), ides.end(), sort_IDEs );
+
+  std::map< size_t, std::vector< const sim::IDE * > > results;
+  
+  size_t ide_start = 0;
+
+  for( size_t i = 0; i < mctraj.size(); ++i ){
+    results[i] = std::vector< const sim::IDE * >();  
+
+    for( size_t j = ide_start; j < ides.size(); ++j ){
+
+      if( ( ides[j]->z > mctraj.Z(i) ) && ( ides[j]->z < mctraj.Z(i+1) ) ){
+        results[i].push_back( ides[j] );
+      }
+
+      else if( ( ides[j]->z < mctraj.Z(i) ) && ( ides[j]->z < mctraj.Z(i+1) ) ){
+        continue; 
+      }
+
+      else{
+        ide_start = j;
+        break;
+      }
+    }
+  }
+
+  return results;
+}

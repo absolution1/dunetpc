@@ -20,6 +20,7 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/PFParticle.h"
@@ -53,8 +54,10 @@
 
 namespace pionana {
   class PionAnalyzerMC;
+  bool sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
+    return( i1->z < i2->z ); 
+  }
 }
-
 
 class pionana::PionAnalyzerMC : public art::EDAnalyzer {
 public:
@@ -79,6 +82,7 @@ public:
 
 private:
 
+  
   // Declare member data here.
   const art::InputTag fTrackModuleLabel;
 
@@ -155,7 +159,11 @@ private:
                        //reconstructed beam track coincide with the actual
                        //beam particle that generated the event
                        
-  bool elastic_candidate;
+  bool elastic_candidate, found_elastic_scatter;
+  int  nElasticScatters;
+  std::vector< double > elastic_costheta, elastic_X, elastic_Y, elastic_Z;
+  int nReconstructed;
+  std::vector< int > reconstructedIDs;
   bool daughter_is_primary;
 
   int reco_beam_truth_origin; //What is the origin of the reconstructed beam track?
@@ -447,6 +455,21 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   true_beam_Start_DirX  = true_beam_Start_Px / true_beam_Start_P;
   true_beam_Start_DirY  = true_beam_Start_Py / true_beam_Start_P;
   true_beam_Start_DirZ  = true_beam_Start_Pz / true_beam_Start_P;
+  
+
+  //Go through and look at the reconstructed track->true IDs. Look for a match to the true
+  //incident beam particle
+  for( auto const & tr : *recoTracks ){
+   const simb::MCParticle* true_p = truthUtil.GetMCParticleFromRecoTrack(tr, evt, fTrackerTag); 
+
+   if(true_p){
+     if( true_p->TrackId() == true_beam_particle->TrackId() ){
+       ++nReconstructed;
+       reconstructedIDs.push_back( tr.ID() );
+     }
+   }
+  }
+
 
 
   //Look at true daughters coming out of the true beam particle
@@ -554,12 +577,19 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     const simb::MCTrajectory & true_beam_trajectory = true_beam_particle->Trajectory();
     auto true_beam_proc_map = true_beam_trajectory.TrajectoryProcesses();
     std::cout << "Processes: " << std::endl;
+
+    std::vector< size_t > elastic_indices;
+
     for( auto itProc = true_beam_proc_map.begin(); itProc != true_beam_proc_map.end(); ++itProc ){
       int index = itProc->first;
       std::string process = true_beam_trajectory.KeyToProcess(itProc->second);
       std::cout << index << " " << process << std::endl;
 
       if( process == "hadElastic" ){
+        elastic_indices.push_back( index );
+
+        ++nElasticScatters;
+
         double process_X = true_beam_trajectory.X( index );
         double process_Y = true_beam_trajectory.Y( index );
         double process_Z = true_beam_trajectory.Z( index );
@@ -575,6 +605,25 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
           (process_Z - endZ)*(process_Z - endZ)
         );
 
+        double PX      = true_beam_trajectory.Px( index );
+        double next_PX = true_beam_trajectory.Px( index + 1 );
+        double PY      = true_beam_trajectory.Py( index );
+        double next_PY = true_beam_trajectory.Py( index + 1 );
+        double PZ      = true_beam_trajectory.Pz( index );
+        double next_PZ = true_beam_trajectory.Pz( index + 1 );
+
+        double total_P = sqrt( PX*PX + PY*PY + PZ*PZ );
+        double total_next_P = sqrt( next_PX*next_PX + next_PY*next_PY + next_PZ*next_PZ );
+
+        //Get the angle between the direction of this step and the next
+        elastic_costheta.push_back(
+          ( ( PX * next_PX ) + ( PY * next_PY ) + ( PZ * next_PZ ) ) / ( total_P * total_next_P )
+        );
+
+        elastic_X.push_back( process_X );
+        elastic_Y.push_back( process_Y );
+        elastic_Z.push_back( process_Z );
+
         //for now: 10cm
         if( delta < 10. ){
           std::cout << "Found possible elastic scatter with vertex" << std::endl;
@@ -584,8 +633,66 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     }
 
 
+    //Testing
+    std::cout << "N Traj Pts: " << true_beam_trajectory.size() << std::endl;
+    std::cout << true_beam_particle->TrackId() << std::endl;
+
+    //Get the sim::IDEs for each true trajectory point
+    std::map< size_t, std::vector< const sim::IDE * > > trueTrajPtsToSimIDEs = truthUtil.GetSimIDEs( *true_beam_particle );
+
+    //Looking at the hits in the beam track
+    std::map< size_t, std::vector< const recob::Hit * > > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
+
+    // Get the IDEs from last hit in the track
+    auto reco_it = trajPtsToHits.rbegin();
+    auto last_hit = reco_it->second[0];
+
+    std::vector< const sim::IDE * > last_ides = bt_serv->HitToSimIDEs_Ps( *last_hit );
+    for( size_t i = 0; i < last_ides.size(); ++i ){
+      std::cout << last_ides[i] << " " << last_ides[i]->z << " " << last_ides[i]->numElectrons << " " << last_ides[i]->energy << std::endl;
+    }
+
+    //Now, go through the Traj points backward and find the last point with any simIDEs
+    //Then find which hit in the reco track it is associated to
+    int ntries = 0;
+    for( auto it = trueTrajPtsToSimIDEs.rbegin(); it != trueTrajPtsToSimIDEs.rend(); ++it ){
+
+      std::vector< const sim::IDE * > ides_at_point = it->second;
+
+      std::cout << "Point: " << it->first << std::endl;
+      for( size_t i = 0; i < ides_at_point.size(); ++i ){
+        std::cout << "\t" << ides_at_point[i] << " " << ides_at_point[i]->z << " " << ides_at_point[i]->numElectrons << " " << ides_at_point[i]->energy << std::endl;
+        for( size_t j = 0; j < last_ides.size(); ++j ){
+          if( last_ides[j] == ides_at_point[i] ){
+            std::cout << "Found" << std::endl;
+            break;
+          }
+
+        }
+      }
+
+      if( ntries > 4 ) break;
+      ++ntries;
+    }
 
 
+    std::cout << "Checking elastic scatters" << std::endl;
+    for( auto i = elastic_indices.rbegin(); i != elastic_indices.rend(); ++i ){
+      std::vector< const sim::IDE * > ides_at_point = trueTrajPtsToSimIDEs[*i];
+
+      std::cout << "Point: " << *i << std::endl;
+      for( size_t j = 0; j < ides_at_point.size(); ++j ){
+        std::cout << "\t" << ides_at_point[j] << " " << ides_at_point[j]->z << " " << ides_at_point[j]->numElectrons << " " << ides_at_point[j]->energy << std::endl;
+        for( size_t k = 0; k < last_ides.size(); ++k ){
+          if( last_ides[k] == ides_at_point[j] ){
+            std::cout << "Found" << std::endl;
+            found_elastic_scatter = true;
+            break;
+          }
+
+        }
+      }
+    }
 
     //Primary Track Calorimetry 
     std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
@@ -882,13 +989,12 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
     //Looking at shower/track discrimination
     std::cout << "MVA" << std::endl;
-    //Look at the hits from the track:
-    std::vector< art::Ptr< recob::Hit > > track_hits = findHits.at( thisTrack->ID() );
 
     double track_total = 0.;
     double em_total = 0.;
     double none_total = 0.;
     double michel_total = 0.;   
+    std::vector< art::Ptr< recob::Hit > > track_hits = findHits.at( thisTrack->ID() );
     for( size_t h = 0; h < track_hits.size(); ++h ){
       std::array<float,4> cnn_out = hitResults.getOutput( track_hits[h ] );
       track_total  += cnn_out[ hitResults.getIndex("track") ];
@@ -1021,6 +1127,14 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_beam_truth_ID", &reco_beam_truth_ID);
   fTree->Branch("reco_beam_good", &reco_beam_good);
   fTree->Branch("elastic_candidate", &elastic_candidate);
+  fTree->Branch("found_elastic_scatter", &found_elastic_scatter);
+  fTree->Branch("nElasticScatters", &nElasticScatters);
+  fTree->Branch("elastic_costheta", &elastic_costheta);
+  fTree->Branch("elastic_X", &elastic_X);
+  fTree->Branch("elastic_Y", &elastic_Y);
+  fTree->Branch("elastic_Z", &elastic_Z);
+  fTree->Branch("nReconstructed", &nReconstructed);
+  fTree->Branch("reconstructedIDs", &reconstructedIDs);
   fTree->Branch("daughter_is_primary", &daughter_is_primary);
 
   fTree->Branch("reco_beam_Chi2_proton", &reco_beam_Chi2_proton);
@@ -1130,6 +1244,14 @@ void pionana::PionAnalyzerMC::reset()
 
   reco_beam_good = false;
   elastic_candidate = false;
+  found_elastic_scatter = false;
+  nElasticScatters = 0;
+  elastic_costheta.clear();
+  elastic_X.clear();
+  elastic_Y.clear();
+  elastic_Z.clear();
+  nReconstructed = 0;
+  reconstructedIDs.clear();
   daughter_is_primary = false;
   reco_beam_Chi2_proton = 999.;
   reco_beam_Chi2_ndof = -1;

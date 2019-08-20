@@ -3,6 +3,7 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
@@ -446,6 +447,69 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vect
     return std::make_pair(9999., -1);
   
     
-  pid_chi2 = pid_chi2 / npt;
+
   return std::make_pair(pid_chi2, npt); 
+}
+
+std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
+
+   auto recoTracks = evt.getValidHandle< std::vector< recob::Track > >(trackModule);
+   art::FindManyP< recob::Hit, recob::TrackHitMeta >  trackHitMetas(recoTracks,evt,trackModule);
+   art::FindManyP< recob::Hit > findHits(recoTracks,evt,trackModule);
+
+   std::vector< art::Ptr< recob::Hit > > track_hits = findHits.at( track.ID() );
+
+
+   //First, find the location of the beam track in the track list
+   size_t beam_index = 0;
+   for( size_t i = 0; i < recoTracks->size(); ++i ){
+     if( (*recoTracks)[i].ID() == track.ID() ){
+       beam_index = i;
+       break;
+     }        
+   }
+
+
+   std::map< size_t, std::vector< const recob::Hit * > > results;
+   if( trackHitMetas.isValid() ){
+
+     auto beamHits  = trackHitMetas.at( beam_index );
+     auto beamMetas = trackHitMetas.data( beam_index );    
+
+     for( size_t i = 0; i < beamHits.size(); ++i ){
+
+       if( beamMetas[i]->Index() == std::numeric_limits<int>::max() )
+         continue;
+
+       if( !track.HasValidPoint( beamMetas[i]->Index() ) ){
+         std::cout << "Has no valid hit: " << beamMetas[i]->Index() << std::endl;
+         continue;
+       }
+
+       results[ beamMetas[i]->Index() ] = std::vector< const recob::Hit * >();
+
+       for( size_t j = 0; j < track_hits.size(); ++j ){
+
+         //if( track_hits[j]->WireID().Plane == 2 ){//Look at just the collection plane
+
+           if( beamHits[i].key() == track_hits[j].key() ){
+
+             if( beamMetas[i]->Index() >= track.NumberTrajectoryPoints() ){
+               throw cet::exception("ProtoDUNETrackUtils.cxx") 
+                     << "Requested track trajectory index " << beamMetas[i]->Index() 
+                     << " exceeds the total number of trajectory points "<< track.NumberTrajectoryPoints() 
+                     << " for track index " << beam_index 
+                     << ". Something is wrong with the track reconstruction. Please contact tjyang@fnal.gov";
+             }
+
+             //If we've reached here, it's a good hit within the track. Connect to the trajectory point
+             results[ beamMetas[i]->Index() ].push_back( track_hits[j].get() ); 
+           }
+         //}
+       }
+     }
+
+   }
+   return results;
+   
 }
