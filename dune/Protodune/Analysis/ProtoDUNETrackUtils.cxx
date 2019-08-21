@@ -451,7 +451,8 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vect
   return std::make_pair(pid_chi2, npt); 
 }
 
-std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
+//std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
+std::map< size_t, const recob::Hit * > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
 
    auto recoTracks = evt.getValidHandle< std::vector< recob::Track > >(trackModule);
    art::FindManyP< recob::Hit, recob::TrackHitMeta >  trackHitMetas(recoTracks,evt,trackModule);
@@ -470,7 +471,8 @@ std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUt
    }
 
 
-   std::map< size_t, std::vector< const recob::Hit * > > results;
+   //std::map< size_t, std::vector< const recob::Hit * > > results;
+   std::map< size_t, const recob::Hit * > results;
    if( trackHitMetas.isValid() ){
 
      auto beamHits  = trackHitMetas.at( beam_index );
@@ -486,7 +488,7 @@ std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUt
          continue;
        }
 
-       results[ beamMetas[i]->Index() ] = std::vector< const recob::Hit * >();
+       //results[ beamMetas[i]->Index() ] = std::vector< const recob::Hit * >();
 
        for( size_t j = 0; j < track_hits.size(); ++j ){
 
@@ -503,7 +505,8 @@ std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUt
              }
 
              //If we've reached here, it's a good hit within the track. Connect to the trajectory point
-             results[ beamMetas[i]->Index() ].push_back( track_hits[j].get() ); 
+             //results[ beamMetas[i]->Index() ].push_back( track_hits[j].get() ); 
+             results[ beamMetas[i]->Index() ] = track_hits[j].get(); 
            }
          //}
        }

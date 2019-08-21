@@ -637,16 +637,21 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cout << "N Traj Pts: " << true_beam_trajectory.size() << std::endl;
     std::cout << true_beam_particle->TrackId() << std::endl;
 
+    std::cout << "N Reco Traj Pts: " << thisTrack->NumberTrajectoryPoints() << std::endl;
+
     //Get the sim::IDEs for each true trajectory point
     std::map< size_t, std::vector< const sim::IDE * > > trueTrajPtsToSimIDEs = truthUtil.GetSimIDEs( *true_beam_particle );
 
     //Looking at the hits in the beam track
-    std::map< size_t, std::vector< const recob::Hit * > > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
+    //std::map< size_t, std::vector< const recob::Hit * > > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
+    std::map< size_t, const recob::Hit * > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
+
 
     // Get the IDEs from last hit in the track
     auto reco_it = trajPtsToHits.rbegin();
-    auto last_hit = reco_it->second[0];
-
+    //auto last_hit = reco_it->second[0];
+    std::cout << "Last index " << reco_it->first << std::endl;
+/*
     std::vector< const sim::IDE * > last_ides = bt_serv->HitToSimIDEs_Ps( *last_hit );
     for( size_t i = 0; i < last_ides.size(); ++i ){
       std::cout << last_ides[i] << " " << last_ides[i]->z << " " << last_ides[i]->numElectrons << " " << last_ides[i]->energy << std::endl;
@@ -680,9 +685,9 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     for( auto i = elastic_indices.rbegin(); i != elastic_indices.rend(); ++i ){
       std::vector< const sim::IDE * > ides_at_point = trueTrajPtsToSimIDEs[*i];
 
-      std::cout << "Point: " << *i << std::endl;
+//      std::cout << "Point: " << *i << std::endl;
       for( size_t j = 0; j < ides_at_point.size(); ++j ){
-        std::cout << "\t" << ides_at_point[j] << " " << ides_at_point[j]->z << " " << ides_at_point[j]->numElectrons << " " << ides_at_point[j]->energy << std::endl;
+    //    std::cout << "\t" << ides_at_point[j] << " " << ides_at_point[j]->z << " " << ides_at_point[j]->numElectrons << " " << ides_at_point[j]->energy << std::endl;
         for( size_t k = 0; k < last_ides.size(); ++k ){
           if( last_ides[k] == ides_at_point[j] ){
             std::cout << "Found" << std::endl;
@@ -692,6 +697,67 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
         }
       }
+    }
+    */
+
+
+    //Finding distance between end of the reconstucted track and the end of the true trajectory
+    //by looking at the sim::IDEs
+
+    //Loop backward over the hits in the reconstructed track
+    //Note: the loops have the extra condition of occuring while 
+    //the IDEs have not been matched
+    bool found_ides = false;
+    const sim::IDE * matchedIDE = NULL; 
+    const recob::Hit * matchedHit = NULL;
+
+    //For the true sim IDEs: save the index for the traj pt (TruePt_index) and the IDE in the vector (IDE_index)
+    //For the reco hits: just save the index of the reco traj point; 
+    size_t IDE_index = 0; 
+    size_t TruePt_index = 0;
+    size_t Hit_index = 0;
+    for( auto itRecoHits = trajPtsToHits.rbegin(); ( itRecoHits != trajPtsToHits.rend() && !found_ides ); ++itRecoHits ){
+      //auto theHit = itRecoHits->second[0];      
+      auto theHit = itRecoHits->second;
+      Hit_index = itRecoHits->first;
+        
+      std::vector< const sim::IDE * > recoHitIDEs = bt_serv->HitToSimIDEs_Ps( *theHit );     
+      
+      //Now go backward through the pts in the true trajectory and try to find a match between sim::IDEs
+      for( auto itTrueIDEs = trueTrajPtsToSimIDEs.rbegin(); ( itTrueIDEs != trueTrajPtsToSimIDEs.rend() && !found_ides ); ++itTrueIDEs ){
+        std::vector< const sim::IDE * > trueIDEs = itTrueIDEs->second;
+        TruePt_index = itTrueIDEs->first;
+
+        //Skip empty points
+        if( !trueIDEs.size() ) continue;
+
+        //Go backward through the true IDEs, then look at the reco IDEs
+        //Note: this for loop uses unsigned ints, so when --i tries to 
+        //decrement 0, it will go to max<unsigned int> which is > trueIDEs.size()
+        //and will exit the loop
+        for( size_t i = trueIDEs.size() - 1; ( i < trueIDEs.size() && !found_ides ); --i ){
+          const sim::IDE * theTrueIDE = trueIDEs[i];
+          
+          for( size_t j = 0; j < recoHitIDEs.size(); ++j ){
+            //Check if the pointers are the same value
+            if( recoHitIDEs[j] == theTrueIDE ){
+              matchedIDE = theTrueIDE; 
+              matchedHit = theHit;
+              IDE_index  = i;
+              found_ides = true; 
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if( found_ides ){
+      std::cout << "Found the IDEs " << Hit_index << " " << TruePt_index << " " << IDE_index << std::endl;
+      std::cout << matchedIDE << " " << matchedHit << std::endl;
+    }
+    else{
+      std::cout << "Did not find IDEs " << matchedIDE << " " << matchedHit << std::endl; 
     }
 
     //Primary Track Calorimetry 
