@@ -198,6 +198,13 @@ private:
   double reco_beam_truth_Start_P;
 
 
+  //Info from matching IDEs
+  double IDE_toEnd;
+  double reco_toEnd;
+  bool   found_ides; 
+  double total_traj_length;
+
+
   //Reco-level info of the reconstructed daughters coming out of the
   //reconstructed beam tracl
   std::vector< int > reco_daughter_trackID;
@@ -651,55 +658,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     auto reco_it = trajPtsToHits.rbegin();
     //auto last_hit = reco_it->second[0];
     std::cout << "Last index " << reco_it->first << std::endl;
-/*
-    std::vector< const sim::IDE * > last_ides = bt_serv->HitToSimIDEs_Ps( *last_hit );
-    for( size_t i = 0; i < last_ides.size(); ++i ){
-      std::cout << last_ides[i] << " " << last_ides[i]->z << " " << last_ides[i]->numElectrons << " " << last_ides[i]->energy << std::endl;
-    }
-
-    //Now, go through the Traj points backward and find the last point with any simIDEs
-    //Then find which hit in the reco track it is associated to
-    int ntries = 0;
-    for( auto it = trueTrajPtsToSimIDEs.rbegin(); it != trueTrajPtsToSimIDEs.rend(); ++it ){
-
-      std::vector< const sim::IDE * > ides_at_point = it->second;
-
-      std::cout << "Point: " << it->first << std::endl;
-      for( size_t i = 0; i < ides_at_point.size(); ++i ){
-        std::cout << "\t" << ides_at_point[i] << " " << ides_at_point[i]->z << " " << ides_at_point[i]->numElectrons << " " << ides_at_point[i]->energy << std::endl;
-        for( size_t j = 0; j < last_ides.size(); ++j ){
-          if( last_ides[j] == ides_at_point[i] ){
-            std::cout << "Found" << std::endl;
-            break;
-          }
-
-        }
-      }
-
-      if( ntries > 4 ) break;
-      ++ntries;
-    }
-
-
-    std::cout << "Checking elastic scatters" << std::endl;
-    for( auto i = elastic_indices.rbegin(); i != elastic_indices.rend(); ++i ){
-      std::vector< const sim::IDE * > ides_at_point = trueTrajPtsToSimIDEs[*i];
-
-//      std::cout << "Point: " << *i << std::endl;
-      for( size_t j = 0; j < ides_at_point.size(); ++j ){
-    //    std::cout << "\t" << ides_at_point[j] << " " << ides_at_point[j]->z << " " << ides_at_point[j]->numElectrons << " " << ides_at_point[j]->energy << std::endl;
-        for( size_t k = 0; k < last_ides.size(); ++k ){
-          if( last_ides[k] == ides_at_point[j] ){
-            std::cout << "Found" << std::endl;
-            found_elastic_scatter = true;
-            break;
-          }
-
-        }
-      }
-    }
-    */
-
 
     //Finding distance between end of the reconstucted track and the end of the true trajectory
     //by looking at the sim::IDEs
@@ -707,8 +665,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     //Loop backward over the hits in the reconstructed track
     //Note: the loops have the extra condition of occuring while 
     //the IDEs have not been matched
-    bool found_ides = false;
-    const sim::IDE * matchedIDE = NULL; 
+    const sim::IDE * matchedIDE = NULL;  //Not sure if I need these
     const recob::Hit * matchedHit = NULL;
 
     //For the true sim IDEs: save the index for the traj pt (TruePt_index) and the IDE in the vector (IDE_index)
@@ -716,6 +673,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     size_t IDE_index = 0; 
     size_t TruePt_index = 0;
     size_t Hit_index = 0;
+    std::map< size_t, std::vector< const sim::IDE * > >::iterator matchedTruePt = trueTrajPtsToSimIDEs.end();
     for( auto itRecoHits = trajPtsToHits.rbegin(); ( itRecoHits != trajPtsToHits.rend() && !found_ides ); ++itRecoHits ){
       //auto theHit = itRecoHits->second[0];      
       auto theHit = itRecoHits->second;
@@ -745,6 +703,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
               matchedHit = theHit;
               IDE_index  = i;
               found_ides = true; 
+              matchedTruePt = trueTrajPtsToSimIDEs.find( TruePt_index );
               break;
             }
           }
@@ -755,6 +714,48 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     if( found_ides ){
       std::cout << "Found the IDEs " << Hit_index << " " << TruePt_index << " " << IDE_index << std::endl;
       std::cout << matchedIDE << " " << matchedHit << std::endl;
+
+      //Get the distance to the end of the reco track
+      reco_toEnd = thisTrack->Length( Hit_index ); 
+      std::cout << "To end of reco track: " << reco_toEnd << std::endl;
+
+      //Calculate the integrated distance (along the trajectory) from the matched IDE point to the end of the trajectory
+      //using only the trajectory points
+      double IDE_x = matchedIDE->x;
+      double IDE_y = matchedIDE->y;
+      double IDE_z = matchedIDE->z;
+
+      if( true_beam_trajectory.size() > ( TruePt_index + 1 ) ){
+
+        IDE_toEnd += sqrt( std::pow( ( IDE_x - true_beam_trajectory.X( TruePt_index + 1 ) ), 2 ) + 
+                           std::pow( ( IDE_y - true_beam_trajectory.Y( TruePt_index + 1 ) ), 2 ) + 
+                           std::pow( ( IDE_z - true_beam_trajectory.Z( TruePt_index + 1 ) ), 2 ) );
+
+        for( size_t i = TruePt_index + 1; i < true_beam_trajectory.size() - 1; ++i ){
+
+          double delta = sqrt( std::pow( ( true_beam_trajectory.X( i ) - true_beam_trajectory.X( i + 1 ) ), 2 ) + 
+                               std::pow( ( true_beam_trajectory.Y( i ) - true_beam_trajectory.Y( i + 1 ) ), 2 ) + 
+                               std::pow( ( true_beam_trajectory.Z( i ) - true_beam_trajectory.Z( i + 1 ) ), 2 ) );
+
+          IDE_toEnd += delta;
+        }
+      }
+      
+      std::cout << "To end of true trajectory: " << IDE_toEnd << std::endl;
+      
+      
+      //total length is the length starting from where the sim::IDE began
+      for( size_t i = trueTrajPtsToSimIDEs.begin()->first; i < true_beam_trajectory.size() - 1; ++i ){
+        total_traj_length += sqrt( std::pow( ( true_beam_trajectory.X( i ) - true_beam_trajectory.X( i + 1 ) ), 2 )  +
+                                   std::pow( ( true_beam_trajectory.Y( i ) - true_beam_trajectory.Y( i + 1 ) ), 2 )  +
+                                   std::pow( ( true_beam_trajectory.Z( i ) - true_beam_trajectory.Z( i + 1 ) ), 2 )  );
+      }
+      
+      std::cout << "Total length: " << total_traj_length << std::endl;
+
+
+      
+
     }
     else{
       std::cout << "Did not find IDEs " << matchedIDE << " " << matchedHit << std::endl; 
@@ -1094,6 +1095,11 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("type", &type);
   fTree->Branch("MC", &MC);
 
+  fTree->Branch("IDE_toEnd", &IDE_toEnd);
+  fTree->Branch("found_ides", &found_ides); 
+  fTree->Branch("total_traj_length", &total_traj_length);
+  fTree->Branch("reco_toEnd", &reco_toEnd);
+
   fTree->Branch("startX", &startX);
   fTree->Branch("startY", &startY);
   fTree->Branch("startZ", &startZ);
@@ -1262,6 +1268,11 @@ void pionana::PionAnalyzerMC::reset()
   len = -1;
   type = -1;
   nBeamParticles = 0;
+
+  IDE_toEnd = 0.;
+  reco_toEnd = 0.;
+  found_ides = false;
+  total_traj_length = 0.;
 
   MC = 0;
   nProton_truth = 0;
