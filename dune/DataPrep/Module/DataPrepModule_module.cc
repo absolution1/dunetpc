@@ -278,8 +278,8 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( useDecoderTool ) {
     std::vector<int> apas = {-1};
     int decodeStat = m_pDecoderTool->
-      retrieveDataForSpecifiedAPAs(evt, digitsFromTool, timsFromTool, rdtsassocsFromTool,
-                                   rdstatsFromTool, "daq", apas);
+      retrieveDataForSpecifiedAPAs_NoAssoc(evt, digitsFromTool, timsFromTool,
+                                   rdstatsFromTool, apas);
     if ( decodeStat ) {
       cout << myname << "WARNING: Decoder tool returned " << decodeStat << endl;
     }
