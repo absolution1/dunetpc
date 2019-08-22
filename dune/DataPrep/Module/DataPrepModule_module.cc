@@ -35,6 +35,7 @@
 #include "art/Framework/Principal/Event.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h" 
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
+#include "dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterfaceParent.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardata/Utilities/AssociationUtil.h"
@@ -86,8 +87,9 @@ private:
     
   // Configuration parameters.
   int m_LogLevel;
-  std::string m_DigitLabel;  ///< Full label for the input digit container, e.g. daq:
-  std::string m_WireName;    ///< Second field in full label for the output wire container.
+  Name m_DecoderTool; // Name for the decoder tool
+  Name m_DigitLabel;  ///< Full label for the input digit container, e.g. daq:
+  Name m_WireName;    ///< Second field in full label for the output wire container.
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
   bool m_DoGroups = false;
@@ -109,6 +111,8 @@ private:
 
   // Tools.
   std::string m_OnlineChannelMapTool;
+
+  std::unique_ptr<PDSPTPCDataInterfaceParent> m_pDecoderTool;
   std::unique_ptr<IndexMapTool> m_onlineChannelMapTool;
 
   // Processed event count.
@@ -143,8 +147,9 @@ DataPrepModule::~DataPrepModule() { }
 void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   const string myname = "DataPrepModule::reconfigure: ";
   m_LogLevel       = pset.get<int>("LogLevel");
-  m_DigitLabel     = pset.get<std::string>("DigitLabel", "daq");
-  m_WireName       = pset.get<std::string>("WireName", "");
+  m_DecoderTool    = pset.get<Name>("DecoderTool");
+  m_DigitLabel     = pset.get<Name>("DigitLabel", "daq");
+  m_WireName       = pset.get<Name>("WireName", "");
   m_DoAssns        = pset.get<bool>("DoAssns");
   m_DoGroups       = pset.get<bool>("DoGroups");
   m_ChannelRanges  = pset.get<NameVector>("ChannelRanges");
@@ -171,6 +176,19 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
 
   m_pRawDigitPrepService = &*ServiceHandle<RawDigitPrepService>();
   if ( m_DoGroups ) m_pChannelGroupService = &*ServiceHandle<ChannelGroupService>();
+
+  if ( m_DecoderTool.size() ) {
+    DuneToolManager* ptm = DuneToolManager::instance();
+    m_pDecoderTool = ptm->getPrivate<PDSPTPCDataInterfaceParent>(m_DecoderTool);
+    if ( ! m_pDecoderTool ) {
+      cout << myname << "ERROR: Decoder tool not found: " << m_DecoderTool << endl;
+    }
+  }
+  if ( m_pDecoderTool ) {
+    cout << myname << "Raw digits will be obtained with decoder tool " << m_DecoderTool << endl;
+  } else {
+    cout << myname << "Raw digits will be obtained from event data store." << endl;
+  }
 
   if ( m_OnlineChannelMapTool.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance();
@@ -250,23 +268,49 @@ void DataPrepModule::produce(art::Event& evt) {
   // Fetch the event time.
   Timestamp beginTime = evt.time();
 
+  bool useDecoderTool = bool(m_pDecoderTool);
+  std::vector<raw::RDTimeStamp> timsFromTool;
+  std::vector<raw::RDStatus> rdstatsFromTool;
+  std::vector<raw::RawDigit> digitsFromTool;
+  art::Assns<raw::RawDigit,raw::RDTimeStamp> rdtsassocsFromTool;
+
+  // If decoder tool is used...
+  if ( useDecoderTool ) {
+    std::vector<int> apas = {-1};
+    int decodeStat = m_pDecoderTool->
+      retrieveDataForSpecifiedAPAs(evt, digitsFromTool, timsFromTool, rdtsassocsFromTool,
+                                   rdstatsFromTool, "daq", apas);
+    if ( decodeStat ) {
+      cout << myname << "WARNING: Decoder tool returned " << decodeStat << endl;
+    }
+    cout << myname << "Times count from tool: " << timsFromTool.size() << endl;
+    cout << myname << "Stats count from tool: " << rdstatsFromTool.size() << endl;
+    cout << myname << "Digit count from tool: " << digitsFromTool.size() << endl;
+  }
+  
   // Fetch the trigger and timing clock.
-  string m_TimingProducer = "timingrawdecoder";
   AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
   if ( true ) {
+    const std::vector<raw::RDTimeStamp>* ptims = nullptr;
     art::Handle<std::vector<raw::RDTimeStamp>> htims;
-    //evt.getByLabel(m_DigitProducer, m_DigitName, htims);
-    evt.getByLabel("timingrawdecoder", "daq", htims);
-    if ( ! htims.isValid() ) {
-      cout << myname << "WARNING: Timing clocks product not found." << endl;
-    } else if (  htims->size() != 1 ) {
-      cout << myname << "WARNING: Unexpected timing clocks size: " << htims->size() << endl;
-      for ( unsigned int itim=0; itim<htims->size() && itim<50; ++itim ) {
-        cout << myname << "  " << htims->at(itim).GetTimeStamp() << endl;
+    if ( useDecoderTool ) {
+      ptims = &timsFromTool;
+    } else {
+      evt.getByLabel("timingrawdecoder", "daq", htims);
+      if ( htims.isValid() ) {
+        ptims = &*htims;
+      } else {
+        cout << myname << "WARNING: Timing clocks product not found." << endl;
+      }
+    }
+    if ( ptims->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected timing clocks size: " << ptims->size() << endl;
+      for ( unsigned int itim=0; itim<ptims->size() && itim<50; ++itim ) {
+        cout << myname << "  " << ptims->at(itim).GetTimeStamp() << endl;
       }
     } else {
-      const raw::RDTimeStamp& tim = htims->at(0);
+      const raw::RDTimeStamp& tim = ptims->at(0);
       cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
       timingClock = tim.GetTimeStamp();
       // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
@@ -284,17 +328,25 @@ void DataPrepModule::produce(art::Event& evt) {
   }
 
   // Read the raw digit status.
+  const std::vector<raw::RDStatus>* prdstats = nullptr;
   art::Handle<std::vector<raw::RDStatus>> hrdstats;
-  evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
+  if ( useDecoderTool ) {
+    prdstats = &rdstatsFromTool;
+  } else {
+    evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
+    if ( hrdstats.isValid() ) {
+      prdstats = &*hrdstats;
+    } else {
+      cout << myname << "WARNING: Raw data status product not found." << endl;
+    }
+  }
   string srdstat;
   bool skipEvent = skipAllEvents;
-  if ( ! hrdstats.isValid() ) {
-    cout << myname << "WARNING: Raw data status product not found." << endl;
-  } else {
-    if ( hrdstats->size() != 1 ) {
-      cout << myname << "WARNING: Unexpected raw data status size: " << hrdstats->size() << endl;
+  if ( prdstats != nullptr ) {
+    if ( prdstats->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected raw data status size: " << prdstats->size() << endl;
     }
-    const RDStatus rdstat = hrdstats->at(0);
+    const RDStatus rdstat = prdstats->at(0);
     if ( false ) {
       cout << myname << "Raw data status: " << rdstat.GetStatWord();
       if ( rdstat.GetCorruptDataDroppedFlag() ) cout << " (Corrupt data was dropped.)";
@@ -368,16 +420,22 @@ void DataPrepModule::produce(art::Event& evt) {
   }
             
   // Read in the digits. 
+  const vector<raw::RawDigit>* pdigits = nullptr;
   art::Handle<std::vector<raw::RawDigit>> hdigits;
-  evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
-  if ( m_LogLevel >= 3 ) {
-    cout << myname << "# digits read: " << hdigits->size() << endl;
+  if ( useDecoderTool ) {
+    pdigits = &digitsFromTool;
+  } else {
+    evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
+    pdigits = &*hdigits;
   }
-  if ( hdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "# digits read: " << pdigits->size() << endl;
+  }
+  if ( pdigits->size() == 0 ) mf::LogWarning("DataPrepModule") << "Input digit container is empty";
 
   // Create the container to hold the output wires.
   std::unique_ptr<std::vector<recob::Wire>> pwires(new std::vector<recob::Wire>);
-  pwires->reserve(hdigits->size());
+  pwires->reserve(pdigits->size());
 
   // Create the association container.
   std::unique_ptr<art::Assns<raw::RawDigit,recob::Wire>> passns(new art::Assns<raw::RawDigit,recob::Wire>);
@@ -398,7 +456,7 @@ void DataPrepModule::produce(art::Event& evt) {
   // of groups is lost if  intermediate states are recorded.
   WiredAdcChannelDataMap* pintStates = nullptr;
   if ( m_IntermediateStates.size() ) {
-    pintStates = new WiredAdcChannelDataMap(m_IntermediateStates, hdigits->size());
+    pintStates = new WiredAdcChannelDataMap(m_IntermediateStates, pdigits->size());
   }
 
   // Create the transient data map and copy the digits there.
@@ -406,7 +464,7 @@ void DataPrepModule::produce(art::Event& evt) {
   bool checkKeep = m_KeepChannelEnd > m_KeepChannelBegin;
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
-  unsigned int ndigi = hdigits->size();
+  unsigned int ndigi = pdigits->size();
   for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*hdigits)[idig];
     AdcChannel chan = dig.Channel();
@@ -558,7 +616,7 @@ void DataPrepModule::produce(art::Event& evt) {
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
 
     // Build associations between wires and digits.
-    if ( m_DoAssns ) {
+    if ( m_DoAssns && !useDecoderTool ) {
       for ( const AdcChannelDataMap::value_type& iacd : datamap ) {
         const AdcChannelData& acd = iacd.second;
         AdcIndex idig = acd.digitIndex;
