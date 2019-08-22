@@ -71,12 +71,11 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 				       std::vector<raw::RawDigit> &raw_digits, 
 				       std::vector<raw::RDTimeStamp> &rd_timestamps,
 		                       art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
-				       std::vector<raw::RDStatus> &rdstatuses, 
-				       std::string outputLabel )
+				       std::vector<raw::RDStatus> &rdstatuses)
 {
   std::vector<int> apalist;
   apalist.push_back(-1);
-  int retcode = retrieveDataAPAListWithLabels(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, outputLabel, apalist );
+  int retcode = retrieveDataAPAListWithLabels(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, apalist );
   return retcode;
 }
 
@@ -88,7 +87,6 @@ int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
 							std::vector<raw::RDTimeStamp> &rd_timestamps,
 							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 							std::vector<raw::RDStatus> &rdstatuses, 
-							std::string outputLabel,
 							std::vector<int> &apalist)
 {
   int totretcode = 0;
@@ -102,7 +100,7 @@ int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
 	}
       for (size_t j=0; j<lli->second.size(); ++j)
 	{
-	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, outputLabel, apalist );
+	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, apalist );
 	  if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
 	}
     }
@@ -117,12 +115,11 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 							std::vector<raw::RDTimeStamp> &rd_timestamps,
 							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 							std::vector<raw::RDStatus> &rdstatuses, 
-							std::string outputLabel,
 							std::vector<int> &apalist)
 {
 
-  RDPmkr rdpm(evt, outputLabel);
-  TSPmkr tspm(evt, outputLabel);
+  RDPmkr rdpm(evt);
+  TSPmkr tspm(evt);
 
   _initialized_tick_count_this_event = false;
   _discard_data = false;   // true if we're going to drop the whole event's worth of data
