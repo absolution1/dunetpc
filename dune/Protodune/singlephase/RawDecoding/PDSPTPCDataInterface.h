@@ -52,6 +52,12 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   // inputLabel examples:  "daq:TPC" or "daq::ContainerTPC" for RCE, "daq:FELIX" or "daq::ContainerFELIX" for FELIX
   // returns:  0:  success, or   1: discarded corrupted data, or 2: kept some corrupted data
 
+  // same as above, but do not make the associations between raw digits and timestamps
+
+  int retrieveDataForSpecifiedAPAs_NoAssoc(art::Event &evt, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
+				           std::vector<raw::RDStatus> &rdstatuses,  
+				           std::vector<int> &apalist);
+
  private:
 
   bool          _make_tsassocs;
@@ -102,8 +108,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 		   RawDigits& raw_digits, 
 		   RDTimeStamps &timestamps, 
 		   RDTsAssocs &tsassocs, 
-		   RDPmkr &rdpm, 
-		   TSPmkr &tspm,
 		   std::vector<int> &apalist);
 
   bool _rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
@@ -113,16 +117,13 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 			   RawDigits& raw_digits, 
 			   RDTimeStamps &timestamps, 
 			   RDTsAssocs &tsassocs, 
-			   RDPmkr &rdpm, 
-			   TSPmkr &tspm,
 			   std::vector<int> &apalist);
 
-  bool _process_RCE_AUX(const artdaq::Fragment& frag, 
+  bool _process_RCE_AUX(art::Event &evt,
+			const artdaq::Fragment& frag, 
 			RawDigits& raw_digits, 
 			RDTimeStamps &timestamps, 
 			RDTsAssocs &tsassocs, 
-			RDPmkr &rdpm, 
-			TSPmkr &tspm,
 			std::vector<int> &apalist);
 
   bool _processFELIX(art::Event &evt, 
@@ -130,8 +131,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 		     RawDigits& raw_digits, 
 		     RDTimeStamps &timestamps, 
 		     RDTsAssocs &tsassocs, 
-		     RDPmkr &rdpm, 
-		     TSPmkr &tspm,
 		     std::vector<int> &apalist);
 
   bool _felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
@@ -141,16 +140,13 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 			     RawDigits& raw_digits,
 			     RDTimeStamps &timestamps, 
 			     RDTsAssocs &tsassocs, 
-			     RDPmkr &rdpm, 
-			     TSPmkr &tspm,
 			     std::vector<int> &apalist);
 
-  bool _process_FELIX_AUX(const artdaq::Fragment& frag, 
+  bool _process_FELIX_AUX(art::Event &evt,
+			  const artdaq::Fragment& frag, 
 			  RawDigits& raw_digits, 
 			  RDTimeStamps &timestamps, 
 			  RDTsAssocs &tsassocs, 
-			  RDPmkr &rdpm, 
-			  TSPmkr &tspm,
 			  std::vector<int> &apalist);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, 

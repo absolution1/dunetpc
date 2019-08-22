@@ -32,4 +32,10 @@
 					     art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, std::vector<raw::RDStatus> &rdstatuses,  
 					     std::vector<int> &apalist) = 0;
 
+   // same as above, but do not make the associations between raw digits and timestamps
+
+    virtual int retrieveDataForSpecifiedAPAs_NoAssoc(art::Event &evt, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
+					     std::vector<raw::RDStatus> &rdstatuses,  
+					     std::vector<int> &apalist) = 0;
+
   };
