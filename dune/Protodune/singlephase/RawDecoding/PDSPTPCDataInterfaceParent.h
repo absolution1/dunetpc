@@ -25,7 +25,7 @@
 					      std::vector<raw::RDStatus> &rdstatuses, 
 					      std::vector<int> &apalist) = 0;
 
-    // method to get raw digits, RDTimeStamps, RDStatuses and associations for a specified list of APA's.  The list of possible labels on which to find
+    // method to get raw digits, RDTimeStamps and RDStatuses for a specified list of APA's.  The list of possible labels on which to find
     // APA data is provided by fcl configuration.
 
     virtual int retrieveDataForSpecifiedAPAs(art::Event &evt, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
