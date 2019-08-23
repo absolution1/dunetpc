@@ -35,4 +35,10 @@ dune35t_signaltonoise:
     IsData:                     true
 }
 
+pdsp_hitana:
+{
+    module_type:                "HitAnaPDSP"
+    HitModuleLabel:             "hitpdune"
+}
+
 END_PROLOG
