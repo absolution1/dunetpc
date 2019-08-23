@@ -70,28 +70,13 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 				       std::string inputLabel, 
 				       std::vector<raw::RawDigit> &raw_digits, 
 				       std::vector<raw::RDTimeStamp> &rd_timestamps,
-		                       art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 				       std::vector<raw::RDStatus> &rdstatuses)
 {
   std::vector<int> apalist;
   apalist.push_back(-1);
-  int retcode = retrieveDataAPAListWithLabels(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, apalist );
+  int retcode = retrieveDataAPAListWithLabels(evt, inputLabel, raw_digits, rd_timestamps, rdstatuses, apalist );
+  _collectRDStatus(rdstatuses);
   return retcode;
-}
-
-int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs_NoAssoc(art::Event &evt, 
-							std::vector<raw::RawDigit> &raw_digits, 
-							std::vector<raw::RDTimeStamp> &rd_timestamps,
-							std::vector<raw::RDStatus> &rdstatuses, 
-							std::vector<int> &apalist)
-{
-  bool make_tsassoc_save = _make_tsassocs;  // not thread safe -- what if another thread wants to change this while we're working?
-  art::Assns<raw::RawDigit,raw::RDTimeStamp> empty_assocs;
-  int retcode = retrieveDataForSpecifiedAPAs(evt,raw_digits,rd_timestamps,empty_assocs,rdstatuses,apalist);
-  _make_tsassocs = make_tsassoc_save;
-  return retcode;
-
-
 }
 
 // get data for specified APAs.  Loop over labels specified in the fcl configuration looking for the data so the caller doesn't have to
@@ -100,7 +85,6 @@ int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs_NoAssoc(art::Event &evt,
 int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt, 
 							std::vector<raw::RawDigit> &raw_digits, 
 							std::vector<raw::RDTimeStamp> &rd_timestamps,
-							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 							std::vector<raw::RDStatus> &rdstatuses, 
 							std::vector<int> &apalist)
 {
@@ -115,10 +99,11 @@ int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
 	}
       for (size_t j=0; j<lli->second.size(); ++j)
 	{
-	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rd_ts_assocs, rdstatuses, apalist );
+	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rdstatuses, apalist );
 	  if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
 	}
     }
+  _collectRDStatus(rdstatuses);
   return totretcode;
 }
 
@@ -128,7 +113,6 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 							std::string inputLabel, 
 							std::vector<raw::RawDigit> &raw_digits, 
 							std::vector<raw::RDTimeStamp> &rd_timestamps,
-							art::Assns<raw::RawDigit,raw::RDTimeStamp> rd_ts_assocs, 
 							std::vector<raw::RDStatus> &rdstatuses, 
 							std::vector<int> &apalist)
 {
@@ -140,11 +124,11 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 
   if (inputLabel.find("TPC") != std::string::npos)
     {
-      _processRCE(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, apalist);
+      _processRCE(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
   else if (inputLabel.find("FELIX") != std::string::npos)
     {
-      _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, rd_ts_assocs, apalist);
+      _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
   else
     {
@@ -170,8 +154,6 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 	      _discard_data = true;
 	      raw_digits.clear();
 	      rd_timestamps.clear();
-	      RDTsAssocs nullassocs;
-	      rd_ts_assocs = nullassocs;
 	      flagged_duplicate = true;
 	      break;
 	    }
@@ -183,16 +165,32 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
   if (_KeptCorruptData) statword |= 2;
   rdstatuses.emplace_back(_DiscardedCorruptData,_KeptCorruptData,statword);
   if (flagged_duplicate) statword = 4;  // a flag to the caller indicating that the entire event's worth of raw digits is to be dropped
+  _collectRDStatus(rdstatuses);
   return statword;
 }
 
+
+void PDSPTPCDataInterface::_collectRDStatus(std::vector<raw::RDStatus> &rdstatuses)
+{
+  if (rdstatuses.size() < 2) return; 
+  unsigned int statword=0;
+  bool dcflag = false;
+  bool kcflag = false;
+  for (size_t i=0; i<rdstatuses.size(); ++i)
+    {
+      statword |= rdstatuses.at(i).GetStatWord();
+      dcflag |= rdstatuses.at(i).GetCorruptDataDroppedFlag();
+      kcflag |= rdstatuses.at(i).GetCorruptDataKeptFlag();
+    }
+  rdstatuses.clear();
+  rdstatuses.emplace_back(dcflag,kcflag,statword);
+}
 
 
 bool PDSPTPCDataInterface::_processRCE(art::Event &evt, 
 				       std::string inputLabel,  
 				       RawDigits& raw_digits, 
 				       RDTimeStamps &timestamps, 
-				       RDTsAssocs &tsassocs, 
 				       std::vector<int> &apalist)
 {
   size_t n_rce_frags = 0;
@@ -206,7 +204,7 @@ bool PDSPTPCDataInterface::_processRCE(art::Event &evt,
       if (cont_frags.isValid())
 	{
 	  have_data = true;
-	  if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, tsassocs, apalist))
+	  if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, apalist))
 	    {
 	      return false;
 	    }
@@ -220,7 +218,7 @@ bool PDSPTPCDataInterface::_processRCE(art::Event &evt,
       if (frags.isValid())
 	{
 	  have_data_nc = true;
-	  if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, tsassocs, apalist))
+	  if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, apalist))
 	    {
 	      return false;
 	    }
@@ -239,7 +237,6 @@ bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 					       art::Event &evt, 
 					       RawDigits& raw_digits, 
 					       RDTimeStamps &timestamps, 
-					       RDTsAssocs &tsassocs, 
 					       std::vector<int> &apalist)
 {
     
@@ -265,12 +262,12 @@ bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_RCE_AUX(evt,*cont_frag[ii], raw_digits, timestamps, tsassocs, apalist)) ++n_rce_frags;
+		  if (_process_RCE_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist)) ++n_rce_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_RCE_AUX(evt,frag, raw_digits, timestamps,tsassocs, apalist)) ++n_rce_frags;
+	      if (_process_RCE_AUX(evt,frag, raw_digits, timestamps, apalist)) ++n_rce_frags;
 	    }
 	}
     }
@@ -284,7 +281,6 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 					    const artdaq::Fragment& frag, 
 					    RawDigits& raw_digits,
 					    RDTimeStamps &timestamps,
-					    RDTsAssocs &tsassocs,
 					    std::vector<int> &apalist
 					    )
 {
@@ -517,20 +513,6 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	}
     }
 
-  //associate the raw digit and the timestamp data products
-
-  if (_make_tsassocs)
-    {
-      RDPmkr rdpm(evt);
-      TSPmkr tspm(evt);
-      for (size_t i=0; i<raw_digits.size(); ++i)
-	{
-	  auto const rawdigitptr = rdpm(i);
-	  auto const rdtimestampptr = tspm(i);
-	  tsassocs.addSingle(rawdigitptr,rdtimestampptr);
-	}            
-    }
-
   return true;
 }
 
@@ -540,7 +522,6 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
 					 std::string inputLabel, 
 					 RawDigits& raw_digits, 
 					 RDTimeStamps &timestamps, 
-					 RDTsAssocs &tsassocs, 
 					 std::vector<int> &apalist)
 {
   size_t n_felix_frags = 0;
@@ -554,7 +535,7 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
       if (cont_frags.isValid())
 	{
 	  have_data = true;
-	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, tsassocs, apalist))
+	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist))
 	    {
 	      return false;
 	    }
@@ -568,7 +549,7 @@ bool PDSPTPCDataInterface::_processFELIX(art::Event &evt,
       if (frags.isValid())
 	{
 	  have_data_nc = true;
-	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, apalist))
+	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist))
 	    {
 	      return false;
 	    }
@@ -587,7 +568,6 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 						 art::Event &evt, 
 						 RawDigits& raw_digits, 
 						 RDTimeStamps &timestamps, 
-						 RDTsAssocs &tsassocs, 
 						 std::vector<int> &apalist)
 {
   for (auto const& frag : *frags)
@@ -612,12 +592,12 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, tsassocs, apalist)) ++n_felix_frags;
+		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist)) ++n_felix_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps,tsassocs, apalist)) ++n_felix_frags;
+	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist)) ++n_felix_frags;
 	    }
 	}
     }
@@ -629,7 +609,6 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
 					      const artdaq::Fragment& frag, RawDigits& raw_digits,
 					      RDTimeStamps &timestamps,
-					      RDTsAssocs &tsassocs,
 					      std::vector<int> &apalist)
 {
 
@@ -834,20 +813,6 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
     raw::RDTimeStamp rdtimestamp(felix.timestamp(),offlineChannel);
     timestamps.push_back(rdtimestamp);
   }
-
-  //associate the raw digit and the timestamp data products
-
-  if (_make_tsassocs)
-    {
-      RDPmkr rdpm(evt);
-      TSPmkr tspm(evt);
-      for (size_t i=0; i<raw_digits.size(); ++i)
-	{
-	  auto const rawdigitptr = rdpm(i);
-	  auto const rdtimestampptr = tspm(i);
-	  tsassocs.addSingle(rawdigitptr,rdtimestampptr);
-	}            
-    }
 
   return true;
 }
