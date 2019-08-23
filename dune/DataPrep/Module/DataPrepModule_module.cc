@@ -136,6 +136,9 @@ DataPrepModule::DataPrepModule(fhicl::ParameterSet const& pset) : EDProducer{pse
   for ( string sname : m_IntermediateStates ) {
     produces<std::vector<recob::Wire>>(sname);
   }
+  //produces<std::vector<raw::RawDigit>>("dataprep");
+  //produces<std::vector<raw::RDTimeStamp>>("dataprep");
+  //produces<std::vector<raw::RDStatus>>("dataprep");
 }
   
 //**********************************************************************
@@ -269,84 +272,89 @@ void DataPrepModule::produce(art::Event& evt) {
   Timestamp beginTime = evt.time();
 
   bool useDecoderTool = bool(m_pDecoderTool);
-  std::vector<raw::RDTimeStamp> timsFromTool;
-  std::vector<raw::RDStatus> rdstatsFromTool;
-  std::vector<raw::RawDigit> digitsFromTool;
-  art::Assns<raw::RawDigit,raw::RDTimeStamp> rdtsassocsFromTool;
+  using TimeVector  = std::vector<raw::RDTimeStamp>;
+  using StatVector  = std::vector<raw::RDStatus>;
+  using DigitVector = std::vector<raw::RawDigit>;
+  std::unique_ptr<TimeVector>  ptimsFromTool;
+  std::unique_ptr<StatVector>  pstatsFromTool;
+  std::unique_ptr<DigitVector> pdigitsFromTool;
+  //art::Assns<raw::RawDigit,raw::RDTimeStamp> rdtsassocsFromTool;
 
-  // If decoder tool is used...
+  // If the decoder tool is used, use it to retrive the raw digits, their status
+  // and the times for each channel.
   if ( useDecoderTool ) {
+    if ( useDecoderTool ) {
+      ptimsFromTool.reset(new TimeVector);
+      pstatsFromTool.reset(new StatVector);
+      pdigitsFromTool.reset(new DigitVector);
+    }
     std::vector<int> apas = {-1};
     int decodeStat = m_pDecoderTool->
-      retrieveDataForSpecifiedAPAs_NoAssoc(evt, digitsFromTool, timsFromTool,
-                                   rdstatsFromTool, apas);
+      retrieveDataForSpecifiedAPAs(evt, *pdigitsFromTool.get(), *ptimsFromTool.get(),
+                                   *pstatsFromTool.get(), apas);
     if ( decodeStat ) {
       cout << myname << "WARNING: Decoder tool returned " << decodeStat << endl;
     }
-    cout << myname << "Times count from tool: " << timsFromTool.size() << endl;
-    cout << myname << "Stats count from tool: " << rdstatsFromTool.size() << endl;
-    cout << myname << "Digit count from tool: " << digitsFromTool.size() << endl;
+    cout << myname << "Times count from tool: " << ptimsFromTool->size() << endl;
+    cout << myname << "Stats count from tool: " << pstatsFromTool->size() << endl;
+    cout << myname << "Digit count from tool: " << pdigitsFromTool->size() << endl;
   }
   
-  // Fetch the trigger and timing clock.
+  // Fetch the event trigger and timing clock.
   AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
+  art::Handle<TimeVector> htims;
+  const TimeVector* ptims = nullptr;
   if ( true ) {
-    const std::vector<raw::RDTimeStamp>* ptims = nullptr;
-    art::Handle<std::vector<raw::RDTimeStamp>> htims;
-    if ( useDecoderTool ) {
-      ptims = &timsFromTool;
-    } else {
-      evt.getByLabel("timingrawdecoder", "daq", htims);
-      if ( htims.isValid() ) {
-        ptims = &*htims;
+    evt.getByLabel("timingrawdecoder", "daq", htims);
+    if ( htims.isValid() ) {
+      ptims = &*htims;
+      if ( ptims->size() != 1 ) {
+        cout << myname << "WARNING: Unexpected timing clocks size: " << ptims->size() << endl;
+        for ( unsigned int itim=0; itim<ptims->size() && itim<50; ++itim ) {
+          cout << myname << "  " << ptims->at(itim).GetTimeStamp() << endl;
+        }
       } else {
-        cout << myname << "WARNING: Timing clocks product not found." << endl;
-      }
-    }
-    if ( ptims->size() != 1 ) {
-      cout << myname << "WARNING: Unexpected timing clocks size: " << ptims->size() << endl;
-      for ( unsigned int itim=0; itim<ptims->size() && itim<50; ++itim ) {
-        cout << myname << "  " << ptims->at(itim).GetTimeStamp() << endl;
+        const raw::RDTimeStamp& tim = ptims->at(0);
+        cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
+        timingClock = tim.GetTimeStamp();
+        // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
+        trigFlag = tim.GetFlags();
+        cout << myname << "Trigger flag: " << trigFlag << " (";
+        bool isBeam = trigFlag == 0xc;
+        bool isCrt = trigFlag == 13;
+        bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
+        if ( isBeam ) cout << "Beam";
+        else if ( isCrt ) cout << "CRT";
+        else if ( isFake ) cout << "Fake";
+        else cout << "Unexpected";
+        cout << ")" << endl;
       }
     } else {
-      const raw::RDTimeStamp& tim = ptims->at(0);
-      cout << myname << "Timing clock: " << tim.GetTimeStamp() << endl;
-      timingClock = tim.GetTimeStamp();
-      // See https://twiki.cern.ch/twiki/bin/view/CENF/TimingSystemAdvancedOp#Reference_info
-      trigFlag = tim.GetFlags();
-      cout << myname << "Trigger flag: " << trigFlag << " (";
-      bool isBeam = trigFlag == 0xc;
-      bool isCrt = trigFlag == 13;
-      bool isFake = trigFlag >= 0x8 && trigFlag <= 0xb;
-      if ( isBeam ) cout << "Beam";
-      else if ( isCrt ) cout << "CRT";
-      else if ( isFake ) cout << "Fake";
-      else cout << "Unexpected";
-      cout << ")" << endl;
+      cout << myname << "WARNING: Event timing clocks product not found." << endl;
     }
   }
 
   // Read the raw digit status.
-  const std::vector<raw::RDStatus>* prdstats = nullptr;
-  art::Handle<std::vector<raw::RDStatus>> hrdstats;
+  const std::vector<raw::RDStatus>* pstats = nullptr;
+  art::Handle<std::vector<raw::RDStatus>> hstats;
   if ( useDecoderTool ) {
-    prdstats = &rdstatsFromTool;
+    pstats = pstatsFromTool.get();
   } else {
-    evt.getByLabel(m_DigitProducer, m_DigitName, hrdstats);
-    if ( hrdstats.isValid() ) {
-      prdstats = &*hrdstats;
+    evt.getByLabel(m_DigitProducer, m_DigitName, hstats);
+    if ( hstats.isValid() ) {
+      pstats = &*hstats;
     } else {
       cout << myname << "WARNING: Raw data status product not found." << endl;
     }
   }
   string srdstat;
   bool skipEvent = skipAllEvents;
-  if ( prdstats != nullptr ) {
-    if ( prdstats->size() != 1 ) {
-      cout << myname << "WARNING: Unexpected raw data status size: " << prdstats->size() << endl;
+  if ( pstats != nullptr ) {
+    if ( pstats->size() != 1 ) {
+      cout << myname << "WARNING: Unexpected raw data status size: " << pstats->size() << endl;
     }
-    const RDStatus rdstat = prdstats->at(0);
+    const RDStatus rdstat = pstats->at(0);
     if ( false ) {
       cout << myname << "Raw data status: " << rdstat.GetStatWord();
       if ( rdstat.GetCorruptDataDroppedFlag() ) cout << " (Corrupt data was dropped.)";
@@ -420,10 +428,10 @@ void DataPrepModule::produce(art::Event& evt) {
   }
             
   // Read in the digits. 
-  const vector<raw::RawDigit>* pdigits = nullptr;
-  art::Handle<std::vector<raw::RawDigit>> hdigits;
+  const DigitVector* pdigits = nullptr;
+  art::Handle<DigitVector> hdigits;
   if ( useDecoderTool ) {
-    pdigits = &digitsFromTool;
+    pdigits = pdigitsFromTool.get();
   } else {
     evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
     pdigits = &*hdigits;
@@ -466,7 +474,7 @@ void DataPrepModule::produce(art::Event& evt) {
   unsigned int nskip = 0;
   unsigned int ndigi = pdigits->size();
   for ( unsigned int idig=0; idig<ndigi; ++idig ) {
-    const raw::RawDigit& dig = (*hdigits)[idig];
+    const raw::RawDigit& dig = (*pdigits)[idig];
     AdcChannel chan = dig.Channel();
     if ( checkKeep ) {
       if ( chan < m_KeepChannelBegin || chan >= m_KeepChannelEnd ) {
@@ -649,6 +657,13 @@ void DataPrepModule::produce(art::Event& evt) {
   evt.put(std::move(pwires), m_WireName);
   if ( m_DoAssns ) {
     evt.put(std::move(passns), m_WireName);
+  }
+
+  // Record decoder containers.
+  if ( useDecoderTool ) {
+    //evt.put(std::move(ptimsFromTool), "dataprep");
+    //evt.put(std::move(pstatsFromTool), "dataprep");
+    //evt.put(std::move(pdigitsFromTool), "dataprep");
   }
 
   // Record intermediate state wires.
