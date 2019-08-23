@@ -253,7 +253,10 @@ bool PDSPTPCDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 	      _DiscardedCorruptData = true;
 	      process_flag = false;
 	    }
-	  _KeptCorruptData = true;
+	  else
+	    {
+	      _KeptCorruptData = true;
+	    }
 	}
       if (process_flag)
 	{
@@ -583,7 +586,10 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	      _DiscardedCorruptData = true;
 	      process_flag = false;
 	    }
-	  _KeptCorruptData = true;
+	  else
+	    {
+	       _KeptCorruptData = true;
+	    }
 	}
       if (process_flag)
 	{
