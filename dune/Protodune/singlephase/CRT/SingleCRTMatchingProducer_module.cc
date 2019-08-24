@@ -537,15 +537,16 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
    double trackEndPositionZ=trackEndPositionZ_noSCE;
 
    if (fSCECorrection && SCE->EnableCalSpatialSCE()){
-            auto const & posOffsets_F = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), allHits[0]->WireID().TPC);
+if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex()<13 && geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex()<13){ 
+            auto const & posOffsets_F = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex());
             trackStartPositionX -= posOffsets_F.X();
             trackStartPositionY += posOffsets_F.Y();
             trackStartPositionZ += posOffsets_F.Z();
-            auto const & posOffsets_B = SCE->GetCalPosOffsets(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ), allHits[lastHit]->WireID().TPC);
+            auto const & posOffsets_B = SCE->GetCalPosOffsets(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ), geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex());
             trackEndPositionX -= posOffsets_B.X();
             trackEndPositionY += posOffsets_B.Y();
             trackEndPositionZ += posOffsets_B.Z();
-
+	}
     }
 
         double X1 = primaryHits_F[iHit_F].hitPositionX;
