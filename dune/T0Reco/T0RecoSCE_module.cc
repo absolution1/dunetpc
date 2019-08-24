@@ -90,6 +90,7 @@ private:
 	bool		fUseMC;
 
 	double		fEdgeWidth; // [cm]
+	int			fReadoutEdgeTicks;
 	
 	bool 		fCathode;
 	bool 		fAnode;
@@ -205,15 +206,16 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fHitProducer		= fcl.get<std::string>	("HitProducer"      	);
 	fFlashProducer     	= fcl.get<std::string>	("FlashProducer"    	);
 	fTriggerProducer	= fcl.get<std::string>	("TriggerProducer"  	);
-	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  	);
+	fPFPProducer		= fcl.get<std::string>	("PFPProducer"  		);
 
-	fOpHitProducer		= fcl.get<std::string>	("OpHitProducer"	);
+	fOpHitProducer		= fcl.get<std::string>	("OpHitProducer"		);
 
 	fUseMC            	= fcl.get<bool>			("UseMC"            	);
 
-	fEdgeWidth			= fcl.get<double>		("EdgeWidth"       	);
+	fEdgeWidth			= fcl.get<double>		("EdgeWidth"       		);
+	fReadoutEdgeTicks	= fcl.get<int>			("ReadoutEdgeTicks"		);
 
-	fMinPE				= fcl.get<double> 		("MinPE"           	);
+	fMinPE				= fcl.get<double> 		("MinPE"           		);
 	fMinTrackLength		= fcl.get<double>		("MinTrackLength"    	);
 
 	fCathode			= fcl.get<bool>  		("CathodeCrossers"  	);
@@ -224,11 +226,11 @@ T0RecoSCE::T0RecoSCE(fhicl::ParameterSet const & fcl)
 	fAllFlash			= fcl.get<bool>  		("AllFlashToTrackTimeDiffs");
 
 	fFlashScaleFactor	= fcl.get<double>		("FlashScaleFactor" 	);
-	fFlashTPCOffset		= fcl.get<double>		("FlashTPCOffset"	);
+	fFlashTPCOffset		= fcl.get<double>		("FlashTPCOffset"		);
 	
-	fUseOpHits			= fcl.get<bool>			("UseOpHits"		);
-	fFirstOpChannel		= fcl.get<int>			("FirstOpChannel"	);
-	fLastOpChannel		= fcl.get<int>			("LastOpChannel"	);
+	fUseOpHits			= fcl.get<bool>			("UseOpHits"			);
+	fFirstOpChannel		= fcl.get<int>			("FirstOpChannel"		);
+	fLastOpChannel		= fcl.get<int>			("LastOpChannel"		);
 
 	fAnodeT0Check		= fcl.get<bool>			("CheckAssignedAnodeT0"	);
 	fAnodeT0Producer	= fcl.get<std::string>	("AnodeT0Producer"		);
@@ -730,7 +732,7 @@ void T0RecoSCE::analyze(art::Event const & evt){
 						//" at tick: " << hit_tick << ", in TPC " 
 						//<< hits->WireID().TPC << ", plane " << hits->WireID().Plane 
 						//<< " and wire " << hits->WireID().Wire << std::endl;
-    				if(hit_tick < 20.0 || hit_tick > (fReadoutWindow - 20.0)){
+    				if(hit_tick < fReadoutEdgeTicks || hit_tick > (fReadoutWindow - fReadoutEdgeTicks)){
     		 			readout_edge = true;
     		 			if(fDebug) std::cout << "\tTrack hits edge of readout window. "
 							"Skipping." << std::endl;

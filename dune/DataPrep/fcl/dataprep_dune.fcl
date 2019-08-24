@@ -3,6 +3,8 @@
 # David Adams
 # August 2016
 
+#include "pdsprd_tool.fcl"
+
 BEGIN_PROLOG
 
 #***********************************************************************
@@ -334,6 +336,7 @@ changroup_rop: {
 producer_adcprep: {
   module_type: "DataPrepModule"
   LogLevel:                   1
+  DecoderTool:               ""       # Non-blank reads digits with named tool.
   DigitLabel:             "daq"
   WireName:                  ""
   DoAssns:                 true

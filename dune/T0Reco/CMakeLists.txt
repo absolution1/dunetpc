@@ -1,3 +1,4 @@
+
 art_make( BASENAME_ONLY
           MODULE_LIBRARIES lardataobj_RecoBase
                            lardataobj_AnalysisBase

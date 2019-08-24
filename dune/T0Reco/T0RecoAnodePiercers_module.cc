@@ -79,8 +79,9 @@ class T0RecoAnodePiercers : public art::EDProducer {
     	std::string 	fFlashProducerData;
 
     	double		fEdgeWidth; // [cm]
+		int			fReadoutEdgeTicks;
 	
-    	double	 	fMinPE;
+    	int		 	fMinPE;
     	double 		fMinTrackLength;
 
     	double 		fFlashScaleFactor;
@@ -161,9 +162,10 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
 	fFlashProducerData	= fcl.get<std::string>	("DataFlashProducer"    );
  	fFlashProducerMC	= fcl.get<std::string>	("MCFlashProducer"    	);
 
-	fEdgeWidth			= fcl.get<double>	("EdgeWidth"       	);
+	fEdgeWidth			= fcl.get<double>	("EdgeWidth"       		);
+	fReadoutEdgeTicks	= fcl.get<int>		("ReadoutEdgeTicks"		);
 
-	fMinPE				= fcl.get<double> 	("MinPE"           	);
+	fMinPE				= fcl.get<double> 	("MinPE"           		);
 	fMinTrackLength		= fcl.get<double>	("MinTrackLength"    	);
 
 	fMinDtData			= fcl.get<double>	("MinDtFlashRecoData"  	);
@@ -450,7 +452,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		readout_edge = false;
 		for (auto& hits : hit_v) {
 			auto hit_tick = hits->PeakTime();
-			if(hit_tick < 20.0 || hit_tick > (ReadoutWindow - 20.0)){
+			if(hit_tick < fReadoutEdgeTicks || hit_tick > (ReadoutWindow - fReadoutEdgeTicks)){
 				readout_edge = true;
 				if(fDebug) std::cout << "\tTrack hits edge of readout window. "
 					"Skipping." << std::endl;
