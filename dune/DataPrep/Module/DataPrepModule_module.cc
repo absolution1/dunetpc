@@ -89,6 +89,8 @@ private:
   int m_LogLevel;
   Name m_DecoderTool; // Name for the decoder tool
   Name m_DigitLabel;  ///< Full label for the input digit container, e.g. daq:
+  Name m_TimeStampName;    // Label for the output RDTimeStamp conainer
+  Name m_OutputDigitName;  // Label for the output raw::RawDigit conainer
   Name m_WireName;    ///< Second field in full label for the output wire container.
   std::vector<std::string> m_IntermediateStates;
   bool m_DoAssns = false;
@@ -128,17 +130,32 @@ DEFINE_ART_MODULE(DataPrepModule)
 //**********************************************************************
 
 DataPrepModule::DataPrepModule(fhicl::ParameterSet const& pset) : EDProducer{pset} {
+  const Name myname = "DataPrepModule::ctor: ";
   this->reconfigure(pset);
   produces<std::vector<recob::Wire>>(m_WireName);
   if ( m_DoAssns ) {
     produces<art::Assns<raw::RawDigit, recob::Wire>>(m_WireName);
   }
   for ( string sname : m_IntermediateStates ) {
+    if ( m_LogLevel > 0 ) cout << myname << "Module will produce intermediate Wires with name " << sname << endl;
     produces<std::vector<recob::Wire>>(sname);
   }
   //produces<std::vector<raw::RawDigit>>("dataprep");
-  //produces<std::vector<raw::RDTimeStamp>>("dataprep");
-  //produces<std::vector<raw::RDStatus>>("dataprep");
+  if ( m_DecoderTool.size() ) {
+    if ( m_TimeStampName.size() ) {
+      if ( m_LogLevel > 0 ) {
+        cout << myname << "Module will produce RDTimeStamps with name " << m_TimeStampName << endl;
+      }
+      produces<std::vector<raw::RDTimeStamp>>(m_TimeStampName);
+    }
+    if ( m_OutputDigitName.size() ) {
+      if ( m_LogLevel > 0 ) {
+        cout << myname << "Module will produce digits with name " << m_OutputDigitName << endl;
+      }
+      produces<std::vector<raw::RawDigit>>(m_OutputDigitName);
+    }
+    //produces<std::vector<raw::RDStatus>>("dataprep");
+  }
 }
   
 //**********************************************************************
@@ -149,14 +166,16 @@ DataPrepModule::~DataPrepModule() { }
 
 void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
   const string myname = "DataPrepModule::reconfigure: ";
-  m_LogLevel       = pset.get<int>("LogLevel");
-  m_DecoderTool    = pset.get<Name>("DecoderTool");
-  m_DigitLabel     = pset.get<Name>("DigitLabel", "daq");
-  m_WireName       = pset.get<Name>("WireName", "");
-  m_DoAssns        = pset.get<bool>("DoAssns");
-  m_DoGroups       = pset.get<bool>("DoGroups");
-  m_ChannelRanges  = pset.get<NameVector>("ChannelRanges");
-  m_BeamEventLabel = pset.get<string>("BeamEventLabel");
+  m_LogLevel           = pset.get<int>("LogLevel");
+  m_DecoderTool        = pset.get<Name>("DecoderTool");
+  m_DigitLabel         = pset.get<Name>("DigitLabel", "daq");
+  m_TimeStampName      = pset.get<Name>("TimeStampName");
+  m_OutputDigitName    = pset.get<Name>("OutputDigitName");
+  m_WireName           = pset.get<Name>("WireName", "");
+  m_DoAssns            = pset.get<bool>("DoAssns");
+  m_DoGroups           = pset.get<bool>("DoGroups");
+  m_ChannelRanges      = pset.get<NameVector>("ChannelRanges");
+  m_BeamEventLabel     = pset.get<string>("BeamEventLabel");
   m_IntermediateStates = pset.get<vector<string>>("IntermediateStates");
   pset.get_if_present<AdcChannel>("KeepChannelBegin", m_KeepChannelBegin);
   pset.get_if_present<AdcChannel>("KeepChannelEnd", m_KeepChannelEnd);
@@ -200,8 +219,11 @@ void DataPrepModule::reconfigure(fhicl::ParameterSet const& pset) {
 
   if ( m_LogLevel >= 1 ) {
     cout << myname << "             LogLevel: " << m_LogLevel << endl;
+    cout << myname << "          DecoderTool: " << m_DecoderTool << endl;
     cout << myname << "           DigitLabel: " << m_DigitLabel << " (" << m_DigitProducer
                    << ", " << m_DigitName << ")" << endl;
+    cout << myname << "        TimeStampName: " << m_TimeStampName << endl;
+    cout << myname << "      OutputDigitName: " << m_OutputDigitName << endl;
     cout << myname << "             WireName: " << m_WireName << endl;
     cout << myname << "              DoAssns: " << m_DoAssns << endl;
     cout << myname << "             DoGroups: " << m_DoGroups << endl;
@@ -292,7 +314,7 @@ void DataPrepModule::produce(art::Event& evt) {
     int decodeStat = m_pDecoderTool->
       retrieveDataForSpecifiedAPAs(evt, *pdigitsFromTool.get(), *ptimsFromTool.get(),
                                    *pstatsFromTool.get(), apas);
-    if ( decodeStat ) {
+    if ( m_LogLevel > 2 ) {    // Decoder tool can return any value for success 
       cout << myname << "WARNING: Decoder tool returned " << decodeStat << endl;
     }
     cout << myname << "Times count from tool: " << ptimsFromTool->size() << endl;
@@ -661,9 +683,9 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Record decoder containers.
   if ( useDecoderTool ) {
-    //evt.put(std::move(ptimsFromTool), "dataprep");
+    if ( m_TimeStampName.size() ) evt.put(std::move(ptimsFromTool), m_TimeStampName);
+    if ( m_OutputDigitName.size() ) evt.put(std::move(pdigitsFromTool), m_OutputDigitName);
     //evt.put(std::move(pstatsFromTool), "dataprep");
-    //evt.put(std::move(pdigitsFromTool), "dataprep");
   }
 
   // Record intermediate state wires.
