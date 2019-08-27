@@ -2,6 +2,8 @@
 #
 # David Adams
 # August 2016
+#
+# This holds all the prolog for dataprep.
 
 #include "pdsprd_tool.fcl"
 
