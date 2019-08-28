@@ -5,8 +5,6 @@
 #
 # This holds all the prolog for dataprep.
 
-#include "pdsprd_tool.fcl"
-
 BEGIN_PROLOG
 
 #***********************************************************************

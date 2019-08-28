@@ -1,5 +1,9 @@
-#include "dataprep_dune.fcl"
-#include "dataprep_tools.fcl"
+# protodune_dataprep_tools.fcl
+#
+# David Adams
+# August 2019
+#
+# Define protodune tools.
 
 ################################################################################
 # Shared data.
@@ -54,8 +58,6 @@ tools.channelGroups: {
 ################################################################################
 # Reco.
 ################################################################################
-
-tools.pdsp_decoder: @local::pdsprd_tool
 
 # Fit ADC distribution to get pedestal.
 tools.pd_adcPedestalFit: {
