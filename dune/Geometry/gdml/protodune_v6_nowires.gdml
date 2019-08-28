@@ -409,7 +409,7 @@
       lunit="cm"/>
 
     <box name="Outer" lunit="cm" 
-      x="1.965" 
+      x="9.965" 
       y="607.49875" 
       z="231.66"/>
     <box name="OuterUPlane" lunit="cm" 
@@ -425,7 +425,7 @@
       y="598.39" 
       z="229.5368"/>
     <box name="OuterActive" lunit="cm"
-      x="0.49125"
+      x="1.47375"
       y="600.22375"
       z="231.66"/>
 
@@ -453,7 +453,7 @@
 
     <tube   name="TubeBePlFlangeOut" rmin="0" rmax="15" z="3.6" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <tube   name="TubeBePlFlangeIn" rmin="0" rmax="8.25" z="3.2" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
-    <tube   name="TubeBePlFlangeCut" rmin="12.5" rmax="15.01" z="2.3" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube   name="TubeBePlFlangeCut" rmin="12.5" rmax="15.01" z="2.302" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <tube   name="TubeBePlFlangeTPCRem" rmin="0." rmax="12.5" z="0.91" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
 
     <subtraction name="BPRing">
@@ -584,28 +584,28 @@
       <position name="posFCEWHorSuppBar" x="0" y="0" z="2." unit="cm"/>
     </subtraction>
 
-    <box name="boxFCEW-BP-Subtract" x="51" y="151.3" z="1.301" lunit="cm"/>
-    <box name="boxBePlHolemod" x="31.2" y="31.2" z="12.801" lunit="cm"/>
-    <box name="boxBePlHoleFiSh" x="31.2" y="31.2" z="1.301" lunit="cm"/>
+    <box name="boxFCEW-BP-Subtract" x="50.8" y="151.2" z="1.301" lunit="cm"/>
+    <tube name="tubBePlHolemod" rmin="0" rmax="15.25" z="12.801" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubBePlHoleFiSh" rmin="0" rmax="15.25" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <box name="boxFCEW-BPFla-VerSupp" x="50.8" y="151.2" z="1.3" lunit="cm"/>
     <box name="boxFCEW-BPFla-Subtr" x="25.4" y="64" z="1.301" lunit="cm"/>
-    <tube name="tubFCEW-BPFla-Subtr" rmin="0" rmax="13.6" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
-    <tube name="tubFCEW-BPVer-Subtr" rmin="0" rmax="12.0" z="1.31" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubFCEW-BPFla-Subtr" rmin="0" rmax="14.0" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubFCEW-BPVer-Subtr" rmin="0" rmax="12.5" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
 
     <subtraction name="boxFCEW-BP-NoHole">
       <first ref="boxFCEWmod"/>
       <second ref="boxFCEW-BP-Subtract"/>
-      <position name="posFCEW-BP-NoHole" x="147.8" y="0" z="5.75" unit="cm"/>
+      <position name="posFCEW-BP-NoHole" x="147.8" y="0" z="5.7505" unit="cm"/>
     </subtraction>
     <subtraction name="boxFCEW-BP-mod">
       <first ref="boxFCEW-BP-NoHole"/>
-      <second ref="boxBePlHolemod"/>
-      <position name="posboxFCEW-BP-mod" x="149." y="43" z="0" unit="cm"/>
+      <second ref="tubBePlHolemod"/>
+      <position name="posboxFCEW-BP-mod" x="146" y="41.6" z="0" unit="cm"/>
     </subtraction>
     <subtraction name="FCEW-BP-FieldShaping">
       <first ref="boxFCEWFieldShaping"/>
-      <second ref="boxBePlHoleFiSh"/>
-      <position name="posFCEW-BP-FieldShapingSol" x="149." y="43" z="0" unit="cm"/>
+      <second ref="tubBePlHoleFiSh"/>
+      <position name="posFCEW-BP-FieldShapingSol" x="146" y="41.6" z="0" unit="cm"/>
     </subtraction>
 
     <subtraction name="FCEW-BPFla-Ver">
@@ -1034,25 +1034,25 @@
      <physvol>
        <volumeref ref="volTPCPlaneZOuter"/>
        <position name="posOuterPlaneZ" unit="cm" 
-         x="-0.49875" y="-3.05562500000008" z="0"/>
+         x="-4.49875" y="-3.05562500000008" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneVOuter"/>
        <position name="posOuterPlaneV" unit="cm" 
-         x="-0.00750000000000008" y="-3.22312500000004" z="0"/>
+         x="-4.0075" y="-3.22312500000004" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneUOuter"/>
        <position name="posOuterPlaneU" unit="cm" 
-         x="0.48375" y="-3.39062500000006" z="0"/>
+         x="-3.51625" y="-3.39062500000006" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCActiveOuter"/>
        <position name="posOuterActive" unit="cm" 
-         x="0.736875" y="-3.63749999999999" z="0"/>
+         x="-2.771875" y="-3.63749999999999" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
     </volume>
@@ -1474,11 +1474,11 @@
       </physvol>
       <physvol name="volFCEW-BP-VerSuppBar-5">
         <volumeref ref="volFCEWVerSuppBar"/>
-        <position name="posFCEW-BP-VerSuppBar-5" x="123.8" y="0" z="-5.75" unit="cm"/>
+        <position name="posFCEW-BP-VerSuppBar-5" x="122.5" y="0" z="-5.75" unit="cm"/>
       </physvol>
       <physvol>
         <volumeref ref="volFCEW-BPVer"/>
-        <position name="posFCEW-BPVer" x="168.9" y="0" z="-5.75" unit="cm"/>
+        <position name="posFCEW-BPVer" x="169.4" y="0" z="-5.75" unit="cm"/>
       </physvol>
     </volume>
 
@@ -1773,7 +1773,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-0" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="-263.26"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2029,7 +2029,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-3" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="-263.26"/> 
         <rotationref ref="rPlus180AboutX"/>
@@ -2226,7 +2226,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-4" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="-31.2"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2482,7 +2482,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-7" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="-31.2"/> 
         <rotationref ref="rPlus180AboutX"/>
@@ -2679,7 +2679,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-8" unit="cm" 
-	  x="-403.8676" 
+	  x="-407.8676" 
 	  y="-19" 
 	  z="200.86"/> 
         <rotationref ref="rPlus180AboutXPlus180AboutY"/>
@@ -2935,7 +2935,7 @@
       <physvol>
         <volumeref ref="volTPCOuter"/>
         <position name="posTPC-11" unit="cm" 
-	  x="331.8676" 
+	  x="335.8676" 
 	  y="-19" 
 	  z="200.86"/> 
         <rotationref ref="rPlus180AboutX"/>
@@ -2945,7 +2945,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSLeft-0" unit="cm"
          x="-216.15"
-         y="-247"
+         y="-250"
          z="-385.582"/>
         <rotationref ref="rPlus180AboutZ"/>
       </physvol>
@@ -2953,7 +2953,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSRight-0" unit="cm"
          x="144.15"
-         y="-247"
+         y="-250"
          z="-385.582"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -2961,7 +2961,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSRight-0" unit="cm"
          x="144.15"
-         y="-247"
+         y="-250"
          z="323.182"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -2969,7 +2969,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSLeft-0" unit="cm"
          x="-216.15"
-         y="-247"
+         y="-250"
          z="323.182"/>
         <rotationref ref="rPlus180AboutXPlus180AboutZ"/>
       </physvol>
@@ -2977,7 +2977,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSLeft-1" unit="cm"
          x="-216.15"
-         y="-95"
+         y="-96"
          z="-385.582"/>
         <rotationref ref="rPlus180AboutZ"/>
       </physvol>
@@ -2985,7 +2985,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSRight-1" unit="cm"
          x="144.15"
-         y="-95"
+         y="-96"
          z="-385.582"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -2993,7 +2993,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSRight-1" unit="cm"
          x="144.15"
-         y="-95"
+         y="-96"
          z="323.182"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -3001,7 +3001,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSLeft-1" unit="cm"
          x="-216.15"
-         y="-95"
+         y="-96"
          z="323.182"/>
         <rotationref ref="rPlus180AboutXPlus180AboutZ"/>
       </physvol>
@@ -3009,7 +3009,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSRight-2" unit="cm"
          x="144.15"
-         y="57"
+         y="58"
          z="-385.582"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -3017,7 +3017,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSRight-2" unit="cm"
          x="144.15"
-         y="57"
+         y="58"
          z="323.182"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -3025,7 +3025,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSLeft-2" unit="cm"
          x="-216.15"
-         y="57"
+         y="58"
          z="323.182"/>
         <rotationref ref="rPlus180AboutXPlus180AboutZ"/>
       </physvol>
@@ -3033,7 +3033,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSLeft-3" unit="cm"
          x="-216.15"
-         y="209"
+         y="212"
          z="-385.582"/>
         <rotationref ref="rPlus180AboutZ"/>
       </physvol>
@@ -3041,7 +3041,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModUSRight-3" unit="cm"
          x="144.15"
-         y="209"
+         y="212"
          z="-385.582"/>
         <rotationref ref="rIdentity"/>
       </physvol>
@@ -3049,7 +3049,7 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSRight-3" unit="cm"
          x="144.15"
-         y="209"
+         y="212"
          z="323.182"/>
         <rotationref ref="rPlus180AboutX"/>
       </physvol>
@@ -3057,23 +3057,23 @@
         <volumeref ref="volFCEWmod"/>
         <position name="posFCEWModDSLeft-3" unit="cm"
          x="-216.15"
-         y="209"
+         y="212"
          z="323.182"/>
         <rotationref ref="rPlus180AboutXPlus180AboutZ"/>
       </physvol>
       <physvol>
         <volumeref ref="volFCEW-BP-mod"/>
         <position name="posFCEW-BP-mod" unit="cm"
-         x="-216.15"
-         y="57"
+         x="-213.35"
+         y="58.9"
          z="-385.582"/>
       </physvol>
 
       <physvol>
         <volumeref ref="volFCEW-BPFla"/>
         <position name="posFCEW-BPFla" unit="cm"
-         x="-68.35"
-         y="57"
+         x="-65.55"
+         y="58.9"
          z="-379.832"/>
       </physvol>
     </volume>

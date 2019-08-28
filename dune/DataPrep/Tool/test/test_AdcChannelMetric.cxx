@@ -41,7 +41,6 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
     fout << "#include \"protodune_dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcChannelMetric" << endl;

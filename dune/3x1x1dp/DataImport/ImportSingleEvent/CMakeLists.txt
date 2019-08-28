@@ -9,7 +9,7 @@ simple_plugin(ImportSingle311Event "module"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}

@@ -35,6 +35,8 @@ namespace protoana {
   private:
 
     art::InputTag fTimingTag;
+    art::InputTag fRawDigitTag;
+    art::InputTag fRawDigitTimeStampTag;
 
   };
 

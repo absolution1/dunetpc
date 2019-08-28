@@ -46,6 +46,8 @@ TPadManipulator::TPadManipulator()
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
+  m_ndivX(0), m_ndivY(0),
+  m_labSizeX(0.0), m_labSizeY(0.0),
   m_showUnderflow(false), m_showOverflow(false),
   m_gflowMrk(0), m_gflowCol(0),
   m_top(false), m_right(false), m_iobjLegend(0) {
@@ -127,6 +129,10 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_logZ = rhs.m_logZ;
   m_tickLengthX = rhs.m_tickLengthX;
   m_tickLengthY = rhs.m_tickLengthY;
+  m_ndivX = rhs.m_ndivX;
+  m_ndivY = rhs.m_ndivY;
+  m_labSizeX = rhs.m_labSizeX;
+  m_labSizeY = rhs.m_labSizeY;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
   m_gflowOpt = rhs.m_gflowOpt;
@@ -152,6 +158,9 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_vmlLines.clear();
   m_binLabelsX = rhs.m_binLabelsX;
   m_binLabelsY = rhs.m_binLabelsY;
+  m_timeOffset = rhs.m_timeOffset;
+  m_timeFormatX = rhs.m_timeFormatX;
+  m_timeFormatY = rhs.m_timeFormatY;
   m_subBounds = rhs.m_subBounds;
   m_subMans.clear();
   for ( const TPadManipulator& man : rhs.m_subMans ) {
@@ -574,12 +583,13 @@ int TPadManipulator::update() {
     }
   }
   // If frame is not yet drawn, use the primary object to draw it.
+  // Note that we will later redraw the frame.
   if ( ! haveFrameHist() ) {
     // Fetch the set bounds.
-    if ( m_ph != nullptr ) {
+    if ( m_ph ) {
       m_ph->Draw(m_dopt.c_str());
     }
-    else if ( m_pg != nullptr ) {
+    else if ( m_pg ) {
       // If the graph has no points, we add one because root (6.12/06) raises an
       // exception if we draw an empty graph.
       if ( m_pg->GetN() == 0 ) {
@@ -771,6 +781,24 @@ int TPadManipulator::update() {
   getYaxis()->SetTitleOffset(yttl);
   getXaxis()->SetTickLength(ticklenx);
   getYaxis()->SetTickLength(tickleny);
+  if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
+  if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
+  if ( m_labSizeX > 0.0 ) getXaxis()->SetLabelSize(m_labSizeX);
+  if ( m_labSizeY > 0.0 ) getYaxis()->SetLabelSize(m_labSizeY);
+  if ( m_timeFormatX.size() ) {
+    getXaxis()->SetTimeDisplay(1);
+    getXaxis()->SetTimeFormat(m_timeFormatX.c_str());
+    getXaxis()->SetTimeOffset(m_timeOffset, "gmt");
+  } else {
+    getXaxis()->SetTimeDisplay(0);
+  }
+  if ( m_timeFormatY.size() ) {
+    getYaxis()->SetTimeDisplay(1);
+    getYaxis()->SetTimeFormat(m_timeFormatY.c_str());
+    getYaxis()->SetTimeOffset(m_timeOffset, "gmt");
+  } else {
+    getYaxis()->SetTimeDisplay(0);
+  }
   // May 2019. Ensure frame axis has same binning as histogram.
   // And set bin labels.
   // July 2019: The calls to TAxis::Set cause problems if the drawing bounds are
@@ -950,6 +978,27 @@ int TPadManipulator::setLogRangeZ(double z1, double z2) {
   m_setBoundsLog.z1 = z1;
   m_setBoundsLog.z2 = z2;
   return update();
+}
+
+//**********************************************************************
+
+int TPadManipulator::setTimeOffset(double toff) {
+  m_timeOffset = toff;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setTimeFormatX(string sfmt) {
+  m_timeFormatX = sfmt;
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::setTimeFormatY(string sfmt) {
+  m_timeFormatY = sfmt;
+  return 0;
 }
 
 //**********************************************************************
