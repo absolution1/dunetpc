@@ -342,7 +342,7 @@ producer_adcprep_notool: {
   OutputDigitName:             ""       # Non-blank writes digits if decoder tool is used
   WireName:                    ""
   DoAssns:                   true
-  DoGroups:                 false
+  DoGroups:                  true
   ChannelRanges:               []
   BeamEventLabel:              ""
   IntermediateStates:          []
@@ -359,7 +359,7 @@ producer_adcprep_tool: {
   OutputDigitName:           ""       # Non-blank writes digits if decoder tool is used
   WireName:                  ""
   DoAssns:                 true
-  DoGroups:               false
+  DoGroups:                true
   ChannelRanges:             []
   BeamEventLabel:            ""
   IntermediateStates:        []
