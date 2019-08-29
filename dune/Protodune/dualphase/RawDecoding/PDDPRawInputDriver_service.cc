@@ -254,7 +254,7 @@ namespace lris
 					   event.compression) );
 
 	// RDTimeStamp
-	cro_rdtm->push_back( raw::RDTimeStamp( tval, ch ) );
+	//cro_rdtm->push_back( raw::RDTimeStamp( tval, ch ) );
 
 	// Assns how to make ?
 	//auto const rwdigiptr = art::PtrMaker<raw::RawDigit>;
@@ -272,6 +272,9 @@ namespace lris
     if( discarded ) statword |= 1;
     if( kept )      statword |= 2;
     
+    // assign some trigger flag ... see DataPrepModule
+    uint16_t rdtsflags = 0xd; // CRT for now
+    cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
     cro_stat->emplace_back( discarded, kept, statword );
     art::put_product_in_principal(std::move(cro_data), *outE, "tpcrawdecoder", __output_label);
     art::put_product_in_principal(std::move(cro_stat), *outE, "tpcrawdecoder", __output_label);
