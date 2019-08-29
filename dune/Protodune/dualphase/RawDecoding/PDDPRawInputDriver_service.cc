@@ -109,12 +109,16 @@ namespace lris
     __eventNum( 0 )
   {
     // output module label: default daq
+    // now product instance name to be compatible with data prep
     __output_label = pset.get<std::string>("OutputDataLabel", "daq");
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
-    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
-    //helper.reconstitutes<art::Assns<raw::RawDigit,raw::RDTimeStamp>, art::InEvent>(__output_label);
-    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
+    //helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
+    //helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
+    //helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
 
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>("tpcrawdecoder", __output_label);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>("tpcrawdecoder", __output_label);
+    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>("timingrawdecoder", __output_label);
+    
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
 
@@ -269,10 +273,13 @@ namespace lris
     if( kept )      statword |= 2;
     
     cro_stat->emplace_back( discarded, kept, statword );
-    art::put_product_in_principal(std::move(cro_data), *outE, __output_label);
-    art::put_product_in_principal(std::move(cro_rdtm), *outE, __output_label);
-    //art::put_product_in_principal(std::move(cro_asso), *outE, __output_label);
-    art::put_product_in_principal(std::move(cro_stat), *outE, __output_label);
+    art::put_product_in_principal(std::move(cro_data), *outE, "tpcrawdecoder", __output_label);
+    art::put_product_in_principal(std::move(cro_stat), *outE, "tpcrawdecoder", __output_label);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, "timingrawdecoder", __output_label);
+    //art::put_product_in_principal(std::move(cro_data), *outE, __output_label);
+    //art::put_product_in_principal(std::move(cro_rdtm), *outE, __output_label);
+    //art::put_product_in_principal(std::move(cro_stat), *outE, __output_label);
+
     
     return true;
   }
