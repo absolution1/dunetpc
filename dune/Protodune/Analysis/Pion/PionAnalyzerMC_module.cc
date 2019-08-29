@@ -57,7 +57,17 @@ namespace pionana {
   bool sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
     return( i1->z < i2->z ); 
   }
+
+  enum RecoVertexType{
+    kUnmatched,
+    kInelastic,
+    kElastic,
+    kBoth,
+    kOther
+  };
 }
+
+
 
 class pionana::PionAnalyzerMC : public art::EDAnalyzer {
 public:
@@ -134,6 +144,11 @@ private:
   int nPiPlus_truth, nPiMinus_truth, nPi0_truth;
   int nProton_truth, nNeutron_truth, nNucleus_truth;
   /*****************************/
+
+  //Matched to vertex/slice?
+  int vertex_type = kUnmatched;
+  int vertex_slice;
+
   
 
 
@@ -225,6 +240,8 @@ private:
   std::vector< double > reco_daughter_startY, reco_daughter_endY;
   std::vector< double > reco_daughter_startZ, reco_daughter_endZ;
   std::vector< double > reco_daughter_deltaR;
+  std::vector< double > reco_daughter_dR;
+  std::vector< int > reco_daughter_slice;
   std::vector< double > reco_daughter_shower_startX;
   std::vector< double > reco_daughter_shower_startY;
   std::vector< double > reco_daughter_shower_startZ;
@@ -258,6 +275,7 @@ private:
   TFile dEdX_template_file;
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
+  int fNSliceCheck; 
 };
 
 
@@ -274,7 +292,8 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   dEdX_template_name(p.get<std::string>("dEdX_template_name")),
   dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
-  dataUtil(p.get<fhicl::ParameterSet>("DataUtils"))
+  dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
+  fNSliceCheck( p.get< int >("NSliceCheck") )
 {
 
   templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
@@ -346,20 +365,11 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
   //Reco track vertex and direction/length
   const TVector3 vtx = pfpUtil.GetPFParticleVertex(*particle,evt,fPFParticleTag,fTrackerTag);
-  std::cout << "PFParticle Vertex: " << vtx[0] << " " << vtx[1] << " " << vtx[2] << std::endl;
-
-
-  std::cout << "particle " << particle << std::endl;
 
   // Determine if the beam particle is track-like or shower-like
   const recob::Track* thisTrack = pfpUtil.GetPFParticleTrack(*particle,evt,fPFParticleTag,fTrackerTag);
   const recob::Shower* thisShower = pfpUtil.GetPFParticleShower(*particle,evt,fPFParticleTag,fShowerTag);
   const simb::MCParticle* trueParticle = 0x0;
-
-  std::cout << "thisTrack " << thisTrack << std::endl;
-  std::cout << "thisShower " << thisShower << std::endl;
-  std::cout << "trueParticle " << trueParticle << std::endl;
-
 
   if(thisShower != 0x0){
     std::cout << "Beam particle is shower-like" << std::endl;
@@ -403,6 +413,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     reco_beam_truth_EndProcess = trueParticle->EndProcess();
     reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(trueParticle->TrackId())->Origin();
     //What created the MCPraticle that created the track?
+    /*
     std::cout << "Track-to-True origin: ";
     switch( reco_beam_truth_origin ){
       case simb::kCosmicRay: 
@@ -414,7 +425,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       default:
         std::cout << "Other" << std::endl;
     }
-
+    */
 
     reco_beam_truth_Start_Px = trueParticle->Px();
     reco_beam_truth_Start_Py = trueParticle->Py();
@@ -480,7 +491,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
 
   //Look at true daughters coming out of the true beam particle
-  std::cout << "Has " << true_beam_particle->NumberDaughters() << " daughters" << std::endl;
+  //std::cout << "Has " << true_beam_particle->NumberDaughters() << " daughters" << std::endl;
 
   const sim::ParticleList & plist = pi_serv->ParticleList(); 
   for( int i = 0; i < true_beam_particle->NumberDaughters(); ++i ){
@@ -492,21 +503,25 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     true_beam_daughter_PDGs.push_back(pid);
     true_beam_daughter_IDs.push_back( part->TrackId() );      
     true_beam_daughter_lens.push_back( part->Trajectory().TotalLength() );
+    std::cout << "Proccess: " << part->Process() << std::endl; 
     std::cout << "PID: " << pid << std::endl;
-    std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
-    std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
-    std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
+    //std::cout << "Start: " << part->Position(0).X() << " " << part->Position(0).Y() << " " << part->Position(0).Z() << std::endl;
+    //std::cout << "End: " << part->EndPosition().X() << " " << part->EndPosition().Y() << " " << part->EndPosition().Z() << std::endl;
+    //std::cout << "Len: " << part->Trajectory().TotalLength() << std::endl;
 
-    if( pid == 211  ) ++nPiPlus_truth;
-    if( pid == -211 ) ++nPiMinus_truth;
-    if( pid == 111  ) ++nPi0_truth;
-    if( pid == 2212 ) ++nProton_truth;
-    if( pid == 2112 ) ++nNeutron_truth;
-    if( pid > 2212  ) ++nNucleus_truth; 
+    if( part->Process().find( "Inelastic" ) != std::string::npos ){
+      std::cout << "Inelastic" << std::endl;
+      if( pid == 211  ) ++nPiPlus_truth;
+      if( pid == -211 ) ++nPiMinus_truth;
+      if( pid == 111  ) ++nPi0_truth;
+      if( pid == 2212 ) ++nProton_truth;
+      if( pid == 2112 ) ++nNeutron_truth;
+      if( pid > 2212  ) ++nNucleus_truth; 
+    }
 
     //Look for the gammas coming out of the pi0s
     if( pid == 111 ){
-      std::cout << "Found pi0. Looking at true daughters" << std::endl;
+      //std::cout << "Found pi0. Looking at true daughters" << std::endl;
       for( int j = 0; j < part->NumberDaughters(); ++j ){
         int pi0_decay_daughter_ID = part->Daughter(j);
         auto pi0_decay_part = plist[ pi0_decay_daughter_ID ];
@@ -646,25 +661,74 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
     std::cout << "N Reco Traj Pts: " << thisTrack->NumberTrajectoryPoints() << std::endl;
 
+
     //Get the sim::IDEs for each true trajectory point
     std::map< size_t, std::vector< const sim::IDE * > > trueTrajPtsToSimIDEs = truthUtil.GetSimIDEs( *true_beam_particle );
+    std::cout << "Traj Pts & Sim IDEs: " << std::endl;
+    /*
+    for( auto it = trueTrajPtsToSimIDEs.begin(); it != trueTrajPtsToSimIDEs.end(); ++it ){
+      std::cout << it->first << " " << it->second.size() << std::endl;
+    }
+    */
+
+
+    //Thin slice
+    //
+    std::map< const recob::Hit *, int > hitsToSlices;
+    std::map< int, std::vector< const recob::Hit * > > slicesToHits;
+    art::ServiceHandle<geo::Geometry> geom;
+    
+    double z0 = geom->Wire( geo::WireID(0, 1, 2, 0) ).GetCenter().Z();
+    std::cout << "Z0: " << z0 << std::endl;
+                                  //p, t, c 
+    double pitch = geom->WirePitch( 2, 1, 0);
+    std::cout << "Pitch: " << pitch << std::endl;
+
+    size_t nWires = geom->Nwires( 2, 1, 0 );
+    std::cout << "nWires: " << nWires << std::endl;
 
     //Looking at the hits in the beam track
-    //std::map< size_t, std::vector< const recob::Hit * > > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
     std::map< size_t, const recob::Hit * > trajPtsToHits = trackUtil.GetRecoHitsFromTrajPoints( *thisTrack, evt, fTrackerTag );
+    std::cout << "Hits" << std::endl;
+    for( auto it = trajPtsToHits.begin(); it != trajPtsToHits.end(); ++it ){
+      const recob::Hit * theHit = it->second;
+      size_t i = it->first;
+      //std::cout << thisTrack->Trajectory().LocationAtPoint(i).Z() << " Slice: " << std::floor( ( thisTrack->Trajectory().LocationAtPoint(i).Z() - z0 ) / pitch ) << std::endl;
+
+      int slice = std::floor( ( thisTrack->Trajectory().LocationAtPoint(i).Z() - z0 ) / pitch );
+      hitsToSlices[ theHit ] = slice;
+      slicesToHits[ slice ].push_back( theHit );
+    }
+
+    vertex_slice = slicesToHits.rbegin()->first;
+    std::cout << "Vertex slice: " << vertex_slice << std::endl;
 
 
-    // Get the IDEs from last hit in the track
+    std::cout << "StartZ: " << startZ << " " << std::floor( ( startZ - z0 ) / pitch ) << std::endl;
+    std::cout << "EndZ: "   << endZ   << " " << std::floor( ( endZ   - z0 ) / pitch ) << std::endl;
+
+/*
+    std::vector<anab::Calorimetry> calo_sce = trackUtil.GetRecoTrackCalorimetry( *thisTrack, evt, fTrackerTag, "pandoracaloSCE" );
+    for( auto & c : calo_sce ){
+      if( c.PlaneID().Plane == 2 ){
+        std::cout << "SCE first: " << c.XYZ()[0].Z() << " " << std::floor( ( c.XYZ()[0].Z() - z0 ) / pitch ) << std::endl; 
+        std::cout << "SCE last:  " << c.XYZ()[ c.dQdx().size() - 1 ].Z() << " " << std::floor( ( c.XYZ()[ c.dQdx().size() - 1 ].Z() - z0 ) / pitch ) << std::endl; 
+      }
+    }
+*/
+
+
     auto reco_it = trajPtsToHits.rbegin();
-    //auto last_hit = reco_it->second[0];
     std::cout << "Last index " << reco_it->first << std::endl;
 
+    // Get the IDEs from last hit in the track
     //Finding distance between end of the reconstucted track and the end of the true trajectory
     //by looking at the sim::IDEs
 
     //Loop backward over the hits in the reconstructed track
     //Note: the loops have the extra condition of occuring while 
     //the IDEs have not been matched
+    
     const sim::IDE * matchedIDE = NULL;  //Not sure if I need these
     const recob::Hit * matchedHit = NULL;
 
@@ -675,7 +739,6 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     size_t Hit_index = 0;
     std::map< size_t, std::vector< const sim::IDE * > >::iterator matchedTruePt = trueTrajPtsToSimIDEs.end();
     for( auto itRecoHits = trajPtsToHits.rbegin(); ( itRecoHits != trajPtsToHits.rend() && !found_ides ); ++itRecoHits ){
-      //auto theHit = itRecoHits->second[0];      
       auto theHit = itRecoHits->second;
       Hit_index = itRecoHits->first;
         
@@ -697,6 +760,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
           const sim::IDE * theTrueIDE = trueIDEs[i];
           
           for( size_t j = 0; j < recoHitIDEs.size(); ++j ){
+
             //Check if the pointers are the same value
             if( recoHitIDEs[j] == theTrueIDE ){
               matchedIDE = theTrueIDE; 
@@ -710,6 +774,96 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         }
       }
     }
+
+    std::cout << std::endl << "Truth slices" << std::endl;
+
+    std::map< int, std::vector< const sim::IDE * > > slicesToIDEs;
+    for( auto it = trueTrajPtsToSimIDEs.begin(); it != trueTrajPtsToSimIDEs.end(); ++it ){
+      std::vector< const sim::IDE * > theIDEs = it->second; 
+      for( size_t i = 0; i < theIDEs.size(); ++i ){
+        const sim::IDE * theIDE = theIDEs[i];
+        int slice = std::floor( (theIDE->z - z0) / pitch );
+        slicesToIDEs[slice].push_back( theIDE );
+      }
+    }
+    
+    /*
+    for( auto it = slicesToIDEs.begin(); it != slicesToIDEs.end(); ++it ){
+      std::cout << "Slice: " << it->first << " " << it->second.size() << std::endl;
+    }
+    */
+    std::map< int, std::string > processSlices; 
+    for( auto itProc = true_beam_proc_map.begin(); itProc != true_beam_proc_map.end(); ++itProc ){
+      int slice = std::floor( ( true_beam_trajectory.Z( itProc->first )  - z0 ) / pitch );
+      //processSlices[ itProc->first ] = slice;
+      std::cout << itProc->first << ", " << true_beam_trajectory.KeyToProcess(itProc->second) << " " << true_beam_trajectory.Z( itProc->first ) <<  ", Slice:" << slice << std::endl;
+      processSlices[ slice ] = true_beam_trajectory.KeyToProcess(itProc->second);
+    }
+    
+
+    //check any matches between hits and IDEs in the reco/true interacting slices
+    std::vector< const recob::Hit * > last_slice_hits = slicesToHits.rbegin()->second;
+    std::vector< const sim::IDE * > IDEs_last_reco_slice;
+    for( size_t i = 0; i < last_slice_hits.size(); ++i ){
+      std::vector< const sim::IDE * > recoHitIDEs = bt_serv->HitToSimIDEs_Ps( *last_slice_hits[i] );     
+      IDEs_last_reco_slice.insert( IDEs_last_reco_slice.end(), recoHitIDEs.begin(), recoHitIDEs.end() );
+    }
+
+    bool matched_vertex = false;
+    bool matched_elastic = false;
+    bool matched_inelastic = false;
+
+    for( auto itProcs = processSlices.begin(); itProcs != processSlices.end(); ++itProcs ){
+
+      int process_slice = itProcs->first;
+      std::string process = itProcs->second;
+
+      for( int s = process_slice - fNSliceCheck; s <= process_slice + fNSliceCheck; ++s ){
+        std::cout << "Checking Slice " << s << " For Interaction: " << itProcs->second << std::endl;
+
+        std::vector< const sim::IDE * > IDEs_true_slice = slicesToIDEs[s];
+
+        if( !IDEs_true_slice.size() ){
+          std::cout << "No IDEs in true interaction slice" << std::endl;
+          continue;
+        }
+        
+        std::cout << "Checking " << IDEs_true_slice.size() << " IDEs in true slice" << std::endl;
+
+        size_t nMatched = 0;
+        for( size_t i = 0; i < IDEs_last_reco_slice.size(); ++i ){
+          auto result = std::find( IDEs_true_slice.begin(), IDEs_true_slice.end(), IDEs_last_reco_slice[i] );
+          if( result != IDEs_true_slice.end() ){
+
+            if( process == "hadElastic" ){
+              matched_elastic = true;
+            }
+            else if( process == "pi+Inelastic" ){
+              matched_inelastic = true;
+            }
+
+            matched_vertex = true;
+            ++nMatched; 
+          }
+        }
+        std::cout << "Found " << nMatched << "/" << IDEs_last_reco_slice.size() << " 'reco' IDEs in true interacting slice." << std::endl;
+      }
+      std::cout << std::endl;
+    }
+
+    if( matched_vertex ){
+      if( matched_elastic && matched_inelastic )
+        vertex_type = kBoth;
+      else if( matched_elastic ) 
+        vertex_type = kElastic;
+      else if( matched_inelastic )
+        vertex_type = kInelastic;
+      else 
+        vertex_type = kOther;
+    }
+
+    std::cout << "Matched vertex type: " << vertex_type << std::endl;
+    
 
     if( found_ides ){
       std::cout << "Found the IDEs " << Hit_index << " " << TruePt_index << " " << IDE_index << std::endl;
@@ -760,10 +914,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     else{
       std::cout << "Did not find IDEs " << matchedIDE << " " << matchedHit << std::endl; 
     }
+    
 
     //Primary Track Calorimetry 
     std::vector< anab::Calorimetry> calo = trackUtil.GetRecoTrackCalorimetry(*thisTrack, evt, fTrackerTag, fCalorimetryTag);
-    std::cout << "Planes: " << calo[0].PlaneID().toString() << " " << calo[1].PlaneID().toString()  << " " << calo[2].PlaneID().toString() << std::endl;
     auto calo_dQdX = calo[0].dQdx();
     auto calo_dEdX = calo[0].dEdx();
     auto calo_range = calo[0].ResidualRange();
@@ -782,13 +936,16 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     std::cout << "Beam particle has " << trackDaughters.size() << " track-like daughters and " << showerDaughters.size() << " shower-like daughters." << std::endl;
     std::cout << std::endl;
 
+    std::map< int, std::vector< size_t > > sliceDaughters;
 
     nTrackDaughters = trackDaughters.size();
 
     for( size_t i = 0; i < trackDaughters.size(); ++i ){
-      std::cout << "Track daughter " << i << " has len " << trackDaughters[i]->Length() << std::endl; 
       auto daughterTrack = trackDaughters.at(i);
       
+      std::cout << "Track daughter " << i << " has ID " << daughterTrack->ID() << " and len " << daughterTrack->Length() << std::endl; 
+
+
       reco_daughter_len.push_back( daughterTrack->Length() );
       reco_daughter_startX.push_back( daughterTrack->Trajectory().Start().X() );
       reco_daughter_startY.push_back( daughterTrack->Trajectory().Start().Y() );
@@ -920,7 +1077,81 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
         reco_beam_truth_daughter_true_IDs.push_back( -1 );
         reco_beam_truth_daughter_true_lens.push_back( -1 );
       }
+
+
+
+      //Match the daughters to a slice
+      //First, check whether the start or end of the daughter track are closer
+      double d_startX = daughterTrack->Trajectory().Start().X();
+      double d_startY = daughterTrack->Trajectory().Start().Y();
+      double d_startZ = daughterTrack->Trajectory().Start().Z();
+
+      double d_endX = daughterTrack->Trajectory().End().X();
+      double d_endY = daughterTrack->Trajectory().End().Y();
+      double d_endZ = daughterTrack->Trajectory().End().Z();
+
+      double dr_start = std::numeric_limits<double>::max();
+      double dr_end = std::numeric_limits<double>::max();
+
+      size_t min_start_index = 0;
+      size_t min_end_index = 0;
+
+      for( size_t j = 0; j < thisTrack->NumberTrajectoryPoints(); ++j ){
+        double X = thisTrack->Trajectory().LocationAtPoint(j).X();
+        double Y = thisTrack->Trajectory().LocationAtPoint(j).Y();
+        double Z = thisTrack->Trajectory().LocationAtPoint(j).Z();
+
+        double dr = sqrt(
+          ( d_startX - X ) * ( d_startX - X ) + 
+          ( d_startY - Y ) * ( d_startY - Y ) + 
+          ( d_startZ - Z ) * ( d_startZ - Z )  
+        );
+
+        if( dr < dr_start ){
+          dr_start = dr;    
+          min_start_index = j;
+        }
+
+        dr = sqrt(
+          ( d_endX - X ) * ( d_endX - X ) + 
+          ( d_endY - Y ) * ( d_endY - Y ) + 
+          ( d_endZ - Z ) * ( d_endZ - Z )  
+        );
+
+        if( dr < dr_end ){
+          dr_end = dr;    
+          min_end_index = j;
+        }
+
+      }
+      
+      size_t min_index = 0;
+      if( dr_end < dr_start ){
+        min_index = min_end_index; 
+
+        std::cout << "dr between track and daughter: " << dr_end << std::endl;
+        reco_daughter_dR.push_back( dr_end );
+ 
+      }
+      else{
+        min_index = min_start_index; 
+        std::cout << "dr between track and daughter: " << dr_start << std::endl;
+        reco_daughter_dR.push_back( dr_start );
+      }
+
+
+      double min_z = thisTrack->Trajectory().LocationAtPoint(min_index).Z();
+
+      int slice = std::floor( ( min_z - z0 ) / pitch );
+      sliceDaughters[ slice ].push_back( i );
+
+      reco_daughter_slice.push_back( slice );
         
+      std::cout << std::endl;
+    }
+
+    for( auto it = sliceDaughters.begin(); it != sliceDaughters.end(); ++it ){
+      std::cout << "Slice: " << it->first << " Has " << it->second.size() << " Daughters" << std::endl;
     }
 
     nShowerDaughters = showerDaughters.size();
@@ -995,9 +1226,9 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
 
         //In addition, try to get the dQ from each hit
-        auto theHit = daughter_hits[ h ];
-        double dQ = theHit->Integral();
-        std::cout << "Hit: " << h << " has dQ " << dQ << std::endl;
+        //auto theHit = daughter_hits[ h ];
+       // double dQ = theHit->Integral();
+        //std::cout << "Hit: " << h << " has dQ " << dQ << std::endl;
         
       }
 
@@ -1150,6 +1381,10 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("reco_daughter_endY", &reco_daughter_endY);
   fTree->Branch("reco_daughter_endZ", &reco_daughter_endZ);
   fTree->Branch("reco_daughter_deltaR", &reco_daughter_deltaR);
+
+  fTree->Branch("reco_daughter_dR", &reco_daughter_dR);
+  fTree->Branch("reco_daughter_slice", &reco_daughter_slice);
+
   fTree->Branch("reco_daughter_shower_startX", &reco_daughter_shower_startX);
   fTree->Branch("reco_daughter_shower_startY", &reco_daughter_shower_startY);
   fTree->Branch("reco_daughter_shower_startZ", &reco_daughter_shower_startZ);
@@ -1182,6 +1417,9 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("nNeutron_truth", &nNeutron_truth);
   fTree->Branch("nPiMinus_truth", &nPiMinus_truth);
   fTree->Branch("nNucleus_truth", &nNucleus_truth);
+
+  fTree->Branch("vertex_type", &vertex_type);
+  fTree->Branch("vertex_slice", &vertex_slice);
 
   fTree->Branch("true_beam_daughter_PDGs", &true_beam_daughter_PDGs);
   fTree->Branch("true_beam_daughter_IDs", &true_beam_daughter_IDs);
@@ -1278,6 +1516,8 @@ void pionana::PionAnalyzerMC::reset()
   nProton_truth = 0;
   nNeutron_truth = 0;
   nNucleus_truth = 0;
+  vertex_type = kUnmatched;
+  vertex_slice = std::numeric_limits<int>::max();
   nPi0_truth = 0;
   nPiPlus_truth = 0;
   nPiMinus_truth = 0;
@@ -1381,6 +1621,8 @@ void pionana::PionAnalyzerMC::reset()
   reco_daughter_endY.clear();
   reco_daughter_endZ.clear();
   reco_daughter_deltaR.clear();
+  reco_daughter_dR.clear();
+  reco_daughter_slice.clear();
 
   reco_daughter_shower_startX.clear();
   reco_daughter_shower_startY.clear();

@@ -29,6 +29,7 @@ pionanalysis:
   dEdX_template_name:     "/dune/data/users/calcuttj/dEdxrestemplates.root"
   Verbose:                true
   DataUtils: @local::standard_protodunedatautils
+  NSliceCheck:            2
 
   SelectEvents: []
 
