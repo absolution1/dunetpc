@@ -10,6 +10,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 art_make( MODULE_LIBRARIES
                         lardataobj_RawData
 			larcorealg_Geometry
+                        larcorealg_CoreUtils
 			larcore_Geometry_Geometry_service
                         lardataobj_Simulation
                         nusimdata_SimulationBase
@@ -17,6 +18,7 @@ art_make( MODULE_LIBRARIES
 			lardataobj_AnalysisBase
 			larsim_MCCheater_ParticleInventoryService_service
 			larsim_MCCheater_BackTrackerService_service
+			larsim_MCCheater_PhotonBackTrackerService_service
 			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}

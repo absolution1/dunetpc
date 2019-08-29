@@ -425,7 +425,7 @@
       y="598.39" 
       z="229.5368"/>
     <box name="OuterActive" lunit="cm"
-      x="8.49125"
+      x="1.47375"
       y="600.22375"
       z="231.66"/>
 
@@ -1052,7 +1052,7 @@
      <physvol>
        <volumeref ref="volTPCActiveOuter"/>
        <position name="posOuterActive" unit="cm" 
-         x="0.736875" y="-3.63749999999999" z="0"/>
+         x="-2.771875" y="-3.63749999999999" z="0"/>
        <rotationref ref="rIdentity"/>
      </physvol>
     </volume>

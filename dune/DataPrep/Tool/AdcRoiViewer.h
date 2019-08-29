@@ -66,7 +66,9 @@
 //            fitCSNorm - Chi-square/(ped RMS)^2
 //            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
 //            timingPhase_fitToffPulserMod10 - 2D plot of timing phase (0 to 1) vs offset tick
-//            timeSec, timeHour, timeDay - DAQ time sine StartTime
+//            timeSec, timeHour, timeDay - DAQ time since StartTime
+//            procEvent - event number filled once per event
+//            procTimeSec, procTimeHour, procTimeDay - DAQ time since StartTime filled once/event
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -80,6 +82,8 @@
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
 // E.g.: {var:fitHeight name:"hfh_chan%0CHAN" title:"Fit height for channel %CHAN%"
 //        nbin:50 xmin:0.0 xmax:5.0}
+// Unless otherwise noted, the histograms are filled once for each ROI.
+// For variable proc*, the histogram is filled once each time a channel is processed.
 //
 // Channel summary histograms
 // --------------------------
@@ -89,6 +93,8 @@
 //    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
+//             entries - Root GetEntries() (Includes under and overflow. The following do not.)
+//               count - Root Integral()
 //                mean - Root GetMean()
 //                peak - Root GetMaximumBin()
 //                 rms - Root GetRMS()

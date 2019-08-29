@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardata/ArtDataHelper/WireCreator.h"
+#include "lardataobj/RawData/RawDigit.h"
 
 using std::vector;
 using std::string;

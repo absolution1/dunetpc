@@ -80,7 +80,7 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       if (( detectorVersion.find("v3") != std::string::npos )
        || ( detectorVersion.find("v4") != std::string::npos )
        || ( detectorVersion.find("v5") != std::string::npos )
-       || ( detectorVersion.find("v7") != std::string::npos )) {
+       || ( detectorVersion.find("v6") != std::string::npos )) {
         useApaMap = true;
         is35t = true;
       } else {

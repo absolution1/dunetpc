@@ -75,6 +75,7 @@ int test_AdcNoiseSignalFinder(bool useExistingFcl =false) {
   AdcChannelData data;
   int wnoi = 20;
   float signoi = wnoi/sqrt(12.0);
+  srand(12345);
   for ( AdcIndex itic=0; itic<100; ++itic ) {
     float xadc = rand()%wnoi - 0.5*wnoi;
     data.samples.push_back(xadc);
