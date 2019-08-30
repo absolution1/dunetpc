@@ -67,7 +67,7 @@ public:
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
   int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const override;
-  int viewMapSummary(Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
+  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrPlotted) const override;
   bool updateWithView() const override { return true; }
 
 private:
@@ -116,6 +116,14 @@ private:
     TH1*& hist(Name crn) {
       if ( ! hists.count(crn) ) hists[crn] = nullptr;
       return hists[crn];
+    }
+    // # of CRN's with non-null hists.
+    Index histCount() const {
+      Index cnt = 0;
+      for ( HistMap::value_type ihst : hists ) {
+        if ( ihst.second != nullptr ) ++cnt;
+      }
+      return cnt;
     }
     IndexMap counts;
     IndexMap nchans;

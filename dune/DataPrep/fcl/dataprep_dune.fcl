@@ -337,7 +337,7 @@ producer_adcprep_notool: {
   module_type:   "DataPrepModule"
   LogLevel:                     1
   DecoderTool:                 ""       # Non-blank reads digits with named tool.
-  DigitLabel: "tpcrawdecoder:daq"       # Label for input digits if decoder tool is not used
+  DigitLabel:               "daq"       # Label for input digits if decoder tool is not used
   TimeStampName:               ""       # Non-blank writes RDTimeStamps if decoder tool is used
   OutputDigitName:             ""       # Non-blank writes digits if decoder tool is used
   WireName:                    ""

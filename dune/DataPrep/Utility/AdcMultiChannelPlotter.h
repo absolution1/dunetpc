@@ -92,13 +92,13 @@ public:
 
   // Subclass provides this method to process the channels in one range for a summary plot,
   // i.e. combining data from preceding view calls.
-  //    crn - Name for this set of channels
+  //    cgn - Name for the group holding the channel range
+  //    crn - Name for the channel range
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
   //          Subclass can use man.haveHistOrGraph() or icrn to see if it has previously filled the pad.
-  //   ncrn - # ranges to be included on this pad
-  //   icrn - # ranges previously included on this pad
-  virtual int viewMapSummary(Name crn, TPadManipulator& man, Index ncrn, Index icrn) const =0;
+  //   ncrnPlotted - # ranges already included on this pad. Used to identify the first and last.
+  virtual int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrnPlotted) const =0;
 
   // Provide read access to configuration.
   Index getLogLevel() const { return m_LogLevel; }

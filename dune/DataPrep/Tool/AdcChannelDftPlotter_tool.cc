@@ -108,7 +108,7 @@ AdcChannelDftPlotter::~AdcChannelDftPlotter() {
 
 int AdcChannelDftPlotter::
 viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
-  const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
+  const string myname = "AdcChannelDftPlotter::viewMapChannels: ";
   DataMap chret = viewLocal(crn, acds);
   bool doState = true;
   if ( doState ) {
@@ -143,16 +143,22 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapSummary(Name crn, TPadManipulator& man, Index ncr, Index icr) const {
+viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrnPlotted) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
+  cout << myname << "Processing " << cgn << "/" << crn << " (range " << ncrnPlotted << ")" << endl;
+  Index histCount = getState().histCount();
   Index count = getState().count(crn);
   Index nchanTot = getState().nchan(crn);
-  float nchanEvt = double(nchanTot)/count;
-  if ( count == 0 ) return 1;
+  float nchanEvt = count > 0 ? double(nchanTot)/count : 0.0;
+  //if ( count == 0 ) return 1;
   TH1* phin = getState().hist(crn);
   if ( phin == nullptr ) return 2;
-  TH1* ph = dynamic_cast<TH1*>(phin->Clone());
+  TH1* ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
   if ( ph == nullptr ) return 3;
+  if ( ncrnPlotted >= histCount ) {
+    cout << myname << "ERROR: Too many plots: " << ncrnPlotted << " >= " << histCount << endl;
+    return 11;
+  }
   ph->SetDirectory(nullptr);
   Name htitl = m_HistSummaryTitle;
   StringManipulator smanTitl(htitl);
@@ -167,10 +173,8 @@ viewMapSummary(Name crn, TPadManipulator& man, Index ncr, Index icr) const {
   dm.setFloat("dftChanPerEventCount", nchanEvt);
   dm.setString("dftDopt", "hist");
   dm.setString("dftCRLabel", crn);
-  if ( ncr > 1 ) {
-    dm.setInt("dftCRCount", ncr);
-    dm.setInt("dftCRIndex", icr);
-  }
+  dm.setInt("dftCRCount", histCount);
+  dm.setInt("dftCRIndex", ncrnPlotted);
   fillPad(dm, man);
   //man.add(ph, "hist");
   //delete ph;
