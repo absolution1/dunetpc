@@ -89,7 +89,12 @@ namespace lris
   private: 
     art::SourceHelper const&	__sourceHelper;
     art::SubRunID 		__currentSubRunID;
-    std::string                 __output_label;
+    //std::string                 __output_label;
+    std::string                 __outlbl_digits;
+    std::string                 __outlbl_status;
+    std::string                 __outlbl_rdtime;
+    std::string                 __output_inst;
+
     uint32_t 			__eventCtr; 
     uint32_t                    __eventNum;
 

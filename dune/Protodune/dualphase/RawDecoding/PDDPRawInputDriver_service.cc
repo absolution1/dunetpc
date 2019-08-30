@@ -110,14 +110,21 @@ namespace lris
   {
     // output module label: default daq
     // now product instance name to be compatible with data prep
-    __output_label = pset.get<std::string>("OutputDataLabel", "daq");
+    //__output_label = pset.get<std::string>("OutputDataLabel", "daq");
     //helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
     //helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
     //helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
 
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>("tpcrawdecoder", __output_label);
-    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>("tpcrawdecoder", __output_label);
-    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>("timingrawdecoder", __output_label);
+    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "tpcrawdecoder");
+    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "timingrawdecoder");
+    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "tpcrawdecoder");
+    __output_inst   = pset.get<std::string>("OutputInstance", "daq");
+    
+
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
+    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__outlbl_rdtime,
+								      __output_inst);
     
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
@@ -239,7 +246,6 @@ namespace lris
 
     std::unique_ptr< std::vector<raw::RawDigit> > cro_data ( new std::vector<raw::RawDigit>  );
     std::unique_ptr< std::vector<raw::RDTimeStamp> > cro_rdtm ( new std::vector<raw::RDTimeStamp>  );
-    //std::unique_ptr< art::Assns<raw::RawDigit,raw::RDTimeStamp> > cro_asso ( new art::Assns<raw::RawDigit,raw::RDTimeStamp> );
     std::unique_ptr< std::vector<raw::RDStatus> > cro_stat ( new std::vector<raw::RDStatus>  );
     
     // move data
@@ -271,18 +277,15 @@ namespace lris
       }
     if( discarded ) statword |= 1;
     if( kept )      statword |= 2;
-    
+    cro_stat->emplace_back( discarded, kept, statword );
+
     // assign some trigger flag ... see DataPrepModule
     uint16_t rdtsflags = 0xd; // CRT for now
     cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
-    cro_stat->emplace_back( discarded, kept, statword );
-    art::put_product_in_principal(std::move(cro_data), *outE, "tpcrawdecoder", __output_label);
-    art::put_product_in_principal(std::move(cro_stat), *outE, "tpcrawdecoder", __output_label);
-    art::put_product_in_principal(std::move(cro_rdtm), *outE, "timingrawdecoder", __output_label);
-    //art::put_product_in_principal(std::move(cro_data), *outE, __output_label);
-    //art::put_product_in_principal(std::move(cro_rdtm), *outE, __output_label);
-    //art::put_product_in_principal(std::move(cro_stat), *outE, __output_label);
 
+    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __output_inst);
+    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __output_inst);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __output_inst);
     
     return true;
   }
