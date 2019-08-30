@@ -40,6 +40,7 @@
 
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
 
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
@@ -113,6 +114,7 @@ int moduletoCTB(int module2, int module1);
   TTree * fMCCTree;
     bool fMCCSwitch;
     bool fModuleSwitch;
+    bool fSCECorrection;
     int fADCThreshold;
     int fModuletoModuleTimingCut;
     int fFronttoBackTimingCut;
@@ -136,6 +138,7 @@ int moduletoCTB(int module2, int module1);
     int partProcess;
     double mccE;
     double mccT0;
+    double opCRTDiff, maxPurity;
    
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
@@ -234,6 +237,7 @@ CRT::SingleCRTMatching::SingleCRTMatching(fhicl::ParameterSet
     consumes < std::vector < CRT::Trigger >> (fCRTLabel);
     consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel); // CRT art consumables
   fMCCSwitch=(p.get<bool>("MCC"));
+  fSCECorrection=(p.get<bool>("SCECorrection"));
   }
 
 
@@ -359,42 +363,8 @@ void CRT::SingleCRTMatching::analyze(art::Event
 		art::fill_ptr_vector(opHitList, opListHandle);
 	    }
 
+  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
-/*
-    std::set<int> signal_trackids;
-    geo::PlaneID planeid;
-
-    try {
-      auto MClistHandle = event.getValidHandle<std::vector<simb::MCTruth> >("generator");
-
-      art::Ptr<simb::MCTruth> mctruth(MClistHandle, 0);
-      if (mctruth->NParticles() == 0) {
-        mf::LogError("FlashMatchAna") << "No MCTruth Particles";
-      }
-
-      // Get all the track ids associated with the signal event.
-      art::FindManyP<simb::MCParticle> SignalGeantAssns(MClistHandle,event,"largeant");
-      for ( size_t i = 0; i < SignalGeantAssns.size(); i++) {
-        auto parts = SignalGeantAssns.at(i);
-        for (auto part = parts.begin(); part != parts.end(); part++) {
-          signal_trackids.emplace((*part)->TrackId());
-        }
-      }
-    }
-    catch (art::Exception const& err){
-    }
-art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
-for(unsigned int i = 0; i < opHitList.size(); ++i) {
-       recob::OpFlash TheFlash = *opHitList[i];
-       art::Ptr<recob::OpFlash> FlashP = opHitList[i];
-       std::vector< art::Ptr<recob::OpHit> > hitFromFlash = pbt->OpFlashToOpHits_Ps(FlashP);
-       std::vector< art::Ptr<recob::OpHit> > matchedHits = pbt->OpFlashToOpHits_Ps(FlashP);
- 
-       // Calculate the flash purity
-       double purity = pbt->OpHitCollectionPurity(signal_trackids, matchedHits);
-	cout<<"Optical Purity:"<<purity<<endl;
-}
-*/
   primaryHits_F.clear();
   primaryHits_B.clear();
   tracksPair_F.clear();
@@ -785,11 +755,19 @@ for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
 
 
 	if (beamLeft!=-1){
-	 if(fabs(particle->Position(beamLeft).X()-X1)<60 && fabs(particle->Position(beamLeft).Y()-Y1)<60 && fabs(particle->Position(beamLeft).Z()-Z1)<60){       }
+	 if(fabs(particle->Position(beamLeft).X()-X1)<60 && fabs(particle->Position(beamLeft).Y()-Y1)<60 && fabs(particle->Position(beamLeft).Z()-Z1)<60){    matchedTrack=matchedTrack+mccTruthCheck;
+	truthPosX=mccX;
+	truthPosY=mccY;
+	truthPosZ=mccZ;
+	fMCCTree->Fill();   }
 	}
 
 	if (beamRight!=-1){
-	 if(fabs(particle->Position(beamRight).X()-X1)<60 && fabs(particle->Position(beamRight).Y()-Y1)<60 && fabs(particle->Position(beamRight).Z()-Z1)<60) {}
+	 if(fabs(particle->Position(beamRight).X()-X1)<60 && fabs(particle->Position(beamRight).Y()-Y1)<60 && fabs(particle->Position(beamRight).Z()-Z1)<60) {matchedTrack=matchedTrack+mccTruthCheck;
+	truthPosX=mccX;
+	truthPosY=mccY;
+	truthPosZ=mccZ;
+	 fMCCTree->Fill();}
 	
 
 	}
@@ -799,11 +777,7 @@ for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
 
 
 }}
-matchedTrack=matchedTrack+mccTruthCheck;
-truthPosX=mccX;
-truthPosY=mccY;
-truthPosZ=mccZ;
-if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
+
 }
 
 
@@ -892,24 +866,7 @@ if (beamLeft!=-1 || beamRight!=-1) fMCCTree->Fill();
 
 
 	double minTimeDifference=999999.99;
-        for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
-                {
-		    if (opHitList[iFlash]->TotalPE()>10){
 
-                    double hitTime = opHitList[iFlash]->Time();
-                    double corrected_hitTime=hitTime;
-	
-                //if(!event.isRealData()) corrected_hitTime = hitTime;
-                //else corrected_hitTime= (hitTime-tpcTrigger) - TPC_trigger_offset;
-                 double timeDifference = primaryHits_F[iHit_F].timeAvg - corrected_hitTime*1000;
-		 if (event.isRealData()) timeDifference = 20.f*primaryHits_F[iHit_F].timeAvg - corrected_hitTime*1000.f;
-                    if(fabs(timeDifference) < fabs(minTimeDifference))
-                        {
-                            minTimeDifference = timeDifference;
-			   //if (minTimeDifference<1000) cout<<"Min Time: "<<minTimeDifference<<endl;
-                        }
-		    }
-                }
 	 //if (minTimeDifference>100000) continue;
          tracksPair tPair;
         tPair.tempId = tempId;
@@ -1026,7 +983,10 @@ for (unsigned int iHit_F = 0; iHit_F < primaryHits_B.size(); iHit_F++) {
 	mccY=mccHitY;
 	mccZ=Z1;}
 
-	 if(fabs(particle->Position(approxExit).X()-X1)<60 && fabs(particle->Position(approxExit).Y()-Y1)<60&& fabs(particle->Position(approxExit).Z()-Z1)<60){ 
+	 if(fabs(particle->Position(approxExit).X()-X1)<60 && fabs(particle->Position(approxExit).Y()-Y1)<60&& fabs(particle->Position(approxExit).Z()-Z1)<60 && approxExit!=-1){matchedTrack=matchedTrack+mccTruthCheck;
+truthPosX=mccX;
+truthPosY=mccY;
+truthPosZ=mccZ; fMCCTree->Fill();
 	}
 
 
@@ -1034,11 +994,7 @@ for (unsigned int iHit_F = 0; iHit_F < primaryHits_B.size(); iHit_F++) {
 
 
 }}
-matchedTrack=matchedTrack+mccTruthCheck;
-truthPosX=mccX;
-truthPosY=mccY;
-truthPosZ=mccZ;
-if (approxExit!=-1) 	fMCCTree->Fill();
+
 }
 
 	//track++;
@@ -1080,19 +1036,19 @@ double xOffset=0;
    double trackEndPositionY=trackEndPositionY_noSCE;
    double trackEndPositionZ=trackEndPositionZ_noSCE;
 
-    /*
-    cout<<fSCECorrection<<endl;
-    if (fSCECorrection){
-     trackStartPositionX=trackStartPositionX_noSCE-SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).X();
-     trackStartPositionY=trackStartPositionY_noSCE+SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).Y();
-     trackStartPositionZ=trackStartPositionZ_noSCE+SCE->GetPosOffsets(geo::Point_t(trackStartPositionX_noSCE, trackStartPositionY_noSCE, trackStartPositionZ_noSCE)).Z();
+   if (fSCECorrection && SCE->EnableCalSpatialSCE()){
+if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex()<13 && geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex()<13){ 
+            auto const & posOffsets_F = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex());
+            trackStartPositionX -= posOffsets_F.X();
+            trackStartPositionY += posOffsets_F.Y();
+            trackStartPositionZ += posOffsets_F.Z();
+            auto const & posOffsets_B = SCE->GetCalPosOffsets(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ), geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex());
+            trackEndPositionX -= posOffsets_B.X();
+            trackEndPositionY += posOffsets_B.Y();
+            trackEndPositionZ += posOffsets_B.Z();
+	}
+    }
 
-
-     trackEndPositionX=trackEndPositionX_noSCE-SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).X();
-     trackEndPositionY=trackEndPositionY_noSCE+SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).Y();
-     trackEndPositionZ=trackEndPositionZ_noSCE+SCE->GetPosOffsets(geo::Point_t(trackEndPositionX_noSCE, trackEndPositionY_noSCE, trackEndPositionZ_noSCE)).Z();
-	}*/
-	//if (!fMCCSwitch && moduletoCTB(primaryHits_B[iHit_B].moduleX, primaryHits_B[iHit_B].moduleY)!=pixel1) continue;
         double X1 = primaryHits_B[iHit_B].hitPositionX;
 
         double Y1 = primaryHits_B[iHit_B].hitPositionY;
@@ -1142,25 +1098,7 @@ double xOffset=0;
 
 
 	double minTimeDifference=999999.99;
-       for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
-                {
-   		    if (opHitList[iFlash]->TotalPE()>10 ){
-                    double hitTime = opHitList[iFlash]->Time();
-                    double corrected_hitTime=hitTime;
-	
-                //if(!event.isRealData()) corrected_hitTime = fFlashScaleFactor*hitTime + fFlashTPCOffset;
-                //else corrected_hitTime= fFlashScaleFactor*(matched_flash_time-tpcTrigger) + fFlashTPCOffset - TPC_trigger_offset;
-                    double timeDifference = primaryHits_B[iHit_B].timeAvg - corrected_hitTime*1000;
-		    if (event.isRealData()) timeDifference = 20.f*primaryHits_B[iHit_B].timeAvg - corrected_hitTime*1000.f;
-		   
 
-                    if(fabs(timeDifference) < fabs(minTimeDifference))
-                        {
-                            minTimeDifference = timeDifference;
-                        }
-			}
-                }
-	//if (minTimeDifference>100000) continue;
         tracksPair tPair;
         tPair.tempId = tempId;
         tPair.CRTTrackId = iHit_B;
@@ -1265,12 +1203,11 @@ double xOffset=0;
         //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
 	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
        	flashTime=-1*opCRTTDiff-CRTT0;
-        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.9995) {
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && fabs(dotCos)>.9995) {
 	track++;
-	cout<<dotCos<<endl;
 	cout<<mccTruthCheck<<endl;
 	cout<<"CRT1-TruthT: "<<mccT0-CRTT0<<endl;
-	if (fabs(mccT0-CRTT0)>5000) {
+	if (fabs(mccT0-CRTT0)>0 && !event.isRealData()) {
         if (Z_CRT<100){
 	for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
 	cout<<"Candidate CRTT0:"<<primaryHits_F[iHit_F].timeAvg<<endl;
@@ -1288,9 +1225,30 @@ double xOffset=0;
 
 }
 	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(allUniqueTracksPair[u].truthId);
+
+    std::set<int> signal_trackids;
+    signal_trackids.emplace(allUniqueTracksPair[u].truthId);
+art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
+      double purity;
+opCRTDiff=-99999999;
+maxPurity=0;
+for(unsigned int i = 0; i < opHitList.size(); ++i) {
+       recob::OpFlash TheFlash = *opHitList[i];
+       art::Ptr<recob::OpFlash> FlashP = opHitList[i];
+       std::vector< art::Ptr<recob::OpHit> > hitFromFlash = pbt->OpFlashToOpHits_Ps(FlashP);
+       std::vector< art::Ptr<recob::OpHit> > matchedHits = pbt->OpFlashToOpHits_Ps(FlashP);
+ 
+       // Calculate the flash purity
+	
+        purity = pbt->OpHitCollectionPurity(signal_trackids, matchedHits);
+	if (purity>maxPurity) {opCRTTDiff=TheFlash.Time()*1000.f-allUniqueTracksPair[u].timeAvg;
+	flashTime=TheFlash.Time();
+	maxPurity=purity;}
+	if (purity>0) cout<<"Optical Purity and TDiff:"<<purity<<','<<TheFlash.Time()*1000.f-allUniqueTracksPair[u].timeAvg<<endl;
+}
 	auto const startPos=particle->Position(0);
 	auto const endPos=particle->EndPosition();
-
+	if (fabs(mccT0-CRTT0)>100000){
 	double mccHitY=(endPos.Y()-startPos.Y())/(endPos.Z()-startPos.Z())*(Z_CRT-startPos.Z())+startPos.Y();
 	double mccHitX=(endPos.X()-startPos.X())/(endPos.Z()-startPos.Z())*(Z_CRT-startPos.Z())+startPos.X();
 	cout<<"Possible Mismatch CRT Hit:"<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
@@ -1299,12 +1257,7 @@ double xOffset=0;
 	cout<<"X offset:"<<measuredXOffset<<endl;
 	cout<<"Reco CRT Hit: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<','<<CRTT0<<endl;
 	cout<<"Track Z:"<<trackZ1<<','<<trackZ2<<endl;
-	misMatchedTrack++;
-	truthPosX=mccHitX;
-	truthPosY=mccHitY;
-	truthPosZ=Z_CRT;
-        //fMCCTree->Fill();
-	}
+	}}
 		fCRTTree->Fill();
         }
 
@@ -1366,6 +1319,7 @@ void CRT::SingleCRTMatching::beginJob() {
 	fCRTTree->Branch("htruthPosY", &truthPosY, "truthPosY/D");
 	fCRTTree->Branch("htruthPosZ", &truthPosZ, "truthPosZ/D");
 	fCRTTree->Branch("hmccT0", &mccT0, "mccT0/D");
+	fCRTTree->Branch("hmaxPurity", &maxPurity, "maxPurity/D");
 
 	fMCCTree->Branch("hpartProcess", &partProcess, "partProcess/I");
 	fMCCTree->Branch("htruthPosX", &truthPosX, "truthPosX/D");
@@ -1373,6 +1327,7 @@ void CRT::SingleCRTMatching::beginJob() {
 	fMCCTree->Branch("htruthPosZ", &truthPosZ, "truthPosZ/D");
 	fMCCTree->Branch("hmccE", &mccE, "mccE/D");
 	fMCCTree->Branch("hmccT0", &mccT0, "mccT0/D");
+	
 }
 // Endjob actions
 void CRT::SingleCRTMatching::endJob() 

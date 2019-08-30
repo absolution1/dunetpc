@@ -1,3 +1,10 @@
+# protodune_dataprep_tools.fcl
+#
+# David Adams
+# August 2019
+#
+# Define protodune tools.
+
 #include "dataprep_tools.fcl"
 
 ################################################################################
