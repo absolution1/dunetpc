@@ -6,9 +6,14 @@
 
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "canvas/Persistency/Provenance/SubRunID.h"	
+#include "canvas/Persistency/Provenance/SubRunID.h"
+#include "art/Persistency/Common/PtrMaker.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 #include "canvas/Utilities/Exception.h"
+
+// DUNE includes
+#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
 #include "PDDPRawInputDriver.h"
 
@@ -103,10 +108,24 @@ namespace lris
     __eventCtr( 0 ),
     __eventNum( 0 )
   {
-    //helper.reconstitutes< raw::ExternalTrigger, art::InEvent>("daq");
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>("daq");
+    // output module label: default daq
+    // now product instance name to be compatible with data prep
+    //__output_label = pset.get<std::string>("OutputDataLabel", "daq");
+    //helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
+    //helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
+    //helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
 
+    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "tpcrawdecoder");
+    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "timingrawdecoder");
+    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "tpcrawdecoder");
+    __output_inst   = pset.get<std::string>("OutputInstance", "daq");
+    
 
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
+    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__outlbl_rdtime,
+								      __output_inst);
+    
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
 
@@ -225,21 +244,48 @@ namespace lris
 					      event.evnum, tstamp );
     
 
-    //std::unique_ptr<raw::ExternalTrigger> trig_data (new raw::ExternalTrigger(event.trigtype, tval));
     std::unique_ptr< std::vector<raw::RawDigit> > cro_data ( new std::vector<raw::RawDigit>  );
-
+    std::unique_ptr< std::vector<raw::RDTimeStamp> > cro_rdtm ( new std::vector<raw::RDTimeStamp>  );
+    std::unique_ptr< std::vector<raw::RDStatus> > cro_stat ( new std::vector<raw::RDStatus>  );
+    
+    // move data
     cro_data->reserve( event.crodata.size() );
     for( size_t i=0;i<event.crodata.size();i++ )
       {
 	// This ch Id is based on the order the channel data are stored in file (always the same)
 	raw::ChannelID_t ch = i; 
+	// raw digit
 	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
 					   std::move( event.crodata[i] ), 
 					   event.compression) );
-      }
 
-    //art::put_product_in_principal(std::move(trig_data), *outE, "daq");
-    art::put_product_in_principal(std::move(cro_data), *outE, "daq");
+	// RDTimeStamp
+	//cro_rdtm->push_back( raw::RDTimeStamp( tval, ch ) );
+
+	// Assns how to make ?
+	//auto const rwdigiptr = art::PtrMaker<raw::RawDigit>;
+	//auto const rdtimeptr = art::PtrMaker<raw::RDTimeStamp>;
+	//cro_asso->addSingle( rwdigiptr, rdtimeptr );
+      }
+    unsigned int statword = 0;
+    bool discarded = false;
+    bool kept      = false;
+    if( !event.good ) // data missing from some units
+      {
+	discarded = false;
+	kept      = true;
+      }
+    if( discarded ) statword |= 1;
+    if( kept )      statword |= 2;
+    cro_stat->emplace_back( discarded, kept, statword );
+
+    // assign some trigger flag ... see DataPrepModule
+    uint16_t rdtsflags = 0xd; // CRT for now
+    cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
+
+    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __output_inst);
+    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __output_inst);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __output_inst);
     
     return true;
   }

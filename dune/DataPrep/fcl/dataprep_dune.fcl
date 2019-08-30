@@ -2,6 +2,8 @@
 #
 # David Adams
 # August 2016
+#
+# This holds all the prolog for dataprep.
 
 BEGIN_PROLOG
 
@@ -331,10 +333,30 @@ changroup_rop: {
 # DataPrepModule is the producer that calls RawDigitPrepService
 
 # Process any data.
-producer_adcprep: {
+producer_adcprep_notool: {
+  module_type:   "DataPrepModule"
+  LogLevel:                     1
+  DecoderTool:                 ""       # Non-blank reads digits with named tool.
+  DigitLabel:               "daq"       # Label for input digits if decoder tool is not used
+  TimeStampName:               ""       # Non-blank writes RDTimeStamps if decoder tool is used
+  OutputDigitName:             ""       # Non-blank writes digits if decoder tool is used
+  WireName:                    ""
+  DoAssns:                   true
+  DoGroups:                  true
+  ChannelRanges:               []
+  BeamEventLabel:              ""
+  IntermediateStates:          []
+  OnlineChannelMapTool:  pd_onlineChannelMapByFemb
+}
+
+# Process any data.
+producer_adcprep_tool: {
   module_type: "DataPrepModule"
   LogLevel:                   1
-  DigitLabel:             "daq"
+  DecoderTool:   "pdsp_decoder"      # Non-blank reads digits with named tool.
+  DigitLabel:                ""       # Label for input digits if decoder tool is not used
+  TimeStampName:     "dataprep"       # Non-blank writes RDTimeStamps if decoder tool is used
+  OutputDigitName:           ""       # Non-blank writes digits if decoder tool is used
   WireName:                  ""
   DoAssns:                 true
   DoGroups:                true
@@ -343,6 +365,8 @@ producer_adcprep: {
   IntermediateStates:        []
   OnlineChannelMapTool:  pd_onlineChannelMapByFemb
 }
+
+producer_adcprep: @local::producer_adcprep_notool
 
 #***********************************************************************
 

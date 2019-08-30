@@ -18,7 +18,9 @@ protoana::ProtoDUNEDataUtils::~ProtoDUNEDataUtils(){
 }
 
 void protoana::ProtoDUNEDataUtils::reconfigure(fhicl::ParameterSet const& p){
-  fTimingTag = p.get<art::InputTag>("TimingTag");
+  fTimingTag            = p.get<art::InputTag>("TimingTag");
+  fRawDigitTag          = p.get<art::InputTag>("RawDigitTag");
+  fRawDigitTimeStampTag = p.get<art::InputTag>("RawDigitTimeStampTag");
 }
 
 // Access the trigger information to see if this is a beam trigger
@@ -62,7 +64,7 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
   art::Handle< std::vector<raw::RawDigit> > RawdigitListHandle;
   std::vector<art::Ptr<raw::RawDigit> > digitlist;
 
-  if (evt.getByLabel("tpcrawdecoder", "daq", RawdigitListHandle)){
+  if (evt.getByLabel(fRawDigitTag, RawdigitListHandle)){
   	
     art::fill_ptr_vector(digitlist, RawdigitListHandle);  
 
@@ -84,7 +86,7 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
 }
 
 else{ // if raw digits have been dropped use RDTimeStamps instead
-	evt.getByLabel("tpcrawdecoder", "daq", RawdigitTSListHandle);
+	evt.getByLabel(fRawDigitTimeStampTag, RawdigitTSListHandle);
 	
 	art::fill_ptr_vector(digitTSlist, RawdigitTSListHandle);  
 	

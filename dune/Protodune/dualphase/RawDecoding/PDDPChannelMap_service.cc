@@ -159,7 +159,7 @@ void PDDPChannelMap::pddp2crpMap()
   // kel connector orientation in a given view, chans 0 -> 31
   std::vector<unsigned> kel_nor = { 7,  6,  5,  4,  3,  2,  1,  0, 15, 14, 13, 12, 11, 10,  9,  8, 23, 22, 21, 20, 19, 18, 17, 16, 31, 30, 29, 28, 27, 26, 25, 24 };
   // kel connector orientation in a given view, chans 31 -> 0
-  std::vector<unsigned> kel_inv = {24, 25, 26, 27, 28, 29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23,  8,  9, 10, 11, 12, 13, 14, 15,  0,  1,  2,  3,  4,  5,  6,  7 };
+  //std::vector<unsigned> kel_inv = {24, 25, 26, 27, 28, 29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23,  8,  9, 10, 11, 12, 13, 14, 15,  0,  1,  2,  3,  4,  5,  6,  7 };
   
   //
   unsigned seqn = 0;
@@ -203,7 +203,7 @@ void PDDPChannelMap::pddp2crpMap()
 	  if( view == 0 )
 	    {
 	      // order 31 -> 0 for these KEL connectors
-	      kel = kel_inv; //inverted order
+	      //kel = kel_inv; //inverted order
 	      topAmcFirst = false;
 	    }
 

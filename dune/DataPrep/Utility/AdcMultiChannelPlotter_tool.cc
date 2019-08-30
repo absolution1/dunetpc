@@ -97,7 +97,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
       }
     }
     // Build pad descriptions from ranges.
-    if ( haveChannelGroups() && ptm != nullptr ) {
+    if ( haveChannelRanges() && ptm != nullptr ) {
       const IndexRangeTool* pcrt = ptm->getShared<IndexRangeTool>("channelRanges");
       if ( pcrt == nullptr ) {
         cout << myname << "ERROR: IndexRangeTool not found: channelRanges" << endl;
@@ -264,7 +264,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
   if ( getLogLevel() >= 3 ) cout << myname << "Creating summmary plots." << endl;
   Index npadx = 0;
   Index npady = 0;
-  Index npadOnPage = 0;
+  Index npadOnPage = 1;
   if ( getPlotSummaryName().size() && m_PlotSplitX > 0 ) {
     npadx = m_PlotSplitX;
     npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
@@ -303,6 +303,8 @@ void AdcMultiChannelPlotter::viewSummary() const {
     if ( getLogLevel() >= 4 ) cout << myname << "  Channel group " << cgn
                                    << " channel range count is " << pad.crnames.size() << endl;
     Index ncrn = pad.crnames.size();
+    // # CRNs included in plot.
+    Index ncrnPlotted = 0;
     for ( Index icrn=0; icrn<ncrn; ++icrn ) {
       Name crn = pad.crnames[icrn];
       if ( getLogLevel() >= 4 ) {
@@ -321,9 +323,12 @@ void AdcMultiChannelPlotter::viewSummary() const {
         plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdPrint, dmPrint, getPlotSummaryName());
         StringManipulator sman(plotName);
         sman.replace("%CRNAME%", crn);
+        sman.replace("%CGNAME%", cgn);
       }
       // View this channel range.
-      viewMapSummary(crn, *pmantop->man(ipadOnPage), ncrn, icrn);
+      int rstat = viewMapSummary(cgn, crn, *pmantop->man(ipadOnPage), ncrnPlotted);
+      if ( rstat == 0 ) ++ncrnPlotted;
+      if ( rstat >= 1 ) cout << myname << "WARNING: viewMapSummary returned error code " << rstat << endl;
       if ( getLogLevel() >= 5 ) cout << myname << "    Pad " << ipadOnPage << " extra object count: "
                                      << pmantop->man(ipadOnPage)->objects().size() << endl;
     }
