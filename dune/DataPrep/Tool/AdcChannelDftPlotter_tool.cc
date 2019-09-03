@@ -107,7 +107,7 @@ AdcChannelDftPlotter::~AdcChannelDftPlotter() {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
+viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannels: ";
   DataMap chret = viewLocal(crn, acds);
   bool doState = true;
@@ -136,6 +136,9 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
       }
     }
   }
+  chret.setString("dftCRLabel", crn);
+  chret.setInt("dftCRCount", ncr);
+  chret.setInt("dftCRIndex", icr);
   fillPad(chret, man);
   return 0;
 }
@@ -143,38 +146,40 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrnPlotted) const {
+viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
-  cout << myname << "Processing " << cgn << "/" << crn << " (range " << ncrnPlotted << ")" << endl;
-  Index histCount = getState().histCount();
+  cout << myname << "Processing " << cgn << "/" << crn << " (" << icr << "/" << ncr << ")" << endl;
+  if ( icr >= ncr ) {
+    cout << myname << "ERROR: Too many plots: " << icr << " >= " << ncr << endl;
+    return 11;
+  }
   Index count = getState().count(crn);
   Index nchanTot = getState().nchan(crn);
   float nchanEvt = count > 0 ? double(nchanTot)/count : 0.0;
-  //if ( count == 0 ) return 1;
+  TH1* ph = nullptr;
   TH1* phin = getState().hist(crn);
-  if ( phin == nullptr ) return 2;
-  TH1* ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
-  if ( ph == nullptr ) return 3;
-  if ( ncrnPlotted >= histCount ) {
-    cout << myname << "ERROR: Too many plots: " << ncrnPlotted << " >= " << histCount << endl;
-    return 11;
+  if ( phin != nullptr ) {
+    if ( count == 0 ) return 12;
+    ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
+    if ( ph == nullptr ) return 13;
+    ph->SetDirectory(nullptr);
+    Name htitl = m_HistSummaryTitle;
+    StringManipulator smanTitl(htitl);
+    smanTitl.replace("%CGNAME%", cgn);
+    smanTitl.replace("%CRNAME%", crn);
+    smanTitl.replace("%RUN%", getBaseState().run());
+    ph->SetTitle(htitl.c_str());
+    double fac = 1.0/count;
+    ph->Scale(fac);
   }
-  ph->SetDirectory(nullptr);
-  Name htitl = m_HistSummaryTitle;
-  StringManipulator smanTitl(htitl);
-  smanTitl.replace("%CRNAME%", crn);
-  smanTitl.replace("%RUN%", getBaseState().run());
-  ph->SetTitle(htitl.c_str());
-  double fac = 1.0/count;
-  ph->Scale(fac);
   DataMap dm;
   dm.setHist("dftHist", ph, true);
   dm.setInt("dftEventCount", count);
   dm.setFloat("dftChanPerEventCount", nchanEvt);
   dm.setString("dftDopt", "hist");
   dm.setString("dftCRLabel", crn);
-  dm.setInt("dftCRCount", histCount);
-  dm.setInt("dftCRIndex", ncrnPlotted);
+  dm.setInt("dftCRCount", ncr);
+  dm.setInt("dftCRIndex", icr);
   fillPad(dm, man);
   //man.add(ph, "hist");
   //delete ph;
@@ -249,6 +254,11 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   smanName.replace("%CRNAME%", crn);
   StringManipulator smanTitl(htitl);
   smanTitl.replace("%CRNAME%", crn);
+  //xx
+  //sman.replace("%CRNAME%", ran.name);
+  //sman.replace("%CRLABEL%", ran.label());
+  //sman.replace("%CRLABEL1%", ran.label(1));
+  //sman.replace("%CRLABEL2%", ran.label(2));
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
   double xmin = 0.0;
@@ -385,51 +395,87 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
       if ( icr > 0 ) dopt += " same";
       int icol = LineColors::color(icr, ncr);
       ph->SetLineColor(icol);
+      cout << myname << "DEBUG: Color[" << icr << "] = " << icol << ", dopt = " << dopt << endl;
     }
     man.add(ph, dopt);
   } else {
     cout << myname << "ERROR: Neither hist or graph is defined." << endl;
     return 1;
   }
+  cout << myname << "DEBUG: CR " << icr << "/" << ncr << endl;
+  // Build the descriptor strings.
+  string snevt;
+  if ( dm.haveInt("dftEventCount") ) {
+    ostringstream ssout;
+    ssout << "N_{ev} = " << dm.getInt("dftEventCount");
+    snevt = ssout.str();
+  }
+  string sncha;
+  {
+    ostringstream ssout;
+    ssout.precision(1);
+    if ( dm.haveFloat("dftChanPerEventCount") ) {
+      ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+    } else {
+      ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+    }
+    sncha = ssout.str();
+  }
+  string spow;
+  if ( doPwt ) {
+    ostringstream ssout;
+    double sum = ph->Integral(0, ph->GetNbinsX()+1);
+    ssout.precision(2);
+    ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
+    spow = ssout.str();
+  }
   // If this is the last object added to the plot.
   if ( lastCR ) {
+    cout << myname << "DEBUG: Closing plot." << endl;
     man.addAxis();
     if ( xmax > xmin ) man.setRangeX(xmin, xmax);
     if ( ymax > ymin ) man.setRangeY(ymin, ymax);
     if ( doPwr || doPwt ) man.showUnderflow();
     if ( logy ) man.setLogY();
     if ( logy ) man.setGridY();
-    if ( doPwt && ! manyCR ) {
-      ostringstream ssout;
-      ssout.precision(2);
+    double textSize = 0.04;
+    int textFont = 42;
+    if ( ! manyCR ) {
       double xlab = 0.70;
-      double ylab = 0.80;
-      double dylab = 0.05;
-      double sum = ph->Integral(0, ph->GetNbinsX()+1);
-      ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
-      TLatex* ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-      ptxt->SetNDC();
-      ptxt->SetTextFont(42);
-      man.add(ptxt);
-      ylab -= dylab;
-      ssout.str("");
-      if ( dm.haveFloat("dftChanPerEventCount") ) {
-        ssout.precision(1);
-        ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
-      } else {
-        ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
-      }
-      ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-      ptxt->SetNDC();
-      ptxt->SetTextFont(42);
-      man.add(ptxt);
-      if ( dm.haveInt("dftEventCount") ) {
-        ylab -= dylab;
-        ssout.str("");
-        ssout << "N_{ev} = " << dm.getInt("dftEventCount");
-        ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+      double ylab = 0.85;
+      double dylab = 1.2*textSize;
+      if ( spow.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, spow.c_str());
         ptxt->SetNDC();
-        ptxt->SetTextFont(42);
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+      if ( sncha.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, sncha.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+      if ( snevt.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, snevt.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+    } else {
+      double xlab = 0.35;
+      double ylab = 0.85;
+      if ( snevt.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, snevt.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
         man.add(ptxt);
       }
     }
@@ -439,20 +485,22 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     TObject* pobj = man.object();
     Name lopt = pg == nullptr ? "l" : "p";
     if ( icr == 0 ) {
-      double xlmin = 0.75;
-      double xlmax = 0.90;
+      double xlmin = 0.55;
+      double xlmax = 0.93;
       double ylmax = 0.90;
       double ylmin = ylmax - 0.05*(ncr+0.5);
       if ( ylmin < 0.40 ) ylmin = 0.40;
       man.addLegend(xlmin, ylmin, xlmax, ylmax);
     } else {
-      pobj = man.object(icr - 1);
+      pobj = man.object(icr);
     }
     TLegend* pleg = man.getLegend();
     if ( pleg == nullptr ) {
       cout << myname << "ERROR: Legend not found." << endl;
     } else {
       Name slab = dm.getString("dftCRLabel");
+      if ( spow.size() ) slab += " " + spow;
+      if ( sncha.size() ) slab += " " + sncha;
       pleg->AddEntry(pobj, slab.c_str(), lopt.c_str());
     }
   }

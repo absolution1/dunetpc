@@ -66,8 +66,8 @@ public:
 
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
-  int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const override;
-  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrPlotted) const override;
+  int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const override;
+  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
   bool updateWithView() const override { return true; }
 
 private:
