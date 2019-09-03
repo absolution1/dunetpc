@@ -10,6 +10,8 @@
 #include "TFile.h"
 #include "TH1F.h"
 
+#include <string>
+
 protoana::ProtoDUNETrackUtils::ProtoDUNETrackUtils(){
 
 }
@@ -141,7 +143,17 @@ std::vector< float >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  cons
   double calib_factor = ps.get< double >( "calib_factor" );
   std::string X_correction_name = ps.get< std::string >( "X_correction" );
   TFile X_correction_file = TFile( X_correction_name.c_str(), "OPEN" );
-  TH1F * X_correction_hist = (TH1F*)X_correction_file.Get( "dqdx_X_correction_hist" );
+  TH1F * X_correction_hist = NULL;
+
+  bool UseNewVersion = ps.get< bool >( "UseNewVersion", false );
+  if( UseNewVersion ){
+    std::string hist_name = "dqdx_X_correction_hist_" + std::to_string(planeID);
+    X_correction_hist = (TH1F*)X_correction_file.Get( hist_name.c_str() );
+    
+  }
+  else{
+    X_correction_hist = (TH1F*)X_correction_file.Get( "dqdx_X_correction_hist" );
+  }
 
 
   std::vector< float > calibrated_dEdx;

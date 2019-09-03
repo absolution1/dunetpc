@@ -59,6 +59,7 @@ pionanalysis:
     norm_factor:  0.983
     calib_factor: 6.155e-3
     X_correction: "/dune/app/users/apaudel/v071100/run5387_new/run_5387_Xcalibration.root"
+    #UseNewVersion: false
   }
 
   BrokenTrackParameters: {

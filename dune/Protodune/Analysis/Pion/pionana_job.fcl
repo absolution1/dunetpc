@@ -62,3 +62,5 @@ outputs: {}
 
 physics.analyzers.pionana.SelectEvents: [fpath]
 physics.filters.f1.BeamlineUtils.UseCERNCalibSelection: false
+#physics.analyzers.pionana.CalorimetryParameters.X_correction:  "/dune/app/users/apaudel/v082702/mcc12_v9_validation/r5809_Xcalosce.root"
+#physics.analyzers.pionana.CalorimetryParameters.UseNewVersion: true
