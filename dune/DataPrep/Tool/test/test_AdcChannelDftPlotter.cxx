@@ -48,6 +48,8 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "  LogLevel: 2" << endl;
     fout << "  ChannelStatusFlag: 0" << endl;
     fout << "  SampleFreq: 2000" << endl;
+    fout << "  XMin: 0.0" << endl;
+    fout << "  XMax: 0.0" << endl;
     fout << "  YMinLog: 0.0" << endl;
     fout << "  HistName: \"\"" << endl;
     fout << "  HistTitle: \"\"" << endl;
