@@ -35,6 +35,13 @@ ProtoDuneChannelGroups::ProtoDuneChannelGroups(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: No Index range tool name." << endl;
   }
   Index napa = 6;
+  m_labels["tpss"].push_back("TPC sets");
+  m_labels["apas"].push_back("APAs");
+  NameVector soris = {"z", "c", "x", "u", "v", "i"};
+  for ( Name sori : soris ) {
+    m_labels["tpp" + sori + "s"].push_back(sori + " planes");
+    m_labels["apa" + sori + "s"].push_back(sori + " planes");
+  }
   for ( Index itps=0; itps<napa; ++itps ) {
     ostringstream sstps;
     sstps << itps;
@@ -45,7 +52,7 @@ ProtoDuneChannelGroups::ProtoDuneChannelGroups(fhicl::ParameterSet const& ps)
     Name sapa = ssapa.str();
     m_groups["tpss"].push_back("tps" + stps);
     m_groups["apas"].push_back("apa" + sapa);
-    for ( Name sori : {"z", "c", "x", "u", "v"} ) {
+    for ( Name sori : soris ) {
       m_groups["tpp" + sori + "s"].push_back("tpp" + stps + sori);
       m_groups["apa" + sori + "s"].push_back("apa" + sapa + sori);
     }
@@ -72,7 +79,10 @@ IndexRangeGroup ProtoDuneChannelGroups::get(Name nam) const {
   for ( Name rnam : igrp->second ) {
     rans.push_back(m_pIndexRangeTool->get(rnam));
   }
-  return IndexRangeGroup(nam, rans);
+  NameVector labs;
+  GroupMap::const_iterator ilabs = m_labels.find(nam);
+  if ( ilabs == m_labels.end() ) return IndexRangeGroup(nam, rans);
+  return IndexRangeGroup(nam, ilabs->second, rans);
 }
 
 //**********************************************************************

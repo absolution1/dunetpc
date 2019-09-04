@@ -80,6 +80,11 @@ std::ostream& operator<<(std::ostream& lhs, const IndexRangeGroup& ir) {
       lhs << ran.name;
     }
     lhs << "]";
+    for ( std::string lab : ir.labels ) {
+      if ( first ) first = false;
+      else lhs << ",";
+      lhs << " " << lab;
+    }
   }
   return lhs;
 }
