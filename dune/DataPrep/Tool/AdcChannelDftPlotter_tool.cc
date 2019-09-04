@@ -209,6 +209,17 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   DataMap ret;
   if ( acds.size() == 0 ) return ret;
   const AdcChannelData* pacd = acds.front();
+  Index evt = pacd->event;
+  // Check if there have been any other views of this channel range for this event.
+  // For now, we implicity expect configurations that do not repeat ranges.
+  // Later we might cache results from an earlier attempt.
+  // For now, user can expect some plots to overcount events and maybe worse.
+  // Avoid this problem by ensuring configuration does not include any channel
+  // range more than once. This includes channel ranges in channel groups.
+  if ( getState().setEventChannelRange(evt, crn) ) {
+    cout << myname << "WARNING: Duplicate view of channel range " << crn
+         << " in event " << evt << endl;
+  }
   if ( pacd == nullptr ) return ret;
   const AdcChannelData& acd = *pacd;
   bool doMag = m_Variable == "magnitude";
@@ -347,6 +358,7 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
 
 int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   const string myname = "AdcChannelDftPlotter::fillPad: ";
+  const bool dbg = false;
   TGraph* pg = dm.getGraph("dftGraph");
   TH1* ph = dm.getHist("dftHist");
   float yValMax = dm.getFloat("dftYValMax");
@@ -395,14 +407,14 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
       if ( icr > 0 ) dopt += " same";
       int icol = LineColors::color(icr, ncr);
       ph->SetLineColor(icol);
-      cout << myname << "DEBUG: Color[" << icr << "] = " << icol << ", dopt = " << dopt << endl;
+      if ( dbg ) cout << myname << "DEBUG: Color[" << icr << "] = " << icol << ", dopt = " << dopt << endl;
     }
     man.add(ph, dopt);
   } else {
     cout << myname << "ERROR: Neither hist or graph is defined." << endl;
     return 1;
   }
-  cout << myname << "DEBUG: CR " << icr << "/" << ncr << endl;
+  if ( dbg ) cout << myname << "DEBUG: CR " << icr << "/" << ncr << endl;
   // Build the descriptor strings.
   string snevt;
   if ( dm.haveInt("dftEventCount") ) {
@@ -431,7 +443,7 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   }
   // If this is the last object added to the plot.
   if ( lastCR ) {
-    cout << myname << "DEBUG: Closing plot." << endl;
+    if ( dbg ) cout << myname << "DEBUG: Closing plot." << endl;
     man.addAxis();
     if ( xmax > xmin ) man.setRangeX(xmin, xmax);
     if ( ymax > ymin ) man.setRangeY(ymin, ymax);

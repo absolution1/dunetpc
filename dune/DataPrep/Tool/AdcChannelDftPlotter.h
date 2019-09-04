@@ -128,6 +128,22 @@ private:
     IndexMap counts;
     IndexMap nchans;
     HistMap hists;
+    // Curent event and CRNs for the event.
+    Index event = 0;
+    NameVector eventChannelRanges;
+    // Set the event add a channel range.
+    // If the event changes, the vector of CRNs is first cleared.
+    // Returns nonzero if the channel range is already included.
+    int setEventChannelRange(Index a_event, Name crn) {
+      if ( event != a_event ) {
+        event = a_event;
+        eventChannelRanges.clear();
+      }
+      if ( find(eventChannelRanges.begin(), eventChannelRanges.end(), crn)
+           != eventChannelRanges.end() ) return 1;
+      eventChannelRanges.push_back(crn);
+      return 0;
+    }
   };
 
   // State.
