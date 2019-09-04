@@ -33,7 +33,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_Variable(ps.get<Name>("Variable")),
   m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
-  m_YMax(0.0),
+  m_XMin(0.0),
+  m_XMax(0.0),
   m_YMinLog(ps.get<float>("YMinLog")),
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
@@ -47,6 +48,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   bool doPwt = m_Variable == "power/tick";
   // Check variable and get optional fields.
   if ( doPwr || doPwt ) {
+    m_XMin = ps.get<float>("XMin");
+    m_XMax = ps.get<float>("XMax");
     m_YMax = ps.get<float>("YMax");
     m_NBinX = ps.get<Index>("NBinX");
   } else if ( doMag ) {
@@ -66,6 +69,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   // Derived config.
   m_skipBad = m_ChannelStatusFlag==1 || m_ChannelStatusFlag==3;
   m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
+  m_shiftFreq0 = (doPwr || doPwt) && (m_XMin >= m_XMax);
   // Display the configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -78,8 +82,12 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
     } else if ( m_skipNoisy ) cout << " (skip noisy)";
     cout << endl;
     cout << myname << "         SampleFreq: " << m_SampleFreq << endl;
-    if ( doMag || doPwr || doPwt ) cout << myname << "               YMax: " << m_YMax << endl;
-    if ( doPwr || doPwt )          cout << myname << "              NBinX: " << m_NBinX << endl;
+    if ( doMag || doPwr || doPwt ) cout << myname << "              NBinX: " << m_NBinX << endl;
+    if ( doPwr || doPwt ) {
+      cout << myname << "               XMin: " << m_XMin << endl;
+      cout << myname << "               XMax: " << m_XMax << endl;
+      cout << myname << "               YMax: " << m_YMax << endl;
+    }
     cout << myname << "            YMinLog: " << m_YMinLog << endl;
     cout << myname << "           HistName: " << m_HistName << endl;
     cout << myname << "          HistTitle: " << m_HistTitle << endl;
@@ -272,8 +280,6 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   //sman.replace("%CRLABEL2%", ran.label(2));
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
-  double xmin = 0.0;
-  double xmax = (nmag-1)*xFac;
   float yValMax = 0.0;
   string dopt;
   string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
@@ -317,12 +323,19 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
       cout << myname << "Invalid bin count: " << m_NBinX << endl;
       return ret.setStatus(2);
     }
-    // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
-    double delx = 1.e-5*xmax;
-    double x1 = xmin + delx;
-    double x2 = xmax + delx;
-    xmax = xmin;
-    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, x1, x2);
+    double xmin = m_XMin;
+    double xmax = m_XMax;
+    if ( xmin >= xmax ) {
+      xmin = 0.0;
+      xmax = (nmag-1)*xFac;
+      // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
+      if ( m_shiftFreq0 ) {
+        double delx = 1.e-5*xmax;
+        xmin += delx;
+        xmax += delx;
+      }
+    }
+    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, xmin, xmax);
     ph->SetDirectory(nullptr);
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
@@ -363,7 +376,7 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   TH1* ph = dm.getHist("dftHist");
   float yValMax = dm.getFloat("dftYValMax");
   bool doPha = m_Variable == "phase";
-  bool doPwr = m_Variable == "power";
+  //bool doPwr = m_Variable == "power";
   bool doPwt = m_Variable == "power/tick";
   string dopt = dm.getString("dftDopt");
   bool logy = false;
@@ -447,7 +460,7 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     man.addAxis();
     if ( xmax > xmin ) man.setRangeX(xmin, xmax);
     if ( ymax > ymin ) man.setRangeY(ymin, ymax);
-    if ( doPwr || doPwt ) man.showUnderflow();
+    if ( m_shiftFreq0 ) man.showUnderflow();
     if ( logy ) man.setLogY();
     if ( logy ) man.setGridY();
     double textSize = 0.04;

@@ -29,6 +29,8 @@
 //                         3 - skip bad and noisy channels
 //   SampleFreq - Sampling frequency in kHz used to define the x-axis.
 //                If zero, frequency index is used instead.
+//   XMin - Specifies the min value for X-axis  in histogram and plot
+//   XMax - Specifies the max value for X-axis  in histogram and plot
 //   YMax - Specifies the maximum value for the Y-axis in the plot:
 //              0: Use automatic value
 //            > 0: Use YMax
@@ -39,6 +41,8 @@
 //   HistTitle - Histogram/graph title
 //   HistSummaryTitle - Histogram/graph title
 //   Plus the parameters specified in AdcMultiChannelPlotter with XXX = Plot.
+//
+//   The X-range is calculated automatically if Xmin >= Xmax.
 
 #ifndef AdcChannelDftPlotter_H
 #define AdcChannelDftPlotter_H
@@ -77,6 +81,8 @@ private:
   Name   m_Variable;
   Index  m_ChannelStatusFlag;
   float  m_SampleFreq;
+  float  m_XMin;
+  float  m_XMax;
   float  m_YMax;
   float  m_YMinLog;
   Index  m_NBinX;
@@ -87,6 +93,7 @@ private:
   // Derived from configuration.
   bool m_skipBad;
   bool m_skipNoisy;
+  bool m_shiftFreq0;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;

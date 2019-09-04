@@ -17,7 +17,7 @@
 //
 // Each plot file shows up to NX*NY channels in a NY x NX array.
 // The overall plot size is YSize pixels by XSize pixels or Root
-// defualt (500 x 700?) if either is zero.
+// default (500 x 700?) if either is zero.
 //
 // Configuration (XXX is prefix supplied in ctor):
 //   LogLevel  - Logging opt (0=none, 1=init only, 2=every call, ...)
