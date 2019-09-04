@@ -77,7 +77,6 @@ public:
 private:
 
   // Configuration data.
-  int    m_LogLevel;
   Name   m_Variable;
   Index  m_ChannelStatusFlag;
   float  m_SampleFreq;

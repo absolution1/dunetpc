@@ -17,7 +17,8 @@ using std::ostringstream;
 //**********************************************************************
 
 AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Name prefix)
-: m_PlotChannelRanges(ps.get<NameVector>(prefix + "ChannelRanges")),
+: m_LogLevel(ps.get<Index>("LogLevel")),
+  m_PlotChannelRanges(ps.get<NameVector>(prefix + "ChannelRanges")),
   m_PlotChannelGroups(ps.get<NameVector>(prefix + "ChannelGroups")),
   m_PlotOverlayGroups(ps.get<Index>(prefix + "OverlayGroups")),
   m_PlotName(ps.get<Name>(prefix + "Name")),
@@ -28,6 +29,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
   m_PlotSplitY(ps.get<Index>(prefix + "SplitY")) {
   const Name myname = "AdcMultiChannelPlotter::ctor: ";
   if ( m_LogLevel >= 1 ) {
+    cout << myname << "           LogLevel: " << m_LogLevel << endl;
     bool first = true;
     cout << myname << "   " << prefix + "ChannelRanges: [";
     for ( Name crn : m_PlotChannelRanges ) {

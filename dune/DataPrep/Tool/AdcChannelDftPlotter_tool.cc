@@ -29,7 +29,6 @@ using std::fixed;
 
 AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : AdcMultiChannelPlotter(ps, "Plot"),
-  m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
   m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
@@ -71,9 +70,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
   m_shiftFreq0 = (doPwr || doPwt) && (m_XMin >= m_XMax);
   // Display the configuration.
-  if ( m_LogLevel ) {
+  if ( getLogLevel() >= 1 ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "           LogLevel: " << m_LogLevel << endl;
     cout << myname << "           Variable: " << m_Variable << endl;
     cout << myname << "  ChannelStatusFlag: " << m_ChannelStatusFlag;
     if ( m_skipBad ) {
@@ -99,7 +97,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 
 AdcChannelDftPlotter::~AdcChannelDftPlotter() {
   const string myname = "AdcChannelDftPlotter::dtor: ";
-  if ( m_LogLevel >= 2 ) {
+  if ( getLogLevel() >= 2 ) {
     cout << myname << "Closing." << endl;
     cout << myname << "     CR name    count nch/evt" << endl;
     for ( Name crn : getChannelRangeNames() ) {
@@ -156,7 +154,9 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
 int AdcChannelDftPlotter::
 viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
-  cout << myname << "Processing " << cgn << "/" << crn << " (" << icr << "/" << ncr << ")" << endl;
+  if ( getLogLevel() >= 2 ) {
+    cout << myname << "Processing " << cgn << "/" << crn << " (" << icr << "/" << ncr << ")" << endl;
+  }
   if ( icr >= ncr ) {
     cout << myname << "ERROR: Too many plots: " << icr << " >= " << ncr << endl;
     return 11;
@@ -204,7 +204,7 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
     fillPad(chret, man);
-    if ( m_LogLevel >= 3 ) cout << myname << "Printing " << pname << endl;
+    if ( getLogLevel() >= 3 ) cout << myname << "Printing " << pname << endl;
     man.print(pname);
   }
   return chret;
@@ -228,7 +228,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     cout << myname << "WARNING: Duplicate view of channel range " << crn
          << " in event " << evt << endl;
   }
-  if ( pacd == nullptr ) return ret;
+  if ( pacd == nullptr ) {
+    cout << myname << "ERROR: First channel has no data." << endl;
+    return ret;
+  }
   const AdcChannelData& acd = *pacd;
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -236,18 +239,18 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   bool doPwt = m_Variable == "power/tick";
   bool haveFreq = m_SampleFreq > 0.0;
   if ( ! doMag && !doPha && !doPwr && !doPwt ) {
-    cout << myname << "Invalid plot variable: " << m_Variable << endl;
+    cout << myname << "ERROR: Invalid plot variable: " << m_Variable << endl;
     return ret.setStatus(1);
   }
   Index nmag = acd.dftmags.size();
   Index npha = acd.dftphases.size();
   Index nsam = nmag + npha - 1;
   if ( nmag == 0 ) {
-    cout << myname << "DFT is not present." << endl;
+    cout << myname << "ERROR: DFT is not present." << endl;
     return ret.setStatus(2);
   }
   if ( npha > nmag || nmag - npha > 1 ) {
-    cout << myname << "DFT is not valid." << endl;
+    cout << myname << "ERROR: DFT is not valid." << endl;
     return ret.setStatus(3);
   }
   // Build list of retained channels.
@@ -261,12 +264,22 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     dftChannels.push_back(pacd->channel);
     keepAcds.push_back(pacd);
   }
-  // Check consisistency of input data.
+  // Check consistency of input data.
+  Index nDataMissing = 0;
+  Index nBadMagCount = 0;
+  Index nBadPhaCount = 0;
   for ( const AdcChannelData* pacd : acds ) {
-    if ( pacd == nullptr ) return ret;
-    if ( pacd->dftmags.size() != nmag ) return ret;
-    if ( pacd->dftphases.size() != npha ) return ret;
+    if ( pacd == nullptr ) {
+      ++nDataMissing;
+    } else { 
+      if ( pacd->dftmags.size() != nmag ) ++nBadMagCount;
+      if ( pacd->dftphases.size() != npha ) ++nBadPhaCount;
+    }
   }
+  if ( nDataMissing ) cout << myname << "ERROR: Missing data channel count is " << nDataMissing << endl;
+  if ( nBadMagCount ) cout << myname << "ERROR: Inconsistent mag size channel count is " << nBadMagCount << endl;
+  if ( nBadPhaCount ) cout << myname << "ERROR: Inconsistent pha size channel count is " << nBadPhaCount << endl;
+  if ( nDataMissing || nBadMagCount || nBadPhaCount ) return ret.setStatus(4);
   string hname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistName);
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
   StringManipulator smanName(hname);
@@ -284,7 +297,11 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   string dopt;
   string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
   if ( doMag || doPha ) {  
-    if ( acds.size() != 1 ) return ret;
+    if ( acds.size() != 1 ) {
+      cout << myname << "ERROR: " << (doMag ? "Magnitude" : "Phase")
+           << " may only be filled for a single channel." << endl;
+        return ret.setStatus(5);
+    }
     string ytitl = "Phase";
     if ( doMag ) {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, "Amplitude% [SUNIT]%");
@@ -320,8 +337,8 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
     }
     if ( m_NBinX == 0 ) {
-      cout << myname << "Invalid bin count: " << m_NBinX << endl;
-      return ret.setStatus(2);
+      cout << myname << "ERROR: Invalid bin count: " << m_NBinX << endl;
+      return ret.setStatus(6);
     }
     double xmin = m_XMin;
     double xmax = m_XMax;
