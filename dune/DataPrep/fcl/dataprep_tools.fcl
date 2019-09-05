@@ -272,6 +272,8 @@ adcPlotDftTemplate: {
            PlotName: ""
     PlotSummaryName: ""
    HistSummaryTitle: ""
+               XMin: 0.0
+               XMax: 0.0
             YMinLog: 0.0
   PlotChannelRanges: []    # Empty makes one plot for each channel
   PlotChannelGroups: []    # Empty makes one plot for each channel

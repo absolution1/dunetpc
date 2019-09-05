@@ -17,7 +17,8 @@ using std::ostringstream;
 //**********************************************************************
 
 AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Name prefix)
-: m_PlotChannelRanges(ps.get<NameVector>(prefix + "ChannelRanges")),
+: m_LogLevel(ps.get<Index>("LogLevel")),
+  m_PlotChannelRanges(ps.get<NameVector>(prefix + "ChannelRanges")),
   m_PlotChannelGroups(ps.get<NameVector>(prefix + "ChannelGroups")),
   m_PlotOverlayGroups(ps.get<Index>(prefix + "OverlayGroups")),
   m_PlotName(ps.get<Name>(prefix + "Name")),
@@ -28,6 +29,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
   m_PlotSplitY(ps.get<Index>(prefix + "SplitY")) {
   const Name myname = "AdcMultiChannelPlotter::ctor: ";
   if ( m_LogLevel >= 1 ) {
+    cout << myname << "           LogLevel: " << m_LogLevel << endl;
     bool first = true;
     cout << myname << "   " << prefix + "ChannelRanges: [";
     for ( Name crn : m_PlotChannelRanges ) {
@@ -74,6 +76,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
             cout << myname << "WARNING: Skipping invalid group " << cgn << endl;
             continue;
           }
+          m_cgmap[cgn] = grp;
           Pad* ppad = nullptr;
           for ( const IndexRange& ran : grp.ranges ) {
             Name crn = ran.name;
@@ -178,7 +181,9 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( getLogLevel() >= 4 ) {
       cout << myname << "  Processing pad " << ipad << " for channel group " << cgn << endl;
     }
-    for ( Name crn : pad.crnames ) {
+    Index ncr = pad.crnames.size();
+    for ( Index icr=0; icr<ncr; ++icr ) {
+      Name crn = pad.crnames[icr];
       const IndexRange& ran = pad.crmap.at(crn);
       if ( ! ran.isValid() ) {
         cout << "ERROR: Range " << crn << " in pad group " << cgn << " is invalid. Aborting." << endl;
@@ -227,7 +232,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
       }
       // View this channel range.
-      viewMapChannels(crn, acdvec, *pmantop->man(ipadOnPage));
+      viewMapChannels(crn, acdvec, *pmantop->man(ipadOnPage), ncr, icr);
       ncha += acds.size();
     }
     // Handle the end of a plot file.
@@ -304,7 +309,6 @@ void AdcMultiChannelPlotter::viewSummary() const {
                                    << " channel range count is " << pad.crnames.size() << endl;
     Index ncrn = pad.crnames.size();
     // # CRNs included in plot.
-    Index ncrnPlotted = 0;
     for ( Index icrn=0; icrn<ncrn; ++icrn ) {
       Name crn = pad.crnames[icrn];
       if ( getLogLevel() >= 4 ) {
@@ -326,8 +330,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
         sman.replace("%CGNAME%", cgn);
       }
       // View this channel range.
-      int rstat = viewMapSummary(cgn, crn, *pmantop->man(ipadOnPage), ncrnPlotted);
-      if ( rstat == 0 ) ++ncrnPlotted;
+      int rstat = viewMapSummary(cgn, crn, *pmantop->man(ipadOnPage), ncrn, icrn);
       if ( rstat >= 1 ) cout << myname << "WARNING: viewMapSummary returned error code " << rstat << endl;
       if ( getLogLevel() >= 5 ) cout << myname << "    Pad " << ipadOnPage << " extra object count: "
                                      << pmantop->man(ipadOnPage)->objects().size() << endl;
@@ -341,6 +344,19 @@ void AdcMultiChannelPlotter::viewSummary() const {
       pmantop = nullptr;
     }
   }
+}
+
+//**********************************************************************
+
+const IndexRangeGroup& AdcMultiChannelPlotter::getChannelGroup(Name cgn) const {
+  const Name myname = "AdcMultiChannelPlotter::getChannelGroup: ";
+  ChannelGroupMap::const_iterator icgr = m_cgmap.find(cgn);
+  if ( icgr == m_cgmap.end() ) {
+    cout << myname << "ERROR: Group not found: " << cgn << endl;
+    static const IndexRangeGroup badcgr;
+    return badcgr;
+  }
+  return icgr->second;
 }
 
 //**********************************************************************
