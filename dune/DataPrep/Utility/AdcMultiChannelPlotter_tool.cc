@@ -76,6 +76,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
             cout << myname << "WARNING: Skipping invalid group " << cgn << endl;
             continue;
           }
+          m_cgmap[cgn] = grp;
           Pad* ppad = nullptr;
           for ( const IndexRange& ran : grp.ranges ) {
             Name crn = ran.name;
@@ -343,6 +344,19 @@ void AdcMultiChannelPlotter::viewSummary() const {
       pmantop = nullptr;
     }
   }
+}
+
+//**********************************************************************
+
+const IndexRangeGroup& AdcMultiChannelPlotter::getChannelGroup(Name cgn) const {
+  const Name myname = "AdcMultiChannelPlotter::getChannelGroup: ";
+  ChannelGroupMap::const_iterator icgr = m_cgmap.find(cgn);
+  if ( icgr == m_cgmap.end() ) {
+    cout << myname << "ERROR: Group not found: " << cgn << endl;
+    static const IndexRangeGroup badcgr;
+    return badcgr;
+  }
+  return icgr->second;
 }
 
 //**********************************************************************

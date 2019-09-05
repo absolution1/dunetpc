@@ -64,7 +64,10 @@ public:
     }
     return IndexRange();
   }
-  
+  Name label(Index ilab =0) const {
+    if ( ilab >= labels.size() ) return "";
+    return labels[ilab];
+  }
 };
 
 std::ostream& operator<<(std::ostream& lhs, const IndexRangeGroup& ir) {
@@ -80,6 +83,7 @@ std::ostream& operator<<(std::ostream& lhs, const IndexRangeGroup& ir) {
       lhs << ran.name;
     }
     lhs << "]";
+    first = true;
     for ( std::string lab : ir.labels ) {
       if ( first ) first = false;
       else lhs << ",";
