@@ -398,14 +398,14 @@ void PDDPChannelMap::add( unsigned seq, unsigned crate, unsigned card, unsigned 
   //
   ntot_    = chanTable.size();
 
-  if( state == 0 ) //existing channels only
-    {
-      crateidx_.insert( crate );
-      ncrates_ = crateidx_.size();
+  //if( state == 0 ) //existing channels only
+      //{
+  crateidx_.insert( crate );
+  ncrates_ = crateidx_.size();
       
-      crpidx_.insert( crp );
-      ncrps_ = crpidx_.size();
-    }
+  crpidx_.insert( crp );
+  ncrps_ = crpidx_.size();
+  //}
   
   //
   //ncrates_ = cdistinct( chanTable.get<IndexCrateCardChan>(), 
@@ -462,13 +462,13 @@ std::vector<DPChannelId> PDDPChannelMap::find_by_crate( unsigned crate, bool ord
     {
       const auto r = chanTable.get<IndexCrate>().equal_range( crate );
       std::vector<DPChannelId> res(r.first, r.second);
-      return filter( res );
+      return res;
     }
 
   const auto r = chanTable.get<IndexCrateCardChan>().equal_range( boost::make_tuple(crate) );
   std::vector<DPChannelId> res(r.first, r.second);
 
-  return filter( res );
+  return res;
 }
 
 //
@@ -479,14 +479,14 @@ std::vector<DPChannelId> PDDPChannelMap::find_by_crate_card( unsigned crate, uns
     {
       const auto r = chanTable.get<IndexCrateCard>().equal_range( boost::make_tuple(crate, card) );
       std::vector<DPChannelId> res(r.first, r.second);
-      return filter( res );
+      return res;
     }
   
   // ordered accodring to channel number
   const auto r = chanTable.get<IndexCrateCardChan>().equal_range( boost::make_tuple( crate, card) );
   std::vector<DPChannelId> res(r.first, r.second);
   
-  return filter( res );
+  return res;
 }
 
 //
@@ -509,12 +509,13 @@ std::vector<DPChannelId> PDDPChannelMap::find_by_crp( unsigned crp, bool ordered
     {
       const auto r = chanTable.get<IndexCrp>().equal_range( crp );
       std::vector<DPChannelId> res(r.first, r.second);
-      return filter( res );
+      return res;
     }
 
   const auto r = chanTable.get<IndexCrpViewChan>().equal_range( crp );
   std::vector<DPChannelId> res(r.first, r.second);
-  return filter( res );
+  //return res;
+  return res;
 }
 
 //
@@ -525,13 +526,13 @@ std::vector<DPChannelId> PDDPChannelMap::find_by_crp_view( unsigned crp, unsigne
     {
       const auto r = chanTable.get<IndexCrpView>().equal_range( boost::make_tuple(crp, view) );
       std::vector<DPChannelId> res(r.first, r.second);
-      return filter( res );
+      return res;
     }
   
   // ordered accodring to channel number
   const auto r = chanTable.get<IndexCrpViewChan>().equal_range( boost::make_tuple(crp, view) );
   std::vector<DPChannelId> res(r.first, r.second);
-  return filter( res );
+  return res;
 }
 
 //

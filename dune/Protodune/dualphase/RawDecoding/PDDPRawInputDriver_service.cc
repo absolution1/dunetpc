@@ -5,6 +5,7 @@
  */
 
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 #include "art/Persistency/Common/PtrMaker.h"
@@ -16,6 +17,8 @@
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
 #include "PDDPRawInputDriver.h"
+
+#include "PDDPChannelMap.h"
 
 #include <exception>
 #include <thread>
@@ -109,17 +112,10 @@ namespace lris
     __eventNum( 0 )
   {
     // output module label: default daq
-    // now product instance name to be compatible with data prep
-    //__output_label = pset.get<std::string>("OutputDataLabel", "daq");
-    //helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
-    //helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
-    //helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
-
-    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "tpcrawdecoder");
-    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "timingrawdecoder");
-    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "tpcrawdecoder");
-    __output_inst   = pset.get<std::string>("OutputInstance", "daq");
-    
+    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "daq");
+    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "daq");
+    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "daq");
+    __output_inst   = pset.get<std::string>("OutputInstance", "");
 
     helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
     helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
@@ -131,6 +127,20 @@ namespace lris
 
     // could also use pset if more parametres are needed (e.g., for LRO data)
     
+    //
+    // channel map order by CRP View 
+    auto cmap = &*(art::ServiceHandle<dune::PDDPChannelMap>());
+    //std::cout<<"number of CRPs "<<cmap->ncrps()<<std::endl;
+    auto crpidx = cmap->get_crpidx();
+    for( auto c: crpidx )
+      {
+	std::vector<dune::DPChannelId> chidx = cmap->find_by_crp( c, true );
+	//std::cout<<chidx.size()<<std::endl;
+	for( auto id: chidx )
+	  __daqch.push_back( id.seqn() );
+      }
+    
+    //std::cout<<"total channels "<<__daqch.size()<<std::endl;
   }
 
   //
@@ -153,7 +163,6 @@ namespace lris
     //
     __file.open( name.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
-    
     if( !__file.is_open() )
       {
 	throw art::Exception( art::errors::FileOpenError )
@@ -250,13 +259,20 @@ namespace lris
     
     // move data
     cro_data->reserve( event.crodata.size() );
+    
     for( size_t i=0;i<event.crodata.size();i++ )
       {
 	// This ch Id is based on the order the channel data are stored in file (always the same)
 	raw::ChannelID_t ch = i; 
+	if( i >= __daqch.size() )
+	  {
+	    mf::LogError(__FUNCTION__)<<"The channel map appears to be wrong";
+	    break;
+	  }
+	unsigned daqch = __daqch[i];
 	// raw digit
 	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
-					   std::move( event.crodata[i] ), 
+					   std::move( event.crodata[daqch] ), 
 					   event.compression) );
 
 	// RDTimeStamp
