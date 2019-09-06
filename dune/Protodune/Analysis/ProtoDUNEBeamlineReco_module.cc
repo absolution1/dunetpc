@@ -23,6 +23,7 @@
 
 #include "lardataobj/RecoBase/Track.h"
 
+#include "TTree.h"
 
 namespace protoana{
   class ProtoDUNEBeamlineReco;
@@ -44,6 +45,13 @@ private:
   
   protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
 
+  TTree * fOutTree;
+
+  double tof;
+  int chan;
+  double momentum;
+  int c0, c1;
+
 };
   
 //-----------------------------------------------------------------------
@@ -60,16 +68,18 @@ protoana::ProtoDUNEBeamlineReco::~ProtoDUNEBeamlineReco(){}
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineReco::beginJob() {
   
-  /*art::ServiceHandle<art::TFileService> tfs;
-  fIsBeamTrigger = tfs->make<TH1F>("IsBeamTrigger", "Is the CTB trigger from the beamline?", 2,0,1);
-  */
+  art::ServiceHandle<art::TFileService> tfs;
+
+  fOutTree = tfs->make<TTree>("tree", "");
+  fOutTree->Branch("TOF", &tof);
+  fOutTree->Branch("Chan", &chan);
+  fOutTree->Branch("Momentum", &momentum);
+  fOutTree->Branch("C0",&c0);
+  fOutTree->Branch("C1",&c1);
 }
 
 //-----------------------------------------------------------------------
 void protoana::ProtoDUNEBeamlineReco::reconfigure(fhicl::ParameterSet const& pset){
-/*
-  fNominalBeamMomentum = pset.get<float>("NominalBeamMomentum"); // GeV/c
-*/
 }
 
 //-----------------------------------------------------------------------
@@ -78,7 +88,11 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   //std::cout << "Computed TOF "      << fBeamlineUtils.ComputeTOF( kProton, 2.0 ) << std::endl;
   //std::cout << "Computed Momentum " << fBeamlineUtils.ComputeMomentum( kProton, 130. ) << std::endl;
 
-
+  c0 = -1; 
+  c1 = -1;
+  momentum = -1.;
+  tof = -1.;
+  chan = -1;
 
   //Access the Beam Event
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
@@ -111,6 +125,9 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
 
   if( momenta.size() > 0 ) 
     std::cout << "Measured Momentum: " << momenta.at(0) << std::endl;
+
+  if( momenta.size()  == 1)
+    momentum = momenta[0];
   ///////////////////////////////////////////////////////////// 
 
 
@@ -128,6 +145,11 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
     std::cout << "\t(" << the_tofs[i] << ", " << the_chans[i] << ")" << std::endl;
   }
   std::cout << std::endl;
+
+  if( the_tofs.size() > 0){
+    tof = the_tofs[0];
+    chan = the_chans[0];
+  }
   /////////////////////////////////////////////////////////////
   
 
@@ -135,6 +157,8 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   std::cout << "Cerenkov status, pressure:" << std::endl;
   std::cout << "C0: " << beamEvent.GetCKov0Status() << ", " << beamEvent.GetCKov0Pressure() << std::endl;
   std::cout << "C1: " << beamEvent.GetCKov1Status() << ", " << beamEvent.GetCKov1Pressure() << std::endl << std::endl;
+  c0 = beamEvent.GetCKov0Status();
+  c1 = beamEvent.GetCKov1Status();
   ///////////////////////////////////////////////////////////// 
 
 
@@ -160,7 +184,7 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   std::cout << candidates_string << std::endl;
   ///////////////////////////////////////////////////////////// 
   
-
+  fOutTree->Fill();
 }
 
 void protoana::ProtoDUNEBeamlineReco::endJob() {}

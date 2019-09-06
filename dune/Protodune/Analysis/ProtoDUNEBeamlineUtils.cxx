@@ -15,6 +15,15 @@ protoana::ProtoDUNEBeamlineUtils::~ProtoDUNEBeamlineUtils(){
 
 }
 
+const beam::ProtoDUNEBeamEvent protoana::ProtoDUNEBeamlineUtils::GetBeamEvent(art::Event const & evt){
+  std::vector< art::Ptr< beam::ProtoDUNEBeamEvent > > beamVec;
+  auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent> >(fBeamEventTag);
+  if( beamHandle.isValid() ){
+    art::fill_ptr_vector( beamVec, beamHandle );
+  }
+  const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0)); 
+  return beamEvent;
+}
 void protoana::ProtoDUNEBeamlineUtils::GetCurrent( art::Event const & evt ){
 
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>(fBeamEventTag);
@@ -217,6 +226,10 @@ void protoana::ProtoDUNEBeamlineUtils::reconfigure(fhicl::ParameterSet const& p)
   L1 = p.get<double>("L1");
   L2 = p.get<double>("L2");
   L3 = p.get<double>("L3");
+
+  fBProf1Shift = p.get< double >("BProf1Shift"); 
+  fBProf2Shift = p.get< double >("BProf2Shift"); 
+  fBProf3Shift = p.get< double >("BProf3Shift"); 
   ///////////////////////
   
   // Justin's stuff from BeamlineUtils
@@ -374,6 +387,12 @@ std::vector< double > protoana::ProtoDUNEBeamlineUtils::MomentumSpec( art::Event
           }
         }
 
+        //Calibrate the positions of the fibers in the
+        //monitors
+        x1 -= fBProf1Shift*1.e-3;
+        x2 -= fBProf2Shift*1.e-3;
+        x3 -= fBProf3Shift*1.e-3;
+
         double cosTheta = MomentumCosTheta(x1,x2,x3);        
         double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
 
@@ -408,20 +427,18 @@ std::vector< double > protoana::ProtoDUNEBeamlineUtils::MomentumSpec( art::Event
 }
 
 double protoana::ProtoDUNEBeamlineUtils::MomentumCosTheta( double X1, double X2, double X3 ){
-  double a =  ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) )*( L2 - X2*sin(fBeamBend) );
-  a = a / (L3 - X3*sin(fBeamBend) - L2 + X2*sin(fBeamBend) );
-  a = L2*tan(fBeamBend) + X2*cos(fBeamBend) - a;
+  double a =  (X2*L3 - X3*L2)*cos(fBeamBend)/(L3-L2);
 
-  double numTerm = (a - X1)*(L3 - L2)*tan(fBeamBend) + (a - X1)*(X3 - X2)*cos(fBeamBend) + L1*( (L3 - L2) - (X3 - X2)*sin(fBeamBend) );
+ 
+  double numTerm = (a - X1)*( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ) + L1*( L3 - L2 );
 
   double denomTerm1, denomTerm2, denom;
   denomTerm1 = sqrt( L1*L1 + (a - X1)*(a - X1) );
   denomTerm2 = sqrt( TMath::Power( ( (L3 - L2)*tan(fBeamBend) + (X3 - X2)*cos(fBeamBend) ),2)
-                   + TMath::Power( ( (L3 - L2)                - (X3 - X2)*sin(fBeamBend) ),2) );
+                   + TMath::Power( ( (L3 - L2) ),2) );
   denom = denomTerm1 * denomTerm2;
 
-  double cosTheta = numTerm/denom;
-
+  double cosTheta = numTerm/denom;  
   return cosTheta;
 }
 

@@ -29,6 +29,8 @@
 //                         3 - skip bad and noisy channels
 //   SampleFreq - Sampling frequency in kHz used to define the x-axis.
 //                If zero, frequency index is used instead.
+//   XMin - Specifies the min value for X-axis  in histogram and plot
+//   XMax - Specifies the max value for X-axis  in histogram and plot
 //   YMax - Specifies the maximum value for the Y-axis in the plot:
 //              0: Use automatic value
 //            > 0: Use YMax
@@ -39,6 +41,8 @@
 //   HistTitle - Histogram/graph title
 //   HistSummaryTitle - Histogram/graph title
 //   Plus the parameters specified in AdcMultiChannelPlotter with XXX = Plot.
+//
+//   The X-range is calculated automatically if Xmin >= Xmax.
 
 #ifndef AdcChannelDftPlotter_H
 #define AdcChannelDftPlotter_H
@@ -66,17 +70,18 @@ public:
 
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
-  int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const override;
-  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrPlotted) const override;
+  int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const override;
+  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
   bool updateWithView() const override { return true; }
 
 private:
 
   // Configuration data.
-  int    m_LogLevel;
   Name   m_Variable;
   Index  m_ChannelStatusFlag;
   float  m_SampleFreq;
+  float  m_XMin;
+  float  m_XMax;
   float  m_YMax;
   float  m_YMinLog;
   Index  m_NBinX;
@@ -87,6 +92,7 @@ private:
   // Derived from configuration.
   bool m_skipBad;
   bool m_skipNoisy;
+  bool m_shiftFreq0;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -128,6 +134,22 @@ private:
     IndexMap counts;
     IndexMap nchans;
     HistMap hists;
+    // Curent event and CRNs for the event.
+    Index event = 0;
+    NameVector eventChannelRanges;
+    // Set the event add a channel range.
+    // If the event changes, the vector of CRNs is first cleared.
+    // Returns nonzero if the channel range is already included.
+    int setEventChannelRange(Index a_event, Name crn) {
+      if ( event != a_event ) {
+        event = a_event;
+        eventChannelRanges.clear();
+      }
+      if ( find(eventChannelRanges.begin(), eventChannelRanges.end(), crn)
+           != eventChannelRanges.end() ) return 1;
+      eventChannelRanges.push_back(crn);
+      return 0;
+    }
   };
 
   // State.

@@ -665,6 +665,56 @@ std::vector<std::pair<const simb::MCParticle*, double>>
   return GetMCParticleListFromRecoShower(shower, evt, showerModule);
 }
 
+// Match Reco to True by Number of Hits contributed as opposed to Energy contributed
+//
+// List
+template <typename T>
+std::vector< std::pair< const simb::MCParticle *, size_t > > 
+  protoana::ProtoDUNETruthUtils::GetMCParticleListByHits( const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const {
+  
+  //Get the particle list. This is sorted by energy contributed, but we'll turn this into nHits
+  const std::vector< std::pair< const simb::MCParticle*, double > > mcparts = GetMCParticleListFromReco( recobj, evt, recoModule ); 
+
+  using weightedMCPair = std::pair<const simb::MCParticle*, size_t>;
+  std::vector< weightedMCPair > results;
+
+  for( const std::pair< const simb::MCParticle*, double > part : mcparts ){
+    const std::vector<const recob::Hit*> hits = GetSharedHits(*(part.first), recobj, evt, recoModule);
+    results.push_back( std::make_pair( part.first, hits.size() ) );
+  }
+
+  std::sort(results.begin(), results.end(),
+        [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
+
+  return results;
+}
+
+template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::PFParticle >
+  (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
+template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Track >
+  (const recob::Track&, const art::Event&, std::string, std::string) const;
+template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Shower >
+  (const recob::Shower&, const art::Event&, std::string, std::string) const;
+/////////////////
+
+// Best Match
+template <typename T>
+const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits ( const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule ) const {
+
+  auto list = GetMCParticleListByHits( recobj, evt, recoModule, hitModule );
+
+  if( !list.size() ) return 0x0;
+
+  return list[0].first;
+}
+
+template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::PFParticle >
+  (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
+template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Track >
+  (const recob::Track&, const art::Event&, std::string, std::string) const;
+template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Shower >
+  (const recob::Shower&, const art::Event&, std::string, std::string) const;
+/////////////////
 
 const simb::MCParticle* protoana::ProtoDUNETruthUtils::MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt )
 {  // Function that will match the protoDUNE MC particle to the Geant 4 MC particle, and return the matched particle (or a null pointer).
@@ -927,4 +977,43 @@ double protoana::ProtoDUNETruthUtils::GetKinEnergyAtVertex(const simb::MCParticl
   double kinene_end = std::sqrt(mcpart.P(ntrajpoints-2)*mcpart.P(ntrajpoints-2) + mcpart.Mass()*mcpart.Mass()) - mcpart.Mass();
   
   return (kinene_end - kinene_lastpoint);
+}
+
+// Get the sim::IDEs from the MCParticle, organized by the trajectory points
+std::map< size_t, std::vector< const sim::IDE * > > protoana::ProtoDUNETruthUtils::GetSimIDEs( const simb::MCParticle & mcpart ){
+  art::ServiceHandle< cheat::BackTrackerService >       bt_serv;
+  //art::ServiceHandle< geo::Geometry >                   geom;
+
+  const simb::MCTrajectory & mctraj = mcpart.Trajectory();
+
+  //Get all ides from the MCParticle
+  std::vector< const sim::IDE * > ides = bt_serv->TrackIdToSimIDEs_Ps( mcpart.TrackId()/*, geom->View(2)*/ );
+  //Sort by z position, assume traveling in beam direction.
+  std::sort( ides.begin(), ides.end(), sort_IDEs );
+
+  std::map< size_t, std::vector< const sim::IDE * > > results;
+  
+  size_t ide_start = 0;
+
+  for( size_t i = 0; i < mctraj.size(); ++i ){
+    results[i] = std::vector< const sim::IDE * >();  
+
+    for( size_t j = ide_start; j < ides.size(); ++j ){
+
+      if( ( ides[j]->z > mctraj.Z(i) ) && ( ides[j]->z < mctraj.Z(i+1) ) ){
+        results[i].push_back( ides[j] );
+      }
+
+      else if( ( ides[j]->z < mctraj.Z(i) ) && ( ides[j]->z < mctraj.Z(i+1) ) ){
+        continue; 
+      }
+
+      else{
+        ide_start = j;
+        break;
+      }
+    }
+  }
+
+  return results;
 }

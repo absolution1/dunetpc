@@ -63,6 +63,7 @@ private:
   // Derived from configuration.
   const IndexRangeTool* m_pIndexRangeTool =nullptr;
   GroupMap m_groups;
+  GroupMap m_labels;
 
 };
 

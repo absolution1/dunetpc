@@ -1,6 +1,8 @@
 #include "PionAnalyzer.fcl"
 #include "services_dune.fcl"
 
+#include "PionAbsCexSelection.fcl"
+#include "ProtoDUNEBeamlineFilter.fcl"
 
 process_name: PionAna
 
@@ -26,17 +28,6 @@ source:
   fileNames: ["input_file.root"]
 }
 
-#outputs:
-#{
-# out1:
-# {
-#   module_type: RootOutput
-#   fileName:    "Beam.root"    #default file name, can override from command line with -o or --output
-#   dataTier: "reconstructed"
-#   fastCloning: false
-# } 
-#}
-
 physics:
 {
 
@@ -44,10 +35,16 @@ physics:
  
  }
 
- filters: { 
+# filters: { 
+#   #f1: @local::pion_abscex_filter
+# }
+  
+ filters: {
    f1: @local::standard_protodunebeamlinefilter_Pion_1GeV
+   f2: @local::pion_abscex_filter
  }
 
+ #fpath: [f1,f2]
  fpath: [f1]
 
  analyzers:
@@ -57,12 +54,13 @@ physics:
  
  ana:  [ pionana ]
 
- #stream1: [ out1 ]
- 
  end_paths:     [ ana ]
 
 }
 
 outputs: {}
 
-
+physics.analyzers.pionana.SelectEvents: [fpath]
+physics.filters.f1.BeamlineUtils.UseCERNCalibSelection: false
+#physics.analyzers.pionana.CalorimetryParameters.X_correction:  "/dune/app/users/apaudel/v082702/mcc12_v9_validation/r5809_Xcalosce.root"
+#physics.analyzers.pionana.CalorimetryParameters.UseNewVersion: true

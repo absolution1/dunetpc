@@ -22,15 +22,20 @@ standard_pdune_recoeff:
 	Pdg:              []              # which PDG codes are interesting, or empty for all particles
 	
 	EffHitMax:        1500            # max hits per MC particle in the track efficiency (min = 0)
-	EffHitBins:       150             # number of bins in the track efficiency
-}
+	EffHitBins:       50              # number of bins in the track efficiency
 
-standard_pdune_hiteff:
-{
-	module_type:	"RecoHitsEff"
-	HitModuleLabel: "hitfd"
-	HitDCheatLabel: "dcheat"
-	Plane: 1
+        ##Add in more options for bins in other projections
+        EffEMax:          10
+        EffEBins:         50
+
+        EffDepMax:        5000
+        EffDepBins:       50
+
+        EffLengthMax:     1000
+        EffLengthBins:    50
+
+        EnableParticleTree: 0 
+        EnableIDETree:      0 
 }
 
 END_PROLOG

@@ -110,6 +110,9 @@ namespace lris
     // unpack binary data written by each L1 evb builder
     bool __unpackEvent( std::vector<BYTE> &buf, DaqEvent &event );
 
+    // crp to daq mapping
+    std::vector<unsigned> __daqch;
+
     // file locations
     std::vector<std::streampos> __events;
     std::vector<uint32_t> __evsz;

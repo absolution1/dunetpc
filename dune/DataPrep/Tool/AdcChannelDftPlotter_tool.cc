@@ -29,11 +29,11 @@ using std::fixed;
 
 AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : AdcMultiChannelPlotter(ps, "Plot"),
-  m_LogLevel(ps.get<int>("LogLevel")), 
   m_Variable(ps.get<Name>("Variable")),
   m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
-  m_YMax(0.0),
+  m_XMin(0.0),
+  m_XMax(0.0),
   m_YMinLog(ps.get<float>("YMinLog")),
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
@@ -47,6 +47,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   bool doPwt = m_Variable == "power/tick";
   // Check variable and get optional fields.
   if ( doPwr || doPwt ) {
+    m_XMin = ps.get<float>("XMin");
+    m_XMax = ps.get<float>("XMax");
     m_YMax = ps.get<float>("YMax");
     m_NBinX = ps.get<Index>("NBinX");
   } else if ( doMag ) {
@@ -66,10 +68,10 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   // Derived config.
   m_skipBad = m_ChannelStatusFlag==1 || m_ChannelStatusFlag==3;
   m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
+  m_shiftFreq0 = (doPwr || doPwt) && (m_XMin >= m_XMax);
   // Display the configuration.
-  if ( m_LogLevel ) {
+  if ( getLogLevel() >= 1 ) {
     cout << myname << "Configuration: " << endl;
-    cout << myname << "           LogLevel: " << m_LogLevel << endl;
     cout << myname << "           Variable: " << m_Variable << endl;
     cout << myname << "  ChannelStatusFlag: " << m_ChannelStatusFlag;
     if ( m_skipBad ) {
@@ -78,8 +80,12 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
     } else if ( m_skipNoisy ) cout << " (skip noisy)";
     cout << endl;
     cout << myname << "         SampleFreq: " << m_SampleFreq << endl;
-    if ( doMag || doPwr || doPwt ) cout << myname << "               YMax: " << m_YMax << endl;
-    if ( doPwr || doPwt )          cout << myname << "              NBinX: " << m_NBinX << endl;
+    if ( doMag || doPwr || doPwt ) cout << myname << "              NBinX: " << m_NBinX << endl;
+    if ( doPwr || doPwt ) {
+      cout << myname << "               XMin: " << m_XMin << endl;
+      cout << myname << "               XMax: " << m_XMax << endl;
+      cout << myname << "               YMax: " << m_YMax << endl;
+    }
     cout << myname << "            YMinLog: " << m_YMinLog << endl;
     cout << myname << "           HistName: " << m_HistName << endl;
     cout << myname << "          HistTitle: " << m_HistTitle << endl;
@@ -91,7 +97,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 
 AdcChannelDftPlotter::~AdcChannelDftPlotter() {
   const string myname = "AdcChannelDftPlotter::dtor: ";
-  if ( m_LogLevel >= 2 ) {
+  if ( getLogLevel() >= 2 ) {
     cout << myname << "Closing." << endl;
     cout << myname << "     CR name    count nch/evt" << endl;
     for ( Name crn : getChannelRangeNames() ) {
@@ -107,7 +113,7 @@ AdcChannelDftPlotter::~AdcChannelDftPlotter() {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
+viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannels: ";
   DataMap chret = viewLocal(crn, acds);
   bool doState = true;
@@ -136,6 +142,9 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
       }
     }
   }
+  chret.setString("dftCRLabel", crn);
+  chret.setInt("dftCRCount", ncr);
+  chret.setInt("dftCRIndex", icr);
   fillPad(chret, man);
   return 0;
 }
@@ -143,38 +152,45 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const {
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrnPlotted) const {
+viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const {
   const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
-  cout << myname << "Processing " << cgn << "/" << crn << " (range " << ncrnPlotted << ")" << endl;
-  Index histCount = getState().histCount();
+  if ( getLogLevel() >= 2 ) {
+    cout << myname << "Processing " << cgn << "/" << crn << " (" << icr << "/" << ncr << ")" << endl;
+  }
+  if ( icr >= ncr ) {
+    cout << myname << "ERROR: Too many plots: " << icr << " >= " << ncr << endl;
+    return 11;
+  }
   Index count = getState().count(crn);
   Index nchanTot = getState().nchan(crn);
   float nchanEvt = count > 0 ? double(nchanTot)/count : 0.0;
-  //if ( count == 0 ) return 1;
+  TH1* ph = nullptr;
   TH1* phin = getState().hist(crn);
-  if ( phin == nullptr ) return 2;
-  TH1* ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
-  if ( ph == nullptr ) return 3;
-  if ( ncrnPlotted >= histCount ) {
-    cout << myname << "ERROR: Too many plots: " << ncrnPlotted << " >= " << histCount << endl;
-    return 11;
+  if ( phin != nullptr ) {
+    if ( count == 0 ) return 12;
+    ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
+    if ( ph == nullptr ) return 13;
+    ph->SetDirectory(nullptr);
+    Name htitl = m_HistSummaryTitle;
+    StringManipulator smanTitl(htitl);
+    Name cglab = getChannelGroup(cgn).label();
+    if ( cglab.size() == 0 ) cglab = cgn;
+    smanTitl.replace("%CGNAME%", cgn);
+    smanTitl.replace("%CGLABEL%", cglab);
+    smanTitl.replace("%CRNAME%", crn);
+    smanTitl.replace("%RUN%", getBaseState().run());
+    ph->SetTitle(htitl.c_str());
+    double fac = 1.0/count;
+    ph->Scale(fac);
   }
-  ph->SetDirectory(nullptr);
-  Name htitl = m_HistSummaryTitle;
-  StringManipulator smanTitl(htitl);
-  smanTitl.replace("%CRNAME%", crn);
-  smanTitl.replace("%RUN%", getBaseState().run());
-  ph->SetTitle(htitl.c_str());
-  double fac = 1.0/count;
-  ph->Scale(fac);
   DataMap dm;
   dm.setHist("dftHist", ph, true);
   dm.setInt("dftEventCount", count);
   dm.setFloat("dftChanPerEventCount", nchanEvt);
   dm.setString("dftDopt", "hist");
   dm.setString("dftCRLabel", crn);
-  dm.setInt("dftCRCount", histCount);
-  dm.setInt("dftCRIndex", ncrnPlotted);
+  dm.setInt("dftCRCount", ncr);
+  dm.setInt("dftCRIndex", icr);
   fillPad(dm, man);
   //man.add(ph, "hist");
   //delete ph;
@@ -191,7 +207,7 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     string pname = AdcChannelStringTool::build(m_adcStringBuilder, acd, getPlotName());
     TPadManipulator man;
     fillPad(chret, man);
-    if ( m_LogLevel >= 3 ) cout << myname << "Printing " << pname << endl;
+    if ( getLogLevel() >= 3 ) cout << myname << "Printing " << pname << endl;
     man.print(pname);
   }
   return chret;
@@ -204,7 +220,21 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   DataMap ret;
   if ( acds.size() == 0 ) return ret;
   const AdcChannelData* pacd = acds.front();
-  if ( pacd == nullptr ) return ret;
+  Index evt = pacd->event;
+  // Check if there have been any other views of this channel range for this event.
+  // For now, we implicity expect configurations that do not repeat ranges.
+  // Later we might cache results from an earlier attempt.
+  // For now, user can expect some plots to overcount events and maybe worse.
+  // Avoid this problem by ensuring configuration does not include any channel
+  // range more than once. This includes channel ranges in channel groups.
+  if ( getState().setEventChannelRange(evt, crn) ) {
+    cout << myname << "WARNING: Duplicate view of channel range " << crn
+         << " in event " << evt << endl;
+  }
+  if ( pacd == nullptr ) {
+    cout << myname << "ERROR: First channel has no data." << endl;
+    return ret;
+  }
   const AdcChannelData& acd = *pacd;
   bool doMag = m_Variable == "magnitude";
   bool doPha = m_Variable == "phase";
@@ -212,18 +242,18 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   bool doPwt = m_Variable == "power/tick";
   bool haveFreq = m_SampleFreq > 0.0;
   if ( ! doMag && !doPha && !doPwr && !doPwt ) {
-    cout << myname << "Invalid plot variable: " << m_Variable << endl;
+    cout << myname << "ERROR: Invalid plot variable: " << m_Variable << endl;
     return ret.setStatus(1);
   }
   Index nmag = acd.dftmags.size();
   Index npha = acd.dftphases.size();
   Index nsam = nmag + npha - 1;
   if ( nmag == 0 ) {
-    cout << myname << "DFT is not present." << endl;
+    cout << myname << "ERROR: DFT is not present." << endl;
     return ret.setStatus(2);
   }
   if ( npha > nmag || nmag - npha > 1 ) {
-    cout << myname << "DFT is not valid." << endl;
+    cout << myname << "ERROR: DFT is not valid." << endl;
     return ret.setStatus(3);
   }
   // Build list of retained channels.
@@ -237,27 +267,44 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     dftChannels.push_back(pacd->channel);
     keepAcds.push_back(pacd);
   }
-  // Check consisistency of input data.
+  // Check consistency of input data.
+  Index nDataMissing = 0;
+  Index nBadMagCount = 0;
+  Index nBadPhaCount = 0;
   for ( const AdcChannelData* pacd : acds ) {
-    if ( pacd == nullptr ) return ret;
-    if ( pacd->dftmags.size() != nmag ) return ret;
-    if ( pacd->dftphases.size() != npha ) return ret;
+    if ( pacd == nullptr ) {
+      ++nDataMissing;
+    } else { 
+      if ( pacd->dftmags.size() != nmag ) ++nBadMagCount;
+      if ( pacd->dftphases.size() != npha ) ++nBadPhaCount;
+    }
   }
+  if ( nDataMissing ) cout << myname << "ERROR: Missing data channel count is " << nDataMissing << endl;
+  if ( nBadMagCount ) cout << myname << "ERROR: Inconsistent mag size channel count is " << nBadMagCount << endl;
+  if ( nBadPhaCount ) cout << myname << "ERROR: Inconsistent pha size channel count is " << nBadPhaCount << endl;
+  if ( nDataMissing || nBadMagCount || nBadPhaCount ) return ret.setStatus(4);
   string hname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistName);
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
   StringManipulator smanName(hname);
   smanName.replace("%CRNAME%", crn);
   StringManipulator smanTitl(htitl);
   smanTitl.replace("%CRNAME%", crn);
+  //xx
+  //sman.replace("%CRNAME%", ran.name);
+  //sman.replace("%CRLABEL%", ran.label());
+  //sman.replace("%CRLABEL1%", ran.label(1));
+  //sman.replace("%CRLABEL2%", ran.label(2));
   float pi = acos(-1.0);
   double xFac = haveFreq ? m_SampleFreq/nsam : 1.0;
-  double xmin = 0.0;
-  double xmax = (nmag-1)*xFac;
   float yValMax = 0.0;
   string dopt;
   string xtitl = haveFreq ? "Frequency [kHz]" : "Frequency index";
   if ( doMag || doPha ) {  
-    if ( acds.size() != 1 ) return ret;
+    if ( acds.size() != 1 ) {
+      cout << myname << "ERROR: " << (doMag ? "Magnitude" : "Phase")
+           << " may only be filled for a single channel." << endl;
+        return ret.setStatus(5);
+    }
     string ytitl = "Phase";
     if ( doMag ) {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, "Amplitude% [SUNIT]%");
@@ -293,15 +340,22 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
     }
     if ( m_NBinX == 0 ) {
-      cout << myname << "Invalid bin count: " << m_NBinX << endl;
-      return ret.setStatus(2);
+      cout << myname << "ERROR: Invalid bin count: " << m_NBinX << endl;
+      return ret.setStatus(6);
     }
-    // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
-    double delx = 1.e-5*xmax;
-    double x1 = xmin + delx;
-    double x2 = xmax + delx;
-    xmax = xmin;
-    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, x1, x2);
+    double xmin = m_XMin;
+    double xmax = m_XMax;
+    if ( xmin >= xmax ) {
+      xmin = 0.0;
+      xmax = (nmag-1)*xFac;
+      // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
+      if ( m_shiftFreq0 ) {
+        double delx = 1.e-5*xmax;
+        xmin += delx;
+        xmax += delx;
+      }
+    }
+    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, xmin, xmax);
     ph->SetDirectory(nullptr);
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
@@ -337,11 +391,12 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
 
 int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   const string myname = "AdcChannelDftPlotter::fillPad: ";
+  const bool dbg = false;
   TGraph* pg = dm.getGraph("dftGraph");
   TH1* ph = dm.getHist("dftHist");
   float yValMax = dm.getFloat("dftYValMax");
   bool doPha = m_Variable == "phase";
-  bool doPwr = m_Variable == "power";
+  //bool doPwr = m_Variable == "power";
   bool doPwt = m_Variable == "power/tick";
   string dopt = dm.getString("dftDopt");
   bool logy = false;
@@ -385,51 +440,87 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
       if ( icr > 0 ) dopt += " same";
       int icol = LineColors::color(icr, ncr);
       ph->SetLineColor(icol);
+      if ( dbg ) cout << myname << "DEBUG: Color[" << icr << "] = " << icol << ", dopt = " << dopt << endl;
     }
     man.add(ph, dopt);
   } else {
     cout << myname << "ERROR: Neither hist or graph is defined." << endl;
     return 1;
   }
+  if ( dbg ) cout << myname << "DEBUG: CR " << icr << "/" << ncr << endl;
+  // Build the descriptor strings.
+  string snevt;
+  if ( dm.haveInt("dftEventCount") ) {
+    ostringstream ssout;
+    ssout << "N_{ev} = " << dm.getInt("dftEventCount");
+    snevt = ssout.str();
+  }
+  string sncha;
+  {
+    ostringstream ssout;
+    ssout.precision(1);
+    if ( dm.haveFloat("dftChanPerEventCount") ) {
+      ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+    } else {
+      ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+    }
+    sncha = ssout.str();
+  }
+  string spow;
+  if ( doPwt ) {
+    ostringstream ssout;
+    double sum = ph->Integral(0, ph->GetNbinsX()+1);
+    ssout.precision(2);
+    ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
+    spow = ssout.str();
+  }
   // If this is the last object added to the plot.
   if ( lastCR ) {
+    if ( dbg ) cout << myname << "DEBUG: Closing plot." << endl;
     man.addAxis();
     if ( xmax > xmin ) man.setRangeX(xmin, xmax);
     if ( ymax > ymin ) man.setRangeY(ymin, ymax);
-    if ( doPwr || doPwt ) man.showUnderflow();
+    if ( m_shiftFreq0 ) man.showUnderflow();
     if ( logy ) man.setLogY();
     if ( logy ) man.setGridY();
-    if ( doPwt && ! manyCR ) {
-      ostringstream ssout;
-      ssout.precision(2);
+    double textSize = 0.04;
+    int textFont = 42;
+    if ( ! manyCR ) {
       double xlab = 0.70;
-      double ylab = 0.80;
-      double dylab = 0.05;
-      double sum = ph->Integral(0, ph->GetNbinsX()+1);
-      ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
-      TLatex* ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-      ptxt->SetNDC();
-      ptxt->SetTextFont(42);
-      man.add(ptxt);
-      ylab -= dylab;
-      ssout.str("");
-      if ( dm.haveFloat("dftChanPerEventCount") ) {
-        ssout.precision(1);
-        ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
-      } else {
-        ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
-      }
-      ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
-      ptxt->SetNDC();
-      ptxt->SetTextFont(42);
-      man.add(ptxt);
-      if ( dm.haveInt("dftEventCount") ) {
-        ylab -= dylab;
-        ssout.str("");
-        ssout << "N_{ev} = " << dm.getInt("dftEventCount");
-        ptxt = new TLatex(xlab, ylab, ssout.str().c_str());
+      double ylab = 0.85;
+      double dylab = 1.2*textSize;
+      if ( spow.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, spow.c_str());
         ptxt->SetNDC();
-        ptxt->SetTextFont(42);
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+      if ( sncha.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, sncha.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+      if ( snevt.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, snevt.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+    } else {
+      double xlab = 0.35;
+      double ylab = 0.85;
+      if ( snevt.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, snevt.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
         man.add(ptxt);
       }
     }
@@ -439,20 +530,22 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     TObject* pobj = man.object();
     Name lopt = pg == nullptr ? "l" : "p";
     if ( icr == 0 ) {
-      double xlmin = 0.75;
-      double xlmax = 0.90;
+      double xlmin = 0.55;
+      double xlmax = 0.93;
       double ylmax = 0.90;
       double ylmin = ylmax - 0.05*(ncr+0.5);
       if ( ylmin < 0.40 ) ylmin = 0.40;
       man.addLegend(xlmin, ylmin, xlmax, ylmax);
     } else {
-      pobj = man.object(icr - 1);
+      pobj = man.object(icr);
     }
     TLegend* pleg = man.getLegend();
     if ( pleg == nullptr ) {
       cout << myname << "ERROR: Legend not found." << endl;
     } else {
       Name slab = dm.getString("dftCRLabel");
+      if ( spow.size() ) slab += " " + spow;
+      if ( sncha.size() ) slab += " " + sncha;
       pleg->AddEntry(pobj, slab.c_str(), lopt.c_str());
     }
   }

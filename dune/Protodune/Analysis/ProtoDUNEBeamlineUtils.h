@@ -83,6 +83,8 @@ namespace protoana {
 
     void reconfigure(fhicl::ParameterSet const &pset);
 
+    const beam::ProtoDUNEBeamEvent GetBeamEvent(art::Event const & evt);
+
     void GetFibers( art::Event const & evt); 
     void GetCurrent( art::Event const & evt);
 
@@ -247,6 +249,7 @@ namespace protoana {
 
     double fBeamBend;
     double L1, L2, L3;
+    double fBProf1Shift, fBProf2Shift, fBProf3Shift;
 
     //Hardware Parameters for magnetic field stuff
     double mag_P1 = 5.82044830e-3;

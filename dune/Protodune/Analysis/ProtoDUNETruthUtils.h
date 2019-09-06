@@ -107,6 +107,16 @@ namespace protoana {
     std::vector<std::pair<const simb::MCParticle*, double>> GetMCParticleListFromReco
       (const recob::Shower &shower, art::Event const &evt, std::string showerModule) const;
 
+    // Match Reco to True by Number of Hits contributed as opposed to Energy contributed
+    template <typename T>
+    std::vector< std::pair< const simb::MCParticle*, size_t > > GetMCParticleListByHits
+      (const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const;
+
+    template <typename T>
+    const simb::MCParticle * GetMCParticleByHits
+      (const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const;
+
+
     const simb::MCParticle* MatchPduneMCtoG4( const simb::MCParticle & pDunePart, const art::Event & evt );
     const simb::MCParticle* GetGeantGoodParticle(const simb::MCTruth &genTruth, const art::Event &evt) const;
 
@@ -138,10 +148,18 @@ namespace protoana {
     // It takes the particle's energy at the next to the final trajectory point and subtracts the estimated kinetic energy of the last trajectory point (by default is zero)
     double GetKinEnergyAtVertex(const simb::MCParticle& mcpart, double kinene_lastpoint=0.0);
 
+
+    // Get the sim::IDEs from the MCParticle, organized by the trajectory points
+    std::map< size_t, std::vector< const sim::IDE * > > GetSimIDEs( const simb::MCParticle & mcpart );
+
   private:
 
 
   };
+
+  bool sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
+    return( i1->z < i2->z ); 
+  }
 
 }
 

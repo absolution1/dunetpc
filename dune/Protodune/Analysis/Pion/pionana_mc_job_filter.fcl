@@ -1,7 +1,7 @@
 #include "PionAnalyzerMC.fcl"
 #include "services_dune.fcl"
-
-
+#include "ProtoDUNETruthBeamFilter.fcl"
+#include "PionAbsCexSelection.fcl"
 
 process_name: PionAna
 
@@ -19,7 +19,6 @@ services:
   ChannelStatusService:         @local::pdsp_channel_status
 }
 services.message.destinations.LogStandardOut.threshold: "INFO"
-services.Geometry: @local::protodunev6_geo
 
 source:
 {
@@ -35,6 +34,12 @@ physics:
  
  }
 
+ filters: { 
+   f1: @local::pion_abscex_filter
+ }
+
+ fpath: [f1]
+
  analyzers:
  {
   pionana:          @local::pionanalysis
@@ -42,12 +47,10 @@ physics:
  
  ana:  [ pionana ]
 
- #stream1: [ out1 ]
- 
  end_paths:     [ ana ]
 
 }
 
 outputs: {}
-physics.analyzers.pionana.SelectEvents: []
-physics.analyzers.pionana.NSliceCheck: 3
+
+physics.analyzers.pionana.SelectEvents: [fpath]

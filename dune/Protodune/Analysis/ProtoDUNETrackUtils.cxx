@@ -3,11 +3,14 @@
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "lardataobj/RecoBase/Hit.h"
+#include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 
 #include "TFile.h"
 #include "TH1F.h"
+
+#include <string>
 
 protoana::ProtoDUNETrackUtils::ProtoDUNETrackUtils(){
 
@@ -140,7 +143,17 @@ std::vector< float >  protoana::ProtoDUNETrackUtils::CalibrateCalorimetry(  cons
   double calib_factor = ps.get< double >( "calib_factor" );
   std::string X_correction_name = ps.get< std::string >( "X_correction" );
   TFile X_correction_file = TFile( X_correction_name.c_str(), "OPEN" );
-  TH1F * X_correction_hist = (TH1F*)X_correction_file.Get( "dqdx_X_correction_hist" );
+  TH1F * X_correction_hist = NULL;
+
+  bool UseNewVersion = ps.get< bool >( "UseNewVersion", false );
+  if( UseNewVersion ){
+    std::string hist_name = "dqdx_X_correction_hist_" + std::to_string(planeID);
+    X_correction_hist = (TH1F*)X_correction_file.Get( hist_name.c_str() );
+    
+  }
+  else{
+    X_correction_hist = (TH1F*)X_correction_file.Get( "dqdx_X_correction_hist" );
+  }
 
 
   std::vector< float > calibrated_dEdx;
@@ -446,6 +459,72 @@ std::pair< double, int > protoana::ProtoDUNETrackUtils::Chi2PID( const std::vect
     return std::make_pair(9999., -1);
   
     
-  pid_chi2 = pid_chi2 / npt;
+
   return std::make_pair(pid_chi2, npt); 
+}
+
+//std::map< size_t, std::vector< const recob::Hit * > > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
+std::map< size_t, const recob::Hit * > protoana::ProtoDUNETrackUtils::GetRecoHitsFromTrajPoints(const recob::Track & track, art::Event const & evt, std::string trackModule){
+
+   auto recoTracks = evt.getValidHandle< std::vector< recob::Track > >(trackModule);
+   art::FindManyP< recob::Hit, recob::TrackHitMeta >  trackHitMetas(recoTracks,evt,trackModule);
+   art::FindManyP< recob::Hit > findHits(recoTracks,evt,trackModule);
+
+   std::vector< art::Ptr< recob::Hit > > track_hits = findHits.at( track.ID() );
+
+
+   //First, find the location of the beam track in the track list
+   size_t beam_index = 0;
+   for( size_t i = 0; i < recoTracks->size(); ++i ){
+     if( (*recoTracks)[i].ID() == track.ID() ){
+       beam_index = i;
+       break;
+     }        
+   }
+
+
+   //std::map< size_t, std::vector< const recob::Hit * > > results;
+   std::map< size_t, const recob::Hit * > results;
+   if( trackHitMetas.isValid() ){
+
+     auto beamHits  = trackHitMetas.at( beam_index );
+     auto beamMetas = trackHitMetas.data( beam_index );    
+
+     for( size_t i = 0; i < beamHits.size(); ++i ){
+
+       if( beamMetas[i]->Index() == std::numeric_limits<int>::max() )
+         continue;
+
+       if( !track.HasValidPoint( beamMetas[i]->Index() ) ){
+         std::cout << "Has no valid hit: " << beamMetas[i]->Index() << std::endl;
+         continue;
+       }
+
+       //results[ beamMetas[i]->Index() ] = std::vector< const recob::Hit * >();
+
+       for( size_t j = 0; j < track_hits.size(); ++j ){
+
+         //if( track_hits[j]->WireID().Plane == 2 ){//Look at just the collection plane
+
+           if( beamHits[i].key() == track_hits[j].key() ){
+
+             if( beamMetas[i]->Index() >= track.NumberTrajectoryPoints() ){
+               throw cet::exception("ProtoDUNETrackUtils.cxx") 
+                     << "Requested track trajectory index " << beamMetas[i]->Index() 
+                     << " exceeds the total number of trajectory points "<< track.NumberTrajectoryPoints() 
+                     << " for track index " << beam_index 
+                     << ". Something is wrong with the track reconstruction. Please contact tjyang@fnal.gov";
+             }
+
+             //If we've reached here, it's a good hit within the track. Connect to the trajectory point
+             //results[ beamMetas[i]->Index() ].push_back( track_hits[j].get() ); 
+             results[ beamMetas[i]->Index() ] = track_hits[j].get(); 
+           }
+         //}
+       }
+     }
+
+   }
+   return results;
+   
 }

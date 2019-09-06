@@ -17,7 +17,7 @@
 //
 // Each plot file shows up to NX*NY channels in a NY x NX array.
 // The overall plot size is YSize pixels by XSize pixels or Root
-// defualt (500 x 700?) if either is zero.
+// default (500 x 700?) if either is zero.
 //
 // Configuration (XXX is prefix supplied in ctor):
 //   LogLevel  - Logging opt (0=none, 1=init only, 2=every call, ...)
@@ -88,7 +88,9 @@ public:
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
   //          Subclass can use man.haveHistOrGraph() to see if it has previously filled the pad.
-  virtual int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const =0;
+  //    ncr - # channel ranges in this plot
+  //    icr - index of the channel ranges in this plot
+  virtual int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const =0;
 
   // Subclass provides this method to process the channels in one range for a summary plot,
   // i.e. combining data from preceding view calls.
@@ -97,8 +99,9 @@ public:
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
   //          Subclass can use man.haveHistOrGraph() or icrn to see if it has previously filled the pad.
-  //   ncrnPlotted - # ranges already included on this pad. Used to identify the first and last.
-  virtual int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncrnPlotted) const =0;
+  //    ncr - # channel ranges in this plot
+  //    icr - index of the channel ranges in this plot
+  virtual int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const =0;
 
   // Provide read access to configuration.
   Index getLogLevel() const { return m_LogLevel; }
@@ -113,6 +116,9 @@ public:
   Index getPlotSizeY() const { return m_PlotSizeY; }
   Index getPlotSplitX() const { return m_PlotSplitX; }
   Index getPlotSplitY() const { return m_PlotSplitY; }
+
+  // Return the channel groups.
+  const IndexRangeGroup& getChannelGroup(Name cgn) const;
 
 private:
 
