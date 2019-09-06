@@ -173,7 +173,10 @@ viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) c
     ph->SetDirectory(nullptr);
     Name htitl = m_HistSummaryTitle;
     StringManipulator smanTitl(htitl);
+    Name cglab = getChannelGroup(cgn).label();
+    if ( cglab.size() == 0 ) cglab = cgn;
     smanTitl.replace("%CGNAME%", cgn);
+    smanTitl.replace("%CGLABEL%", cglab);
     smanTitl.replace("%CRNAME%", crn);
     smanTitl.replace("%RUN%", getBaseState().run());
     ph->SetTitle(htitl.c_str());

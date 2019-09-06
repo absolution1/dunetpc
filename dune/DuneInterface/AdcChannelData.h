@@ -186,7 +186,10 @@ inline void AdcChannelData::clear() {
   run = badIndex;
   subRun = badIndex;
   event = badIndex;
+  time = 0;
+  timerem = 0;
   channel = badIndex;
+  channelStatus = badIndex;
   fembID = badIndex;
   fembChannel = badIndex;
   trigger = badIndex;
@@ -199,14 +202,15 @@ inline void AdcChannelData::clear() {
   flags.clear();
   signal.clear();
   rois.clear();
+  sampleUnit = "";
   dftmags.clear();
   dftphases.clear();
   digit = nullptr;
   wire = nullptr;
-  digitIndex = badIndex;
-  wireIndex = badIndex;
   dftmags.clear();
   dftphases.clear();
+  digitIndex = badIndex;
+  wireIndex = badIndex;
   metadata.clear();
 }
 

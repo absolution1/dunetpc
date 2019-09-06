@@ -117,6 +117,9 @@ public:
   Index getPlotSplitX() const { return m_PlotSplitX; }
   Index getPlotSplitY() const { return m_PlotSplitY; }
 
+  // Return the channel groups.
+  const IndexRangeGroup& getChannelGroup(Name cgn) const;
+
 private:
 
   // Configuration data.
