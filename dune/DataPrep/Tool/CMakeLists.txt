@@ -308,6 +308,14 @@ simple_plugin(RemoveBadChannels   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcRoiSlicer   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 install_source()
 
