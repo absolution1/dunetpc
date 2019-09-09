@@ -218,22 +218,17 @@ namespace dune{
 
   void michelremoving::analyze( const art::Event& evt){
     reset();  
-    /*     int sum=0;
-	for(int j=0;j<60000;j++){
-	for(int i=0;i<100000;i++){
-	sum=i+i;
-	}
-	}
-	cout<<sum<<endl;
-    */
     art::Handle< std::vector<recob::Track> > trackListHandle;
-    art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
-   
     std::vector<art::Ptr<recob::Track> > tracklist;
+    if(evt.getByLabel("pandoraTrack",trackListHandle)){
+      art::fill_ptr_vector(tracklist, trackListHandle);
+    }
+    else return;
+    art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
     std::vector<art::Ptr<recob::PFParticle> > pfplist;
 
 
-    if(evt.getByLabel(fTrackModuleLabel,trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
+    
     if(evt.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
   
     /******new lines*************************/
