@@ -80,6 +80,9 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
   assert( data.rois.size() == 0 );
   assert( data.samples[30] = 150 );
   AdcChannelData data0 = data;
+  data0.signal  = data.signal;
+  data0.rois    = data.rois;
+  data0.samples = data.samples;
 
   cout << myname << line << endl;
   cout << myname << "Running tool." << endl;

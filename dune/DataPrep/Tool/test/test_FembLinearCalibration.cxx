@@ -90,7 +90,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   }
   int w = 8;
   Index nsam = acd0.raw.size();
-  for ( auto ient : acds ) {
+  for ( auto& ient : acds ) {
     AdcChannel icha = ient.first;
     AdcChannelData& acd = ient.second;
     AdcSignalVector sigchk(nsam);

@@ -129,8 +129,10 @@ public:
     return devt;
   }
 
-  // Copy only copies event and channel data.
-  // Root dictionary (6.08/06) and STL require we keep copy.
+  // Copy ctor.
+  // Only copy event and channel data and not samples and
+  // derived data.
+  // Root dictionary (6.08/06) and AdcChannelDataMap (STL) require we keep copy.
   AdcChannelData(const AdcChannelData& rhs) {
     run           = rhs.run;
     subRun        = rhs.subRun;

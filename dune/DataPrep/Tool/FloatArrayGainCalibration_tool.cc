@@ -47,6 +47,7 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
 DataMap FloatArrayGainCalibration::view(const AdcChannelData& acd) const {
   DataMap result;
   AdcChannelData acdtmp(acd);
+  acdtmp.raw = acd.raw;
   return update(acdtmp);
 }
 
