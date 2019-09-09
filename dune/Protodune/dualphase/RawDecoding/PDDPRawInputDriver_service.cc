@@ -42,7 +42,8 @@
 //
 namespace 
 {
-  void unpackCroData( const char *buf, size_t nb, bool cflag, unsigned nsa, adcbuf_t &data )
+  void unpackCroData( const char *buf, size_t nb, bool cflag, 
+		      unsigned nsa, unsigned offset, adcbuf_t &data )
   {
     //data.clear();
     if( !cflag ) // unpack the uncompressed data into RawDigit
@@ -59,7 +60,18 @@ namespace
 	    
 	    uint16_t tmp1 = ((v1 << 4) + ((v2 >> 4) & 0xf)) & 0xfff;
 	    uint16_t tmp2 = (((v2 & 0xf) << 8 ) + (v3 & 0xff)) & 0xfff;
-
+	    
+	    if( offset > 0 ) // invert baseline: tmp fix for the signal inversion
+	      {
+		float ftmp1 = offset - tmp1;
+		if( ftmp1 < 0 ) ftmp1 = 0;
+		tmp1 = (uint16_t)(ftmp1);
+		
+		float ftmp2 = offset - tmp2;
+		if( ftmp2 < 0 ) ftmp2 = 0;
+		tmp2 = (uint16_t)(ftmp2);
+	      }
+	    
 	    if( sz == nsa ){ data.push_back(raw::RawDigit::ADCvector_t(nsa)); sz = 0; }
 	    data.back()[sz++] = (short)tmp1;
 	    
@@ -116,6 +128,7 @@ namespace lris
     __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "daq");
     __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "daq");
     __output_inst   = pset.get<std::string>("OutputInstance", "");
+    __invped        = pset.get<unsigned>("InvertBaseline", 0);
 
     helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
     helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
@@ -516,11 +529,12 @@ namespace lris
     // 
     std::mutex iomutex;
     std::vector<std::thread> threads(frags.size() - 1);
-    unsigned nsa = __nsacro;
+    unsigned nsa    = __nsacro;
+    unsigned invped = __invped;
     for (unsigned i = 1; i<frags.size(); ++i) 
       {
 	auto afrag = frags.begin() + i;
-	threads[i-1] = std::thread([&iomutex, i, nsa, afrag] {
+	threads[i-1] = std::thread([&iomutex, i, nsa, invped, afrag] {
 	    {
 	      std::lock_guard<std::mutex> iolock(iomutex);
 	      // make it look like we're using i so clang doesn't complain.  This had been commented out
@@ -529,7 +543,7 @@ namespace lris
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
-			   GETDCFLAG(afrag->ei.runflags), nsa, afrag->crodata );
+			   GETDCFLAG(afrag->ei.runflags), nsa, invped, afrag->crodata);
 	  });
       }
   
@@ -548,7 +562,7 @@ namespace lris
   
     //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
     unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.runflags),
-		   nsa, event.crodata );
+		   nsa, invped, event.crodata );
     
     event.compression = raw::kNone;
     // the compression should be set for all L1 event builders, 

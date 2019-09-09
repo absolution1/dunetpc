@@ -100,6 +100,9 @@ namespace lris
 
     // number of uncompressed samples per channel
     size_t __nsacro;
+    
+    // ped inversion to deal with the inverted signal polarity
+    unsigned __invped; 
 
     // close binary file
     void __close();
