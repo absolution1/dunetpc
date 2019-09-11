@@ -18,9 +18,13 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "canvas/Utilities/InputTag.h"
 
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardataobj/RecoBase/SpacePoint.h"
+#include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/RecoBase/OpFlash.h"
 
 namespace mpf{
   class MissingProductFilter;
@@ -34,7 +38,6 @@ public:
   
   void beginJob() override;
   bool filter(art::Event& evt) override;
-  bool beginRun(art::Run& r) override;
   void endJob() override;
 
 private:
@@ -46,7 +49,7 @@ private:
 mpf::MissingProductFilter::MissingProductFilter(fhicl::ParameterSet const& pset):
   EDFilter(pset)
 {
-  fModules = pset.get<std::vector<std::string>>("HitModule");
+  fModules = pset.get<std::vector<std::string>>("Modules");
 }
 
 //-----------------------------------------------------------------------
@@ -56,57 +59,46 @@ mpf::MissingProductFilter::~MissingProductFilter(){}
 void mpf::MissingProductFilter::beginJob() {}
 
 //-----------------------------------------------------------------------
-bool mpf::MissingProductFilter::beginRun(art::Run& r){
-  if (fScaleThresholdForReadoutWindow){
-    unsigned int fSize = art::ServiceHandle<detinfo::DetectorPropertiesService const>{}->provider()->ReadOutWindowSize();
-    fHitLimit = (unsigned int)(fHitLimit*fSize/6000.);
-    std::cout<<"Scale HitLimit based on readout window size "<<fSize<<std::endl;
-    std::cout<<"HitLimit = "<<fHitLimit<<std::endl;
-  }
-  return true;
-}
-
-//-----------------------------------------------------------------------
 bool mpf::MissingProductFilter::filter(art::Event& evt){
 
+  bool prodMissing = false;
+
+  // Can we do it all together?
   for(const std::string &s : fModules){
 
     try{
-      auto product = evt.get
-    }
-
-  }
-
-
-  // Get the mpf collection from the event 
-  auto allHits = evt.getValidHandle<std::vector<recob::Hit> >(fHitModule);  
- 
-  bool result = true;
-
-  if(fLimitPerTPC){
-    // Find the number of mpfs per TPC and then filter based on a large value
-    std::map<unsigned int,unsigned int> mpfsPerTPC;
-
-    for(auto const mpf : *allHits){
-      mpfsPerTPC[mpf.WireID().TPC]++;
-    }
-    
-    for(auto const m:  mpfsPerTPC){
-      if(m.second > fHitLimit){
-        result = false;
-        break;
+      if(s == "reco3d"){
+        evt.getValidHandle<std::vector<recob::SpacePoint>>(s);
+      }
+      else if(s == "pandora"){
+        evt.getValidHandle<std::vector<recob::PFParticle>>(s);
+      }
+      else if(s == "pandoraTrack"){
+        evt.getValidHandle<std::vector<recob::Track>>(s);
+      }
+      else if(s == "pandoraShower"){
+        evt.getValidHandle<std::vector<recob::Shower>>(s);
+      }
+      else if(s == "opflash" || s == "opflashInternal" || s == "opflashExternal"){
+        evt.getValidHandle<std::vector<recob::OpFlash>>(s);
+      }
+      else{
+        std::cerr << "Product " << s << " is not considered by the module and will be ignored." << std::endl;
       }
     }
-  }
-  else{
-    // This is the simplest thing we can do, just cut on the total number of mpfs
-    if (allHits->size() > fHitLimit){
-      result = false;
+    catch(...){
+      prodMissing = true;
+      std::cout << "Product " << s << " is missing. Event will be filtered out." << std::endl;
+      break;
     }
+
   }
 
+  if(!prodMissing){
+    std::cout << "All products present, keeping this event" << std::endl;
+  }
+  return !prodMissing;
 
-  return result;
 }
 
 void mpf::MissingProductFilter::endJob() {}

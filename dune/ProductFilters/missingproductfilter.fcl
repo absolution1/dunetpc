@@ -1,13 +1,10 @@
 BEGIN_PROLOG
 
 
-standard_numberofhitsfilter:
+standard_missingproductfilter:
 {
- module_type:     "NumberOfHitsFilter"
- LimitPerTPC: true
- HitModule:   "gaushit"
- HitLimit:    40000
- ScaleThresholdForReadoutWindow: true
+ module_type:     "MissingProductFilter"
+ Modules:   ["reco3d","pandoraTrack"]
 }
 
 END_PROLOG
