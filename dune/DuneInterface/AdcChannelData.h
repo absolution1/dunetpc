@@ -211,7 +211,6 @@ public:
   // Return the number of views.
   size_t viewSize() const { return m_views.size(); }
 
-    NameVector vnams;
   // Return the vector of available view names.
   NameVector viewNames() const {
     NameVector vnams;
@@ -240,6 +239,26 @@ public:
     return m_views[vnam];
   }
 
+  // Return the number of entries for a specified view.
+  // Allows this object to be referenced as view "", entry 0.
+  AdcIndex viewSize(Name vnam) const {
+    if ( vnam.size() == 0 ) return 1;
+    return view(vnam).size();
+  }
+
+  // Return the channel data for a view entry.
+  // Blank view, entry 0 returns this object.
+  const AdcChannelData& viewEntry(Name vnam, AdcIndex ient) const {
+    static const AdcChannelData badAcd;
+    if ( vnam.size() == 0 ) {
+      if ( ient == 0 ) return *this;
+      else return badAcd;
+    }
+    const View& myview = view(vnam);
+    if ( ient < myview.size() ) return myview[ient];
+    return badAcd;
+  }
+  
 };
 
 //**********************************************************************
