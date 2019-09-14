@@ -39,6 +39,7 @@
 //
 //         views - Map of vectors of AdcChannelData providing alternative representations of this data.
 //                 E.g. non-contiguous time samples, processing snapshot or alternative, ....
+//                 Each object has self view with name "" holding only itself.
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -209,9 +210,11 @@ public:
   static AdcIndex dftNormalization() { return 22; }
 
   // Return the number of views.
+  // This does not include the self view.
   size_t viewSize() const { return m_views.size(); }
 
   // Return the vector of available view names.
+  // This does not include the self view.
   NameVector viewNames() const {
     NameVector vnams;
     for ( ViewMap::value_type ivie : m_views ) {
@@ -221,11 +224,14 @@ public:
   }
 
   // Return if a view is defined.
+  // This includes the self view.
   bool hasView(Name vnam) const {
+    if ( vnam.size() == 0 ) return true;
     return m_views.find(vnam) != m_views.end();
   }
 
   // Read a view. Empty if undefined.
+  // This does not include the self view.
   const View& view(Name vnam) const {
     static const View empty;
     ViewMap::const_iterator ivie = m_views.find(vnam);
@@ -235,19 +241,20 @@ public:
  
   // Obtain a mutable view. Entries may be added, removed or modified.
   // View is added if not already existing.
+  // This should not be called for the self view.
   View& updateView(Name vnam) {
     return m_views[vnam];
   }
 
   // Return the number of entries for a specified view.
-  // Allows this object to be referenced as view "", entry 0.
+  // This includes the self view.
   AdcIndex viewSize(Name vnam) const {
     if ( vnam.size() == 0 ) return 1;
     return view(vnam).size();
   }
 
   // Return the channel data for a view entry.
-  // Blank view, entry 0 returns this object.
+  // This includes the self view.
   const AdcChannelData& viewEntry(Name vnam, AdcIndex ient) const {
     static const AdcChannelData badAcd;
     if ( vnam.size() == 0 ) {

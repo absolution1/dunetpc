@@ -102,6 +102,7 @@ private:
   // if the variable is power.
   //   counts: # calls for each channel range
   //   nchans: summed # channels for each channel range
+  //   nvens: summed # view entries for each channel range
   //    hists: histogram with sum over calls for each channel range
   //
   using IndexMap = std::map<Name, Index>;  
@@ -119,6 +120,10 @@ private:
       if ( ! nchans.count(crn) ) nchans[crn] = 0;
       return nchans[crn];
     }
+    Index& nviewentry(Name crn) {
+      if ( ! nvens.count(crn) ) nvens[crn] = 0;
+      return nvens[crn];
+    }
     TH1*& hist(Name crn) {
       if ( ! hists.count(crn) ) hists[crn] = nullptr;
       return hists[crn];
@@ -133,6 +138,7 @@ private:
     }
     IndexMap counts;
     IndexMap nchans;
+    IndexMap nvens;
     HistMap hists;
     // Curent event and CRNs for the event.
     Index event = 0;

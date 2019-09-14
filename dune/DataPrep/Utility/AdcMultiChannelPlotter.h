@@ -24,6 +24,7 @@
 //   XXXChannelRanges - Channel ranges.
 //   XXXChannelGroups - Channel range groups.
 //   XXXOverlayGroups - Flag indicating if ranges in a group appear on the same pad.
+//   XXXDataView - Data view to plot ("" = top)
 //   XXXName        - Name for the multi-plot event file
 //   XXXSummaryName - Name for the multi-plot summary file
 //   XXXSizeX       - XSize in pixels of the multi-plot file.
@@ -84,6 +85,7 @@ public:
   void viewSummary() const;
 
   // Subclass provides this method to process the channels in one range from one call to view.
+  // If a data view has been specified, then there be zero, one or one data ovject for each channel.
   //    crn - Name for this set of channels
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
@@ -105,6 +107,7 @@ public:
 
   // Provide read access to configuration.
   Index getLogLevel() const { return m_LogLevel; }
+  Name getDataView() const { return m_PlotDataView; }
   const NameVector& getChannelRangeNames() const { return m_PlotChannelRanges; }
   const NameVector& getChannelGroupNames() const { return m_PlotChannelGroups; }
   bool haveChannelRanges() const { return getChannelRangeNames().size(); }
@@ -127,6 +130,7 @@ private:
   NameVector m_PlotChannelRanges;
   NameVector m_PlotChannelGroups;
   Index m_PlotOverlayGroups;
+  Name  m_PlotDataView;
   Name  m_PlotName;
   Name  m_PlotSummaryName;
   Index m_PlotSizeX;
