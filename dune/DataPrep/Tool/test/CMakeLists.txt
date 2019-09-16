@@ -451,4 +451,18 @@ cet_test(test_FembMappedAdcModifier
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcRoiSlicer
+  SOURCES
+    test_AdcRoiSlicer.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_enable_asserts()

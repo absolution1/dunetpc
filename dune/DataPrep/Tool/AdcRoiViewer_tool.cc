@@ -609,7 +609,7 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
   dms.reserve(ndm);
   Index nroiLimit = save ? 1000 : 1000; // Clear cache after we get this many ROIs.
   Index nroiCached = 0;
-  for ( AdcChannelDataMap::value_type iacd : acds ) {
+  for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     const AdcChannelData& acd = iacd.second;
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Processing channel " << acd.channel
@@ -984,7 +984,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
 
 //**********************************************************************
 
-void AdcRoiViewer::fillSumHists(const AdcChannelData acd, const DataMap& dm) const {
+void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) const {
   const string myname = "AdcRoiViewer::fillSumHists: ";
   // Fetch the run data.
   RunData rdat;

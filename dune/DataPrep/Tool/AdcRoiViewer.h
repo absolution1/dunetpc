@@ -291,7 +291,7 @@ public:
   State& getState() const { return *m_state; }
 
   // Fill the summary histograms for one channel.
-  void fillSumHists(const AdcChannelData acd, const DataMap& dm) const;
+  void fillSumHists(const AdcChannelData& acd, const DataMap& dm) const;
 
   // Fit the summary histograms to the summary Root file.
   void fitSumHists() const;

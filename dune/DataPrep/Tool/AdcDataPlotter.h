@@ -8,6 +8,7 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal
+//   DataView - Which view to use: "" for top, xxx merges everything from xxx
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
 //               If blank or not defined, the full range is used.
@@ -98,24 +99,25 @@ private:
   // Configuration data.
   int            m_LogLevel;
   int            m_DataType;
-  std::string    m_TickRange;
+  Name           m_DataView;
+  Name           m_TickRange;
   Index          m_TickRebin;
   NameVector     m_ChannelRanges;
   IntVector      m_FembTickOffsets;
-  std::string    m_OnlineChannelMapTool;
+  Name           m_OnlineChannelMapTool;
   double         m_MaxSignal;
   bool           m_SkipBadChannels;
   Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   int            m_Palette;
-  std::string    m_HistName;
-  std::string    m_HistTitle;
-  std::string    m_PlotTitle;
+  Name           m_HistName;
+  Name           m_HistTitle;
+  Name           m_PlotTitle;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
-  std::string    m_PlotFileName;
-  std::string    m_RootFileName;
+  Name           m_PlotFileName;
+  Name           m_RootFileName;
 
   // Derived configuration data.
   IndexRange m_tickRange;
