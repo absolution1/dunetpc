@@ -215,7 +215,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         Index ndve = acd.viewSize(getDataView());
         for ( Index idve=0; idve<ndve; ++idve ) {
-           acdvec.push_back(&acd.viewEntry(getDataView(), idve));
+           acdvec.push_back(acd.viewEntry(getDataView(), idve));
         }
         ++ncha;
       }
