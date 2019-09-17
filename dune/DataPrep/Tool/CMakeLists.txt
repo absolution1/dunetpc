@@ -31,6 +31,13 @@ simple_plugin(AdcChannelTrimmer  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcChannelSplitter  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
                 dune_DuneCommon

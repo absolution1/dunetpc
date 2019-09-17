@@ -1,7 +1,7 @@
 // AdcChannelTrimmer.h
 
 // David Adams
-// May 201918
+// May 2019
 //
 // Tool to trim or pad the ADC samples to a fixed length. If longer,
 // later samples are dropped. If shorter, samples at the start are
