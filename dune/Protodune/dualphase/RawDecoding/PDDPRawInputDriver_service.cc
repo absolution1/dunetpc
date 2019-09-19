@@ -127,13 +127,21 @@ namespace lris
     __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "daq");
     __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "daq");
     __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "daq");
-    __output_inst   = pset.get<std::string>("OutputInstance", "");
+    
+    __prodlbl_digits = __getProducerLabel( __outlbl_digits );
+    __prodlbl_rdtime = __getProducerLabel( __outlbl_rdtime );
+    __prodlbl_status = __getProducerLabel( __outlbl_status );
+    
     __invped        = pset.get<unsigned>("InvertBaseline", 0);
 
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
-    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
+    //
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits,
+								   __prodlbl_digits);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status,
+								   __prodlbl_status);
     helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__outlbl_rdtime,
-								      __output_inst);
+								      __prodlbl_rdtime );
+    
     
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
@@ -161,7 +169,7 @@ namespace lris
   {
     __close();
   }
-   
+
   //
   void PDDPRawInputDriver::readFile( std::string const &name,
 				     art::FileBlock* &fb )
@@ -275,15 +283,14 @@ namespace lris
     
     for( size_t i=0;i<event.crodata.size();i++ )
       {
-	// This ch Id is based on the order the channel data are stored in file (always the same)
-	raw::ChannelID_t ch = i; 
 	if( i >= __daqch.size() )
 	  {
 	    mf::LogError(__FUNCTION__)<<"The channel map appears to be wrong";
 	    break;
 	  }
 	unsigned daqch = __daqch[i];
-	// raw digit
+	raw::ChannelID_t ch = i; //daqch; 
+	// raw digit 
 	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
 					   std::move( event.crodata[daqch] ), 
 					   event.compression) );
@@ -312,12 +319,27 @@ namespace lris
     uint16_t rdtsflags = 0xd; // CRT for now
     cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
 
-    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __output_inst);
-    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __output_inst);
-    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __output_inst);
+    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __prodlbl_digits);
+    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __prodlbl_status);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __prodlbl_rdtime);
     
     return true;
   }
+  
+  //
+  // split output container name configuration into label and instance
+  std::string PDDPRawInputDriver::__getProducerLabel( std::string &lbl )
+  {
+    std::string res = "";
+    size_t ipos = lbl.find(":");
+    if ( ipos != std::string::npos ) {
+      res = lbl.substr(ipos + 1);
+      lbl = lbl.substr(0, ipos);
+    }
+    
+    return res;
+  }
+
   
 
   //

@@ -7,7 +7,7 @@
 // later samples are dropped. If shorter, samples at the start are
 // appended to the end.
 //
-// If the 3 samples to trim or pad exceeds a threshold, no action is taken
+// If the # samples to trim or pad exceeds a threshold, no action is taken
 // and an error message is broadcast.
 //
 // Configuration:

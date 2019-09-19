@@ -158,6 +158,7 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
@@ -180,6 +181,7 @@ tools.signalAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
@@ -202,6 +204,7 @@ tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []

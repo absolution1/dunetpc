@@ -21,6 +21,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
   m_PlotChannelRanges(ps.get<NameVector>(prefix + "ChannelRanges")),
   m_PlotChannelGroups(ps.get<NameVector>(prefix + "ChannelGroups")),
   m_PlotOverlayGroups(ps.get<Index>(prefix + "OverlayGroups")),
+  m_PlotDataView(ps.get<Name>(prefix + "DataView")),
   m_PlotName(ps.get<Name>(prefix + "Name")),
   m_PlotSummaryName(ps.get<Name>(prefix + "SummaryName")),
   m_PlotSizeX(ps.get<Index>(prefix + "SizeX")),
@@ -47,6 +48,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
     }
     cout << "]" << endl;
     cout << myname << "  " << prefix << "OverlayGroups: " << m_PlotOverlayGroups << endl;
+    cout << myname << "       " << prefix << "DataView: " << m_PlotDataView << endl;
     cout << myname << "           " << prefix << "Name: " << m_PlotName << endl;
     cout << myname << "    " << prefix << "SummaryName: " << m_PlotSummaryName << endl;
     cout << myname << "          " << prefix << "SizeX: " << m_PlotSizeX << endl;
@@ -203,14 +205,25 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         continue;
       }
       AcdVector acdvec;
+      Index ncha = 0;
       for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
-        const AdcChannelData* pacd = &iacd->second;
-        acdvec.push_back(pacd);
+        Index icha = iacd->first;
+        const AdcChannelData& acd = iacd->second;
+        if ( ! acd.hasView(getDataView()) ) {
+          cout << myname << "WARNING: View " << getDataView() << " is missing for channel "
+               << icha << "." << endl;
+        }
+        Index ndve = acd.viewSize(getDataView());
+        for ( Index idve=0; idve<ndve; ++idve ) {
+           acdvec.push_back(acd.viewEntry(getDataView(), idve));
+        }
+        ++ncha;
       }
       if ( getLogLevel() >= 4 ) {
         Index nacd = acdvec.size();
         cout << myname << "    Processing channel range " << crn << " with " << nacd
-             << " channel" << (nacd == 1 ? "" : "s") << "."  << endl;
+             << " entr" << (nacd == 1 ? "y" : "ies" ) << " in " << ncha << " channel"
+             << (ncha == 1 ? "" : "s") << "."  << endl;
       }
       // If needed, create a new canvas and a name.
       const AdcChannelData& acdFirst = *acdvec[0];
@@ -225,10 +238,11 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         sman.replace("%CGNAME%", cgn);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGRNAME%", cgrn);
+        sman.replace("%VIEW%", getDataView());
         plotName = sman.string();
         if ( getLogLevel() >= 4 ) {
-          if ( plotName.size() ) cout << myname << "    Plot name is " << plotName << endl;
-          else cout << myname << "    No plot name." << endl;
+          if ( plotName.size() ) cout << myname << "    Created pad  with plot name " << plotName << endl;
+          else cout << myname << "    Created pad with no plot name." << endl;
         }
       }
       // View this channel range.
@@ -328,6 +342,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
         StringManipulator sman(plotName);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGNAME%", cgn);
+        sman.replace("%VIEW%", getDataView());
       }
       // View this channel range.
       int rstat = viewMapSummary(cgn, crn, *pmantop->man(ipadOnPage), ncrn, icrn);

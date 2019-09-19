@@ -26,6 +26,7 @@ using fhicl::ParameterSet;
 using std::vector;
 
 using Index = unsigned int;
+using Name = string;
 
 //**********************************************************************
 
@@ -39,6 +40,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_AdcChannelDftPlotter.fcl";
+  Name vnam = "myview";
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
@@ -54,6 +56,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "  HistName: \"\"" << endl;
     fout << "  HistTitle: \"\"" << endl;
     fout << "  HistSummaryTitle: \"\"" << endl;
+    fout << "  PlotDataView: \"\"" << endl;
     fout << "  PlotName: \"\"" << endl;
     fout << "  PlotSummaryName: \"\"" << endl;
     fout << "  PlotChannelRanges: []" << endl;
@@ -68,31 +71,35 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "tools.myphases: @local::tools.mytemplate" << endl;
     fout << "tools.myphases.Variable: phase" << endl;
     fout << "tools.myphases.HistName: \"hdftphase_run%0RUN%_evt%0EVENT%\"" << endl;
-    fout << "tools.myphases.HistTitle: \"DFT phases for run %RUN% event %EVENT%\"" << endl;
+    fout << "tools.myphases.HistTitle: \"DFT phases for run %RUN% event %EVENT% channel %CHAN%\"" << endl;
     fout << "tools.myphases.PlotName: \"dftphase_run%0RUN%_evt%0EVENT%.png\"" << endl;
     fout << "" << endl;
     fout << "tools.mymags: @local::tools.mytemplate" << endl;
     fout << "tools.mymags.Variable: magnitude" << endl;
     fout << "tools.mymags.YMax: 0.0" << endl;
     fout << "tools.mymags.HistName: \"hdftmags_run%0RUN%_evt%0EVENT%\"" << endl;
-    fout << "tools.mymags.HistTitle: \"DFT amplitudes for run %RUN% event %EVENT%\"" << endl;
+    fout << "tools.mymags.HistTitle: \"DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%\"" << endl;
     fout << "tools.mymags.PlotName: \"dftmag_run%0RUN%_evt%0EVENT%.png\"" << endl;
     fout << "" << endl;
     fout << "tools.mypwr: @local::tools.mytemplate" << endl;
     fout << "tools.mypwr.Variable: power" << endl;
-    fout << "tools.mypwr.YMax: 50.0" << endl;
+    fout << "tools.mypwr.YMax: 65.0" << endl;
     fout << "tools.mypwr.NBinX: 5" << endl;
     fout << "tools.mypwr.HistName: \"hdftpower_run%0RUN%_evt%0EVENT%\"" << endl;
-    fout << "tools.mypwr.HistTitle: \"DFT power for run %RUN% event %EVENT%\"" << endl;
+    fout << "tools.mypwr.HistTitle: \"DFT power for run %RUN% event %EVENT% channel %CHAN%\"" << endl;
     fout << "tools.mypwr.PlotName: \"dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png\"" << endl;
     fout << "" << endl;
     fout << "tools.mypwt: @local::tools.mytemplate" << endl;
     fout << "tools.mypwt.Variable: \"power/tick\"" << endl;
-    fout << "tools.mypwt.YMax: 5.0" << endl;
+    fout << "tools.mypwt.YMax: 6.0" << endl;
     fout << "tools.mypwt.NBinX: 5" << endl;
     fout << "tools.mypwt.HistName: \"hdftpowt_run%0RUN%_evt%0EVENT%\"" << endl;
     fout << "tools.mypwt.HistTitle: \"DFT power for run %RUN% event %EVENT% channel %CHAN%\"" << endl;
     fout << "tools.mypwt.PlotName: \"dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png\"" << endl;
+    fout << "tools.mvpwr: @local::tools.mypwr" << endl;
+    fout << "tools.mvpwr.PlotDataView: " << vnam << endl;
+    fout << "tools.mvpwr.HistTitle: \"DFT power for run %RUN% event %EVENT% channel %CHAN% view %VIEW%\"" << endl;
+    fout << "tools.mvpwr.PlotName: \"dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%_view%VIEW%.png\"" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -112,10 +119,12 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   auto pmag = tm.getPrivate<AdcChannelTool>("mymags");
   auto ppwr = tm.getPrivate<AdcChannelTool>("mypwr");
   auto ppwt = tm.getPrivate<AdcChannelTool>("mypwt");
+  auto ppwrv = tm.getPrivate<AdcChannelTool>("mvpwr");
   assert( ppha != nullptr );
   assert( pmag != nullptr );
   assert( ppwr != nullptr );
   assert( ppwt != nullptr );
+  assert( ppwrv != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
@@ -125,6 +134,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   acd.subRun = 45;
   acd.event = 2468;
   acd.sampleUnit = "fC";
+  float pi = acos(-1.0);
   vector<float> mags = {  1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 2.0,  1.0,  1.0,  1.0,  1.0 };
   vector<float> phas = {  0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, -2.0, -1.5, -1.0 };
   acd.dftmags = mags;
@@ -142,6 +152,23 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     acds[icha].channel = icha;
     acds[icha].dftmags = mags;
     acds[icha].dftphases = phas;
+    for ( float& mag : mags ) mag *= 1.02;
+    for ( float& pha : phas ) { pha += 0.2; if ( pha > pi ) pha -= 2.0*pi; }
+    // Build the view vnam.
+    vector<float> vmags = mags;
+    for ( float& mag : vmags ) mag *= sqrt(0.70);
+    vector<float> vphas = phas;
+    for ( float& pha : vphas ) { pha += 0.4; if ( pha > pi ) pha -= 2.0*pi; }
+    acds[icha].updateView(vnam).push_back(acds[icha]);
+    acds[icha].updateView(vnam).back().dftmags = vmags;
+    acds[icha].updateView(vnam).back().dftphases = vphas;
+    vmags = mags;
+    for ( float& mag : vmags ) mag *= sqrt(0.30);
+    vphas = phas;
+    for ( float& pha : vphas ) { pha += 0.4; if ( pha > pi ) pha -= 2.0*pi; }
+    acds[icha].updateView(vnam).push_back(acds[icha]);
+    acds[icha].updateView(vnam).back().dftmags = vmags;
+    acds[icha].updateView(vnam).back().dftphases = vphas;
   }
 
   cout << myname << line << endl;
@@ -177,6 +204,12 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Call tick power tool with map." << endl;
   dm = ppwt->viewMap(acds);
+  dm.print();
+  assert( dm == 0 );
+
+  cout << myname << line << endl;
+  cout << myname << "Call tick power view tool with map." << endl;
+  dm = ppwrv->viewMap(acds);
   dm.print();
   assert( dm == 0 );
 
