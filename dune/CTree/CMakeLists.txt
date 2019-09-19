@@ -16,6 +16,7 @@ art_make(
 	  RunHistoryDUNE
 	  lbne-raw-data_Overlays
           nusimdata_SimulationBase
+  	  artdaq-core_Utilities
           ${LARRECO_LIB}
           ${LARDATA_LIB}
           ${ART_FRAMEWORK_CORE}
