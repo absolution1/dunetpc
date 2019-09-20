@@ -364,7 +364,7 @@ AdcIndex AdcChannelData::viewSize(Name vpnam) const {
   Name vnam = vpnam.substr(0, ipos);
   Name vsnam = vpnam.substr(ipos + 1);
   AdcIndex nvie = 0;
-  for ( const AdcChannelData dat : view(vnam) ) nvie += viewSize(vsnam);
+  for ( const AdcChannelData& dat : view(vnam) ) nvie += dat.viewSize(vsnam);
   return nvie;
 }
 
@@ -386,7 +386,7 @@ const AdcChannelData* AdcChannelData::viewEntry(Name vpnam, AdcIndex ient) const
   AdcIndex ientRem = ient;
   for ( const AdcChannelData& dat : view(vnam) ) {
     AdcIndex nvie = dat.viewSize();
-    if ( ientRem < nvie ) return viewEntry(vsnam, ientRem);
+    if ( ientRem < nvie ) return dat.viewEntry(vsnam, ientRem);
     ientRem -= nvie;
   }
   return nullptr;
@@ -408,9 +408,9 @@ AdcChannelData* AdcChannelData::mutableViewEntry(Name vpnam, AdcIndex ient) {
   Name vnam = vpnam.substr(0, ipos);
   Name vsnam = vpnam.substr(ipos + 1);
   AdcIndex ientRem = ient;
-  for ( const AdcChannelData& dat : view(vnam) ) {
+  for ( AdcChannelData& dat : updateView(vnam) ) {
     AdcIndex nvie = dat.viewSize();
-    if ( ientRem < nvie ) return mutableViewEntry(vsnam, ientRem);
+    if ( ientRem < nvie ) return dat.mutableViewEntry(vsnam, ientRem);
     ientRem -= nvie;
   }
   return nullptr;

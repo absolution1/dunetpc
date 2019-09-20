@@ -284,7 +284,13 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       }
       Index ibiny = chan-chanBegin + 1;
       Index nent = acdtop.viewSize(m_DataView);
+      if ( m_LogLevel >= 2 && nent == 0 ) {
+        cout << myname << "Unable to find data view name " << m_DataView << endl;
+      }
       for ( Index ient=0; ient<nent; ++ient ) {
+        if ( m_LogLevel >= 3 ) {
+          cout << myname << "Processing data view " << ient << "/" << nent << endl;
+        }
         const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
         if ( pacd == nullptr ) {
           cout << myname << "Skipping null view entry " << m_DataView << "[" << ient
@@ -342,6 +348,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
             } else if ( isRawPed ) {
               if ( isam < raw.size() ) sig = raw[isam] - ped;
               else break;
+            } else if ( isRaw && isam >= raw.size() ) {
+              // Ped missing is ok if we have no raw
+              break;
             } else if ( isSig ) {
               if ( isam < sams.size() && isam < keep.size() ) {
                 if ( keep[isam] ) sig = sams[isam];
