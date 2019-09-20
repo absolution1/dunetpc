@@ -55,12 +55,19 @@ DataMap AdcRoiSlicer::update(AdcChannelData& acd) const {
     copyRaw = false;
   }
   AdcChannelData::View& view = acd.updateView(m_OutViewName);
+  Index nsamKeep = 0;
+  Index nsamSkip = 0;
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Looping over " << nsam << " samples for channel "
+         << acd.channel << endl;
+  }
   for ( Index isam=0; isam<nsam; ++isam ) {
     bool isRoi = acd.signal[isam];
     bool keep = (isRoi && keepRoi) || (!isRoi && keepNot);
     bool changeRoi = isam==0 || acd.signal[isam] != acd.signal[isam-1];
     bool startData = keep && changeRoi;
     if ( startData ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "Creating data view at tick " << isam << endl;
       view.push_back(acd);
       AdcChannelData& acdout = view.back();
       acdout.tick0 = isam;
@@ -70,7 +77,15 @@ DataMap AdcRoiSlicer::update(AdcChannelData& acd) const {
       if ( copyRaw ) acdout.raw.push_back(acd.raw[isam]);
       acdout.samples.push_back(acd.samples[isam]);
       acdout.signal.push_back(acd.signal[isam]);
+      ++nsamKeep;
+    } else {
+      ++nsamSkip;
     }
+  }
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "End of update. Nview=" << view.size()
+         << ". # sample keep/skip/tot: " << nsamKeep << "/" << nsamSkip
+         << "/" << nsam << endl;
   }
   ret.setInt("nRoiView", view.size());
   return ret;

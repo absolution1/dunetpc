@@ -25,6 +25,7 @@ using std::ofstream;
 using fhicl::ParameterSet;
 using std::vector;
 
+using Name = string;
 using Index = unsigned int;
 
 //**********************************************************************
@@ -53,6 +54,7 @@ int test_AdcChannelSplitter(bool useExistingFcl =false) {
     fout << "tools.mytool2: @local::tools.mytool" << endl;
     fout << "tools.mytool2.Length: 3 " << endl;
     fout << "tools.mytool2.DataPath: \"split\"" << endl;
+    fout << "tools.mytool2.DataView: \"split2\"" << endl;
     fout << "" << endl;
     fout.close();
   } else {
@@ -99,7 +101,11 @@ int test_AdcChannelSplitter(bool useExistingFcl =false) {
   assert( dmv.getInt("splitOutputCount") == 2);
   assert( dmv.getInt("splitRawCopyCount") == 16);
   assert( dmv.getInt("splitSampleCopyCount") == 16);
+  cout << myname << "Data view names:";
+  for ( Name vnam : acd.viewNames() ) cout << " " << vnam;
+  cout << endl;
   assert( acd.viewSize("split") == 2 );
+  assert( acd.viewSize("split2") == 0 );
 
   cout << myname << line << endl;
   cout << myname << "Split the split." << endl;
@@ -111,7 +117,8 @@ int test_AdcChannelSplitter(bool useExistingFcl =false) {
   assert( dmv.getInt("splitRawCopyCount") == 12);
   assert( dmv.getInt("splitSampleCopyCount") == 12);
   assert( acd.viewSize("split") == 2 );
-  assert( acd.viewSize("split/split") == 4 );
+  assert( acd.viewSize("split/split") == 0 );
+  assert( acd.viewSize("split/split2") == 4 );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

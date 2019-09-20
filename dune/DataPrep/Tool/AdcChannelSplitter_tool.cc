@@ -23,7 +23,8 @@ AdcChannelSplitter::AdcChannelSplitter(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "         LogLevel: " << m_LogLevel << endl;
     cout << myname << "           Length: " << m_Length << endl;
-    cout << myname << "         DataPath: " << m_DataView << endl;
+    cout << myname << "         DataPath: " << m_DataPath << endl;
+    cout << myname << "         DataView: " << m_DataView << endl;
   }
 }
 
@@ -58,13 +59,17 @@ DataMap AdcChannelSplitter::update(AdcChannelData& acd) const {
       acds.push_back(*pacd);
       AdcChannelData& acdNew = acds.back();
       acdNew.tick0 = pacd->tick0 + itck;
-      for ( Index iraw=itck; iraw<jtck; ++iraw ) {
-        acdNew.raw.push_back(pacd->raw[iraw]);
-        ++nrawCopied;
+      if ( copyRaw ) {
+        for ( Index iraw=itck; iraw<jtck; ++iraw ) {
+          acdNew.raw.push_back(pacd->raw[iraw]);
+          ++nrawCopied;
+        }
       }
-      for ( Index isam=itck; isam<jtck; ++isam ) {
-        acdNew.samples.push_back(pacd->samples[isam]);
-        ++nsamCopied;
+      if ( copySam ) {
+        for ( Index isam=itck; isam<jtck; ++isam ) {
+          acdNew.samples.push_back(pacd->samples[isam]);
+          ++nsamCopied;
+        }
       }
       if ( acdNew.samples.size() ) acdNew.sampleUnit = pacd->sampleUnit;
       ++nobj;
