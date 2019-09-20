@@ -14,6 +14,7 @@ BEGIN_PROLOG
 pdsp_fembfilter_all: {
   module_type:            "ProtoDUNEFembFilter"
   RequireBeamsideFembsOnly : "false"
+  RequireBeamsideTimestampConsistencyOnly : "false"
   LogLevel:        1  # 2 shows accept/reject for every event
   DataUtils:       @local::standard_protodunedatautils
 }
@@ -22,6 +23,7 @@ pdsp_fembfilter_all: {
 pdsp_fembfilter_beamside: {
   module_type:            "ProtoDUNEFembFilter"
   RequireBeamsideFembsOnly : "true"
+  RequireBeamsideTimestampConsistencyOnly : "true"
   LogLevel:        1  # 2 shows accept/reject for every event
   DataUtils:       @local::standard_protodunedatautils
 }

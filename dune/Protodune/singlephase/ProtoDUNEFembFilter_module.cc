@@ -34,6 +34,7 @@ namespace filt{
 
     unsigned int fLogLevel;
     bool fRequireBeamsideFembsOnly;
+    bool fRequireBeamsideTimestampConsistencyOnly;
     
     TH1D* fSelectedEvents;
     TH1D* fTotalEvents;
@@ -46,17 +47,22 @@ namespace filt{
 
     fLogLevel = pset.get<unsigned int>("LogLevel");
     fRequireBeamsideFembsOnly = pset.get<bool>("RequireBeamsideFembsOnly");
+    fRequireBeamsideTimestampConsistencyOnly = pset.get<bool>("RequireBeamsideTimestampConsistencyOnly");
     if ( fLogLevel >= 1 ) {
       std::cout  << "                LogLevel: " << fLogLevel << std::endl;
       if(fRequireBeamsideFembsOnly){
         std::cout  << "Filtering events with inactive FEMBs on beamside APAs"<< std::endl;
-      }
-    
+      }    
       else{
         std::cout  << "Filtering events with any inactive FEMBs"<< std::endl;
       }
-
+      if(fRequireBeamsideTimestampConsistencyOnly){
+        std::cout  << "Filtering events with inconsistent timestmaps on beamside APAs"<< std::endl;
+      }    
+      else{
+        std::cout  << "Filtering events with any inconsistent timestamps"<< std::endl;
       }
+    }
     
   }
 
@@ -85,6 +91,7 @@ namespace filt{
     std::vector<int> BeamsideAPAs;
     std::vector<int> AllAPAs;
     std::vector<int> checkedAPAs;
+    std::vector<int> TScheckedAPAs;
 
     // Add some elements to myIntVector
     BeamsideAPAs.push_back(0);
@@ -98,7 +105,6 @@ namespace filt{
     AllAPAs.push_back(4);
     AllAPAs.push_back(5);
 
-
     const std::string myname = "ProtoDUNEFembFilter::filter: ";
 
     if(fRequireBeamsideFembsOnly){
@@ -107,6 +113,20 @@ namespace filt{
     else{
       checkedAPAs=AllAPAs;
     }
+    if(fRequireBeamsideTimestampConsistencyOnly){
+      TScheckedAPAs=BeamsideAPAs;
+    }
+    else{
+      TScheckedAPAs=AllAPAs;
+    }
+
+    // make a set out of these for faster lookup by the timestamp checker
+
+    std::set<int> checkedAPAset;
+    for (size_t i=0; i < checkedAPAs.size(); ++i)
+      {
+	checkedAPAset.emplace(TScheckedAPAs.at(i));
+      }
     
     bool keep = true;
     // Helper utility functions
@@ -119,12 +139,20 @@ namespace filt{
 
         if (fLogLevel >=2) std::cout<<"Missing FEMBs on APA: "<<*APA<<std::endl; 
         keep=false; //if not remove event
-      }
-      
-    
-    
-      
+      }      
     }
+
+    // check timestamp consistency
+
+    ULong64_t timestamp=0;
+    ULong64_t timestamp2=0;
+    int apainconsist=0;
+    if (!fDataUtils.CheckTimeStampConsistencyForAPAs(evt, checkedAPAset, timestamp, timestamp2, apainconsist ))
+      {
+	keep = false;
+        if (fLogLevel >=2) std::cout<<"ProtoDUNEFembFilter Timestamp mismatch: " << timestamp << " vs " << timestamp2 << " on TPC set " << apainconsist  << std::endl; 
+      }
+
     if ( fLogLevel >=2 ) std::cout << myname << (keep ? "Keep" : "Reject") << "ing event." << std::endl;
     if (keep==true) fSelectedEvents->Fill(1); //count total events
     
