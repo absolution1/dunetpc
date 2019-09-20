@@ -270,7 +270,7 @@ adcSampleFreq: 2000
 adcPlotDftTemplate: {
           tool_type: AdcChannelDftPlotter
            LogLevel: 1
-           DataView: ""
+       PlotDataView: ""
   ChannelStatusFlag: 0
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
