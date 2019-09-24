@@ -377,6 +377,7 @@ pdcht_template: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal, 2 is signal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []

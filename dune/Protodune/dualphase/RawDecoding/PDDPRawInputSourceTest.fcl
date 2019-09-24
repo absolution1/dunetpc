@@ -1,10 +1,20 @@
 process_name: PDDPRawInputSourceTest
 
+services:
+{
+   PDDPChannelMappings:
+   {
+     service_provider: PDDPChannelMap
+     MapName: "pddp2crp"
+   }
+}
+
 source:
 {
   module_type: PDDPRawInput
   maxEvents: -1
   fileNames: [ "/sps/hep/lbno/vgalymov/tmp/198_12_c.test" ]
+  OutputLabelRDTime: "timingrawdecoder:daq"
 }
 
 outputs:

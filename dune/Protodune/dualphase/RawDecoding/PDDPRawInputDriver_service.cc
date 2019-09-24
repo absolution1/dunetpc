@@ -5,6 +5,7 @@
  */
 
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "canvas/Persistency/Provenance/SubRunID.h"
 #include "art/Persistency/Common/PtrMaker.h"
@@ -16,6 +17,8 @@
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 
 #include "PDDPRawInputDriver.h"
+
+#include "PDDPChannelMap.h"
 
 #include <exception>
 #include <thread>
@@ -39,7 +42,8 @@
 //
 namespace 
 {
-  void unpackCroData( const char *buf, size_t nb, bool cflag, unsigned nsa, adcbuf_t &data )
+  void unpackCroData( const char *buf, size_t nb, bool cflag, 
+		      unsigned nsa, unsigned offset, adcbuf_t &data )
   {
     //data.clear();
     if( !cflag ) // unpack the uncompressed data into RawDigit
@@ -56,7 +60,18 @@ namespace
 	    
 	    uint16_t tmp1 = ((v1 << 4) + ((v2 >> 4) & 0xf)) & 0xfff;
 	    uint16_t tmp2 = (((v2 & 0xf) << 8 ) + (v3 & 0xff)) & 0xfff;
-
+	    
+	    if( offset > 0 ) // invert baseline: tmp fix for the signal inversion
+	      {
+		float ftmp1 = offset - tmp1;
+		if( ftmp1 < 0 ) ftmp1 = 0;
+		tmp1 = (uint16_t)(ftmp1);
+		
+		float ftmp2 = offset - tmp2;
+		if( ftmp2 < 0 ) ftmp2 = 0;
+		tmp2 = (uint16_t)(ftmp2);
+	      }
+	    
 	    if( sz == nsa ){ data.push_back(raw::RawDigit::ADCvector_t(nsa)); sz = 0; }
 	    data.back()[sz++] = (short)tmp1;
 	    
@@ -109,28 +124,44 @@ namespace lris
     __eventNum( 0 )
   {
     // output module label: default daq
-    // now product instance name to be compatible with data prep
-    //__output_label = pset.get<std::string>("OutputDataLabel", "daq");
-    //helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__output_label);
-    //helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__output_label);
-    //helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__output_label);
-
-    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "tpcrawdecoder");
-    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "timingrawdecoder");
-    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "tpcrawdecoder");
-    __output_inst   = pset.get<std::string>("OutputInstance", "daq");
+    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "daq");
+    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "daq");
+    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "daq");
     
+    __prodlbl_digits = __getProducerLabel( __outlbl_digits );
+    __prodlbl_rdtime = __getProducerLabel( __outlbl_rdtime );
+    __prodlbl_status = __getProducerLabel( __outlbl_status );
+    
+    __invped        = pset.get<unsigned>("InvertBaseline", 0);
 
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits, __output_inst);
-    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status, __output_inst);
+    //
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits,
+								   __prodlbl_digits);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status,
+								   __prodlbl_status);
     helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__outlbl_rdtime,
-								      __output_inst);
+								      __prodlbl_rdtime );
+    
     
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
 
     // could also use pset if more parametres are needed (e.g., for LRO data)
     
+    //
+    // channel map order by CRP View 
+    auto cmap = &*(art::ServiceHandle<dune::PDDPChannelMap>());
+    //std::cout<<"number of CRPs "<<cmap->ncrps()<<std::endl;
+    auto crpidx = cmap->get_crpidx();
+    for( auto c: crpidx )
+      {
+	std::vector<dune::DPChannelId> chidx = cmap->find_by_crp( c, true );
+	//std::cout<<chidx.size()<<std::endl;
+	for( auto id: chidx )
+	  __daqch.push_back( id.seqn() );
+      }
+    
+    //std::cout<<"total channels "<<__daqch.size()<<std::endl;
   }
 
   //
@@ -138,7 +169,7 @@ namespace lris
   {
     __close();
   }
-   
+
   //
   void PDDPRawInputDriver::readFile( std::string const &name,
 				     art::FileBlock* &fb )
@@ -153,7 +184,6 @@ namespace lris
     //
     __file.open( name.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
-    
     if( !__file.is_open() )
       {
 	throw art::Exception( art::errors::FileOpenError )
@@ -250,13 +280,19 @@ namespace lris
     
     // move data
     cro_data->reserve( event.crodata.size() );
+    
     for( size_t i=0;i<event.crodata.size();i++ )
       {
-	// This ch Id is based on the order the channel data are stored in file (always the same)
-	raw::ChannelID_t ch = i; 
-	// raw digit
+	if( i >= __daqch.size() )
+	  {
+	    mf::LogError(__FUNCTION__)<<"The channel map appears to be wrong";
+	    break;
+	  }
+	unsigned daqch = __daqch[i];
+	raw::ChannelID_t ch = i; //daqch; 
+	// raw digit 
 	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
-					   std::move( event.crodata[i] ), 
+					   std::move( event.crodata[daqch] ), 
 					   event.compression) );
 
 	// RDTimeStamp
@@ -283,12 +319,27 @@ namespace lris
     uint16_t rdtsflags = 0xd; // CRT for now
     cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
 
-    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __output_inst);
-    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __output_inst);
-    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __output_inst);
+    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __prodlbl_digits);
+    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __prodlbl_status);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __prodlbl_rdtime);
     
     return true;
   }
+  
+  //
+  // split output container name configuration into label and instance
+  std::string PDDPRawInputDriver::__getProducerLabel( std::string &lbl )
+  {
+    std::string res = "";
+    size_t ipos = lbl.find(":");
+    if ( ipos != std::string::npos ) {
+      res = lbl.substr(ipos + 1);
+      lbl = lbl.substr(0, ipos);
+    }
+    
+    return res;
+  }
+
   
 
   //
@@ -500,11 +551,12 @@ namespace lris
     // 
     std::mutex iomutex;
     std::vector<std::thread> threads(frags.size() - 1);
-    unsigned nsa = __nsacro;
+    unsigned nsa    = __nsacro;
+    unsigned invped = __invped;
     for (unsigned i = 1; i<frags.size(); ++i) 
       {
 	auto afrag = frags.begin() + i;
-	threads[i-1] = std::thread([&iomutex, i, nsa, afrag] {
+	threads[i-1] = std::thread([&iomutex, i, nsa, invped, afrag] {
 	    {
 	      std::lock_guard<std::mutex> iolock(iomutex);
 	      // make it look like we're using i so clang doesn't complain.  This had been commented out
@@ -513,7 +565,7 @@ namespace lris
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
-			   GETDCFLAG(afrag->ei.runflags), nsa, afrag->crodata );
+			   GETDCFLAG(afrag->ei.runflags), nsa, invped, afrag->crodata);
 	  });
       }
   
@@ -532,7 +584,7 @@ namespace lris
   
     //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
     unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.runflags),
-		   nsa, event.crodata );
+		   nsa, invped, event.crodata );
     
     event.compression = raw::kNone;
     // the compression should be set for all L1 event builders, 

@@ -99,12 +99,16 @@ AdcChannelDftPlotter::~AdcChannelDftPlotter() {
   const string myname = "AdcChannelDftPlotter::dtor: ";
   if ( getLogLevel() >= 2 ) {
     cout << myname << "Closing." << endl;
-    cout << myname << "     CR name    count nch/evt" << endl;
-    for ( Name crn : getChannelRangeNames() ) {
-      Index count = getState().count(crn);
-      double nchan = getState().nchan(crn);
-      cout << myname << setw(15) << crn << ":"
-           << setw(8) << count << setw(8) << nchan/count << endl;
+    if ( getChannelRangeNames().size() ) {
+      cout << myname << "     CR name    count nch/evt" << endl;
+      for ( Name crn : getChannelRangeNames() ) {
+        Index count = getState().count(crn);
+        double nchan = getState().nchan(crn);
+        cout << myname << setw(15) << crn << ":"
+             << setw(8) << count << setw(8) << nchan/count << endl;
+      }
+    } else {
+      cout << myname << "No channel ranges specified." << endl;
     }
   }
   viewSummary();
@@ -138,7 +142,15 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
           if ( count > 1 ) phsum->Add(ph);
           else cout << myname << "ERROR: Hist existing for count " << count << endl;
         }
-        getState().nchan(crn) += chret.getIntVector("dftChannels").size();
+        using IntVector = DataMap::IntVector;
+        const IntVector& allchans = chret.getIntVector("dftChannels");
+        Index nven = allchans.size();
+        Index ncha = 0;
+        for ( IntVector::const_iterator iven=allchans.begin(); iven!=allchans.end(); ++iven ) {
+          if ( find(allchans.begin(), iven, *iven) == iven ) ++ncha;
+        }
+        getState().nchan(crn) += ncha;
+        getState().nviewentry(crn) += nven;
       }
     }
   }
@@ -164,6 +176,8 @@ viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) c
   Index count = getState().count(crn);
   Index nchanTot = getState().nchan(crn);
   float nchanEvt = count > 0 ? double(nchanTot)/count : 0.0;
+  Index nvenTot = getState().nviewentry(crn);
+  float nvenEvt = count > 0 ? double(nvenTot)/count : 0.0;
   TH1* ph = nullptr;
   TH1* phin = getState().hist(crn);
   if ( phin != nullptr ) {
@@ -179,6 +193,7 @@ viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) c
     smanTitl.replace("%CGLABEL%", cglab);
     smanTitl.replace("%CRNAME%", crn);
     smanTitl.replace("%RUN%", getBaseState().run());
+    smanTitl.replace("%VIEW%", getDataView());
     ph->SetTitle(htitl.c_str());
     double fac = 1.0/count;
     ph->Scale(fac);
@@ -187,6 +202,7 @@ viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) c
   dm.setHist("dftHist", ph, true);
   dm.setInt("dftEventCount", count);
   dm.setFloat("dftChanPerEventCount", nchanEvt);
+  dm.setFloat("dftViewEntryPerEventCount", nvenEvt);
   dm.setString("dftDopt", "hist");
   dm.setString("dftCRLabel", crn);
   dm.setInt("dftCRCount", ncr);
@@ -271,12 +287,12 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   Index nDataMissing = 0;
   Index nBadMagCount = 0;
   Index nBadPhaCount = 0;
-  for ( const AdcChannelData* pacd : acds ) {
-    if ( pacd == nullptr ) {
+  for ( const AdcChannelData* pacde : acds ) {
+    if ( pacde == nullptr ) {
       ++nDataMissing;
     } else { 
-      if ( pacd->dftmags.size() != nmag ) ++nBadMagCount;
-      if ( pacd->dftphases.size() != npha ) ++nBadPhaCount;
+      if ( pacde->dftmags.size() != nmag ) ++nBadMagCount;
+      if ( pacde->dftphases.size() != npha ) ++nBadPhaCount;
     }
   }
   if ( nDataMissing ) cout << myname << "ERROR: Missing data channel count is " << nDataMissing << endl;
@@ -287,8 +303,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
   StringManipulator smanName(hname);
   smanName.replace("%CRNAME%", crn);
+  smanName.replace("%VIEW%", getDataView());
   StringManipulator smanTitl(htitl);
   smanTitl.replace("%CRNAME%", crn);
+  smanTitl.replace("%VIEW%", getDataView());
   //xx
   //sman.replace("%CRNAME%", ran.name);
   //sman.replace("%CRLABEL%", ran.label());
@@ -365,8 +383,8 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     for ( Index ipha=0; ipha<nmag; ++ipha ) {
       float x = ipha*xFac;
       float y = 0.0;
-      for ( const AdcChannelData* pacd : keepAcds ) {
-        float mag = pacd->dftmags[ipha];
+      for ( const AdcChannelData* pacde : keepAcds ) {
+        float mag = pacde->dftmags[ipha];
         y += pwrFac*mag*mag;
       }
       ph->Fill(x, y);
@@ -455,16 +473,40 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     ssout << "N_{ev} = " << dm.getInt("dftEventCount");
     snevt = ssout.str();
   }
-  string sncha;
+  string sncha;  // # unique channels
+  string snven;  // # view entries
   {
-    ostringstream ssout;
-    ssout.precision(1);
+    ostringstream ssoutch;
+    ostringstream ssoutve;
+    ssoutch.precision(1);
+    ssoutve.precision(1);
     if ( dm.haveFloat("dftChanPerEventCount") ) {
-      ssout << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+      ssoutch << "N_{ch} = " << fixed << dm.getFloat("dftChanPerEventCount");
+      ssoutve << "N_{ve} = " << fixed << dm.getFloat("dftViewEntryPerEventCount");
     } else {
-      ssout << "N_{ch} = " << dm.getIntVector("dftChannels").size();
+      using IntVector = DataMap::IntVector;
+      const IntVector& allchans = dm.getIntVector("dftChannels");
+      Index nven = allchans.size();
+      Index ncha = 0;
+      for ( IntVector::const_iterator iven=allchans.begin(); iven!=allchans.end(); ++iven ) {
+        if ( find(allchans.begin(), iven, *iven) == iven ) ++ncha;
+      }
+      ssoutch << "N_{ch} = " << ncha;
+      ssoutve << "N_{ve} = " << nven;
+      // Display the view entry count if a view is defined
+      // or if the view entry and channl counts differ.
+      if ( getDataView().size() == 0 ) {
+        if ( nven != ncha ) {
+          cout << "ERROR: View entry count differs from channel count: "
+               << nven << " != " << ncha << "." << endl;
+          ssoutve << " !!!";
+        } else {
+          ssoutve.str("");
+        }
+      }
     }
-    sncha = ssout.str();
+    sncha = ssoutch.str();
+    snven = ssoutve.str();
   }
   string spow;
   if ( doPwt ) {
@@ -499,6 +541,14 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
       }
       if ( sncha.size() ) {
         TLatex* ptxt = new TLatex(xlab, ylab, sncha.c_str());
+        ptxt->SetNDC();
+        ptxt->SetTextFont(textFont);
+        ptxt->SetTextSize(textSize);
+        man.add(ptxt);
+        ylab -= dylab;
+      }
+      if ( snven.size() ) {
+        TLatex* ptxt = new TLatex(xlab, ylab, snven.c_str());
         ptxt->SetNDC();
         ptxt->SetTextFont(textFont);
         ptxt->SetTextSize(textSize);

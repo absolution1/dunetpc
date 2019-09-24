@@ -1,6 +1,7 @@
 #include "services_dune.fcl"
 #include "hitfindermodules_dune.fcl"
 #include "filters.fcl"
+#include "ProtoDUNEUnstableHVFilter.fcl"
 #include "signalservices_dune.fcl"
 #include "caldata_dune.fcl"
 #include "trackfindermodules_dune.fcl"
@@ -34,11 +35,12 @@ physics:
  producers:{
 
   }
-#filters:  
-# {
+filters:  
+ {
 #  filter:   @local::pdsp_fembfilter_all
-#   } 
-#fpath: [filter]
+f1: @local::HVfilter
+   } 
+   fpath: [f1]
  analyzers:{
    velocity:
    {
