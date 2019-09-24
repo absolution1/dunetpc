@@ -284,25 +284,36 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       }
       Index ibiny = chan-chanBegin + 1;
       Index nent = acdtop.viewSize(m_DataView);
+      if ( m_LogLevel >= 2 && nent == 0 ) {
+        cout << myname << "Unable to find data view name " << m_DataView << endl;
+      }
       for ( Index ient=0; ient<nent; ++ient ) {
-        const AdcChannelData& acd = acdtop.viewEntry(m_DataView, ient);
-        if ( acd.channel != chan ) {
-          cout << myname << "Skipping view entry " << m_DataView << "[" << ient
-               << "] with the wrong the wrong channel: "
-               << acd.channel << " != " << chan <<"." << endl;
+        if ( m_LogLevel >= 3 ) {
+          cout << myname << "Processing data view " << ient << "/" << nent << endl;
+        }
+        const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+        if ( pacd == nullptr ) {
+          cout << myname << "Skipping null view entry " << m_DataView << "[" << ient
+               << "]." << endl;
           continue;
         }
-        const AdcSignalVector& sams = acd.samples;
-        const AdcFilterVector& keep = acd.signal;
-        const AdcCountVector& raw = acd.raw;
+        if ( pacd->channel != chan ) {
+          cout << myname << "Skipping view entry " << m_DataView << "[" << ient
+               << "] with the wrong the wrong channel: "
+               << pacd->channel << " != " << chan <<"." << endl;
+          continue;
+        }
+        const AdcSignalVector& sams = pacd->samples;
+        const AdcFilterVector& keep = pacd->signal;
+        const AdcCountVector& raw = pacd->raw;
         AdcSignal ped = 0.0;
         bool isRawPed = false;
         if ( isRaw ) {
-          ped = acd.pedestal;
+          ped = pacd->pedestal;
           isRawPed = ped != AdcChannelData::badSignal;
         }
         Tick nsam = isRaw ? raw.size() : sams.size();
-        AdcInt dsam = acd.tick0;
+        AdcInt dsam = pacd->tick0;
         if ( m_FembTickOffsets.size() ) {
           if ( m_pOnlineChannelMapTool == nullptr ) {
             cout << myname << "  FEMB tick offsets provided without online channel mapping tool." << endl;
@@ -324,9 +335,10 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
           if ( iisam > 0 ) {
             AdcIndex isam = iisam;
             float sig = 0.0;
-            if ( isSig && isam >= acd.signal.size() ) {
+            if ( isSig && isam >= pacd->signal.size() ) {
               if ( m_LogLevel >= 3 ) {
-                cout << myname << "  Signal array not filled for sample " << isam << " and above--stopping fill." << endl;
+                cout << myname << "  Signal array not filled for sample " << isam
+                     << " and above--stopping fill." << endl;
               }
               break;
             }
@@ -336,6 +348,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
             } else if ( isRawPed ) {
               if ( isam < raw.size() ) sig = raw[isam] - ped;
               else break;
+            } else if ( isRaw && isam >= raw.size() ) {
+              // Ped missing is ok if we have no raw
+              break;
             } else if ( isSig ) {
               if ( isam < sams.size() && isam < keep.size() ) {
                 if ( keep[isam] ) sig = sams[isam];

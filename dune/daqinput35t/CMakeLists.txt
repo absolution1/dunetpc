@@ -11,7 +11,7 @@ art_make(BASENAME_ONLY
         art_Utilities canvas
         ${ROOT_CORE}
         ${MF_MESSAGELOGGER}
-
+        artdaq-core_Utilities
         ${Boost_SYSTEM_LIBRARY}
         RunHistoryDUNE
         larcore_Geometry_Geometry_service
@@ -30,6 +30,7 @@ simple_plugin(TpcMilliSliceDump "module"
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
+  artdaq-core_Utilities
   nusimdata_SimulationBase
   ${ART_FRAMEWORK_SERVICES_REGISTRY}
   ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
@@ -43,6 +44,7 @@ simple_plugin(SSPDump "module"
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
+  artdaq-core_Utilities
   nusimdata_SimulationBase
   art_Framework_Services_Registry
   art_root_io_tfile_support ${ROOT_CORE}

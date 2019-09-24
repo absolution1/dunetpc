@@ -270,6 +270,7 @@ adcSampleFreq: 2000
 adcPlotDftTemplate: {
           tool_type: AdcChannelDftPlotter
            LogLevel: 1
+       PlotDataView: ""
   ChannelStatusFlag: 0
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
@@ -375,6 +376,7 @@ tools.adcSubtractBaseline: {
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+  DataPath: ""
 }
 
 # Scale samples from ke to ADC count.
@@ -515,3 +517,22 @@ tools.adcDPhase3x1x1RoiBuilder: {
   PadLow: 20
   PadHigh: 50
 }
+
+# Split data keeping ROIs.
+tools.adcSliceRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: rois
+  SliceOpt: 1
+  CopyRaw: false
+}
+
+# Split data keeping not ROIs.
+tools.adcSliceNotRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: notrois
+  SliceOpt: 2
+  CopyRaw: false
+}
+

@@ -37,9 +37,8 @@
 //    digitIndex - Index for the digit in the event digit container
 //     wireIndex - Index for the wire in the event wire container
 //
-//         views - Map of vectors of AdcChannelData providing alternative representations of this data.
-//                 E.g. non-contiguous time samples, processing snapshot or alternative, ....
-//                 Each object has self view with name "" holding only itself.
+//         views - Map of data views indexed by name.
+//                 Each object implicitly has a self view with name "" holding only itself.
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
@@ -47,6 +46,20 @@
 // If filled, the DFT fields should have lengths (nsam+2)/2 for the magnitudes and
 // (nsam+1)/2 for the phases with the first phase zero or pi.
 //
+// A data view is a vector of AdcChannelData objects providing an alternative
+// representation of its parent.
+// E.g. non-contiguous time samples, processing snapshot or alternative, ....
+//
+// A view path is a vector of names {vn0, vn1, ...} with string representation
+// "vn0/vn1/..." that specifies the path to a collection of AdcChannelData objects
+// at any depth in the view hiearchy.
+// Example view access:
+//   string myview = "constituents/trun1000";
+//   AdcIndex nvie = mydata.viewCount(myview);
+//   for ( AdcIndex ivie=0; ivie<nvie; ++ivie ) {
+//     AdcChannelData* pdat = mydata.viewEntry(myview, ivie);
+//     cout << "T0 for view " << ivie " << ": " << pdata->tick0 << endl;
+//   }
 
 #ifndef AdcChannelData_H
 #define AdcChannelData_H
@@ -215,56 +228,36 @@ public:
 
   // Return the vector of available view names.
   // This does not include the self view.
-  NameVector viewNames() const {
-    NameVector vnams;
-    for ( ViewMap::value_type ivie : m_views ) {
-      vnams.push_back(ivie.first);
-    }
-    return vnams;
-  }
+  NameVector viewNames() const;
 
   // Return if a view is defined.
   // This includes the self view.
-  bool hasView(Name vnam) const {
-    if ( vnam.size() == 0 ) return true;
-    return m_views.find(vnam) != m_views.end();
-  }
+  bool hasView(Name vnam) const;
 
   // Read a view. Empty if undefined.
   // This does not include the self view.
-  const View& view(Name vnam) const {
-    static const View empty;
-    ViewMap::const_iterator ivie = m_views.find(vnam);
-    if ( ivie == m_views.end() ) return empty;
-    return ivie->second;
-  }
+  const View& view(Name vnam) const;
  
   // Obtain a mutable view. Entries may be added, removed or modified.
   // View is added if not already existing.
   // This should not be called for the self view.
-  View& updateView(Name vnam) {
-    return m_views[vnam];
-  }
+  View& updateView(Name vnam);
 
-  // Return the number of entries for a specified view.
+  // Return the number of entries for a specified view path.
   // This includes the self view.
-  AdcIndex viewSize(Name vnam) const {
-    if ( vnam.size() == 0 ) return 1;
-    return view(vnam).size();
-  }
+  AdcIndex viewSize(Name vpnam) const;
 
-  // Return the channel data for a view entry.
+  // Return the const channel data for an entry in a view path.
   // This includes the self view.
-  const AdcChannelData& viewEntry(Name vnam, AdcIndex ient) const {
-    static const AdcChannelData badAcd;
-    if ( vnam.size() == 0 ) {
-      if ( ient == 0 ) return *this;
-      else return badAcd;
-    }
-    const View& myview = view(vnam);
-    if ( ient < myview.size() ) return myview[ient];
-    return badAcd;
-  }
+  // Returns null if the path does not exist or does not have the
+  // requested entry.
+  const AdcChannelData* viewEntry(Name vpnam, AdcIndex ient) const;
+
+  // Return the mutable channel data for an entry in a view path.
+  // This includes the self view.
+  // Returns null if the path does not exist or does not have the
+  // requested entry.
+  AdcChannelData* mutableViewEntry(Name vpnam, AdcIndex ient);
   
 };
 
@@ -331,4 +324,98 @@ inline void AdcChannelData::roisFromSignal() {
 }
 
 //**********************************************************************
+
+AdcChannelData::NameVector AdcChannelData::viewNames() const {
+  NameVector vnams;
+  for ( ViewMap::value_type ivie : m_views ) {
+    vnams.push_back(ivie.first);
+  }
+  return vnams;
+}
+
+//**********************************************************************
+
+bool AdcChannelData::hasView(Name vnam) const {
+  if ( vnam.size() == 0 ) return true;
+  return m_views.find(vnam) != m_views.end();
+}
+
+//**********************************************************************
+
+const AdcChannelData::View& AdcChannelData::view(Name vnam) const {
+  static const View empty;
+  ViewMap::const_iterator ivie = m_views.find(vnam);
+  if ( ivie == m_views.end() ) return empty;
+  return ivie->second;
+}
+ 
+//**********************************************************************
+
+AdcChannelData::View& AdcChannelData::updateView(Name vnam) {
+  return m_views[vnam];
+}
+
+//**********************************************************************
+
+AdcIndex AdcChannelData::viewSize(Name vpnam) const {
+  if ( vpnam.size() == 0 ) return 1;
+  Name::size_type ipos = vpnam.find("/");
+  if ( ipos == Name::npos ) return view(vpnam).size();
+  Name vnam = vpnam.substr(0, ipos);
+  Name vsnam = vpnam.substr(ipos + 1);
+  AdcIndex nvie = 0;
+  for ( const AdcChannelData& dat : view(vnam) ) nvie += dat.viewSize(vsnam);
+  return nvie;
+}
+
+//**********************************************************************
+
+const AdcChannelData* AdcChannelData::viewEntry(Name vpnam, AdcIndex ient) const {
+  if ( vpnam.size() == 0 ) {
+    if ( ient == 0 ) return this;
+    else return nullptr;
+  }
+  Name::size_type ipos = vpnam.find("/");
+  if ( ipos == Name::npos ) {
+    const View& myview = view(vpnam);
+    if ( ient < myview.size() ) return &myview[ient];
+    return nullptr;
+  }
+  Name vnam = vpnam.substr(0, ipos);
+  Name vsnam = vpnam.substr(ipos + 1);
+  AdcIndex ientRem = ient;
+  for ( const AdcChannelData& dat : view(vnam) ) {
+    AdcIndex nvie = dat.viewSize();
+    if ( ientRem < nvie ) return dat.viewEntry(vsnam, ientRem);
+    ientRem -= nvie;
+  }
+  return nullptr;
+}
+  
+//**********************************************************************
+
+AdcChannelData* AdcChannelData::mutableViewEntry(Name vpnam, AdcIndex ient) {
+  if ( vpnam.size() == 0 ) {
+    if ( ient == 0 ) return this;
+    else return nullptr;
+  }
+  Name::size_type ipos = vpnam.find("/");
+  if ( ipos == Name::npos ) {
+    View& myview = updateView(vpnam);
+    if ( ient < myview.size() ) return &myview[ient];
+    return nullptr;
+  }
+  Name vnam = vpnam.substr(0, ipos);
+  Name vsnam = vpnam.substr(ipos + 1);
+  AdcIndex ientRem = ient;
+  for ( AdcChannelData& dat : updateView(vnam) ) {
+    AdcIndex nvie = dat.viewSize();
+    if ( ientRem < nvie ) return dat.mutableViewEntry(vsnam, ientRem);
+    ientRem -= nvie;
+  }
+  return nullptr;
+}
+  
+//**********************************************************************
+
 #endif
