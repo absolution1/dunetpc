@@ -376,6 +376,7 @@ tools.adcSubtractBaseline: {
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+  DataPath: ""
 }
 
 # Scale samples from ke to ADC count.
