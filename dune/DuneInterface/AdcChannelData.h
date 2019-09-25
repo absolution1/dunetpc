@@ -12,6 +12,7 @@
 //       timerem - Time remainder (ns)
 //       trigger - Index indicating which trigger(s) fired.
 //  triggerClock - Time counter for the trigger
+//  channelClock - Time counter for then channel data
 //
 //       channel - Offline channel number
 // channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
@@ -20,7 +21,7 @@
 //
 //      pedestal - Pedestal subtracted from the raw count
 //   pedestalRms - Pedestal RMS or sigma
-//         tick0 - Tick offset between event/trigger time and raw/samples data.
+//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
 //           raw - Uncompressed array holding the raw ADC count for each tick
 //       samples - Array holding the prepared signal value for each tick
 //    sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
@@ -42,6 +43,9 @@
 //
 // User can compare values against the defaults below to know if a value has been set.
 // For arrays, check if the size in nonzero.
+//
+// There separate clocks for the trigger which corresponds to (time, timerem) and
+// the TPC readout (channelClock). For protoDUNE, these run at 50 MHz.
 //
 // If filled, the DFT fields should have lengths (nsam+2)/2 for the magnitudes and
 // (nsam+1)/2 for the phases with the first phase zero or pi.
@@ -100,6 +104,7 @@ public:
   int timerem =0;
   AdcIndex trigger =badIndex;
   AdcLongIndex triggerClock =0;
+  AdcLongIndex channelClock =0;
   AdcChannel channel =badIndex;
   AdcIndex channelStatus =badIndex;
   AdcIndex fembID =badIndex;
@@ -155,8 +160,10 @@ public:
     timerem       = rhs.timerem;
     trigger       = rhs.trigger;
     triggerClock  = rhs.triggerClock;
+    channelClock  = rhs.channelClock;
     channel       = rhs.channel;
     channelStatus = rhs.channelStatus;
+    channelClock  = rhs.channelClock;
     fembID        = rhs.fembID;
   };
 
@@ -188,6 +195,8 @@ public:
     if ( mname == "event" ) return event;
     if ( mname == "trigger" ) return trigger;
     if ( mname == "triggerClock" ) return triggerClock;  // lose precision here
+    if ( mname == "channelClock" ) return channelClock;  // lose precision here
+    if ( mname == "channelClockOffset" ) return channelClock - triggerClock;
     if ( mname == "channel" ) return channel;
     if ( mname == "fembID" ) return fembID;
     if ( mname == "fembChannel" ) return fembChannel;
@@ -279,6 +288,7 @@ inline void AdcChannelData::clear() {
   timerem = 0;
   trigger = badIndex;
   triggerClock = 0;
+  channelClock = 0;
   channel = badIndex;
   channelStatus = badIndex;
   fembID = badIndex;
