@@ -50,27 +50,11 @@ std::vector< const recob::Hit* > protoana::ProtoDUNETruthUtils::FillSharedHits
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
   (const simb::MCParticle& mcpart, const recob::PFParticle& pfpart, const art::Event& evt, std::string pfparticleModule, bool delta_ray) const {
 
-  //std::vector<const recob::Hit*> outVec;
-
   // Get the hits associated with this PFParticle
   protoana::ProtoDUNEPFParticleUtils pfpUtils;
   std::vector<const recob::Hit*> pfpHits = pfpUtils.GetPFParticleHits(pfpart, evt, pfparticleModule);
 
   return FillSharedHits( mcpart, pfpHits, delta_ray );
-
-/*
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : pfpHits) {
-    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
-      if(trackId == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-  return outVec;
-*/
 }
 
 // Function that produces a vector of hit pointers that appear in both the given MCParticle and
@@ -78,27 +62,10 @@ std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
   (const simb::MCParticle& mcpart, const recob::Track& track, const art::Event& evt, std::string trackModule, bool delta_ray) const {
 
-  //std::vector<const recob::Hit*> outVec;
-
   // Get the hits associated with this track
   protoana::ProtoDUNETrackUtils trackUtils;
   std::vector<const recob::Hit*> trackHits = trackUtils.GetRecoTrackHits(track, evt, trackModule);
   return FillSharedHits( mcpart, trackHits, delta_ray );
-
-/*
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : trackHits) {
-    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
-      if(trackId == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-
-  return outVec;
-*/  
 }
 
 // Function that produces a vector of hit pointers that appear in both the given MCParticle and
@@ -106,26 +73,10 @@ std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
   (const simb::MCParticle& mcpart, const recob::Shower& shower, const art::Event& evt, std::string showerModule, bool delta_ray) const {
 
-  //std::vector<const recob::Hit*> outVec;
-
   // Get the hits associated with this shower
   protoana::ProtoDUNEShowerUtils shUtils;
   std::vector<const recob::Hit*> shHits = shUtils.GetRecoShowerHits(shower, evt, showerModule);
   return FillSharedHits( mcpart, shHits, delta_ray );
-/*
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : shHits) {
-    for(const sim::TrackIDE& ide : bt_serv->HitToEveTrackIDEs(*hitp)) {
-      if(ide.trackID == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-
-  return outVec;
-  */
 }
 
 // Function that loops over all hits in an event and returns those that an MCParticle
