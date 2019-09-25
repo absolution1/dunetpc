@@ -381,6 +381,8 @@ pdcht_template: {
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 12524
   FembTickOffsets: []
   MaxSignal: 50
   SkipBadChannels: false

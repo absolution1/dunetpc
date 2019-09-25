@@ -38,6 +38,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_TickRange(ps.get<string>("TickRange")),
   m_TickRebin(ps.get<Index>("TickRebin")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
+  m_ClockFactor(ps.get<float>("ClockFactor")),
+  m_ClockOffset(ps.get<float>("ClockOffset")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
@@ -130,6 +132,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     }
     cout << "]" << endl;
     cout << myname << "       FembTickOffsets: [";
+    cout << myname << "           ClockFactor: " << m_ClockFactor << endl;
+    cout << myname << "           ClockOffset: " << m_ClockOffset << endl;
     first = true;
     for ( int ioff : m_FembTickOffsets ) {
       if ( first ) first = false;
@@ -314,6 +318,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         Tick nsam = isRaw ? raw.size() : sams.size();
         AdcInt dsam = pacd->tick0;
+        if ( m_ClockFactor > 0.0 ) {
+          double dclk = 0.0;
+          if ( pacd->channelClock >= pacd->triggerClock ) dclk = pacd->channelClock - pacd->triggerClock;
+          else dclk = -double(pacd->triggerClock - pacd->channelClock);
+          dsam += m_ClockFactor*(dclk + m_ClockOffset);
+        }
         if ( m_FembTickOffsets.size() ) {
           if ( m_pOnlineChannelMapTool == nullptr ) {
             cout << myname << "  FEMB tick offsets provided without online channel mapping tool." << endl;

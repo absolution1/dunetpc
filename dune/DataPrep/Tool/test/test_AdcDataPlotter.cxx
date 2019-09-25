@@ -51,6 +51,8 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "           TickRange: \"myTicks\"" << endl;
     fout << "           TickRebin: 1" << endl;
     fout << "       ChannelRanges: []" << endl;
+    fout << "         ClockFactor: 0.0" << endl;
+    fout << "         ClockOffset: 0.0" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
     fout << "     SkipBadChannels: false" << endl;
