@@ -23,6 +23,12 @@
 
 namespace protoana {
 
+  struct MCParticleSharedHits {
+    const simb::MCParticle * particle;
+    size_t nSharedHits;
+    size_t nSharedDeltaRayHits;
+  };
+
   class ProtoDUNETruthUtils {
 
   public:
@@ -31,12 +37,16 @@ namespace protoana {
     ~ProtoDUNETruthUtils();
 
     // Get shared hits between reco objects and MCParticle.
+    
+    std::vector< const recob::Hit * > FillSharedHits( const simb::MCParticle & mcpart, 
+      const std::vector< const recob::Hit * > & hitsVec, bool delta_ray ) const;
+
     std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
-      const recob::PFParticle &pfpart, const art::Event &evt, std::string pfparticleModule) const;
+      const recob::PFParticle &pfpart, const art::Event &evt, std::string pfparticleModule, bool delta_ray = false) const;
     std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
-      const recob::Track &track, const art::Event &evt, std::string trackModule) const;
+      const recob::Track &track, const art::Event &evt, std::string trackModule, bool delta_ray = false) const;
     std::vector<const recob::Hit*> GetSharedHits(const simb::MCParticle &mcpart,
-      const recob::Shower &shower, const art::Event &evt, std::string showerModule) const;
+      const recob::Shower &shower, const art::Event &evt, std::string showerModule, bool delta_ray = false) const;
 
     // Get hits associated with an MCParticle.
     std::vector<const recob::Hit*> GetMCParticleHits(const simb::MCParticle &mcpart,
@@ -109,11 +119,13 @@ namespace protoana {
 
     // Match Reco to True by Number of Hits contributed as opposed to Energy contributed
     template <typename T>
-    std::vector< std::pair< const simb::MCParticle*, size_t > > GetMCParticleListByHits
+    //std::vector< std::pair< const simb::MCParticle*, size_t > > GetMCParticleListByHits
+    std::vector< MCParticleSharedHits > GetMCParticleListByHits
       (const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const;
 
     template <typename T>
-    const simb::MCParticle * GetMCParticleByHits
+    //const simb::MCParticle * GetMCParticleByHits
+    const MCParticleSharedHits GetMCParticleByHits
       (const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const;
 
 

@@ -21,79 +21,62 @@ protoana::ProtoDUNETruthUtils::~ProtoDUNETruthUtils(){
 
 }
 
+std::vector< const recob::Hit* > protoana::ProtoDUNETruthUtils::FillSharedHits
+  ( const simb::MCParticle & mcpart, const std::vector< const recob::Hit * > & hitsVec,
+    bool delta_ray ) const {
+
+  std::vector<const recob::Hit*> outVec;
+
+  // Push back all hits that are shared with this MCParticle
+  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
+  for(const recob::Hit* hitp : hitsVec) {
+    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
+      if( !delta_ray && ( trackId == mcpart.TrackId() ) ){
+        outVec.push_back(hitp);
+        break;
+      }
+      else if( delta_ray && ( trackId == (-1*mcpart.TrackId()) ) ) {
+        outVec.push_back(hitp);
+        break;
+      }
+    }
+  }
+
+  return outVec;
+}
+
 // Function that produces a vector of hit pointers that appear in both the given MCParticle and
 // PFParticle.
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
-  (const simb::MCParticle& mcpart, const recob::PFParticle& pfpart, const art::Event& evt, std::string pfparticleModule) const {
-
-  std::vector<const recob::Hit*> outVec;
+  (const simb::MCParticle& mcpart, const recob::PFParticle& pfpart, const art::Event& evt, std::string pfparticleModule, bool delta_ray) const {
 
   // Get the hits associated with this PFParticle
   protoana::ProtoDUNEPFParticleUtils pfpUtils;
   std::vector<const recob::Hit*> pfpHits = pfpUtils.GetPFParticleHits(pfpart, evt, pfparticleModule);
 
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : pfpHits) {
-    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
-      if(trackId == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-
-  return outVec;
+  return FillSharedHits( mcpart, pfpHits, delta_ray );
 }
 
 // Function that produces a vector of hit pointers that appear in both the given MCParticle and
 // reconstructed track.
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
-  (const simb::MCParticle& mcpart, const recob::Track& track, const art::Event& evt, std::string trackModule) const {
-
-  std::vector<const recob::Hit*> outVec;
+  (const simb::MCParticle& mcpart, const recob::Track& track, const art::Event& evt, std::string trackModule, bool delta_ray) const {
 
   // Get the hits associated with this track
   protoana::ProtoDUNETrackUtils trackUtils;
   std::vector<const recob::Hit*> trackHits = trackUtils.GetRecoTrackHits(track, evt, trackModule);
-
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : trackHits) {
-    for(const int& trackId : bt_serv->HitToTrackIds(*hitp)) {
-      if(trackId == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-
-  return outVec;
+  return FillSharedHits( mcpart, trackHits, delta_ray );
 }
 
 // Function that produces a vector of hit pointers that appear in both the given MCParticle and
 // reconstructed shower.
 std::vector<const recob::Hit*> protoana::ProtoDUNETruthUtils::GetSharedHits
-  (const simb::MCParticle& mcpart, const recob::Shower& shower, const art::Event& evt, std::string showerModule) const {
-
-  std::vector<const recob::Hit*> outVec;
+  (const simb::MCParticle& mcpart, const recob::Shower& shower, const art::Event& evt, std::string showerModule, bool delta_ray) const {
 
   // Get the hits associated with this shower
   protoana::ProtoDUNEShowerUtils shUtils;
   std::vector<const recob::Hit*> shHits = shUtils.GetRecoShowerHits(shower, evt, showerModule);
-
-  // Push back all hits that are shared with this MCParticle
-  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  for(const recob::Hit* hitp : shHits) {
-    for(const sim::TrackIDE& ide : bt_serv->HitToEveTrackIDEs(*hitp)) {
-      if(ide.trackID == mcpart.TrackId()) {
-        outVec.push_back(hitp);
-        break;
-      }
-    }
-  }
-
-  return outVec;
+  return FillSharedHits( mcpart, shHits, delta_ray );
 }
 
 // Function that loops over all hits in an event and returns those that an MCParticle
@@ -669,50 +652,76 @@ std::vector<std::pair<const simb::MCParticle*, double>>
 //
 // List
 template <typename T>
-std::vector< std::pair< const simb::MCParticle *, size_t > > 
+//std::vector< std::pair< const simb::MCParticle *, size_t > > 
+std::vector< protoana::MCParticleSharedHits >
   protoana::ProtoDUNETruthUtils::GetMCParticleListByHits( const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule) const {
   
   //Get the particle list. This is sorted by energy contributed, but we'll turn this into nHits
   const std::vector< std::pair< const simb::MCParticle*, double > > mcparts = GetMCParticleListFromReco( recobj, evt, recoModule ); 
 
-  using weightedMCPair = std::pair<const simb::MCParticle*, size_t>;
-  std::vector< weightedMCPair > results;
+  //using weightedMCPair = std::pair<const simb::MCParticle*, size_t>;
+  //std::vector< weightedMCPair > results;
+  std::vector< protoana::MCParticleSharedHits > results;
 
   for( const std::pair< const simb::MCParticle*, double > part : mcparts ){
+    //Get the non-delta ray hits
     const std::vector<const recob::Hit*> hits = GetSharedHits(*(part.first), recobj, evt, recoModule);
-    results.push_back( std::make_pair( part.first, hits.size() ) );
+
+    //Get the delta ray hits
+    const std::vector<const recob::Hit*> dr_hits = GetSharedHits(*(part.first), recobj, evt, recoModule, true);
+
+    protoana::MCParticleSharedHits entry;
+    entry.particle = part.first;
+    entry.nSharedHits = hits.size();
+    entry.nSharedDeltaRayHits = dr_hits.size();
+    results.push_back( entry );
+    //results.push_back( std::make_pair( part.first, hits.size() ) );
   }
 
-  std::sort(results.begin(), results.end(),
-        [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
+  //std::sort(results.begin(), results.end(),
+  //      [](weightedMCPair a, weightedMCPair b){ return a.second > b.second;});
+  
+  std::sort( results.begin(), results.end(),
+        [](protoana::MCParticleSharedHits a, protoana::MCParticleSharedHits b)
+          { return ( (a.nSharedHits + a.nSharedDeltaRayHits) > (b.nSharedHits + b.nSharedDeltaRayHits) ); });
 
   return results;
 }
 
-template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::PFParticle >
+//template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::PFParticle >
+template std::vector< protoana::MCParticleSharedHits > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::PFParticle >
   (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
-template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Track >
+//template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Track >
+template std::vector< protoana::MCParticleSharedHits > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Track >
   (const recob::Track&, const art::Event&, std::string, std::string) const;
-template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Shower >
+//template std::vector< std::pair< const simb::MCParticle *, size_t > > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Shower >
+template std::vector< protoana::MCParticleSharedHits > protoana::ProtoDUNETruthUtils::GetMCParticleListByHits< recob::Shower >
   (const recob::Shower&, const art::Event&, std::string, std::string) const;
 /////////////////
 
 // Best Match
 template <typename T>
-const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits ( const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule ) const {
+const /*simb::MCParticle **/ protoana::MCParticleSharedHits protoana::ProtoDUNETruthUtils::GetMCParticleByHits ( const T &recobj, const art::Event &evt, std::string recoModule, std::string hitModule ) const {
 
   auto list = GetMCParticleListByHits( recobj, evt, recoModule, hitModule );
 
-  if( !list.size() ) return 0x0;
+  protoana::MCParticleSharedHits dummy;
+  dummy.particle = 0x0;
+  dummy.nSharedHits = 0;
+  dummy.nSharedDeltaRayHits = 0;
+  //if( !list.size() ) return 0x0;
+  if( !list.size() ) return dummy;
 
-  return list[0].first;
+  //return list[0].first;
+  //return list[0].particle;
+  return list[0];
 }
 
-template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::PFParticle >
+template const /*simb::MCParticle **/ protoana::MCParticleSharedHits protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::PFParticle >
   (const recob::PFParticle&, const art::Event&, std::string, std::string) const;
-template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Track >
+template const /*simb::MCParticle **/ protoana::MCParticleSharedHits protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Track >
   (const recob::Track&, const art::Event&, std::string, std::string) const;
-template const simb::MCParticle * protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Shower >
+template const /*simb::MCParticle **/ protoana::MCParticleSharedHits protoana::ProtoDUNETruthUtils::GetMCParticleByHits< recob::Shower >
   (const recob::Shower&, const art::Event&, std::string, std::string) const;
 /////////////////
 

@@ -162,6 +162,8 @@ tools.preparedAdcPlotter: {
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
@@ -185,6 +187,8 @@ tools.signalAdcPlotter: {
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
@@ -208,6 +212,8 @@ tools.rawAdcPlotter: {
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false

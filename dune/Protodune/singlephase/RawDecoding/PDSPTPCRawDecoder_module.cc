@@ -598,7 +598,7 @@ void PDSPTPCRawDecoder::_process_RCE_nticksvf(
   const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
   HeaderFragmentUnpack const cdheader(cdptr);
   //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
-  if (cdsize>16) cdsize -= 16;
+  if (cdsize>24) cdsize -= 24;
   bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
   if (!isOkay) return;
 
@@ -661,7 +661,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
   const uint64_t* cdptr = (uint64_t const*) (cfragloc.dataBeginBytes() + 12);  // see dune-raw-data/Overlays/RceFragment.cc
   HeaderFragmentUnpack const cdheader(cdptr);
   //bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize+sizeof(cdheader));
-  if (cdsize>16) cdsize -= 16;
+  if (cdsize>24) cdsize -= 24;
   bool isOkay = RceFragmentUnpack::isOkay(cdptr,cdsize);
   if (!isOkay)
     {
