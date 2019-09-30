@@ -69,8 +69,6 @@
 #include <vector>
 
 // Maximum number of beam particles to save
-const int NMAXDAUGTHERS = 25;
-
 namespace protoana {
   class ProtoDUNEPizeroAnaTree;
 }
@@ -404,7 +402,7 @@ void protoana::ProtoDUNEPizeroAnaTree::analyze(art::Event const & evt){
   if( !evt.getByLabel(fPFParticleTag,recoParticleHandle) ) return;
 
   // Get all of the PFParticles, by default from the "pandora" product
-  auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
+  //auto recoParticles = evt.getValidHandle<std::vector<recob::PFParticle>>(fPFParticleTag);
 
   // We'd like to find the beam particle. Pandora tries to do this for us, so let's use the PFParticle utility 
   // to look for it. Pandora reconstructs slices containing one (or sometimes more) primary PFParticles. These
@@ -605,6 +603,7 @@ void protoana::ProtoDUNEPizeroAnaTree::Initialise(){
      fprimaryShower_hit_X[m] =-999.0;
      fprimaryShower_hit_Y[m] =-999.0;
      fprimaryShower_hit_Z[m] =-999.0;
+     fprimaryShower_hit_pitch[m] = -999.0;
   }
   fprimaryTruth_trkID =-999;
   fprimaryTruth_pdg = -999;
