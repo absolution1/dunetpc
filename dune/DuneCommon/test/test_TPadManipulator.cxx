@@ -17,6 +17,7 @@
 #include "TTimeStamp.h"
 #include "TCanvas.h"
 #include "TROOT.h"
+#include "TFile.h"
 
 using std::string;
 using std::cout;
@@ -60,6 +61,16 @@ int test_TPadManipulator() {
   cout << myname << line << endl;
   cout << myname << "Add histogram." << endl;
   man.add(ph, "H");
+  {
+    TLatex lin(0.15, 0.85, "Test of TPadManipulator");
+    lin.SetNDC();
+    man.add(&lin);
+  }
+  {
+    TLatex lin(0.15, 0.80, "Histogram");
+    lin.SetNDC();
+    man.add(&lin);
+  }
   assert( man.hist() != nullptr );
 
   cout << myname << line << endl;
@@ -89,6 +100,16 @@ int test_TPadManipulator() {
   pmantop->man(1)->setRangeX(2000, 8000);
   pmantop->man(1)->setRangeY(10, 90);
   pmantop->man(1)->setTimeFormatX("%H:%M");
+  {
+    TLatex lin(0.15, 0.75, "Zoomed");
+    lin.SetNDC();
+    pmantop->man(1)->add(&lin);
+  }
+  {
+    TLatex lin(0.15, 0.70, "Time format");
+    lin.SetNDC();
+    pmantop->man(1)->add(&lin);
+  }
 
   cout << myname << line << endl;
   cout << myname << "Draw." << endl;
@@ -130,6 +151,30 @@ int test_TPadManipulator() {
   mant.setRangeY(0, 61);
   mant.setTimeFormatX("%H:%M%F2019-06-06 00:00:00");
   mant.print("test_TPadManipulator-time.png");
+
+  cout << myname << line << endl;
+  string rfnam = "test_TPadManipulator.root";
+  cout << myname << "Write pad to " << rfnam << endl;
+  TFile* prout = TFile::Open(rfnam.c_str(), "RECREATE");
+  prout->WriteObject(pmantop, "man1");
+  prout->Write();
+  delete prout;
+
+  cout << myname << line << endl;
+  cout << myname << "Read pad from " << rfnam << endl;
+  TFile* prin = TFile::Open(rfnam.c_str());
+  prin->ls();
+  TPadManipulator* pmani = nullptr;
+  prin->GetObject("man1", pmani);
+  delete prin;
+  assert( pmani != nullptr );
+  pmani->man(1)->setTitle("My histo after read");
+  {
+    TLatex lin(0.01, 0.97, "Read from file");
+    lin.SetNDC();
+    pmani->add(&lin);
+  }
+  pmani->print("test_TPadManipulator-read.png");
 
   cout << myname << line << endl;
   cout << myname << "Root canvas count: " << gROOT->GetListOfCanvases()->GetEntries() << endl;

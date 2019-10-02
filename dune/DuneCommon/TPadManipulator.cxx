@@ -18,6 +18,8 @@
 #include "TPaletteAxis.h"
 #include "TError.h"
 #include "TSystem.h"
+#include "TBuffer.h"
+#include "TClass.h"
 
 using std::string;
 using std::cout;
@@ -42,13 +44,17 @@ TPadManipulator::TPadManipulator()
   m_canvasWidth(0), m_canvasHeight(0),
   m_marginLeft(-999), m_marginRight(-999),
   m_marginBottom(-999), m_marginTop(-999),
+  m_ph(nullptr),
+  m_pg(nullptr),
   m_fillColor(0), m_frameFillColor(0),
   m_gridX(false), m_gridY(false),
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_ndivX(0), m_ndivY(0),
   m_labSizeX(0.0), m_labSizeY(0.0),
+  m_flowHist(nullptr),
   m_showUnderflow(false), m_showOverflow(false),
+  m_flowGraph(nullptr),
   m_gflowMrk(0), m_gflowCol(0),
   m_top(false), m_right(false), m_iobjLegend(0) {
   const string myname = "TPadManipulator::ctor: ";
@@ -103,17 +109,19 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_marginBottom = rhs.m_marginBottom;
   m_marginTop = rhs.m_marginTop;
   // Clone drawn objects.
-  m_ph.reset();
-  m_pg.reset();
-  if ( rhs.m_ph ) {
-    m_ph.reset((TH1*)rhs.m_ph->Clone());
+  delete m_ph;
+  m_ph = nullptr;
+  delete m_pg;
+  m_pg = nullptr;
+  if ( rhs.haveHist() ) {
+    m_ph = dynamic_cast<TH1*>(rhs.hist()->Clone());
   } else if ( rhs.m_pg ) {
-    m_pg.reset((TGraph*)rhs.m_pg->Clone());
+    m_pg = dynamic_cast<TGraph*>(rhs.m_pg->Clone());
   }
   m_dopt = rhs.m_dopt;
   m_objs.clear();
-  for ( TObjPtr pobj : rhs.m_objs ) {
-    m_objs.emplace_back(pobj ? pobj->Clone() : nullptr);
+  for ( TObject* pobj : rhs.m_objs ) {
+    m_objs.push_back(pobj != nullptr ? pobj->Clone() : nullptr);
   }
   m_opts = rhs.m_opts;
   TH1::AddDirectory(saveAddDirectory);
@@ -155,7 +163,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_slSlop = rhs.m_slSlop;
   m_slYoff = rhs.m_slYoff;
   m_slStyl = rhs.m_slStyl;
-  m_vmlLines.clear();
+  clearLineObjects();
   m_binLabelsX = rhs.m_binLabelsX;
   m_binLabelsY = rhs.m_binLabelsY;
   m_timeOffset = rhs.m_timeOffset;
@@ -182,6 +190,9 @@ TPadManipulator::~TPadManipulator() {
     delete m_ppad;
     m_ppad = nullptr;
   }
+  for ( TObject* pobj : m_objs ) delete pobj;
+  m_objs.clear();
+  clearLineObjects();
 }
 
 //**********************************************************************
@@ -323,15 +334,15 @@ TObject* TPadManipulator::object() const {
 
 TH1* TPadManipulator::getHist(unsigned int iobj) {
   if ( iobj >= objects().size() ) return nullptr;
-  return dynamic_cast<TH1*>(objects()[iobj].get());
+  return dynamic_cast<TH1*>(objects()[iobj]);
 }
 
 //**********************************************************************
 
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
-  for ( const TObjPtr& pobj : objects() ) {
-    TH1* ph = dynamic_cast<TH1*>(pobj.get());
+  for ( TObject* pobj : objects() ) {
+    TH1* ph = dynamic_cast<TH1*>(pobj);
     if ( ph == nullptr ) continue;
     if ( ph->GetName() == hnam ) return ph;
   }
@@ -395,6 +406,13 @@ TH1* TPadManipulator::frameHist() const {
 
 //**********************************************************************
 
+void TPadManipulator::clearLineObjects() {
+  for ( TLine* pline : m_lines ) delete pline;
+  m_lines.clear();
+}
+
+//**********************************************************************
+
 int TPadManipulator::addPad(double x1, double y1, double x2, double y2, int icol) {
   if ( x2 <= x1 ) return 1;
   if ( y2 <= y1 ) return 2;
@@ -454,18 +472,18 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
     TObject* pobjc = pobj->Clone();
     TH1* phc = dynamic_cast<TH1*>(pobjc);
     if ( phc != nullptr ) phc->SetDirectory(nullptr);
-    m_objs.emplace_back(pobjc);
+    m_objs.push_back(pobjc);
     m_opts.push_back(sopt);
   // Otherwise, the passed object becomes the primary object and must be
   // a histogram or graph.
   } else {
     if ( ph == nullptr && pg == nullptr ) return 103;
     if ( pman->hist() != nullptr ) {
-      if ( replace ) pman->m_ph.reset();
+      if ( replace ) delete pman->m_ph;
       else return 104;
     }
     if ( pman->graph() != nullptr ) {
-      if ( replace ) pman->m_pg.reset();
+      if ( replace ) delete pman->m_pg;
       else return 105;
     }
     //if ( m_ppad == nullptr ) return 106;
@@ -480,12 +498,12 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
       TH1* phc = (TH1*) ph->Clone();
       phc->SetDirectory(nullptr);
       phc->SetTitle("");
-      pman->m_ph.reset(phc);
+      pman->m_ph = phc;
       pman->m_dopt = sopt;
     } else {
       TGraph* pgc = (TGraph*) pg->Clone();
       pgc->SetTitle("");
-      pman->m_pg.reset(pgc);
+      pman->m_pg = pgc;
       string soptOut;
       for ( Index ipos=0; ipos<sopt.size(); ++ipos ) {
         char ch = sopt[ipos];
@@ -513,7 +531,7 @@ int TPadManipulator::add(TObject* pobj, string sopt, bool replace) {
 TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) {
   TLegend leg(x1, y1, x2, y2);
   add(0, &leg, "");
-  TLegend* pleg = dynamic_cast<TLegend*>(objects().back().get());
+  TLegend* pleg = dynamic_cast<TLegend*>(objects().back());
   m_iobjLegend = objects().size() - 1;
   pleg->SetBorderSize(0);
   pleg->SetFillStyle(0);
@@ -537,8 +555,10 @@ int TPadManipulator::setLabel(string slab) {
 //**********************************************************************
 
 int TPadManipulator::clear() {
-  m_ph.reset();
-  m_pg.reset();
+  delete m_ph;
+  m_ph = nullptr;
+  delete m_pg;
+  m_pg = nullptr;
   if ( pad() != nullptr && npad() == 0 ) pad()->Clear();
   for ( TPadManipulator& man : m_subMans ) man.clear();
   return 0;
@@ -586,10 +606,9 @@ int TPadManipulator::update() {
   // Note that we will later redraw the frame.
   if ( ! haveFrameHist() ) {
     // Fetch the set bounds.
-    if ( m_ph ) {
-      m_ph->Draw(m_dopt.c_str());
-    }
-    else if ( m_pg ) {
+    if ( haveHist() ) {
+      hist()->Draw(m_dopt.c_str());
+    } else if ( m_pg ) {
       // If the graph has no points, we add one because root (6.12/06) raises an
       // exception if we draw an empty graph.
       if ( m_pg->GetN() == 0 ) {
@@ -633,7 +652,7 @@ int TPadManipulator::update() {
   // After this, user can override with pad()->SetRightMargin(...), ...
   m_ppad->Update();    // This is needed to get color palette for 2D hists.
   bool isTH = haveHist();
-  bool isTH2 = dynamic_cast<TH2*>(m_ph.get()) != nullptr;
+  bool isTH2 = dynamic_cast<TH2*>(hist()) != nullptr;
   bool isTH1 = isTH && !isTH2;
   double xm0 = 0.015;
   double wx = padPixelsX();
@@ -697,13 +716,14 @@ int TPadManipulator::update() {
       }
     }
   }
-  int nbin = isTH1 ? m_ph->GetNbinsX() : 0;
+  int nbin = isTH1 ? hist()->GetNbinsX() : 0;
   int flowcol = kAzure - 9;
   // Build over/underflow histogram.
-  m_flowHist.reset();
+  delete m_flowHist;
+  m_flowHist = nullptr;
   if ( (m_showUnderflow || m_showOverflow) && nbin > 0 ) {
     if ( m_flowHist == nullptr ) {
-      m_flowHist.reset((TH1*) m_ph->Clone("hmaniptmp"));
+      m_flowHist = dynamic_cast<TH1*>(hist()->Clone("hmaniptmp"));
       m_flowHist->SetDirectory(nullptr);
       m_flowHist->SetStats(0);
       m_flowHist->SetLineColor(flowcol);
@@ -714,7 +734,7 @@ int TPadManipulator::update() {
     if ( m_showUnderflow ) {
       if ( haveHist() ) {
         double binWidth = hist()->GetBinWidth(1);
-        int binDisp1 = m_ph->FindBin(xmin()+0.499*binWidth);  // First displayed bin.
+        int binDisp1 = hist()->FindBin(xmin()+0.499*binWidth);  // First displayed bin.
         int binUnder2 = binDisp1 ? binDisp1 - 1 : 0;    // Last bin below display.
         double yunder = hist()->Integral(0, binUnder2);
         m_flowHist->SetBinContent(binDisp1, yunder);
@@ -724,7 +744,7 @@ int TPadManipulator::update() {
       if ( haveHist() ) {
         int binOver2 = hist()->GetNbinsX() + 1;  // Last bin above display
         double binWidth = hist()->GetBinWidth(1);
-        int binOver1 = m_ph->FindBin(xmax()+0.501*binWidth);  // First bin above display.
+        int binOver1 = hist()->FindBin(xmax()+0.501*binWidth);  // First bin above display.
         int binDisp2 = binOver1 - 1;                        // Last displayed bin.
         double yover = hist()->Integral(binOver1, binOver2);
         m_flowHist->SetBinContent(binDisp2, yover);
@@ -805,14 +825,14 @@ int TPadManipulator::update() {
   // set here. Make those calls iff bin labels are set.
   if ( haveHist() ) {
     if ( m_binLabelsX.size() ) {
-      TAxis* pah = m_ph->GetXaxis();
+      TAxis* pah = hist()->GetXaxis();
       getXaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
       for ( Index ilab=0; ilab<m_binLabelsX.size(); ++ilab ) {
         getXaxis()->SetBinLabel(ilab+1, m_binLabelsX[ilab].c_str());
       }
     }
-    if ( dynamic_cast<TH2*>(m_ph.get()) != nullptr && m_binLabelsY.size() ) {
-      TAxis* pah = m_ph->GetYaxis();
+    if ( dynamic_cast<TH2*>(hist()) != nullptr && m_binLabelsY.size() ) {
+      TAxis* pah = hist()->GetYaxis();
       getYaxis()->Set(pah->GetNbins(), pah->GetXmin(), pah->GetXmax());
       for ( Index ilab=0; ilab<m_binLabelsY.size(); ++ilab ) {
         getYaxis()->SetBinLabel(ilab+1, m_binLabelsY[ilab].c_str());
@@ -824,20 +844,20 @@ int TPadManipulator::update() {
     if ( m_flowHist != nullptr ) {
       m_flowHist->Draw("same");
     }
-    TAxis* paz = m_ph->GetZaxis();
+    TAxis* paz = hist()->GetZaxis();
     if ( paz != nullptr && za2 > za1 ) {
       paz->SetRangeUser(za1, za2);
       paz->SetLabelOffset(xlz);
     }
     string dopt = m_dopt.size() ? m_dopt + " same" : "same";
-    m_ph->Draw(dopt.c_str());
+    hist()->Draw(dopt.c_str());
     drawHistFuns();
   } else {
     m_pg->Draw(m_dopt.c_str());
   }
   // Secondary objects.
   for ( Index iobj=0; iobj<m_objs.size(); ++iobj ) {
-    TObject* pobj = m_objs[iobj].get();
+    TObject* pobj = m_objs[iobj];
     string sopt = m_opts[iobj];
     if ( pobj != nullptr ) pobj->Draw(sopt.c_str());
   }
@@ -853,8 +873,8 @@ int TPadManipulator::update() {
     pgout->SetMarkerColor(m_gflowCol);
     std::vector<TGraph*> gras;
     if ( haveGraph() ) gras.push_back(graph());
-    for ( TObjPtr pobj : m_objs ) {
-      TGraph* pgra = dynamic_cast<TGraph*>(pobj.get());
+    for ( TObject* pobj : m_objs ) {
+      TGraph* pgra = dynamic_cast<TGraph*>(pobj);
       if ( pgra != nullptr ) gras.push_back(pgra);
     }
     for ( TGraph* pgin : gras ) {
@@ -875,7 +895,8 @@ int TPadManipulator::update() {
       delete pgout;
       pgout = nullptr;
     } else {
-      m_flowGraph.reset(pgout);
+      delete m_flowGraph;
+      m_flowGraph = pgout;
       m_flowGraph->Draw("P");
     }
   }
@@ -895,7 +916,7 @@ int TPadManipulator::update() {
 
 TAxis* TPadManipulator::getXaxis() const {
   if ( haveFrameHist() ) return frameHist()->GetXaxis();
-  if ( m_ph != nullptr ) return m_ph->GetXaxis();
+  if ( hist() != nullptr ) return hist()->GetXaxis();
   if ( m_pg != nullptr ) return m_pg->GetXaxis();
   return nullptr;
 }
@@ -904,7 +925,7 @@ TAxis* TPadManipulator::getXaxis() const {
 
 TAxis* TPadManipulator::getYaxis() const {
   if ( haveFrameHist() ) return frameHist()->GetYaxis();
-  if ( m_ph != nullptr ) return m_ph->GetYaxis();
+  if ( hist() != nullptr ) return hist()->GetYaxis();
   if ( m_pg != nullptr ) return m_pg->GetYaxis();
   return nullptr;
 }
@@ -1047,7 +1068,8 @@ int TPadManipulator::showOverflow(bool show) {
 //**********************************************************************
 
 int TPadManipulator::showGraphOverflow(std::string sopt, int imrk, int icol) {
-  m_flowGraph.reset();
+  delete m_flowGraph;
+  m_flowGraph = nullptr;
   m_gflowOpt = sopt;
   m_gflowMrk = imrk;
   m_gflowCol = icol;
@@ -1273,7 +1295,7 @@ int TPadManipulator::drawAxisRight() {
 int TPadManipulator::drawHistFuns() {
   if ( m_ppad == nullptr ) return 1;
   const TList* pfuns = nullptr;
-  if      ( m_ph != nullptr ) pfuns = m_ph->GetListOfFunctions();
+  if      ( haveHist() ) pfuns = hist()->GetListOfFunctions();
   else if ( m_pg != nullptr ) pfuns = m_pg->GetListOfFunctions();
   else    return 1;
   const TList& funs = *pfuns;
@@ -1295,7 +1317,7 @@ int TPadManipulator::drawLines() {
   if ( m_ppad == nullptr ) return 1;
   TVirtualPad* pPadSave = gPad;
   m_ppad->cd();
-  m_vmlLines.clear();
+  clearLineObjects();
   for ( Index iset=0; iset<m_vmlXmod.size(); ++iset ) {
     double xmod = m_vmlXmod[iset];
     double xoff = m_vmlXoff[iset];
@@ -1309,9 +1331,9 @@ int TPadManipulator::drawLines() {
     }
     double ytop = ymax() + (xlen - 1.0)*(ymax() - ymin());
     while ( x <= xmax() ) {
-      std::shared_ptr<TLine> pline(new TLine(x, ymin(), x, ytop));
+      TLine* pline = new TLine(x, ymin(), x, ytop);
       pline->SetLineStyle(isty);
-      m_vmlLines.push_back(pline);
+      m_lines.push_back(pline);
       pline->Draw();
       if ( xmod == 0.0 ) break;
       x += xmod;
@@ -1330,9 +1352,9 @@ int TPadManipulator::drawLines() {
     }
     double xtop = xmax() + (ylen - 1.0)*(xmax() - xmin());
     while ( y <= ymax() ) {
-      std::shared_ptr<TLine> pline(new TLine(xmin(), y, xtop, y));
+      TLine* pline = new TLine(xmin(), y, xtop, y);
       pline->SetLineStyle(isty);
-      m_vmlLines.push_back(pline);
+      m_lines.push_back(pline);
       pline->Draw();
       if ( ymod == 0.0 ) break;
       y += ymod;
@@ -1379,13 +1401,58 @@ int TPadManipulator::drawLines() {
       x2 = xrig;
       y2 = yrig;
     }
-    std::shared_ptr<TLine> pline(new TLine(x1, y1, x2, y2));
+    TLine* pline = new TLine(x1, y1, x2, y2);
     pline->SetLineStyle(isty);
-    m_vmlLines.push_back(pline);
+    m_lines.push_back(pline);
     pline->Draw();
   }
   gPad = pPadSave;
   return 0;
 }
+
+//**********************************************************************
+
+void TPadManipulator::Streamer(TBuffer& buf) {
+  const string myname = "TPadManipulator::Streamer: ";
+  TClass* pclass = TClass::GetClass("TPadManipulator");
+  if ( buf.IsReading() ) {
+    if ( pclass == nullptr ) {
+      cout << myname << "Dictionary not found for read." << endl;
+      return;
+    }
+    // Stream in.
+    pclass->ReadBuffer(buf, this);
+    // Set the parents. This only needs to be done for the top level object
+    // but I don't know how to tell if this is the case.
+    setParents(true);
+    // Log message.
+    string msg = haveHist() ? "histogram" : haveGraph() ? "graph" : "no primary";
+    cout << myname << "Read pad with " << msg << " and " 
+         << objects().size() << " extra objects and "
+         << m_subMans.size() << " subpads."  << endl;
+  } else {
+    if ( pclass == nullptr ) {
+      cout << myname << "Dictionary not found for write." << endl;
+      return;
+    }
+    // Log message.
+    string msg = haveHist() ? "histogram" : haveGraph() ? "graph" : "no primary";
+    cout << myname << "Writing pad with " << msg << " and "
+         << objects().size() << " extra objects and "
+         << m_subMans.size() << " subpads." << endl;
+    if ( haveHistOrGraph() ) object()->Print();
+    // Stream out.
+    pclass->WriteBuffer(buf, this);
+  }
+}
+
+//**********************************************************************
+
+void TPadManipulator::setParents(bool recurse) {
+  for ( TPadManipulator& man : m_subMans ) {
+    man.m_parent = this;
+    if ( recurse ) man.setParents(true);
+  }
+ }
 
 //**********************************************************************

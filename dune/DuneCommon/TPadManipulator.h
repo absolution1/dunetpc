@@ -32,6 +32,7 @@ class TGraph;
 class TAxis;
 class TLegend;
 class TFrame;
+class TBuffer;
 
 class TPadManipulator {
 
@@ -56,12 +57,12 @@ public:
   };
 
   using Index = unsigned int;
-  using TLinePtr = std::shared_ptr<TLine>;
-  using TObjPtr = std::shared_ptr<TObject>;
-  using TObjVector = std::vector<TObjPtr>;
+  using LineVector = std::vector<TLine*>;
+  using TObjVector = std::vector<TObject*>;
   using BoundsVector = std::vector<Bounds>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
+  using HistPtr = std::shared_ptr<TH1>;
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -137,9 +138,9 @@ public:
   bool haveParent() const { return m_parent != nullptr; }
 
   // Return the primary histogram or graph for this pad.
-  TH1* hist() const { return m_ph.get(); }
+  TH1* hist() const { return m_ph; }
   bool haveHist() const { return hist() != nullptr; }
-  TGraph* graph() const { return m_pg.get(); }
+  TGraph* graph() const { return m_pg; }
   bool haveGraph() const { return graph() != nullptr; }
   TObject* object() const;
   bool haveHistOrGraph() const { return object() != nullptr; }
@@ -147,7 +148,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
-  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj].get() : nullptr; }
+  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj] : nullptr; }
   TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
@@ -174,8 +175,11 @@ public:
   TH1* frameHist() const;
   bool haveFrameHist() const { return frameHist() != nullptr; }
 
-  // Return the vertical mod lines associated with this pad.
-  const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
+  // Delete the line objects.
+  void clearLineObjects();
+
+  // Return the lines associated with this pad.
+  const LineVector& verticalModLines() const { return m_lines; }
 
   // Add a subpad covering (x1, y1) to (x2, y2) in NDC units, i.e. 0 < x,y < 1.
   int addPad(double x1, double y1, double x2, double y2, int icol =-1);
@@ -292,7 +296,7 @@ public:
   int showOverflow(bool show =true);
 
   // Return the under/overflow histogram.
-  TH1* flowHistogram() { return m_flowHist.get(); }
+  TH1* flowHistogram() { return m_flowHist; }
 
   // Show overflow points for graphs.
   // Any point off scale in any of the indicated directions is drawn at
@@ -301,7 +305,7 @@ public:
   int showGraphOverflow(std::string sopt ="BTLR", int imrk =38, int icol =1);
 
   // Return the under/overflow graph.
-  TGraph* flowGraph() { return m_flowGraph.get(); }
+  TGraph* flowGraph() { return m_flowGraph; }
 
   // Remove all lines.
   int clearLines();
@@ -358,18 +362,27 @@ public:
   // Draw the current lines.
   int drawLines();
 
+  // Custom streamer.
+  void Streamer(TBuffer& buf);
+
 private:
 
-  TPadManipulator* m_parent;
-  TVirtualPad* m_ppad;
+  // Set the parent for all children.
+  // If recurse is true, the operation is also performed on their children.
+  void setParents(bool recurse);
+
+private:
+
+  TPadManipulator* m_parent;  //! ==> Do not stream
+  TVirtualPad* m_ppad;  //! ==> Do not stream.
   int m_canvasWidth;
   int m_canvasHeight;
   double m_marginLeft;
   double m_marginRight;
   double m_marginBottom;
   double m_marginTop;
-  std::shared_ptr<TH1> m_ph;
-  std::shared_ptr<TGraph> m_pg;
+  TH1* m_ph;
+  TGraph* m_pg;
   std::string m_dopt;
   TObjVector m_objs;
   std::vector<std::string> m_opts;
@@ -388,10 +401,10 @@ private:
   int m_ndivY;
   double m_labSizeX;
   double m_labSizeY;
-  std::shared_ptr<TH1> m_flowHist;
+  TH1* m_flowHist;        //! ==> Do not stream.
   bool m_showUnderflow;
   bool m_showOverflow;
-  std::shared_ptr<TGraph> m_flowGraph;
+  TGraph* m_flowGraph;    //! ==> Do not stream.
   std::string m_gflowOpt;
   int m_gflowMrk;
   int m_gflowCol;
@@ -411,7 +424,7 @@ private:
   std::vector<double> m_slSlop;
   std::vector<double> m_slYoff;
   std::vector<int> m_slStyl;
-  std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  LineVector m_lines;  //! ==> Do not stream.
   NameVector m_binLabelsX;
   NameVector m_binLabelsY;
   double m_timeOffset =0.0;
