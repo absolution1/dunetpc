@@ -1026,3 +1026,8 @@ std::map< size_t, std::vector< const sim::IDE * > > protoana::ProtoDUNETruthUtil
 
   return results;
 }
+
+bool protoana::sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
+  return( i1->z < i2->z ); 
+}
+

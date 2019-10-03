@@ -1,0 +1,30 @@
+BEGIN_PROLOG
+
+BeamCuts_SPProd2_MC_sce: 
+{
+  BeamSource:     "generator"
+  TrackStartXCut: [-3., 0.]
+  TrackStartYCut: [-1., 2.]
+  TrackStartZCut: [28., 32.]
+  TrackDirCut:    .93
+}
+
+BeamCuts_MCC11: 
+{
+  BeamSource:     "generator"
+  TrackStartXCut: [-3., 5.]
+  TrackStartYCut: [-7., 8.]
+  TrackStartZCut: [15., 21.]
+  TrackDirCut:    .93
+}
+
+BeamCuts_SPProd2_Data:
+{
+  BeamSource:     "beamevent"
+  TrackStartXCut: [-3., 0.]
+  TrackStartYCut: [-1., 2.]
+  TrackStartZCut: [28., 32.]
+  TrackDirCut:    .93
+}
+
+END_PROLOG

@@ -169,9 +169,10 @@ namespace protoana {
 
   };
 
-  bool sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
+  //Define this it the source file, but outside of class
+  bool sort_IDEs( const sim::IDE * i1, const sim::IDE * i2)/*{
     return( i1->z < i2->z ); 
-  }
+  }*/;
 
 }
 

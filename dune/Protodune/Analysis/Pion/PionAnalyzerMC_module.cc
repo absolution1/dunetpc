@@ -316,6 +316,7 @@ private:
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
   int fNSliceCheck; 
+  fhicl::ParameterSet BeamPars;
 };
 
 
@@ -333,7 +334,8 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
-  fNSliceCheck( p.get< int >("NSliceCheck") )
+  fNSliceCheck( p.get< int >("NSliceCheck") ),
+  BeamPars(p.get<fhicl::ParameterSet>("BeamPars"))
 {
 
   templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
@@ -637,6 +639,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   }
 
   if( thisTrack ){
+
+    bool pass_beam_cuts = trackUtil.IsBeamlike( *thisTrack, evt, BeamPars, true );
+    std::cout << "Passes beam cuts? " << pass_beam_cuts << std::endl;
+
 
     beamTrackID = thisTrack->ID();
 
