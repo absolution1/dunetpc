@@ -573,8 +573,8 @@ bool protoana::ProtoDUNETrackUtils::IsBeamlike( const recob::Track & track, art:
    //Real data: compare to the reconstructed beam particle
    if( evt.isRealData() ){
      std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
-     auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent > >
-                           (BeamPars.get<std::string>("BeamSource"));
+     auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent > >("beamevent");
+                           
      if( beamHandle.isValid()){
        art::fill_ptr_vector(beamVec, beamHandle);
      }
@@ -602,8 +602,8 @@ bool protoana::ProtoDUNETrackUtils::IsBeamlike( const recob::Track & track, art:
    //MC: compare to the projected particle from the particle gun
    else{
      protoana::ProtoDUNETruthUtils truthUtil;
-     auto mcTruths = evt.getValidHandle< std::vector< simb::MCTruth > >
-                         (BeamPars.get<std::string>("BeamSource"));
+     auto mcTruths = evt.getValidHandle< std::vector< simb::MCTruth > >("generator");
+                         
      const simb::MCParticle* true_beam_particle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
 
      if( !true_beam_particle ){
