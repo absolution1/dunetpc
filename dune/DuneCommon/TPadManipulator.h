@@ -33,6 +33,7 @@ class TAxis;
 class TLegend;
 class TFrame;
 class TBuffer;
+class TDirectory;
 
 class TPadManipulator {
 
@@ -63,6 +64,12 @@ public:
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using HistPtr = std::shared_ptr<TH1>;
+
+  // Get object with name onam from Root directory rdir.
+  static TPadManipulator* get(Name onam ="tpad", TDirectory* tdir =nullptr);
+
+  // Read object with name onam from the Root file fnam.
+  static TPadManipulator* read(Name fnam, Name onam ="tpad");
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -116,7 +123,16 @@ public:
   TCanvas* canvas(bool doDraw =false);
   bool haveCanvas() const { return canvas() != nullptr; }
 
-  // Save the canvas holding this pad to the specified file.
+  // Save this object with name onam to root directory tdir.
+  // If tdir is null, the current Root directory is used.
+  int put(Name onam ="tpad", TDirectory* tdir =nullptr) const;
+
+  // Save this object with name onam to root file fnam.
+  // If tdir is null, the current Root directory is used.
+  // The root file is opened in update mode and then closed.
+  int write(Name fnam, Name onam ="tpad") const;
+
+  // Create an image file. Name suffix should be a known format: png, pdf, ....
   int print(std::string fname);
 
   // Return the top-level manipulator, i.e. the ancestor that holds (or would hold)

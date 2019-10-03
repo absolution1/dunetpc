@@ -20,6 +20,8 @@
 #include "TSystem.h"
 #include "TBuffer.h"
 #include "TClass.h"
+#include "TDirectory.h"
+#include "TFile.h"
 
 using std::string;
 using std::cout;
@@ -37,6 +39,39 @@ namespace {
 
 }  // end unnamed namespace
 
+//**********************************************************************
+// Static members.
+//**********************************************************************
+
+TPadManipulator* TPadManipulator::get(Name onam, TDirectory* tdir) {
+  Name myname = "TPadManipulator::get: ";
+  TPadManipulator* ppad = nullptr;
+  TDirectory* pdir = tdir == nullptr ? gDirectory : tdir;
+  if ( pdir == nullptr ) {
+    cout << myname << "ERROR: Root directory not found." << endl;
+    return ppad;
+  }
+  pdir->GetObject(onam.c_str(), ppad);
+  return ppad;
+}
+
+//**********************************************************************
+
+TPadManipulator* TPadManipulator::read(Name fnam, Name onam) {
+  Name myname = "TPadManipulator::read: ";
+  TPadManipulator* ppad = nullptr;
+  TFile* pfil = TFile::Open(fnam.c_str(), "READ");
+  if ( pfil == nullptr || ! pfil->IsOpen() ) {
+    cout << myname << "Unable to open file " << fnam << endl;
+  } else {
+    ppad = get(onam, pfil);
+  }
+  delete pfil;
+  return ppad;
+}
+
+//**********************************************************************
+// Non-static members.
 //**********************************************************************
 
 TPadManipulator::TPadManipulator()
@@ -280,7 +315,47 @@ TCanvas* TPadManipulator::canvas(bool doDraw) {
 
 //**********************************************************************
 
+int TPadManipulator::put(Name onam, TDirectory* tdir) const {
+  Name myname = "TPadManipulator::put: ";
+  TDirectory* pdir = tdir == nullptr ? gDirectory : tdir;
+  if ( pdir == nullptr ) {
+    cout << myname << "ERROR: Root directory not found." << endl;
+    return 2;
+  }
+  if ( ! pdir->IsWritable() ) {
+    cout << myname << "Root directory " << pdir->GetName() << " is not writable." << endl;
+    return 3;
+  }
+  pdir->WriteObject(this, onam.c_str());
+  return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::write(Name fnam, Name onam) const {
+  Name myname = "TPadManipulator::write: ";
+  TFile* pfil = TFile::Open(fnam.c_str(), "UPDATE");
+  if ( pfil == nullptr || ! pfil->IsOpen() ) {
+    cout << myname << "Unable to open file " << fnam << endl;
+    return 1;
+  }
+  int wstat = put(onam, pfil);
+  delete pfil;
+  return wstat;
+}
+
+//**********************************************************************
+
 int TPadManipulator::print(string fname) {
+  // If fname has suffix .root or .tpad, we save this object.
+  Name::size_type idot = fname.rfind(".");
+  if ( idot != Name::npos ) {
+    Name suf = fname.substr(idot + 1);
+    if ( suf == "root" || suf == "tpad" ) {
+      write(fname);
+      return 0;
+    }
+  }
   TCanvas* pcan = canvas(false);
   // If canvas does not yet exist, draw in batch mode to avoid
   // display on screen.

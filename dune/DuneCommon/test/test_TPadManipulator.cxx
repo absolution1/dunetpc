@@ -155,18 +155,12 @@ int test_TPadManipulator() {
   cout << myname << line << endl;
   string rfnam = "test_TPadManipulator.root";
   cout << myname << "Write pad to " << rfnam << endl;
-  TFile* prout = TFile::Open(rfnam.c_str(), "RECREATE");
-  prout->WriteObject(pmantop, "man1");
-  prout->Write();
-  delete prout;
+  //assert( pmantop->write(rfnam) == 0 );
+  assert( pmantop->print(rfnam) == 0 );
 
   cout << myname << line << endl;
   cout << myname << "Read pad from " << rfnam << endl;
-  TFile* prin = TFile::Open(rfnam.c_str());
-  prin->ls();
-  TPadManipulator* pmani = nullptr;
-  prin->GetObject("man1", pmani);
-  delete prin;
+  TPadManipulator* pmani = TPadManipulator::read(rfnam);
   assert( pmani != nullptr );
   pmani->man(1)->setTitle("My histo after read");
   {
