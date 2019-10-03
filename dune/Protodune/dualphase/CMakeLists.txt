@@ -97,3 +97,4 @@ install_scripts()
 
 add_subdirectory(Light)
 add_subdirectory(RawDecoding)
+add_subdirectory(fcl)
