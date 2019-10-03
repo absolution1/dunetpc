@@ -8,6 +8,7 @@
 # vg: added Wed Oct  2 16:47:50 CEST 2019
 #   - anode channels not read in 2 CRP configuration
 #   - anode channels blinded by the LEM borders
+# TODO add bad anode channels identified in pulser runs
 #
 
 BEGIN_PROLOG
@@ -256,11 +257,11 @@ pddp_channel_status: {
     3682, # blinded by LEM edge
     3683, # blinded by LEM edge
     3684, # blinded by LEM edge
-    5755, # blinded by LEM edge
-    5756, # blinded by LEM edge
-    5757, # blinded by LEM edge
-    5758, # blinded by LEM edge
-    5759, # blinded by LEM edge
+    3835, # blinded by LEM edge
+    3836, # blinded by LEM edge
+    3837, # blinded by LEM edge
+    3838, # blinded by LEM edge
+    3839, # blinded by LEM edge
     5760, # blinded by LEM edge
     5761, # blinded by LEM edge
     5762, # blinded by LEM edge
@@ -276,11 +277,11 @@ pddp_channel_status: {
     5922, # blinded by LEM edge
     5923, # blinded by LEM edge
     5924, # blinded by LEM edge
-    7355, # blinded by LEM edge
-    7356, # blinded by LEM edge
-    7357, # blinded by LEM edge
-    7358, # blinded by LEM edge
-    7359, # blinded by LEM edge
+    6075, # blinded by LEM edge
+    6076, # blinded by LEM edge
+    6077, # blinded by LEM edge
+    6078, # blinded by LEM edge
+    6079, # blinded by LEM edge
     7360, # blinded by LEM edge
     7361, # blinded by LEM edge
     7362, # blinded by LEM edge
@@ -296,6 +297,11 @@ pddp_channel_status: {
     7522, # blinded by LEM edge
     7523, # blinded by LEM edge
     7524, # blinded by LEM edge
+    7675, # blinded by LEM edge
+    7676, # blinded by LEM edge
+    7677, # blinded by LEM edge
+    7678, # blinded by LEM edge
+    7679, # blinded by LEM edge
     #-----
     # These channels are not read in 2 CRP configuration:
     # CRP1, CRP2, Not read CRP3, 1x1 m2 of CRP4
