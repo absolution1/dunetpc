@@ -44,9 +44,9 @@ bool areEqual(const StringVector& lhs, const StringVector& rhs) {
 
 //**********************************************************************
 
-int test_StringManipulator(Index logLevel) {
+int test_StringManipulator(bool copy, Index logLevel) {
   const string myname = "test_StringManipulator: ";
-  cout << myname << "Starting test" << endl;
+  cout << myname << "Starting test with copy = " << (copy ? "true" : "false") << endl;
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -95,7 +95,7 @@ int test_StringManipulator(Index logLevel) {
     string raw = raws[istr];
     string exp = exps[istr];
     string val = raw;
-    StringManipulator sman(val);
+    StringManipulator sman(val, copy);
     assert( sman.logLevel() == 0 );
     sman.setLogLevel(logLevel);
     assert( sman.logLevel() == logLevel );
@@ -107,7 +107,8 @@ int test_StringManipulator(Index logLevel) {
          << setw(w) << val << " ?= "
          << setw(w) << exp << endl;
     assert( raw != exp );
-    assert( val == exp );
+    assert( sman.str() == exp );
+    if ( ! copy ) assert( val == exp );
   }
 
   cout << myname << "Testing width 5 with " << raws.size() << " strings." << endl;
@@ -115,7 +116,7 @@ int test_StringManipulator(Index logLevel) {
     string raw = raws[istr];
     string exp = expws[istr];
     string val = raw;
-    StringManipulator sman(val);
+    StringManipulator sman(val, copy);
     sman.setLogLevel(logLevel);
     sman.replaceFixedWidth("*SUB*", "def", 5);
     sman.replaceFixedWidth("*POS*", 123, 5);
@@ -125,7 +126,8 @@ int test_StringManipulator(Index logLevel) {
          << setw(w) << val << " ?= "
          << setw(w) << exp << endl;
     assert( raw != exp );
-    assert( val == exp );
+    assert( sman.str() == exp );
+    if ( ! copy ) assert( val == exp );
   }
 
   cout << myname << "Test split." << endl;
@@ -141,7 +143,7 @@ int test_StringManipulator(Index logLevel) {
   for ( Index itst=0; itst<strs.size(); ++itst ) {
     string str = strs[itst];
     string seps = sepss[itst];
-    StringManipulator sman(str);
+    StringManipulator sman(str, copy);
     sman.setLogLevel(logLevel);
     cout << myname << "  " << str << endl;
     assert( areEqual(sman.split(seps), splits[itst]) );
@@ -160,7 +162,7 @@ int test_StringManipulator(Index logLevel) {
   for ( Index itst=0; itst<strs.size(); ++itst ) {
     string str = strs[itst];
     string spat = spats[itst];
-    StringManipulator sman(str);
+    StringManipulator sman(str, copy);
     cout << myname << "  " << str << ", " << spat << endl;
     assert( areEqual(sman.patternSplit(spat), splits[itst]) );
   }
@@ -172,7 +174,8 @@ int test_StringManipulator(Index logLevel) {
 //**********************************************************************
 
 int main() {
-  return test_StringManipulator(1);
+  return test_StringManipulator(false, 0) +
+         test_StringManipulator(true, 0);
 }
 
 //**********************************************************************

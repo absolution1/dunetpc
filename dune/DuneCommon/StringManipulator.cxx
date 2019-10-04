@@ -67,7 +67,7 @@ const StringVector& StringManipulator::patternSplit(string spat) {
     // In a pattern.
     } else {
       if ( ch == chEnd ) {
-        StringManipulator sman(word);
+        StringManipulator sman(word,false);
         wordvv.push_back(sman.split(seps));
         word = "";
         inPat = false;

@@ -451,7 +451,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
 
 string AdcDataPlotter::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
-  StringManipulator sman(name);
+  StringManipulator sman(name, false);
   sman.replace("%CRNAME%", ran.name);
   sman.replace("%CRLABEL%", ran.label(0));
   sman.replace("%CRLABEL1%", ran.label(1));

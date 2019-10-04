@@ -36,8 +36,14 @@ const std::vector<std::string>& split(std::string seps);
     return '_';
   }
 
-  // Ctor.
-  StringManipulator(std::string& strin) : m_str(strin) { }
+  // Ctor from a string.
+  // If copy is false, this object will modify the passed string.
+  // If true, the modified copy may be retrieved with str().
+  StringManipulator(std::string& strin, bool copy)
+  : m_str(copy ? m_strCopy : strin), m_strCopy(strin) { }
+
+  // Ctor from a C-string.
+  explicit StringManipulator(const char* chin) : m_str(m_strCopy), m_strCopy(chin) { }
 
   // Set/get log level.
   void setLogLevel(Index logLevel) { m_LogLevel = logLevel; }
@@ -77,6 +83,7 @@ private:
 
   int m_LogLevel = 0;
   std::string& m_str;
+  std::string m_strCopy;
   StringVector m_splits;
 
 };

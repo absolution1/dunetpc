@@ -419,7 +419,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         cout << myname << "ERROR: Channel range " << crname << " not found." << endl;
         continue;
       }
-      StringManipulator smhnam(hnam0);
+      StringManipulator smhnam(hnam0, false);
       smhnam.replace("%CRNAME%", cr.name);
       smhnam.replace("%CRLABEL%", cr.label());
       smhnam.replace("%CRLABEL1%", cr.label(1));
@@ -430,7 +430,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
         continue;
       }
       setPlotLabels(hnam);
-      StringManipulator smttl(httl0);
+      StringManipulator smttl(httl0, false);
       smttl.replace("%CRNAME%", cr.name);
       smttl.replace("%CRLABEL%", cr.label());
       smttl.replace("%CRLABEL1%", cr.label(1));
@@ -453,7 +453,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       if ( cr.size() < 400 ) phf->SetLineWidth(2);
       if ( etype == "none" ) phf->SetMarkerStyle(2);
       else phf->SetMarkerStyle(0);  // Draw error bars instead of markers
-      StringManipulator smplt(plname);
+      StringManipulator smplt(plname, false);
       smplt.replace("%HNAME%", hnam0);
       smplt.replace("%CRNAME%", cr.name);
       smplt.replace("%CRLABEL%", cr.label());
@@ -1871,7 +1871,7 @@ void AdcRoiViewer::writeChanSumPlots() const {
 //**********************************************************************
 
 void AdcRoiViewer::setPlotLabels(Name& sttl) const {
-  StringManipulator sman(sttl);
+  StringManipulator sman(sttl, false);
   for ( NameMap::value_type isub : m_plotLabelSubs ) {
     sman.replace(isub.first, isub.second);
   }

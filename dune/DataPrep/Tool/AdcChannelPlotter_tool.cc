@@ -356,7 +356,7 @@ string AdcChannelPlotter::
 nameReplace(string name, const AdcChannelData& acd, string type) const {
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   string nameout = name;
-  StringManipulator sman(nameout);
+  StringManipulator sman(nameout, false);
   if ( type.size() ) sman.replace("%TYPE%", type);
   if ( pnbl == nullptr ) return nameout;
   DataMap dm;
