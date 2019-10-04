@@ -424,7 +424,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       smhnam.replace("%CRLABEL%", cr.label());
       smhnam.replace("%CRLABEL1%", cr.label(1));
       smhnam.replace("%CRLABEL2%", cr.label(2));
-      Name hnam = smhnam.string();
+      Name hnam = smhnam.str();
       if ( getState().chanSumHists.find(hnam) != getState().chanSumHists.end() ) {
         cout << myname << "ERROR: Duplicate channel summary histogram name: " << hnam << endl;
         continue;
@@ -435,7 +435,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       smttl.replace("%CRLABEL%", cr.label());
       smttl.replace("%CRLABEL1%", cr.label(1));
       smttl.replace("%CRLABEL2%", cr.label(2));
-      Name httl = smttl.string();
+      Name httl = smttl.str();
       setPlotLabels(httl);
       TH1* phf = nullptr;
       if ( nbins == 0 ) {
@@ -459,7 +459,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       smplt.replace("%CRLABEL%", cr.label());
       smplt.replace("%CRLABEL1%", cr.label(1));
       smplt.replace("%CRLABEL2%", cr.label(2));
-      plname = smplt.string();
+      plname = smplt.str();
       setPlotLabels(plname);
       getState().chanSumHists[hnam] = phf;
       getState().chanSumHistTemplateNames[hnam] = vhnam;
@@ -1875,7 +1875,7 @@ void AdcRoiViewer::setPlotLabels(Name& sttl) const {
   for ( NameMap::value_type isub : m_plotLabelSubs ) {
     sman.replace(isub.first, isub.second);
   }
-  sttl = sman.string();
+  sttl = sman.str();
 }
 
 //**********************************************************************

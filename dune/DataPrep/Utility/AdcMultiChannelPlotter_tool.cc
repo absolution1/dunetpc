@@ -239,7 +239,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGRNAME%", cgrn);
         sman.replace("%VIEW%", getDataView());
-        plotName = sman.string();
+        plotName = sman.str();
         if ( getLogLevel() >= 4 ) {
           if ( plotName.size() ) cout << myname << "    Created pad  with plot name " << plotName << endl;
           else cout << myname << "    Created pad with no plot name." << endl;
