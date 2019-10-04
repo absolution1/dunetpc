@@ -133,7 +133,12 @@ public:
   int write(Name fnam, Name onam ="tpad") const;
 
   // Create an image file. Name suffix should be a known format: png, pdf, ....
-  int print(std::string fname);
+  // If the suffix is .root or .tpad, then the object is written to that file.
+  int printOnce(std::string fname);
+
+  // Print one or more image files using StringManipulator pattern split.
+  // E.g. myfile.{png,pdf,tpad} --> myfile.png, myfile.pdf and myfile.tpad.
+  int print(std::string fname, std::string spat ="{,}");
 
   // Return the top-level manipulator, i.e. the ancestor that holds (or would hold)
   // the canvas for this pad.
