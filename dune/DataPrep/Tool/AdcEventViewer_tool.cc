@@ -612,7 +612,7 @@ void AdcEventViewer::displayHists() const {
       man.add(ph);
       string sttl = ph->GetTitle() + sttlSuf;
       string crlab = m_ChannelRangeLabel;
-      StringManipulator smlab(crlab);
+      StringManipulator smlab(crlab, false);
       smlab.replace("%CRNAME%", cr.name);
       smlab.replace("%CRLABEL%", cr.label());
       smlab.replace("%CRLABEL1%", cr.label(1));
@@ -646,7 +646,7 @@ void AdcEventViewer::displayGraphs() const {
                                 << (nplt == 1 ? "" : "s") << sttlSuf
                                 << (nplt > 0 ? ":" : "") << endl;
     string crlab = m_ChannelRangeLabel;
-    StringManipulator smlab(crlab);
+    StringManipulator smlab(crlab, false);
     smlab.replace("%CRNAME%", cr.name);
     smlab.replace("%CRLABEL%", cr.label());
     smlab.replace("%CRLABEL1%", cr.label(1));

@@ -144,7 +144,7 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
     }
   }
   // Next replace the signal unit strings.
-  StringManipulator sman(sout);
+  StringManipulator sman(sout, false);
   string sunit = acd.sampleUnit;
   string sunitSpaced = sunit.size() ? " " + sunit : "";
   string sunitWrapped = sunit.size() ? "(" + sunit + ")" : "";

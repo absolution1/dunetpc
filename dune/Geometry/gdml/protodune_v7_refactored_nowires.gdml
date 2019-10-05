@@ -1089,7 +1089,7 @@
       <materialref ref="LAr"/>
       <solidref ref="InnerActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.238125*cm"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.47625*cm"/>
       <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <colorref ref="blue"/>
     </volume>
@@ -1141,7 +1141,7 @@
       <materialref ref="LAr"/>
       <solidref ref="OuterActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.238125*cm"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.47625*cm"/>
       <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="0*V/cm"/>
       <colorref ref="blue"/>
     </volume>

@@ -18,6 +18,7 @@ cet_test(test_DuneTimeConverter SOURCES test_DuneTimeConverter.cxx
 
 cet_test(test_StringManipulator SOURCES test_StringManipulator.cxx
   LIBRARIES
+    dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
   )
 

@@ -316,6 +316,7 @@ private:
   bool fVerbose;             
   fhicl::ParameterSet dataUtil;
   int fNSliceCheck; 
+  fhicl::ParameterSet BeamPars;
 };
 
 
@@ -333,7 +334,8 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   dEdX_template_file( dEdX_template_name.c_str(), "OPEN" ),
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
-  fNSliceCheck( p.get< int >("NSliceCheck") )
+  fNSliceCheck( p.get< int >("NSliceCheck") ),
+  BeamPars(p.get<fhicl::ParameterSet>("BeamPars"))
 {
 
   templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
@@ -346,6 +348,7 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
 
 void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 {
+
   //reset containers
   reset();  
 
@@ -447,6 +450,41 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       std::cout << "Contrib " << j << " " << list[j].particle->TrackId() << " " << list[j].nSharedHits << " " << list[j].nSharedDeltaRayHits << std::endl;
     }
 
+    protoana::MCParticleSharedHits beam_match = truthUtil.GetMCParticleByHits( *thisTrack, evt, fTrackerTag, fHitTag );
+    if( beam_match.particle ){
+      //Check that this is the correct true particle
+      if( beam_match.particle->TrackId() == true_beam_particle->TrackId() ){
+        alt_reco_beam_good = true;
+      }
+
+      alt_reco_beam_truth_PDG = beam_match.particle->PdgCode();
+      alt_reco_beam_truth_ID = beam_match.particle->TrackId();
+      std::cout << "Truth ID: " << alt_reco_beam_truth_ID << std::endl;
+
+      alt_reco_beam_truth_Process = beam_match.particle->Process();
+      alt_reco_beam_truth_EndProcess = beam_match.particle->EndProcess();
+      alt_reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(beam_match.particle->TrackId())->Origin();
+
+      alt_reco_beam_truth_Start_Px = beam_match.particle->Px();
+      alt_reco_beam_truth_Start_Py = beam_match.particle->Py();
+      alt_reco_beam_truth_Start_Pz = beam_match.particle->Pz();
+      alt_reco_beam_truth_Start_P  = sqrt( alt_reco_beam_truth_Start_Px*alt_reco_beam_truth_Start_Px 
+                                     + alt_reco_beam_truth_Start_Py*alt_reco_beam_truth_Start_Py 
+                                     + alt_reco_beam_truth_Start_Pz*alt_reco_beam_truth_Start_Pz );
+      alt_reco_beam_truth_Start_E = beam_match.particle->E();
+
+      size_t np = beam_match.particle->NumberTrajectoryPoints();
+      if( np > 1 ){
+        alt_reco_beam_truth_End_Px = beam_match.particle->Px( np - 2 );
+        alt_reco_beam_truth_End_Py = beam_match.particle->Py( np - 2 );
+        alt_reco_beam_truth_End_Pz = beam_match.particle->Pz( np - 2 );
+        alt_reco_beam_truth_End_P  = sqrt( alt_reco_beam_truth_End_Px*alt_reco_beam_truth_End_Px 
+                                     + alt_reco_beam_truth_End_Py*alt_reco_beam_truth_End_Py 
+                                     + alt_reco_beam_truth_End_Pz*alt_reco_beam_truth_End_Pz );
+        alt_reco_beam_truth_End_E  = beam_match.particle->E( np - 2 );
+      }
+
+    }
     
   }
   //////////////////////////////////////////////////
@@ -502,41 +540,7 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   }
   //////////////////////////////////////////////////////////////
   //
-  protoana::MCParticleSharedHits beam_match = truthUtil.GetMCParticleByHits( *thisTrack, evt, fTrackerTag, fHitTag );
-  if( beam_match.particle ){
-    //Check that this is the correct true particle
-    if( beam_match.particle->TrackId() == true_beam_particle->TrackId() ){
-      alt_reco_beam_good = true;
-    }
 
-    alt_reco_beam_truth_PDG = beam_match.particle->PdgCode();
-    alt_reco_beam_truth_ID = beam_match.particle->TrackId();
-    std::cout << "Truth ID: " << alt_reco_beam_truth_ID << std::endl;
-
-    alt_reco_beam_truth_Process = beam_match.particle->Process();
-    alt_reco_beam_truth_EndProcess = beam_match.particle->EndProcess();
-    alt_reco_beam_truth_origin = pi_serv->TrackIdToMCTruth_P(beam_match.particle->TrackId())->Origin();
-
-    alt_reco_beam_truth_Start_Px = beam_match.particle->Px();
-    alt_reco_beam_truth_Start_Py = beam_match.particle->Py();
-    alt_reco_beam_truth_Start_Pz = beam_match.particle->Pz();
-    alt_reco_beam_truth_Start_P  = sqrt( alt_reco_beam_truth_Start_Px*alt_reco_beam_truth_Start_Px 
-                                   + alt_reco_beam_truth_Start_Py*alt_reco_beam_truth_Start_Py 
-                                   + alt_reco_beam_truth_Start_Pz*alt_reco_beam_truth_Start_Pz );
-    alt_reco_beam_truth_Start_E = beam_match.particle->E();
-
-    size_t np = beam_match.particle->NumberTrajectoryPoints();
-    if( np > 1 ){
-      alt_reco_beam_truth_End_Px = beam_match.particle->Px( np - 2 );
-      alt_reco_beam_truth_End_Py = beam_match.particle->Py( np - 2 );
-      alt_reco_beam_truth_End_Pz = beam_match.particle->Pz( np - 2 );
-      alt_reco_beam_truth_End_P  = sqrt( alt_reco_beam_truth_End_Px*alt_reco_beam_truth_End_Px 
-                                   + alt_reco_beam_truth_End_Py*alt_reco_beam_truth_End_Py 
-                                   + alt_reco_beam_truth_End_Pz*alt_reco_beam_truth_End_Pz );
-      alt_reco_beam_truth_End_E  = beam_match.particle->E( np - 2 );
-    }
-
-  }
 
 
 
@@ -635,6 +639,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
   }
 
   if( thisTrack ){
+
+    bool pass_beam_cuts = trackUtil.IsBeamlike( *thisTrack, evt, BeamPars, true );
+    std::cout << "Passes beam cuts? " << pass_beam_cuts << std::endl;
+
 
     beamTrackID = thisTrack->ID();
 

@@ -1,0 +1,6 @@
+<lcgdict>
+  <class name="StringManipulator" version="1" noStreamer="true"/>
+  <class name="TPadManipulator" version="1" noStreamer="true"/>
+  <class name="TPadManipulator::Bounds" version="1"/>
+  <class name="TPadManipulator::Bounds3" version="1"/>
+</lcgdict>

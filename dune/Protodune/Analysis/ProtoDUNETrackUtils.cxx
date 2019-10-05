@@ -6,6 +6,8 @@
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/FindManyP.h"
+#include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -527,4 +529,118 @@ std::map< size_t, const recob::Hit * > protoana::ProtoDUNETrackUtils::GetRecoHit
    }
    return results;
    
+}
+
+bool protoana::ProtoDUNETrackUtils::IsBeamlike( const recob::Track & track, art::Event const & evt, const fhicl::ParameterSet & BeamPars, bool flip ){
+
+   double startX = track.Trajectory().Start().X();
+   double startY = track.Trajectory().Start().Y();
+   double startZ = track.Trajectory().Start().Z();
+
+   double endX = track.Trajectory().End().X();
+   double endY = track.Trajectory().End().Y();
+   double endZ = track.Trajectory().End().Z();
+
+   auto startDir = track.StartDirection();
+   auto endDir   = track.EndDirection();
+   double trackDirX = 0.;
+   double trackDirY = 0.;
+   double trackDirZ = 0.;
+
+   //'Flip' the track if endZ < startZ
+   if( flip && ( endZ < startZ ) ){
+     startX = endX;
+     startY = endY;
+     startZ = endZ;
+
+     trackDirX = -1. * endDir.X();
+     trackDirY = -1. * endDir.Y();
+     trackDirZ = -1. * endDir.Z();
+   }
+   else{
+     trackDirX = startDir.X();
+     trackDirY = startDir.Y();
+     trackDirZ = startDir.Z();
+   }
+
+   double beamX = 0.;
+   double beamY = 0.;
+
+   double beamDirX = 0.;
+   double beamDirY = 0.;
+   double beamDirZ = 0.;
+   
+   //Real data: compare to the reconstructed beam particle
+   if( evt.isRealData() ){
+     std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+     auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent > >("beamevent");
+                           
+     if( beamHandle.isValid()){
+       art::fill_ptr_vector(beamVec, beamHandle);
+     }
+     //Should just have one
+     const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0));
+
+     const std::vector< recob::Track > & beamTracks = beamEvent.GetBeamTracks();
+     if( beamTracks.size() == 0 ){
+       std::cout << "Warning: no tracks associated to beam data" << std::endl;
+       return false;  
+     }
+     else if( beamTracks.size() > 1 ){
+       std::cout << "Warning: mutiple tracks associated to beam data" << std::endl;
+       return false;  
+     }
+     
+     beamX = beamTracks.at(0).Trajectory().End().X();
+     beamY = beamTracks.at(0).Trajectory().End().Y();
+
+     beamDirX = beamTracks.at(0).EndDirection().X();
+     beamDirY = beamTracks.at(0).EndDirection().Y();
+     beamDirZ = beamTracks.at(0).EndDirection().Z();
+
+   }
+   //MC: compare to the projected particle from the particle gun
+   else{
+     protoana::ProtoDUNETruthUtils truthUtil;
+     auto mcTruths = evt.getValidHandle< std::vector< simb::MCTruth > >("generator");
+                         
+     const simb::MCParticle* true_beam_particle = truthUtil.GetGeantGoodParticle((*mcTruths)[0],evt);
+
+     if( !true_beam_particle ){
+       std::cout << "No true beam particle" << std::endl;       
+       return false;
+     }
+
+
+     beamDirX = true_beam_particle->Px() / true_beam_particle->P();
+     beamDirY = true_beam_particle->Py() / true_beam_particle->P();
+     beamDirZ = true_beam_particle->Pz() / true_beam_particle->P();
+
+     //Project the beam to Z = 0
+     beamX = true_beam_particle->Position(0).X() + (-1.*true_beam_particle->Position(0).Z())*(beamDirX / beamDirZ);
+     beamY = true_beam_particle->Position(0).Y() + (-1.*true_beam_particle->Position(0).Z())*(beamDirY / beamDirZ);
+
+   }
+
+   double deltaX = startX - beamX;
+   double deltaY = startY - beamY;
+
+   double costheta = beamDirX*trackDirX + beamDirY*trackDirY + beamDirZ*trackDirZ;
+
+   std::pair< double, double > startX_cut = BeamPars.get< std::pair< double, double > >("TrackStartXCut");
+   std::pair< double, double > startY_cut = BeamPars.get< std::pair< double, double > >("TrackStartYCut");
+   std::pair< double, double > startZ_cut = BeamPars.get< std::pair< double, double > >("TrackStartZCut");
+   double costheta_cut = BeamPars.get< double >("TrackDirCut");
+
+   if( deltaX < startX_cut.first || deltaX > startX_cut.second )
+     return false;
+   if( deltaY < startY_cut.first || deltaY > startY_cut.second )
+     return false;
+   if( startZ < startZ_cut.first || startZ > startZ_cut.second )
+     return false;
+   if( costheta < costheta_cut )
+     return false;   
+
+   //If here, the track is in the good beam region
+   return true;
 }
