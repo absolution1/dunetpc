@@ -1,6 +1,7 @@
 // TPadManipulator.cxx
 
 #include "TPadManipulator.h"
+#include "StringManipulator.h"
 #include <iostream>
 #include <sstream>
 #include "TPad.h"
@@ -346,7 +347,7 @@ int TPadManipulator::write(Name fnam, Name onam) const {
 
 //**********************************************************************
 
-int TPadManipulator::print(string fname) {
+int TPadManipulator::printOnce(string fname) {
   // If fname has suffix .root or .tpad, we save this object.
   Name::size_type idot = fname.rfind(".");
   if ( idot != Name::npos ) {
@@ -389,6 +390,15 @@ int TPadManipulator::print(string fname) {
   gErrorIgnoreLevel = levelSave;
   if ( setBackToNonBatch ) gROOT->SetBatch(false);
   return 0;
+}
+
+//**********************************************************************
+
+int TPadManipulator::print(string fnamepat, string spat) {
+  StringManipulator sman(fnamepat, true);
+  int stats = 0;
+  for ( string fnam : sman.patternSplit(spat) ) stats += printOnce(fnam);
+  return stats;
 }
 
 //**********************************************************************

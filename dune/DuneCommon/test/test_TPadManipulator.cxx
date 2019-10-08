@@ -127,7 +127,7 @@ int test_TPadManipulator() {
 
   cout << myname << line << endl;
   cout << myname << "Draw copy." << endl;
-  man2.print("test_TPadManipulator2.png");
+  man2.print("test_TPadManipulator-copy.{png,pdf,tpad}");
 
   cout << myname << line << endl;
   cout << myname << "Create time graph." << endl;
