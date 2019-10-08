@@ -47,14 +47,47 @@ public:
   void analyze(const art::Event & evt) override;
   void beginJob() override;
 
+  // Error metrics
+  struct ErrorMetrics {
+    uint64_t sequenceID;
+    uint64_t fragmentID;
+    uint64_t type;
+    uint64_t timestamp;
+
+    dune::FelixFragmentBase::Metadata meta;
+    uint64_t crate_no;
+    uint64_t slot_no;
+    uint64_t fiber_no;
+
+    bool meta_err;
+    bool timestamp_err;
+    bool convert_count_err;
+    bool error_fields_set;
+
+    bool bad;
+  };
+
 private:
-  typedef std::vector<raw::RawDigit> RawDigits;
+  ErrorMetrics _process(const artdaq::Fragment& frag);
 
-  bool _process(const artdaq::Fragment& frag);
-
-  // Declare member data here.
+  // Variables read from the fcl file
   std::string _input_label;
   bool _expect_container_fragments;
+
+  // Keeping track of fragment metadata
+  dune::FelixFragmentBase::Metadata run_meta = {0xcba};
+
+  // Fragment metadata constants
+  uint16_t control_word = 0xabc;
+
+  // WIB constants
+  const uint64_t timestamp_increase = 25;
+
+  // COLDATA constants
+  const uint16_t convert_count_increase = 1;
+  std::vector<ErrorMetrics> test_results;
+  unsigned n_good_frags;
+  unsigned n_bad_frags;
 };
 
 
@@ -69,8 +102,6 @@ void dune::FelixIntegrityTest::beginJob(){
 void dune::FelixIntegrityTest::analyze(const art::Event & evt){
     MF_LOG_INFO("FelixIntegrityTest")
       << "-------------------- FELIX Integrity Test -------------------";
-
-  unsigned int n_felix_frags = 0;
 
   if (_expect_container_fragments) {
     art::Handle<artdaq::Fragments> cont_frags;
@@ -89,7 +120,7 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
           << "Run: " << evt.run()
           << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
-          << " Container Fragments is NOT VALID";
+          << " Container Fragment data invalid";
     }
 
     for (auto const& cont : *cont_frags)
@@ -97,7 +128,9 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
       artdaq::ContainerFragment cont_frag(cont);
       for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
       {
-        if (_process(*cont_frag[ii])) ++n_felix_frags;
+        const ErrorMetrics this_err = _process(*cont_frag[ii]);
+        test_results.push_back(this_err);
+        this_err.bad? ++n_bad_frags : ++n_good_frags;
       }
     }
   }
@@ -120,49 +153,195 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
           << "Run: " << evt.run()
           << ", SubRun: " << evt.subRun()
           << ", Event: " << evt.event()
-          << " Fragments is NOT VALID";
+          << " Fragment data invalid";
     }
 
     for(auto const& frag: *frags)
     {
-      if (_process(frag)) ++n_felix_frags;
+      const ErrorMetrics this_err = _process(frag);
+      test_results.push_back(this_err);
+      this_err.bad? ++n_bad_frags : ++n_good_frags;
     }
   }
 
   MF_LOG_INFO("FelixIntegrityTest")
-      << " Processed " << n_felix_frags
-      << " FELIX Fragments";
+      << "\n Processed " << n_bad_frags+n_good_frags
+      << " FELIX Fragments.\n"
+      << " Found " << n_good_frags << " good fragments. Success rate: "
+      << (double)n_good_frags/(n_bad_frags+n_good_frags) << "/1.\n";
 }
 
-bool dune::FelixIntegrityTest::_process(const artdaq::Fragment& frag)
+dune::FelixIntegrityTest::ErrorMetrics dune::FelixIntegrityTest::_process(const artdaq::Fragment& frag)
 {
-  MF_LOG_INFO("FelixIntegrityTest")
-      << "   SequenceID = " << frag.sequenceID()
-      << "   fragmentID = " << frag.fragmentID()
-      << "   fragmentType = " << (unsigned)frag.type()
-      << "   Timestamp =  " << frag.timestamp();
-  //Load overlay class.
-  dune::FelixFragment felix(frag);
-  //Get detector element number
-  uint8_t crate = felix.crate_no(0);
-  uint8_t slot = felix.slot_no(0);
-  uint8_t fiber = felix.fiber_no(0); // two numbers?
-  const unsigned n_frames = felix.total_frames(); // One frame contains 20 ticks.
-  std::cout<<" Nframes = "<<n_frames<<std::endl;
-  const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// 256
-  // Fill the adc vector.
-  for(unsigned ch = 0; ch < n_channels; ++ch) {
-    std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
-    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
-    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
-      if(ch==0 && nframe<100) {
-        if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;
-        std::cout<<waveform.at(nframe)<<"  ";
-        if(nframe==99) std::cout<<std::endl;
-      }
+  // Load overlay class
+  dune::FelixFragment flxfrag(frag);
+
+  std::cout
+      << "-------------------- Testing fragment -------------------" << '\n'
+      << "SequenceID: " << frag.sequenceID()
+      << "  fragmentID: " << frag.fragmentID()
+      << "  fragmentType: " << (unsigned)frag.type()
+      << "  Timestamp: " << frag.timestamp()
+      << "  Crate number: " << (int)flxfrag.crate_no()
+      << "  Slot number: " << (int)flxfrag.slot_no()
+      << "  Fiber number: " << (int)flxfrag.fiber_no() << "\n\n";
+
+  // Metadata tests
+  const dune::FelixFragmentBase::Metadata* meta = frag.metadata<dune::FelixFragmentBase::Metadata>();
+  bool meta_failed = false;
+  // Record the first metadata, compare otherwise
+  if(run_meta.control_word == 0xcba) {
+    run_meta = *meta;
+  } else {
+    meta_failed |= meta->control_word != run_meta.control_word
+                || meta->version != run_meta.version
+                || meta->reordered != run_meta.reordered
+                || meta->compressed != run_meta.compressed
+                || meta->num_frames != run_meta.num_frames
+                || meta->offset_frames != run_meta.offset_frames
+                || meta->window_frames != run_meta.window_frames;
+    if(meta_failed) {
+      std::cout
+          << "Metadata error." << '\n'
+          << "  This fragment's metadata: " << '\n'
+          << "      Control word: " << meta->control_word
+          << "      Version: " << meta->version
+          << "      Reordered: " << meta->reordered
+          << "      Compressed: " << meta->compressed
+          << "      Number of frames: " << meta->num_frames
+          << "      Offset frames: " << meta->offset_frames
+          << "      Window frames: " << meta->window_frames << '\n'
+          << "  Expected metadata: " << '\n'
+          << "      Control word: " << run_meta.control_word
+          << "      Version: " << run_meta.version
+          << "      Reordered: " << run_meta.reordered
+          << "      Compressed: " << run_meta.compressed
+          << "      Number of frames: " << run_meta.num_frames
+          << "      Offset frames: " << run_meta.offset_frames
+          << "      Window frames: " << run_meta.window_frames << "\n\n";
+    } else {
+      std::cout
+          << "Metadata test successful." << "\n\n";
     }
   }
-  return true;
+
+  // Timestamp tests
+  bool timestamp_failed = false;
+  // Compare to metadata: first frame must be within 25 counts of the fragment timestamp
+  if(frag.timestamp() - meta->offset_frames*timestamp_increase - flxfrag.timestamp(0) >= timestamp_increase) {
+    timestamp_failed = true;
+    std::cout
+        << "First timestamp matching error." << '\n'
+        << "  This fragment's timestamp: " << frag.timestamp()
+        << "  First frame's timestamp: " << flxfrag.timestamp(0)
+        << "  Difference: " << frag.timestamp() - flxfrag.timestamp(0) << "\n\n";
+  }
+  // Make sure the correct number of frames is contained when compared to the metadata
+  if(flxfrag.total_frames() != meta->window_frames) {
+    timestamp_failed = true;
+    std::cout
+        << "Trigger window error." << '\n'
+        << "  This fragment's expected number of frames: " << meta->window_frames
+        << "  Number of frames available: " << flxfrag.timestamp(0) << "\n\n";
+  }
+  // Go through all timestamps and check their increase
+  for(unsigned fi = 1; fi < flxfrag.total_frames(); ++fi) {
+    if(flxfrag.timestamp(fi) - flxfrag.timestamp(fi-1) != timestamp_increase) {
+      timestamp_failed = true;
+      std::cout
+          << "Timestamp increase error." << '\n'
+          << "  Timestamp of frame " << fi - 1 << ": " << flxfrag.timestamp(fi-1)
+          << "  Timestamp of frame " << fi << ": " << flxfrag.timestamp(fi)
+          << "  Difference: " << flxfrag.timestamp(fi) - flxfrag.timestamp(fi-1) << "\n\n";
+      break;
+    }
+  }
+  if(!timestamp_failed) {
+    std::cout
+        << "Timestamp test successful." << "\n\n";
+  }
+
+  // Convert count test
+  bool convert_count_failed = false;
+  // Check the increase of all convert counts between frames
+  for(unsigned fi = 1; fi < flxfrag.total_frames(); ++fi) {
+    // The first two counts and last two counts need to be identical
+    for(int bi = 0; bi < 2; ++bi) {
+      if(flxfrag.coldata_convert_count(fi, 2*bi) != flxfrag.coldata_convert_count(fi, 2*bi + 1)
+         || (flxfrag.coldata_convert_count(fi, bi) - flxfrag.coldata_convert_count(fi - 1, bi)
+             != convert_count_increase
+             && flxfrag.coldata_convert_count(fi, bi) - flxfrag.coldata_convert_count(fi - 1, bi)
+             != convert_count_increase - (1<<16))) {
+        convert_count_failed = true;
+        std::cout
+            << "COLDATA convert count increase error in frame " << fi << ".\n"
+            << "  Count 1 of frame " << fi - 1 << ": " << flxfrag.coldata_convert_count(fi-1, 0)
+            << "  Count 2 of frame " << fi - 1 << ": " << flxfrag.coldata_convert_count(fi-1, 1)
+            << "  Count 3 of frame " << fi - 1 << ": " << flxfrag.coldata_convert_count(fi-1, 2)
+            << "  Count 4 of frame " << fi - 1 << ": " << flxfrag.coldata_convert_count(fi-1, 3) << '\n'
+            << "  Count 1 of frame " << fi << ": " << flxfrag.coldata_convert_count(fi, 0)
+            << "  Count 2 of frame " << fi << ": " << flxfrag.coldata_convert_count(fi, 1)
+            << "  Count 3 of frame " << fi << ": " << flxfrag.coldata_convert_count(fi, 2)
+            << "  Count 4 of frame " << fi << ": " << flxfrag.coldata_convert_count(fi, 3) << '\n'
+            << "  Difference: "
+            << flxfrag.coldata_convert_count(fi, 0) - flxfrag.coldata_convert_count(fi-1, 0) << "\n\n";
+        break;
+      }
+    }
+    if(convert_count_failed) break;
+  }
+  if(!convert_count_failed) {
+    std::cout
+        << "COLDATA convert count test successful." << "\n\n";
+  }
+
+  // Frame error fields test
+  bool error_field_failed = false;
+  // Check all error fields in all frames without distinction for now
+  // TODO: Look into what errors are relevant!
+  for(unsigned fi = 0; fi < 0/*flxfrag.total_frames()*/; ++fi) {
+    error_field_failed |= flxfrag.mm(fi) || flxfrag.oos(fi) || flxfrag.wib_errors(fi);
+    for(unsigned bi = 0; bi < 4; ++bi) {
+      error_field_failed |= flxfrag.s1_error(fi, bi) || flxfrag.s2_error(fi, bi)
+                            || flxfrag.error_register(fi, bi);
+    }
+
+    if(error_field_failed) {
+      std::cout
+          << "One or more error fields set in frame " << fi << ".\n"
+          << "  Mismatch: " << (int)flxfrag.mm(fi)
+          << "  Out of sync: " << (int)flxfrag.oos(fi)
+          << "  WIB errors: " << (int)flxfrag.wib_errors(fi) << '\n';
+      for(unsigned bi = 0; bi < 4; ++bi) {
+        std::cout
+            << "  Block " << bi+1 << ":\n"
+            << "    Stream 1 error: " << (int)flxfrag.s1_error(fi, bi)
+            << "    Stream 2 error: " << (int)flxfrag.s2_error(fi, bi)
+            << "    Error register: " << (int)flxfrag.error_register(fi, bi) << '\n';
+      }
+      std::cout << '\n';
+      break;
+    }
+  }
+
+  //Output error metrics
+  ErrorMetrics outem;
+  outem.sequenceID = frag.sequenceID();
+  outem.fragmentID = frag.fragmentID();
+  outem.type = frag.type();
+  outem.timestamp = frag.timestamp();
+  outem.crate_no = flxfrag.crate_no();
+  outem.slot_no = flxfrag.slot_no();
+  outem.fiber_no = flxfrag.fiber_no();
+  outem.meta = *meta;
+  outem.meta_err = meta_failed;
+  outem.timestamp_err = timestamp_failed;
+  outem.convert_count_err = convert_count_failed;
+  outem.error_fields_set = error_field_failed;
+
+  outem.bad = timestamp_failed || convert_count_failed || error_field_failed;
+
+  return outem;
 }
 
 DEFINE_ART_MODULE(dune::FelixIntegrityTest)
