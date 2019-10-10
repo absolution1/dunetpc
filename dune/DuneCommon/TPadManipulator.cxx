@@ -424,6 +424,14 @@ TH1* TPadManipulator::getHist(unsigned int iobj) {
 
 //**********************************************************************
 
+TObject* TPadManipulator::lastObject() const {
+  Index nobj = objects().size();
+  if ( nobj ) return objects().back();
+  return object();
+}
+
+//**********************************************************************
+
 TH1* TPadManipulator::getHist(string hnam) {
   if ( hist() != nullptr && hist()->GetName() == hnam ) return hist();
   for ( TObject* pobj : objects() ) {
@@ -774,9 +782,18 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
-  if ( m_marginLeft >= 0.0 ) xml = m_marginLeft;
+  if ( m_marginLeft >= 0.0 ) {
+    // When left margin is changed, we leave the y-axis title at the edge of the pad.
+    double scalefac = m_marginLeft/xml;
+    xml = m_marginLeft;
+    yttl *= scalefac;
+  }
   if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
-  if ( m_marginBottom >= 0.0 ) xmb = m_marginBottom;
+  if ( m_marginBottom >= 0.0 ) {
+    double scalefac = m_marginBottom/xmb;
+    xmb = m_marginBottom;
+    xttl *= scalefac;
+  }
   if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
