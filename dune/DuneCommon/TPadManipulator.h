@@ -178,6 +178,9 @@ public:
   // or reference those in a legend.
   TH1* getHist(std::string hnam);
 
+  // Return the last object added to the pad.
+  TObject* lastObject() const;
+
   // Return information about the canvas holding this pad.
   int canvasPixelsX() const;
   int canvasPixelsY() const;
@@ -215,6 +218,11 @@ public:
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
   // Set margins. Negative value uses default margin.
+  // The default is set here to be reasonable for a wide range of aspect ratio.
+  // The margin is the fraction of the pad between the frame and pad edges.
+  // The corresponding axis title offset is also changed so that the title
+  // does not move relative to the pad, i.e. remains close to the pad edge.
+  // This behavior is not (yet) implemented for the z-axis (right) or title (top).
   void setMarginLeft(double xmar) { m_marginLeft = xmar; }
   void setMarginRight(double xmar) { m_marginRight = xmar; }
   void setMarginBottom(double xmar) { m_marginBottom = xmar; }

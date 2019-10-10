@@ -19,8 +19,6 @@ public:
   using Index = unsigned int;
   using StringVector = std::vector<std::string>;
 
-const std::vector<std::string>& split(std::string seps);
- 
   // Fetch a fill value for an output stream as follows:
   //   '0' - zero or positive integers
   //   '-' - negative integers
@@ -66,7 +64,7 @@ const std::vector<std::string>& split(std::string seps);
   // Split a string into substrings bounded by the ends and by any of the
   // characters in seps.
   // E.g. for seps = "/,", "who,am//I?" --> {"who", "am", "I?"}
-  //const StringVector& split(std::string seps);
+  const std::vector<std::string>& split(std::string seps);
 
   // Return the strings obtained by iterating over parts in each split region.
   // e.g. "R. {A,M}. Nixon" --> "R. A. Nixon", "R. M. Nixon".
