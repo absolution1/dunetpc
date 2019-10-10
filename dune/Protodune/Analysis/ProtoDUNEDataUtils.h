@@ -12,6 +12,9 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Event.h"
+#include <set>
+#include "RtypesCore.h"
+#include <stdint.h>
 
 namespace protoana {
 
@@ -31,6 +34,11 @@ namespace protoana {
 
     /// Get number of active fembs in an APA
     int GetNActiveFembsForAPA(art::Event const & evt, int apa) const;
+
+    /// Check for consistency of timestamp values for a set of APAs.  True if consistent, false if there are mismatches
+    bool CheckTimeStampConsistencyForAPAs(art::Event const & evt, std::set<int> apas, 
+					  ULong64_t &timestamp, ULong64_t &timestamp2,
+					  int &apainconsist) const;
 
   private:
 

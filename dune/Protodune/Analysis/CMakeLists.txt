@@ -42,4 +42,4 @@ install_source()
 
 add_subdirectory(BeamExample)
 add_subdirectory(Pion)
-add_subdirectory(Electron)
+add_subdirectory(EMTaskForce)

@@ -644,7 +644,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
 
 string AdcChannelMetric::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
-  StringManipulator sman(name);
+  StringManipulator sman(name, false);
   sman.replace("%CRNAME%", ran.name);
   sman.replace("%CRLABEL%", ran.label());
   sman.replace("%CRLABEL1%", ran.label(1));
@@ -694,9 +694,9 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     for ( Index igra=0; igra<ngraph; ++igra ) {
       string gname = hname;
       string gtitl = htitl;
-      StringManipulator smanName(gname);
+      StringManipulator smanName(gname, false);
       smanName.replace("%STATUS%", statNames[igra]);
-      StringManipulator smanTitl(gtitl);
+      StringManipulator smanTitl(gtitl, false);
       smanTitl.replace("%STATUS%", statNames[igra]);
       if ( useErrors ) {
         egraphs[igra] = new TGraphErrors;

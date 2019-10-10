@@ -11,6 +11,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   DataPath - Location of the data view ("" for top)
 //
 // The output results holds the status and
 //  nroi - # rois (always 1)
@@ -41,6 +42,7 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  Name m_DataPath;
 
 };
 

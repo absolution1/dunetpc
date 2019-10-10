@@ -6,6 +6,7 @@ simple_plugin(IcebergTPCRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq-core_Data
+                        artdaq-core_Utilities
                         dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}

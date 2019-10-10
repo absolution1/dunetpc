@@ -67,6 +67,8 @@ namespace protoana {
    //std::map< size_t, std::vector< const recob::Hit * > > GetRecoHitsFromTrajPoints( const recob::Track & track, art::Event const & evt, std::string trackModule );
    std::map< size_t, const recob::Hit * > GetRecoHitsFromTrajPoints( const recob::Track & track, art::Event const & evt, std::string trackModule );
 
+   bool IsBeamlike( const recob::Track & track, art::Event const & evt, const fhicl::ParameterSet & BeamPars, bool flip=false );
+
 
   private:
 
