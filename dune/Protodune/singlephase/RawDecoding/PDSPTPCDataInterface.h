@@ -3,6 +3,14 @@
 //
 // Tool to unpack RCE and FELIX fragments.  A restructuring from the PDSPTPCRawDecoder module
 //
+// These methods take references to vectors of raw::RawDigit, raw::RDTimeStamp, and raw::RDStatus data products as arguments.
+// These vectors are not cleared on input, and so when data are retrieved, they are appended to any existing data already
+// in the vectors.  The RDStatus vector is an exception, where just one RDStatus instance will be in the vector.  Previously
+// accumulated RDStatus values from previous calls will be logically ORed into the single RDStatus instances contents.
+//
+//  Methods are provided to retrieve all data from fragments on an input label, or by specified APA list.  In cases where
+//  data from a specified APA are requested but no labels are provided by the caller, labels are input via FCL parameters.
+//  This is true because data from an APA may appear with different labels during the course of the ProtoDUNE-SP run.
 //
 /////////////////////////////////////////////////////////////////////////
 #ifndef PDSPTPCDataInterface_H
