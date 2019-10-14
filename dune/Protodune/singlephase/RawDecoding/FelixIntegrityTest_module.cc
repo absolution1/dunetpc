@@ -26,6 +26,7 @@
 // C++ Includes
 #include <memory>
 #include <iostream>
+#include <iomanip>
 
 namespace dune {
   class FelixIntegrityTest;
@@ -46,6 +47,7 @@ public:
   // Required functions.
   void analyze(const art::Event & evt) override;
   void beginJob() override;
+  void endJob() override;
 
   // Error metrics
   struct ErrorMetrics {
@@ -65,6 +67,24 @@ public:
     bool error_fields_set;
 
     bool bad;
+
+    void print() const {
+      std::cout
+        << "SequenceID: " << sequenceID
+        << "  fragmentID: " << fragmentID
+        << "  fragmentType: " << type
+        << "  Timestamp: " << timestamp
+        << "  Crate number: " << crate_no
+        << "  Slot number: " << slot_no
+        << "  Fiber number: " << fiber_no << "\n\n";
+      std::cout << "Metadata error: ";
+      meta_err? std::cout << "YES\n" : std::cout << "NO\n";
+      std::cout << "Timestamp error: ";
+      timestamp_err? std::cout << "YES\n" : std::cout << "NO\n";
+      std::cout << "Convert count error: ";
+      convert_count_err? std::cout << "YES\n" : std::cout << "NO\n";
+                // << "Error fields set: " << error_fields_set? "YES" : "NO\n";
+    }
   };
 
 private:
@@ -86,8 +106,8 @@ private:
   // COLDATA constants
   const uint16_t convert_count_increase = 1;
   std::vector<ErrorMetrics> test_results;
-  unsigned n_good_frags;
-  unsigned n_bad_frags;
+  unsigned n_good_frags = 0;
+  unsigned n_bad_frags = 0;
 };
 
 
@@ -100,8 +120,7 @@ void dune::FelixIntegrityTest::beginJob(){
 }
 
 void dune::FelixIntegrityTest::analyze(const art::Event & evt){
-    MF_LOG_INFO("FelixIntegrityTest")
-      << "-------------------- FELIX Integrity Test -------------------";
+  std::cout << "-------------------- FELIX Integrity Test -------------------";
 
   if (_expect_container_fragments) {
     art::Handle<artdaq::Fragments> cont_frags;
@@ -163,12 +182,62 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
       this_err.bad? ++n_bad_frags : ++n_good_frags;
     }
   }
+}
 
-  MF_LOG_INFO("FelixIntegrityTest")
-      << "\n Processed " << n_bad_frags+n_good_frags
-      << " FELIX Fragments.\n"
-      << " Found " << n_good_frags << " good fragments. Success rate: "
-      << (double)n_good_frags/(n_bad_frags+n_good_frags) << "/1.\n";
+void dune::FelixIntegrityTest::endJob() {
+  const unsigned long n_frags = n_bad_frags + n_good_frags;
+  std::cout
+      << "\nProcessed " << n_bad_frags+n_good_frags
+      << " FELIX Fragments.\nFound " << n_good_frags
+      << " good fragments. Success rate: "
+      << (double)n_good_frags/n_frags << "/1.\n\n";
+
+  // Create structs for easier looping.
+  struct Location {
+    uint64_t crate_no, slot_no, fiber_no;
+    bool operator<(const Location& b) const {
+      if(crate_no == b.crate_no && slot_no == b.slot_no) {
+        return fiber_no < b.fiber_no;
+      } else if(crate_no == b.crate_no) {
+        return slot_no < b.slot_no;
+      }
+      return crate_no < b.crate_no;
+    }
+  };
+  struct Errors {
+    unsigned long meta_err, timestamp_err, convert_count_err, error_fields_set;
+    void operator+=(const Errors& other) {
+      meta_err += other.meta_err;
+      timestamp_err += other.timestamp_err;
+      convert_count_err += other.convert_count_err;
+      error_fields_set += other.error_fields_set;
+    }
+  };
+  // Loop over collected error metrics to find their origin
+  std::map<Location, Errors> errMap;
+  for(const ErrorMetrics& errm : test_results) {
+    Location loc = {errm.crate_no, errm.slot_no, errm.fiber_no};
+    Errors err = {(unsigned long)errm.meta_err, (unsigned long)errm.timestamp_err,
+                  (unsigned long)errm.convert_count_err, (unsigned long)errm.error_fields_set};
+    errMap[loc] += err;
+  }
+  // Print the error rate in a nice table
+  std::cout << "Error rates\n";
+  std::cout << "Crate:Slot:Fiber | Metadata error | Timestamp error | Convert count error | Error fields set\n"
+            << "--------------------------------------------------------------------------------------------\n";
+  for(const std::pair<Location, Errors>& p : errMap) {
+    std::cout << std::left << std::setw(16) << std::to_string(p.first.crate_no) + ":" + std::to_string(p.first.slot_no) + ":" + std::to_string(p.first.fiber_no) << " | ";
+    if(p.second.meta_err) std::cout << std::setw(14) << (double)p.second.meta_err/n_frags << " | ";
+    else std::cout << std::setw(14) << " " << " | ";
+    if(p.second.timestamp_err) std::cout << std::setw(15) << (double)p.second.timestamp_err/n_frags << " | ";
+    else std::cout << std::setw(15) << " " << " | ";
+    if(p.second.convert_count_err) std::cout << std::setw(19) << (double)p.second.convert_count_err/n_frags << " | ";
+    else std::cout << std::setw(19) << " " << " | ";
+    if(p.second.error_fields_set) std::cout << std::setw(16) << (double)p.second.error_fields_set/n_frags;
+    else std::cout << std::setw(16) << " ";
+
+    std::cout << '\n';
+  }
 }
 
 dune::FelixIntegrityTest::ErrorMetrics dune::FelixIntegrityTest::_process(const artdaq::Fragment& frag)
@@ -234,7 +303,8 @@ dune::FelixIntegrityTest::ErrorMetrics dune::FelixIntegrityTest::_process(const 
         << "First timestamp matching error." << '\n'
         << "  This fragment's timestamp: " << frag.timestamp()
         << "  First frame's timestamp: " << flxfrag.timestamp(0)
-        << "  Difference: " << frag.timestamp() - flxfrag.timestamp(0) << "\n\n";
+        << "  Expected offset (-24 or less): " << meta->offset_frames*timestamp_increase
+        << "  Offset: " << frag.timestamp() - flxfrag.timestamp(0) << "\n\n";
   }
   // Make sure the correct number of frames is contained when compared to the metadata
   if(flxfrag.total_frames() != meta->window_frames) {
