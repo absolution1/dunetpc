@@ -1,11 +1,11 @@
-#include "sam_dune.fcl"
+#include "pddp_sam.fcl"
 
 process_name: PDDPRawDataConverter
 
-pddp_file_catalog: @local::art_file_catalog_data
+pddp_file_catalog: @local::pddp_art_file_catalog
 #pddp_file_catalog.applicationVersion: "v08_32_01"
-pddp_file_catalog.fileType:           "detector"
-pddp_file_catalog.runType:            "protodune-dp"
+#pddp_file_catalog.fileType:           "detector"
+#pddp_file_catalog.runType:            "protodune-dp"
 
 services:
 {
