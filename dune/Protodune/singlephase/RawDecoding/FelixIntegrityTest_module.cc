@@ -97,9 +97,6 @@ private:
   // Keeping track of fragment metadata
   dune::FelixFragmentBase::Metadata run_meta = {0xcba};
 
-  // Fragment metadata constants
-  uint16_t control_word = 0xabc;
-
   // WIB constants
   const uint64_t timestamp_increase = 25;
 
@@ -368,31 +365,31 @@ dune::FelixIntegrityTest::ErrorMetrics dune::FelixIntegrityTest::_process(const 
   // Frame error fields test
   bool error_field_failed = false;
   // Check all error fields in all frames without distinction for now
-  // TODO: Look into what errors are relevant!
-  for(unsigned fi = 0; fi < 0/*flxfrag.total_frames()*/; ++fi) {
-    error_field_failed |= flxfrag.mm(fi) || flxfrag.oos(fi) || flxfrag.wib_errors(fi);
-    for(unsigned bi = 0; bi < 4; ++bi) {
-      error_field_failed |= flxfrag.s1_error(fi, bi) || flxfrag.s2_error(fi, bi)
-                            || flxfrag.error_register(fi, bi);
-    }
-
-    if(error_field_failed) {
-      std::cout
-          << "One or more error fields set in frame " << fi << ".\n"
-          << "  Mismatch: " << (int)flxfrag.mm(fi)
-          << "  Out of sync: " << (int)flxfrag.oos(fi)
-          << "  WIB errors: " << (int)flxfrag.wib_errors(fi) << '\n';
-      for(unsigned bi = 0; bi < 4; ++bi) {
-        std::cout
-            << "  Block " << bi+1 << ":\n"
-            << "    Stream 1 error: " << (int)flxfrag.s1_error(fi, bi)
-            << "    Stream 2 error: " << (int)flxfrag.s2_error(fi, bi)
-            << "    Error register: " << (int)flxfrag.error_register(fi, bi) << '\n';
-      }
-      std::cout << '\n';
-      break;
-    }
-  }
+  // // TODO: Look into what errors are relevant!
+  // for(unsigned fi = 0; fi < 0/*flxfrag.total_frames()*/; ++fi) {
+  //   error_field_failed |= flxfrag.mm(fi) || flxfrag.oos(fi) || flxfrag.wib_errors(fi);
+  //   for(unsigned bi = 0; bi < 4; ++bi) {
+  //     error_field_failed |= flxfrag.s1_error(fi, bi) || flxfrag.s2_error(fi, bi)
+  //                           || flxfrag.error_register(fi, bi);
+  //   }
+  //
+  //   if(error_field_failed) {
+  //     std::cout
+  //         << "One or more error fields set in frame " << fi << ".\n"
+  //         << "  Mismatch: " << (int)flxfrag.mm(fi)
+  //         << "  Out of sync: " << (int)flxfrag.oos(fi)
+  //         << "  WIB errors: " << (int)flxfrag.wib_errors(fi) << '\n';
+  //     for(unsigned bi = 0; bi < 4; ++bi) {
+  //       std::cout
+  //           << "  Block " << bi+1 << ":\n"
+  //           << "    Stream 1 error: " << (int)flxfrag.s1_error(fi, bi)
+  //           << "    Stream 2 error: " << (int)flxfrag.s2_error(fi, bi)
+  //           << "    Error register: " << (int)flxfrag.error_register(fi, bi) << '\n';
+  //     }
+  //     std::cout << '\n';
+  //     break;
+  //   }
+  // }
 
   //Output error metrics
   ErrorMetrics outem;
