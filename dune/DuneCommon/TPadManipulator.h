@@ -228,6 +228,9 @@ public:
   void setMarginBottom(double xmar) { m_marginBottom = xmar; }
   void setMarginTop(double xmar) { m_marginTop = xmar; }
 
+  // Center axis labels.
+  void centerAxisTitles(bool center =true) { m_axisTitleOpt = center; }
+
   // Add a legend.
   // This is added to the list of objects.
   TLegend* addLegend(double x1, double y1, double x2, double y2);
@@ -258,6 +261,7 @@ public:
   // Get the axes of the histogram or graph.
   TAxis* getXaxis() const;
   TAxis* getYaxis() const;
+  TAxis* getZaxis() const;
 
   // Set drawing attributes.
   int setCanvasSize(int wx, int wy);
@@ -462,6 +466,7 @@ private:
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
   Index m_iobjLegend;
+  int m_axisTitleOpt;
 
 };
 

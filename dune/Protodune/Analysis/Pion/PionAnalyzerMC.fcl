@@ -11,7 +11,7 @@
 #include "ProtoDUNEBeamlineFilter.fcl"
 #include "ProtoDUNEBeamlineUtils.fcl"
 
-#include "../ProtoDUNEBeamCuts.fcl"
+#include "ProtoDUNEBeamCuts.fcl"
 #
 BEGIN_PROLOG
 

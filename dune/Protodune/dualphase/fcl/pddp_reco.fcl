@@ -1,3 +1,4 @@
+#include "pddp_sam.fcl"
 #include "services_dune.fcl"
 #include "caldata_dune.fcl"
 #include "hitfindermodules_dune.fcl"
@@ -23,9 +24,11 @@ services:
   MemoryTracker:     {}
   RandomNumberGenerator: {} #ART native random number generator
   message:              @local::dune_message_services_prod_debug
-  FileCatalogMetadata:  @local::art_file_catalog_mc
+  FileCatalogMetadata:  @local::pddp_art_file_catalog
                         @table::dunefddphase_reco_services
 }
+
+#services.FileCatalogMetadata.applicationVersion: "v08_32_01"
 
 services.Geometry: @local::protodunedphase_driftY_geo
 services.DetectorPropertiesService: @local::protodunedphase_detproperties
@@ -126,7 +129,8 @@ outputs:
  {
    module_type: RootOutput
    fileName:    "%ifb_reco.root"
-   dataTier:    "full-reconstructed"
+   dataTier:    "hit-reconstructed"
+   streamName:  "cosmics"
    compressionLevel: 1
  }
 }

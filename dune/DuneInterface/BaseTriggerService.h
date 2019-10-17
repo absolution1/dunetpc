@@ -42,7 +42,7 @@ public:
   //   params:
   //   evt - The ART event, to be sliced and diced as the trigger algorithm
   //         sees fit...
-  virtual bool Trigger(const art::Event& evt)
+  virtual bool Trigger(const art::Event&)
   { return false; }
 
   // Make your trigger decision based on TPC info only.
@@ -51,7 +51,7 @@ public:
   //   params:
   //   rawTPC - A vector of raw digits, to be sliced and diced as the trigger algorithm
   //            sees fit...
-  virtual bool TPCTrigger(const std::vector<raw::RawDigit>& rawTPC)
+  virtual bool TPCTrigger(const std::vector<raw::RawDigit>&)
   { return false; }
 
   // Make your trigger decision based on optical (PD) info only.
@@ -60,7 +60,7 @@ public:
   //   params:
   //   rawPD - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
   //           sees fit...
-  virtual bool PDTrigger(const std::vector<raw::OpDetWaveform>& rawPD)
+  virtual bool PDTrigger(const std::vector<raw::OpDetWaveform>&)
   { return false; }
 
   // Make your trigger decision based on a mixture of TPC and PD info.
@@ -71,8 +71,8 @@ public:
   //            sees fit...
   //   rawPD  - A vector of optical waveforms, to be sliced and diced as the trigger algorithm
   //            sees fit...
-  virtual bool TPCPDTrigger(const std::vector<raw::RawDigit>&      rawTPC,
-			    const std::vector<raw::OpDetWaveform>& rawPD)
+  virtual bool TPCPDTrigger(const std::vector<raw::RawDigit>&,
+			    const std::vector<raw::OpDetWaveform>&)
   { return false; }
 
 
@@ -83,7 +83,7 @@ public:
   //    params:
   //    triggerVec - A vector of BasicTrigger data products, which will have been produced by a lower 
   //                 level trigger. 
-  virtual bool Trigger(std::vector<triggersim::BasicTrigger> const &triggerVec)
+  virtual bool Trigger(const std::vector<triggersim::BasicTrigger>&)
   { return false; }
 
   virtual std::string GetName() = 0;
