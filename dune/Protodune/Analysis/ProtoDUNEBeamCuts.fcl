@@ -16,6 +16,12 @@ BeamCuts_MCC11:
   TrackDirCut:    .93
 }
 
+
+
+# Note: 
+#       these are just the same as the Prod2 MC SCE values above
+#       and won't be reflective of the behavior in data. Will need to be 
+#       updated        
 BeamCuts_SPProd2_Data:
 {
   TrackStartXCut: [-3., 0.]
