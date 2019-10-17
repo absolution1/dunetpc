@@ -19,7 +19,6 @@
 #include "lardataobj/RecoBase/PFParticleMetadata.h"
 #include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
-#include "canvas/Persistency/Common/FindManyP.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -40,12 +39,9 @@
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "lardata/Utilities/GeometryUtilities.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "dune/Calib/XYZCalib.h"
-#include "dune/CalibServices/XYZCalibService.h"
 #include "dune/CalibServices/XYZCalibServiceProtoDUNE.h"
-#include "larevt/SpaceCharge/SpaceCharge.h"
-#include "larevt/SpaceChargeServices/SpaceChargeService.h"
-
+#include "lardata/ArtDataHelper/MVAReader.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
@@ -108,6 +104,8 @@ private:
 
   // Track momentum algorithm calculates momentum based on track range
   trkf::TrackMomentumCalculator trmom;
+  const detinfo::DetectorProperties* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+
 
   // Initialise tree variables
   void Initialise();
@@ -202,6 +200,7 @@ private:
   double fprimaryShower_hit_Y[5000];
   double fprimaryShower_hit_Z[5000];
   double fprimaryShower_hit_pitch[5000]; 
+  double fprimaryShower_hit_cnn[5000];
   int fprimaryID;
   double fprimaryT0;
 
@@ -308,6 +307,7 @@ void protoana::ProtoDUNEelectronAnaTree::beginJob(){
   fPandoraBeam->Branch("primaryShower_hit_Y",        &fprimaryShower_hit_Y,       "primaryShower_hit_Y[primaryShower_nHits]/D");
   fPandoraBeam->Branch("primaryShower_hit_Z",        &fprimaryShower_hit_Z,       "primaryShower_hit_Z[primaryShower_nHits]/D");
   fPandoraBeam->Branch("primaryShower_hit_pitch",    &fprimaryShower_hit_pitch,   "primaryShower_hit_pitch[primaryShower_nHits]/D");
+  fPandoraBeam->Branch("primaryShower_hit_cnn",    &fprimaryShower_hit_cnn,   "primaryShower_hit_cnn[primaryShower_nHits]/D");
 
   fPandoraBeam->Branch("primaryMomentumByRangeProton",  &fprimaryMomentumByRangeProton, "primaryMomentumByRangeProton/D");
   fPandoraBeam->Branch("primaryMomentumByRangeMuon",    &fprimaryMomentumByRangeMuon,   "primaryMomentumByRangeMuon/D");
@@ -595,17 +595,31 @@ void protoana::ProtoDUNEelectronAnaTree::FillPrimaryPFParticle(art::Event const 
    
     const std::vector<const recob::Hit*> sh_hits = showerUtil.GetRecoShowerHits(*thisShower, evt, fShowerTag);
     art::FindManyP<recob::SpacePoint> spFromShowerHits(sh_hits,evt,"pandora");
+
+    //work around to save the CNN score 
+    auto recoShowers = evt.getValidHandle< std::vector< recob::Shower > >(fShowerTag);
+    art::FindManyP<recob::Hit> findHitsFromShowers(recoShowers,evt,fShowerTag);
+    anab::MVAReader<recob::Hit,4> hitResults(evt, "emtrkmichelid:emtrkmichel" );
+    //int trk_idx = hitResults.getIndex("track");
+    //int em_idx = hitResults.getIndex("em");
+    std::vector< art::Ptr< recob::Hit > > tmp_sh_hits = findHitsFromShowers.at( thisShower->ID() );
+
     int idx =0;
     fprimaryShowerCharge =0.0;
     for( size_t j=0; j<sh_hits.size() && j<5000; ++j){
        if( sh_hits[j]->WireID().Plane != 2 ) continue;
+       std::array<float,4> cnn_out = hitResults.getOutput( tmp_sh_hits[j] );
+       double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 
+       double cnn_score = cnn_out[ hitResults.getIndex("em") ]/p_trk_or_sh; 
+       fprimaryShower_hit_cnn[idx] = cnn_score;
        fprimaryShowerCharge += sh_hits[j]->Integral();
        fprimaryShower_hit_w[idx]=sh_hits[j]->WireID().Wire;
        fprimaryShower_hit_t[idx]=sh_hits[j]->PeakTime();
        fprimaryShower_hit_q[idx]=sh_hits[j]->Integral(); 
+       fprimaryShower_hit_X[idx]=detprop->ConvertTicksToX(sh_hits[j]->PeakTime(),sh_hits[j]->WireID().Plane,sh_hits[j]->WireID().TPC,0);
        std::vector<art::Ptr<recob::SpacePoint>> sp = spFromShowerHits.at(j); 
        if(!sp.empty() ){
-         fprimaryShower_hit_X[idx]= sp[0]->XYZ()[0];
+         //fprimaryShower_hit_X[idx]= sp[0]->XYZ()[0];
          fprimaryShower_hit_Y[idx]= sp[0]->XYZ()[1];
          fprimaryShower_hit_Z[idx]= sp[0]->XYZ()[2];
        }
@@ -739,6 +753,7 @@ void protoana::ProtoDUNEelectronAnaTree::Initialise(){
      fprimaryShower_hit_X[m] =-999.0;
      fprimaryShower_hit_Y[m] =-999.0;
      fprimaryShower_hit_Z[m] =-999.0;
+     fprimaryShower_hit_cnn[m] = -999.0;
   }
   fprimaryTruth_trkID =-999;
   fprimaryTruth_pdg = -999;
