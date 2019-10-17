@@ -1,7 +1,15 @@
-process_name: PDDPRawInputSourceTest
+#include "pddp_sam.fcl"
+
+process_name: PDDPRawDataConverter
+
+pddp_file_catalog: @local::pddp_art_file_catalog
+#pddp_file_catalog.applicationVersion: "v08_32_01"
+#pddp_file_catalog.fileType:           "detector"
+#pddp_file_catalog.runType:            "protodune-dp"
 
 services:
 {
+   FileCatalogMetadata:  @local::pddp_file_catalog
    PDDPChannelMappings:
    {
      service_provider: PDDPChannelMap
@@ -13,8 +21,9 @@ source:
 {
   module_type: PDDPRawInput
   maxEvents: -1
-  fileNames: [ "/sps/hep/lbno/vgalymov/tmp/198_12_c.test" ]
+  fileNames: [ "np02rawdata.dat" ]
   OutputLabelRDTime: "timingrawdecoder:daq"
+  InvertBaseline: 0
 }
 
 outputs:
@@ -25,6 +34,7 @@ outputs:
     fileName: 	 	"%ifb_pddprawdata.root"
     compressionLevel: 	1
     dataTier: 		"raw"
+    streamName:         "cosmics"
   }
 }
 

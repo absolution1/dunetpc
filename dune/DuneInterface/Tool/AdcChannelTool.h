@@ -97,10 +97,10 @@ public:
   virtual bool viewWithUpdate() const { return false; }
 
   // Optional call at the start of processing an event.
-  virtual DataMap beginEvent(const DuneEventInfo& devt) const { return DataMap(); }
+  virtual DataMap beginEvent(const DuneEventInfo&) const { return DataMap(); }
 
   // Optional call at the start of processing an event.
-  virtual DataMap endEvent(const DuneEventInfo& devt) const { return DataMap(); }
+  virtual DataMap endEvent(const DuneEventInfo&) const { return DataMap(); }
 
 };
 

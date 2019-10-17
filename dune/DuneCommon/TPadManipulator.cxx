@@ -92,7 +92,8 @@ TPadManipulator::TPadManipulator()
   m_showUnderflow(false), m_showOverflow(false),
   m_flowGraph(nullptr),
   m_gflowMrk(0), m_gflowCol(0),
-  m_top(false), m_right(false), m_iobjLegend(0) {
+  m_top(false), m_right(false), m_iobjLegend(0),
+  m_axisTitleOpt(0) {
   const string myname = "TPadManipulator::ctor: ";
   if ( dbg ) cout << myname << this << endl;
   m_label.SetNDC();
@@ -211,6 +212,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
     m_subMans.emplace_back(man);
   }
   m_iobjLegend = rhs.m_iobjLegend;
+  m_axisTitleOpt = rhs.m_axisTitleOpt;
   update();
   return *this;
 }
@@ -420,6 +422,14 @@ TObject* TPadManipulator::object() const {
 TH1* TPadManipulator::getHist(unsigned int iobj) {
   if ( iobj >= objects().size() ) return nullptr;
   return dynamic_cast<TH1*>(objects()[iobj]);
+}
+
+//**********************************************************************
+
+TObject* TPadManipulator::lastObject() const {
+  Index nobj = objects().size();
+  if ( nobj ) return objects().back();
+  return object();
 }
 
 //**********************************************************************
@@ -774,9 +784,18 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
-  if ( m_marginLeft >= 0.0 ) xml = m_marginLeft;
+  if ( m_marginLeft >= 0.0 ) {
+    // When left margin is changed, we leave the y-axis title at the edge of the pad.
+    double scalefac = m_marginLeft/xml;
+    xml = m_marginLeft;
+    yttl *= scalefac;
+  }
   if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
-  if ( m_marginBottom >= 0.0 ) xmb = m_marginBottom;
+  if ( m_marginBottom >= 0.0 ) {
+    double scalefac = m_marginBottom/xmb;
+    xmb = m_marginBottom;
+    xttl *= scalefac;
+  }
   if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
@@ -886,6 +905,12 @@ int TPadManipulator::update() {
   getYaxis()->SetTitleOffset(yttl);
   getXaxis()->SetTickLength(ticklenx);
   getYaxis()->SetTickLength(tickleny);
+  if ( m_axisTitleOpt ) {
+    for ( TAxis* pax : { getXaxis(), getYaxis(), getZaxis() } ) {
+      if ( pax == nullptr ) continue;
+      pax->CenterTitle();
+    }
+  }
   if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
   if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
   if ( m_labSizeX > 0.0 ) getXaxis()->SetLabelSize(m_labSizeX);
@@ -1012,6 +1037,14 @@ TAxis* TPadManipulator::getYaxis() const {
   if ( haveFrameHist() ) return frameHist()->GetYaxis();
   if ( hist() != nullptr ) return hist()->GetYaxis();
   if ( m_pg != nullptr ) return m_pg->GetYaxis();
+  return nullptr;
+}
+
+//**********************************************************************
+
+TAxis* TPadManipulator::getZaxis() const {
+  if ( haveFrameHist() ) return frameHist()->GetZaxis();
+  if ( hist() != nullptr ) return hist()->GetZaxis();
   return nullptr;
 }
 
