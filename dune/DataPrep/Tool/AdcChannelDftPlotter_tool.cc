@@ -186,7 +186,7 @@ viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) c
     if ( ph == nullptr ) return 13;
     ph->SetDirectory(nullptr);
     Name htitl = m_HistSummaryTitle;
-    StringManipulator smanTitl(htitl);
+    StringManipulator smanTitl(htitl, false);
     Name cglab = getChannelGroup(cgn).label();
     if ( cglab.size() == 0 ) cglab = cgn;
     smanTitl.replace("%CGNAME%", cgn);
@@ -301,10 +301,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   if ( nDataMissing || nBadMagCount || nBadPhaCount ) return ret.setStatus(4);
   string hname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistName);
   string htitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_HistTitle);
-  StringManipulator smanName(hname);
+  StringManipulator smanName(hname, false);
   smanName.replace("%CRNAME%", crn);
   smanName.replace("%VIEW%", getDataView());
-  StringManipulator smanTitl(htitl);
+  StringManipulator smanTitl(htitl, false);
   smanTitl.replace("%CRNAME%", crn);
   smanTitl.replace("%VIEW%", getDataView());
   //xx

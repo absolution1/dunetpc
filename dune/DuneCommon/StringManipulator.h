@@ -1,4 +1,4 @@
-// StringManipulator.
+// StringManipulator.h
 //
 // David Adams
 // August 2017
@@ -7,6 +7,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 #ifndef StringManipulator_H
 #define StringManipulator_H
@@ -16,6 +17,7 @@ class StringManipulator {
 public:
 
   using Index = unsigned int;
+  using StringVector = std::vector<std::string>;
 
   // Fetch a fill value for an output stream as follows:
   //   '0' - zero or positive integers
@@ -32,11 +34,21 @@ public:
     return '_';
   }
 
-  // Ctor.
-  StringManipulator(std::string& strin) : m_str(strin) { }
+  // Ctor from a string.
+  // If copy is false, this object will modify the passed string.
+  // If true, the modified copy may be retrieved with str().
+  StringManipulator(std::string& strin, bool copy)
+  : m_str(copy ? m_strCopy : strin), m_strCopy(strin) { }
+
+  // Ctor from a C-string.
+  explicit StringManipulator(const char* chin) : m_str(m_strCopy), m_strCopy(chin) { }
+
+  // Set/get log level.
+  void setLogLevel(Index logLevel) { m_LogLevel = logLevel; }
+  Index logLevel() const { return m_LogLevel; }
 
   // Return the manipulated string.
-  const std::string& string() { return m_str; }
+  const std::string& str() { return m_str; }
 
   // Replace all occurences of a substring with a value.
   // Returns the number of replacements (<0 for error).
@@ -49,9 +61,28 @@ public:
   template<typename T>
   int replaceFixedWidth(std::string substr, const T& xsub, Index width);
 
+  // Split a string into substrings bounded by the ends and by any of the
+  // characters in seps.
+  // E.g. for seps = "/,", "who,am//I?" --> {"who", "am", "I?"}
+  const std::vector<std::string>& split(std::string seps);
+
+  // Return the strings obtained by iterating over parts in each split region.
+  // e.g. "R. {A,M}. Nixon" --> "R. A. Nixon", "R. M. Nixon".
+  // The >2 split pattern spat specifies the splitting:
+  //   first char flags the start of a split region
+  //   last char flags the end of a split region
+  //   remaining chars are separators (seps in split(...)
+  const StringVector& patternSplit(std::string spat);
+
+  // Return the strings from the last split.
+  const StringVector& splits() const { return m_splits; }
+
 private:
 
+  int m_LogLevel = 0;
   std::string& m_str;
+  std::string m_strCopy;
+  StringVector m_splits;
 
 };
 

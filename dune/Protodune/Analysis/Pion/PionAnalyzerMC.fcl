@@ -11,6 +11,8 @@
 #include "ProtoDUNEBeamlineFilter.fcl"
 #include "ProtoDUNEBeamlineUtils.fcl"
 
+#include "ProtoDUNEBeamCuts.fcl"
+#
 BEGIN_PROLOG
 
 pionanalysis:
@@ -33,7 +35,7 @@ pionanalysis:
 
   SelectEvents: []
 
-
+  BeamPars: @local::BeamCuts_MCC11
 
 }
 

@@ -233,13 +233,13 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
         if ( npadOnPage > 1 ) pmantop->split(npadx, npady);
         plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, getPlotName());
-        StringManipulator sman(plotName);
+        StringManipulator sman(plotName, false);
         Name cgrn = overlayGroups() ? cgn : crn;
         sman.replace("%CGNAME%", cgn);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGRNAME%", cgrn);
         sman.replace("%VIEW%", getDataView());
-        plotName = sman.string();
+        plotName = sman.str();
         if ( getLogLevel() >= 4 ) {
           if ( plotName.size() ) cout << myname << "    Created pad  with plot name " << plotName << endl;
           else cout << myname << "    Created pad with no plot name." << endl;
@@ -339,7 +339,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
         //dmPrint.setInt("CHAN1", ran.first());
         //dmPrint.setInt("CHAN2", ran.last());
         plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdPrint, dmPrint, getPlotSummaryName());
-        StringManipulator sman(plotName);
+        StringManipulator sman(plotName, false);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGNAME%", cgn);
         sman.replace("%VIEW%", getDataView());
