@@ -332,7 +332,8 @@ changroup_rop: {
 
 # DataPrepModule is the producer that calls RawDigitPrepService
 
-# Process any data.
+# This configuration does not make use of the decoding tool.
+# Input is raw::RawDigit vector DigitLabel in the event data store.
 producer_adcprep_notool: {
   module_type:   "DataPrepModule"
   LogLevel:                     1
@@ -349,8 +350,9 @@ producer_adcprep_notool: {
   OnlineChannelMapTool:  pd_onlineChannelMapByFemb
 }
 
-# Process any data.
-producer_adcprep_tool: {
+# This configuration uses the decoding tool and the old module.
+# All APAs are decoded in one call to the tool.
+producer_adcprep_tool_old: {
   module_type: "DataPrepModule"
   LogLevel:                   1
   DecoderTool:   "pdsp_decoder"      # Non-blank reads digits with named tool.
@@ -364,6 +366,22 @@ producer_adcprep_tool: {
   BeamEventLabel:            ""
   IntermediateStates:        []
   OnlineChannelMapTool:  pd_onlineChannelMapByFemb
+}
+
+# This configuration uses the decoding tool and the old module.
+# All APAs are decoded in one call to the tool if ChannelGroups = ["all"]
+# Use ChannelGroups = ["apas"] to process one APA at a time.
+producer_adcprep_tool_new: {
+  module_type: "DataPrepByApaModule"
+  LogLevel:                   1
+  DecoderTool:   "pdsp_decoder"       # Tool that reads digits.
+  TimeStampName:     "dataprep"       # Non-blank writes RDTimeStamps if decoder tool is used
+  OutputDigitName:           ""       # Non-blank writes digits if decoder tool is used
+  WireName:                  ""
+  ChannelGroups:       ["apas"]
+  SkipChannels:              []       # Channels to skip.
+  BeamEventLabel:            ""
+  OnlineChannelMapTool: pd_onlineChannelMapByFemb
 }
 
 producer_adcprep: @local::producer_adcprep_notool

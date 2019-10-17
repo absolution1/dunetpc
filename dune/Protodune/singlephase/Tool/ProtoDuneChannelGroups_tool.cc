@@ -57,6 +57,21 @@ ProtoDuneChannelGroups::ProtoDuneChannelGroups(fhicl::ParameterSet const& ps)
       m_groups["apa" + sori + "s"].push_back("apa" + sapa + sori);
     }
   }
+  Index nfmb = 20;
+  for ( Index iapa=1; iapa<=napa; ++iapa ) {
+    for ( Index ifmb=1; ifmb<=nfmb; ++ifmb ) {
+      ostringstream ssgrp;
+      ssgrp << "femb" << iapa;
+      if ( ifmb < 10 ) ssgrp << "0";
+      ssgrp << ifmb;
+      Name sgrp = ssgrp.str();
+      m_groups[sgrp].push_back(sgrp + "u");
+      m_groups[sgrp].push_back(sgrp + "v");
+      m_groups[sgrp].push_back(sgrp + "x");
+      Name slab = "FEMB " + sgrp.substr(4);
+      m_labels[sgrp].push_back(slab);
+    }
+  }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "          LogLevel: " << m_LogLevel << endl;
   }

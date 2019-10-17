@@ -9,6 +9,7 @@
 //      apas    APAs           All APAs
 //     tppPs    TPC P planes   All TPC planes for view P
 //     apaPs    APA P planes   All APA planes for view P
+//   fembAFF    FEMB AFF       All channels in the FEMB (i.e. u, v and x)
 //
 // In the above
 //    S is the TPC set (offline APA) number in range [0,5]
