@@ -36,6 +36,7 @@ pionanalysis:
   SelectEvents: []
 
   BeamPars: @local::BeamCuts_MCC11
+  BeamCuts: @local::NewBeamCuts 
 
 }
 

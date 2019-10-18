@@ -35,6 +35,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEBeamCuts.h"
 
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
@@ -340,6 +341,8 @@ private:
   fhicl::ParameterSet dataUtil;
   int fNSliceCheck; 
   fhicl::ParameterSet BeamPars;
+  fhicl::ParameterSet NewBeamCuts;
+  protoana::ProtoDUNEBeamCuts beam_cuts;
 };
 
 
@@ -358,13 +361,16 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
   fNSliceCheck( p.get< int >("NSliceCheck") ),
-  BeamPars(p.get<fhicl::ParameterSet>("BeamPars"))
+  BeamPars(p.get<fhicl::ParameterSet>("BeamPars")),
+  NewBeamCuts(p.get<fhicl::ParameterSet>("BeamCuts"))
 {
 
   templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
   templates[ 321 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_ka"  );
   templates[ 13 ]   = (TProfile*)dEdX_template_file.Get( "dedx_range_mu"  );
   templates[ 2212 ] = (TProfile*)dEdX_template_file.Get( "dedx_range_pro" );
+
+  beam_cuts = protoana::ProtoDUNEBeamCuts( NewBeamCuts );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
@@ -695,6 +701,8 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
 
     bool pass_beam_cuts = trackUtil.IsBeamlike( *thisTrack, evt, BeamPars, true );
     std::cout << "Passes beam cuts? " << pass_beam_cuts << std::endl;
+
+    std::cout << "New Beam Cuts " << beam_cuts.IsBeamlike( *thisTrack, evt, "1" ) << std::endl;
 
 
     beamTrackID = thisTrack->ID();
