@@ -90,6 +90,8 @@ private:
   std::vector<double> crt2x1;
   std::vector<double> crt2y1;
   std::vector<double> crt2z1;
+  double rdtimestamp_evt;
+  std::vector<double> rdtimestamp_digits;
 
 };
 
@@ -133,6 +135,9 @@ void pdsp::CheckT0::analyze(art::Event const& e)
   crt2x1.clear();
   crt2y1.clear();
   crt2z1.clear();
+  rdtimestamp_evt = -1;
+  rdtimestamp_digits.clear();
+
   //Services
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -341,6 +346,29 @@ void pdsp::CheckT0::analyze(art::Event const& e)
       crt2z1.push_back(this_crt2z1);
     }
   }
+
+  //RDTimeStamps for the event
+  art::Handle < std::vector < raw::RDTimeStamp > > rdts_evt;
+  std::vector < art::Ptr < raw::RDTimeStamp > > rdtsevtList;
+  if (e.getByLabel("timingrawdecoder:daq", rdts_evt)) {
+    art::fill_ptr_vector(rdtsevtList, rdts_evt);
+  }
+  
+  if (!rdtsevtList.empty()){
+    rdtimestamp_evt = rdtsevtList[0]->GetTimeStamp();
+  }
+  
+  //RDTimeStamps for each raw digit (channel)
+  art::Handle < std::vector < raw::RDTimeStamp > > rdts_digit;
+  std::vector < art::Ptr < raw::RDTimeStamp > > rdtsdigitList;
+  if (e.getByLabel("tpcrawdecoder:daq", rdts_digit)) {
+    art::fill_ptr_vector(rdtsdigitList, rdts_digit);
+  }
+  
+  for (const auto & rdts : rdtsdigitList){
+    rdtimestamp_digits.push_back(rdts->GetTimeStamp());
+  }
+
   if (!trackid.empty()) t0tree->Fill();
 }
 
@@ -376,5 +404,7 @@ void pdsp::CheckT0::beginJob() {
   t0tree->Branch("crt2x1",&crt2x1);
   t0tree->Branch("crt2y1",&crt2y1);
   t0tree->Branch("crt2z1",&crt2z1);
+  t0tree->Branch("rdtimestamp_evt", &rdtimestamp_evt, "rdtimestamp_evt/D");
+  t0tree->Branch("rdtimestamp_digits", &rdtimestamp_digits);
 }
 DEFINE_ART_MODULE(pdsp::CheckT0)
