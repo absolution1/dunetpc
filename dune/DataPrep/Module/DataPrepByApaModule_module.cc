@@ -1,17 +1,29 @@
 // DataPrepByApaModule_module.cc
 
 // David Adams
-// October 2018
+// October 2019
 //
-// Module that reads RawData and writes Wire and their associations.
-// It uses RawDigitPrepService to build the wires.
+// Module that obtain RawDigit and TimeStamp containers from a decoder tool, builds
+// AdcChannelData containers and runs RawDigitPrepService on those.
+// It may write all the decoded digits and/or time stamps and selected wires.
 //
 // Configuration parameters:
 //             LogLevel - Usual logging level.
-//       OutputWireName - Name for the output wire container.
-//        ChannelGroups - Process channels in these groups. Use "all" for all channels.
-//                        The range for each name is obtained from the tool channelRanges.
-//       BeamEventLabel - Label for the BeamEvent data product. If blank, it is not used.
+//          DecoderTool - Name of the tool used to fetch the raw digits.
+//      OutputDigitName - Name for the output digit container. If blank, digits are not written.
+//  OutputTimeStampName - Name for the output wire container. If blank, time stamps are not written.
+//       OutputWireName - Name for the output wire container. If blank, wires are not written.
+//        ChannelGroups - Process channels appearing in these groups or ranges.
+//                        The group for each name is obtained from the tool channelGroups.
+//                        If that fails, a range with that name is obtained from the tool
+//                        channelRanges.
+//                        If the entry "all" appears, then all channels are decoded at once and all
+//                        channels are processed together.
+//                        Otherwise each APA is read in and processed individually.
+//                        The group "apas" should be defined to include all APAs.
+//       BeamEventLabel - Label for the BeamEvent (trigger) data product. If blank, it is not read.
+//     ApaChannelCounts - Number of channels in each APA. Last value is used for subsequent APAs.
+// OnlineChannelMapTool - Name of the tool that converts offline to online channel number.
 
 #include "art/Framework/Core/ModuleMacros.h" 
 #include "art/Framework/Core/EDProducer.h"
@@ -60,8 +72,8 @@ public:
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using ApaNamesMap = std::map<int, NameVector>;
-  using IndexSet = std::set<Index>;
-  using ApaChannelSetMap = std::map<int, IndexSet>;
+  using ApaChannelSet = std::set<Index>;
+  using ApaChannelSetMap = std::map<int, ApaChannelSet>;
 
   // Ctor.
   explicit DataPrepByApaModule(fhicl::ParameterSet const& pset); 
@@ -86,6 +98,7 @@ private:
   NameVector m_ChannelGroups;
   std::string m_BeamEventLabel;
   AdcChannelVector m_SkipChannels;
+  AdcChannelVector m_ApaChannelCounts;
 
   // Split label into producer and name: PRODUCER or PRODUCER:NAME
   std::string m_DigitProducer;
@@ -104,11 +117,16 @@ private:
   ApaNamesMap m_apacrns;
   ApaChannelSetMap m_apachsets;
 
+  // Maximum size for the output containers.
+  Index m_maxOutputDigitChannelCount =0;
+  Index m_maxOutputTimeStampChannelCount =0;
+  Index m_maxOutputWireChannelCount =0;
+
   // Processed event count.
-  unsigned int m_nproc =0;
+  Index m_nproc =0;
 
   // Skipped event count.
-  unsigned int m_nskip =0;
+  Index m_nskip =0;
 
 };
 
@@ -153,6 +171,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_ChannelGroups       = pset.get<NameVector>("ChannelGroups");
   m_BeamEventLabel      = pset.get<string>("BeamEventLabel");
   m_SkipChannels        = pset.get<AdcChannelVector>("SkipChannels");
+  m_ApaChannelCounts    = pset.get<AdcChannelVector>("ApaChannelCounts");
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
   // Display configuration.
@@ -171,10 +190,18 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     }
     cout << "]" << endl;
     cout << myname << "       BeamEventLabel: " << m_BeamEventLabel << endl;
-    cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
-    cout << myname << "          SkipChannels: " << "[";
+    cout << myname << " OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
+    cout << myname << "         SkipChannels: " << "[";
     first = true;
     for ( AdcChannel ich : m_SkipChannels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ich;
+    }
+    cout << "]" << endl;
+    cout << myname << "     ApaChannelCounts: " << "[";
+    first = true;
+    for ( AdcChannel ich : m_ApaChannelCounts ) {
       if ( first ) first = false;
       else cout << ", ";
       cout << ich;
@@ -232,11 +259,12 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   }
 
   // Copy the channels to skip to a set for fast lookup.
-  IndexSet skipChans;
+  ApaChannelSet skipChans;
   for ( Index icha : m_SkipChannels ) skipChans.insert(icha);
 
   // Sort channel ranges by APA and record the channels for each..
   int ncrn = 0;
+  AdcChannel nchaAll = 0;
   for ( Name crn : rangeNames ) {
     // If any range is named "all", we keep it only.
     int iapa = -99;
@@ -269,7 +297,10 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     for ( Index icha=ran.begin; icha<ran.end; ++icha ) {
       if ( skipChans.count(icha) == 0 ) m_apachsets[iapa].insert(icha);
     }
-    if ( iapa == -1 ) break;
+    if ( iapa == -1 ) {
+      nchaAll = ran.size();
+      break;
+    }
     ++ncrn;
   }
 
@@ -278,6 +309,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "WARNING: No channels will be processed." << endl;
   } else if ( m_LogLevel >= 1 ) {
     cout << myname << "The following APAs will be processed." << endl;
+    cout << myname << "-------------------------------------" << endl;
     cout << myname << " APA   # chan  Channel ranges" << endl;
     for ( ApaChannelSetMap::value_type iapa : m_apachsets ) {
       cout << myname << setw(4);
@@ -287,13 +319,44 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       bool first = true;
       for ( Name crn : m_apacrns[iapa.first] ) {
         if ( first ) first = false;
-        else cout << "," << endl;
-        cout << " " << crn;
+        else cout << ", " << endl;
+        cout << crn << endl;
       }
       cout << "}" << endl;
     }
+    cout << myname << "-------------------------------------" << endl;
   }
     
+  // Evaluate the maximum nmber of channels in the output containers.
+  AdcChannel nchaDefault = 2560;
+  AdcChannel nchaIn = 0;
+  AdcChannel nchaOut = 0;
+  if ( m_ApaChannelCounts.size() == 0 ) {
+    cout << myname << "WARNING: No APA channel counts have been provided. Using " << nchaDefault << endl;
+  } else {
+    nchaDefault = m_ApaChannelCounts.back();
+  }
+  for ( const ApaChannelSetMap::value_type& csmPair : m_apachsets ) {
+    int iapaSigned = csmPair.first;
+    AdcChannel nchaApa = nchaAll;
+    if ( iapaSigned >= 0 ) {
+      Index iapa = iapaSigned;
+      nchaApa = iapa < m_ApaChannelCounts.size() ? m_ApaChannelCounts[iapa] : nchaDefault;
+    }
+    nchaIn += nchaApa;
+    nchaOut += csmPair.second.size();
+  }
+  m_maxOutputDigitChannelCount     = m_OutputDigitName.size() == 0      ? 0 : nchaIn;
+  m_maxOutputTimeStampChannelCount = m_OutputTimeStampName.size() == 0  ? 0 : nchaIn;
+  m_maxOutputWireChannelCount      = m_OutputWireName.size() == 0       ? 0 : nchaOut;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "          Max # read channels: " << nchaIn << endl;
+    cout << myname << "     Max # processed channels: " << nchaOut << endl;
+    cout << myname << "          Max # output digits: " << m_maxOutputDigitChannelCount << endl;
+    cout << myname << "      Max # output timestamps: " << m_maxOutputTimeStampChannelCount << endl;
+    cout << myname << "           Max # output wires: " << m_maxOutputWireChannelCount << endl;
+  }
+
 }
 
 //**********************************************************************
@@ -361,9 +424,9 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   // Fetch the event trigger and timing clock.
   AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
-  using TimeVector  = std::vector<raw::RDTimeStamp>;
-  art::Handle<TimeVector> htims;
-  const TimeVector* ptims = nullptr;
+  using TimeStampVector  = std::vector<raw::RDTimeStamp>;
+  art::Handle<TimeStampVector> htims;
+  const TimeStampVector* ptims = nullptr;
   if ( true ) {
     evt.getByLabel("timingrawdecoder", "daq", htims);
     if ( htims.isValid() ) {
@@ -431,26 +494,23 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     }
   }
             
-  // Create containers to holding the input digits and digit times to add to the event.
-  Index digitReserveSize = 15360;  // For now reerve space for all protoDUNE channels.
+  // Create containers for data to be written to the event data store.
   using DigitVector = std::vector<raw::RawDigit>;
   std::unique_ptr<DigitVector> pdigitsAll;
-  if ( m_OutputDigitName.size() ) {
+  if ( m_maxOutputDigitChannelCount ) {
     pdigitsAll.reset(new DigitVector);
-    pdigitsAll->reserve(digitReserveSize);
+    pdigitsAll->reserve(m_maxOutputDigitChannelCount);
   }
-  std::unique_ptr<TimeVector> ptimsAll;
-  if ( m_OutputTimeStampName.size() ) {
-    ptimsAll.reset(new TimeVector);
-    ptimsAll->reserve(digitReserveSize);
+  std::unique_ptr<TimeStampVector> ptimsAll;
+  if ( m_maxOutputTimeStampChannelCount ) {
+    ptimsAll.reset(new TimeStampVector);
+    ptimsAll->reserve(m_maxOutputTimeStampChannelCount);
   }
-
-  // Create the container to hold the output wires.
   using WireVector = std::vector<recob::Wire>;
   std::unique_ptr<std::vector<recob::Wire>> pwires;
-  if ( m_OutputWireName.size() ) {
+  if ( m_maxOutputWireChannelCount ) {
     pwires.reset(new WireVector);
-    pwires->reserve(digitReserveSize);
+    pwires->reserve(m_maxOutputWireChannelCount);
   }
 
   // Notify data preparation service of start of event.
@@ -474,7 +534,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     return;
   }
   // Loop over APAs or all.
-  for ( ApaChannelSetMap::value_type& csmPair : m_apachsets ) {
+  for ( const ApaChannelSetMap::value_type& csmPair : m_apachsets ) {
     int iapa = csmPair.first;
     ostringstream ssapa;
     if ( iapa == -1 ) {
@@ -487,7 +547,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     // Fetch the digits, clocks and status for the channel range.
     if ( logInfo ) cout << myname << "Fetching digits and clocks for " << sapa << "." << endl;
     using StatVector  = std::vector<raw::RDStatus>;
-    TimeVector timsCrn;
+    TimeStampVector timsCrn;
     StatVector statsCrn;
     DigitVector digitsCrn;
     // Fetch the data for this APA.
@@ -572,7 +632,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       cout << myname << "# digits read for " << sapa << ": " << digitsCrn.size() << endl;
     }
     // Create the transient data map and copy the digits there.
-    IndexSet& keepChans = csmPair.second;
+    const ApaChannelSet& keepChans = csmPair.second;
     unsigned int nproc = 0;
     unsigned int nkeep = 0;
     unsigned int nskip = 0;
@@ -676,15 +736,15 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   // Record wires and associations in the event.
   if ( pwires ) {
     if ( logInfo ) cout << myname << "Created wire count: " << pwires->size() << endl;
-    if ( pwires->size() == 0 ) cout << myname << "WARNING: No wires made for this event.";
+    if ( pwires->size() == 0 ) cout << myname << "WARNING: No wires made for this event." << endl;
     evt.put(std::move(pwires), m_OutputWireName);
   } else {
     if ( logInfo ) cout << myname << "Wires were not requested." << endl;
   }
 
   // Record decoder containers.
-  if ( m_OutputTimeStampName.size() ) evt.put(std::move(ptimsAll), m_OutputTimeStampName);
   if ( m_OutputDigitName.size() ) evt.put(std::move(pdigitsAll), m_OutputDigitName);
+  if ( m_OutputTimeStampName.size() ) evt.put(std::move(ptimsAll), m_OutputTimeStampName);
 
   ++m_nproc;
   return;
