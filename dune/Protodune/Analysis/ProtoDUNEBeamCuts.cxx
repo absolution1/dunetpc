@@ -14,7 +14,6 @@ protoana::ProtoDUNEBeamCuts::ProtoDUNEBeamCuts( const fhicl::ParameterSet & pset
   for( size_t i = 0; i < DataCuts_sets.size(); ++i ){
     std::string momentum = DataCuts_sets[i].get<std::string>("Momentum");
     if( std::find( valid_momenta.begin(), valid_momenta.end(), momentum ) == valid_momenta.end() ){
-      //Do some error handling
       std::exception e;
       throw e;
     }
@@ -34,7 +33,6 @@ protoana::ProtoDUNEBeamCuts::ProtoDUNEBeamCuts( const fhicl::ParameterSet & pset
     
     std::string momentum = DataCuts_sets[i].get<std::string>("Momentum");
     if( std::find( valid_momenta.begin(), valid_momenta.end(), momentum ) == valid_momenta.end() ){
-      //Do some error handling
       std::exception e;
       throw e;
     }
@@ -55,7 +53,8 @@ bool protoana::ProtoDUNEBeamCuts::IsBeamlike( const recob::Track & track, art::E
 
    if( std::find( valid_momenta.begin(), valid_momenta.end(), momentum ) == valid_momenta.end() ){
      std::cerr << "Error. Momentum provided not in range" << std::endl;
-     return false;
+     std::exception e;
+     throw e;
    }
 
    fhicl::ParameterSet BeamPars = ( evt.isRealData() ? DataCuts[momentum] : MCCuts[momentum] );   
