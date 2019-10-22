@@ -319,8 +319,8 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       bool first = true;
       for ( Name crn : m_apacrns[iapa.first] ) {
         if ( first ) first = false;
-        else cout << ", " << endl;
-        cout << crn << endl;
+        else cout << ", ";
+        cout << crn;
       }
       cout << "}" << endl;
     }
