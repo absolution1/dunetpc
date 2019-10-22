@@ -137,21 +137,29 @@ DEFINE_ART_MODULE(DataPrepByApaModule)
 DataPrepByApaModule::DataPrepByApaModule(fhicl::ParameterSet const& pset) : EDProducer{pset} {
   const Name myname = "DataPrepByApaModule::ctor: ";
   this->reconfigure(pset);
-  if ( m_OutputWireName.size() ) produces<std::vector<recob::Wire>>(m_OutputWireName);
-  if ( m_DecoderTool.size() ) {
-    if ( m_OutputTimeStampName.size() ) {
-      if ( m_LogLevel > 0 ) {
-        cout << myname << "Module will produce RDTimeStamps with name " << m_OutputTimeStampName << endl;
-      }
-      produces<std::vector<raw::RDTimeStamp>>(m_OutputTimeStampName);
+  if ( m_OutputTimeStampName.size() ) {
+    if ( m_LogLevel > 0 ) {
+      cout << myname << "Module will produce RDTimeStamps with name " << m_OutputTimeStampName << endl;
     }
-    if ( m_OutputDigitName.size() ) {
-      if ( m_LogLevel > 0 ) {
-        cout << myname << "Module will produce digits with name " << m_OutputDigitName << endl;
-      }
-      produces<std::vector<raw::RawDigit>>(m_OutputDigitName);
+    produces<std::vector<raw::RDTimeStamp>>(m_OutputTimeStampName);
+  } else if ( m_LogLevel > 0 ) {
+    cout << myname << "Module will not produce RDTimeStamps." << endl;
+  }
+  if ( m_OutputDigitName.size() ) {
+    if ( m_LogLevel > 0 ) {
+      cout << myname << "Module will produce digits with name " << m_OutputDigitName << endl;
     }
-    //produces<std::vector<raw::RDStatus>>("dataprep");
+    produces<std::vector<raw::RawDigit>>(m_OutputDigitName);
+  } else if ( m_LogLevel > 0 ) {
+    cout << myname << "Module will not produce RawDigits." << endl;
+  }
+  if ( m_OutputWireName.size() ) {
+    if ( m_LogLevel > 0 ) {
+      cout << myname << "Module will produce Wires with name " << m_OutputWireName << endl;
+    }
+    produces<std::vector<recob::Wire>>(m_OutputWireName);
+  } else if ( m_LogLevel > 0 ) {
+    cout << myname << "Module will not produce Wires." << endl;
   }
 }
   
