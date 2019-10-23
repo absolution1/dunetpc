@@ -38,6 +38,7 @@
 //            13 - Evaluate WF and save result
 //            14 - Evaluate WF if it is not already present and save result.
 //   ReturnOpt - Controls how much data is written to the returned data map (see below)
+//   DataView - Action is taken for each entry on this view. Blank means the top.
 //
 // Only consistent results can be saved. I.e. FirstTick must be zero and Ntick zero
 // or the same size as samples.
@@ -58,6 +59,9 @@
 //        fftImags - Imaginary part of each term (NTick entries)
 //      if ReturnOpt = 10-13:
 //        fftSamples - Waveform
+// If DatView is not blank, then the data map instead holds
+//   fftNproc - # AdcChannelData objects processed
+//   fftNfail - # objects for which the processing failed
 
 #ifndef AdcChannelFFT_H
 #define AdcChannelFFT_H
@@ -74,6 +78,7 @@ public:
   using Index = unsigned int;
   using FloatVector = AdcSignalVector;
   using DFT = DuneFFT::DFT;
+  using Name = std::string;
 
   AdcChannelFFT(fhicl::ParameterSet const& ps);
 
@@ -82,6 +87,12 @@ public:
   // AdcChannelTool methods.
   DataMap view(const AdcChannelData& acd) const override;
   DataMap update(AdcChannelData& acd) const override;
+
+private:
+
+  // AdcChannelTool that act on the top of the data view.
+  DataMap viewTop(const AdcChannelData& acd) const;
+  DataMap updateTop(AdcChannelData& acd) const;
 
   // This does all the work of view:
   //   deciding what action to take
@@ -97,6 +108,7 @@ private:
   Index  m_NTick;
   Index  m_Action;
   Index  m_ReturnOpt;
+  Name   m_DataView;
 
 };
 

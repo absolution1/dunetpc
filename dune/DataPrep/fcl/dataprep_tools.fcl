@@ -425,6 +425,7 @@ tools.adcFFT: {
   NormOpt:   1
   Action:    3
   ReturnOpt: 1
+  DataView: ""
 }
 
 # Undo FFT.
@@ -436,6 +437,7 @@ tools.adcFFTinv: {
   NormOpt:    1
   Action:    13
   ReturnOpt: 10
+  DataView: ""
 }
 
 # Fetch ROI info and hists.
