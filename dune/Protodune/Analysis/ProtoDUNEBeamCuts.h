@@ -3,6 +3,7 @@
 
 #include "fhiclcpp/ParameterSet.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/Shower.h"
 #include "art/Framework/Principal/Event.h"
 
 #include <map>
@@ -24,11 +25,12 @@ namespace protoana{
       ProtoDUNEBeamCuts(){};
       ProtoDUNEBeamCuts(const fhicl::ParameterSet & pset);
       bool IsBeamlike( const recob::Track &, const art::Event &, std::string );
+      bool IsBeamlike( const recob::Shower &, const art::Event &, std::string );
 
     private:
 
-      BeamVals GetMCBeam( const recob::Track &, const art::Event & );
-      BeamVals GetDataBeam( const recob::Track &, const art::Event & );
+      BeamVals GetMCBeam( const art::Event & );
+      BeamVals GetDataBeam( const art::Event & );
 
       std::map< std::string, fhicl::ParameterSet > DataCuts;
       std::map< std::string, fhicl::ParameterSet > MCCuts;
