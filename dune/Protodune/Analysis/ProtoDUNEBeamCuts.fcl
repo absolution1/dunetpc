@@ -41,6 +41,7 @@ SPProd2_MC_sce_p5GeV:{
   Momentum: ".5"
 }
 
+###MC Cuts
 SPProd2_MC_sce_p3GeV: @local::SPProd2_MC_sce_p5GeV
 SPProd2_MC_sce_p3GeV.Momentum: ".3"
 
@@ -58,6 +59,19 @@ SPProd2_MC_sce_6GeV.Momentum: "6"
 
 SPProd2_MC_sce_7GeV: @local::SPProd2_MC_sce_p5GeV
 SPProd2_MC_sce_7GeV.Momentum: "7"
+###############
+
+
+###Data Cuts
+SPProd2_Data_sce_p3GeV: @local::SPProd2_MC_sce_p3GeV
+SPProd2_Data_sce_p5GeV: @local::SPProd2_MC_sce_p5GeV
+SPProd2_Data_sce_1GeV:  @local::SPProd2_MC_sce_1GeV
+SPProd2_Data_sce_2GeV:  @local::SPProd2_MC_sce_2GeV
+SPProd2_Data_sce_3GeV:  @local::SPProd2_MC_sce_3GeV
+SPProd2_Data_sce_6GeV:  @local::SPProd2_MC_sce_6GeV
+SPProd2_Data_sce_7GeV:  @local::SPProd2_MC_sce_7GeV
+###############
+
 
 MCCuts_List: [
   
@@ -74,20 +88,20 @@ MCCuts_List: [
 
 DataCuts_List: [
   
-  @local::SPProd2_MC_sce_p3GeV,
-  @local::SPProd2_MC_sce_p5GeV,
+  @local::SPProd2_Data_sce_p3GeV,
+  @local::SPProd2_Data_sce_p5GeV,
 
-  @local::SPProd2_MC_sce_1GeV,
-  @local::SPProd2_MC_sce_2GeV,
-  @local::SPProd2_MC_sce_3GeV,
+  @local::SPProd2_Data_sce_1GeV,
+  @local::SPProd2_Data_sce_2GeV,
+  @local::SPProd2_Data_sce_3GeV,
     
-  @local::SPProd2_MC_sce_6GeV,
-  @local::SPProd2_MC_sce_7GeV
+  @local::SPProd2_Data_sce_6GeV,
+  @local::SPProd2_Data_sce_7GeV
 ]
 
-NewBeamCuts: {
-  DataCuts: @local::DataCuts_List
+Prod2BeamCuts: {
   MCCuts:   @local::MCCuts_List
+  DataCuts: @local::DataCuts_List
 }
 
 END_PROLOG
