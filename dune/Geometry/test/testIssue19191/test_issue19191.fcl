@@ -6,8 +6,10 @@
  
 services:
 { 
-  @table::dunefd_services
+  Geometry:               @local::dunefd_services.Geometry
+  ExptGeoHelperInterface: @local::dunefd_services.ExptGeoHelperInterface
 } 
+
 source:
 {
   module_type: EmptyEvent
