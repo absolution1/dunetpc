@@ -678,7 +678,7 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
 
   if (slot > 4) 
     {
-      if (_felix_drop_frags_with_badsf)  // we'll check the fiber later
+      if (_felix_drop_frags_with_badsf)  
 	{
 	  _DiscardedCorruptData = true;
 	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
