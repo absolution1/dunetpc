@@ -35,11 +35,16 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
   _input_labels_by_apa[4] = p.get< std::vector<std::string> >("APA4InputLabels");
   _input_labels_by_apa[5] = p.get< std::vector<std::string> >("APA5InputLabels");
   _input_labels_by_apa[6] = p.get< std::vector<std::string> >("APA6InputLabels");
+  _input_labels_by_apa[7] = p.get< std::vector<std::string> >("APA7InputLabels");
+  _input_labels_by_apa[8] = p.get< std::vector<std::string> >("APA8InputLabels");
   _input_labels_by_apa[-1] = p.get< std::vector<std::string> >("MISCAPAInputLabels");
   
+  _default_crate_if_unexpected = p.get<unsigned int>("DefaultCrateIfUnexpected",3);
+
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
-  _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
+  _rce_drop_frags_with_badsf = p.get<bool>("RCEDropFragsWithBadSF",true);
+  _rce_drop_frags_with_badc = p.get<bool>("RCEDropFragsWithBadC",true);
   _rce_hex_dump = p.get<bool>("RCEHexDump",false);  
   _rce_save_frags_to_files = p.get<bool>("RCESaveFragsToFiles",false);  
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
@@ -50,7 +55,8 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
   _rce_fix110 = p.get<bool>("RCEFIX110",true);
   _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
 
-  _felix_drop_frags_with_badcsf = p.get<bool>("FELIXDropFragsWithBadCSF",true);
+  _felix_drop_frags_with_badsf = p.get<bool>("FELIXDropFragsWithBadSF",true);
+  _felix_drop_frags_with_badc = p.get<bool>("FELIXDropFragsWithBadC",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
   _drop_small_felix_frags = p.get<bool>("FELIXDropSmallFrags",true);
   _felix_frag_small_size = p.get<unsigned int>("FELIXSmallFragSize",10000);
@@ -83,10 +89,10 @@ int PDSPTPCDataInterface::retrieveData(art::Event &evt,
 // keep track of all the branch labels an APA's data might be on.
 
 int PDSPTPCDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt, 
-							std::vector<raw::RawDigit> &raw_digits, 
-							std::vector<raw::RDTimeStamp> &rd_timestamps,
-							std::vector<raw::RDStatus> &rdstatuses, 
-							std::vector<int> &apalist)
+						       std::vector<raw::RawDigit> &raw_digits, 
+						       std::vector<raw::RDTimeStamp> &rd_timestamps,
+						       std::vector<raw::RDStatus> &rdstatuses, 
+						       std::vector<int> &apalist)
 {
   int totretcode = 0;
 
@@ -367,7 +373,9 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
       bool foundapainlist = false;
       for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
 	{
-	  if (apalist[ialist] == -1 || apalist[ialist] == (int) crateNumber)
+	  if (  ( (apalist[ialist] == -1) && (!_rce_drop_frags_with_badc || (crateNumber >0 && crateNumber < 7)) )  || 
+		(apalist[ialist] == (int) crateNumber) ||
+		(apalist[ialist] == 7 && (crateNumber == 0 || crateNumber > 6)) )
 	    {
 	      foundapainlist = true;
 	      break;
@@ -377,9 +385,9 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
       
       //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
 
-      if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
+      if (slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
 	{
-	  if (_rce_drop_frags_with_badcsf)
+	  if (_rce_drop_frags_with_badsf)
 	    {
 	      MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
 					      << crateNumber << " " << slotNumber << " " << fiberNumber;
@@ -466,10 +474,14 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 
       //std::cout << "RCE raw decoder trj: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
+      // David Adams's request for channels to start at zero for coldbox test data
+      unsigned int crateloc = crateNumber;
+      if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
+
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
 	  v_adc.clear();
 
@@ -588,7 +600,7 @@ bool PDSPTPCDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	    }
 	  else
 	    {
-	       _KeptCorruptData = true;
+	      _KeptCorruptData = true;
 	    }
 	}
       if (process_flag)
@@ -664,9 +676,9 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
   uint8_t slot = felix.slot_no(0);
   uint8_t fiber = felix.fiber_no(0); // decode this one later 
 
-  if (crate == 0 || crate > 6 || slot > 4) 
+  if (slot > 4) 
     {
-      if (_felix_drop_frags_with_badcsf)  // we'll check the fiber later
+      if (_felix_drop_frags_with_badsf)  // we'll check the fiber later
 	{
 	  _DiscardedCorruptData = true;
 	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
@@ -679,7 +691,9 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
   bool foundapainlist = false;
   for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
     {
-      if (apalist[ialist] == -1 || apalist[ialist] == (int) crate)
+      if ( ( (apalist[ialist] == -1)    && (!_rce_drop_frags_with_badc || (crate >0 && crate < 7)) )      || 
+	   (apalist[ialist] == (int) crate) || 
+	   (apalist[ialist] == 7 && (crate == 0 || crate > 6)) )
 	{
 	  foundapainlist = true;
 	  break;
@@ -755,7 +769,7 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
       {
 	MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
 	fiberloc = 1;
-	if (_felix_drop_frags_with_badcsf) 
+	if (_felix_drop_frags_with_badsf) 
 	  {
 	    MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
 	    return false;
@@ -769,6 +783,8 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
 	fiberloc++;
       }
     unsigned int crateloc = crate;  
+    // David Adams's request for channels to start at zero for coldbox test data
+    if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
 
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
 

@@ -878,12 +878,13 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 
       //std::cout << "RCE raw decoder trj: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
+      // David Adams's request for channels to start at zero for coldbox test data
+      unsigned int crateloc = crateNumber;
+      if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
+
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  // David Adams's request for channels to start at zero for coldbox test data
-	  unsigned int crateloc = crateNumber;
-	  if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
 	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
 	  v_adc.clear();
