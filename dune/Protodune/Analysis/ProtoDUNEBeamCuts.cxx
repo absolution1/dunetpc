@@ -58,7 +58,7 @@ bool protoana::ProtoDUNEBeamCuts::IsBeamlike( const recob::Track & track, art::E
    }
 
    fhicl::ParameterSet BeamPars = ( evt.isRealData() ? DataCuts[momentum] : MCCuts[momentum] );   
-   BeamVals theBeamVals = ( evt.isRealData() ? GetDataBeam( track, evt ) : GetMCBeam( track, evt ) );
+   BeamVals theBeamVals = ( evt.isRealData() ? GetDataBeam( evt ) : GetMCBeam( evt ) );
    if( !theBeamVals.Valid ){ 
       return false;
    }
@@ -117,7 +117,55 @@ bool protoana::ProtoDUNEBeamCuts::IsBeamlike( const recob::Track & track, art::E
 
 }
 
-protoana::BeamVals protoana::ProtoDUNEBeamCuts::GetMCBeam( const recob::Track & track, const art::Event & evt ){
+bool protoana::ProtoDUNEBeamCuts::IsBeamlike( const recob::Shower & shower, art::Event const & evt, std::string momentum ){
+
+   if( std::find( valid_momenta.begin(), valid_momenta.end(), momentum ) == valid_momenta.end() ){
+     std::cerr << "Error. Momentum provided not in range" << std::endl;
+     std::exception e;
+     throw e;
+   }
+
+   fhicl::ParameterSet BeamPars = ( evt.isRealData() ? DataCuts[momentum] : MCCuts[momentum] );   
+   BeamVals theBeamVals = ( evt.isRealData() ? GetDataBeam( evt ) : GetMCBeam( evt ) );
+   if( !theBeamVals.Valid ){ 
+      return false;
+   }
+
+   double startX = shower.ShowerStart().X();
+   double startY = shower.ShowerStart().Y();
+   double startZ = shower.ShowerStart().Z();
+
+   auto startDir = shower.Direction();
+   double showerDirX = startDir.X();
+   double showerDirY = startDir.Y();
+   double showerDirZ = startDir.Z();
+
+   double deltaX = startX - theBeamVals.X;
+   double deltaY = startY - theBeamVals.Y;
+
+   double costheta = theBeamVals.DirX*showerDirX + theBeamVals.DirY*showerDirY + theBeamVals.DirZ*showerDirZ;
+   std::pair< double, double > startX_cut = BeamPars.get< std::pair< double, double > >("TrackStartXCut");
+   std::pair< double, double > startY_cut = BeamPars.get< std::pair< double, double > >("TrackStartYCut");
+   std::pair< double, double > startZ_cut = BeamPars.get< std::pair< double, double > >("TrackStartZCut");
+   double costheta_cut = BeamPars.get< double >("TrackDirCut");
+
+   if( deltaX < startX_cut.first || deltaX > startX_cut.second )
+     return false;
+   if( deltaY < startY_cut.first || deltaY > startY_cut.second )
+     return false;
+   if( startZ < startZ_cut.first || startZ > startZ_cut.second )
+     return false;
+   if( costheta < costheta_cut )
+     return false;   
+
+   //If here, the track is in the good beam region
+   return true;
+
+}
+
+
+
+protoana::BeamVals protoana::ProtoDUNEBeamCuts::GetMCBeam( const art::Event & evt ){
 
   protoana::ProtoDUNETruthUtils truthUtil;
   auto mcTruths = evt.getValidHandle< std::vector< simb::MCTruth > >("generator");
@@ -142,7 +190,7 @@ protoana::BeamVals protoana::ProtoDUNEBeamCuts::GetMCBeam( const recob::Track & 
   return result;
 }
 
-protoana::BeamVals protoana::ProtoDUNEBeamCuts::GetDataBeam( const recob::Track & track, const art::Event & evt ){
+protoana::BeamVals protoana::ProtoDUNEBeamCuts::GetDataBeam( const art::Event & evt ){
   std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
   auto beamHandle = evt.getValidHandle< std::vector< beam::ProtoDUNEBeamEvent > >("beamevent");
                         
