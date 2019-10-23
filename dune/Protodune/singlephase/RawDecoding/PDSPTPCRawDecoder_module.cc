@@ -102,11 +102,16 @@ private:
   bool          _drop_events_with_small_rce_frags;
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
-  bool          _rce_drop_frags_with_badcsf;
+  bool          _rce_drop_frags_with_badsf;
+  bool          _rce_drop_frags_with_badc;
   bool          _rce_hex_dump;
   bool          _rce_save_frags_to_files;
   bool          _rce_check_buffer_size;
   size_t        _rce_buffer_size_checklimit;
+
+  // what to do with unexpected crate numbers
+
+  unsigned int  _default_crate_if_unexpected;
 
   // flags for attempting to fix FEMB 110's misaligned data
 
@@ -114,9 +119,8 @@ private:
   unsigned int  _rce_fix110_nticks;
 
   bool          _felix_hex_dump;
-  bool          _felix_drop_frags_with_badcsf;
-  bool          _felix_enforce_exact_crate_number;
-  int           _felix_crate_number_to_check;
+  bool          _felix_drop_frags_with_badsf;
+  bool          _felix_drop_frags_with_badc;
   bool          _drop_events_with_small_felix_frags;
   bool          _drop_small_felix_frags;
   size_t        _felix_frag_small_size;
@@ -175,6 +179,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer
 {
   std::vector<int> emptyivec;
   _apas_to_decode = p.get<std::vector<int> >("APAsToDecode",emptyivec);
+  _default_crate_if_unexpected = p.get<unsigned int>("DefaultCrateIfUnexpected",3);
+
   _rce_input_labels.resize(0);
   _rce_useInputLabels =  p.get_if_present<std::vector<std::string> >("RCERawDataLabels",_rce_input_labels);
   if (!_rce_useInputLabels)
@@ -190,7 +196,8 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer
   _drop_events_with_small_rce_frags = p.get<bool>("RCEDropEventsWithSmallFrags",false);
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
-  _rce_drop_frags_with_badcsf = p.get<bool>("RCEDropFragsWithBadCSF",true);
+  _rce_drop_frags_with_badsf = p.get<bool>("RCEDropFragsWithBadSF",true);
+  _rce_drop_frags_with_badc = p.get<bool>("RCEDropFragsWithBadC",true);
   _rce_hex_dump = p.get<bool>("RCEHexDump",false);  
   _rce_save_frags_to_files = p.get<bool>("RCESaveFragsToFiles",false);  
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
@@ -214,10 +221,9 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer
 
   _felix_enforce_fragment_type_match = p.get<bool>("FELIXEnforceFragmentTypeMatch",false);
   _felix_fragment_type = p.get<int>("FELIXFragmentType",8);
-  _felix_drop_frags_with_badcsf = p.get<bool>("FELIXDropFragsWithBadCSF",true);
+  _felix_drop_frags_with_badsf = p.get<bool>("FELIXDropFragsWithBadSF",true);
+  _felix_drop_frags_with_badc = p.get<bool>("FELIXDropFragsWithBadC",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
-  _felix_enforce_exact_crate_number = p.get<bool>("FELIXEnforceExactCrateNumber",false);  
-  _felix_crate_number_to_check = p.get<int>("FELIXCrateNumberToCheck",6);  
   _drop_events_with_small_felix_frags = p.get<bool>("FELIXDropEventsWithSmallFrags",false);
   _drop_small_felix_frags = p.get<bool>("FELIXDropSmallFrags",true);
   _felix_frag_small_size = p.get<unsigned int>("FELIXSmallFragSize",10000);
@@ -337,7 +343,7 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
   if (_enforce_full_channel_count && raw_digits.size() != _full_channel_count) 
     {
       MF_LOG_WARNING("PDSPTPCRawDecoder:") << "Wrong Total number of Channels " << raw_digits.size()  
-					<< " which is not " << _full_channel_count << ". Discarding Data";
+					   << " which is not " << _full_channel_count << ". Discarding Data";
       _DiscardedCorruptData = true;
       _discard_data = true;
     }
@@ -546,9 +552,9 @@ bool PDSPTPCRawDecoder::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags
 }
 
 void PDSPTPCRawDecoder::_process_RCE_nticksvf(
-					       const artdaq::Fragment& frag, 
-					       std::vector<size_t> &nticksvec
-					     )
+					      const artdaq::Fragment& frag, 
+					      std::vector<size_t> &nticksvec
+					      )
 {
 
   if (_rce_hex_dump)
@@ -584,13 +590,13 @@ void PDSPTPCRawDecoder::_process_RCE_nticksvf(
 
   if (_rce_save_frags_to_files)
     {
-       TString outfilename="rce";
-       outfilename += frag.sequenceID();
-       outfilename += "_";
-       outfilename += frag.fragmentID();
-       outfilename+=".fragment";
-       rce.save(outfilename.Data());
-       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+      TString outfilename="rce";
+      outfilename += frag.sequenceID();
+      outfilename += "_";
+      outfilename += frag.fragmentID();
+      outfilename+=".fragment";
+      rce.save(outfilename.Data());
+      std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
     }
 
   artdaq::Fragment cfragloc(frag);
@@ -692,7 +698,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  apafound = false;
 	  for (unsigned int j=0; j<adsiz; ++j)
 	    {
-	      if ((int) crateNumber == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+	      if (  ((int) crateNumber == _apas_to_decode[j])         || 
+		    (_apas_to_decode[j] < 0)                          ||
+		    ( (crateNumber == 0 || crateNumber > 6) && _apas_to_decode[j] == 7) ) 
 		{
 		  apafound = true;
 		  break;
@@ -704,12 +712,23 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  return false;
 	}
 
-      if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
+      // check for bad crate numbers -- default empty list of APAs to check, default check is on, and if crate number isn't
+      // one of the DAQ ones.  If we asked for a crate and it's there, even if it's unusual, let it pass.
+ 
+
+      if ( (crateNumber == 0 || crateNumber > 6) && _rce_drop_frags_with_badc && adsiz == 0)
 	{
-	  if (_rce_drop_frags_with_badcsf)
+	  MF_LOG_WARNING("_process_RCE:") << "Bad crate number, discarding fragment on request: " 
+					  << (int) crateNumber;
+	  return false;
+	}
+
+      if (slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
+	{
+	  if (_rce_drop_frags_with_badsf)
 	    {
-	      MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
-					   << crateNumber << " " << slotNumber << " " << fiberNumber;
+	      MF_LOG_WARNING("_process_RCE:") << "Bad  slot, fiber number, discarding fragment on request: " 
+					      << " " << slotNumber << " " << fiberNumber;
               _DiscardedCorruptData = true;
 	      return false;
 	    }
@@ -776,7 +795,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  if (_enforce_full_tick_count)
 	    {
 	      MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
-					       << _full_tick_count << " Discarding Data";
+						  << _full_tick_count << " Discarding Data";
 	      error_counter++;
 	      incorrect_ticks++;
 	      _discard_data = true;
@@ -798,7 +817,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	      if (_enforce_same_tick_count)
 		{
 		  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
+						      << " vs " << _tick_count_this_event << " Discarding Data";
 		  error_counter++;
 		  _discard_data = true;
 		  _DiscardedCorruptData = true;
@@ -849,7 +868,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	  if (_enforce_error_free)
 	    {
 	      MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
-					       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
+						  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
 	      error_counter++;
               _DiscardedCorruptData = true;
 	      return false;
@@ -862,7 +881,10 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
 	{
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateNumber, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
+	  // David Adams's request for channels to start at zero for coldbox test data
+	  unsigned int crateloc = crateNumber;
+	  if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
+	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
 	  v_adc.clear();
 
@@ -901,7 +923,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 		  if (_enforce_no_duplicate_channels)
 		    {
 		      MF_LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
-						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
+							  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
 		      error_counter++;
 		      _discard_data = true;
 		      _DiscardedCorruptData = true;
@@ -1163,7 +1185,10 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       apafound = false;
       for (unsigned int j=0; j<adsiz; ++j)
 	{
-	  if ((int) crate == _apas_to_decode[j] || _apas_to_decode[j] < 0) 
+	  if (
+	      ((int) crate == _apas_to_decode[j])     || 
+	      (_apas_to_decode[j] < 0)                ||
+	      ( (crate == 0 || crate > 6) && _apas_to_decode[j] == 7) )  // on David Adams's request for coldbox test data 
 	    {
 	      apafound = true;
 	      break;
@@ -1175,23 +1200,23 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       return false;
     }
 
-  if (crate == 0 || crate > 6 || slot > 4) 
+  // check for bad crate numbers -- default empty list of APAs to check, default check is on, and if crate number isn't
+  // one of the DAQ ones.  If we asked for a crate and it's there, even if it's unusual, let it pass.
+ 
+  if ( (crate == 0 || crate > 6) && _felix_drop_frags_with_badc && adsiz == 0)
     {
-      if (_felix_drop_frags_with_badcsf)  // we'll check the fiber later
-	{
-	  _DiscardedCorruptData = true;
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
-	  return false;
-	}
-      _KeptCorruptData = true;
+      MF_LOG_WARNING("_process_FELIX:") << "Bad crate number, discarding fragment on request: " 
+					<< (int) crate;
+      return false;
     }
-  if ( _felix_crate_number_to_check > -1 && (int) crate != _felix_crate_number_to_check )
+
+  if ( slot > 4) 
     {
-      if (_felix_enforce_exact_crate_number)
+      if (_felix_drop_frags_with_badsf)  // we'll check the fiber later
 	{
 	  _DiscardedCorruptData = true;
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Crate c=" << (int) crate << " mismatches required crate: " << _felix_crate_number_to_check << " discarding FELIX data.";
-	  return false;  
+	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid slot:  s=" << (int) slot << " discarding FELIX data.";
+	  return false;
 	}
       _KeptCorruptData = true;
     }
@@ -1238,7 +1263,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	    {
 	      _DiscardedCorruptData = true;
 	      MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
-						 << " Discarding Data";
+						    << " Discarding Data";
 	      error_counter++;
 	      // drop just this fragment
 	      //_discard_data = true;
@@ -1283,7 +1308,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
 	fiberloc = 1;
 	error_counter++;
-	if (_felix_drop_frags_with_badcsf) 
+	if (_felix_drop_frags_with_badsf) 
 	  {
 	    MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
 	    return false;
@@ -1298,6 +1323,9 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
       }
     unsigned int crateloc = crate;  
 
+    // David Adams's request for channels to start at zero for coldbox test data
+    if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
+
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
 
     if ( v_adc.size() != _full_tick_count)
@@ -1305,7 +1333,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	if (_enforce_full_tick_count)
 	  {
 	    MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
-					       << _full_tick_count << " Discarding Data";
+						  << _full_tick_count << " Discarding Data";
 	    error_counter++;
 	    incorrect_ticks++;
 	    _discard_data = true;
@@ -1327,7 +1355,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	    if (v_adc.size() != _tick_count_this_event)
 	      {
 		MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
+						      << " vs " << _tick_count_this_event << " Discarding Data";
 		error_counter++;
 		_discard_data = true;
 		_DiscardedCorruptData = true;
@@ -1348,7 +1376,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
 	    if (_enforce_no_duplicate_channels)
 	      {
 		MF_LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
-						   << " c:s:f:ich: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) ch << " Discarding Data";
+						      << " c:s:f:ich: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) ch << " Discarding Data";
 		error_counter++;
 		_discard_data = true;
 		_DiscardedCorruptData = true;
