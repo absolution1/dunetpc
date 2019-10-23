@@ -35,6 +35,7 @@
 #include "dune/Protodune/Analysis/ProtoDUNEPFParticleUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEDataUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNEBeamlineUtils.h"
+#include "dune/Protodune/Analysis/ProtoDUNEBeamCuts.h"
 
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/PointCharge.h"
@@ -210,7 +211,9 @@ private:
   std::vector< double > view_0_wire, view_0_tick;
   std::vector< double > view_1_wire, view_1_tick;
   std::vector< double > view_2_wire, view_2_tick;
+  std::vector< double > view_2_z;
   double view_0_max_segment, view_1_max_segment, view_2_max_segment;
+  double view_0_wire_backtrack, view_1_wire_backtrack, view_2_wire_backtrack;
 
   double max_lateral, max_segment; 
 
@@ -340,6 +343,8 @@ private:
   fhicl::ParameterSet dataUtil;
   int fNSliceCheck; 
   fhicl::ParameterSet BeamPars;
+  fhicl::ParameterSet BeamCuts;
+  protoana::ProtoDUNEBeamCuts beam_cuts;
 };
 
 
@@ -358,13 +363,16 @@ pionana::PionAnalyzerMC::PionAnalyzerMC(fhicl::ParameterSet const& p)
   fVerbose(p.get<bool>("Verbose")),
   dataUtil(p.get<fhicl::ParameterSet>("DataUtils")),
   fNSliceCheck( p.get< int >("NSliceCheck") ),
-  BeamPars(p.get<fhicl::ParameterSet>("BeamPars"))
+  BeamPars(p.get<fhicl::ParameterSet>("BeamPars")),
+  BeamCuts(p.get<fhicl::ParameterSet>("BeamCuts"))
 {
 
   templates[ 211 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_pi"  );
   templates[ 321 ]  = (TProfile*)dEdX_template_file.Get( "dedx_range_ka"  );
   templates[ 13 ]   = (TProfile*)dEdX_template_file.Get( "dedx_range_mu"  );
   templates[ 2212 ] = (TProfile*)dEdX_template_file.Get( "dedx_range_pro" );
+
+  beam_cuts = protoana::ProtoDUNEBeamCuts( BeamCuts );
 
   // Call appropriate consumes<>() for any products to be retrieved by this module.
 }
@@ -696,6 +704,8 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     bool pass_beam_cuts = trackUtil.IsBeamlike( *thisTrack, evt, BeamPars, true );
     std::cout << "Passes beam cuts? " << pass_beam_cuts << std::endl;
 
+    std::cout << "New Beam Cuts " << beam_cuts.IsBeamlike( *thisTrack, evt, "1" ) << std::endl;
+
 
     beamTrackID = thisTrack->ID();
 
@@ -883,6 +893,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
     
     traj_cos = traj_cos / sqrt(traj.DirectionAtPoint(0).Mag2() * traj.DirectionAtPoint(np-1).Mag2());    
 
+    std::vector< int > view_0_TPC;
+    std::vector< int > view_1_TPC;
+    std::vector< int > view_2_TPC;
+
     for( auto it = trajPtsToHits.begin(); it != trajPtsToHits.end(); ++it ){
 
       const recob::Hit * theHit = it->second;
@@ -906,18 +920,22 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
             view_0_hits_in_TPC5 = true;
           view_0_wire.push_back( theHit->WireID().Wire );
           view_0_tick.push_back( theHit->PeakTime() );
+          view_0_TPC.push_back( theHit->WireID().TPC );
           break;
         case 1:
           if( theHit->WireID().TPC == 5 )
             view_1_hits_in_TPC5 = true;
           view_1_wire.push_back( theHit->WireID().Wire );
           view_1_tick.push_back( theHit->PeakTime() );
+          view_1_TPC.push_back( theHit->WireID().TPC );
           break;
         case 2: 
           if( theHit->WireID().TPC == 5 )
             view_2_hits_in_TPC5 = true;
           view_2_wire.push_back( theHit->WireID().Wire );
+          view_2_z.push_back( thisTrack->Trajectory().LocationAtPoint(i).Z() );
           view_2_tick.push_back( theHit->PeakTime() );
+          view_2_TPC.push_back( theHit->WireID().TPC );
           break;
         default:
           break;
@@ -930,6 +948,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       double segment = sqrt( (view_0_wire[i] - view_0_wire[i-1])*(view_0_wire[i] - view_0_wire[i-1]) 
                            + (view_0_tick[i] - view_0_tick[i-1])*(view_0_tick[i] - view_0_tick[i-1]) );
       if( segment > view_0_max_segment ) view_0_max_segment = segment;                           
+
+      if( view_0_wire[i] < view_0_wire[i-1] && ( view_0_TPC[i] != 5 && view_0_TPC[i-1] != 5)  ){
+        view_0_wire_backtrack += (view_0_wire[i-1] - view_0_wire[i]);
+      }
     }
 
  //   std::cout << "View 1: " << view_1_wire.size() << std::endl;
@@ -938,6 +960,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       double segment = sqrt( (view_1_wire[i] - view_1_wire[i-1])*(view_1_wire[i] - view_1_wire[i-1]) 
                            + (view_1_tick[i] - view_1_tick[i-1])*(view_1_tick[i] - view_1_tick[i-1]) );
       if( segment > view_1_max_segment ) view_1_max_segment = segment;                           
+
+      if( view_1_wire[i] > view_1_wire[i-1]  && ( view_1_TPC[i] != 5 && view_1_TPC[i-1] != 5)){
+        view_1_wire_backtrack += (view_1_wire[i] - view_1_wire[i-1]);
+      }
     }
 
 //    std::cout << "View 2: " << view_2_wire.size() << std::endl;
@@ -946,6 +972,10 @@ void pionana::PionAnalyzerMC::analyze(art::Event const& evt)
       double segment = sqrt( (view_2_wire[i] - view_2_wire[i-1])*(view_2_wire[i] - view_2_wire[i-1]) 
                            + (view_2_tick[i] - view_2_tick[i-1])*(view_2_tick[i] - view_2_tick[i-1]) );
       if( segment > view_2_max_segment ) view_2_max_segment = segment;                           
+
+      if( view_2_wire[i] < view_2_wire[i-1]  && ( view_2_TPC[i] != 5 && view_2_TPC[i-1] != 5)){
+        view_2_wire_backtrack += (view_2_wire[i-1] - view_2_wire[i]);
+      }
     }
 
     vertex_slice = slicesToHits.rbegin()->first;
@@ -2043,9 +2073,15 @@ void pionana::PionAnalyzerMC::beginJob()
   fTree->Branch("view_1_max_segment", &view_1_max_segment);
   fTree->Branch("view_2_max_segment", &view_2_max_segment);
 
+  fTree->Branch("view_0_wire_backtrack", &view_0_wire_backtrack);
+  fTree->Branch("view_1_wire_backtrack", &view_1_wire_backtrack);
+  fTree->Branch("view_2_wire_backtrack", &view_2_wire_backtrack);
+
   fTree->Branch("view_0_wire", &view_0_wire);
   fTree->Branch("view_1_wire", &view_1_wire);
   fTree->Branch("view_2_wire", &view_2_wire);
+
+  fTree->Branch("view_2_z", &view_2_z);
 
   fTree->Branch("view_0_tick", &view_0_tick);
   fTree->Branch("view_1_tick", &view_1_tick);
@@ -2256,9 +2292,15 @@ void pionana::PionAnalyzerMC::reset()
   view_1_wire.clear(); 
   view_2_wire.clear(); 
 
+  view_2_z.clear(); 
+
   view_0_tick.clear(); 
   view_1_tick.clear(); 
   view_2_tick.clear(); 
+
+  view_0_wire_backtrack = 0.;
+  view_1_wire_backtrack = 0.;
+  view_2_wire_backtrack = 0.;
 
   reco_beam_Chi2_ndof = -1;
 

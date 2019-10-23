@@ -10,8 +10,8 @@
 //   4 - Convolute with the response directly. Filter is ignored.
 //   5 - Convolute with the filter directly. Response is ignored.
 // Note that an attempt to deconvolute with insufficient smearing, e.g. a delta
-// function filter, is likely to reult is large oscillations due to noise
-// or numperical rounding.
+// function filter, is likely to result in large oscillations due to noise
+// or numerical rounding.
 //
 // The response function is configured with an explicit vector that is padded
 // zeroes to the length of the passed data. It is is implictly periodic.

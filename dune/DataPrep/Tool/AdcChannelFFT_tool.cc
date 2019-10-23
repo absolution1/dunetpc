@@ -26,7 +26,8 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
   m_FirstTick(ps.get<Index>("FirstTick")),
   m_NTick(ps.get<Index>("NTick")),
   m_Action(ps.get<Index>("Action")),
-  m_ReturnOpt(ps.get<Index>("ReturnOpt")) {
+  m_ReturnOpt(ps.get<Index>("ReturnOpt")),
+  m_DataView(ps.get<Name>("DataView")) {
   const string myname = "AdcChannelFFT::ctor: ";
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -42,6 +43,62 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
 
 DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelFFT::view: ";
+  DataMap retTop;
+  if ( m_DataView.size() == 0 ) return viewTop(acd);
+  if ( ! acd.hasView(m_DataView) ) {
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+           << " channel " << acd.channel << endl;
+    }
+    return retTop.setStatus(1);
+  }
+  Index nproc = 0;
+  Index nfail = 0;
+  AdcIndex nvie = acd.viewSize(m_DataView);
+  for ( AdcIndex ivie=0; ivie<nvie; ++ivie ) {
+    const AdcChannelData* pacd = acd.viewEntry(m_DataView, ivie);
+    DataMap ret = viewTop(*pacd);
+    ++nproc;
+    if ( ret ) ++nfail;
+  }
+  retTop.setInt("fftNproc", nproc);
+  retTop.setInt("fftNfail", nproc);
+  if ( nfail ) retTop.setStatus(2);
+  return retTop;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
+  const string myname = "AdcChannelFFT::update: ";
+  if ( m_DataView.size() == 0 ) return updateTop(acd);
+  DataMap retTop;
+  if ( ! acd.hasView(m_DataView) ) {
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+           << " channel " << acd.channel << endl;
+    }
+    return retTop.setStatus(1);
+  }
+  Index nproc = 0;
+  Index nfail = 0;
+  AdcIndex nvie = acd.viewSize(m_DataView);
+  for ( AdcIndex ivie=0; ivie<nvie; ++ivie ) {
+    AdcChannelData* pacd = acd.mutableViewEntry(m_DataView, ivie);
+    DataMap ret = updateTop(*pacd);
+    ++nproc;
+    if ( ret ) ++nfail;
+  }
+  retTop.setInt("fftNproc", nproc);
+  retTop.setInt("fftNfail", nproc);
+  if ( nfail ) retTop.setStatus(2);
+  return retTop;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelFFT::viewTop(const AdcChannelData& acd) const {
+  const string myname = "AdcChannelFFT::view: ";
   DataMap ret;
   DataMap::FloatVector sams;
   DataMap::FloatVector mags;
@@ -52,7 +109,7 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
 
 //**********************************************************************
 
-DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
+DataMap AdcChannelFFT::updateTop(AdcChannelData& acd) const {
   const string myname = "AdcChannelFFT::update: ";
   DataMap ret;
   DataMap::FloatVector sams;
