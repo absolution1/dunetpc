@@ -19,8 +19,10 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+
 #include "dune/Protodune/Analysis/ProtoDUNEShowerUtils.h"
 #include "dune/Protodune/Analysis/ProtoDUNETruthUtils.h"
+#include "dune/Protodune/Analysis/EMTaskForce/ShowerProcess.h"
 
 namespace pizero {
 
@@ -88,20 +90,22 @@ double ClosestDistance(const recob::Shower* showerA,
                                  showerB->ShowerStart(), showerB->Direction());
 }
 
+// Class to hold all relevant objects and information of a pi0 decay and
+// reconstruction process.
 class PiZeroProcess {
  private:
   // Objects associated with the process.
-  const recob::Shower* _shower1 = 0x0;
-  const recob::Shower* _shower2 = 0x0;
+  std::unique_ptr<ShowerProcess> _shProcess1;
+  std::unique_ptr<ShowerProcess> _shProcess2;
+  // const recob::Shower* _shower1 = 0x0;
+  // const recob::Shower* _shower2 = 0x0;
 
   const simb::MCParticle* _pi0 = 0x0;
-  const simb::MCParticle* _photon1 = 0x0;
-  const simb::MCParticle* _photon2 = 0x0;
+  // const simb::MCParticle* _photon1 = 0x0;
+  // const simb::MCParticle* _photon2 = 0x0;
 
   const art::Event& _evt;
   const std::string _showerLabel;
-
-  int _err = -1;
 
   // Utility objects.
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
@@ -123,11 +127,25 @@ class PiZeroProcess {
   void reset();
 
   // Const access to private members.
-  const recob::Shower* shower1() const { return _shower1; }
-  const recob::Shower* shower2() const { return _shower2; }
   const simb::MCParticle* pi0() const { return _pi0; }
-  const simb::MCParticle* photon1() const {return _photon1; }
-  const simb::MCParticle* photon2() const {return _photon2; }
+  const simb::MCParticle* photon1() const {
+    return _shProcess1? _shProcess1->mcparticle(): 0x0;
+  }
+  const simb::MCParticle* photon2() const {
+    return _shProcess2? _shProcess2->mcparticle(): 0x0;
+  }
+  const recob::Shower* shower1() const {
+    return _shProcess1? _shProcess1->shower(): 0x0;
+  }
+  const recob::Shower* shower2() const {
+    return _shProcess2? _shProcess2->shower(): 0x0;
+  }
+  const recob::Track* track1() const {
+    return _shProcess1? _shProcess1->track(): 0x0;
+  }
+  const recob::Track* track2() const {
+    return _shProcess2? _shProcess2->track(): 0x0;
+  }
   const art::Event* evt() const { return &_evt; }
   std::string showerLabel() const { return _showerLabel; }
 
@@ -165,10 +183,6 @@ PiZeroProcess::PiZeroProcess(const simb::MCParticle& mcp, const art::Event& evt,
 
   // Quit if the system did not manage to find appropriate MCParticles.
   if(!allMCSet()) return;
-
-  // Set the corresponding showers.
-  _shower1 = truthUtils.GetRecoShowerFromMCParticle(*_photon1, _evt, _showerLabel);
-  _shower2 = truthUtils.GetRecoShowerFromMCParticle(*_photon2, _evt, _showerLabel);
 }
 
 // Constructor to set internal data from a shower.
@@ -214,32 +228,34 @@ PiZeroProcess::PiZeroProcess(const recob::Shower& shower, const art::Event& evt,
   // Check whether we have all necessary pointers.
   if(!allMCSet()) {
     _pi0 = 0x0;
-    _photon1 = 0x0;
-    _photon2 = 0x0;
-    _shower1 = 0x0;
-    _shower2 = 0x0;
+    _shProcess1 = 0x0;
+    _shProcess2 = 0x0;
+    // _photon1 = 0x0;
+    // _photon2 = 0x0;
+    // _shower1 = 0x0;
+    // _shower2 = 0x0;
     return;
   }
-  // Use truth utilities to see which shower matches the first photon best.
-  for(auto const& p : truthUtils.GetRecoShowerListFromMCParticle(*_photon1, _evt, _showerLabel)) {
-    if(p.first->Length() - shower.Length() < 1e-5) {
-      _shower1 = &shower;
-      _shower2 = shMatch;
-      break;
-    } else if(p.first->Length() - shMatch->Length() < 1e-5) {
-      _shower1 = shMatch;
-      _shower2 = &shower;
-      break;
-    }
-  }
+  // // Use truth utilities to see which shower matches the first photon best.
+  // for(auto const& p : truthUtils.GetRecoShowerListFromMCParticle(*_photon1, _evt, _showerLabel)) {
+  //   if(p.first->Length() - shower.Length() < 1e-5) {
+  //     _shower1 = &shower;
+  //     _shower2 = shMatch;
+  //     break;
+  //   } else if(p.first->Length() - shMatch->Length() < 1e-5) {
+  //     _shower1 = shMatch;
+  //     _shower2 = &shower;
+  //     break;
+  //   }
+  // }
 }
 
 // Functions to check whether data have been set (disallow partial reco).
 bool PiZeroProcess::allMCSet() const {
-  return (_pi0 != 0x0) && (_photon1 != 0x0) && (_photon2 != 0x0);
+  return (pi0() != 0x0) && (photon1() != 0x0) && (photon2() != 0x0);
 }
 bool PiZeroProcess::allRecoSet() const {
-  return (_shower1 != 0x0) && (_shower2 != 0x0);
+  return (shower1() != 0x0) && (shower2() != 0x0);
 }
 
 // Function to set the pi0 and photons.
@@ -247,10 +263,13 @@ void PiZeroProcess::setPi0(const simb::MCParticle& newPi0) {
   _pi0 = &newPi0;
   if (_pi0->NumberDaughters() == 2) { // Skip rare decays for now.
     // Find the associated photons through particle inventory.
-    _photon1 = pi_serv->TrackIdToParticle_P(_pi0->Daughter(0));
-    _photon2 = pi_serv->TrackIdToParticle_P(_pi0->Daughter(1));
-    // Set _photon1 to be the more energetic one.
-    if(_photon1->E() < _photon2->E()) std::swap(_photon1, _photon2);
+    const simb::MCParticle* photon1 = pi_serv->TrackIdToParticle_P(_pi0->Daughter(0));
+    const simb::MCParticle* photon2 = pi_serv->TrackIdToParticle_P(_pi0->Daughter(1));
+    // Set photon1 to be the more energetic one.
+    if(photon1->E() < photon2->E()) std::swap(photon1, photon2);
+    // Fill the showerProcesses.
+    _shProcess1 = std::make_unique<ShowerProcess>(*photon1, _evt);
+    _shProcess2 = std::make_unique<ShowerProcess>(*photon2, _evt);
   }
 }
 
