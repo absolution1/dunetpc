@@ -51,6 +51,14 @@ tools.channelRanges: {
   ExtraRanges: ""
 }
 
+tools.channelRangesApa7: {
+  tool_type: ApaChannelRanges
+  LogLevel: 0
+  ApaNumbers: [7]
+  ApaLocationNames: ["ColdBox"]
+  ExtraRanges: ""
+}
+
 tools.channelGroups: {
   tool_type: ProtoDuneChannelGroups
   LogLevel: 0
