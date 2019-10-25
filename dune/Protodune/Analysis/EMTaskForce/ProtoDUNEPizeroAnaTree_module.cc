@@ -44,6 +44,7 @@
 #include "dune/Calib/XYZCalib.h"
 #include "dune/CalibServices/XYZCalibService.h"
 #include "dune/CalibServices/XYZCalibServiceProtoDUNE.h"
+#include "lardata/ArtDataHelper/MVAReader.h"
 
 
 #include "dune/Protodune/Analysis/ProtoDUNETrackUtils.h"
@@ -254,6 +255,8 @@ private:
   double fShower2Length;
   // Reco hits related to showers
   int fShower1_numhits;
+  double fShower1_cnn_sc[NMAXHITS];
+  double fShower2_cnn_sc[NMAXHITS];
   int fShower2_numhits;
   double fShower1_cal_X[NMAXHITS];
   double fShower2_cal_X[NMAXHITS];
@@ -281,6 +284,8 @@ private:
   // Reco hits related to tracks
   int fTrack1_numhits;
   int fTrack2_numhits;
+  double fTrack1_cnn_sc[NMAXHITS];
+  double fTrack2_cnn_sc[NMAXHITS];
   double fTrack1_cal_X[NMAXHITS];
   double fTrack2_cal_X[NMAXHITS];
   double fTrack1_cal_Y[NMAXHITS];
@@ -438,6 +443,8 @@ void protoana::ProtoDUNEPizeroAnaTree::branchPi0TTree(TTree* tree) {
   // Reco hits related to showers
   tree->Branch("Shower1_numhits",         &fShower1_numhits,        "Shower1_numhits/I");
   tree->Branch("Shower2_numhits",         &fShower2_numhits,        "Shower2_numhits/I");
+  tree->Branch("Shower1_cnn_sc",          &fShower1_cnn_sc,         ("Shower1_cnn_sc[" + std::to_string(NMAXHITS) + "]/D").c_str());
+  tree->Branch("Shower2_cnn_sc",          &fShower2_cnn_sc,         ("Shower2_cnn_sc[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Shower1_cal_X",           &fShower1_cal_X,          ("Shower1_cal_X[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Shower2_cal_X",           &fShower2_cal_X,          ("Shower2_cal_X[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Shower1_cal_Y",           &fShower1_cal_Y,          ("Shower1_cal_Y[" + std::to_string(NMAXHITS) + "]/D").c_str());
@@ -464,6 +471,8 @@ void protoana::ProtoDUNEPizeroAnaTree::branchPi0TTree(TTree* tree) {
   // Reco hits related to showers
   tree->Branch("Track1_numhits",         &fTrack1_numhits,        "Track1_numhits/I");
   tree->Branch("Track2_numhits",         &fTrack2_numhits,        "Track2_numhits/I");
+  tree->Branch("Track1_cnn_sc",          &fTrack1_cnn_sc,         ("fTrack1_cnn_sc[" + std::to_string(NMAXHITS) + "]/D").c_str());
+  tree->Branch("Track2_cnn_sc",          &fTrack2_cnn_sc,         ("fTrack2_cnn_sc[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Track1_cal_X",           &fTrack1_cal_X,          ("Track1_cal_X[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Track2_cal_X",           &fTrack2_cal_X,          ("Track2_cal_X[" + std::to_string(NMAXHITS) + "]/D").c_str());
   tree->Branch("Track1_cal_Y",           &fTrack1_cal_Y,          ("Track1_cal_Y[" + std::to_string(NMAXHITS) + "]/D").c_str());
@@ -874,10 +883,24 @@ void protoana::ProtoDUNEPizeroAnaTree::setPiZeroInfo(art::Event const & evt, con
 
   } // if MC set
 
+  //This is how we get cnn score for now
+  auto recoShowers = evt.getValidHandle< std::vector< recob::Shower > >(fShowerTag);
+  auto recoTracks = evt.getValidHandle< std::vector< recob::Track > >(fTrackTag);
+  art::FindManyP<recob::Hit> findHitsFromShowers(recoShowers,evt,fShowerTag);
+  art::FindManyP<recob::Hit> findHitsFromTracks(recoTracks,evt,fTrackTag);
+  anab::MVAReader<recob::Hit,4> hitResults(evt, "emtrkmichelid:emtrkmichel" );
+ 
   // First shower
   const recob::Shower* shower1 = pzproc.shower1();
   if(shower1 != 0x0) {
     fShower1ID = showerUtil.GetShowerIndex(*shower1, evt, fShowerTag);
+    std::vector< art::Ptr< recob::Hit > > sh1_hits = findHitsFromShowers.at(fShower1ID);
+    for( size_t i=0; i<sh1_hits.size(); ++i){
+       std::array<float,4> cnn_out = hitResults.getOutput( sh1_hits[i] ); 
+       double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 
+       double cnn_score = cnn_out[ hitResults.getIndex("em") ]/p_trk_or_sh; 
+       fShower1_cnn_sc[i] = cnn_score;
+    }
     shower1->ShowerStart().GetXYZ(fShower1StartPosition);
     shower1->Direction().GetXYZ(fShower1Direction);
     fShower1Length = shower1->Length();
@@ -907,6 +930,13 @@ void protoana::ProtoDUNEPizeroAnaTree::setPiZeroInfo(art::Event const & evt, con
   if(shower2 != 0x0) {
     // Reco pi0 variables
     fShower2ID = showerUtil.GetShowerIndex(*shower2, evt, fShowerTag);
+    std::vector< art::Ptr< recob::Hit > > sh2_hits = findHitsFromShowers.at(fShower2ID);
+    for( size_t i=0; i<sh2_hits.size(); ++i){
+       std::array<float,4> cnn_out = hitResults.getOutput( sh2_hits[i] ); 
+       double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 
+       double cnn_score = cnn_out[ hitResults.getIndex("em") ]/p_trk_or_sh; 
+       fShower2_cnn_sc[i] = cnn_score;
+    }
     shower2->ShowerStart().GetXYZ(fShower2StartPosition);
     shower2->Direction().GetXYZ(fShower2Direction);
     fShower2Length = shower2->Length();
@@ -936,6 +966,14 @@ void protoana::ProtoDUNEPizeroAnaTree::setPiZeroInfo(art::Event const & evt, con
   const recob::Track* track1 = pzproc.track1();
   if(track1 != 0x0) {
     fTrack1ID = track1->ID();
+    std::vector< art::Ptr< recob::Hit > > track1_hits = findHitsFromTracks.at(fTrack1ID);
+    for( size_t i=0; i<track1_hits.size(); ++i){
+       std::array<float,4> cnn_out = hitResults.getOutput( track1_hits[i] ); 
+       double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 
+       double cnn_score = cnn_out[ hitResults.getIndex("em") ]/p_trk_or_sh; 
+       fTrack1_cnn_sc[i] = cnn_score;
+    }
+ 
     track1->Start<TVector3>().GetXYZ(fTrack1StartPosition);
     track1->End<TVector3>().GetXYZ(fTrack1EndPosition);
     // Calorimetry related to tracks
@@ -964,6 +1002,14 @@ void protoana::ProtoDUNEPizeroAnaTree::setPiZeroInfo(art::Event const & evt, con
   if(track2 != 0x0) {
     // Reco pi0 variables
     fTrack2ID = track2->ID();
+    std::vector< art::Ptr< recob::Hit > > track2_hits = findHitsFromTracks.at(fTrack2ID);
+    for( size_t i=0; i<track2_hits.size(); ++i){
+       std::array<float,4> cnn_out = hitResults.getOutput( track2_hits[i] ); 
+       double p_trk_or_sh = cnn_out[ hitResults.getIndex("track") ]+ cnn_out[ hitResults.getIndex("em") ]; 
+       double cnn_score = cnn_out[ hitResults.getIndex("em") ]/p_trk_or_sh; 
+       fTrack2_cnn_sc[i] = cnn_score;
+    }
+ 
     track2->Start<TVector3>().GetXYZ(fTrack2StartPosition);
     track2->End<TVector3>().GetXYZ(fTrack2EndPosition);
     // Calorimetry related to tracks
@@ -1142,6 +1188,8 @@ void protoana::ProtoDUNEPizeroAnaTree::ResetPi0Vars() {
   fShower1_E = -999.0;
   fShower2_E = -999.0;
   for(int i=0; i<NMAXHITS; ++i) {
+    fShower1_cnn_sc[i] = -999.0;
+    fShower2_cnn_sc[i] = -999.0;
     fShower1_cal_X[i] = -999.0;
     fShower2_cal_X[i] = -999.0;
     fShower1_cal_Y[i] = -999.0;
@@ -1172,6 +1220,8 @@ void protoana::ProtoDUNEPizeroAnaTree::ResetPi0Vars() {
   fTrack1_E = -999.0;
   fTrack2_E = -999.0;
   for(int i=0; i<NMAXHITS; ++i) {
+    fTrack1_cnn_sc[i] = -999.0;
+    fTrack2_cnn_sc[i] = -999.0;
     fTrack1_cal_X[i] = -999.0;
     fTrack2_cal_X[i] = -999.0;
     fTrack1_cal_Y[i] = -999.0;
