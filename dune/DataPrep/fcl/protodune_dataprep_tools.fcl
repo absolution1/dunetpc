@@ -65,6 +65,13 @@ tools.channelGroups: {
   IndexRangeTool: channelRanges
 }
 
+tools.channelGroupsApa7: {
+  tool_type: ApaChannelGroups
+  LogLevel: 0
+  ApaNumbers: [7]
+  IndexRangeTool: channelRanges
+}
+
 ################################################################################
 # Reco.
 ################################################################################
