@@ -840,7 +840,11 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
       
       /// time
-      long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
+      ////long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
+      // DO NOT USE ts->OpticalClock().TickPeriod()!!!! It is not precise enough
+      // use OpticalClock().Frequency, and do the division yourself with high precission.
+      double time = double(trig.timestamp_nova % 1000000000 ) / double(ts->OpticalClock().Frequency());
+      //true time truncated by 10 digits in order to make sure the math works correctly
       //std::cout << time << std::endl;
       unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
 

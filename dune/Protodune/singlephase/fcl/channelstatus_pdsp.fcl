@@ -234,4 +234,17 @@ pdsp_channel_status: {
 
 }
 
+apa7_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   []
+
+  # list of bad noisy channels:
+  NoisyChannels: []
+
+}
+
 END_PROLOG

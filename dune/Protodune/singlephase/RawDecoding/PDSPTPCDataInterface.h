@@ -63,6 +63,11 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
  private:
 
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
+
+  // what to do with unexpected crate numbers
+
+  unsigned int  _default_crate_if_unexpected;
+
   bool          _enforce_same_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;
@@ -70,7 +75,8 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   bool          _enforce_no_duplicate_channels;
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
-  bool          _rce_drop_frags_with_badcsf;
+  bool          _rce_drop_frags_with_badsf;
+  bool          _rce_drop_frags_with_badc;
   bool          _rce_hex_dump;
   bool          _rce_save_frags_to_files;
   bool          _rce_check_buffer_size;
@@ -82,7 +88,8 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   unsigned int  _rce_fix110_nticks;
 
   bool          _felix_hex_dump;
-  bool          _felix_drop_frags_with_badcsf;
+  bool          _felix_drop_frags_with_badsf;
+  bool          _felix_drop_frags_with_badc;
   bool          _drop_small_felix_frags;
   size_t        _felix_frag_small_size;
   bool          _felix_check_buffer_size;

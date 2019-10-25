@@ -42,15 +42,18 @@ pdsp_tpc_raw_decoder:
   OutputDataLabel: "daq"
 
   APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
-                      # an emtpy list decodes them all
+                      # an emtpy list decodes the entire input data
 
+  DefaultCrateIfUnexpected:  3     #  Use for coldbox data -- unexpected means not in the range 1-6.
+ 
   RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC" ] # if this list is empty or missing, then read all artdaq fragements with TPC in their labels
   RCEEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
   RCESmallFragSize: 500000
-  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEDropFragsWithBadSF: true    # skip fragments with invalid slot and fiber numbers
+  RCEDropFragsWithBadC: true     # skip fragments with invalid crate numbers
   RCEHexDump: false
   RCESaveFragsToFiles: false
   RCECheckBufferSize: true
@@ -62,9 +65,8 @@ pdsp_tpc_raw_decoder:
   FELIXRawDataLabels: [ "daq:ContainerFELIX", "daq:FELIX" ]   # if this list is empty or missing, then read all artdaq fragements with FELIX in their labels
   FELIXEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   FELIXFragmentType: 8  
-  FELIXDropFragsWithBadCSF: true
-  FELIXEnforceExactCrateNumber: false
-  FELIXCrateNumberToCheck: 6
+  FELIXDropFragsWithBadSF: true   # drop fragments with bad slot or fiber numbers
+  FELIXDropFragsWithBadC: true    # drop fragments with ununderstood crate numbers
   FELIXHexDump: false
   FELIXDropEventsWithSmallFrags: false
   FELIXDropSmallFrags: true
