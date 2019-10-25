@@ -367,7 +367,8 @@ const IndexRangeGroup& AdcMultiChannelPlotter::getChannelGroup(Name cgn) const {
   const Name myname = "AdcMultiChannelPlotter::getChannelGroup: ";
   ChannelGroupMap::const_iterator icgr = m_cgmap.find(cgn);
   if ( icgr == m_cgmap.end() ) {
-    cout << myname << "ERROR: Group not found: " << cgn << endl;
+    // Not an error -- we may index by range or channel name instead of group name.
+    //cout << myname << "ERROR: Group not found: " << cgn << endl;
     static const IndexRangeGroup badcgr;
     return badcgr;
   }
