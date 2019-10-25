@@ -382,6 +382,7 @@ producer_adcprep_byapa: {
   OutputWireName:      "dataprep"       # Non-blank writes wires (processed digits)
   ChannelGroups:         ["apas"]
   BeamEventLabel:              ""
+  KeepChannels:                []       # Channels to keep (all if empty).
   SkipChannels:                []       # Channels to skip.
   ApaChannelCounts:        [2560]       # # of channels in each APA. Last value used for later values.
   OnlineChannelMapTool: pd_onlineChannelMapByFemb
