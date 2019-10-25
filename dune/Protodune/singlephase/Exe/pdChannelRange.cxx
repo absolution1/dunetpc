@@ -3,7 +3,7 @@
 // David Adams
 // October 2018
 //
-// Display the range of channels for a named channel range.
+// Display the range of channels for a named channel range or group.
 
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
