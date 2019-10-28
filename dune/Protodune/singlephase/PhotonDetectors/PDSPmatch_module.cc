@@ -85,7 +85,6 @@ private:
   const art::InputTag fOpHitLabel; //Label of ophits after rawdecoding
   const art::InputTag fPandoLabel; //Label for Pandora Tracks
   const art::InputTag fPFParListLabel; // Label for PF Particle containers
-  const art::InputTag fPMLabel; //Label for PM Tracks
   
   const int64_t fCRTCTBOffset; //CRT offset to global trigger in 20mus ticks
   const uint64_t fCRTWindow; //coincidence window for CRT triggers in 20mus ticks
@@ -111,7 +110,7 @@ private:
   //TH1F *trig
 
   std::vector<uint32_t> fCRTChan;
-  std::vector<int64_t> fPDS_time, fPando_time, fPM_time, fCRT_time;
+  std::vector<int64_t> fPDS_time, fPando_time, fCRT_time;
   
   std::vector<double> fOpChan, fPE;//, ft0, fx0, fy0, fz0;
   
@@ -121,14 +120,6 @@ private:
   std::vector<uint32_t> fTrkProUS_Pando, fTrkProDS_Pando;
   std::vector<double> fTrkUSPixelProx_Pando, fTrkUSPixelProy_Pando; 
   std::vector<double> fTrkDSPixelProx_Pando, fTrkDSPixelProy_Pando; 
-  
-  std::vector<double> fTrkStartx_PM, fTrkStarty_PM, fTrkStartz_PM, fTrkEndx_PM, fTrkEndy_PM, fTrkEndz_PM;
-  std::vector<double> fTrkTheta_PM, fTrkPhi_PM, fTrkUSPos1x_PM, fTrkUSPos1y_PM, fTrkUSPos2x_PM, fTrkUSPos2y_PM, fTrkDSPosx_PM, fTrkDSPosy_PM; 
-  std::vector<double> fTrigCos_PM;
-  std::vector<uint32_t> fTrkProUS_PM, fTrkProDS_PM;
-  std::vector<double> fTrkUSPixelProx_PM, fTrkUSPixelProy_PM; 
-  std::vector<double> fTrkDSPixelProx_PM, fTrkDSPixelProy_PM; 
- 
   
   std::vector<TVector3> PandoTracks, PMTracks;
   // Declare member data here.
@@ -146,8 +137,6 @@ pdsp::PDSPmatch::PDSPmatch(fhicl::ParameterSet const& p)
   fOpHitLabel(p.get<art::InputTag>("OpHitLabel")),
   fPandoLabel(p.get<art::InputTag>("PandoraLabel")),
   fPFParListLabel(p.get<art::InputTag>("PFParListLabel")),
-  fPMLabel(p.get<art::InputTag>("PMLabel")),
-  
   fCRTCTBOffset(p.get<int64_t>("CRTCTBOffset")),
   fCRTWindow(p.get<uint64_t>("CRTWindow")),
   fMC(p.get<bool>("MC"))
@@ -162,7 +151,6 @@ pdsp::PDSPmatch::PDSPmatch(fhicl::ParameterSet const& p)
   consumes<std::vector<recob::OpHit>>(fOpHitLabel);
   consumes<std::vector<recob::Track>>(fPandoLabel);
   consumes<std::vector<recob::PFParticle>>(fPFParListLabel);
-  consumes<std::vector<recob::Track>>(fPMLabel);
 }
 
 void pdsp::PDSPmatch::beginJob(){
@@ -256,18 +244,7 @@ void pdsp::PDSPmatch::analyze(art::Event const& e){
   fTrkEndz_Pando.clear();
   fTrkTheta_Pando.clear();
   fTrkPhi_Pando.clear();
-
   
-  fPM_time.clear();
-  fTrkStartx_PM.clear();
-  fTrkStarty_PM.clear();
-  fTrkStartz_PM.clear();
-  fTrkEndx_PM.clear();
-  fTrkEndy_PM.clear();
-  fTrkEndz_PM.clear();
-  fTrkTheta_PM.clear();
-  fTrkPhi_PM.clear();
-
   int trigger = -1;
   const auto timeStamps = e.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeLabel);
   if(timeStamps.isValid() && timeStamps->size() == 1){
@@ -327,14 +304,6 @@ void pdsp::PDSPmatch::analyze(art::Event const& e){
     fTrkEndy_Pando.clear();
     fTrkEndz_Pando.clear();
 
-    fPM_time.clear();
-    fTrkStartx_PM.clear();
-    fTrkStarty_PM.clear();
-    fTrkStartz_PM.clear();
-    fTrkEndx_PM.clear();
-    fTrkEndy_PM.clear();
-    fTrkEndz_PM.clear();
-   
     if(status.crt != 0) {
       fCTB_time = status.timestamp;
       fCTBChan = status.crt;
@@ -359,13 +328,19 @@ void pdsp::PDSPmatch::analyze(art::Event const& e){
       art::Handle<std::vector<recob::Track>> PandoTrkHandle;
       std::vector<art::Ptr<recob::Track>> PandoTrk;
       if(e.getByLabel(fPandoLabel,PandoTrkHandle)) art::fill_ptr_vector(PandoTrk,PandoTrkHandle);
-    
+      else {
+	mf::LogWarning("Empty PandoTrk Fragment") << "Empty PandoTrk Vector for this event. Skipping. \n";
+	return;
+      }
+      
       art::Handle<std::vector<recob::PFParticle>> PFParListHandle;
-      e.getByLabel(fPFParListLabel,PFParListHandle);
+      if(!(e.getByLabel(fPFParListLabel,PFParListHandle))){;
+	mf::LogWarning("Empty PFParticle Vector") << "Empty PFParticle Vector for this event. Skipping. \n";
+	return;
+      }
       art::FindManyP<recob::PFParticle> PFPar(PandoTrkHandle,e,fPandoLabel);
       art::FindManyP<anab::T0> PFT0(PFParListHandle,e,fPFParListLabel);
-    
-   
+
       for(size_t p = 0;p<PandoTrk.size();++p){
 	auto & Trk = PandoTrk[p];
 	if(!((Trk->Vertex().Z() < 40) || (Trk->End().Z() < 40))) continue;

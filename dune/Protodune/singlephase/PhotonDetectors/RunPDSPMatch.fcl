@@ -57,7 +57,6 @@ physics:
 	OpHitLabel: "ophitExternal"
 	PandoraLabel: "pandoraTrack"
 	PFParListLabel: "pandora"
-	PMLabel: "pmtrack"
 	
 	CRTCTBOffset: -87
         CRTWindow: 12		
