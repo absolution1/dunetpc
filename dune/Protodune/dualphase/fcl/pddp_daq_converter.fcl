@@ -22,8 +22,12 @@ source:
   module_type: PDDPRawInput
   maxEvents: -1
   fileNames: [ "np02rawdata.dat" ]
-  OutputLabelRDTime: "timingrawdecoder:daq"
+  LogLevel: 1
+  OutputLabelRawDigits: "daq"
+  OutputLabelRDTime:    "timingrawdecoder:daq"
+  OutputLabelRDStatus:  "daq"
   InvertBaseline: 0
+  SelectCRPs: []
 }
 
 outputs:

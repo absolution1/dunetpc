@@ -89,7 +89,9 @@ namespace lris
   private: 
     art::SourceHelper const&	__sourceHelper;
     art::SubRunID 		__currentSubRunID;
-    //std::string                 __output_label;
+    
+    int                         __logLevel;
+    //std::vector<unsigned>       __select_crps;
     std::string                 __outlbl_digits;
     std::string                 __outlbl_status;
     std::string                 __outlbl_rdtime;
@@ -120,6 +122,7 @@ namespace lris
 
     // crp to daq mapping
     std::vector<unsigned> __daqch;
+    std::vector<bool>     __keepch;
 
     // file locations
     std::vector<std::streampos> __events;

@@ -124,7 +124,7 @@ std::vector<anab::Calorimetry> protoana::ProtoDUNEShowerUtils::GetRecoShowerCalo
     }
   }
   catch(...){
-    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+    std::cerr << "No shower calorimetry object found... returning empty vector" << std::endl;
   }
 
   return caloInfo;

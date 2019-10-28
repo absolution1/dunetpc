@@ -27,7 +27,21 @@ simple_plugin(ProtoDuneChannelRanges  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(ApaChannelRanges  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(ProtoDuneChannelGroups  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(ApaChannelGroups  "tool"
                 dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
