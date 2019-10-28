@@ -115,6 +115,10 @@ if($foils==0)
 {
     $Foils_switch="off";
 }
+if($foils==1)
+{
+    $basename = $basename."_Foil";
+}
 if($foils==2)
 {
     $basename = $basename."_HalfFoil";

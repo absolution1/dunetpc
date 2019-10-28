@@ -22259,25 +22259,25 @@
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-0-0" unit="cm"
-           x="44.985" y="-150.5" z="-150.5"/>
+	<position name="posTPC-0" unit="cm"
+	x="44.985" y="150.5" z="150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-0-1" unit="cm"
-           x="44.985" y="150.5" z="-150.5"/>
+	<position name="posTPC-1" unit="cm"
+	x="44.985" y="150.5" z="-150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-1-0" unit="cm"
-           x="44.985" y="-150.5" z="150.5"/>
+	<position name="posTPC-2" unit="cm"
+	x="44.985" y="-150.5" z="-150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-1-1" unit="cm"
-           x="44.985" y="150.5" z="150.5"/>
+	<position name="posTPC-3" unit="cm"
+	x="44.985" y="-150.5" z="150.5"/>
       </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>
