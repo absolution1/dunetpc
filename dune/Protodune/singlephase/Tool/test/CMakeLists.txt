@@ -46,6 +46,19 @@ cet_test(test_ProtoDuneChannelRanges SOURCES test_ProtoDuneChannelRanges.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_ApaChannelRanges SOURCES test_ApaChannelRanges.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_ProtoDuneChannelGroups SOURCES test_ProtoDuneChannelGroups.cxx
   LIBRARIES
     dune_ArtSupport
@@ -58,3 +71,17 @@ cet_test(test_ProtoDuneChannelGroups SOURCES test_ProtoDuneChannelGroups.cxx
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
 )
+
+cet_test(test_ApaChannelGroups SOURCES test_ApaChannelGroups.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+

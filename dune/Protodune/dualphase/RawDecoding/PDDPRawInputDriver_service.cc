@@ -24,6 +24,9 @@
 #include <thread>
 #include <mutex>
 #include <regex>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
 
 
 #define CHECKBYTEBIT(var, pos) ( (var) & (1<<pos) )
@@ -123,16 +126,40 @@ namespace lris
     __eventCtr( 0 ),
     __eventNum( 0 )
   {
-    // output module label: default daq
-    __outlbl_digits = pset.get<std::string>("OutputLabelRawDigits", "daq");
-    __outlbl_rdtime = pset.get<std::string>("OutputLabelRDTime", "daq");
-    __outlbl_status = pset.get<std::string>("OutputLabelRDStatus", "daq");
+    const std::string myname = "PDDPRawInputDriver::ctor: ";
     
+    __logLevel       = pset.get<int>("LogLevel", 0);
+    __outlbl_digits  = pset.get<std::string>("OutputLabelRawDigits", "daq");
+    __outlbl_rdtime  = pset.get<std::string>("OutputLabelRDTime", "daq");
+    __outlbl_status  = pset.get<std::string>("OutputLabelRDStatus", "daq");
+    __invped         = pset.get<unsigned>("InvertBaseline", 0);    
+    auto select_crps = pset.get<std::vector<unsigned>>("SelectCRPs", std::vector<unsigned>());
+    
+    if( __logLevel > 0 )
+      {
+	std::cout << myname << "       Configuration        : " << std::endl;
+	std::cout << myname << "       LogLevel             : " << __logLevel  << std::endl;
+	std::cout << myname << "       OutputLabelRawDigits : " << __outlbl_digits << std::endl;
+	std::cout << myname << "       OutputLabelRDStatus  : " << __outlbl_status << std::endl;
+	std::cout << myname << "       OutputLabelRDtime    : " << __outlbl_rdtime << std::endl;
+	std::cout << myname << "       InvertBaseline       : " << __invped << std::endl;
+	std::cout << myname << "       SelectCRPs           : ";
+	if( select_crps.empty() ) std::cout<<"all"<<std::endl;
+	else
+	  {
+	    std::ostringstream vstr;
+	    std::copy(select_crps.begin(), select_crps.end()-1, 
+		      std::ostream_iterator<unsigned>(vstr, ", ")); 
+	    vstr << select_crps.back();
+	    std::cout << vstr.str() << std::endl;
+	  }
+      }
+
     __prodlbl_digits = __getProducerLabel( __outlbl_digits );
     __prodlbl_rdtime = __getProducerLabel( __outlbl_rdtime );
     __prodlbl_status = __getProducerLabel( __outlbl_status );
     
-    __invped        = pset.get<unsigned>("InvertBaseline", 0);
+
 
     //
     helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits,
@@ -151,17 +178,37 @@ namespace lris
     //
     // channel map order by CRP View 
     auto cmap = &*(art::ServiceHandle<dune::PDDPChannelMap>());
-    //std::cout<<"number of CRPs "<<cmap->ncrps()<<std::endl;
+
     auto crpidx = cmap->get_crpidx();
     for( auto c: crpidx )
       {
 	std::vector<dune::DPChannelId> chidx = cmap->find_by_crp( c, true );
+	bool keep = true;
+	if( !select_crps.empty() )
+	  {
+	    if( std::find( select_crps.begin(), select_crps.end(), c ) == select_crps.end() )
+	      {
+		keep = false;
+	      }
+	  }
+	if( __logLevel > 0 )
+	  std::cout<<myname<<"       CRP "<<c<<" selected "<<keep<<std::endl;
+	
 	//std::cout<<chidx.size()<<std::endl;
 	for( auto id: chidx )
-	  __daqch.push_back( id.seqn() );
+	  {
+	    __daqch.push_back( id.seqn() );
+	    __keepch.push_back( keep );
+	  }
       }
     
-    //std::cout<<"total channels "<<__daqch.size()<<std::endl;
+    if( __logLevel > 0 )
+      {
+	std::cout << myname << "       Readout info              : " << std::endl;
+	std::cout<<myname   << "       Number of CRPs from chmap : " << cmap->ncrps()  << std::endl;
+	std::cout<<myname   << "       Total channels expected   : " << __daqch.size() << std::endl;
+      }
+        
   }
 
   //
@@ -281,6 +328,9 @@ namespace lris
     // move data
     cro_data->reserve( event.crodata.size() );
     
+    //
+    raw::RawDigit::ADCvector_t dummy;
+
     for( size_t i=0;i<event.crodata.size();i++ )
       {
 	if( i >= __daqch.size() )
@@ -291,9 +341,12 @@ namespace lris
 	unsigned daqch = __daqch[i];
 	raw::ChannelID_t ch = i; //daqch; 
 	// raw digit 
-	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
-					   std::move( event.crodata[daqch] ), 
-					   event.compression) );
+	if( __keepch[i] )
+	  cro_data->push_back( raw::RawDigit(ch, __nsacro, 
+					     std::move( event.crodata[daqch] ), 
+					     event.compression) );
+	else
+	  cro_data->push_back( raw::RawDigit(ch, 0, dummy, event.compression) );
 
 	// RDTimeStamp
 	//cro_rdtm->push_back( raw::RDTimeStamp( tval, ch ) );

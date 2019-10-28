@@ -19,17 +19,18 @@ dunefd_detectorclocks.DefaultBeamTime:      0. # Default beam time [us].
 dunefddphase_detectorclocks: @local::standard_detectorclocks
 # dunefddphase_detectorclocks.TrigModuleName:      ""
 dunefddphase_detectorclocks.InheritClockConfig:   false
-dunefddphase_detectorclocks.G4RefTime:            0.  # G4 time [us] where electronics clock counting start
-dunefddphase_detectorclocks.TriggerOffsetTPC:     0.  # Time [us] for TPC readout start w.r.t. trigger time
-dunefddphase_detectorclocks.FramePeriod:       8000.  # Frame period [us]
-dunefddphase_detectorclocks.ClockSpeedTPC:        2.5 # TPC clock speed in MHz
-dunefddphase_detectorclocks.ClockSpeedOptical:   250.  # Optical clock speed in MHz
-dunefddphase_detectorclocks.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
-dunefddphase_detectorclocks.DefaultTrigTime:      0.  # Default trigger time [us].
-dunefddphase_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
+dunefddphase_detectorclocks.G4RefTime:            0.    # G4 time [us] where electronics clock counting start
+dunefddphase_detectorclocks.TriggerOffsetTPC:     0.    # Time [us] for TPC readout start w.r.t. trigger time
+dunefddphase_detectorclocks.FramePeriod:          8000. # Frame period [us]
+dunefddphase_detectorclocks.ClockSpeedTPC:        2.5   # TPC clock speed in MHz
+dunefddphase_detectorclocks.ClockSpeedOptical:    250.  # Optical clock speed in MHz
+dunefddphase_detectorclocks.ClockSpeedTrigger:    16.   # Trigger clock speed in MHz
+dunefddphase_detectorclocks.DefaultTrigTime:      0.    # Default trigger time [us].
+dunefddphase_detectorclocks.DefaultBeamTime:      0.    # Default beam time [us].
 
-protodunedphase_detectorclocks: @local::standard_detectorclocks
-protodunedphase_detectorclocks.ClockSpeedOptical:   62.5 # Optical clock speed in MHz
+protodunedphase_detectorclocks: @local::dunefddphase_detectorclocks
+protodunedphase_detectorclocks.FramePeriod:         4000. # Frame period [us]
+protodunedphase_detectorclocks.ClockSpeedOptical:   62.5  # Optical clock speed in MHz
 
 dune35t_detectorclocks: @local::standard_detectorclocks
 

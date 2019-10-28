@@ -2,12 +2,15 @@
 
 #include "AcdDigitReader.h"
 #include <iostream>
+#include <iomanip>
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/raw.h"   // compression fns are here
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::setw;
+using Index = unsigned int;
 using raw::RawDigit;
 
 //**********************************************************************
@@ -60,7 +63,17 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   unsigned int nsig = dig.Samples();
   acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
   raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
-  if ( m_LogLevel >= 3 ) cout << myname << "Channel " << acd.channel << " raw count: " << acd.raw.size() << endl;
+  if ( m_LogLevel >= 4 ) {
+    cout << myname << setw(8) << acd.channel << ": [";
+    Index mdig = acd.raw.size();
+    bool toomany = mdig > 10 ;
+    if ( toomany ) mdig = 10;
+    for ( Index idig=0; idig<mdig; ++idig ) cout << setw(5) << acd.raw[idig];
+    if ( toomany ) cout << " ...";
+    cout << "]" << endl;
+  } else if ( m_LogLevel >= 3 ) {
+    cout << myname << "Channel " << acd.channel << " raw count: " << acd.raw.size() << endl;
+  }
   return DataMap(0);
 }
 

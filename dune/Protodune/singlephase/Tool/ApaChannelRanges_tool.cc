@@ -1,6 +1,6 @@
-// ProtoDuneChannelRanges_tool.cc
+// ApaChannelRanges_tool.cc
 
-#include "ProtoDuneChannelRanges.h"
+#include "ApaChannelRanges.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
 #include <sstream>
@@ -13,17 +13,19 @@ using std::ostringstream;
 using std::istringstream;
 using std::setw;
 using std::setfill;
-using Name = ProtoDuneChannelRanges::Name;
-using Index = ProtoDuneChannelRanges::Index;
+using Name = ApaChannelRanges::Name;
+using Index = ApaChannelRanges::Index;
 using IndexVector = std::vector<Index>;
 
 //**********************************************************************
 
-ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
+ApaChannelRanges::ApaChannelRanges(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<Index>("LogLevel")),
+  m_ApaNumbers(ps.get<IndexVector>("ApaNumbers")),
+  m_ApaLocationNames(ps.get<NameVector>("ApaLocationNames")),
   m_ExtraRanges(ps.get<Name>("ExtraRanges")) {
-  const Name myname = "ProtoDuneChannelRanges::ctor: ";
-  const Index ntps = 6;
+  const Name myname = "ApaChannelRanges::ctor: ";
+  const Index ntps = m_ApaNumbers.size();;
   Index nchaApa = 2560;
   Index nfchau = 40;
   Index nfchav = 40;
@@ -33,8 +35,11 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchaz = 480;
   Index nchax = 2*nchaz;
   Index nchai = nchau + nchav;
-  Index apaIdx[ntps] = {3, 5, 2, 6, 1, 4};  // Installation order.
-  string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
+  //Index apaIdx[ntps] = {3, 5, 2, 6, 1, 4};  // Installation order.
+  const IndexVector& apaIdx = m_ApaNumbers;
+  //string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
+  NameVector slocs = m_ApaLocationNames;
+  while ( slocs.size() < ntps ) slocs.push_back("");
   insertLen("all", 0, ntps*nchaApa, "All", "", "");
   for ( Index itps=0; itps<ntps; ++itps ) {
     string sitps = std::to_string(itps);
@@ -116,8 +121,8 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
-IndexRange ProtoDuneChannelRanges::get(Name nam) const {
-  const Name myname = "ProtoDuneChannelRanges::runData: ";
+IndexRange ApaChannelRanges::get(Name nam) const {
+  const Name myname = "ApaChannelRanges::runData: ";
   if ( m_pExtraRanges != nullptr ) {
     IndexRange rout = m_pExtraRanges->get(nam);
     if ( rout.isValid() ) return rout;
@@ -173,7 +178,7 @@ IndexRange ProtoDuneChannelRanges::get(Name nam) const {
 
 //**********************************************************************
 
-void ProtoDuneChannelRanges::
+void ApaChannelRanges::
 insertLen(Name nam, Index begin, Index len, Name lab, Name lab1, Name lab2) {
   m_Ranges[nam] = IndexRange(nam, begin, begin+len, lab, lab1, lab2);
 }

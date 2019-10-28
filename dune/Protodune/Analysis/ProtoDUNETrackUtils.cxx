@@ -82,7 +82,7 @@ std::vector<anab::Calorimetry> protoana::ProtoDUNETrackUtils::GetRecoTrackCalori
     }
   }
   catch(...){
-    std::cerr << "No calorimetry object found... returning empty vector" << std::endl;
+    std::cerr << "No track calorimetry object found... returning empty vector" << std::endl;
   }
 
   return caloInfo;

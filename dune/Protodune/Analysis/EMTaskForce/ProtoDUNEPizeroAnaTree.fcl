@@ -1,5 +1,6 @@
 #include "ProtoDUNEDataUtils.fcl"
 #include "ProtoDUNEBeamlineUtils.fcl"
+#include "calorimetry_pdune.fcl"
 
 BEGIN_PROLOG
 
@@ -8,11 +9,12 @@ proto_AnaTree:
    module_type:             "ProtoDUNEPizeroAnaTree"
    BeamModuleLabel:         "beamevent"
    SimulationTag:           "largeant"
-   CalorimetryTag:          "pandoracalo"
+   CalorimetryTag:          "pandoracaloSCE"
+   CalorimetryAlg:          @local::pdune_sp_calorimetryalgmc
    ParticleIDTag:           "pandorapid"
-   TrackerTag:              "pandoraTrack"
+   TrackTag:                "pandoraTrack"
    ShowerTag:               "pandoraShower"
-   ShowerCalorimetryTag:    "pandoraShowercalo"
+   ShowerCalorimetryTag:    "pandoraShowercaloSCE"
    PFParticleTag:           "pandora"
    GeneratorTag:            "generator"
    HitTag:                  "gaushit"

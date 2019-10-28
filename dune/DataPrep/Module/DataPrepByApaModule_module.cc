@@ -97,6 +97,7 @@ private:
   Name m_OutputWireName;    ///< Second field in full label for the output wire container.
   NameVector m_ChannelGroups;
   std::string m_BeamEventLabel;
+  AdcChannelVector m_KeepChannels;
   AdcChannelVector m_SkipChannels;
   AdcChannelVector m_ApaChannelCounts;
 
@@ -178,6 +179,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_OutputWireName      = pset.get<Name>("OutputWireName", "");
   m_ChannelGroups       = pset.get<NameVector>("ChannelGroups");
   m_BeamEventLabel      = pset.get<string>("BeamEventLabel");
+  m_KeepChannels        = pset.get<AdcChannelVector>("KeepChannels");
   m_SkipChannels        = pset.get<AdcChannelVector>("SkipChannels");
   m_ApaChannelCounts    = pset.get<AdcChannelVector>("ApaChannelCounts");
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
@@ -199,6 +201,14 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << "]" << endl;
     cout << myname << "       BeamEventLabel: " << m_BeamEventLabel << endl;
     cout << myname << " OnlineChannelMapTool: " << m_OnlineChannelMapTool << endl;
+    cout << myname << "         KeepChannels: " << "[";
+    first = true;
+    for ( AdcChannel ich : m_KeepChannels ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << ich;
+    }
+    cout << "]" << endl;
     cout << myname << "         SkipChannels: " << "[";
     first = true;
     for ( AdcChannel ich : m_SkipChannels ) {
@@ -269,6 +279,8 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   // Copy the channels to skip to a set for fast lookup.
   ApaChannelSet skipChans;
   for ( Index icha : m_SkipChannels ) skipChans.insert(icha);
+  ApaChannelSet keepChans;
+  for ( Index icha : m_KeepChannels ) keepChans.insert(icha);
 
   // Sort channel ranges by APA and record the channels for each..
   int ncrn = 0;
@@ -303,7 +315,8 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     }
     m_apacrns[iapa].push_back(crn);
     for ( Index icha=ran.begin; icha<ran.end; ++icha ) {
-      if ( skipChans.count(icha) == 0 ) m_apachsets[iapa].insert(icha);
+      bool keep = (keepChans.size() == 0 || keepChans.count(icha)) && skipChans.count(icha) == 0;
+      if ( keep ) m_apachsets[iapa].insert(icha);
     }
     if ( iapa == -1 ) {
       nchaAll = ran.size();
@@ -335,7 +348,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     cout << myname << "-------------------------------------" << endl;
   }
     
-  // Evaluate the maximum nmber of channels in the output containers.
+  // Evaluate the maximum number of channels in the output containers.
   AdcChannel nchaDefault = 2560;
   AdcChannel nchaIn = 0;
   AdcChannel nchaOut = 0;
@@ -640,7 +653,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       cout << myname << "# digits read for " << sapa << ": " << digitsCrn.size() << endl;
     }
     // Create the transient data map and copy the digits there.
-    const ApaChannelSet& keepChans = csmPair.second;
+    const ApaChannelSet& csmKeepChans = csmPair.second;
     unsigned int nproc = 0;
     unsigned int nkeep = 0;
     unsigned int nskip = 0;
@@ -648,7 +661,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     for ( unsigned int idig=0; idig<ndigi; ++idig ) {
       raw::RawDigit& dig = digitsCrn[idig];
       AdcChannel chan = dig.Channel();
-      if ( keepChans.count(chan) == 0 ) {
+      if ( csmKeepChans.count(chan) == 0 ) {
         ++nskip;
         continue;
       }
