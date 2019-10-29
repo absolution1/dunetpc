@@ -20,3 +20,5 @@ add_subdirectory(CTB)
 add_subdirectory(Tool)
 add_subdirectory(fcl)
 add_subdirectory(DetectorServices)
+add_subdirectory(DataUtils)
+
