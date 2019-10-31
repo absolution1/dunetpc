@@ -691,6 +691,8 @@ tools.pdsp_sticky_codes_ped: {
     chan15338: [ 961]
     chan15343: [ 960,  961]
   }
+  StickyRanges: {
+  }
 }
 
 tools.pdsp_sticky_codes_notped: {
@@ -698,5 +700,7 @@ tools.pdsp_sticky_codes_notped: {
   LogLevel: 1
   StickyCode: 12
   StickyCodes: {
+  }
+  StickyRanges: {
   }
 }
