@@ -1,0 +1,122 @@
+# stickycodes_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Sticky codes for protoDUNE single phase.
+
+tools.apa7_sticky_codes_ped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 1
+  StickyCode: 11
+  StickyCodes: {
+    ##### u #####
+    # femb711u
+    # femb712u
+    chan00056: [2239]
+    # femb713u
+    # femb714u
+    # femb715u
+    # femb716u
+    # femb717u
+    chan00251: [2239]
+    # femb718u
+    chan00307: [2239]
+    # femb719u
+    # femb720u
+    chan00397: [2239]
+    # femb701u
+    # femb702u
+    # femb703u
+    chan00516: [2175]
+    # femb704u
+    chan00532: [2239]
+    # femb705u
+    # femb706u
+    # femb707u
+    chan00651: [2175]
+    # femb708u
+    # femb709u
+    chan00743: [2239]
+    # femb710u
+    ##### v #####
+    # femb720v
+    chan00809: [2239]
+    # femb719v
+    # femb718v
+    chan00918: [2239]
+    # femb717v
+    # femb716v
+    chan00976: [2239]
+    # femb715v
+    # femb714v
+    # femb713v
+    # femb712v
+    chan01130: [2239]
+    # femb711v
+    # femb710v
+    chan01230: [2239]
+    # femb709v
+    # femb708v
+    # femb707v
+    # femb706v
+    # femb705v
+    # femb704v
+    # femb703v
+    # femb702v
+    # femb701v
+    chan01230: [2239]
+    ##### v #####
+    # femb720x
+    # femb719x
+    # femb718x
+    # femb717x
+    # femb716x
+    # femb715x
+    # femb714x
+    # femb713x
+    # femb712x
+    # femb711x
+    # femb701x
+    # femb702x
+    # femb703x
+    # femb704x
+    # femb705x
+    # femb706x
+    # femb707x
+    # femb708x
+    # femb709x
+    # femb710x
+  }
+  StickyRanges: {
+    ##### u #####
+    # femb713u
+    chan00116: [0, 350]
+    # femb705u
+    chan00590: [0, 350]
+    chan00590: [2060, 2150]  # 100 events in run9914 show 2nd peak at 2080-2132
+    chan00592: [0, 350]
+    chan00594: [0, 350]
+    chan00596: [0, 350]    # ~1/3 bad
+    chan00598: [0, 350]
+    ##### v #####
+    # femb713v
+    chan01085: [0, 350]    # Mostly bad
+    # femb708v
+    chan01285: [0, 350]    # All bad
+    # femb707v
+    chan01325: [0, 350]    # Mostly bad
+    # femb705v
+    chan01405: [0, 350]    # Mostly bad
+  }
+}
+
+tools.apa7_sticky_codes_notped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 1
+  StickyCode: 12
+  StickyCodes: {
+  }
+  StickyRanges: {
+  }
+}
