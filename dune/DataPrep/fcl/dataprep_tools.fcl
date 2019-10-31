@@ -122,6 +122,7 @@ tools.adcPlotRawDist: {
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  SkipFlags: []
   FitRmsMin:  1.0
   FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
