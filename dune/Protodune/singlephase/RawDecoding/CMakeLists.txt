@@ -1,7 +1,35 @@
+include_directories( "$ENV{DUNEPDSPRCE_INC}" )
+cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
+
+simple_plugin(PDSPTPCDataInterface   "tool"
+				     art_utilities
+				     canvas
+				     cetlib
+				     cetlib_except
+                        lardataobj_RawData
+                        dune-raw-data_Overlays
+			artdaq-core_Data
+			artdaq-core_Utilities
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                        ${ART_PERSISTENCY_PROVENANCE}
+                        ${MF_MESSAGELOGGER}
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${RCEDAMLIB}
+                        z
+             )
+
+
 simple_plugin(TimingRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
                         dune_DuneObj
+			artdaq-core_Utilities
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -19,7 +47,8 @@ simple_plugin(SSPRawDecoder "module"
                         lardataobj_RecoBase
                         dune-raw-data_Overlays
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                        artdaq-core_Data
+			artdaq-core_Data
+			artdaq-core_Utilities
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -38,7 +67,8 @@ simple_plugin(PDWaveform "module"
                          lardataobj_RecoBase
                          dune-raw-data_Overlays
                          dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                         artdaq-core_Data
+ 			artdaq-core_Data
+			artdaq-core_Utilities
                          ${ART_FRAMEWORK_CORE}
                          ${ART_FRAMEWORK_PRINCIPAL}
                          ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -53,13 +83,12 @@ simple_plugin(PDWaveform "module"
 )
 ]]
 
-include_directories( "$ENV{DUNEPDSPRCE_INC}" )
-cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
 
 simple_plugin(RceRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+			artdaq-core_Data
+			artdaq-core_Utilities
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -77,7 +106,29 @@ simple_plugin(RceRawDecoder "module"
 simple_plugin(FelixRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+			artdaq-core_Data
+			artdaq-core_Utilities
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+			dune_Geometry
+                        ${ART_FRAMEWORK_CORE}
+                        ${ART_FRAMEWORK_PRINCIPAL}
+                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                        ${ART_PERSISTENCY_PROVENANCE}
+                        ${MF_MESSAGELOGGER}
+                        ${CETLIB}
+                        ${ROOT_BASIC_LIB_LIST}
+                        ${RCEDAMLIB}
+                        z
+                        BASENAME_ONLY
+)
+
+simple_plugin(FelixIntegrityTest "module"
+                        lardataobj_RawData
+                        dune-raw-data_Overlays
+			artdaq-core_Data
+			artdaq-core_Utilities
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
 			dune_Geometry
                         ${ART_FRAMEWORK_CORE}
@@ -97,7 +148,8 @@ simple_plugin(FelixRawDecoder "module"
 simple_plugin(PDSPTPCRawDecoder "module"
                         lardataobj_RawData
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+			artdaq-core_Data
+			artdaq-core_Utilities
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
@@ -115,7 +167,9 @@ simple_plugin(PDSPTPCRawDecoder "module"
 
 simple_plugin(CRTRawDecoder "module"
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+                        dune_Geometry
+			artdaq-core_Data
+			artdaq-core_Utilities
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -131,7 +185,8 @@ simple_plugin(CRTRawDecoder "module"
 
 simple_plugin(PDSPCTBRawDecoder "module"
                         dune-raw-data_Overlays
-                        artdaq-core_Data
+			artdaq-core_Data
+			artdaq-core_Utilities
                         ${ART_FRAMEWORK_CORE}
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -153,6 +208,7 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
                   lardataobj_RawData
                   dune-raw-data_Overlays
                   artdaq-core_Data
+		  artdaq-core_Utilities
                   ${ART_FRAMEWORK_CORE}
                   ${ART_FRAMEWORK_PRINCIPAL}
                   ${ART_FRAMEWORK_SERVICES_REGISTRY}

@@ -28,7 +28,7 @@
 //   %TRIGNAME% --> TrigNames[acd.trigger]
 //   %TRIGNAMECAP% --> TrigNames[acd.trigger] with first letter capitalized.
 //   %TIMEUTC% --> Time string in UTC (implicit), e.g. "2018-10-23 15:31:12"
-//   %TIMEUTCn% --> Previous plus fracional seconds to n digits for n=0-9.
+//   %TIMEUTCn% --> Previous plus fractional seconds to n digits for n=0-9.
 // where acd is the AdcChannelData object and dm is the DataMap object
 // passed in the call to build.
 //

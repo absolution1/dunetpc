@@ -28,12 +28,20 @@
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "larcore/Geometry/Geometry.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
-#include "nutools/ParticleNavigation/ParticleList.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+
+#include "lardataobj/RecoBase/PFParticle.h"
+#include "lardataobj/AnalysisBase/T0.h"
+
+#include "larsim/MCCheater/PhotonBackTrackerService.h"
+
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
+
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -72,7 +80,7 @@ class CRT::SingleCRTMatching: public art::EDAnalyzer {
     explicit SingleCRTMatching(fhicl::ParameterSet
       const & p);
   std::string fTrackModuleLabel = "pandoraTrack";
-  std::string fopModuleLabel= "ophit";
+  std::string fopModuleLabel= "opflash";
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
   // Plugins should not be copied or assigned.
@@ -88,19 +96,25 @@ class CRT::SingleCRTMatching: public art::EDAnalyzer {
   bool moduleMatcherData(int module1, int module2);
   bool moduleMatcherMCC(int module1, int module2);
   void beginJob() override;
-  void endJob();
+  void endJob() override;
   double setAngle(double angle);
 int moduletoCTB(int module2, int module1);
   int nEvents = 0;
   int nHaloMuons = 0;
+  int track=0;
+  int matchedTrack=0;
+  int truthTrack=0;
+  int misMatchedTrack=0;
   private: ofstream logFile;
 
   //Parameters for reading in CRT::Triggers and associated AuxDetSimChannels.
   art::InputTag fCRTLabel; //Label for the module that produced 
   art::InputTag fCTBLabel;
   TTree * fCRTTree;
+  TTree * fMCCTree;
     bool fMCCSwitch;
     bool fModuleSwitch;
+    bool fSCECorrection;
     int fADCThreshold;
     int fModuletoModuleTimingCut;
     int fFronttoBackTimingCut;
@@ -115,7 +129,17 @@ int moduletoCTB(int module2, int module1);
     int stripX, stripY;
     double deltaX, deltaY;
     double CRTT0;
+    double flashTime;
     double opCRTTDiff;
+    double measuredXOffset;
+    double recoPandoraT0;
+    double truthPosX, truthPosY, truthPosZ;
+    int mccTruthCheck;
+    int partProcess;
+    double mccE;
+    double mccT0;
+    double opCRTDiff, maxPurity;
+   
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
 
@@ -167,6 +191,14 @@ int moduletoCTB(int module2, int module1);
     int stripX1, stripY1;
     double flashTDiff;
     double timeAvg; 
+    double xOffset;
+    double pandoraT0Check;
+    double mccX, mccY, mccZ;
+    int mccTruthCheck;
+    int truthId;
+    int partProcess;
+    double mccE;
+    double mccT0;
   }
   tracksPair;
 
@@ -176,7 +208,7 @@ int moduletoCTB(int module2, int module1);
     removePairIndex(const tracksPair & tracksPair0): tracksPair1(tracksPair0) {}
 
     bool operator()(const tracksPair & tracksPair2) {
-      return (tracksPair1.recoId == tracksPair2.recoId || tracksPair1.tempId == tracksPair2.tempId);
+      return (tracksPair1.recoId == tracksPair2.recoId || ( tracksPair1.CRTTrackId == tracksPair2.CRTTrackId || (tracksPair1.stripX1==tracksPair2.stripX1 && tracksPair1.moduleX1==tracksPair2.moduleX1) || (tracksPair1.stripY1==tracksPair2.stripY1 && tracksPair1.moduleY1==tracksPair2.moduleY1)));
     }
   };
 
@@ -185,8 +217,9 @@ int moduletoCTB(int module2, int module1);
     bool operator()(const tracksPair & pair1,
       const tracksPair & pair2) {
      
-	return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
-
+	//return (fabs(pair1.dotProductCos)>fabs(pair2.dotProductCos));
+	return (fabs(pair1.deltaX)+fabs(pair1.deltaY)<fabs(pair2.deltaX)+fabs(pair2.deltaY));
+	//return (fabs(pair1.deltaY)<fabs(pair2.deltaY));
   }
   };
   std::vector < recoHits > primaryHits_F;
@@ -204,9 +237,26 @@ CRT::SingleCRTMatching::SingleCRTMatching(fhicl::ParameterSet
     consumes < std::vector < CRT::Trigger >> (fCRTLabel);
     consumes < std::vector < art::Assns < sim::AuxDetSimChannel, CRT::Trigger >>> (fCRTLabel); // CRT art consumables
   fMCCSwitch=(p.get<bool>("MCC"));
+  fSCECorrection=(p.get<bool>("SCECorrection"));
   }
 
 
+
+// v6 Geo Channel Map
+bool CRT::SingleCRTMatching::moduleMatcherMCC(int module1, int module2) {
+  // Function checking if two hits could reasonably be matched into a 2D hit
+  if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
+  else return 0;
+
+}
+
+bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
+  // Function checking if two hits could reasonably be matched into a 2D hit
+  if ((module1 == 6 && (module2 == 10 || module2 == 11)) || (module1 == 14 && (module2 == 10 || module2 == 11)) || (module1 == 19 && (module2 == 26 || module2 == 27)) || (module1 == 31 && (module2 == 26 || module2 == 27)) || (module1 == 7 && (module2 == 12 || module2 == 13)) || (module1 == 15 && (module2 == 12 || module2 == 13)) || (module1 == 18 && (module2 == 24 || module2 == 25)) || (module1 == 30 && (module2 == 24 || module2 == 25)) || (module1 == 1 && (module2 == 4 || module2 == 5)) || (module1 == 9 && (module2 == 4 || module2 == 5)) || (module1 == 16 && (module2 == 20 || module2 == 21)) || (module1 == 28 && (module2 == 20 || module2 == 21)) || (module1 == 0 && (module2 == 2 || module2 == 3)) || (module1 == 8 && (module2 == 2 || module2 == 3)) || (module1 == 17 && (module2 == 22 || module2 == 23)) || (module1 == 29 && (module2 == 22 || module2 == 23))) return 1;
+  else return 0;
+
+}
+/* v5 Geo
 // Function to match CRT modules below is for MCC and the 2nd is for data
 bool CRT::SingleCRTMatching::moduleMatcherMCC(int module1, int module2) {
   // Function checking if two hits could reasonably be matched into a 2D hit
@@ -223,40 +273,40 @@ bool CRT::SingleCRTMatching::moduleMatcherData(int module1, int module2) {
 
 }
 
-
+*/
 int CRT::SingleCRTMatching::moduletoCTB(int module2, int module1){
-  if (module1 == 13 && module2 == 6 ) return 15;
-  else if (module1 == 13 &&  module2 == 7) return 10;
-  else if (module1 == 1 &&  module2 == 6) return 8;
-  else if (module1 == 1 &&  module2 == 7) return 9;
-  else if (module1 == 16 &&  module2 == 20) return 4;
-  else if (module1 == 16 &&  module2 == 21) return 13;
-  else if (module1 == 28 &&  module2 == 20) return 3;
-  else if (module1 == 28 &&  module2 == 21) return 2;
-  else if (module1 == 29 &&  module2 == 22) return 1;
-  else if (module1 == 29 &&  module2 == 23) return 0;
-  else if (module1 == 17 &&  module2 == 22) return 12;
-  else if (module1 == 17 &&  module2 == 23) return 11;
-  else if (module1 == 0  &&  module2 == 5) return 7;
-  else if (module1 == 0 &&  module2 == 4) return 6;
-  else if (module1 == 12  &&  module2 == 5) return 14;
-  else if (module1 == 12 &&  module2 == 4) return 5;
-  else if (module1 == 3 &&  module2 == 8) return 25;
-  else if (module1 == 3 &&  module2 == 9) return 24;
-  else if (module1 == 15 &&  module2 == 8) return 26;
-  else if (module1 == 15 &&  module2 == 9) return 31;
-  else if (module1 == 18 &&  module2 == 26) return 27;
-  else if (module1 == 18 &&  module2 == 27) return 28;
-  else if (module1 == 30 &&  module2 == 26) return 16;
-  else if (module1 == 30 &&  module2 == 27) return 17;
-  else if (module1 == 31 &&  module2 == 24) return 18;
-  else if (module1 == 31 &&  module2 == 25) return 19;
-  else if (module1 == 19 &&  module2 == 24) return 29;
-  else if (module1 == 19 &&  module2 == 25) return 20;
-  else if (module1 == 14 &&  module2 == 10) return 30;
-  else if (module1 == 14 &&  module2 == 11) return 21;
-  else if (module1 == 2 &&  module2 == 10) return 23;
-  else if (module1 == 2 &&  module2 == 11) return 22;
+  if (module1 == 14 && module2 == 11 ) return 15;
+  else if (module1 == 14 &&  module2 == 10) return 10;
+  else if (module1 == 6 &&  module2 == 11) return 8;
+  else if (module1 == 6 &&  module2 == 10) return 9;
+  else if (module1 == 18 &&  module2 == 25) return 4;
+  else if (module1 == 18 &&  module2 == 24) return 13;
+  else if (module1 == 30 &&  module2 == 25) return 3;
+  else if (module1 == 30 &&  module2 == 24) return 2;
+  else if (module1 == 31 &&  module2 == 27) return 1;
+  else if (module1 == 31 &&  module2 == 26) return 0;
+  else if (module1 == 19 &&  module2 == 27) return 12;
+  else if (module1 == 19 &&  module2 == 26) return 11;
+  else if (module1 == 7  &&  module2 == 12) return 7;
+  else if (module1 == 7 &&  module2 == 13) return 6;
+  else if (module1 == 15  &&  module2 == 12) return 14;
+  else if (module1 == 15 &&  module2 == 13) return 5;
+  else if (module1 == 1 &&  module2 == 4) return 25;
+  else if (module1 == 1 &&  module2 == 5) return 24;
+  else if (module1 == 9 &&  module2 == 4) return 26;
+  else if (module1 == 9 &&  module2 == 5) return 31;
+  else if (module1 == 16 &&  module2 == 20) return 27;
+  else if (module1 == 16 &&  module2 == 21) return 28;
+  else if (module1 == 28 &&  module2 == 20) return 16;
+  else if (module1 == 28 &&  module2 == 21) return 17;
+  else if (module1 == 29 &&  module2 == 22) return 18;
+  else if (module1 == 29 &&  module2 == 23) return 19;
+  else if (module1 == 17 &&  module2 == 22) return 29;
+  else if (module1 == 17 &&  module2 == 23) return 20;
+  else if (module1 == 8 &&  module2 == 2) return 30;
+  else if (module1 == 8 &&  module2 == 3) return 21;
+  else if (module1 == 0 &&  module2 == 2) return 23;
+  else if (module1 == 0 &&  module2 == 3) return 22;
   else return -1;
 }
 
@@ -283,7 +333,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
 }
   else {
     fModuleSwitch=0;
-    fADCThreshold=20;
+    fADCThreshold=10;
     fModuletoModuleTimingCut=5;
     fFronttoBackTimingCut=8;
     fOpCRTTDiffCut=1000000;
@@ -291,19 +341,29 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
 }
 
-   if(!fMCCSwitch){
+/*   if(!fMCCSwitch){
    art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
    //const auto& pdspctbs = event.getValidHandle<std::vector<raw::ctb::pdspctb>>(fCTB_tag);
 
-	const raw::RDTimeStamp& timeStamp = timingHandle->at(0);
-	if(timeStamp.GetFlags()!= 13) return;
-  }
+  }*/
 
 
   int nHits = 0;
+  mccTruthCheck=0;
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
   art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
 
+	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
+
+	art::Handle< std::vector<recob::OpFlash> > opListHandle;
+	std::vector<art::Ptr<recob::OpFlash> > opHitList;
+
+	if (event.getByLabel(fopModuleLabel, opListHandle))
+	    {
+		art::fill_ptr_vector(opHitList, opListHandle);
+	    }
+
+  auto const* SCE = lar::providerFrom<spacecharge::SpaceChargeService>();
 
   primaryHits_F.clear();
   primaryHits_B.clear();
@@ -316,7 +376,7 @@ void CRT::SingleCRTMatching::analyze(art::Event
   logFile.open("ProtoDUNE.log"); // Logfile I don't use right now
 
   //Get triggers
-  cout << "Getting triggers" << endl;
+  //cout << "Getting triggers" << endl;
   const auto & triggers = event.getValidHandle < std::vector < CRT::Trigger >> (fCRTLabel);
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
@@ -327,7 +387,8 @@ void CRT::SingleCRTMatching::analyze(art::Event
   //Mapping from channel to trigger
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
-  cout << "Looking for hits in Triggers" << endl;
+  //cout << "Looking for hits in Triggers" << endl;
+
 
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
@@ -337,15 +398,13 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
         tempHits tHits;
 	if (!fMCCSwitch){
-	int stripChannel=hit.Channel();
-	if (hit.Channel()<32) stripChannel=hit.Channel()*2;
-	else stripChannel=2*(hit.Channel()-32)+1;
-	cout<<stripChannel<<endl;
+	art::ValidHandle<std::vector<raw::RDTimeStamp>> timingHandle = event.getValidHandle<std::vector<raw::RDTimeStamp>>("timingrawdecoder:daq");
+
         tHits.module = trigger.Channel(); // Values to add to array
-        tHits.channelGeo = stripChannel;
+        tHits.channelGeo = hit.Channel();
 	tHits.channel=hit.Channel();
         tHits.adc = hit.ADC();
-	tHits.triggerTime=trigger.Timestamp();
+	tHits.triggerTime=trigger.Timestamp()-timingHandle->at(0).GetTimeStamp();
 	}
 	else{
         tHits.module = trigger.Channel(); // Values to add to array
@@ -367,26 +426,27 @@ void CRT::SingleCRTMatching::analyze(art::Event
     }
   }
 
-  cout << "Hits compiled for event: " << nEvents << endl;
-  cout << "Number of Hits above Threshold:  " << hitID << endl;
+  //cout << "Hits compiled for event: " << nEvents << endl;
+  //cout << "Number of Hits above Threshold:  " << hitID << endl;
 
-  for (unsigned int f = 0; f < tempHits_F.size(); f++) {
+ for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
-     const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
+      const auto & trigGeo = geom -> AuxDet(tempHits_F[f].module);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_F[f_test].module);
 	int flipChannel=tempHits_F[f].channelGeo;
 	int flipX=1;
-	if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
+	// v5 geo fixes
+	//if (tempHits_F[f].module==21 && !fMCCSwitch){flipX=-1; flipChannel=flipChannel^63;}
+	//if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
+	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
+	//if (fabs(tempHits_F[f].triggerTime-tempHits_F[f_test].triggerTime)<1 && tempHits_F[f].module!=tempHits_F[f_test].module){
+	//cout<<tempHits_F[f].module<<','<<tempHits_F[f_test].module<<endl;}
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-      //const auto hit1Center = trigGeo.GetCenter();
       // Create 2D hits from geo of the Y and X modules
 	flipChannel=tempHits_F[f_test].channelGeo;
 	int flipY=1;
-	if (!fMCCSwitch && (tempHits_F[f_test].module==13 || tempHits_F[f_test].module==1)) {flipY=-1; flipChannel=flipChannel^63;}
-	//cout<<"Channel flip: "<<flipChannel<<','<<tempHits_F[f_test].channelGeo;
        const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
-	//const auto hit2Center = hit2Geo.GetCenter();
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
       if(fModuleSwitch) moduleMatched=moduleMatcherMCC(tempHits_F[f_test].module, tempHits_F[f].module);
@@ -394,7 +454,6 @@ void CRT::SingleCRTMatching::analyze(art::Event
 
       if (moduleMatched) {
         // Get the center of the hits (CRT_Res=2.5 cm)
-
         double hitX = hit1Center.X();
 	for (unsigned int a = 0; a < tempHits_F.size(); a++)
 	{
@@ -405,7 +464,9 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	{
 	if(tempHits_F[a].module==tempHits_F[f_test].module && (tempHits_F[a].channelGeo-flipY)==tempHits_F[f_test].channelGeo) hitYPrelim=hit2Center.Y()+1.25;
 	}
-	if(!fMCCSwitch) hitYPrelim=hitYPrelim-50+20;
+	
+
+	
 	double hitY=hitYPrelim;
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
 
@@ -422,14 +483,14 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripY=tempHits_F[f_test].channel;
 	rHits.timeAvg = (tempHits_F[f_test].triggerTime+tempHits_F[f].triggerTime)/2.0;
 	if (fabs(tempHits_F[f_test].triggerTime-tempHits_F[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_F.push_back(rHits); // Add array
-//	primaryHits_F.push_back(rHits);  
     }
     }
   }
   for (unsigned int f = 0; f < tempHits_B.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_B.size(); f_test++) { // Same as above but for back CRT
 	int channelFlipCheck=tempHits_B[f].module;
-	if (!fMCCSwitch){
+	/* Code to fix v5 geo issues in data
+	if (!fMCCSwitch){   
 	if (channelFlipCheck==8) channelFlipCheck=11;
 	else if (channelFlipCheck==11) channelFlipCheck=8;
          else if (channelFlipCheck==10) channelFlipCheck=9;
@@ -440,19 +501,22 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	else if (channelFlipCheck==24) channelFlipCheck=27;
 	else if (channelFlipCheck==27) channelFlipCheck=24;
 	}
-     int flipX=1;
-     int flipChannel=tempHits_B[f].channelGeo;
+
      if (!fMCCSwitch && (tempHits_B[f].module==25 || tempHits_B[f].module==11 || tempHits_B[f].module==24 || tempHits_B[f].module==10)){flipX=-1; flipChannel=flipChannel^63;}
-     //if (tempHits_B[f].module==27 || tempHits_B[f].module==26 || tempHits_B[f].module==25 || tempHits_B[f].module==24) flipChannel=flipChannel^63; 
+
+	//if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+	*/
+     int flipX=1;
+     int flipY=1;
+     int flipChannel=tempHits_B[f].channelGeo;
+
+ 
       const auto & trigGeo = geom -> AuxDet(channelFlipCheck);
       const auto & trigGeo2 = geom -> AuxDet(tempHits_B[f_test].module);
       const auto & hit1Geo = trigGeo.SensitiveVolume(flipChannel);
       const auto hit1Center = hit1Geo.GetCenter();
-      //const auto hit2Center = trigGeo2.GetCenter();
-      //const auto hit1Center=trigGeo.GetCenter();
-	int flipY=1;
-	 flipChannel=tempHits_B[f_test].channelGeo;
-	if (!fMCCSwitch && (tempHits_B[f_test].module==2 || tempHits_B[f_test].module==3  || tempHits_B[f_test].module==14 || tempHits_B[f_test].module==15)) {flipY=-1; flipChannel=flipChannel^63;}
+      flipChannel=tempHits_B[f_test].channelGeo;
+
       const auto & hit2Geo = trigGeo2.SensitiveVolume(flipChannel);
       const auto hit2Center = hit2Geo.GetCenter();
       bool moduleMatched;
@@ -460,8 +524,9 @@ void CRT::SingleCRTMatching::analyze(art::Event
       else moduleMatched=moduleMatcherData(tempHits_B[f_test].module, tempHits_B[f].module);
 
       if (moduleMatched) {
-
         double hitX = hit1Center.X();
+	
+	
 	for (unsigned int a = 0; a < tempHits_B.size(); a++)
 	{
 	if(tempHits_B[a].module==tempHits_B[f].module && (tempHits_B[a].channelGeo-flipX)==tempHits_B[f].channelGeo) hitX=hit1Center.X()+1.25;
@@ -474,7 +539,8 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	if(tempHits_B[a].module==tempHits_B[f_test].module && (tempHits_B[a].channel-flipY)==tempHits_B[f_test].channel) hitYPrelim=hit2Center.Y()+1.25;
 	}
 	double hitY=hitYPrelim;
-	if (!fMCCSwitch) hitY=hitYPrelim-150+35;
+
+	
         double hitZ = (hit1Center.Z() + hit2Center.Z()) / 2.f;
 
         recoHits rHits;
@@ -489,12 +555,14 @@ void CRT::SingleCRTMatching::analyze(art::Event
 	rHits.stripY=flipChannel;
 	rHits.timeAvg = (tempHits_B[f_test].triggerTime+tempHits_B[f].triggerTime)/2.0;
        if (fabs(tempHits_B[f_test].triggerTime-tempHits_B[f].triggerTime)<fModuletoModuleTimingCut) primaryHits_B.push_back(rHits); 
+     //primaryHits_B.push_back(rHits);
 	 }
     }
   }
-	
+/*	
         int pixel0 = -1;
         int pixel1 = -1;
+
 	if (!fMCCSwitch)
 	{
        const auto& pdspctbs = *event.getValidHandle<std::vector<raw::ctb::pdspctb>>(fCTBLabel);
@@ -526,60 +594,240 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
           }
    	}
         if (pixel0!=-1 && pixel1!=1) {
-	cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
+	//cout<<nEvents<<" TJYang Pixels: "<<pixel0<<","<<pixel1<<endl;
 	}
 	else return;
 	      }
 	  }
 	}
-	
+*/	
   // Reconstruciton information
-  art::Handle < vector < recob::Track > > trackListHandle;
+ art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
+  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
+  vector<art::Ptr<recob::PFParticle> > pfplist;
   if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
-	art::Handle< std::vector<recob::OpHit> > opListHandle;
-	std::vector<art::Ptr<recob::OpHit> > opHitList;
+  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
 
-	if (event.getByLabel(fopModuleLabel, opListHandle))
-	    {
-		art::fill_ptr_vector(opHitList, opListHandle);
-	    }
+  art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
+    art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
+  art::FindManyP<recob::Hit> trackHits(trackListHandle, event, "pandoraTrack");
+
   int nTracksReco = trackList.size();
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
   int tempId = 0;
   for (int iRecoTrack = 0; iRecoTrack < nTracksReco; ++iRecoTrack) {
-    if (primaryHits_F.size()<1) break;
+    double mccX=-999; double mccY=-999; double mccZ=-999;
+    double mccE=-999; mccT0=0;
+    if (primaryHits_F.size()+primaryHits_B.size()<1) break;
+   std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(iRecoTrack);
+
+      art::Ptr<recob::Track> ptrack(trackListHandle, iRecoTrack);
+     
+	std::vector<art::Ptr<recob::PFParticle>> pfps=pfp_trk_assn.at(iRecoTrack);
+	if(!pfps.size()) continue;
+	std::vector<art::Ptr<anab::T0>> t0s=trk_t0_assn_v.at(pfps[0].key());
+        int t_zero=-99999;
+	if(t0s.size()){ 
+	  auto t0=t0s.at(0);
+	   t_zero=t0->Time();
+	 // cout<<"Pandora T0: "<<t_zero<<endl;
+   	}
+    int firstHit=0;
+    int lastHit=allHits.size()-2;
+
+
 // Get track positions and find angles
  //  if (fMCCSwith==1){
-    double trackStartPositionZ = trackList[iRecoTrack]->Vertex().Z();
-    double trackEndPositionZ = trackList[iRecoTrack] -> End().Z();
+    double trackStartPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    double trackEndPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
 
-    double trackStartPositionX = trackList[iRecoTrack]->Vertex().X();
-    double trackStartPositionY = trackList[iRecoTrack]->Vertex().Y();
-
-
-    double trackEndPositionX = trackList[iRecoTrack] -> End().X();
-    double trackEndPositionY = trackList[iRecoTrack] -> End().Y();
-    if (trackStartPositionZ>trackEndPositionZ){
-    trackEndPositionZ = trackList[iRecoTrack]->Vertex().Z();
-    trackStartPositionZ = trackList[iRecoTrack] -> End().Z();
-    trackEndPositionX = trackList[iRecoTrack]->Vertex().X();
-    trackEndPositionY = trackList[iRecoTrack]->Vertex().Y();
+    double trackStartPositionX_noSCE = trackList[iRecoTrack]->Vertex().X();
+    double trackStartPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
 
 
-    trackStartPositionX = trackList[iRecoTrack] -> End().X();
-    trackStartPositionY = trackList[iRecoTrack] -> End().Y();
+    double trackEndPositionX_noSCE = trackList[iRecoTrack] -> End().X();
+    double trackEndPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+    if (trackStartPositionZ_noSCE>trackEndPositionZ_noSCE){
+    trackEndPositionZ_noSCE = trackList[iRecoTrack]->Vertex().Z();
+    trackStartPositionZ_noSCE = trackList[iRecoTrack] -> End().Z();
+    trackEndPositionX_noSCE = trackList[iRecoTrack]->Vertex().X();
+    trackEndPositionY_noSCE = trackList[iRecoTrack]->Vertex().Y();
+
+
+    trackStartPositionX_noSCE = trackList[iRecoTrack] -> End().X();
+    trackStartPositionY_noSCE = trackList[iRecoTrack] -> End().Y();
+    firstHit=lastHit;
+    lastHit=0;
     }
- if ((trackEndPositionZ>90 && trackEndPositionZ < 300 && trackStartPositionZ <50)) {
-      for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
-	if (!fMCCSwitch && moduletoCTB(primaryHits_F[iHit_F].moduleX, primaryHits_F[iHit_F].moduleY)!=pixel0) continue;
+ if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 660 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<660) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 660 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<660)) {
+
+	int beamRight=-1;
+	int beamLeft=-1;
+      int trackid=-1;
+	//cout<<trackid<<endl;
+	if (fMCCSwitch){
+      mccTruthCheck=0;
+      std::vector<art::Ptr<recob::Hit>> allHits=trackHits.at(iRecoTrack); //storing hits for ith track
+ 
+      std::map<int,double> trkide;
+      std::map<int,double> trknumelec;
+
+
+      for(size_t h=0; h<allHits.size();h++){
+	art::Ptr<recob::Hit> hit=allHits[h];
+	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(hit);
+	for(size_t e=0;e<eveIDs.size(); ++e){
+	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
+	}
+      }
+      double  maxe = -1;
+      double tote = 0;
+	      for(std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+	tote += ii->second;
+	if((ii->second)>maxe){
+	  maxe = ii->second;
+	  trackid = ii->first;
+	 
+	}
+      }
+	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(trackid);
+	const art::Ptr<simb::MCTruth> mc=partInventory->TrackIdToMCTruth_P(trackid);
+        int nTrajectory=particle->NumberTrajectoryPoints();
+
+
+	auto const startPos=particle->Position(0);
+	auto const endPos=particle->EndPosition();
+
+	if (mc->Origin()==simb::kCosmicRay) partProcess=1;
+	else if (particle->Process()=="primary") partProcess=2;
+	else partProcess=3;
+	mccE=particle->E();
+	mccT0=particle->T();
+
+	for (int i=0; i<nTrajectory-2; i++){
+if (particle->Position(i).Z()>-286 && particle->Position(i).Z()<-278 && particle->Position(i).Y()>-40 && particle->Position(i).Y()<600 && particle->Position(i).X()>230 && particle->Position(i).X()<558){beamLeft=i; break;}
+	if (particle->Position(i).Z()>-258 && particle->Position(i).Z()<-254 && particle->Position(i).Y()>-40 && particle->Position(i).Y()<50 && particle->Position(i).X()>230 && particle->Position(i).X()<558){beamLeft=i; break;}}
+
+
+	for (int i=0; i<nTrajectory-2; i++){
+	if (particle->Position(i).Z()>-988 && particle->Position(i).Z()<-980  && particle->Position(i).Y()>-40 && particle->Position(i).Y()<540 && particle->Position(i).X()<120 && particle->Position(i).X()>-203){beamRight=i; break;}
+	if (particle->Position(i).Z()>-966 && particle->Position(i).Z()<-958  && particle->Position(i).Y()>-40 && particle->Position(i).Y()<500 && particle->Position(i).X()<120 && particle->Position(i).X()>-203){beamRight=i; break;}								}
+
+if (beamRight!=-1){//cout<<"MC Truth: "<<iRecoTrack<<','<<particle->Position(beamRight).X()<<','<<particle->Position(beamRight).Y()<<','<<particle->Position(beamRight).Z()<<endl; 
+	}
+
+else if (beamLeft!=-1){//cout<<"MC Truth: "<<iRecoTrack<<','<<particle->Position(beamLeft).X()<<','<<particle->Position(beamLeft).Y()<<','<<particle->Position(beamLeft).Z()<<endl; 
+	}
+
+
+
+	if (beamRight!=-1){
+	mccX=particle->Position(beamRight).X();
+	mccY=particle->Position(beamRight).Y();
+	mccZ=particle->Position(beamRight).Z();}
+
+	if (beamLeft!=-1){
+	mccX=particle->Position(beamLeft).X();
+	mccY=particle->Position(beamLeft).Y();
+	mccZ=particle->Position(beamLeft).Z();}
+
+if (beamLeft!=-1 || beamRight!=-1){
+     truthTrack++;
+for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
+
+
         double X1 = primaryHits_F[iHit_F].hitPositionX;
 
         double Y1 = primaryHits_F[iHit_F].hitPositionY;
 
         double Z1 = primaryHits_F[iHit_F].hitPositionZ;
+	double mccHitY=(endPos.Y()-startPos.Y())/(endPos.Z()-startPos.Z())*(Z1-startPos.Z())+startPos.Y();
+	double mccHitX=(endPos.X()-startPos.X())/(endPos.Z()-startPos.Z())*(Z1-startPos.Z())+startPos.X();
+	
+	if (fabs(X1-mccHitX)<60 && fabs(Y1-mccHitY)<60) {mccTruthCheck=1;
+	mccX=mccHitX;
+	mccY=mccHitY;
+	mccZ=Z1;
+	}
+
+
+	if (beamLeft!=-1){
+	 if(fabs(particle->Position(beamLeft).X()-X1)<60 && fabs(particle->Position(beamLeft).Y()-Y1)<60 && fabs(particle->Position(beamLeft).Z()-Z1)<60){    matchedTrack=matchedTrack+mccTruthCheck;
+	truthPosX=mccX;
+	truthPosY=mccY;
+	truthPosZ=mccZ;
+	fMCCTree->Fill();   }
+	}
+
+	if (beamRight!=-1){
+	 if(fabs(particle->Position(beamRight).X()-X1)<60 && fabs(particle->Position(beamRight).Y()-Y1)<60 && fabs(particle->Position(beamRight).Z()-Z1)<60) {matchedTrack=matchedTrack+mccTruthCheck;
+	truthPosX=mccX;
+	truthPosY=mccY;
+	truthPosZ=mccZ;
+	 fMCCTree->Fill();}
+	
+
+	}
+
+
+
+
+
+}}
+
+}
+
+
+	
+	//track++;
+      for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
+   double xOffset=0;
+
+		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
+		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t_zero-(primaryHits_F[iHit_F].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t_zero-primaryHits_F[iHit_F].timeAvg)>100000) continue;
+		}
+		if (t0s.empty()){
+
+		int RDOffset=0;
+		if (!fMCCSwitch) RDOffset=111;
+		double ticksOffset=0;
+		//cout<<(primaryHits_F[iHit_F].timeAvg+RDOffset)<<endl;
+		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+		if (!fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+
+		else if (fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		
+	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		//double xOffset=.08*ticksOffset
+		
+	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
+         trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
+	}
+
+   double trackStartPositionX=trackStartPositionX_noSCE;
+   double trackStartPositionY=trackStartPositionY_noSCE;
+   double trackStartPositionZ=trackStartPositionZ_noSCE;
+
+   double trackEndPositionX=trackEndPositionX_noSCE;
+   double trackEndPositionY=trackEndPositionY_noSCE;
+   double trackEndPositionZ=trackEndPositionZ_noSCE;
+//	if (!fMCCSwitch && moduletoCTB(primaryHits_F[iHit_F].moduleX, primaryHits_F[iHit_F].moduleY)!=pixel0) continue;
+        double X1 = primaryHits_F[iHit_F].hitPositionX;
+
+        double Y1 = primaryHits_F[iHit_F].hitPositionY;
+
+        double Z1 = primaryHits_F[iHit_F].hitPositionZ;
+
+
+	//if (mccTruthCheck==1) cout<<iRecoTrack<<endl;
+
 
 	// Make metrics for a CRT pair to compare later
 	TVector3 trackStart(trackStartPositionX, trackStartPositionY, trackStartPositionZ);
@@ -604,6 +852,8 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
               double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
 
+	if (predictedHitPositionX1<-200 || predictedHitPositionX1>580 || predictedHitPositionY1<-50 || predictedHitPositionY1>620) continue;
+
 	double dotProductCos=trackVector*hitVector;
 
         double deltaX1 = (predictedHitPositionX1-X1);
@@ -613,25 +863,11 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
         double deltaY1 = (predictedHitPositionY1-Y1);
 
 	double deltaY=deltaY1;
+
+
 	double minTimeDifference=999999.99;
-        for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
-                {
-			/*
-                    if (flashList[iFlash].PE() < 100)
-                        {
-                            continue;
-                        }
-		   */
 
-                    double flashTime = opHitList[iFlash]->PeakTime();
-                    double timeDifference = primaryHits_F[iHit_F].timeAvg - flashTime*1000;
-		
-                    if(fabs(timeDifference) < fabs(minTimeDifference))
-                        {
-                            minTimeDifference = timeDifference;
-                        }
-                }
-
+	 //if (minTimeDifference>100000) continue;
          tracksPair tPair;
         tPair.tempId = tempId;
         tPair.CRTTrackId = iHit_F;
@@ -646,29 +882,178 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
         tPair.adcX1=primaryHits_F[iHit_F].adcX;
         tPair.adcY1=primaryHits_F[iHit_F].adcY;
-
+	tPair.xOffset=xOffset;
         tPair.stripX1 = primaryHits_F[iHit_F].stripX;
         tPair.stripY1 = primaryHits_F[iHit_F].stripY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
+        tPair.mccX = mccX;
+        tPair.mccY = mccY;
+        tPair.mccZ =mccZ;
+	tPair.truthId=trackid;
 	tPair.timeAvg=primaryHits_F[iHit_F].timeAvg;
         tPair.trackStartPosition=trackStart;
 	tPair.flashTDiff=minTimeDifference;
 	tPair.trackEndPosition=trackEnd;
+        tPair.mccTruthCheck=mccTruthCheck;
+	tPair.partProcess=partProcess;
+	if (t0s.empty()) tPair.pandoraT0Check=0;
+	else tPair.pandoraT0Check=1;
+	tPair.mccT0=mccT0;
+	tPair.mccE=mccE;
         tracksPair_B.push_back(tPair);
 
       }
 	}
- if ( (trackStartPositionZ<620 && trackEndPositionZ > 660 && trackStartPositionZ > 300)) {
+ if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50) || (trackStartPositionZ_noSCE>660 && trackEndPositionZ_noSCE < 620 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50)) {
+	
+      int trackid=-1;
+if (fMCCSwitch){
+      mccTruthCheck=0;
+      std::vector<art::Ptr<recob::Hit>> allHits=trackHits.at(iRecoTrack); //storing hits for ith track
+ 
+
+      std::map<int,double> trkide;
+      std::map<int,double> trknumelec;
+
+
+      for(size_t h=0; h<allHits.size();h++){
+	art::Ptr<recob::Hit> hit=allHits[h];
+	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(hit);
+	for(size_t e=0;e<eveIDs.size(); ++e){
+	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
+	}
+      }
+      double  maxe = -1;
+      double tote = 0;
+	      for(std::map<int,double>::iterator ii = trkide.begin(); ii!=trkide.end(); ++ii){
+	tote += ii->second;
+	if((ii->second)>maxe){
+	  maxe = ii->second;
+	  trackid = ii->first;
+	 
+	}
+      }
+	//cout<<trackid<<endl;
+
+
+	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(trackid);
+	const art::Ptr<simb::MCTruth> mc=partInventory->TrackIdToMCTruth_P(trackid);
+        int nTrajectory=particle->NumberTrajectoryPoints();
+
+	auto const startPos=particle->Position(0);
+	auto const endPos=particle->EndPosition();
+
+	if (mc->Origin()==simb::kCosmicRay) partProcess=1;
+	else if (particle->Process()=="primary") partProcess=2;
+	else partProcess=3;
+	mccE=particle->E();
+	mccT0=particle->T();
+	int approxExit=-1;
+	art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
+
+	for (int i=0; i<nTrajectory-2; i++){
+	if (particle->Position(i).Z()>1077 && particle->Position(i).Z()<1080 && particle->Position(i).Y()>-140 && ((particle->Position(i).Y()<540 && particle->Position(i).Y()>230) || (particle->Position(i).Y()<170 && particle->Position(i).Y()>-140)) && fabs(particle->Position(i).X())<340 && fabs(particle->Position(i).X())>30 ) { approxExit=i; break;}
+	}
+
+
+if (approxExit!=-1){
+	truthTrack++;
+	mccX=particle->Position(approxExit).X();
+	mccY=particle->Position(approxExit).Y();
+	mccZ=particle->Position(approxExit).Z();
+
+//cout<<"MC Truth: "<<iRecoTrack<<','<<particle->Position(approxExit).X()<<','<<particle->Position(approxExit).Y()<<','<<particle->Position(approxExit).Z()<<endl;
+	}
+if (approxExit!=-1){
+for (unsigned int iHit_F = 0; iHit_F < primaryHits_B.size(); iHit_F++) {
+
+
+        double X1 = primaryHits_B[iHit_F].hitPositionX;
+
+        double Y1 = primaryHits_B[iHit_F].hitPositionY;
+
+        double Z1 = primaryHits_B[iHit_F].hitPositionZ;
+	double mccHitY=(endPos.Y()-startPos.Y())/(endPos.Z()-startPos.Z())*(Z1-startPos.Z())+startPos.Y();
+	double mccHitX=(endPos.X()-startPos.X())/(endPos.Z()-startPos.Z())*(Z1-startPos.Z())+startPos.X();
+        if (fabs(X1-mccHitX)<60 && fabs(Y1-mccHitY)<60) {mccTruthCheck=1;
+
+	mccX=mccHitX;
+	mccY=mccHitY;
+	mccZ=Z1;}
+
+	 if(fabs(particle->Position(approxExit).X()-X1)<60 && fabs(particle->Position(approxExit).Y()-Y1)<60&& fabs(particle->Position(approxExit).Z()-Z1)<60 && approxExit!=-1){matchedTrack=matchedTrack+mccTruthCheck;
+truthPosX=mccX;
+truthPosY=mccY;
+truthPosZ=mccZ; fMCCTree->Fill();
+	}
+
+
+	
+
+
+}}
+
+}
+
+	//track++;
       for (unsigned int iHit_B = 0; iHit_B < primaryHits_B.size(); iHit_B++) {
-	if (!fMCCSwitch && moduletoCTB(primaryHits_B[iHit_B].moduleX, primaryHits_B[iHit_B].moduleY)!=pixel1) continue;
+double xOffset=0;
+    
+
+		double trackStartPositionX_notCorrected=trackStartPositionX_noSCE;
+		double trackEndPositionX_notCorrected=trackEndPositionX_noSCE;
+
+		if (!t0s.empty()){
+		if (event.isRealData() && fabs(t_zero-(primaryHits_B[iHit_B].timeAvg*20.f))>100000) continue;
+		if (!event.isRealData() && fabs(t_zero-primaryHits_B[iHit_B].timeAvg)>100000) continue;
+	}
+		if (t0s.empty()){
+
+		int RDOffset=0;
+		if (!fMCCSwitch) RDOffset=111;
+		double ticksOffset=0;
+		//cout<<(primaryHits_B[iHit_B].timeAvg+RDOffset)<<endl;
+		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+		if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+
+		else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		
+	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+		//double xOffset=.08*ticksOffset
+		
+	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
+         trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;
+	if (fabs(xOffset)>300 || ((trackStartPositionX_notCorrected<0 && trackStartPositionX_noSCE>0) || (trackEndPositionX_notCorrected<0 && trackEndPositionX_noSCE>0)) || ((trackStartPositionX_notCorrected>0 && trackStartPositionX_noSCE<0) || (trackEndPositionX_notCorrected>0 && trackEndPositionX_noSCE<0)) ) continue;
+	}
+
+   double trackStartPositionX=trackStartPositionX_noSCE;
+   double trackStartPositionY=trackStartPositionY_noSCE;
+   double trackStartPositionZ=trackStartPositionZ_noSCE;
+
+   double trackEndPositionX=trackEndPositionX_noSCE;
+   double trackEndPositionY=trackEndPositionY_noSCE;
+   double trackEndPositionZ=trackEndPositionZ_noSCE;
+
+   if (fSCECorrection && SCE->EnableCalSpatialSCE()){
+if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex()<13 && geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex()<13){ 
+            auto const & posOffsets_F = SCE->GetCalPosOffsets(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ), geom->PositionToTPCID(geo::Point_t(trackStartPositionX, trackStartPositionY, trackStartPositionZ)).deepestIndex());
+            trackStartPositionX -= posOffsets_F.X();
+            trackStartPositionY += posOffsets_F.Y();
+            trackStartPositionZ += posOffsets_F.Z();
+            auto const & posOffsets_B = SCE->GetCalPosOffsets(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ), geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trackEndPositionZ)).deepestIndex());
+            trackEndPositionX -= posOffsets_B.X();
+            trackEndPositionY += posOffsets_B.Y();
+            trackEndPositionZ += posOffsets_B.Z();
+	}
+    }
+
         double X1 = primaryHits_B[iHit_B].hitPositionX;
 
         double Y1 = primaryHits_B[iHit_B].hitPositionY;
 
         double Z1 = primaryHits_B[iHit_B].hitPositionZ;
-
 
  
 	// Make metrics for a CRT pair to compare later
@@ -694,6 +1079,8 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
               double predictedHitPositionX1 = (v1.Z()-v5.Z())/(v4.Z()-v5.Z())*(v4.X()-v5.X())+v5.X();
 
+	if (abs(predictedHitPositionX1)>340 || predictedHitPositionY1<-160 || predictedHitPositionY1>560) continue;
+
 	double dotProductCos=trackVector*hitVector;
 
         double deltaX1 = (predictedHitPositionX1-X1);
@@ -703,23 +1090,14 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
         double deltaY1 = (predictedHitPositionY1-Y1);
 
 	double deltaY=(deltaY1);
-	double minTimeDifference=999999.99;
-       for (unsigned int iFlash = 0; iFlash < opHitList.size(); iFlash++)
-                {
-			/*
-                    if (flashList[iFlash].PE() < 100)
-                        {
-                            continue;
-                        }
-			*/
-                    double hitTime = opHitList[iFlash]->PeakTime();
-                    double timeDifference = primaryHits_B[iHit_B].timeAvg - hitTime*1000;
+	if (nEvents==3) cout<<"Delta B: "<<deltaX<<','<<deltaY<<endl;
 
-                    if(fabs(timeDifference) < fabs(minTimeDifference))
-                        {
-                            minTimeDifference = timeDifference;
-                        }
-                }
+	
+
+//if (mccTruthCheck==1 && fMCCSwitch) cout<<iRecoTrack<<','<<deltaX<<','<<deltaY<<endl;
+
+
+	double minTimeDifference=999999.99;
 
         tracksPair tPair;
         tPair.tempId = tempId;
@@ -735,16 +1113,26 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
         tPair.adcX1=primaryHits_B[iHit_B].adcX;
         tPair.adcY1=primaryHits_B[iHit_B].adcY;
-
+        tPair.xOffset=xOffset;
         tPair.stripX1 = primaryHits_B[iHit_B].stripX;
         tPair.stripY1 = primaryHits_B[iHit_B].stripY;
         tPair.X1 = X1;
         tPair.Y1 = Y1;
         tPair.Z1 = Z1;
+        tPair.mccX = mccX;
+        tPair.mccY = mccY;
+        tPair.mccZ =mccZ;
+        tPair.truthId=trackid;
 	tPair.timeAvg=primaryHits_B[iHit_B].timeAvg;
 	tPair.flashTDiff=minTimeDifference;
         tPair.trackStartPosition=trackStart;
 	tPair.trackEndPosition=trackEnd;
+        tPair.mccTruthCheck=mccTruthCheck;
+	tPair.partProcess=partProcess;
+	tPair.mccE=mccE;
+	tPair.mccT0=mccT0;
+	if (t0s.empty()) tPair.pandoraT0Check=0;
+	else tPair.pandoraT0Check=1;
         tracksPair_B.push_back(tPair);
 
       }
@@ -772,15 +1160,14 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
         tracksPair_B.end());
     }
 
-	cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
+	//cout<<"Number of reco and CRT pairs: "<<allUniqueTracksPair.size()<<endl;
 // For the best one, add the validation metrics to a tree
     if (allUniqueTracksPair.size() > 0) {
       for (unsigned int u = 0; u < allUniqueTracksPair.size(); u++) {
-
-
 	deltaX=allUniqueTracksPair[u].deltaX;
 
 	deltaY=allUniqueTracksPair[u].deltaY;
+        measuredXOffset=allUniqueTracksPair[u].xOffset;
 	opCRTTDiff=allUniqueTracksPair[u].flashTDiff;
 
 	dotCos=fabs(allUniqueTracksPair[u].dotProductCos);
@@ -792,31 +1179,94 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 	trackY2=allUniqueTracksPair[u].trackEndPosition.Y();
 	trackZ2=allUniqueTracksPair[u].trackEndPosition.Z();
 
+	truthPosX=allUniqueTracksPair[u].mccX;
+	truthPosY=allUniqueTracksPair[u].mccY;
+	truthPosZ=allUniqueTracksPair[u].mccZ;
+
 	moduleX=allUniqueTracksPair[u].moduleX1;
 	moduleY=allUniqueTracksPair[u].moduleY1;
-
+	mccTruthCheck=allUniqueTracksPair[u].mccTruthCheck;
 	adcX=allUniqueTracksPair[u].adcX1;
 	adcY=allUniqueTracksPair[u].adcY1;
 
 	CRTT0=allUniqueTracksPair[u].timeAvg;
 	stripX=allUniqueTracksPair[u].stripX1;
 	stripY=allUniqueTracksPair[u].stripY1;
-
+	recoPandoraT0=allUniqueTracksPair[u].pandoraT0Check;
 	X_CRT=allUniqueTracksPair[u].X1;
 	Y_CRT=allUniqueTracksPair[u].Y1;
 	Z_CRT=allUniqueTracksPair[u].Z1;
+	partProcess=allUniqueTracksPair[u].partProcess;
+	mccE=allUniqueTracksPair[u].mccE;
+	mccT0=allUniqueTracksPair[u].mccT0;
+	//if (fabs(deltaX)<100 && fabs(deltaY)<100) cout<<allUniqueTracksPair[u].recoId<<','<<deltaX<<','<<deltaY<<endl;
+        //cout<<"Candidate: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
+	//cout<<"Candidate Delta: "<<deltaX<<","<<deltaY<<endl;
+       	flashTime=-1*opCRTTDiff-CRTT0;
+        if (fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && fabs(dotCos)>.9995) {
+	track++;
+	cout<<mccTruthCheck<<endl;
+	cout<<"CRT1-TruthT: "<<mccT0-CRTT0<<endl;
+	if (fabs(mccT0-CRTT0)>0 && !event.isRealData()) {
+        if (Z_CRT<100){
+	for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
+	cout<<"Candidate CRTT0:"<<primaryHits_F[iHit_F].timeAvg<<endl;
 
-       	
-        if (fabs(allUniqueTracksPair[u].dotProductCos)>0.999 && fabs(allUniqueTracksPair[u].deltaY)<150 && fabs(fOpCRTTDiffCut)<200) {
-	cout<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
 
-	fCRTTree->Fill();
-	   
+}
+}
+	else{
+	for (unsigned int iHit_F = 0; iHit_F < primaryHits_B.size(); iHit_F++) {
+	cout<<"Candidate CRTT0:"<<primaryHits_B[iHit_F].timeAvg<<endl;
 
+
+}
+
+
+}
+	const simb::MCParticle *particle = partInventory->TrackIdToParticle_P(allUniqueTracksPair[u].truthId);
+
+    std::set<int> signal_trackids;
+    signal_trackids.emplace(allUniqueTracksPair[u].truthId);
+art::ServiceHandle< cheat::PhotonBackTrackerService > pbt;
+      double purity;
+opCRTDiff=-99999999;
+maxPurity=0;
+for(unsigned int i = 0; i < opHitList.size(); ++i) {
+       recob::OpFlash TheFlash = *opHitList[i];
+       art::Ptr<recob::OpFlash> FlashP = opHitList[i];
+       std::vector< art::Ptr<recob::OpHit> > hitFromFlash = pbt->OpFlashToOpHits_Ps(FlashP);
+       std::vector< art::Ptr<recob::OpHit> > matchedHits = pbt->OpFlashToOpHits_Ps(FlashP);
+ 
+       // Calculate the flash purity
+	
+        purity = pbt->OpHitCollectionPurity(signal_trackids, matchedHits);
+	if (purity>maxPurity) {opCRTTDiff=TheFlash.Time()*1000.f-allUniqueTracksPair[u].timeAvg;
+	flashTime=TheFlash.Time();
+	maxPurity=purity;}
+	if (purity>0) cout<<"Optical Purity and TDiff:"<<purity<<','<<TheFlash.Time()*1000.f-allUniqueTracksPair[u].timeAvg<<endl;
+}
+	auto const startPos=particle->Position(0);
+	auto const endPos=particle->EndPosition();
+	if (fabs(mccT0-CRTT0)>100000){
+	double mccHitY=(endPos.Y()-startPos.Y())/(endPos.Z()-startPos.Z())*(Z_CRT-startPos.Z())+startPos.Y();
+	double mccHitX=(endPos.X()-startPos.X())/(endPos.Z()-startPos.Z())*(Z_CRT-startPos.Z())+startPos.X();
+	cout<<"Possible Mismatch CRT Hit:"<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<endl;
+	cout<<deltaX<<','<<deltaY<<endl;
+	cout<<"MCC Hit:"<<mccHitX<<','<<mccHitY<<','<<Z_CRT<<','<<particle->T()<<endl;
+	cout<<"X offset:"<<measuredXOffset<<endl;
+	cout<<"Reco CRT Hit: "<<X_CRT<<','<<Y_CRT<<','<<Z_CRT<<','<<CRTT0<<endl;
+	cout<<"Track Z:"<<trackZ1<<','<<trackZ2<<endl;
+	}}
+		fCRTTree->Fill();
         }
+
       }
     }
   nEvents++;
+  //cout<<track<<endl;
+  //cout<<matchedTrack<<endl;
+cout<<"Truth track and CRT reco:"<<track<<','<<matchedTrack<<','<<truthTrack<<','<<misMatchedTrack<<endl;
  }
 
 
@@ -824,6 +1274,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 void CRT::SingleCRTMatching::beginJob() {
 	art::ServiceHandle<art::TFileService> fileServiceHandle;
        fCRTTree = fileServiceHandle->make<TTree>("Displacement", "event by event info");
+       fMCCTree= fileServiceHandle->make<TTree>("MCC", "event by event info");
 	fCRTTree->Branch("nEvents", &nEvents, "fnEvents/I");
 
 
@@ -838,10 +1289,14 @@ void CRT::SingleCRTMatching::beginJob() {
 
 	fCRTTree->Branch("hCRTT0", &CRTT0, "CRTT0/D");
 
+        fCRTTree->Branch("htrkT0", &recoPandoraT0, "recoPandoraT0/D");
+
 
 	fCRTTree->Branch("htrackStartX", &trackX1, "trackX1/D");
 	fCRTTree->Branch("htrackStartY", &trackY1, "trackY1/D");
 	fCRTTree->Branch("htrackStartZ", &trackZ1, "trackZ1/D");
+
+
 
 	fCRTTree->Branch("htrackEndX", &trackX2, "trackX2/D");
 	fCRTTree->Branch("htrackEndY", &trackY2, "trackY2/D");
@@ -855,10 +1310,24 @@ void CRT::SingleCRTMatching::beginJob() {
 
 	fCRTTree->Branch("hadcX", &adcX, "adcX/I");
 	fCRTTree->Branch("hadcY", &adcY, "adcY/I");
-
+	fCRTTree->Branch("hpartProcess", &partProcess, "partProcess/I");
 	fCRTTree->Branch("hopCRTTDiff", &opCRTTDiff, "opCRTTDiff/D");
+	fCRTTree->Branch("hflashTime", &flashTime, "flashTime/D");
+        fCRTTree->Branch("hmeasuredXOffset", &measuredXOffset, "measuredXOffset/D");
+	fCRTTree->Branch("hmccE", &mccE, "mccE/D");
+	fCRTTree->Branch("htruthPosX", &truthPosX, "truthPosX/D");
+	fCRTTree->Branch("htruthPosY", &truthPosY, "truthPosY/D");
+	fCRTTree->Branch("htruthPosZ", &truthPosZ, "truthPosZ/D");
+	fCRTTree->Branch("hmccT0", &mccT0, "mccT0/D");
+	fCRTTree->Branch("hmaxPurity", &maxPurity, "maxPurity/D");
 
-
+	fMCCTree->Branch("hpartProcess", &partProcess, "partProcess/I");
+	fMCCTree->Branch("htruthPosX", &truthPosX, "truthPosX/D");
+	fMCCTree->Branch("htruthPosY", &truthPosY, "truthPosY/D");
+	fMCCTree->Branch("htruthPosZ", &truthPosZ, "truthPosZ/D");
+	fMCCTree->Branch("hmccE", &mccE, "mccE/D");
+	fMCCTree->Branch("hmccT0", &mccT0, "mccT0/D");
+	
 }
 // Endjob actions
 void CRT::SingleCRTMatching::endJob() 

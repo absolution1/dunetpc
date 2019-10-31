@@ -104,7 +104,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Calibrate and check data." << endl;
   //int w = 8;
-  for ( auto ient : acds ) {
+  for ( auto& ient : acds ) {
     AdcChannel icha = ient.first;
     cout << myname << "-------------------- Channel " << icha << endl;
     AdcChannelData& acd = ient.second;

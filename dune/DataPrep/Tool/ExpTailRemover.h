@@ -1,14 +1,18 @@
-////////////////////////////////////////////////////////////////////////
 // ExpTailRemover.h
+//
+// David Adams
+// May 2019
 //
 // Tool to remove an exponential tail from AC-coupled front-end electronics.
 //
 // The measured charge vector is assumed to be a sum of signal and tail:
 //
-//   Qdat = Qsig + Qtai
+//   Qdat = Qsig + Qtai + Qnoise
 //
-// and this tool replaces the sample vector (assumed to be the sum) in
-// AdcChannelData with signal, i.e. it removes the tail.
+// where <Qnoise> = 0.
+//
+// This tool replaces the sample vector (assumed to be Qdat) in
+// AdcChannelData with signal (pus noise), i.e. it removes the tail.
 //
 // Any signal contribution is assumed to be accompanied by an exponential tail
 // whose integral cancels that of the signal. The decay time of the exponential
@@ -24,7 +28,7 @@
 //
 // The fit is done in time-domain, i.e there is no deconvolution following the
 // the model in tool UndershootCorr and DUNE-doc-11662.
-// Details of the fit procedure are in DUNE-doc-XXXXX.
+// Details of the fit procedure are in DUNE-doc-14203.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
@@ -39,10 +43,24 @@
 //   SignalIterationLimit - Maximum nimber of fit iterations.
 //   SignalTool - Name of the tool used identify signals. The method called is
 //                AdcChannelTool::update, i.e. single-channel signal finding.
-//   CorrectFlag: switch per plane (induction, u, v) to turn the correction on and off
-//                If empty, all planes corrected.
+//   IncludeChannelRanges - List of channel ranges to correct. If empty, all channels
+//                          Use empty or "all" for all channels or "none" for no channels.
+//                          Tool channelRanges is used to map these names to channels.
+//   ExcludeChannelRanges - List of channel ranges whose channels are excluded from
+//                          the list to process derived from IncludeChannelRanges.
+//                          If "all", no channels are processed.
 //
-/////////////////////////////////////////////////////////////////////////
+// The following metadata is added to each channel (i.e. to AdcChannelData):
+//   uscPedestal - fitted pedestal (w.r.t. input samples)
+//   uscTail     - Fitted tail for the first bin (tau[0])
+//   uscNoise    - Noise = RMS of (sample - pedestal) in the no-signal region
+//
+// The following are returned in the call toi view:
+//   uscPedestal   - As above
+//       uscTail   - As above.
+//    uscNsamFit   - # non-signal samples
+//   uscNiteration - # fit iterations
+
 #ifndef ExpTailRemover_H
 #define ExpTailRemover_H
 
@@ -58,6 +76,7 @@ public:
   using Index = unsigned int;
   using Vector = std::vector<double>;
   using Name = std::string;
+  using NameVector = std::vector<Name>;
 
   ExpTailRemover(fhicl::ParameterSet const& ps);
 
@@ -73,9 +92,12 @@ private:
   Index              m_SignalIterationLimit;
   Name               m_SignalTool;
   double             m_DecayTime;
-  std::vector<bool>  m_CorrectFlag;   // 0: U, 1: V, 2: Collection
+  NameVector         m_IncludeChannelRanges;
+  NameVector         m_ExcludeChannelRanges;
 
   // Derived from configuration.
+  bool m_useChannelRanges;  // If true, only channels in checkChannels are processed.
+  std::vector<bool> m_checkChannels;
   AdcChannelTool* m_pSignalTool;
 
   // private methods

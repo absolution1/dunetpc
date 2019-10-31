@@ -33,7 +33,7 @@ ProtoDuneChannelRanges::ProtoDuneChannelRanges(fhicl::ParameterSet const& ps)
   Index nchaz = 480;
   Index nchax = 2*nchaz;
   Index nchai = nchau + nchav;
-  Index apaIdx[ntps] = { 3, 5, 2, 6, 1, 4 };  // Installation order.
+  Index apaIdx[ntps] = {3, 5, 2, 6, 1, 4};  // Installation order.
   string slocs[ntps] = {"US-RaS", "US-DaS", "MS-RaS", "MS-DaS", "DS-RaS", "DS-DaS"};
   insertLen("all", 0, ntps*nchaApa, "All", "", "");
   for ( Index itps=0; itps<ntps; ++itps ) {

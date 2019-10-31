@@ -1806,6 +1806,7 @@ print PMT <<EOF;
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -1819,12 +1820,12 @@ print PMT <<EOF;
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="@{[1.27*2.54- (2.23*2.54)]}"/>
   </physvol>
 
  </volume>
@@ -1934,22 +1935,24 @@ EOF
 if ($tpc_on==1) # place TPC inside croysotat
 {
 $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+$posY = -0.5*$Argon_y + $yLArBuffer;
+$posZ = -0.5*$Argon_z + $zLArBuffer;
 
-for($ii=0;$ii<$nCRM_z;$ii++)
-{
-    $posZ = -0.5*$Argon_z + $zLArBuffer + ($ii+0.5)*$lengthCRM;
+@crp_posy = ( $posY+1.5*$lengthCRM, $posY+1.5*$lengthCRM, $posY+0.5*$lengthCRM, $posY+0.5*$lengthCRM );
+@crp_posz = ( $posZ+1.5*$lengthCRM, $posZ+0.5*$lengthCRM, $posZ+0.5*$lengthCRM, $posZ+1.5*$lengthCRM );
 
-    for($jj=0;$jj<$nCRM_y;$jj++)
-    {
-	$posY = -0.5*$Argon_y + $yLArBuffer + ($jj+0.5)*$widthCRM;
-	print CRYO <<EOF;
-      <physvol>
+$idx = 0;
+foreach $posZ (@crp_posz) {
+    $posY = @crp_posy[$idx];
+    print CRYO <<EOF;
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC\-$ii\-$jj" unit="cm"
-           x="$posX" y="$posY" z="$posZ"/>
+	<position name="posTPC\-$idx" unit="cm"
+	x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF
-    }
+    
+    $idx++;
 }
 
 }

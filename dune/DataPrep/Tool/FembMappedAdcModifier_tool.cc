@@ -33,6 +33,7 @@ FembMappedAdcModifier::FembMappedAdcModifier(fhicl::ParameterSet const& ps)
 DataMap FembMappedAdcModifier::view(const AdcChannelData& acd) const {
   DataMap result;
   AdcChannelData acdtmp(acd);
+  acdtmp.samples = acd.samples;
   return update(acdtmp);
 }
 

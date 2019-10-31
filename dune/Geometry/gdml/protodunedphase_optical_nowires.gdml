@@ -327,17 +327,61 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <material name="NiGas1atm80K">
+   <D value="0.0039" unit="g/cm3"/>
+   <fraction n="1.000" ref="nitrogen"/>
+  </material>
+
   <material name="NiGas">
    <D value="0.001165" unit="g/cm3"/>
    <fraction n="1.000" ref="nitrogen"/>
   </material>
 
   <material name="PolyurethaneFoam">
-   <D value="0.09" unit="g/cm3"/>
+   <D value="0.088" unit="g/cm3"/>
    <composite n="17" ref="carbon"/>
    <composite n="16" ref="hydrogen"/>
    <composite n="2" ref="nitrogen"/>
    <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEFoam">
+   <D value="0.135" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="LightPolyurethaneFoam">
+   <D value="0.009" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEBWFoam">
+   <D value="0.021" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="GlassWool">
+   <D value="0.035" unit="g/cm3"/>
+   <fraction n="0.65" ref="SiO2"/>
+   <fraction n="0.09" ref="Al2O3"/>
+   <fraction n="0.07" ref="CaO"/>
+   <fraction n="0.03" ref="MgO"/>
+   <fraction n="0.16" ref="Na2O"/>
+  </material>
+
+  <material name="Polystyrene">
+   <D value="1.06" unit="g/cm3"/>
+   <composite n="8" ref="carbon"/>
+   <composite n="8" ref="hydrogen"/>
   </material>
 
 
@@ -1022,6 +1066,7 @@
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -1035,12 +1080,12 @@
 
   <physvol>
    <volumeref ref="allpmt"/>
-   <position name="posallpmt" unit="cm" x="0" y="0" z="1.27*2.54"/>
+   <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
   </physvol>
 
  <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="1.27*2.54- (2.23*2.54)"/>
+  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="-2.4384"/>
   </physvol>
 
  </volume>
@@ -12605,25 +12650,25 @@
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-0-0" unit="cm"
-           x="44.985" y="-150.5" z="-150.5"/>
+	<position name="posTPC-0" unit="cm"
+	x="44.985" y="150.5" z="150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-0-1" unit="cm"
-           x="44.985" y="150.5" z="-150.5"/>
+	<position name="posTPC-1" unit="cm"
+	x="44.985" y="150.5" z="-150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-1-0" unit="cm"
-           x="44.985" y="-150.5" z="150.5"/>
+	<position name="posTPC-2" unit="cm"
+	x="44.985" y="-150.5" z="-150.5"/>
       </physvol>
-      <physvol>
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC-1-1" unit="cm"
-           x="44.985" y="150.5" z="150.5"/>
+	<position name="posTPC-3" unit="cm"
+	x="44.985" y="-150.5" z="150.5"/>
       </physvol>
   <physvol>
    <volumeref ref="volPMT_coated"/>

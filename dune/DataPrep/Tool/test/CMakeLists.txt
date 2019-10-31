@@ -68,6 +68,30 @@ cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcChannelTrimmer SOURCES test_AdcChannelTrimmer.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcChannelSplitter SOURCES test_AdcChannelSplitter.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
   LIBRARIES
     dune_ArtSupport
@@ -268,6 +292,20 @@ cet_test(test_AdcThresholdSignalFinder
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcNoiseSignalFinder
+  SOURCES
+    test_AdcNoiseSignalFinder.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcRoiShifter
   SOURCES
     test_AdcRoiShifter.cxx
@@ -414,6 +452,20 @@ cet_test(test_AdcChannelDftPlotter
 cet_test(test_FembMappedAdcModifier
   SOURCES
     test_FembMappedAdcModifier.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcRoiSlicer
+  SOURCES
+    test_AdcRoiSlicer.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities

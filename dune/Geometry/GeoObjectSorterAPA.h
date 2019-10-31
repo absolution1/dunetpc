@@ -10,6 +10,7 @@
 
 #include <vector>
 
+#include "fhiclcpp/fwd.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 //#include "larcorealg/Geometry/OpDetGeo.h"
 

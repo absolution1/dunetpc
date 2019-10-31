@@ -104,7 +104,8 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag, float noiseSigma, bool 
     fout << "    SignalIterationLimit: 10" << endl;
     fout << "              SignalTool: \"sigfind\"" << endl;
     fout << "               DecayTime: " << decayTime << endl;
-    fout << "             CorrectFlag: []" << endl;
+    fout << "    IncludeChannelRanges: [\"all\"]" << endl;
+    fout << "    ExcludeChannelRanges: []" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

@@ -54,6 +54,7 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
     fout << "             NormOpt: 1" << endl;
     fout << "              Action: 3" << endl;
     fout << "           ReturnOpt: 13" << endl;
+    fout << "            DataView: \"\"" << endl;
     fout << "  }" << endl;
     fout << "  mytoolinv: {" << endl;
     fout << "           tool_type: AdcChannelFFT" << endl;
@@ -63,6 +64,7 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
     fout << "             NormOpt: 1" << endl;
     fout << "              Action: 13" << endl;
     fout << "           ReturnOpt: 13" << endl;
+    fout << "            DataView: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

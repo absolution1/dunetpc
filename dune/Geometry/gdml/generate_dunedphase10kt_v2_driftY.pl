@@ -115,6 +115,10 @@ if($foils==0)
 {
     $Foils_switch="off";
 }
+if($foils==1)
+{
+    $basename = $basename."_Foil";
+}
 if($foils==2)
 {
     $basename = $basename."_HalfFoil";
@@ -1197,6 +1201,7 @@ EOF
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">

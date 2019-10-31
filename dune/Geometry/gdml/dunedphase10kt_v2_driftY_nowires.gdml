@@ -305,17 +305,61 @@
    <fraction n="0.080" ref="hydrogen"/>
   </material>
 
+  <material name="NiGas1atm80K">
+   <D value="0.0039" unit="g/cm3"/>
+   <fraction n="1.000" ref="nitrogen"/>
+  </material>
+
   <material name="NiGas">
    <D value="0.001165" unit="g/cm3"/>
    <fraction n="1.000" ref="nitrogen"/>
   </material>
 
   <material name="PolyurethaneFoam">
-   <D value="0.09" unit="g/cm3"/>
+   <D value="0.088" unit="g/cm3"/>
    <composite n="17" ref="carbon"/>
    <composite n="16" ref="hydrogen"/>
    <composite n="2" ref="nitrogen"/>
    <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEFoam">
+   <D value="0.135" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="LightPolyurethaneFoam">
+   <D value="0.009" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="ProtoDUNEBWFoam">
+   <D value="0.021" unit="g/cm3"/>
+   <composite n="17" ref="carbon"/>
+   <composite n="16" ref="hydrogen"/>
+   <composite n="2" ref="nitrogen"/>
+   <composite n="4" ref="oxygen"/>
+  </material>
+
+  <material name="GlassWool">
+   <D value="0.035" unit="g/cm3"/>
+   <fraction n="0.65" ref="SiO2"/>
+   <fraction n="0.09" ref="Al2O3"/>
+   <fraction n="0.07" ref="CaO"/>
+   <fraction n="0.03" ref="MgO"/>
+   <fraction n="0.16" ref="Na2O"/>
+  </material>
+
+  <material name="Polystyrene">
+   <D value="1.06" unit="g/cm3"/>
+   <composite n="8" ref="carbon"/>
+   <composite n="8" ref="hydrogen"/>
   </material>
 
 
@@ -446,14 +490,6 @@
      <box name="solLEMs" x="1204" y="0.1" z="6020" lunit="cm"/>
 
 
-
-    <box name="FoilLayerZ" lunit="cm" x="0.25" y="1193" z="6017"/>
-    <box name="FoilTPBZ" lunit="cm" x="0.27844" y="1193" z="6017"/>
-
-    <box name="FoilLayerX" lunit="cm" x="1201" y="1193" z="0.25"/>
-    <box name="FoilTPBX" lunit="cm" x="1201" y="1193" z="0.27844"/>
-
-
    <box name="CRM" lunit="cm" 
       x="301" 
       y="1200.03" 
@@ -545,6 +581,7 @@
  <volume name="pmtCoatVol">
   <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -3922,36 +3959,6 @@
   <materialref ref="Copper_Beryllium_alloy25"/>
   <solidref ref="solLEMs"/>
  </volume>
-
-
-    <volume name="volFoilLayerZ">
-      <materialref ref="vm2000"/>
-      <solidref ref="FoilLayerZ"/>
-    </volume>
-
-    <volume name="volFoilZ">
-      <materialref ref="TPB"/>
-      <solidref ref="FoilTPBZ"/>
-      <physvol>
-        <volumeref ref="volFoilLayerZ"/>
-        <position name="posFoilLayerZ" unit="cm" x="-0.01422" y="0" z="0"/>
-      </physvol>
-    </volume>
-
-    <volume name="volFoilLayerX">
-      <materialref ref="vm2000"/>
-      <solidref ref="FoilLayerX"/>
-    </volume>
-
-    <volume name="volFoilX">
-      <materialref ref="TPB"/>
-      <solidref ref="FoilTPBX"/>
-      <physvol>
-        <volumeref ref="volFoilLayerX"/>
-        <position name="posFoilLayerX" unit="cm" x="0" y="0" z="-0.01422"/>
-      </physvol>
-    </volume>
-
 
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
@@ -9227,26 +9234,6 @@
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="0" y="654.5" z="0"/>
 
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZpos" unit="cm" x="602.2" y="57.8150000000001" z="0" />
-     <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZneg" unit="cm"  x="-602.2" y="57.8150000000001" z="0" />
-     <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXpos" unit="cm"  x="0" y="57.8150000000001" z="3010.2" />
-     <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXneg" unit="cm"  x="0" y="57.8150000000001" z="-3010.2" />
-     <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
   </physvol>
     </volume>
 

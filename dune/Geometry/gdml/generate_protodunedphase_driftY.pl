@@ -8,6 +8,8 @@
 #  and number of CRM's). The beam window is not included in this version! 
 #  For more info, please contact Christoph Alt: christoph.alt@cern.ch 
 #
+#  vgalymov: fixed the CRP numbering based on the actual convention 
+#
 ##################################################################################
 
 
@@ -22,7 +24,8 @@ GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
 	    "wires|w:s" => \$wires,
-	    "optical|opt:s" => \$optical);
+	    "optical|opt:s" => \$optical,
+	    "pmtdist|pmt:s" => \$pmtdist);
 
 if ( defined $help )
 {
@@ -74,10 +77,17 @@ if (defined $optical)
     }
 }
 
+if ($pmtdist == 1 )
+{
+
+   $basename = $basename."_uniform";
+}
+
 if ( $wires_on == 0 )
 {
     $basename = $basename."_nowires";
 }
+
 
 #if ( $workspace == 1 )
 #{
@@ -169,43 +179,89 @@ $FFSPositionZ = 309.593;
  $HeightPMT = 37.0;
 
 #pmts not equally spaced:
- @pmt_pos = ( ' z="-238" x="-170" ', #pmt1
-		' z="-238" x="-34" ', #pmt2
-		' z="-238" x="34" ', #pmt3
-		' z="-238" x="170" ', #pmt4
-		' z="-170" x="-238" ', #pmt5
-		' z="-170" x="-102" ', #pmt6
-		' z="-170" x="102" ', #pmt7
-		' z="-170" x="238" ', #pmt8
-		' z="-102" x="-170" ', #pmt9
-		' z="-102" x="-34" ', #pmt10
-		' z="-102" x="34" ', #pmt11
-		' z="-102" x="170" ', #pmt12
-		' z="-34" x="-238" ', #pmt13
-		' z="-34" x="-102" ', #pmt14
-		' z="-34" x="-34" ', #pmt15
-		' z="-34" x="34" ', #pmt16
-		' z="-34" x="102" ', #pmt17
-		' z="-34" x="238" ', #pmt18
-		' z="34" x="-238" ', #pmt19
-		' z="34" x="-102" ', #pmt20
-		' z="34" x="-34" ', #pmt21
-		' z="34" x="34" ', #pmt22
-		' z="34" x="102" ', #pmt23
-		' z="34" x="238" ', #pmt24
-		' z="102" x="-170" ', #pmt25
-		' z="102" x="-34" ', #pmt26
-		' z="102" x="34" ', #pmt27
-		' z="102" x="170" ', #pmt28
-		' z="170" x="-238" ', #pmt29
-		' z="170" x="-102" ', #pmt30
-		' z="170" x="102" ', #pmt31
-		' z="170" x="238" ', #pmt32
-		' z="238" x="-170" ', #pmt33
-		' z="238" x="-34" ', #pmt34
-		' z="238" x="34" ', #pmt35
-		' z="238" x="170" '); #PMT36
 
+
+if ( $pmtdist == 0) #new non uniform distribution
+{
+ @pmt_TPB = (2,10,15,21,26,34);
+ @pmt_pos = (
+		' z="170" x="238" ', #pmt0"
+		' z="34" x="238" ', #pmt1"
+		' z="-34" x="238" ', #pmt2TPB"
+		' z="-170" x="238" ', #pmt3"
+		' z="102" x="170" ', #pmt4"
+		' z="-34" x="170" ', #pmt5"
+		' z="-102" x="170" ', #pmt6"
+		' z="-238" x="170" ', #pmt7"
+		' z="170" x="102" ', #pmt8"
+		' z="34" x="102" ', #pmt9"
+		' z="-34" x="102" ', #pmt10TPB"
+		' z="-170" x="102" ', #pmt11"
+		' z="238" x="34" ', #pmt12"
+		' z="102" x="34" ', #pmt13"
+		' z="34" x="34" ', #pmt14"
+		' z="-34" x="34" ', #pmt15TPB"
+		' z="-102" x="34" ', #pmt16"
+		' z="-238" x="34" ', #pmt17"
+		' z="238" x="-34" ', #pmt18"
+		' z="102" x="-34" ', #pmt19"
+		' z="34" x="-34" ', #pmt20"
+		' z="-34" x="-34" ', #pmt21TPB"
+		' z="-102" x="-34" ', #pmt22"
+		' z="-238" x="-34" ', #pmt23"
+		' z="170" x="-102" ', #pmt24"
+		' z="34" x="-102" ', #pmt25"
+		' z="-34" x="-102" ', #pmt26TPB"
+		' z="-170" x="-102" ', #pmt27"
+		' z="102" x="-170" ', #pmt28"
+		' z="-34" x="-170" ', #pmt29"
+		' z="-102" x="-170" ', #pmt30"
+		' z="-238" x="-170" ', #pmt31"
+		' z="170" x="-238" ', #pmt32"
+		' z="34" x="-238" ', #pmt33"
+		' z="-34" x="-238" ', #pmt34TPB"
+		' z="-170" x="-238" '); #pmt35"
+}
+else #old and deprecated uniform distribution.
+{
+ @pmt_TPB = ();
+ @pmt_pos = ( ' z="-238" x="-170" ', #pmt35
+		' z="-238" x="-34" ', #pmt34
+		' z="-238" x="34" ', #pmt33
+		' z="-238" x="170" ', #pmt32
+		' z="-170" x="-238" ', #pmt31
+		' z="-170" x="-102" ', #pmt30
+		' z="-170" x="102" ', #pmt29
+		' z="-170" x="238" ', #pmt28
+		' z="-102" x="-170" ', #pmt27
+		' z="-102" x="-34" ', #pmt26
+		' z="-102" x="34" ', #pmt25
+		' z="-102" x="170" ', #pmt24
+		' z="-34" x="-238" ', #pmt23
+		' z="-34" x="-102" ', #pmt22
+		' z="-34" x="-34" ', #pmt21
+		' z="-34" x="34" ', #pmt20
+		' z="-34" x="102" ', #pmt19
+		' z="-34" x="238" ', #pmt18
+		' z="34" x="-238" ', #pmt17
+		' z="34" x="-102" ', #pmt16
+		' z="34" x="-34" ', #pmt15
+		' z="34" x="34" ', #pmt14
+		' z="34" x="102" ', #pmt13
+		' z="34" x="238" ', #pmt12
+		' z="102" x="-170" ', #pmt11
+		' z="102" x="-34" ', #pmt10
+		' z="102" x="34" ', #pmt9
+		' z="102" x="170" ', #pmt8
+		' z="170" x="-238" ', #pmt7
+		' z="170" x="-102" ', #pmt6
+		' z="170" x="102" ', #pmt5
+		' z="170" x="238" ', #pmt4
+		' z="238" x="-170" ', #pmt3
+		' z="238" x="-34" ', #pmt2
+		' z="238" x="34" ', #pmt1
+		' z="238" x="170" '); #PMT0
+}
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
@@ -451,7 +507,7 @@ for($ii=0;$ii<$ExtractionGridSizeZ;$ii=$ii+$ExtractionGridPitch)
   <physvol>
    <volumeref ref="volExtractionGridCable"/>
    <position name="posExtractionGridCable$ii" unit="cm" x="0" y="0" z="@{[$ii-0.5*$ExtractionGridSizeZ]}"/>
-   <rotation name="GGrot$ii" unit="deg" x="0" y="90" z="0" /> 
+   <rotation name="GG0rot$ii" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
 EOF
  
@@ -463,7 +519,7 @@ for($jj=0;$jj<$ExtractionGridSizeX;$jj=$jj+$ExtractionGridPitch)
   <physvol>
    <volumeref ref="volExtractionGridCable"/>
    <position name="posExtractionGridCableLat$jj" unit="cm" x="@{[$jj-0.5*$ExtractionGridSizeX]}" y="0" z="0"/>
-   <rotation name="GGrotbis$jj" unit="deg" x="0" y="0" z="0" /> 
+   <rotation name="GG1rotbis$jj" unit="deg" x="0" y="0" z="0" /> 
    </physvol>
 EOF
  
@@ -1180,7 +1236,7 @@ for($ii=0;$ii<$GroundGridInnerStructureNumberOfBars;$ii++)
   <physvol>
    <volumeref ref="volGroundGridInnerBox"/>
    <position name="posGGInnerBoxLat$ii" unit="cm" x="@{[$xGGorigin-0.5*$GroundGridTubeLength-$GroundGridTorRad+0.5*($GroundGridInnerStructureLength-$GroundGridTubeLength)]}" y="0" z="@{[zGGoriging-0.5*$GroundGridTubeLength+$GroundGridInnerStructureWidth +($ii+1)*$GroundGridInnerStructureSeparation - 0.5*$GroundGridTorRad- 0.5*$GroundGridOuterRadious]}"/>
-   <rotation name="GGrot$aux2" unit="deg" x="0" y="90" z="0" /> 
+   <rotation name="GG2rot$aux2" unit="deg" x="0" y="90" z="0" /> 
    </physvol>
 EOF
     $aux++;   
@@ -1703,6 +1759,14 @@ sub gen_pmt {
 	print PMT <<EOF;
 
 <solids>
+
+ <tube name="PMT_PENPlate"
+  rmax="12"
+  z="0.125"
+  deltaphi="360"
+  aunit="deg"
+  lunit="cm"/>
+
  <tube name="PMTVolume"
   rmax="@{[(6.5*2.54)]}"
   z="@{[(11.1*2.54)]}"
@@ -1737,8 +1801,9 @@ sub gen_pmt {
 
 <structure>
  <volume name="pmtCoatVol">
-  <materialref ref="TPB"/>
+  <materialref ref="LAr"/>
   <solidref ref="pmt0x7fb8f48a1eb0"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
   </volume>
 
  <volume name="allpmt">
@@ -1755,13 +1820,35 @@ sub gen_pmt {
    <position name="posallpmt" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
   </physvol>
 
- <physvol name="volOpDetSensitive">
+ <physvol name="volOpDetSensitive0">
   <volumeref ref="pmtCoatVol"/>
-  <position name="posOpDetSensitive" unit="cm" x="0" y="0" z="@{[1.27*2.54 - (2.23*2.54)]}"/>
+  <position name="posOpDetSensitive0" unit="cm" x="0" y="0" z="@{[1.27*2.54 - (2.23*2.54)]}"/>
   </physvol>
 
  </volume>
 
+
+ <volume name="pmtFoilVol">
+  <materialref ref="LAr"/>
+  <solidref ref="PMT_PENPlate"/>
+  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
+  </volume>
+
+<volume name="volPMT_foil">
+  <materialref ref="LAr"/>
+  <solidref ref="PMTVolume"/>
+
+  <physvol>
+   <volumeref ref="allpmt"/>
+   <position name="posallpmt2" unit="cm" x="0" y="0" z="@{[1.27*2.54]}"/>
+  </physvol>
+
+ <physvol name="volOpDetSensitive1">
+  <volumeref ref="pmtFoilVol"/>
+  <position name="posOpDetSensitive1" unit="cm" x="0" y="0" z="@{[1.27*2.54+7.9]}"/>
+  </physvol>
+
+ </volume>
 </structure>
 
 EOF
@@ -1862,36 +1949,53 @@ if ($tpc_on==1) # place TPC inside croysotat
 {
 
 $posY =  $Argon_y/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
-for($ii=0;$ii<$nCRM_z;$ii++)
-{
-    $posZ = -0.5*$Argon_z + $zLArBuffer + ($ii+0.5)*$lengthCRM;
+$posZ = -0.5*$Argon_z + $zLArBuffer;
+$posX = -0.5*$Argon_x + $xLArBuffer;
 
-    for($jj=0;$jj<$nCRM_x;$jj++)
-    {
-	$posX = -0.5*$Argon_x + $xLArBuffer + ($jj+0.5)*$widthCRM;
-	print CRYO <<EOF;
-      <physvol>
+@crp_posx = ( $posX+1.5*$lengthCRM, $posX+1.5*$lengthCRM, $posX+0.5*$lengthCRM, $posX+0.5*$lengthCRM );
+@crp_posz = ( $posZ+1.5*$lengthCRM, $posZ+0.5*$lengthCRM, $posZ+0.5*$lengthCRM, $posZ+1.5*$lengthCRM );
+
+$idx = 0;
+foreach $posZ (@crp_posz) {
+    $posX = @crp_posx[$idx];
+    print CRYO <<EOF;
+    <physvol>
         <volumeref ref="volTPC"/>
-	<position name="posTPC\-$ii\-$jj" unit="cm"
-           x="$posX" y="$posY" z="$posZ"/>
+	<position name="posTPC\-$idx" unit="cm"
+	x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF
-    }
+    
+    $idx++;
 }
 
 }
 
   if ( $pmt_switch eq "on" ) {
     $pmt_pos_y =  -$Argon_y/2 + 0.5*($HeightPMT);
+    $jj=0;
     for ( $i=0; $i<36; $i=$i+1 ) { # pmts with coating
+
+      if ( @pmt_TPB[$jj] eq $i ) {
+
       print CRYO <<EOF;
   <physvol>
    <volumeref ref="volPMT_coated"/>
-   
    <position name="posPMT$i" unit="cm" y="$pmt_pos_y" @pmt_pos[$i]/>
    <rotationref ref="rPlus90AboutX"/>
   </physvol>
 EOF
+      $jj=$jj+1;
+      }
+      else{
+      print CRYO <<EOF;
+  <physvol>
+   <volumeref ref="volPMT_foil"/>
+   <position name="posPMT$i" unit="cm" y="$pmt_pos_y" @pmt_pos[$i]/>
+   <rotationref ref="rPlus90AboutX"/>
+  </physvol>
+EOF
+      }
     }
 
   }
