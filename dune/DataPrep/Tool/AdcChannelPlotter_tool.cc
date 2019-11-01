@@ -4,7 +4,6 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -46,21 +45,13 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotSigMin(ps.get<float>("PlotSigMin")),
   m_PlotSigMax(ps.get<float>("PlotSigMax")),
   m_ColorBad(ps.get<Index>("ColorBad")),
-  m_ColorNoisy(ps.get<Index>("ColorNoisy")),
-  m_HistManager(ps.get<string>("HistManager")),
-  m_phm(nullptr) {
+  m_ColorNoisy(ps.get<Index>("ColorNoisy")) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
     return;
   }
   DuneToolManager* ptm = DuneToolManager::instance();
-  if ( m_HistManager.size() ) {
-    m_phm = ptm->getShared<HistogramManager>(m_HistManager);
-    if ( m_phm == nullptr ) {
-      cout << myname << "WARNING: Histoggram manager not found: " << m_HistManager << endl;
-    }
-  }
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
@@ -75,7 +66,6 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
       m_ColorNoisy = 0;
     }
   }
-
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "     HistTypes: [";
@@ -95,8 +85,12 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
     cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
     cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
-    cout << myname << "   HistManager: " << m_HistManager << endl;
   }
+}
+
+//**********************************************************************
+
+AdcChannelPlotter::~AdcChannelPlotter() {
 }
 
 //**********************************************************************
@@ -120,6 +114,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     pfile = TFile::Open(fname.c_str(), "UPDATE");
   }
   vector<TH1*> hists;
+  bool resManage = true;   // Does returned data map manage the histogram
   for ( string type : m_HistTypes ) {
     TH1* ph = nullptr;
     string hname = nameReplace(hnameBase, acd, type);
@@ -151,10 +146,20 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
         cout << myname << "WARNING: Raw data is empty." << endl;
         continue;
       }
-      htitl += "; ADC count; # samples";
-      unsigned int nadc = 4096;
-      ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
-      hists.push_back(ph);
+      // Create a new histogram if %EVENT% appears in the name.
+      bool useExistingHist = m_HistName.find("%EVENT%") == string::npos;
+      if ( useExistingHist ) {
+        HistMap::iterator ihst = getState().hists.find(hname);
+        if ( ihst != getState().hists.end() ) ph = ihst->second;
+        resManage = false;
+      }
+      if ( ph == nullptr ) {
+        htitl += "; ADC count; # samples";
+        unsigned int nadc = 4096;
+        ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
+        if ( ! useExistingHist ) hists.push_back(ph);
+        if ( useExistingHist ) getState().hists[hname] = ph;
+      }
       float sigMin = acd.raw[0];
       float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
@@ -202,15 +207,6 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     }
     if ( m_ColorNoisy && m_pChannelStatusProvider->IsNoisy(acd.channel) ) {
       ph->SetLineColor(m_ColorNoisy);
-    }
-    bool resManage = m_phm == nullptr;
-    if ( ! resManage ) {
-      int rstat = m_phm->manage(ph);
-      if ( rstat ) {
-        cout << myname << "WARNING: Attempt to manage histogram " << ph->GetName()
-             << " with manager " << m_HistManager << " returned error " << rstat << endl;
-        resManage = true;
-      }
     }
     res.setHist(type, ph, resManage);
   }

@@ -63,6 +63,7 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
   m_FitRmsMin(ps.get<float>("FitRmsMin")),
   m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
@@ -89,9 +90,20 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  for ( Index flg : m_SkipFlags ) m_skipFlags.insert(flg);
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "      SkipFlags: [";
+    bool first = true;
+    for ( Index flg : m_SkipFlags ) {
+       if ( first ) first = false;
+       else cout << ", ";
+       cout << flg;
+    }
+    cout << "]" << endl;
+    cout << myname << "      FitRmsMin: " << m_FitRmsMin << endl;
+    cout << myname << "      FitRmsMax: " << m_FitRmsMax << endl;
     cout << myname << "       HistName: " << m_HistName << endl;
     cout << myname << "      HistTitle: " << m_HistTitle << endl;
     cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
@@ -253,6 +265,22 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return res.setStatus(1);
   }
+  // Flag samples to keep in pedestal fit.
+  vector<bool> keep(nsam, true);
+  Index nkeep = 0;
+  for ( Index isam=0; isam<nsam; ++isam ) {
+    if ( isam >= acd.flags.size() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+      break;
+    }
+    Index flg = acd.flags[isam];
+    if ( m_skipFlags.count(flg) ) keep[isam] = false;
+    else ++nkeep;
+  }
+  if ( nkeep == 0 ) {
+    if ( m_LogLevel >= 2 ) cout << myname << "WARNING: No raw data is selected." << endl;
+    return res.setStatus(2);
+  }
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   string pfname = nameReplace(m_PlotFileName, acd, false);
@@ -266,7 +294,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   TH1* phr = new TH1F(hname.c_str(), htitl.c_str(), nbin, 0, xmax);
   phr->SetDirectory(0);
   for ( Index isam=0; isam<nsam; ++isam ) {
-    phr->Fill(acd.raw[isam]);
+    if ( keep[isam] ) phr->Fill(acd.raw[isam]);
   }
   int rbinmax1 = phr->GetMaximumBin();
   double radcmax1 = phr->GetBinCenter(rbinmax1);
@@ -314,7 +342,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( val < adc1 ) ++countLo;
     if ( val >= adc2 ) ++countHi;
     ++count;
-    phf->Fill(acd.raw[isam]);
+    if ( keep[isam] ) phf->Fill(acd.raw[isam]);
   }
   float fracLo = count > 0 ? float(countLo)/count : 0.0;
   float fracHi = count > 0 ? float(countHi)/count : 0.0;

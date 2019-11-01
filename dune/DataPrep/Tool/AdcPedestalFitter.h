@@ -10,6 +10,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   SkipFlags - Samples with these flags are excluded
 //   FitRmsMin: Lower limit for RMS fit range.
 //   FitRmsMax: Upper limit for RMS fit range.
 //   HistName:  Name for the histogram.
@@ -77,6 +78,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
+#include <set>
 
 class HistogramManager;
 class AdcChannelStringTool;
@@ -89,6 +91,8 @@ class AdcPedestalFitter
 public:
 
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
+  using IndexSet = std::set<Index>;
 
   AdcPedestalFitter(fhicl::ParameterSet const& ps);
 
@@ -105,6 +109,7 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  IndexVector m_SkipFlags;
   float m_FitRmsMin;
   float m_FitRmsMax;
   Name m_HistName;
@@ -123,6 +128,9 @@ private:
 
   // Histogram manager.
   HistogramManager* m_phm;
+
+  // Derived from config.
+  IndexSet m_skipFlags;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, bool isTitle) const;

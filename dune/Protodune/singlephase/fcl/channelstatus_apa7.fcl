@@ -1,0 +1,50 @@
+# channelstatus_pdsp.fcl
+#
+# David Adams
+# October 2018
+#
+# Bad and noisy channels for protDUNE single phase.
+
+BEGIN_PROLOG
+
+apa7warm_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+    ##### v #####
+    # femb713v
+    1085,  # Most signal appears below 300
+    # femb708v
+    1285,  # All signal appears below 300
+    # femb707v
+    1325,  # Most signal appears below 300
+    # femb705v
+    1405,  # Most signal appears below 300
+    ##### z #####
+    # femb710x
+    2558   # Small RMS ==> disconnected wire
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+  ]
+
+}
+
+apa7_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   []
+
+  # list of bad noisy channels:
+  NoisyChannels: []
+
+}
+
+END_PROLOG
