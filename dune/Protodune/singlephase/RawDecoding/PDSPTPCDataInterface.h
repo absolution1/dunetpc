@@ -68,6 +68,9 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 
   unsigned int  _default_crate_if_unexpected;
 
+  long int _min_offline_channel;  // min offline channel to decode.  <0: no limit
+  long int _max_offline_channel;  // max offline channel to decode.  <0: no limit.  max<min: no limit
+
   bool          _enforce_same_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;

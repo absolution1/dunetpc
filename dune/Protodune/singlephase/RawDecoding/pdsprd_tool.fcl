@@ -19,6 +19,9 @@ pdsprd_tool:
 
   DefaultCrateIfUnexpected:  3     #  Use for coldbox data -- unexpected means not in the range 1-6.
 
+  MinOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit
+  MaxOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit.  < MinOfflineChannel: no limit
+
   RCEDropSmallFrags: true
   RCESmallFragSize: 500000
   RCEDropFragsWithBadSF: true    # skip fragments with invalid  slot and fiber numbers
