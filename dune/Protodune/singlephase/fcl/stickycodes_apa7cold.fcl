@@ -1,10 +1,10 @@
-# stickycodes_pdsp.fcl
+# stickycodes_apa7cold.fcl
 #
 # David Adams
 # October 2019
 #
 # Sticky codes for APA 7 cold.
-# From run 10054, events 400001-400050
+# From run 10054, events 400001-400101
 
 tools.apa7cold_sticky_codes_ped: {
   tool_type: FclStickyCodeFlagger
@@ -79,7 +79,7 @@ tools.apa7cold_sticky_codes_ped: {
     # femb702v
     # femb701v
     chan01582: [2239]
-    ##### v #####
+    ##### c #####
     # femb720x
     # femb719x
     # femb718x
@@ -90,6 +90,7 @@ tools.apa7cold_sticky_codes_ped: {
     # femb713x
     # femb712x
     # femb711x
+    ##### z #####
     # femb701x
     # femb702x
     # femb703x
@@ -103,22 +104,9 @@ tools.apa7cold_sticky_codes_ped: {
   }
   StickyRanges: {
     ##### u #####
-    # femb713u
-    # femb705u
-    chan00590: [2060, 2150]  # 100 events in run9914 show 2nd peak at 2080-2132
-    chan00592: [0, 350]
-    chan00594: [0, 350]
-    chan00596: [0, 350]    # ~1/3 bad
-    chan00598: [0, 350]
     ##### v #####
-    # femb713v
-    chan01085: [0, 350]    # Mostly bad
-    # femb708v
-    chan01285: [0, 350]    # All bad
-    # femb707v
-    chan01325: [0, 350]    # Mostly bad
-    # femb705v
-    chan01405: [0, 350]    # Mostly bad
+    ##### c #####
+    ##### z #####
   }
 }
 
