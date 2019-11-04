@@ -41,6 +41,9 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
   
   _default_crate_if_unexpected = p.get<unsigned int>("DefaultCrateIfUnexpected",3);
 
+  _min_offline_channel = p.get<long int>("MinOfflineChannel",-1);
+  _max_offline_channel = p.get<long int>("MaxOfflineChannel",-1);
+
   _drop_small_rce_frags = p.get<bool>("RCEDropSmallFrags",true);
   _rce_frag_small_size = p.get<unsigned int>("RCESmallFragSize",10000);
   _rce_drop_frags_with_badsf = p.get<bool>("RCEDropFragsWithBadSF",true);
@@ -483,6 +486,9 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	{
 	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
+	  if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
+	      (offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+
 	  v_adc.clear();
 
 	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
@@ -748,11 +754,6 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
   // Fill the adc vector.  
 
   for(unsigned ch = 0; ch < n_channels; ++ch) {
-    v_adc.clear();
-    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
-    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
-      v_adc.push_back(waveform.at(nframe));  
-    }
 
     // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
     
@@ -787,6 +788,17 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
     if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
 
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
+
+    // skip this channel if we are asked to.
+
+    if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
+	(offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+
+    v_adc.clear();
+    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
+    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
+      v_adc.push_back(waveform.at(nframe));  
+    }
 
     if ( v_adc.size() != _full_tick_count)
       {

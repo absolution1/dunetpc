@@ -79,6 +79,7 @@ tools.channelGroupsApa7: {
 # Fit ADC distribution to get pedestal.
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
+  SkipFlags: [8, 9, 10, 11, 12]
   LogLevel: 1
   FitRmsMin:  3.0
   FitRmsMax: 20.0
