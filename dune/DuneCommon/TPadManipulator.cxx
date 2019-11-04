@@ -1532,6 +1532,7 @@ int TPadManipulator::drawLines() {
 
 void TPadManipulator::Streamer(TBuffer& buf) {
   const string myname = "TPadManipulator::Streamer: ";
+  int dbg = 0;
   TClass* pclass = TClass::GetClass("TPadManipulator");
   if ( buf.IsReading() ) {
     if ( pclass == nullptr ) {
@@ -1554,11 +1555,13 @@ void TPadManipulator::Streamer(TBuffer& buf) {
       return;
     }
     // Log message.
-    string msg = haveHist() ? "histogram" : haveGraph() ? "graph" : "no primary";
-    cout << myname << "Writing pad with " << msg << " and "
-         << objects().size() << " extra objects and "
-         << m_subMans.size() << " subpads." << endl;
-    if ( haveHistOrGraph() ) object()->Print();
+    if ( dbg ) {
+      string msg = haveHist() ? "histogram" : haveGraph() ? "graph" : "no primary";
+      cout << myname << "Writing pad with " << msg << " and "
+           << objects().size() << " extra objects and "
+           << m_subMans.size() << " subpads." << endl;
+      if ( haveHistOrGraph() ) object()->Print();
+    }
     // Stream out.
     pclass->WriteBuffer(buf, this);
   }

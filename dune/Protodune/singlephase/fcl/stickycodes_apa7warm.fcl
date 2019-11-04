@@ -1,11 +1,11 @@
-# stickycodes_pdsp.fcl
+# stickycodes_apa7warm.fcl
 #
 # David Adams
-# October 2018
+# October 2019
 #
-# Sticky codes for protoDUNE single phase.
+# Sticky codes for APA 7 in coldbox from run 9914.
 
-tools.apa7_sticky_codes_ped: {
+tools.apa7warm_sticky_codes_ped: {
   tool_type: FclStickyCodeFlagger
   LogLevel: 1
   StickyCode: 11
@@ -13,60 +13,90 @@ tools.apa7_sticky_codes_ped: {
     ##### u #####
     # femb711u
     # femb712u
-    chan00056: [2239]
     # femb713u
     # femb714u
     # femb715u
+    chan00145: [2239]
     # femb716u
+    chan00202: [2239]
+    chan00218: [2239]
     # femb717u
     chan00251: [2239]
+    chan00257: [2239]
+    chan00267: [2239]
+    chan00269: [2239]
     # femb718u
+    chan00283: [2239]
     chan00307: [2239]
     # femb719u
+    chan00327: [2303]
     # femb720u
+    chan00376: [2239]
     chan00397: [2239]
     # femb701u
+    chan00406: [2239]
+    chan00414: [2239]
     # femb702u
+    chan00449: [2239]
     # femb703u
     chan00516: [2175]
     # femb704u
     chan00532: [2239]
     # femb705u
+    chan00568: [2239]
     # femb706u
+    chan00601: [2239]
+    chan00625: [2239]
     # femb707u
     chan00651: [2175]
+    chan00668: [2175]
     # femb708u
     # femb709u
     chan00743: [2239]
+    chan00757: [2239]
     # femb710u
+    chan00798: [2239]
+    chan00799: [2239, 2322]
     ##### v #####
     # femb720v
     chan00809: [2239]
     # femb719v
+    chan00858: [2239]
+    chan00864: [2239]
+    chan00872: [2303]
     # femb718v
     chan00918: [2239]
     # femb717v
+    chan00936: [2239]
+    chan00940: [2239]
+    chan00948: [2239]
     # femb716v
+    chan00972: [2239]
     chan00976: [2239]
     # femb715v
     # femb714v
     # femb713v
     # femb712v
     chan01130: [2239]
+    chan01152: [2239]
     # femb711v
     # femb710v
+    chan01216: [2239]
     chan01230: [2239]
     # femb709v
     # femb708v
+    chan01303: [2239]
     # femb707v
     # femb706v
+    chan01372: [2239]
     # femb705v
     # femb704v
     # femb703v
+    chan01480: [2303]
     # femb702v
     # femb701v
     chan01582: [2239]
-    ##### v #####
+    ##### c #####
     # femb720x
     # femb719x
     # femb718x
@@ -77,6 +107,7 @@ tools.apa7_sticky_codes_ped: {
     # femb713x
     # femb712x
     # femb711x
+    ##### z #####
     # femb701x
     # femb702x
     # femb703x
@@ -111,7 +142,7 @@ tools.apa7_sticky_codes_ped: {
   }
 }
 
-tools.apa7_sticky_codes_notped: {
+tools.apa7warm_sticky_codes_notped: {
   tool_type: FclStickyCodeFlagger
   LogLevel: 1
   StickyCode: 12

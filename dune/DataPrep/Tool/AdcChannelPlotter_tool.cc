@@ -45,7 +45,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotSigMin(ps.get<float>("PlotSigMin")),
   m_PlotSigMax(ps.get<float>("PlotSigMax")),
   m_ColorBad(ps.get<Index>("ColorBad")),
-  m_ColorNoisy(ps.get<Index>("ColorNoisy")) {
+  m_ColorNoisy(ps.get<Index>("ColorNoisy")),
+  m_SkipFlags(ps.get<IndexVector>("SkipFlags")) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
@@ -66,6 +67,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
       m_ColorNoisy = 0;
     }
   }
+  for ( Index flg : m_SkipFlags ) m_skipFlags.insert(flg);
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "     HistTypes: [";
@@ -85,6 +87,14 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
     cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
     cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
+    cout << myname << "      SkipFlags: [";
+    first = true;
+    for ( Index flg : m_SkipFlags ) {
+       if ( first ) first = false;
+       else cout << ", ";
+       cout << flg;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -146,6 +156,22 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
         cout << myname << "WARNING: Raw data is empty." << endl;
         continue;
       }
+      // Flag samples to keep in pedestal fit.
+      vector<bool> keep(nsam, true);
+      Index nkeep = 0;
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        if ( isam >= acd.flags.size() ) {
+          if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+          break;
+        }
+        Index flg = acd.flags[isam];
+        if ( m_skipFlags.count(flg) ) keep[isam] = false;
+        else ++nkeep;
+      }
+      if ( nkeep == 0 ) {
+        if ( m_LogLevel >= 2 ) cout << myname << "WARNING: No raw data is selected." << endl;
+        return res.setStatus(2);
+      }
       // Create a new histogram if %EVENT% appears in the name.
       bool useExistingHist = m_HistName.find("%EVENT%") == string::npos;
       if ( useExistingHist ) {
@@ -164,7 +190,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.raw[isam];
-        ph->Fill(sig);
+        if ( keep[isam] ) ph->Fill(sig);
         if ( isam >= m_PlotSamMin && isam < m_PlotSamMax ) {
           if ( sig < sigMin ) sigMin = sig;
           if ( sig > sigMax ) sigMax = sig;

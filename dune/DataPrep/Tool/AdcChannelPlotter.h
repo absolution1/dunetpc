@@ -29,6 +29,7 @@
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
+//   SkipFlags - Samples with these flags are excluded from dist plots
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -45,6 +46,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 class AdcChannelStringTool;
 namespace lariov {
@@ -69,6 +71,8 @@ private:
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
+  using IndexSet = std::set<Index>;
 
   // Configuration data.
   int m_LogLevel;
@@ -84,12 +88,16 @@ private:
   float m_PlotSigMax;
   Index m_ColorBad;
   Index m_ColorNoisy;
+  IndexVector m_SkipFlags;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
   // Channel status provider.
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
+
+  // Derived from config.
+  IndexSet m_skipFlags;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Name type) const;

@@ -77,7 +77,7 @@ tools.adcPlotRaw: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Dump prepared ADC channel waveform to a histogram.
@@ -96,7 +96,7 @@ tools.adcPlotPrepared: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Dump ADC channel distribution to a histogram.
@@ -115,7 +115,7 @@ tools.adcPlotRawDist: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Fit ADC distribution to get pedestal.
