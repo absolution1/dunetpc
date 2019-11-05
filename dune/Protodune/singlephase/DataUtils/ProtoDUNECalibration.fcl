@@ -8,16 +8,15 @@ CalorimetryParameters: {
   Wion:         23.6e-6
   alpha:        0.93
 
-  #norm_factor:  0.983
   norm_factor: 0.9947
-  #calib_factor: 6.155e-3
   calib_factor: 4.86e-3
 
-  X_correction: "/dune/app/users/hyliao/WORK/analysis/protodune/proton/analysis/mcdata/sce/MC_PDSPProd2_reco_sce_1GeV/cali_const_new/Xcalo_sce.root"
+  X_correction: "/pnfs/dune/persistent/users/apaudel/prod2_calibfactors/Xcalo_sce.root"
 
-  YZ_correction: "/dune/app/users/hyliao/WORK/analysis/protodune/proton/analysis/mcdata/sce/MC_PDSPProd2_reco_sce_1GeV/cali_const_new/YZcalo_sce.root"
+  YZ_correction: "/pnfs/dune/persistent/users/apaudel/prod2_calibfactors/YZcalo_sce.root"
 
-  E_field_correction: "/dune/app/users/hyliao/WORK/analysis/protodune/proton/analysis/realdata/p1gev/code_timedep_trkpos/PDSPProd2/with_SCE_cali/cali_const_new/SCE_DataDriven_180kV_v3.root"
+  #E_field_correction: "/dune/app/users/hyliao/WORK/analysis/protodune/proton/analysis/realdata/p1gev/code_timedep_trkpos/PDSPProd2/with_SCE_cali/cali_const_new/SCE_DataDriven_180kV_v3.root"
+  E_field_correction: "/dune/app/users/apaudel/v083001/prod2_calibfactors/SCE_DataDriven_180kV_v3.root"
 }
 
 END_PROLOG
