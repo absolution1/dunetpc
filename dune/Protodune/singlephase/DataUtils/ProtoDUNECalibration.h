@@ -56,9 +56,6 @@ namespace protoana{
       TH3F * ey_pos;
       TH3F * ez_pos;
 
-      bool UseNewVersion;
-
-
       ProtoDUNETrackUtils trackUtil;
 
   };
