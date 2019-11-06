@@ -10,7 +10,7 @@ art_make_library(  LIBRARY_NAME  dune_Calib
 		        SOURCE ${src_files}
 			LIBRARIES
 	                wda
-	                nutools_IFDatabase
+	                nuevdb_IFDatabase
                         cetlib cetlib_except
                         ${MF_MESSAGELOGGER}
 			${FHICLCPP}
