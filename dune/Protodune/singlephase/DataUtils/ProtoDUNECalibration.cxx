@@ -6,6 +6,7 @@ protoana::ProtoDUNECalibration::ProtoDUNECalibration(const fhicl::ParameterSet &
   betap( pset.get< double >( "betap" ) ),
   Rho( pset.get< double >( "Rho" ) ),
   Wion( pset.get< double >( "Wion" ) ),
+  alpha( pset.get< double >( "alpha" ) ),
   norm_factor( pset.get< double >( "norm_factor" ) ),
   calib_factor( pset.get< double >( "calib_factor" ) ),
   X_correction_name( pset.get< std::string >( "X_correction" ) ),
@@ -30,6 +31,16 @@ protoana::ProtoDUNECalibration::ProtoDUNECalibration(const fhicl::ParameterSet &
   ey_pos = (TH3F*)E_field_file->Get("Reco_ElecField_Y_Pos");
   ez_pos = (TH3F*)E_field_file->Get("Reco_ElecField_Z_Pos");
  
+
+  /*
+  std::cout << "Calibration" << std::endl;
+  std::cout << planeID << std::endl;
+  std::cout << betap << std::endl;
+  std::cout << Rho << std::endl;
+  std::cout << Wion << std::endl;
+  std::cout << norm_factor << std::endl;
+  std::cout << calib_factor << std::endl;
+  */
 }
 
 std::vector< float >  protoana::ProtoDUNECalibration::GetCalibratedCalorimetry(  const recob::Track &track, art::Event const &evt, const std::string trackModule, const std::string caloModule ) {
@@ -82,7 +93,7 @@ std::vector< float >  protoana::ProtoDUNECalibration::GetCalibratedCalorimetry( 
 
 
     double YZ_correction = (
-      hit_x < 0  
+      ( hit_x < 0 )
       ? YZ_neg->GetBinContent( YZ_neg->FindBin( hit_z, hit_y ) ) 
       : YZ_pos->GetBinContent( YZ_pos->FindBin( hit_z, hit_y ) )  
     );
