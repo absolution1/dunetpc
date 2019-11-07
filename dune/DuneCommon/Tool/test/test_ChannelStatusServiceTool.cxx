@@ -6,6 +6,7 @@
 // Test ChannelStatusServiceTool.
 
 #include "dune/DuneInterface/AdcTypes.h"
+#include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "TH1F.h"
@@ -24,6 +25,7 @@ using std::endl;
 using std::ofstream;
 using std::istringstream;
 using std::setw;
+using std::vector;
 using fhicl::ParameterSet;
 using Index = unsigned int;
 
@@ -42,10 +44,18 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
+    fout << "#include \"services_dune.fcl\"" << endl;
+    fout << "services.Geometry: @local::protodune_geo" << endl;
+    fout << "services.ExptGeoHelperInterface: @local::dune_geometry_helper" << endl;
+    fout << "services.ChannelStatusService: {" << endl;
+    fout << "  service_provider: SimpleChannelStatusService" << endl;
+    fout << "  BadChannels: [ 1 ]" << endl;
+    fout << "  NoisyChannels: [3, 4]" << endl;
+    fout << "}" << endl;
     fout << "tools: {" << endl;
     fout << "  mytool: {" << endl;
     fout << "    tool_type: ChannelStatusServiceTool" << endl;
-    fout << "    LogLevel: 2" << endl;
+    fout << "    LogLevel: 1" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     if ( useDuneServices ) {
@@ -55,6 +65,10 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }
+
+  cout << myname << line << endl;
+  cout << myname << "Load services." << endl;
+  ArtServiceHelper::load(fclfile);
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool manager." << endl;
@@ -71,10 +85,14 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
 
   cout << myname << line << endl;
   cout << "Check some channels." << endl;
+  vector<Index> chks(20, 0);
+  chks[1] = 1;
+  chks[3] = 2;
+  chks[4] = 2;
   for ( Index icha=0; icha<20; ++icha ) {
     Index chanStat = pcs->get(icha);
     cout << setw(8) << icha << ": " << setw(2) << chanStat << endl;
-    assert( chanStat == AdcChannelStatusUnknown );
+    assert( chanStat == chks[icha] );
   }
 
   cout << myname << line << endl;
@@ -87,7 +105,6 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
   bool useDuneServices = false;
-  Index run = 0;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
@@ -101,7 +118,7 @@ int main(int argc, char* argv[]) {
   if ( argc > 2 ) {
     string sarg(argv[2]);
     istringstream ssarg(argv[2]);
-    ssarg >> run;
+    useDuneServices = sarg == "true" || sarg == "1";
   }
   return test_ChannelStatusServiceTool(useExistingFcl, useDuneServices);
 }
