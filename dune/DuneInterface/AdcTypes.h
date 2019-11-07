@@ -42,9 +42,10 @@ const AdcFlag AdcSetFixed     = 17; // ADC sample is mitigated with set to a fix
 const AdcFlag AdcInterpolated = 18; // ADC sample is mitigated with interpolation
 const AdcFlag AdcExtrapolated = 19; // ADC sample is mitigated with extrapolation
 
-const AdcIndex AdcChannelStatusGood  = 0;
-const AdcIndex AdcChannelStatusBad   = 1;
-const AdcIndex AdcChannelStatusNoisy = 2;
+const AdcIndex AdcChannelStatusUnknown = 99;
+const AdcIndex AdcChannelStatusGood    =  0;
+const AdcIndex AdcChannelStatusBad     =  1;
+const AdcIndex AdcChannelStatusNoisy   =  2;
 
 typedef unsigned int AdcChannel;
 typedef std::vector<AdcChannel> AdcChannelVector;
