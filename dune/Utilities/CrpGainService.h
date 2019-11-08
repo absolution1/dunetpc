@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 
+#include "larcore/Geometry/Geometry.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 
 namespace fhicl {
@@ -39,8 +40,12 @@ namespace sim {
   class SimChannel;
 }
 
+namespace util {
+  class CrpGainService;
+}
+
 class FloatArrayTool;
-class CrpGainService;
+
 
 namespace util
 {
@@ -58,8 +63,7 @@ public:
   double viewCharge( const sim::SimChannel* psc, unsigned itck ) const;
   
   // calculate the gain based on position information
-  //double crpGain( geo::Point_t const &pos ) const;
-  //{ return m_CrpDefGain; } // TO DO
+  double crpGain( geo::Point_t const &pos ) const;
 
   // default value of the effective gain
   double crpDefaultGain() const { return m_CrpDefGain; }
@@ -67,10 +71,10 @@ public:
 private:
   // methods
   bool   checkGeoConfig() const;
-  int    getLemId( int chx, int chy ) const;
-  double getLemGain( int lemid ) const;
-  double getCrpGain( int chx, int chy ) const;
+  int    getLemId( unsigned crp, int chx, int chy ) const;
+  double getCrpGain( unsigned crp, int chx, int chy ) const;
   double getLemTransparency( int chx, int chy ) const;
+  double getLemGain( int lemid ) const;
 
   //
   int    m_LogLevel;

@@ -14,7 +14,6 @@
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "larcore/Geometry/Geometry.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
@@ -61,8 +60,8 @@ util::CrpGainService::CrpGainService(fhicl::ParameterSet const& ps, art::Activit
 
   m_UseDefGain = ((m_plemeff == nullptr) && (m_lemgainmap.empty()));
   
-  //
-  m_geo = &*art::ServiceHandle<geo::Geometry>();
+  // geo service
+  m_geo   = &*art::ServiceHandle<geo::Geometry>();
 
   if(m_LogLevel >= 1 )
     {
@@ -130,7 +129,7 @@ bool util::CrpGainService::checkGeoConfig() const
 // get view charge
 double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned itck ) const
 {
-  const string myname = "util::CrpGainService::getCharge: ";
+  const string myname = "util::CrpGainService::viewCharge: ";
   
   double q = psc->Charge(itck);
   if(q <= 1.0E-3) return 0; //if 0 nothing to do -> return 0
@@ -160,7 +159,8 @@ double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned it
   if(wid.Plane == 0 ) widother = 1;
   const geo::PlaneGeo& pother = tpcgeo.Plane( widother );
   
-  int drift  = std::abs(tpcgeo.DetectDriftDirection())-1;  //x:0, y:1, z:2
+  // get drift axis
+  int drift = std::abs(tpcgeo.DetectDriftDirection())-1;  //x:0, y:1, z:2
   int tcoord = -1;
   if( pthis.View() == geo::kZ )
     {
@@ -197,7 +197,10 @@ double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned it
       cout<<myname<<"WARNING could not get IDEs for tick "<<itck<<endl;
       return q;
     }
-
+  
+  unsigned tpcid = wid.TPC;
+  
+  //
   double qsum = 0.0;
   for(auto &ide: IDEs)
     {
@@ -213,11 +216,11 @@ double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned it
       double G = 0;
       if( tcoord < 2 ) // we are in view kZ
 	{
-	  G = getCrpGain( wire, wother );
+	  G = getCrpGain( tpcid, wire, wother );
 	}
       else // we are in view kX or kY
 	{
-	  G = getCrpGain( wother, wire );
+	  G = getCrpGain( tpcid, wother, wire );
 	}
       // the charge is divided equially between collectiong views
       // so the effective gain per view is 1/2 of the total effective CRP gain
@@ -230,10 +233,78 @@ double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned it
   return qsum;
 }
 
+//
+//
+double util::CrpGainService::crpGain( geo::Point_t const &pos ) const
+{
+  //geo::Point_t pos(x,y,z);
+  
+  const string myname = "util::CrpGainService::crpGain: ";
+
+  // get tpc
+  geo::TPCGeo const *tpcgeo = m_geo->PositionToTPCptr( pos );
+  
+  if( !tpcgeo )
+    {
+      cout << myname << "WARNING cannot find the point in a TPC" << endl;
+      return crpDefaultGain();
+    }
+  
+  // get the planes: should be only 2 (see checkGeoConfig)
+  const geo::PlaneGeo& pfirst = tpcgeo->FirstPlane();
+  const geo::PlaneGeo& plast  = tpcgeo->LastPlane();
+  
+  //pthis.View() == geo::kX || pthis.View() == geo::kY
+  int ch[2] = {-1, -1};
+  
+  if( pfirst.View() == geo::kZ )
+    {
+      ch[0] = pfirst.WireCoordinate( pos );
+      ch[1] = plast.WireCoordinate( pos );
+
+      if( ch[0] < 0 || ch[0] >=  (int)pfirst.Nwires() ) 
+	{
+	  cout<<myname<<"WARNING the wire number appeares to be incorrect " << endl;
+	  return crpDefaultGain();
+	}
+
+      if( ch[1] < 0 || ch[1] >=  (int)plast.Nwires() ) 
+	{
+	  cout<<myname<<"WARNING the wire number appeares to be incorrect " << endl;
+	  return crpDefaultGain();
+	}
+    }
+  else if( plast.View() == geo::kZ )
+    {
+      ch[0] = plast.WireCoordinate( pos );
+      ch[1] = pfirst.WireCoordinate( pos );
+
+      if( ch[0] < 0 || ch[0] >=  (int)plast.Nwires() ) 
+	{
+	  cout<<myname<<"WARNING the wire number appeares to be incorrect " << endl;
+	  return crpDefaultGain();
+	}
+      
+      if( ch[1] < 0 || ch[1] >=  (int)pfirst.Nwires() ) 
+	{
+	  cout<<myname<<"WARNING the wire number appeares to be incorrect " << endl;
+	  return crpDefaultGain();
+	}
+    }
+  else
+    {
+      cout<<myname<<"WARNING cannot figure out the coordinate system\n";
+      return crpDefaultGain();
+    }
+  
+  //
+  return getCrpGain( tpcgeo->ID().TPC, ch[0], ch[1] );  
+}
+
 
 //
 //
-int util::CrpGainService::getLemId( int chx, int chy ) const
+int util::CrpGainService::getLemId( unsigned crp, int chx, int chy ) const
 {
   const string myname = "util::CrpGainService::getLemId: ";
   int iX = chx / m_LemViewChans;
@@ -247,19 +318,23 @@ int util::CrpGainService::getLemId( int chx, int chy ) const
       return -1;
     }
   
+  // add offset corresponding to the CRP num
+  // which should match the TPCID in geo !
+  id += (int)crp * m_CrpNLem;
+  
   return id;
 }
 
 
 //
 //
-double util::CrpGainService::getCrpGain(int chx, int chy) const
+double util::CrpGainService::getCrpGain( unsigned crp, int chx, int chy) const
 {
   // transmission factor (dead areas)
   double T = getLemTransparency( chx, chy );
 
   // gain for this LEM per view
-  double G = getLemGain( getLemId( chx, chy ) );
+  double G = getLemGain( getLemId( crp, chx, chy ) );
 
   return G*T;
 }
