@@ -237,10 +237,11 @@ double util::CrpGainService::viewCharge( const sim::SimChannel* psc, unsigned it
 //
 double util::CrpGainService::crpGain( geo::Point_t const &pos ) const
 {
-  //geo::Point_t pos(x,y,z);
-  
   const string myname = "util::CrpGainService::crpGain: ";
 
+  //geo::Point_t pos(x,y,z);
+  if( m_UseDefGain ) return crpDefaultGain();
+  
   // get tpc
   geo::TPCGeo const *tpcgeo = m_geo->PositionToTPCptr( pos );
   
