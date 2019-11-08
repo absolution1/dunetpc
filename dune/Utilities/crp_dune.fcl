@@ -1,0 +1,14 @@
+#include "crptools_dune.fcl"
+
+#BEGIN_PROLOG
+
+dunefddphase_crpgain: {
+   service_provider: CrpGainService
+   LogLevel:       1
+   CrpDefaultGain: 6
+   CrpNumLem:      36
+   LemViewChans:   160
+   LemEffTool:     "lemEfficiency"
+}
+
+#END_PROLOG

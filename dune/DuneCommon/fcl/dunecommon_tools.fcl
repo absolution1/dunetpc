@@ -20,8 +20,14 @@ tools.tickRanges: {
   allTicks:  { begin:0     end:0     labels:["All ticks"]  }
 }
 
+# Channel status from service.
+tools.channelStatus: {
+  tool_type: ChannelStatusServiceTool
+  LogLevel: 1
+}
+
 # Histogram manager.
 tools.histMgr: {
-  tool_type: SimpleHistogramManager
   LogLevel: 1
+  tool_type: SimpleHistogramManager
 }
