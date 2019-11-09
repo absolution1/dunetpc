@@ -1,6 +1,4 @@
-#include "crptools_dune.fcl"
-
-#BEGIN_PROLOG
+BEGIN_PROLOG
 
 dunefddphase_crpgain: {
    service_provider: CrpGainService
@@ -11,4 +9,4 @@ dunefddphase_crpgain: {
    LemEffTool:     "lemEfficiency"
 }
 
-#END_PROLOG
+END_PROLOG
