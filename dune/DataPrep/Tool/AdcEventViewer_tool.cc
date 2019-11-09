@@ -68,6 +68,16 @@ VarInfo::VarInfo(string aname, const IndexRange& cr, string clockUnit) : name(an
   }
 }
 
+string formatValue(float val, string styp) {
+  ostringstream ssval;
+  ssval << val;
+  string sval = ssval.str();
+  if ( styp == "event" ) {
+    while ( sval.size() < 8 ) sval = "0" + sval;
+  }
+  return sval;
+}
+
 }  // end unnamed namespace
 
 //**********************************************************************
@@ -601,6 +611,13 @@ void AdcEventViewer::displayHists() const {
   if ( nevt == 0 ) sttlSuf += " with no events.";
   else if ( nevt == 1 ) sttlSuf += " event " + to_string(*state().eventSet.begin());
   else sttlSuf += " events " + to_string(*state().eventSet.begin()) + "-" + to_string(*state().eventSet.rbegin());
+  string evstring;
+  if ( state().eventSet.size() ) {
+    evstring += "_event" + formatValue(*state().eventSet.cbegin(), "event");
+    if ( state().eventSet.size() > 1 ) {
+      evstring += "-" + formatValue(*state().eventSet.crbegin(), "event");
+    }
+  }
   for ( const IndexRange& cr : m_crs ) {
     ChannelRangeState& crstate = state().crstates[cr.name];
     Index nplt = crstate.hists.size();
@@ -619,7 +636,9 @@ void AdcEventViewer::displayHists() const {
       smlab.replace("%CRLABEL2%", cr.label(2));
       if ( crlab.size() ) sttl += " " + crlab;
       man.setTitle(sttl.c_str());
-      string fname = string("eviewh_") + ph->GetName() + "_run" + state().runString() + "_" + cr.name + ".png";
+      
+      string fname = string("eviewh_") + ph->GetName() + "_run" + state().runString()
+                     + evstring + "_" + cr.name + ".{png,tpad}";
       man.showUnderflow();
       man.showOverflow();
       man.addAxis();
@@ -729,12 +748,14 @@ void AdcEventViewer::displayGraphs() const {
       if ( ymax > ymin ) man.setRangeY(ymin-yoff, ymax+yoff);
       ostringstream ssfname;
       ssfname << "eviewg_" << gin.varx;
-      if ( gin.xmax > gin.xmin ) ssfname << "-" << gin.xmin << "-" << gin.xmax;
+      if ( gin.xmax > gin.xmin ) ssfname << "-" << formatValue(gin.xmin, gin.varx)
+                                         << "-" << formatValue(gin.xmax, gin.varx);
       ssfname << "_" << gin.vary;
-      if ( gin.ymax > gin.ymin ) ssfname << "-" << gin.ymin << "-" << gin.ymax;
+      if ( gin.ymax > gin.ymin ) ssfname << "-" << formatValue(gin.ymin, gin.vary)
+                                         << "-" << formatValue(gin.ymax, gin.vary);
       ssfname << "_run" << state().runString();
       ssfname << "_" << cr.name;
-      ssfname << ".png";
+      ssfname << ".{png,tpad}";
       Name fname = ssfname.str();
       man.print(fname);
       if ( m_LogLevel >= 1 ) cout << myname << "  " << fname << endl;
