@@ -314,8 +314,8 @@ protodune_simulation_services: {
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
-# PhotonVisibilityService:      @local::protodune_photonvisibilityservice
-# OpDetResponseInterface:       @local::protodune_opdetresponse
+ PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+ OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
 }
 
