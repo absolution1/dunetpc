@@ -49,10 +49,10 @@ apa7cold_channel_status: {
     1904,   # Run 10054 raggedy pedestal at 800
     1906,   # Run 10054 raggedy pedestal at 800
     1908,   # Run 10054 raggedy pedestal at 800
-    1910    # Run 10054 raggedy pedestal at 800, satellite peak at 900
+    1910,   # Run 10054 raggedy pedestal at 800, satellite peak at 900
     ##### z #####
     # femb701x
-    2084   # Small RMS ==> disconnected wire
+    2084,   # Small RMS ==> disconnected wire
     # femb710x
     2558   # Small RMS ==> disconnected wire
   ]
