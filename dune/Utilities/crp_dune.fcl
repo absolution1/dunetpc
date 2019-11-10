@@ -6,7 +6,10 @@ dunefddphase_crpgain: {
    CrpDefaultGain: 6
    CrpNumLem:      36
    LemViewChans:   160
-   LemEffTool:     "lemEfficiency"
+   LemEffTool:     ""
 }
+
+protodunedphase_crpgain:            @local::dunefddphase_crpgain
+protodunedphase_crpgain.LemEffTool: "lemEfficiency"
 
 END_PROLOG
