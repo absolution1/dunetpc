@@ -333,7 +333,7 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
 tools.adcPlotDftTickPowerLog.YMinLog: 0.01
 tools.adcPlotDftTickPowerLog.YMax: 100.0
-tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 ################################################################################

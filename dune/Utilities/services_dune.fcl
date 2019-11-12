@@ -29,6 +29,7 @@
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 #include "time_memory_tracker_dune.fcl"
+#include "crp_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -119,6 +120,7 @@ dunefddphase_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
@@ -141,6 +143,7 @@ dunefddphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
  DetPedestalService:		 @local::dunedp_fixedpeds
 }
@@ -182,6 +185,7 @@ dunedphase3x1x1_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
@@ -204,6 +208,7 @@ dunedphase3x1x1_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
@@ -257,7 +262,9 @@ protodunedphase_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
+ CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 
@@ -280,10 +287,12 @@ protodunedphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
+ CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services

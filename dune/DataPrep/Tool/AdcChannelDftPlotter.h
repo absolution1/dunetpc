@@ -80,8 +80,8 @@ private:
   Name   m_Variable;
   Index  m_ChannelStatusFlag;
   float  m_SampleFreq;
-  float  m_XMin;
-  float  m_XMax;
+  double  m_XMin;     // Need double so user can shift bins
+  double  m_XMax;
   float  m_YMax;
   float  m_YMinLog;
   Index  m_NBinX;
