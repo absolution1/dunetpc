@@ -45,6 +45,9 @@ pdsp_tpc_raw_decoder:
                       # an emtpy list decodes the entire input data
 
   DefaultCrateIfUnexpected:  3     #  Use for coldbox data -- unexpected means not in the range 1-6.
+
+  MinOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit
+  MaxOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit.  < MinOfflineChannel: no limit
  
   RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC" ] # if this list is empty or missing, then read all artdaq fragements with TPC in their labels
   RCEEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers

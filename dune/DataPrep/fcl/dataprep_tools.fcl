@@ -77,7 +77,7 @@ tools.adcPlotRaw: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Dump prepared ADC channel waveform to a histogram.
@@ -96,7 +96,7 @@ tools.adcPlotPrepared: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Dump ADC channel distribution to a histogram.
@@ -115,13 +115,14 @@ tools.adcPlotRawDist: {
   PlotSigMax:    0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  SkipFlags: []
 }
 
 # Fit ADC distribution to get pedestal.
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  SkipFlags: []
   FitRmsMin:  1.0
   FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
@@ -332,7 +333,7 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
 tools.adcPlotDftTickPowerLog.YMinLog: 0.01
 tools.adcPlotDftTickPowerLog.YMax: 100.0
-tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 ################################################################################

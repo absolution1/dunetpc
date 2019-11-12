@@ -65,6 +65,16 @@ simple_plugin( TFileMetadataDUNE "service"
 	       BASENAME_ONLY
 	)
 
+simple_plugin(CrpGainService   "service"
+                dune_ArtSupport
+                larcorealg_Geometry
+		lardataobj_Simulation
+		art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+		BASENAME_ONLY
+             )
+
 install_headers()
 install_fhicl()
 install_source()

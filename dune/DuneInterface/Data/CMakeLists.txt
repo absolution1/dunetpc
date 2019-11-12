@@ -7,5 +7,8 @@
 
 add_subdirectory(test)
 
+# Needed to build dictionaries
+art_make()
+
 install_headers()
 install_source( README.txt )
