@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+ICEBERGPDSSPMonitor_params:
+{
+  module_type: "ICEBERGPDSSPMonitor"
+  OpDetWaveformLabel: "ssprawdecoder:external"
+  OpHitLabel: "ssprawdecoder:external"
+}
+
+END_PROLOG
