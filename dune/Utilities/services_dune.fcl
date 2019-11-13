@@ -522,6 +522,12 @@ protodune_dataprep_tools_wirecell: [
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
 ]
 
+## Drop ROIs, zero bad/noisy channels for wirecell processing.
+protodune_dataprep_tools_evd: [
+  @sequence::protodune_dataprep_tools_calib_noiserem,
+  "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+]
+
 ## Set a default here.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
 
