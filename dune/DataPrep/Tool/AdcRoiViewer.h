@@ -33,6 +33,8 @@
 //      ChannelRanges - Ranges of channels for channel summary plots.
 //                      Obtained from IndexRangeTool channelRanges.
 //       ChanSumHists - Array of specifiers for the channel summary histograms.
+// ChannelLineModulus - Repeat spacing for horizontal lines in summary plots
+// ChannelLinePattern - Pattern for horizontal lines in summary plots
 //        RunDataTool - Name for the run data tool. If found and pulser is on, then each
 //                      ROI is assigned a charge corresponding to the pulser setting.
 //     TickOffsetTool - Name of the tool that provides the tick offset.
@@ -64,6 +66,9 @@
 //            fitCSNorm - Chi-square/(ped RMS)^2
 //            fitCSNormDof - Chi-square/DOF/(ped RMS)^2
 //            timingPhase_fitToffPulserMod10 - 2D plot of timing phase (0 to 1) vs offset tick
+//            timeSec, timeHour, timeDay - DAQ time since StartTime
+//            procEvent - event number filled once per event
+//            procTimeSec, procTimeHour, procTimeDay - DAQ time since StartTime filled once/event
 //    name: Name of the histogram. Include %CHAN% to get separate histos for each channel
 //   title: Histogram title
 //    nbin: # bins
@@ -77,6 +82,8 @@
 // If xmin <= xmax otherwise (e.g. xmin = xmax = 0), Root will do autoscaling of the axis.
 // E.g.: {var:fitHeight name:"hfh_chan%0CHAN" title:"Fit height for channel %CHAN%"
 //        nbin:50 xmin:0.0 xmax:5.0}
+// Unless otherwise noted, the histograms are filled once for each ROI.
+// For variable proc*, the histogram is filled once each time a channel is processed.
 //
 // Channel summary histograms
 // --------------------------
@@ -86,6 +93,8 @@
 //    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
 //  valType - Specifies the metric to be extracted and used to set the bin content for each channe:
+//             entries - Root GetEntries() (Includes under and overflow. The following do not.)
+//               count - Root Integral()
 //                mean - Root GetMean()
 //                peak - Root GetMaximumBin()
 //                 rms - Root GetRMS()
@@ -95,6 +104,8 @@
 //  errType - Specifies the metric used to set the bin error for each channel. Any of the value options or:
 //                none - Do not set error
 //                 rms - Root GetRMS()
+//           meanError - Root GetMeanError()
+//            rmsError - Root GetRMSError()
 //               rmsFF - max(Root GetRMS(), FF)
 //                zero - Set the error to zero
 //     bins - if > 0,  plot # channels vs. variable in nbins bins
@@ -144,6 +155,13 @@
 //           int roiChannelCount - # channels
 //     int roiFailedChannelCount - # failed channels
 //   int[nfail]   failedChannels - List of failed channels
+//
+// Lines are draw at N*ChannelLineModulus + ChannelLinePattern[i] for any
+// integer N and any value if i in range of the array which are within
+// the drawn channel range.
+// If ChannelLineModulus is zero, then lines are drawn for the channels in
+// ChannelLinePattern.
+
 
 #ifndef AdcRoiViewer_H
 #define AdcRoiViewer_H
@@ -166,6 +184,7 @@ class AdcRoiViewer : AdcChannelTool {
 public:
 
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using HistVector = std::vector<TH1*>;
@@ -272,7 +291,7 @@ public:
   State& getState() const { return *m_state; }
 
   // Fill the summary histograms for one channel.
-  void fillSumHists(const AdcChannelData acd, const DataMap& dm) const;
+  void fillSumHists(const AdcChannelData& acd, const DataMap& dm) const;
 
   // Fit the summary histograms to the summary Root file.
   void fitSumHists() const;
@@ -308,6 +327,8 @@ private:
   bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;
+  Index          m_ChannelLineModulus;
+  IndexVector    m_ChannelLinePattern;
   Name m_RunDataTool;
   Name m_TickOffsetTool;
   Name m_ChannelRangeTool ="channelRanges";

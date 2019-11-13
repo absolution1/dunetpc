@@ -421,7 +421,7 @@ Name AdcTickModViewer::nameReplace(Name nameIn, const AdcChannelData& acd, Index
   string::size_type stkm0Len = std::to_string(m_TickModPeriod-1).size();
   string stkm0 = stkm;
   while ( stkm0.size() < stkm0Len ) stkm0 = "0" + stkm0;
-  StringManipulator sman(nameOut);
+  StringManipulator sman(nameOut, false);
   sman.replace("%TICKMOD%", stkm);
   sman.replace("%0TICKMOD%", stkm0);
   return nameOut;

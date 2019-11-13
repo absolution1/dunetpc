@@ -8,8 +8,20 @@
 # April 2018. Some protoDUNE-specific tools are moved to protodune_dataprep_tools.fcl
 
 ################################################################################
-# Tools to display ADC data.
+# Job ranges.
 ################################################################################
+
+tools.jobRanges: {
+  tool_type: FclIndexRangeTool
+  LogLevel: 1
+  events: { begin:0 end:0 labels: [] }  # Event range for selection and plotting.
+}
+
+################################################################################
+# Ranges for channel-tick plots.
+################################################################################
+
+# tools.tickRanges is defined in DuneCommon/fcl/dunecommon_tools.fcl
 
 tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
 tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }
@@ -146,9 +158,12 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
@@ -168,9 +183,12 @@ tools.signalAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
@@ -190,9 +208,12 @@ tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
@@ -218,6 +239,7 @@ tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestal
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 4096
@@ -236,6 +258,7 @@ tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
   Metric: pedestalRms
+  PedestalReference: ""
   ChannelRanges: []
   MetricMin: 0
   MetricMax: 11
@@ -251,14 +274,24 @@ tools.adcChannelPedestalRmsPlotter: {
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {
-    tool_type: AdcChannelDftPlotter
-     LogLevel: 1
-   SampleFreq: @local::adcSampleFreq
-      YMinLog: 0.0
-    PlotSizeX: 1400
-    PlotSizeY: 1000
-   PlotSplitX: 4
-   PlotSplitY: 4
+          tool_type: AdcChannelDftPlotter
+           LogLevel: 1
+       PlotDataView: ""
+  ChannelStatusFlag: 0
+         SampleFreq: @local::adcSampleFreq
+           PlotName: ""
+    PlotSummaryName: ""
+   HistSummaryTitle: ""
+               XMin: 0.0
+               XMax: 0.0
+            YMinLog: 0.0
+  PlotChannelRanges: []    # Empty makes one plot for each channel
+  PlotChannelGroups: []    # Empty makes one plot for each channel
+  PlotOverlayGroups: 1     # Rnages in a group are drawn on the same pad.
+          PlotSizeX: 1400
+          PlotSizeY: 1000
+         PlotSplitX: 4
+         PlotSplitY: 4
 }
 
 # DFT amplitudes
@@ -297,8 +330,8 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 
 # DFT power/tick with log scale.
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
-tools.adcPlotDftTickPowerLog.YMinLog: 0.001
-tools.adcPlotDftTickPowerLog.YMax: 20.0
+tools.adcPlotDftTickPowerLog.YMinLog: 0.01
+tools.adcPlotDftTickPowerLog.YMax: 100.0
 tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -349,6 +382,7 @@ tools.adcSubtractBaseline: {
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+  DataPath: ""
 }
 
 # Scale samples from ke to ADC count.
@@ -391,6 +425,7 @@ tools.adcFFT: {
   NormOpt:   1
   Action:    3
   ReturnOpt: 1
+  DataView: ""
 }
 
 # Undo FFT.
@@ -402,6 +437,7 @@ tools.adcFFTinv: {
   NormOpt:    1
   Action:    13
   ReturnOpt: 10
+  DataView: ""
 }
 
 # Fetch ROI info and hists.
@@ -422,6 +458,8 @@ tools.adcRoiViewer: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []
@@ -445,6 +483,8 @@ tools.adcRoiFitter: {
   RoiPlotPadY: 4
   SumPlotPadX: 4
   SumPlotPadY: 4
+  ChannelLineModulus: 0
+  ChannelLinePattern: []
   SumNegate: false
   SumHists: []
   ChannelRanges: []
@@ -485,3 +525,22 @@ tools.adcDPhase3x1x1RoiBuilder: {
   PadLow: 20
   PadHigh: 50
 }
+
+# Split data keeping ROIs.
+tools.adcSliceRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: rois
+  SliceOpt: 1
+  CopyRaw: false
+}
+
+# Split data keeping not ROIs.
+tools.adcSliceNotRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: notrois
+  SliceOpt: 2
+  CopyRaw: false
+}
+

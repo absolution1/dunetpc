@@ -80,7 +80,7 @@ RunData FclRunDataTool::runData(Index run, Index subRun) const {
     cout << endl;
   }
   for ( Name fname : m_FileNames ) {
-    StringManipulator sman(fname);
+    StringManipulator sman(fname, false);
     sman.replaceFixedWidth("%RUN%", run, 6);
     sman.replaceFixedWidth("%SUBRUN%", subRun, 6);
     if ( parseFcl(m_fclPath, fname, rdat) ) {

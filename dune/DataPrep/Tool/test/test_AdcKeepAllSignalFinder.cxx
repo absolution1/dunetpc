@@ -39,6 +39,7 @@ int test_AdcKeepAllSignalFinder(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcKeepAllSignalFinder" << endl;
     fout << "    LogLevel: 1" << endl;
+    fout << "    DataPath: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

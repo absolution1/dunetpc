@@ -1,0 +1,49 @@
+#include "pddp_sam.fcl"
+
+process_name: PDDPRawDataConverter
+
+pddp_file_catalog: @local::pddp_art_file_catalog
+#pddp_file_catalog.applicationVersion: "v08_32_01"
+#pddp_file_catalog.fileType:           "detector"
+#pddp_file_catalog.runType:            "protodune-dp"
+
+services:
+{
+   FileCatalogMetadata:  @local::pddp_file_catalog
+   PDDPChannelMappings:
+   {
+     service_provider: PDDPChannelMap
+     MapName: "pddp2crp"
+   }
+}
+
+source:
+{
+  module_type: PDDPRawInput
+  maxEvents: -1
+  fileNames: [ "np02rawdata.dat" ]
+  LogLevel: 1
+  OutputLabelRawDigits: "daq"
+  OutputLabelRDTime:    "timingrawdecoder:daq"
+  OutputLabelRDStatus:  "daq"
+  InvertBaseline: 0
+  SelectCRPs: []
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: 	RootOutput
+    fileName: 	 	"%ifb_pddprawdata.root"
+    compressionLevel: 	1
+    dataTier: 		"raw"
+    streamName:         "cosmics"
+  }
+}
+
+physics:
+{
+  output: 	[ out1 ]
+  end_paths: 	[ output ]
+}

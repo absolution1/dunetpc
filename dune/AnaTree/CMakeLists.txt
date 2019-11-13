@@ -1,6 +1,6 @@
 art_make( MODULE_LIBRARIES larcorealg_Geometry
 	  larcore_Geometry_Geometry_service
-	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+	  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
 	  larsim_MCCheater_ParticleInventoryService_service
 	  lardata_Utilities
@@ -8,7 +8,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 	  lardataobj_RawData
 	  lardataobj_RecoBase
 	  lardataobj_AnalysisBase
-	  lardata_RecoObjects larreco_Deprecated
+	  lardata_RecoObjects
     lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface

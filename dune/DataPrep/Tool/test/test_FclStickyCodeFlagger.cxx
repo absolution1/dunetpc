@@ -42,7 +42,12 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
     fout << "    LogLevel: 3" << endl;
     fout << "    StickyCode: 8" << endl;
     fout << "    StickyCodes: {" << endl;
-    fout << "      chan002: [105, 110]" << endl;
+    fout << "      chan012: [105, 110]" << endl;
+    fout << "      chan012x: [109]" << endl;
+    fout << "    }" << endl;
+    fout << "    StickyRanges: {" << endl;
+    fout << "      chan014: [110, 111]" << endl;
+    fout << "      chan014x: [119, 119]" << endl;
     fout << "    }" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
@@ -70,7 +75,7 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;
-    AdcIndex ncha = 10;
+    AdcIndex ncha = 20;
     for ( AdcIndex icha=0; icha<ncha; ++icha ) {
       std::pair<AdcChannelDataMap::iterator, bool> kdat = datamap.emplace(icha, AdcChannelData());
       assert(kdat.second);
@@ -85,14 +90,22 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
       for ( AdcIndex itic=0; itic<20; ++itic ) {
         AdcCount iadc = ped + itic;
         data.raw.push_back(iadc);
+        data.flags.push_back(0);
       }
       DataMap dm = padv->update(datamap[icha]);
       assert( dm == 0 );
       dm.print();
-      if ( data.channel == 2 ) {
+      if ( data.channel == 12 ) {
         for ( Index isam=0; isam<data.raw.size(); ++isam ) {
-          cout << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
-          if ( data.raw[isam] == 105 || data.raw[isam] == 110 ) assert( data.flags[isam] == 8 );
+          cout << myname << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
+          if ( data.raw[isam] == 105 || data.raw[isam] == 109 || data.raw[isam] == 110 ) assert( data.flags[isam] == 8 );
+          else assert( data.flags[isam] == 0 );
+        }
+      }
+      if ( data.channel == 14 ) {
+        for ( Index isam=0; isam<data.raw.size(); ++isam ) {
+          cout << myname << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
+          if ( data.raw[isam] == 110 || data.raw[isam] == 111 || data.raw[isam] == 119 ) assert( data.flags[isam] == 8 );
           else assert( data.flags[isam] == 0 );
         }
       }

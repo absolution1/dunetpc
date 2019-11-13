@@ -54,14 +54,14 @@ simple_plugin(
 simple_plugin(
 	  AnaRootParser "module"
 	  larcore_Geometry_Geometry_service
-	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+	  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
           larsim_MCCheater_ParticleInventoryService_service
 	  lardata_Utilities
 	  larevt_Filters
 	  lardataobj_RawData
 	  lardataobj_RecoBase
-	  lardata_RecoObjects larreco_Deprecated
+	  lardata_RecoObjects
 	  lardata_ArtDataHelper
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
@@ -96,3 +96,5 @@ install_source()
 install_scripts()
 
 add_subdirectory(Light)
+add_subdirectory(RawDecoding)
+add_subdirectory(fcl)

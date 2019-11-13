@@ -1,9 +1,0 @@
-
-BEGIN_PROLOG
-
-standard_protodunedatautils:
-{
-   TimingTag:               "timingrawdecoder:daq"  
-}
-
-END_PROLOG

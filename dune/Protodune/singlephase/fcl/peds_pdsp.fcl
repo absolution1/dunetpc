@@ -1,0 +1,22 @@
+# peds_pdsp.fcl
+#
+# David Adams
+# February 2019
+#
+# Pedestals for protodune data.
+
+# June 2019 evaluation using ADcPedestalFitter with run 6118.
+tools.pedestals_run006118evts00000_01000 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "pedestals_run006118evts00000-01000"
+  DefaultValue: 0.0
+  FileNames: [
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa1.fcl",
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa2.fcl",
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa3.fcl",
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa4.fcl",
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa5.fcl",
+    "pedestal/protodune/run006118evts00000-01000/pedestals_apa6.fcl"
+  ]
+}

@@ -11,6 +11,7 @@
 #include <vector>
 #include <utility>
 
+typedef          int AdcInt;
 typedef unsigned int AdcIndex;
 typedef unsigned long AdcLongIndex;
 

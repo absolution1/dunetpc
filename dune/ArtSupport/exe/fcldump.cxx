@@ -66,12 +66,16 @@ ostream& operator<<(ostream& out, const std::vector<T>& vec) {
 
 void print_block(string prefix, PSPtr pcfgs[], unsigned int nlevrem) {
   const string myname = "fcldump:print_block: ";
+  int dbg = 0;
   ParameterSet* pcfg = pcfgs[0].get();
   // First print the values.
+  int nblk = 0;
   for ( string key : pcfg->get_names() ) {
+    ++nblk;
     if ( pcfg->is_key_to_table(key) ) continue;
     cout << prefix << key << ": ";
     if ( pcfg->is_key_to_sequence(key) ) {
+      if ( dbg ) cout << myname << prefix << "Key to sequence: " << key << endl;
       try {
         cout << pcfg->get<IntVector>(key);
       } catch (...) {
@@ -120,6 +124,7 @@ void print_block(string prefix, PSPtr pcfgs[], unsigned int nlevrem) {
         }
       }
     } else {
+      if ( dbg ) cout << myname << prefix << "Key to value: " << key << endl;
       try {
         int val = pcfg->get<int>(key);
         cout << val;
@@ -141,6 +146,8 @@ void print_block(string prefix, PSPtr pcfgs[], unsigned int nlevrem) {
   }
   // Next the blocks.
   for ( string key : pcfg->get_pset_names() ) {
+    ++nblk;
+    if ( dbg ) cout << myname << prefix << "Key to parameter set: " << key << endl;
     cout << prefix << key << ": {";
     PSPtr pcfgnext(new ParameterSet);
     if ( ! pcfg->get_if_present<ParameterSet>(key, *pcfgnext) ) {
@@ -161,6 +168,7 @@ void print_block(string prefix, PSPtr pcfgs[], unsigned int nlevrem) {
     }
     cout << endl;
   }
+  if ( nblk == 0 ) cout << myname << "WARNING: Block has no entries." << endl;
 }
   
 int main(int argc, char** argv) {

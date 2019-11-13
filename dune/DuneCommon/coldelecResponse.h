@@ -17,6 +17,8 @@
 //  - the hard-coded numbers are the result of the inverting the
 //    Lapalace transformation in Mathematica.
 // -----
+//
+// See section 2.2 of C. Adams et al, JINST 13 P07007 (2018).
 
 #ifndef coldelecReponse_H
 #define coldelecReponse_H

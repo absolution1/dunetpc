@@ -7,8 +7,8 @@
 #include "signalservices_dune.fcl"
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
-#include "backtrackerservice.fcl"
-#include "particleinventoryservice.fcl"
+#include "backtrackerservice_dune.fcl"
+#include "particleinventoryservice_dune.fcl"
 #include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
@@ -28,6 +28,7 @@
 #include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -251,7 +252,7 @@ protodunedphase_services: {
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
  Geometry: 			 @local::protodunedphase_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService: 	 @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
@@ -274,7 +275,7 @@ protodunedphase_simulation_services: {
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
  Geometry: 			 @local::protodunedphase_geo
- DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService: 	 @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
@@ -343,7 +344,7 @@ protodune_services: {
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
  BackTrackerService:           @local::dunefd_backtrackerservice
- ParticleInventoryService:     @local::standard_particleinventoryservice
+ ParticleInventoryService:     @local::dunefd_particleinventoryservice
  PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
@@ -399,6 +400,7 @@ protodune_data_services: {
  AdcWireBuildingService:       @local::adcwire_std
 }
 
+
 protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
@@ -431,8 +433,7 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "Hadron",
                                                                 "Decay",
                                                                 "HadronElastic",
-                                                                "Stopping",
-                                                                "NeutronTrackingCut" ]
+                                                                "Stopping" ]
 
 
 # Reco services for ProtoDUNE simulation.
@@ -449,7 +450,8 @@ protodune_dataprep_tools_sim: [
     "digitReader",              # Read RawDigit
     "adcSampleFiller",          # Subtract pedestal, trivial calibration
     "adcVintageDeconvoluter",   # Deconvolution
-    "adcThresholdSignalFinder"  # ROI
+    "adcThresholdSignalFinder", # ROI
+    "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
 ]
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
@@ -457,6 +459,8 @@ protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodu
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
 # channel map service
 protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
+# channel status service
+protodune_reco_services.ChannelStatusService:       @local::pdsp_channel_status
 
 # Reco services for ProtoDUNE data
 protodune_data_reco_services:                       @local::protodune_reco_services
@@ -512,6 +516,36 @@ protodune_dataprep_tools_wirecell: [
 ## Set a default here.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
 
+
+
+
+##################################################
+### Make Parallel Services for the v7 geometry ###
+##################################################
+
+protodunev7_services:  @local::protodune_services
+protodunev7_services.Geometry: @local::protodunev7_geo
+
+protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
+protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_services:  @local::protodune_data_services
+protodunev7_data_services.Geometry: @local::protodunev7_geo
+
+protodunev7_reco_services:  @local::protodune_reco_services
+protodunev7_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_reco_services:  @local::protodune_data_reco_services
+protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_simulation_services:  @local::protodune_simulation_services
+protodunev7_simulation_services.Geometry: @local::protodunev7_geo
+protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
+
+
+
+
+
 #######################
 ### 35ton Prototype ###
 #######################
@@ -538,7 +572,7 @@ dune35t_basic_services.DetPedestalService: @local::dune_dbpeds
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
 dune35t_services.BackTrackerService:                @local::dune35t_backtrackerservice
-dune35t_services.ParticleInventoryService:      @local::standard_particleinventoryservice
+dune35t_services.ParticleInventoryService:      @local::dune35t_particleinventoryservice
 dune35t_services.PhotonBackTrackerService:          @local::dune35t_photonbacktrackerservice
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
@@ -602,14 +636,14 @@ dune35t_simulation_services.LArFFT:                               @local::dune35
 dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
 dune35t_simulation_services.BackTrackerService:                          @local::dune35t_backtrackerservice
-dune35t_simulation_services.ParticleInventoryService:      @local::standard_particleinventoryservice
+dune35t_simulation_services.ParticleInventoryService:      @local::dune35t_particleinventoryservice
 dune35t_simulation_services.PhotonBackTrackerService:                    @local::dune35t_photonbacktrackerservice
 
 # Reco services for 35-ton data.
 dune35tdata_reco_services:                            @local::dune35t_basic_services
 dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
 dune35tdata_reco_services.BackTrackerService:         @local::dune35t_backtrackerservice
-dune35tdata_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
+dune35tdata_reco_services.ParticleInventoryService:   @local::dune35t_particleinventoryservice
 dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
 dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata

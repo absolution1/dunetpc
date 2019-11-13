@@ -46,10 +46,13 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "tools.mytool: {" << endl;
     fout << "           tool_type: AdcDataPlotter" << endl;
     fout << "            DataType: 0" << endl;
+    fout << "            DataView: \"\"" << endl;
     fout << "            LogLevel: 2" << endl;
     fout << "           TickRange: \"myTicks\"" << endl;
     fout << "           TickRebin: 1" << endl;
     fout << "       ChannelRanges: []" << endl;
+    fout << "         ClockFactor: 0.0" << endl;
+    fout << "         ClockOffset: 0.0" << endl;
     fout << "     FembTickOffsets: []" << endl;
     fout << "           MaxSignal: 10" << endl;
     fout << "     SkipBadChannels: false" << endl;
@@ -60,11 +63,19 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "            HistName: \"hadc\"" << endl;
     fout << "           HistTitle: \"Prepared ADC run %RUN% event %EVENT%\"" << endl;
     fout << "           PlotTitle: \"Run %RUN% event %EVENT% xyx UTC\"" << endl;
-    fout << "        PlotFileName: \"myplot-run%0RUN%-evt%0EVENT%.png\"" << endl;
+    fout << "        PlotFileName: \"myplotall-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout << "           PlotSizeX: 0" << endl;
     fout << "           PlotSizeY: 0" << endl;
     fout << "        RootFileName: \"adc.root\"" << endl;
     fout << "}" << endl;
+    fout << "tools.mytool2: @local::tools.mytool" << endl;
+    fout << "tools.mytool2.DataView: rois" << endl;
+    fout << "tools.mytool2.HistTitle: \"Prepared ROI ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "tools.mytool2.PlotFileName: \"myplotroi-run%0RUN%-evt%0EVENT%.png\"" << endl;
+    fout << "tools.mytool3: @local::tools.mytool" << endl;
+    fout << "tools.mytool3.DataView: rnis" << endl;
+    fout << "tools.mytool3.HistTitle: \"Prepared not ROI ADC run %RUN% event %EVENT%\"" << endl;
+    fout << "tools.mytool3.PlotFileName: \"myplotrni-run%0RUN%-evt%0EVENT%.png\"" << endl;
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -82,6 +93,10 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   cout << myname << "Fetching tool." << endl;
   auto padv = tm.getPrivate<AdcChannelTool>("mytool");
   assert( padv != nullptr );
+  auto padv2 = tm.getPrivate<AdcChannelTool>("mytool2");
+  assert( padv2 != nullptr );
+  auto padv3 = tm.getPrivate<AdcChannelTool>("mytool3");
+  assert( padv3 != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
@@ -127,6 +142,44 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       data.sampleUnit = "ke";
     }
     assert( padv->viewMap(datamap) == 0 );
+    // Add and plot view rois.
+    for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
+      AdcChannelData& dain = datamap[icha];
+      assert( dain.channel == icha );
+      AdcIndex nsam = dain.samples.size();
+      AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
+      AdcChannelData::View& vroi = dain.updateView("rois");
+      vroi.push_back(dain);
+      AdcChannelData& dout = vroi.back();
+      dout.tick0 = dain.tick0 + tp;
+      for ( unsigned int iwf=0; iwf<wf.size(); ++iwf ) {
+        AdcIndex isam = tp + iwf;
+        if ( isam >= nsam ) break;
+        dout.samples.push_back(dain.samples[isam]);
+      }
+    }
+    assert( padv2->viewMap(datamap) == 0 );
+    // Add and plot view rnis.
+    for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
+      AdcChannelData& dain = datamap[icha];
+      assert( dain.channel == icha );
+      AdcIndex nsam = dain.samples.size();
+      AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
+      AdcChannelData::View& vrni = dain.updateView("rnis");
+      vrni.push_back(dain);
+      AdcChannelData& dout = vrni.back();
+      for ( unsigned int isam=0; isam<tp; ++isam) {
+        dout.samples.push_back(dain.samples[isam]);
+      }
+      vrni.push_back(dain);
+      AdcChannelData& dout2 = vrni.back();
+      unsigned int isam0 = tp + wf.size();
+      dout2.tick0 = isam0;
+      for ( unsigned int isam=isam0; isam<nsam; ++isam) {
+        dout2.samples.push_back(dain.samples[isam]);
+      }
+    }
+    assert( padv3->viewMap(datamap) == 0 );
   }
 
   cout << myname << line << endl;

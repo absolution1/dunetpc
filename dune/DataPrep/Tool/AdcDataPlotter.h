@@ -3,11 +3,12 @@
 // David Adams
 // July 2017
 //
-// Tool to make event displays of prepared data from an ADC channel data map.
+// Tool to make channel vs. tick displays of data from an ADC channel data map.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal
+//   DataView - Which view to use: "" for top, xxx merges everything from xxx
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
 //               If blank or not defined, the full range is used.
@@ -16,6 +17,8 @@
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "" or "data" plots all channels in data with label "All data".
 //                   If the list is empty, data are plotted.
+//   ClockFactor - Clock to tick conversion factor (0.04 for protoDUNE).
+//   ClockOffset - Clock offset between trigger and nominal tick 0.
 //   FembTickOffsets - Tick offset for each FEMB. FEMB = (offline channel)/128
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots
@@ -57,6 +60,9 @@
 //
 // If FirstChannel < LastChannel, then only channels in that range are displayed
 // and no histogram is produced if the passed data has no channels in the range.
+//
+// If ClockFactor > 0, then tick + ClockFactor*(channelClock - triggerClock + ClockOffset)
+// is used in place of tick.
 
 #ifndef AdcDataPlotter_H
 #define AdcDataPlotter_H
@@ -98,24 +104,27 @@ private:
   // Configuration data.
   int            m_LogLevel;
   int            m_DataType;
-  std::string    m_TickRange;
+  Name           m_DataView;
+  Name           m_TickRange;
   Index          m_TickRebin;
   NameVector     m_ChannelRanges;
+  float          m_ClockFactor;
+  float          m_ClockOffset;
   IntVector      m_FembTickOffsets;
-  std::string    m_OnlineChannelMapTool;
+  Name           m_OnlineChannelMapTool;
   double         m_MaxSignal;
   bool           m_SkipBadChannels;
   Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
   int            m_Palette;
-  std::string    m_HistName;
-  std::string    m_HistTitle;
-  std::string    m_PlotTitle;
+  Name           m_HistName;
+  Name           m_HistTitle;
+  Name           m_PlotTitle;
   Index          m_PlotSizeX;
   Index          m_PlotSizeY;
-  std::string    m_PlotFileName;
-  std::string    m_RootFileName;
+  Name           m_PlotFileName;
+  Name           m_RootFileName;
 
   // Derived configuration data.
   IndexRange m_tickRange;

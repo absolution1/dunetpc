@@ -28,7 +28,7 @@ simple_plugin(dlardaq "service"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
@@ -59,7 +59,7 @@ simple_plugin(EventDecoder "service"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
@@ -89,7 +89,7 @@ simple_plugin(HuffDataCompressor "service"
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
+			larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 			
 			nusimdata_SimulationBase
 			${ART_FRAMEWORK_CORE}
