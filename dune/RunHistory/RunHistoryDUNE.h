@@ -18,7 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 #include "lardataalg/DetectorInfo/RunHistory.h"
-#include "nutools/IFDatabase/Table.h"
+#include "nuevdb/IFDatabase/Table.h"
 
 ///General LArSoft Utilities
 namespace dune {

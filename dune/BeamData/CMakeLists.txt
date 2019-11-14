@@ -38,7 +38,7 @@ art_make_library(  LIBRARY_NAME  BeamData
 #               LIBRARIES
 #			RunHistoryDUNE
                          #wda
-			 # nutools_IFDatabase
+			 # nuevdb_IFDatabase
 #               )
 
 #art_make_exec( NAME getDUNEPedestals

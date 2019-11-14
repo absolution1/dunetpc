@@ -20,7 +20,7 @@
 #include "dune/Calib/LinCalibProtoDUNE.h"
 
 // nutools includes
-#include "nutools/IFDatabase/Table.h"
+#include "nuevdb/IFDatabase/Table.h"
 
 // Framework includes
 #include "cetlib_except/exception.h"

@@ -82,7 +82,7 @@ void TriggerPrimitiveFinder::produce(art::Event & e)
     std::vector<TriggerPrimitiveFinderTool::Hit> hits=m_finder->findHits(channel_numbers, collection_samples);
 
     // Loop over the returned trigger primitives and turn them into recob::Hits
-    recob::HitCollectionCreator hcol(*this, e, false /* doWireAssns */, true /* doRawDigitAssns */);
+    recob::HitCollectionCreator hcol(e, false /* doWireAssns */, true /* doRawDigitAssns */);
     for(auto const& hit : hits){
         const raw::RawDigit* digit=chanToDigit[hit.channel];
         if(!digit){
