@@ -1,9 +1,9 @@
-# channelstatus_pdsp.fcl
+# channelstatus_apa7.fcl
 #
 # David Adams
 # October 2018
 #
-# Bad and noisy channels for protDUNE single phase.
+# Bad and noisy channels for protDUNE coldbox Nov 2019.
 
 BEGIN_PROLOG
 
@@ -42,6 +42,7 @@ apa7cold_channel_status: {
   # list of bad channels:
   BadChannels:   [
     # femb714v
+    1050,   # Very noisy in run 10158.
     1052,   # Run 10054 ped has three peaks with 40 ADC count spacing
     # femb714x
     1900,   # Run 10054 raggedy pedestal at 800
