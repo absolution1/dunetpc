@@ -1,4 +1,5 @@
 <lcgdict>
   <class name="IndexRange" />
   <class name="IndexRangeGroup" />
+  <class name="AdcChannelData" />
 </lcgdict>
