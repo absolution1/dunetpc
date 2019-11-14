@@ -126,8 +126,8 @@ private:
   TH1D * n_event_packets_; //diagnostic histos
   TH1D * frag_sizes_;
   TH1D * trig_ref_time_;
-  TH1D * trig_abs_time_;
-  TH2D * trig_adc_time_;
+  //TH1D * trig_abs_time_;
+  //TH2D * trig_adc_time_;
   TH2D * hit_map_;
   TH2D * coincidence_map_;
   TH2D * heat_map_;
@@ -604,8 +604,8 @@ void dune::SSPRawDecoder::setRootObjects(){
   heat_map_ = tFileService->make<TH2D>("heat_map_","heat_map_",12,0,12,20,0,20);
   coincidence_map_ = tFileService->make<TH2D>("coincidence_map","coincidence_map",12,0,12,20,0,20);
   trig_ref_time_ = tFileService->make<TH1D>("trig_ref_time_","trig_ref_time_",3750,0,ext_trig_samp_time);
-  trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
-  trig_adc_time_ = tFileService->make<TH2D>("trig_adc_time_","trig_adc_time_",10000,0.0,23000000000.0,1000,0.0,4000.0);
+  //trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
+  //trig_adc_time_ = tFileService->make<TH2D>("trig_adc_time_","trig_adc_time_",10000,0.0,23000000000.0,1000,0.0,4000.0);
 }
 
 void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struct trig_variables* tv){
@@ -757,8 +757,8 @@ void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
   if(coin_ext_time.size() > 0){
     for(size_t i=0;i<coin_ext_time.size();i++){
       trig_ref_time_->Fill(coin_int_time[i]);                                
-      trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
-      trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
+      //trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
+      //trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
       hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);
       heat_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second,coin_adc_peak[i]);
       for(size_t j=0;j<i;j++){
