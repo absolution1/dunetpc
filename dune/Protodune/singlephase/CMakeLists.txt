@@ -23,4 +23,5 @@ add_subdirectory(DetectorServices)
 add_subdirectory(BeamReco)
 add_subdirectory(T0Reco)
 add_subdirectory(dEdxcalibration)
+add_subdirectory(DataUtils)
 
