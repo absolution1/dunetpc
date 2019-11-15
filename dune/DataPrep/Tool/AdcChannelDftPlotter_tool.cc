@@ -47,8 +47,8 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   bool doPwt = m_Variable == "power/tick";
   // Check variable and get optional fields.
   if ( doPwr || doPwt ) {
-    m_XMin = ps.get<float>("XMin");
-    m_XMax = ps.get<float>("XMax");
+    m_XMin = ps.get<double>("XMin");
+    m_XMax = ps.get<double>("XMax");
     m_YMax = ps.get<float>("YMax");
     m_NBinX = ps.get<Index>("NBinX");
   } else if ( doMag ) {
@@ -363,12 +363,14 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     }
     double xmin = m_XMin;
     double xmax = m_XMax;
+    // If min >= max, then show the full range.
+    // And for poser plots shift so the zero frequency component is
+    // in the underflow bin and the highest is included in the last bin.
     if ( xmin >= xmax ) {
       xmin = 0.0;
       xmax = (nmag-1)*xFac;
-      // Shift bins sightly so f=0 is an underflow and last frequency is not an overflow.
       if ( m_shiftFreq0 ) {
-        double delx = 1.e-5*xmax;
+        double delx = 0.01*xFac;
         xmin += delx;
         xmax += delx;
       }
@@ -389,8 +391,8 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
       }
       ph->Fill(x, y);
     }
-    if ( ph->GetBinContent(m_NBinX+1) ) {
-      cout << myname << "WARNING: Power histogram has overflow." << endl;
+    if ( ph->GetBinContent(m_NBinX+1) && xmax > (nmag-1)*xFac ) {
+      cout << myname << "ERROR: Full range histogram has overflow." << endl;
     }
     for ( Index ibin=0; ibin<m_NBinX+2; ++ibin ) {
       double y = ph->GetBinContent(ibin);

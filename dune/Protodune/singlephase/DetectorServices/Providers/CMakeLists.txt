@@ -4,7 +4,7 @@ art_make( NO_PLUGINS
           LIB_LIBRARIES
           
   	                wda
-	                nutools_IFDatabase
+	                nuevdb_IFDatabase
                         larcorealg_Geometry
                         art_Framework_Core
                         art_Utilities

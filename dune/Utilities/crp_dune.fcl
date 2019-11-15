@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+dunefddphase_crpgain: {
+   service_provider: CrpGainService
+   LogLevel:       1
+   CrpDefaultGain: 6
+   CrpNumLem:      36
+   LemViewChans:   160
+   LemEffTool:     ""
+}
+
+protodunedphase_crpgain:            @local::dunefddphase_crpgain
+protodunedphase_crpgain.LemEffTool: "lemEfficiency"
+
+END_PROLOG

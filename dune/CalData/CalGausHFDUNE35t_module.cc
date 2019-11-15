@@ -153,7 +153,7 @@ namespace calgaushf {
     // let HitCollectionCreator declare that we are going to produce
     // hits and associations with wires and raw digits
     recob::HitCollectionCreator::declare_products
-      (*this, fSpillName, false /* doWireAssns */, true /* doRawDigitAssns */);
+      (producesCollector(), fSpillName, false /* doWireAssns */, true /* doRawDigitAssns */);
     
   }
   
@@ -246,7 +246,7 @@ namespace calgaushf {
     // ###############################################
     // this contains the hit collection
     // and its associations to raw digits (not to wires)
-    recob::HitCollectionCreator hcol(*this,
+    recob::HitCollectionCreator hcol(
       evt, fSpillName, false /* doWireAssns */, true /* doRawDigitAssns */
       );
     
