@@ -1,5 +1,5 @@
 #include "services_dune.fcl"
-#include "IcebergPDSSPMonitor.fcl"
+#include "IcebergPDSSPMonitorPrologs.fcl"
 #include "detectorclocks.fcl"
 #include "timeservice.fcl"
 
