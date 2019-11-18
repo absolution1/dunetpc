@@ -6,6 +6,9 @@
   </class>
   <class name="TPadManipulator::Bounds" />
   <class name="TPadManipulator::Bounds3" />
+  <function name="cePulser" noStreamer="true"/>
+  <function name="cePulserToAdc" noStreamer="true"/>
+  <function name="cePulserToAdcTF1" noStreamer="true"/>
 
   <ioread sourceClass="TPadManipulator" version="[1]" targetClass="TPadManipulator" source="" target="m_axisTitleOpt">
     <![CDATA[m_axisTitleOpt=0;
