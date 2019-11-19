@@ -9,7 +9,14 @@ dunefddphase_crpgain: {
    LemEffTool:     ""
 }
 
+# protodune dp LEM efficiency map for CFR-35 design
 protodunedphase_crpgain:            @local::dunefddphase_crpgain
 protodunedphase_crpgain.LemEffTool: "lemEfficiency"
+
+# simple CRP gain service configuration always returns one number
+single_crpgain: @local::dunefddphase_crpgain
+single_crpgain.CrpNumLem: 1
+single_crpgain.LemEffTool: ""
+
 
 END_PROLOG
