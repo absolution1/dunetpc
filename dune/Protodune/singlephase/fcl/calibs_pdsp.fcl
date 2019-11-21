@@ -3,6 +3,7 @@
 # David Adams
 # February 2019
 
+# Feb 2019 ProtoDUNE charge calibration.
 tools.areaGain_calib20190205 : {
   tool_type: FclFileFloatArray
   LogLevel: 1
@@ -33,5 +34,19 @@ tools.areaGain_calib20190205 : {
     "calib/protodune/calib20190205/areaGain_apa4c.fcl",
     "calib/protodune/calib20190205/areaGain_apa4u.fcl",
     "calib/protodune/calib20190205/areaGain_apa4v.fcl"
+  ]
+}
+
+# Nov 2019 APA7 cold coldbox charge calibration.
+tools.areaGain_cbnov19 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_cbnov19"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/cbnov19/areaGain_apa7z.fcl",
+    "calib/protodune/cbnov19/areaGain_apa7c.fcl",
+    "calib/protodune/cbnov19/areaGain_apa7u.fcl",
+    "calib/protodune/cbnov19/areaGain_apa7v.fcl"
   ]
 }

@@ -212,13 +212,11 @@ if($protoDune==1){
 #Distance to floor  3760.2 mm
 #Distance to ceiling  4139.8 mm
 #Floor to ceiling  7900
-
 }
 
  #InnerDrift is the max distance form the edge of the CPA to the edge of the first wire plane
 #$InnerDrift              = 359.4;
 $InnerDrift              = 357.135;
-
 $APAFrame_x              = 3*$inch; # ~2in -- this does not include the wire spacing
 
 $TPCWireThickness        = 0.015;
@@ -276,9 +274,9 @@ $APA_UtoU_x   = $APAFrame_x + 6*$APAWirePlaneSpacing + (6-1)*$TPCWirePlaneThickn
                                                                                # outer wire planes (center to center)
 #$TPCInner_x   = $InnerDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness;
 $TPCInner_x   = $InnerDrift + 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness;
-#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall. 
+#$TPCOuter_x   = $OuterDrift + $APAWirePlaneSpacing;# + $TPCWirePlaneThickness; Making it smaller than the distance to the wall.
 $TPCOuter_x   = 4*$APAWirePlaneSpacing + 4*$TPCWirePlaneThickness + 8;
- 
+
 print "TPCInner_x=".$TPCInner_x."\n";
 print "TPCOuter_x=".$TPCOuter_x."\n";
 print "APA_UtoU_x=".$APA_UtoU_x."\n";
@@ -299,7 +297,6 @@ $Cathode_x                 =    0.13*$inch;
 #$Cathode_z                 =    $APAphys_z - $CPATube_OD;   
 #$Cathode_y                 =    610.4;
 $Cathode_z                 =    715.5;
-
 
 $APAToAPA =   $APAFrame_x 
             + 2*$TPCInner_x
@@ -659,7 +656,7 @@ $ModuleLongCorr      = 5.6;  # allign the the modules at the frame's edge
 
 # Beam Spot on the inside of the cryostat
 
-$BeamSpotDSS_x          = -20.58; 
+$BeamSpotDSS_x          = -20.58;
 $BeamSpotDSS_y          = -425.41;
 $BeamSpotDSS_z          = -82.96;
 
@@ -670,6 +667,7 @@ $BeamSpot_z = $posCryoInDetEnc_z + $CRTSurveyOrigin_z + $BeamSpotDSS_z +  $Origi
 print "BeamSpot_x =".$BeamSpot_x.", BeamSpot_y =".$BeamSpot_y.", BeamSpot_z =".$BeamSpot_z."\n";
 
 ####################### End of Survey data ##########
+
 
 my @posCRTDS_x = ();
 my @posCRTDS_y = ();
@@ -761,6 +759,7 @@ my @posCRTUS_x = ();
 my @posCRTUS_y = ();
 my @posCRTUS_z = ();
 my @posCRTUS_rot = ();
+
 
 $posCRTUS_x[0] = $posCryoInDetEnc_x + $CRTSurveyOrigin_x + $CRT_USTopLeft_x - $ModuleSMDist;
 $posCRTUS_y[0] = $posCryoInDetEnc_y + $CRTSurveyOrigin_y + $CRT_USTopLeft_y - $ModuleLongCorr;
@@ -979,7 +978,6 @@ print DEF <<EOF;
    <position name="posArapucaSub13"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[13]]}"/>
    <position name="posArapucaSub14"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[14]]}"/>
    <position name="posArapucaSub15"    unit="mm" x="@{[$pos_subtraction_arapuca_x]}" y="0" z="@{[$list_pos[15]]}"/>
-
 </define>
 </gdml>
 EOF
@@ -1035,6 +1033,9 @@ sub gen_TPC
 # $_[3] = 'name'
 
     my $TPCActive_x   =  $_[0] - 3*$APAWirePlaneSpacing -3*$TPCWirePlaneThickness;
+    if( ($protoDune == 1) && ($_[3] eq 'Outer') ){
+       $TPCActive_x   =  3*($APAWirePlaneSpacing + $TPCWirePlaneThickness);
+    }
     my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap + $G10thickness; #TODO: make the Active height more accurate
     my $TPCActive_z   =  $_[2];
 
@@ -1749,6 +1750,7 @@ EOF
 
     my $BottomOfAPA = - $TPC_y/2 + $APAGap_y/2;
 
+
     $posZplane[0]   = -$_[0]/2 + $APAWirePlaneSpacing + $TPCWirePlaneThickness/2;
     $posZplane[1]   = $BottomOfAPA + $WrapCover + 4*$G10thickness + $Zactive_y/2;
     $posZplane[2]   = 0;
@@ -1764,7 +1766,6 @@ EOF
     $posTPCActive[0] = $posUplane[0] + $TPCWirePlaneThickness/2 + $TPCActive_x/2;
     $posTPCActive[1] = -$_[1]/2 + $TPCActive_y/2;
     $posTPCActive[2] = 0;
-
 
 #wrap up the TPC file
 print TPC <<EOF;
@@ -1902,7 +1903,7 @@ print CRYO <<EOF;
 
     <tube   name="TubeBePlFlangeOut" rmin="0" rmax="15" z="3.6" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <tube   name="TubeBePlFlangeIn" rmin="0" rmax="8.25" z="3.2" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
-    <tube   name="TubeBePlFlangeCut" rmin="12.5" rmax="15.01" z="2.3" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube   name="TubeBePlFlangeCut" rmin="12.5" rmax="15.01" z="2.302" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <tube   name="TubeBePlFlangeTPCRem" rmin="0." rmax="12.5" z="0.91" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
 
     <subtraction name="BPRing">
@@ -2056,6 +2057,8 @@ EOF
 #      <second ref="Cath-12"/>
 #      <position name="posCPAInnerRem" x="179.23175" y="-3.805" z="0." unit="cm"/>
 #    </subtraction>
+#
+#################################
 print CRYO <<EOF;
     <box name="boxFCEWmod" x="354.3" y="151.2" z="12.8" lunit="cm"/>
     <box name="boxFCEWHorSuppOut" x="354.3" y="15.2" z="10.2" lunit="cm"/>
@@ -2074,28 +2077,28 @@ print CRYO <<EOF;
       <position name="posFCEWHorSuppBar" x="0" y="0" z="2." unit="cm"/>
     </subtraction>
 
-    <box name="boxFCEW-BP-Subtract" x="51" y="151.3" z="1.301" lunit="cm"/>
-    <box name="boxBePlHolemod" x="31.2" y="31.2" z="12.801" lunit="cm"/>
-    <box name="boxBePlHoleFiSh" x="31.2" y="31.2" z="1.301" lunit="cm"/>
+    <box name="boxFCEW-BP-Subtract" x="50.8" y="151.2" z="1.301" lunit="cm"/>
+    <tube name="tubBePlHolemod" rmin="0" rmax="15.25" z="12.801" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubBePlHoleFiSh" rmin="0" rmax="15.25" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
     <box name="boxFCEW-BPFla-VerSupp" x="50.8" y="151.2" z="1.3" lunit="cm"/>
     <box name="boxFCEW-BPFla-Subtr" x="25.4" y="64" z="1.301" lunit="cm"/>
-    <tube name="tubFCEW-BPFla-Subtr" rmin="0" rmax="13.6" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
-    <tube name="tubFCEW-BPVer-Subtr" rmin="0" rmax="12.0" z="1.31" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubFCEW-BPFla-Subtr" rmin="0" rmax="14.0" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
+    <tube name="tubFCEW-BPVer-Subtr" rmin="0" rmax="12.5" z="1.301" deltaphi="360." startphi="0" aunit="deg" lunit="cm"/>
 
     <subtraction name="boxFCEW-BP-NoHole">
       <first ref="boxFCEWmod"/>
       <second ref="boxFCEW-BP-Subtract"/>
-      <position name="posFCEW-BP-NoHole" x="147.8" y="0" z="5.75" unit="cm"/>
+      <position name="posFCEW-BP-NoHole" x="147.8" y="0" z="5.7505" unit="cm"/>
     </subtraction>
     <subtraction name="boxFCEW-BP-mod">
       <first ref="boxFCEW-BP-NoHole"/>
-      <second ref="boxBePlHolemod"/>
-      <position name="posboxFCEW-BP-mod" x="149." y="43" z="0" unit="cm"/>
+      <second ref="tubBePlHolemod"/>
+      <position name="posboxFCEW-BP-mod" x="146" y="41.6" z="0" unit="cm"/>
     </subtraction>
     <subtraction name="FCEW-BP-FieldShaping">
       <first ref="boxFCEWFieldShaping"/>
-      <second ref="boxBePlHoleFiSh"/>
-      <position name="posFCEW-BP-FieldShapingSol" x="149." y="43" z="0" unit="cm"/>
+      <second ref="tubBePlHoleFiSh"/>
+      <position name="posFCEW-BP-FieldShapingSol" x="146" y="41.6" z="0" unit="cm"/>
     </subtraction>
 
     <subtraction name="FCEW-BPFla-Ver">
@@ -2260,7 +2263,6 @@ print CRYO <<EOF;
       x="@{[$ArapucaAcceptanceWindow_x]}"
       y="@{[$ArapucaAcceptanceWindow_y]}"
       z="@{[$ArapucaAcceptanceWindow_z]}"/>
-
 
      <box name="APAFrameYSideHollow" lunit="cm"
       x="$APAFrameYSideHollow_x"
@@ -2514,11 +2516,11 @@ print CRYO <<EOF;
       </physvol>
       <physvol name="volFCEW-BP-VerSuppBar-5">
         <volumeref ref="volFCEWVerSuppBar"/>
-        <position name="posFCEW-BP-VerSuppBar-5" x="123.8" y="0" z="-5.75" unit="cm"/>
+        <position name="posFCEW-BP-VerSuppBar-5" x="122.5" y="0" z="-5.75" unit="cm"/>
       </physvol>
       <physvol>
         <volumeref ref="volFCEW-BPVer"/>
-        <position name="posFCEW-BPVer" x="168.9" y="0" z="-5.75" unit="cm"/>
+        <position name="posFCEW-BPVer" x="169.4" y="0" z="-5.75" unit="cm"/>
       </physvol>
     </volume>
 
@@ -2732,7 +2734,8 @@ if($cpa_i == 0) {
   $FCEWmodUS_z = $APACenter_z - 231.5/2 - $CPAmodbarGap - 2; #CPAmodCenter_z to FCEWmod 
   for($fcewy_i = 0; $fcewy_i < 4; $fcewy_i++){
 
-    $FCEWmod_y[$fcewy_i] = $APACenter_y + (-3 + 2*$fcewy_i)*76; 
+    $FCEWmod_y[$fcewy_i] = $APACenter_y + (-3 + 2*$fcewy_i)*77; #distance between FCEW module is 2.8 cm (originally 0.8 cm)
+ 
   }
 }
 if($cpa_i == 2) {
@@ -2906,9 +2909,13 @@ print CRYO <<EOF;
 EOF
 }
 
-$FCEWBPFla_x = $FCEWmodLeft_x + 147.8;
-$FCEWBPFla_y = $FCEWmod_y[2]  + 0;
-$FCEWBPFla_z = $FCEWmodUS_z   + 5.75;
+$FCEWBPmod_x = $FCEWmodLeft_x + 2.8;
+$FCEWBPmod_y = $FCEWmod_y[2]  + 0.9;
+$FCEWBPmod_z = $FCEWmodUS_z;
+
+$FCEWBPFla_x = $FCEWBPmod_x + 147.8;
+$FCEWBPFla_y = $FCEWBPmod_y  + 0;
+$FCEWBPFla_z = $FCEWBPmod_z   + 5.75;
 
 print "volFCEW-BPFla pos x=".$FCEWBPFla_x." y=".$FCEWBPFla_y." z=".$FCEWBPFla_z."\n";
 
@@ -2916,9 +2923,9 @@ print CRYO <<EOF;
       <physvol>
         <volumeref ref="volFCEW-BP-mod"/>
         <position name="posFCEW-BP-mod" unit="cm"
-         x="$FCEWmodLeft_x"
-         y="$FCEWmod_y[2]"
-         z="$FCEWmodUS_z"/>
+         x="$FCEWBPmod_x"
+         y="$FCEWBPmod_y"
+         z="$FCEWBPmod_z"/>
       </physvol>
 
       <physvol>
@@ -2970,8 +2977,6 @@ for ($paddle = 0; $paddle<$nLightPaddlesPerAPA; $paddle++)
                             + $FrameToPaddleSpace 
                             + (1-$j)*($LightPaddle_y/2) 
                             + $PaddleYInterval*$paddle;
-#                            + 30.412; 
-
 
      if($apa_i==$nAraAPA1){
 	if($paddle==$nSlotAra1) {$test=1;}
