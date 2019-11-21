@@ -76,6 +76,8 @@ private:
   double getLemTransparency( int chx, int chy ) const;
   double getLemGain( int lemid ) const;
 
+  void   dumpLemEffMap(int nlems) const;
+
   //
   int    m_LogLevel;
   
