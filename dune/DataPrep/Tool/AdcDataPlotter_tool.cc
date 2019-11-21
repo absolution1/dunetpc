@@ -41,6 +41,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_ClockFactor(ps.get<float>("ClockFactor")),
   m_ClockOffset(ps.get<float>("ClockOffset")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
+  m_MinSignal(1.e30),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
   m_EmptyColor(ps.get<double>("EmptyColor")),
@@ -57,6 +58,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_pOnlineChannelMapTool(nullptr),
   m_pChannelStatusProvider(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
+  m_MinSignal = -m_MaxSignal;
+  ps.get_if_present("MinSignal", m_MinSignal);
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
@@ -145,6 +148,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << " @ "
            << m_pOnlineChannelMapTool << endl;
     }
+    cout << myname << "             MinSignal: " << m_MinSignal << endl;
     cout << myname << "             MaxSignal: " << m_MaxSignal << endl;
     cout << myname << "            EmptyColor: " << m_EmptyColor << endl;
     cout << myname << "    ChannelLineModulus: " << m_ChannelLineModulus << endl;
@@ -265,9 +269,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     ph->SetDirectory(nullptr);
     ph->SetStats(0);
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
+    double zmin = m_MinSignal;
     double zmax = m_MaxSignal;
-    if ( zmax <= 0.0 ) zmax = 100.0;
-    double zmin = m_MinSignal < m_MaxSignal ? m_MinSignal : -zmax;
     ph->GetZaxis()->SetRangeUser(zmin, zmax);
     ph->SetContour(40);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
@@ -396,6 +399,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     TPadManipulator man;
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
+    man.setRangeZ(m_MinSignal, m_MaxSignal);
     man.addAxis();
     // Root uses the frame color for underflows.
     // If we are coloring empty bins, we use that color.

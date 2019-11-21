@@ -23,6 +23,7 @@
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots
 //   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
+//   MinSignal - If absent, -MaxSignal is used.
 //   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
 //   SkipBadChannels - If true, skip channels flagged as bad.
 //   EmptyColor - If >=0, empty bins are drawn in this color (See TAttColor).
@@ -112,6 +113,7 @@ private:
   float          m_ClockOffset;
   IntVector      m_FembTickOffsets;
   Name           m_OnlineChannelMapTool;
+  double         m_MinSignal;
   double         m_MaxSignal;
   bool           m_SkipBadChannels;
   Index          m_EmptyColor;
