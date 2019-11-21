@@ -267,7 +267,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
     double zmax = m_MaxSignal;
     if ( zmax <= 0.0 ) zmax = 100.0;
-    double zmin = -zmax;
+    double zmin = m_MinSignal < m_MaxSignal ? m_MinSignal : -zmax;
     ph->GetZaxis()->SetRangeUser(zmin, zmax);
     ph->SetContour(40);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
