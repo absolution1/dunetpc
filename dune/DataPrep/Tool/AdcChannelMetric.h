@@ -24,10 +24,13 @@
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
 //              rawRms - RMS of (ADC - pedestal)
+//              samRms - RMS of sample
+//              samRmsNN - RMS of integration over NN contiguous samples (NN = 1, 2, ...)
 //              rawTailFraction - Fraction of ticks with |raw - ped| > 3*noise
 //              sigFrac: Fraction of samples that are signal.
 //              sigRms: RMS of the signal samples.
 //              nsgRms: RMS of the not-signal samples.
+//              nsgRmsNN: RMS of integration over NN contiguous not-signal samples.
 //   PedestalReference - Name of the FloatArrayTool that holds the pedestal reference values.
 //                       If the value is "first", the pedestal for the first event is used.
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
