@@ -40,6 +40,7 @@ art_make( LIBRARY_NAME ProtoDUNEDataUtils
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
                         ${MF_MESSAGELOGGER}
+                        ${FHICLCPP}
                         cetlib cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
 	  MODULE_LIBRARIES

@@ -10,7 +10,30 @@
 /// This service inherits from SignalShaping and supplies
 /// DUNE dual-phase specific configuration.
 /// It is intended that SimWire and CalWire modules will access this service.
+/// 
+/// The general philosophy to follow is to split fC -> ADC conversion 
+/// in two parts
+///  - area normalization factor (typicaly in units ADC x us / fC)
+///  - pulse shaping
+/// Since the hit charge should be calculated from the integral, the norm
+/// factor should be an area normalization constant. The shape function 
+/// should then be area-normalized in order to eventually achive a proper 
+/// normalization of the hit integral. Note that in this case even if the 
+/// simulated pulse shape may not be exact, if correctly normalized the 
+/// resulting simulated hit charge should be correct. 
+/// The charge loss due to, for example, the detector capacitance should 
+/// not be included in the calibration constant here but treated elsewhere 
+/// to avoid lumping many effiiciency factors into one ambiguous number
 ///
+/// changes:
+///   11.20.2019, vgalymov
+///     Changed pulse normalization to integral instead of amplitude. 
+///     For 3x1x1 the parameters specified in fcl were computed based 
+///     on what was originally put there for 3x1x1. Namely the pulse 
+///     function was calculated with original parameters and its integral 
+///     was then used to specify the area normalization in the service fcl.
+///     Make the parameters for 1 m view optional, since this corresponds to
+///     to a rather particular CRP configuration
 ///
 ////////////////////////////////////////////////////////////////////////
 
@@ -37,6 +60,7 @@ namespace util {
     // Update configuration parameters.
     void reconfigure(const fhicl::ParameterSet& pset);
 
+    double GetAreaNorm(unsigned int const channel) const;
     double GetASICGain(unsigned int const channel) const;
     double GetShapingTime(unsigned int const channel) const;
 
@@ -66,52 +90,57 @@ namespace util {
 
 
     // Calculate response functions.
-    void SetElectResponse(std::vector<double> &eresp1meter, std::vector<double> &eresp3meter);
-    void SetFieldResponse(std::vector<double> &fresp); //<- could be added later
+    double SetElectResponse( const TF1* fshape, util::SignalShaping &sig, double areanorm );
+    void   SetFieldResponse(std::vector<double> &fresp); //<- could be added later
     double FieldResponse(double tval_us); //harcoded function to calcuate the field response
 
     // Calculate filter functions.
     void SetFilters();
 
     // Sample the response function, including a configurable drift velocity of electrons
-    void SetResponseSampling();
+    void SetResponseSampling( util::SignalShaping &sig );
 
     // Attributes.
     bool fInit;               ///< Initialization flag.
 
     // Fcl parameters.
-    double fDeconNorm;
-    double fASICmVperfC1Meter;              ///< Amplifier gain per 1 fC input for 1 meter long readout channels
-    double fASICmVperfC3Meter;              ///< Amplifier gain per 1 fC input for 3 meter long readout channels
-    double fADCpermV;                       ///< Digitizer scale
-    double fAmpENC;                         ///< Amplifier noise
-    double fAmpENCADC;                      ///  Amplifier noise in ADC
-    double fRespSamplingPeriod;             ///< Sampling period for response in ns
+    double      fDeconNorm;
+    double      fRespSamplingPeriod;            ///< Sampling period for response in ns
+    double      fAreaNorm;                      ///< in units (ADC x us) / fC
+    double      fPulseHeight;                   ///< pulse height in mV per fC
+    std::string fShapeFunc;
+    
+    double fADCpermV;                           ///< Digitizer scale
+    double fAmpENC;                             ///< noise in num of electrons used where???
+    double fAmpENCADC;                          ///< noise rescaled to ADC
 
-    std::string fCollection1MeterShape;
-    std::string fCollection3MeterShape;
+    
+    // the 3x1x1 stuff
+    bool        fHave1mView; 
+    double      fAreaNorm1m;                ///< in units (ADC x us) / fC for 1m strips
+    double      fPulseHeight1m;             ///< pulse amtplitide in mV per fC
+    std::string fShapeFunc1m;
 
-    std::vector<double> fCollection1MeterParams;
-    std::vector<double> fCollection3MeterParams;
+    
+    /// 
+    TF1* fColShapeFunc;      // Parameterized collection shaping function 
+    TF1* fColShapeFunc1m;    // Parameterized collection shaping function for 1m 3x1x1 strips
 
-    TF1* fCollection1MeterFunction;             // Parameterized collection shaping function for 1 meter long readout channels
-    TF1* fCollection3MeterFunction;             // Parameterized collection shaping function for 3 meter long readout channels
-
-    TF1* fColFieldFunc;             ///<Parameterized collection field function.
-    double fColFieldRespAmp;  			///< amplitude of response to field
-    bool fAddFieldFunction;         ///< Enable the filed function
-
-    TF1* fColFilterFunc;      			///< Parameterized collection filter function.
+    // Field response
+    bool   fAddFieldFunction;         ///< Enable the filed function
+    TF1*   fColFieldFunc;             ///< Parameterized collection field function.
+    double fColFieldRespAmp;  	      ///< amplitude of response to field
+    
+    //
     // Following attributes hold the convolution and deconvolution kernels
-    util::SignalShaping fColSignalShaping1Meter;
-    util::SignalShaping fColSignalShaping3Meter;
-
-    // Field response.
-
+    util::SignalShaping fColSignalShaping;
+    
+    //
+    util::SignalShaping fColSignalShaping1m; /// for 3x1x1 1m strips
+    
     // Filters.
-
+    TF1* fColFilterFunc;      	      ///< Parameterized collection filter function.
     std::vector<TComplex> fColFilter;
-
     std::vector<double>fParArray;
   };
 }

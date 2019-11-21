@@ -45,7 +45,7 @@ double cePulserVoltage(int iaIn, const double rfLines[6], double r6, double vfpg
     double rtot = 1.0/con1 + 1.0/con2;
     fac = 1.0/con1/rtot;
   }
-  const double vrail = 1.8;
+  //const double vrail = 1.8;
   return fac*vfpga;
 }
 
@@ -72,7 +72,7 @@ double cePulser(int ia, const double rfLines[6], double r6, double qvscale) {
 inline
 double cePulserVoltage(double* x, double* pars) {
   int ia = x[0];
-  double* rfLines = pars;
+  //double* rfLines = pars;
   double r6 = pars[6];
   double qvscale = pars[7];
   return cePulserVoltage(ia, pars, r6, qvscale);
@@ -83,7 +83,7 @@ double cePulserVoltage(double* x, double* pars) {
 inline
 double cePulser(double* x, double* pars) {
   int ia = x[0];
-  double* rfLines = pars;
+  //double* rfLines = pars;
   double r6 = pars[6];
   double qvscale = pars[7];
   return cePulser(ia, pars, r6, qvscale);
