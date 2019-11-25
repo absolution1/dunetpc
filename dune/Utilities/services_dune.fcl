@@ -185,7 +185,7 @@ dunedphase3x1x1_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
- CrpGainService:                 @local::dunefddphase_crpgain
+ CrpGainService:                 @local::single_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
@@ -208,7 +208,7 @@ dunedphase3x1x1_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
- CrpGainService:                 @local::dunefddphase_crpgain
+ CrpGainService:                 @local::single_crpgain
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
@@ -520,6 +520,12 @@ protodune_dataprep_tools_wirecell: [
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
+]
+
+## Drop ROIs, zero bad/noisy channels for wirecell processing.
+protodune_dataprep_tools_evd: [
+  @sequence::protodune_dataprep_tools_calib_noiserem,
+  "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
 ]
 
 ## Set a default here.

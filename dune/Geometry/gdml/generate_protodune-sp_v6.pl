@@ -984,6 +984,9 @@ sub gen_TPC
 # $_[3] = 'name'
 
     my $TPCActive_x   =  $_[0] - 3*$APAWirePlaneSpacing -3*$TPCWirePlaneThickness;
+    if( ($protoDune == 1) && ($_[3] eq 'Outer') ){
+       $TPCActive_x   =  3*($APAWirePlaneSpacing + $TPCWirePlaneThickness);
+    }
     my $TPCActive_y   =  $_[1] - $APAGap_y/2 - $ReadoutBoardOverlap + $G10thickness; #TODO: make the Active height more accurate
     my $TPCActive_z   =  $_[2];
 

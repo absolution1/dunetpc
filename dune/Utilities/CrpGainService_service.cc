@@ -20,6 +20,9 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/FloatArrayTool.h"
 
+#include <TFile.h>
+#include <TH2F.h>
+
 using std::cout;
 using std::endl;
 using std::string;
@@ -85,6 +88,10 @@ util::CrpGainService::CrpGainService(fhicl::ParameterSet const& ps, art::Activit
       cout<<myname<<"WARNING the LEM transmission map does not match the expected size."<<endl;
     }
   }
+  
+  // dump
+  int nlemeff = ps.get<int>("DumpLemEff", 0);
+  if( nlemeff > 0 ) dumpLemEffMap( nlemeff );
 
 } // ctor
 
@@ -373,6 +380,30 @@ double util::CrpGainService::getLemGain( int lemid ) const
   
   // TO DO add variable gain map
   return m_CrpDefGain;
+}
+
+//
+//
+//
+void util::CrpGainService::dumpLemEffMap(int nlems) const
+{
+  const string myname = "util::CrpGainService::dumpLemEffMap: ";
+  cout<<myname<<"Dump LEM efficiecy map for a block "<<nlems<<" x "<<nlems<<"\n";
+  //
+  //if( m_plemeff == nullptr ) return;
+  
+  TFile *fout = TFile::Open("dumplemeffmap.root", "RECREATE");
+  TH2F *hist  = new TH2F( "lemeffmap", "lemeffmap", 
+			  nlems*m_LemViewChans, 0, nlems*m_LemViewChans,
+			  nlems*m_LemViewChans, 0, nlems*m_LemViewChans );
+  
+  for( int iy = 0; iy<hist->GetNbinsY(); ++iy){
+    for( int ix = 0; ix<hist->GetNbinsX(); ++ix){
+      hist->SetBinContent(ix+1, iy+1, getLemTransparency( ix, iy ));
+    }
+  }
+  hist->Write();
+  fout->Close();
 }
 
 namespace util{

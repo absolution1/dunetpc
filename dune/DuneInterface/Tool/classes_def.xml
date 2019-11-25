@@ -2,4 +2,6 @@
   <class name="IndexMapTool" />
   <class name="IndexRangeTool" />
   <class name="IndexRangeGroupTool" />
+  <class name="FloatArrayTool" />
+  <class name="AdcChannelTool" />
 </lcgdict>

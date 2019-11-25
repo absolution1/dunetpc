@@ -760,12 +760,23 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     if ( pwires->size() == 0 ) cout << myname << "WARNING: No wires made for this event." << endl;
     evt.put(std::move(pwires), m_OutputWireName);
   } else {
-    if ( logInfo ) cout << myname << "Wires were not requested." << endl;
+    if ( logInfo ) cout << myname << "Wire output was not requested." << endl;
   }
 
   // Record decoder containers.
-  if ( m_OutputDigitName.size() ) evt.put(std::move(pdigitsAll), m_OutputDigitName);
-  if ( m_OutputTimeStampName.size() ) evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+  if ( m_OutputDigitName.size() ) {
+    if ( logInfo ) cout << myname << "Created digit count: " << pdigitsAll->size() << endl;
+    evt.put(std::move(pdigitsAll), m_OutputDigitName);
+  } else {
+    if ( logInfo ) cout << myname << "Digit output was not requested." << endl;
+  }
+
+  if ( m_OutputTimeStampName.size() ) {
+    if ( logInfo ) cout << myname << "Created time stamp count: " << ptimsAll->size() << endl;
+    evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+  } else {
+    if ( logInfo ) cout << myname << "Time stamp output was not requested." << endl;
+  }
 
   ++m_nproc;
   return;

@@ -1,6 +1,6 @@
 #include "dune/Calib/LinCalibProtoDUNE.h"
 
-#include "nutools/IFDatabase/Table.h"
+#include "nuevdb/IFDatabase/Table.h"
 #include <getopt.h>
 #include <iostream>
 
