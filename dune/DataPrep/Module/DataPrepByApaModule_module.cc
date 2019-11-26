@@ -503,11 +503,17 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         //} else if ( ! beaminfo[0]->CheckIsMatched() ) {
         //  cout << myname << "Beam event is not matched." << endl;
         } else if ( beaminfo[0]->GetTOFChan() == -1 ) {
-          if ( logInfo ) cout << myname << "Beam event index does not indicate match." << endl;
+          if ( logInfo ) cout << myname << "Beam event does not have a TOF match." << endl;
         } else {
           int beamChan = beaminfo[0]->GetTOFChan();
           beamTof = beaminfo[0]->GetTOF();
           if ( logInfo ) cout << myname << "Beam event TOF[" << beamChan << "]: " << beamTof << endl;
+        }
+        const std::vector<double>& momenta = beaminfo[0]->GetRecoBeamMomenta();
+        if ( logInfo ) {
+          cout << myname << "Beam momenta:";
+          for ( double pval : momenta ) cout << " " << pval;
+          cout << endl;
         }
       }
     } else {
