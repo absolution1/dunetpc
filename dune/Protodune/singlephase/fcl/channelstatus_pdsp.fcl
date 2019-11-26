@@ -42,15 +42,31 @@ pdsp_channel_status: {
      9736,  # femb611x25
      9854,  # femb602x02
     10800,  # femb105u40
+    11011,  # femb110x39  bad in run 10417 (nov 2019)
+    11013,  # femb110x37  bad in run 10417 (nov 2019)
+    11015,  # femb110x35  bad in run 10417 (nov 2019)
+    11017,  # femb110x33  bad in run 10417 (nov 2019)
+    11019,  # femb110x31  bad in run 10417 (nov 2019)
     11024,  # femb110u16
     11457,  # femb110v18
     11459,  # femb110v20
+    11460,  # femb110x21  bad in run 10417 (nov 2019)
+    11462,  # femb110x23  bad in run 10417 (nov 2019)
+    11464,  # femb110x25  bad in run 10417 (nov 2019)
+    11466,  # femb110v27  bad in run 10417 (nov 2019)
+    11468,  # femb110v29  bad in run 10417 (nov 2019)
     11463,  # femb110v24
     11469,  # femb110v30: bad in 4875-185-1500, ok in 5803-76-3200
     11517,  # femb109v38
     11669,  # femb105v30
     11679,  # femb105v40
     12756,  # femb110x44
+    12765,  # femb110x35  bad in run 10417 (nov 2019)
+    12767,  # femb110x33  bad in run 10417 (nov 2019)
+    12769,  # femb110x31  bad in run 10417 (nov 2019)
+    12771,  # femb110x29  bad in run 10417 (nov 2019)
+    12773,  # femb110x27  bad in run 10417 (nov 2019)
+    12775,  # femb110x25  bad in run 10417 (nov 2019)
     12801,  # femb411u39
     13001,  # femb416u39
     13081,  # femb418u39
@@ -232,19 +248,6 @@ pdsp_channel_status: {
    # femb607x
      8341 # Sticky pedestal
   ]
-
-}
-
-apa7_channel_status: {
- 
-  # implements IChannelStatusService
-  service_provider: SimpleChannelStatusService
-
-  # list of bad channels:
-  BadChannels:   []
-
-  # list of bad noisy channels:
-  NoisyChannels: []
 
 }
 
