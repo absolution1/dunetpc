@@ -5,6 +5,9 @@
 #
 # Bad and noisy channels for protDUNE single phase.
 
+# Include old bad channel maps.
+#include "channelstatus_pdsp_2018.fcl"
+
 BEGIN_PROLOG
 
 pdsp_channel_status: {
@@ -54,6 +57,7 @@ pdsp_channel_status: {
     11462,  # femb110x23  bad in run 10417 (nov 2019)
     11464,  # femb110x25  bad in run 10417 (nov 2019)
     11466,  # femb110v27  bad in run 10417 (nov 2019)
+    11467,  # femb110v28  broken wire in 10417 (nov 2019)
     11468,  # femb110v29  bad in run 10417 (nov 2019)
     11463,  # femb110v24
     11469,  # femb110v30: bad in 4875-185-1500, ok in 5803-76-3200
