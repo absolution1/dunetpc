@@ -1675,10 +1675,13 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     leftOvers.push_back(lo);
   }
  
+  //std::cout.precision(20);
   for(size_t i = 0; i < counts[1]; ++i){      
     for(int j = 0; j < 10; ++j){
 
       double theData = data[20*i + (2*j + 1)];
+
+      //std::cout << "theData: " << theData << std::endl;
 
       if(j < 4)
 	fbm.timeData[j] = theData;           
@@ -2095,6 +2098,15 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
 
     if( fPrintDebug ){
       MF_LOG_INFO("BeamEvent") << firstBPROF1 << " has " << BPROF1Fibers.size() << " active fibers" << "\n";
+      std::cout.precision(20);
+      std::cout                << "Data: \n"  
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[0] << "\n"
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[1] << "\n"
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[2] << "\n"
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[3] << "\n"
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[4] << "\n"
+                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[5] << std::endl;
+
       for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
         MF_LOG_INFO("BeamEvent") << BPROF1Fibers[i] << " ";
       }
