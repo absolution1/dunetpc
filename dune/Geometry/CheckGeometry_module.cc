@@ -72,7 +72,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
 
   art::ServiceHandle<geo::Geometry> geo;
 
-  std::cout<<"channel = "<<geo->PlaneWireToChannel(0,600,1)<<std::endl;
+  //std::cout<<"channel = "<<geo->PlaneWireToChannel(0,600,1)<<std::endl;
 
   TCanvas *can = new TCanvas("c1","c1");
   can->cd();
@@ -107,12 +107,12 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       minz = world[2]-tpc.ActiveLength()/2.;
     if (maxz<world[2]+tpc.ActiveLength()/2.)
       maxz = world[2]+tpc.ActiveLength()/2.;
-    std::cout<<t<<" "<<world[0]-tpc.ActiveHalfWidth()
-	     <<" "<<world[0]+tpc.ActiveHalfWidth()
-	     <<" "<<world[1]-tpc.ActiveHalfHeight()
-	     <<" "<<world[1]+tpc.ActiveHalfHeight()
-	     <<" "<<world[2]-tpc.ActiveLength()/2.
-	     <<" "<<world[2]+tpc.ActiveLength()/2.<<std::endl;
+//    std::cout<<t<<" "<<world[0]-tpc.ActiveHalfWidth()
+//	     <<" "<<world[0]+tpc.ActiveHalfWidth()
+//	     <<" "<<world[1]-tpc.ActiveHalfHeight()
+//	     <<" "<<world[1]+tpc.ActiveHalfHeight()
+//	     <<" "<<world[2]-tpc.ActiveLength()/2.
+//	     <<" "<<world[2]+tpc.ActiveLength()/2.<<std::endl;
  
     TPCBox.push_back(new TBox(world[2]-tpc.ActiveLength()/2.,
 			      world[1]-tpc.ActiveHalfHeight(),
@@ -172,7 +172,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
     auto& auxdet = geo->AuxDet(i);
     double xyz[3];
     auxdet.GetCenter(xyz);
-    std::cout<<"Aux "<<i<<" "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<" "<<auxdet.HalfWidth1()<<" "<<auxdet.HalfHeight()<<" "<<auxdet.Length()/2<<std::endl;
+    //std::cout<<"Aux "<<i<<" "<<xyz[0]<<" "<<xyz[1]<<" "<<xyz[2]<<" "<<auxdet.HalfWidth1()<<" "<<auxdet.HalfHeight()<<" "<<auxdet.Length()/2<<std::endl;
     double auxdet0[3] = {-auxdet.HalfWidth1(), auxdet.HalfHeight(), -auxdet.Length()/2};
     double world0[3];
     auxdet.LocalToWorld(auxdet0, world0);
@@ -182,6 +182,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
     module_x[i] = (world0[0]+world1[0])/2;
     module_y[i] = (world0[1]+world1[1])/2;
     module_z[i] = (world0[2]+world1[2])/2;
+    std::cout<<"CRT module "<<i<<" x = "<<module_x[i]<<" y = "<<module_y[i]<<" z = "<<module_z[i]<<std::endl;
     if (xyz[2] < 0){ //front
       CRTBox0.push_back(new TBox(world0[0],world0[1],world1[0],world1[1]));
       CRTBox0.back()->SetFillStyle(0);
@@ -216,7 +217,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       }
     }
     if (i==0){
-      std::cout<<"Aux "<<i<<" has "<<auxdet.NSensitiveVolume()<<std::endl;
+      //std::cout<<"Aux "<<i<<" has "<<auxdet.NSensitiveVolume()<<std::endl;
     }
   }
 
@@ -361,11 +362,11 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       if (auxdet.HalfWidth1()>auxdet.HalfHeight()){//horizontal
         for (int j = 0; j<1; ++j){
           auto& auxdetsen = auxdet.SensitiveVolume(j);
-          std::cout<<i<<" "<<j<<" "<<auxdetsen.HalfWidth1()<<" "<<auxdetsen.HalfHeight()<<" "<<auxdetsen.Length()/2<<std::endl;
+          //std::cout<<i<<" "<<j<<" "<<auxdetsen.HalfWidth1()<<" "<<auxdetsen.HalfHeight()<<" "<<auxdetsen.Length()/2<<std::endl;
           double auxdetsen0[3] = {0,0,auxdetsen.Length()/2-20};
           double world0[3];
           auxdetsen.LocalToWorld(auxdetsen0,world0);
-          std::cout<<i<<" "<<j<<" "<<world0[0]<<" "<<world0[1]<<std::endl;
+          //std::cout<<i<<" "<<j<<" "<<world0[0]<<" "<<world0[1]<<std::endl;
           tt.SetTextColor(i%8+1);
           tt.DrawLatex(world0[0], world0[1], Form("%d",j));
         }
@@ -394,11 +395,11 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
     if (xyz[2] > 0){ //front
       for (int j = 0; j<1; ++j){
         auto& auxdetsen = auxdet.SensitiveVolume(j);
-        std::cout<<i<<" "<<j<<" "<<auxdetsen.HalfWidth1()<<" "<<auxdetsen.HalfHeight()<<" "<<auxdetsen.Length()/2<<std::endl;
+        //std::cout<<i<<" "<<j<<" "<<auxdetsen.HalfWidth1()<<" "<<auxdetsen.HalfHeight()<<" "<<auxdetsen.Length()/2<<std::endl;
         double auxdetsen0[3] = {0,0,auxdetsen.Length()/2-20};
         double world0[3];
         auxdetsen.LocalToWorld(auxdetsen0,world0);
-        std::cout<<i<<" "<<j<<" "<<world0[0]<<" "<<world0[1]<<std::endl;
+        //std::cout<<i<<" "<<j<<" "<<world0[0]<<" "<<world0[1]<<std::endl;
         tt.SetTextColor(i%8+1);
         tt.DrawLatex(world0[0], world0[1], Form("%d",j));
       }
@@ -420,8 +421,8 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
                            0};
       auxdetsen.LocalToWorld(auxdet0, world0);
       auxdetsen.LocalToWorld(auxdet1, world1);
-      std::cout<<world0[0]<<" "<<world0[1]<<" "<<world0[2]<<std::endl;
-      std::cout<<world1[0]<<" "<<world1[1]<<" "<<world1[2]<<std::endl;
+//      std::cout<<world0[0]<<" "<<world0[1]<<" "<<world0[2]<<std::endl;
+//      std::cout<<world1[0]<<" "<<world1[1]<<" "<<world1[2]<<std::endl;
       if (i==0){
         CRTStrips[i].push_back(new TBox(world0[1], world0[2], world1[1], world1[2]));
       }
@@ -432,7 +433,7 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
       CRTStrips[i].back()->SetLineWidth(2);
     }
   }
-  std::cout<<CRTStrips[0].size()<<" "<<CRTStrips[1].size()<<std::endl;
+  //std::cout<<CRTStrips[0].size()<<" "<<CRTStrips[1].size()<<std::endl;
   TH2D *frstp[2];
   TCanvas *cstp[2];
   for (int i = 0; i<2; ++i){

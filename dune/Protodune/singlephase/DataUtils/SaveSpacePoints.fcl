@@ -1,3 +1,5 @@
+#include "ProtoDUNEBeamlineUtils.fcl"
+
 BEGIN_PROLOG
 
 proto_savesps:
@@ -7,6 +9,7 @@ proto_savesps:
   BeamModuleLabel:        "beamevent"
   TrackModuleLabel:       "pandoraTrack"
   TimeDecoderModuleLabel: "timingrawdecoder:daq"
+  BeamlineUtils:           @local::standard_protodunebeamlineutils  
 }
 
 END_PROLOG
