@@ -13,7 +13,7 @@
 // Palette indices:
 //  < 1000 uses the Root definitions (e.g. kRainBow or kBird).
 //         See the Root doc page for TColor for some of the permitted values.
-//  1010 - dark to light blue, yellow to red to black. For zmin = -zmax.
+//  1010 - yellow to red to black. For zmin = 0.
 //  1011 - Same as 1010 with first 0.5% of colors set white
 //  1012 - Same as 1010 with first 1% of colors set white
 //  1013 - Same as 1010 with first 2% of colors set white
@@ -23,7 +23,7 @@
 //  1017 - Same as 1010 with first 10% of colors set white
 //  1018 - Same as 1010 with first 15% of colors set white
 //  1019 - Same as 1010 with first 20% of colors set white
-//  1020 - yellow to red to black. For zmin = 0.
+//  1020 - dark to light blue, yellow to red to black. For zmin = -zmax.
 //  1021 - Same as 1020 with central 0.5% of colors set white
 //  1022 - Same as 1020 with central 1% of colors set white
 //  1023 - Same as 1020 with central 2% of colors set white
