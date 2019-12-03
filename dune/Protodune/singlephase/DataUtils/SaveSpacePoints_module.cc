@@ -25,6 +25,7 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "dune/Protodune/singlephase/DataUtils/ProtoDUNEBeamlineUtils.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -59,6 +60,8 @@ private:
   const art::InputTag fBeamModuleLabel;
   const art::InputTag fTrackModuleLabel;
   const art::InputTag fTimeDecoderModuleLabel;
+
+  protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
 
   TTree *fTree;
   // Run information
@@ -99,7 +102,8 @@ proto::SaveSpacePoints::SaveSpacePoints(fhicl::ParameterSet const & p)
   fSpacePointModuleLabel(p.get< art::InputTag >("SpacePointModuleLabel")),
   fBeamModuleLabel(p.get< art::InputTag >("BeamModuleLabel")),
   fTrackModuleLabel(p.get< art::InputTag >("TrackModuleLabel")),
-  fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel"))
+  fTimeDecoderModuleLabel(p.get< art::InputTag >("TimeDecoderModuleLabel")),
+  fBeamlineUtils(p.get<fhicl::ParameterSet>("BeamlineUtils"))
 {}
 
 void proto::SaveSpacePoints::analyze(art::Event const & evt)
@@ -131,7 +135,38 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
   beamDirz.clear();
   beamMomentum.clear();
 
-  // Access the trigger information
+  if (fBeamlineUtils.IsGoodBeamlineTrigger(evt)){
+
+    //Access the Beam Event
+    auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
+    
+    std::vector<art::Ptr<beam::ProtoDUNEBeamEvent>> beamVec;
+    if( beamHandle.isValid()){
+      art::fill_ptr_vector(beamVec, beamHandle);
+    }
+
+    const beam::ProtoDUNEBeamEvent & beamEvent = *(beamVec.at(0)); //Should just have one
+
+    //Access momentum
+    const std::vector< double > & the_momenta = beamEvent.GetRecoBeamMomenta();
+    std::cout << "Number of reconstructed momenta: " << the_momenta.size() << std::endl;
+
+    beamMomentum.insert( beamMomentum.end(), the_momenta.begin(), the_momenta.end() );
+
+    tof = -1;
+    ckov0status = -1;
+    ckov1status = -1;
+
+    //Access time of flight
+    const std::vector< double > & the_tofs  = beamEvent.GetTOFs();
+    
+    if( the_tofs.size() > 0){
+      tof = the_tofs[0];
+    }
+    ckov0status = beamEvent.GetCKov0Status();
+    ckov1status = beamEvent.GetCKov1Status();
+  }
+
   trigger = -1;
   art::ValidHandle<std::vector<raw::RDTimeStamp>> timeStamps = evt.getValidHandle<std::vector<raw::RDTimeStamp>>(fTimeDecoderModuleLabel);
 
@@ -175,48 +210,6 @@ void proto::SaveSpacePoints::analyze(art::Event const & evt)
         vcharge.push_back(0);
         vtrackid.push_back(trk->ID());
       }
-    }
-  }
-
-  art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
-  std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
-  if (evt.getByLabel(fBeamModuleLabel, pdbeamHandle))
-    art::fill_ptr_vector(beaminfo, pdbeamHandle);
-  else{
-    std::cout<<"No beam information from "<<fBeamModuleLabel<<std::endl;
-  }
-
-  tof = -1;
-  ckov0status = -1;
-  ckov1status = -1;
-  if (beaminfo.size()){
-    if (beaminfo[0]->GetTimingTrigger() == 12){
-      if (beaminfo[0]->CheckIsMatched()){
-        //Get TOF info
-        if (beaminfo[0]->GetTOFChan() != -1){//if TOFChan == -1, then there was not a successful match, if it's 0, 1, 2, or 3, then there was a good match corresponding to the different pair-wise combinations of the upstream and downstream channels
-          tof = beaminfo[0]->GetTOF();
-        }
-        //Get beam particle trajectory info
-        auto & tracks = beaminfo[0]->GetBeamTracks();
-        for (size_t i = 0; i<tracks.size(); ++i){
-          beamPosx.push_back(tracks[i].End().X());
-          beamPosy.push_back(tracks[i].End().Y());
-          beamPosz.push_back(tracks[i].End().Z());
-          beamDirx.push_back(tracks[i].StartDirection().X());
-          beamDiry.push_back(tracks[i].StartDirection().Y());
-          beamDirz.push_back(tracks[i].StartDirection().Z());
-        }
-        //Get reconstructed beam momentum info
-        auto & beammom = beaminfo[0]->GetRecoBeamMomenta();
-        for (size_t i = 0; i<beammom.size(); ++i){
-          beamMomentum.push_back(beammom[i]);
-        }
-      }
-    }
-    if (beaminfo[0]->GetBITrigger() == 1){
-      //Get CKov status
-      ckov0status = beaminfo[0]->GetCKov0Status();
-      ckov1status = beaminfo[0]->GetCKov1Status();
     }
   }
 
