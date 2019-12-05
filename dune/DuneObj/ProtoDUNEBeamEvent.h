@@ -175,6 +175,7 @@ namespace beam
     dummy.fibers = {};
     std::uninitialized_fill( std::begin(dummy.fiberData), std::end(dummy.fiberData), 0. );
     std::uninitialized_fill( std::begin(dummy.timeData), std::end(dummy.timeData), 0. );
+    dummy.glitch_mask = {};
     dummy.timeStamp = 0.;
     dummy.decoded = false;
     dummy.active = std::vector<short>();
