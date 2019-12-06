@@ -2,8 +2,84 @@
 #
 # David Adams
 # February 2019
+# Updated Decembers 2019.
+
+#####################################################################
+
+# Dec 2019 ProtoDUNE charge calibration.
+# Based on Dec 2019 data.
+tools.areaGain_calib20191203 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_calib20191203"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191203/areaGain_apa3z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa3c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa3u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa3v.fcl",
+    "calib/protodune/calib20191203/areaGain_apa5z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa5c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa5u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa5v.fcl",
+    "calib/protodune/calib20191203/areaGain_apa2z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa2c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa2u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa2v.fcl",
+    "calib/protodune/calib20191203/areaGain_apa6z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa6c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa6u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa6v.fcl",
+    "calib/protodune/calib20191203/areaGain_apa1z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa1c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa1u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa1v.fcl",
+    "calib/protodune/calib20191203/areaGain_apa4z.fcl",
+    "calib/protodune/calib20191203/areaGain_apa4c.fcl",
+    "calib/protodune/calib20191203/areaGain_apa4u.fcl",
+    "calib/protodune/calib20191203/areaGain_apa4v.fcl"
+  ]
+}
+
+# Dec 2019 shaping time calibration.
+# Based on Dec 2019 data.
+tools.shapingTime_calib20191203 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "shapingTime_calib20191203"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191203/shapingTime_apa3z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa3c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa3u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa3v.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa5z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa5c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa5u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa5v.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa2z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa2c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa2u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa2v.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa6z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa6c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa6u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa6v.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa1z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa1c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa1u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa1v.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa4z.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa4c.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa4u.fcl",
+    "calib/protodune/calib20191203/shapingTime_apa4v.fcl"
+  ]
+}
+
+#####################################################################
 
 # Feb 2019 ProtoDUNE charge calibration.
+# Based on Dec 2018 data.
 tools.areaGain_calib20190205 : {
   tool_type: FclFileFloatArray
   LogLevel: 1
@@ -37,6 +113,43 @@ tools.areaGain_calib20190205 : {
   ]
 }
 
+# Feb 2019 ProtoDUNE shaping time calibration.
+# Based on Dec 2018 data.
+tools.shapingTime_calib20190205 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "shapingTime_calib20190205"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20190205/shapingTime_apa3z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa3c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa3u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa3v.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa5z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa5c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa5u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa5v.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa2z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa2c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa2u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa2v.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa6z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa6c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa6u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa6v.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa1z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa1c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa1u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa1v.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa4z.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa4c.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa4u.fcl",
+    "calib/protodune/calib20190205/shapingTime_apa4v.fcl"
+  ]
+}
+
+#####################################################################
+
 # Nov 2019 APA7 cold coldbox charge calibration.
 tools.areaGain_cbnov19 : {
   tool_type: FclFileFloatArray
@@ -48,5 +161,19 @@ tools.areaGain_cbnov19 : {
     "calib/protodune/cbnov19/areaGain_apa7c.fcl",
     "calib/protodune/cbnov19/areaGain_apa7u.fcl",
     "calib/protodune/cbnov19/areaGain_apa7v.fcl"
+  ]
+}
+
+# Nov 2019 APA7 cold coldbox shaping time calibration.
+tools.shapingTime_cbnov19 : {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "shapingTime_cbnov19"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/cbnov19/shapingTime_apa7z.fcl",
+    "calib/protodune/cbnov19/shapingTime_apa7c.fcl",
+    "calib/protodune/cbnov19/shapingTime_apa7u.fcl",
+    "calib/protodune/cbnov19/shapingTime_apa7v.fcl"
   ]
 }
