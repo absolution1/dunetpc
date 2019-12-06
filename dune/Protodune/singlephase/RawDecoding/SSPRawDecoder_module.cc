@@ -89,7 +89,6 @@ public:
   void beginJob() override;
   void endJob() override;
   void beginEvent(art::EventNumber_t eventNumber);
-  void endEvent  (art::EventNumber_t eventNumber);
 
   void setRootObjects();
 
@@ -125,7 +124,6 @@ private:
 
   TH1D * n_event_packets_; //diagnostic histos
   TH1D * frag_sizes_;
-  TH1D * trig_ref_time_;
   //TH1D * trig_abs_time_;
   //TH2D * trig_adc_time_;
 
@@ -136,16 +134,9 @@ private:
   double SPESize;
 
   //const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
-  const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
+  //const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
   //const uint32_t spillsamptime_ = 720000000; //~4.8 sec beam spill time
   
-  //global vectors for smuggling relevant variables out of the producer method/function
-  std::vector<unsigned short> coin_module_id, coin_channel_id;
-  std::vector<double> coin_adc_peak;
-  std::vector<uint64_t> coin_ext_time;
-  std::vector<int32_t> coin_int_time;
-                                                                                                                                        
-
   int number_of_packets = 12;  // 12 channels per SSP
   
   //mapping for SSPs to simple array
@@ -277,9 +268,6 @@ void dune::SSPRawDecoder::setRootObjects(){
 
   n_event_packets_ = tFileService->make<TH1D>("ssp_n_event_packets","SSP: n_event_packets",960,-0.5,959.5);  
   frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
-  trig_ref_time_ = tFileService->make<TH1D>("trig_ref_time_","trig_ref_time_",3750,0,ext_trig_samp_time);
-  //trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
-  //trig_adc_time_ = tFileService->make<TH2D>("trig_adc_time_","trig_adc_time_",10000,0.0,23000000000.0,1000,0.0,4000.0);
 }
 
 void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struct trig_variables* tv){
@@ -424,24 +412,6 @@ void dune::SSPRawDecoder::beginEvent(art::EventNumber_t /*eventNumber*/)
   
 }
 
-void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
-{
-  
-  //These should only work with "internal" trig.trigger_type=16 triggers.
-  if(coin_ext_time.size() > 0){
-    for(size_t i=0;i<coin_ext_time.size();i++){
-      trig_ref_time_->Fill(coin_int_time[i]);                                
-      //trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
-      //trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
-        
-    }
-  }
-  coin_module_id.clear();
-  coin_channel_id.clear();
-  coin_int_time.clear();
-  coin_ext_time.clear();
-  coin_adc_peak.clear();
-}
 void dune::SSPRawDecoder::endJob(){
 
 }
@@ -646,13 +616,6 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
           << std::endl;
       }
             
-      //Fill diagnostic vectors for use at the end of the event
-      coin_module_id.push_back(trig.module_id);
-      coin_channel_id.push_back(trig.channel_id);
-      coin_int_time.push_back(trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]]);
-      coin_ext_time.push_back(trig.timestamp_nova);
-      coin_adc_peak.push_back(peak);
-     
       ///> increment the data pointer to the end of the current packet (to the start of the next packet header, if available)
       dataPointer+=nADC/2;
       
@@ -687,9 +650,6 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   
   n_event_packets_->Fill(allPacketsProcessed);
   
-  endEvent(eventNumber);
-
-
   if (!fSplitTriggers) {
     evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
     evt.put(std::make_unique<decltype(hits)>(     std::move(hits)),      fOutputDataLabel);
