@@ -242,9 +242,9 @@ namespace AnalysisExample{
 
     // Check to see which data is present
     try { RawTPC->size(); }
-    catch(std::exception e) { fIsRCE = false; }
+    catch(std::exception const&) { fIsRCE = false; }
     try { RawSSP->size(); }
-    catch(std::exception e) { fIsSSP = false; }
+    catch(std::exception const&) { fIsSSP = false; }
 
     // Fill pointer vectors - more useful form for the raw data
     std::vector< art::Ptr<raw::RawDigit> > RawDigits;
@@ -343,4 +343,3 @@ namespace AnalysisExample{
 } // namespace
 
 #endif // RawEVD35tTree_module
-

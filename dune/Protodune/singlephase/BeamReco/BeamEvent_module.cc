@@ -548,7 +548,7 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
       SpillOffset = SpillStart - acqStampMBPL;
 
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       acqStampValid = false;
       MF_LOG_WARNING("BeamEvent") << "Could not get Spill time to time in\n";
     }
@@ -838,7 +838,7 @@ void proto::BeamEvent::produce(art::Event & e){
             MF_LOG_INFO("BeamEvent") << "new xcet cache_end: "   << cache_end << "\n";
           }
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
         }
       }      
@@ -851,13 +851,13 @@ void proto::BeamEvent::produce(art::Event & e){
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
         }
         try{
           bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
         }
 
@@ -895,7 +895,7 @@ void proto::BeamEvent::produce(art::Event & e){
         gotCurrent = true;
         beamspill->SetMagnetCurrent(current[0]);
       }
-      catch( std::exception e){
+      catch( std::exception const&){
         MF_LOG_WARNING("BeamEvent") << "Could not get magnet current\n";
         gotCurrent = false;
       }
@@ -950,7 +950,7 @@ void proto::BeamEvent::produce(art::Event & e){
           try{
             getS11Info(fetch_time); 
           }
-          catch( std::exception e ){
+          catch( std::exception const& ){
             MF_LOG_WARNING("BeamEvent") << "Could not get S11 Info\n";
           }
 
@@ -962,7 +962,7 @@ void proto::BeamEvent::produce(art::Event & e){
         try{
           getS11Info(fetch_time); 
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not get S11 Info\n";
         }
 
@@ -1137,7 +1137,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     acqTime = ( high | low ) / 1000000000.; 
 
   }
-  catch(std::exception e){
+  catch(std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not get GeneralTrigger information!!" << "\n";
     gotGeneralTrigger = false;
     return;
@@ -1178,7 +1178,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     gotTOFs = true;
   }
-  catch(std::exception e){
+  catch(std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not get TOF information!!" << "\n";
     gotTOFs = false;
   }
@@ -1474,7 +1474,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
       CKov1Pressure = pressureCKov1[0];
       CKov1Counts   = countsCKov1[0];
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 1 Pressure\n";
       CKov1Pressure = 0.; 
       CKov1Counts   = 0.;
@@ -1489,7 +1489,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
       CKov2Pressure = pressureCKov2[0];
       CKov2Counts   = countsCKov2[0];
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 2 Pressure\n";
       CKov2Pressure = 0.; 
       CKov2Counts   = 0.;
@@ -1633,7 +1633,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   try{
     counts = FetchAndReport(time, fXBPFPrefix + name + ":countsRecords[]", bfp);
   }
-  catch( std::exception e){
+  catch( std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not fetch " << fXBPFPrefix + name + ":countsRecords[]\n";
     return;
   }
@@ -1645,7 +1645,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   try{
     data = FetchAndReport(time, fXBPFPrefix + name + ":eventsData[]", bfp);
   }
-  catch( std::exception e){
+  catch( std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not fetch " << fXBPFPrefix + name + ":eventsData[]\n";
     return;
   }

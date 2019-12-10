@@ -1,4 +1,3 @@
-
 // Class:       SSPRawDecoder
 // Module Type: producer
 // File:        SSPRawDecoder_module.cc
@@ -662,7 +661,7 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   // Check if there is SSP data in this event
   // Don't crash code if not present, just don't save anything    
   try { containerFragments->size(); }
-  catch(std::exception e)  {
+  catch(std::exception const&)  {
     //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
     have_data = false;
   }
@@ -704,7 +703,7 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   // Check if there is SSP data in this event
   // Don't crash code if not present, just don't save anything
   try { rawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
     have_data2=false;
   }

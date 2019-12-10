@@ -126,7 +126,7 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
     try { cont_frags->size(); }
-    catch(std::exception e) {
+    catch(std::exception const&) {
       std::cout << "WARNING: Container FELIX data not found in event " << eventNumber << std::endl;
       return;
     }
@@ -158,7 +158,7 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
     // Don't crash code if not present, just don't save anything
     art::EventNumber_t eventNumber = evt.event();
     try { frags->size(); }
-    catch(std::exception e) {
+    catch(std::exception const&) {
       std::cout << "WARNING: Raw FELIX data not found in event " << eventNumber << std::endl;
       return;
     }
