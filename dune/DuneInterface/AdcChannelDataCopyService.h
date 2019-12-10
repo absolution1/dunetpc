@@ -15,6 +15,8 @@ class AdcChannelDataCopyService {
 
 public:
 
+  virtual ~AdcChannelDataCopyService() = default;
+
   // Copy the data from one AdcChannelData object to another.
   // Returns nonzero for error.
   virtual int copy(const AdcChannelData& oldacd, AdcChannelData& newacd) const =0;

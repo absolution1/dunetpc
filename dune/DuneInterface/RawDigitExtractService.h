@@ -20,6 +20,8 @@ class RawDigitExtractService {
 
 public:
 
+  virtual ~RawDigitExtractService() = default;
+
   // Extract the data for a channel.
   // The digit is assigned to the chanel data before the call.
   virtual int extract(AdcChannelData& acd) const =0;
