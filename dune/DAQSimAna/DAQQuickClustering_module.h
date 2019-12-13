@@ -171,7 +171,6 @@ class ClusterHitsInTime
 {
  public:
   ClusterHitsInTime(double TimeWindow): fNClusters(0),
-                                           fConfig(0),
                                            fTimeWindow(TimeWindow),
                                            fHitVector(),
                                            fVecClusters(){};
@@ -185,7 +184,6 @@ class ClusterHitsInTime
 
 private:
   int fNClusters       = 0;
-  unsigned int fConfig = 0;
   double fTimeWindow   = 0;
   std::vector<recoHit> fHitVector;
   std::vector<cluster> fVecClusters;
