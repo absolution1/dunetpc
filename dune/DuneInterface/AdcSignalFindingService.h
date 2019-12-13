@@ -15,6 +15,8 @@ class AdcSignalFindingService {
 
 public:
 
+  virtual ~AdcSignalFindingService() =default;
+
   // Find signals and set data.signal correspondingly.
   virtual int find(AdcChannelData& data) const =0;
 

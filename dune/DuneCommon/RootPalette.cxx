@@ -10,7 +10,7 @@ using std::vector;
 namespace {
 
 std::vector<const RootPalette*>& fixedPals() {
-  static std::vector<const RootPalette*> pals(2000, nullptr);
+  static std::vector<const RootPalette*> pals(3000, nullptr);
   return pals;
 }
 
@@ -41,7 +41,8 @@ const RootPalette* RootPalette::find(unsigned int ipal) {
     if ( fixedPals()[ipal] == nullptr ) {
       fixedPals()[ipal] = new RootPalette(ipal);
     }
-  } else if ( ipal >= 1010 && ipal < 1020 ) {
+  } else if ( (ipal >= 1010 && ipal < 1020) ||
+              (ipal >= 2010 && ipal < 2020) ) {
     TStyle* pstyleSave = gStyle;
     gStyle = dynamic_cast<TStyle*>(gStyle->Clone("TmpStyle"));
     TStyle* pstyleTmp = gStyle;
@@ -52,14 +53,26 @@ const RootPalette* RootPalette::find(unsigned int ipal) {
     Double_t red[nRGBs]   = { 1.00, 1.00, 1.00, 0.70, 0.00};
     Double_t green[nRGBs] = { 1.00, 0.75, 0.55, 0.20, 0.00};
     Double_t blue[nRGBs]  = { 1.00, 0.00, 0.00, 0.10, 0.00};
+    if ( ipal > 2000 ) {
+      stops[1] = 0.20;
+      stops[2] = 0.40;
+      stops[3] = 0.70;
+      green[1] = 0.90;
+       blue[1] = 0.55;
+      green[2] = 0.60;
+       blue[2] = 0.05;
+        red[4] = 0.20;
+    }
     TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, ncol, alpha);
     RootPalette* ppal = new RootPalette;
     vector<unsigned int> ncfxs = {0, 1, 2, 4, 6, 8, 10, 20, 30, 40};
-    ppal->setFirstColors(ncfxs[ipal - 1010]);
+    int ipal0 = ipal < 2000 ? 1010 : 2010;
+    ppal->setFirstColors(ncfxs[ipal - ipal0]);
     fixedPals()[ipal] = ppal;
     gStyle = pstyleSave;
     delete pstyleTmp;
-  } else if ( ipal >= 1020 && ipal < 1030 ) {
+  } else if ( (ipal >= 1020 && ipal < 1030) ||
+              (ipal >= 2020 && ipal < 2030) ) {
     TStyle* pstyleSave = gStyle;
     gStyle = dynamic_cast<TStyle*>(gStyle->Clone("TmpStyle"));
     TStyle* pstyleTmp = gStyle;
@@ -70,10 +83,29 @@ const RootPalette* RootPalette::find(unsigned int ipal) {
     Double_t red[nRGBs]   = { 0.09, 0.90, 1.00, 1.00, 1.00, 0.70, 0.00};
     Double_t green[nRGBs] = { 0.60, 0.95, 1.00, 0.75, 0.55, 0.20, 0.00};
     Double_t blue[nRGBs]  = { 0.48, 1.00, 1.00, 0.00, 0.00, 0.10, 0.00};
+    if ( ipal > 2000 ) {
+      stops[3] = 0.60;
+      stops[4] = 0.70;
+      stops[5] = 0.85;
+      green[0] = 0.30;
+       blue[0] = 0.50;
+        red[1] = 1.00;
+      green[1] = 1.00;
+       blue[1] = 1.00;
+        red[2] = 1.00;
+      green[2] = 1.00;
+       blue[2] = 1.00;
+      green[3] = 0.90;
+       blue[3] = 0.55;
+      green[4] = 0.60;
+       blue[4] = 0.05;
+        red[6] = 0.20;
+    }
     TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, ncol, alpha);
     RootPalette* ppal = new RootPalette;
     vector<unsigned int> ncfxs = {0, 1, 2, 4, 6, 8, 10, 20, 30, 40};
-    ppal->setCentralColors(ncfxs[ipal - 1020]);
+    int ipal0 = ipal < 2000 ? 1020 : 2020;
+    ppal->setCentralColors(ncfxs[ipal - ipal0]);
     fixedPals()[ipal] = ppal;
     gStyle = pstyleSave;
     delete pstyleTmp;

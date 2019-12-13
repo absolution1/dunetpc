@@ -405,7 +405,7 @@ pdcht_template: {
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: []
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
   HistTitle: "Raw ADC"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
