@@ -13,26 +13,28 @@
 // Palette indices:
 //  < 1000 uses the Root definitions (e.g. kRainBow or kBird).
 //         See the Root doc page for TColor for some of the permitted values.
-//  1010 - yellow to red to black. For zmin = 0.
-//  1011 - Same as 1010 with first 0.5% of colors set white
-//  1012 - Same as 1010 with first 1% of colors set white
-//  1013 - Same as 1010 with first 2% of colors set white
-//  1014 - Same as 1010 with first 3% of colors set white
-//  1015 - Same as 1010 with first 4% of colors set white
-//  1016 - Same as 1010 with first 5% of colors set white
-//  1017 - Same as 1010 with first 10% of colors set white
-//  1018 - Same as 1010 with first 15% of colors set white
-//  1019 - Same as 1010 with first 20% of colors set white
-//  1020 - dark to light blue, yellow to red to black. For zmin = -zmax.
-//  1021 - Same as 1020 with central 0.5% of colors set white
-//  1022 - Same as 1020 with central 1% of colors set white
-//  1023 - Same as 1020 with central 2% of colors set white
-//  1024 - Same as 1020 with central 3% of colors set white
-//  1025 - Same as 1020 with central 4% of colors set white
-//  1026 - Same as 1020 with central 5% of colors set white
-//  1027 - Same as 1020 with central 10% of colors set white
-//  1028 - Same as 1020 with central 15% of colors set white
-//  1029 - Same as 1020 with central 20% of colors set white
+//  K+10 - yellow to red to black. For zmin = 0.
+//  K+11 - Same as 1010 with first 0.5% of colors set white
+//  K+12 - Same as 1010 with first 1% of colors set white
+//  K+13 - Same as 1010 with first 2% of colors set white
+//  K+14 - Same as 1010 with first 3% of colors set white
+//  K+15 - Same as 1010 with first 4% of colors set white
+//  K+16 - Same as 1010 with first 5% of colors set white
+//  K+17 - Same as 1010 with first 10% of colors set white
+//  K+18 - Same as 1010 with first 15% of colors set white
+//  K+19 - Same as 1010 with first 20% of colors set white
+//  K+20 - dark to light blue, yellow to red to black. For zmin = -zmax.
+//  K+21 - Same as 1020 with central 0.5% of colors set white
+//  K+22 - Same as 1020 with central 1% of colors set white
+//  K+23 - Same as 1020 with central 2% of colors set white
+//  K+24 - Same as 1020 with central 3% of colors set white
+//  K+25 - Same as 1020 with central 4% of colors set white
+//  K+26 - Same as 1020 with central 5% of colors set white
+//  K+27 - Same as 1020 with central 10% of colors set white
+//  K+28 - Same as 1020 with central 15% of colors set white
+//  K+29 - Same as 1020 with central 20% of colors set white
+//  K = 1000 - Original palette
+//      2000 - Palette added Dec 2019
 
 #ifndef RootPalette_H
 #define RootPalette_H
