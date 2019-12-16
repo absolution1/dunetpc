@@ -171,15 +171,17 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     xsign = -1.0;
   }
   string sttly = "Wire coordinate [cm]";
-  if ( state.jobCount ) {
+  if ( state.reportCount ) {
     if ( acdFirst.run != state.run ||
          acdFirst.subRun != state.subrun ||
          acdFirst.event != state.event ) {
-      cout << myname << "Received unexpected event ID. Clearing data." << endl;
-      state.jobCount = 0;
+      cout << myname << "ERROR: Received unexpected event ID. Clearing data." << endl;
+      cout << myname << "State: " << state.event << "-" << state.subrun << "-" << state.event << endl;
+      cout << myname << " Data: " << acdFirst.event << "-" << acdFirst.subRun << "-" << acdFirst.event << endl;
+      state.reportCount = 0;
     }
   }
-  if ( state.jobCount == 0 ) {
+  if ( state.reportCount == 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "  Starting new event." << endl;
     initializeState(state, acdFirst);
     string sttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_Title);
@@ -226,6 +228,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       state.pttl->SetTextSize(0.030);
       state.ppad->add(state.pttl.get());
     }
+    ++state.jobCount;
   } else {
     TGraph* pgr = state.ppad->graph();
     if ( pgr == nullptr ) {
@@ -236,7 +239,6 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       cout << myname << "  Adding to existing event. Graph point count is " << pgr->GetN() << endl;
     }
   }
-  ++state.jobCount;
   ++state.reportCount;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {

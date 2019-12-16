@@ -109,6 +109,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   // Loop over events.
   AdcChannelDataTester tester;
   tester.run = 123;
+  tester.subrun = 2;
   tester.event = 0;
   tester.nsam = 20000;
   bool strumWires = false;
@@ -141,6 +142,10 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   // Loop over events.
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
+    DuneEventInfo dev;
+    dev.event = ievt;
+    dev.run = tester.run;
+    dev.subRun = tester.subrun;
     const vector<AdcChannelDataMap>& datamaps = evtdatamaps[ievt];
     Index ngrp = datamaps.size();
     // Loop over ADC channel groups (1 group per TPC).
@@ -153,6 +158,7 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
            << ", Nchan = " << datamap.size() << endl;
       assert( padv->viewMap(datamap) == 0 );
     }
+    padv->endEvent(dev);
   }
 
   cout << myname << line << endl;
