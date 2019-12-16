@@ -171,8 +171,15 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     xsign = -1.0;
   }
   string sttly = "Wire coordinate [cm]";
-  if ( state.jobCount == 0 ||
-       acdFirst.run != state.run || acdFirst.subRun != state.subrun || acdFirst.event != state.event ) {
+  if ( state.jobCount ) {
+    if ( acdFirst.run != state.run ||
+         acdFirst.subRun != state.subrun ||
+         acdFirst.event != state.event ) {
+      cout << myname << "Received unexpected event ID. Clearing data." << endl;
+      state.jobCount = 0;
+    }
+  }
+  if ( state.jobCount == 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "  Starting new event." << endl;
     initializeState(state, acdFirst);
     string sttl = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, m_Title);
@@ -219,6 +226,15 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
       state.pttl->SetTextSize(0.030);
       state.ppad->add(state.pttl.get());
     }
+  } else {
+    TGraph* pgr = state.ppad->graph();
+    if ( pgr == nullptr ) {
+      cout << "ERROR: Graph not found." << endl;
+      return ret;
+    }
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "  Adding to existing event. Graph point count is " << pgr->GetN() << endl;
+    }
   }
   ++state.jobCount;
   ++state.reportCount;
@@ -237,12 +253,12 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Fill graph.
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
-    const AdcChannelData acd = iacd.second;
+    const AdcChannelData& acd = iacd.second;
     if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
          m_pChannelStatusProvider->IsBad(acd.channel) ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "      Skipping bad channel " << acd.channel << endl;
     } else {
-      if ( m_LogLevel >= 3 ) cout << myname << "Adding channel " << acd.channel << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "      Adding channel " << acd.channel << endl;
       addChannel(acd, xsign);
     }
   }
@@ -251,8 +267,29 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     state.ppad->graph()->SetPoint(0, m_XMin, m_ZMin);
   }
   if ( m_LogLevel >= 2 ) cout << myname << "  Graph point count: " << state.ppad->graph()->GetN() << endl;
-  if ( m_LogLevel >= 2 ) cout << myname << "  Printing plot " << state.ofname << endl;
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcDetectorPlotter::endEvent(const DuneEventInfo& evi) const {
+  const string myname = "AdcDetectorPlotter::endEvent: ";
+  DataMap ret;
+  State& state = *getState();
+  if ( state.reportCount == 0 ) {
+    cout << myname << "WARNING: No data recorded." << endl;
+    return ret;
+  }
+  if ( evi.run != state.run ) {
+    cout << myname << "ERROR: Received request for unexpected run: " << evi.run << endl;
+    return ret.setStatus(1);
+  }
+  if ( evi.event != state.event ) {
+    cout << myname << "ERROR: Received request for unexpected event: " << evi.event << endl;
+    return ret.setStatus(2);
+  }
   state.ppad->print(state.ofname);
+  state.reportCount = 0;
   return ret;
 }
 
@@ -268,10 +305,17 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
   }
   State& state = *getState();
   TGraph* pg = state.ppad->graph();
-  if ( pg == nullptr ) return 1;
+  if ( pg == nullptr ) {
+    cout << myname << "ERROR: Graph is missing." << endl;
+    return 1;
+  }
   AdcChannel icha = acd.channel;
   auto rng = state.sel.dataMap().equal_range(icha);
   Index nsam = isRaw ? acd.raw.size() : acd.samples.size();
+  if ( m_LogLevel >= 4 ) {
+    cout << myname << "  Adding " << nsam << (isRaw ? " raw" : " processed")
+         << " sample" << (nsam==1 ? "" : "s") << endl;
+  } 
   for ( auto ient=rng.first; ient!=rng.second; ++ient) {
     const WireSelector::WireInfo& win = *(ient->second);
     float z = win.z;
@@ -300,6 +344,8 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
           sout << myname << "Added point " << ipt << " (" << x << ", " << z << ")";
           cout << sout.str() << endl;
         }
+      } else if ( m_LogLevel >= 5 ) {
+        cout << myname << "Skipped sample " << isam << " with signal " << sig << endl;
       }
     }
   }
