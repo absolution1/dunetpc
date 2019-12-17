@@ -91,6 +91,7 @@ public:
   double MomentumCosTheta(double, double, double);
 
   double GetPosition(std::string, int);
+  void MaskGlitches( std::vector<short> &, std::array<short,192> & );
   TVector3 ProjectToTPC(TVector3, TVector3);
   double GetPairedPosition(std::string, size_t);
  
@@ -547,7 +548,7 @@ void proto::BeamEvent::TimeIn(art::Event & e, uint64_t time){
       SpillOffset = SpillStart - acqStampMBPL;
 
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       acqStampValid = false;
       MF_LOG_WARNING("BeamEvent") << "Could not get Spill time to time in\n";
     }
@@ -837,7 +838,7 @@ void proto::BeamEvent::produce(art::Event & e){
             MF_LOG_INFO("BeamEvent") << "new xcet cache_end: "   << cache_end << "\n";
           }
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
         }
       }      
@@ -850,13 +851,13 @@ void proto::BeamEvent::produce(art::Event & e){
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
         }
         try{
           bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
         }
 
@@ -894,7 +895,7 @@ void proto::BeamEvent::produce(art::Event & e){
         gotCurrent = true;
         beamspill->SetMagnetCurrent(current[0]);
       }
-      catch( std::exception e){
+      catch( std::exception const&){
         MF_LOG_WARNING("BeamEvent") << "Could not get magnet current\n";
         gotCurrent = false;
       }
@@ -949,7 +950,7 @@ void proto::BeamEvent::produce(art::Event & e){
           try{
             getS11Info(fetch_time); 
           }
-          catch( std::exception e ){
+          catch( std::exception const& ){
             MF_LOG_WARNING("BeamEvent") << "Could not get S11 Info\n";
           }
 
@@ -961,7 +962,7 @@ void proto::BeamEvent::produce(art::Event & e){
         try{
           getS11Info(fetch_time); 
         }
-        catch( std::exception e ){
+        catch( std::exception const& ){
           MF_LOG_WARNING("BeamEvent") << "Could not get S11 Info\n";
         }
 
@@ -1136,7 +1137,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     acqTime = ( high | low ) / 1000000000.; 
 
   }
-  catch(std::exception e){
+  catch(std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not get GeneralTrigger information!!" << "\n";
     gotGeneralTrigger = false;
     return;
@@ -1177,7 +1178,7 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
 
     gotTOFs = true;
   }
-  catch(std::exception e){
+  catch(std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not get TOF information!!" << "\n";
     gotTOFs = false;
   }
@@ -1473,7 +1474,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
       CKov1Pressure = pressureCKov1[0];
       CKov1Counts   = countsCKov1[0];
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 1 Pressure\n";
       CKov1Pressure = 0.; 
       CKov1Counts   = 0.;
@@ -1488,7 +1489,7 @@ void proto::BeamEvent::parseXCETDB(uint64_t time){
       CKov2Pressure = pressureCKov2[0];
       CKov2Counts   = countsCKov2[0];
     }
-    catch( std::exception e){
+    catch( std::exception const&){
       MF_LOG_WARNING("BeamEvent") << "Could not get Cerenkov 2 Pressure\n";
       CKov2Pressure = 0.; 
       CKov2Counts   = 0.;
@@ -1632,7 +1633,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   try{
     counts = FetchAndReport(time, fXBPFPrefix + name + ":countsRecords[]", bfp);
   }
-  catch( std::exception e){
+  catch( std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not fetch " << fXBPFPrefix + name + ":countsRecords[]\n";
     return;
   }
@@ -1644,7 +1645,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   try{
     data = FetchAndReport(time, fXBPFPrefix + name + ":eventsData[]", bfp);
   }
-  catch( std::exception e){
+  catch( std::exception const&){
     MF_LOG_WARNING("BeamEvent") << "Could not fetch " << fXBPFPrefix + name + ":eventsData[]\n";
     return;
   }
@@ -1661,6 +1662,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   beam::FBM fbm;
   fbm.ID = ID;
   fbm.fibers = {};
+  fbm.glitch_mask = {};
   std::uninitialized_fill( std::begin(fbm.fiberData), std::end(fbm.fiberData), 0. );
   std::uninitialized_fill( std::begin(fbm.timeData), std::end(fbm.timeData), 0. );
   fbm.timeStamp = 0.;
@@ -1724,6 +1726,19 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   for(size_t i = 0; i < beamspill->GetNFBMTriggers(name); ++i){
     beamspill->DecodeFibers(name,i);
   } 
+
+  //Check the last 2 words for any dublicates
+  beamspill->FixFiberGlitch(name);
+  if( fPrintDebug ){
+    std::cout << "Fixed " << name << std::endl;
+    for( size_t i = 0; i < beamspill->GetNFBMTriggers(name); ++i ){
+      for( size_t j = 0; j < 192; ++j ){
+        if( beamspill->GetFBM( name, i ).glitch_mask[j] ){
+          std::cout << i << " " << j << std::endl;      
+        }
+      }
+    }
+  }
 
 }
 
@@ -1897,6 +1912,13 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     }
     MF_LOG_INFO("BeamEvent") << "\n";
   } 
+
+  std::array<short,192> firstUpstreamGlitches = beamspill->GetFBM( firstUpstreamName, theTrigger ).glitch_mask;
+  std::array<short,192> secondUpstreamGlitches = beamspill->GetFBM( secondUpstreamName, theTrigger ).glitch_mask;
+  MaskGlitches( firstUpstreamFibers, firstUpstreamGlitches );
+  MaskGlitches( secondUpstreamFibers, secondUpstreamGlitches );
+  if( fPrintDebug ) std::cout << firstUpstreamName << " After fix: " << firstUpstreamFibers.size() << std::endl;
+  if( fPrintDebug ) std::cout << secondUpstreamName << " After fix: " << secondUpstreamFibers.size() << std::endl;
   //////////////////////////////////////////////
 
   //Get the active fibers from the downstream tracking XBPF
@@ -1916,6 +1938,12 @@ void proto::BeamEvent::MakeTrack(size_t theTrigger){
     }
     MF_LOG_INFO("BeamEvent") << "\n";
   }
+  std::array<short,192> firstDownstreamGlitches = beamspill->GetFBM( firstDownstreamName, theTrigger ).glitch_mask;
+  std::array<short,192> secondDownstreamGlitches = beamspill->GetFBM( secondDownstreamName, theTrigger ).glitch_mask;
+  MaskGlitches( firstDownstreamFibers, firstDownstreamGlitches );
+  MaskGlitches( secondDownstreamFibers, secondDownstreamGlitches );
+  if( fPrintDebug ) std::cout << firstDownstreamName << " After fix: " << firstDownstreamFibers.size() << std::endl;
+  if( fPrintDebug ) std::cout << secondDownstreamName << " After fix: " << secondDownstreamFibers.size() << std::endl;
   //////////////////////////////////////////////
 
   if( (firstUpstreamFibers.size() < 1) || (secondUpstreamFibers.size() < 1) || (firstDownstreamFibers.size() < 1) || (secondDownstreamFibers.size() < 1) ){
@@ -2095,42 +2123,41 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   if (firstBPROF1Type == "horiz" && secondBPROF1Type == "vert"){
     BPROF1Fibers = beamspill->GetActiveFibers(firstBPROF1, theTrigger);
     BPROF1Name = firstBPROF1;
-
-    if( fPrintDebug ){
-      MF_LOG_INFO("BeamEvent") << firstBPROF1 << " has " << BPROF1Fibers.size() << " active fibers" << "\n";
-      std::cout.precision(20);
-      std::cout                << "Data: \n"  
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[0] << "\n"
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[1] << "\n"
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[2] << "\n"
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[3] << "\n"
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[4] << "\n"
-                               << "\t" << beamspill->GetFBM( firstBPROF1, theTrigger ).fiberData[5] << std::endl;
-
-      for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
-        MF_LOG_INFO("BeamEvent") << BPROF1Fibers[i] << " ";
-      }
-      MF_LOG_INFO("BeamEvent") << "\n";
-    }
-
   }
   else if(secondBPROF1Type == "horiz" && firstBPROF1Type == "vert"){
     BPROF1Fibers = beamspill->GetActiveFibers(secondBPROF1, theTrigger);
     BPROF1Name = secondBPROF1;
-
-    if( fPrintDebug ){
-      MF_LOG_INFO("BeamEvent") << secondBPROF1 << " has " << BPROF1Fibers.size() << " active fibers" << "\n";
-      for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
-        MF_LOG_INFO("BeamEvent") << BPROF1Fibers[i] << " ";
-      }
-      MF_LOG_INFO("BeamEvent") << "\n";
-    }
   }
   else{
     MF_LOG_WARNING("BeamEvent") << "Error: type is not correct" << "\n";
     return;
   }
+
+  if( fPrintDebug ){
+    MF_LOG_INFO("BeamEvent") << BPROF1Name << " has " << BPROF1Fibers.size() << " active fibers" << "\n";
+    std::cout.precision(20);
+    std::cout                << "Data: \n"  
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[0] << "\n"
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[1] << "\n"
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[2] << "\n"
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[3] << "\n"
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[4] << "\n"
+                             << "\t" << beamspill->GetFBM( BPROF1Name, theTrigger ).fiberData[5] << std::endl;
+
+    for(size_t i = 0; i < BPROF1Fibers.size(); ++i){
+      MF_LOG_INFO("BeamEvent") << BPROF1Fibers[i] << " ";
+    }
+    MF_LOG_INFO("BeamEvent") << "\n";
+  }
   //////////////////////////////////////////////
+
+  //Remove the glitched fibers from BPROF1
+  std::array<short,192> BPROF1Glitches = beamspill->GetFBM( BPROF1Name, theTrigger ).glitch_mask;
+  if( fPrintDebug ) std::cout << "Got " << BPROF1Fibers.size() << " Fibers before Fix" << std::endl;
+  MaskGlitches( BPROF1Fibers, BPROF1Glitches );  
+  if( fPrintDebug ) std::cout << "After fix: " << BPROF1Fibers.size() << std::endl;
+
+
 
   if( (BPROF1Fibers.size() < 1) ){
     if( fPrintDebug )
@@ -2139,25 +2166,17 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
   }
   //We have the active Fibers, now go through them.
   //Skip the second of any adjacents 
-  std::vector< short > strippedFibers; 
-  for(size_t iF1 = 0; iF1 < BPROF1Fibers.size(); ++iF1){
-    
-    size_t Fiber = BPROF1Fibers[iF1];
-    strippedFibers.push_back(Fiber);
-
-    if (iF1 < BPROF1Fibers.size() - 1){
-      if (BPROF1Fibers[iF1] == (BPROF1Fibers[iF1 + 1] - 1)) ++iF1;
-    }
-  }
   
-  double X1, X2, X3;
-
-  //X-direction convention is reversed for the spectrometer   
-  X1 = -1.*GetPosition(BPROF1Name, strippedFibers[0])/1.E3;
-
   //BPROF2////
   //
   std::vector<short>  BPROF2Fibers = beamspill->GetActiveFibers(BPROF2, theTrigger);
+
+  //Remove the glitched fibers from BPROF2
+  std::array<short,192> BPROF2Glitches = beamspill->GetFBM( BPROF2, theTrigger ).glitch_mask;
+  if( fPrintDebug ) std::cout << "Got " << BPROF2Fibers.size() << " Fibers before Fix" << std::endl;
+  MaskGlitches( BPROF2Fibers, BPROF2Glitches );  
+  if( fPrintDebug ) std::cout << "After Fix " << BPROF2Fibers.size() << std::endl;
+
   if( (BPROF2Fibers.size() < 1) ){
     if( fPrintDebug )
       MF_LOG_INFO("BeamEvent") << "Warning, at least one empty Beam Profiler. Not checking momentum" << "\n";
@@ -2171,28 +2190,19 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
     }
     MF_LOG_INFO("BeamEvent") << "\n";
   }
-
-  strippedFibers.clear(); 
-
-  if( fPrintDebug )
-    MF_LOG_INFO("BeamEvent") << "BPROF2" << "\n";
-
-  for(size_t iF1 = 0; iF1 < BPROF2Fibers.size(); ++iF1){
-    
-    size_t Fiber = BPROF2Fibers[iF1];
-    strippedFibers.push_back(Fiber);
-
-    if (iF1 < BPROF2Fibers.size() - 1){
-      if (BPROF2Fibers[iF1] == (BPROF2Fibers[iF1 + 1] - 1)) ++iF1;
-    }
-  }
- 
-  X2 = -1.*GetPosition(BPROF2, strippedFibers[0])/1.E3; 
   ////////////
 
   //BPROF3////
   //
   std::vector<short>  BPROF3Fibers = beamspill->GetActiveFibers(BPROF3, theTrigger);
+
+  //Remove the glitched fibers from BPROF3
+  std::array<short,192> BPROF3Glitches = beamspill->GetFBM( BPROF3, theTrigger ).glitch_mask;
+  if( fPrintDebug ) std::cout << "Got " << BPROF3Fibers.size() << " Fibers before Fix" << std::endl;
+  MaskGlitches( BPROF3Fibers, BPROF3Glitches );  
+  if( fPrintDebug ) std::cout << "After Fix " << BPROF3Fibers.size() << std::endl;
+
+
   if( (BPROF3Fibers.size() < 1) ){
     if( fPrintDebug )
       MF_LOG_INFO("BeamEvent") << "Warning, at least one empty Beam Profiler. Not checking momentum" << "\n";
@@ -2206,43 +2216,6 @@ void proto::BeamEvent::MomentumSpec(size_t theTrigger){
     }
     MF_LOG_INFO("BeamEvent") << "\n";
   }
-
-  strippedFibers.clear(); 
-
-  if( fPrintDebug )
-    MF_LOG_INFO("BeamEvent") << "BPROF3" << "\n";
-
-  for(size_t iF1 = 0; iF1 < BPROF3Fibers.size(); ++iF1){
-    
-    size_t Fiber = BPROF3Fibers[iF1];
-    strippedFibers.push_back(Fiber);
-
-    if (iF1 < BPROF3Fibers.size() - 1){
-      if (BPROF3Fibers[iF1] == (BPROF3Fibers[iF1 + 1] - 1)) ++iF1;
-    }
-  }
- 
-  X3 = -1.*GetPosition(BPROF3, strippedFibers[0])/1.E3; 
-  ////////////
-  
-  if( (BPROF1Fibers.size() == 1) && (BPROF2Fibers.size() == 1) && (BPROF3Fibers.size() == 1) ){
-    //Calibrate the positions
-    //-1.*( FiberPos ) -> -1.*( FiberPos + ShiftDist )
-    // = -1.*FiberPos - ShiftDist
-    X1 = X1 - fBProf1Shift*1.e-3; 
-    X2 = X2 - fBProf2Shift*1.e-3; 
-    X3 = X3 - fBProf3Shift*1.e-3; 
-    double cosTheta = MomentumCosTheta(X1,X2,X3);
-    double momentum = 299792458*LB/(1.E9 * acos(cosTheta));
-
-
-    if( fDebugMomentum ){
-      fCutMomentum->Fill(momentum);
-      MF_LOG_INFO("BeamEvent") << "Filling Cut Momentum Spectrum" << "\n";
-    }
-
-  }
-
 
   if( fPrintDebug ){
     MF_LOG_INFO("BeamEvent") << "Getting all trio-wise hits" << "\n";
@@ -2358,6 +2331,14 @@ double proto::BeamEvent::GetPosition(std::string deviceName, int fiberIdx){
   //Define 0th fiber as farthest positive. Last fiber is farthest negative. Center is between 96 and 97 
   double pos = size*(96 - fiberIdx) - size/2.;
   return pos;
+}
+
+void proto::BeamEvent::MaskGlitches( std::vector<short> & fibers, std::array<short,192> & glitches ){
+  for( short i = 0; i < 192; ++i ){
+    if( glitches[i] ){
+      fibers.erase( std::find( fibers.begin(), fibers.end(), i ) );
+    }
+  }
 }
 
 

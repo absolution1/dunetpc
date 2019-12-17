@@ -18,6 +18,8 @@ public:
 
   typedef unsigned int Channel;
 
+  virtual ~ChannelMappingService() = default;
+
   // Map online to offline.
   virtual Channel offline(Channel onlineChannel) const =0;
 
@@ -35,4 +37,3 @@ DECLARE_ART_SERVICE_INTERFACE(ChannelMappingService, LEGACY)
 #endif
 
 #endif
-

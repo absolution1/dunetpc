@@ -21,6 +21,8 @@ class RawDigitPrepService {
 
 public:
 
+  virtual ~RawDigitPrepService() = default;
+
   using Index = unsigned int;
   using LongIndex = unsigned long;
 

@@ -1200,7 +1200,7 @@ void CTree35t::processTiming(const art::Event& event)
   event.getByLabel(fRCERawDataLabel, fRCEFragType, RCErawFragments);
   bool RCEPresent = true;
   try { RCErawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     std::cout << "WARNING: Raw RCE data not found in event " << event.event() << std::endl;
     RCEPresent = false;
   }
@@ -1253,7 +1253,7 @@ void CTree35t::processTiming(const art::Event& event)
   art::Handle<artdaq::Fragments> SSPrawFragments;
   event.getByLabel(fSSPRawDataLabel, fSSPFragType, SSPrawFragments);
   try { SSPrawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << event.event();
     SSPPresent = false;
   }
