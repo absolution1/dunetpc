@@ -174,7 +174,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 //**********************************************************************
 
 DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
-  const string myname = "AdcDataPlotter::view: ";
+  const string myname = "AdcDataPlotter::viewMap: ";
   DataMap ret;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
@@ -272,7 +272,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     double zmin = m_MinSignal;
     double zmax = m_MaxSignal;
     ph->GetZaxis()->SetRangeUser(zmin, zmax);
-    ph->SetContour(40);
+    ph->SetContour(200);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
     // Initialize bins to zmin.
     for ( Index icha=1; icha<=nchan; ++icha ) {

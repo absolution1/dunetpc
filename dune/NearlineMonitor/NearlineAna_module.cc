@@ -383,7 +383,7 @@ size_t nearline::NearlineAna::getRawDigits(art::Event const & e, art::Handle<std
   }
   
   try { digitHandle->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogError("NearlineAna::getRawDigits") << "WARNING: Issue with digitHandle for RawDigits" << std::endl;
     return 0;
   }
@@ -410,7 +410,7 @@ size_t nearline::NearlineAna::getHits(art::Event const & e, art::Handle<std::vec
       return 0;
   }
   try { hitsHandle->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogError("NearlineAna::getHits") << "WARNING: Issue with hitsHandle for Hits" << std::endl;
     return 0;
   }

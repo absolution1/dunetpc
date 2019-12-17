@@ -150,7 +150,7 @@ void DAQToOffline::TpcDAQToOffline::produce(art::Event & evt)
   // Check if there is RCE data in this event
   // Don't crash code if not present, just don't save anything
   try { rawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     std::cout << "WARNING: Raw RCE data not found in event " << eventNumber << std::endl;
     std::vector<raw::RawDigit> digits;
     evt.put(std::make_unique<std::vector<raw::RawDigit>>(std::move(digits)), fOutputDataLabel);
