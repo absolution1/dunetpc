@@ -6,6 +6,7 @@ beamline_reco:
 {
    module_type:          "ProtoDUNEBeamlineReco"
    BeamlineUtils:        @local::standard_protodunebeamlineutils
+   DoGlitches:           true
 }
 
 END_PROLOG
