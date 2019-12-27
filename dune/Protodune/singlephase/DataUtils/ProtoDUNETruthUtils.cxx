@@ -1027,6 +1027,23 @@ std::map< size_t, std::vector< const sim::IDE * > > protoana::ProtoDUNETruthUtil
   return results;
 }
 
+std::map< int, std::vector< int > > protoana::ProtoDUNETruthUtils::GetMapMCToPFPs_ByHits( const art::Event & evt, std::string pfpTag, std::string hitTag ){
+
+  std::map< int, std::vector< int > > results;
+
+  auto allPFPs = evt.getValidHandle< std::vector< recob::PFParticle > >( pfpTag );
+
+  for( size_t i = 0; i < allPFPs->size(); ++i ){
+    auto thePFP = &(allPFPs->at(i));
+    protoana::MCParticleSharedHits match = GetMCParticleByHits( *thePFP, evt, pfpTag, hitTag );
+    if( match.particle ){
+      results[ match.particle->TrackId() ].push_back( i );
+    }
+  }
+
+  return results;
+}
+
 bool protoana::sort_IDEs( const sim::IDE * i1, const sim::IDE * i2){
   return( i1->z < i2->z ); 
 }

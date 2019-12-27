@@ -160,7 +160,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
     try { cont_frags->size(); }
-    catch(std::exception e) {
+    catch(std::exception const&) {
       std::cout << "WARNING: Container TPC/RCE data not found in event " << eventNumber << std::endl;
       std::vector<raw::RawDigit> digits;
       evt.put(std::make_unique<std::vector<raw::RawDigit>>(std::move(digits)), _output_label);
@@ -196,7 +196,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
     // Don't crash code if not present, just don't save anything
     art::EventNumber_t eventNumber = evt.event();
     try { frags->size(); }
-    catch(std::exception e) {
+    catch(std::exception const&) {
       std::cout << "WARNING: Raw TPC/RCE data not found in event " << eventNumber << std::endl;
       std::vector<raw::RawDigit> digits;
       evt.put(std::make_unique<std::vector<raw::RawDigit>>(std::move(digits)), _output_label);

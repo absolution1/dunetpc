@@ -15,6 +15,8 @@ class AdcRoiBuildingService {
 
 public:
 
+  virtual ~AdcRoiBuildingService() = default;
+
   // Build ROIs and set data.rois correspondingly.
   virtual int build(AdcChannelData& data) const =0;
 

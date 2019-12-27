@@ -20,6 +20,8 @@ public:
   typedef std::vector<Channel> ChannelVector;
   typedef std::string Name;
 
+  virtual ~ChannelGroupService() = default;
+
   // Return the # groups.
   virtual Index size() const =0;
 
@@ -40,4 +42,3 @@ DECLARE_ART_SERVICE_INTERFACE(ChannelGroupService, LEGACY)
 #endif
 
 #endif
-

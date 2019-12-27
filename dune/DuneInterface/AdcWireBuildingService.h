@@ -18,6 +18,8 @@ public:
 
   typedef std::vector<recob::Wire> WireVector;
 
+  virtual ~AdcWireBuildingService() = default;
+
   // Build wire info.
   // If wires is not null, the Wire object is stored and managed there.
   // Otherwise the caller must manage the wire whose pointer is data.wire.

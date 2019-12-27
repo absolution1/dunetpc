@@ -608,19 +608,35 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     vector<ULong64_t> tzeroClockCandidates;   // Candidates for t0 = 0.
     float trigTickOffset = -500.5;
     using ClockCounter = std::map<ULong64_t, AdcIndex>;
+    using ClockDiffs = std::map<ULong64_t, long>;
+    using ClockTickDiffs = std::map<ULong64_t, float>;
+    using ClockMessages = std::map<ULong64_t, Name>;
     ClockCounter clockCounts;
+    ClockDiffs clockDiffs;
+    ClockTickDiffs tickDiffs;
+    ClockMessages clockMessages;
     ULong64_t chClock = 0;
-    long chClockDiff = 0;
-    float tickdiff = 0.0;
+    ULong64_t maxdiff = 99999999;  // 2 sec
+    float tickdiff = maxdiff;
     for ( raw::RDTimeStamp chts : timsCrn ) {
       chClock = chts.GetTimeStamp();
       channelClocks.push_back(chClock);
-      chClockDiff = chClock > timingClock ?  (chClock - timingClock)
-                                               : -(timingClock - chClock);
-      bool nearTrigger = fabs(tickdiff - trigTickOffset) < 1.0;
+      bool sign = chClock > timingClock;
+      ULong64_t chClockAbsDiff = sign ? chClock - timingClock
+                                      : timingClock - chClock;
+      bool badDiff = chClockAbsDiff > maxdiff;
+      if ( badDiff ) chClockAbsDiff = maxdiff; 
+      long chClockDiff = sign ? chClockAbsDiff : -chClockAbsDiff;
       tickdiff = chClockDiff/25.0;
+      bool nearTrigger = fabs(tickdiff - trigTickOffset) < 1.0;
       if ( clockCounts.find(chClock) == clockCounts.end() ) {
         clockCounts[chClock] = 1;
+        clockDiffs[chClock] = chClockDiff;
+        tickDiffs[chClock] = tickdiff;
+        Name msg;
+        if ( chClock == 0 ) msg = "Channel clock is zero.";
+        else if ( badDiff ) msg = "Channel clock is very far from timing clock.";
+        clockMessages[chClock] = msg;
         if ( nearTrigger ) tzeroClockCandidates.push_back(chClock);
       } else {
         ++clockCounts[chClock];
@@ -636,22 +652,26 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       if ( logInfo ) {
         cout << myname << "WARNING: Channel clocks for " << sapa << " are not consistent." << endl;
         cout << myname << "WARNING:     Clock     ticks   count" << endl;
-      }
-      for ( ClockCounter::value_type iclk : clockCounts ) {
-        ULong64_t chClock = iclk.first;
-        AdcIndex count = iclk.second;
-        long chClockDiff = chClock > timingClock ?  (chClock - timingClock)
-                                                 : -(timingClock - chClock);
-        float tickdiff = chClockDiff/25.0;
-        if ( logInfo ) {
-          cout << myname << "WARNING:" << setw(10) << chClockDiff << setw(10) << tickdiff
-               << setw(8) << count << endl;
+        for ( ClockCounter::value_type iclk : clockCounts ) {
+          ULong64_t chClock = iclk.first;
+          AdcIndex count = iclk.second;
+          long chClockDiff = clockDiffs[chClock];
+          float tickdiff = tickDiffs[chClock];
+          Name msg = clockMessages[chClock];
+          if ( logInfo ) {
+            cout << myname << "WARNING:" << setw(10) << chClockDiff << setw(10) << tickdiff
+                 << setw(8) << count;
+            if ( msg.size() ) cout << " " << msg;
+            cout << endl;
+          }
         }
       }
-    } else {
+    } else if ( clockCounts.size() == 1 ) {
       if ( logInfo ) cout << myname << "Channel counts for " << sapa
                           << " are consistent with an offset of "
                           << tickdiff << " ticks." << endl;
+    } else {
+      if ( logInfo ) cout << myname << "WARNING: Channel counts not found." << endl;
     }
     // Build the AdcChannelData objects.
     AdcChannelDataMap datamap;

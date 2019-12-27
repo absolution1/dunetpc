@@ -42,13 +42,17 @@ public:
 private:
   
   protoana::ProtoDUNEBeamlineUtils fBeamlineUtils;
+  bool fDoGlitches;
 
   TTree * fOutTree;
 
   double tof;
+  int event, run;
   int chan;
   double momentum;
   int c0, c1;
+  std::vector<int> glitches_p1, glitches_p2, glitches_p3;
+  std::vector< int > glitches_h_upstream, glitches_v_upstream, glitches_h_downstream, glitches_v_downstream;
   int nMomenta;
   std::vector<double> momenta;
   int nTracks;
@@ -65,7 +69,8 @@ private:
 //-----------------------------------------------------------------------
 protoana::ProtoDUNEBeamlineReco::ProtoDUNEBeamlineReco(fhicl::ParameterSet const& pset):
   EDAnalyzer(pset),
-  fBeamlineUtils(pset.get<fhicl::ParameterSet>("BeamlineUtils"))
+  fBeamlineUtils(pset.get<fhicl::ParameterSet>("BeamlineUtils")),
+  fDoGlitches( pset.get< bool >( "DoGlitches" ) )
 {
   this->reconfigure(pset);
 }
@@ -79,6 +84,11 @@ void protoana::ProtoDUNEBeamlineReco::beginJob() {
   art::ServiceHandle<art::TFileService> tfs;
 
   fOutTree = tfs->make<TTree>("tree", "");
+  fOutTree->Branch("event", &event);
+  fOutTree->Branch("run", &run);
+  fOutTree->Branch("glitches_p1", &glitches_p1);
+  fOutTree->Branch("glitches_p2", &glitches_p2);
+  fOutTree->Branch("glitches_p3", &glitches_p3);
   fOutTree->Branch("TOF", &tof);
   fOutTree->Branch("Chan", &chan);
   fOutTree->Branch("Momentum", &momentum);
@@ -93,6 +103,11 @@ void protoana::ProtoDUNEBeamlineReco::beginJob() {
   fOutTree->Branch("fibers_v_upstream", &fibers_v_upstream);
   fOutTree->Branch("fibers_h_downstream", &fibers_h_downstream);
   fOutTree->Branch("fibers_v_downstream", &fibers_v_downstream);
+
+  fOutTree->Branch("glitches_h_upstream", &glitches_h_upstream);
+  fOutTree->Branch("glitches_v_upstream", &glitches_v_upstream);
+  fOutTree->Branch("glitches_h_downstream", &glitches_h_downstream);
+  fOutTree->Branch("glitches_v_downstream", &glitches_v_downstream);
 
   //Momentum Monitors
   fOutTree->Branch("fibers_p1", &fibers_p1);
@@ -121,6 +136,9 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   tof = -1.;
   chan = -1;
   GenTrigTS = 0;
+
+  event = evt.id().event();
+  run   = evt.run();
 
   //Access the Beam Event
   auto beamHandle = evt.getValidHandle<std::vector<beam::ProtoDUNEBeamEvent>>("beamevent");
@@ -238,11 +256,55 @@ void protoana::ProtoDUNEBeamlineReco::analyze(art::Event const & evt){
   fibers_p2 = beamEvent.GetActiveFibers( "XBPF022701" );  
   fibers_p3 = beamEvent.GetActiveFibers( "XBPF022702" );  
 
+  
+  
+
+
   fibers_h_upstream = beamEvent.GetActiveFibers( "XBPF022707" );  
   fibers_v_upstream = beamEvent.GetActiveFibers( "XBPF022708" );  
   fibers_h_downstream = beamEvent.GetActiveFibers( "XBPF022716" );  
   fibers_v_downstream = beamEvent.GetActiveFibers( "XBPF022717" );  
-  /////////////////////////////////////////////////////////////
+
+  if( fDoGlitches ){
+    std::cout << "Doing glitches" << std::endl;
+    std::array<short,192> glitches = beamEvent.GetFBM( "XBPF022697" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_p1.push_back( i );
+    }
+
+    glitches = beamEvent.GetFBM( "XBPF022701" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_p2.push_back( i );
+    }
+
+    glitches = beamEvent.GetFBM( "XBPF022702" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_p3.push_back( i );
+    }
+
+
+    glitches = beamEvent.GetFBM( "XBPF022707" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_h_upstream.push_back( i );
+    }
+
+    glitches = beamEvent.GetFBM( "XBPF022708" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_v_upstream.push_back( i );
+    }
+
+    glitches = beamEvent.GetFBM( "XBPF022716" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_h_downstream.push_back( i );
+    }
+
+    glitches = beamEvent.GetFBM( "XBPF022717" ).glitch_mask;
+    for( size_t i = 0; i < 192; ++i ){
+      if( glitches[i] ) glitches_v_downstream.push_back( i );
+    }
+  }
+  /////////////////////////////////////////////////////////////   
+  
 
   fOutTree->Fill();
 }
@@ -260,6 +322,14 @@ void protoana::ProtoDUNEBeamlineReco::reset(){
   fibers_v_upstream.clear();
   fibers_h_downstream.clear();
   fibers_v_downstream.clear();
+  glitches_p1.clear();
+  glitches_p2.clear();
+  glitches_p3.clear();
+
+  glitches_h_upstream.clear();
+  glitches_v_upstream.clear();
+  glitches_h_downstream.clear();
+  glitches_v_downstream.clear();
 }
  
 DEFINE_ART_MODULE(protoana::ProtoDUNEBeamlineReco)
