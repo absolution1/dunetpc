@@ -171,7 +171,7 @@ tools.preparedAdcPlotter: {
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotTitle: ""
@@ -196,7 +196,7 @@ tools.signalAdcPlotter: {
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Signal ADC for event %EVENT%"
   PlotTitle: ""
@@ -221,7 +221,7 @@ tools.rawAdcPlotter: {
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
   PlotTitle: ""

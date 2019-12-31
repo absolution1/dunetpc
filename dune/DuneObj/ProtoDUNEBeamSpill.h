@@ -17,6 +17,9 @@ namespace beam
     //Bitmap for hit fibers in the monitor
 //    std::bitset<192> fibers;
     std::array<short,192> fibers;
+    
+    //If any of these are high, consider the fiber in error
+    std::array<short,192> glitch_mask;
 
     //Raw Data from ifbeam
     double fiberData[6];    
@@ -59,9 +62,12 @@ namespace beam
       void              ReplaceFBMTrigger(std::string, FBM, size_t); 
       void              DecodeFibers(std::string, size_t);
       double            DecodeFiberTime(std::string, size_t, double);
+      void              FixFiberGlitch(std::string);
+
       std::array<double,4> ReturnTriggerAndTime(std::string, size_t);
       short             GetFiberStatus(std::string, size_t, size_t);
       std::vector<short> GetActiveFibers(std::string, size_t);
+      std::vector<short> GetMaskedFibers(std::string, size_t);
       double            GetFiberTime(std::string, size_t); 
       size_t            GetNFBMTriggers(std::string);
       std::bitset<32>   toBinary(double); 
@@ -490,6 +496,38 @@ namespace beam
 
     return (TOF1[nTrigger].first - TOF0[nTrigger].first + 1.e-9*(TOF1[nTrigger].second - TOF0[nTrigger].second));
   }
+
+
+  inline void ProtoDUNEBeamSpill::FixFiberGlitch( std::string FBMName ){
+
+    if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
+      std::cout << "Please input monitor with correct name" << std::endl;
+      return;
+    }
+
+
+    //We won't be able to tell if any are bad 
+    if( fiberMonitors[FBMName].size() < 2 ){ return; }
+
+    for( size_t i = 1; i < fiberMonitors[FBMName].size(); ++i ){
+      std::vector<short> previous_active = fiberMonitors[FBMName][i-1].active;
+      std::vector<short> current_active  = fiberMonitors[FBMName][i].active;
+
+      for( size_t j = 0; j < current_active.size(); ++j ){
+
+        //The issue only occurs in the last 2 32-bit words
+        if( current_active[j] < 128 ){ continue; }
+
+        //This means this active fiber in the last 2 words is also in the previous event
+        if( std::find( previous_active.begin(), previous_active.end(), current_active[j] ) != previous_active.end() ){
+          //Set the glitch mask to true  
+          fiberMonitors[FBMName][i].glitch_mask[ current_active[j] ] = 1;
+        }
+      }
+    }
+
+  }
+
   /////////////////////////////////
 
 }

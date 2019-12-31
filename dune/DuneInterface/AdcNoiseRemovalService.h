@@ -17,6 +17,8 @@ class AdcNoiseRemovalService {
 
 public:
 
+  virtual ~AdcNoiseRemovalService() = default;
+
   // Remove the noise for selected channels from datamap[chan].samples and store results
   // in that same vector.
   // Return 0 for success.
