@@ -32,13 +32,13 @@ void copyWaveform(const std::vector<float>& adc, std::vector<float>& ch_waveform
   const string myname = "PdspNoiseRemoval::copyWaveform: ";
   size_t n_samples = adc.size();
   if ( ch_waveform.size() < adc.size() ) {
-    cout << myname << "ADC size: " << n_samples << " > FFT size: " << ch_waveform.size() << endl;
-    cout << myname << "Increase FFTSize in the LArFFT service" << endl;
+    cout << myname << "ERROR: ADC size: " << n_samples << " > FFT size: " << ch_waveform.size() << endl;
+    cout << myname << "ERROR: Increase FFTSize in the LArFFT service" << endl;
     abort();
   }
   if ( ch_waveform.size() > 2*adc.size() ) {
-    cout << myname << "FFT size: " << ch_waveform.size() << " > 2*(ADC size: " << n_samples << ")" << endl;
-    cout << myname << "Decrease FFTSize in the LArFFT service" << endl;
+    cout << myname << "ERROR: FFT size: " << ch_waveform.size() << " > 2*(ADC size: " << n_samples << ")" << endl;
+    cout << myname << "ERROR: Decrease FFTSize in the LArFFT service" << endl;
     abort();
   }
   std::copy(adc.begin(), adc.end(), ch_waveform.begin());
@@ -138,7 +138,7 @@ DataMap PdspNoiseRemoval::updateMap(AdcChannelDataMap& acds) const {
     return ret;
   }
 
-	if(fRemoveHighFrequency) {
+  if(fRemoveHighFrequency) {
     removeHighFreq(acds);
   }
   if(fRemoveCoherent) {
@@ -168,7 +168,7 @@ void PdspNoiseRemoval::removeHighFreq(AdcChannelDataMap& datamap) const
 {
     auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
     for(auto & entry : datamap) {
-      if(chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first)) {
+      if ( chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first) && entry.second.samples.size() ) {
       	fftFltInPlace(entry.second.samples, fLowPassCoeffs);
       }
     }
@@ -370,6 +370,7 @@ std::vector<float> PdspNoiseRemoval::getMedianCorrection( const std::vector<unsi
 //**********************************************************************
 std::vector<bool> PdspNoiseRemoval::roiMask(const AdcChannelData & acd) const {
   std::vector<bool> mask(acd.samples.size(), true);
+  if ( acd.samples.size() == 0 ) return mask;
   auto acd_flt = fftFlt(acd.samples, fLowPassCoeffs);
   bool inroi = false;
   for (int i = 0; i < (int)acd_flt.size(); ++i) {
