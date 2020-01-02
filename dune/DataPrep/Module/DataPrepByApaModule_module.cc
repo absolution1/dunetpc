@@ -21,6 +21,7 @@
 //                        channels are processed together.
 //                        Otherwise each APA is read in and processed individually.
 //                        The group "apas" should be defined to include all APAs.
+//    SkipEmptyChannels - If true, empty chanels (raw data length zero) are ignored
 //       BeamEventLabel - Label for the BeamEvent (trigger) data product. If blank, it is not read.
 //     ApaChannelCounts - Number of channels in each APA. Last value is used for subsequent APAs.
 // OnlineChannelMapTool - Name of the tool that converts offline to online channel number.
@@ -96,6 +97,7 @@ private:
   Name m_OutputDigitName;  // Label for the output raw::RawDigit conainer
   Name m_OutputWireName;    ///< Second field in full label for the output wire container.
   NameVector m_ChannelGroups;
+  bool m_SkipEmptyChannels;
   std::string m_BeamEventLabel;
   AdcChannelVector m_KeepChannels;
   AdcChannelVector m_SkipChannels;
@@ -181,6 +183,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_BeamEventLabel      = pset.get<string>("BeamEventLabel");
   m_KeepChannels        = pset.get<AdcChannelVector>("KeepChannels");
   m_SkipChannels        = pset.get<AdcChannelVector>("SkipChannels");
+  m_SkipEmptyChannels   = pset.get<bool>("SkipEmptyChannels");
   m_ApaChannelCounts    = pset.get<AdcChannelVector>("ApaChannelCounts");
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
@@ -217,6 +220,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       cout << ich;
     }
     cout << "]" << endl;
+    cout << myname << "    SkipEmptyChannels: " << (m_SkipEmptyChannels ? "true" : "false") << endl;
     cout << myname << "     ApaChannelCounts: " << "[";
     first = true;
     for ( AdcChannel ich : m_ApaChannelCounts ) {
@@ -712,9 +716,11 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       }
       // 02jan2020: Skip empty channels (Redmine 23811).
       if ( dig.Samples() == 0 ) {
-        ++nskip;
         ++nempty;
-        continue;
+        if ( m_SkipEmptyChannels ) {
+          ++nskip;
+          continue;
+        }
       }
       // Create AdcChannelData for this channel.
       auto its = datamap.emplace(chan, AdcChannelData());
@@ -768,9 +774,11 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     }
     if ( logInfo ) {
       cout << myname << "              " << sapa << " # input digits: " << ndigi << endl;
-      cout << myname << "         " << sapa << " # channels selected: " << nkeep << endl;
+      cout << myname << "         " << sapa << " # channels selected: " << nkeep;
+      if ( ! m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
+      cout << endl;
       cout << myname << "          " << sapa << " # channels skipped: " << nskip;
-      if ( nempty ) cout << " (" << nempty << " empty)";
+      if ( m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
       cout << endl;
       cout << myname << "  " << sapa << " # channels to be processed: " << nproc << endl;
     }
