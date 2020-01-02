@@ -21,6 +21,7 @@
 //                        channels are processed together.
 //                        Otherwise each APA is read in and processed individually.
 //                        The group "apas" should be defined to include all APAs.
+//    SkipEmptyChannels - If true, empty chanels (raw data length zero) are ignored
 //       BeamEventLabel - Label for the BeamEvent (trigger) data product. If blank, it is not read.
 //     ApaChannelCounts - Number of channels in each APA. Last value is used for subsequent APAs.
 // OnlineChannelMapTool - Name of the tool that converts offline to online channel number.
@@ -96,6 +97,7 @@ private:
   Name m_OutputDigitName;  // Label for the output raw::RawDigit conainer
   Name m_OutputWireName;    ///< Second field in full label for the output wire container.
   NameVector m_ChannelGroups;
+  bool m_SkipEmptyChannels;
   std::string m_BeamEventLabel;
   AdcChannelVector m_KeepChannels;
   AdcChannelVector m_SkipChannels;
@@ -181,6 +183,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_BeamEventLabel      = pset.get<string>("BeamEventLabel");
   m_KeepChannels        = pset.get<AdcChannelVector>("KeepChannels");
   m_SkipChannels        = pset.get<AdcChannelVector>("SkipChannels");
+  m_SkipEmptyChannels   = pset.get<bool>("SkipEmptyChannels");
   m_ApaChannelCounts    = pset.get<AdcChannelVector>("ApaChannelCounts");
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
@@ -217,6 +220,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       cout << ich;
     }
     cout << "]" << endl;
+    cout << myname << "    SkipEmptyChannels: " << (m_SkipEmptyChannels ? "true" : "false") << endl;
     cout << myname << "     ApaChannelCounts: " << "[";
     first = true;
     for ( AdcChannel ich : m_ApaChannelCounts ) {
@@ -618,7 +622,20 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     ULong64_t chClock = 0;
     ULong64_t maxdiff = 99999999;  // 2 sec
     float tickdiff = maxdiff;
-    for ( raw::RDTimeStamp chts : timsCrn ) {
+    AdcIndex nskipEmpty = 0;
+    unsigned int ntim = timsCrn.size();
+    unsigned int ndigi = digitsCrn.size();
+    if ( ntim > 0 && ntim != ndigi ) {
+      cout << "ERROR: Channel clock count differs from digit count: " << ntim << " !' " << ndigi << endl;
+      abort();
+    }
+    for ( unsigned int idig=0; idig<ntim; ++idig ) {
+      raw::RDTimeStamp chts = timsCrn[idig];
+      raw::RawDigit& dig = digitsCrn[idig];
+      if ( dig.Samples() == 0 ) {   // Do not check clocks for empty digits
+        ++nskipEmpty;
+        continue;
+      }
       chClock = chts.GetTimeStamp();
       channelClocks.push_back(chClock);
       bool sign = chClock > timingClock;
@@ -665,13 +682,19 @@ void DataPrepByApaModule::produce(art::Event& evt) {
             cout << endl;
           }
         }
+        if ( nskipEmpty ) {
+          cout << myname << "WARNING:     No ADC samples:" << setw(8) << nskipEmpty << endl;
+        }
       }
     } else if ( clockCounts.size() == 1 ) {
-      if ( logInfo ) cout << myname << "Channel counts for " << sapa
-                          << " are consistent with an offset of "
-                          << tickdiff << " ticks." << endl;
+      if ( logInfo ) {
+        cout << myname << "Channel clocks for " << sapa << " are consistent with an offset of "
+             << tickdiff << " ticks";
+        if ( nskipEmpty ) cout << " (" << nskipEmpty << " channels skipped)";
+        cout << "." << endl;
+      }
     } else {
-      if ( logInfo ) cout << myname << "WARNING: Channel counts not found." << endl;
+      if ( logInfo ) cout << myname << "WARNING: Channel clocks not found." << endl;
     }
     // Build the AdcChannelData objects.
     AdcChannelDataMap datamap;
@@ -683,13 +706,21 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     unsigned int nproc = 0;
     unsigned int nkeep = 0;
     unsigned int nskip = 0;
-    unsigned int ndigi = digitsCrn.size();
+    unsigned int nempty = 0;
     for ( unsigned int idig=0; idig<ndigi; ++idig ) {
       raw::RawDigit& dig = digitsCrn[idig];
       AdcChannel chan = dig.Channel();
       if ( csmKeepChans.count(chan) == 0 ) {
         ++nskip;
         continue;
+      }
+      // 02jan2020: Skip empty channels (Redmine 23811).
+      if ( dig.Samples() == 0 ) {
+        ++nempty;
+        if ( m_SkipEmptyChannels ) {
+          ++nskip;
+          continue;
+        }
       }
       // Create AdcChannelData for this channel.
       auto its = datamap.emplace(chan, AdcChannelData());
@@ -743,8 +774,12 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     }
     if ( logInfo ) {
       cout << myname << "              " << sapa << " # input digits: " << ndigi << endl;
-      cout << myname << "         " << sapa << " # channels selected: " << nkeep << endl;
-      cout << myname << "          " << sapa << " # channels skipped: " << nskip << endl;
+      cout << myname << "         " << sapa << " # channels selected: " << nkeep;
+      if ( ! m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
+      cout << endl;
+      cout << myname << "          " << sapa << " # channels skipped: " << nskip;
+      if ( m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
+      cout << endl;
       cout << myname << "  " << sapa << " # channels to be processed: " << nproc << endl;
     }
 
