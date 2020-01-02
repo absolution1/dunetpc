@@ -618,7 +618,20 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     ULong64_t chClock = 0;
     ULong64_t maxdiff = 99999999;  // 2 sec
     float tickdiff = maxdiff;
-    for ( raw::RDTimeStamp chts : timsCrn ) {
+    AdcIndex nskipEmpty = 0;
+    unsigned int ntim = timsCrn.size();
+    unsigned int ndigi = digitsCrn.size();
+    if ( ntim > 0 && ntim != ndigi ) {
+      cout << "ERROR: Channel clock count differs from digit count: " << ntim << " !' " << ndigi << endl;
+      abort();
+    }
+    for ( unsigned int idig=0; idig<ntim; ++idig ) {
+      raw::RDTimeStamp chts = timsCrn[idig];
+      raw::RawDigit& dig = digitsCrn[idig];
+      if ( dig.Samples() == 0 ) {   // Do not check clocks for empty digits
+        ++nskipEmpty;
+        continue;
+      }
       chClock = chts.GetTimeStamp();
       channelClocks.push_back(chClock);
       bool sign = chClock > timingClock;
@@ -665,13 +678,19 @@ void DataPrepByApaModule::produce(art::Event& evt) {
             cout << endl;
           }
         }
+        if ( nskipEmpty ) {
+          cout << myname << "WARNING:     No ADC samples:" << setw(8) << nskipEmpty << endl;
+        }
       }
     } else if ( clockCounts.size() == 1 ) {
-      if ( logInfo ) cout << myname << "Channel counts for " << sapa
-                          << " are consistent with an offset of "
-                          << tickdiff << " ticks." << endl;
+      if ( logInfo ) {
+        cout << myname << "Channel clocks for " << sapa << " are consistent with an offset of "
+             << tickdiff << " ticks";
+        if ( nskipEmpty ) cout << " (" << nskipEmpty << " channels skipped)";
+        cout << "." << endl;
+      }
     } else {
-      if ( logInfo ) cout << myname << "WARNING: Channel counts not found." << endl;
+      if ( logInfo ) cout << myname << "WARNING: Channel clocks not found." << endl;
     }
     // Build the AdcChannelData objects.
     AdcChannelDataMap datamap;
@@ -683,12 +702,18 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     unsigned int nproc = 0;
     unsigned int nkeep = 0;
     unsigned int nskip = 0;
-    unsigned int ndigi = digitsCrn.size();
+    unsigned int nempty = 0;
     for ( unsigned int idig=0; idig<ndigi; ++idig ) {
       raw::RawDigit& dig = digitsCrn[idig];
       AdcChannel chan = dig.Channel();
       if ( csmKeepChans.count(chan) == 0 ) {
         ++nskip;
+        continue;
+      }
+      // 02jan2020: Skip empty channels (Redmine 23811).
+      if ( dig.Samples() == 0 ) {
+        ++nskip;
+        ++nempty;
         continue;
       }
       // Create AdcChannelData for this channel.
@@ -744,7 +769,9 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     if ( logInfo ) {
       cout << myname << "              " << sapa << " # input digits: " << ndigi << endl;
       cout << myname << "         " << sapa << " # channels selected: " << nkeep << endl;
-      cout << myname << "          " << sapa << " # channels skipped: " << nskip << endl;
+      cout << myname << "          " << sapa << " # channels skipped: " << nskip;
+      if ( nempty ) cout << " (" << nempty << " empty)";
+      cout << endl;
       cout << myname << "  " << sapa << " # channels to be processed: " << nproc << endl;
     }
 
