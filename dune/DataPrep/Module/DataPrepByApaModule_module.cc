@@ -693,7 +693,8 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         if ( nskipEmpty ) cout << " (" << nskipEmpty << " channels skipped)";
         cout << "." << endl;
       }
-    } else {
+    } else if ( ntim > 0 ) {
+      // This should never happen.
       if ( logInfo ) cout << myname << "WARNING: Channel clocks not found." << endl;
     }
     // Build the AdcChannelData objects.
