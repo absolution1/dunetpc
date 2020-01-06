@@ -367,6 +367,7 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
       auto const * rce_stream = rce.get_stream(i);
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
+      if (n_ticks == 0) continue;  // on David Adams's request.
       auto const identifier = rce_stream->getIdentifier();
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
@@ -531,9 +532,9 @@ bool PDSPTPCDataInterface::_process_RCE_AUX(
 	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
 	  timestamps.push_back(rdtimestamp);
 
-	}
-    }
-
+	} // end loop over channels
+    }  // end loop over RCE streams (1 per FEMB)
+  // end processing one RCE fragment
   return true;
 }
 
@@ -712,6 +713,8 @@ bool PDSPTPCDataInterface::_process_FELIX_AUX(art::Event &evt,
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
+  if (n_frames ==0) return true;
+
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
 
