@@ -5,7 +5,7 @@
 // Generated at Thu Jul  6 18:31:48 2017 by Antonino Sergi,32 1-A14,+41227678738, using artmod
 // from cetpkgsupport v1_11_00.
 //
-// Most recent additions by Bryan Ramson of FNAL (bjrams87@fnal.gov), Thursday September 20, 2018   
+// Additions by Bryan Ramson of FNAL (bjrams87@fnal.gov), Thursday September 20, 2018   
 ////////////////////////////////////////////////////////////////////////
 
 // art includes
@@ -320,25 +320,29 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
   /// look for Container Fragments:
   evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
-  // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything    
-  try { containerFragments->size(); }
-  catch(std::exception const&)  {
-    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
+  // Check if there is SSP data in this event.  Rearranged -- the isValid test tells us whether the branch was found
+
+  if(!containerFragments.isValid()){
     have_data = false;
   }
 
+  // Don't crash code if not present, just don't save anything.  The above test ought to detect situations where we do not have
+  // container fragments or if the label is wrong.  Test if we can access it however just to be safe.
+
   if (have_data)
     {
-      //Check that the data are valid
-      if(!containerFragments.isValid()){
-        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-                                   << ", SubRun: " << evt.subRun()
-                                   << ", Event: " << eventNumber
-                                   << " Container Fragments found but NOT VALID";
-        return;
+      try { containerFragments->size(); }
+      catch(std::exception const&)  {
+	MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << eventNumber
+				      << " Container Fragments found but size is invalid";
+	have_data = false;
       }
+    }
 
+  if (have_data)
+    {
       for (auto cont : *containerFragments)
         {
           //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
@@ -363,29 +367,33 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
     
   // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception const&) {
-    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
-    have_data2=false;
+
+  //Check that the data is valid
+  if(!rawFragments.isValid()){
+    have_data2 = false;
   }
+
+  // Don't crash code if not present, just don't save anything
 
   if (have_data2)
     {
-      //Check that the data is valid
-      if(!rawFragments.isValid()){
-
-        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-                                   << ", SubRun: " << evt.subRun()
-                                   << ", Event: " << eventNumber
-                                   << " Non-Container Fragments found but NOT VALID";
-        return;
+      try { rawFragments->size(); }
+      catch(std::exception const&) {
+	//std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+	MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << eventNumber
+				      << " Non-Container Fragments found but size is invalid";
+	have_data2=false;
       }
+    }
+
+  if (have_data2)
+    {
       for(auto const& rawfrag: *rawFragments){
         fragments->emplace_back( rawfrag );
       }
     }
-  
 }
 
 void dune::SSPRawDecoder::beginJob(){
@@ -404,8 +412,8 @@ void dune::SSPRawDecoder::beginEvent(art::EventNumber_t /*eventNumber*/)
   n_adc_counter_  = 0;
   adc_cumulative_ = 0;
   for(int i=0;i<24;i++) {
-  intreftime_[i]=0;
-  // extreftime_[i]=0;
+    intreftime_[i]=0;
+    // extreftime_[i]=0;
   }
   timed_ = false;
   
@@ -454,7 +462,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
     
     const SSPDAQ::MillisliceHeader* meta=0;
     
-     ///> get the information from the header
+    ///> get the information from the header
     if(frag.hasMetadata()) meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader); ///> get the metadata
     else std::cout << "SSP fragment has no metadata associated with it." << std::endl;
     

@@ -123,7 +123,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
     for(const auto & eDep: * auxHits)
     {
 	
-        const size_t tAvg = (eDep.GetExitT()+eDep.GetEntryT())/2.;
+        const size_t tAvg = eDep.GetEntryT();
         crtHits[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC));
         MF_LOG_DEBUG("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
       
