@@ -615,10 +615,12 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     using ClockDiffs = std::map<ULong64_t, long>;
     using ClockTickDiffs = std::map<ULong64_t, float>;
     using ClockMessages = std::map<ULong64_t, Name>;
+    using NtickCounter = std::map<AdcIndex, AdcIndex>;
     ClockCounter clockCounts;
     ClockDiffs clockDiffs;
     ClockTickDiffs tickDiffs;
     ClockMessages clockMessages;
+    NtickCounter ntickCounter;
     ULong64_t chClock = 0;
     ULong64_t maxdiff = 99999999;  // 2 sec
     float tickdiff = maxdiff;
@@ -632,7 +634,10 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     for ( unsigned int idig=0; idig<ntim; ++idig ) {
       raw::RDTimeStamp chts = timsCrn[idig];
       raw::RawDigit& dig = digitsCrn[idig];
-      if ( dig.Samples() == 0 ) {   // Do not check clocks for empty digits
+      AdcIndex ntick = dig.Samples();
+      if ( ntickCounter.count(ntick) == 0 ) ntickCounter[ntick] = 1;
+      else ++ntickCounter[ntick];
+      if ( ntick == 0 ) {   // Do not check clocks for empty digits
         ++nskipEmpty;
         continue;
       }
@@ -696,6 +701,19 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     } else if ( ntim > 0 ) {
       // This should never happen.
       if ( logInfo ) cout << myname << "WARNING: Channel clocks not found." << endl;
+    }
+    // Display tick counts.
+    if ( logInfo && ntickCounter.size() ) {
+      if ( ntickCounter.size() == 1 ) {
+        cout << myname << "Tick count for all channels is " << ntickCounter.begin()->first << endl;
+      } else {
+        string slev = "WARNING: ";
+        cout << myname << slev << "Inconsistent tick counts:" << endl;
+        cout << myname << slev << "   Ntick   Nchan" << endl;
+        for ( NtickCounter::value_type ent : ntickCounter ) {
+          cout << myname << slev << setw(8) << ent.first << setw(8) << ent.second << endl;
+        }
+      }
     }
     // Build the AdcChannelData objects.
     AdcChannelDataMap datamap;
