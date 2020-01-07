@@ -385,6 +385,7 @@ producer_adcprep_byapa: {
   KeepChannels:                []       # Channels to keep (all if empty).
   SkipChannels:                []       # Channels to skip.
   SkipEmptyChannels:         true       # If true, empty channels are not processed and do not produce wires
+  DeltaTickCount:           0.005       # If true, empty channels are not processed and do not produce wires
   ApaChannelCounts:        [2560]       # # of channels in each APA. Last value used for later values.
   OnlineChannelMapTool: pd_onlineChannelMapByFemb
 }

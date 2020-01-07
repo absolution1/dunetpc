@@ -22,6 +22,9 @@
 //                        Otherwise each APA is read in and processed individually.
 //                        The group "apas" should be defined to include all APAs.
 //    SkipEmptyChannels - If true, empty chanels (raw data length zero) are ignored
+//       DeltaTickCount -   0 - Keep channels with tick count equal to Nprim (primary tick count)
+//                        > 0 - Keep channels within delta*nPrim of Nprim
+//                        < 0 - No cut on tick count.
 //       BeamEventLabel - Label for the BeamEvent (trigger) data product. If blank, it is not read.
 //     ApaChannelCounts - Number of channels in each APA. Last value is used for subsequent APAs.
 // OnlineChannelMapTool - Name of the tool that converts offline to online channel number.
@@ -98,6 +101,7 @@ private:
   Name m_OutputWireName;    ///< Second field in full label for the output wire container.
   NameVector m_ChannelGroups;
   bool m_SkipEmptyChannels;
+  float m_DeltaTickCount;
   std::string m_BeamEventLabel;
   AdcChannelVector m_KeepChannels;
   AdcChannelVector m_SkipChannels;
@@ -184,6 +188,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
   m_KeepChannels        = pset.get<AdcChannelVector>("KeepChannels");
   m_SkipChannels        = pset.get<AdcChannelVector>("SkipChannels");
   m_SkipEmptyChannels   = pset.get<bool>("SkipEmptyChannels");
+  m_DeltaTickCount      = pset.get<float>("DeltaTickCount");
   m_ApaChannelCounts    = pset.get<AdcChannelVector>("ApaChannelCounts");
   pset.get_if_present<std::string>("OnlineChannelMapTool", m_OnlineChannelMapTool);
 
@@ -221,6 +226,7 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
     }
     cout << "]" << endl;
     cout << myname << "    SkipEmptyChannels: " << (m_SkipEmptyChannels ? "true" : "false") << endl;
+    cout << myname << "       DeltaTickCount: " << m_DeltaTickCount << endl;
     cout << myname << "     ApaChannelCounts: " << "[";
     first = true;
     for ( AdcChannel ich : m_ApaChannelCounts ) {
@@ -702,6 +708,36 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       // This should never happen.
       if ( logInfo ) cout << myname << "WARNING: Channel clocks not found." << endl;
     }
+    // Find the primary (most common) tick count.
+    AdcIndex ntickMaxCount = 0;     // tick count with the most channels
+    AdcIndex nchanMaxCount = 0;     // # channels with the tick count
+    for ( NtickCounter::value_type ent : ntickCounter ) {
+      if ( ent.second > nchanMaxCount ) {
+        ntickMaxCount = ent.first;
+        nchanMaxCount = ent.second;
+      }
+    }
+    AdcIndex ntickPrimary = ntickMaxCount;
+    // Evaluate the allowed range of tick counts.
+    AdcIndex minTickCount = 0;
+    AdcIndex maxTickCount = 0;
+    if ( m_DeltaTickCount == 0 ) {
+      minTickCount = ntickPrimary;
+      maxTickCount = ntickPrimary;
+    } else if ( m_DeltaTickCount > 0 ) {
+      float tcmin = ntickPrimary*(1.0 - m_DeltaTickCount);
+      float tcmax = ntickPrimary*(1.0 + m_DeltaTickCount);
+      minTickCount = tcmin > 0.0 ? tcmin : 0;
+      maxTickCount = tcmax > 0.0 ? tcmax : 0;
+      cout << myname << "Tick range is (" << minTickCount << ", " << maxTickCount << ")" << endl;
+    }
+    // Update the tick counts.'
+    if ( maxTickCount > 0 ) {
+      for ( NtickCounter::value_type ent : ntickCounter ) {
+        AdcIndex ntick = ent.first;
+        if ( ntick < minTickCount || ntick < maxTickCount ) ntickCounter.erase(ntick);
+      }
+    }
     // Display tick counts.
     if ( logInfo && ntickCounter.size() ) {
       if ( ntickCounter.size() == 1 ) {
@@ -726,6 +762,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     unsigned int nkeep = 0;
     unsigned int nskip = 0;
     unsigned int nempty = 0;
+    unsigned int nbadtc = 0;
     for ( unsigned int idig=0; idig<ndigi; ++idig ) {
       raw::RawDigit& dig = digitsCrn[idig];
       AdcChannel chan = dig.Channel();
@@ -734,9 +771,18 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         continue;
       }
       // 02jan2020: Skip empty channels (Redmine 23811).
-      if ( dig.Samples() == 0 ) {
+      AdcIndex ntick = dig.Samples();
+      if ( ntick == 0 ) {
         ++nempty;
         if ( m_SkipEmptyChannels ) {
+          ++nskip;
+          continue;
+        }
+      }
+      // 06jan202: Skip channels with too few or too many ticks.
+      if ( maxTickCount > minTickCount ) {
+        if ( ntick < minTickCount || ntick > maxTickCount ) {
+          ++nbadtc;
           ++nskip;
           continue;
         }
@@ -797,7 +843,16 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       if ( ! m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
       cout << endl;
       cout << myname << "          " << sapa << " # channels skipped: " << nskip;
-      if ( m_SkipEmptyChannels && nempty ) cout << " (" << nempty << " empty)";
+      bool havebad = false;
+      if ( m_SkipEmptyChannels && nempty ) {
+        cout << " (" << nempty << " empty";
+        havebad = true;
+      }
+      if ( nbadtc ) {
+        cout << (havebad ? ", " : " (") << nbadtc << " bad tick count";
+        havebad = true;
+      }
+      if ( havebad ) cout << ")";
       cout << endl;
       cout << myname << "  " << sapa << " # channels to be processed: " << nproc << endl;
     }
