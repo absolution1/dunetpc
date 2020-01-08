@@ -72,6 +72,7 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   long int _max_offline_channel;  // max offline channel to decode.  <0: no limit.  max<min: no limit
 
   bool          _enforce_same_tick_count;
+  bool          _enforce_median_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;

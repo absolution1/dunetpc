@@ -124,9 +124,13 @@ pdsp_tpc_raw_decoder:
 
   EnforceNoDuplicateChannels: true
 
-# requires that all channels have the same number of ticks (on each event separately)
+# requires that all channels have the same number of ticks (on each event separately). Drops all data if they differ
 
   EnforceSameTickCount: false
+
+# requires that all channels except FEMB 302 have the same number of ticks
+
+  EnforceMedianTickCount: false
 
 # requires that all channels have the specified number of ticks
 

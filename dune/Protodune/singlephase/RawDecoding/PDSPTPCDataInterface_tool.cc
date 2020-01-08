@@ -65,6 +65,7 @@ PDSPTPCDataInterface::PDSPTPCDataInterface(fhicl::ParameterSet const& p)
   _felix_buffer_size_checklimit = p.get<unsigned int>("FELIXBufferSizeCheckLimit",10000000);
 
   _enforce_same_tick_count = p.get<bool>("EnforceSameTickCount",false);
+  _enforce_median_tick_count = p.get<bool>("EnforceMedianTickCount",false);
   _enforce_full_tick_count = p.get<bool>("EnforceFullTickCount",false);
   _full_tick_count = p.get<unsigned int>("FullTickCount",6000);
   _enforce_error_free = p.get<bool>("EnforceErrorFree",false);
@@ -167,46 +168,50 @@ int PDSPTPCDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 	}
     }
 
-  // find the median tick count and if a channel has a different tick count from median, remove it from the list.  Special dispensation for FEMB302,
-  // allowing it to have up to 10% missing ticks.
+  if (_enforce_median_tick_count)
+    {
 
-  std::vector<size_t> ticklist;
-  for (size_t i=0; i<raw_digits.size(); ++i)
-    {
-      ticklist.push_back(raw_digits.at(i).Samples());
-    }
-  size_t tls = ticklist.size();
-  size_t tickmed = 0;
-  if (tls != 0)
-    {
-      tickmed = TMath::Median(tls,ticklist.data());
-    }
-  size_t tickexample=0;
-  std::vector<size_t> dlist;
-  for (size_t i=0; i<raw_digits.size(); ++i)
-    {
-      if (ticklist.at(i) != tickmed)
+      // find the median tick count and if a channel has a different tick count from median, remove it from the list.  Special dispensation for FEMB302,
+      // allowing it to have up to 10% missing ticks.
+
+      std::vector<size_t> ticklist;
+      for (size_t i=0; i<raw_digits.size(); ++i)
 	{
-	  unsigned int channel = raw_digits.at(i).Channel();
-	  unsigned int crate = cmap->InstalledAPAFromOfflineChannel(channel);
-	  unsigned int slot = cmap->WIBFromOfflineChannel(channel);
-	  unsigned int fiber = cmap->FEMBFromOfflineChannel(channel);
-	  //std::cout << "tick not at median: " << channel << " " << crate << " " << slot << " " << fiber << " " << ticklist.at(i) << " " << tickmed << std::endl;
-	  if ( (crate == 3) && (slot == 3) && (fiber == 2) && ( ticklist.at(i) > 0.9*tickmed && ticklist.at(i) < tickmed ) ) continue;  // FEMB 302
-	  dlist.push_back(i);
-	  tickexample = ticklist.at(i);
+	  ticklist.push_back(raw_digits.at(i).Samples());
 	}
-    }
-
-  if (dlist.size() != 0)
-    {
-      //std::cout << "PDSPTPCDataInterface_tool: Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample << std::endl;
-      MF_LOG_WARNING("PDSPTPCDataInterface_tool:") << " Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample;
-      for (size_t i=dlist.size(); i>0; --i)
+      size_t tls = ticklist.size();
+      size_t tickmed = 0;
+      if (tls != 0)
 	{
-	  raw_digits.erase(raw_digits.begin() + dlist.at(i-1));
-	  rd_timestamps.erase(rd_timestamps.begin() + dlist.at(i-1));
-	} 
+	  tickmed = TMath::Median(tls,ticklist.data());
+	}
+      size_t tickexample=0;
+      std::vector<size_t> dlist;
+      for (size_t i=0; i<raw_digits.size(); ++i)
+	{
+	  if (ticklist.at(i) != tickmed)
+	    {
+	      unsigned int channel = raw_digits.at(i).Channel();
+	      unsigned int crate = cmap->InstalledAPAFromOfflineChannel(channel);
+	      unsigned int slot = cmap->WIBFromOfflineChannel(channel);
+	      unsigned int fiber = cmap->FEMBFromOfflineChannel(channel);
+	      //std::cout << "tick not at median: " << channel << " " << crate << " " << slot << " " << fiber << " " << ticklist.at(i) << " " << tickmed << std::endl;
+	      if ( (crate == 3) && (slot == 3) && (fiber == 2) && ( ticklist.at(i) > 0.9*tickmed && ticklist.at(i) < tickmed ) ) continue;  // FEMB 302
+	      dlist.push_back(i);
+	      tickexample = ticklist.at(i);
+	    }
+	}
+
+      if (dlist.size() != 0)
+	{
+	  //std::cout << "PDSPTPCDataInterface_tool: Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample << std::endl;
+	  MF_LOG_WARNING("PDSPTPCDataInterface_tool:") << " Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample;
+	  for (size_t i=dlist.size(); i>0; --i)
+	    {
+	      raw_digits.erase(raw_digits.begin() + dlist.at(i-1));
+	      rd_timestamps.erase(rd_timestamps.begin() + dlist.at(i-1));
+	    } 
+	}
     }
 
   unsigned int statword=0;
