@@ -581,6 +581,34 @@ const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFPa
   return pfpHits;
 }
 
+// Get the hits associated to the PFParticle
+const std::vector<const recob::Hit*> protoana::ProtoDUNEPFParticleUtils::GetPFParticleHitsFromPlane( const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel, unsigned int planeID ) const{
+
+  const std::vector<const recob::Cluster*> pfpClusters = GetPFParticleClusters(particle,evt,particleLabel);
+  auto allClusters = evt.getValidHandle<std::vector<recob::Cluster>>(particleLabel);
+  const art::FindManyP<recob::Hit> findHits(allClusters,evt,particleLabel);
+
+  std::vector<const recob::Hit*> pfpHits;
+  if( planeID > 2 ){
+    std::cout << "Please input plane 0, 1, or 2" << std::endl;
+    return pfpHits;
+  }
+ 
+  // Store all of the hits in a single vector 
+  for(auto cluster : pfpClusters){
+    const std::vector<art::Ptr<recob::Hit>> clusterHits = findHits.at(cluster->ID());
+//    std::cout << "Cluster has " << clusterHits.size() << " hits" << std::endl;
+    for(auto hit : clusterHits){
+      unsigned int thePlane = hit.get()->WireID().asPlaneID().Plane;
+      if( thePlane != planeID ) continue;
+
+      pfpHits.push_back(hit.get());
+    }
+  }
+
+  return pfpHits;
+}
+
 const std::vector< art::Ptr< recob::Hit > > protoana::ProtoDUNEPFParticleUtils::GetPFParticleHits_Ptrs(const recob::PFParticle &particle, art::Event const &evt, const std::string particleLabel) const{
 
   const std::vector<const recob::Cluster*> pfpClusters = GetPFParticleClusters(particle,evt,particleLabel);
