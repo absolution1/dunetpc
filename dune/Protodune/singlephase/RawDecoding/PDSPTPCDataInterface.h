@@ -100,7 +100,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 
   unsigned int  _tick_count_this_event; // for use in comparing tick counts for all channels
   bool          _initialized_tick_count_this_event;
-  bool          _discard_data;
   bool          _DiscardedCorruptData;
   bool          _KeptCorruptData;
 
