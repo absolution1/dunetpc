@@ -683,6 +683,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       return false; 
     }
 
+  //DataFragmentUnpack df(cdptr);
+  //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
+
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
@@ -690,6 +693,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       auto const * rce_stream = rce.get_stream(i);
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
+      if (n_ticks == 0) continue;  // on David Adams's request
       auto const identifier = rce_stream->getIdentifier();
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
@@ -1244,6 +1248,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
+  if (n_frames == 0) return true;
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
 
