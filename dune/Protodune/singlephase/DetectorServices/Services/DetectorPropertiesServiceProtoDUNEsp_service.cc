@@ -113,9 +113,16 @@ namespace spdp{
     // std::cout<<"new run?"<<isNewRun<<std::endl;
     if(isNewRun){
 
-      int start = filename.rfind("/"); //finds the final "/"
-      start += 1;
-    
+      auto start = filename.rfind("/"); //finds the final "/"
+      if (start == std::string::npos)
+	{
+	  start = 0;
+	}
+      else
+	{
+          start += 1;
+	}
+
       int end = filename.length(); //last postion
       std::string filename_s=(filename.substr(start, end-start)); //creates string of just file name, not path
       // std::cout<<"filename:"<<filename_s<<std::endl;

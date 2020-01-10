@@ -3700,20 +3700,20 @@ EOF
 EOF
 
 
-for($imod=0 ; $imod<16 ; $imod++){
-    $modnum = $imod + 1;
-for($i=0 ; $i<64 ; $i++){
-    $padnum = $i+1;
-    $paddleid = "U$modnum"."_$padnum";
     print ENCL <<EOF;
-    <volume name="volAuxDetSensitive_CRTPaddle_$paddleid">
-      <materialref ref="Polystyrene"/>
+    <volume name="volAuxDetSensitiveCRTPaddle">
+      <materialref ref="G4_POLYSTYRENE"/>
       <solidref ref="CRTPaddle"/>
+      <auxiliary auxtype="SensDet" auxvalue="AuxDet"/>
+      <auxiliary auxtype="Solid" auxvalue="True"/>
     </volume>
 EOF
-}
+
+
+for($imod=0 ; $imod<16 ; $imod++){
+    $modnum = $imod + 1;
     print ENCL <<EOF;
-    <volume name="volAuxDet_CRTModule_U$modnum">
+    <volume name="volAuxDetCRTModuleU$modnum">
       <materialref ref="Air"/>
       <solidref ref="CRTModule"/>
 EOF
@@ -3723,26 +3723,28 @@ for($i=0 ; $i<32 ; $i++){
     $paddle_y1 =   $CRTPaddleHeight/2;
     $paddle_y2 = - $CRTPaddleHeight/2;
     $paddle_z = 0;
-    $padnum1 = $i + 1;
-    $padnum2 = $i + 33;
-    $paddleid1 = "U$modnum"."_$padnum1";
-    $paddleid2 = "U$modnum"."_$padnum2";
+    $padnum1 = 2*$i+(($modnum-1)*64);
+    $padnum2 = (2*$i+1)+(($modnum-1)*64);
+    $padnum1id = 2*$i+1;
+    $padnum2id = 2*$i+2;
+    $paddleid1 = "$padnum1id"."U$modnum";
+    $paddleid2 = "$padnum2id"."U$modnum";
     print ENCL <<EOF;
-       <physvol>
-           <volumeref ref="volAuxDetSensitive_CRTPaddle_$paddleid1"/>
-           <position name="posCRTPaddleSensitive_$paddleid1" unit="cm" 
+       <physvol  name="CRTPaddle$paddleid1" copynumber="$padnum1">
+           <volumeref ref="volAuxDetSensitiveCRTPaddle"/>
+           <position name="posCRTPaddleSensitive$paddleid1" unit="cm" 
            x="$paddle_x1" 
            y="$paddle_y1" 
            z="$paddle_z"/> 
-           <rotationref ref="rIdentity"/>
+          <rotationref ref="rIdentity"/>
        </physvol>
-       <physvol>
-           <volumeref ref="volAuxDetSensitive_CRTPaddle_$paddleid2"/>
-           <position name="posCRTPaddleSensitive_$paddleid2" unit="cm" 
+       <physvol  name="CRTPaddle$paddleid2" copynumber="$padnum2">
+           <volumeref ref="volAuxDetSensitiveCRTPaddle"/>
+           <position name="posCRTPaddleSensitive$paddleid2" unit="cm" 
            x="$paddle_x2" 
            y="$paddle_y2" 
            z="$paddle_z"/> 
-           <rotationref ref="rIdentity"/>
+          <rotationref ref="rIdentity"/>
        </physvol>
 EOF
 }
@@ -3751,20 +3753,14 @@ EOF
 EOF
 }
 
+
+
+
 for($imod=0 ; $imod<16 ; $imod++){
     $modnum = $imod + 1;
-for($i=0 ; $i<64 ; $i++){
-    $padnum = $i+1;
-    $paddleid = "D$modnum"."_$padnum";
+
     print ENCL <<EOF;
-    <volume name="volAuxDetSensitive_CRTPaddle_$paddleid">
-      <materialref ref="Polystyrene"/>
-      <solidref ref="CRTPaddle"/>
-    </volume>
-EOF
-}
-    print ENCL <<EOF;
-    <volume name="volAuxDet_CRTModule_D$modnum">
+    <volume name="volAuxDetCRTModuleD$modnum">
       <materialref ref="Air"/>
       <solidref ref="CRTModule"/>
 EOF
@@ -3774,22 +3770,24 @@ for($i=0 ; $i<32 ; $i++){
     $paddle_y1 =   $CRTPaddleHeight/2;
     $paddle_y2 = - $CRTPaddleHeight/2;
     $paddle_z = 0;
-    $padnum1 = $i + 1;
-    $padnum2 = $i + 33;
-    $paddleid1 = "D$modnum"."_$padnum1";
-    $paddleid2 = "D$modnum"."_$padnum2";
+    $padnum1 = 2*$i+64*(($modnum-1)+16);
+    $padnum2 = (2*$i+1)+64*(($modnum-1)+16);
+    $padnum1id = 2*$i+1;
+    $padnum2id = 2*$i+2;
+    $paddleid1 = "$padnum1id"."D$modnum";
+    $paddleid2 = "$padnum2id"."D$modnum";
     print ENCL <<EOF;
-       <physvol>
-           <volumeref ref="volAuxDetSensitive_CRTPaddle_$paddleid1"/>
-           <position name="posCRTPaddleSensitive_$paddleid1" unit="cm" 
+       <physvol  name="CRTPaddle$paddleid1" copynumber="$padnum1">
+           <volumeref ref="volAuxDetSensitiveCRTPaddle"/>
+           <position name="posCRTPaddleSensitive$paddleid1" unit="cm" 
            x="$paddle_x1" 
            y="$paddle_y1" 
            z="$paddle_z"/> 
           <rotationref ref="rIdentity"/>
        </physvol>
-       <physvol>
-           <volumeref ref="volAuxDetSensitive_CRTPaddle_$paddleid2"/>
-           <position name="posCRTPaddleSensitive_$paddleid2" unit="cm" 
+       <physvol  name="CRTPaddle$paddleid2" copynumber="$padnum2">
+           <volumeref ref="volAuxDetSensitiveCRTPaddle"/>
+           <position name="posCRTPaddleSensitive$paddleid2" unit="cm" 
            x="$paddle_x2" 
            y="$paddle_y2" 
            z="$paddle_z"/> 
@@ -4131,8 +4129,8 @@ EOF
 
 print ENCL <<EOF;
        <physvol>
-           <volumeref ref="volAuxDet_CRTModule_$modid"/>
-           <position name="posvolAuxDet_CRTModule_$modid" unit="cm"
+           <volumeref ref="volAuxDetCRTModule$modid"/>
+           <position name="posvolAuxDetCRTModule$modid" unit="cm"
             x="$posCRTUS_x[$i]" 
             y="$posCRTUS_y[$i]" 
             z="$posCRTUS_z[$i]"/>
@@ -4147,8 +4145,8 @@ EOF
 
 print ENCL <<EOF;
        <physvol>
-           <volumeref ref="volAuxDet_CRTModule_$modid"/>
-           <position name="posvolAuxDet_CRTModule_$modid" unit="cm"
+           <volumeref ref="volAuxDetCRTModule$modid"/>
+           <position name="posvolAuxDetCRTModule$modid" unit="cm"
             x="$posCRTDS_x[$i]" 
             y="$posCRTDS_y[$i]" 
             z="$posCRTDS_z[$i]"/>
