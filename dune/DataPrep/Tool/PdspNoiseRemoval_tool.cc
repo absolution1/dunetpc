@@ -18,6 +18,38 @@ using std::cout;
 using std::endl;
 	
 //**********************************************************************
+// Local methods.
+//**********************************************************************
+
+namespace {
+
+// David Adams
+// December 2019
+// Copy a waveform and pad for use with FFT.
+// Check the output waveform size and abort with message if it is not valid.
+// The abort messages assume that size was obtained from the FFT service.
+void copyWaveform(const std::vector<float>& adc, std::vector<float>& ch_waveform) {
+  const string myname = "PdspNoiseRemoval::copyWaveform: ";
+  size_t n_samples = adc.size();
+  if ( ch_waveform.size() < adc.size() ) {
+    cout << myname << "ERROR: ADC size: " << n_samples << " > FFT size: " << ch_waveform.size() << endl;
+    cout << myname << "ERROR: Increase FFTSize in the LArFFT service" << endl;
+    abort();
+  }
+  if ( ch_waveform.size() > 2*adc.size() ) {
+    cout << myname << "ERROR: FFT size: " << ch_waveform.size() << " > 2*(ADC size: " << n_samples << ")" << endl;
+    cout << myname << "ERROR: Decrease FFTSize in the LArFFT service" << endl;
+    abort();
+  }
+  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
+  for ( size_t s = n_samples; s < ch_waveform.size(); ++s ) {
+    ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
+  }
+}
+
+}
+
+//**********************************************************************
 // Class methods.
 //**********************************************************************
 
@@ -106,7 +138,7 @@ DataMap PdspNoiseRemoval::updateMap(AdcChannelDataMap& acds) const {
     return ret;
   }
 
-	if(fRemoveHighFrequency) {
+  if(fRemoveHighFrequency) {
     removeHighFreq(acds);
   }
   if(fRemoveCoherent) {
@@ -136,7 +168,7 @@ void PdspNoiseRemoval::removeHighFreq(AdcChannelDataMap& datamap) const
 {
     auto const & chStatus = art::ServiceHandle< lariov::ChannelStatusService >()->GetProvider();
     for(auto & entry : datamap) {
-      if(chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first)) {
+      if ( chStatus.IsPresent(entry.first) && !chStatus.IsNoisy(entry.first) && entry.second.samples.size() ) {
       	fftFltInPlace(entry.second.samples, fLowPassCoeffs);
       }
     }
@@ -144,13 +176,12 @@ void PdspNoiseRemoval::removeHighFreq(AdcChannelDataMap& datamap) const
 
 //**********************************************************************
 void PdspNoiseRemoval::fftFltInPlace(std::vector< float > & adc, const std::vector< float > & coeffs) const {
+  const string myname = "PdspNoiseRemoval::fftFltInPlace: ";
   std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
   std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
   size_t n_samples = adc.size();
-  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
-  for(size_t s = n_samples; s < ch_waveform.size(); ++s) {
-    ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
-  }
+  if ( m_LogLevel >= 3 ) cout << myname << "N_ADC = " << adc.size() << ", N_WF = " << ch_waveform.size() << endl;
+  copyWaveform(adc, ch_waveform);
   fFFT->DoFFT(ch_waveform, ch_spectrum);
   for(size_t c = 0; c < coeffs.size(); ++c) {
       ch_spectrum[c] *= coeffs[c]; 
@@ -164,10 +195,7 @@ std::vector< float > PdspNoiseRemoval::fftFlt(const std::vector< float > & adc, 
   std::vector< TComplex > ch_spectrum(fFFT->FFTSize() / 2 + 1);
   std::vector< float > ch_waveform(fFFT->FFTSize(), 0);
   size_t n_samples = adc.size();
-  std::copy(adc.begin(), adc.end(), ch_waveform.begin());
-  for(size_t s = n_samples; s < ch_waveform.size(); ++s) {
-    ch_waveform[s] = ch_waveform[2*n_samples - s - 1];
-  }
+  copyWaveform(adc, ch_waveform);
   fFFT->DoFFT(ch_waveform, ch_spectrum);
   for(size_t c = 0; c < coeffs.size(); ++c) {
     ch_spectrum[c] *= coeffs[c];
@@ -342,6 +370,7 @@ std::vector<float> PdspNoiseRemoval::getMedianCorrection( const std::vector<unsi
 //**********************************************************************
 std::vector<bool> PdspNoiseRemoval::roiMask(const AdcChannelData & acd) const {
   std::vector<bool> mask(acd.samples.size(), true);
+  if ( acd.samples.size() == 0 ) return mask;
   auto acd_flt = fftFlt(acd.samples, fLowPassCoeffs);
   bool inroi = false;
   for (int i = 0; i < (int)acd_flt.size(); ++i) {
