@@ -103,6 +103,15 @@ bool protoana::ProtoDUNEBeamCuts::IsBeamlike( const recob::Track & track, art::E
    std::pair< double, double > startZ_cut = BeamPars.get< std::pair< double, double > >("TrackStartZCut");
    double costheta_cut = BeamPars.get< double >("TrackDirCut");
 
+   static bool first = true;
+   if (first){
+     first = false;
+     std::cout<<"Beam momentum = "<<momentum<<std::endl;
+     std::cout<<"Cut on deltaX: ["<<startX_cut.first<<","<<startX_cut.second<<"]"<<std::endl;
+     std::cout<<"Cut on deltaY: ["<<startY_cut.first<<","<<startY_cut.second<<"]"<<std::endl;
+     std::cout<<"Cut on deltaZ: ["<<startZ_cut.first<<","<<startZ_cut.second<<"]"<<std::endl;
+   }
+
    if( deltaX < startX_cut.first || deltaX > startX_cut.second )
      return false;
    if( deltaY < startY_cut.first || deltaY > startY_cut.second )
