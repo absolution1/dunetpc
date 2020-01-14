@@ -24,6 +24,9 @@
 namespace protoana {
 
   struct MCParticleSharedHits {
+    MCParticleSharedHits() :
+      particle(0x0), nSharedHits(0), nSharedDeltaRayHits(0) {};
+
     const simb::MCParticle * particle;
     size_t nSharedHits;
     size_t nSharedDeltaRayHits;
