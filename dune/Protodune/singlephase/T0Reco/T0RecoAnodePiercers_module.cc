@@ -306,6 +306,9 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	// load PFParticles
 
 	auto reco_particles_h = event.getValidHandle<std::vector<recob::PFParticle>>(fPFPProducer);
+        const art::FindManyP<recob::Track> findTracks(reco_particles_h,event,fTrackProducer);
+        auto reco_tracks_h = event.getValidHandle<std::vector<recob::Track>>(fTrackProducer);
+        art::FindManyP<recob::Hit> findHits(reco_tracks_h, event, fTrackProducer);
 
 	if(!reco_particles_h.isValid()) {
 		std::cerr<<"\033[93m[ERROR]\033[00m ... could not locate PFParticles!"<<std::endl;
@@ -313,8 +316,8 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 		}
 
 	// Utilities for PFParticles and tracks
-	protoana::ProtoDUNEPFParticleUtils pfpUtil;
-	protoana::ProtoDUNETrackUtils trackUtil;
+	//protoana::ProtoDUNEPFParticleUtils pfpUtil;
+	//protoana::ProtoDUNETrackUtils trackUtil;
 
 	// Get trigger to TPC Offset
 
@@ -353,7 +356,12 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		ev_particle_ctr++;
 
-		const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
+		//const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
+                const recob::Track* track = 0x0;
+                const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(pfparticle.Self());
+                if( pfpTracks.size() != 0 ){
+                  track = (pfpTracks.at(0)).get(); 
+                }
 		if(track == 0x0) { 
 			if(fDebug) std::cout << "\tPFParticle " << ev_particle_ctr << " is not track like" << std::endl;
 			continue; 
@@ -361,7 +369,13 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		if (fDebug) std::cout << "\tLooping through reco PFParticle " << ev_particle_ctr << std::endl;  
 
-		const std::vector<const recob::Hit*>& hit_v = trackUtil.GetRecoTrackHits(*track,event,fTrackProducer);
+		//const std::vector<const recob::Hit*>& hit_v = trackUtil.GetRecoTrackHits(*track,event,fTrackProducer);
+                std::vector<art::Ptr<recob::Hit>> inputHits = findHits.at(track->ID());
+                std::vector<const recob::Hit*> hit_v;
+                for(const art::Ptr<recob::Hit> hit : inputHits){
+                  hit_v.push_back(hit.get());
+                }
+
 
 		anode_rc_time = ReadoutWindow;
 
