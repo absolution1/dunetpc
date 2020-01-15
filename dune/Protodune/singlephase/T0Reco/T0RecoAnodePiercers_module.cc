@@ -26,12 +26,13 @@
 
 // data-products
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/RecoBase/PFParticle.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/OpFlash.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "dune/Protodune/singlephase/DataUtils/ProtoDUNEPFParticleUtils.h"
-#include "dune/Protodune/singlephase/DataUtils/ProtoDUNETrackUtils.h"
+//#include "dune/Protodune/singlephase/DataUtils/ProtoDUNEPFParticleUtils.h"
+//#include "dune/Protodune/singlephase/DataUtils/ProtoDUNETrackUtils.h"
 
 // ROOT
 #include "TVector3.h"
@@ -356,6 +357,8 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		ev_particle_ctr++;
 
+
+                //Replacing this with the hardcoded method to remove util dependency
 		//const recob::Track* track = pfpUtil.GetPFParticleTrack(pfparticle,event,fPFPProducer,fTrackProducer);
                 const recob::Track* track = 0x0;
                 const std::vector<art::Ptr<recob::Track>> pfpTracks = findTracks.at(pfparticle.Self());
@@ -369,6 +372,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 		if (fDebug) std::cout << "\tLooping through reco PFParticle " << ev_particle_ctr << std::endl;  
 
+                //Replacing this with the hardcoded method to remove util dependency
 		//const std::vector<const recob::Hit*>& hit_v = trackUtil.GetRecoTrackHits(*track,event,fTrackProducer);
                 std::vector<art::Ptr<recob::Hit>> inputHits = findHits.at(track->ID());
                 std::vector<const recob::Hit*> hit_v;
