@@ -8,8 +8,7 @@ cet_find_library( IFBEAMSERVICE NAMES IFBeam_service PATHS ENV IFDH_ART_LIB NO_D
 cet_find_library( IFBEAM NAMES ifbeam PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
 
 
-art_make( LIBRARY_NAME ProtoDUNEDataUtils
-	  LIB_LIBRARIES
+art_make(  MODULE_LIBRARIES
                         dune_ArtSupport
                         ${IFBEAM}
                         ${IFBEAMSERVICE}
@@ -42,8 +41,7 @@ art_make( LIBRARY_NAME ProtoDUNEDataUtils
                         ${MF_MESSAGELOGGER}
                         cetlib cetlib_except
                         ${ROOT_BASIC_LIB_LIST}
-	  MODULE_LIBRARIES
-	  ProtoDUNEDataUtils
+	  #ProtoDUNEDataUtils
 )
 
 install_headers()
