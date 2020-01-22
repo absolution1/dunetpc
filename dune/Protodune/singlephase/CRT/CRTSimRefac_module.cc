@@ -120,12 +120,12 @@ void CRT::CRTSimRefac::produce(art::Event & e)
   e.getManyByType(allSims);
 
   // -- Get all MCParticles to do assns later
-  const auto & mcp_handle = e.getValidHandle<std::vector<simb::MCParticle>>("largeant");
+  const auto & mcp_handle = e.getValidHandle<std::vector<simb::MCParticle>>("largeant"); // -- TODO: make this an input tag
   art::PtrMaker<simb::MCParticle> makeMCParticlePtr{e,mcp_handle.id()};
   art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
   auto const & mcparticles = *(mcp_handle); //dereference the handle
 
-  // -- Map of trackId to MCParticle handle index
+  // -- Construct map of trackId to MCParticle handle index to do assns later
   std::unordered_map<int, int> map_trackID_to_handle_index;
   for (size_t idx = 0; idx < mcparticles.size(); ++idx){
     int tid = mcparticles[idx].TrackId();
@@ -142,21 +142,18 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 
 
   art::ServiceHandle<geo::Geometry> geom;
-  //<--std::map<int, std::map<time, std::vector<CRT::Hit>>> crtHits;
   std::map<int, std::map<time, std::vector<std::pair<CRT::Hit, int>>>> map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId;
   for(auto const& auxHits : allSims){
     for(const auto & eDep: * auxHits)
     {
       const size_t tAvg = eDep.GetEntryT();
-      //<--crtHits[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC));
       map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC),eDep.GetTrackID());
       mf::LogDebug("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
     }
   }
 
 
-  //For each CRT module
-  //<--for(const auto & crtModule: crtHits)
+  // -- For each CRT module
   for(const auto & crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId : map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId)
   {
     int crtChannel = -1;
@@ -178,7 +175,6 @@ void CRT::CRTSimRefac::produce(art::Event & e)
     mf::LogDebug("channels") << "Processing channel " << module << "\n";
     
     std::stringstream ss;
-    //<--for(const auto& window: timeToHit)
     for(const auto& time_to_vector_of_pair_crtHit_and_trackId : map_of_time_to_vector_of_pair_crtHit_and_trackId)
     {
       ss << "At " << time_to_vector_of_pair_crtHit_and_trackId.first << " ticks, " << time_to_vector_of_pair_crtHit_and_trackId.second.size() << " hits\n";
@@ -197,7 +193,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 
       if(aboveThresh != vector_of_pair_crtHit_and_trackId.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
       {
-        //mf::LogDebug("timeToHitTrackIds") << "Channel " << aboveThresh.Channel() << " has deposit " << aboveThresh.ADC() << " ADC counts that " << "is above threshold.  Triggering readout at time " << time_to_vector_of_pair_crtHit_and_trackId->first << ".\n";
+        mf::LogDebug("timeToHitTrackIds") << "Channel " << (aboveThresh->first).Channel() << " has deposit " << (aboveThresh->first).ADC() << " ADC counts that " << "is above threshold.  Triggering readout at time " << time_to_vector_of_pair_crtHit_and_trackId->first << ".\n";
  
         std::vector<CRT::Hit> hits;
         const time timestamp = time_to_vector_of_pair_crtHit_and_trackId->first; //Set timestamp before window is changed.
@@ -214,6 +210,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
             {
               hits.push_back(pair_crtHit_and_trackId.first);
 
+              // -- safe index retrieval
               int index = 0;
               int tid = pair_crtHit_and_trackId.second;
               auto search = map_trackID_to_handle_index.find(tid);
@@ -224,19 +221,13 @@ void CRT::CRTSimRefac::produce(art::Event & e)
                 mf::LogDebug("GetAssns") << "No matching index... strange";
                 continue;
               }
-
-              //simb::MCParticle particle = partInventory->TrackIdToParticle(index);
+              
+              // -- Sanity check, not needed
               simb::MCParticle particle = mcparticles[index];
               mf::LogDebug("GetAssns") << "TrackId from particle obtained with index " << index
                 << " is : " << particle.TrackId() << " , expected: " << tid;
               mf::LogDebug("GetMCParticle") << particle;
               
-              /*
-              partCol_->push_back(std::move(p));
-              art::Ptr<simb::MCParticle> mcp_ptr = art::Ptr<simb::MCParticle>(pid_,partCol_->size()-1,evt->productGetter(pid_));
-              tpassn_->addSingle(mct, mcp_ptr, truthInfo);
-              */
-              ///auto trigCol = std::make_unique<std::vector<CRT::Trigger>>();
               auto const mcptr = makeMCParticlePtr(index);
               partToTrigger->addSingle(mcptr, makeTrigPtr(trigCol->size()-1));
               //simToTrigger->addSingle(pair_crtHit_and_trackId.second, makeTrigPtr(trigCol->size()-1)); 
@@ -247,8 +238,6 @@ void CRT::CRTSimRefac::produce(art::Event & e)
         mf::LogDebug("CreateTrigger") << "Creating CRT::Trigger...\n";
         //std::cout<< "Timestamp:"<<timestamp*fIntegrationTime<<std::endl;
         trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits));
-        ///std::unique_ptr< art::Assns<simb::MCParticle, CRT::Trigger>> partToTrigger( new art::Assns<simb::MCParticle, CRT::Trigger>);
-        //util::CreateAssn(*this, e, *trigCol, particle, *partToTrigger);
 
         const auto oldWindow = time_to_vector_of_pair_crtHit_and_trackId;
         if(time_to_vector_of_pair_crtHit_and_trackId != map_of_time_to_vector_of_pair_crtHit_and_trackId.end())
@@ -262,7 +251,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
     } //For each time window
   } //For each CRT module
 
-  //Put Triggers and Assns into the event
+  // -- Put Triggers and Assns into the event
   mf::LogDebug("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
   e.put(std::move(trigCol));
   e.put(std::move(partToTrigger));
