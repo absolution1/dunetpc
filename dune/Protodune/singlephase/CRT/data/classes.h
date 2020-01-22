@@ -9,5 +9,7 @@
 //LArSoft includes
 #include "lardataobj/Simulation/AuxDetSimChannel.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+
 //local includes
 #include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
