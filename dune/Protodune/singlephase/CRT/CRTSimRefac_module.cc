@@ -22,11 +22,16 @@
 #include "art/Persistency/Common/PtrMaker.h"
 #include "canvas/Persistency/Common/Assns.h"
 #include "canvas/Persistency/Common/Ptr.h"
-
+#include "lardata/Utilities/AssociationUtil.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "canvas/Persistency/Common/FindManyP.h"
 //LArSoft includes
 
 #include "larcore/Geometry/Geometry.h"
 #include "lardataobj/Simulation/AuxDetHit.h"
+#include "larsim/MCCheater/ParticleInventoryService.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nug4/ParticleNavigation/ParticleList.h"
 
 //local includes
 //#include "CRTTrigger.h"
@@ -36,6 +41,8 @@
 #include <memory>
 #include <algorithm>
 #include <string>
+#include <map>
+#include <unordered_map>
 
 namespace CRT {
   class CRTSimRefac;
@@ -58,6 +65,9 @@ public:
 
 
 private:
+
+  // -- message logger
+  mf::LogInfo logInfo_;
 
   //The formats for time and ADC value I will use throughout this module.  If I want to change it later, I only have to change it in one place.  
   typedef long long int time;
@@ -83,7 +93,9 @@ private:
 };
 
 
-CRT::CRTSimRefac::CRTSimRefac(fhicl::ParameterSet const & p): EDProducer{p}, fSimLabel(p.get<art::InputTag>("SimLabel")), 
+CRT::CRTSimRefac::CRTSimRefac(fhicl::ParameterSet const & p): EDProducer{p}, 
+                                                              logInfo_("CRTSimRefactor"),
+                                                              fSimLabel(p.get<art::InputTag>("SimLabel")), 
                                                               /*fScintillationYield(p.get<double>("ScintillationYield")), 
                                                               fQuantumEff(p.get<double>("QuantumEff")), 
                                                               fDummyGain(p.get<double>("DummyGain")),*/
@@ -94,6 +106,7 @@ CRT::CRTSimRefac::CRTSimRefac(fhicl::ParameterSet const & p): EDProducer{p}, fSi
                                                               fDACThreshold(p.get<adc_t>("DACThreshold"))
 {
   produces<std::vector<CRT::Trigger>>();
+  produces<art::Assns<simb::MCParticle,CRT::Trigger>>(); 
 
 }
 
@@ -102,15 +115,26 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 {
 
 
+  //const auto & crtHits =  e.getValidHandle<std::vector<sim::AuxDetHit>>("largeant");
   std::vector<art::Handle<sim::AuxDetHitCollection>> allSims;
   e.getManyByType(allSims);
 
+  // -- Get all MCParticles to do assns later
+  const auto & mcp_handle = e.getValidHandle<std::vector<simb::MCParticle>>("largeant"); // -- TODO: make this an input tag
+  art::PtrMaker<simb::MCParticle> makeMCParticlePtr{e,mcp_handle.id()};
+  art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
+  auto const & mcparticles = *(mcp_handle); //dereference the handle
 
-  //const auto & crtHits =  e.getValidHandle<std::vector<sim::AuxDetHit>>("largeant");
+  // -- Construct map of trackId to MCParticle handle index to do assns later
+  std::unordered_map<int, int> map_trackID_to_handle_index;
+  for (size_t idx = 0; idx < mcparticles.size(); ++idx){
+    int tid = mcparticles[idx].TrackId();
+    map_trackID_to_handle_index.insert(std::make_pair(tid,idx));
+  }
   
-
   auto trigCol = std::make_unique<std::vector<CRT::Trigger>>();
   //auto simToTrigger = std::make_unique<art::Assns<sim::AuxDetHit, CRT::Trigger>>();
+  std::unique_ptr< art::Assns<simb::MCParticle, CRT::Trigger>> partToTrigger( new art::Assns<simb::MCParticle, CRT::Trigger>);
 
   //Utilities to go along with making Assns
   //art::PtrMaker<sim::AuxDetHit> makeSimPtr(e, crtHits.id());
@@ -118,100 +142,119 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 
 
   art::ServiceHandle<geo::Geometry> geom;
-    std::map<int, std::map<time, std::vector<CRT::Hit>>> crtHits;
-    for(auto const& auxHits : allSims){
+  std::map<int, std::map<time, std::vector<std::pair<CRT::Hit, int>>>> map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId;
+  for(auto const& auxHits : allSims){
     for(const auto & eDep: * auxHits)
     {
-	
-        const size_t tAvg = eDep.GetEntryT();
-        crtHits[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC));
-        MF_LOG_DEBUG("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
-      
+      const size_t tAvg = eDep.GetEntryT();
+      map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC),eDep.GetTrackID());
+      mf::LogDebug("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
     }
-    }
+  }
 
 
-  //For each CRT module
-  for(const auto & crtModule: crtHits)
+  // -- For each CRT module
+  for(const auto & crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId : map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId)
   {
-     int crtChannel=-1;
-     int module=crtModule.first;
+    int crtChannel = -1;
+    int module = crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId.first;
     
     std::string modStrng="U"+std::to_string(module+1);
     if (module>15) modStrng="D"+std::to_string(module+1-16);
     if ((module+1)==17) crtChannel=22; 
     if ((module+1)==1) crtChannel=24; 
     for (int i=0; i<32; ++i){
-   if (crtChannel==22 || crtChannel==24) break;
-    const auto& det = geom->AuxDet(i);
-    if(det.Name().find(modStrng) != std::string::npos){
-
+      if (crtChannel==22 || crtChannel==24) break;
+      const auto& det = geom->AuxDet(i);
+      if(det.Name().find(modStrng) != std::string::npos){
         crtChannel=i; break;
+      }
     }
-    }
-    const auto timeToHits=crtModule.second;
+    const auto map_of_time_to_vector_of_pair_crtHit_and_trackId = crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId.second;
 
-    MF_LOG_DEBUG("channels") << "Processing channel " << module << "\n";
+    mf::LogDebug("channels") << "Processing channel " << module << "\n";
     
     std::stringstream ss;
-    for(const auto& window: timeToHits)
+    for(const auto& time_to_vector_of_pair_crtHit_and_trackId : map_of_time_to_vector_of_pair_crtHit_and_trackId)
     {
-      ss << "At " << window.first << " ticks, " << window.second.size() << " hits\n";
+      ss << "At " << time_to_vector_of_pair_crtHit_and_trackId.first << " ticks, " << time_to_vector_of_pair_crtHit_and_trackId.second.size() << " hits\n";
     } 
 
-    MF_LOG_DEBUG("timeToHits") << "Constructed readout windows for module " << crtChannel << ":\n"
+    mf::LogDebug("timeToHitTrackIds") << "Constructed readout windows for module " << crtChannel << ":\n"
                             << ss.str() << "\n";
 
    
-    MF_LOG_DEBUG("timeToHits") << "About to loop over " << timeToHits.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
-    for(auto window = timeToHits.begin(); window != timeToHits.end(); ) //++window)
+    mf::LogDebug("timeToHitTrackIds") << "About to loop over " << map_of_time_to_vector_of_pair_crtHit_and_trackId.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
+    for(auto time_to_vector_of_pair_crtHit_and_trackId = map_of_time_to_vector_of_pair_crtHit_and_trackId.begin(); time_to_vector_of_pair_crtHit_and_trackId != map_of_time_to_vector_of_pair_crtHit_and_trackId.end(); ) //++time_to_vector_of_pair_crtHit_and_trackId)
     {
-      const auto& hitsInWindow = window->second;
-      const auto aboveThresh = std::find_if(hitsInWindow.begin(), hitsInWindow.end(), 
-                                            [this](const auto& hitPair) { return hitPair.ADC() > fDACThreshold; });
+      const auto& vector_of_pair_crtHit_and_trackId = time_to_vector_of_pair_crtHit_and_trackId->second;
+      const auto aboveThresh = std::find_if(vector_of_pair_crtHit_and_trackId.begin(), vector_of_pair_crtHit_and_trackId.end(), 
+                                            [this](const auto& pair_crtHit_and_trackId) { return pair_crtHit_and_trackId.first.ADC() > fDACThreshold; });
 
-      if(aboveThresh != hitsInWindow.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
+      if(aboveThresh != vector_of_pair_crtHit_and_trackId.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
       {
-        //MF_LOG_DEBUG("timeToHits") << "Channel " << aboveThresh.Channel() << " has deposit " << aboveThresh.ADC() << " ADC counts that " << "is above threshold.  Triggering readout at time " << window->first << ".\n";
+        mf::LogDebug("timeToHitTrackIds") << "Channel " << (aboveThresh->first).Channel() << " has deposit " << (aboveThresh->first).ADC() << " ADC counts that " << "is above threshold.  Triggering readout at time " << time_to_vector_of_pair_crtHit_and_trackId->first << ".\n";
  
         std::vector<CRT::Hit> hits;
-        const time timestamp = window->first; //Set timestamp before window is changed.
-        const auto end = timeToHits.upper_bound(timestamp+fReadoutWindowSize);
+        const time timestamp = time_to_vector_of_pair_crtHit_and_trackId->first; //Set timestamp before window is changed.
+        const auto end = map_of_time_to_vector_of_pair_crtHit_and_trackId.upper_bound(timestamp+fReadoutWindowSize);
         std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
                                         //this readout window and so are "busy" and cannot contribute any more hits.  
-        for(;window != end; ++window)
+        for(;time_to_vector_of_pair_crtHit_and_trackId != end; ++time_to_vector_of_pair_crtHit_and_trackId)
         {
-          for(const auto& hitPair: window->second)
+          for(const auto& pair_crtHit_and_trackId: time_to_vector_of_pair_crtHit_and_trackId->second)
           {
-            const auto channel = hitPair.Channel();  
+            const auto channel = pair_crtHit_and_trackId.first.Channel();
                                                                   
             if(channelBusy.insert(channel).second) //If this channel hasn't already contributed to this readout window
             {
-              hits.push_back(hitPair);
- 
- 
-              //simToTrigger->addSingle(hitPair.second, makeTrigPtr(trigCol->size()-1)); 
+              hits.push_back(pair_crtHit_and_trackId.first);
+
+              // -- safe index retrieval
+              int index = 0;
+              int tid = pair_crtHit_and_trackId.second;
+              auto search = map_trackID_to_handle_index.find(tid);
+              if (search != map_trackID_to_handle_index.end()){
+                index = search->second;
+                mf::LogDebug("GetAssns") << "Found index : " << index;
+              } else {                                                                                        
+                mf::LogDebug("GetAssns") << "No matching index... strange";
+                continue;
+              }
+              
+              // -- Sanity check, not needed
+              simb::MCParticle particle = mcparticles[index];
+              mf::LogDebug("GetAssns") << "TrackId from particle obtained with index " << index
+                << " is : " << particle.TrackId() << " , expected: " << tid;
+              mf::LogDebug("GetMCParticle") << particle;
+              
+              auto const mcptr = makeMCParticlePtr(index);
+              partToTrigger->addSingle(mcptr, makeTrigPtr(trigCol->size()-1));
+              //simToTrigger->addSingle(pair_crtHit_and_trackId.second, makeTrigPtr(trigCol->size()-1)); 
             }
           }
         }
 
+        mf::LogDebug("CreateTrigger") << "Creating CRT::Trigger...\n";
+        //std::cout<< "Timestamp:"<<timestamp*fIntegrationTime<<std::endl;
+        trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits));
 
-        MF_LOG_DEBUG("CreateTrigger") << "Creating CRT::Trigger...\n";
-	//std::cout<< "Timestamp:"<<timestamp*fIntegrationTime<<std::endl;
-        trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits)); 
-
-        const auto oldWindow = window;
-        if(window != timeToHits.end()) window = timeToHits.upper_bound(window->first+fDeadtime); 
-        if(window != timeToHits.end()) MF_LOG_DEBUG("DeadTime") << "Advanced readout window by " << window->first - oldWindow->first
+        const auto oldWindow = time_to_vector_of_pair_crtHit_and_trackId;
+        if(time_to_vector_of_pair_crtHit_and_trackId != map_of_time_to_vector_of_pair_crtHit_and_trackId.end())
+        {
+          time_to_vector_of_pair_crtHit_and_trackId = map_of_time_to_vector_of_pair_crtHit_and_trackId.upper_bound(time_to_vector_of_pair_crtHit_and_trackId->first+fDeadtime); 
+          mf::LogDebug("DeadTime") << "Advanced readout window by " << time_to_vector_of_pair_crtHit_and_trackId->first - oldWindow->first
                                                              << " to simulate dead time.\n";
+        }
       } //If there was a channel above threshold
-      else ++window; //If discriminators did not fire, continue to next time window.
+      else ++time_to_vector_of_pair_crtHit_and_trackId; //If discriminators did not fire, continue to next time window.
     } //For each time window
   } //For each CRT module
 
-  //Put Triggers and Assns into the event
-  MF_LOG_DEBUG("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
+  // -- Put Triggers and Assns into the event
+  mf::LogDebug("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
   e.put(std::move(trigCol));
+  e.put(std::move(partToTrigger));
   //e.put(std::move(simToTrigger));
 }
 
