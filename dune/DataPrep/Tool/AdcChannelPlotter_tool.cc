@@ -44,6 +44,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotSigOpt(ps.get<string>("PlotSigOpt")),
   m_PlotSigMin(ps.get<float>("PlotSigMin")),
   m_PlotSigMax(ps.get<float>("PlotSigMax")),
+  m_PlotDistMin(ps.get<float>("PlotDistMin")),
+  m_PlotDistMax(ps.get<float>("PlotDistMax")),
   m_ColorBad(ps.get<Index>("ColorBad")),
   m_ColorNoisy(ps.get<Index>("ColorNoisy")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")) {
@@ -87,6 +89,8 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
     cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
     cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
+    cout << myname << "    PlotDistMin: " << m_PlotDistMin << endl;
+    cout << myname << "    PlotDistMax: " << m_PlotDistMax << endl;
     cout << myname << "      SkipFlags: [";
     first = true;
     for ( Index flg : m_SkipFlags ) {
@@ -129,6 +133,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     TH1* ph = nullptr;
     string hname = nameReplace(hnameBase, acd, type);
     string htitl = nameReplace(htitlBase, acd, type);
+    bool isRawDist = type == "rawdist" || type == "rawdistlog";
     if ( type == "raw" ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
@@ -150,7 +155,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       }
       res.setFloat("plotSigMin_" + type, sigMin);
       res.setFloat("plotSigMax_" + type, sigMax);
-    } else if ( type == "rawdist" ) {
+    } else if ( isRawDist ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
         cout << myname << "WARNING: Raw data is empty." << endl;
@@ -284,6 +289,8 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( doPlots ) {
       for ( string type : m_HistTypes ) {
         bool isRaw = type == "raw";
+        bool isRawDist = type == "rawdist" || type == "rawdistlog";
+        bool isLogY = type == "rawdistlog";
         if ( mans.find(type) == mans.end() ) {
           if ( m_LogLevel >= 3 ) cout << "Creating new top-level plot of type " << type << "." << endl;
           TPadManipulator& man = mans[type];
@@ -296,13 +303,14 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
               man.addAxis();
             }
             nplts[type] = nx*ny;
-          } else if ( type == "rawdist" ) {
+          } else if ( isRawDist ) {
             man.split(ndx, ndy);
             for ( Index ipad=0; ipad<ndplt; ++ipad ) {
               man.man(ipad)->addVerticalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSigMin, m_PlotSigMax);
               man.man(ipad)->showUnderflow();
               man.man(ipad)->showOverflow();
+              if ( type == "rawdistlog" ) man.man(ipad)->setLogY();
               man.addAxis();
             }
             nplts[type] = ndx*ndy;
@@ -343,7 +351,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           }
           man.setRangeY(ymin, ymax);
           man.add(ptxt);
-        } else if ( type == "rawdist" ) {
+        } else if ( isRawDist ) {
           if ( m_PlotSigOpt == "fixed" ) {
             float xmin = m_PlotSigMin;
             float xmax = m_PlotSigMax;
@@ -354,6 +362,10 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             man.setRangeX(xmin, xmax);
           } else if ( m_PlotSigOpt != "full" ) {
             cout << myname << "Invalid rawdist PlotSigOpt = " << m_PlotSigOpt << ". Using full." << endl;
+          }
+          if ( m_PlotDistMax > m_PlotDistMin ) {
+            if ( isLogY ) man.setLogRangeY(m_PlotDistMin, m_PlotDistMax);
+            else          man.setRangeY(m_PlotDistMin, m_PlotDistMax);
           }
         }
         man.addAxis();

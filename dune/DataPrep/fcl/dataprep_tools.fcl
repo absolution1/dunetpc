@@ -75,6 +75,8 @@ tools.adcPlotRaw: {
   PlotSigOpt: pedestal
   PlotSigMin:  100
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
   SkipFlags: []
@@ -94,6 +96,8 @@ tools.adcPlotPrepared: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
   SkipFlags: []
@@ -113,6 +117,8 @@ tools.adcPlotRawDist: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
   SkipFlags: []
@@ -281,7 +287,7 @@ adcPlotDftTemplate: {
   ChannelStatusFlag: 0
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
-    PlotSummaryName: ""
+   PlotSummaryNames: []
    HistSummaryTitle: ""
                XMin: 0.0
                XMax: 0.0
