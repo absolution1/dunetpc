@@ -39,7 +39,7 @@
 //   NbinX - # bins in the power histogram
 //   HistName - Histogram/graph name
 //   HistTitle - Histogram/graph title
-//   HistSummaryTitle - Histogram/graph title
+//   HistSummaryTitles - Histogram/graph titles
 //   Plus the parameters specified in AdcMultiChannelPlotter with XXX = Plot.
 //
 //   The X-range is calculated automatically if Xmin >= Xmax.
@@ -71,8 +71,10 @@ public:
   // Inherited methods.
   DataMap view(const AdcChannelData& acd) const override;
   int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const override;
-  int viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
+  int viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
   bool updateWithView() const override { return true; }
+  DataMap beginEvent(const DuneEventInfo&) const;
+  DataMap endEvent(const DuneEventInfo&) const;
 
 private:
 
@@ -87,7 +89,7 @@ private:
   Index  m_NBinX;
   Name   m_HistName;
   Name   m_HistTitle;
-  Name   m_HistSummaryTitle;
+  NameVector m_HistSummaryTitles;
 
   // Derived from configuration.
   bool m_skipBad;
@@ -107,9 +109,9 @@ private:
   //
   using IndexMap = std::map<Name, Index>;  
   using HistMap = std::map<Name, TH1*>;  
-  class State {
+  class SubState {
   public:
-    ~State() {
+    ~SubState() {
       for ( HistMap::value_type ihst : hists ) delete ihst.second;;
     }
     Index& count(Name crn) {
@@ -136,11 +138,23 @@ private:
       }
       return cnt;
     }
+    void clear() {
+      counts.clear();
+      nchans.clear();
+      nvens.clear();
+      hists.clear();
+    }
     IndexMap counts;
     IndexMap nchans;
     IndexMap nvens;
     HistMap hists;
-    // Curent event and CRNs for the event.
+  };
+  class State {
+  public:
+    SubState& jobState() { return m_ss[0]; };
+    SubState& eventState() { return m_ss[1]; };
+    SubState m_ss[2];
+    // Current event and CRNs for the event.
     Index event = 0;
     NameVector eventChannelRanges;
     // Set the event add a channel range.
@@ -161,6 +175,12 @@ private:
   // State.
   std::shared_ptr<State> m_pstate;   // Shared allows copy/assignment
   State& getState() const { return *m_pstate; };
+  SubState& getSubState(Index ilev) const {
+    if ( ilev > 1 ) abort();
+    return getState().m_ss[ilev];
+  }
+  SubState& getJobState() const { return m_pstate->jobState(); };
+  SubState& getEventState() const { return m_pstate->eventState(); };
 
   // Internal method to view a channel and put hist/graph in result.
   DataMap viewLocal(Name crn, const AcdVector& acds) const;

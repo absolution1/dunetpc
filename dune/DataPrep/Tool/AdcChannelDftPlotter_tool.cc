@@ -38,7 +38,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_NBinX(0),
   m_HistName(ps.get<Name>("HistName")),
   m_HistTitle(ps.get<Name>("HistTitle")),
-  m_HistSummaryTitle(ps.get<Name>("HistSummaryTitle")),
+  m_HistSummaryTitles(ps.get<NameVector>("HistSummaryTitles")),
   m_pstate(new State) {
   const string myname = "AdcChannelDftPlotter::ctor: ";
   bool doMag = m_Variable == "magnitude";
@@ -89,7 +89,14 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "            YMinLog: " << m_YMinLog << endl;
     cout << myname << "           HistName: " << m_HistName << endl;
     cout << myname << "          HistTitle: " << m_HistTitle << endl;
-    cout << myname << "   HistSummaryTitle: " << m_HistSummaryTitle << endl;
+    cout << myname << "  HistSummaryTitles: [";
+    bool first = true;
+    for ( Name name :  m_HistSummaryTitles ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << name;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -100,18 +107,35 @@ AdcChannelDftPlotter::~AdcChannelDftPlotter() {
   if ( getLogLevel() >= 2 ) {
     cout << myname << "Closing." << endl;
     if ( getChannelRangeNames().size() ) {
+      cout << myname << "Channel ranges" << endl;
       cout << myname << "     CR name    count nch/evt" << endl;
       for ( Name crn : getChannelRangeNames() ) {
-        Index count = getState().count(crn);
-        double nchan = getState().nchan(crn);
+        Index count = getJobState().count(crn);
+        double nchan = getJobState().nchan(crn);
         cout << myname << setw(15) << crn << ":"
              << setw(8) << count << setw(8) << nchan/count << endl;
       }
     } else {
       cout << myname << "No channel ranges specified." << endl;
     }
+    if ( getChannelRangeNames().size() ) {
+      for ( Name cgn : getChannelGroupNames() ) {
+        cout << myname << "Channel group " << cgn << endl;
+        cout << myname << "     CR name    count nch/evt" << endl;
+        const IndexRangeGroup& crg = getChannelGroup(cgn);
+        for ( const IndexRange& ran : crg.ranges ) {
+          Name crn = ran.name;
+          Index count = getJobState().count(crn);
+          double nchan = getJobState().nchan(crn);
+          cout << myname << setw(15) << crn << ":"
+               << setw(8) << count << setw(8) << nchan/count << endl;
+        }
+      }
+    } else {
+      cout << myname << "No channel groups specified." << endl;
+    }
   }
-  viewSummary();
+  viewSummary(0);
 }
 
 //**********************************************************************
@@ -122,25 +146,40 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
   DataMap chret = viewLocal(crn, acds);
   bool doState = true;
   if ( doState ) {
-    ++getState().count(crn);
-    Index count = getState().count(crn);
+    ++getJobState().count(crn);
+    ++getEventState().count(crn);
+    Index jobCount = getJobState().count(crn);
+    Index evtCount = getEventState().count(crn);
     bool doPwr = m_Variable == "power";
     bool doPwt = m_Variable == "power/tick";
     if ( doPwr || doPwt ) {
       TH1* ph = chret.getHist("dftHist");
       if ( ph != nullptr ) {
-        TH1*& phsum = getState().hist(crn);
-        if ( phsum == nullptr ) {
-          if ( count == 1 ) {
-            phsum = dynamic_cast<TH1*>(ph->Clone());
-            phsum->SetDirectory(nullptr);
-            phsum->SetStats(0);
+        TH1*& phjob = getJobState().hist(crn);
+        if ( phjob == nullptr ) {
+          if ( jobCount == 1 ) {
+            phjob = dynamic_cast<TH1*>(ph->Clone());
+            phjob->SetDirectory(nullptr);
+            phjob->SetStats(0);
           } else {
-            cout << myname << "ERROR: Hist missing for count " << count << endl;
+            cout << myname << "ERROR: Hist missing for job count " << jobCount << endl;
           }
         } else {
-          if ( count > 1 ) phsum->Add(ph);
-          else cout << myname << "ERROR: Hist existing for count " << count << endl;
+          if ( jobCount > 1 ) phjob->Add(ph);
+          else cout << myname << "ERROR: Hist existing for job count " << jobCount << endl;
+        }
+        TH1*& phevt = getEventState().hist(crn);
+        if ( phevt == nullptr ) {
+          if ( evtCount == 1 ) {
+            phevt = dynamic_cast<TH1*>(ph->Clone());
+            phevt->SetDirectory(nullptr);
+            phevt->SetStats(0);
+          } else {
+            cout << myname << "ERROR: Hist missing for event count " << evtCount << endl;
+          }
+        } else {
+          if ( evtCount > 1 ) phevt->Add(ph);
+          else cout << myname << "ERROR: Hist existing for event count " << evtCount << endl;
         }
         using IntVector = DataMap::IntVector;
         const IntVector& allchans = chret.getIntVector("dftChannels");
@@ -149,13 +188,15 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
         for ( IntVector::const_iterator iven=allchans.begin(); iven!=allchans.end(); ++iven ) {
           if ( find(allchans.begin(), iven, *iven) == iven ) ++ncha;
         }
-        getState().nchan(crn) += ncha;
-        getState().nviewentry(crn) += nven;
+        getJobState().nchan(crn) += ncha;
+        getJobState().nviewentry(crn) += nven;
+        getEventState().nchan(crn) += ncha;
+        getEventState().nviewentry(crn) += nven;
       }
     }
   }
   chret.setString("dftCRLabel", crn);
-  chret.setInt("dftCRCount", ncr);
+  chret.setInt("dftCRCount", 1);
   chret.setInt("dftCRIndex", icr);
   fillPad(chret, man);
   return 0;
@@ -164,37 +205,47 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
 //**********************************************************************
 
 int AdcChannelDftPlotter::
-viewMapSummary(Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const {
-  const string myname = "AdcChannelDftPlotter::viewMapChannel: ";
+viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const {
+  const string myname = "AdcChannelDftPlotter::viewMapSummary: ";
   if ( getLogLevel() >= 2 ) {
     cout << myname << "Processing " << cgn << "/" << crn << " (" << icr << "/" << ncr << ")" << endl;
+  }
+  if ( ilev > 1 ) {
+    cout << myname << "ERROR: Invalid level: " << ilev << endl;
+    return 12;
   }
   if ( icr >= ncr ) {
     cout << myname << "ERROR: Too many plots: " << icr << " >= " << ncr << endl;
     return 11;
   }
-  Index count = getState().count(crn);
-  Index nchanTot = getState().nchan(crn);
+  SubState& levState = getSubState(ilev);
+  Index count = levState.count(crn);
+  Index nchanTot = levState.nchan(crn);
   float nchanEvt = count > 0 ? double(nchanTot)/count : 0.0;
-  Index nvenTot = getState().nviewentry(crn);
+  Index nvenTot = levState.nviewentry(crn);
   float nvenEvt = count > 0 ? double(nvenTot)/count : 0.0;
   TH1* ph = nullptr;
-  TH1* phin = getState().hist(crn);
+  TH1* phin = levState.hist(crn);
   if ( phin != nullptr ) {
     if ( count == 0 ) return 12;
     ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
     if ( ph == nullptr ) return 13;
     ph->SetDirectory(nullptr);
-    Name htitl = m_HistSummaryTitle;
-    StringManipulator smanTitl(htitl, false);
-    Name cglab = getChannelGroup(cgn).label();
-    if ( cglab.size() == 0 ) cglab = cgn;
-    smanTitl.replace("%CGNAME%", cgn);
-    smanTitl.replace("%CGLABEL%", cglab);
-    smanTitl.replace("%CRNAME%", crn);
-    smanTitl.replace("%RUN%", getBaseState().run());
-    smanTitl.replace("%VIEW%", getDataView());
-    ph->SetTitle(htitl.c_str());
+    if ( m_HistSummaryTitles.size() ) {
+      Name htitl = ilev < m_HistSummaryTitles.size()
+                   ? m_HistSummaryTitles[ilev]
+                   : m_HistSummaryTitles.back();
+      StringManipulator smanTitl(htitl, false);
+      Name cglab = getChannelGroup(cgn).label();
+      if ( cglab.size() == 0 ) cglab = cgn;
+      smanTitl.replace("%CGNAME%", cgn);
+      smanTitl.replace("%CGLABEL%", cglab);
+      smanTitl.replace("%CRNAME%", crn);
+      smanTitl.replace("%RUN%", getBaseState().run());
+      smanTitl.replace("%EVENT%", getBaseState().event);
+      smanTitl.replace("%VIEW%", getDataView());
+      ph->SetTitle(htitl.c_str());
+    }
     double fac = 1.0/count;
     ph->Scale(fac);
   }
@@ -227,6 +278,24 @@ DataMap AdcChannelDftPlotter::view(const AdcChannelData& acd) const {
     man.print(pname);
   }
   return chret;
+}
+
+
+//**********************************************************************
+
+DataMap AdcChannelDftPlotter::beginEvent(const DuneEventInfo&) const {
+  DataMap ret;
+  getEventState().clear();
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelDftPlotter::endEvent(const DuneEventInfo&) const {
+  DataMap ret;
+  viewSummary(1);
+  getEventState().clear();
+  return ret;
 }
 
 //**********************************************************************
@@ -514,7 +583,7 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
   if ( doPwt ) {
     ostringstream ssout;
     double sum = ph->Integral(0, ph->GetNbinsX()+1);
-    ssout.precision(2);
+    ssout.precision(3);
     ssout << "#sqrt{#Sigma} = " << fixed << setw(2) << sqrt(sum);
     spow = ssout.str();
   }
@@ -592,10 +661,11 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
       pobj = man.object(icr);
     }
     TLegend* pleg = man.getLegend();
+    Name slab = dm.getString("dftCRLabel");
+    pleg->SetMargin(0.1);   // Fraction of box used for symbols
     if ( pleg == nullptr ) {
-      cout << myname << "ERROR: Legend not found." << endl;
+      cout << myname << "ERROR: Legend not found for icr " << icr << " (" << slab << ")." << endl;
     } else {
-      Name slab = dm.getString("dftCRLabel");
       if ( spow.size() ) slab += " " + spow;
       if ( sncha.size() ) slab += " " + sncha;
       pleg->AddEntry(pobj, slab.c_str(), lopt.c_str());

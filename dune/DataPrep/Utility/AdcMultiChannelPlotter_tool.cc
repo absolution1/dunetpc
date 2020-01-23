@@ -23,7 +23,7 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
   m_PlotOverlayGroups(ps.get<Index>(prefix + "OverlayGroups")),
   m_PlotDataView(ps.get<Name>(prefix + "DataView")),
   m_PlotName(ps.get<Name>(prefix + "Name")),
-  m_PlotSummaryName(ps.get<Name>(prefix + "SummaryName")),
+  m_PlotSummaryNames(ps.get<NameVector>(prefix + "SummaryNames")),
   m_PlotSizeX(ps.get<Index>(prefix + "SizeX")),
   m_PlotSizeY(ps.get<Index>(prefix + "SizeY")),
   m_PlotSplitX(ps.get<Index>(prefix + "SplitX")),
@@ -50,7 +50,14 @@ AdcMultiChannelPlotter::AdcMultiChannelPlotter(fhicl::ParameterSet const& ps, Na
     cout << myname << "  " << prefix << "OverlayGroups: " << m_PlotOverlayGroups << endl;
     cout << myname << "       " << prefix << "DataView: " << m_PlotDataView << endl;
     cout << myname << "           " << prefix << "Name: " << m_PlotName << endl;
-    cout << myname << "    " << prefix << "SummaryName: " << m_PlotSummaryName << endl;
+    cout << myname << "   " << prefix << "SummaryNames: [";
+    first = true;
+    for ( Name name : m_PlotSummaryNames ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << name;
+    }
+    cout << "]" << endl;
     cout << myname << "          " << prefix << "SizeX: " << m_PlotSizeX << endl;
     cout << myname << "          " << prefix << "SizeY: " << m_PlotSizeY << endl;
     cout << myname << "         " << prefix << "SplitX: " << m_PlotSplitX << endl;
@@ -139,6 +146,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   if ( ! getBaseState().hasRun() ) {
     getBaseState().setRun(acds.begin()->second.run);
   }
+  getBaseState().event = acds.begin()->second.event;
   Index npadx = 0;
   Index npady = 0;
   Index npadOnPage = 0;
@@ -274,17 +282,17 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
 
 //**********************************************************************
 
-void AdcMultiChannelPlotter::viewSummary() const {
+void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
   const Name myname = "AdcMultiChannelPlotter::viewSummary: ";
-  if ( getPlotSummaryName().size() == 0 ) {
-    if ( getLogLevel() >= 3 ) cout << myname << "Summmary plots not requested." << endl;
+  if ( getPlotSummaryName(ilev).size() == 0 ) {
+    if ( getLogLevel() >= 3 ) cout << myname << "Summmary plots not named for level " << ilev << endl;
     return;
   }
-  if ( getLogLevel() >= 3 ) cout << myname << "Creating summmary plots." << endl;
+  if ( getLogLevel() >= 3 ) cout << myname << "Creating summmary plots for level " << ilev << endl;
   Index npadx = 0;
   Index npady = 0;
   Index npadOnPage = 1;
-  if ( getPlotSummaryName().size() && m_PlotSplitX > 0 ) {
+  if ( m_PlotSplitX > 0 ) {
     npadx = m_PlotSplitX;
     npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
     npadOnPage = npadx*npady;
@@ -314,6 +322,7 @@ void AdcMultiChannelPlotter::viewSummary() const {
   Name plotName;
   AdcChannelData acdPrint;
   acdPrint.run = getBaseState().run();
+  acdPrint.event = getBaseState().event;
   if ( getLogLevel() >= 3 ) cout << myname << "Pad count is " << npad << endl;
   for ( Index ipad =0; ipad<npad; ++ipad ) {
     const Pad& pad = pads[ipad];
@@ -338,14 +347,14 @@ void AdcMultiChannelPlotter::viewSummary() const {
         DataMap dmPrint;
         //dmPrint.setInt("CHAN1", ran.first());
         //dmPrint.setInt("CHAN2", ran.last());
-        plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdPrint, dmPrint, getPlotSummaryName());
+        plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdPrint, dmPrint, getPlotSummaryName(ilev));
         StringManipulator sman(plotName, false);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGNAME%", cgn);
         sman.replace("%VIEW%", getDataView());
       }
       // View this channel range.
-      int rstat = viewMapSummary(cgn, crn, *pmantop->man(ipadOnPage), ncrn, icrn);
+      int rstat = viewMapSummary(ilev, cgn, crn, *pmantop->man(ipadOnPage), ncrn, icrn);
       if ( rstat >= 1 ) cout << myname << "WARNING: viewMapSummary returned error code " << rstat << endl;
       if ( getLogLevel() >= 5 ) cout << myname << "    Pad " << ipadOnPage << " extra object count: "
                                      << pmantop->man(ipadOnPage)->objects().size() << endl;
