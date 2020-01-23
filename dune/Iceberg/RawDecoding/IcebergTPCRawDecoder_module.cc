@@ -557,9 +557,9 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
-      // two cable swaps on June 20, 2019
+      // two cable swaps on June 20, 2019, and go back to the original on Jan 22, 2020
 
-      if (runNumber > 1530)
+      if (runNumber > 1530 && runNumber < 2572)
       	{
 	  auto oldfiber = fiberNumber;
 	  auto oldslot = slotNumber;

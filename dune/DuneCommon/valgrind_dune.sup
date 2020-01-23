@@ -1,0 +1,143 @@
+# valgrind_dune.sup
+#
+# David Adams
+# December 2019
+#
+# This file contains valgrind supressions for memcheck errors that come
+# from art and Kyle has indicated should be ignored.
+#
+# See https://cdcvs.fnal.gov/redmine/issues/23767.
+#
+# It was generated with dunetpc v08_38_01.
+#
+# Include these suppressions by adding
+#   --supressions=${DUNETPC_INC}/valgrind_dune.sup
+# to the valgrind command line. Multiple suppression files may be listed.
+
+{
+   duneArtProducer001
+   Memcheck:Free
+   fun:_ZdaPv
+   fun:_ZN13TStreamerInfo10ReadBufferIPPcEEiR7TBufferRKT_PKPNS_9TCompInfoEiiiii
+   fun:_ZN20TStreamerInfoActions12VectorLooper11GenericReadER7TBufferPvPKvPKNS_18TLoopConfigurationEPKNS_14TConfigurationE
+   fun:_ZN11TBufferFile13ApplySequenceERKN20TStreamerInfoActions15TActionSequenceEPvS4_
+   fun:_ZN14TBranchElement26ReadLeavesCollectionMemberER7TBuffer
+   fun:_ZN7TBranch8GetEntryExi
+   fun:_ZN14TBranchElement8GetEntryExi
+   fun:_ZN14TBranchElement8GetEntryExi
+   fun:_ZN14TBranchElement8GetEntryExi
+   fun:_ZN3art5input8getEntryEP7TBranchx
+   fun:operator()<long long int>
+   fun:_ZNK3art17RootDelayedReader11getProduct_EPKNS_5GroupENS_9ProductIDERNS_8RangeSetE
+   fun:_ZNK3art13DelayedReader10getProductEPKNS_5GroupENS_9ProductIDERNS_8RangeSetE
+   fun:_ZNK3art5Group25resolveProductIfAvailableENS_6TypeIDE
+   fun:_ZN3art5Group19tryToResolveProductERKNS_6TypeIDE
+   fun:_ZN3art16resolve_productsERKSt6vectorIN3cet10exempt_ptrINS_5GroupEEESaIS4_EERKNS_6TypeIDE
+   fun:_ZNK3art9Principal10getByLabelERKNS_13ModuleContextERKNS_13WrappedTypeIDERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESE_RKNS_10ProcessTagE
+   fun:_ZNK3art12DataViewImpl10getByLabelISt6vectorIN6artdaq8FragmentESaIS4_EEEEbRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESE_SE_RNS_6HandleIT_EE
+   fun:getByLabel<std::vector<artdaq::Fragment> >
+   fun:_ZN4dune16TimingRawDecoder7produceERN3art5EventE
+   fun:_ZN3art10EDProducer16produceWithFrameERNS_5EventERKNS_15ProcessingFrameE
+   fun:_ZN3art6detail8Producer7doEventERNS_14EventPrincipalERKNS_13ModuleContextERSt6atomicImES9_S9_
+}
+
+{
+   duneArtProcessor001
+   Memcheck:Free
+   fun:free
+   fun:~QuickVec
+   fun:~Fragment
+   fun:_Destroy<artdaq::Fragment>
+   fun:__destroy<artdaq::Fragment*>
+   fun:_Destroy<artdaq::Fragment*>
+   fun:_Destroy<artdaq::Fragment*, artdaq::Fragment>
+   fun:~vector
+   fun:~Wrapper
+   fun:_ZN3art7WrapperISt6vectorIN6artdaq8FragmentESaIS3_EEED0Ev
+   fun:_ZN3art5Group19removeCachedProductEv
+   fun:_ZNK3art9Principal19removeCachedProductENS_9ProductIDE
+   fun:_ZNK3art12DataViewImpl19removeCachedProductISt6vectorIN6artdaq8FragmentESaIS4_EEEEbRNS_6HandleIT_EE
+   fun:_ZN20PDSPTPCDataInterface19_rceProcContNCFragsEN3art6HandleISt6vectorIN6artdaq8FragmentESaIS4_EEEERmbRNS0_5EventERS2_IN3raw8RawDigitESaISC_EERS2_INSB_11RDTimeStampESaISG_EERS2_IiSaIiEE
+   fun:_ZN20PDSPTPCDataInterface11_processRCEERN3art5EventENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERSt6vectorIN3raw8RawDigitESaISB_EERS9_INSA_11RDTimeStampESaISF_EERS9_IiSaIiEE
+   fun:_ZN20PDSPTPCDataInterface29retrieveDataAPAListWithLabelsERN3art5EventENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERSt6vectorIN3raw8RawDigitESaISB_EERS9_INSA_11RDTimeStampESaISF_EERS9_INSA_8RDStatusESaISJ_EERS9_IiSaIiEE
+   fun:_ZN20PDSPTPCDataInterface28retrieveDataForSpecifiedAPAsERN3art5EventERSt6vectorIN3raw8RawDigitESaIS5_EERS3_INS4_11RDTimeStampESaIS9_EERS3_INS4_8RDStatusESaISD_EERS3_IiSaIiEE
+   fun:_ZN19DataPrepByApaModule7produceERN3art5EventE
+   fun:_ZN3art10EDProducer16produceWithFrameERNS_5EventERKNS_15ProcessingFrameE
+   fun:_ZN3art6detail8Producer7doEventERNS_14EventPrincipalERKNS_13ModuleContextERSt6atomicImES9_S9_
+   fun:_ZN3art6Worker9runWorkerERNS_14EventPrincipalERKNS_13ModuleContextE
+   fun:operator()
+   fun:_ZN3hep11concurrency20SerialTaskQueueChain7runFuncIN3art12_GLOBAL__N_116RunWorkerFunctorEEEvRKT_
+   fun:operator()
+   fun:_ZN3hep11concurrency10QueuedTaskIZNS0_20SerialTaskQueueChain8passDownIN3art12_GLOBAL__N_116RunWorkerFunctorEEEvjRKT_EUlvE_E7executeEv
+   fun:_ZN3tbb8internal16custom_schedulerINS0_20IntelSchedulerTraitsEE18local_wait_for_allERNS_4taskEPS4_
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE4EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)3]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE3EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)2]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE2EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)1]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE1EEEvv
+}
+
+{
+   duneArtProcessor002
+   Memcheck:Free
+   fun:free
+   fun:~QuickVec
+   fun:~Fragment
+   fun:_Destroy<artdaq::Fragment>
+   fun:__destroy<artdaq::Fragment*>
+   fun:_Destroy<artdaq::Fragment*>
+   fun:_Destroy<artdaq::Fragment*, artdaq::Fragment>
+   fun:~vector
+   fun:~Wrapper
+   fun:_ZN3art7WrapperISt6vectorIN6artdaq8FragmentESaIS3_EEED0Ev
+   fun:_ZN3art5GroupD1Ev
+   fun:_ZN3art5GroupD0Ev
+   fun:operator()
+   fun:~unique_ptr
+   fun:~pair
+   fun:destroy<std::pair<const art::ProductID, std::unique_ptr<art::Group> > >
+   fun:destroy<std::pair<const art::ProductID, std::unique_ptr<art::Group> > >
+   fun:_M_destroy_node
+   fun:_M_drop_node
+   fun:_M_erase
+   fun:_M_erase
+   fun:_M_erase
+   fun:_M_erase
+   fun:_M_erase
+   fun:_ZNSt8_Rb_treeIN3art9ProductIDESt4pairIKS1_St10unique_ptrINS0_5GroupESt14default_deleteIS5_EEESt10_Select1stIS9_ESt4lessIS1_ESaIS9_EE8_M_eraseEPSt13_Rb_tree_nodeIS9_E
+   fun:_M_erase
+   fun:~_Rb_tree
+   fun:~map
+   fun:_ZN3art9PrincipalD1Ev
+   fun:_ZN3art14EventPrincipalD0Ev
+   fun:_ZN3art14EventProcessor16finishEventAsyncEPN3tbb4taskENS_10ScheduleIDE
+   fun:_ZN3art14EventProcessor17endPathRunnerTaskENS_10ScheduleIDEPN3tbb4taskE
+   fun:operator()
+   fun:_ZN3hep11concurrency10QueuedTaskIN3art20EndPathRunnerFunctorEE7executeEv
+   fun:_ZN3tbb8internal16custom_schedulerINS0_20IntelSchedulerTraitsEE18local_wait_for_allERNS_4taskEPS4_
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE4EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)3]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE3EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)2]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE2EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)1]::<lambda()> >
+   fun:_ZN3art14EventProcessor7processILNS_5LevelE1EEEvv
+   fun:operator()
+   fun:call<art::EventProcessor::process() [with art::Level L = (art::Level)0]::<lambda()> >
+   fun:process<(art::Level)0>
+   fun:operator()
+   fun:call<art::EventProcessor::runToCompletion()::<lambda()> >
+   fun:_ZN3art14EventProcessor15runToCompletionEv
+   fun:_ZN3art15run_art_common_ERKN5fhicl12ParameterSetERKSt3mapINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEENS_6detail16ModuleKeyAndTypeESt4lessISA_ESaISt4pairIKSA_SC_EEE
+   fun:_ZN3art7run_artEiPPcRN5boost15program_options19options_descriptionERN3cet14filepath_makerEOSt6vectorISt10unique_ptrINS_14OptionsHandlerESt14default_deleteISB_EESaISE_EE
+   fun:_Z6artappiPPc
+   fun:main
+}

@@ -158,6 +158,9 @@ private:
   long long spill_valid_fetch_time;
 
   double s11Sec, s11Nano;
+  double fOutTOF;
+  double fOutP;
+  int    fOutC0, fOutC1;
 
   int RDTSTrigger;
 
@@ -704,6 +707,11 @@ void proto::BeamEvent::reset(){
   
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
+
+  fOutP = -1.;
+  fOutTOF = -1.;
+  fOutC0 = -1;
+  fOutC1 = -1;
 }
 
 
@@ -1029,11 +1037,26 @@ void proto::BeamEvent::produce(art::Event & e){
   std::unique_ptr<std::vector<beam::ProtoDUNEBeamEvent> > beamData(new std::vector<beam::ProtoDUNEBeamEvent>);
   beamData->push_back(beam::ProtoDUNEBeamEvent(*beamevt));
   e.put(std::move(beamData));
+
+  // Write out the to tree
+  if( fSaveOutTree ){
+    if( beamevt->GetTOFChan() > -1 ){
+      fOutTOF = beamevt->GetTOF();
+    }
+    else fOutTOF = -1.;
+    if( beamevt->GetNRecoBeamMomenta() == 1 ){
+     fOutP = beamevt->GetRecoBeamMomentum(0);
+    }
+    else fOutP = -1.;
+    fOutC0 = beamevt->GetCKov0Status();
+    fOutC1 = beamevt->GetCKov1Status();
+    std::cout << "CKovs: " << beamevt->GetCKov0Status() << " " << beamevt->GetCKov1Status() << std::endl;
+    fOutTree->Fill();
+  }
+
   delete beamevt;
   delete beamspill;
  
-  // Write out the to tree
-  if( fSaveOutTree )fOutTree->Fill();
  
 }
 // END BeamEvent::produce
@@ -1786,6 +1809,11 @@ void proto::BeamEvent::beginJob()
     fOutTree->Branch("C2DB",        &C2DB);
     fOutTree->Branch("s11Sec",      &s11Sec);
     fOutTree->Branch("s11Nano",      &s11Nano);
+
+    fOutTree->Branch("TOF", &fOutTOF );
+    fOutTree->Branch("P",   &fOutP );
+    fOutTree->Branch("C0",   &fOutC0 );
+    fOutTree->Branch("C1",   &fOutC1 );
   }    
 
   if( fDebugTOFs ){
