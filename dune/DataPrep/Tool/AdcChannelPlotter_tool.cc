@@ -298,7 +298,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           if ( isRaw || type == "prepared" ) {
             man.split(nx,ny);
             for ( Index ipad=0; ipad<nplt; ++ipad ) {
-              if ( isRaw) man.man(ipad)->addHorizontalModLines(64);
+              if ( isRaw && (m_PlotSigMax - m_PlotSigMin) < 1001 ) man.man(ipad)->addHorizontalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
               man.addAxis();
             }
@@ -351,6 +351,10 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           }
           man.setRangeY(ymin, ymax);
           man.add(ptxt);
+          // For raw data, add line showing the pedestal.
+          if ( type == "raw" && acd.pedestal > ymin && acd.pedestal < ymax ) { 
+            man.addHorizontalLine(acd.pedestal);
+          }
         } else if ( isRawDist ) {
           if ( m_PlotSigOpt == "fixed" ) {
             float xmin = m_PlotSigMin;

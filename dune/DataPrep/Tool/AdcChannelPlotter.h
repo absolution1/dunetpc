@@ -11,7 +11,7 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   HistTypes: Types of histograms to create:
-//                raw = raw data: ADC - pedestal vs tick
+//                raw = raw data: ADC vs tick
 //                rawdist = raw data dist: # ticks vs ADC
 //                prepared = prepared data: signal vs. tick
 //   HistName:  Name for the histogram.
