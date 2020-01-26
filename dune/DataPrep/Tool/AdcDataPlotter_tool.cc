@@ -388,15 +388,18 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       ph->Scale(1.0/m_TickRebin);
       ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     }
+/*
     // Save the original color map.
     RootPalette oldPalette;
     RootPalette::set(m_Palette);
+*/
     const RootPalette* ppal = RootPalette::find(m_Palette);
     if ( ppal == nullptr ) {
       cout << myname << "ERROR: Unable to find palette " << m_Palette << endl;
       return ret.setStatus(3);
     }
     TPadManipulator man;
+    man.setPalette(m_Palette);
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
     man.setRangeZ(m_MinSignal, m_MaxSignal);
@@ -444,7 +447,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
       delete pfile;
     }
+/*
     oldPalette.setRootPalette();
+*/
     ++nhist;
   }
   ret.setInt("nhist", nhist);

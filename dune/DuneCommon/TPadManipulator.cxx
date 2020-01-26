@@ -23,6 +23,7 @@
 #include "TClass.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include "TExec.h"
 
 using std::string;
 using std::cout;
@@ -78,6 +79,7 @@ TPadManipulator* TPadManipulator::read(Name fnam, Name onam) {
 TPadManipulator::TPadManipulator()
 : m_parent(nullptr), m_ppad(nullptr),
   m_canvasWidth(0), m_canvasHeight(0),
+  m_exec("myexec", ""),
   m_marginLeft(-999), m_marginRight(-999),
   m_marginBottom(-999), m_marginTop(-999),
   m_ph(nullptr),
@@ -141,6 +143,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_canvasWidth = rhs.m_canvasWidth;
   m_canvasHeight = rhs.m_canvasHeight;
+  m_exec = rhs.m_exec,
   m_marginLeft = rhs.m_marginLeft;
   m_marginRight = rhs.m_marginRight;
   m_marginBottom = rhs.m_marginBottom;
@@ -552,6 +555,18 @@ int TPadManipulator::split(Index nx) {
 
 //**********************************************************************
 
+void TPadManipulator::setPalette(int pal) {
+  string scom;
+  if ( pal >= 0 ) {
+    ostringstream sscom;
+    sscom << "RootPalette::set(" << pal << ")";
+    scom = sscom.str();
+  }
+  setTExec(scom);
+}
+
+//**********************************************************************
+
 int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   const string myname = "TPadManipulator::add: ";
   if ( dbg ) cout << myname << this << endl;
@@ -742,6 +757,10 @@ int TPadManipulator::update() {
     }
     gPad = pPadSave;
     return 0;
+  }
+  // Run TExec.
+  if ( string(m_exec.GetTitle()).size() ) {
+    m_exec.Draw();
   }
   // Set margins the first time the histogram is found.
   // After this, user can override with pad()->SetRightMargin(...), ...
