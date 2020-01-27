@@ -292,7 +292,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       Index ibiny = chan-chanBegin + 1;
       Index nent = acdtop.viewSize(m_DataView);
       if ( m_LogLevel >= 2 && nent == 0 ) {
-        cout << myname << "Unable to find data view name " << m_DataView << endl;
+        cout << myname << "WARNING: Unable to find data view name " << m_DataView << endl;
       }
       for ( Index ient=0; ient<nent; ++ient ) {
         if ( m_LogLevel >= 3 ) {
@@ -300,12 +300,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
         if ( pacd == nullptr ) {
-          cout << myname << "Skipping null view entry " << m_DataView << "[" << ient
+          cout << myname << "ERROR: Skipping null view entry " << m_DataView << "[" << ient
                << "]." << endl;
           continue;
         }
         if ( pacd->channel != chan ) {
-          cout << myname << "Skipping view entry " << m_DataView << "[" << ient
+          cout << myname << "ERROR: Skipping view entry " << m_DataView << "[" << ient
                << "] with the wrong the wrong channel: "
                << pacd->channel << " != " << chan <<"." << endl;
           continue;

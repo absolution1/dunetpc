@@ -395,7 +395,7 @@ const AdcChannelData* AdcChannelData::viewEntry(Name vpnam, AdcIndex ient) const
   Name vsnam = vpnam.substr(ipos + 1);
   AdcIndex ientRem = ient;
   for ( const AdcChannelData& dat : view(vnam) ) {
-    AdcIndex nvie = dat.viewSize();
+    AdcIndex nvie = dat.viewSize(vsnam);
     if ( ientRem < nvie ) return dat.viewEntry(vsnam, ientRem);
     ientRem -= nvie;
   }
