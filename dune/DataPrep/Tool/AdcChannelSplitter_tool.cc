@@ -78,7 +78,7 @@ DataMap AdcChannelSplitter::update(AdcChannelData& acd) const {
     }
   }
   if ( m_LogLevel >= 2 ) cout << myname << "Channel " << acd.channel
-                              << "Output object count: " << nobj << endl;
+                              << " output object count: " << nobj << endl;
   ret.setInt("splitInputCount", nvie);
   ret.setInt("splitOutputCount", nobj);
   ret.setInt("splitRawCopyCount", nrawCopied);
