@@ -662,10 +662,10 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     }
     TLegend* pleg = man.getLegend();
     Name slab = dm.getString("dftCRLabel");
-    pleg->SetMargin(0.1);   // Fraction of box used for symbols
     if ( pleg == nullptr ) {
       cout << myname << "ERROR: Legend not found for icr " << icr << " (" << slab << ")." << endl;
     } else {
+      pleg->SetMargin(0.1);   // Fraction of box used for symbols
       if ( spow.size() ) slab += " " + spow;
       if ( sncha.size() ) slab += " " + sncha;
       pleg->AddEntry(pobj, slab.c_str(), lopt.c_str());
