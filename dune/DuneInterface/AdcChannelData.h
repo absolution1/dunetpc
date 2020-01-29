@@ -187,6 +187,11 @@ public:
     return imtd->second;
   }
 
+  // Set metadata.
+  void setMetadata(Name mname, float val) {
+    metadata[mname] = val;
+  }
+
   // Fetch any property including metadata.
   float getAttribute(Name mname, float def =0.0) const {
     // For basic types, return the value.
@@ -239,7 +244,7 @@ public:
   // This does not include the self view.
   NameVector viewNames() const;
 
-  // Return if a view is defined.
+  // Return if a view or view path exists.
   // This includes the self view.
   bool hasView(Name vnam) const;
 
@@ -249,7 +254,6 @@ public:
  
   // Obtain a mutable view. Entries may be added, removed or modified.
   // View is added if not already existing.
-  // This should not be called for the self view.
   View& updateView(Name vnam);
 
   // Return the number of entries for a specified view path.
@@ -345,9 +349,17 @@ AdcChannelData::NameVector AdcChannelData::viewNames() const {
 
 //**********************************************************************
 
-bool AdcChannelData::hasView(Name vnam) const {
-  if ( vnam.size() == 0 ) return true;
-  return m_views.find(vnam) != m_views.end();
+bool AdcChannelData::hasView(Name vpnam) const {
+  if ( vpnam.size() == 0 ) return true;
+  Name::size_type ipos = vpnam.find("/");
+  if ( ipos == Name::npos ) return m_views.count(vpnam);
+  Name vnam = vpnam.substr(0, ipos);
+  if ( ! hasView(vnam) ) return false;
+  Name vsnam = vpnam.substr(ipos + 1);
+  for ( const AdcChannelData& acd : view(vnam) ) {
+    if ( acd.hasView(vsnam) ) return true;
+  }
+  return false;
 }
 
 //**********************************************************************
@@ -362,6 +374,7 @@ const AdcChannelData::View& AdcChannelData::view(Name vnam) const {
 //**********************************************************************
 
 AdcChannelData::View& AdcChannelData::updateView(Name vnam) {
+  if ( vnam.size() == 0 ) return *this;
   return m_views[vnam];
 }
 
@@ -419,7 +432,7 @@ AdcChannelData* AdcChannelData::mutableViewEntry(Name vpnam, AdcIndex ient) {
   Name vsnam = vpnam.substr(ipos + 1);
   AdcIndex ientRem = ient;
   for ( AdcChannelData& dat : updateView(vnam) ) {
-    AdcIndex nvie = dat.viewSize();
+    AdcIndex nvie = dat.viewSize(vsnam);
     if ( ientRem < nvie ) return dat.mutableViewEntry(vsnam, ientRem);
     ientRem -= nvie;
   }
