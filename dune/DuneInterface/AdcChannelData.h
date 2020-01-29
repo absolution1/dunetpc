@@ -71,6 +71,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
 #include "dune/DuneInterface/Data/DuneEventInfo.h"
 
@@ -374,7 +375,15 @@ const AdcChannelData::View& AdcChannelData::view(Name vnam) const {
 //**********************************************************************
 
 AdcChannelData::View& AdcChannelData::updateView(Name vnam) {
-  if ( vnam.size() == 0 ) return *this;
+  const Name myname = "AdcChannelData::updateView: ";
+  if ( vnam.size() == 0 ) {
+    std::cout << myname << "WARNING: View name may not be blank." << std::endl;
+    static View emptyView;
+    if ( emptyView.size() ) {
+      std::cout << myname << "ERROR: Empty view has been modified." << std::endl;
+    }
+    return emptyView;
+  }
   return m_views[vnam];
 }
 
