@@ -17,6 +17,7 @@
 #define IndexRange_H
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 class IndexRange {

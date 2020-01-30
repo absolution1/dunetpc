@@ -15,6 +15,8 @@ class AdcMitigationService {
 
 public:
 
+  virtual ~AdcMitigationService() = default;
+
   // Extract the channel, signals and flags. All are pointer types so the caller can use null to
   // indicate any of the fields are not of interest.
   virtual int update(AdcChannelData& data) const =0;

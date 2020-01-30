@@ -98,6 +98,7 @@ public:
   // AdcChannelTool interface.
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
+  DataMap endEvent(const DuneEventInfo&) const override;
 
   int addChannel(const AdcChannelData& acd, double xfac) const;
 

@@ -60,9 +60,19 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   acd.pedestal = dig.GetPedestal();
   acd.metadata["inputPedestal"] = dig.GetPedestal();
   // Copy raw data.
-  unsigned int nsig = dig.Samples();
-  acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
-  raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
+  if ( dig.Compression() == raw::kNone ) {
+    acd.raw = dig.ADCs();
+  } else {
+    unsigned int nsig = dig.Samples();
+    acd.raw.resize(nsig, -999);  // See https://cdcvs.fnal.gov/redmine/issues/11572.
+    if ( nsig < dig.ADCs().size() ) {
+      cout << myname << "WARNING: " << "Uncompressed size is smaller than compressed: "
+           << nsig << " < " << dig.ADCs().size() << endl;
+    }
+    raw::Uncompress(dig.ADCs(), acd.raw, dig.GetPedestal(), dig.Compression());
+  }
+  // Initialize flags to good.
+  acd.flags.resize(acd.raw.size(), AdcGood);
   if ( m_LogLevel >= 4 ) {
     cout << myname << setw(8) << acd.channel << ": [";
     Index mdig = acd.raw.size();

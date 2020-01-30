@@ -7,7 +7,7 @@
 #include "signalservices_dune.fcl"
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
-#include "backtrackerservice.fcl"
+#include "backtrackerservice_dune.fcl"
 #include "particleinventoryservice.fcl"
 #include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
@@ -314,8 +314,8 @@ protodune_simulation_services: {
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
-# PhotonVisibilityService:      @local::protodune_photonvisibilityservice
-# OpDetResponseInterface:       @local::protodune_opdetresponse
+ PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+ OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
 }
 

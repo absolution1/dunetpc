@@ -52,8 +52,6 @@ DataMap AdcSampleFiller::update(AdcChannelData& acd) const {
     } else if ( adc >= m_AdcOverflow ) {
       acd.flags[isam] = AdcOverflow;
       ++nhi;
-    } else {
-      acd.flags[isam] = AdcGood;
     }
     if ( adc < m_AdcUnderflow || adc > m_AdcOverflow ) ++nbad;
   }

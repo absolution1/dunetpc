@@ -1,3 +1,6 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/cePulserToAdc.h"
+#include "dune/DuneCommon/cePulser.h"
+#include "dune/DuneCommon/RootPalette.h"
 #include "dune/DuneCommon/TPadManipulator.h"

@@ -180,7 +180,10 @@ void DAQToOffline::GoodRun::analyze(art::Event const & evt)
   if (fMakeFlatTree) {
     Event    = evt.event();
     DigSize  = digits.size();
-    NSamples = std::min( digits[0]->Samples(), fMaxSamples );
+    NSamples = digits[0]->Samples();
+    if (NSamples > fMaxSamples) NSamples = fMaxSamples;
+    // skip this because types may be different: NSamples = std::min( digits[0]->Samples(), fMaxSamples );
+
     ADCVec.clear();
     for (unsigned int dig=0; dig<DigSize; ++dig ) {
       ChanNum.push_back( digits[dig]->Channel() );

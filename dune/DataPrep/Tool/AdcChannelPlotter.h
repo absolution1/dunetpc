@@ -29,8 +29,7 @@
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
-//   HistManager: Name of the tool that manages the histograms. Obsolete.
-//                If blank, they are owned by the file or the current Root directory.
+//   SkipFlags - Samples with these flags are excluded from dist plots
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -46,19 +45,22 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 
-class HistogramManager;
 class AdcChannelStringTool;
 namespace lariov {
   class ChannelStatusProvider;
 }
-
+class TH1;
 
 class AdcChannelPlotter : AdcChannelTool {
 
 public:
 
   AdcChannelPlotter(fhicl::ParameterSet const& ps);
+
+  ~AdcChannelPlotter();
 
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
@@ -69,6 +71,8 @@ private:
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
+  using IndexSet = std::set<Index>;
 
   // Configuration data.
   int m_LogLevel;
@@ -84,19 +88,28 @@ private:
   float m_PlotSigMax;
   Index m_ColorBad;
   Index m_ColorNoisy;
-  Name m_HistManager;
+  IndexVector m_SkipFlags;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
-  // Histogram manager.
-  HistogramManager* m_phm;
-
   // Channel status provider.
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
+  // Derived from config.
+  IndexSet m_skipFlags;
+
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Name type) const;
+
+  using HistMap = std::map<Name, TH1*>;
+
+  class State {
+  public:
+    HistMap hists;
+  };
+  mutable State m_state;
+  State& getState() const { return m_state; }
 
 };
 

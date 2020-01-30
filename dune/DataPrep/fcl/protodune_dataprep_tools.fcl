@@ -79,6 +79,7 @@ tools.channelGroupsApa7: {
 # Fit ADC distribution to get pedestal.
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
+  SkipFlags: [8, 9, 10, 11, 12]
   LogLevel: 1
   FitRmsMin:  3.0
   FitRmsMax: 20.0
@@ -259,7 +260,7 @@ tools.rawAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Raw ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detraw-run%0RUN%-evt%0EVENT%-coll.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-coll.{png,tpad}"
 }
 tools.rawAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -283,7 +284,7 @@ tools.rawAdcDetectorPlotInd1: {
   ShowGrid: true
   Title: "Raw ADC induction view 1"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind1.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind1.{png,tpad}"
 }
 tools.rawAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -307,7 +308,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Raw ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.png"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.{png,tpad"
 }
 
 # Prepared data.
@@ -333,7 +334,7 @@ tools.preparedAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Prepared ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.{png,tpad"
 }
 tools.preparedAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter
@@ -357,7 +358,7 @@ tools.preparedAdcDetectorPlotInd1: {
   ShowGrid: true
   Title: "Prepared ADC induction view 1"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind1.{png,tpad}"
 }
 tools.preparedAdcDetectorPlotInd2: {
   tool_type: AdcDetectorPlotter
@@ -381,7 +382,7 @@ tools.preparedAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Prepared ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.png"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-ind2.{png,tpad}"
 }
 
 ################################################################################
@@ -404,7 +405,7 @@ pdcht_template: {
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: []
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcraw_%CRNAME%_run%0RUN%_evt%0EVENT%"
   HistTitle: "Raw ADC"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
@@ -674,7 +675,47 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail f
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
-# -- Here and below merging events --
+# ---- Here and below merging events ----
+
+# -- As above but including multiple events. --
+
+# Pedestal.
+tools.pdmtps_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
+tools.pdmtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%"
+tools.pdmtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%.png"
+
+# Pedestal noise.
+tools.pdmtps_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%"
+tools.pdmtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%.png"
+
+# Out of range fraction.
+tools.pdmtps_adcChannelPedestalOrfPlotter: @local::tools.pdtps_adcChannelPedestalOrfPlotter
+tools.pdmtps_adcChannelPedestalOrfPlotter.HistName: "hchpd%CRNAME%_pedorf_%0RUN%"
+tools.pdmtps_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestal out-of-range fraction for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalOrfPlotter.PlotFileName: "chmet_pedorf_%CRNAME%_run%0RUN%.png"
+
+# Pedestal RMS.
+tools.pdmtps_adcChannelPedestalRawRmsPlotter: @local::tools.pdtps_adcChannelPedestalRawRmsPlotter
+tools.pdmtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_pedrawrms_%0RUN%"
+tools.pdmtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%.png"
+
+# Pedestal tail fraction.
+tools.pdmtps_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPedestalRawTailPlotter
+tools.pdmtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_pedrawtail_%0RUN%"
+tools.pdmtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%.png"
+
+# Pedestal peak bin excess.
+tools.pdmtps_adcChannelPedestalPeakBinExcessPlotter: @local::tools.pdtps_adcChannelPedestalPeakBinExcessPlotter
+tools.pdmtps_adcChannelPedestalPeakBinExcessPlotter.HistName: "hchpd%CRNAME%_pedexc_%0RUN%"
+tools.pdmtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak bin excess for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdmtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%.png"
+
+# -- Noise signal finder plots --
 
 # Noise signal finder noise level at ADC scale.
 tools.pdtps_nsfNoise: @local::pdtps_template
@@ -721,21 +762,7 @@ tools.pdtps_nsfNroi.HistName: "hchpd%CRNAME%_nsfnroi_%0RUN%"
 tools.pdtps_nsfNroi.HistTitle: "NSF ROI count for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_nsfNroi.PlotFileName: "chmet_nsfnroi_%CRNAME%_run%0RUN%.png"
 
-# -- End merging events --
-
-# As above but including multiple events.
-
-# Pedestal.
-tools.pdmtps_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
-tools.pdmtps_adcChannelPedestalPlotter.HistName: "hchpd%CRNAME%_ped_%0RUN%"
-tools.pdmtps_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
-tools.pdmtps_adcChannelPedestalPlotter.PlotFileName: "chmet_ped_%CRNAME%_run%0RUN%.png"
-
-# Pedestal noise.
-tools.pdmtps_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
-tools.pdmtps_adcChannelPedestalNoisePlotter.HistName: "hchpd%CRNAME%_pednoise_%0RUN%"
-tools.pdmtps_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for run %RUN% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
-tools.pdmtps_adcChannelPedestalNoisePlotter.PlotFileName: "chmet_pednoise_%CRNAME%_run%0RUN%.png"
+# ---- End merging events ----
 
 # Event plots by z wire plane
 

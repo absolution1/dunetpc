@@ -83,6 +83,9 @@ private:
 
   std::vector<int> _apas_to_decode;
 
+  long int _min_offline_channel;  // min offline channel to decode.  <0: no limit
+  long int _max_offline_channel;  // max offline channel to decode.  <0: no limit.  max<min: no limit
+
   bool _rce_useInputLabels;
   bool _felix_useInputLabels;
   std::vector<std::string>   _rce_input_labels;   // input labels also include instances.  Example: "daq:TPC" or "daq::ContainerTPC"
@@ -242,6 +245,9 @@ PDSPTPCRawDecoder::PDSPTPCRawDecoder(fhicl::ParameterSet const & p) : EDProducer
 
   _compress_Huffman = p.get<bool>("CompressHuffman",false);
   _print_coldata_convert_count = p.get<bool>("PrintColdataConvertCount",false);
+
+  _min_offline_channel = p.get<long int>("MinOfflineChannel",-1);
+  _max_offline_channel = p.get<long int>("MaxOfflineChannel",-1);
 
   produces<RawDigits>( _output_label ); //the strings in <> are the typedefs defined above
   produces<RDTimeStamps>( _output_label );
@@ -677,6 +683,9 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       return false; 
     }
 
+  //DataFragmentUnpack df(cdptr);
+  //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
+
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
@@ -684,6 +693,7 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
       auto const * rce_stream = rce.get_stream(i);
       size_t n_ch = rce_stream->getNChannels();
       size_t n_ticks = rce_stream->getNTicks();
+      if (n_ticks == 0) continue;  // on David Adams's request
       auto const identifier = rce_stream->getIdentifier();
       uint32_t crateNumber = identifier.getCrate();
       uint32_t slotNumber = identifier.getSlot();
@@ -887,6 +897,11 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 	{
 	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::PdspChannelMapService::kRCE);
 
+	  // skip this channel if we are asked to.
+
+	  if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
+	      (offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+ 
 	  v_adc.clear();
 
 	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
@@ -1233,6 +1248,7 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
+  if (n_frames == 0) return true;
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
 
 
@@ -1281,17 +1297,6 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
   // Fill the adc vector.  
 
   for(unsigned ch = 0; ch < n_channels; ++ch) {
-    v_adc.clear();
-    //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
-    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
-    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
-      // if(ch==0 && nframe<100) {
-      //  if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
-      //  std::cout<<waveform.at(nframe)<<"  ";
-      //  if(nframe==99) std::cout<<std::endl;
-      // }
-      v_adc.push_back(waveform.at(nframe));  
-    }
 
     // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
     
@@ -1328,6 +1333,23 @@ bool PDSPTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigi
     if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
 
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::PdspChannelMapService::kFELIX); 
+
+    // skip this channel if we are asked to.
+
+    if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
+	(offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+
+    v_adc.clear();
+    //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
+    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
+    for(unsigned int nframe=0;nframe<waveform.size();nframe++){
+      // if(ch==0 && nframe<100) {
+      //  if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
+      //  std::cout<<waveform.at(nframe)<<"  ";
+      //  if(nframe==99) std::cout<<std::endl;
+      // }
+      v_adc.push_back(waveform.at(nframe));  
+    }
 
     if ( v_adc.size() != _full_tick_count)
       {

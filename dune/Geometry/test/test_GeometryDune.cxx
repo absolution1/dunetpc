@@ -340,7 +340,6 @@ int test_GeometryDune(const ExpectedValues& ev, bool dorop, Index maxchanprint,
     bool print = nprint < maxchanprint;
     if ( print ) ++nprint;
     if ( print ) cout << "  Channel " << setw(4) << icha << " has " << wirids.size() << " wires:";
-    WireID wid0;
     ostringstream sposs;
     sposs.precision(2);
     for ( WireID wirid : wirids ) {

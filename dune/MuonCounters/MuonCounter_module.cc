@@ -211,7 +211,7 @@ void Muoncounter::analyze(const art::Event& evt)
   // Check if there is PTB data in this event
   // Don't crash code if not present, just don't save anything
   try { PTBrawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("MuonCounter") << "WARNING: Raw PTB data not found in event " << evt.event();
     PTBPresent = false;
   }
@@ -265,7 +265,7 @@ void Muoncounter::analyze(const art::Event& evt)
   evt.getByLabel(fSSPRawDataLabel, fSSPFragType, SSPrawFragments);
   
   try { SSPrawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("SSPToOffline") << "WARNING: Raw SSP data not found in event " << evt.event();
     SSPPresent = false;
   }
@@ -295,7 +295,7 @@ void Muoncounter::analyze(const art::Event& evt)
   evt.getByLabel(fRCERawDataLabel, fRCEFragType, RCErawFragments);
   
   try { RCErawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("MuonCounter") << "WARNING: Raw RCE data not found in event " << evt.event() << std::endl;
     RCEPresent = false;
   }

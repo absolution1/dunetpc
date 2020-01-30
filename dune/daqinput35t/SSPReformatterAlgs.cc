@@ -70,7 +70,7 @@ void DAQToOffline::SSPReformatterAlgs::SSPFragmentToWaveformsAndHits(artdaq::Fra
         }
         
       }
-      catch (cet::exception e) {
+      catch (cet::exception const&) {
         continue;
       }
     } // End of loop over triggers
@@ -105,7 +105,7 @@ std::vector<raw::OpDetWaveform> DAQToOffline::SSPReformatterAlgs::SSPFragmentToO
         auto daqHeader = GetHeaderAndAdvance(dataPointer);
         opDetWaveformVector.emplace_back( ConstructWaveformAndAdvance(daqHeader, dataPointer) );
       }
-      catch (cet::exception e) {
+      catch (cet::exception const&) {
         continue;
       }
       
@@ -145,7 +145,7 @@ std::vector<recob::OpHit> DAQToOffline::SSPReformatterAlgs::SSPHeaderToOpHit(art
         unsigned int nADC = GetWaveformLength(daqHeader);
         dataPointer+=nADC/2;
       }
-      catch (cet::exception e) {
+      catch (cet::exception const&) {
         continue;
       }
     } // End of loop over triggers
@@ -447,4 +447,3 @@ recob::OpHit DAQToOffline::SSPReformatterAlgs::ConstructOpHit(const SSPDAQ::Even
   
   return ophit;
 }
-

@@ -24,7 +24,7 @@ art_make( BASENAME_ONLY
                            ${FHICLCPP}
                            cetlib cetlib_except
                            ${ROOT_BASIC_LIB_LIST}
-	   		   ProtoDUNEDataUtils
+	   		   #ProtoDUNEDataUtils
          )
 
 install_headers()

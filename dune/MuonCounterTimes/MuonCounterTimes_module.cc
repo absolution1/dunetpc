@@ -161,7 +161,7 @@ void Muoncountertimes::analyze(const art::Event& evt)
   // Check if there is PTB data in this event
   // Don't crash code if not present, just don't save anything
   try { fragment->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("MuonCounterTimes") << "WARNING: Raw PTB data not found in event " << evt.event();
     return;
   }

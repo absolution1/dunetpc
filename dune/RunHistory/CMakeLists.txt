@@ -10,7 +10,7 @@ art_make_library(  LIBRARY_NAME  RunHistoryDUNE
 		             SOURCE ${src_files}
 			     LIBRARIES
 	                wda
-	                nutools_IFDatabase
+	                nuevdb_IFDatabase
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -33,7 +33,7 @@ art_make_exec( NAME RunInfoDUNE
                LIBRARIES
 			RunHistoryDUNE
                          #wda
-			 # nutools_IFDatabase
+			 # nuevdb_IFDatabase
                )
 
 art_make_exec( NAME getDUNEPedestals
