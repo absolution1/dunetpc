@@ -773,10 +773,10 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       ph->SetBinContent(bin, met);
       if ( err ) ph->SetBinError(bin, err);
       float gval = met;
-      if ( m_MetricMax > m_MetricMin ) {
-        if ( met < m_MetricMin ) gval = m_MetricMin;
-        if ( met > m_MetricMax ) gval = m_MetricMax;
-      }
+      //if ( m_MetricMax > m_MetricMin ) {
+      //  if ( met < m_MetricMin ) gval = m_MetricMin;
+      //  if ( met > m_MetricMax ) gval = m_MetricMax;
+      //}
       Index iptAll = pgAll->GetN();
       pgAll->SetPoint(iptAll, icha, gval);
       if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
@@ -819,6 +819,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       }
       man.setRangeX(ran.begin, ran.end);
       if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
+      man.showGraphOverflow("BLTR", 2, statCols[0]);
       man.setGridY();
       man.print(ofpname);
     }
