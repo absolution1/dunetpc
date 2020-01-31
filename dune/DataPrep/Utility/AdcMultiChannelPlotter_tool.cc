@@ -215,8 +215,8 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
       AcdVector acdvec;
       Index ncha = 0;
       for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
-        Index icha = iacd->first;
         const AdcChannelData& acd = iacd->second;
+        Index icha = iacd->first;
         if ( ! acd.hasView(getDataView()) ) {
           cout << myname << "WARNING: View " << getDataView() << " is missing for channel "
                << icha << "." << endl;

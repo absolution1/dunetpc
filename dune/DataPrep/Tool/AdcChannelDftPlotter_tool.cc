@@ -145,6 +145,7 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
   const string myname = "AdcChannelDftPlotter::viewMapChannels: ";
   DataMap chret = viewLocal(crn, acds);
   bool doState = true;
+  bool doFill = acds.size();
   if ( doState ) {
     ++getJobState().count(crn);
     ++getEventState().count(crn);
@@ -192,13 +193,15 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
         getJobState().nviewentry(crn) += nven;
         getEventState().nchan(crn) += ncha;
         getEventState().nviewentry(crn) += nven;
+      } else {
+        doFill = false;      // No data in CR
       }
     }
   }
   chret.setString("dftCRLabel", crn);
   chret.setInt("dftCRCount", 1);
   chret.setInt("dftCRIndex", icr);
-  fillPad(chret, man);
+  if ( doFill ) fillPad(chret, man);
   return 0;
 }
 
@@ -226,6 +229,7 @@ viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, 
   float nvenEvt = count > 0 ? double(nvenTot)/count : 0.0;
   TH1* ph = nullptr;
   TH1* phin = levState.hist(crn);
+  bool doFill = false;
   if ( phin != nullptr ) {
     if ( count == 0 ) return 12;
     ph = (phin == nullptr) ? nullptr : dynamic_cast<TH1*>(phin->Clone());
@@ -248,6 +252,7 @@ viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, 
     }
     double fac = 1.0/count;
     ph->Scale(fac);
+    doFill = true;
   }
   DataMap dm;
   dm.setHist("dftHist", ph, true);
@@ -258,7 +263,7 @@ viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, 
   dm.setString("dftCRLabel", crn);
   dm.setInt("dftCRCount", ncr);
   dm.setInt("dftCRIndex", icr);
-  fillPad(dm, man);
+  if ( doFill ) fillPad(dm, man);
   //man.add(ph, "hist");
   //delete ph;
   return 0;
@@ -302,6 +307,9 @@ DataMap AdcChannelDftPlotter::endEvent(const DuneEventInfo&) const {
 
 DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   const string myname = "AdcChannelDftPlotter::viewLocal: ";
+  if ( getLogLevel() >= 4 ) {
+    cout << myname << "Filling CR " << crn << " with ADC channel data size " << acds.size() << endl;
+  }
   DataMap ret;
   if ( acds.size() == 0 ) return ret;
   const AdcChannelData* pacd = acds.front();
@@ -662,9 +670,7 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     }
     TLegend* pleg = man.getLegend();
     Name slab = dm.getString("dftCRLabel");
-    if ( pleg == nullptr ) {
-      cout << myname << "ERROR: Legend not found for icr " << icr << " (" << slab << ")." << endl;
-    } else {
+    if ( pleg != nullptr ) {
       pleg->SetMargin(0.1);   // Fraction of box used for symbols
       if ( spow.size() ) slab += " " + spow;
       if ( sncha.size() ) slab += " " + sncha;

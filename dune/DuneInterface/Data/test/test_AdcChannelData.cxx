@@ -187,6 +187,8 @@ int test_AdcChannelData() {
     assert( acd12.getMetadata("viewIndex12") == ient12 );
   }
 
+  cout << line << endl;
+  cout << myname << "All tests passed." << endl;
   return 0;
 }
 
