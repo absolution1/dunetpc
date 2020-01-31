@@ -1040,6 +1040,10 @@ void proto::BeamEvent::produce(art::Event & e){
 
   // Write out the to tree
   if( fSaveOutTree ){
+
+    std::cout << "Timing trigger: " << beamevt->GetTimingTrigger() << std::endl;
+    std::cout << "Matched: " << beamevt->CheckIsMatched() << std::endl;
+
     if( beamevt->GetTOFChan() > -1 ){
       fOutTOF = beamevt->GetTOF();
     }
@@ -1051,6 +1055,7 @@ void proto::BeamEvent::produce(art::Event & e){
     fOutC0 = beamevt->GetCKov0Status();
     fOutC1 = beamevt->GetCKov1Status();
     std::cout << "CKovs: " << beamevt->GetCKov0Status() << " " << beamevt->GetCKov1Status() << std::endl;
+    std::cout << "TOF, P: " << fOutTOF << " " << fOutP << std::endl;
     fOutTree->Fill();
   }
 
@@ -1681,7 +1686,8 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     }
   }
   
-  
+  beam::FBM fbm(ID); 
+  /*
   beam::FBM fbm;
   fbm.ID = ID;
   fbm.fibers = {};
@@ -1691,6 +1697,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
   fbm.timeStamp = 0.;
   fbm.decoded = false;
   fbm.active = std::vector<short>();
+  */
     
   //Use this just in case any are out of sync?
   //Shouldn't be, but just to be safe...
