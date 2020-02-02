@@ -133,31 +133,29 @@ void CRT::CRTSimRefac::produce(art::Event & e)
   }
   
   auto trigCol = std::make_unique<std::vector<CRT::Trigger>>();
-  //auto simToTrigger = std::make_unique<art::Assns<sim::AuxDetHit, CRT::Trigger>>();
+
   std::unique_ptr< art::Assns<simb::MCParticle, CRT::Trigger>> partToTrigger( new art::Assns<simb::MCParticle, CRT::Trigger>);
 
-  //Utilities to go along with making Assns
-  //art::PtrMaker<sim::AuxDetHit> makeSimPtr(e, crtHits.id());
   art::PtrMaker<CRT::Trigger> makeTrigPtr(e);
 
 
   art::ServiceHandle<geo::Geometry> geom;
-  std::map<int, std::map<time, std::vector<std::pair<CRT::Hit, int>>>> map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId;
+  std::map<int, std::map<time, std::vector<std::pair<CRT::Hit, int>>>> crtHitsModuleMap;
   for(auto const& auxHits : allSims){
     for(const auto & eDep: * auxHits)
     {
       const size_t tAvg = eDep.GetEntryT();
-      map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC),eDep.GetTrackID());
+      crtHitsModuleMap[(eDep.GetID())/64][tAvg/fIntegrationTime].emplace_back(CRT::Hit((eDep.GetID())%64, eDep.GetEnergyDeposited()*0.001f*fGeVToADC),eDep.GetTrackID());
       mf::LogDebug("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
     }
   }
 
 
   // -- For each CRT module
-  for(const auto & crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId : map_of_crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId)
+  for(const auto & crtHitsMappedByModule : crtHitsModuleMap)
   {
     int crtChannel = -1;
-    int module = crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId.first;
+    int module = crtHitsMappedByModule.first;
     
     std::string modStrng="U"+std::to_string(module+1);
     if (module>15) modStrng="D"+std::to_string(module+1-16);
@@ -170,22 +168,18 @@ void CRT::CRTSimRefac::produce(art::Event & e)
         crtChannel=i; break;
       }
     }
-    const auto map_of_time_to_vector_of_pair_crtHit_and_trackId = crtModule_to_map_of_time_to_vector_of_pair_crtHit_and_trackId.second;
+    const auto crtHitsMappedByTime = crtHitsMappedByModule.second;
 
     mf::LogDebug("channels") << "Processing channel " << module << "\n";
     
     std::stringstream ss;
-    for(const auto& time_to_vector_of_pair_crtHit_and_trackId : map_of_time_to_vector_of_pair_crtHit_and_trackId)
-    {
-      ss << "At " << time_to_vector_of_pair_crtHit_and_trackId.first << " ticks, " << time_to_vector_of_pair_crtHit_and_trackId.second.size() << " hits\n";
-    } 
 
     mf::LogDebug("timeToHitTrackIds") << "Constructed readout windows for module " << crtChannel << ":\n"
                             << ss.str() << "\n";
 
    
-    mf::LogDebug("timeToHitTrackIds") << "About to loop over " << map_of_time_to_vector_of_pair_crtHit_and_trackId.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
-    for(auto time_to_vector_of_pair_crtHit_and_trackId = map_of_time_to_vector_of_pair_crtHit_and_trackId.begin(); time_to_vector_of_pair_crtHit_and_trackId != map_of_time_to_vector_of_pair_crtHit_and_trackId.end(); ) //++time_to_vector_of_pair_crtHit_and_trackId)
+
+    for(auto time_to_vector_of_pair_crtHit_and_trackId = crtHitsMappedByTime.begin(); time_to_vector_of_pair_crtHit_and_trackId != crtHitsMappedByTime.end(); ) //++time_to_vector_of_pair_crtHit_and_trackId)
     {
       const auto& vector_of_pair_crtHit_and_trackId = time_to_vector_of_pair_crtHit_and_trackId->second;
       const auto aboveThresh = std::find_if(vector_of_pair_crtHit_and_trackId.begin(), vector_of_pair_crtHit_and_trackId.end(), 
@@ -197,22 +191,45 @@ void CRT::CRTSimRefac::produce(art::Event & e)
  
         std::vector<CRT::Hit> hits;
         const time timestamp = time_to_vector_of_pair_crtHit_and_trackId->first; //Set timestamp before window is changed.
-        const auto end = map_of_time_to_vector_of_pair_crtHit_and_trackId.upper_bound(timestamp+fReadoutWindowSize);
+        const auto end = crtHitsMappedByTime.upper_bound(timestamp+fReadoutWindowSize);
+
+	    std::set<int> trkIDCheck; //Backtracking set to get rid of duplicate trkIDs that are above threshold
+
         std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
                                         //this readout window and so are "busy" and cannot contribute any more hits.  
         for(;time_to_vector_of_pair_crtHit_and_trackId != end; ++time_to_vector_of_pair_crtHit_and_trackId)
         {
+	  
+	  
+
           for(const auto& pair_crtHit_and_trackId: time_to_vector_of_pair_crtHit_and_trackId->second)
           {
             const auto channel = pair_crtHit_and_trackId.first.Channel();
+	     
+
                                                                   
             if(channelBusy.insert(channel).second) //If this channel hasn't already contributed to this readout window
             {
               hits.push_back(pair_crtHit_and_trackId.first);
 
-              // -- safe index retrieval
-              int index = 0;
+
+	      if (pair_crtHit_and_trackId.first.ADC()>fDACThreshold){
+
               int tid = pair_crtHit_and_trackId.second;
+
+
+
+	      trkIDCheck.insert(tid);
+
+	  
+	    }
+            }
+          }
+        }
+
+	for (int tid : trkIDCheck){
+	      // -- safe index retrieval
+	      int index = 0;
               auto search = map_trackID_to_handle_index.find(tid);
               if (search != map_trackID_to_handle_index.end()){
                 index = search->second;
@@ -230,19 +247,21 @@ void CRT::CRTSimRefac::produce(art::Event & e)
               
               auto const mcptr = makeMCParticlePtr(index);
               partToTrigger->addSingle(mcptr, makeTrigPtr(trigCol->size()-1));
-              //simToTrigger->addSingle(pair_crtHit_and_trackId.second, makeTrigPtr(trigCol->size()-1)); 
-            }
-          }
-        }
+
+
+
+
+
+	}
 
         mf::LogDebug("CreateTrigger") << "Creating CRT::Trigger...\n";
-        //std::cout<< "Timestamp:"<<timestamp*fIntegrationTime<<std::endl;
+
         trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits));
 
         const auto oldWindow = time_to_vector_of_pair_crtHit_and_trackId;
-        if(time_to_vector_of_pair_crtHit_and_trackId != map_of_time_to_vector_of_pair_crtHit_and_trackId.end())
+        if(time_to_vector_of_pair_crtHit_and_trackId != crtHitsMappedByTime.end())
         {
-          time_to_vector_of_pair_crtHit_and_trackId = map_of_time_to_vector_of_pair_crtHit_and_trackId.upper_bound(time_to_vector_of_pair_crtHit_and_trackId->first+fDeadtime); 
+          time_to_vector_of_pair_crtHit_and_trackId = crtHitsMappedByTime.upper_bound(time_to_vector_of_pair_crtHit_and_trackId->first+fDeadtime); 
           mf::LogDebug("DeadTime") << "Advanced readout window by " << time_to_vector_of_pair_crtHit_and_trackId->first - oldWindow->first
                                                              << " to simulate dead time.\n";
         }
@@ -255,7 +274,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
   mf::LogDebug("CreateTrigger") << "Putting " << trigCol->size() << " CRT::Triggers into the event at the end of analyze().\n";
   e.put(std::move(trigCol));
   e.put(std::move(partToTrigger));
-  //e.put(std::move(simToTrigger));
+
 }
 
 
