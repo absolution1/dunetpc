@@ -1757,7 +1757,7 @@ void proto::BeamEvent::parseGeneralXBPF(std::string name, uint64_t time, size_t 
     beamspill->DecodeFibers(name,i);
   } 
 
-  //Check the last 2 words for any dublicates
+  //Check the last 2 words for any duplicates
   beamspill->FixFiberGlitch(name);
   if( fPrintDebug ){
     std::cout << "Fixed " << name << std::endl;

@@ -182,6 +182,8 @@ namespace beam
     */
     FBM dummy(-1);
     fiberMonitors["dummy"] = dummy;
+
+    //add in default values for TOF and CKov, tracks, etc.?
   }
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }
