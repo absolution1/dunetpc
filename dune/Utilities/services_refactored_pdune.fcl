@@ -8,7 +8,7 @@
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
 #include "backtrackerservice_dune.fcl"
-#include "particleinventoryservice.fcl"
+#include "particleinventoryservice_dune.fcl"
 #include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
