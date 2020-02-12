@@ -19,6 +19,7 @@ namespace beam
     nFBMs = monitors.size();
     //std::cout << "Got " << nFBMs << " monitors and " << t0.size() << " good particles" << std::endl;
     FBM dummyFBM;
+    /*
     dummyFBM.ID = -1;
     dummyFBM.fibers = {};
     std::uninitialized_fill( std::begin(dummyFBM.fiberData), std::end(dummyFBM.fiberData), 0. );
@@ -26,6 +27,7 @@ namespace beam
     dummyFBM.timeStamp = 0.;
     dummyFBM.decoded = false;
     dummyFBM.active = std::vector<short>();
+    */
 
     std::vector<FBM> dummyVec;
     for(size_t i = 0; i < t0.size(); ++i){

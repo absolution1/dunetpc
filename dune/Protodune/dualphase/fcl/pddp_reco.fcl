@@ -82,23 +82,34 @@ physics:
 {
  producers:
  {
-# random number saver
-  rns:                 { module_type: RandomNumberSaver }
-# convert raw::RawDigit to recob::wire
-  caldata:            @local::producer_adcprep
-# actual hit finder and recconstruction
-  dprawhit:	      @local::dunefddphase_dprawhitfinder
-  trajcluster:        @local::dunefdmc_trajcluster
-#  calo:               @local::dune10kt_calomc
-#  pmtrack:            @local::dunefd_pmalgtrackmaker
-#  pmtrajfit:	      @local::dunefd_pmalgtrajfitter
-#  pmtrackcalo:        @local::dune10kt_calomc
-#  pmtrackpid:         @local::standard_chi2pid
+### random number saver
+       rns:                { module_type: RandomNumberSaver }
+
+### convert raw::RawDigit to recob::wire
+       caldata:            @local::producer_adcprep
+
+###  hit finder
+       dprawhit:           @local::dunefddphase_dprawhitfinder
+
+###  reconstruction
+       pandora:            @local::protodune_dp_pandora
+       pandoraTrack:       @local::dune_pandoraTrackCreation
+       pandoraShower:      @local::dune_pandoraShowerCreation
+
+       trajcluster:        @local::dunefdmc_trajcluster
+
+##       calo:               @local::dune10kt_calomc
+##      linecluster:         @local::dunefd_linecluster
+##      pmtrack:             @local::dunefd_pmalgtrackmaker
+##      pmtrajfit:           @local::dunefd_pmalgtrajfitter
+##      pmtrackcalo:         @local::dune10kt_calomc
+##      pmtrackpid:          @local::standard_chi2pid
  }
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ rns, caldata, dprawhit, trajcluster ]
+ reco: [ rns, caldata, dprawhit, dprawhit, pandora, pandoraTrack, pandoraShower ] 
+       	 #trajcluster ]
 
 
 
@@ -138,6 +149,9 @@ outputs:
 physics.producers.caldata.OnlineChannelMapTool: ""
 physics.producers.caldata.DoGroups: false
 
+#######
+#DPRAWHIT CONFIGURATION
+#######
 physics.producers.dprawhit.MinSig:       	  2	# threshold for raw hit fitting algorithm in ADC. No peak with lower amplitude is fitted.
 physics.producers.dprawhit.TicksToStopPeakFinder: 50	# when walking along waveform to find start and end points of a peak, stop when current tick is followed by minimum "TicksToStopPeakFinder" ticks
 							# with equal or higher ADC counts (stop anyway if ADC count of a tick is <= 0)
@@ -155,7 +169,9 @@ physics.producers.dprawhit.MergeADCSumThreshold:  0.2	# merge two peaks only if 
 physics.producers.dprawhit.MergeMaxADCThreshold:  0.2	# merge two peaks only if (height of the smaller peak) < MergeADCSumThreshold*(height sum of the bigger peak)
 
 
-#trajcluster configuration
+#######
+#TRAJCLUSTER CONFIGURATION
+#######
 physics.producers.trajcluster.HitModuleLabel:	"dprawhit"
 #physics.producers.trajcluster.TrajClusterAlg.HitErrFac: 		0.2
 #physics.producers.trajcluster.TrajClusterAlg.MakeNewHits: 		false
@@ -166,6 +182,26 @@ physics.producers.trajcluster.HitModuleLabel:	"dprawhit"
 #physics.producers.pmtrajfit.HitModuleLabel:           "trajcluster"
 #physics.producers.pmtrajfit.PfpModuleLabel:           "trajcluster"
 
-#Pandora configurations
+#######
+#PANDORA CONFIGURATION
+#######
+physics.producers.pandora.ConfigFile: "PandoraSettings_Master_ProtoDUNE_DP.xml"
+physics.producers.pandora.EnableLineGaps: true
+physics.producers.pandora.EnableMCParticles: false
+physics.producers.pandora.EnableProduction: true
+physics.producers.pandora.GeantModuleLabel: "largeant"
+physics.producers.pandora.HitFinderModuleLabel: "dprawhit"
+physics.producers.pandora.PrintOverallRecoStatus: false
+physics.producers.pandora.ShouldPerformSliceId: false
+physics.producers.pandora.ShouldRunAllHitsCosmicReco: true
+physics.producers.pandora.ShouldRunCosmicHitRemoval: false
+physics.producers.pandora.ShouldRunCosmicRecoOption: true
+physics.producers.pandora.ShouldRunNeutrinoRecoOption: false
+physics.producers.pandora.ShouldRunSlicing: true
+physics.producers.pandora.ShouldRunStitching: false
+physics.producers.pandora.UseGlobalCoordinates: false
+physics.producers.pandora.UseHitWidths: false
+physics.producers.pandoraTrack.PFParticleLabel:         "pandora"
+physics.producers.pandoraShower.PFParticleLabel:        "pandora"
 
 #Optical detector configuration

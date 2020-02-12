@@ -169,8 +169,8 @@ namespace beam
   };
 
   inline ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){ 
+  /*
     FBM dummy; 
-    dummy.ID = -1;
     dummy.ID = -1;
     dummy.fibers = {};
     std::uninitialized_fill( std::begin(dummy.fiberData), std::end(dummy.fiberData), 0. );
@@ -179,7 +179,11 @@ namespace beam
     dummy.timeStamp = 0.;
     dummy.decoded = false;
     dummy.active = std::vector<short>();
+    */
+    FBM dummy(-1);
     fiberMonitors["dummy"] = dummy;
+
+    //add in default values for TOF and CKov, tracks, etc.?
   }
 
   inline const std::vector< recob::Track > & ProtoDUNEBeamEvent::GetBeamTracks() const { return Tracks; }

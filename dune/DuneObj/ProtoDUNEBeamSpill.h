@@ -14,8 +14,31 @@ namespace beam
   //
   struct FBM{
 
+
+    FBM()
+    { 
+      ID = -1;
+      timeStamp = 0.;
+      decoded = false;
+      active = std::vector<short>();
+      fibers = {}; 
+      glitch_mask = {};
+      std::uninitialized_fill( std::begin(fiberData), std::end(fiberData), 0. );
+      std::uninitialized_fill( std::begin(timeData),  std::end(timeData), 0. ); 
+    };
+    FBM(int id)
+    { 
+      ID = id;
+      timeStamp = 0.;
+      decoded = false;
+      active = std::vector<short>();
+      fibers = {}; 
+      glitch_mask = {};
+      std::uninitialized_fill( std::begin(fiberData), std::end(fiberData), 0. );
+      std::uninitialized_fill( std::begin(timeData),  std::end(timeData), 0. ); 
+    };
+
     //Bitmap for hit fibers in the monitor
-//    std::bitset<192> fibers;
     std::array<short,192> fibers;
     
     //If any of these are high, consider the fiber in error
@@ -37,6 +60,10 @@ namespace beam
   //Cerenkov Threshold Detector
   //
   struct CKov{          
+
+    CKov() : trigger(0), pressure(0.), timeStamp(0.)
+    { };
+
     //Status at time of system trigger (on/off)
     short trigger;
     double pressure;
@@ -230,8 +257,9 @@ namespace beam
 
   ////////////Fiber Monitor Access
   inline FBM ProtoDUNEBeamSpill::GetFBM(std::string FBMName, size_t theTrigger){
-    FBM dummy={{{0}}}; 
-    dummy.ID = -1;
+    //FBM dummy={{{0}}}; 
+    FBM dummy(-1);
+    //dummy.ID = -1;
     if( fiberMonitors.find(FBMName) == fiberMonitors.end() ){
       std::cout << "Error FBM not found" << std::endl;
 //      for(size_t i = 0; i < fiberMonitors.find(FBMName); ++i){
