@@ -27,8 +27,8 @@
 //                  pedestal - Fixed range around pedestal (PlotSigMin+ped, PlotSigMax+ped)
 //   PlotSigMin: - Min for signal range. See PlotSigOpt.
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
-//   PlotDistMin - Min for y-axis is rawdist plots
-//   PlotDistMax - Max for y-axis is rawdist plots
+//   PlotDistMin - Min for y-axis in rawdist plots
+//   PlotDistMax - Max for y-axis in rawdist plots
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
 //   SkipFlags - Samples with these flags are excluded from dist plots

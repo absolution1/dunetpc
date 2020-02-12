@@ -46,8 +46,9 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
     fout << "  PlotFileName: \"adcsigs.png\"" << endl;
     fout << "  PlotSamMin: 0" << endl;
     fout << "  PlotSamMax: 100" << endl;
-    fout << "  PlotSigMin: 0" << endl;
     fout << "  PlotSigOpt: full" << endl;
+    fout << "  PlotDistMin:   0" << endl;
+    fout << "  PlotDistMax:   0" << endl;
     fout << "  PlotSigMin:   0" << endl;
     fout << "  PlotSigMax:   0" << endl;
     fout << "  ColorBad:   0" << endl;

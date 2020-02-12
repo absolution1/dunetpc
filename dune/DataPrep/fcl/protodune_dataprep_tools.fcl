@@ -520,6 +520,10 @@ chmet_pdtps_template: {
   RootFileName: ""
 }
 
+# Template for metric plots by APA
+chmet_pdapa_template: @local::chmet_pdtps_template
+chmet_pdapa_template.ChannelRanges: [apa1, apa2, apa3, apa4, apa5, apa6]
+
 # Template for metric plots by TPC plane
 chmet_pdtpp_template: @local::chmet_pdtps_template
 chmet_pdtpp_template.ChannelRanges: [tpp0u, tpp1u, tpp2u, tpp3u, tpp4u, tpp5u,
@@ -531,7 +535,7 @@ chmet_pdtpp_template.ChannelLinePattern: [        40,   80,  120,  160,  200,  2
                                            800,  840,  880,  920,  960, 1000, 1040, 1080, 1120, 1160,
                                           1200, 1240, 1280, 1320, 1360, 1400, 1440, 1480, 1520, 1560,
                                           1600, 1648, 1696, 1744, 1792, 1840, 1888, 1936, 1984, 2032,
-                                          2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
+                                          2080, 2128, 2176, 2224, 2272, 2320, 2368, 2416, 2464, 2512]
 
 #
 # Pedestal for each channel.
@@ -969,6 +973,10 @@ tools.pdsp_noiseRemovalAdc: {
 tools.pdsp_noiseRemovalKe: @local::tools.pdsp_noiseRemovalAdc
 tools.pdsp_noiseRemovalKe.RoiStartThreshold: 0.5
 tools.pdsp_noiseRemovalKe.RoiEndThreshold:   0.5
+
+# Remove only coherent noise (no high frequency filter).
+tools.pdsp_fembNoiseRemovalKe: @local::tools.pdsp_noiseRemovalKe
+tools.pdsp_fembNoiseRemovalKe.RemoveHighFrequency: false
 
 # Remove coherent noise and high frequency noise with ROIs taken
 # from data.
