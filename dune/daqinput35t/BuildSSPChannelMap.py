@@ -2,6 +2,8 @@
 
 
 # Define the (current) hardware mapping
+from __future__ import print_function
+from builtins import range
 SSP = {}
 
 # Two special cases
@@ -34,7 +36,7 @@ for SSPNum in sorted(SSP.keys()):
             offline = OfflineChannel(OpDet, PDChannel)
             online  = OnlineHeader(SSPNum, SSPChannel)
             SSPChannel += 1
-            print online, offline
+            print(online, offline)
 
     
 
