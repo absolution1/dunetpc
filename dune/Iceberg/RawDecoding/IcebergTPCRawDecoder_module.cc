@@ -557,6 +557,36 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
+      // inverted ordering on back side, Run 2c (=Run 3)
+      // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
+
+      if (runNumber > 2572)
+	{
+	  auto oldfiber = fiberNumber;
+	  auto oldslot = slotNumber;
+
+	  if (oldslot == 0 && oldfiber == 4)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 4)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 3)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 4;
+	    }
+	  if (oldslot == 0 && oldfiber == 3)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 4;
+	    }
+	}
+
       // two cable swaps on June 20, 2019, and go back to the original on Jan 22, 2020
 
       if (runNumber > 1530 && runNumber < 2572)
@@ -564,7 +594,7 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  auto oldfiber = fiberNumber;
 	  auto oldslot = slotNumber;
 
-	  // second swap, June 21 -- see Slack
+	  // second swap, June 21, 2019 -- see Slack
 
 	  if (oldslot == 2 && oldfiber == 1)
 	    {
