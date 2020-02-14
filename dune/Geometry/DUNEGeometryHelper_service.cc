@@ -33,19 +33,19 @@ using dune::DUNEGeometryHelper;
 
 //**********************************************************************
 
-DUNEGeometryHelper::DUNEGeometryHelper(const fhicl::ParameterSet& pset, art::ActivityRegistry&)
-: fPset( pset ),
-  fChannelMap() {
-  pset.get_if_present<string>("ChannelMapClass", fChannelMapClass);
-  pset.get_if_present<string>("GeoSorterClass", fGeoSorterClass);
-}
+DUNEGeometryHelper::DUNEGeometryHelper(const fhicl::ParameterSet& pset)
+  : fChannelMapClass{pset.get<string>("ChannelMapClass", {})}
+  , fGeoSorterClass{pset.get<string>("GeoSorterClass", {})}
+{}
 
 //**********************************************************************
 
-void DUNEGeometryHelper::
-doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geom) {
-  fChannelMap.reset();
- 
+std::unique_ptr<geo::ChannelMapAlg>
+DUNEGeometryHelper::doConfigureChannelMapAlg(fhicl::ParameterSet const& pset,
+                                             std::string const& detectorName) const
+{
+  std::unique_ptr<geo::ChannelMapAlg> channelMap{nullptr};
+
   // The APA sorting algorithm requires special handling.
   // This flag is set if that map is used.
   bool useApaMap = false;
@@ -56,23 +56,21 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
     if ( fChannelMapClass == "DuneApaChannelMapAlg" ) {
       useApaMap = true;
     } else if ( fChannelMapClass == "ChannelMap35Alg" ) {
-      fChannelMap = std::make_shared<geo::ChannelMap35Alg>(pset);
+      channelMap = std::make_unique<geo::ChannelMap35Alg>(pset);
     } else if ( fChannelMapClass == "ChannelMap35OptAlg" ) {
-      fChannelMap = std::make_shared<geo::ChannelMap35OptAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMap35OptAlg>(pset);
     } else if ( fChannelMapClass == "ChannelMapAPAAlg" ) {
-      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapAPAAlg>(pset);
     } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlg" ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlg>(pset);
     } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv7" ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv7>(pset);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }
 
   // Otherwise derive class name from detector name.
   } else {
-    std::string const detectorName = geom->DetectorName();
-
     // DUNE 35t prototype
     if ( ( detectorName.find("dune35t") != std::string::npos ) ||
          ( detectorName.find("lbne35t") != std::string::npos ) ) {
@@ -84,53 +82,53 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
         useApaMap = true;
         is35t = true;
       } else {
-        fChannelMap = std::make_shared<geo::ChannelMap35Alg>(pset);
+        channelMap = std::make_unique<geo::ChannelMap35Alg>(pset);
       }
 
     // DUNE 10kt
-    } else if (( detectorName.find("dune10kt") != std::string::npos ) 
+    } else if (( detectorName.find("dune10kt") != std::string::npos )
           || ( detectorName.find("lbne10kt") != std::string::npos )) {
       useApaMap = true;
 
     // DUNE 10kt dual phase
     } else if ( detectorName.find("dunedphase10kt") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapCRMAlg>(pset);
 
     // protoDUNE 6x6x6 dual phase
     } else if ( detectorName.find("protodunedphase") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapCRMAlg>(pset);
 
     // 3x1x1 dual phase
     } else if ( detectorName.find("3x1x1dphase") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ChannelMapCRMAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapCRMAlg>(pset);
 
     // DUNE 34kt
     } else if ( ( detectorName.find("dune34kt") != std::string::npos )
              || ( detectorName.find("lbne34kt") != std::string::npos ) ) {
-      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapAPAAlg>(pset);
 
     // protoDUNE with arapucas
     } else if ( detectorName.find("protodunev7") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlgv7>(pset);
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv7>(pset);
 
     // protoDUNE
     } else if ( ( detectorName.find("protodune") != std::string::npos )
              || ( detectorName.find("protolbne") != std::string::npos ) ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlg>(pset);
 
     // iceberg
     } else if ( detectorName.find("iceberg") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ProtoDUNEChannelMapAlg>(pset);
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlg>(pset);
 
     // LArND
     } else if ( detectorName.find("larnd") != std::string::npos ) {
-      fChannelMap = std::make_shared<geo::ChannelMapAPAAlg>(pset);
+      channelMap = std::make_unique<geo::ChannelMapAPAAlg>(pset);
     }
     else {
       throw cet::exception("DUNEGeometryHelper") << "Unsupported detector: '" << detectorName << "'\n";
-    }    
+    }
   }
-  
+
   if ( useApaMap ) {
     // Find the sorter.
     bool useApaSort = false;
@@ -153,23 +151,16 @@ doConfigureChannelMapAlg(fhicl::ParameterSet const& pset, geo::GeometryCore* geo
       psort = new GeoObjectSorter35(pset);
     }
     // Create channel map and set sorter.
-    geo::DuneApaChannelMapAlg* pmap = new geo::DuneApaChannelMapAlg(pset);
-    pmap->setSorter(*psort);
-    fChannelMap.reset(pmap);
+    auto alg = new geo::DuneApaChannelMapAlg(pset);
+    alg->setSorter(*psort);
+    channelMap = std::unique_ptr<geo::DuneApaChannelMapAlg>(alg);
   }
 
-  if ( fChannelMap ) {
-    geom->ApplyChannelMap(fChannelMap);
-  }
-}  
-//**********************************************************************
-  
-DUNEGeometryHelper::ChannelMapAlgPtr_t DUNEGeometryHelper::doGetChannelMapAlg() const {
-  return fChannelMap;
+  return channelMap;
 }
 
 //**********************************************************************
-  
+
 DEFINE_ART_SERVICE_INTERFACE_IMPL(dune::DUNEGeometryHelper, geo::ExptGeoHelperInterface)
 
 //**********************************************************************
