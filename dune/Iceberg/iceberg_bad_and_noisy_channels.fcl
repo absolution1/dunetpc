@@ -2,9 +2,8 @@ BEGIN_PROLOG
 
 # bad channels are from the missing FEMB
 
-iceberg_bad_and_noisy_channels: 
-{
-BadChannels: [
+iceberg_bad_channels: {
+[
 0,
 1,
 2,
@@ -134,7 +133,9 @@ BadChannels: [
 1038,
 1039
 ]
-NoisyChannels: [
+}
+iceberg_noisy_channels: {
+[
  791,
  1129,
  1135
