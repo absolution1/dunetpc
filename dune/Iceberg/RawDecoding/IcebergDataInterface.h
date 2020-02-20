@@ -32,9 +32,9 @@
 #include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
-#include "IcebergDataInterfaceParent.h"
+#include "dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterfaceParent.h"
 
-class IcebergDataInterface : public IcebergDataInterfaceParent {
+class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
 
  public:
 
