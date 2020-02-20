@@ -54,3 +54,7 @@ physics:
   end_paths: [ analysis ]
 }
 
+# newly standardize on 2000 ticks 
+
+services.DetectorPropertiesService.NumberTimeSamples: 2000
+services.DetectorPropertiesService.ReadOutWindowSize: 2000
