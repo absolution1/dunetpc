@@ -419,6 +419,9 @@ bool IcebergDataInterface::_process_RCE_AUX(
       if (n_ticks == 0) continue;  // on David Adams's request.
       auto const identifier = rce_stream->getIdentifier();
       uint32_t crateNumber = identifier.getCrate();
+      // always use crate #3 for iceberg to fool the ProtoDUNE data prep into thinking it should
+      // have the low-numbered channels
+      crateNumber = 3;
       uint32_t slotNumber = identifier.getSlot();
       uint32_t fiberNumber = identifier.getFiber();
 
