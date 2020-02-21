@@ -46,9 +46,11 @@
 #include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Utilities/Exception.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOneP.h"
+
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -99,7 +101,8 @@ private:
                         recob::Hit const& hits);
 
   void SaveIDEs(art::Event const & evt);
-
+  std::string fname;
+  
   int firstCatch;
   int secondCatch;
   int thirdCatch;
@@ -262,7 +265,8 @@ private:
 
 };
 
-SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
+SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p),
+                                            fname("SNAna_module")
 {
   this->reconfigure(p);
 }
@@ -270,6 +274,7 @@ SNAna::SNAna(fhicl::ParameterSet const & p):EDAnalyzer(p)
 
 void SNAna::reconfigure(fhicl::ParameterSet const & p)
 {
+  
   fRawDigitLabel      = p.get<std::string>("RawDigitLabel"     );
   fHitLabel           = p.get<std::string>("HitLabel"          );
   fCalDataModuleLabel = p.get<std::string>("CalDataModuleLabel");
@@ -292,10 +297,10 @@ void SNAna::reconfigure(fhicl::ParameterSet const & p)
   fSaveTPC   = p.get<bool>("SaveTPC",1);
   fSavePDS   = p.get<bool>("SavePDS",1);
 
-  std::cout << "Reconfigured " << this->processName() << " with "
-            << " SaveNeighbourADCs: " << std::boolalpha << fSaveNeighbourADCs
-            << " SaveTruth: " << std::boolalpha << fSaveTruth
-            << " SaveIDEs: " << std::boolalpha << fSaveIDEs << std::endl;
+  mf::LogInfo(fname) << "Reconfigured " << this->processName() << " with "
+                     << " SaveNeighbourADCs: " << std::boolalpha << fSaveNeighbourADCs
+                     << " SaveTruth: " << std::boolalpha << fSaveTruth
+                     << " SaveIDEs: " << std::boolalpha << fSaveIDEs << std::endl;
 }
 
 
@@ -618,10 +623,10 @@ void SNAna::analyze(art::Event const & evt)
           True_MarlSample.push_back(ThisTr.SamplingMode);
         }
       } catch (...) {
-        std::cout << "Didnt find SN truth (few things wont available):" << std::endl;
-        std::cout << " - MarlTime  " << std::endl;
-        std::cout << " - MarlWeight" << std::endl;
-        std::cout << " - MarlSample" << std::endl;
+        mf::LogDebug(fname) << "Didnt find SN truth (few things wont available):\n"
+                            << " - MarlTime\n"
+                            << " - MarlWeight\n"
+                            << " - MarlSample\n";
       }
     }
 
@@ -765,14 +770,13 @@ void SNAna::analyze(art::Event const & evt)
     }
   }
 
-  std::cout << "THE EVENTS NUMBER IS: " << Event << std::endl;
+  mf::LogInfo(fname) << "THE EVENTS NUMBER IS: " << Event << std::endl;
 
   if (fSaveTPC) {
     art::Handle< std::vector<recob::Hit> >    reco_hits         ;
-    art::Handle< std::vector<recob::Wire> >   wireVecHandle     ;
     art::Handle< std::vector<raw::RawDigit> > rawDigitsVecHandle;
+
     if(evt.getByLabel(fHitLabel,           reco_hits         ) &&
-       evt.getByLabel(fCalDataModuleLabel, wireVecHandle     ) &&
        evt.getByLabel(fRawDigitLabel,      rawDigitsVecHandle)) {
       std::vector< recob::Hit > ColHits_Marl;
       std::vector< recob::Hit > ColHits_CPA ;
@@ -923,7 +927,7 @@ void SNAna::analyze(art::Event const & evt)
           if(ThisPType==kMarl && MainTrID!=0){
             auto const it=trkIDToMarleyIndex.find(MainTrID);
             if(it==trkIDToMarleyIndex.end()){
-              std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+              mf::LogDebug(fname) << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
             }
             else{
               thisMarleyIndex=it->second;
@@ -969,19 +973,20 @@ void SNAna::analyze(art::Event const & evt)
           colHitCount++;
         }
       }
-      std::cerr << "Total of:" << std::endl;
-      std::cerr << " - Othe : " << ColHits_Oth.size() << " col plane hits " << std::endl;
-      std::cerr << " - Marl : " << TotGen_Marl << " true parts\t| " << ColHits_Marl.size() << " col plane hits" << std::endl;
-      std::cerr << " - APA  : " << TotGen_APA  << " true parts\t| " << ColHits_APA .size() << " col plane hits" << std::endl;
-      std::cerr << " - CPA  : " << TotGen_CPA  << " true parts\t| " << ColHits_CPA .size() << " col plane hits" << std::endl;
-      std::cerr << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << ColHits_Ar39.size() << " col plane hits" << std::endl;
-      std::cerr << " - Neut : " << TotGen_Neut << " true parts\t| " << ColHits_Neut.size() << " col plane hits" << std::endl;
-      std::cerr << " - Kryp : " << TotGen_Kryp << " true parts\t| " << ColHits_Kryp.size() << " col plane hits" << std::endl;
-      std::cerr << " - Plon : " << TotGen_Plon << " true parts\t| " << ColHits_Plon.size() << " col plane hits" << std::endl;
-      std::cerr << " - Rdon : " << TotGen_Rdon << " true parts\t| " << ColHits_Rdon.size() << " col plane hits" << std::endl;
-      std::cerr << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << ColHits_Ar42.size() << " col plane hits" << std::endl;
+      mf::LogInfo(fname) << "Total of:\n"
+                         << " - Other: " << ColHits_Oth.size() << " col plane hits\n"
+                         << " - Marl : " << TotGen_Marl << " true parts\t| " << ColHits_Marl.size() << " col plane hits\n"
+                         << " - APA  : " << TotGen_APA  << " true parts\t| " << ColHits_APA .size() << " col plane hits\n"
+                         << " - CPA  : " << TotGen_CPA  << " true parts\t| " << ColHits_CPA .size() << " col plane hits\n"
+                         << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << ColHits_Ar39.size() << " col plane hits\n"
+                         << " - Neut : " << TotGen_Neut << " true parts\t| " << ColHits_Neut.size() << " col plane hits\n"
+                         << " - Kryp : " << TotGen_Kryp << " true parts\t| " << ColHits_Kryp.size() << " col plane hits\n"
+                         << " - Plon : " << TotGen_Plon << " true parts\t| " << ColHits_Plon.size() << " col plane hits\n"
+                         << " - Rdon : " << TotGen_Rdon << " true parts\t| " << ColHits_Rdon.size() << " col plane hits\n"
+                         << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << ColHits_Ar42.size() << " col plane hits\n";
     } else {
-      mf::LogWarning("SNAnaModule") << "Requested to save wire hits, but cannot load any wire hits";
+      mf::LogError(fname) << "Requested to save wire hits, but cannot load any wire hits";
+      throw art::Exception(art::errors::NotFound) << "Requested to save wire hits, but cannot load any wire hits\n";
     }
   }
 
@@ -994,7 +999,7 @@ void SNAna::analyze(art::Event const & evt)
     if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
       art::fill_ptr_vector(ophitlist, OpHitHandle);
 
-      std::cout << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
+      mf::LogDebug(fname) << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
 
       for(size_t i = 0; i < ophitlist.size(); ++i)
       {
@@ -1020,7 +1025,7 @@ void SNAna::analyze(art::Event const & evt)
           if(gen==kMarl && MainTrID!=0){
             auto const it=trkIDToMarleyIndex.find(MainTrID);
             if(it==trkIDToMarleyIndex.end()){
-              std::cout << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
+              mf::LogDebug(fname) << "Track ID " << MainTrID << " is not in Marley index map" << std::endl;
             }
             else{
               thisMarleyIndex=it->second;
@@ -1053,27 +1058,27 @@ void SNAna::analyze(art::Event const & evt)
         PDS_OpHit_PE          .push_back(ophitlist[i]->PE());
         PDS_OpHit_FastToTotal .push_back(ophitlist[i]->FastToTotal());
       }
-      std::cerr << "Total of:" << std::endl;
-      std::cerr << " - Othe : " << map_of_ophit[kUnknown].size() << " opt hits" << std::endl;
-      std::cerr << " - Marl : " << TotGen_Marl << " true parts\t| " << map_of_ophit[kMarl].size() << " opt hits" << std::endl;
-      std::cerr << " - APA  : " << TotGen_APA  << " true parts\t| " << map_of_ophit[kAPA] .size() << " opt hits" << std::endl;
-      std::cerr << " - CPA  : " << TotGen_CPA  << " true parts\t| " << map_of_ophit[kCPA] .size() << " opt hits" << std::endl;
-      std::cerr << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << map_of_ophit[kAr39].size() << " opt hits" << std::endl;
-      std::cerr << " - Neut : " << TotGen_Neut << " true parts\t| " << map_of_ophit[kNeut].size() << " opt hits" << std::endl;
-      std::cerr << " - Kryp : " << TotGen_Kryp << " true parts\t| " << map_of_ophit[kKryp].size() << " opt hits" << std::endl;
-      std::cerr << " - Plon : " << TotGen_Plon << " true parts\t| " << map_of_ophit[kPlon].size() << " opt hits" << std::endl;
-      std::cerr << " - Rdon : " << TotGen_Rdon << " true parts\t| " << map_of_ophit[kRdon].size() << " opt hits" << std::endl;
-      std::cerr << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << map_of_ophit[kAr42].size() << " opt hits" << std::endl;
+      mf::LogInfo(fname) << "Total of :\n"
+                         << " - Other: " << map_of_ophit[kUnknown].size() << " opt hits\n" 
+                         << " - Marl : " << TotGen_Marl << " true parts\t| " << map_of_ophit[kMarl].size() << " opt hits\n"
+                         << " - APA  : " << TotGen_APA  << " true parts\t| " << map_of_ophit[kAPA] .size() << " opt hits\n"
+                         << " - CPA  : " << TotGen_CPA  << " true parts\t| " << map_of_ophit[kCPA] .size() << " opt hits\n"
+                         << " - Ar39 : " << TotGen_Ar39 << " true parts\t| " << map_of_ophit[kAr39].size() << " opt hits\n"
+                         << " - Neut : " << TotGen_Neut << " true parts\t| " << map_of_ophit[kNeut].size() << " opt hits\n"
+                         << " - Kryp : " << TotGen_Kryp << " true parts\t| " << map_of_ophit[kKryp].size() << " opt hits\n"
+                         << " - Plon : " << TotGen_Plon << " true parts\t| " << map_of_ophit[kPlon].size() << " opt hits\n"
+                         << " - Rdon : " << TotGen_Rdon << " true parts\t| " << map_of_ophit[kRdon].size() << " opt hits\n"
+                         << " - Ar42 : " << TotGen_Ar42 << " true parts\t| " << map_of_ophit[kAr42].size() << " opt hits\n";
     }
     else {
-      mf::LogWarning("SNAnaModule") << "Requested to save optical hits, but cannot load any ophits";
+      mf::LogError(fname) << "Requested to save optical hits, but cannot load any ophits";
+      throw art::Exception(art::errors::NotFound) << "Requested to save optical hits, but cannot load any optical hits\n";
     }
   }
 
   if(fSaveIDEs) SaveIDEs(evt);
 
 
-  std::cout << "True_Bck_Mode.size() " << True_Bck_Mode.size() << std::endl;
   fSNAnaTree->Fill();
 }
 
@@ -1311,7 +1316,7 @@ void SNAna::SaveNeighbourADC(int channel,
 
 void SNAna::endJob()
 {
-  std::cout << firstCatch << " " << secondCatch << " " << thirdCatch << std::endl;
+  mf::LogDebug(fname) << firstCatch << " " << secondCatch << " " << thirdCatch << std::endl;
 }
 
 DEFINE_ART_MODULE(SNAna)
