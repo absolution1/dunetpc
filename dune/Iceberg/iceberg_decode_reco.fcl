@@ -122,23 +122,39 @@ services.DetectorPropertiesService.ReadOutWindowSize: 2000
 
 #physics.producers.caldata.LogLevel: 3
 
+#turn on the vintage deconvoluter
+
+services.RawDigitPrepService.AdcChannelToolNames: [
+         "digitReader",
+         "pd_adcPedestalFit",
+         "adcSampleCalibration",
+         "pdsp_sticky_codes_ped",
+         "pdsp_adcMitigate",
+         "pdsp_timingMitigate",
+         "adcCorrectUndershootKe",
+         "pdsp_noiseRemovalKe",
+         "adcKeepAllSignalFinder",
+         "adcScaleKeToAdc",
+         "pdsp_RemoveBadChannels",
+         "adcVintageDeconvoluter" ]
+
 physics.producers.gaushit.CalDataModuleLabel: "caldata:dataprep"
 
 
 physics.producers.gaushit.HitFinderToolVec: {
             CandidateHitsPlane0: {
                Plane: 0
-               RoiThreshold: 15
+               RoiThreshold: 5
                tool_type: "CandHitStandard"
             }
             CandidateHitsPlane1: {
                Plane: 1
-               RoiThreshold: 15
+               RoiThreshold: 5
                tool_type: "CandHitStandard"
             }
             CandidateHitsPlane2: {
                Plane: 2
-               RoiThreshold: 15
+               RoiThreshold: 5
                tool_type: "CandHitStandard"
             }
 }
