@@ -65,9 +65,9 @@ physics:
     decode: [ 
        timingrawdecoder,
        caldata,
-       gaushit
-#@sequence::protoDUNE_notpcdecoding,
-#@sequence::protoDUNE_reco_data
+       gaushit,
+       linecluster,
+       pmtrack
           ]
 
     output: [ out1 ]
@@ -158,3 +158,15 @@ physics.producers.gaushit.HitFinderToolVec: {
                tool_type: "CandHitStandard"
             }
 }
+
+physics.producers.linecluster: @local::dunefd_linecluster
+physics.producers.pmtrack:  @local::dunefd_pmalgtrackmaker
+physics.producers.pmtrajfit:	      @local::dunefd_pmalgtrajfitter
+
+physics.producers.linecluster.HitFinderModuleLabel:	"gaushit"
+
+physics.producers.pmtrack.HitModuleLabel:             "linecluster"
+physics.producers.pmtrack.WireModuleLabel:            "caldata:dataprep"
+physics.producers.pmtrack.ClusterModuleLabel:         "linecluster"
+
+physics.producers.pmtrajfit.HitModuleLabel:           "linecluster"
