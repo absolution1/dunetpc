@@ -67,6 +67,7 @@ physics:
        caldata,
        gaushit,
        linecluster,
+       emtrkmichelid,
        pmtrack
           ]
 
@@ -170,3 +171,22 @@ physics.producers.pmtrack.WireModuleLabel:            "caldata:dataprep"
 physics.producers.pmtrack.ClusterModuleLabel:         "linecluster"
 
 physics.producers.pmtrajfit.HitModuleLabel:           "linecluster"
+physics.producers.emtrkmichelid:      @local::protodune_emtrkmichelid
+
+physics.producers.pmtrack.HitModuleLabel:                         "linecluster"
+physics.producers.pmtrack.ClusterModuleLabel:                     "emtrkmichelid:emtrkmichel"
+physics.producers.pmtrack.PMAlgTracking.TrackLikeThreshold:       0.63
+physics.producers.pmtrack.PMAlgTracking.MinSeedSize1stPass:       3
+physics.producers.pmtrack.PMAlgTracking.MinSeedSize2ndPass:       3
+physics.producers.pmtrack.PMAlgTracking.Validation:               "adc"
+physics.producers.pmtrack.PMAlgTracking.AdcValidationThr:         [0.8, 0.8, 1.0]
+physics.producers.pmtrack.PMAlgTracking.RunVertexing:             true
+physics.producers.pmtrack.PMAlgTracking.FlipToBeam:               true
+physics.producers.pmtrack.PMAlgTracking.MatchT0inCPACrossing:     true
+physics.producers.pmtrack.PMAlgCosmicTagging.TagOutOfDriftTracks: true
+physics.producers.pmtrack.PMAlgCosmicTagging.TagFullHeightTracks: true
+physics.producers.pmtrack.PMAlgCosmicTagging.TagNonBeamT0Tracks:  true
+
+physics.producers.emtrkmichelid.ClusterModuleLabel: "linecluster"
+physics.producers.emtrkmichelid.HitModuleLabel: "linecluster"
+physics.producers.emtrkmichelid.WireLabel: "caldata:dataprep"
