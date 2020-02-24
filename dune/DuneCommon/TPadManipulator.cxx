@@ -805,15 +805,15 @@ int TPadManipulator::update() {
   }
   if ( m_marginLeft >= 0.0 ) {
     // When left margin is changed, we leave the y-axis title at the edge of the pad.
-    double scalefac = m_marginLeft/xml;
     xml = m_marginLeft;
-    yttl *= scalefac;
+    //double scalefac = m_marginLeft/xml;
+    //yttl *= scalefac;
   }
   if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
   if ( m_marginBottom >= 0.0 ) {
-    double scalefac = m_marginBottom/xmb;
     xmb = m_marginBottom;
-    xttl *= scalefac;
+    //double scalefac = m_marginBottom/xmb;
+    //xttl *= scalefac;
   }
   if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
@@ -932,8 +932,14 @@ int TPadManipulator::update() {
   }
   if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
   if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
-  if ( m_labSizeX > 0.0 ) getXaxis()->SetLabelSize(m_labSizeX);
-  if ( m_labSizeY > 0.0 ) getYaxis()->SetLabelSize(m_labSizeY);
+  if ( m_labSizeX > 0.0 ) {
+    getXaxis()->SetLabelSize(m_labSizeX);
+    getXaxis()->SetTitleSize(m_labSizeX);
+  }
+  if ( m_labSizeY > 0.0 ) {
+    getYaxis()->SetLabelSize(m_labSizeY);
+    getYaxis()->SetTitleSize(m_labSizeY);
+  }
   if ( m_timeFormatX.size() ) {
     getXaxis()->SetTimeDisplay(1);
     getXaxis()->SetTimeFormat(m_timeFormatX.c_str());
