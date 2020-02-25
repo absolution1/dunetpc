@@ -124,10 +124,27 @@ int test_TPadManipulator() {
   cout << myname << line << endl;
   cout << myname << "Copy the full plot." << endl;
   TPadManipulator man2(*pmantop);
+  cout << myname << "Old subpad: " << pmantop->man(0) << endl;
+  cout << myname << "Old canvas: " << pmantop << endl;
+  cout << myname << "Old subpad parent: " << pmantop->man(0)->parent() << endl;
+  cout << myname << "New subpad: " << man2.man(0) << endl;
+  cout << myname << "New canvas: " << &man2 << endl;
+  cout << myname << "New subpad parent: " << man2.man(0)->parent() << endl;
+
+  cout << myname << line << endl;
+  cout << myname << "Change label size on copy." << endl;
+  cout << myname << "Old canvas label size: " << man2.getLabelSizeY() << endl;
+  cout << myname << "Old pad label size: " << man2.man(0)->getLabelSizeY() << endl;
+  man2.setLabelSizeY(0.02);
+  cout << myname << "New canvas label size: " << man2.getLabelSizeY() << endl;
+  // Next is zero before pad is drawn.
+  cout << myname << "New pad label size: " << man2.man(0)->getLabelSizeY() << endl;
 
   cout << myname << line << endl;
   cout << myname << "Draw copy." << endl;
   man2.print("test_TPadManipulator-copy.{png,pdf,tpad}");
+  cout << myname << "New pad label size: " << man2.man(0)->getLabelSizeY() << endl;
+
 
   cout << myname << line << endl;
   cout << myname << "Create time graph." << endl;

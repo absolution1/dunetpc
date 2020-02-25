@@ -216,6 +216,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_iobjLegend = rhs.m_iobjLegend;
   m_axisTitleOpt = rhs.m_axisTitleOpt;
+  setParents(true);
   update();
   return *this;
 }
@@ -932,13 +933,15 @@ int TPadManipulator::update() {
   }
   if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
   if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
-  if ( m_labSizeX > 0.0 ) {
-    getXaxis()->SetLabelSize(m_labSizeX);
-    getXaxis()->SetTitleSize(m_labSizeX);
+  double labSizeX = getLabelSizeX();
+  if ( labSizeX > 0.0 ) {
+    getXaxis()->SetLabelSize(labSizeX);
+    getXaxis()->SetTitleSize(labSizeX);
   }
-  if ( m_labSizeY > 0.0 ) {
-    getYaxis()->SetLabelSize(m_labSizeY);
-    getYaxis()->SetTitleSize(m_labSizeY);
+  double labSizeY = getLabelSizeY();
+  if ( labSizeY > 0.0 ) {
+    getYaxis()->SetLabelSize(labSizeY);
+    getYaxis()->SetTitleSize(labSizeY);
   }
   if ( m_timeFormatX.size() ) {
     getXaxis()->SetTimeDisplay(1);
@@ -1084,6 +1087,34 @@ int TPadManipulator::setCanvasSize(int wx, int wy) {
     return update();
   }
   return 0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getLabelSizeX() const {
+  if ( m_labSizeX ) return m_labSizeX;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getLabelSizeX() : 0.0;
+    return h;
+  }
+  return 0.0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getLabelSizeY() const {
+  if ( m_labSizeY ) return m_labSizeY;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getLabelSizeY() : 0.0;
+    return h;
+  }
+  return 0.0;
 }
 
 //**********************************************************************

@@ -157,6 +157,7 @@ public:
 
   // Return the parent pad.
   TPadManipulator* parent() { return m_parent; }
+  const TPadManipulator* parent() const { return m_parent; }
   bool haveParent() const { return m_parent != nullptr; }
 
   // Return the primary histogram or graph for this pad.
@@ -187,6 +188,7 @@ public:
   int canvasPixelsY() const;
 
   // Return information about the full drawing area for this pad.
+  // Pad must be drawn (or printed) to set these values for subpads.
   double padPixelsX() const;
   double padPixelsY() const;
 
@@ -296,9 +298,16 @@ public:
   int setNdivisionsX(int ndiv) { m_ndivX = ndiv; return 0; };
   int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
 
-  // Set the axis label sizes.
+  // Set the axis label sizes. Default is zero.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+
+  // Fetch the label size for this pad.
+  // Returns the set value if nonzero, otherwise
+  // if parent, returns the parent value scaled by ratio of pad heights
+  // otherwise returns zero.
+  double getLabelSizeX() const;
+  double getLabelSizeY() const;
 
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
