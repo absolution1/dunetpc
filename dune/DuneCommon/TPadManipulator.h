@@ -24,6 +24,7 @@
 #include "TLatex.h"
 #include "TLine.h"
 #include "TLegend.h"
+#include "TExec.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -216,6 +217,15 @@ public:
   // The first object must be a histogram or graph.
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
+
+  // Set and fetch the TExec command run when the pad is drawn.
+  void setTExec(Name com) { m_exec.SetTitle(com.c_str()); }
+  const TExec& getTExec() const { return m_exec; }
+
+  // Set the palette for this pad.
+  // Added to TExec.
+  // Negative for no platte command.
+  void setPalette(int ipal);
 
   // Set margins. Negative value uses default margin.
   // The default is set here to be reasonable for a wide range of aspect ratio.
@@ -410,6 +420,7 @@ private:
   TVirtualPad* m_ppad;  //! ==> Do not stream.
   int m_canvasWidth;
   int m_canvasHeight;
+  TExec m_exec;
   double m_marginLeft;
   double m_marginRight;
   double m_marginBottom;

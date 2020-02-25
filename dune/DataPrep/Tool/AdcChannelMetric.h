@@ -16,13 +16,14 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   Metric - Name of the plotted metric. This can be the name of any
-//            metadata field or any of the following:
+//            metadata field or any of the following single values:
 //              pedestal 
 //              pedestalDiff - pedestal - (pedestal reference)
 //              pedestalRms - pedestal noise from the ADC channel data (e.g. filled by pedestal finder)
 //              fembID [0, 120) in protoDUNE
 //              apaFembID - FEMB number in the APA [0, 20)
 //              fembChannel - channel # in the FEMB [0, 128)
+//            or any of the following calculated values
 //              rawRms - RMS of (ADC - pedestal)
 //              samRms - RMS of sample
 //              samRmsNN - RMS of integration over NN contiguous samples (NN = 1, 2, ...)
@@ -31,6 +32,9 @@
 //              sigRms: RMS of the signal samples.
 //              nsgRms: RMS of the not-signal samples.
 //              nsgRmsNN: RMS of integration over NN contiguous not-signal samples.
+//            In the case a data view other than the top (DataView not blank), the single values
+//            are taken from the first entry. The calculated values include all entries.
+//   DataView - Name of the data view to use.
 //   PedestalReference - Name of the FloatArrayTool that holds the pedestal reference values.
 //                       If the value is "first", the pedestal for the first event is used.
 //   MetricSummaryView - If not empty and a summary is requested, this specifies the view
@@ -130,7 +134,7 @@ public:
   bool updateWithView() const override { return true; }
 
   // Local method that directly returns the metric value and units.
-  // Subclasse may overrride this to add metrics. They are expected to
+  // Subclasses may overrride this to add metrics. They are expected to
   // call the fcl ctor of this class.
   // The weight is used when averaging over events, e.g. the number
   // of samples or ROIs contributing to the metric value.
@@ -143,6 +147,7 @@ private:
   // Configuration data.
   int            m_LogLevel;
   Name           m_Metric;
+  Name           m_DataView;
   Name           m_PedestalReference;
   Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;

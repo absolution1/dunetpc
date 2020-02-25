@@ -55,10 +55,10 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
     fout << "  YMinLog: 0.0" << endl;
     fout << "  HistName: \"\"" << endl;
     fout << "  HistTitle: \"\"" << endl;
-    fout << "  HistSummaryTitle: \"\"" << endl;
+    fout << "  HistSummaryTitles: []" << endl;
     fout << "  PlotDataView: \"\"" << endl;
     fout << "  PlotName: \"\"" << endl;
-    fout << "  PlotSummaryName: \"\"" << endl;
+    fout << "  PlotSummaryNames: []" << endl;
     fout << "  PlotChannelRanges: []" << endl;
     fout << "  PlotChannelGroups: []" << endl;
     fout << "  PlotOverlayGroups: 1" << endl;

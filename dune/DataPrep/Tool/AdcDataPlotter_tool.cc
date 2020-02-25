@@ -292,7 +292,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       Index ibiny = chan-chanBegin + 1;
       Index nent = acdtop.viewSize(m_DataView);
       if ( m_LogLevel >= 2 && nent == 0 ) {
-        cout << myname << "Unable to find data view name " << m_DataView << endl;
+        cout << myname << "WARNING: Unable to find data view name " << m_DataView << endl;
       }
       for ( Index ient=0; ient<nent; ++ient ) {
         if ( m_LogLevel >= 3 ) {
@@ -300,12 +300,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
         const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
         if ( pacd == nullptr ) {
-          cout << myname << "Skipping null view entry " << m_DataView << "[" << ient
+          cout << myname << "ERROR: Skipping null view entry " << m_DataView << "[" << ient
                << "]." << endl;
           continue;
         }
         if ( pacd->channel != chan ) {
-          cout << myname << "Skipping view entry " << m_DataView << "[" << ient
+          cout << myname << "ERROR: Skipping view entry " << m_DataView << "[" << ient
                << "] with the wrong the wrong channel: "
                << pacd->channel << " != " << chan <<"." << endl;
           continue;
@@ -388,15 +388,18 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       ph->Scale(1.0/m_TickRebin);
       ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     }
+/*
     // Save the original color map.
     RootPalette oldPalette;
     RootPalette::set(m_Palette);
+*/
     const RootPalette* ppal = RootPalette::find(m_Palette);
     if ( ppal == nullptr ) {
       cout << myname << "ERROR: Unable to find palette " << m_Palette << endl;
       return ret.setStatus(3);
     }
     TPadManipulator man;
+    man.setPalette(m_Palette);
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
     man.setRangeZ(m_MinSignal, m_MaxSignal);
@@ -444,7 +447,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
       delete pfile;
     }
+/*
     oldPalette.setRootPalette();
+*/
     ++nhist;
   }
   ret.setInt("nhist", nhist);

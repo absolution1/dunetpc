@@ -11,7 +11,7 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   HistTypes: Types of histograms to create:
-//                raw = raw data: ADC - pedestal vs tick
+//                raw = raw data: ADC vs tick
 //                rawdist = raw data dist: # ticks vs ADC
 //                prepared = prepared data: signal vs. tick
 //   HistName:  Name for the histogram.
@@ -27,6 +27,8 @@
 //                  pedestal - Fixed range around pedestal (PlotSigMin+ped, PlotSigMax+ped)
 //   PlotSigMin: - Min for signal range. See PlotSigOpt.
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
+//   PlotDistMin - Min for y-axis in rawdist plots
+//   PlotDistMax - Max for y-axis in rawdist plots
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
 //   SkipFlags - Samples with these flags are excluded from dist plots
@@ -86,6 +88,8 @@ private:
   Name m_PlotSigOpt;
   float m_PlotSigMin;
   float m_PlotSigMax;
+  float m_PlotDistMin;
+  float m_PlotDistMax;
   Index m_ColorBad;
   Index m_ColorNoisy;
   IndexVector m_SkipFlags;
