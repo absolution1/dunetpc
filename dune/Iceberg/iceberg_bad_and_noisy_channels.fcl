@@ -133,6 +133,7 @@ iceberg_bad_channels: [
  1039
 ]
 iceberg_noisy_channels: [
+ 631,
  1210,
  1214,
  1222,
