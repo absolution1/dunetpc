@@ -30,15 +30,19 @@ int main(int argc, char** argv) {
   string tnameGroup = "channelGroups";
   int iarg = 1;
   string sdet = "protodune";
-  if ( argc > iarg ) {
-    string arg = argv[iarg];
-    if ( arg == "-h" ) help = true;
-    else {
-      if ( arg == "-d" ) {
-        if ( argc > ++iarg ) sdet = argv[iarg];
-        else help = true;
+  while ( iarg < argc ) {
+    string arg = argv[iarg++];
+    if ( arg[0] == '-' ) {
+      if ( arg == "-h" ) {
+        help = true;
+      } else if ( arg == "-d" ) {
+        if ( iarg < argc ) sdet = argv[iarg++];
+      } else {
+        cout << "ERROR: Invalid flag: " << arg << endl;
+        help = true;
       }
-      if ( argc > ++iarg ) crname = argv[iarg];
+    } else {
+      crname = arg;
     }
   }
   string fclfile = sdet + "_tools_dune.fcl";
