@@ -66,6 +66,7 @@ physics:
        timingrawdecoder,
        caldata,
        gaushit,
+       hitfd,
        linecluster,
        emtrkmichelid,
        pmtrack
@@ -161,17 +162,16 @@ physics.producers.gaushit.HitFinderToolVec: {
 }
 
 physics.producers.linecluster: @local::dunefd_linecluster
-physics.producers.pmtrack:  @local::dunefd_pmalgtrackmaker
-physics.producers.pmtrajfit:	      @local::dunefd_pmalgtrajfitter
-
-physics.producers.linecluster.HitFinderModuleLabel:	"gaushit"
-
-physics.producers.pmtrack.HitModuleLabel:             "linecluster"
-physics.producers.pmtrack.WireModuleLabel:            "caldata:dataprep"
-physics.producers.pmtrack.ClusterModuleLabel:         "linecluster"
-
-physics.producers.pmtrajfit.HitModuleLabel:           "linecluster"
+physics.producers.pmtrack:     @local::dunefd_pmalgtrackmaker
+physics.producers.pmtrajfit:   @local::dunefd_pmalgtrajfitter
+physics.producers.hitfd:       @local::dunefd_hitfinderfd
 physics.producers.emtrkmichelid:      @local::protodune_emtrkmichelid
+
+physics.producers.linecluster.HitFinderModuleLabel:	"hitfd"
+physics.producers.pmtrack.HitModuleLabel:               "linecluster"
+physics.producers.pmtrack.WireModuleLabel:              "caldata:dataprep"
+physics.producers.pmtrack.ClusterModuleLabel:           "linecluster"
+physics.producers.pmtrajfit.HitModuleLabel:             "linecluster"
 
 physics.producers.pmtrack.HitModuleLabel:                         "linecluster"
 physics.producers.pmtrack.ClusterModuleLabel:                     "emtrkmichelid:emtrkmichel"
