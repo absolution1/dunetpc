@@ -1442,6 +1442,7 @@ void AdcRoiViewer::writeSumPlots() const {
   Index wpady = 1000;
   npad = npadx*npady;
   Index nvec = getState().sumPlotHists.size();
+  if ( npad == 0 ) return;
   if (  m_LogLevel >= 1 ) cout << myname << "Plotting " << nvec << " set"
                                << (nvec == 1 ? "" : "s") << " of summary histograms " << endl;
   for ( const HistVectorMap::value_type ihv : getState().sumPlotHists ) {
