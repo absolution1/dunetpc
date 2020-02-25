@@ -73,8 +73,8 @@ public:
   int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const override;
   int viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const override;
   bool updateWithView() const override { return true; }
-  DataMap beginEvent(const DuneEventInfo&) const;
-  DataMap endEvent(const DuneEventInfo&) const;
+  DataMap beginEvent(const DuneEventInfo&) const override;
+  DataMap endEvent(const DuneEventInfo&) const override;
 
 private:
 
