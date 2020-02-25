@@ -532,7 +532,7 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       return false; 
     }
    DataFragmentUnpack df(cdptr);
-   std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
+   //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
