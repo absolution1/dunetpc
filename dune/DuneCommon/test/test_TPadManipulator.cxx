@@ -132,10 +132,11 @@ int test_TPadManipulator() {
   cout << myname << "New subpad parent: " << man2.man(0)->parent() << endl;
 
   cout << myname << line << endl;
-  cout << myname << "Change label size on copy." << endl;
+  cout << myname << "Change title and y-label size on copy." << endl;
   cout << myname << "Old canvas label size: " << man2.getLabelSizeY() << endl;
   cout << myname << "Old pad label size: " << man2.man(0)->getLabelSizeY() << endl;
   man2.setLabelSizeY(0.02);
+  man2.setTitleSize(0.025);
   cout << myname << "New canvas label size: " << man2.getLabelSizeY() << endl;
   // Next is zero before pad is drawn.
   cout << myname << "New pad label size: " << man2.man(0)->getLabelSizeY() << endl;

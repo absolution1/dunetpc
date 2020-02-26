@@ -299,8 +299,11 @@ public:
   int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
 
   // Set the axis label sizes. Default is zero.
+  // Unless set explcitely, Sub-pads will use a scaled version of this
+  // so all labels are the same size.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+  int setTitleSize(double siz) { m_ttlSize = siz; return 0; }
 
   // Fetch the label size for this pad.
   // Returns the set value if nonzero, otherwise
@@ -308,6 +311,7 @@ public:
   // otherwise returns zero.
   double getLabelSizeX() const;
   double getLabelSizeY() const;
+  double getTitleSize() const;
 
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
@@ -454,6 +458,7 @@ private:
   int m_ndivY;
   double m_labSizeX;
   double m_labSizeY;
+  double m_ttlSize;
   TH1* m_flowHist;        //! ==> Do not stream.
   bool m_showUnderflow;
   bool m_showOverflow;

@@ -89,7 +89,7 @@ TPadManipulator::TPadManipulator()
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_ndivX(0), m_ndivY(0),
-  m_labSizeX(0.0), m_labSizeY(0.0),
+  m_labSizeX(0.0), m_labSizeY(0.0), m_ttlSize(0.0),
   m_flowHist(nullptr),
   m_showUnderflow(false), m_showOverflow(false),
   m_flowGraph(nullptr),
@@ -181,6 +181,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_ndivY = rhs.m_ndivY;
   m_labSizeX = rhs.m_labSizeX;
   m_labSizeY = rhs.m_labSizeY;
+  m_ttlSize = rhs.m_ttlSize;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
   m_gflowOpt = rhs.m_gflowOpt;
@@ -823,6 +824,8 @@ int TPadManipulator::update() {
   m_ppad->SetBottomMargin(xmb);
   m_title.SetX(0.5);
   m_title.SetY(httl);
+  double ttlSize = getTitleSize();
+  if ( ttlSize > 0.0 ) m_title.SetTextSize(ttlSize);
   // Set the axis tick lengths.
   // If the Y-size is zero, then they are drawn to have the same pixel length as the X-axis.
   double ticklenx = m_tickLengthX;
@@ -1112,6 +1115,20 @@ double TPadManipulator::getLabelSizeY() const {
     double h1 = padPixelsY();
     double h2 = pman->padPixelsY();
     double h = h1 ? h2/h1*pman->getLabelSizeY() : 0.0;
+    return h;
+  }
+  return 0.0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getTitleSize() const {
+  if ( m_ttlSize ) return m_ttlSize;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getTitleSize() : 0.0;
     return h;
   }
   return 0.0;
