@@ -5,7 +5,8 @@
   <function name="cePulserToAdc" noStreamer="true"/>
   <function name="cePulserToAdcTF1" noStreamer="true"/>
   <class name="RootPalette" />
-  <class name="TPadManipulator" ClassVersion="3" noStreamer="true">
+  <class name="TPadManipulator" ClassVersion="4" noStreamer="true">
+   <version ClassVersion="4" checksum="31706553"/>
    <version ClassVersion="3" checksum="2307287439"/>
    <version ClassVersion="2" checksum="492659693"/>
   </class>
