@@ -600,11 +600,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
     }
     //if ( m_ppad == nullptr ) return 106;
     // Transfer the hist/graph title to the pad title.
-    pman->m_title.SetNDC();
-    pman->m_title.SetTextAlign(22);
-    pman->m_title.SetTextFont(42);
-    pman->m_title.SetTextSize(0.035);
-    pman->m_title.SetText(0.5, 0.95, pobj->GetTitle());
+    pman->setTitle(pobj->GetTitle());
     // Clone the primary object.
     if ( ph != nullptr ) {
       TH1* phc = (TH1*) ph->Clone();
@@ -652,8 +648,20 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
   
 //**********************************************************************
 
-int TPadManipulator::setTitle(string sttl) {
+int TPadManipulator::setTitle(string sttl, float height) {
   m_title.SetTitle(sttl.c_str());
+  m_title.SetNDC();
+  m_title.SetTextAlign(22);
+  m_title.SetTextFont(42);
+  float tsiz = height;
+  if ( tsiz <= 0.0 ) {
+    tsiz = getTitleSize();
+    if ( tsiz <= 0.0 ) tsiz = 0.035;
+  }
+  m_title.SetTextSize(tsiz);
+  double xttl = 0.5;
+  double yttl = 1.0 - 0.70*tsiz;
+  m_title.SetText(xttl, yttl, sttl.c_str());
   return 0;
 }
 
@@ -757,6 +765,9 @@ int TPadManipulator::update() {
     if ( npad() == 0 && !haveParent() ) {
       cout << myname << "Top-level pad does not have a histogram or graph or subpads!" << endl;
     }
+    // Add the title and labels.
+    m_title.Draw();
+    if ( getLabel().size() ) m_label.Draw();
     gPad = pPadSave;
     return 0;
   }
@@ -784,7 +795,7 @@ int TPadManipulator::update() {
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
   double yttl = 0.17 + 1.8*aspx;
-  double httl = 1.0 - 0.5*xmt;
+  //double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
     if ( pax != nullptr ) {
@@ -822,10 +833,6 @@ int TPadManipulator::update() {
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
   m_ppad->SetBottomMargin(xmb);
-  m_title.SetX(0.5);
-  m_title.SetY(httl);
-  double ttlSize = getTitleSize();
-  if ( ttlSize > 0.0 ) m_title.SetTextSize(ttlSize);
   // Set the axis tick lengths.
   // If the Y-size is zero, then they are drawn to have the same pixel length as the X-axis.
   double ticklenx = m_tickLengthX;
@@ -923,6 +930,18 @@ int TPadManipulator::update() {
   m_ppad->SetLogz(doLogz);
   // Draw frame and set axis parameters.
   m_ppad->DrawFrame(xa1, ya1, xa2, ya2, sattl.c_str());
+  double labSizeX = getLabelSizeX();
+  if ( labSizeX > 0.0 ) {
+    getXaxis()->SetLabelSize(labSizeX);
+    getXaxis()->SetTitleSize(labSizeX);
+    //xttl *= labSizeX/0.035;
+  }
+  double labSizeY = getLabelSizeY();
+  if ( labSizeY > 0.0 ) {
+    getYaxis()->SetLabelSize(labSizeY);
+    getYaxis()->SetTitleSize(labSizeY);
+    //yttl *= labSizeY/0.035;
+  }
   getXaxis()->SetLabelOffset(xlb);
   getXaxis()->SetTitleOffset(xttl);
   getYaxis()->SetTitleOffset(yttl);
@@ -936,16 +955,6 @@ int TPadManipulator::update() {
   }
   if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
   if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
-  double labSizeX = getLabelSizeX();
-  if ( labSizeX > 0.0 ) {
-    getXaxis()->SetLabelSize(labSizeX);
-    getXaxis()->SetTitleSize(labSizeX);
-  }
-  double labSizeY = getLabelSizeY();
-  if ( labSizeY > 0.0 ) {
-    getYaxis()->SetLabelSize(labSizeY);
-    getYaxis()->SetTitleSize(labSizeY);
-  }
   if ( m_timeFormatX.size() ) {
     getXaxis()->SetTimeDisplay(1);
     getXaxis()->SetTimeFormat(m_timeFormatX.c_str());

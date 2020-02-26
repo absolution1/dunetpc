@@ -254,7 +254,7 @@ public:
   // The initial value for this is taken from the primary object.
   // The title is drawn as specified in the promary object, i.e. typically
   // above the frame.
-  int setTitle(std::string sttl);
+  int setTitle(std::string sttl, float height =-1.0);
   std::string getTitle() const { return m_title.GetTitle(); }
 
   // Set and get the label associated with this pad.
