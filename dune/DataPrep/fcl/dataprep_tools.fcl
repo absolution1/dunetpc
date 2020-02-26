@@ -67,7 +67,7 @@ tools.adcPlotRaw: {
   LogLevel: 1
   HistTypes: ["raw"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -79,6 +79,7 @@ tools.adcPlotRaw: {
   PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
+  LabelSize: 0.01
   SkipFlags: []
 }
 
@@ -88,7 +89,7 @@ tools.adcPlotPrepared: {
   LogLevel: 1
   HistTypes: ["prepared"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -100,6 +101,7 @@ tools.adcPlotPrepared: {
   PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
+  LabelSize: 0.01
   SkipFlags: []
 }
 
@@ -109,7 +111,7 @@ tools.adcPlotRawDist: {
   LogLevel: 1
   HistTypes: ["rawdist"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -121,6 +123,7 @@ tools.adcPlotRawDist: {
   PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
+  LabelSize: 0.02
   SkipFlags: []
 }
 

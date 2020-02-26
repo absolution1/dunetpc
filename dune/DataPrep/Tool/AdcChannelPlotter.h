@@ -13,6 +13,7 @@
 //   HistTypes: Types of histograms to create:
 //                raw = raw data: ADC vs tick
 //                rawdist = raw data dist: # ticks vs ADC
+//                rawdistlog = raw data dist: log(# ticks) vs ADC
 //                prepared = prepared data: signal vs. tick
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
@@ -32,6 +33,8 @@
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
 //   SkipFlags - Samples with these flags are excluded from dist plots
+//   LabelSize - Size for x and y labels and titles. This is fraction of the pad size.
+//               Default of 0 ==> Root's 0.035 which can be tiny for many vertical suppads.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -92,6 +95,7 @@ private:
   float m_PlotDistMax;
   Index m_ColorBad;
   Index m_ColorNoisy;
+  float m_LabelSize;
   IndexVector m_SkipFlags;
 
   // ADC string tool.

@@ -56,6 +56,7 @@ int test_AdcChannelPlotter(bool useExistingFcl =false) {
     fout << "  HistManager: \"\"" << endl;
     fout << "  MaxSample: 80" << endl;
     fout << "  SkipFlags: []" << endl;
+    fout << "  LabelSize: 0" << endl;
     fout << "}" << endl;
     fout.close();
   } else {

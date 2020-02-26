@@ -48,6 +48,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotDistMax(ps.get<float>("PlotDistMax")),
   m_ColorBad(ps.get<Index>("ColorBad")),
   m_ColorNoisy(ps.get<Index>("ColorNoisy")),
+  m_LabelSize(ps.get<float>("LabelSize")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
@@ -89,8 +90,11 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
     cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
     cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
-    cout << myname << "    PlotDistMin: " << m_PlotDistMin << endl;
-    cout << myname << "    PlotDistMax: " << m_PlotDistMax << endl;
+    cout << myname << "   PlotDistMin: " << m_PlotDistMin << endl;
+    cout << myname << "   PlotDistMax: " << m_PlotDistMax << endl;
+    cout << myname << "      ColorBad: " << m_ColorBad << endl;
+    cout << myname << "    ColorNoisy: " << m_ColorNoisy << endl;
+    cout << myname << "     LabelSize: " << m_LabelSize << endl;
     cout << myname << "      SkipFlags: [";
     first = true;
     for ( Index flg : m_SkipFlags ) {
@@ -275,13 +279,18 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   IndexMap nplts;
   NameMap pfnames;
   std::vector<TLatex*> labs;
+  float marginTop    = 0.0;
+  float marginBottom = 0.09;
+  float marginLeft   = 0.05;
+  float marginRight  = 0.01;
+  bool useViewPort = true;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     Index icha = iacd.first;
     string schan = std::to_string(icha);
-    TLatex* ptxt = new TLatex(0.98, 0.14, schan.c_str());
+    TLatex* ptxt = new TLatex(0.98, 0.05 + marginBottom, schan.c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
-    ptxt->SetTextSize(0.16);
+    ptxt->SetTextSize(0.20);
     ptxt->SetTextAlign(31);
     labs.push_back(ptxt);
     const AdcChannelData& acd = iacd.second;
@@ -293,8 +302,19 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         bool isLogY = type == "rawdistlog";
         if ( mans.find(type) == mans.end() ) {
           if ( m_LogLevel >= 3 ) cout << "Creating new top-level plot of type " << type << "." << endl;
-          TPadManipulator& man = mans[type];
-          man.setCanvasSize(1400, 1000);
+          TPadManipulator& topman = mans[type];
+          topman.setCanvasSize(1400, 1000);
+          if ( useViewPort ) {
+            float xview1 = 0.0;
+            float yview1 = isRawDist ? 0.0 : 0.00;
+            float xview2 = 1.0;
+            float yview2 = isRawDist ? 0.0 : 0.96;
+            if ( topman.addPad(xview1, yview1, xview2, yview2) ) {
+              cout << myname << "ERROR: Unable to add subpad." << endl;
+              abort();
+            }
+          }
+          TPadManipulator& man = *topman.man(0);
           if ( isRaw || type == "prepared" ) {
             man.split(nx,ny);
             for ( Index ipad=0; ipad<nplt; ++ipad ) {
@@ -317,13 +337,33 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           }
           pfnames[type] = nameReplace(m_PlotFileName, acd, type);
           iplts[type] = 0;
+          if ( m_LabelSize ) {
+            man.setLabelSizeX(m_LabelSize);
+            man.setLabelSizeY(m_LabelSize);
+            //man.setTitleSize(m_LabelSize);
+          }
+          if ( ! isRawDist ) {
+            for ( Index ipsm=0; ipsm<man.npad(); ++ipsm ) {
+              TPadManipulator* psman = man.man(ipsm);
+              psman->setMarginTop(marginTop);
+              psman->setMarginBottom(marginBottom);
+              psman->setMarginLeft(marginLeft);
+              psman->setMarginRight(marginRight);
+            }
+          }
         }
         Index& iplt = iplts[type];
         Index nplt = nplts[type];
         TH1* ph = res.getHist(type);
         if ( m_LogLevel >= 3 ) cout << myname << "  Adding subplot " << iplt << " for type " << type << "." << endl;
-        TPadManipulator& man = *mans[type].man(iplt);
+        TPadManipulator& topman = mans[type];
+        string sttl = ph->GetTitle();
+        Index ipos = sttl.find(" channel");
+        sttl = sttl.substr(0, ipos);
+        topman.setTitle(sttl, 0.025);
+        TPadManipulator& man = useViewPort ? *topman.man(0)->man(iplt) : *topman.man(iplt);
         man.add(ph, "hist", false);
+        man.setTitle("");
         if ( type == "raw" || type == "prepared" ) {
           float ymin = m_PlotSigMin;
           float ymax = m_PlotSigMax;
