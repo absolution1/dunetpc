@@ -398,6 +398,11 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           if ( type == "raw" && acd.pedestal > ymin && acd.pedestal < ymax ) { 
             man.addHorizontalLine(acd.pedestal);
           }
+          // For prepared data, add line showing zero.
+          if ( type == "prepared" ) { 
+            man.addHorizontalLine(0.0);
+          }
+          
         } else if ( isRawDist ) {
           if ( m_PlotSigOpt == "fixed" ) {
             float xmin = m_PlotSigMin;
