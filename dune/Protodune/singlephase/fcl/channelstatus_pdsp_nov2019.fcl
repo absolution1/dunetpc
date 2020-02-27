@@ -95,8 +95,6 @@ pdsp_channel_status_nov2019: {
     # CE group: good.
     # femb311
         2,  # femb311u38, no signal
-     7680,  # femb611u40: No signal in 5308-76, end wire
-     5361,  # femb217u39, no signal
         4,  # femb311u36, very sticky pedestal 5308-76
      1632,  # femb320x33, very sticky pedestal 5308-76
      2169,  # femb302x07, Mostly stuck on one bad code, 5308-76
@@ -133,6 +131,8 @@ pdsp_channel_status_nov2019: {
      4754,  # femb503x30, very sticky pedestal
      4756,  # femb503x28, very sticky pedestal
      4758,  # femb503x26, very sticky pedestal
+     5361,  # femb217u39, no signal
+     7680,  # femb611u40: No signal in 5308-76, end wire
      8501,  # femb620v22, very sticky pedestal
      8503,  # femb620v24, very sticky pedestal
      8821,  # femb612v22, very sticky pedestal
@@ -205,6 +205,8 @@ pdsp_channel_status_nov2019: {
         4,
     # femb313u
        94,
+    # femb319u
+      325,  # femb319u35, 2020-02-27: Mostly stuck on one bad code 5141, 5795, 8764, ...
     # femb302u
       442,
       447,
