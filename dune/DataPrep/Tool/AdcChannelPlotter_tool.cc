@@ -279,18 +279,13 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   IndexMap nplts;
   NameMap pfnames;
   std::vector<TLatex*> labs;
-  float marginTop    = 0.0;
-  float marginBottom = 0.09;
-  float marginLeft   = 0.05;
-  float marginRight  = 0.01;
   bool useViewPort = true;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     Index icha = iacd.first;
     string schan = std::to_string(icha);
-    TLatex* ptxt = new TLatex(0.98, 0.05 + marginBottom, schan.c_str());
+    TLatex* ptxt = new TLatex(0.98, 0.025, schan.c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
-    ptxt->SetTextSize(0.20);
     ptxt->SetTextAlign(31);
     labs.push_back(ptxt);
     const AdcChannelData& acd = iacd.second;
@@ -300,6 +295,16 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         bool isRaw = type == "raw";
         bool isRawDist = type == "rawdist" || type == "rawdistlog";
         bool isLogY = type == "rawdistlog";
+        float marginTop    = 0.0;
+        float marginBottom = isRawDist ? 0.12 : 0.09;
+        float marginLeft   = isRawDist ? 0.12 : 0.05;
+        float marginRight  = isRawDist ? 0.02 : 0.01;
+        float xlab = isRawDist ? 0.95 : 0.98;
+        float ylab = 0.05 + marginBottom;
+        float hlab = isRawDist ? 0.08 : 0.16;
+        ptxt->SetX(xlab);
+        ptxt->SetY(ylab);
+        ptxt->SetTextSize(hlab);
         if ( mans.find(type) == mans.end() ) {
           if ( m_LogLevel >= 3 ) cout << "Creating new top-level plot of type " << type << "." << endl;
           TPadManipulator& topman = mans[type];
@@ -308,7 +313,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             float xview1 = 0.0;
             float yview1 = isRawDist ? 0.0 : 0.00;
             float xview2 = 1.0;
-            float yview2 = isRawDist ? 0.0 : 0.96;
+            float yview2 = isRawDist ? 0.96 : 0.96;
             if ( topman.addPad(xview1, yview1, xview2, yview2) ) {
               cout << myname << "ERROR: Unable to add subpad." << endl;
               abort();
@@ -342,14 +347,12 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             man.setLabelSizeY(m_LabelSize);
             //man.setTitleSize(m_LabelSize);
           }
-          if ( ! isRawDist ) {
-            for ( Index ipsm=0; ipsm<man.npad(); ++ipsm ) {
-              TPadManipulator* psman = man.man(ipsm);
-              psman->setMarginTop(marginTop);
-              psman->setMarginBottom(marginBottom);
-              psman->setMarginLeft(marginLeft);
-              psman->setMarginRight(marginRight);
-            }
+          for ( Index ipsm=0; ipsm<man.npad(); ++ipsm ) {
+            TPadManipulator* psman = man.man(ipsm);
+             psman->setMarginTop(marginTop);
+            psman->setMarginBottom(marginBottom);
+            psman->setMarginLeft(marginLeft);
+            psman->setMarginRight(marginRight);
           }
         }
         Index& iplt = iplts[type];
@@ -411,6 +414,7 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
             if ( isLogY ) man.setLogRangeY(m_PlotDistMin, m_PlotDistMax);
             else          man.setRangeY(m_PlotDistMin, m_PlotDistMax);
           }
+          man.add(ptxt);
         }
         man.addAxis();
         if ( ++iplt >= nplt ) {
