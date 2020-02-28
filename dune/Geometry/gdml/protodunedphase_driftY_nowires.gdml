@@ -951,7 +951,7 @@
    <position name="posallpmt" unit="cm" x="0" y="0" z="3.2258"/>
   </physvol>
 
- <physvol name="volOpDetSensitive0">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtCoatVol"/>
   <position name="posOpDetSensitive0" unit="cm" x="0" y="0" z="-2.4384"/>
   </physvol>
@@ -974,7 +974,7 @@
    <position name="posallpmt2" unit="cm" x="0" y="0" z="3.2258"/>
   </physvol>
 
- <physvol name="volOpDetSensitive1">
+ <physvol name="volOpDetSensitive">
   <volumeref ref="pmtFoilVol"/>
   <position name="posOpDetSensitive1" unit="cm" x="0" y="0" z="11.1258"/>
   </physvol>

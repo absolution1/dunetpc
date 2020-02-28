@@ -61,7 +61,7 @@ physics: {
 
       # You can add any number of trigger primitive finders here. Make
       # sure each one has a distinct name, and has a corresponding
-      # daqsimana analyzer (otherwise you won't get a corresponding
+      # daqsimana analyzer otherwise you won't get a corresponding
       # TTree in the output file. Also make sure to add it to the "simulate" list below
       trigprim800: @local::trigprimpass1
       trigprim1000: @local::trigprimpass1
@@ -77,8 +77,7 @@ physics: {
       rns:            { module_type: "RandomNumberSaver" }
    }
    
-   analyzers:
-   {
+   analyzers: {
       # Create an SNAna for each trigger primitive finders. Make
       # sure to add each one to the "ana" list below
       snanatrigprim800:     @local::trigprim_snana
@@ -123,7 +122,7 @@ physics.producers.trigprim3200.finder.Threshold: 3200
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
 #  corresponding TriggerPrimitiveFinder
-physics.analyzers.snanatrigprim800.HitLabel:   "trigprim800"
+physics.analyzers.snanatrigprim800.HitLabel:  "trigprim800"
 physics.analyzers.snanatrigprim1000.HitLabel: "trigprim1000"
 physics.analyzers.snanatrigprim1200.HitLabel: "trigprim1200"
 physics.analyzers.snanatrigprim1400.HitLabel: "trigprim1400"
@@ -143,6 +142,15 @@ physics.analyzers.snanatrigprim800.SaveIDEs: true
 # Shut up the backtracker
 services.message.destinations.LogStandardOut.categories.BackTracker.limit: 0
 services.message.destinations.LogStandardError.categories.BackTracker.limit: 0
+
+# Display all the INFO message for SNAna_module
+services.message.destinations.LogStandardOut.categories.SNAna_module.limit:-1
+
+# If you want to have the mf::LogDebug() messages, uncomment the following:
+# services.message.destinations.LogStandardOut.threshold:"DEBUG"
+# services.message.destinations.LogStandardOut.categories.SNAna_module.limit:-1
+# services.message.destinations.LogStandardOut.categories.default.limit:0
+
 
 # DetSim services. These are used by SimWire to add noise and
 # pedestals to the incoming (noise-free) waveforms

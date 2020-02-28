@@ -24,6 +24,7 @@
 #include "TLatex.h"
 #include "TLine.h"
 #include "TLegend.h"
+#include "TExec.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -156,6 +157,7 @@ public:
 
   // Return the parent pad.
   TPadManipulator* parent() { return m_parent; }
+  const TPadManipulator* parent() const { return m_parent; }
   bool haveParent() const { return m_parent != nullptr; }
 
   // Return the primary histogram or graph for this pad.
@@ -186,6 +188,7 @@ public:
   int canvasPixelsY() const;
 
   // Return information about the full drawing area for this pad.
+  // Pad must be drawn (or printed) to set these values for subpads.
   double padPixelsX() const;
   double padPixelsY() const;
 
@@ -217,6 +220,15 @@ public:
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
+  // Set and fetch the TExec command run when the pad is drawn.
+  void setTExec(Name com) { m_exec.SetTitle(com.c_str()); }
+  const TExec& getTExec() const { return m_exec; }
+
+  // Set the palette for this pad.
+  // Added to TExec.
+  // Negative for no platte command.
+  void setPalette(int ipal);
+
   // Set margins. Negative value uses default margin.
   // The default is set here to be reasonable for a wide range of aspect ratio.
   // The margin is the fraction of the pad between the frame and pad edges.
@@ -242,7 +254,7 @@ public:
   // The initial value for this is taken from the primary object.
   // The title is drawn as specified in the promary object, i.e. typically
   // above the frame.
-  int setTitle(std::string sttl);
+  int setTitle(std::string sttl, float height =-1.0);
   std::string getTitle() const { return m_title.GetTitle(); }
 
   // Set and get the label associated with this pad.
@@ -286,9 +298,20 @@ public:
   int setNdivisionsX(int ndiv) { m_ndivX = ndiv; return 0; };
   int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
 
-  // Set the axis label sizes.
+  // Set the axis label sizes. Default is zero.
+  // Unless set explcitely, Sub-pads will use a scaled version of this
+  // so all labels are the same size.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+  int setTitleSize(double siz) { m_ttlSize = siz; return 0; }
+
+  // Fetch the label size for this pad.
+  // Returns the set value if nonzero, otherwise
+  // if parent, returns the parent value scaled by ratio of pad heights
+  // otherwise returns zero.
+  double getLabelSizeX() const;
+  double getLabelSizeY() const;
+  double getTitleSize() const;
 
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
@@ -410,6 +433,7 @@ private:
   TVirtualPad* m_ppad;  //! ==> Do not stream.
   int m_canvasWidth;
   int m_canvasHeight;
+  TExec m_exec;
   double m_marginLeft;
   double m_marginRight;
   double m_marginBottom;
@@ -434,6 +458,7 @@ private:
   int m_ndivY;
   double m_labSizeX;
   double m_labSizeY;
+  double m_ttlSize;
   TH1* m_flowHist;        //! ==> Do not stream.
   bool m_showUnderflow;
   bool m_showOverflow;

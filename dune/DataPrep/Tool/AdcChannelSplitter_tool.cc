@@ -40,7 +40,8 @@ DataMap AdcChannelSplitter::update(AdcChannelData& acd) const {
   }
   Index nvie = acd.viewSize(m_DataPath);
   Index nobj = 0;
-  if ( m_LogLevel >= 2 ) cout << myname << "Input object count: " << nvie << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Channel " << acd.channel
+                              << " input object count: " << nvie << endl;
   Index nrawCopied = 0;
   Index nsamCopied = 0;
   // Loop over input objects.
@@ -76,7 +77,8 @@ DataMap AdcChannelSplitter::update(AdcChannelData& acd) const {
       itck = jtck;
     }
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Output object count: " << nobj << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Channel " << acd.channel
+                              << " output object count: " << nobj << endl;
   ret.setInt("splitInputCount", nvie);
   ret.setInt("splitOutputCount", nobj);
   ret.setInt("splitRawCopyCount", nrawCopied);

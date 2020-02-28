@@ -64,6 +64,7 @@ void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
 AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_Metric(ps.get<Name>("Metric")),
+  m_DataView(ps.get<Name>("DataView")),
   m_PedestalReference(ps.get<Name>("PedestalReference")),
   m_MetricSummaryView(ps.get<Name>("MetricSummaryView")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
@@ -177,6 +178,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "            LogLevel: " << m_LogLevel << endl;
     cout << myname << "              Metric: " << m_Metric << endl;
+    cout << myname << "            DataView: " << m_DataView << endl;
     cout << myname << "   PedestalReference: " << m_PedestalReference << endl;
     cout << myname << "   MetricSummaryView: " << m_MetricSummaryView;
     if ( m_summaryValue.size() ) {
@@ -424,22 +426,30 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
 
 //**********************************************************************
 
-int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
+int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& val,
                                 Name& sunits, float& weight) const {
   const string myname = "AdcChannelMetric::getMetric: ";
   val = 0.0;
-  weight = 1.0;
+  weight = 0.0;
   sunits = "";
+  AdcIndex nent = acdtop.viewSize(m_DataView);
+  const AdcChannelData* pacd0 = acdtop.viewEntry(m_DataView, 0);
+  if ( nent && pacd0 == nullptr ) {
+    cout << myname << "ERROR: Channel " << acdtop.channel << " view " << m_DataView
+         << " is missing its first entry." << endl;
+    return 4;
+  }
+  if ( nent ) weight = 1.0;
   if ( met == "pedestal" ) {
-    val = acd.pedestal;
+    val = nent ? pacd0->pedestal : 0;
     sunits = "ADC count";
   } else if ( met == "pedestalDiff" ) {
-    val = acd.pedestal;
+    val = nent ? pacd0->pedestal : 0.0;
     if ( m_pPedestalReference != nullptr ) {
-      float pedRef = m_pPedestalReference->value(acd.channel, 0.0);
+      float pedRef = m_pPedestalReference->value(acdtop.channel, 0.0);
       val -= pedRef;
-    } else if ( m_PedestalReference == "first" ) {
-      Index icha = acd.channel;
+    } else if ( m_PedestalReference == "first" && nent ) {
+      Index icha = acdtop.channel;
       MetricMap& pedRefs = getState().pedRefs;
       MetricMap::const_iterator ipdr = pedRefs.find(icha);
       if ( ipdr == pedRefs.end() ) {
@@ -453,58 +463,72 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
     }
     sunits = "ADC count";
   } else if ( met == "pedestalRms" ) {
-    val = acd.pedestalRms;
+    val = nent ? pacd0->pedestalRms : 0.0;
     sunits = "ADC count";
   } else if ( met == "fembID" ) {
-    val = acd.fembID;
-  } else if ( met == "apaFembID" ) {
-    val = acd.fembID%20;
-  } else if ( met == "nraw" ) {
-    val = acd.raw.size();
-  } else if ( met == "nsam" ) {
-    val = acd.samples.size();
+    val = acdtop.fembID;
   } else if ( met == "fembChannel" ) {
-    val = acd.fembChannel;
+    val = acdtop.fembChannel;
+  } else if ( met == "apaFembID" ) {
+    val = acdtop.fembID%20;
+  } else if ( met == "nraw" ) {
+    val = 0.0;
+    weight = 1.0;
+    for ( Index ient=0; ient<nent; ++ient ) val += acdtop.viewEntry(m_DataView, ient)->raw.size();
+  } else if ( met == "nsam" ) {
+    val = 0.0;
+    weight = 1.0;
+    for ( Index ient=0; ient<nent; ++ient ) val += acdtop.viewEntry(m_DataView, ient)->samples.size();
   } else if ( met == "rawRms" ) {
     double sum = 0.0;
-    double ped = acd.pedestal;
-    double nsam = acd.raw.size();
-    for ( AdcSignal sig : acd.raw ) {
-      double dif = double(sig) - ped;
-      sum += dif*dif;
+    AdcIndex nsam = 0;
+    for ( Index ient=0; ient<nent; ++ient ) {
+      const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+      double ped = pacd->pedestal;
+      for ( AdcSignal sig : pacd->raw ) {
+        double dif = double(sig) - ped;
+        sum += dif*dif;
+        ++nsam;
+      }
     }
-    val = acd.raw.size() == 0 ? 0.0 : sqrt(sum/nsam);
+    val = nsam == 0 ? 0.0 : sqrt(sum/nsam);
     weight = nsam;
   } else if ( met == "samRms" ) {
     double sum = 0.0;
-    Index nsum = 0;
-    for ( float sig : acd.samples ) {
-      sum += sig*sig;
-      ++nsum;
+    Index nsam = 0;
+    for ( Index ient=0; ient<nent; ++ient ) {
+      const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+      for ( float sig : pacd->samples ) {
+        sum += sig*sig;
+        ++nsam;
+      }
     }
-    val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
-    weight = nsum;
+    val = nsam == 0 ? 0.0 : sqrt(sum/nsam);
+    weight = nsam;
   } else if ( met.substr(0, 6) == "samRms" ) {   // samRmsNN, NN is integer
     val = 0.0;
     weight = 0.0;
     istringstream sscnt(met.substr(6));
     Index ncnt = 0;
     sscnt >> ncnt;
-    Index nsam = acd.samples.size();
     std::vector<float> samSums;  // Sum over samples for each group of cnt samples.
     if ( ncnt == 0 ) {
       cout << myname << "WARNING: Invalid metric: " << met << endl;
     } else {
-      Index samCount = 0;
       float samSum = 0.0;
-      for ( Index isam=0; isam<nsam; ++isam ) {
-        float sam = acd.samples[isam];
-        samSum += sam;
-        ++samCount;
-        if ( samCount == ncnt ) {
-          samSums.push_back(samSum);
-          samSum = 0.0;
-          samCount = 0;
+      for ( Index ient=0; ient<nent; ++ient ) {
+        const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+        Index nsam = pacd->samples.size();
+        Index samCount = 0;
+        for ( Index isam=0; isam<nsam; ++isam ) {
+          float sam = pacd->samples[isam];
+          samSum += sam;
+          ++samCount;
+          if ( samCount == ncnt ) {
+            samSums.push_back(samSum);
+            samSum = 0.0;
+            samCount = 0;
+          }
         }
       }
     }
@@ -515,59 +539,71 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       weight = samSums.size();
     }
   } else if ( met == "sigRms" || met == "nsgRms" ) {
-    Index nsam = acd.samples.size();
-    if ( acd.signal.size() != nsam ) {
-      cout << myname << "WARNING: signal and sample sizes differ: " << acd.signal.size()
-           << " != " << nsam << "." << endl;
-      val = 0.0;
-    } else {
-      double sum = 0.0;
-      Index nsum = 0;
-      bool doSignal = met == "sigRms";
-      for ( Index isam=0; isam<nsam; ++isam ) {
-        if ( acd.signal[isam] == doSignal ) {
-          float sig = acd.samples[isam];
-          sum += sig*sig;
-          ++nsum;
+    double sum = 0.0;
+    Index nsum = 0;
+    Index nsamtot = 0;
+    bool doSignal = met == "sigRms";
+    for ( Index ient=0; ient<nent; ++ient ) {
+      const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+      Index nsam = pacd->samples.size();
+      if ( pacd->signal.size() != nsam ) {
+        cout << myname << "WARNING: signal and sample sizes differ";
+        if ( m_DataView.size() ) cout << " for view entry " << m_DataView << "[" << ient << "]";
+        cout << ": " << pacd->signal.size() << " != " << nsam << "." << endl;
+      } else {
+        for ( Index isam=0; isam<nsam; ++isam ) {
+          if ( pacd->signal[isam] == doSignal ) {
+            float sig = pacd->samples[isam];
+            sum += sig*sig;
+            ++nsum;
+          }
+          ++nsamtot;
         }
       }
-      val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
-      weight = nsum;
-      if ( m_LogLevel >= 4 ) {
-        cout << myname << "Sample count for " << met << " for channel " << acd.channel
-             << ": " << nsum << "/" << nsam << "."
-             << " " << met << " = " << val << endl;
-      }
     }
-  // nsgRmsNN - Coherent noise with NN samples.
+    val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
+    weight = nsum;
+    if ( m_LogLevel >= 4 ) {
+      cout << myname << "Sample count for " << met << " for channel " << acdtop.channel;
+      if ( m_DataView.size() ) cout << " view " << m_DataView;
+      cout << ": " << nsum << "/" << nsamtot << "."
+           << " " << met << " = " << val << endl;
+    }
+  // nsgRmsNN - Integrated noise with NN samples.
   } else if ( met.substr(0, 6) == "nsgRms" ) {
     val = 0.0;
     weight = 0.0;
     istringstream sscnt(met.substr(6));
     Index ncnt = 0;
     sscnt >> ncnt;
-    Index nsam = acd.samples.size();
     std::vector<float> samSums;  // Sum over samples for each group of ncnt samples.
     if ( ncnt == 0 ) {
       cout << myname << "WARNING: Invalid metric: " << met << endl;
-    } else if ( acd.signal.size() != nsam ) {
-      cout << myname << "WARNING: signal and sample sizes differ for metric "
-           << met << ": " << acd.signal.size() << " != " << nsam << "." << endl;
     } else {
-      for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
-        bool foundSignal = false;
-        float samSum = 0.0;
-        for ( Index icnt=0; icnt<ncnt; ++icnt ) {
-          Index isam = isam0 + icnt;
-          if ( acd.signal[isam] ) {
-            foundSignal = true;
-            break;
-          }
-          float sam = acd.samples[isam];
-          samSum += sam;
+      for ( Index ient=0; ient<nent; ++ient ) {
+        const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+        Index nsam = pacd->samples.size();
+        if ( pacd->signal.size() != nsam ) {
+          cout << myname << "WARNING: signal and sample sizes differ";
+          if ( m_DataView.size() ) cout << " for view entry " << m_DataView << "[" << ient << "]";
+          cout << " metric " << met << ": " << pacd->signal.size() << " != " << nsam << "." << endl;
+          continue;
         }
-        if ( foundSignal ) break;
-        samSums.push_back(samSum);
+        for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
+          bool foundSignal = false;
+          float samSum = 0.0;
+          for ( Index icnt=0; icnt<ncnt; ++icnt ) {
+            Index isam = isam0 + icnt;
+            if ( pacd->signal[isam] ) {
+              foundSignal = true;
+              break;
+            }
+            float sam = pacd->samples[isam];
+            samSum += sam;
+          }
+          if ( foundSignal ) break;
+          samSums.push_back(samSum);
+        }
       }
     }
     if ( samSums.size() ) {
@@ -577,33 +613,44 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       weight = samSums.size();
     }
   } else if ( met == "sigFrac" ) {
-    Index nsam = acd.samples.size();
-    if ( acd.signal.size() != nsam ) {
-      cout << myname << "WARNING: For sigFrac, signal and sample sizes differ: "
-           << acd.signal.size() << " != " << nsam << "." << endl;
-      val = 0.0;
-    } else if ( nsam == 0 ) {
-      cout << myname << "WARNING: For sigFrac, ther are no samples." << endl;
-      val = 0.0;
-    } else {
-      Index nsig = 0;
-      for ( Index isam=0; isam<nsam; ++isam ) {
-        if ( acd.signal[isam] ) ++nsig;
+    Index nsamtot = 0;
+    Index nsig = 0;
+    for ( Index ient=0; ient<nent; ++ient ) {
+      const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+      Index nsam = pacd->samples.size();
+      if ( pacd->signal.size() != nsam ) {
+        cout << myname << "WARNING: Signal and sample sizes differ for sigFrac";
+        if ( m_DataView.size() ) cout << " view entry " << m_DataView << "[" << ient << "]";
+        cout << ": " << pacd->signal.size() << " != " << nsam << "." << endl;
+      } else {
+        for ( Index isam=0; isam<nsam; ++isam ) {
+          ++nsamtot;
+          if ( pacd->signal[isam] ) ++nsig;
+        }
       }
-      val = float(nsig)/float(nsam);
     }
+    val = nsamtot > 0 ? float(nsig)/float(nsamtot) : 0.0;
   } else if ( met == "rawTailFraction" ) {
     Index ntail = 0;
-    double lim = 3.0*acd.pedestalRms;
-    double ped = acd.pedestal;
-    double nsam = acd.raw.size();
-    for ( AdcSignal sig : acd.raw ) {
-      double dif = double(sig) - ped;
-      if ( fabs(dif) > lim ) ++ntail;
+    Index nsam = 0;
+    for ( Index ient=0; ient<nent; ++ient ) {
+      const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+      double lim = 3.0*pacd->pedestalRms;
+      double ped = pacd->pedestal;
+      for ( AdcSignal sig : pacd->raw ) {
+        double dif = double(sig) - ped;
+        if ( fabs(dif) > lim ) ++ntail;
+        ++nsam;
+      }
     }
-    val = acd.raw.size() == 0 ? 0.0 : double(ntail)/nsam;
-  } else if ( acd.hasMetadata(met) ) {
-    val = acd.metadata.find(met)->second;
+    val = nsam > 0 ? double(ntail)/nsam : 0.0;
+  } else if ( nent == 1 && pacd0->hasMetadata(met) ) {
+    if ( nent != 1 ) {
+      cout << myname << "WARNING: Channel " << acdtop.channel
+           << " filling metadata only for the first of " << nent
+           << " entries." << endl;
+    }
+    val = pacd0->metadata.find(met)->second;
   // Compound metric: met1+met2
   // TODO: Move this to ctor.
   } else if ( met.find("+") != string::npos ) {
@@ -616,7 +663,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acd, Name met, float& val,
       string newmet = metsrem.substr(0, ipos);
       float newval = 0.0;
       float newwt = 0.0;
-      int sstat = getMetric(acd, newmet, newval, sunits, newwt);
+      int sstat = getMetric(acdtop, newmet, newval, sunits, newwt);
       if ( sstat ) {
         cout << myname << "ERROR: Invalid sub-metric name: " << newmet << endl;
         return 2;
@@ -726,10 +773,10 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       ph->SetBinContent(bin, met);
       if ( err ) ph->SetBinError(bin, err);
       float gval = met;
-      if ( m_MetricMax > m_MetricMin ) {
-        if ( met < m_MetricMin ) gval = m_MetricMin;
-        if ( met > m_MetricMax ) gval = m_MetricMax;
-      }
+      //if ( m_MetricMax > m_MetricMin ) {
+      //  if ( met < m_MetricMin ) gval = m_MetricMin;
+      //  if ( met > m_MetricMax ) gval = m_MetricMax;
+      //}
       Index iptAll = pgAll->GetN();
       pgAll->SetPoint(iptAll, icha, gval);
       if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
@@ -746,7 +793,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       ++nfill;
     }
     if ( m_LogLevel >= 3 ) cout << myname << "Filled " << nfill << " channels." << endl;
-    if ( ofpname.size() ) {
+    if ( ofpname.size() && nfill > 0 ) {
       TPadManipulator man;
       if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
       //man.add(ph, "hist");
@@ -772,6 +819,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       }
       man.setRangeX(ran.begin, ran.end);
       if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
+      man.showGraphOverflow("BLTR", 2, statCols[0]);
       man.setGridY();
       man.print(ofpname);
     }

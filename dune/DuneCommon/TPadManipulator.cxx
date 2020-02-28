@@ -23,6 +23,7 @@
 #include "TClass.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include "TExec.h"
 
 using std::string;
 using std::cout;
@@ -78,6 +79,7 @@ TPadManipulator* TPadManipulator::read(Name fnam, Name onam) {
 TPadManipulator::TPadManipulator()
 : m_parent(nullptr), m_ppad(nullptr),
   m_canvasWidth(0), m_canvasHeight(0),
+  m_exec("myexec", ""),
   m_marginLeft(-999), m_marginRight(-999),
   m_marginBottom(-999), m_marginTop(-999),
   m_ph(nullptr),
@@ -87,7 +89,7 @@ TPadManipulator::TPadManipulator()
   m_logX(false), m_logY(false), m_logZ(false),
   m_tickLengthX(0.03), m_tickLengthY(0.0),
   m_ndivX(0), m_ndivY(0),
-  m_labSizeX(0.0), m_labSizeY(0.0),
+  m_labSizeX(0.0), m_labSizeY(0.0), m_ttlSize(0.0),
   m_flowHist(nullptr),
   m_showUnderflow(false), m_showOverflow(false),
   m_flowGraph(nullptr),
@@ -141,6 +143,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_canvasWidth = rhs.m_canvasWidth;
   m_canvasHeight = rhs.m_canvasHeight;
+  m_exec = rhs.m_exec,
   m_marginLeft = rhs.m_marginLeft;
   m_marginRight = rhs.m_marginRight;
   m_marginBottom = rhs.m_marginBottom;
@@ -178,6 +181,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   m_ndivY = rhs.m_ndivY;
   m_labSizeX = rhs.m_labSizeX;
   m_labSizeY = rhs.m_labSizeY;
+  m_ttlSize = rhs.m_ttlSize;
   m_showUnderflow = rhs.m_showUnderflow;
   m_showOverflow = rhs.m_showOverflow;
   m_gflowOpt = rhs.m_gflowOpt;
@@ -213,6 +217,7 @@ TPadManipulator& TPadManipulator::operator=(const TPadManipulator& rhs) {
   }
   m_iobjLegend = rhs.m_iobjLegend;
   m_axisTitleOpt = rhs.m_axisTitleOpt;
+  setParents(true);
   update();
   return *this;
 }
@@ -552,6 +557,18 @@ int TPadManipulator::split(Index nx) {
 
 //**********************************************************************
 
+void TPadManipulator::setPalette(int pal) {
+  string scom;
+  if ( pal >= 0 ) {
+    ostringstream sscom;
+    sscom << "RootPalette::set(" << pal << ")";
+    scom = sscom.str();
+  }
+  setTExec(scom);
+}
+
+//**********************************************************************
+
 int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
   const string myname = "TPadManipulator::add: ";
   if ( dbg ) cout << myname << this << endl;
@@ -583,11 +600,7 @@ int TPadManipulator::add(Index ipad, TObject* pobj, string sopt, bool replace) {
     }
     //if ( m_ppad == nullptr ) return 106;
     // Transfer the hist/graph title to the pad title.
-    pman->m_title.SetNDC();
-    pman->m_title.SetTextAlign(22);
-    pman->m_title.SetTextFont(42);
-    pman->m_title.SetTextSize(0.035);
-    pman->m_title.SetText(0.5, 0.95, pobj->GetTitle());
+    pman->setTitle(pobj->GetTitle());
     // Clone the primary object.
     if ( ph != nullptr ) {
       TH1* phc = (TH1*) ph->Clone();
@@ -635,8 +648,20 @@ TLegend* TPadManipulator::addLegend(double x1, double y1, double x2, double y2) 
   
 //**********************************************************************
 
-int TPadManipulator::setTitle(string sttl) {
+int TPadManipulator::setTitle(string sttl, float height) {
   m_title.SetTitle(sttl.c_str());
+  m_title.SetNDC();
+  m_title.SetTextAlign(22);
+  m_title.SetTextFont(42);
+  float tsiz = height;
+  if ( tsiz <= 0.0 ) {
+    tsiz = getTitleSize();
+    if ( tsiz <= 0.0 ) tsiz = 0.035;
+  }
+  m_title.SetTextSize(tsiz);
+  double xttl = 0.5;
+  double yttl = 1.0 - 0.70*tsiz;
+  m_title.SetText(xttl, yttl, sttl.c_str());
   return 0;
 }
 
@@ -740,8 +765,15 @@ int TPadManipulator::update() {
     if ( npad() == 0 && !haveParent() ) {
       cout << myname << "Top-level pad does not have a histogram or graph or subpads!" << endl;
     }
+    // Add the title and labels.
+    m_title.Draw();
+    if ( getLabel().size() ) m_label.Draw();
     gPad = pPadSave;
     return 0;
+  }
+  // Run TExec.
+  if ( string(m_exec.GetTitle()).size() ) {
+    m_exec.Draw();
   }
   // Set margins the first time the histogram is found.
   // After this, user can override with pad()->SetRightMargin(...), ...
@@ -763,7 +795,7 @@ int TPadManipulator::update() {
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
   double yttl = 0.17 + 1.8*aspx;
-  double httl = 1.0 - 0.5*xmt;
+  //double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
     if ( pax != nullptr ) {
@@ -786,23 +818,21 @@ int TPadManipulator::update() {
   }
   if ( m_marginLeft >= 0.0 ) {
     // When left margin is changed, we leave the y-axis title at the edge of the pad.
-    double scalefac = m_marginLeft/xml;
     xml = m_marginLeft;
-    yttl *= scalefac;
+    //double scalefac = m_marginLeft/xml;
+    //yttl *= scalefac;
   }
   if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
   if ( m_marginBottom >= 0.0 ) {
-    double scalefac = m_marginBottom/xmb;
     xmb = m_marginBottom;
-    xttl *= scalefac;
+    //double scalefac = m_marginBottom/xmb;
+    //xttl *= scalefac;
   }
   if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
   m_ppad->SetBottomMargin(xmb);
-  m_title.SetX(0.5);
-  m_title.SetY(httl);
   // Set the axis tick lengths.
   // If the Y-size is zero, then they are drawn to have the same pixel length as the X-axis.
   double ticklenx = m_tickLengthX;
@@ -900,6 +930,18 @@ int TPadManipulator::update() {
   m_ppad->SetLogz(doLogz);
   // Draw frame and set axis parameters.
   m_ppad->DrawFrame(xa1, ya1, xa2, ya2, sattl.c_str());
+  double labSizeX = getLabelSizeX();
+  if ( labSizeX > 0.0 ) {
+    getXaxis()->SetLabelSize(labSizeX);
+    getXaxis()->SetTitleSize(labSizeX);
+    //xttl *= labSizeX/0.035;
+  }
+  double labSizeY = getLabelSizeY();
+  if ( labSizeY > 0.0 ) {
+    getYaxis()->SetLabelSize(labSizeY);
+    getYaxis()->SetTitleSize(labSizeY);
+    //yttl *= labSizeY/0.035;
+  }
   getXaxis()->SetLabelOffset(xlb);
   getXaxis()->SetTitleOffset(xttl);
   getYaxis()->SetTitleOffset(yttl);
@@ -913,8 +955,6 @@ int TPadManipulator::update() {
   }
   if ( m_ndivX ) getXaxis()->SetNdivisions(m_ndivX);
   if ( m_ndivY ) getYaxis()->SetNdivisions(m_ndivY);
-  if ( m_labSizeX > 0.0 ) getXaxis()->SetLabelSize(m_labSizeX);
-  if ( m_labSizeY > 0.0 ) getYaxis()->SetLabelSize(m_labSizeY);
   if ( m_timeFormatX.size() ) {
     getXaxis()->SetTimeDisplay(1);
     getXaxis()->SetTimeFormat(m_timeFormatX.c_str());
@@ -1059,6 +1099,48 @@ int TPadManipulator::setCanvasSize(int wx, int wy) {
     return update();
   }
   return 0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getLabelSizeX() const {
+  if ( m_labSizeX ) return m_labSizeX;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getLabelSizeX() : 0.0;
+    return h;
+  }
+  return 0.0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getLabelSizeY() const {
+  if ( m_labSizeY ) return m_labSizeY;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getLabelSizeY() : 0.0;
+    return h;
+  }
+  return 0.0;
+}
+
+//**********************************************************************
+
+double TPadManipulator::getTitleSize() const {
+  if ( m_ttlSize ) return m_ttlSize;
+  if ( haveParent() ) {
+    const TPadManipulator* pman = parent();
+    double h1 = padPixelsY();
+    double h2 = pman->padPixelsY();
+    double h = h1 ? h2/h1*pman->getTitleSize() : 0.0;
+    return h;
+  }
+  return 0.0;
 }
 
 //**********************************************************************

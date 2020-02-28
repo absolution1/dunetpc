@@ -531,6 +531,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       _DiscardedCorruptData = true;
       return false; 
     }
+   DataFragmentUnpack df(cdptr);
+   //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
@@ -680,7 +682,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 		  auto const &colddata = wf->getColdData ();
 		  auto cvt0 = colddata[0].getConvertCount ();
 		  //auto cvt1 = colddata[1].getConvertCount ();
-		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << std::endl;
+		  int diff = (int) cvt0 - (int) iwf; 
+		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << " Difference: " << diff << std::endl;
 		  //printed = true;
 		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
 		  //break;
