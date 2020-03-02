@@ -13,7 +13,7 @@
 # Some standard sequences are defined here.
 #
 ###################################################################################
-# Dataprep tool sequences for protoDUNE SP.
+# Dataprep tool sequences for protoDUNE SP data.
 ###################################################################################
 
 BEGIN_PROLOG
@@ -34,7 +34,7 @@ protodune_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_sticky_codes_ped"       # Flag sticky codes
 ]
 
 # Charge calibration and mitigation, no tail or noise removal.
@@ -44,7 +44,7 @@ protodune_dataprep_tools_calib_mit: [
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "pdsp_timingMitigate"         # Mitigate FEMB302 timing
 ]
 
 # Charge calibration, mitigation, tail removal, no noise removal.
@@ -78,11 +78,19 @@ protodune_dataprep_tools_wirecell: [
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
 ]
 
-# Make one all-inclusive ROI. For old wirecell processing?
-protodune_dataprep_tools_evd: [
-  @sequence::protodune_dataprep_tools_calib_noiserem,
-  "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+###################################################################################
+# Dataprep tool sequences for protoDUNE SP simulation.
+###################################################################################
+
+protodune_dataprep_tools_sim: [
+    "digitReader",              # Read RawDigit
+    "adcSampleFiller",          # Subtract pedestal, trivial calibration
+    "adcVintageDeconvoluter",   # Deconvolution
+    "adcThresholdSignalFinder", # ROI
+    "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
 ]
 
+###################################################################################
+#
 END_PROLOG
 
