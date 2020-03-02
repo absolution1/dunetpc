@@ -1,0 +1,88 @@
+# protodune_dataprep_services.fcl
+#
+# David Adams
+# February 2010
+#
+# Dataprep service configurations.
+#
+# Dataprep is now mostly tool-based but one important service remains:
+# ToolBasedRawDigitPrepService with interface RawDigitPrepService.
+# It is called by each of the dataprep modules to run an ADC channel tool
+# sequence to process the TPC data.
+#
+# Some standard sequences are defined here.
+#
+###################################################################################
+# Dataprep tool sequences for protoDUNE SP.
+###################################################################################
+
+BEGIN_PROLOG
+
+# No calibration, no noise removal.
+protodune_dataprep_tools_nocal_tail: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleFiller",            # Subtract pedestal, trivial calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootAdc"     # correct undershoot
+]
+
+# Charge calibration; no mitigation or tail or noise removal.
+protodune_dataprep_tools_calib_only: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+]
+
+# Charge calibration and mitigation, no tail or noise removal.
+protodune_dataprep_tools_calib_mit: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+]
+
+# Charge calibration, mitigation, tail removal, no noise removal.
+protodune_dataprep_tools_calib_tail: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe"      # correct undershoot
+]
+
+# Charge calibration, noise removal.
+protodune_dataprep_tools_calib_noiserem: [
+  "digitReader",                # Read RawDigit
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe",     # correct undershoot
+  "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
+]
+
+# Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+protodune_dataprep_tools_wirecell: [
+  @sequence::protodune_dataprep_tools_calib_noiserem,
+  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
+  "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
+  "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
+]
+
+# Make one all-inclusive ROI. For old wirecell processing?
+protodune_dataprep_tools_evd: [
+  @sequence::protodune_dataprep_tools_calib_noiserem,
+  "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+]
+
+END_PROLOG
+
