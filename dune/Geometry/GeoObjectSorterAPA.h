@@ -12,27 +12,23 @@
 
 #include "fhiclcpp/fwd.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-//#include "larcorealg/Geometry/OpDetGeo.h"
 
 namespace geo{
 
   class GeoObjectSorterAPA : public GeoObjectSorter {
-
   public:
 
     GeoObjectSorterAPA(fhicl::ParameterSet const& p);
-    ~GeoObjectSorterAPA();
 
-    void SortAuxDets        (std::vector<geo::AuxDetGeo*>            & adgeo)    const;
-    void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*>   & adgeo)    const;
-    void SortCryostats      (std::vector<geo::CryostatGeo*>          & cgeo)     const;
-    void SortTPCs     	    (std::vector<geo::TPCGeo*>      	     & tgeo)     const;
-    void SortPlanes   	    (std::vector<geo::PlaneGeo*>    	     & pgeo,	      
-		      	     geo::DriftDirection_t     	        const& driftDir) const;
-    void SortWires    	    (std::vector<geo::WireGeo*>     	     & wgeo)     const;
-    void SortOpDets         (std::vector<geo::OpDetGeo*> & opdet) const;        
-  private:
-    
+    void SortAuxDets        (std::vector<geo::AuxDetGeo>            & adgeo)    const;
+    void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo>   & adgeo)    const;
+    void SortCryostats      (std::vector<geo::CryostatGeo>          & cgeo)     const;
+    void SortTPCs           (std::vector<geo::TPCGeo>               & tgeo)     const;
+    void SortPlanes         (std::vector<geo::PlaneGeo>             & pgeo,
+                             geo::DriftDirection_t                    driftDir) const;
+    void SortWires          (std::vector<geo::WireGeo>              & wgeo)     const;
+    void SortOpDets         (std::vector<geo::OpDetGeo> & opdet) const;
+
   };
 
 }
