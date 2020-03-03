@@ -421,19 +421,23 @@ void util::SignalShapingServiceDUNEDPhase::SetFilters()
   auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
   
-  double ts = detprop->SamplingRate();
-  int n = fft->FFTSize() / 2;
+  double ts = detprop->SamplingRate(); // should return in ns
+  int nsize = fft->FFTSize();
+  int nhalf = nsize / 2;
+  fColFilterFunc->SetRange(0, double(nhalf));
   
+  //
   // Calculate collection filter.
-  fColFilter.resize(n+1);
-
-  fColFilterFunc->SetRange(0, double(n));
-
-  for(int i=0; i<=n; ++i)
+  
+  // the frequency step is given by fMhz/nsamples
+  double df = 1.0/(ts*1.0E-3 * nsize);
+  fColFilter.resize(nhalf+1);
+  for(int i=0; i<=nhalf; ++i)
     {
-    	double freq = 400. * i / (ts * n);      // Cycles / microsecond.
-    	double f = fColFilterFunc->Eval(freq);
-    	fColFilter[i] = TComplex(f, 0.);
+      //double freq = 400. * i / (ts * nhalf);      // Cycles / microsecond.
+      double freq   = i * df; 
+      double f      = fColFilterFunc->Eval(freq);
+      fColFilter[i] = TComplex(f, 0.);
     }
   
   return;
@@ -462,6 +466,49 @@ double util::SignalShapingServiceDUNEDPhase::FieldResponse(double tval_us)
   */
   return fColFieldFunc->Eval(tval_us);
 }
+
+//
+double util::SignalShapingServiceDUNEDPhase::GetDeconNorm() const {
+  return fDeconNorm;
+}
+
+//
+unsigned int util::SignalShapingServiceDUNEDPhase::GetSignalSize() const {
+  return SignalShaping(0).Response().size();
+}
+
+// n/a
+std::vector<DoubleVec> util::SignalShapingServiceDUNEDPhase::GetNoiseFactVec() const {
+  return std::vector<DoubleVec>();
+}
+
+
+// n/a
+int util::SignalShapingServiceDUNEDPhase::
+FieldResponseTOffset(unsigned int const channel) const {
+  return 0;
+}
+
+void util::SignalShapingServiceDUNEDPhase::
+Convolute(unsigned int channel, FloatVector& func) const {
+  return Convolute<float>(channel, func);
+}
+
+void util::SignalShapingServiceDUNEDPhase::
+Convolute(unsigned int channel, DoubleVector& func) const {
+  return Convolute<double>(channel, func);
+}
+
+void util::SignalShapingServiceDUNEDPhase::
+Deconvolute(unsigned int channel, FloatVector& func) const {
+  return Deconvolute<float>(channel, func);
+}
+
+void util::SignalShapingServiceDUNEDPhase::
+Deconvolute(unsigned int channel, DoubleVector& func) const {
+  return Deconvolute<double>(channel, func);
+}
+
 
 namespace util {
 
