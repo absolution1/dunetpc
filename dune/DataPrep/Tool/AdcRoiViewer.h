@@ -18,6 +18,7 @@
 //              FitOpt - ROI fitting option
 //                         0 - no fit
 //                         1 - fit with coldelecReponse
+//          RoiPlotOpt - 0 = none, 1 = for separate for each event, 2 = multi-event
 //           StartTime - Offset for time meaurements in sec since 1970.
 //    PulserStepCharge - Charge per unit step in a pulser run
 //     PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
@@ -172,6 +173,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Data/RunData.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include <iostream>
 
 class AdcChannelStringTool;
@@ -198,6 +200,10 @@ public:
   using FloatMap = std::map<Name, float>;
   using IndexByIndexMap = std::map<Index, Index>;
   using IndexByNameMap = std::map<Name, Index>;
+  using TpmPtr = std::unique_ptr<TPadManipulator>;
+  using TpmMap = std::map<Index, TpmPtr>;
+  using TpmNameMap = std::map<Index, Name>;
+  using TpmCountMap = std::map<Index, Index>;
 
   // Subclass that associates a variable name with a histogram.
   //  vary != "" ==> 2D histo
@@ -217,6 +223,10 @@ public:
   // after initialization.
   class State {
   public:
+    // ROI plots.
+    TpmMap roiPads;
+    TpmNameMap roiPadNames;
+    TpmCountMap roiPadCounts;
     // Summary histogram templates.
     HistInfoMap sumHistTemplates;
     // Summary histograms.
@@ -318,13 +328,14 @@ private:
   Index m_TickBorder;
   int m_RoiHistOpt;
   int m_FitOpt;
+  Index m_RoiPlotOpt;
+  int m_MaxRoiPlots;
+  Index m_RoiPlotPadX;
+  Index m_RoiPlotPadY;
   time_t m_StartTime;
   float m_PulserStepCharge;
   float m_PulserDacOffset;
   Name m_PulserChargeUnit;
-  int m_MaxRoiPlots;
-  Index m_RoiPlotPadX;
-  Index m_RoiPlotPadY;
   bool m_SumNegate;
   Index m_SumPlotPadX;
   Index m_SumPlotPadY;

@@ -458,6 +458,7 @@ tools.adcRoiViewer: {
   TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
+  RoiPlotOpt:  2
   StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
@@ -487,6 +488,7 @@ tools.adcRoiFitter: {
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
+  RoiPlotOpt:  2
   StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
