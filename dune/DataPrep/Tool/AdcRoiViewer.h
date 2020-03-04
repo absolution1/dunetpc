@@ -6,41 +6,42 @@
 // Tool to extract information about the ROIs in an ADC channel.
 //
 // Configuration:
-//           LogLevel - Logging level: 0=none, 1=init, 2=call, ...
-//          SigThresh - if <0, then only keep ROIs with a tick below this value
-//                      if >0, then only keep ROIs with a tick above this value
-//         TickBorder - if > 0, only keep ROIs forwhich there are this many ticks or more
-//                      before the start and after the end of the ROI.
-//         RoiHistOpt - histo option:  0 - No histograms
-//                                     1 - sample vs. tick
-//                                     2 - raw vs. tick
-//                                    10 + i - As above for i except vs. tick - tick0
-//             FitOpt - ROI fitting option
-//                        0 - no fit
-//                        1 - fit with coldelecReponse
-//          StartTime - Offset for time meaurements in sec since 1970.
-//   PulserStepCharge - Charge per unit step in a pulser run
-//    PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
-//   PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
-//        MaxRoiPlots - Maximum # of ROI plots (<0 is no limit, 0 is no plots)
-//        RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
-//        RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
-//           SumHists - Array of summary histogram specifiers. See below.
-//          SumNegate - If true, the following variable replacements are made for all sum hists:
-//                        fitHeight --> fitHeightNeg
-//        SumPlotPadX - Number of pad columns in summary plots.
-//        SumPlotPadY - Number of pad rows in summary plots.
-//      ChannelRanges - Ranges of channels for channel summary plots.
-//                      Obtained from IndexRangeTool channelRanges.
-//       ChanSumHists - Array of specifiers for the channel summary histograms.
-// ChannelLineModulus - Repeat spacing for horizontal lines in summary plots
-// ChannelLinePattern - Pattern for horizontal lines in summary plots
-//        RunDataTool - Name for the run data tool. If found and pulser is on, then each
-//                      ROI is assigned a charge corresponding to the pulser setting.
-//     TickOffsetTool - Name of the tool that provides the tick offset.
-//    RoiRootFileName - Name of file to which the ROI histograms are copied.
-//    SumRootFileName - Name of file to which the evaluated parameter histograms are copied.
-//         PlotLabels - Array of strings that may be used whe constructin plot titles.
+//            LogLevel - Logging level: 0=none, 1=init, 2=call, ...
+//           SigThresh - if <0, then only keep ROIs with a tick below this value
+//                       if >0, then only keep ROIs with a tick above this value
+//          TickBorder - if > 0, only keep ROIs forwhich there are this many ticks or more
+//                       before the start and after the end of the ROI.
+//          RoiHistOpt - histo option:  0 - No histograms
+//                                      1 - sample vs. tick
+//                                      2 - raw vs. tick
+//                                     10 + i - As above for i except vs. tick - tick0
+//              FitOpt - ROI fitting option
+//                         0 - no fit
+//                         1 - fit with coldelecReponse
+//           StartTime - Offset for time meaurements in sec since 1970.
+//    PulserStepCharge - Charge per unit step in a pulser run
+//     PulserDacOffset - Offset in pulser: Qin = PulserStepCharge*(DAC - PulserDacOffset)
+//    PulserChargeUnit - Unit for the pulser charge (ke, fC, ...)
+//         MaxRoiPlots - Maximum # of ROI plots (<0 is no limit, 0 is no plots)
+//         RoiPlotPadX - Number of pad columns in ROI plots. No plots if 0.
+//         RoiPlotPadY - Number of pad rows in ROI plots. No plots if 0.
+//            SumHists - Array of summary histogram specifiers. See below.
+//           SumNegate - If true, the following variable replacements are made for all sum hists:
+//                         fitHeight --> fitHeightNeg
+//         SumPlotPadX - Number of pad columns in summary plots.
+//         SumPlotPadY - Number of pad rows in summary plots.
+//       ChannelRanges - Ranges of channels for channel summary plots.
+//                       Obtained from IndexRangeTool channelRanges.
+//        ChanSumHists - Array of specifiers for the channel summary histograms.
+//  ChannelLineModulus - Repeat spacing for horizontal lines in summary plots
+//  ChannelLinePattern - Pattern for horizontal lines in summary plots
+//         RunDataTool - Name for the run data tool. If found and pulser is on, then each
+//                       ROI is assigned a charge corresponding to the pulser setting.
+//      TickOffsetTool - Name of the tool that provides the tick offset.
+//     RoiRootFileName - Name of file to which the ROI histograms are copied.
+//     SumRootFileName - Name of file to which the summary histograms are copied.
+// ChanSumRootFileName - Name of file to which the channel summary histograms are copied.
+//          PlotLabels - Array of strings that may be used whe constructin plot titles.
 //                      The are referencesd as %LAB0%, %LAB1%, ... %LAB9%
 //
 // Summary histograms
