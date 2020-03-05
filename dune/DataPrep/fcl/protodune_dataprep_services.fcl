@@ -21,9 +21,9 @@ BEGIN_PROLOG
 # No calibration, no noise removal.
 protodune_dataprep_tools_nocal_tail: [
   "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleFiller",            # Subtract pedestal, trivial calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootAdc"     # correct undershoot
@@ -32,17 +32,17 @@ protodune_dataprep_tools_nocal_tail: [
 # Charge calibration; no mitigation or tail or noise removal.
 protodune_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped"       # Flag sticky codes
+  "adcSampleCalibration"        # Subtract pedestal and apply charge calibration
 ]
 
 # Charge calibration and mitigation, no tail or noise removal.
 protodune_dataprep_tools_calib_mit: [
   "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate"         # Mitigate FEMB302 timing
 ]
@@ -50,9 +50,9 @@ protodune_dataprep_tools_calib_mit: [
 # Charge calibration, mitigation, tail removal, no noise removal.
 protodune_dataprep_tools_calib_tail: [
   "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe"      # correct undershoot
@@ -61,9 +61,9 @@ protodune_dataprep_tools_calib_tail: [
 # Charge calibration, noise removal.
 protodune_dataprep_tools_calib_noiserem: [
   "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe",     # correct undershoot
