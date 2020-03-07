@@ -123,7 +123,7 @@ tools.adcPlotRawDist: {
   PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
-  LabelSize: 0.02
+  LabelSize: 0.01
   SkipFlags: []
 }
 
@@ -458,12 +458,14 @@ tools.adcRoiViewer: {
   TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
+  RoiPlotOpt:  2
+  StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
-  MaxRoiPlots: 0
+  MaxRoiPlots: 1000
   RoiPlotPadX: 4
   RoiPlotPadY: 4
   SumPlotPadX: 4
@@ -472,9 +474,12 @@ tools.adcRoiViewer: {
   ChannelLinePattern: []
   SumNegate: false
   SumHists: []
+  ChanSumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
+  ChanSumRootFileName: ""
+  PlotLabels: []
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
@@ -483,12 +488,14 @@ tools.adcRoiFitter: {
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
+  RoiPlotOpt:  2
+  StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
-  MaxRoiPlots: 0
+  MaxRoiPlots: 1000
   RoiPlotPadX: 4
   RoiPlotPadY: 4
   SumPlotPadX: 4
@@ -497,9 +504,12 @@ tools.adcRoiFitter: {
   ChannelLinePattern: []
   SumNegate: false
   SumHists: []
+  ChanSumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
+  ChanSumRootFileName: ""
+  PlotLabels: []
 }
 
 # Build ROI w.r.t. local baseline

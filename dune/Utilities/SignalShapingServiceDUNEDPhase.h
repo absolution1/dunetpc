@@ -35,10 +35,17 @@
 ///     Make the parameters for 1 m view optional, since this corresponds to
 ///     to a rather particular CRP configuration
 ///
+///    02.17.2020, vgalymov
+///     Updated filter function to sample up-to correct 1.25 MHz
+///     This service now inherits from SignalShapingService
+///
+///        
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef __SIGNALSHAPINGSERVICEDUNEDPHASE_H__
 #define __SIGNALSHAPINGSERVICEDUNEDPHASE_H__
+
+#include "dune/DuneInterface/SignalShapingService.h"
 
 #include <vector>
 #include "fhiclcpp/ParameterSet.h"
@@ -47,9 +54,11 @@
 #include "lardata/Utilities/SignalShaping.h"
 #include "TF1.h"
 
+using DoubleVec = std::vector<double>;
+
 namespace util {
 
-  class SignalShapingServiceDUNEDPhase {
+  class SignalShapingServiceDUNEDPhase : public SignalShapingService {
   public:
 
     // Constructor, destructor.
@@ -61,24 +70,30 @@ namespace util {
     void reconfigure(const fhicl::ParameterSet& pset);
 
     double GetAreaNorm(unsigned int const channel) const;
-    double GetASICGain(unsigned int const channel) const;
-    double GetShapingTime(unsigned int const channel) const;
 
-    double GetRawNoise(unsigned int const channel) const ;
-    double GetDeconNoise(unsigned int const channel) const;
+    std::vector<DoubleVec> GetNoiseFactVec() const override;
+    double GetASICGain(Channel channel) const override;
+    double GetShapingTime(Channel channel) const override; 
+    double GetRawNoise(Channel channel) const override;
+    double GetDeconNoise(Channel channel) const override;
+    double GetDeconNorm() const override;
+    unsigned int GetSignalSize() const override;
 
-    double GetDeconNorm() const {return fDeconNorm;};
+    //double GetDeconNorm() const {return fDeconNorm;};
 
     // Accessors.
-    //int FieldResponseTOffset(unsigned int const channel) const;
-
-    const util::SignalShaping& SignalShaping(unsigned int channel) const;
+    int FieldResponseTOffset(unsigned int const channel) const override;
+    const util::SignalShaping& SignalShaping(unsigned int channel) const override;
 
     // Do convolution calcution (for simulation).
     template <class T> void Convolute(unsigned int channel, std::vector<T>& func) const;
-
+    void Convolute(Channel channel, FloatVector& func) const override;
+    void Convolute(Channel channel, DoubleVector& func) const override;
+    
     // Do deconvolution calcution (for reconstruction).
     template <class T> void Deconvolute(unsigned int channel, std::vector<T>& func) const;
+    void Deconvolute(Channel channel, DoubleVector& func) const override;
+    void Deconvolute(Channel channel, FloatVector& func) const override;
 
   private:
 

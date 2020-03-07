@@ -10,7 +10,6 @@
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
 #include "dune/DuneCommon/StringManipulator.h"
-#include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/GausStepFitter.h"
 #include "dune/DuneCommon/GausRmsFitter.h"
@@ -172,13 +171,14 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
   m_TickBorder(ps.get<Index>("TickBorder")),
   m_RoiHistOpt(ps.get<int>("RoiHistOpt")),
   m_FitOpt(ps.get<int>("FitOpt")),
+  m_RoiPlotOpt(ps.get<Index>("RoiPlotOpt")),
+  m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
+  m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
+  m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
   m_StartTime(ps.get<time_t>("StartTime")),
   m_PulserStepCharge(ps.get<float>("PulserStepCharge")),
   m_PulserDacOffset(ps.get<float>("PulserDacOffset")),
   m_PulserChargeUnit(ps.get<string>("PulserChargeUnit")),
-  m_MaxRoiPlots(ps.get<int>("MaxRoiPlots")),
-  m_RoiPlotPadX(ps.get<Index>("RoiPlotPadX")),
-  m_RoiPlotPadY(ps.get<Index>("RoiPlotPadY")),
   m_SumNegate(ps.get<bool>("SumNegate")),
   m_SumPlotPadX(ps.get<Index>("SumPlotPadX")),
   m_SumPlotPadY(ps.get<Index>("SumPlotPadY")),
@@ -501,6 +501,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "     PulserStepCharge: " << m_PulserStepCharge << endl;
     cout << myname << "      PulserDacOffset: " << m_PulserDacOffset << endl;
     cout << myname << "     PulserChargeUnit: " << m_PulserChargeUnit << endl;
+    cout << myname << "           RoiPlotOpt: " << m_RoiPlotOpt << endl;
     cout << myname << "          MaxRoiPlots: " << m_MaxRoiPlots << endl;
     cout << myname << "          RoiPlotPadX: " << m_RoiPlotPadX << endl;
     cout << myname << "          RoiPlotPadY: " << m_RoiPlotPadY << endl;
@@ -568,6 +569,20 @@ AdcRoiViewer::~AdcRoiViewer() {
     cout << myname << "  Event count: " << getState().eventCallCount.size() << endl;
     cout << myname << "   Call count: " << getState().callCount << endl;
     cout << myname << "  Sample unit: " << getState().cachedSampleUnit << endl;
+  }
+  if ( m_RoiPlotOpt == 2 ) {
+    Index ntpm = getState().roiPads.size();
+    if (  m_LogLevel >= 2 ) cout << myname << "Printing " << ntpm << " ROI pad"
+                                 << (ntpm == 1 ? "" : "s") << endl;
+    for ( TpmMap::value_type& itpm : getState().roiPads ) {
+      Index icha = itpm.first;
+      TpmPtr& pmantop = itpm.second;
+      if ( pmantop ) {
+        Name plotFileName = getState().roiPadNames[icha];
+        pmantop->print(plotFileName);
+        pmantop.reset(nullptr);
+      }
+    }
   }
   if ( getState().sumHists.size() ) {
     fitSumHists();
@@ -903,17 +918,44 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
   if ( npad == 0 ) return;
   Index wpadx = 1400;
   Index wpady = 1000;
-  TPadManipulator* pmantop = nullptr;
+  TpmPtr pmantopLocal;
+  TpmPtr& pmantop = m_RoiPlotOpt == 2 ? getState().roiPads[acd.channel] : pmantopLocal;
   Name plotFileName;
   Index ipad = 0;
+  if ( m_RoiPlotOpt == 2 ) {
+    // Fetch the print name.
+    plotFileName = getState().roiPadNames[acd.channel];
+    // Find the first empty sub pad.
+    if ( pmantop && npad > 1 ) {
+      for ( ipad=0; ipad<npad; ++ipad ) {
+        if ( pmantop->man(ipad)->hist() == nullptr ) break;
+      }
+      if ( ipad >= npad ) {
+        cout << myname << "FATAL: ROI pad is full." << endl;
+        abort();
+      }
+    }
+  }
   Index ihst = 0;
   for ( TH1* ph : hsts ) {
     if ( ph == nullptr ) continue;
     Name hnam = ph->GetName();
-    if ( pmantop == nullptr ) {
+    if (  ! pmantop ) {
       plotFileName = hnam.substr(1) + ".png";  // Strip leading h from histogram name.
+      if ( m_RoiPlotOpt == 2 ) {
+        ostringstream sscha;
+        sscha << acd.channel;
+        string scha = sscha.str();
+        while ( scha.size() < 6 ) scha = "0" + scha;
+        ostringstream sspag;
+        sspag << getState().roiPadCounts[acd.channel];
+        string spag = sspag.str();
+        while ( spag.size() < 3 ) spag = "0" + spag;
+        plotFileName = "roi_chan" + scha + "_" + spag + ".png";
+        getState().roiPadNames[acd.channel] = plotFileName;
+      }
       ipad = 0;
-      pmantop = new TPadManipulator;
+      pmantop.reset(new TPadManipulator);
       pmantop->setCanvasSize(wpadx, wpady);
       if ( npad > 1 ) pmantop->split(npadx, npady);
       if (  m_LogLevel >= 3 ) cout << myname << "  Creating plots for " << plotFileName << endl;
@@ -967,14 +1009,14 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
       }
     }
     pman->addAxis();
+    pman->addHorizontalLine(0.0);
     pman->showUnderflow();
     pman->showOverflow();
     ++ipad;
-    if ( ipad >= npad || ++ihst >= hsts.size() ) {
+    if ( ipad >= npad || (++ihst >= hsts.size() && m_RoiPlotOpt != 2) ) {
       if (  m_LogLevel >= 3 ) cout << myname << "  Writing " << plotFileName << endl;
       pmantop->print(plotFileName);
-      delete pmantop;
-      pmantop = nullptr;
+      pmantop.reset(nullptr);
       ipad = 0;
       ++getState().nRoiPlot;
       if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
