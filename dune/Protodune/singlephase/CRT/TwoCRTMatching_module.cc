@@ -121,7 +121,7 @@ class CRT::TwoCRTMatching: public art::EDAnalyzer {
   art::InputTag fCRTLabel; //Label for the module that analyzed 
   art::InputTag fCTBLabel;
   TTree * fCRTTree;
-  TTree * fTimingTree;
+  //TTree * fTimingTree;
   TTree * fCRTdQTree;
   TTree * fMCCMuon;
   TTree * fTrackInfo;
@@ -169,8 +169,9 @@ class CRT::TwoCRTMatching: public art::EDAnalyzer {
     int candidateCRT;
     double trkhitx, trkhity,trkhitz, trkhitt0, crtt0, trkdqdx;
     int trkhitIntegral;
-    int tmoduleX, tDiff, tmoduleY;
-    double xPos, yPos, zPos, sigmaHit;
+    //int tmoduleX, tDiff, tmoduleY;
+    //double xPos, yPos, zPos;
+    double  sigmaHit;
     int TPCID, WireID;
      int sumADC, rangeTime; 
    long long timeStamp;
