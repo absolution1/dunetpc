@@ -133,7 +133,7 @@ int moduletoCTB(int module2, int module1);
     
     int adcX_F, adcX_B, adcY_F, adcY_B;
     double X_F, X_B, Y_F, Y_B, Z_F, Z_B;
-    double trackX1, trackX2, trackY1, trackY2, trackZ1, trackZ2;
+    //double trackX1, trackX2, trackY1, trackY2, trackZ1, trackZ2;
     int moduleX_F, moduleX_B, moduleY_F, moduleY_B;
     int stripX_F, stripX_B, stripY_F, stripY_B;
     double measuredT0;
