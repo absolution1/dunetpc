@@ -2,7 +2,6 @@
 
 #include "AdcPedestalFitter.h"
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
@@ -16,6 +15,7 @@
 #include "TF1.h"
 #include "TROOT.h"
 #include "TError.h"
+#include "TFitResult.h"
 
 using std::string;
 using std::cout;
@@ -47,6 +47,14 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
 }
 
+//void handleRootError(int level, bool doAbort, const char* clocation, const char* cmsg) {
+//  cout << "AdcPedestalFitter::handleRootError: "
+//       << "Received Root error: level=" << level
+//       << ", doAbort=" << (doAbort ? "true" : "false")
+//       << ", location=" << clocation
+//       << ": " << cmsg << endl;
+//}
+
 }  // end unnamed namespace
 
 //**********************************************************************
@@ -55,6 +63,7 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
   m_FitRmsMin(ps.get<float>("FitRmsMin")),
   m_FitRmsMax(ps.get<float>("FitRmsMax")),
   m_HistName(ps.get<string>("HistName")),
@@ -81,9 +90,20 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
+  for ( Index flg : m_SkipFlags ) m_skipFlags.insert(flg);
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "      SkipFlags: [";
+    bool first = true;
+    for ( Index flg : m_SkipFlags ) {
+       if ( first ) first = false;
+       else cout << ", ";
+       cout << flg;
+    }
+    cout << "]" << endl;
+    cout << myname << "      FitRmsMin: " << m_FitRmsMin << endl;
+    cout << myname << "      FitRmsMax: " << m_FitRmsMax << endl;
     cout << myname << "       HistName: " << m_HistName << endl;
     cout << myname << "      HistTitle: " << m_HistTitle << endl;
     cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
@@ -245,6 +265,22 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return res.setStatus(1);
   }
+  // Flag samples to keep in pedestal fit.
+  vector<bool> keep(nsam, true);
+  Index nkeep = 0;
+  for ( Index isam=0; isam<nsam; ++isam ) {
+    if ( isam >= acd.flags.size() ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+      break;
+    }
+    Index flg = acd.flags[isam];
+    if ( m_skipFlags.count(flg) ) keep[isam] = false;
+    else ++nkeep;
+  }
+  if ( nkeep == 0 ) {
+    if ( m_LogLevel >= 2 ) cout << myname << "WARNING: No raw data is selected." << endl;
+    return res.setStatus(2);
+  }
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   string pfname = nameReplace(m_PlotFileName, acd, false);
@@ -258,31 +294,43 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   TH1* phr = new TH1F(hname.c_str(), htitl.c_str(), nbin, 0, xmax);
   phr->SetDirectory(0);
   for ( Index isam=0; isam<nsam; ++isam ) {
-    phr->Fill(acd.raw[isam]);
+    if ( keep[isam] ) phr->Fill(acd.raw[isam]);
   }
   int rbinmax1 = phr->GetMaximumBin();
   double radcmax1 = phr->GetBinCenter(rbinmax1);
-  double adcmean = phr->GetMean();
-  // Max may just be a sticky code. Reduce it and find the next maximum.
+  double radcmean = phr->GetMean();
+  double radcsum1 = phr->Integral();
+  // Max may be due to a sticky code. Reduce it and find the next maximum.
   double tmpval = 0.5*(phr->GetBinContent(rbinmax1-1)+phr->GetBinContent(rbinmax1+1));
   phr->SetBinContent(rbinmax1, tmpval);
   int rbinmax2 = phr->GetMaximumBin();
-  // Define the max to be the first value if the two maxima are close or the
-  // average if they are far part.
-  int rbinmax = rbinmax1;
-  if ( abs(rbinmax2-rbinmax1) > 1 ) {
-    rbinmax = (rbinmax1 + rbinmax2)/2;
-    adcmean = phr->GetMean();
+  double radcsum2 = phr->Integral();
+  // Evaluate the histogram mean and peak postition.
+  // If the peak removal has not removed too much data, these values are
+  // re-evaluated using the peak-removed histogram.
+  double adcmean = radcmean;        // Mean position.
+  int rbinmax = rbinmax1;           // Peak position.
+  if ( radcsum2 > 0.01*radcsum1 ) {
+    // Define the max to be the first value if the two maxima are close or the
+    // average if they are far part.
+    if ( abs(rbinmax2-rbinmax1) > 1 ) {
+      rbinmax = (rbinmax1 + rbinmax2)/2;
+      adcmean = phr->GetMean();
+    }
   }
   double adcmax = phr->GetBinCenter(rbinmax);
   delete phr;
   double wadc = 100.0;
   // Make sure the peak bin stays in range.
-  if ( abs(adcmax-radcmax1) > 0.5*wadc ) adcmax = radcmax1;
+  if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
   double adc1 = adcmax - 0.5*wadc;
   adc1 = 10*int(adc1/10);
   if ( adcmean > adcmax + 10) adc1 += 10;
   double adc2 = adc1 + wadc;
+  if ( radcmax1 < adc1 || radcmax1+1.0 > adc2 ) {
+    cout << myname << "WARNING: Histogram range (" << adc1 << ", " << adc2
+         << ") does not include peak at " << radcmax1 << "." << endl;
+  }
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(nullptr);
   phf->Sumw2();
@@ -294,7 +342,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( val < adc1 ) ++countLo;
     if ( val >= adc2 ) ++countHi;
     ++count;
-    phf->Fill(acd.raw[isam]);
+    if ( keep[isam] ) phf->Fill(acd.raw[isam]);
   }
   float fracLo = count > 0 ? float(countLo)/count : 0.0;
   float fracHi = count > 0 ? float(countHi)/count : 0.0;
@@ -306,7 +354,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   double valmax = phf->GetBinContent(binmax);
   double xcomax = phf->GetBinLowEdge(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
-  double peakBinFraction = valmax/rangeIntegral;
+  double peakBinFraction = (rangeIntegral > 0) ? valmax/rangeIntegral : 1.0;
   bool allBin = peakBinFraction > 0.99;
   bool dropBin = valmax > 0.2*phf->Integral() && !allBin;
   int nbinsRemoved = 0;
@@ -318,47 +366,80 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   double amean = phf->GetMean() + 0.5;
   double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
-  TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
-  fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
-  fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
-  if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
-  if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-  if ( m_FitRmsMin < m_FitRmsMax ) {
-    fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+  bool doFit = peakBinFraction < 0.99;
+  float pedestal = phf->GetMean();
+  float pedestalRms = 1.0/sqrt(12.0);
+  float fitChiSquare = 0.0;
+  float peakBinExcess = 0.0;
+  if ( doFit ) {
+    TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
+    fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
+    fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
+    if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
+    if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
+    if ( m_FitRmsMin < m_FitRmsMax ) {
+      fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+    }
+    fitter.SetParError(0, 0.0);
+    TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
+    pfinit->SetLineColor(3);
+    pfinit->SetLineStyle(2);
+    string fopt = "0";
+    fopt = "WWB";
+    // Nov2018: Switch to likelihood fix to better handle pdsp run 5803 event 86 channel 7309.
+    fopt = "LWB";
+    if ( m_LogLevel < 3 ) fopt += "Q";
+    // Block Root info message for new Canvas produced in fit.
+    int levelSave = gErrorIgnoreLevel;
+    gErrorIgnoreLevel = 1001;
+    gErrorIgnoreLevel = 2001;   // Block warning in Fit
+    // Block non-default (e.g. art) from handling the Root "error".
+    // We switch to the Root default handler while making the call to Print.
+    ErrorHandlerFunc_t pehSave = nullptr;
+    ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
+    //pehDefault = handleRootError;
+    if ( GetErrorHandler() != pehDefault ) {
+      pehSave = SetErrorHandler(pehDefault);
+    }
+    // Root calls error handler but returns 0 if the histo has no data in range
+    // so we check that before calling fitter.
+    int fitStat = (phf->Integral() == 0.0) ? 999 : int(phf->Fit(&fitter, fopt.c_str()));
+    //fopt += " S";  // So we can retrieve fit status
+    //TFitResultPtr pfres = phf->Fit(&fitter, fopt.c_str());
+    //bool haveFitStatus = pfres.Get();
+    //int fitStat = haveFitStatus ? pfres->Status() : 999;
+    if ( fitStat ) {
+      cout << myname << "WARNING: Fit status is " << fitStat << " for channel "
+           << acd.channel << endl;
+      cout << myname << "  Errors[0]: " << fitter.GetParErrors()[0] << endl;
+      cout << myname << "  radcmax1 = " << radcmax1 << endl;
+      cout << myname << "  radcmean = " << radcmean << endl;
+      cout << myname << "   adcmean = " << adcmean << endl;
+      cout << myname << "    adcmax = " << adcmax << endl;
+      cout << myname << "  rbinmax1,2: " << rbinmax1 << ", " << rbinmax2 << endl;
+      cout << myname << "  peakBinFraction = " << valmax << "/" << rangeIntegral
+           << " = " << peakBinFraction << endl;
+      cout << myname << "  allBin = " << allBin << endl;
+      cout << myname << "  dropBin = " << dropBin << endl;
+      cout << myname << "  amean = " << amean << " +/- " << ameanWin << endl;
+    }
+    if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+    gErrorIgnoreLevel = levelSave;
+    phf->GetListOfFunctions()->AddLast(pfinit, "0");
+    phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+    double valEval = fitter.Eval(xcomax);
+    peakBinExcess = (valmax - valEval)/rangeIntegral;
+    if ( dropBin ) phf->SetBinContent(binmax, valmax);
+    pedestal = fitter.GetParameter(1) - 0.5;
+    pedestalRms = fitter.GetParameter(2);
+    fitChiSquare = fitter.GetChisquare();
   }
-  TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
-  pfinit->SetLineColor(3);
-  pfinit->SetLineStyle(2);
-  string fopt = "0";
-  fopt = "WWB";
-  // Nov2018: Switch to likelihood fix to better handle pdsp run 5803 event 86 channel 7309.
-  fopt = "LWB";
-  if ( m_LogLevel < 3 ) fopt += "Q";
-  // Block Root info message for new Canvas produced in fit.
-  int levelSave = gErrorIgnoreLevel;
-  gErrorIgnoreLevel = 1001;
-  gErrorIgnoreLevel = 2001;   // Block warning in Fit
-  // Block non-default (e.g. art) from handling the Root "error".
-  // We switch to the Root default handler while making the call to Print.
-  ErrorHandlerFunc_t pehSave = nullptr;
-  ErrorHandlerFunc_t pehDefault = DefaultErrorHandler;
-  if ( GetErrorHandler() != pehDefault ) {
-    pehSave = SetErrorHandler(pehDefault);
-  }
-  phf->Fit(&fitter, fopt.c_str());
-  if ( pehSave != nullptr ) SetErrorHandler(pehSave);
-  gErrorIgnoreLevel = levelSave;
-  phf->GetListOfFunctions()->AddLast(pfinit, "0");
-  phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
-  double valEval = fitter.Eval(xcomax);
-  double peakBinExcess = (valmax - valEval)/rangeIntegral;
-  if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf, true);
   res.setFloat("fitFractionLow", fracLo);
   res.setFloat("fitFractionHigh", fracHi);
-  res.setFloat("fitPedestal", fitter.GetParameter(1) - 0.5);
-  res.setFloat("fitPedestalRms", fitter.GetParameter(2));
-  res.setFloat("fitChiSquare", fitter.GetChisquare());
+  res.setFloat("fitPedestal", pedestal);
+  res.setFloat("fitPedestalRms", pedestalRms);
+  res.setFloat("fitChiSquare", fitChiSquare);
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setFloat("fitPeakBinExcess", peakBinExcess);
   res.setInt("fitChannel", acd.channel);

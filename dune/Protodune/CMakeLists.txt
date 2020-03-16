@@ -1,5 +1,2 @@
-add_subdirectory(Analysis)
 add_subdirectory(singlephase)
 add_subdirectory(dualphase)
-add_subdirectory(TutorialExamples)
-add_subdirectory(PhysicsWeek)

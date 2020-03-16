@@ -7,14 +7,14 @@
 #include "signalservices_dune.fcl"
 #include "magfield_larsoft.fcl"
 #include "databaseutil_dune.fcl"
-#include "backtrackerservice.fcl"
-#include "particleinventoryservice.fcl"
+#include "backtrackerservice_dune.fcl"
+#include "particleinventoryservice_dune.fcl"
 #include "photonbacktrackerservice.fcl"
 #include "seedservice_dune.fcl"
 #include "detectorclocks_dune.fcl"
-//#include "photpropservices_dune.fcl"
+#include "photpropservices_dune.fcl"
 #include "sam_dune.fcl"
-//#include "opticaldetectorservices_dune.fcl"
+#include "opticaldetectorservices_dune.fcl"
 #include "channelmapping_dune.fcl"
 #include "channelstatus_dune.fcl"
 #include "channelstatus_pdsp.fcl"
@@ -24,9 +24,11 @@
 #include "channelmap_35t.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
+#include "protodune_dataprep_services.fcl"
 #include "PdspChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -301,21 +303,22 @@ protodune_data_services: {
 
 protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
- LArG4Parameters:                @local::protodune_largeantparameters
- ExptGeoHelperInterface:         @local::dune_geometry_helper
- Geometry:                       @local::protodune_geo
- DetectorClocksService:          @local::protodune_detectorclocks
- DetectorPropertiesService:      @local::protodune_detproperties
- LArPropertiesService:           @local::dunefd_properties
+ LArG4Parameters:              @local::protodune_largeantparameters
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ Geometry:                     @local::protodune_geo
+ DetectorClocksService:        @local::protodune_detectorclocks
+ DetectorPropertiesService:    @local::protodune_detproperties
+ LArPropertiesService:         @local::dunefd_properties
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
  SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:               @local::dune_seedservice
+ NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
-# PhotonVisibilityService:      @local::protodune_photonvisibilityservice
-# OpDetResponseInterface:       @local::protodune_opdetresponse
+ PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+ OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
+ ParticleInventoryService:     @local::standard_particleinventoryservice
 }
 
 
@@ -324,11 +327,9 @@ protodune_simulation_services: {
 # services is workspace g4 fhicl file.
 
 protodune_simulation_services.LArPropertiesService.ScintYield: 		24000
-protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
-#protodune_simulation_services.LArPropertiesService.ScintPreScale: 	1
 protodune_simulation_services.LArPropertiesService.ScintPreScale: 	0.0287
-#protodune_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
-
+protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
+protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
 protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "FastOptical",
                                                                 "SynchrotronAndGN",
@@ -336,8 +337,7 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "Hadron",
                                                                 "Decay",
                                                                 "HadronElastic",
-                                                                "Stopping",
-                                                                "NeutronTrackingCut" ]
+                                                                "Stopping"]
 
 
 # Reco services for ProtoDUNE simulation.
@@ -350,13 +350,6 @@ protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # Switch to tool-based dataprep for ProtoDUNE simulation.
 # Comment out the the following lines to go back to the service-based dataprep.
 # Process simulation using tool-based dataprep.
-protodune_dataprep_tools_sim: [
-    "digitReader",              # Read RawDigit
-    "adcSampleFiller",          # Subtract pedestal, trivial calibration
-    "adcVintageDeconvoluter",   # Deconvolution
-    "adcThresholdSignalFinder", # ROI
-    "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
-]
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
@@ -373,84 +366,36 @@ protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus
 protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
 # Use channel service for data
 protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
-# Make sure we can use cryostat-side APA hits
-#protodune_data_reco_services.ChannelGroupService.ApaRops: []
 
 # Add the photon detector calibrator service
 #protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 # ProtoDUNE detector properties service
 protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
-# Finally, add the tools
-## No calibration, no noise removal.
-protodune_dataprep_tools_nocal: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleFiller",            # Subtract pedestal, trivial calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootAdc"     # correct undershoot
-  #"adcKeepAllSignalFinder"      # Keep all signal (no ROIs)
-]
-## Charge calibration, no noise removal.
-protodune_dataprep_tools_calib: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe"      # correct undershoot
-  #"adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
-  #"adcScaleKeToAdc"             # Scale samples to nominal ADC counts
-]
-## Charge calibration, noise removal.
-protodune_dataprep_tools_calib_noiserem: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe",     # correct undershoot
-  "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
-]
-## Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
-protodune_dataprep_tools_wirecell: [
-  @sequence::protodune_dataprep_tools_calib_noiserem,
-  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
-  "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
-  "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
-]
-
-## Set a default here.
+# Add the dataprep service.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
-#protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_calib
 
-#########################
-#### lardet ###
-#########################
-#
-#lardet_simulation_services: {
-# LArG4Parameters:                @local::protodune_largeantparameters
-## ExptGeoHelperInterface:         @local::dune_geometry_helper
-# NuRandomService:                @local::dune_seedservice
-# Geometry:                       @local::lardet_geo
-# DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
-# DetectorPropertiesService:      @local::dphase3x1x1_detproperties
-# LArPropertiesService:           @local::dunefddphase_properties
-# SpaceCharge:                    @local::dphase3x1x1_spacecharge
-#}
-#
-#
-## Settings for optical simulation in the FD. Optical simulation not on by default
-## for FD, turned on by custom physics list and defining a photon visibility
-## services is workspace g4 fhicl file.
-#
-#lardet_simulation_services.LArPropertiesService.ScintYield: 		24000
-#lardet_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
-#lardet_simulation_services.LArPropertiesService.ScintPreScale: 	1
-#//dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
+##################################################
+### Make Parallel Services for the v7 geometry ###
+##################################################
+
+protodunev7_services:  @local::protodune_services
+protodunev7_services.Geometry: @local::protodunev7_geo
+
+protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
+protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_services:  @local::protodune_data_services
+protodunev7_data_services.Geometry: @local::protodunev7_geo
+
+protodunev7_reco_services:  @local::protodune_reco_services
+protodunev7_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_data_reco_services:  @local::protodune_data_reco_services
+protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
+
+protodunev7_simulation_services:  @local::protodune_simulation_services
+protodunev7_simulation_services.Geometry: @local::protodunev7_geo
+protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
 
 
 ########################

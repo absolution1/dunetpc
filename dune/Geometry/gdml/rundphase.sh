@@ -27,10 +27,10 @@ rm dphase_geo_nowires.xml
 ### Far detector (drift in Y) ###
 #################################
 
-echo "--- Generating Far Detector Geometry Drift in Y---"
+echo "--- Generating Far Detector Geometry Drift in Y--- No Foils"
 
 # with wires for larcore
-perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY.xml --pmtdensity 1 --TPBFoils 1
+perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY.xml --pmtdensity 1 --TPBFoils 0
 perl make_gdml.pl -i dphase_geo_driftY.xml -o dunedphase10kt_v2_driftY.gdml
 
 # clean up
@@ -38,13 +38,33 @@ rm dunedphase10kt_v2_driftY_*.gdml
 rm dphase_geo_driftY.xml
 
 # no wires for geant
-perl generate_dunedphase10kt_v2_driftY.pl -w 0 -o dphase_geo_driftY_nowires.xml --pmtdensity 1 --TPBFoils 1
+perl generate_dunedphase10kt_v2_driftY.pl -w 0 -o dphase_geo_driftY_nowires.xml --pmtdensity 1 --TPBFoils 0
 perl make_gdml.pl -i dphase_geo_driftY_nowires.xml -o dunedphase10kt_v2_driftY_nowires.gdml
 
 # clean up
 rm dunedphase10kt_v2_driftY_nowires_*.gdml
 rm dphase_geo_driftY_nowires.xml
 
+
+echo "--- Generating Far Detector Geometry Drift in Y--- Full Foil"
+
+# with wires for larcore
+perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_Foil.xml --pmtdensity 1 --TPBFoils 1
+perl make_gdml.pl -i dphase_geo_driftY_Foil.xml -o dunedphase10kt_v2_driftY_Foil.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_Foil_*.gdml
+rm dphase_geo_driftY_Foil.xml
+
+# no wires for geant
+perl generate_dunedphase10kt_v2_driftY.pl -w 0 -o dphase_geo_driftY_Foil_nowires.xml --pmtdensity 1 --TPBFoils 1
+perl make_gdml.pl -i dphase_geo_driftY_Foil_nowires.xml -o dunedphase10kt_v2_driftY_Foil_nowires.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_Foil_nowires_*.gdml
+rm dphase_geo_driftY_Foil_nowires.xml
+
+echo "--- Generating Far Detector Geometry Drift in Y--- Half Foil"
 # with wires for larcore
 perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_HalfFoil.xml --pmtdensity 1 --TPBFoils 2
 perl make_gdml.pl -i dphase_geo_driftY_HalfFoil.xml -o dunedphase10kt_v2_driftY_HalfFoil.gdml
@@ -61,6 +81,7 @@ perl make_gdml.pl -i dphase_geo_driftY_HalfFoil_nowires.xml -o dunedphase10kt_v2
 rm dunedphase10kt_v2_driftY_HalfFoil_nowires_*.gdml
 rm dphase_geo_driftY_HalfFoil_nowires.xml
 
+echo "--- Generating Far Detector Geometry Drift in Y--- No Foil - 2PMT per M2"
 # with wires for larcore
 perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_2PMTperM2.xml --pmtdensity 2 --TPBFoils 0
 perl make_gdml.pl -i dphase_geo_driftY_2PMTperM2.xml -o dunedphase10kt_v2_driftY_2PMTperM2.gdml
@@ -77,6 +98,24 @@ perl make_gdml.pl -i dphase_geo_driftY_2PMTperM2_nowires.xml -o dunedphase10kt_v
 rm dunedphase10kt_v2_driftY_2PMTperM2_nowires_*.gdml
 rm dphase_geo_driftY_2PMTperM2_nowires.xml
 
+
+
+echo "--- Generating Far Detector Geometry Drift in Y--- Half Foil - 2PMT per M2"
+# with wires for larcore
+perl generate_dunedphase10kt_v2_driftY.pl -w 1 -o dphase_geo_driftY_2PMTperM2_HalfFoil.xml --pmtdensity 2 --TPBFoils 2
+perl make_gdml.pl -i dphase_geo_driftY_2PMTperM2_HalfFoil.xml -o dunedphase10kt_v2_driftY_2PMTperM2_HalfFoil.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_2PMTperM2_HalfFoil_*.gdml
+rm dphase_geo_driftY_2PMTperM2_HalfFoil.xml
+
+# no wires for geant
+perl generate_dunedphase10kt_v2_driftY.pl -w 0 -o dphase_geo_driftY_2PMTperM2_HalfFoil_nowires.xml --pmtdensity 2 --TPBFoils 2
+perl make_gdml.pl -i dphase_geo_driftY_2PMTperM2_HalfFoil_nowires.xml -o dunedphase10kt_v2_driftY_2PMTperM2_HalfFoil_nowires.gdml
+
+# clean up
+rm dunedphase10kt_v2_driftY_2PMTperM2_HalfFoil_nowires_*.gdml
+rm dphase_geo_driftY_2PMTperM2_HalfFoil_nowires.xml
 
 ########################################
 ### Far detector workspace: 2x1 TPCs ###

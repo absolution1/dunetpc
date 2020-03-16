@@ -113,7 +113,7 @@ int test_ProtoDuneChannelGroups(bool useExistingFcl =false, int show =1) {
     assert( ran.name == expTpss[iran] );
   }
 
-  // Chck plane groups: tpszs, apaus, ...
+  // Check plane groups: tpszs, apaus, ...
   for ( Name sapt : {"apa", "tps"} ) {
     Name rbas = sapt;
     if ( sapt == "tps" ) rbas = "tpp";
@@ -138,6 +138,26 @@ int test_ProtoDuneChannelGroups(bool useExistingFcl =false, int show =1) {
         cout << myname << setw(5) << iran << ": " << ran << endl;
         assert( ran.name == rnams[iran] );
       }
+    }
+  }
+
+  // Check FEMBs.
+  cout << myname << "Checking FEMBs" << endl;
+  for ( Name sapa : { "1", "2", "3", "4", "5", "6" } ) {
+    for ( Name sfmb : { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+                        "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" } ) {
+      Name gnam = "femb" + sapa + sfmb;
+      chg = pcgt->get(gnam);
+      assert( chg.isValid() );
+      assert( chg.name == gnam );
+      Index nran = chg.ranges.size();
+      assert( nran == 3 );
+      cout << myname << "  " << gnam << ": ";
+      for ( Index iran=0; iran<nran; ++iran ) {
+        if ( iran ) cout << ",";
+        cout << " " << chg.ranges[iran].name;
+      }
+      cout << endl;
     }
   }
   

@@ -26,7 +26,8 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
   m_FirstTick(ps.get<Index>("FirstTick")),
   m_NTick(ps.get<Index>("NTick")),
   m_Action(ps.get<Index>("Action")),
-  m_ReturnOpt(ps.get<Index>("ReturnOpt")) {
+  m_ReturnOpt(ps.get<Index>("ReturnOpt")),
+  m_DataView(ps.get<Name>("DataView")) {
   const string myname = "AdcChannelFFT::ctor: ";
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -35,12 +36,80 @@ AdcChannelFFT::AdcChannelFFT(fhicl::ParameterSet const& ps)
     cout << myname << "               NTick: " << m_NTick << endl;
     cout << myname << "              Action: " << m_Action << endl;
     cout << myname << "           ReturnOpt: " << m_ReturnOpt << endl;
+    cout << myname << "            DataView: " << m_DataView << endl;
   }
 }
 
 //**********************************************************************
 
 DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
+  const string myname = "AdcChannelFFT::view: ";
+  DataMap retTop;
+  if ( m_DataView.size() == 0 ) return viewTop(acd);
+  if ( ! acd.hasView(m_DataView) ) {
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+           << " channel " << acd.channel << endl;
+    }
+    return retTop.setStatus(1);
+  }
+  Index nproc = 0;
+  Index nfail = 0;
+  AdcIndex nvie = acd.viewSize(m_DataView);
+  for ( AdcIndex ivie=0; ivie<nvie; ++ivie ) {
+    const AdcChannelData* pacd = acd.viewEntry(m_DataView, ivie);
+    DataMap ret = viewTop(*pacd);
+    ++nproc;
+    if ( ret ) ++nfail;
+  }
+  retTop.setInt("fftNproc", nproc);
+  retTop.setInt("fftNfail", nproc);
+  if ( nfail ) retTop.setStatus(2);
+  return retTop;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
+  const string myname = "AdcChannelFFT::update: ";
+  if ( m_DataView.size() == 0 ) return updateTop(acd);
+  DataMap retTop;
+  if ( ! acd.hasView(m_DataView) ) {
+    if ( m_LogLevel >= 2 ) {
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+           << " channel " << acd.channel << endl;
+    }
+    return retTop.setStatus(1);
+  }
+  Index nproc = 0;
+  Index nfail = 0;
+  AdcIndex nent = acd.viewSize(m_DataView);
+  for ( AdcIndex ient=0; ient<nent; ++ient ) {
+    AdcChannelData* pacd = acd.mutableViewEntry(m_DataView, ient);
+    DataMap ret;
+    if ( pacd == nullptr ) {
+      cout << myname << "Channel " << acd.channel << " view entry "
+           << m_DataView << "[" << ient << "] is null." << endl;
+      ret.setStatus(99);
+    } else {
+      ret = updateTop(*pacd);
+    }
+    ++nproc;
+    if ( ret ) ++nfail;
+  }
+  retTop.setInt("fftNproc", nproc);
+  retTop.setInt("fftNfail", nproc);
+  if ( nfail ) retTop.setStatus(2);
+  if ( m_LogLevel >= 3 ) {
+    cout << myname << "Channel " << acd.channel << " entry counts: "
+         << nproc << " processed, " << nfail << " failed." << endl;
+  }
+  return retTop;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelFFT::viewTop(const AdcChannelData& acd) const {
   const string myname = "AdcChannelFFT::view: ";
   DataMap ret;
   DataMap::FloatVector sams;
@@ -52,7 +121,7 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
 
 //**********************************************************************
 
-DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
+DataMap AdcChannelFFT::updateTop(AdcChannelData& acd) const {
   const string myname = "AdcChannelFFT::update: ";
   DataMap ret;
   DataMap::FloatVector sams;
@@ -109,6 +178,7 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
   DFT::FullNormalization dftNorm(AdcChannelData::dftNormalization());
   DFT dft(dftNorm);
   //DFT dft(DFT::FullNormalization(AdcChannelData::dftNormalization()));
+  int passLog = m_LogLevel < 3 ? 0 : m_LogLevel - 3;
   if ( doForward ) {
     isam0 = m_FirstTick;
     if ( isam0 >= acd.samples.size() ) {
@@ -119,7 +189,7 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
     nsam = acd.samples.size() - isam0;
     if ( m_LogLevel >= 3 ) cout << myname << "Forward FFT with " << nsam << " samples." << endl;
     if ( m_NTick > 0 && m_NTick < nsam ) nsam = m_NTick;
-    int rstat = DuneFFT::fftForward(nsam, &acd.samples[isam0], dft, m_LogLevel);
+    int rstat = DuneFFT::fftForward(nsam, &acd.samples[isam0], dft, passLog);
     if ( rstat ) {
       ret.setStatus(10+rstat);
       cout << myname << "WARNING: Forward FFT failed." << endl;
@@ -132,7 +202,7 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
       cout << "ERROR: Unable to find DFT in AdcChannelData." << endl;
       return;
     }
-    int rstat = DuneFFT::fftInverse(dft, sams, m_LogLevel);
+    int rstat = DuneFFT::fftInverse(dft, sams, passLog);
     xams = acd.dftmags;
     xphs = acd.dftphases;
     if ( m_LogLevel >= 3 ) cout << myname << "Inverse FFT for " << dft.size() << " samples." << endl;

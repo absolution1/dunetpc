@@ -376,7 +376,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
   // Check if there is SSP data in this event
   // Don't crash code if not present, just don't save anything
   try { rawFragments->size(); }
-  catch(std::exception e) {
+  catch(std::exception const&) {
     mf::LogWarning("SSPDiagnosticAna") << "WARNING: Raw SSP data not found in event " << evt.event();
     return;
   }
@@ -526,7 +526,7 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
           continue;
         }
       } 
-      catch (cet::exception e) {
+      catch (cet::exception const&) {
         continue;
       }
 
@@ -543,5 +543,3 @@ void DAQToOffline::SSPDiagnosticAna::analyze(art::Event const & evt)
 }
 
 DEFINE_ART_MODULE(DAQToOffline::SSPDiagnosticAna)
-
-

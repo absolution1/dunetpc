@@ -51,6 +51,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
     fout << "  PulserStepCharge: 0.0" << endl;
     fout << "  PulserDacOffset: 0.0" << endl;
     fout << "  PulserChargeUnit: \"\"" << endl;
+    fout << "  RoiPlotOpt: 1" << endl;
     fout << "  MaxRoiPlots: 100" << endl;
     fout << "  RoiPlotPadX: 2" << endl;
     fout << "  RoiPlotPadY: 2" << endl;

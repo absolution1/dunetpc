@@ -89,11 +89,24 @@ namespace lris
   private: 
     art::SourceHelper const&	__sourceHelper;
     art::SubRunID 		__currentSubRunID;
+    
+    int                         __logLevel;
+    //std::vector<unsigned>       __select_crps;
+    std::string                 __outlbl_digits;
+    std::string                 __outlbl_status;
+    std::string                 __outlbl_rdtime;
+    std::string                 __prodlbl_digits;
+    std::string                 __prodlbl_status;
+    std::string                 __prodlbl_rdtime;
+
     uint32_t 			__eventCtr; 
     uint32_t                    __eventNum;
 
     // number of uncompressed samples per channel
     size_t __nsacro;
+    
+    // ped inversion to deal with the inverted signal polarity
+    unsigned __invped; 
 
     // close binary file
     void __close();
@@ -103,6 +116,13 @@ namespace lris
 
     // unpack binary data written by each L1 evb builder
     bool __unpackEvent( std::vector<BYTE> &buf, DaqEvent &event );
+
+    //
+    std::string __getProducerLabel( std::string &lbl );
+
+    // crp to daq mapping
+    std::vector<unsigned> __daqch;
+    std::vector<bool>     __keepch;
 
     // file locations
     std::vector<std::streampos> __events;

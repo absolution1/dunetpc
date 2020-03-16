@@ -53,7 +53,6 @@ physics:
      SingleCRTMatching: @local::SingleCRTMatching_data
   }
 
-  stream1: [ out1 ]
 
   #detSim: [ CRTSim ]
   ana:  [ SingleCRTMatching]
@@ -62,15 +61,4 @@ physics:
   end_paths:     [ ana ]
 }
 
-outputs:
-{
- out1:
- {
-   module_type: RootOutput
-   fileName:    "CRTDetReco_protoDUNE.root" #default file name, can override from command line with -o or --output
-   dataTier: "DetSim"
-   compressionLevel: 1
- }
-}
 
-CRTSim.DACThreshold: 100 #Make the DAC threshold so high that nothing will pass it

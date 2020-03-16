@@ -17,7 +17,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
 
-#include "nutools/IFDatabase/Util.h"
+#include "nuevdb/IFDatabase/Util.h"
 #include <boost/tokenizer.hpp>
 #include <ctime>
 

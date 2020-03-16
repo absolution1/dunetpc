@@ -1,12 +1,11 @@
 
-simple_plugin(CWPFilter "module"
+simple_plugin(DuneEventFilter "module"
+			dune_ArtSupport
 			lardataobj_RawData
                         lardataobj_RecoBase
 	                larcorealg_Geometry
 	                larcore_Geometry_Geometry_service
                         lardata_Utilities    
-			
-			  
                         ${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -16,7 +15,6 @@ simple_plugin(CWPFilter "module"
 			art_Persistency_Provenance canvas
 			art_Utilities canvas
 			${MF_MESSAGELOGGER}
-			
 	                ${FHICLCPP}
 			cetlib cetlib_except
                         ${ROOT_GEOM}

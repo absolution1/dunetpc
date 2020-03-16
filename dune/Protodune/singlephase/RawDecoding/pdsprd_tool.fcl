@@ -10,11 +10,22 @@ pdsprd_tool:
   APA4InputLabels: [ "daq:TPC004", "daq:ContainerTPC004", "daq:FELIX004", "daq:ContainerFELIX004",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
   APA5InputLabels: [ "daq:TPC005", "daq:ContainerTPC005", "daq:FELIX005", "daq:ContainerFELIX005",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
   APA6InputLabels: [ "daq:TPC006", "daq:ContainerTPC006", "daq:FELIX006", "daq:ContainerFELIX006",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]
+  APA7InputLabels: [ "daq:TPC007", "daq:ContainerTPC007", "daq:FELIX007", "daq:ContainerFELIX007",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX",
+                     "daq:TPC000", "daq:ContainerTPC000", "daq:FELIX000", "daq:ContainerFELIX000" ]
+  APA8InputLabels: [ "daq:TPC008", "daq:ContainerTPC008", "daq:FELIX008", "daq:ContainerFELIX008",  "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX",
+                     "daq:TPC000", "daq:ContainerTPC000", "daq:FELIX000", "daq:ContainerFELIX000" ]
+
   MISCAPAInputLabels: [ "daq:TPC", "daq:ContainerTPC", "daq:FELIX", "daq:ContainerFELIX" ]  # use for example for coldbox-test data
+
+  DefaultCrateIfUnexpected:  3     #  Use for coldbox data -- unexpected means not in the range 1-6.
+
+  MinOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit
+  MaxOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit.  < MinOfflineChannel: no limit
 
   RCEDropSmallFrags: true
   RCESmallFragSize: 500000
-  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEDropFragsWithBadSF: true    # skip fragments with invalid  slot and fiber numbers
+  RCEDropFragsWithBadC:  true    # skip fragments with invalid crate numbers
   RCEHexDump: false
   RCESaveFragsToFiles: false
   RCECheckBufferSize: true
@@ -22,7 +33,8 @@ pdsprd_tool:
   RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
   RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
-  FELIXDropFragsWithBadCSF: true
+  FELIXDropFragsWithBadSF: true
+  FELIXDropFragsWithBadC: true
   FELIXHexDump: false
   FELIXDropSmallFrags: true
   FELIXSmallFragSize: 10000

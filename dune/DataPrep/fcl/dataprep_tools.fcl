@@ -67,7 +67,7 @@ tools.adcPlotRaw: {
   LogLevel: 1
   HistTypes: ["raw"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -75,9 +75,12 @@ tools.adcPlotRaw: {
   PlotSigOpt: pedestal
   PlotSigMin:  100
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  LabelSize: 0.01
+  SkipFlags: []
 }
 
 # Dump prepared ADC channel waveform to a histogram.
@@ -86,7 +89,7 @@ tools.adcPlotPrepared: {
   LogLevel: 1
   HistTypes: ["prepared"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -94,9 +97,12 @@ tools.adcPlotPrepared: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  LabelSize: 0.01
+  SkipFlags: []
 }
 
 # Dump ADC channel distribution to a histogram.
@@ -105,7 +111,7 @@ tools.adcPlotRawDist: {
   LogLevel: 1
   HistTypes: ["rawdist"]
   HistName: "adc_%TYPE%_ev%EVENT%_ch%CHAN%"
-  HistTitle: "ADC %TYPE% event %EVENT% channel %CHAN%"
+  HistTitle: "ADC %TYPE% run %RUN% event %EVENT% channel %CHAN%"
   RootFileName: ""
   PlotFileName: ""
   PlotSamMin:    0
@@ -113,15 +119,19 @@ tools.adcPlotRawDist: {
   PlotSigOpt: full
   PlotSigMin:    0
   PlotSigMax:    0
+  PlotDistMin:   0
+  PlotDistMax:   0
   ColorBad:   633
   ColorNoisy: 636
-  HistManager: ""
+  LabelSize: 0.01
+  SkipFlags: []
 }
 
 # Fit ADC distribution to get pedestal.
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  SkipFlags: []
   FitRmsMin:  1.0
   FitRmsMax: 20.0
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
@@ -158,16 +168,19 @@ tools.preparedAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 0      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Prepared ADC for event %EVENT%"
   PlotTitle: ""
@@ -180,16 +193,19 @@ tools.signalAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 2      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Signal ADC for event %EVENT%"
   PlotTitle: ""
@@ -202,16 +218,19 @@ tools.rawAdcPlotter: {
   tool_type: AdcDataPlotter
   LogLevel: 1
   DataType: 1      # 0 for prepared, 1 for raw-pedestal
+  DataView: ""
   TickRange: plotTicks
   TickRebin: 1
   ChannelRanges: []
+  ClockFactor: 0.0
+  ClockOffset: 0.0
   FembTickOffsets: []
   MaxSignal: 200
   SkipBadChannels: false
   EmptyColor: 18
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
-  Palette: 1026
+  Palette: 2020
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
   HistTitle: "Raw ADC for event %EVENT%"
   PlotTitle: ""
@@ -267,11 +286,14 @@ adcSampleFreq: 2000
 adcPlotDftTemplate: {
           tool_type: AdcChannelDftPlotter
            LogLevel: 1
+       PlotDataView: ""
   ChannelStatusFlag: 0
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
-    PlotSummaryName: ""
+   PlotSummaryNames: []
    HistSummaryTitle: ""
+               XMin: 0.0
+               XMax: 0.0
             YMinLog: 0.0
   PlotChannelRanges: []    # Empty makes one plot for each channel
   PlotChannelGroups: []    # Empty makes one plot for each channel
@@ -320,7 +342,7 @@ tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png
 tools.adcPlotDftTickPowerLog: @local::tools.adcPlotDftTickPower
 tools.adcPlotDftTickPowerLog.YMinLog: 0.01
 tools.adcPlotDftTickPowerLog.YMax: 100.0
-tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPowerLog.HistName: "hdftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPowerLog.PlotName: "dftpowtlog_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
 ################################################################################
@@ -370,6 +392,7 @@ tools.adcSubtractBaseline: {
 tools.adcKeepAllSignalFinder: {
   tool_type: AdcKeepAllSignalFinder
   LogLevel: 1
+  DataPath: ""
 }
 
 # Scale samples from ke to ADC count.
@@ -412,6 +435,7 @@ tools.adcFFT: {
   NormOpt:   1
   Action:    3
   ReturnOpt: 1
+  DataView: ""
 }
 
 # Undo FFT.
@@ -423,6 +447,7 @@ tools.adcFFTinv: {
   NormOpt:    1
   Action:    13
   ReturnOpt: 10
+  DataView: ""
 }
 
 # Fetch ROI info and hists.
@@ -433,12 +458,14 @@ tools.adcRoiViewer: {
   TickBorder: 0
   RoiHistOpt:  1
   FitOpt:   0
+  RoiPlotOpt:  2
+  StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
-  MaxRoiPlots: 0
+  MaxRoiPlots: 1000
   RoiPlotPadX: 4
   RoiPlotPadY: 4
   SumPlotPadX: 4
@@ -447,9 +474,12 @@ tools.adcRoiViewer: {
   ChannelLinePattern: []
   SumNegate: false
   SumHists: []
+  ChanSumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
+  ChanSumRootFileName: ""
+  PlotLabels: []
 }
 tools.adcRoiFitter: {
   tool_type: AdcRoiViewer
@@ -458,12 +488,14 @@ tools.adcRoiFitter: {
   LogLevel: 1
   RoiHistOpt:  1
   FitOpt:   1
+  RoiPlotOpt:  2
+  StartTime: 0
   PulserStepCharge: 0.0
   PulserDacOffset: 0.0
   PulserChargeUnit: ""
   RunDataTool: ""
   TickOffsetTool: ""
-  MaxRoiPlots: 0
+  MaxRoiPlots: 1000
   RoiPlotPadX: 4
   RoiPlotPadY: 4
   SumPlotPadX: 4
@@ -472,9 +504,12 @@ tools.adcRoiFitter: {
   ChannelLinePattern: []
   SumNegate: false
   SumHists: []
+  ChanSumHists: []
   ChannelRanges: []
   RoiRootFileName: ""
   SumRootFileName: ""
+  ChanSumRootFileName: ""
+  PlotLabels: []
 }
 
 # Build ROI w.r.t. local baseline
@@ -510,3 +545,22 @@ tools.adcDPhase3x1x1RoiBuilder: {
   PadLow: 20
   PadHigh: 50
 }
+
+# Split data keeping ROIs.
+tools.adcSliceRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: rois
+  SliceOpt: 1
+  CopyRaw: false
+}
+
+# Split data keeping not ROIs.
+tools.adcSliceNotRoi: {
+  tool_type: AdcRoiSlicer
+  LogLevel: 1
+  OutViewName: notrois
+  SliceOpt: 2
+  CopyRaw: false
+}
+

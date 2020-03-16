@@ -19,7 +19,7 @@
 // If sigfrac > SigFracMax or tr < trmin, the threshold is increased
 // Else if tr > trmax and threshold > thresholdMin, the threshold is decreased
 //
-// The signal finding is repeated until there is not change in threshold or
+// The signal finding is repeated until there is no change in threshold or
 // the loop count reaches MaxLoop.
 //
 // Configuration:

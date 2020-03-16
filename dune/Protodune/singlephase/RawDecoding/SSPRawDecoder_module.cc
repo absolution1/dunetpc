@@ -1,4 +1,3 @@
-
 // Class:       SSPRawDecoder
 // Module Type: producer
 // File:        SSPRawDecoder_module.cc
@@ -6,7 +5,7 @@
 // Generated at Thu Jul  6 18:31:48 2017 by Antonino Sergi,32 1-A14,+41227678738, using artmod
 // from cetpkgsupport v1_11_00.
 //
-// Most recent additions by Bryan Ramson of FNAL (bjrams87@fnal.gov), Thursday September 20, 2018   
+// Additions by Bryan Ramson of FNAL (bjrams87@fnal.gov), Thursday September 20, 2018   
 ////////////////////////////////////////////////////////////////////////
 
 // art includes
@@ -89,7 +88,6 @@ public:
   void beginJob() override;
   void endJob() override;
   void beginEvent(art::EventNumber_t eventNumber);
-  void endEvent  (art::EventNumber_t eventNumber);
 
   void setRootObjects();
 
@@ -117,7 +115,7 @@ private:
   uint64_t extreftime_[24];
   uint64_t ext_ireftime_[24];
   uint64_t allreftime;
-  int diff_time = 5; //~33 ns window for coincidences
+  //int diff_time = 5; //~33 ns window for coincidences
 
   uint32_t         verb_adcs_;
   bool             verb_meta_;
@@ -125,12 +123,8 @@ private:
 
   TH1D * n_event_packets_; //diagnostic histos
   TH1D * frag_sizes_;
-  TH1D * trig_ref_time_;
-  TH1D * trig_abs_time_;
-  TH2D * trig_adc_time_;
-  TH2D * hit_map_;
-  TH2D * coincidence_map_;
-  TH2D * heat_map_;
+  //TH1D * trig_abs_time_;
+  //TH2D * trig_adc_time_;
 
   // m1, m2, i1, i2
   double m1,m2,i1,i2;
@@ -139,337 +133,10 @@ private:
   double SPESize;
 
   //const uint64_t preread_ = 75000; //~.5 msecs before the external trigger (will be changed to 25 usecs soon)
-  const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
+  //const uint32_t ext_trig_samp_time = 375000; //~2.5 msecs after the external trigger 
   //const uint32_t spillsamptime_ = 720000000; //~4.8 sec beam spill time
   
-  //global vectors for smuggling relevant variables out of the producer method/function
-  std::vector<unsigned short> coin_module_id, coin_channel_id;
-  std::vector<double> coin_adc_peak;
-  std::vector<uint64_t> coin_ext_time;
-  std::vector<int32_t> coin_int_time;
-                                                                                                                                        
-
   int number_of_packets = 12;  // 12 channels per SSP
-  
-  //physical map for coincidence and heat maps. May be useful elsewhere...
-  std::map<std::pair<int,int>,std::pair<int,int>> phys_map_ =
-    { {std::make_pair(11,0),std::make_pair(8,9)},
-      {std::make_pair(11,1),std::make_pair(9,9)},
-      {std::make_pair(11,2),std::make_pair(10,9)},
-      {std::make_pair(11,3),std::make_pair(11,9)},
-
-      {std::make_pair(11,4),std::make_pair(8,8)},
-      {std::make_pair(11,5),std::make_pair(9,8)},
-      {std::make_pair(11,6),std::make_pair(10,8)},
-      {std::make_pair(11,7),std::make_pair(11,8)},
-
-      {std::make_pair(11,8),std::make_pair(8,7)},
-      {std::make_pair(11,9),std::make_pair(9,7)},
-      {std::make_pair(11,10),std::make_pair(10,7)},
-      {std::make_pair(11,11),std::make_pair(11,7)}, //SSP 101                                                         
-
-      {std::make_pair(12,0),std::make_pair(8,6)},
-      {std::make_pair(12,1),std::make_pair(9,6)},
-      {std::make_pair(12,2),std::make_pair(10,6)},
-      {std::make_pair(12,3),std::make_pair(11,6)},
-
-      {std::make_pair(12,4),std::make_pair(8,5)},
-      {std::make_pair(12,5),std::make_pair(9,5)},
-      {std::make_pair(12,6),std::make_pair(10,5)},
-      {std::make_pair(12,7),std::make_pair(11,5)},
-
-      {std::make_pair(12,8),std::make_pair(8,4)},
-      {std::make_pair(12,9),std::make_pair(9,4)},
-      {std::make_pair(12,10),std::make_pair(10,4)},
-      {std::make_pair(12,11),std::make_pair(11,4)}, //SSP 102
-      
-      {std::make_pair(13,0),std::make_pair(8,3)},
-      {std::make_pair(13,1),std::make_pair(9,3)},
-      {std::make_pair(13,2),std::make_pair(10,3)},
-      {std::make_pair(13,3),std::make_pair(11,3)},
-
-      {std::make_pair(13,4),std::make_pair(8,2)},
-      {std::make_pair(13,5),std::make_pair(9,2)},
-      {std::make_pair(13,6),std::make_pair(10,2)},
-      {std::make_pair(13,7),std::make_pair(11,2)},
-
-      {std::make_pair(13,8),std::make_pair(8,1)},
-      {std::make_pair(13,9),std::make_pair(9,1)},
-      {std::make_pair(13,10),std::make_pair(10,1)},
-      {std::make_pair(13,11),std::make_pair(11,1)}, //SSP 103                                                         
-
-      {std::make_pair(14,0),std::make_pair(8,0)},
-      {std::make_pair(14,1),std::make_pair(9,0)},
-      {std::make_pair(14,2),std::make_pair(10,0)},
-      {std::make_pair(14,3),std::make_pair(11,0)}, //SSP 104                                                          
-
-      {std::make_pair(21,0),std::make_pair(4,9)},
-      {std::make_pair(21,1),std::make_pair(5,9)},
-      {std::make_pair(21,2),std::make_pair(6,9)},
-      {std::make_pair(21,3),std::make_pair(7,9)},
-
-      {std::make_pair(21,4),std::make_pair(4,8)},
-      {std::make_pair(21,5),std::make_pair(5,8)},
-      {std::make_pair(21,6),std::make_pair(6,8)},
-      {std::make_pair(21,7),std::make_pair(7,8)},
-
-      {std::make_pair(21,8),std::make_pair(4,7)},
-      {std::make_pair(21,9),std::make_pair(5,7)},
-      {std::make_pair(21,10),std::make_pair(6,7)},
-      {std::make_pair(21,11),std::make_pair(7,7)}, //SSP 201  
-
-      {std::make_pair(22,0),std::make_pair(4,6)},
-      {std::make_pair(22,1),std::make_pair(5,6)},
-      {std::make_pair(22,2),std::make_pair(6,6)},
-      {std::make_pair(22,3),std::make_pair(7,6)},
-
-      {std::make_pair(22,4),std::make_pair(4,5)},
-      {std::make_pair(22,5),std::make_pair(5,5)},
-      {std::make_pair(22,6),std::make_pair(6,5)},
-      {std::make_pair(22,7),std::make_pair(7,5)},
-
-      {std::make_pair(22,8),std::make_pair(4,4)},
-      {std::make_pair(22,9),std::make_pair(5,4)},
-      {std::make_pair(22,10),std::make_pair(6,4)},
-      {std::make_pair(22,11),std::make_pair(7,4)}, //SSP 202                                                          
-
-      {std::make_pair(23,0),std::make_pair(4,3)},
-      {std::make_pair(23,1),std::make_pair(5,3)},
-      {std::make_pair(23,2),std::make_pair(6,3)},
-      {std::make_pair(23,3),std::make_pair(7,3)},
-
-      {std::make_pair(23,4),std::make_pair(4,2)},
-      {std::make_pair(23,5),std::make_pair(5,2)},
-      {std::make_pair(23,6),std::make_pair(6,2)},
-      {std::make_pair(23,7),std::make_pair(7,2)},
-
-      {std::make_pair(23,8),std::make_pair(4,1)},
-      {std::make_pair(23,9),std::make_pair(5,1)},
-      {std::make_pair(23,10),std::make_pair(6,1)},
-      {std::make_pair(23,11),std::make_pair(7,1)}, //SSP 203                                                          
-
-      {std::make_pair(24,0),std::make_pair(4,0)},
-      {std::make_pair(24,1),std::make_pair(5,0)},
-      {std::make_pair(24,2),std::make_pair(6,0)},
-      {std::make_pair(24,3),std::make_pair(7,0)}, //SSP 204 
-
-      {std::make_pair(31,0),std::make_pair(0,9)},
-      {std::make_pair(31,1),std::make_pair(1,9)},
-      {std::make_pair(31,2),std::make_pair(2,9)},
-      {std::make_pair(31,3),std::make_pair(3,9)},
-
-      {std::make_pair(31,4),std::make_pair(0,8)},
-      {std::make_pair(31,5),std::make_pair(1,8)},
-      {std::make_pair(31,6),std::make_pair(2,8)},
-      {std::make_pair(31,7),std::make_pair(3,8)},
-
-      {std::make_pair(31,8),std::make_pair(0,7)},
-      {std::make_pair(31,9),std::make_pair(1,7)},
-      {std::make_pair(31,10),std::make_pair(2,7)},
-      {std::make_pair(31,11),std::make_pair(3,7)}, //SSP 301                                                          
-
-      {std::make_pair(32,0),std::make_pair(0,5)},
-      {std::make_pair(32,1),std::make_pair(1,5)},
-      {std::make_pair(32,2),std::make_pair(2,5)},
-      {std::make_pair(32,3),std::make_pair(3,5)},
-
-      {std::make_pair(32,4),std::make_pair(0,4)},
-      {std::make_pair(32,5),std::make_pair(1,4)},
-      {std::make_pair(32,6),std::make_pair(2,4)},
-      {std::make_pair(32,7),std::make_pair(3,4)},
-
-      {std::make_pair(32,8),std::make_pair(0,3)},
-      {std::make_pair(32,9),std::make_pair(1,3)},
-      {std::make_pair(32,10),std::make_pair(2,3)},
-      {std::make_pair(32,11),std::make_pair(3,3)}, //SSP 302 
-  
-      {std::make_pair(33,0),std::make_pair(0,2)},
-      {std::make_pair(33,1),std::make_pair(1,2)},
-      {std::make_pair(33,2),std::make_pair(2,2)},
-      {std::make_pair(33,3),std::make_pair(3,2)},
-
-      {std::make_pair(33,4),std::make_pair(0,1)},
-      {std::make_pair(33,5),std::make_pair(1,1)},
-      {std::make_pair(33,6),std::make_pair(2,1)},
-      {std::make_pair(33,7),std::make_pair(3,1)},
-
-      {std::make_pair(34,0),std::make_pair(21,21)},
-      {std::make_pair(34,1),std::make_pair(21,21)},
-      {std::make_pair(34,2),std::make_pair(21,21)},
-      {std::make_pair(34,3),std::make_pair(21,21)}, //SSP 304                                                          
-
-      {std::make_pair(34,4),std::make_pair(21,21)},
-      {std::make_pair(34,5),std::make_pair(21,21)},
-      {std::make_pair(34,6),std::make_pair(21,21)},
-      {std::make_pair(34,7),std::make_pair(21,21)}, //SSP 304 
-      
-      {std::make_pair(34,8),std::make_pair(21,21)},
-      {std::make_pair(34,9),std::make_pair(21,21)},
-      {std::make_pair(34,10),std::make_pair(21,21)},
-      {std::make_pair(34,11),std::make_pair(21,21)}, //SSP 304                                                          
-
-      
-      {std::make_pair(41,0),std::make_pair(8,19)},
-      {std::make_pair(41,1),std::make_pair(9,19)},
-      {std::make_pair(41,2),std::make_pair(10,19)},
-      {std::make_pair(41,3),std::make_pair(11,19)},
-
-      {std::make_pair(41,4),std::make_pair(8,18)},
-      {std::make_pair(41,5),std::make_pair(9,18)},
-      {std::make_pair(41,6),std::make_pair(10,18)},
-      {std::make_pair(41,7),std::make_pair(11,18)},
-
-      {std::make_pair(41,8),std::make_pair(8,17)},
-      {std::make_pair(41,9),std::make_pair(9,17)},
-      {std::make_pair(41,10),std::make_pair(10,17)},
-      {std::make_pair(41,11),std::make_pair(11,17)}, //SSP 401   
-
-      {std::make_pair(42,0),std::make_pair(8,16)},
-      {std::make_pair(42,1),std::make_pair(9,16)},
-      {std::make_pair(42,2),std::make_pair(10,16)},
-      {std::make_pair(42,3),std::make_pair(11,16)},
-
-      {std::make_pair(42,4),std::make_pair(8,15)},
-      {std::make_pair(42,5),std::make_pair(9,15)},
-      {std::make_pair(42,6),std::make_pair(10,15)},
-      {std::make_pair(42,7),std::make_pair(11,15)},
-
-      {std::make_pair(42,8),std::make_pair(8,14)},
-      {std::make_pair(42,9),std::make_pair(9,14)},
-      {std::make_pair(42,10),std::make_pair(10,14)},
-      {std::make_pair(42,11),std::make_pair(11,14)}, //SSP 402                                                        
-
-      {std::make_pair(43,0),std::make_pair(8,13)},
-      {std::make_pair(43,1),std::make_pair(9,13)},
-      {std::make_pair(43,2),std::make_pair(10,13)},
-      {std::make_pair(43,3),std::make_pair(11,13)},
-
-      {std::make_pair(43,4),std::make_pair(8,12)},
-      {std::make_pair(43,5),std::make_pair(9,12)},
-      {std::make_pair(43,6),std::make_pair(10,12)},
-      {std::make_pair(43,7),std::make_pair(11,12)},
-
-      {std::make_pair(43,8),std::make_pair(8,11)},
-      {std::make_pair(43,9),std::make_pair(9,11)},
-      {std::make_pair(43,10),std::make_pair(10,11)},
-      {std::make_pair(43,11),std::make_pair(11,11)}, //SSP 403                                                        
-
-      {std::make_pair(44,0),std::make_pair(8,10)},
-      {std::make_pair(44,1),std::make_pair(9,10)},
-      {std::make_pair(44,2),std::make_pair(10,10)},
-      {std::make_pair(44,3),std::make_pair(11,10)}, //SSP 404        
-      
-      {std::make_pair(51,0),std::make_pair(0,15)},
-      {std::make_pair(51,1),std::make_pair(1,15)},
-      {std::make_pair(51,2),std::make_pair(2,15)},
-      {std::make_pair(51,3),std::make_pair(3,15)},
-
-      {std::make_pair(51,4),std::make_pair(0,13)},
-      {std::make_pair(51,5),std::make_pair(1,13)},
-      {std::make_pair(51,6),std::make_pair(2,13)},
-      {std::make_pair(51,7),std::make_pair(3,13)},
-
-      {std::make_pair(51,8),std::make_pair(0,12)},
-      {std::make_pair(51,9),std::make_pair(1,12)},
-      {std::make_pair(51,10),std::make_pair(2,12)},
-      {std::make_pair(51,11),std::make_pair(3,12)}, //SSP 501                                                         
-
-      {std::make_pair(52,0),std::make_pair(0,10)},
-      {std::make_pair(52,1),std::make_pair(1,10)},
-      {std::make_pair(52,2),std::make_pair(2,10)},
-      {std::make_pair(52,3),std::make_pair(3,10)}, //SSP 502                                                          
-
-      {std::make_pair(53,0),std::make_pair(0,19)},
-      {std::make_pair(53,1),std::make_pair(1,19)},
-      {std::make_pair(53,2),std::make_pair(2,19)},
-      {std::make_pair(53,3),std::make_pair(3,19)},
-
-      {std::make_pair(53,4),std::make_pair(0,18)},
-      {std::make_pair(53,5),std::make_pair(1,18)},
-      {std::make_pair(53,6),std::make_pair(2,18)},
-      {std::make_pair(53,7),std::make_pair(3,18)},
-
-      {std::make_pair(53,8),std::make_pair(0,17)},
-      {std::make_pair(53,9),std::make_pair(1,17)},
-      {std::make_pair(53,10),std::make_pair(2,17)},
-      {std::make_pair(53,11),std::make_pair(3,17)}, //SSP 503 
-
-      {std::make_pair(54,0),std::make_pair(0,16)},
-      {std::make_pair(54,1),std::make_pair(1,16)},
-      {std::make_pair(54,2),std::make_pair(2,16)},
-      {std::make_pair(54,3),std::make_pair(3,16)},
-
-      {std::make_pair(54,4),std::make_pair(0,14)},
-      {std::make_pair(54,5),std::make_pair(1,14)},
-      {std::make_pair(54,6),std::make_pair(2,14)},
-      {std::make_pair(54,7),std::make_pair(3,14)},
-
-      {std::make_pair(54,8),std::make_pair(0,11)},
-      {std::make_pair(54,9),std::make_pair(1,11)},
-      {std::make_pair(54,10),std::make_pair(2,11)},
-      {std::make_pair(54,11),std::make_pair(3,11)}, //SSP 504                                                         
-
-      {std::make_pair(61,0),std::make_pair(4,19)},
-      {std::make_pair(61,1),std::make_pair(5,19)},
-      {std::make_pair(61,2),std::make_pair(6,19)},
-      {std::make_pair(61,3),std::make_pair(7,19)},
-
-      {std::make_pair(61,4),std::make_pair(4,18)},
-      {std::make_pair(61,5),std::make_pair(5,18)},
-      {std::make_pair(61,6),std::make_pair(6,18)},
-      {std::make_pair(61,7),std::make_pair(7,18)},
-
-      {std::make_pair(61,8),std::make_pair(4,17)},
-      {std::make_pair(61,9),std::make_pair(5,17)},
-      {std::make_pair(61,10),std::make_pair(6,17)},
-      {std::make_pair(61,11),std::make_pair(7,17)}, //SSP 601                                                         
-
-      {std::make_pair(62,0),std::make_pair(4,16)},
-      {std::make_pair(62,1),std::make_pair(5,16)},
-      {std::make_pair(62,2),std::make_pair(6,16)},
-      {std::make_pair(62,3),std::make_pair(7,16)},
-
-      {std::make_pair(62,4),std::make_pair(4,15)},
-      {std::make_pair(62,5),std::make_pair(5,15)},
-      {std::make_pair(62,6),std::make_pair(6,15)},
-      {std::make_pair(62,7),std::make_pair(7,15)},
-
-      {std::make_pair(62,8),std::make_pair(4,13)},
-      {std::make_pair(62,9),std::make_pair(5,13)},
-      {std::make_pair(62,10),std::make_pair(6,13)},
-      {std::make_pair(62,11),std::make_pair(7,13)}, //SSP 602                                                         
-
-      {std::make_pair(64,0),std::make_pair(4,12)},
-      {std::make_pair(64,1),std::make_pair(5,12)},
-      {std::make_pair(64,2),std::make_pair(6,12)},
-      {std::make_pair(64,3),std::make_pair(7,12)},
-
-      {std::make_pair(64,4),std::make_pair(4,11)},
-      {std::make_pair(64,5),std::make_pair(5,11)},
-      {std::make_pair(64,6),std::make_pair(6,11)},
-      {std::make_pair(64,7),std::make_pair(7,11)},
-
-      {std::make_pair(64,8),std::make_pair(4,10)},
-      {std::make_pair(64,9),std::make_pair(5,10)},
-      {std::make_pair(64,10),std::make_pair(6,10)},
-      {std::make_pair(64,11),std::make_pair(7,10)}, //SSP 604         
-    
-      {std::make_pair(63,0),std::make_pair(21,21)},
-      {std::make_pair(63,1),std::make_pair(21,21)},
-      {std::make_pair(63,2),std::make_pair(21,21)},
-      {std::make_pair(63,3),std::make_pair(21,21)}, //SSP 603                                                          
-
-      {std::make_pair(63,4),std::make_pair(21,21)},
-      {std::make_pair(63,5),std::make_pair(21,21)},
-      {std::make_pair(63,6),std::make_pair(21,21)},
-      {std::make_pair(63,7),std::make_pair(21,21)}, //SSP 603 
-      
-      {std::make_pair(63,8),std::make_pair(21,21)},
-      {std::make_pair(63,9),std::make_pair(21,21)},
-      {std::make_pair(63,10),std::make_pair(21,21)},
-      {std::make_pair(63,11),std::make_pair(21,21)}, //SSP 603                                                          
-
-    };
   
   //mapping for SSPs to simple array
   std::map<int,int> ssp_map_ =
@@ -600,12 +267,6 @@ void dune::SSPRawDecoder::setRootObjects(){
 
   n_event_packets_ = tFileService->make<TH1D>("ssp_n_event_packets","SSP: n_event_packets",960,-0.5,959.5);  
   frag_sizes_ = tFileService->make<TH1D>("ssp_frag_sizes","SSP: frag_sizes",960,0,2e6);  
-  hit_map_ = tFileService->make<TH2D>("hit_map_","hit_map_",12,0,12,20,0,20);
-  heat_map_ = tFileService->make<TH2D>("heat_map_","heat_map_",12,0,12,20,0,20);
-  coincidence_map_ = tFileService->make<TH2D>("coincidence_map","coincidence_map",12,0,12,20,0,20);
-  trig_ref_time_ = tFileService->make<TH1D>("trig_ref_time_","trig_ref_time_",3750,0,ext_trig_samp_time);
-  trig_abs_time_ = tFileService->make<TH1D>("trig_abs_time_","trig_abs_time_",1000000,0,23000000000.0);
-  trig_adc_time_ = tFileService->make<TH2D>("trig_adc_time_","trig_adc_time_",10000,0.0,23000000000.0,1000,0.0,4000.0);
 }
 
 void dune::SSPRawDecoder::readHeader(const SSPDAQ::EventHeader* daqHeader, struct trig_variables* tv){
@@ -659,25 +320,29 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
   /// look for Container Fragments:
   evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
-  // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything    
-  try { containerFragments->size(); }
-  catch(std::exception e)  {
-    //std::cout << "WARNING: Container SSP data not found in event " << eventNumber << std::endl;
+  // Check if there is SSP data in this event.  Rearranged -- the isValid test tells us whether the branch was found
+
+  if(!containerFragments.isValid()){
     have_data = false;
   }
 
+  // Don't crash code if not present, just don't save anything.  The above test ought to detect situations where we do not have
+  // container fragments or if the label is wrong.  Test if we can access it however just to be safe.
+
   if (have_data)
     {
-      //Check that the data are valid
-      if(!containerFragments.isValid()){
-        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-                                   << ", SubRun: " << evt.subRun()
-                                   << ", Event: " << eventNumber
-                                   << " Container Fragments found but NOT VALID";
-        return;
+      try { containerFragments->size(); }
+      catch(std::exception const&)  {
+	MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << eventNumber
+				      << " Container Fragments found but size is invalid";
+	have_data = false;
       }
+    }
 
+  if (have_data)
+    {
       for (auto cont : *containerFragments)
         {
           //std::cout << "container fragment type: " << (unsigned)cont.type() << std::endl;
@@ -702,29 +367,33 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
   evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
     
   // Check if there is SSP data in this event
-  // Don't crash code if not present, just don't save anything
-  try { rawFragments->size(); }
-  catch(std::exception e) {
-    //std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
-    have_data2=false;
+
+  //Check that the data is valid
+  if(!rawFragments.isValid()){
+    have_data2 = false;
   }
+
+  // Don't crash code if not present, just don't save anything
 
   if (have_data2)
     {
-      //Check that the data is valid
-      if(!rawFragments.isValid()){
-
-        MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
-                                   << ", SubRun: " << evt.subRun()
-                                   << ", Event: " << eventNumber
-                                   << " Non-Container Fragments found but NOT VALID";
-        return;
+      try { rawFragments->size(); }
+      catch(std::exception const&) {
+	//std::cout << "WARNING: Raw SSP data not found in event " << eventNumber << std::endl;
+	MF_LOG_ERROR("SSPRawDecoder") << "Run: " << evt.run()
+				      << ", SubRun: " << evt.subRun()
+				      << ", Event: " << eventNumber
+				      << " Non-Container Fragments found but size is invalid";
+	have_data2=false;
       }
+    }
+
+  if (have_data2)
+    {
       for(auto const& rawfrag: *rawFragments){
         fragments->emplace_back( rawfrag );
       }
     }
-  
 }
 
 void dune::SSPRawDecoder::beginJob(){
@@ -743,39 +412,13 @@ void dune::SSPRawDecoder::beginEvent(art::EventNumber_t /*eventNumber*/)
   n_adc_counter_  = 0;
   adc_cumulative_ = 0;
   for(int i=0;i<24;i++) {
-  intreftime_[i]=0;
-  // extreftime_[i]=0;
+    intreftime_[i]=0;
+    // extreftime_[i]=0;
   }
   timed_ = false;
   
 }
 
-void dune::SSPRawDecoder::endEvent(art::EventNumber_t eventNumber)
-{
-  
-  //These should only work with "internal" trig.trigger_type=16 triggers.
-  if(coin_ext_time.size() > 0){
-    for(size_t i=0;i<coin_ext_time.size();i++){
-      trig_ref_time_->Fill(coin_int_time[i]);                                
-      trig_abs_time_->Fill(coin_ext_time[i]-allreftime);
-      trig_adc_time_->Fill(coin_ext_time[i]-allreftime,coin_adc_peak[i]);
-      hit_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);
-      heat_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second,coin_adc_peak[i]);
-      for(size_t j=0;j<i;j++){
-        if(abs(coin_int_time[i]-coin_int_time[j]) < diff_time){
-          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].first,phys_map_[std::make_pair(coin_module_id[i],coin_channel_id[i])].second);  
-          coincidence_map_->Fill(phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].first,phys_map_[std::make_pair(coin_module_id[j],coin_channel_id[j])].second);  
-        }
-        
-      }
-    }
-  }
-  coin_module_id.clear();
-  coin_channel_id.clear();
-  coin_int_time.clear();
-  coin_ext_time.clear();
-  coin_adc_peak.clear();
-}
 void dune::SSPRawDecoder::endJob(){
 
 }
@@ -819,7 +462,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
     
     const SSPDAQ::MillisliceHeader* meta=0;
     
-     ///> get the information from the header
+    ///> get the information from the header
     if(frag.hasMetadata()) meta = &(frag.metadata<SSPFragment::Metadata>()->sliceHeader); ///> get the metadata
     else std::cout << "SSP fragment has no metadata associated with it." << std::endl;
     
@@ -840,7 +483,11 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
       
       /// time
-      long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
+      ////long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
+      // DO NOT USE ts->OpticalClock().TickPeriod()!!!! It is not precise enough
+      // use OpticalClock().Frequency, and do the division yourself with high precission.
+      double time = double(trig.timestamp_nova % 1000000000 ) / double(ts->OpticalClock().Frequency());
+      //true time truncated by 10 digits in order to make sure the math works correctly
       //std::cout << time << std::endl;
       unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
 
@@ -976,13 +623,6 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
           << std::endl;
       }
             
-      //Fill diagnostic vectors for use at the end of the event
-      coin_module_id.push_back(trig.module_id);
-      coin_channel_id.push_back(trig.channel_id);
-      coin_int_time.push_back(trig.internal_timestamp-intreftime_[ssp_map_[trig.module_id]]);
-      coin_ext_time.push_back(trig.timestamp_nova);
-      coin_adc_peak.push_back(peak);
-     
       ///> increment the data pointer to the end of the current packet (to the start of the next packet header, if available)
       dataPointer+=nADC/2;
       
@@ -1017,9 +657,6 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   
   n_event_packets_->Fill(allPacketsProcessed);
   
-  endEvent(eventNumber);
-
-
   if (!fSplitTriggers) {
     evt.put(std::make_unique<decltype(waveforms)>(std::move(waveforms)), fOutputDataLabel);
     evt.put(std::make_unique<decltype(hits)>(     std::move(hits)),      fOutputDataLabel);

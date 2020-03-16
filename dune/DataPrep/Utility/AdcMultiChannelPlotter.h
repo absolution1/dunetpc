@@ -1,11 +1,23 @@
 // AdcMultiChannelPlotter.h
 //
-// AdcChannelTool intermediate base that constructs plots for
-// multiple channels. It implements the viewMap methods as a loop
-// over calls to view and uses the result from each of those to
-// add to a pad with combined results.
+// AdcMultiChannelPlotter is an intermediate base for 
+// AdcChannelTool that implements viewMap by looping over
+// channel ranges and calling the subclass method
+// viewMapChannels with the data for the channels in that group.
 //
-// Both channel ranges and range groups may be specified
+// Each call includes a pad that the receiver is expected to fill.
+// Plots with names derived from the template XXXName are
+// produced from these pads. There is one pad for each channel group.
+// 
+// In addition, this class provides the method viewSummary(ilev) which
+// produces plots with names derived from XXXSummaryNames[ilev].
+// The pads are filled by calls to the subclass method viewMapSummary
+// for each channel range with again one pad for each channel group.
+// Calls to viewSummary are made by the subclass. E.g it might create
+// event-level plots from endEvent or job level plots from its dtor.
+//
+// Both channel ranges and range groups may be specified and the subclass
+// calls are made for the ranges in each.
 // The subclass provides the method viewMapChannels that is called with the
 // channel data for
 //   each range in the range list and
@@ -17,19 +29,20 @@
 //
 // Each plot file shows up to NX*NY channels in a NY x NX array.
 // The overall plot size is YSize pixels by XSize pixels or Root
-// defualt (500 x 700?) if either is zero.
+// default (500 x 700?) if either is zero.
 //
 // Configuration (XXX is prefix supplied in ctor):
 //   LogLevel  - Logging opt (0=none, 1=init only, 2=every call, ...)
 //   XXXChannelRanges - Channel ranges.
 //   XXXChannelGroups - Channel range groups.
 //   XXXOverlayGroups - Flag indicating if ranges in a group appear on the same pad.
-//   XXXName        - Name for the multi-plot event file
-//   XXXSummaryName - Name for the multi-plot summary file
-//   XXXSizeX       - XSize in pixels of the multi-plot file.
-//   XXXSizeY       - YSize in pixels of the multi-plot file.
-//   XXXSplitX      - NX
-//   XXXSplitY      - NY
+//   XXXDataView      - Data view to plot ("" = top)
+//   XXXName          - Name for the multi-plot file created for each call to view.
+//   XXXSummaryNames  - Name for the multi-plot summary file
+//   XXXSizeX         - XSize in pixels of the multi-plot file.
+//   XXXSizeY         - YSize in pixels of the multi-plot file.
+//   XXXSplitX        - NX
+//   XXXSplitY        - NY
 
 #ifndef AdcMultiChannelPlotter_H
 #define AdcMultiChannelPlotter_H
@@ -79,40 +92,51 @@ public:
   //   multiChannelNPlot    - # plots produced
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
 
-  // Loop over channels, create summary plots and call viewMapSummary to fill them.
-  // Subclass must call this from its dtor.
-  void viewSummary() const;
+  // Loop over channels, create summary plots at level ilev and call viewMapSummary to fill them.
+  // Subclass calls this at appropriate levels.
+  void viewSummary(Index ilev) const;
 
   // Subclass provides this method to process the channels in one range from one call to view.
+  // If a data view has been specified, then there be zero, one or one data object for each channel.
   //    crn - Name for this set of channels
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
   //          Subclass can use man.haveHistOrGraph() to see if it has previously filled the pad.
-  virtual int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man) const =0;
+  //    ncr - # channel ranges in this plot
+  //    icr - index of the channel ranges in this plot
+  virtual int viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr, Index icr) const =0;
 
   // Subclass provides this method to process the channels in one range for a summary plot,
   // i.e. combining data from preceding view calls.
-  //    crn - Name for this set of channels
+  //    cgn - Name for the group holding the channel range
+  //    crn - Name for the channel range
   //   acds - Data for the channels
   //    man - Pad to be filled with the plot for this channel.
   //          Subclass can use man.haveHistOrGraph() or icrn to see if it has previously filled the pad.
-  //   ncrn - # ranges to be included on this pad
-  //   icrn - # ranges previously included on this pad
-  virtual int viewMapSummary(Name crn, TPadManipulator& man, Index ncrn, Index icrn) const =0;
+  //    ncr - # channel ranges in this plot
+  //    icr - index of the channel ranges in this plot
+  virtual int viewMapSummary(Index ilev, Name cgn, Name crn, TPadManipulator& man, Index ncr, Index icr) const =0;
 
   // Provide read access to configuration.
   Index getLogLevel() const { return m_LogLevel; }
+  Name getDataView() const { return m_PlotDataView; }
   const NameVector& getChannelRangeNames() const { return m_PlotChannelRanges; }
   const NameVector& getChannelGroupNames() const { return m_PlotChannelGroups; }
   bool haveChannelRanges() const { return getChannelRangeNames().size(); }
   bool haveChannelGroups() const { return getChannelGroupNames().size(); }
   bool overlayGroups() const { return m_PlotOverlayGroups; }
   Name  getPlotName() const { return m_PlotName; }
-  Name  getPlotSummaryName() const { return m_PlotSummaryName; }
+  Name  getPlotSummaryName(Index ilev) const {
+    if ( ilev >= m_PlotSummaryNames.size() ) return "";
+    return m_PlotSummaryNames[ilev];
+  }
   Index getPlotSizeX() const { return m_PlotSizeX; }
   Index getPlotSizeY() const { return m_PlotSizeY; }
   Index getPlotSplitX() const { return m_PlotSplitX; }
   Index getPlotSplitY() const { return m_PlotSplitY; }
+
+  // Return the channel groups.
+  const IndexRangeGroup& getChannelGroup(Name cgn) const;
 
 private:
 
@@ -121,8 +145,9 @@ private:
   NameVector m_PlotChannelRanges;
   NameVector m_PlotChannelGroups;
   Index m_PlotOverlayGroups;
+  Name  m_PlotDataView;
   Name  m_PlotName;
-  Name  m_PlotSummaryName;
+  NameVector  m_PlotSummaryNames;
   Index m_PlotSizeX;
   Index m_PlotSizeY;
   Index m_PlotSplitX;
@@ -143,6 +168,7 @@ private:
   class BaseState {
     IndexVector m_runs;
   public:
+    Index event =0;
     void setRun(Index irun) { m_runs.clear(); m_runs.resize(1, irun); }
     bool hasRun() const { return m_runs.size(); }
     Index run() const { return hasRun() ? m_runs[0] : 0; }

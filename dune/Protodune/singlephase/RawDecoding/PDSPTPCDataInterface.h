@@ -3,6 +3,14 @@
 //
 // Tool to unpack RCE and FELIX fragments.  A restructuring from the PDSPTPCRawDecoder module
 //
+// These methods take references to vectors of raw::RawDigit, raw::RDTimeStamp, and raw::RDStatus data products as arguments.
+// These vectors are not cleared on input, and so when data are retrieved, they are appended to any existing data already
+// in the vectors.  The RDStatus vector is an exception, where just one RDStatus instance will be in the vector.  Previously
+// accumulated RDStatus values from previous calls will be logically ORed into the single RDStatus instances contents.
+//
+//  Methods are provided to retrieve all data from fragments on an input label, or by specified APA list.  In cases where
+//  data from a specified APA are requested but no labels are provided by the caller, labels are input via FCL parameters.
+//  This is true because data from an APA may appear with different labels during the course of the ProtoDUNE-SP run.
 //
 /////////////////////////////////////////////////////////////////////////
 #ifndef PDSPTPCDataInterface_H
@@ -55,14 +63,24 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
  private:
 
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
+
+  // what to do with unexpected crate numbers
+
+  unsigned int  _default_crate_if_unexpected;
+
+  long int _min_offline_channel;  // min offline channel to decode.  <0: no limit
+  long int _max_offline_channel;  // max offline channel to decode.  <0: no limit.  max<min: no limit
+
   bool          _enforce_same_tick_count;
+  bool          _enforce_median_tick_count;
   bool          _enforce_full_tick_count;
   unsigned int  _full_tick_count;
   bool          _enforce_error_free;
   bool          _enforce_no_duplicate_channels;
   bool          _drop_small_rce_frags;
   size_t        _rce_frag_small_size;
-  bool          _rce_drop_frags_with_badcsf;
+  bool          _rce_drop_frags_with_badsf;
+  bool          _rce_drop_frags_with_badc;
   bool          _rce_hex_dump;
   bool          _rce_save_frags_to_files;
   bool          _rce_check_buffer_size;
@@ -74,7 +92,8 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
   unsigned int  _rce_fix110_nticks;
 
   bool          _felix_hex_dump;
-  bool          _felix_drop_frags_with_badcsf;
+  bool          _felix_drop_frags_with_badsf;
+  bool          _felix_drop_frags_with_badc;
   bool          _drop_small_felix_frags;
   size_t        _felix_frag_small_size;
   bool          _felix_check_buffer_size;
@@ -82,7 +101,6 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 
   unsigned int  _tick_count_this_event; // for use in comparing tick counts for all channels
   bool          _initialized_tick_count_this_event;
-  bool          _discard_data;
   bool          _DiscardedCorruptData;
   bool          _KeptCorruptData;
 

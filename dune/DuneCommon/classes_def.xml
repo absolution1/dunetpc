@@ -1,0 +1,20 @@
+<lcgdict>
+  <class name="StringManipulator" noStreamer="true"/>
+  <class name="LineColors" noStreamer="true"/>
+  <function name="cePulser" noStreamer="true"/>
+  <function name="cePulserToAdc" noStreamer="true"/>
+  <function name="cePulserToAdcTF1" noStreamer="true"/>
+  <class name="RootPalette" />
+  <class name="TPadManipulator" ClassVersion="4" noStreamer="true">
+   <version ClassVersion="4" checksum="31706553"/>
+   <version ClassVersion="3" checksum="2307287439"/>
+   <version ClassVersion="2" checksum="492659693"/>
+  </class>
+  <class name="TPadManipulator::Bounds" />
+  <class name="TPadManipulator::Bounds3" />
+  <ioread sourceClass="TPadManipulator" version="[1]" targetClass="TPadManipulator" source="" target="m_axisTitleOpt">
+    <![CDATA[m_axisTitleOpt=0;
+     ]]>
+  </ioread>
+
+</lcgdict>

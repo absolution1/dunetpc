@@ -4,7 +4,6 @@
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -45,22 +44,18 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
   m_PlotSigOpt(ps.get<string>("PlotSigOpt")),
   m_PlotSigMin(ps.get<float>("PlotSigMin")),
   m_PlotSigMax(ps.get<float>("PlotSigMax")),
+  m_PlotDistMin(ps.get<float>("PlotDistMin")),
+  m_PlotDistMax(ps.get<float>("PlotDistMax")),
   m_ColorBad(ps.get<Index>("ColorBad")),
   m_ColorNoisy(ps.get<Index>("ColorNoisy")),
-  m_HistManager(ps.get<string>("HistManager")),
-  m_phm(nullptr) {
+  m_LabelSize(ps.get<float>("LabelSize")),
+  m_SkipFlags(ps.get<IndexVector>("SkipFlags")) {
   const string myname = "AdcChannelPlotter::ctor: ";
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
     return;
   }
   DuneToolManager* ptm = DuneToolManager::instance();
-  if ( m_HistManager.size() ) {
-    m_phm = ptm->getShared<HistogramManager>(m_HistManager);
-    if ( m_phm == nullptr ) {
-      cout << myname << "WARNING: Histoggram manager not found: " << m_HistManager << endl;
-    }
-  }
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
@@ -75,7 +70,7 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
       m_ColorNoisy = 0;
     }
   }
-
+  for ( Index flg : m_SkipFlags ) m_skipFlags.insert(flg);
   if ( m_LogLevel > 0 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "     HistTypes: [";
@@ -95,8 +90,25 @@ AdcChannelPlotter::AdcChannelPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "    PlotSigOpt: " << m_PlotSigOpt << endl;
     cout << myname << "    PlotSigMin: " << m_PlotSigMin << endl;
     cout << myname << "    PlotSigMax: " << m_PlotSigMax << endl;
-    cout << myname << "   HistManager: " << m_HistManager << endl;
+    cout << myname << "   PlotDistMin: " << m_PlotDistMin << endl;
+    cout << myname << "   PlotDistMax: " << m_PlotDistMax << endl;
+    cout << myname << "      ColorBad: " << m_ColorBad << endl;
+    cout << myname << "    ColorNoisy: " << m_ColorNoisy << endl;
+    cout << myname << "     LabelSize: " << m_LabelSize << endl;
+    cout << myname << "      SkipFlags: [";
+    first = true;
+    for ( Index flg : m_SkipFlags ) {
+       if ( first ) first = false;
+       else cout << ", ";
+       cout << flg;
+    }
+    cout << "]" << endl;
   }
+}
+
+//**********************************************************************
+
+AdcChannelPlotter::~AdcChannelPlotter() {
 }
 
 //**********************************************************************
@@ -120,10 +132,12 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     pfile = TFile::Open(fname.c_str(), "UPDATE");
   }
   vector<TH1*> hists;
+  bool resManage = true;   // Does returned data map manage the histogram
   for ( string type : m_HistTypes ) {
     TH1* ph = nullptr;
     string hname = nameReplace(hnameBase, acd, type);
     string htitl = nameReplace(htitlBase, acd, type);
+    bool isRawDist = type == "rawdist" || type == "rawdistlog";
     if ( type == "raw" ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
@@ -145,21 +159,47 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       }
       res.setFloat("plotSigMin_" + type, sigMin);
       res.setFloat("plotSigMax_" + type, sigMax);
-    } else if ( type == "rawdist" ) {
+    } else if ( isRawDist ) {
       Index nsam = acd.raw.size();
       if ( nsam == 0 ) {
         cout << myname << "WARNING: Raw data is empty." << endl;
         continue;
       }
-      htitl += "; ADC count; # samples";
-      unsigned int nadc = 4096;
-      ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
-      hists.push_back(ph);
+      // Flag samples to keep in pedestal fit.
+      vector<bool> keep(nsam, true);
+      Index nkeep = 0;
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        if ( isam >= acd.flags.size() ) {
+          if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+          break;
+        }
+        Index flg = acd.flags[isam];
+        if ( m_skipFlags.count(flg) ) keep[isam] = false;
+        else ++nkeep;
+      }
+      if ( nkeep == 0 ) {
+        if ( m_LogLevel >= 2 ) cout << myname << "WARNING: No raw data is selected." << endl;
+        return res.setStatus(2);
+      }
+      // Create a new histogram if %EVENT% appears in the name.
+      bool useExistingHist = m_HistName.find("%EVENT%") == string::npos;
+      if ( useExistingHist ) {
+        HistMap::iterator ihst = getState().hists.find(hname);
+        if ( ihst != getState().hists.end() ) ph = ihst->second;
+        resManage = false;
+      }
+      if ( ph == nullptr ) {
+        htitl += "; ADC count; # samples";
+        unsigned int nadc = 4096;
+        ph = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
+        if ( ! useExistingHist ) hists.push_back(ph);
+        if ( useExistingHist ) getState().hists[hname] = ph;
+      }
       float sigMin = acd.raw[0];
       float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.raw[isam];
-        ph->Fill(sig);
+        if ( keep[isam] ) ph->Fill(sig);
         if ( isam >= m_PlotSamMin && isam < m_PlotSamMax ) {
           if ( sig < sigMin ) sigMin = sig;
           if ( sig > sigMax ) sigMax = sig;
@@ -203,15 +243,6 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     if ( m_ColorNoisy && m_pChannelStatusProvider->IsNoisy(acd.channel) ) {
       ph->SetLineColor(m_ColorNoisy);
     }
-    bool resManage = m_phm == nullptr;
-    if ( ! resManage ) {
-      int rstat = m_phm->manage(ph);
-      if ( rstat ) {
-        cout << myname << "WARNING: Attempt to manage histogram " << ph->GetName()
-             << " with manager " << m_HistManager << " returned error " << rstat << endl;
-        resManage = true;
-      }
-    }
     res.setHist(type, ph, resManage);
   }
   if ( pfile != nullptr ) {
@@ -248,13 +279,13 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   IndexMap nplts;
   NameMap pfnames;
   std::vector<TLatex*> labs;
+  bool useViewPort = true;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     Index icha = iacd.first;
     string schan = std::to_string(icha);
-    TLatex* ptxt = new TLatex(0.98, 0.14, schan.c_str());
+    TLatex* ptxt = new TLatex(0.98, 0.025, schan.c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
-    ptxt->SetTextSize(0.16);
     ptxt->SetTextAlign(31);
     labs.push_back(ptxt);
     const AdcChannelData& acd = iacd.second;
@@ -262,38 +293,80 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( doPlots ) {
       for ( string type : m_HistTypes ) {
         bool isRaw = type == "raw";
+        bool isRawDist = type == "rawdist" || type == "rawdistlog";
+        bool isLogY = type == "rawdistlog";
+        float marginTop    = 0.0;
+        float marginBottom = isRawDist ? 0.12 : 0.09;
+        float marginLeft   = isRawDist ? 0.12 : 0.05;
+        float marginRight  = isRawDist ? 0.02 : 0.01;
+        float xlab = isRawDist ? 0.95 : 0.98;
+        float ylab = 0.05 + marginBottom;
+        float hlab = isRawDist ? 0.08 : 0.16;
+        ptxt->SetX(xlab);
+        ptxt->SetY(ylab);
+        ptxt->SetTextSize(hlab);
         if ( mans.find(type) == mans.end() ) {
           if ( m_LogLevel >= 3 ) cout << "Creating new top-level plot of type " << type << "." << endl;
-          TPadManipulator& man = mans[type];
-          man.setCanvasSize(1400, 1000);
+          TPadManipulator& topman = mans[type];
+          topman.setCanvasSize(1400, 1000);
+          if ( useViewPort ) {
+            float xview1 = 0.0;
+            float yview1 = isRawDist ? 0.0 : 0.00;
+            float xview2 = 1.0;
+            float yview2 = isRawDist ? 0.96 : 0.96;
+            if ( topman.addPad(xview1, yview1, xview2, yview2) ) {
+              cout << myname << "ERROR: Unable to add subpad." << endl;
+              abort();
+            }
+          }
+          TPadManipulator& man = *topman.man(0);
           if ( isRaw || type == "prepared" ) {
             man.split(nx,ny);
             for ( Index ipad=0; ipad<nplt; ++ipad ) {
-              if ( isRaw) man.man(ipad)->addHorizontalModLines(64);
+              if ( isRaw && (m_PlotSigMax - m_PlotSigMin) < 1001 ) man.man(ipad)->addHorizontalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSamMin, m_PlotSamMax);
               man.addAxis();
             }
             nplts[type] = nx*ny;
-          } else if ( type == "rawdist" ) {
+          } else if ( isRawDist ) {
             man.split(ndx, ndy);
             for ( Index ipad=0; ipad<ndplt; ++ipad ) {
               man.man(ipad)->addVerticalModLines(64);
               man.man(ipad)->setRangeX(m_PlotSigMin, m_PlotSigMax);
               man.man(ipad)->showUnderflow();
               man.man(ipad)->showOverflow();
+              if ( type == "rawdistlog" ) man.man(ipad)->setLogY();
               man.addAxis();
             }
             nplts[type] = ndx*ndy;
           }
           pfnames[type] = nameReplace(m_PlotFileName, acd, type);
           iplts[type] = 0;
+          if ( m_LabelSize ) {
+            man.setLabelSizeX(m_LabelSize);
+            man.setLabelSizeY(m_LabelSize);
+            //man.setTitleSize(m_LabelSize);
+          }
+          for ( Index ipsm=0; ipsm<man.npad(); ++ipsm ) {
+            TPadManipulator* psman = man.man(ipsm);
+             psman->setMarginTop(marginTop);
+            psman->setMarginBottom(marginBottom);
+            psman->setMarginLeft(marginLeft);
+            psman->setMarginRight(marginRight);
+          }
         }
         Index& iplt = iplts[type];
         Index nplt = nplts[type];
         TH1* ph = res.getHist(type);
         if ( m_LogLevel >= 3 ) cout << myname << "  Adding subplot " << iplt << " for type " << type << "." << endl;
-        TPadManipulator& man = *mans[type].man(iplt);
+        TPadManipulator& topman = mans[type];
+        string sttl = ph->GetTitle();
+        Index ipos = sttl.find(" channel");
+        sttl = sttl.substr(0, ipos);
+        topman.setTitle(sttl, 0.025);
+        TPadManipulator& man = useViewPort ? *topman.man(0)->man(iplt) : *topman.man(iplt);
         man.add(ph, "hist", false);
+        man.setTitle("");
         if ( type == "raw" || type == "prepared" ) {
           float ymin = m_PlotSigMin;
           float ymax = m_PlotSigMax;
@@ -321,7 +394,16 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           }
           man.setRangeY(ymin, ymax);
           man.add(ptxt);
-        } else if ( type == "rawdist" ) {
+          // For raw data, add line showing the pedestal.
+          if ( type == "raw" && acd.pedestal > ymin && acd.pedestal < ymax ) { 
+            man.addHorizontalLine(acd.pedestal);
+          }
+          // For prepared data, add line showing zero.
+          if ( type == "prepared" ) { 
+            man.addHorizontalLine(0.0);
+          }
+          
+        } else if ( isRawDist ) {
           if ( m_PlotSigOpt == "fixed" ) {
             float xmin = m_PlotSigMin;
             float xmax = m_PlotSigMax;
@@ -333,6 +415,11 @@ DataMap AdcChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           } else if ( m_PlotSigOpt != "full" ) {
             cout << myname << "Invalid rawdist PlotSigOpt = " << m_PlotSigOpt << ". Using full." << endl;
           }
+          if ( m_PlotDistMax > m_PlotDistMin ) {
+            if ( isLogY ) man.setLogRangeY(m_PlotDistMin, m_PlotDistMax);
+            else          man.setRangeY(m_PlotDistMin, m_PlotDistMax);
+          }
+          man.add(ptxt);
         }
         man.addAxis();
         if ( ++iplt >= nplt ) {
@@ -356,7 +443,7 @@ string AdcChannelPlotter::
 nameReplace(string name, const AdcChannelData& acd, string type) const {
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
   string nameout = name;
-  StringManipulator sman(nameout);
+  StringManipulator sman(nameout, false);
   if ( type.size() ) sman.replace("%TYPE%", type);
   if ( pnbl == nullptr ) return nameout;
   DataMap dm;

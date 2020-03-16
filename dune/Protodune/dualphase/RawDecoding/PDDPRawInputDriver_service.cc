@@ -5,17 +5,28 @@
  */
 
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
-#include "canvas/Persistency/Provenance/SubRunID.h"	
+#include "canvas/Persistency/Provenance/SubRunID.h"
+#include "art/Persistency/Common/PtrMaker.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
 #include "canvas/Utilities/Exception.h"
 
+// DUNE includes
+#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
+
 #include "PDDPRawInputDriver.h"
+
+#include "PDDPChannelMap.h"
 
 #include <exception>
 #include <thread>
 #include <mutex>
 #include <regex>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
 
 
 #define CHECKBYTEBIT(var, pos) ( (var) & (1<<pos) )
@@ -34,7 +45,8 @@
 //
 namespace 
 {
-  void unpackCroData( const char *buf, size_t nb, bool cflag, unsigned nsa, adcbuf_t &data )
+  void unpackCroData( const char *buf, size_t nb, bool cflag, 
+		      unsigned nsa, unsigned offset, adcbuf_t &data )
   {
     //data.clear();
     if( !cflag ) // unpack the uncompressed data into RawDigit
@@ -51,7 +63,18 @@ namespace
 	    
 	    uint16_t tmp1 = ((v1 << 4) + ((v2 >> 4) & 0xf)) & 0xfff;
 	    uint16_t tmp2 = (((v2 & 0xf) << 8 ) + (v3 & 0xff)) & 0xfff;
-
+	    
+	    if( offset > 0 ) // invert baseline: tmp fix for the signal inversion
+	      {
+		float ftmp1 = offset - tmp1;
+		if( ftmp1 < 0 ) ftmp1 = 0;
+		tmp1 = (uint16_t)(ftmp1);
+		
+		float ftmp2 = offset - tmp2;
+		if( ftmp2 < 0 ) ftmp2 = 0;
+		tmp2 = (uint16_t)(ftmp2);
+	      }
+	    
 	    if( sz == nsa ){ data.push_back(raw::RawDigit::ADCvector_t(nsa)); sz = 0; }
 	    data.back()[sz++] = (short)tmp1;
 	    
@@ -103,15 +126,89 @@ namespace lris
     __eventCtr( 0 ),
     __eventNum( 0 )
   {
-    //helper.reconstitutes< raw::ExternalTrigger, art::InEvent>("daq");
-    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>("daq");
+    const std::string myname = "PDDPRawInputDriver::ctor: ";
+    
+    __logLevel       = pset.get<int>("LogLevel", 0);
+    __outlbl_digits  = pset.get<std::string>("OutputLabelRawDigits", "daq");
+    __outlbl_rdtime  = pset.get<std::string>("OutputLabelRDTime", "daq");
+    __outlbl_status  = pset.get<std::string>("OutputLabelRDStatus", "daq");
+    __invped         = pset.get<unsigned>("InvertBaseline", 0);    
+    auto select_crps = pset.get<std::vector<unsigned>>("SelectCRPs", std::vector<unsigned>());
+    
+    if( __logLevel > 0 )
+      {
+	std::cout << myname << "       Configuration        : " << std::endl;
+	std::cout << myname << "       LogLevel             : " << __logLevel  << std::endl;
+	std::cout << myname << "       OutputLabelRawDigits : " << __outlbl_digits << std::endl;
+	std::cout << myname << "       OutputLabelRDStatus  : " << __outlbl_status << std::endl;
+	std::cout << myname << "       OutputLabelRDtime    : " << __outlbl_rdtime << std::endl;
+	std::cout << myname << "       InvertBaseline       : " << __invped << std::endl;
+	std::cout << myname << "       SelectCRPs           : ";
+	if( select_crps.empty() ) std::cout<<"all"<<std::endl;
+	else
+	  {
+	    std::ostringstream vstr;
+	    std::copy(select_crps.begin(), select_crps.end()-1, 
+		      std::ostream_iterator<unsigned>(vstr, ", ")); 
+	    vstr << select_crps.back();
+	    std::cout << vstr.str() << std::endl;
+	  }
+      }
+
+    __prodlbl_digits = __getProducerLabel( __outlbl_digits );
+    __prodlbl_rdtime = __getProducerLabel( __outlbl_rdtime );
+    __prodlbl_status = __getProducerLabel( __outlbl_status );
+    
 
 
+    //
+    helper.reconstitutes<std::vector<raw::RawDigit>, art::InEvent>(__outlbl_digits,
+								   __prodlbl_digits);
+    helper.reconstitutes<std::vector<raw::RDStatus>, art::InEvent>(__outlbl_status,
+								   __prodlbl_status);
+    helper.reconstitutes<std::vector<raw::RDTimeStamp>, art::InEvent>(__outlbl_rdtime,
+								      __prodlbl_rdtime );
+    
+    
     // number of uncompressed ADC samples per channel in PDDP CRO data (fixed parameter)
     __nsacro = 10000;
 
     // could also use pset if more parametres are needed (e.g., for LRO data)
     
+    //
+    // channel map order by CRP View 
+    auto cmap = &*(art::ServiceHandle<dune::PDDPChannelMap>());
+
+    auto crpidx = cmap->get_crpidx();
+    for( auto c: crpidx )
+      {
+	std::vector<dune::DPChannelId> chidx = cmap->find_by_crp( c, true );
+	bool keep = true;
+	if( !select_crps.empty() )
+	  {
+	    if( std::find( select_crps.begin(), select_crps.end(), c ) == select_crps.end() )
+	      {
+		keep = false;
+	      }
+	  }
+	if( __logLevel > 0 )
+	  std::cout<<myname<<"       CRP "<<c<<" selected "<<keep<<std::endl;
+	
+	//std::cout<<chidx.size()<<std::endl;
+	for( auto id: chidx )
+	  {
+	    __daqch.push_back( id.seqn() );
+	    __keepch.push_back( keep );
+	  }
+      }
+    
+    if( __logLevel > 0 )
+      {
+	std::cout << myname << "       Readout info              : " << std::endl;
+	std::cout<<myname   << "       Number of CRPs from chmap : " << cmap->ncrps()  << std::endl;
+	std::cout<<myname   << "       Total channels expected   : " << __daqch.size() << std::endl;
+      }
+        
   }
 
   //
@@ -119,7 +216,7 @@ namespace lris
   {
     __close();
   }
-   
+
   //
   void PDDPRawInputDriver::readFile( std::string const &name,
 				     art::FileBlock* &fb )
@@ -134,7 +231,6 @@ namespace lris
     //
     __file.open( name.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
 
-    
     if( !__file.is_open() )
       {
 	throw art::Exception( art::errors::FileOpenError )
@@ -225,24 +321,78 @@ namespace lris
 					      event.evnum, tstamp );
     
 
-    //std::unique_ptr<raw::ExternalTrigger> trig_data (new raw::ExternalTrigger(event.trigtype, tval));
     std::unique_ptr< std::vector<raw::RawDigit> > cro_data ( new std::vector<raw::RawDigit>  );
-
+    std::unique_ptr< std::vector<raw::RDTimeStamp> > cro_rdtm ( new std::vector<raw::RDTimeStamp>  );
+    std::unique_ptr< std::vector<raw::RDStatus> > cro_stat ( new std::vector<raw::RDStatus>  );
+    
+    // move data
     cro_data->reserve( event.crodata.size() );
+    
+    //
+    raw::RawDigit::ADCvector_t dummy;
+
     for( size_t i=0;i<event.crodata.size();i++ )
       {
-	// This ch Id is based on the order the channel data are stored in file (always the same)
-	raw::ChannelID_t ch = i; 
-	cro_data->push_back( raw::RawDigit(ch, __nsacro, 
-					   std::move( event.crodata[i] ), 
-					   event.compression) );
-      }
+	if( i >= __daqch.size() )
+	  {
+	    mf::LogError(__FUNCTION__)<<"The channel map appears to be wrong";
+	    break;
+	  }
+	unsigned daqch = __daqch[i];
+	raw::ChannelID_t ch = i; //daqch; 
+	// raw digit 
+	if( __keepch[i] )
+	  cro_data->push_back( raw::RawDigit(ch, __nsacro, 
+					     std::move( event.crodata[daqch] ), 
+					     event.compression) );
+	else
+	  cro_data->push_back( raw::RawDigit(ch, 0, dummy, event.compression) );
 
-    //art::put_product_in_principal(std::move(trig_data), *outE, "daq");
-    art::put_product_in_principal(std::move(cro_data), *outE, "daq");
+	// RDTimeStamp
+	//cro_rdtm->push_back( raw::RDTimeStamp( tval, ch ) );
+
+	// Assns how to make ?
+	//auto const rwdigiptr = art::PtrMaker<raw::RawDigit>;
+	//auto const rdtimeptr = art::PtrMaker<raw::RDTimeStamp>;
+	//cro_asso->addSingle( rwdigiptr, rdtimeptr );
+      }
+    unsigned int statword = 0;
+    bool discarded = false;
+    bool kept      = false;
+    if( !event.good ) // data missing from some units
+      {
+	discarded = false;
+	kept      = true;
+      }
+    if( discarded ) statword |= 1;
+    if( kept )      statword |= 2;
+    cro_stat->emplace_back( discarded, kept, statword );
+
+    // assign some trigger flag ... see DataPrepModule
+    uint16_t rdtsflags = 0xd; // CRT for now
+    cro_rdtm->emplace_back( raw::RDTimeStamp( tval, rdtsflags ) );
+
+    art::put_product_in_principal(std::move(cro_data), *outE, __outlbl_digits, __prodlbl_digits);
+    art::put_product_in_principal(std::move(cro_stat), *outE, __outlbl_status, __prodlbl_status);
+    art::put_product_in_principal(std::move(cro_rdtm), *outE, __outlbl_rdtime, __prodlbl_rdtime);
     
     return true;
   }
+  
+  //
+  // split output container name configuration into label and instance
+  std::string PDDPRawInputDriver::__getProducerLabel( std::string &lbl )
+  {
+    std::string res = "";
+    size_t ipos = lbl.find(":");
+    if ( ipos != std::string::npos ) {
+      res = lbl.substr(ipos + 1);
+      lbl = lbl.substr(0, ipos);
+    }
+    
+    return res;
+  }
+
   
 
   //
@@ -454,11 +604,12 @@ namespace lris
     // 
     std::mutex iomutex;
     std::vector<std::thread> threads(frags.size() - 1);
-    unsigned nsa = __nsacro;
+    unsigned nsa    = __nsacro;
+    unsigned invped = __invped;
     for (unsigned i = 1; i<frags.size(); ++i) 
       {
 	auto afrag = frags.begin() + i;
-	threads[i-1] = std::thread([&iomutex, i, nsa, afrag] {
+	threads[i-1] = std::thread([&iomutex, i, nsa, invped, afrag] {
 	    {
 	      std::lock_guard<std::mutex> iolock(iomutex);
 	      // make it look like we're using i so clang doesn't complain.  This had been commented out
@@ -467,7 +618,7 @@ namespace lris
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
-			   GETDCFLAG(afrag->ei.runflags), nsa, afrag->crodata );
+			   GETDCFLAG(afrag->ei.runflags), nsa, invped, afrag->crodata);
 	  });
       }
   
@@ -486,7 +637,7 @@ namespace lris
   
     //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
     unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.runflags),
-		   nsa, event.crodata );
+		   nsa, invped, event.crodata );
     
     event.compression = raw::kNone;
     // the compression should be set for all L1 event builders, 

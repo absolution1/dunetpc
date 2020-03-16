@@ -17,4 +17,8 @@ cet_test(test_RunData SOURCES test_RunData.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_AdcChannelData SOURCES test_AdcChannelData.cxx
+  LIBRARIES
+    ${ROOT_BASIC_LIB_LIST}
+)
 cet_enable_asserts()

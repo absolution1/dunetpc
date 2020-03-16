@@ -24,6 +24,7 @@
 #include "TLatex.h"
 #include "TLine.h"
 #include "TLegend.h"
+#include "TExec.h"
 
 class TVirtualPad;
 class TCanvas;
@@ -32,6 +33,8 @@ class TGraph;
 class TAxis;
 class TLegend;
 class TFrame;
+class TBuffer;
+class TDirectory;
 
 class TPadManipulator {
 
@@ -56,12 +59,18 @@ public:
   };
 
   using Index = unsigned int;
-  using TLinePtr = std::shared_ptr<TLine>;
-  using TObjPtr = std::shared_ptr<TObject>;
-  using TObjVector = std::vector<TObjPtr>;
+  using LineVector = std::vector<TLine*>;
+  using TObjVector = std::vector<TObject*>;
   using BoundsVector = std::vector<Bounds>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
+  using HistPtr = std::shared_ptr<TH1>;
+
+  // Get object with name onam from Root directory rdir.
+  static TPadManipulator* get(Name onam ="tpad", TDirectory* tdir =nullptr);
+
+  // Read object with name onam from the Root file fnam.
+  static TPadManipulator* read(Name fnam, Name onam ="tpad");
 
   // Default ctor.
   // Creates an empty top-level object.
@@ -115,8 +124,22 @@ public:
   TCanvas* canvas(bool doDraw =false);
   bool haveCanvas() const { return canvas() != nullptr; }
 
-  // Save the canvas holding this pad to the specified file.
-  int print(std::string fname);
+  // Save this object with name onam to root directory tdir.
+  // If tdir is null, the current Root directory is used.
+  int put(Name onam ="tpad", TDirectory* tdir =nullptr) const;
+
+  // Save this object with name onam to root file fnam.
+  // If tdir is null, the current Root directory is used.
+  // The root file is opened in update mode and then closed.
+  int write(Name fnam, Name onam ="tpad") const;
+
+  // Create an image file. Name suffix should be a known format: png, pdf, ....
+  // If the suffix is .root or .tpad, then the object is written to that file.
+  int printOnce(std::string fname);
+
+  // Print one or more image files using StringManipulator pattern split.
+  // E.g. myfile.{png,pdf,tpad} --> myfile.png, myfile.pdf and myfile.tpad.
+  int print(std::string fname, std::string spat ="{,}");
 
   // Return the top-level manipulator, i.e. the ancestor that holds (or would hold)
   // the canvas for this pad.
@@ -134,12 +157,13 @@ public:
 
   // Return the parent pad.
   TPadManipulator* parent() { return m_parent; }
+  const TPadManipulator* parent() const { return m_parent; }
   bool haveParent() const { return m_parent != nullptr; }
 
   // Return the primary histogram or graph for this pad.
-  TH1* hist() const { return m_ph.get(); }
+  TH1* hist() const { return m_ph; }
   bool haveHist() const { return hist() != nullptr; }
-  TGraph* graph() const { return m_pg.get(); }
+  TGraph* graph() const { return m_pg; }
   bool haveGraph() const { return graph() != nullptr; }
   TObject* object() const;
   bool haveHistOrGraph() const { return object() != nullptr; }
@@ -147,7 +171,7 @@ public:
 
   // Return the overlaid objects and options.
   const TObjVector& objects() const { return m_objs; }
-  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj].get() : nullptr; }
+  TObject* object(Index iobj) const { return iobj<objects().size() ? objects()[iobj] : nullptr; }
   TH1* getHist(unsigned int iobj);
   const std::vector<std::string>& objOpts() const { return m_opts; }
 
@@ -156,11 +180,15 @@ public:
   // or reference those in a legend.
   TH1* getHist(std::string hnam);
 
+  // Return the last object added to the pad.
+  TObject* lastObject() const;
+
   // Return information about the canvas holding this pad.
   int canvasPixelsX() const;
   int canvasPixelsY() const;
 
   // Return information about the full drawing area for this pad.
+  // Pad must be drawn (or printed) to set these values for subpads.
   double padPixelsX() const;
   double padPixelsY() const;
 
@@ -174,8 +202,11 @@ public:
   TH1* frameHist() const;
   bool haveFrameHist() const { return frameHist() != nullptr; }
 
-  // Return the vertical mod lines associated with this pad.
-  const std::vector<TLinePtr>& verticalModLines() const { return m_vmlLines; }
+  // Delete the line objects.
+  void clearLineObjects();
+
+  // Return the lines associated with this pad.
+  const LineVector& verticalModLines() const { return m_lines; }
 
   // Add a subpad covering (x1, y1) to (x2, y2) in NDC units, i.e. 0 < x,y < 1.
   int addPad(double x1, double y1, double x2, double y2, int icol =-1);
@@ -189,11 +220,28 @@ public:
   int add(unsigned int ipad, TObject* pobj, std::string sopt ="", bool replace =false);
   int add(TObject* pobj, std::string sopt ="", bool replace =false);
 
+  // Set and fetch the TExec command run when the pad is drawn.
+  void setTExec(Name com) { m_exec.SetTitle(com.c_str()); }
+  const TExec& getTExec() const { return m_exec; }
+
+  // Set the palette for this pad.
+  // Added to TExec.
+  // Negative for no platte command.
+  void setPalette(int ipal);
+
   // Set margins. Negative value uses default margin.
+  // The default is set here to be reasonable for a wide range of aspect ratio.
+  // The margin is the fraction of the pad between the frame and pad edges.
+  // The corresponding axis title offset is also changed so that the title
+  // does not move relative to the pad, i.e. remains close to the pad edge.
+  // This behavior is not (yet) implemented for the z-axis (right) or title (top).
   void setMarginLeft(double xmar) { m_marginLeft = xmar; }
   void setMarginRight(double xmar) { m_marginRight = xmar; }
   void setMarginBottom(double xmar) { m_marginBottom = xmar; }
   void setMarginTop(double xmar) { m_marginTop = xmar; }
+
+  // Center axis labels.
+  void centerAxisTitles(bool center =true) { m_axisTitleOpt = center; }
 
   // Add a legend.
   // This is added to the list of objects.
@@ -206,7 +254,7 @@ public:
   // The initial value for this is taken from the primary object.
   // The title is drawn as specified in the promary object, i.e. typically
   // above the frame.
-  int setTitle(std::string sttl);
+  int setTitle(std::string sttl, float height =-1.0);
   std::string getTitle() const { return m_title.GetTitle(); }
 
   // Set and get the label associated with this pad.
@@ -225,6 +273,7 @@ public:
   // Get the axes of the histogram or graph.
   TAxis* getXaxis() const;
   TAxis* getYaxis() const;
+  TAxis* getZaxis() const;
 
   // Set drawing attributes.
   int setCanvasSize(int wx, int wy);
@@ -249,9 +298,20 @@ public:
   int setNdivisionsX(int ndiv) { m_ndivX = ndiv; return 0; };
   int setNdivisionsY(int ndiv) { m_ndivY = ndiv; return 0; };
 
-  // Set the axis label sizes.
+  // Set the axis label sizes. Default is zero.
+  // Unless set explcitely, Sub-pads will use a scaled version of this
+  // so all labels are the same size.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
+  int setTitleSize(double siz) { m_ttlSize = siz; return 0; }
+
+  // Fetch the label size for this pad.
+  // Returns the set value if nonzero, otherwise
+  // if parent, returns the parent value scaled by ratio of pad heights
+  // otherwise returns zero.
+  double getLabelSizeX() const;
+  double getLabelSizeY() const;
+  double getTitleSize() const;
 
   // Set the displayed ranges.
   // If x1 >= x2 (default), then the range is that of the primary object.
@@ -292,7 +352,7 @@ public:
   int showOverflow(bool show =true);
 
   // Return the under/overflow histogram.
-  TH1* flowHistogram() { return m_flowHist.get(); }
+  TH1* flowHistogram() { return m_flowHist; }
 
   // Show overflow points for graphs.
   // Any point off scale in any of the indicated directions is drawn at
@@ -301,7 +361,7 @@ public:
   int showGraphOverflow(std::string sopt ="BTLR", int imrk =38, int icol =1);
 
   // Return the under/overflow graph.
-  TGraph* flowGraph() { return m_flowGraph.get(); }
+  TGraph* flowGraph() { return m_flowGraph; }
 
   // Remove all lines.
   int clearLines();
@@ -358,18 +418,28 @@ public:
   // Draw the current lines.
   int drawLines();
 
+  // Custom streamer.
+  void Streamer(TBuffer& buf);
+
 private:
 
-  TPadManipulator* m_parent;
-  TVirtualPad* m_ppad;
+  // Set the parent for all children.
+  // If recurse is true, the operation is also performed on their children.
+  void setParents(bool recurse);
+
+private:
+
+  TPadManipulator* m_parent;  //! ==> Do not stream
+  TVirtualPad* m_ppad;  //! ==> Do not stream.
   int m_canvasWidth;
   int m_canvasHeight;
+  TExec m_exec;
   double m_marginLeft;
   double m_marginRight;
   double m_marginBottom;
   double m_marginTop;
-  std::shared_ptr<TH1> m_ph;
-  std::shared_ptr<TGraph> m_pg;
+  TH1* m_ph;
+  TGraph* m_pg;
   std::string m_dopt;
   TObjVector m_objs;
   std::vector<std::string> m_opts;
@@ -388,10 +458,11 @@ private:
   int m_ndivY;
   double m_labSizeX;
   double m_labSizeY;
-  std::shared_ptr<TH1> m_flowHist;
+  double m_ttlSize;
+  TH1* m_flowHist;        //! ==> Do not stream.
   bool m_showUnderflow;
   bool m_showOverflow;
-  std::shared_ptr<TGraph> m_flowGraph;
+  TGraph* m_flowGraph;    //! ==> Do not stream.
   std::string m_gflowOpt;
   int m_gflowMrk;
   int m_gflowCol;
@@ -411,7 +482,7 @@ private:
   std::vector<double> m_slSlop;
   std::vector<double> m_slYoff;
   std::vector<int> m_slStyl;
-  std::vector<std::shared_ptr<TLine>> m_vmlLines;
+  LineVector m_lines;  //! ==> Do not stream.
   NameVector m_binLabelsX;
   NameVector m_binLabelsY;
   double m_timeOffset =0.0;
@@ -420,6 +491,7 @@ private:
   BoundsVector m_subBounds;
   std::vector<TPadManipulator> m_subMans;
   Index m_iobjLegend;
+  int m_axisTitleOpt;
 
 };
 

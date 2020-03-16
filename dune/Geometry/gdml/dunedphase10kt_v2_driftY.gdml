@@ -490,14 +490,6 @@
      <box name="solLEMs" x="1204" y="0.1" z="6020" lunit="cm"/>
 
 
-
-    <box name="FoilLayerZ" lunit="cm" x="0.25" y="1193" z="6017"/>
-    <box name="FoilTPBZ" lunit="cm" x="0.27844" y="1193" z="6017"/>
-
-    <box name="FoilLayerX" lunit="cm" x="1201" y="1193" z="0.25"/>
-    <box name="FoilTPBX" lunit="cm" x="1201" y="1193" z="0.27844"/>
-
-
    <box name="CRM" lunit="cm" 
       x="301" 
       y="1200.03" 
@@ -3967,36 +3959,6 @@
   <materialref ref="Copper_Beryllium_alloy25"/>
   <solidref ref="solLEMs"/>
  </volume>
-
-
-    <volume name="volFoilLayerZ">
-      <materialref ref="vm2000"/>
-      <solidref ref="FoilLayerZ"/>
-    </volume>
-
-    <volume name="volFoilZ">
-      <materialref ref="TPB"/>
-      <solidref ref="FoilTPBZ"/>
-      <physvol>
-        <volumeref ref="volFoilLayerZ"/>
-        <position name="posFoilLayerZ" unit="cm" x="-0.01422" y="0" z="0"/>
-      </physvol>
-    </volume>
-
-    <volume name="volFoilLayerX">
-      <materialref ref="vm2000"/>
-      <solidref ref="FoilLayerX"/>
-    </volume>
-
-    <volume name="volFoilX">
-      <materialref ref="TPB"/>
-      <solidref ref="FoilTPBX"/>
-      <physvol>
-        <volumeref ref="volFoilLayerX"/>
-        <position name="posFoilLayerX" unit="cm" x="0" y="0" z="-0.01422"/>
-      </physvol>
-    </volume>
-
 
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
@@ -18881,26 +18843,6 @@
    <volumeref ref="volExtractionGrid"/>
    <position name="posExtractionGrid" unit="cm" x="0" y="654.5" z="0"/>
 
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZpos" unit="cm" x="602.2" y="57.8150000000001" z="0" />
-     <rotation name="rotFoilZpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilZ"/>
-     <position name="posFoilZneg" unit="cm"  x="-602.2" y="57.8150000000001" z="0" />
-     <rotation name="rotFoilZneg" unit="deg" x="0" y="0" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXpos" unit="cm"  x="0" y="57.8150000000001" z="3010.2" />
-     <rotation name="rotFoilXpos" unit="deg" x="0" y="180" z="0" />
-  </physvol>
-  <physvol>
-     <volumeref ref="volFoilX"/>
-     <position name="posFoilXneg" unit="cm"  x="0" y="57.8150000000001" z="-3010.2" />
-     <rotation name="rotFoilXneg" unit="deg" x="0" y="0" z="0" />
   </physvol>
     </volume>
 

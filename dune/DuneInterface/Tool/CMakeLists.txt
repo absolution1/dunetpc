@@ -7,5 +7,7 @@
 
 add_subdirectory(test)
 
+art_make()
+
 install_headers()
 install_source( README.txt )

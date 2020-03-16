@@ -1,0 +1,14 @@
+#include "sam_dune.fcl"
+BEGIN_PROLOG
+
+# Standard configurations for art's built-in FileCatalogMetadata service.
+# Metadata fields are standard, but values are still dune-specific.
+
+pddp_art_file_catalog: @local::art_file_catalog
+pddp_art_file_catalog.runType:            "protodune-dp"
+pddp_art_file_catalog.fileType:           "detector"
+
+# to be set
+pddp_art_file_catalog.applicationVersion: "v08_32_01"
+
+END_PROLOG

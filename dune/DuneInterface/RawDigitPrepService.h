@@ -21,13 +21,15 @@ class RawDigitPrepService {
 
 public:
 
+  virtual ~RawDigitPrepService() = default;
+
   using Index = unsigned int;
   using LongIndex = unsigned long;
 
   // Handle begin and end of an event.
   // Both return 0 for success.
-  virtual int beginEvent(const DuneEventInfo& devt) const { return 0; }
-  virtual int endEvent(const DuneEventInfo& devt) const { return 0; }
+  virtual int beginEvent(const DuneEventInfo&) const { return 0; }
+  virtual int endEvent(const DuneEventInfo&) const { return 0; }
 
   // Prepare the data for a vector of TPC digits. Each digit holds the time samples for one channel.
   // The preparation includes extraction (float conversion and pedstal subtraction) and optionally

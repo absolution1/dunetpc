@@ -11,8 +11,9 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   HistTypes: Types of histograms to create:
-//                raw = raw data: ADC - pedestal vs tick
+//                raw = raw data: ADC vs tick
 //                rawdist = raw data dist: # ticks vs ADC
+//                rawdistlog = raw data dist: log(# ticks) vs ADC
 //                prepared = prepared data: signal vs. tick
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
@@ -27,10 +28,13 @@
 //                  pedestal - Fixed range around pedestal (PlotSigMin+ped, PlotSigMax+ped)
 //   PlotSigMin: - Min for signal range. See PlotSigOpt.
 //   PlotSigMax: - Max for signal range. See PlotSigOpt.
+//   PlotDistMin - Min for y-axis in rawdist plots
+//   PlotDistMax - Max for y-axis in rawdist plots
 //   ColorBad - If nonzero, color for channels flagged bad.
 //   ColorNoisy - If nonzero, color for channels flagged noisy.
-//   HistManager: Name of the tool that manages the histograms. Obsolete.
-//                If blank, they are owned by the file or the current Root directory.
+//   SkipFlags - Samples with these flags are excluded from dist plots
+//   LabelSize - Size for x and y labels and titles. This is fraction of the pad size.
+//               Default of 0 ==> Root's 0.035 which can be tiny for many vertical suppads.
 // The following subsitutions are made in the names:
 //    %RUN% - run number
 //    %SUBRUN% - event number
@@ -46,19 +50,22 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 
-class HistogramManager;
 class AdcChannelStringTool;
 namespace lariov {
   class ChannelStatusProvider;
 }
-
+class TH1;
 
 class AdcChannelPlotter : AdcChannelTool {
 
 public:
 
   AdcChannelPlotter(fhicl::ParameterSet const& ps);
+
+  ~AdcChannelPlotter();
 
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
@@ -69,6 +76,8 @@ private:
   using Name = std::string;
   using NameVector = std::vector<Name>;
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
+  using IndexSet = std::set<Index>;
 
   // Configuration data.
   int m_LogLevel;
@@ -82,21 +91,33 @@ private:
   Name m_PlotSigOpt;
   float m_PlotSigMin;
   float m_PlotSigMax;
+  float m_PlotDistMin;
+  float m_PlotDistMax;
   Index m_ColorBad;
   Index m_ColorNoisy;
-  Name m_HistManager;
+  float m_LabelSize;
+  IndexVector m_SkipFlags;
 
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
-  // Histogram manager.
-  HistogramManager* m_phm;
-
   // Channel status provider.
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
 
+  // Derived from config.
+  IndexSet m_skipFlags;
+
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, Name type) const;
+
+  using HistMap = std::map<Name, TH1*>;
+
+  class State {
+  public:
+    HistMap hists;
+  };
+  mutable State m_state;
+  State& getState() const { return m_state; }
 
 };
 

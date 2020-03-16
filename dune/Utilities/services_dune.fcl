@@ -24,11 +24,13 @@
 #include "channelmap_35t.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
+#include "protodune_dataprep_services.fcl"
 #include "PdspChannelMapService.fcl"
 #include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 #include "time_memory_tracker_dune.fcl"
+#include "crp_dune.fcl"
 
 BEGIN_PROLOG
 
@@ -119,6 +121,7 @@ dunefddphase_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
@@ -141,6 +144,7 @@ dunefddphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
  DetPedestalService:		 @local::dunedp_fixedpeds
 }
@@ -182,6 +186,7 @@ dunedphase3x1x1_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::single_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
@@ -204,6 +209,7 @@ dunedphase3x1x1_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::single_crpgain
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
  PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
@@ -257,7 +263,9 @@ protodunedphase_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
+ CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 
@@ -280,10 +288,12 @@ protodunedphase_simulation_services: {
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
  PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
  PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
+ CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
@@ -444,15 +454,6 @@ protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
 protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # Switch to tool-based dataprep for ProtoDUNE simulation.
-# Comment out the the following lines to go back to the service-based dataprep.
-# Process simulation using tool-based dataprep.
-protodune_dataprep_tools_sim: [
-    "digitReader",              # Read RawDigit
-    "adcSampleFiller",          # Subtract pedestal, trivial calibration
-    "adcVintageDeconvoluter",   # Deconvolution
-    "adcThresholdSignalFinder", # ROI
-    "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
-]
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
@@ -473,51 +474,8 @@ protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
 protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
 # ProtoDUNE detector properties service
 protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
-# Finally, add the tools
-## No calibration, no noise removal.
-protodune_dataprep_tools_nocal: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleFiller",            # Subtract pedestal, trivial calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootAdc"     # correct undershoot
-]
-## Charge calibration, no noise removal.
-protodune_dataprep_tools_calib: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe"      # correct undershoot
-]
-## Charge calibration, noise removal.
-protodune_dataprep_tools_calib_noiserem: [
-  "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
-  "pdsp_sticky_codes_ped",      # Flag sticky codes
-  "pdsp_adcMitigate",           # Mitigate sticky codes
-  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe",     # correct undershoot
-  "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
-]
-## Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
-protodune_dataprep_tools_wirecell: [
-  @sequence::protodune_dataprep_tools_calib_noiserem,
-  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
-  "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
-  "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
-]
-
-## Set a default here.
+# Dataprep service.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
-
-
-
 
 ##################################################
 ### Make Parallel Services for the v7 geometry ###

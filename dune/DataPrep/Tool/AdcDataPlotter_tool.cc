@@ -34,10 +34,14 @@ using std::vector;
 AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")), 
   m_DataType(ps.get<int>("DataType")),
+  m_DataView(ps.get<string>("DataView")),
   m_TickRange(ps.get<string>("TickRange")),
   m_TickRebin(ps.get<Index>("TickRebin")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
+  m_ClockFactor(ps.get<float>("ClockFactor")),
+  m_ClockOffset(ps.get<float>("ClockOffset")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
+  m_MinSignal(1.e30),
   m_MaxSignal(ps.get<double>("MaxSignal")),
   m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
   m_EmptyColor(ps.get<double>("EmptyColor")),
@@ -54,6 +58,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_pOnlineChannelMapTool(nullptr),
   m_pChannelStatusProvider(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
+  m_MinSignal = -m_MaxSignal;
+  ps.get_if_present("MinSignal", m_MinSignal);
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
@@ -117,6 +123,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     cout << myname << "Configuration: " << endl;
     cout << myname << "              LogLevel: " << m_LogLevel << endl;
     cout << myname << "              DataType: " << m_DataType << endl;
+    cout << myname << "              DataView: " << m_DataView << endl;
     cout << myname << "             TickRange: " << descTickRange << endl;
     cout << myname << "             TickRebin: " << m_TickRebin << endl;
     cout << myname << "       ChannelRanges: [";
@@ -128,6 +135,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     }
     cout << "]" << endl;
     cout << myname << "       FembTickOffsets: [";
+    cout << myname << "           ClockFactor: " << m_ClockFactor << endl;
+    cout << myname << "           ClockOffset: " << m_ClockOffset << endl;
     first = true;
     for ( int ioff : m_FembTickOffsets ) {
       if ( first ) first = false;
@@ -139,6 +148,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << " @ "
            << m_pOnlineChannelMapTool << endl;
     }
+    cout << myname << "             MinSignal: " << m_MinSignal << endl;
     cout << myname << "             MaxSignal: " << m_MaxSignal << endl;
     cout << myname << "            EmptyColor: " << m_EmptyColor << endl;
     cout << myname << "    ChannelLineModulus: " << m_ChannelLineModulus << endl;
@@ -164,7 +174,7 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
 //**********************************************************************
 
 DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
-  const string myname = "AdcDataPlotter::view: ";
+  const string myname = "AdcDataPlotter::viewMap: ";
   DataMap ret;
   if ( acds.size() == 0 ) {
     cout << myname << "WARNING: Channel map is empty. No plot is created." << endl;
@@ -259,82 +269,114 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     ph->SetDirectory(nullptr);
     ph->SetStats(0);
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
+    double zmin = m_MinSignal;
     double zmax = m_MaxSignal;
-    if ( zmax <= 0.0 ) zmax = 100.0;
-    double zmin = -zmax;
-    ph->GetZaxis()->SetRangeUser(-zmax, zmax);
-    ph->SetContour(40);
+    ph->GetZaxis()->SetRangeUser(zmin, zmax);
+    ph->SetContour(200);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
-    //if ( m_EmptyColor >= 0 ) {
-      for ( Index icha=1; icha<=nchan; ++icha ) {
-        Index ibin0 = (ntick+2)*icha + 1;
-        for ( Index ibin=ibin0; ibin<ibin0+ntick; ++ibin ) ph->SetBinContent(ibin, zempty);
-      }
-    //}
+    // Initialize bins to zmin.
+    for ( Index icha=1; icha<=nchan; ++icha ) {
+      Index ibin0 = (ntick+2)*icha + 1;
+      for ( Index ibin=ibin0; ibin<ibin0+ntick; ++ibin ) ph->SetBinContent(ibin, zempty);
+    }
     // Fill histogram.
     for ( AdcChannel chan=chanDataBegin; chan<chanDataEnd; ++chan ) {
-      unsigned int ibin = ph->GetBin(1, chan-chanBegin+1);
       AdcChannelDataMap::const_iterator iacd = acds.find(chan);
       if ( iacd == acds.end() ) continue;
-      const AdcChannelData& acd = iacd->second;
+      const AdcChannelData& acdtop = iacd->second;
       if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
-           m_pChannelStatusProvider->IsBad(acd.channel) ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acd.channel << endl;
+           m_pChannelStatusProvider->IsBad(acdtop.channel) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acdtop.channel << endl;
         continue;
       }
-      const AdcSignalVector& sams = acd.samples;
-      const AdcFilterVector& keep = acd.signal;
-      const AdcCountVector& raw = acd.raw;
-      AdcSignal ped = 0.0;
-      bool isRawPed = false;
-      if ( isRaw ) {
-        ped = acd.pedestal;
-        isRawPed = ped != AdcChannelData::badSignal;
+      Index ibiny = chan-chanBegin + 1;
+      Index nent = acdtop.viewSize(m_DataView);
+      if ( m_LogLevel >= 2 && nent == 0 ) {
+        cout << myname << "WARNING: Unable to find data view name " << m_DataView << endl;
       }
-      Tick nsam = isRaw ? raw.size() : sams.size();
-      if ( m_LogLevel >= 3 ) {
-        cout << myname << "Filling channel-tick histogram with " << nsam << " samples for channel " << chan << endl;
-      }
-      int tickOffset = 0;
-      if ( m_FembTickOffsets.size() ) {
-        if ( m_pOnlineChannelMapTool == nullptr ) {
-          cout << myname << "  FEMB tick offsets provided without online channel mapping tool." << endl;
-          break;
+      for ( Index ient=0; ient<nent; ++ient ) {
+        if ( m_LogLevel >= 3 ) {
+          cout << myname << "Processing data view " << ient << "/" << nent << endl;
         }
-        Index chanOn = m_pOnlineChannelMapTool->get(chan);
-        Index ifmb = chanOn/128;
-        if ( ifmb < m_FembTickOffsets.size() ) tickOffset = m_FembTickOffsets[ifmb];
-      }
-      Index dsam = tickOffset < 0 ? -tickOffset : tickOffset;
-      bool addOffset = tickOffset > 0;
-      bool subtractOffset = tickOffset < 0;
-      for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
-        bool haveSam = true;
-        if ( subtractOffset ) haveSam = itck >= dsam;
-        float sig = 0.0;
-        if ( haveSam ) {
-          Index isam = itck;
-          if ( addOffset ) isam += dsam;
-          if ( subtractOffset ) isam -= dsam;
-          if ( isSig && isam >= acd.signal.size() ) {
-            if ( m_LogLevel >= 3 ) {
-              cout << myname << "  Signal array not filled for sample " << isam << " and above--stopping fill." << endl;
-            }
+        const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
+        if ( pacd == nullptr ) {
+          cout << myname << "ERROR: Skipping null view entry " << m_DataView << "[" << ient
+               << "]." << endl;
+          continue;
+        }
+        if ( pacd->channel != chan ) {
+          cout << myname << "ERROR: Skipping view entry " << m_DataView << "[" << ient
+               << "] with the wrong the wrong channel: "
+               << pacd->channel << " != " << chan <<"." << endl;
+          continue;
+        }
+        const AdcSignalVector& sams = pacd->samples;
+        const AdcFilterVector& keep = pacd->signal;
+        const AdcCountVector& raw = pacd->raw;
+        AdcSignal ped = 0.0;
+        bool isRawPed = false;
+        if ( isRaw ) {
+          ped = pacd->pedestal;
+          isRawPed = ped != AdcChannelData::badSignal;
+        }
+        Tick nsam = isRaw ? raw.size() : sams.size();
+        AdcInt dsam = pacd->tick0;
+        if ( m_ClockFactor > 0.0 ) {
+          double dclk = 0.0;
+          if ( pacd->channelClock >= pacd->triggerClock ) dclk = pacd->channelClock - pacd->triggerClock;
+          else dclk = -double(pacd->triggerClock - pacd->channelClock);
+          dsam += m_ClockFactor*(dclk + m_ClockOffset);
+        }
+        if ( m_FembTickOffsets.size() ) {
+          if ( m_pOnlineChannelMapTool == nullptr ) {
+            cout << myname << "  FEMB tick offsets provided without online channel mapping tool." << endl;
             break;
           }
-          if ( isPrep ) {
-            if ( isam < sams.size() ) sig = sams[isam];
-          } else if ( isRawPed ) {
-            if ( isam < raw.size() ) sig = raw[isam] - ped;
-          } else if ( isSig ) {
-            if ( isam < sams.size() && isam < keep.size() && keep[isam] ) sig = sams[isam];
-            else haveSam = false;
-          } else {
-            cout << myname << "Fill failed for bin " << ibin << endl;
+          Index chanOn = m_pOnlineChannelMapTool->get(chan);
+          Index ifmb = chanOn/128;
+          if ( ifmb < m_FembTickOffsets.size() ) dsam += m_FembTickOffsets[ifmb];
+          
+        }
+        if ( m_LogLevel >= 3 ) {
+          cout << myname << "Filling channel-tick histogram with " << nsam << " samples and offset "
+               << dsam << " for channel " << chan << endl;
+        }
+        Index ibin = ph->GetBin(1, ibiny);
+        for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
+          AdcInt iisam = itck;
+          iisam -= dsam;
+          if ( iisam > 0 ) {
+            AdcIndex isam = iisam;
+            float sig = 0.0;
+            if ( isSig && isam >= pacd->signal.size() ) {
+              if ( m_LogLevel >= 3 ) {
+                cout << myname << "  Signal array not filled for sample " << isam
+                     << " and above--stopping fill." << endl;
+              }
+              break;
+            }
+            if ( isPrep ) {
+              if ( isam < sams.size() ) sig = sams[isam];
+              else break;
+            } else if ( isRawPed ) {
+              if ( isam < raw.size() ) sig = raw[isam] - ped;
+              else break;
+            } else if ( isRaw && isam >= raw.size() ) {
+              // Ped missing is ok if we have no raw
+              break;
+            } else if ( isSig ) {
+              if ( isam < sams.size() && isam < keep.size() ) {
+                if ( keep[isam] ) sig = sams[isam];
+              } else {
+                break;
+              }
+            } else {
+              cout << myname << "Fill failed for bin " << ibin << endl;
+            }
+            if ( colorEmptyBins && sig < zmin ) sig = zmin;
+            ph->SetBinContent(ibin, sig);
           }
         }
-        if ( colorEmptyBins && sig < zmin ) sig = zmin;
-        if ( haveSam ) ph->SetBinContent(ibin, sig);
       }
     }
     // Rebin.
@@ -346,17 +388,21 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       ph->Scale(1.0/m_TickRebin);
       ph->GetZaxis()->SetRangeUser(-zmax, zmax);
     }
+/*
     // Save the original color map.
     RootPalette oldPalette;
     RootPalette::set(m_Palette);
+*/
     const RootPalette* ppal = RootPalette::find(m_Palette);
     if ( ppal == nullptr ) {
       cout << myname << "ERROR: Unable to find palette " << m_Palette << endl;
       return ret.setStatus(3);
     }
     TPadManipulator man;
+    man.setPalette(m_Palette);
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
+    man.setRangeZ(m_MinSignal, m_MaxSignal);
     man.addAxis();
     // Root uses the frame color for underflows.
     // If we are coloring empty bins, we use that color.
@@ -401,7 +447,9 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( m_LogLevel > 1 ) cout << myname << "Wrote " << ph->GetName() << " to " << ofrname << endl;
       delete pfile;
     }
+/*
     oldPalette.setRootPalette();
+*/
     ++nhist;
   }
   ret.setInt("nhist", nhist);
@@ -412,7 +460,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
 
 string AdcDataPlotter::
 nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const {
-  StringManipulator sman(name);
+  StringManipulator sman(name, false);
   sman.replace("%CRNAME%", ran.name);
   sman.replace("%CRLABEL%", ran.label(0));
   sman.replace("%CRLABEL1%", ran.label(1));

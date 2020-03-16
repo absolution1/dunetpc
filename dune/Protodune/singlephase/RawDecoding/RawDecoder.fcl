@@ -42,15 +42,35 @@ pdsp_tpc_raw_decoder:
   OutputDataLabel: "daq"
 
   APAsToDecode: []    # a list of APA (=crate) numbers to decode if you want a subset of them
-                      # an emtpy list decodes them all
+                      # an emtpy list decodes the entire input data
 
-  RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC" ] # if this list is empty or missing, then read all artdaq fragements with TPC in their labels
+  DefaultCrateIfUnexpected:  3     #  Use for coldbox data -- unexpected means not in the range 1-6.
+
+  MinOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit
+  MaxOfflineChannel:        -1     #  Use to limit range of channels.  <0: no limit.  < MinOfflineChannel: no limit
+ 
+# if this list is empty or missing, then read all artdaq fragements with TPC in their labels
+  RCERawDataLabels: [ "daq:ContainerTPC", "daq:TPC", 
+    "daq:ContainerTPC001", 
+    "daq:ContainerTPC002", 
+    "daq:ContainerTPC003", 
+    "daq:ContainerTPC004",
+    "daq:ContainerTPC005", 
+    "daq:ContainerTPC006", 
+    "daq:TPC001", 
+    "daq:TPC002", 
+    "daq:TPC003", 
+    "daq:TPC004",
+    "daq:TPC005", 
+    "daq:TPC006" ] 
+
   RCEEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   RCEFragmentType: 2
   RCEDropEventsWithSmallFrags: false
   RCEDropSmallFrags: true
   RCESmallFragSize: 500000
-  RCEDropFragsWithBadCSF: true    # skip fragments with invalid crate, slot, and fiber numbers
+  RCEDropFragsWithBadSF: true    # skip fragments with invalid slot and fiber numbers
+  RCEDropFragsWithBadC: true     # skip fragments with invalid crate numbers
   RCEHexDump: false
   RCESaveFragsToFiles: false
   RCECheckBufferSize: true
@@ -59,12 +79,25 @@ pdsp_tpc_raw_decoder:
   RCEFIX110:                         true   # shift waveforms for ASIC 3 on FEMB 110
   RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
-  FELIXRawDataLabels: [ "daq:ContainerFELIX", "daq:FELIX" ]   # if this list is empty or missing, then read all artdaq fragements with FELIX in their labels
+# if this list is empty or missing, then read all artdaq fragements with FELIX in their labels
+  FELIXRawDataLabels: [ "daq:ContainerFELIX", "daq:FELIX",
+    "daq:ContainerFELIX001", 
+    "daq:ContainerFELIX002", 
+    "daq:ContainerFELIX003", 
+    "daq:ContainerFELIX004",
+    "daq:ContainerFELIX005", 
+    "daq:ContainerFELIX006", 
+    "daq:FELIX001", 
+    "daq:FELIX002", 
+    "daq:FELIX003", 
+    "daq:FELIX004",
+    "daq:FELIX005", 
+    "daq:FELIX006" ] 
+
   FELIXEnforceFragmentTypeMatch: false   # DAQ group reserves the right to change fragment type numbers
   FELIXFragmentType: 8  
-  FELIXDropFragsWithBadCSF: true
-  FELIXEnforceExactCrateNumber: false
-  FELIXCrateNumberToCheck: 6
+  FELIXDropFragsWithBadSF: true   # drop fragments with bad slot or fiber numbers
+  FELIXDropFragsWithBadC: true    # drop fragments with ununderstood crate numbers
   FELIXHexDump: false
   FELIXDropEventsWithSmallFrags: false
   FELIXDropSmallFrags: true
@@ -91,9 +124,13 @@ pdsp_tpc_raw_decoder:
 
   EnforceNoDuplicateChannels: true
 
-# requires that all channels have the same number of ticks (on each event separately)
+# requires that all channels have the same number of ticks (on each event separately). Drops all data if they differ
 
   EnforceSameTickCount: false
+
+# requires that all channels except FEMB 302 have the same number of ticks
+
+  EnforceMedianTickCount: false
 
 # requires that all channels have the specified number of ticks
 

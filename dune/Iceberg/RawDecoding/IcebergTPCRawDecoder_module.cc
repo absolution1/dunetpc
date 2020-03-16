@@ -531,6 +531,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       _DiscardedCorruptData = true;
       return false; 
     }
+   DataFragmentUnpack df(cdptr);
+   //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)
@@ -557,14 +559,44 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 	  _KeptCorruptData = true;
 	}
 
-      // two cable swaps on June 20, 2019
+      // inverted ordering on back side, Run 2c (=Run 3)
+      // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
 
-      if (runNumber > 1530)
+      if (runNumber > 2572)
+	{
+	  auto oldfiber = fiberNumber;
+	  auto oldslot = slotNumber;
+
+	  if (oldslot == 0 && oldfiber == 4)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 4)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 3;
+	    }
+	  if (oldslot == 1 && oldfiber == 3)
+	    {
+	      slotNumber = 0;
+	      fiberNumber = 4;
+	    }
+	  if (oldslot == 0 && oldfiber == 3)
+	    {
+	      slotNumber = 1;
+	      fiberNumber = 4;
+	    }
+	}
+
+      // two cable swaps on June 20, 2019, and go back to the original on Jan 22, 2020
+
+      if (runNumber > 1530 && runNumber < 2572)
       	{
 	  auto oldfiber = fiberNumber;
 	  auto oldslot = slotNumber;
 
-	  // second swap, June 21 -- see Slack
+	  // second swap, June 21, 2019 -- see Slack
 
 	  if (oldslot == 2 && oldfiber == 1)
 	    {
@@ -650,7 +682,8 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
 		  auto const &colddata = wf->getColdData ();
 		  auto cvt0 = colddata[0].getConvertCount ();
 		  //auto cvt1 = colddata[1].getConvertCount ();
-		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << std::endl;
+		  int diff = (int) cvt0 - (int) iwf; 
+		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << " Difference: " << diff << std::endl;
 		  //printed = true;
 		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
 		  //break;

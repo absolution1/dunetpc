@@ -31,6 +31,13 @@ simple_plugin(AdcChannelTrimmer  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcChannelSplitter  "tool"
+                dune_ArtSupport
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcChannelPlotter  "tool"
                 dune_ArtSupport
                 dune_DuneCommon
@@ -287,6 +294,13 @@ simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcMultiThreshSignalFinder   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(PdspNoiseRemoval   "tool"
                dune_ArtSupport
                larcorealg_Geometry
@@ -301,6 +315,14 @@ simple_plugin(PdspNoiseRemoval   "tool"
              )
 
 simple_plugin(RemoveBadChannels   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(AdcRoiSlicer   "tool"
                 dune_ArtSupport
                 dune_DuneCommon
                 art_Utilities canvas

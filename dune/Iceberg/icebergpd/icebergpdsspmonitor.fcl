@@ -1,0 +1,52 @@
+#include "services_dune.fcl"
+#include "IcebergPDSSPMonitorPrologs.fcl"
+#include "detectorclocks.fcl"
+#include "timeservice.fcl"
+
+process_name: sspmonitor
+
+services:
+{
+  TimeTracker:       {}
+  RandomNumberGenerator: {}
+  message:              @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  DetectorClocksService:        @local::dunefd_detectorclocks	
+  TFileService: { fileName: "%ifb_sspmonitor_opdetwaveform.root" }
+}
+
+
+#source is now a root file
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: ["input_file.root"]
+}
+
+
+outputs:{}
+
+physics:
+{
+  producers:
+  {
+
+  }
+
+   analyzers:
+  {
+    sspmonitor: @local::ICEBERGPDSSPMonitor_params
+  }
+
+ produce: [  ]
+  analysis: [ sspmonitor ]
+  trigger_paths : [ produce ]
+  end_paths: [ analysis ]
+}
+
+#services.DetectorClocksService.FramePeriod: 2600.0     # Readout window end in us
+#services.DetectorClocksService.ClockSpeedOptical: 50.0 # Sampling frequency in MHz
+
+#physics.analyzers.sspmonitor.OpDetWaveformLabel: "ssprawdecoder:external"
+#physics.analyzers.sspmonitor.OpHitLabel: "ssprawdecoder:external"

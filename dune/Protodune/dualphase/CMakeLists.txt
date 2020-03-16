@@ -1,3 +1,4 @@
+if(FALSE)
 simple_plugin(
 												Purity "module"
 												dune_DetSim
@@ -24,7 +25,7 @@ simple_plugin(
                         ${ROOT_BASIC_LIB_LIST}
                         BASENAME_ONLY
 )
-
+endif()
 simple_plugin(
 			DEdxdp "module"
 			dune_DetSim
@@ -97,3 +98,5 @@ install_scripts()
 
 add_subdirectory(Light)
 add_subdirectory(RawDecoding)
+add_subdirectory(fcl)
+#add_subdirectory(test)

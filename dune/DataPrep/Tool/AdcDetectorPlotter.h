@@ -9,7 +9,7 @@
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   WireAngle - Include wires with this angle (for protoDUNE, 0, +/-0.623)
 //   DataType - Which data to plot: 0=prepared, 1=raw-pedestal
-//   Tick0 - Tick used ast t = 0 for drift calculations.
+//   Tick0 - Tick used as t = 0 for drift calculations.
 //   DriftSpeed - Drift speed in cm/tick.
 //   XMin, XMax - Plot limits for the drift coordinate
 //   ZMin, ZMax - Plot limits for the wire coordinate
@@ -98,6 +98,7 @@ public:
   // AdcChannelTool interface.
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
+  DataMap endEvent(const DuneEventInfo&) const override;
 
   int addChannel(const AdcChannelData& acd, double xfac) const;
 
