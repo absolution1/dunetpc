@@ -1,9 +1,7 @@
 add_subdirectory(SNAnaClustering)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
-  lbne-raw-data_Overlays
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-  lbne_daqinput35t       #For online to offline channel map
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
