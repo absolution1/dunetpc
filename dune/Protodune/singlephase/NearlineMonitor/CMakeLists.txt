@@ -127,7 +127,6 @@ simple_plugin(RawEventDisplay "module"
               ${MF_MESSAGELOGGER}
               ${CETLIB}
               ${ROOT_BASIC_LIB_LIST}
-              lbne_daqinput35t
               BASENAME_ONLY)
 
 simple_plugin(TpcMonitor "module"
