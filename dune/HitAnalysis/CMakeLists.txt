@@ -17,11 +17,9 @@ art_make(BASENAME_ONLY
  	 art_Persistency_Common canvas
 	 art_Persistency_Provenance canvas
 	 art_Utilities canvas
-	 ${MF_MESSAGELOGGER}
-	 
+	 ${MF_MESSAGELOGGER}	 
 	 cetlib cetlib_except
 	 ${ROOT_BASIC_LIB_LIST}
-	 lbne_daqinput35t
          ${Boost_SYSTEM_LIBRARY}
 )
 
