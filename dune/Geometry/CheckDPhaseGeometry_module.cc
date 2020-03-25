@@ -120,7 +120,7 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
     else std::cout<<" Uknown drift direction"<<std::endl;
 
     std::cout<<"Drift distance  : "<<tpc.DriftDistance()<<std::endl;
-    
+    std::cout<<std::endl;
     // scan the planes
     for (size_t p = 0; p<geo->Nplanes(t);++p)
       {
@@ -128,14 +128,24 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	const geo::PlaneGeo &vPlane = tpc.Plane( planeID );
 	if( vPlane.View() == geo::kU )
 	  std::cout<<"  View type geo::kU"<<std::endl;
-	if( vPlane.View() == geo::kV )
+	else if( vPlane.View() == geo::kV )
 	  std::cout<<"  View type geo::kV"<<std::endl;
-	if( vPlane.View() == geo::kZ )
+	else if( vPlane.View() == geo::kX )
+	  std::cout<<"  View type geo::kX"<<std::endl;
+	else if( vPlane.View() == geo::kY )
+	  std::cout<<"  View type geo::kY"<<std::endl;
+	else if( vPlane.View() == geo::kZ )
 	  std::cout<<"  View type geo::kZ"<<std::endl;
+	else 
+	  std::cout<<"  View "<<vPlane.View()<<" uknown"<<std::endl;
+
 	if( geo->SignalType(planeID) == geo::kCollection )
 	  std::cout<<"  View is geo::kCollection"<<std::endl;
-	if( geo->SignalType(planeID) == geo::kInduction )
+	else if( geo->SignalType(planeID) == geo::kInduction )
 	  std::cout<<"  View is geo::kInduction"<<std::endl;
+	else
+	  std::cout<<"  View signal type is unknown"<<std::endl;
+	
 	std::cout<<"  Number of wires : "<<vPlane.Nwires()<<std::endl;
 	std::cout<<"  Wire pitch      : "<<vPlane.WirePitch()<<std::endl;
 	std::cout<<"  Theta Z         : "<<vPlane.ThetaZ()<<std::endl;
