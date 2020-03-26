@@ -83,7 +83,7 @@ namespace spdp{
       
       DetectorPropertiesServiceProtoDUNEsp(fhicl::ParameterSet const& pset,
                                 art::ActivityRegistry& reg);
-      virtual void   reconfigure(fhicl::ParameterSet const& pset) override;
+      void   reconfigure(fhicl::ParameterSet const& pset);
       void   preProcessEvent(const art::Event& evt, art::ScheduleContext);
       void   postOpenFile(const std::string& filename);
       void   preOpenFile(const std::string& filename);
