@@ -72,8 +72,8 @@ HalfApaChannelRanges::HalfApaChannelRanges(fhicl::ParameterSet const& ps)
     insertLen(sapa + "i", chu0, nchai, "APA planes " + siapa + "i");
     insertLen(stpp + "x", chx0, nchax, "TPC planes " + sitps + "x", labApa);
     insertLen(sapa + "x", chx0, nchax, "APA planes " + siapa + "x");
-    insertLen(stpp + "z", chx0, nchax, "TPC planes " + sitps + "z", labApa);
-    insertLen(sapa + "z", chx0, nchax, "APA planes " + siapa + "z");
+    insertLen(stpp + "z", chx0, nchax, "collection planes " + sitps, labApa);
+    insertLen(sapa + "z", chx0, nchax, "collection planes " + siapa);
     Index fchu0 = chu0;
     Index fchv0 = chv0;
     Index fchx0 = chx10;
