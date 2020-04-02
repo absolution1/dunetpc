@@ -252,8 +252,8 @@ public:
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
-  // The title is drawn as specified in the promary object, i.e. typically
-  // above the frame.
+  // The title is positioned in the middle of the top margin and its
+  // size is limited to 90% of the margin height.
   int setTitle(std::string sttl, float height =-1.0);
   std::string getTitle() const { return m_title.GetTitle(); }
 

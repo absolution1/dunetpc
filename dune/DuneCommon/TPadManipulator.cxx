@@ -1062,6 +1062,14 @@ int TPadManipulator::update() {
   pad()->RedrawAxis();  // In case they are covered
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
+  // First fix the title position and size (April 2020).
+  // Title is positioned halfway up the top margin with text height no more
+  // than 90% of the margin.
+  float marg = m_ppad->GetTopMargin();
+  float ttlY = 1.0 - 0.5*marg;
+  m_title.SetY(ttlY);
+  float ttlSizeMax = 0.90*marg;
+  if ( m_title.GetTextSize() > ttlSizeMax ) m_title.SetTextSize(ttlSizeMax);
   m_title.Draw();
   if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
