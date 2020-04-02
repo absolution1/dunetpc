@@ -30,8 +30,6 @@ IcebergDataInterface_tool:
   RCESaveFragsToFiles: false
   RCECheckBufferSize: true
   RCEBufferSizeCheckLimit: 10000000
-  RCEFIX110:                         false   # shift waveforms for ASIC 3 on FEMB 110
-  RCEFIX110NTICKS:                   18     # number of ticks to shift waveforms on FEMB 110 ASIC 3
 
   FELIXDropFragsWithBadSF: true
   FELIXDropFragsWithBadC: true
