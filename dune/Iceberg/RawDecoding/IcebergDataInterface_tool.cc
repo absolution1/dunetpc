@@ -51,8 +51,6 @@ IcebergDataInterface::IcebergDataInterface(fhicl::ParameterSet const& p)
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
 
-  // parameters to steer the FEMB 110 band-aid
-
   _felix_drop_frags_with_badsf = p.get<bool>("FELIXDropFragsWithBadSF",true);
   _felix_drop_frags_with_badc = p.get<bool>("FELIXDropFragsWithBadC",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
