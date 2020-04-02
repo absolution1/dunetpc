@@ -102,26 +102,26 @@ tools.ibmet_adcChannelPedestalPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
 tools.ibmet_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
 tools.ibmet_adcChannelPedestalNoisePlotter.ChannelRanges: [all]
-tools.ibmet_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestaNoiselPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
 tools.ibmet_adcChannelPedestalOrfPlotter: @local::tools.pdtps_adcChannelPedestalOrfPlotter
 tools.ibmet_adcChannelPedestalOrfPlotter.ChannelRanges: [all]
-tools.ibmet_adcChannelPedestalOrfPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalOrfPlotter.HistTitle: "ADC out-of-range fraction for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalOrflPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter: @local::tools.pdtps_adcChannelPedestalPeakBinExcessPlotter
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelRanges: [all]
-tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC peak bin excess for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
 tools.ibmet_adcChannelPedestalRawRmsPlotter: @local::tools.pdtps_adcChannelPedestalRawRmsPlotter
 tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelRanges: [all]
-tools.ibmet_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC raw RMS for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
 tools.ibmet_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPedestalRawTailPlotter
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
-tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: [0, 400,  800, 1040]
 
