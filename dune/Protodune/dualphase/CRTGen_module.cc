@@ -130,7 +130,7 @@ void evgen::CRTGen::produce(art::Event & e)
 //  int            status         = 0;
   int 	 	 pdg            = 13;
 //  int 	 	 firstMother    = 0;
-  double 	 energy      	= CLHEP::RandFlat::shoot(10,10); //uniform distribution among 2-3GeV
+  double 	 energy      	= CLHEP::RandFlat::shoot(2,3); //uniform distribution among 2-3GeV
   double 	 mass        	= 0.1056583745;//GeV
   double 	 xPosition   	= CLHEP::RandFlat::shoot(CRT_TOP_center[0]-0.5*CRTHeightX,CRT_TOP_center[0]+0.5*CRTHeightX);
   double 	 yPosition   	= CLHEP::RandFlat::shoot(CRT_TOP_center[1]-0.5*CRTHeightY,CRT_TOP_center[1]+0.5*CRTHeightY);
