@@ -53,7 +53,7 @@ IcebergDataInterface::IcebergDataInterface(fhicl::ParameterSet const& p)
 
   // parameters to steer the FEMB 110 band-aid
 
-  _rce_fix110 = p.get<bool>("RCEFIX110",true);
+  _rce_fix110 = p.get<bool>("RCEFIX110",false);
   _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
 
   _felix_drop_frags_with_badsf = p.get<bool>("FELIXDropFragsWithBadSF",true);
