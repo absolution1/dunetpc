@@ -59,6 +59,14 @@ tools.channelRangesApa7: {
   ExtraRanges: ""
 }
 
+tools.channelRangesIceberg: {
+  tool_type: ApaChannelRanges
+  LogLevel: 0
+  ApaNumbers: [1]
+  ApaLocationNames: ["Iceberg"]
+  ExtraRanges: ""
+}
+
 tools.channelGroups: {
   tool_type: ProtoDuneChannelGroups
   LogLevel: 0
@@ -69,6 +77,13 @@ tools.channelGroupsApa7: {
   tool_type: ApaChannelGroups
   LogLevel: 0
   ApaNumbers: [7]
+  IndexRangeTool: channelRanges
+}
+
+tools.channelGroupsIceberg: {
+  tool_type: ApaChannelGroups
+  LogLevel: 0
+  ApaNumbers: [8]
   IndexRangeTool: channelRanges
 }
 

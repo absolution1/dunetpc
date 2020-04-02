@@ -1441,6 +1441,13 @@ int TPadManipulator::drawAxisTop() {
       break;
     }
   }
+  if ( m_timeFormatX.size() ) {
+    //paxnew->SetTimeDisplay(1);
+    paxnew->SetTimeFormat(m_timeFormatX.c_str());
+    paxnew->SetTimeOffset(m_timeOffset, "gmt");
+  } else {
+    //paxnew->SetTimeDisplay(0);
+  }
   paxnew->Draw();
   gPad = pPadSave;
   return 0;

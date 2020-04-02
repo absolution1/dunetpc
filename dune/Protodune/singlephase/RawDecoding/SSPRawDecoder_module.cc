@@ -24,7 +24,9 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/SSPFragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
+
 // larsoft includes
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"

@@ -111,31 +111,41 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
     TPCBox.back()->SetLineWidth(2);
     TPCBox.back()->SetLineColor(16);
 
-    std::cout<<"TPC "<<t<<" has found "<<geo->Nplanes(t)<<" planes"<<std::endl;
-    std::cout<<"TPC coordinates : "<<world[0]<<" "<<world[1]<<" "<<world[2]<<std::endl;
-    std::cout<<"Drift direction : ";
-    
-    if(tpc.DriftDirection() == geo::kPosX) std::cout<<"geo::kPosX"<<std::endl;
-    else if(tpc.DriftDirection() == geo::kNegX) std::cout<<"geo::kNegX"<<std::endl;
-    else std::cout<<" Uknown drift direction"<<std::endl;
-
-    std::cout<<"Drift distance  : "<<tpc.DriftDistance()<<std::endl;
-    
+    // std::cout<<"TPC "<<t<<" has found "<<geo->Nplanes(t)<<" planes"<<std::endl;
+    // std::cout<<"TPC coordinates : "<<world[0]<<" "<<world[1]<<" "<<world[2]<<std::endl;
+    // std::cout<<"Drift direction : ";
+    // if(tpc.DriftDirection() == geo::kPosX) std::cout<<"geo::kPosX"<<std::endl;
+    // else if(tpc.DriftDirection() == geo::kNegX) std::cout<<"geo::kNegX"<<std::endl;
+    // else std::cout<<" Uknown drift direction"<<std::endl;
+    // std::cout<<"Drift distance  : "<<tpc.DriftDistance()<<std::endl;
+    std::cout<<tpc.TPCInfo("  ", 4)<<std::endl;
+    std::cout<<std::endl;
     // scan the planes
     for (size_t p = 0; p<geo->Nplanes(t);++p)
       {
 	geo::PlaneID planeID(tpcid, p);
 	const geo::PlaneGeo &vPlane = tpc.Plane( planeID );
-	if( vPlane.View() == geo::kU )
+	auto view = vPlane.View();
+	if( view == geo::kU )
 	  std::cout<<"  View type geo::kU"<<std::endl;
-	if( vPlane.View() == geo::kV )
+	else if( view == geo::kV )
 	  std::cout<<"  View type geo::kV"<<std::endl;
-	if( vPlane.View() == geo::kZ )
+	else if( view == geo::kX )
+	  std::cout<<"  View type geo::kX"<<std::endl;
+	else if( view == geo::kY )
+	  std::cout<<"  View type geo::kY"<<std::endl;
+	else if( view == geo::kZ )
 	  std::cout<<"  View type geo::kZ"<<std::endl;
+	else 
+	  std::cout<<"  View "<<view<<" uknown"<<std::endl;
+
 	if( geo->SignalType(planeID) == geo::kCollection )
 	  std::cout<<"  View is geo::kCollection"<<std::endl;
-	if( geo->SignalType(planeID) == geo::kInduction )
+	else if( geo->SignalType(planeID) == geo::kInduction )
 	  std::cout<<"  View is geo::kInduction"<<std::endl;
+	else
+	  std::cout<<"  View signal type is unknown"<<std::endl;
+	
 	std::cout<<"  Number of wires : "<<vPlane.Nwires()<<std::endl;
 	std::cout<<"  Wire pitch      : "<<vPlane.WirePitch()<<std::endl;
 	std::cout<<"  Theta Z         : "<<vPlane.ThetaZ()<<std::endl;
@@ -154,9 +164,14 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	      Wires.push_back(new TLine(xyz0[2],xyz0[1],xyz1[2],xyz1[1]));
 	      
 	      double pitch = 0;
-	      if( p == 0) {pitch = xyz0[1] - prval; prval = xyz0[1];}
-	      else if( p == 1) {pitch = xyz0[2] - prval; prval = xyz0[2];}
-	      
+	      //if( p == 0) {pitch = xyz0[1] - prval; prval = xyz0[1];}
+	      //else if( p == 1) {pitch = xyz0[2] - prval; prval = xyz0[2];}
+	      if( view == geo::kX )   {pitch = xyz0[0] - prval; prval = xyz0[0];}
+	      else if(view == geo::kY){pitch = xyz0[1] - prval; prval = xyz0[1];}
+	      else if(view == geo::kZ){pitch = xyz0[2] - prval; prval = xyz0[2];}
+	      else { 
+		std::cerr<<"cannot determine the view\n"; break;
+	      }
 	      if(w > 0 && fabs(pitch - dpwpitch) > 0.00001)
 		{
 		  std::cerr<<" Bad pitch : "<<t<<" "<<p<<" "<<w<<" "<<w-1<<" "<<pitch<<std::endl;
