@@ -301,6 +301,7 @@ public:
   // Set the axis label sizes. Default is zero.
   // Unless set explcitely, Sub-pads will use a scaled version of this
   // so all labels are the same size.
+  // The z-axis label size is the same as that for y.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
   int setTitleSize(double siz) { m_ttlSize = siz; return 0; }

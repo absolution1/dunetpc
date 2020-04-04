@@ -946,6 +946,10 @@ int TPadManipulator::update() {
     getYaxis()->SetLabelSize(labSizeY);
     getYaxis()->SetTitleSize(labSizeY);
     //yttl *= labSizeY/0.035;
+    if ( getZaxis() != nullptr ) {
+      getZaxis()->SetLabelSize(labSizeY);
+      getZaxis()->SetTitleSize(labSizeY);
+    }
   }
   getXaxis()->SetLabelOffset(xlb);
   getXaxis()->SetTitleOffset(xttl);
