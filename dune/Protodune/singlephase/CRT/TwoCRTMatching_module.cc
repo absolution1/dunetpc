@@ -834,7 +834,7 @@ if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trac
         tPair.deltaX_F = deltaX_F;
  
         tPair.deltaX_B = deltaX_B;
-        tPair.deltaY_F = deltaX_F;
+        tPair.deltaY_F = deltaY_F;
         tPair.deltaY_B = deltaY_B;
 
         tPair.dotProductCos=best_dotProductCos;
