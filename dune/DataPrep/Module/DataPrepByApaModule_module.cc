@@ -907,8 +907,12 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   }
 
   if ( m_OutputTimeStampName.size() ) {
-    if ( logInfo ) cout << myname << "Created time stamp count: " << ptimsAll->size() << endl;
-    evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+    if ( ptimsAll ) {
+      if ( logInfo ) cout << myname << "Created time stamp count: " << ptimsAll->size() << endl;
+      evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+    } else {
+      cout << myname << "WARNING: Output time stamp container was not created." << endl;
+    }
   } else {
     if ( logInfo ) cout << myname << "Time stamp output was not requested." << endl;
   }
