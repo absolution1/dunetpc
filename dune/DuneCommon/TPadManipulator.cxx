@@ -787,6 +787,10 @@ int TPadManipulator::update() {
   double asp = wx > 0 ? wy/wx : 1.0;
   double aspx = asp < 1.0 ? asp : 1.0;        // Font is proportional to this for asp < 1.0
   double aspy = asp > 1.0 ? 1.0/asp : 1.0;    // Font is proportional to this for asp > 1.0
+  if ( false ) {
+    aspx = 1.0;
+    aspy = 1.0/asp;
+  }
   double xml = xm0 + 0.120*aspx;
   double xmr = 0.05*aspx;
   double xmb =       0.100*aspy;
@@ -794,6 +798,7 @@ int TPadManipulator::update() {
   double xlb = -0.028 + 0.038*aspy;
   double xlz = 0.005*aspx;
   double xttl = 1.2*aspy;
+  double zttl = 1.5*aspx;
   double yttl = 0.17 + 1.8*aspx;
   //double httl = 1.0 - 0.5*xmt;
   if ( isTH2 ) {
@@ -941,9 +946,14 @@ int TPadManipulator::update() {
     getYaxis()->SetLabelSize(labSizeY);
     getYaxis()->SetTitleSize(labSizeY);
     //yttl *= labSizeY/0.035;
+    if ( getZaxis() != nullptr ) {
+      getZaxis()->SetLabelSize(labSizeY);
+      getZaxis()->SetTitleSize(labSizeY);
+    }
   }
   getXaxis()->SetLabelOffset(xlb);
   getXaxis()->SetTitleOffset(xttl);
+  if ( getZaxis() != nullptr ) getZaxis()->SetTitleOffset(zttl);
   getYaxis()->SetTitleOffset(yttl);
   getXaxis()->SetTickLength(ticklenx);
   getYaxis()->SetTickLength(tickleny);
@@ -1056,6 +1066,16 @@ int TPadManipulator::update() {
   pad()->RedrawAxis();  // In case they are covered
   pad()->RedrawAxis("G");  // In case they are covered
   // Add the title and labels.
+  // First fix the title position and size (April 2020).
+  // Title is positioned halfway up the top margin with text height no more
+  // than 90% of the margin.
+  float marg = m_ppad->GetTopMargin();
+  float ttlY = 1.0 - 0.5*marg;
+  m_title.SetY(ttlY);
+  float ttlSizeMax = 0.90*marg;
+  float ttlSize = m_ttlSize > 0 ? m_ttlSize : 0.035;
+  if ( ttlSize > ttlSizeMax ) ttlSize = ttlSizeMax;
+  m_title.SetTextSize(ttlSize);
   m_title.Draw();
   if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;
@@ -1083,7 +1103,7 @@ TAxis* TPadManipulator::getYaxis() const {
 //**********************************************************************
 
 TAxis* TPadManipulator::getZaxis() const {
-  if ( haveFrameHist() ) return frameHist()->GetZaxis();
+  //if ( haveFrameHist() ) return frameHist()->GetZaxis();
   if ( hist() != nullptr ) return hist()->GetZaxis();
   return nullptr;
 }

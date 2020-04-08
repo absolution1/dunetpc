@@ -252,8 +252,8 @@ public:
 
   // Set and get the title associated with this pad.
   // The initial value for this is taken from the primary object.
-  // The title is drawn as specified in the promary object, i.e. typically
-  // above the frame.
+  // The title is positioned in the middle of the top margin and its
+  // size is limited to 90% of the margin height.
   int setTitle(std::string sttl, float height =-1.0);
   std::string getTitle() const { return m_title.GetTitle(); }
 
@@ -301,6 +301,7 @@ public:
   // Set the axis label sizes. Default is zero.
   // Unless set explcitely, Sub-pads will use a scaled version of this
   // so all labels are the same size.
+  // The z-axis label size is the same as that for y.
   int setLabelSizeX(double siz) { m_labSizeX = siz; return 0; }
   int setLabelSizeY(double siz) { m_labSizeY = siz; return 0; }
   int setTitleSize(double siz) { m_ttlSize = siz; return 0; }

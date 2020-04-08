@@ -59,6 +59,19 @@ cet_test(test_ApaChannelRanges SOURCES test_ApaChannelRanges.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_HalfApaChannelRanges SOURCES test_HalfApaChannelRanges.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_ProtoDuneChannelGroups SOURCES test_ProtoDuneChannelGroups.cxx
   LIBRARIES
     dune_ArtSupport
