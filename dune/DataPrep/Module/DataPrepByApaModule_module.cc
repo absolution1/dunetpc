@@ -313,12 +313,12 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       }
       std::istringstream ssapa(crn.substr(ipos,1));
       ssapa >> iapa;
-      //if ( iapa <= 0 ) {
+      if ( iapa <= 0 ) {
       //  cout << myname << "ERROR: Unable to extract APA index from channel range " << crn << endl;
       //  continue;
-      //}
-      // Allow no APA number for Iceberg.
-      iapa = -1;
+        // Allow no APA number for Iceberg.
+        iapa = -1;
+      }
     }
     const IndexRange& ran = pcrt->get(crn);
     if ( ! ran.isValid() ) {
