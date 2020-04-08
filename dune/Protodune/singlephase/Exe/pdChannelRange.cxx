@@ -53,18 +53,36 @@ int main(int argc, char** argv) {
     cout << "  DET = protodune (default) or apa7 or any value for which\n"
          << "        DET_tools_dune.fcl provides definitions for\n"
          << "        channelRanges and channelGroups." << endl;
-    cout << "  Channel group names include:" << endl;
-    cout << "    apas - APAs." << endl;
-    cout << "    tpss - TPC sets." << endl;
-    cout << "    apaus, apavs, apazs, apacs - APA planes with install naming." << endl;
-    cout << "    tppus, tppvs, tppzs, tppcs - APA planes with offline naming." << endl;
-    cout << "  Channel range names include:" << endl;
-    cout << "    apa1 - apa6: APA with APA numbering." << endl;
-    cout << "    tps0 - tps5: APA (TPC set) with offline numbering." << endl;
-    cout << "    apa0u, apa0v, apa0z, apa0c, ..., apa5c: APA plane with install numbering." << endl;
-    cout << "    tpp0u, tpp0v, tpp0z, tpp0c, ..., tpp5c: APA plane with offline numbering." << endl;
-    cout << "    (u and v are induction, z is TPC-side collection, c is cryostat side." << endl;
-    cout << "    femb101u, femb102u, ..., femb620u: FEMB u channels (same for v and x)." << endl;
+    if ( sdet == "protodune" ) {
+      cout << "  Protodune channel group names include:" << endl;
+      cout << "    apas - APAs." << endl;
+      cout << "    tpss - TPC sets." << endl;
+      cout << "    apaus, apavs, apazs, apacs - APA planes with install naming." << endl;
+      cout << "    tppus, tppvs, tppzs, tppcs - APA planes with offline naming." << endl;
+      cout << "  Protodune channel range names include:" << endl;
+      cout << "    apa1 - apa6: APA with APA numbering." << endl;
+      cout << "    tps0 - tps5: APA (TPC set) with offline numbering." << endl;
+      cout << "    apa0u, apa0v, apa0z, apa0c, ..., apa5c: APA plane with install numbering." << endl;
+      cout << "    tpp0u, tpp0v, tpp0z, tpp0c, ..., tpp5c: APA plane with offline numbering." << endl;
+      cout << "    (u and v are induction, z is TPC-side collection, c is cryostat side." << endl;
+      cout << "    femb101u, femb102u, ..., femb620u: FEMB u channels (same for v and x)." << endl;
+    } else if ( sdet == "apa7" ) {
+      cout << "  CERN coldbox channel range names include:" << endl;
+      cout << "    apa7: same as all." << endl;
+      cout << "    apa7u, apa7v, apa7z, apa7c: APA plane." << endl;
+      cout << "    tpp7u, tpp7v, tpp7z, tpp07: APA plane." << endl;
+      cout << "    (u and v are induction, z is TPC-side collection, c is cryostat side." << endl;
+      cout << "    femb701u, femb702u, ..., femb720u: FEMB u channels (same for v and x)." << endl;
+    } else if ( sdet == "iceberg" ) {
+      cout << "  Iceberg channel range names include:" << endl;
+      cout << "    apa: same as all." << endl;
+      cout << "    apau, apav, apaz1, apaz2: APA plane." << endl;
+      cout << "    tppu, tppv, tppz1, apaz2: APA plane." << endl;
+      cout << "    (u and v are induction, z is TPC-side collection, c is cryostat side." << endl;
+      cout << "    femb701u, femb702u, ..., femb720u: FEMB u channels (same for v and x)." << endl;
+      cout << "    apai: Induction channels." << endl;
+      cout << "    apaz or apax: Collection channels." << endl;
+    }
     return 0;
   }
 
