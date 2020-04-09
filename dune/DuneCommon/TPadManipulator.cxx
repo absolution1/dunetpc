@@ -946,6 +946,10 @@ int TPadManipulator::update() {
     getYaxis()->SetLabelSize(labSizeY);
     getYaxis()->SetTitleSize(labSizeY);
     //yttl *= labSizeY/0.035;
+    if ( getZaxis() != nullptr ) {
+      getZaxis()->SetLabelSize(labSizeY);
+      getZaxis()->SetTitleSize(labSizeY);
+    }
   }
   getXaxis()->SetLabelOffset(xlb);
   getXaxis()->SetTitleOffset(xttl);
@@ -1069,7 +1073,9 @@ int TPadManipulator::update() {
   float ttlY = 1.0 - 0.5*marg;
   m_title.SetY(ttlY);
   float ttlSizeMax = 0.90*marg;
-  if ( m_title.GetTextSize() > ttlSizeMax ) m_title.SetTextSize(ttlSizeMax);
+  float ttlSize = m_ttlSize > 0 ? m_ttlSize : 0.035;
+  if ( ttlSize > ttlSizeMax ) ttlSize = ttlSizeMax;
+  m_title.SetTextSize(ttlSize);
   m_title.Draw();
   if ( getLabel().size() ) m_label.Draw();
   gPad = pPadSave;

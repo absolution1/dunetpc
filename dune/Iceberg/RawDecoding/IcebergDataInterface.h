@@ -86,11 +86,6 @@ class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
   bool          _rce_check_buffer_size;
   size_t        _rce_buffer_size_checklimit;
 
-  // flags for attempting to fix FEMB 110's misaligned data
-
-  bool          _rce_fix110;
-  unsigned int  _rce_fix110_nticks;
-
   bool          _felix_hex_dump;
   bool          _felix_drop_frags_with_badsf;
   bool          _felix_drop_frags_with_badc;

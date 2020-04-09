@@ -314,8 +314,10 @@ void DataPrepByApaModule::reconfigure(fhicl::ParameterSet const& pset) {
       std::istringstream ssapa(crn.substr(ipos,1));
       ssapa >> iapa;
       if ( iapa <= 0 ) {
-        cout << myname << "ERROR: Unable to extract APA index from channel range " << crn << endl;
-        continue;
+      //  cout << myname << "ERROR: Unable to extract APA index from channel range " << crn << endl;
+      //  continue;
+        // Allow no APA number for Iceberg.
+        iapa = -1;
       }
     }
     const IndexRange& ran = pcrt->get(crn);
@@ -907,8 +909,12 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   }
 
   if ( m_OutputTimeStampName.size() ) {
-    if ( logInfo ) cout << myname << "Created time stamp count: " << ptimsAll->size() << endl;
-    evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+    if ( ptimsAll ) {
+      if ( logInfo ) cout << myname << "Created time stamp count: " << ptimsAll->size() << endl;
+      evt.put(std::move(ptimsAll), m_OutputTimeStampName);
+    } else {
+      cout << myname << "WARNING: Output time stamp container was not created." << endl;
+    }
   } else {
     if ( logInfo ) cout << myname << "Time stamp output was not requested." << endl;
   }
