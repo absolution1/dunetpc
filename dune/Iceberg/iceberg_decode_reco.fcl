@@ -1,6 +1,6 @@
 #include "IcebergRawDecoder.fcl"
 #include "IcebergDataInterfaceTool.fcl"
-#include "iceberg_bad_and_noisy_channels.fcl"
+#include "channelstatus_iceberg.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "ProtoDUNETriggerFilter.fcl"
 #include "protodune_tools_dune.fcl"

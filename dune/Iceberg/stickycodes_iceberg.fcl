@@ -1,0 +1,63 @@
+# stickycodes_iceberg.fcl
+#
+# David Adams
+# April 2020
+#
+# Sticky codes for Iceberg run 3
+# From run.evt 3384.0001 and 5308.0001
+
+tools.ibrun3_sticky_codes_ped: {
+  tool_type: FclStickyCodeFlagger
+  LogLevel: 1
+  StickyCode: 11
+  StickyCodes: {
+    ##### u #####
+    chan00072: [2432]
+    chan00083: [2431]
+    chan00103: [2686]
+    chan00255: [2663]
+    chan00308: [2367]
+    chan00324: [2431]
+    chan00328: [2303]
+    chan00332: [2576, 2609, 2613]
+    chan00357: [2367]
+    chan00364: [2239]
+    chan00387: [2369]
+    ##### v #####
+    chan00508: [2175]
+    chan00521: [2304]
+    chan00534: [2303]
+    chan00534: [2303]
+    chan00549: [2559]
+    chan00608: [2367, 2368]
+    chan00631: [2111, 2175, 2240]
+    chan00638: [2240]
+    chan00657: [2239]
+    chan00744: [2375]
+    chan00768: [2503]
+    chan00772: [2367]
+    chan00774: [2623]
+    ##### z1 #####
+    chan00820: [1016, 1017, 1018, 1023]
+    chan00917: [ 959]
+    chan00957: [ 959, 1024]
+    ##### z2 #####
+    chan01085: [1024]
+    chan01108: [ 959]
+    chan01173: [ 959, 1016, 1019]
+    chan01210: [ 895]
+    chan01214: [ 959]
+    chan01222: [ 895, 959, 1024]
+    chan01225: [ 895,  960, 961, 1024]
+    #chan01231: []  # Too many bad codes: 959, 1023, 1088, 1152, ...
+    chan01236: [ 960]
+    chan01261: [ 895]
+  }
+  StickyRanges: {
+    ##### u #####
+    ##### v #####
+    ##### z1 #####
+    ##### z2 #####
+  }
+}
+
