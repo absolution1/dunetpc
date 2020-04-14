@@ -51,11 +51,6 @@ IcebergDataInterface::IcebergDataInterface(fhicl::ParameterSet const& p)
   _rce_check_buffer_size = p.get<bool>("RCECheckBufferSize",true);
   _rce_buffer_size_checklimit = p.get<unsigned int>("RCEBufferSizeCheckLimit",10000000);
 
-  // parameters to steer the FEMB 110 band-aid
-
-  _rce_fix110 = p.get<bool>("RCEFIX110",true);
-  _rce_fix110_nticks = p.get<unsigned int>("RCEFIX110NTICKS",18);
-
   _felix_drop_frags_with_badsf = p.get<bool>("FELIXDropFragsWithBadSF",true);
   _felix_drop_frags_with_badc = p.get<bool>("FELIXDropFragsWithBadC",true);
   _felix_hex_dump = p.get<bool>("FELIXHexDump",false);  
@@ -639,7 +634,8 @@ bool IcebergDataInterface::_process_RCE_AUX(
 
       // David Adams's request for channels to start at zero for coldbox test data
       unsigned int crateloc = crateNumber;
-      if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
+      //if (crateNumber == 0 || crateNumber > 6) crateloc = _default_crate_if_unexpected;
+      crateloc = 1; // always use crate 1 for Iceberg
 
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
@@ -651,25 +647,11 @@ bool IcebergDataInterface::_process_RCE_AUX(
 
 	  v_adc.clear();
 
-	  if (_rce_fix110 && crateNumber == 1 && slotNumber == 0 && fiberNumber == 1 && channelMap->ChipFromOfflineChannel(offlineChannel) == 4 && n_ticks > _rce_fix110_nticks)
+	  for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
 	    {
-	      for (size_t i_tick = 0; i_tick < n_ticks-_rce_fix110_nticks; i_tick++)
-		{
-		  v_adc.push_back(adcs[i_tick+_rce_fix110_nticks]);
-		}
-	      for (size_t i_tick=0; i_tick<_rce_fix110_nticks; ++i_tick)
-		{
-		  v_adc.push_back(v_adc.back());
-		}
-	      
+	      v_adc.push_back(adcs[i_tick]);
 	    }
-	  else
-	    {
-	      for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
-		{
-		  v_adc.push_back(adcs[i_tick]);
-		}
-	    }
+
 	  adcs += n_ticks;
 
 	  ch_counter++;

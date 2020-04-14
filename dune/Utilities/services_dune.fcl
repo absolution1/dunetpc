@@ -323,7 +323,7 @@ protodunedphase_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "NeutronTrackingCut" ]
 
 protodunedphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 1
-protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 0.2
+protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 1
 protodunedphase_simulation_services.LArPropertiesService.ScintYield: 24000
 protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 

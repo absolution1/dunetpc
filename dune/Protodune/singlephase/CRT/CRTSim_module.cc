@@ -180,7 +180,7 @@ void CRT::CRTSim::produce(art::Event & e)
     //associated with the art::Ptr that produced each hit. Associating each hit with a time value gives me the 
     //option to skip over dead time later.  Each time bin contains up to one hit per channel.
     MF_LOG_DEBUG("moduleToChannels") << "Processing " << module.size() << " channels in module " << pair.first << "\n";
-    std::map<time, std::vector<std::pair<CRT::Hit, art::Ptr<sim::AuxDetSimChannel>>>> timeToHits; //Mapping from integration time bin to list of hit-Ptr pairs
+     std::map<time, std::vector<std::pair<CRT::Hit, art::Ptr<sim::AuxDetSimChannel>>>>timeToHits; //Mapping from integration time bin to list of hit-Ptr pairs
     for(const auto& channel: module)
     {
       MF_LOG_DEBUG("channels") << "Processing channel " << channel->AuxDetSensitiveID() << "\n";
@@ -192,88 +192,47 @@ void CRT::CRTSim::produce(art::Event & e)
         MF_LOG_DEBUG("TrueTimes") << "Assigned true hit at time " << tAvg << " to bin " << tAvg/fIntegrationTime << ".\n";
       }
     }
-
+    //std::map<time, std::vector<std::pair<CRT::Hit, art::Ptr<sim::AuxDetSimChannel>>>> oldWindow;
     std::stringstream ss;
-    for(const auto& window: timeToHits)
+    auto lastTimeStamp=time(0);
+    int i=0;
+    for(auto window : timeToHits) 
     {
-      ss << "At " << window.first << " ticks, " << window.second.size() << " hits\n";
-    } 
-
-    MF_LOG_DEBUG("timeToHits") << "Constructed readout windows for module " << pair.first  << ":\n"
-                            << ss.str() << "\n";
-
-    //Group AuxDetIDEs into CRT board "readout packets".  First, look for an energy 
-    //deposit that triggers board readout.  Then, find all energy deposits within 
-    //fReadoutWindowSize of each triggering hit and create a "readout packet".  
-    //Once an energy deposit has been "read out", it cannot trigger any more 
-    //"readout packet"s. 
-
-    //A real CRT module triggers as soon as it sees a channel above threshold. 
-    //Time-order the IDEs on each strip, then set triggerTime to the earliest
-    //IDE from any channel that is above threshold.  Channel number breaks ties.
-   
-    //TODO: Eventually read out CRT modules only until one module triggers to simulate the "traffic jam" situation I think could happen?
-    MF_LOG_DEBUG("timeToHits") << "About to loop over " << timeToHits.size() << " time windows that are " << fIntegrationTime << "ns long.\n";
-    for(auto window = timeToHits.begin(); window != timeToHits.end(); ) //++window)
-    {
-      const auto& hitsInWindow = window->second;
+	if (i!=0 && (time(fDeadtime)+lastTimeStamp)>window.first && lastTimeStamp<window.first) continue;
+	i++;
+      const auto& hitsInWindow = window.second;
       const auto aboveThresh = std::find_if(hitsInWindow.begin(), hitsInWindow.end(), 
                                             [this](const auto& hitPair) { return hitPair.first.ADC() > fDACThreshold; });
 
-      if(aboveThresh != hitsInWindow.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
-      {
-        MF_LOG_DEBUG("timeToHits") << "Channel " << aboveThresh->first.Channel() << " has deposit " << aboveThresh->first.ADC() << " ADC counts that "
-                                << "is above threshold.  Triggering readout at time " << window->first << ".\n";
-        //TODO: Integrate all channels over the readout window?  What happens if a channel had energy deposits twice during the readout window?
-        //Write all channels with activity in the readout window to a CRT::Trigger.  Ignore repeated hits in a channel for now.   
-        std::vector<CRT::Hit> hits;
-        const time timestamp = window->first; //Set timestamp before window is changed.
-        const auto end = timeToHits.upper_bound(timestamp+fReadoutWindowSize);
+
+if(aboveThresh != hitsInWindow.end()){
+
+       std::vector<CRT::Hit> hits;
+        const time timestamp = window.first; //Set timestamp before window is changed.
+        const time end = (timestamp+fReadoutWindowSize);
         std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
-                                        //this readout window and so are "busy" and cannot contribute any more hits.  
-        for(;window != end; ++window)
-        {
-          //TODO: Read out channels, but make sure the same channel is not read out twice because ADC is busy?  Requires nested map?
-          for(const auto& hitPair: window->second)
+                                        //this readout window and so are "busy" and cannot contribute any more hits. 
+    for(auto busyCheckWindow : timeToHits){
+	if (time(busyCheckWindow.first)<timestamp || time(busyCheckWindow.first)>end) continue;
+          for(const auto& hitPair: window.second)
           {
             const auto channel = hitPair.first.Channel(); //TODO: Get channel number back without needing art::Ptr here.  
                                                                     //      Maybe store crt::Hits.
             if(channelBusy.insert(channel).second) //If this channel hasn't already contributed to this readout window
             {
               hits.push_back(hitPair.first);
- 
-              //Create Assns to AuxDetSimChannels now to avoid having to store art::Ptrs again.  If art::Ptr 
-              //actually had to hold a raw pointer to a concrete instance of a class or else be nullptr, then 
-              //the following would be gibberish.  However, the comments about art::PtrMaker and what little I 
-              //still remember of the "old" method of creating art::Assns in LArSoft lead me to believe that 
-              //I am actually working with art::Ptrs that don't exist yet when creating an Assn.  After all, 
-              //the art::Event doesn't even own my vector<CRT::Trigger> yet.  So, I can refer to a hypothetical 
-              //CRT::Trigger when creating Assns and thus avoid the need to loop over used AuxDetSimChannels 
-              //again.  This saves me a horrible STL template instantiation.  
-              simToTrigger->addSingle(hitPair.second, makeTrigPtr(trigCol->size()-1)); //TODO: I could add a "data" object that 
-                                                                                                   //      gives the indices of the IDEs used 
-                                                                                                   //      to create this Trigger
-            }
-          }
-        }
+              simToTrigger->addSingle(hitPair.second, makeTrigPtr(trigCol->size()-1)); 
+		}
+		}	
+	}
+	//std::cout<<"Hits Generated:"<<hits.size()<<std::endl;
+        lastTimeStamp=window.first;
 
-        //Create a CRT::Trigger to represent this module's readout window.  Associate the AuxDetSimChannels used to make this CRT::Trigger.
-        //This is the hypothetical CRT::Trigger I was talking about when creating Assns.
         MF_LOG_DEBUG("CreateTrigger") << "Creating CRT::Trigger...\n";
         trigCol->emplace_back(pair.first, timestamp*fIntegrationTime, std::move(hits)); 
-                                                                         //TODO: Convert trigger time into timestamp.  From line 211 of 
-                                                                         //      DetSim/Modules/SimCounter35t_module.cc, it looks like I 
-                                                                         //      need to know more about how CRT timestamps are constructed 
-                                                                         //      in data before proceeding.  
+	} // For each readout with a triggerable hit
+    }  // For each time window
 
-        //Advance window past dead time so that no energy deposits in dead time are read out.
-        const auto oldWindow = window;
-        if(window != timeToHits.end()) window = timeToHits.upper_bound(window->first+fDeadtime); 
-        if(window != timeToHits.end()) MF_LOG_DEBUG("DeadTime") << "Advanced readout window by " << window->first - oldWindow->first
-                                                             << " to simulate dead time.\n";
-      } //If there was a channel above threshold
-      else ++window; //If discriminators did not fire, continue to next time window.
-    } //For each time window
   } //For each CRT module
 
   //Put Triggers and Assns into the event
@@ -282,54 +241,5 @@ void CRT::CRTSim::produce(art::Event & e)
   e.put(std::move(simToTrigger));
 }
 
-//Tell ART what data products this modules works with and retrieve any resources that don't change throughout the job here.
-/*void CRT::CRTSim::beginJob()
-{
-}*/
-
-/*void CRT::CRTSim::beginRun(art::Run & r)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::beginSubRun(art::SubRun & sr)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::endJob()
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::endRun(art::Run & r)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::endSubRun(art::SubRun & sr)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::respondToCloseInputFile(art::FileBlock const & fb)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::respondToCloseOutputFiles(art::FileBlock const & fb)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::respondToOpenInputFile(art::FileBlock const & fb)
-{
-  // Implementation of optional member function here.
-}
-
-void CRT::CRTSim::respondToOpenOutputFiles(art::FileBlock const & fb)
-{
-  // Implementation of optional member function here.
-}*/
 
 DEFINE_ART_MODULE(CRT::CRTSim)

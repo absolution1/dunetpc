@@ -15,6 +15,7 @@
 #include "TTree.h"
 
 // LArSoft includes
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/OpDetWaveform.h"
 #include "lardataobj/RecoBase/OpHit.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"

@@ -177,45 +177,39 @@ void CRT::CRTSimRefac::produce(art::Event & e)
     mf::LogDebug("timeToHitTrackIds") << "Constructed readout windows for module " << crtChannel << ":\n"
                             << ss.str() << "\n";
 
-   
 
-    for(auto time_to_vector_of_pair_crtHit_and_trackId = crtHitsMappedByTime.begin(); time_to_vector_of_pair_crtHit_and_trackId != crtHitsMappedByTime.end(); ) //++time_to_vector_of_pair_crtHit_and_trackId)
+
+     auto lastTimeStamp=time(0);
+    int i=0;
+  for(auto window : crtHitsMappedByTime) 
     {
-      const auto& vector_of_pair_crtHit_and_trackId = time_to_vector_of_pair_crtHit_and_trackId->second;
-      const auto aboveThresh = std::find_if(vector_of_pair_crtHit_and_trackId.begin(), vector_of_pair_crtHit_and_trackId.end(), 
-                                            [this](const auto& pair_crtHit_and_trackId) { return pair_crtHit_and_trackId.first.ADC() > fDACThreshold; });
+	if (i!=0 && (time(fDeadtime)+lastTimeStamp)>window.first && lastTimeStamp<window.first) continue;
+	i++;
+      const auto& hitsInWindow = window.second;
+      const auto aboveThresh = std::find_if(hitsInWindow.begin(), hitsInWindow.end(), 
+                                            [this](const auto& hitPair) { return hitPair.first.ADC() > fDACThreshold; });
 
-      if(aboveThresh != vector_of_pair_crtHit_and_trackId.end()) //If this is true, then I have found a channel above threshold and readout is triggered.  
-      {
-        mf::LogDebug("timeToHitTrackIds") << "Channel " << (aboveThresh->first).Channel() << " has deposit " << (aboveThresh->first).ADC() << " ADC counts that " << "is above threshold.  Triggering readout at time " << time_to_vector_of_pair_crtHit_and_trackId->first << ".\n";
- 
-        std::vector<CRT::Hit> hits;
-        const time timestamp = time_to_vector_of_pair_crtHit_and_trackId->first; //Set timestamp before window is changed.
-        const auto end = crtHitsMappedByTime.upper_bound(timestamp+fReadoutWindowSize);
 
-	    std::set<int> trkIDCheck; //Backtracking set to get rid of duplicate trkIDs that are above threshold
+if(aboveThresh != hitsInWindow.end()){
 
+       std::vector<CRT::Hit> hits;
+	std::set<int> trkIDCheck;
+        const time timestamp = window.first; //Set timestamp before window is changed.
+        const time end = (timestamp+fReadoutWindowSize);
         std::set<uint32_t> channelBusy; //A std::set contains only unique elements.  This set stores channels that have already been read out in 
-                                        //this readout window and so are "busy" and cannot contribute any more hits.  
-        for(;time_to_vector_of_pair_crtHit_and_trackId != end; ++time_to_vector_of_pair_crtHit_and_trackId)
-        {
-	  
-	  
-
-          for(const auto& pair_crtHit_and_trackId: time_to_vector_of_pair_crtHit_and_trackId->second)
-          {
-            const auto channel = pair_crtHit_and_trackId.first.Channel();
-	     
-
-                                                                  
-            if(channelBusy.insert(channel).second) //If this channel hasn't already contributed to this readout window
-            {
-              hits.push_back(pair_crtHit_and_trackId.first);
+                                        //this readout window and so are "busy" and cannot contribute any more hits. 
+    for(auto busyCheckWindow : crtHitsMappedByTime ){
+	if (time(busyCheckWindow.first)<timestamp || time(busyCheckWindow.first)>end) continue;
+          for(const auto& hitPair: window.second){
+            const auto channel = hitPair.first.Channel(); //TODO: Get channel number back without needing art::Ptr here.  
+                                                                    //      Maybe store crt::Hits.
+            if(channelBusy.insert(channel).second){ 
+              hits.push_back(hitPair.first);
 
 
-	      if (pair_crtHit_and_trackId.first.ADC()>fDACThreshold){
+	      if (hitPair.first.ADC()>fDACThreshold){
 
-              int tid = pair_crtHit_and_trackId.second;
+              int tid = hitPair.second;
 
 
 
@@ -225,7 +219,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 	    }
             }
           }
-        }
+       }
 
 	for (int tid : trkIDCheck){
 	      // -- safe index retrieval
@@ -248,26 +242,15 @@ void CRT::CRTSimRefac::produce(art::Event & e)
               auto const mcptr = makeMCParticlePtr(index);
               partToTrigger->addSingle(mcptr, makeTrigPtr(trigCol->size()-1));
 
-
-
-
-
 	}
+	//std::cout<<"Hits Generated:"<<hits.size()<<std::endl;
+        lastTimeStamp=window.first;
 
-        mf::LogDebug("CreateTrigger") << "Creating CRT::Trigger...\n";
+        MF_LOG_DEBUG("CreateTrigger") << "Creating CRT::Trigger...\n";
+        trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits)); 
+	} // For each readout with a triggerable hit
+    }  // For each time window
 
-        trigCol->emplace_back(crtChannel, timestamp*fIntegrationTime, std::move(hits));
-
-        const auto oldWindow = time_to_vector_of_pair_crtHit_and_trackId;
-        if(time_to_vector_of_pair_crtHit_and_trackId != crtHitsMappedByTime.end())
-        {
-          time_to_vector_of_pair_crtHit_and_trackId = crtHitsMappedByTime.upper_bound(time_to_vector_of_pair_crtHit_and_trackId->first+fDeadtime); 
-          mf::LogDebug("DeadTime") << "Advanced readout window by " << time_to_vector_of_pair_crtHit_and_trackId->first - oldWindow->first
-                                                             << " to simulate dead time.\n";
-        }
-      } //If there was a channel above threshold
-      else ++time_to_vector_of_pair_crtHit_and_trackId; //If discriminators did not fire, continue to next time window.
-    } //For each time window
   } //For each CRT module
 
   // -- Put Triggers and Assns into the event
