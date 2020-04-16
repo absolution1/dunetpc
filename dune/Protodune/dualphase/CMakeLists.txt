@@ -11,6 +11,9 @@ simple_plugin(
            ROOT::Hist
            ROOT::Physics
            ROOT::RIO
+           ROOT::EG
+           ROOT::Geom
+           ROOT::Hist
            larcorealg_Geometry
            larcoreobj_SummaryData
            larsim_EventGenerator
@@ -21,12 +24,7 @@ simple_plugin(
            ${ART_ROOT_IO_TFILE_SUPPORT}
            ${CLHEP}
            ${MF_MESSAGELOGGER}
-           ROOT::Core
-           ROOT::EG
-           ROOT::Geom
-           ROOT::Hist
-           ROOT::Physics
-           ROOT::RIO
+  	   ${ROOT_BASIC_LIB_LIST}
 )
 if(FALSE)
 simple_plugin(
