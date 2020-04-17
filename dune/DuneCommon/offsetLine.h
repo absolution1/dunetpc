@@ -33,7 +33,7 @@ double offsetLineFull(double* px, double* ppar) {
     if ( x > 0.0 ) return yped + y0 + gain*x;
     else if ( x < 0.0 ) return yped - y0 + gain*x;
   }
-  return 0.0;
+  return yped;
 }
 
 inline

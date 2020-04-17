@@ -4,3 +4,4 @@
 #include "dune/DuneCommon/cePulser.h"
 #include "dune/DuneCommon/RootPalette.h"
 #include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/offsetLine.h"
