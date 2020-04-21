@@ -1,0 +1,23 @@
+# channelStatusTool.fcl
+
+# David Adams
+# April 2020
+
+# Configures a channel status tool with bad and noisy channels
+# copied from the ChannelStatusService configuration.
+#
+# Include this *after* configuring the channel status service.
+
+# Channel status from service configuration.
+tools.channelStatusFromConfig: {
+  tool_type: ChannelStatusConfigTool
+  DefaultIndex: 0
+  IndexVectors: [
+    [],
+    @local::services.ChannelStatusService.BadChannels,
+    @local::services.ChannelStatusService.NoisyChannels
+  ]
+  LogLevel: 1
+}
+
+tools.channelStatus: @local::tools.channelStatusFromConfig

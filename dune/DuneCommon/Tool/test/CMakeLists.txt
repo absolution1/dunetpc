@@ -123,4 +123,16 @@ cet_test(test_ChannelStatusServiceTool SOURCES test_ChannelStatusServiceTool.cxx
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_ChannelStatusConfigTool SOURCES test_ChannelStatusConfigTool.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${ROOT_BASIC_LIB_LIST}
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
 

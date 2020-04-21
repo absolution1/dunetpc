@@ -47,7 +47,7 @@ ChannelStatusConfigTool::ChannelStatusConfigTool(fhicl::ParameterSet const& ps)
   }
   m_vals.resize(idxSize, m_DefaultIndex);
   Index ivec = m_IndexVectors.size();
-  while ( true ) {
+  while ( ivec ) {
     const IndexVector& vec = m_IndexVectors[--ivec];
     for ( Index idx : vec ) {
       m_vals[idx] = ivec;
