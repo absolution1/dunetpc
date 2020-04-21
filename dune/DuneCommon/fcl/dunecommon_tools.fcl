@@ -21,10 +21,12 @@ tools.tickRanges: {
 }
 
 # Channel status from service.
-tools.channelStatus: {
+tools.channelStatusFromService: {
   tool_type: ChannelStatusServiceTool
   LogLevel: 1
 }
+
+tools.channelStatus: @local::tools.channelStatusFromService
 
 # Histogram manager.
 tools.histMgr: {
