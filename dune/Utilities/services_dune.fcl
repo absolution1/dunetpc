@@ -294,6 +294,7 @@ protodunedphase_simulation_services: {
  PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
  DetPedestalService:		 @local::dunedp_fixedpeds
  CrpGainService:                 @local::dunefddphase_crpgain
+ OpDigiProperties:               @local::protodunedphase_opdigiproperties
 }
 
 protodunedphase_reco_services:                         	  @local::protodunedphase_services
@@ -326,6 +327,10 @@ protodunedphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 1
 protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 1
 protodunedphase_simulation_services.LArPropertiesService.ScintYield: 24000
 protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+
+protodunedphase_driftY_simulation_services: @local::protodunedphase_simulation_services
+protodunedphase_driftY_simulation_services.PhotonVisibilityService: 	 @local::protodunedp_driftY_photonvisibilityservice
+protodunedphase_driftY_simulation_services.Geometry: 			 @local::protodunedphase_driftY_geo
 
 
 # dune10kt and dune34kt consolidated into dunefd,
