@@ -27,7 +27,7 @@
 #include "art_root_io/TFileService.h"
 
 //CRT includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //lardataobj includes
 #include "lardataobj/RawData/RDTimeStamp.h"

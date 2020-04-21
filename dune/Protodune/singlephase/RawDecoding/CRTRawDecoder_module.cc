@@ -30,8 +30,8 @@
 #include "dune-raw-data/Overlays/CRTFragment.hh"
 
 //dunetpc includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
-#include "dunetpc/dune/Geometry/ProtoDUNESPCRTSorter.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "dune/Geometry/ProtoDUNESPCRTSorter.h"
 
 //ROOT includes
 #include "TGraph.h"

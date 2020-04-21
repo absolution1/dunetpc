@@ -23,8 +23,8 @@
 #include "art_root_io/TFileService.h"
 
 //CRT includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/monitor/OnlinePlotter.cpp"
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/util/FlatDirectory.cpp"
+#include "dune/Protodune/singlephase/CRT/alg/monitor/OnlinePlotter.cpp"
+#include "dune/Protodune/singlephase/CRT/alg/util/FlatDirectory.cpp"
 
 //c++ includes
 #include <memory> //For std::unique_ptr

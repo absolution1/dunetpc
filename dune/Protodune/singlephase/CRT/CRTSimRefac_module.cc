@@ -35,7 +35,7 @@
 
 //local includes
 //#include "CRTTrigger.h"
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //c++ includes
 #include <memory>

@@ -27,9 +27,9 @@
 //#include "art/Framework/Services/Optional/TFileService.h"
 #include "art_root_io/TFileService.h"
 
-#include "dunetpc/dune/Protodune/singlephase/CTB/data/pdspctb.h"
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
-//#include "dunetpc/dune/Geometry/ProtoDUNESPCRTSorter.h"                                                                                                                                                    
+#include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+//#include "dune/Geometry/ProtoDUNESPCRTSorter.h"                                                                                                                                                    
 
 #include "dune-raw-data/Overlays/CRTFragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
