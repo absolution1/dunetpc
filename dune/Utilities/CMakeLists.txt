@@ -4,7 +4,6 @@ set( dune_util_lib_list lardata_Utilities_LArFFT_service
 			larcorealg_Geometry
 			larcore_Geometry_Geometry_service
 			lardata_Utilities
-			RunHistoryDUNE
   			${ART_FRAMEWORK_CORE}
 			${ART_FRAMEWORK_PRINCIPAL}
 			${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -38,12 +37,6 @@ simple_plugin( SignalShapingServiceDUNEDPhase  "service"
 	       BASENAME_ONLY
         )
 	             
-simple_plugin( DetPedestalServiceDUNE  "service"
-               ${dune_util_lib_list}
-	       BASENAME_ONLY
-        )
-             
- 
 simple_plugin( SignalShapingServiceDUNE34kt  "service"
                ${dune_util_lib_list}
 	       BASENAME_ONLY

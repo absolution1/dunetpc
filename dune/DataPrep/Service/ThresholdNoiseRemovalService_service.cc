@@ -7,7 +7,6 @@
 #include <algorithm>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
-#include "lbne-raw-data/Services/ChannelMap/ChannelMapService.h"
 
 using std::vector;
 using std::string;

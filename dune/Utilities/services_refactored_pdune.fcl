@@ -21,7 +21,6 @@
 #include "pedestals_dune.fcl"
 #include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
-#include "channelmap_35t.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"
 #include "protodune_dataprep_services.fcl"
