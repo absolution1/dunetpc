@@ -4,7 +4,7 @@
 // January 2019
 //
 // ProtoDUNE CE pulser voltage and induced charge. See the circuit diagram
-//   http://internal.dunescience.org/people/dladams/docs/pulserCircuit.pdf
+//   http://internal.dunescience.org/people/dladams/docs/2019/pulserCircuit.pdf
 
 #ifndef cePulser_H
 #define cePulser_H

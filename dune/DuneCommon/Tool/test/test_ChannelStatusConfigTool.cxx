@@ -47,11 +47,12 @@ int test_ChannelStatusConfigTool(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: ChannelStatusConfigTool" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    DefaultIndex = 99" << endl;
+    fout << "    DefaultIndex: 99" << endl;
     fout << "    IndexVectors: [" << endl;
-    fout << "      [  0,  1,  2]" << endl;
-    fout << "      [ 10, 11, 12]" << endl;
+    fout << "      [  0,  1,  2]," << endl;
+    fout << "      [ 10, 11, 12]," << endl;
     fout << "      [ 20, 21, 22]" << endl;
+    fout << "    ]" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

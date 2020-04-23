@@ -33,9 +33,3 @@ cet_test(test_FixedChannelGroupService
     dune_DuneServiceAccess
 )
 
-cet_test(test_Dune35tChannelGroupService
-  SOURCES
-    test_Dune35tChannelGroupService.cxx
-  LIBRARIES
-    dune_ArtSupport
-)

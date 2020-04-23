@@ -12,7 +12,7 @@
 #ifndef CRT_GEOMETRY_H
 #define CRT_GEOMETRY_H
 
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/geom/CRTID.h"
+#include "dune/Protodune/singlephase/CRT/alg/geom/CRTID.h"
 
 namespace CRT
 {

@@ -89,14 +89,6 @@ adcsigfind_suppress: {
 # AdcNoiseRemovalService is used to remove noise from ADC signals.
 
 adcnr_dune35tlegacy: {
-  service_provider: Dune35tNoiseRemovalService
-  LogLevel:             1
-  GroupingFlag:         1
-  SkipStuckCodes:   false
-  SkipSignals:      false
-  CorrectStuckCodes: true
-  ShowGroups:           0  # Use 2 to dump group map
-  ShowGroupsChannel:    4
 }
 
 adcnr_dunedphase3x1x1: {

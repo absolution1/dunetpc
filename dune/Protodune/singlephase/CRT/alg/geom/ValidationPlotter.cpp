@@ -8,10 +8,10 @@
 #define CRT_ONLINEPLOTTER_CPP
 
 //crt-core includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //crt-alg includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/alg/geom/Geometry.h"
+#include "dune/Protodune/singlephase/CRT/alg/geom/Geometry.h"
 
 //ROOT includes
 #include "TDirectory.h"

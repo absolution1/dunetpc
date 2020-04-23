@@ -35,12 +35,6 @@ cet_test(test_MultiChannelNoiseRemovalService SOURCES test_MultiChannelNoiseRemo
     dune_ArtSupport
 )
 
-cet_test(test_Dune35tNoiseRemovalService SOURCES test_Dune35tNoiseRemovalService
-  LIBRARIES
-    dune_ArtSupport
-    lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-)
-
 cet_test(test_MedianPedestalService SOURCES test_MedianPedestalService
   LIBRARIES
     dune_ArtSupport

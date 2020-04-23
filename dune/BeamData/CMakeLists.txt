@@ -30,7 +30,6 @@ art_make_library(  LIBRARY_NAME  BeamData
 			${FHICLCPP}
                         ${ROOT_BASIC_LIB_LIST}
 			${Boost_SYSTEM_LIBRARY}
-#			lbne-raw-data_Services_ChannelMap_ChannelMapService_service
         )
 
 #art_make_exec( NAME RunInfoDUNE

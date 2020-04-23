@@ -1824,14 +1824,16 @@ void AdcRoiViewer::writeChanSumPlots() const {
           if ( rdat.havePulserAmplitude() ) {
             yfac = rdat.pulserAmplitude();
           } else {
-            cout << myname << "ERROR: Scaling option pamp requested without run data." << endl;
+            yfac = 10.0;
+            cout << myname << "WARNING: Scaling option pamp requested without run data." << endl;
           }
         } else if ( yopt == "pampg14") {
           const RunData& rdat = getState().runData;
           if ( rdat.havePulserAmplitude() && rdat.haveGain() ) {
             yfac = rdat.pulserAmplitude()*rdat.gain()/14.0;
           } else {
-            cout << myname << "ERROR: Scaling option pampg14 requested without run data." << endl;
+            yfac = 10.0;
+            cout << myname << "WARNING: Scaling option pampg14 requested without run data." << endl;
           }
         } else if ( yopt == "nevt") {
           yfac = getState().eventCallCount.size();

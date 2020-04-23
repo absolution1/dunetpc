@@ -26,7 +26,7 @@
 #include "larcore/Geometry/Geometry.h"
 
 //Local includes
-#include "dunetpc/dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
+#include "dune/Protodune/singlephase/CRT/data/CRTTrigger.h"
 
 //ROOT includes
 #include "TH1D.h"

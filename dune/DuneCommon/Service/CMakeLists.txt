@@ -19,13 +19,6 @@ simple_plugin(GeoApaChannelGroupService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
-simple_plugin(Dune35tChannelGroupService   "service"
-                lbne-raw-data_Services_ChannelMap_ChannelMapService_service
-                art_Utilities canvas
-                cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
-             )
-
 simple_plugin(FixedChannelGroupService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except
