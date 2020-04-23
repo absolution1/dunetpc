@@ -13,7 +13,7 @@
 // The function offsetLineFull adds NegScale, a scale factor for the
 // slope for values with x < 0.
 //
-// The function offsetLineShifted adds PedOffset: values for x > 0
+// The function offsetLineShifted adds Shift: values for x > 0
 // (x < 0) are shifted up (down)  by this amount.
 
 #ifndef offsetLine_H
@@ -28,11 +28,11 @@ double offsetLineShifted(double* px, double* ppar) {
   double scal = ppar[1];
   double yped = ppar[2];
   double sneg = ppar[3];
-  double pedo = ppar[4];
+  double shif = ppar[4];
   double x = px[0];
   double gain = scal;
-  if ( x > 0.0 ) yped += pedo;
-  if ( x < 0.0 ) yped -= pedo;
+  if ( x > 0.0 ) yped += shif;
+  if ( x < 0.0 ) yped -= shif;
   if ( x < 0.0 ) gain *= sneg;
   if ( xoff > 0.0 ) {
     if ( x > xoff ) return yped + gain*(x-xoff);
@@ -132,7 +132,7 @@ TF1* offsetLineFullTF1(double off =0.0, double slope =1.0,
   
 inline
 TF1* offsetLineShiftedTF1(double off =0.0, double slope =1.0,
-                          double ped =0.0, double sneg =1.0, double pedo =0.0,
+                          double ped =0.0, double sneg =1.0, double shif=0.0,
                           double xmin =-10.0, double xmax =10.0,
                           std::string fname ="offsetLineShifted") {
   TF1* pf = new TF1(fname.c_str(), offsetLineShifted, xmin, xmax, 5);
@@ -140,12 +140,12 @@ TF1* offsetLineShiftedTF1(double off =0.0, double slope =1.0,
   pf->SetParName(1, "Slope");
   pf->SetParName(2, "Pedestal");
   pf->SetParName(3, "NegScale");
-  pf->SetParName(4, "PedOffset");
+  pf->SetParName(4, "Shift");
   pf->SetParameter(0, off);
   pf->SetParameter(1, slope);
   pf->SetParameter(2, ped);
   pf->SetParameter(3, sneg);
-  pf->SetParameter(4, pedo);
+  pf->SetParameter(4, shif);
   return pf;
 }
   
