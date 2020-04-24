@@ -189,6 +189,16 @@ simple_plugin(VintageDeconvoluter   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(PddpVintageDeconvoluter   "tool"
+                SignalShapingServiceDUNEDPhase_service
+                art_Framework_Services_Registry
+                art_Utilities
+                canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+
 simple_plugin(AdcUnderflowFlagger   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -329,6 +339,14 @@ simple_plugin(AdcRoiSlicer   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+
+simple_plugin(BaselineDetrend   "tool"
+                dune_ArtSupport
+                dune_DuneCommon
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 
 add_subdirectory(test)
 install_source()
