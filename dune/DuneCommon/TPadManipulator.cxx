@@ -801,10 +801,23 @@ int TPadManipulator::update() {
   double zttl = 1.5*aspx;
   double yttl = 0.17 + 1.8*aspx;
   //double httl = 1.0 - 0.5*xmt;
+  if ( m_marginLeft >= 0.0 ) {
+    // When left margin is changed, we leave the y-axis title at the edge of the pad.
+    xml = m_marginLeft;
+    //double scalefac = m_marginLeft/xml;
+    //yttl *= scalefac;
+  }
+  if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
+  if ( m_marginBottom >= 0.0 ) {
+    xmb = m_marginBottom;
+    //double scalefac = m_marginBottom/xmb;
+    //xttl *= scalefac;
+  }
+  if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   if ( isTH2 ) {
     TPaletteAxis* pax = dynamic_cast<TPaletteAxis*>(hist()->GetListOfFunctions()->FindObject("palette"));
     if ( pax != nullptr ) {
-      xmr = xm0 + 0.150*aspx;
+      if ( m_marginRight < 0 ) xmr = xm0 + 0.150*aspx;
       double xp1 = 1.0 - 1.00*xmr;
       double xp2 = 1.0 - 0.65*xmr;
       double yp1 = xmb;
@@ -821,19 +834,6 @@ int TPadManipulator::update() {
     //  hist()->GetListOfFunctions()->Print();
     }
   }
-  if ( m_marginLeft >= 0.0 ) {
-    // When left margin is changed, we leave the y-axis title at the edge of the pad.
-    xml = m_marginLeft;
-    //double scalefac = m_marginLeft/xml;
-    //yttl *= scalefac;
-  }
-  if ( m_marginRight >= 0.0 ) xmr = m_marginRight;
-  if ( m_marginBottom >= 0.0 ) {
-    xmb = m_marginBottom;
-    //double scalefac = m_marginBottom/xmb;
-    //xttl *= scalefac;
-  }
-  if ( m_marginTop >= 0.0 ) xmt = m_marginTop;
   m_ppad->SetRightMargin(xmr);
   m_ppad->SetLeftMargin(xml);
   m_ppad->SetTopMargin(xmt);
