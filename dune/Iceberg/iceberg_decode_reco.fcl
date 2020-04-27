@@ -65,6 +65,7 @@ physics:
     decode: [ 
        timingrawdecoder,
        caldata,
+#       wclsdatasp,
        gaushit,
        hitfd,
        linecluster,
@@ -139,6 +140,18 @@ services.RawDigitPrepService.AdcChannelToolNames: [
          "adcScaleKeToAdc",
          "pdsp_RemoveBadChannels",
          "adcVintageDeconvoluter" ]
+
+physics.producers.wclsdatasp.wcls_main.plugins: [
+#        "WireCellRoot",
+        "WireCellGen",
+        "WireCellSigProc",
+        "WireCellSio",
+        "WireCellPgraph",
+        "WireCellLarsoft" ]
+physics.producers.wclsdatasp.wcls_main.inputers: ["wclsCookedFrameSource"] # ["wclsRawFrameSource"]
+physics.producers.wclsdatasp.wcls_main.params.raw_input_label: "caldata:dataprep" #"tpcrawdecoder:daq"
+physics.producers.wclsdatasp.wcls_main.configs: ["pgrapher/experiment/iceberg/wcls-sp.jsonnet"]
+                                              # ["pgrapher/experiment/iceberg/wcls-nf-sp.jsonnet"]
 
 physics.producers.gaushit.CalDataModuleLabel: "caldata:dataprep"
 
