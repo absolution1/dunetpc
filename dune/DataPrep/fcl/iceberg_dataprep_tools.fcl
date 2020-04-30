@@ -39,6 +39,8 @@ tools.channelGroupsIceberg: {
   IndexRangeTool: channelRanges
 }
 
+tools.channelRanges: @local::tools.channelRangesIceberg
+
 ################################################################################
 # Reco.
 ################################################################################
