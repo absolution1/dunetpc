@@ -7,7 +7,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal
+//   DataType - Which data to plot: 0=prepared, 1=raw-pedestal, 2=signal, 3=not signal
 //   DataView - Which view to use: "" for top, xxx merges everything from xxx
 //   TickRange - Name of the tick range used in the display
 //               The name must be defined in the IndexRangeTool tickRanges
