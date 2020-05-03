@@ -1,0 +1,69 @@
+# iceberg_dataprep_services.fcl
+#
+# David Adams
+# April 2020
+#
+# Dataprep service configurations.
+#
+# Dataprep is now mostly tool-based but one important service remains:
+# ToolBasedRawDigitPrepService with interface RawDigitPrepService.
+# It is called by each of the dataprep modules to run an ADC channel tool
+# sequence to process the TPC data.
+#
+# Some standard sequences are defined here.
+#
+###################################################################################
+# Dataprep tool sequences for Iceberg data.
+###################################################################################
+
+BEGIN_PROLOG
+
+# No calibration, no noise removal.
+ib3_dataprep_tools_nocal_tail: [
+  "digitReader",
+  "ibrun3_sticky_codes_ped",
+  "pd_adcPedestalFit",
+  "adcSampleFiller",
+  "ib_adcMitigate"
+  #"adcCorrectUndershootAdc"     # correct undershoot
+]
+
+# Charge calibration; no mitigation or tail or noise removal.
+ib3_dataprep_tools_calib_only: [
+  "digitReader",                # Read RawDigit
+  "ibrun3_sticky_codes_ped",    # Read in sticky codes
+  "pd_adcPedestalFit",          # Find pedestal
+  "ib3SampleCalibration"        # Subtract pedestal and apply charge calibration
+]
+
+# Charge calibration and mitigation, no tail or noise removal.
+ib3_dataprep_tools_calib_mit: [
+  @sequence::ib3_dataprep_tools_calib_only
+  , "ib_adcMitigate"           # Mitigate sticky codes
+  #,"pdsp_timingMitigate"         # Mitigate FEMB302 timing
+]
+
+# Charge calibration, mitigation, tail removal, no noise removal.
+ib3_dataprep_tools_calib_tail: [
+  @sequence::ib3_dataprep_tools_calib_mit
+  , "ib3TailRemovalKe"      # correct undershoot
+]
+
+# Charge calibration, noise removal.
+ib3_dataprep_tools_calib_noiserem: [
+  @sequence::ib3_dataprep_tools_calib_tail
+  , "ibNoiseRemovalKe"         # Remove coherent noise
+]
+
+# Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+ib3_dataprep_tools_wirecell: [
+  @sequence::ib3_dataprep_tools_calib_noiserem
+  , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+  , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
+  , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC
+]
+
+###################################################################################
+
+END_PROLOG
+

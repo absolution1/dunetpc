@@ -39,6 +39,8 @@ tools.channelGroupsIceberg: {
   IndexRangeTool: channelRanges
 }
 
+tools.channelRanges: @local::tools.channelRangesIceberg
+
 ################################################################################
 # Reco.
 ################################################################################
@@ -56,6 +58,79 @@ tools.ib_adcMitigate: {
   SkipFlags: []
   FixedCurvThresh: 20.0
 }
+
+# Fill sample and apply calibration.
+tools.ib3SampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 4095
+  GainTool: "areaGain_ib3"
+}
+
+# Signal finder to use with tail removal.
+tools.ib3TailSignalFinderAdc: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 15.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+tools.ib3TailRemovalAdc: {
+  tool_type: ExpTailRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderAdc
+  IncludeChannelRanges: ["apaz1", "apaz2"]
+  ExcludeChannelRanges: []
+}
+
+tools.ib3TailSignalFinderKe: @local::tools.ib3TailSignalFinderAdc
+tools.ib3TailSignalFinderKe.Threshold: 0.4
+
+tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
+tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
+
+# Remove coherent noise (not high frequency noise) with local
+# ROI finding at ADC scale.
+tools.ibNoiseRemovalAdc: {
+  tool_type: PdspNoiseRemoval
+  LogLevel: 1
+  RemoveHighFrequency: false
+  RemoveCoherent: true
+  CutoffFrequency: 400              # cutoff frequency in kHz for Butterworth low-pass filter
+  CorrMode: "median"                # mean or median waveform for coherent noise determination
+  CoherentOffline16: false          # remove coherent noise for every 16 offline channels
+  CoherentOffline16Groups: []       # remove coherent noise for all groups if list is empty
+  CoherentDaq8: false               # remove coherent noise for every 8 online DAQ channels on the same ASIC
+  CoherentDaq8Groups: []            # remove coherent noise for all groups if list is empty
+  CoherentDaq16: false              # remove coherent noise for every 16 online DAQ channels on the same chip
+  CoherentDaq16Groups: []           # remove coherent noise for all groups if list is empty
+  CoherentFEMB128: true             # remove coherent noise for every 128 online DAQ channels on the same FEMB
+  CoherentFEMB128Groups: []         # remove coherent noise for all groups if list is empty
+  UseBasicROIForCNR: true           # use simple threshold ROI finder
+  RoiStartThreshold: 20             # threshold on the leading edge
+  RoiEndThreshold: 20               # threshold on the trailing edge
+  RoiPadLow: 8                      # low bin extension  
+  RoiPadHigh: 20                    # high bin extension
+}
+
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ke scale.
+tools.ibNoiseRemovalKe: @local::tools.ibNoiseRemovalAdc
+tools.ibNoiseRemovalKe.RoiStartThreshold: 0.4
+tools.ibNoiseRemovalKe.RoiEndThreshold:   0.4
+
+# Remove coherent noise and high frequency noise with ROIs taken from data.
+tools.ibNoiseRemovalData: @local::tools.ibNoiseRemovalKe
+tools.ibNoiseRemovalData.UseBasicROIForCNR: false
 
 ################################################################################
 # ADC channel-tick plots for Iceberg.
