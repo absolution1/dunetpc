@@ -7,24 +7,19 @@ simple_plugin(
            cetlib_except
            ${FHICLCPP}
            ${CLHEP}
-           ROOT::Core
-           ROOT::Hist
-           ROOT::Physics
-           ROOT::RIO
-           ROOT::EG
-           ROOT::Geom
-           ROOT::Hist
            larcorealg_Geometry
            larcoreobj_SummaryData
            larsim_EventGenerator
            nurandom_RandomUtils_NuRandomService_service
-           nusimdata_SimulationBase
            ${ART_FRAMEWORK_SERVICES_REGISTRY}
            ${ART_ROOT_IO_TFILESERVICE_SERVICE}
            ${ART_ROOT_IO_TFILE_SUPPORT}
            ${CLHEP}
            ${MF_MESSAGELOGGER}
   	   ${ROOT_BASIC_LIB_LIST}
+           ${ROOT_GEOM}
+           ${ROOT_XMLIO}
+           ${ROOT_GDML}
 )
 if(FALSE)
 simple_plugin(
