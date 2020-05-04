@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
 // LArSoft includes
-#include "dunetpc/dune/Protodune/singlephase/DetectorServices/Services/DetectorPropertiesServiceProtoDUNEsp.h"
+#include "dune/Protodune/singlephase/DetectorServices/Services/DetectorPropertiesServiceProtoDUNEsp.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"

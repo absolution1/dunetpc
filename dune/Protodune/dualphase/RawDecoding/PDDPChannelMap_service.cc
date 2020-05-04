@@ -151,7 +151,10 @@ void PDDPChannelMap::pddp2crpMap()
   unsigned nchc = nch/2;  // logical data channels per KEL/VHDCI connector 
   unsigned ncrp = 4;      // only 2 are active
   std::vector<unsigned> crpv(2*ncrp, 0);
-
+  
+  // map to TPC # in larsoft 
+  std::vector<unsigned> dunetpcno = {3, 1, 0, 2};
+  
   // all connector mappings should include ADC channel inversion on AMC 
   // this inversion is in groups of 8ch, i.e., AMC ch 0 -> 7 should be remapped to 7 -> 0
   // the connector mappings below should be (re)generated with the python script card2crp.py
@@ -247,7 +250,10 @@ void PDDPChannelMap::pddp2crpMap()
 		    state = 1;
 		}
 
-	      add( seqn++, crate, card, ch, crp, view, vch, state );
+	      //add( seqn++, crate, card, ch, crp, view, vch, state );
+	      unsigned tpc = dunetpcno[ crp ];
+	      unsigned kview = (view == 0 ) ? 1:0;
+	      add( seqn++, crate, card, ch, tpc, kview, vch, state );
 	    }
 
 	  if( topAmcFirst )  // first half: top  connector is first
@@ -291,8 +297,12 @@ void PDDPChannelMap::pddp2crpMap()
 		  if( card >= cards_per_crate_real[ crate ] )
 		    state = 1;
 		}
-
-	      add( seqn++, crate, card, ch, crp, view, vch, state );
+	      
+	      //add( seqn++, crate, card, ch, crp, view, vch, state );
+	      unsigned tpc = dunetpcno[ crp ];
+	      unsigned kview = (view == 0 ) ? 1:0;
+	      add( seqn++, crate, card, ch, tpc, kview, vch, state );
+	      
 	    }
 	  
 	  // all done

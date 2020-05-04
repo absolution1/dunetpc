@@ -63,3 +63,7 @@ tools.pdsp_decoder: {
 
   EnforceErrorFree: false
 }
+
+tools.iceberg_decoder: @local::tools.pdsp_decoder
+tools.iceberg_decoder.RCEFIX110: false
+

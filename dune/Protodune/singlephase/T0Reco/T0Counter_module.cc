@@ -18,6 +18,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RawData/ExternalTrigger.h"
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"

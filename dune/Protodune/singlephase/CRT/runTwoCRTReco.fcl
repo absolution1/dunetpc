@@ -1,0 +1,76 @@
+#include "services_dune.fcl"
+#include "CRT.fcl"
+
+process_name: TwoCRTMatching
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  #TFileService: { fileName: "HelloAuxDet_hist.root" }
+  TimeTracker:       {}
+  MemoryTracker:     {}
+  RandomNumberGenerator: {} #ART native random number generator
+  message:              @local::dune_message_services_prod_debug
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+                        @table::protodune_services
+  TFileService:      { fileName: "TwoCRTReco.root" }
+  IFBeam:            {}
+}
+#services.message.destinations.LogStandardOut.threshold: "INFO" 
+
+dune_message_services_prod_debug.destinations.LogWarningFile.categories:
+{
+  timeToHits: { limit: 1000 }
+  CreateTrigger: { limit: 1000 }
+  moduleToChannels: { limit: 1000 }
+}
+
+#Configure message service for debugging
+#services.message.destinations.debugmsg:
+#{
+#  type: "cout" 
+#  threshold: "DEBUG"
+#  append: true
+#  categories:
+#  {
+#    timeToHits: { limit: 1000 }
+#    CreateTrigger: { limit: 1000 }
+#    moduleToChannels: { limit: 1000 }
+#  }
+#}
+
+source:
+{
+  module_type: RootInput
+  maxEvents: -1
+  fileNames: ["input_file.root"]
+}
+
+physics:
+{
+ analyzers:{
+   TwoCRTReco:
+   {
+   module_type: "TwoCRTReco"
+CRTLabel: "crtrawdecoder"
+MCC: "false"
+CTBLabel: "ctbrawdecoder:daq"
+CTBOnly: "false"
+SCECorrection: "false"
+ }
+
+}
+
+  #detSim: [ CRTSim ]
+  ana:  [ TwoCRTReco]
+ 
+
+  end_paths:     [ ana ]
+}
+
+services.SpaceCharge.CalibrationInputFilename: "SpaceChargeProtoDUNE/SCE_DataDriven_180kV_v3.root"
+services.SpaceCharge.RepresentationType: "Voxelized_TH3"
+services.SpaceCharge.EnableCalEfieldSCE: true
+services.SpaceCharge.EnableCalSpatialSCE: true
+
+CRTSim.DACThreshold: 100 #Make the DAC threshold so high that nothing will pass it

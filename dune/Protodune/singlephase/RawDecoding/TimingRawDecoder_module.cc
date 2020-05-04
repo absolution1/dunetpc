@@ -22,7 +22,7 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/TimingFragment.hh"
 
-#include "dunetpc/dune/DuneObj/ProtoDUNETimeStamp.h"
+#include "dune/DuneObj/ProtoDUNETimeStamp.h"
 
 // larsoft includes
 #include "lardataobj/RawData/RDTimeStamp.h"

@@ -15,6 +15,7 @@
 #define RecoTrack_Module
 
 // LArSoft includes
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
@@ -892,4 +893,3 @@ namespace RecoTrack {
 	    // chargeADCLog = log(chargeADC); // calculating log of charge
 	    // chargeADCtest.push_back(chargeADC); // vector with summed ADC charge for each hit
 	    // 	fChargeADCHist->Fill(chargeADCtest[h]); // filling the histogram of charge frequency
-

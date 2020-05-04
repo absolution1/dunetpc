@@ -1,0 +1,202 @@
+# iceberg_dataprep_tools.fcl
+#
+# David Adams
+# March 2020
+#
+# Define iceberg tools.
+
+# Include protodune_dataprep_tools before this.
+check_have_protodune_dataprep_tools: @local::have_protodune_dataprep_tools
+
+################################################################################
+# Shared data.
+################################################################################
+
+data.ib_tpsChannelRanges: [tps0]
+data.ib_ClockUnit: "Mtick"
+data.ib_TriggerClockRate: 50000000.0
+data.ib_Tick0: 500
+
+tools.tickRanges.plotTicks.begin:    0
+tools.tickRanges.plotTicks.end:   2000
+
+################################################################################
+# Channel mapping.
+################################################################################
+
+tools.channelRangesIceberg: {
+  tool_type: HalfApaChannelRanges
+  LogLevel: 0
+  ApaNumbers: [1]
+  ApaLocationNames: ["Iceberg"]
+  ExtraRanges: ""
+}
+
+tools.channelGroupsIceberg: {
+  tool_type: ApaChannelGroups
+  LogLevel: 0
+  ApaNumbers: [8]
+  IndexRangeTool: channelRanges
+}
+
+tools.channelRanges: @local::tools.channelRangesIceberg
+
+################################################################################
+# Reco.
+################################################################################
+
+# Fit ADC distribution to get pedestal.
+tools.ib_adcPedestalFit: @local::tools.pd_adcPedestalFit
+tools.ib_adcPedestalFit.FitRmsMin:  1.0
+
+# Sticky code mitigation.
+tools.ib_adcMitigate: {
+  tool_type: AdcCodeMitigator
+  LogLevel: 1
+  FixFlags: []
+  InterpolateFlags: [8, 9, 10, 11, 12]
+  SkipFlags: []
+  FixedCurvThresh: 20.0
+}
+
+# Fill sample and apply calibration.
+tools.ib3SampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 4095
+  GainTool: "areaGain_ib3"
+}
+
+# Signal finder to use with tail removal.
+tools.ib3TailSignalFinderAdc: {
+  tool_type: AdcThresholdSignalFinder
+  LogLevel: 1
+  Threshold: 15.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+
+tools.ib3TailRemovalAdc: {
+  tool_type: ExpTailRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderAdc
+  IncludeChannelRanges: ["apaz1", "apaz2"]
+  ExcludeChannelRanges: []
+}
+
+tools.ib3TailSignalFinderKe: @local::tools.ib3TailSignalFinderAdc
+tools.ib3TailSignalFinderKe.Threshold: 0.4
+
+tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
+tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
+
+# Remove coherent noise (not high frequency noise) with local
+# ROI finding at ADC scale.
+tools.ibNoiseRemovalAdc: {
+  tool_type: PdspNoiseRemoval
+  LogLevel: 1
+  RemoveHighFrequency: false
+  RemoveCoherent: true
+  CutoffFrequency: 400              # cutoff frequency in kHz for Butterworth low-pass filter
+  CorrMode: "median"                # mean or median waveform for coherent noise determination
+  CoherentOffline16: false          # remove coherent noise for every 16 offline channels
+  CoherentOffline16Groups: []       # remove coherent noise for all groups if list is empty
+  CoherentDaq8: false               # remove coherent noise for every 8 online DAQ channels on the same ASIC
+  CoherentDaq8Groups: []            # remove coherent noise for all groups if list is empty
+  CoherentDaq16: false              # remove coherent noise for every 16 online DAQ channels on the same chip
+  CoherentDaq16Groups: []           # remove coherent noise for all groups if list is empty
+  CoherentFEMB128: true             # remove coherent noise for every 128 online DAQ channels on the same FEMB
+  CoherentFEMB128Groups: []         # remove coherent noise for all groups if list is empty
+  UseBasicROIForCNR: true           # use simple threshold ROI finder
+  RoiStartThreshold: 20             # threshold on the leading edge
+  RoiEndThreshold: 20               # threshold on the trailing edge
+  RoiPadLow: 8                      # low bin extension  
+  RoiPadHigh: 20                    # high bin extension
+}
+
+# Remove coherent noise and high frequency noise with local
+# ROI finding at ke scale.
+tools.ibNoiseRemovalKe: @local::tools.ibNoiseRemovalAdc
+tools.ibNoiseRemovalKe.RoiStartThreshold: 0.4
+tools.ibNoiseRemovalKe.RoiEndThreshold:   0.4
+
+# Remove coherent noise and high frequency noise with ROIs taken from data.
+tools.ibNoiseRemovalData: @local::tools.ibNoiseRemovalKe
+tools.ibNoiseRemovalData.UseBasicROIForCNR: false
+
+################################################################################
+# ADC channel-tick plots for Iceberg.
+################################################################################
+
+ibcht_template: @local::pdcht_template
+ibcht_template.PlotSizeY: 900
+ibcht_template.TickRebin: 2
+ibcht_template.HistTitle: "Raw ADC for Iceberg %CRLABEL%"
+ibcht_template.PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC"
+
+# One plot for the full APA.
+tools.ibcht_Apas: @local::ibcht_template
+tools.ibcht_Apas.ChannelRanges: [apa]
+tools.ibcht_Apas.ChannelLinePattern: [400, 800, 1050]
+tools.ibcht_Apas.HistTitle: "Raw ADC for Iceberg"
+#tools.ibcht_Apas.PlotSizeY: 1600
+
+# One plot for each Z-plane.
+tools.ibcht_Zplanes: @local::ibcht_template
+tools.ibcht_Zplanes.ChannelRanges: [apaz1, apaz2]
+tools.ibcht_Zplanes.ChannelLineModulus: 1280
+tools.ibcht_Zplanes.ChannelLinePattern: [ 848,  896,  944,  992, 1040, 1088, 1136, 1184, 1232]
+
+# One plot for both collection planes.
+tools.ibcht_Xplanes: @local::tools.ibcht_Zplanes
+tools.ibcht_Xplanes.ChannelRanges: [apaz]
+tools.ibcht_Xplanes.PlotSizeY: 900
+
+# One plot for each induction plane.
+tools.ibcht_Iplanes: @local::ibcht_template
+tools.ibcht_Iplanes.ChannelRanges: [apau, apav]
+tools.ibcht_Iplanes.ChannelLineModulus: 40
+tools.ibcht_Iplanes.ChannelLinePattern: [0]
+
+################################################################################
+# ADC channel metric plotters for Iceberg.
+################################################################################
+
+tools.ibmet_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
+tools.ibmet_adcChannelPedestalPlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+
+tools.ibmet_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
+tools.ibmet_adcChannelPedestalNoisePlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestaNoiselPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+
+tools.ibmet_adcChannelPedestalOrfPlotter: @local::tools.pdtps_adcChannelPedestalOrfPlotter
+tools.ibmet_adcChannelPedestalOrfPlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalOrfPlotter.HistTitle: "ADC out-of-range fraction for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalOrflPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter: @local::tools.pdtps_adcChannelPedestalPeakBinExcessPlotter
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC peak bin excess for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+
+tools.ibmet_adcChannelPedestalRawRmsPlotter: @local::tools.pdtps_adcChannelPedestalRawRmsPlotter
+tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC raw RMS for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+
+tools.ibmet_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPedestalRawTailPlotter
+tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+

@@ -124,11 +124,11 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
     DuneToolManager* ptm = DuneToolManager::instance();
     const IndexRangeTool* pjrt = ptm->getShared<IndexRangeTool>(m_JobIndexRangeTool);
     if ( pjrt == nullptr ) {
-      cout << "ERROR: Job index range tool not found: " << m_JobIndexRangeTool << endl;
+      cout << myname << "ERROR: Job index range tool not found: " << m_JobIndexRangeTool << endl;
     } else {
       IndexRange ran = pjrt->get("events");
       if ( ! ran.isValid() ) {
-        cout << "ERROR: Job index range tool does not have range \"events\"" << endl;
+        cout << myname << "ERROR: Job index range tool does not have range \"events\"" << endl;
       } else {
         m_beginEvent = ran.begin;
         m_endEvent = ran.end;

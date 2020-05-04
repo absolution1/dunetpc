@@ -11,6 +11,9 @@
 # Shared data.
 ################################################################################
 
+# Flag so other fcl files can check if this file has been included.
+have_protodune_dataprep_tools: true
+
 data.pd_tpsChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
 data.pd_ClockUnit: "Mtick"
 data.pd_TriggerClockRate: 50000000.0
@@ -59,6 +62,14 @@ tools.channelRangesApa7: {
   ExtraRanges: ""
 }
 
+tools.channelRangesIceberg: {
+  tool_type: HalfApaChannelRanges
+  LogLevel: 0
+  ApaNumbers: [1]
+  ApaLocationNames: ["Iceberg"]
+  ExtraRanges: ""
+}
+
 tools.channelGroups: {
   tool_type: ProtoDuneChannelGroups
   LogLevel: 0
@@ -69,6 +80,13 @@ tools.channelGroupsApa7: {
   tool_type: ApaChannelGroups
   LogLevel: 0
   ApaNumbers: [7]
+  IndexRangeTool: channelRanges
+}
+
+tools.channelGroupsIceberg: {
+  tool_type: ApaChannelGroups
+  LogLevel: 0
+  ApaNumbers: [8]
   IndexRangeTool: channelRanges
 }
 

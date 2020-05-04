@@ -1,7 +1,30 @@
+
+
+simple_plugin(
+           CRTGen "module"
+           nusimdata_SimulationBase
+           cetlib
+           cetlib_except
+           ${FHICLCPP}
+           ${CLHEP}
+           larcorealg_Geometry
+           larcoreobj_SummaryData
+           larsim_EventGenerator
+           nurandom_RandomUtils_NuRandomService_service
+           ${ART_FRAMEWORK_SERVICES_REGISTRY}
+           ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+           ${ART_ROOT_IO_TFILE_SUPPORT}
+           ${CLHEP}
+           ${MF_MESSAGELOGGER}
+  	   ${ROOT_BASIC_LIB_LIST}
+           ${ROOT_GEOM}
+           ${ROOT_XMLIO}
+           ${ROOT_GDML}
+)
 if(FALSE)
 simple_plugin(
-												Purity "module"
-												dune_DetSim
+			Purity "module"
+			dune_DetSim
                         lardataobj_RecoBase
                         larreco_Calorimetry
                         larcorealg_Geometry

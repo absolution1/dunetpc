@@ -94,8 +94,12 @@ public:
     SharedToolMap::iterator itoo = m_sharedTools.find(name);
     if ( itoo != m_sharedTools.end() ) {
       SharedToolPtr& pent = itoo->second;
-      TSharedToolEntry<T>* ptent = dynamic_cast<TSharedToolEntry<T>*>(pent.get());
-      return ptent->get();
+      if ( pent ) {
+        TSharedToolEntry<T>* ptent = dynamic_cast<TSharedToolEntry<T>*>(pent.get());
+        return ptent->get();
+      } else {
+        std::cout << myname << "ERROR: Null tool pointer for " << name << "." << std::endl;
+      }
     }
     if ( std::find(m_toolNames.begin(), m_toolNames.end(), name) != m_toolNames.end() ) {
       fhicl::ParameterSet psTool = m_pstools.get<fhicl::ParameterSet>(name);
