@@ -578,7 +578,9 @@ void SNAna::analyze(art::Event const & evt)
 
   //GET INFORMATION ABOUT THE DETECTOR'S GEOMETRY.
   auto const* geo = lar::providerFrom<geo::Geometry>();
-  auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
+
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
 
   //LIFT OUT THE MARLEY PARTICLES.
   //auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
@@ -655,7 +657,7 @@ void SNAna::analyze(art::Event const & evt)
       }
 
       //CM/MICROSECOND.
-      double drift_velocity = detp->DriftVelocity(detp->Efield(),detp->Temperature());
+      double drift_velocity = detProp.DriftVelocity(detProp.Efield(),detProp.Temperature());
       //CM/TICK
       drift_velocity = drift_velocity*0.5;
       True_VertexT.push_back(True_VertX.back()/drift_velocity);
@@ -820,6 +822,7 @@ void SNAna::analyze(art::Event const & evt)
       }
       // std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
 
+      auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
       for(int hit = 0; hit < LoopHits; ++hit)
       {
         recob::Hit const& ThisHit = reco_hits->at(hit);
@@ -836,9 +839,9 @@ void SNAna::analyze(art::Event const & evt)
             // modification
             const double start = ThisHit.PeakTime()-20;
             const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
-            ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
+            ThisHitIDE = bt_serv->ChannelToTrackIDEs(clockData, ThisHit.Channel(), start, end);
 
-            // ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+            // ThisHitIDE = bt_serv->HitToTrackIDEs(clockData,  ThisHit );
           }
           catch(...)
           {
@@ -846,7 +849,7 @@ void SNAna::analyze(art::Event const & evt)
             firstCatch++;
             try
             {
-              ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+              ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
             }
             catch(...)
             {
@@ -860,7 +863,7 @@ void SNAna::analyze(art::Event const & evt)
           // Get the simIDEs.
           try
           {
-            ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+            ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
           }
           catch(...)
           {

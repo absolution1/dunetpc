@@ -202,7 +202,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
   int nHits = 0;
 
 	//Detector properties service
-	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event);
 
   primaryHits_F.clear();
   primaryHits_B.clear();
@@ -460,11 +460,11 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
 
-		if (!fMCCSwitch) ticksOffset = (t0+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                if (!fMCCSwitch) ticksOffset = (t0+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (t0/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (t0/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;

@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
@@ -205,7 +206,8 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   WiredAdcChannelDataMap intStates(snames, nchan);
   assert( intStates.dataMaps.size() == snames.size() );
   assert( intStates.wires.size() == snames.size() );
-  assert( hrdp->prepare(prepdigs, &wires, &intStates) == 0 );
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+  assert( hrdp->prepare(clockData, prepdigs, &wires, &intStates) == 0 );
   cout << myname << "      # prepared digit channels: " << prepdigs.size() << endl;
   cout << myname << "                # wire channels: " << wires.size() << endl;
   cout << myname << "  # intermediate state channels: " << intStates.dataMaps.size() << endl;

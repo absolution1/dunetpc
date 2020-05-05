@@ -348,12 +348,14 @@ void CRT::SingleCRTMatching::analyze(art::Event
   }*/
 
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event, clockData);
+
   int nHits = 0;
   mccTruthCheck=0;
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
   art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
 
-	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
 	art::Handle< std::vector<recob::OpFlash> > opListHandle;
 	std::vector<art::Ptr<recob::OpFlash> > opHitList;
@@ -678,7 +680,7 @@ for (size_t k=0; k<HLTriggers.size(); ++k)
 
       for(size_t h=0; h<allHits.size();h++){
 	art::Ptr<recob::Hit> hit=allHits[h];
-	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(hit);
+	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(clockData, hit);
 	for(size_t e=0;e<eveIDs.size(); ++e){
 	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
 	}
@@ -798,12 +800,12 @@ for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
 		//cout<<(primaryHits_F[iHit_F].timeAvg+RDOffset)<<endl;
-		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
-		if (!fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                //cout<<detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+                if (!fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
@@ -920,7 +922,7 @@ if (fMCCSwitch){
 
       for(size_t h=0; h<allHits.size();h++){
 	art::Ptr<recob::Hit> hit=allHits[h];
-	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(hit);
+	std::vector<sim::TrackIDE> eveIDs = backTracker->HitToTrackIDEs(clockData, hit);
 	for(size_t e=0;e<eveIDs.size(); ++e){
 	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
 	}
@@ -1015,12 +1017,12 @@ double xOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
 		//cout<<(primaryHits_B[iHit_B].timeAvg+RDOffset)<<endl;
-		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
-		if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                //cout<<detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+                if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;

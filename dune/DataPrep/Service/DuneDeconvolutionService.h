@@ -19,6 +19,9 @@
 #define DuneDeconvolutionService_H
 
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 class DuneDeconvolutionService : public AdcDeconvolutionService {
 
@@ -26,7 +29,8 @@ public:
 
   DuneDeconvolutionService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int update(AdcChannelData& data) const;
+  int update(detinfo::DetectorClocksData const& clockData,
+             AdcChannelData& data) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 

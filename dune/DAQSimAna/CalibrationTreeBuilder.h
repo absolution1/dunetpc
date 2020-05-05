@@ -20,6 +20,9 @@
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/PhotonBackTrackerService.h"
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 //FrameworkIncludes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -98,7 +101,7 @@ namespace CalibrationTreeBuilder {
     private:
       //  fhicl::Atom<art::InputTag> WavLabel{fhicl::Name("WavLabel"), fhicl::Comment("The default label for the module to use when DivRecs "), "opdigi"};
 
-      bool AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter);
+      bool AddHit(detinfo::DetectorClocksData const& clockData, const art::Ptr<recob::Hit> hit, unsigned int& counter);
       bool AddHit(const art::Ptr<recob::OpHit> hit, unsigned int& counter);
       void PrepDivRec(const art::Event& evt);
       std::pair<std::vector<CalibTreeRecord::EveRecord>::iterator, bool> EmplaceEve(const simb::MCParticle* new_eve);
