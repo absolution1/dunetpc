@@ -40,6 +40,7 @@ tools.channelGroupsIceberg: {
 }
 
 tools.channelRanges: @local::tools.channelRangesIceberg
+tools.channelGroups: @local::tools.channelGroupsIceberg
 
 ################################################################################
 # Reco.
@@ -170,33 +171,60 @@ tools.ibcht_Iplanes.ChannelLinePattern: [0]
 # ADC channel metric plotters for Iceberg.
 ################################################################################
 
+ibFembPat: [
+    0,  40,  80, 120, 160, 200, 240, 280, 320, 360,
+  400, 440, 480, 520, 560, 600, 640, 680, 720, 760,
+   800,  848,  896,  944,  992,
+  1040, 1088, 1136, 1184, 1232, 1280
+]
+
 tools.ibmet_adcChannelPedestalPlotter: @local::tools.pdtps_adcChannelPedestalPlotter
 tools.ibmet_adcChannelPedestalPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalPlotter.HistTitle: "ADC pedestals for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestalPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalPlotter.ChannelLinePattern: @local::ibFembPat
 
 tools.ibmet_adcChannelPedestalNoisePlotter: @local::tools.pdtps_adcChannelPedestalNoisePlotter
 tools.ibmet_adcChannelPedestalNoisePlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalNoisePlotter.HistTitle: "ADC pedestal noise for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestaNoiselPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalNoisePlotter.ChannelLinePattern: @local::ibFembPat
 
 tools.ibmet_adcChannelPedestalOrfPlotter: @local::tools.pdtps_adcChannelPedestalOrfPlotter
 tools.ibmet_adcChannelPedestalOrfPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalOrfPlotter.HistTitle: "ADC out-of-range fraction for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestalOrflPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalOrflPlotter.ChannelLinePattern: @local::ibFembPat
 
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter: @local::tools.pdtps_adcChannelPedestalPeakBinExcessPlotter
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC peak bin excess for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalPeakBinExcessPlotter.ChannelLinePattern: @local::ibFembPat
 
 tools.ibmet_adcChannelPedestalRawRmsPlotter: @local::tools.pdtps_adcChannelPedestalRawRmsPlotter
 tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC raw RMS for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalRawRmsPlotter.ChannelLinePattern: @local::ibFembPat
 
 tools.ibmet_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPedestalRawTailPlotter
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
-tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: [0, 400,  800, 1040]
+tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: @local::ibFembPat
 
+# -- Noise signal finder plots --
+
+# Noise signal finder noise level at ke scale.
+tools.ibmet_nsfNoise: @local::tools.pdtps_nsfNoise
+tools.ibmet_nsfNoise.ChannelRanges: [all]
+tools.ibmet_nsfNoise.ChannelLinePattern: @local::ibFembPat
+tools.ibmet_nsfNoise.MetricMax: 0.3
+tools.ibmet_nsfNoise.MetricLabel: "Noise [ke/tick]"
+
+# Noise signal finder threshold at ke scale.
+tools.ibmet_nsfThresh: @local::tools.pdtps_nsfThresh
+tools.ibmet_nsfThresh.ChannelRanges: [all]
+tools.ibmet_nsfThresh.ChannelLinePattern: @local::ibFembPat
+tools.ibmet_nsfThresh.MetricMax: 1.5
+tools.ibmet_nsfThresh.MetricLabel: "Threshold [ke]"
+
+# Noise signal finder signal fraction.
+tools.ibmet_nsfSigFrac: @local::tools.pdtps_nsfSigFrac
+tools.ibmet_nsfSigFrac.ChannelRanges: [all]
+tools.ibmet_nsfSigFrac.ChannelLinePattern: @local::ibFembPat
