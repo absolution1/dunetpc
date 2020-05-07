@@ -399,12 +399,10 @@ tools.adcKeepAllSignalFinder: {
 }
 
 # Scale samples from ke to ADC count.
-# Nominal scaling: 40.0
-# Pulser calibration: 42.735 ADC-tick per 1ke
 tools.adcScaleKeToAdc: {
   tool_type: AdcSampleScaler
   LogLevel: 1
-  ScaleFactor: 42.735 # Nominal value: 40.0
+  ScaleFactor: 40.0
   OutputUnit: "ADC count"
   InputUnit: "ke/tick"
 }
