@@ -46,6 +46,9 @@ tools.channelGroups: @local::tools.channelGroupsIceberg
 # Reco.
 ################################################################################
 
+# Scale ke to ADC
+tools.adcScaleKeToAdc.ScaleFactor: 41.442 # 24.13 e/ADC/ticks
+
 # Fit ADC distribution to get pedestal.
 tools.ib_adcPedestalFit: @local::tools.pd_adcPedestalFit
 tools.ib_adcPedestalFit.FitRmsMin:  1.0
