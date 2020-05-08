@@ -751,7 +751,8 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       if ( ntickCounter.size() == 1 ) {
         cout << myname << "Tick count for all channels is " << ntickCounter.begin()->first << endl;
       } else {
-        string slev = "WARNING: ";
+        //string slev = "WARNING: ";
+        string slev = "";
         cout << myname << slev << "Retaining inconsistent tick counts:" << endl;
         cout << myname << slev << "   Ntick   Nchan" << endl;
         for ( NtickCounter::value_type ent : ntickCounter ) {
