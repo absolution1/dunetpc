@@ -90,6 +90,7 @@ physics:
 
 ###  hit finder
        dprawhit:           @local::dunefddphase_dprawhitfinder
+       gaushit:            @local::dunefddphase_gaushitfinder
 
 ###  reconstruction
        pandora:            @local::protodune_dp_pandora
@@ -108,8 +109,8 @@ physics:
 
  #define the producer and filter modules for this path, order matters, 
  #filters reject all following items.  see lines starting physics.producers below
- reco: [ rns, caldata, dprawhit, dprawhit, pandora, pandoraTrack, pandoraShower ] 
-       	 #trajcluster ]
+ reco: [ rns, caldata, gaushit, pandora, pandoraTrack, pandoraShower ] 
+
 
 
 
@@ -145,13 +146,45 @@ outputs:
    compressionLevel: 1
  }
 }
-### Here, we overwrite ALL module labels with the ones defined above.
-physics.producers.caldata.OnlineChannelMapTool: ""
-physics.producers.caldata.DoGroups: false
+################################################################################
+## Noise
+################################################################################
 
-#######
-#DPRAWHIT CONFIGURATION
-#######
+services.RawDigitPrepService.DoNoiseRemoval:         false
+services.RawDigitPrepService.DoDeconvolution:	     true
+services.RawDigitPrepService.DoEarlySignalFinding:   false
+services.RawDigitPrepService.DoMitigation:	     false
+services.RawDigitPrepService.SkipBad: 		     false
+services.RawDigitPrepService.SkipNoisy:		     false
+services.RawDigitPrepService.DoROI:                  true
+
+physics.producers.caldata.DoGroups: false
+physics.producers.caldata.OnlineChannelMapTool: ""
+
+
+################################################################################
+# GausHit finder configuration
+################################################################################
+
+physics.producers.gaushit.AreaNorm: 35.64 # in units (ADC x us) / fC
+physics.producers.gaushit.ADCpermV: 1.0     # ADC conversion factor (not used at the moment)
+physics.producers.gaushit.AmpENC: 1000.0  # noise in electrons from TDR
+physics.producers.gaushit.DeconNorm: 70
+physics.producers.gaushit.ShapeFunc: "[0]/([0]-[1]) * ( exp(-(x)/[0]) - exp(-(x)/[1]) )"
+physics.producers.gaushit.ShapeFuncParams: [1.0, 4.5]
+physics.producers.gaushit.RespSamplingPeriod: 400. # in nano second
+physics.producers.gaushit.AddFieldFunction: false
+physics.producers.gaushit.ColFieldFunction: "x*[0]"
+physics.producers.gaushit.ColFieldFunctionParams: [1.0]
+physics.producers.gaushit.ColFieldRespAmp: 1.0
+physics.producers.gaushit.ColFilter:       "(x>0.0)*gaus"
+physics.producers.gaushit.ColFilterParams: [ 1.0, 0.0, 0.13 ]
+#physics.producers.gaushit.FieldFunctionParameters: [1.0, 1.0, 1.0, 1.0] #0 step width #1 step height #2 slow/fast (could be taken from E field) #Tau (could be taken from field and temperature). 0 and Tau in us
+
+################################################################################
+## DPRawHit
+################################################################################
+
 physics.producers.dprawhit.MinSig:       	  2	# threshold for raw hit fitting algorithm in ADC. No peak with lower amplitude is fitted.
 physics.producers.dprawhit.TicksToStopPeakFinder: 50	# when walking along waveform to find start and end points of a peak, stop when current tick is followed by minimum "TicksToStopPeakFinder" ticks
 							# with equal or higher ADC counts (stop anyway if ADC count of a tick is <= 0)
@@ -169,9 +202,10 @@ physics.producers.dprawhit.MergeADCSumThreshold:  0.2	# merge two peaks only if 
 physics.producers.dprawhit.MergeMaxADCThreshold:  0.2	# merge two peaks only if (height of the smaller peak) < MergeADCSumThreshold*(height sum of the bigger peak)
 
 
-#######
-#TRAJCLUSTER CONFIGURATION
-#######
+################################################################################
+## TrajCluster
+################################################################################
+
 physics.producers.trajcluster.HitModuleLabel:	"dprawhit"
 #physics.producers.trajcluster.TrajClusterAlg.HitErrFac: 		0.2
 #physics.producers.trajcluster.TrajClusterAlg.MakeNewHits: 		false
@@ -182,15 +216,16 @@ physics.producers.trajcluster.HitModuleLabel:	"dprawhit"
 #physics.producers.pmtrajfit.HitModuleLabel:           "trajcluster"
 #physics.producers.pmtrajfit.PfpModuleLabel:           "trajcluster"
 
-#######
-#PANDORA CONFIGURATION
-#######
+################################################################################
+## Pandora
+################################################################################
+
 physics.producers.pandora.ConfigFile: "PandoraSettings_Master_ProtoDUNE_DP.xml"
 physics.producers.pandora.EnableLineGaps: true
 physics.producers.pandora.EnableMCParticles: false
 physics.producers.pandora.EnableProduction: true
 physics.producers.pandora.GeantModuleLabel: "largeant"
-physics.producers.pandora.HitFinderModuleLabel: "dprawhit"
+physics.producers.pandora.HitFinderModuleLabel: "gaushit"
 physics.producers.pandora.PrintOverallRecoStatus: false
 physics.producers.pandora.ShouldPerformSliceId: false
 physics.producers.pandora.ShouldRunAllHitsCosmicReco: true
