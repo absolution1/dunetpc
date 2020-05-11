@@ -65,7 +65,14 @@ private:
   double fModBoxB;
   
   bool fSCE;
+  bool fApplyNormCorrection;
+  bool fApplyXCorrection;
+  bool fApplyYZCorrection;
+  bool fApplyLifetimeCorrection;
 
+  double fLifetime; //us
+  double vDrift;
+  double xAnode;
   const detinfo::DetectorProperties* detprop;
 
 };
@@ -75,13 +82,20 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   : EDProducer(p)
   , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
-  , caloAlg(p.get< fhicl::ParameterSet >("CaloAlg"))
+  , caloAlg                (p.get< fhicl::ParameterSet >("CaloAlg"))
   , fModBoxA               (p.get< double >("ModBoxA"))
   , fModBoxB               (p.get< double >("ModBoxB"))
   , fSCE                   (p.get< bool >("CorrectSCE"))
+  , fApplyNormCorrection   (p.get< bool >("ApplyNormCorrection"))
+  , fApplyXCorrection      (p.get< bool >("ApplyXCorrection"))
+  , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
+  , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
+  , fLifetime              (p.get< double >("Lifetime"))
 {
   detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
-
+  vDrift = detprop->DriftVelocity(); //cm/us
+  xAnode = std::abs(detprop->ConvertTicksToX(detprop->TriggerOffset(),0,0,0));
+  //std::cout<<detprop->TriggerOffset()<<" "<<xAnode<<std::endl;
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
   produces< art::Assns<recob::Track, anab::Calorimetry> >();
@@ -161,13 +175,26 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
 	double EkinNew = 0.;
 
         for (size_t j = 0; j<vdQdx.size(); ++j){
-          double normcorrection = xyzcalib->GetNormCorr(planeID.Plane);
-          double xcorrection = xyzcalib->GetXCorr(planeID.Plane, vXYZ[j].X());
-          double yzcorrection = xyzcalib->GetYZCorr(planeID.Plane, vXYZ[j].X()>0, vXYZ[j].Y(), vXYZ[j].Z());
+          double normcorrection = 1;
+          if (fApplyNormCorrection){
+            normcorrection = xyzcalib->GetNormCorr(planeID.Plane);
+            if (!normcorrection) normcorrection = 1.;
+          }
+          double xcorrection = 1;
+          if (fApplyXCorrection){
+            xcorrection = xyzcalib->GetXCorr(planeID.Plane, vXYZ[j].X());
+            if (!xcorrection) xcorrection = 1.;
+          }
+          double yzcorrection = 1;
+          if (fApplyYZCorrection){
+            yzcorrection = xyzcalib->GetYZCorr(planeID.Plane, vXYZ[j].X()>0, vXYZ[j].Y(), vXYZ[j].Z());
+            if (!yzcorrection) yzcorrection = 1.;
+          }
+          if (fApplyLifetimeCorrection){
+            xcorrection *= exp((xAnode-std::abs(vXYZ[j].X()))/(fLifetime*vDrift));
+          }
           //std::cout<<"plane = "<<planeID.Plane<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<std::endl;
-          if (!normcorrection) normcorrection = 1.;
-          if (!xcorrection) xcorrection = 1.;
-          if (!yzcorrection) yzcorrection = 1.;
+
           vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
           
           
