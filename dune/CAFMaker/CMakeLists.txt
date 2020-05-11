@@ -66,7 +66,7 @@ simple_plugin(CAFMaker   "module"
                         systematicstools_interface
 			systematicstools_interpreters
 			systematicstools_utility
-                        CVNFunc
+                        dune_CVN_func
               BASENAME_ONLY
 )
 
