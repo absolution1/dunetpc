@@ -1,3 +1,4 @@
 <lcgdict>
   <class name="ChannelGeo" noStreamer="true"/>
+  <class name="IcebergChannelGeo" noStreamer="true"/>
 </lcgdict>
