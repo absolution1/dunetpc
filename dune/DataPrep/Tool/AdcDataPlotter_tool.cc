@@ -185,6 +185,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   bool isPrep = m_DataType == 0;
   bool isRaw = m_DataType == 1;
   bool isSig = m_DataType == 2;
+  bool isNsg = m_DataType == 3;
   // Find the tick range.
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
@@ -348,7 +349,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
           if ( iisam > 0 ) {
             AdcIndex isam = iisam;
             float sig = 0.0;
-            if ( isSig && isam >= pacd->signal.size() ) {
+            if ( (isSig || isNsg) && isam >= pacd->signal.size() ) {
               if ( m_LogLevel >= 3 ) {
                 cout << myname << "  Signal array not filled for sample " << isam
                      << " and above--stopping fill." << endl;
@@ -367,6 +368,12 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
             } else if ( isSig ) {
               if ( isam < sams.size() && isam < keep.size() ) {
                 if ( keep[isam] ) sig = sams[isam];
+              } else {
+                break;
+              }
+            } else if ( isNsg ) {
+              if ( isam < sams.size() ) {
+                if ( isam >= keep.size() || !keep[isam] ) sig = sams[isam];
               } else {
                 break;
               }

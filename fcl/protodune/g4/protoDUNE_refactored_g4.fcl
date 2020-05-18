@@ -60,8 +60,21 @@ services:
                        keepEMShowerDaughters: true
                        storeTrajectories: true
                        keepGenTrajectories: ["generator"] # list of generator labels for which we want to store
-                      }                                   # trajectory points. The protodune beam label is simply
+                                                          # trajectory points. The protodune beam label is simply
                                                           # "generator"
+                       keepOnlyPrimaryFullTrajectories : false # (defaults to false in larg4) If set to true, only
+                                                          # the particles with MCTruth process == "primary" and
+                                                          # their descendants will have the full set of trajetory
+                                                          # points stored. Particles descending from primaries with
+                                                          # MCTruth process != "primary" will not have a full set
+                                                          # of trajectory points stored -- only their start and
+                                                          # end points. This filter only applies to the generator
+                                                          # labels listed in the keepGenTrajectories. E.g, for the
+                                                          # beam generator, no "primaryBackground" particles or their
+                                                          # descendants would have a full set of traj. points. if
+                                                          # this is set to true.
+                                      
+                      }
 }
 ## -- NuRandomService:
 services.NuRandomService.policy: "perEvent"
@@ -168,13 +181,13 @@ outputs:
    module_type: RootOutput
    fileName:    "%ifb_g4.root"
    dataTier:    "simulated"
-   # outputCommands: [ "keep *" ]
+   #outputCommands: [ "keep *" ]
    outputCommands: [ "keep *", "drop sim::SimEnergyDeposits_largeant_*_G4"]
-   fastCloning: false #will fail if the split level is not the same as for the gen stage, so turn it off
+   #fastCloning: false #will fail if the split level is not the same as for the gen stage, so turn it off
    compressionLevel: 1 #zlib argument (0-9) 
-   basketSize: 8192 #[Byte] buffer size at 8k
-   splitLevel: 0 #reduces number of buffers
-   treeMaxVirtualSize: 1 #[Byte] limits number of buffers/branch to 1 (default is 10)
+   #basketSize: 8192 #[Byte] buffer size at 8k
+   #splitLevel: 0 #reduces number of buffers
+   #treeMaxVirtualSize: 1 #[Byte] limits number of buffers/branch to 1 (default is 10)
  }
 }
 

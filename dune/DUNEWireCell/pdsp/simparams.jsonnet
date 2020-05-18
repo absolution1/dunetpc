@@ -32,10 +32,14 @@ base {
       // to help with defining these parameters.
 
       // from DocDB 203 and assuming wires are symmetric across x=0
+      // however, DocDB 203 is obsolete, use most recent value from LArSoft
+      // Also see: lar -c dump_protodunesp_geometry.fcl
 
       // between center lines
-      local apa_cpa = 3.637*wc.m,
-      local cpa_thick = 50.8*wc.mm,
+      // local apa_cpa = 3.637*wc.m, // DocDB 203
+      local apa_cpa = 3.63075*wc.m, // LArSoft
+      // local cpa_thick = 50.8*wc.mm, // DocDB 203
+      local cpa_thick = 3.175*wc.mm, // 1/8", from Bo Yu (BNL) and confirmed with LArSoft
       local apa_w2w = 85.725*wc.mm, // DocDB 203 calls "W" as "X"
       local plane_gap = 4.76*wc.mm,
       local apa_g2g = 114.3*wc.mm, // note that grid plane must have
@@ -52,7 +56,8 @@ base {
       // Placing it w/in the response plane means any depos that are
       // "backed up" won't have proper field response.  But, the
       // tighter this is made, the less volume is simulated.
-      local apa_plane = 0.5*apa_g2g, // pick it to be at the grid wires
+      // local apa_plane = 0.5*apa_g2g, // pick it to be at the grid wires
+      local apa_plane = 0.5*apa_g2g - plane_gap, // pick it to be at the first induction wires
 
       // The "response" plane is where the field response functions
       // start.  Garfield calcualtions start somewhere relative to
@@ -259,10 +264,10 @@ base {
   // you are looking to fix SimDepoSource, you are in the wrong
   // place.  See the "scale" parameter of wcls.input.depos() defined
   // in pgrapher/common/ui/wcls/nodes.jsonnet.
-  elec: super.elec {
-    postgain: 1.0,
-    shaping: 2.2 * wc.us,
-  },
+  // elec: super.elec {
+  //   postgain: 0.858,
+  //   shaping: 2.2 * wc.us,
+  // },
 
   sys_status: false,
   sys_resp: {

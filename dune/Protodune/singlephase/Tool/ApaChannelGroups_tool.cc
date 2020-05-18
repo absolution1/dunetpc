@@ -36,21 +36,30 @@ ApaChannelGroups::ApaChannelGroups(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: No Index range tool name." << endl;
   }
   Index napa = m_ApaNumbers.size();
+  // If the APA list is empty, the detector has one unnumbered APA.
+  bool singleApa = napa == 0;
+  if ( singleApa ) {
+    napa = 1;
+  }
   m_labels["tpss"].push_back("TPC sets");
   m_labels["apas"].push_back("APAs");
-  NameVector soris = {"z", "c", "x", "u", "v", "i"};
+  NameVector soris = {"z", "c", "x", "u", "v", "i", "z1", "z2"};
   for ( Name sori : soris ) {
     m_labels["tpp" + sori + "s"].push_back(sori + " planes");
     m_labels["apa" + sori + "s"].push_back(sori + " planes");
   }
   for ( Index itps=0; itps<napa; ++itps ) {
     ostringstream sstps;
-    sstps << itps;
-    Name stps = sstps.str();
-    Index iapa = itps + 1;
-    ostringstream ssapa;
-    ssapa << iapa;
-    Name sapa = ssapa.str();
+    Name stps;
+    Name sapa;
+    if ( ! singleApa ) {
+      sstps << itps;
+      stps = sstps.str();
+      Index iapa = m_ApaNumbers[itps];
+      ostringstream ssapa;
+      ssapa << iapa;
+      sapa = ssapa.str();
+    }
     m_groups["tpss"].push_back("tps" + stps);
     m_groups["apas"].push_back("apa" + sapa);
     for ( Name sori : soris ) {
@@ -60,10 +69,16 @@ ApaChannelGroups::ApaChannelGroups(fhicl::ParameterSet const& ps)
   }
   Index nfmb = 20;
   for ( Index itps=0; itps<napa; ++itps ) {
-    Index iapa = m_ApaNumbers[itps];
+    Name sapa;
+    if ( ! singleApa ) {
+      Index iapa = m_ApaNumbers[itps];
+      ostringstream ssapa;
+      ssapa << iapa;
+      sapa = ssapa.str();
+    }
     for ( Index ifmb=1; ifmb<=nfmb; ++ifmb ) {
       ostringstream ssgrp;
-      ssgrp << "femb" << iapa;
+      ssgrp << "femb" << sapa;
       if ( ifmb < 10 ) ssgrp << "0";
       ssgrp << ifmb;
       Name sgrp = ssgrp.str();

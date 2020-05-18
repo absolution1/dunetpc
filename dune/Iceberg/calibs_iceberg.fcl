@@ -1,0 +1,29 @@
+# calibs_iceberg.fcl
+#
+# David Adams
+# April 2020
+
+#####################################################################
+
+# April 2020 Iceberg charge calibration.
+# See https://indico.fnal.gov/event/24229/contribution/0/material/slides/0.pdf.
+# Based on March 2020 data.
+tools.areaGain_ib3_b900_v6: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib3_b900-v6"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/iceberg/ib3_b900-v6/areaGain_apau.fcl",
+    "calib/iceberg/ib3_b900-v6/areaGain_apav.fcl",
+    "calib/iceberg/ib3_b900-v6/areaGain_apaz1.fcl",
+    "calib/iceberg/ib3_b900-v6/areaGain_apaz2.fcl"
+  ]
+}
+
+#####################################################################
+
+# Assign default calibration.
+tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
+
+#####################################################################
