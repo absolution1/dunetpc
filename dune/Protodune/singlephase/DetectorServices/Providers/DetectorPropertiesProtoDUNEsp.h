@@ -11,6 +11,19 @@
 #ifndef DETINFO_DETECTORPROPERTIES_PROTODUNESP_H
 #define DETINFO_DETECTORPROPERTIES_PROTODUNESP_H
 // LArSoft libraries
+
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Principal/Run.h"
+
+
+// #include "canvas/Persistency/Utilities/TypeID.h"
+
+
+#include "art/Framework/Principal/Event.h"
+#include "art/Persistency/Provenance/ScheduleContext.h"
+#include "art/Framework/Services/Registry/ServiceMacros.h"
+
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/CoreUtils/ProviderPack.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
@@ -18,6 +31,7 @@
 #include "lardataalg/DetectorInfo/DetectorProperties.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
+#include "lardata/DetectorInfoServices/ServicePack.h"
 // framework libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/Sequence.h"
@@ -26,6 +40,18 @@
 #include "fhiclcpp/types/OptionalAtom.h"
 // C/C++ standard libraries
 #include <set>
+
+
+
+
+
+
+
+#include "dune/Protodune/singlephase/DetectorServices/Providers/DetectorPropertiesProtoDUNEsp.h"
+
+
+
+
 
 ///General LArSoft Utilities
 namespace spdp{
@@ -181,8 +207,8 @@ namespace spdp{
         std::set<std::string> const& ignore_params = {}
         );
       bool Update(uint64_t ts); 
-      bool UpdateHV(std::string metadata);
-      bool UpdateReadoutWindowSize(std::string metadata);
+      bool UpdateHV(std::string filename);
+      bool UpdateReadoutWindowSize(std::string filename);
       bool UpdateTemp(int run);
       bool UpdateClocks(const detinfo::DetectorClocks* clks);
       
