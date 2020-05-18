@@ -79,7 +79,7 @@ namespace spdp{
     
     fTPCClock = fClocks->TPCClock();
     DoUpdateClocks();
-    
+
   }
     
   //--------------------------------------------------------------------
@@ -123,13 +123,20 @@ namespace spdp{
 
   bool DetectorPropertiesProtoDUNEsp::UpdateTemp(int run)
   {
-    if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
-      fTemperature = 87.36;
+
+
+    if(fUseRunDependentTemperature){ // updata the temperature based on run number for data
+      
+      if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
+        fTemperature = 87.36;
+      }
+      else if (run >= 6930)
+      {
+        fTemperature = 87.65;
+      }
     }
-    else if (run >= 6930)
-    {
-      fTemperature = 87.65;
-    }
+
+    
     return true;
   }
 
@@ -270,6 +277,7 @@ namespace spdp{
     fEfield                     = config.Efield();
     fGetHVDriftfromMetaData    = config.fGetHVDriftfromMetaData();
     fGetReadOutWindowSizefromMetaData = config.fGetReadOutWindowSizefromMetaData();
+    fUseRunDependentTemperature = config.fUseRunDependentTemperature();
     fElectronlifetime           = config.Electronlifetime();
     fTemperature                = config.Temperature();
     fElectronsToADC             = config.ElectronsToADC();

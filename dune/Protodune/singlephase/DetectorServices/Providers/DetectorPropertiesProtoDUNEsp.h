@@ -84,6 +84,11 @@ namespace spdp{
           Comment("option to get ReadoutWindowSize and NumberTimeSamples from MetaData")
         };
 
+          fhicl::Atom<bool        > fUseRunDependentTemperature{
+          Name("UseRunDependentTemperature"),
+          Comment("option to update temperature based on run number, used for Data")
+        };
+
         fhicl::Atom<double      > Electronlifetime         {
           Name("Electronlifetime"        ),
           Comment("electron lifetime in liquid argon [us]")
@@ -341,6 +346,7 @@ namespace spdp{
 
       bool                        fGetHVDriftfromMetaData;
       bool                        fGetReadOutWindowSizefromMetaData;
+      bool                        fUseRunDependentTemperature;
       double                         fHV_cath;   //  <KV
       std::vector<double>          fEfield;           ///< kV/cm (per inter-plane volume)
       double                         fElectronlifetime; ///< microseconds
