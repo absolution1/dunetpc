@@ -269,7 +269,12 @@ AdcChannelMetric::~AdcChannelMetric() {
           Metric& met = mets[icha];
           if ( m_summaryValue.size() ) {
             met.setValue(msum.getValue(m_summaryValue));
-            if ( m_summaryError.size() ) met.setError(msum.getValue(m_summaryError));
+            if ( m_LogLevel >=3 ) cout << myname << "Channel: summary value: " << icha << ": " << met.value;
+            if ( m_summaryError.size() ) {
+              met.setError(msum.getValue(m_summaryError));
+              if ( m_LogLevel >=3 ) cout << myname << " +/- " << met.error;
+            }
+            if ( m_LogLevel >=3 ) cout << endl;
           }
         }
       }
@@ -309,8 +314,12 @@ AdcChannelMetric::~AdcChannelMetric() {
             cout << myname << "           # events: " << setw(w) << msum.eventCount << endl;
             cout << myname << "  # weighted events: " << setw(w) << msum.weightedEventCount << endl;
             cout << myname << "               Neff: " << setw(w) << msum.neff() << endl;
-            cout << myname << "               mean: " << setw(w) << msum.mean() << " +/- " << setw(w) << msum.dmean() << endl;
-            cout << myname << "                RMS: " << setw(w) << msum.rms() << " +/- " << setw(w) << msum.drms() << endl;
+            cout << myname << "               mean: " << setw(w) << msum.mean() << " +/- "
+                                                      << setw(w) << msum.dmean() << endl;
+            cout << myname << "                RMS: " << setw(w) << msum.rms() << " +/- "
+                                                      << setw(w) << msum.drms() << endl;
+            cout << myname << "             center: " << setw(w) << msum.center() << " +/- "
+                                                      << setw(w) << 0.5*msum.range() << endl;
           }
         }
         cout << "===================================" << endl;
@@ -343,8 +352,8 @@ void AdcChannelMetric::initialize(bool force) {
 DataMap AdcChannelMetric::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelMetric::view: ";
   DataMap ret;
-  float val = 0.0;
-  float wt = 0.0;
+  double val = 0.0;
+  double wt = 0.0;
   Name sunits;
   int rstat = getMetric(acd, m_Metric, val, sunits, wt);
   if ( rstat ) return ret.setStatus(rstat);
@@ -395,8 +404,8 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
   if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
     const AdcChannelData& acd = iacd->second;
-    float met;
-    float wt;
+    double met;
+    double wt;
     Name sunits;
     int rstat = getMetric(acd, m_Metric, met, sunits, wt);
     if ( rstat ) {
@@ -408,6 +417,10 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     mets[icha].setValue(met);
     MetricSummary& metricSum = metricSums[icha-icha0];
     metricSum.add(met, wt);
+    if ( m_LogLevel >=4 ) {
+      cout << myname << "    Chan: met, wt (wsum, range): " << icha <<  ": " << met << ", " << wt
+           << " (" << metricSum.weightSum << ", " << metricSum.range() << ")" << endl;
+    }
   }
   // Create the histogram for this data and this range.
   const AdcChannelData& acdFirst = acds.begin()->second;
@@ -426,8 +439,8 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
 
 //**********************************************************************
 
-int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& val,
-                                Name& sunits, float& weight) const {
+int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& val,
+                                Name& sunits, double& weight) const {
   const string myname = "AdcChannelMetric::getMetric: ";
   val = 0.0;
   weight = 0.0;
@@ -446,7 +459,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& v
   } else if ( met == "pedestalDiff" ) {
     val = nent ? pacd0->pedestal : 0.0;
     if ( m_pPedestalReference != nullptr ) {
-      float pedRef = m_pPedestalReference->value(acdtop.channel, 0.0);
+      double pedRef = m_pPedestalReference->value(acdtop.channel, 0.0);
       val -= pedRef;
     } else if ( m_PedestalReference == "first" && nent ) {
       Index icha = acdtop.channel;
@@ -465,6 +478,9 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& v
   } else if ( met == "pedestalRms" ) {
     val = nent ? pacd0->pedestalRms : 0.0;
     sunits = "ADC count";
+  } else if ( met == "time" ) {
+    val = acdtop.time;
+    sunits = "sec";
   } else if ( met == "fembID" ) {
     val = acdtop.fembID;
   } else if ( met == "fembChannel" ) {
@@ -498,7 +514,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& v
     Index nsam = 0;
     for ( Index ient=0; ient<nent; ++ient ) {
       const AdcChannelData* pacd = acdtop.viewEntry(m_DataView, ient);
-      for ( float sig : pacd->samples ) {
+      for ( double sig : pacd->samples ) {
         sum += sig*sig;
         ++nsam;
       }
@@ -553,7 +569,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& v
       } else {
         for ( Index isam=0; isam<nsam; ++isam ) {
           if ( pacd->signal[isam] == doSignal ) {
-            float sig = pacd->samples[isam];
+            double sig = pacd->samples[isam];
             sum += sig*sig;
             ++nsum;
           }
@@ -661,8 +677,8 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, float& v
     while ( ipos != string::npos ) {
       ipos = metsrem.find("+");
       string newmet = metsrem.substr(0, ipos);
-      float newval = 0.0;
-      float newwt = 0.0;
+      double newval = 0.0;
+      double newwt = 0.0;
       int sstat = getMetric(acdtop, newmet, newval, sunits, newwt);
       if ( sstat ) {
         cout << myname << "ERROR: Invalid sub-metric name: " << newmet << endl;
@@ -720,7 +736,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
   if ( m_MetricBins > 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Plotting # channels vs. metric. Count is " << mets.size() << endl;
     for ( MetricMap::value_type imet : mets ) {
-      float met = imet.second.value;
+      double met = imet.second.value;
       ph->Fill(met);
     }
     if ( ofpname.size() ) {
@@ -767,12 +783,15 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
     Index icha0 = ran.begin;
     for ( MetricMap::value_type imet : mets ) {
       Index icha = imet.first;
-      float met = imet.second.value;
-      float err = imet.second.error;
+      double met = imet.second.value;
+      double err = imet.second.error;
+      if ( m_LogLevel >= 3 ) {
+        cout << myname << "  " << met << ": " << met << " +/- " << err << endl;
+      }
       Index bin = (icha + 1) - icha0;
       ph->SetBinContent(bin, met);
       if ( err ) ph->SetBinError(bin, err);
-      float gval = met;
+      double gval = met;
       //if ( m_MetricMax > m_MetricMin ) {
       //  if ( met < m_MetricMin ) gval = m_MetricMin;
       //  if ( met > m_MetricMax ) gval = m_MetricMax;

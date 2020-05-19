@@ -211,6 +211,25 @@ tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: @local::ibFembPat
 
+# Add a plot of UTC (aka GMT, unix time)
+tools.ibmet_adcChannelUtcPlotter: @local::tools.ibmet_adcChannelPedestalPlotter
+tools.ibmet_adcChannelUtcPlotter.Metric: "time"
+tools.ibmet_adcChannelUtcPlotter.MetricMin: 0.0
+tools.ibmet_adcChannelUtcPlotter.MetricMax: 0.0
+tools.ibmet_adcChannelUtcPlotter.MetricLabel: "UTC [sec]"
+#tools.ibmet_adcChannelUtcPlotter.MetricMin: 1527811200    # 2018-06-01
+#tools.ibmet_adcChannelUtcPlotter.MetricMax: 1843430400    # 2028-06-01
+tools.ibmet_adcChannelUtcPlotter.Label: "UTC [sec]"
+tools.ibmet_adcChannelUtcPlotter.HistName: "hchutc%CRNAME%_run%0RUN%_%0EVENT%"
+tools.ibmet_adcChannelUtcPlotter.HistTitle: "ADC UTC for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelUtcPlotter.PlotFileName: "chmet_utc_%CRNAME%_run%0RUN%.png"
+
+# UTC range: (val-error, val+error)
+tools.ibmet_adcChannelUtcRangePlotter: @local::tools.ibmet_adcChannelUtcPlotter
+tools.ibmet_adcChannelUtcRangePlotter.MetricSummaryView: "center:halfRange"
+tools.ibmet_adcChannelUtcRangePlotter.HistTitle: "ADC UTC range for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelUtcRangePlotter.PlotFileName: "chmet_utcran_%CRNAME%_run%0RUN%.{png,tpad}"
+
 # -- Noise signal finder plots --
 
 # Noise signal finder noise level at ke scale.
