@@ -228,10 +228,14 @@ TPadManipulator::~TPadManipulator() {
   //cout << "Destroying manipulator " << this << " with pad " << m_ppad
   //     << " and parent " << m_parent << endl;
   if ( m_ppad != nullptr && m_parent == nullptr ) {
-    m_ppad->Close();
-    gSystem->ProcessEvents();
-    delete m_ppad;
-    m_ppad = nullptr;
+    // May 2020: If the pad is not in the Root list of canvases, then it may
+    // be that Root has already deleted it.
+    if ( gROOT->GetListOfCanvases()->IndexOf(m_ppad) >= 0 ) {
+      m_ppad->Close();
+      gSystem->ProcessEvents();
+      delete m_ppad;
+      m_ppad = nullptr;
+    }
   }
   for ( TObject* pobj : m_objs ) delete pobj;
   m_objs.clear();
