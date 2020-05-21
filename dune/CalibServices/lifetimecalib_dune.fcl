@@ -1,0 +1,27 @@
+BEGIN_PROLOG
+
+#===============================
+# \author wwu@fnal.gov
+# \date: May 19, 2020
+#================================
+
+protodune_lifetimecalib :
+{
+  service_provider: "LifetimeCalibServiceProtoDUNE"
+
+  IsMC: false
+  #UseCondbLifetimeCorr: true
+  UseCondbLifetime: true
+  Interpolate: false
+
+  #LifetimeCorrFileName: ""
+  LifetimeFileName: ""
+
+  #LifetimeCorrDBTag: ""
+  LifetimeDBTag: ""
+
+  #DefaultLifetime:     1000.0
+  #DefaultLifetimeErr:  0.0
+}
+
+END_PROLOG

@@ -25,6 +25,8 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "dune/Calib/XYZCalib.h"
 #include "dune/CalibServices/XYZCalibService.h"
+#include "dune/Calib/LifetimeCalib.h" 
+#include "dune/CalibServices/LifetimeCalibService.h" 
 
 #include "larevt/SpaceCharge/SpaceCharge.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -32,6 +34,7 @@
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TFile.h"
+#include "TTimeStamp.h" 
 
 #include <memory>
 
@@ -69,8 +72,10 @@ private:
   bool fApplyXCorrection;
   bool fApplyYZCorrection;
   bool fApplyLifetimeCorrection;
+  bool fUseLifetimeFromDatebase; // true: lifetime from database; false: lifetime from DetectorProperties
 
-  double fLifetime; //us
+  double fLifetime; // [us]
+
   double vDrift;
   double xAnode;
   const detinfo::DetectorProperties* detprop;
@@ -90,10 +95,10 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   , fApplyXCorrection      (p.get< bool >("ApplyXCorrection"))
   , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
   , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
-  , fLifetime              (p.get< double >("Lifetime"))
+  , fUseLifetimeFromDatebase(p.get< bool >("UseLifetimeFromDatebase"))
 {
   detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
-  vDrift = detprop->DriftVelocity(); //cm/us
+  vDrift = detprop->DriftVelocity(); // [cm/us]
   xAnode = std::abs(detprop->ConvertTicksToX(detprop->TriggerOffset(),0,0,0));
   //std::cout<<detprop->TriggerOffset()<<" "<<xAnode<<std::endl;
   //create calorimetry product and its association with track
@@ -109,6 +114,26 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   calib::XYZCalibService & xyzcalibService = *xyzcalibHandler;
   calib::XYZCalib *xyzcalib = xyzcalibService.provider();
   
+  // Electron lifetime from database calibration service provider
+  art::ServiceHandle<calib::LifetimeCalibService> lifetimecalibHandler;
+  calib::LifetimeCalibService & lifetimecalibService = *lifetimecalibHandler; 
+  calib::LifetimeCalib *lifetimecalib = lifetimecalibService.provider();
+
+  if (fUseLifetimeFromDatebase) {
+    fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
+  } 
+  else {
+    fLifetime = detprop->ElectronLifetime(); // [us] 
+  }
+  
+  //std::cout << "www...fLifetime: " << fLifetime << std::endl;
+  //art::Timestamp ts = evt.time();
+  //TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+  //double evttime = tts.AsDouble();
+  //std::cout << "www: tts " << tts << std::endl;
+  //std::cout << "www: evttime " << evttime << std::endl;
+
+
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
   

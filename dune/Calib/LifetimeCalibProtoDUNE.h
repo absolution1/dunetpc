@@ -28,6 +28,12 @@
 
 namespace calib {
 
+  typedef struct {
+    double center;
+    double low;
+    double high;
+  } LifetimePurMon_t;
+
   class LifetimeCalibProtoDUNE : public LifetimeCalib {
     
   public:
@@ -63,6 +69,8 @@ namespace calib {
 
       std::string fLifetimeFileName;
       std::string fLifetimeDBTag;
+
+      std::map<int,LifetimePurMon_t> fLifetimePurMon; 
 
   }; // class LifetimeCalibProtoDUNE
 } //namespace calib
