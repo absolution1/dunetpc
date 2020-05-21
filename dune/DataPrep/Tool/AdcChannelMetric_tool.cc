@@ -279,7 +279,12 @@ AdcChannelMetric::~AdcChannelMetric() {
         }
       }
       AdcChannelData acd;
-      acd.run = getState().firstRun;
+      if ( getState().runCount == 1 ) {
+        acd.run = getState().firstRun;
+        if ( getState().eventCount == 1 ) {
+          acd.event = getState().firstEvent;
+        }
+      }
       Name ofpname = nameReplace(m_PlotFileName, acd, cr);
       Name ofrname = nameReplace(m_RootFileName, acd, cr);
       TH1* ph = createHisto(acd, cr);
