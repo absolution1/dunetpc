@@ -121,18 +121,13 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
 
   if (fUseLifetimeFromDatebase) {
     fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
+    //std::cout << "use lifetime from database   " << fLifetime << std::endl;
   } 
   else {
     fLifetime = detprop->ElectronLifetime(); // [us] 
   }
   
-  //std::cout << "www...fLifetime: " << fLifetime << std::endl;
-  //art::Timestamp ts = evt.time();
-  //TTimeStamp tts(ts.timeHigh(), ts.timeLow());
-  //double evttime = tts.AsDouble();
-  //std::cout << "www: tts " << tts << std::endl;
-  //std::cout << "www: evttime " << evttime << std::endl;
-
+  //std::cout << "fLifetime: " << fLifetime << std::endl;
 
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();

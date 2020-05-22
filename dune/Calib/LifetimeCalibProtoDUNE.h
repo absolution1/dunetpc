@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// \file CalibProtoDUNE.h
+// \file LifetimeCalibProtoDUNE.h
 //
 // \brief header of class for accessing calibration data for ProtoDUNE
 //
