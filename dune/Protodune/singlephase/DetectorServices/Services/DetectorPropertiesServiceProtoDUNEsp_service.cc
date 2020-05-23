@@ -127,9 +127,11 @@ namespace spdp{
       std::string filename_s=(filename.substr(start, end-start)); //creates string of just file name, not path
       // std::cout<<"filename:"<<filename_s<<std::endl;
       art::ServiceHandle<ifdh_ns::IFDH> ifdh;
-      auto metadata=ifdh->getMetadata(filename_s);
-      fProp->UpdateHV(metadata); //update HV value from MetaData
-      fProp->UpdateReadoutWindowSize(metadata); //update Readout window value from MetaData
+      // auto metadata=ifdh->getMetadata(filename_s);
+
+      // auto metadata1=ifdh->getMetadata("protoDune_splitG4_pion_2GeV_mono_detsim_Reference.root");
+      fProp->UpdateHV(filename_s); //pass file name to be able update HV value from MetaData (if requested)
+      fProp->UpdateReadoutWindowSize(filename_s); //update Readout window value from MetaData (if requested)
       isNewRun=false;
 
     }

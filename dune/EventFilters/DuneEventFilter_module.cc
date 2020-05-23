@@ -128,7 +128,7 @@ DuneEventFilter::DuneEventFilter(fhicl::ParameterSet const & pset)
     } else {
       IndexRange ran = pjrt->get("events");
       if ( ! ran.isValid() ) {
-        cout << myname << "ERROR: Job index range tool does not have range \"events\"" << endl;
+        cout << myname << "Event range is unrestricted." << endl;
       } else {
         m_beginEvent = ran.begin;
         m_endEvent = ran.end;
