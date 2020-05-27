@@ -127,7 +127,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
     fLifetime = detprop->ElectronLifetime(); // [us] 
   }
   
-  //std::cout << "fLifetime: " << fLifetime << std::endl;
+  std::cout << "fLifetime: " << fLifetime << std::endl;
 
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
