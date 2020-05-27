@@ -2,12 +2,227 @@
 #
 # David Adams
 # February 2019
-# Updated Decembers 2019.
+# Dec 2019: Add calib based on Nov 2019 data.
+# May 2020: Add new calib based on Dec 2018 data.
+
+#####################################################################
+
+# Dec 2019 ProtoDUNE area charge calibration.
+# Based on Dec 2018 data with narrow ROI window.
+tools.areaGain_calib20191213_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_calib20191213_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa3z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa3c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa3u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa3v.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa5z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa5c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa5u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa5v.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa2z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa2c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa2u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa2v.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa6z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa6c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa6u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa6v.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa1z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa1c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa1u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa1v.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa4z.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa4c.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa4u.fcl",
+    "calib/protodune/calib20191213_dec18ext/areaGain_apa4v.fcl"
+  ]
+}
+
+# Dec 2019 ProtoDUNE height charge calibration.
+# Based on Dec 2018 data.
+tools.heightGain_calib20191213_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "heightGain_calib20191213_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa3z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa3c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa3u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa3v.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa5z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa5c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa5u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa5v.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa2z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa2c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa2u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa2v.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa6z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa6c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa6u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa6v.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa1z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa1c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa1u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa1v.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa4z.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa4c.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa4u.fcl",
+    "calib/protodune/calib20191213_dec18ext/heightGain_apa4v.fcl"
+  ]
+}
+
+# Dec 2019 shaping time calibration.
+# Based on Dec 2019 data.
+tools.shapingTime_calib20191213_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "shapingTime_calib20191213_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa3z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa3c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa3u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa3v.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa5z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa5c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa5u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa5v.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa2z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa2c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa2u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa2v.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa6z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa6c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa6u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa6v.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa1z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa1c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa1u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa1v.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa4z.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa4c.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa4u.fcl",
+    "calib/protodune/calib20191213_dec18ext/shapingTime_apa4v.fcl"
+  ]
+}
+
+#####################################################################
+
+# Dec 2019 ProtoDUNE area charge calibration.
+# Based on Dec 2018 data.
+tools.areaGain_calib20191206_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_calib20191206_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa3z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa3c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa3u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa3v.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa5z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa5c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa5u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa5v.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa2z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa2c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa2u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa2v.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa6z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa6c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa6u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa6v.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa1z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa1c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa1u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa1v.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa4z.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa4c.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa4u.fcl",
+    "calib/protodune/calib20191206_dec18ext/areaGain_apa4v.fcl"
+  ]
+}
+
+# Dec 2019 ProtoDUNE height charge calibration.
+# Based on Dec 2018 data.
+tools.heightGain_calib20191206_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "heightGain_calib20191206_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa3z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa3c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa3u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa3v.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa5z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa5c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa5u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa5v.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa2z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa2c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa2u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa2v.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa6z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa6c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa6u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa6v.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa1z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa1c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa1u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa1v.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa4z.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa4c.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa4u.fcl",
+    "calib/protodune/calib20191206_dec18ext/heightGain_apa4v.fcl"
+  ]
+}
+
+# Dec 2019 shaping time calibration.
+# Based on Dec 2019 data.
+tools.shapingTime_calib20191206_dec18ext: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "shapingTime_calib20191206_dec18ext"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa3z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa3c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa3u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa3v.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa5z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa5c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa5u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa5v.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa2z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa2c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa2u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa2v.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa6z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa6c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa6u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa6v.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa1z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa1c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa1u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa1v.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa4z.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa4c.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa4u.fcl",
+    "calib/protodune/calib20191206_dec18ext/shapingTime_apa4v.fcl"
+  ]
+}
 
 #####################################################################
 
 # Dec 2019 ProtoDUNE charge calibration.
-# Based on Dec 2019 data.
+# Based on Nov 2019 data.
 tools.areaGain_calib20191203 : {
   tool_type: FclFileFloatArray
   LogLevel: 1
