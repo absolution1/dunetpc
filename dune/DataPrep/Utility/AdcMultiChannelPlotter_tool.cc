@@ -236,7 +236,8 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
       // If needed, create a new canvas and a name.
       const AdcChannelData& acdFirst = *acdvec[0];
       if ( pmantop == nullptr ) {
-        if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas." << endl;
+        if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas for run " << acdFirst.run
+                                       << ", event " << acdFirst.event << "." << endl;
         pmantop = new TPadManipulator;
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
         if ( npadOnPage > 1 ) pmantop->split(npadx, npady);
@@ -340,7 +341,8 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
       // If needed, create a new canvas and a name.
       acdPrint.channel = pad.crmap.at(crn).begin;
       if ( pmantop == nullptr ) {
-        if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas." << endl;
+        if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas for run " << acdPrint.run
+                                       << ", event " << acdPrint.event << "." << endl;
         pmantop = new TPadManipulator;
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
         if ( npadOnPage > 1 ) pmantop->split(npadx, npady);
