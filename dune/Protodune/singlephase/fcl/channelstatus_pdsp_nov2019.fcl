@@ -270,14 +270,16 @@ pdsp_channel_status_nov2019: {
 }
 
 # Add channels with bad calibration pulser.
+# Channel 4413 had bad fit in feb2019 calib but looks ok in nov.
 pdsp_channel_status_nov2019_goodpulser: @local::pdsp_channel_status_nov2019
 pdsp_channel_status_nov2019_goodpulser.BadChannels: [
   @sequence::pdsp_channel_status_nov2019_goodpulser.BadChannels,
-  4232, 4234, 4236, 4238, 4240, 4242,
-  4472, 4474, 4476, 4478, 4480, 4482,
-  9545, 9547, 9549, 9551, 9553, 9555,
-  4473,
-  9641
+  4232, 4234, 4236, 4238, 4240, 4242,   # femb519x (apa5z, feb2018 values in fix01)
+  4472, 4474, 4476, 4478, 4480, 4482,   # femb514x (apa5z, feb2018 values in fix01)
+  9545, 9547, 9549, 9551, 9553, 9555,   # femb615x (apa5z, feb2018 values in fxi01)
+  4473,                                 # femb514x
+  9260,                                 # femb601v (feb2018 values in fix01)
+  9641                                  # femb613x
 ]
 
 END_PROLOG
