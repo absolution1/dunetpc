@@ -367,6 +367,7 @@ tools.adcSampleFiller: {
 }
 
 # Fill sample and apply calibration.
+# May 2020: Switch to fix01 of calib based on 2018-dec data.
 tools.adcSampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
@@ -374,7 +375,7 @@ tools.adcSampleCalibration: {
   GainDefault: 0.0
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
-  GainTool: "areaGain_calib20190205"
+  GainTool: "areaGain_calib20191213_dec18ext"
 }
 
 # Perform deconvolution with SignalShapingService.
