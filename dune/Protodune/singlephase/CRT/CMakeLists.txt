@@ -8,6 +8,7 @@ include_directories( $ENV{IFBEAM_FQ_DIR}/include )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 art_make( MODULE_LIBRARIES
+                        lardataalg_DetectorInfo
                         lardataobj_RawData
                         lardataalg_DetectorInfo
 			larcorealg_Geometry

@@ -43,6 +43,7 @@ simple_plugin(dEdx "module"
   )
 
 simple_plugin(EMEnergyCalib "module"
+  lardataalg_DetectorInfo
   lardataobj_RawData
   lardataobj_RecoBase
   larcorealg_Geometry
