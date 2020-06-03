@@ -127,6 +127,16 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
     fLifetime = detprop->ElectronLifetime(); // [us] 
   }
   
+  //int run = evt.run();
+  //int subrun = evt.subRun();
+  //int event = evt.id().event();
+  // evttime
+  art::Timestamp ts = evt.time();
+  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+  uint64_t evttime = tts.AsDouble();
+  
+  std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
+  std::cout << "evttime: " << evttime << std::endl;
   std::cout << "fLifetime: " << fLifetime << std::endl;
 
   //Spacecharge services provider 

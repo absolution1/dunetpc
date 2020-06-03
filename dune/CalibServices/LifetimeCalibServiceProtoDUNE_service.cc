@@ -35,6 +35,7 @@ void calib::LifetimeCalibServiceProtoDUNE::preBeginRun(const art::Run& run)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   uint64_t  runtime = tts.AsDouble();
   
+  std::cout << "db: runtime " << runtime << std::endl;
   // one can also consider using event time through "sPreProcessEvent" by define a "preProcessEvent" function, for exmaple.
   
   fProp->Update(runtime);
