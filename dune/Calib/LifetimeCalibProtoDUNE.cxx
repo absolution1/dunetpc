@@ -157,6 +157,7 @@ bool calib::LifetimeCalibProtoDUNE::LoadLifetime()
   
   if (! readOk) {
    mf::LogError("LifetimeCalibProtoDUNE") << "Load from lifetime calib database table failed.";
+   throw cet::exception("LifetimeCalibProtoDUNE") << "Failed to query lifetime database. Please check URL: https://dbdata0vm.fnal.gov:9443/dune_con_prod/app" << "\n";
 
    return false; //std::abort();
   }
