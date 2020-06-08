@@ -15,14 +15,35 @@
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
+
+
 // Art includes
 #include "fhiclcpp/make_ParameterSet.h"
+
 // C/C++ libraries
 #include <sstream> // std::ostringstream
 #include <map>
 #include <string>
 
+#include "art_root_io/RootDB/SQLite3Wrapper.h"
 #include "IFDH_service.h"
+
+
+#include "dune/Protodune/singlephase/DetectorServices/Services/DetectorPropertiesServiceProtoDUNEsp.h"
+#include "lardataalg/DetectorInfo/LArProperties.h"
+#include "larcore/Geometry/Geometry.h"
+
+
+
+#include "lardata/DetectorInfoServices/ServicePack.h" // lar::extractProviders()
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+
+
+
+
+
+
 
 namespace {
   
@@ -35,6 +56,7 @@ namespace spdp{
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp() :
     fLP(0), fClocks(0), fGeo(0)
   {
+   
   }
   
   //--------------------------------------------------------------------
@@ -57,6 +79,7 @@ namespace spdp{
     
     fTPCClock = fClocks->TPCClock();
     DoUpdateClocks();
+
   }
     
   //--------------------------------------------------------------------
@@ -100,21 +123,30 @@ namespace spdp{
 
   bool DetectorPropertiesProtoDUNEsp::UpdateTemp(int run)
   {
-    if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
-      fTemperature = 87.36;
+
+
+    if(fUseRunDependentTemperature){ // updata the temperature based on run number for data
+      
+      if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
+        fTemperature = 87.36;
+      }
+      else if (run >= 6930)
+      {
+        fTemperature = 87.65;
+      }
     }
-    else if (run >= 6930)
-    {
-      fTemperature = 87.65;
-    }
+
+    
     return true;
   }
 
-  bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string metadata){
+  bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string filename){
 
     bool retVal=false;
 
     if(fGetReadOutWindowSizefromMetaData){
+      art::ServiceHandle<ifdh_ns::IFDH> ifdh;
+      auto metadata=ifdh->getMetadata(filename);
       retVal = true;
       std::string window_str="DUNE_data.readout_window: ";
       if(metadata.find(window_str)!=std::string::npos){
@@ -141,7 +173,7 @@ namespace spdp{
 
 
 
-  bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string metadata) 
+  bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string filename) 
   {
   
 
@@ -150,14 +182,16 @@ namespace spdp{
 
     if(fGetHVDriftfromMetaData){
       retVal = true;
-      
+
+      art::ServiceHandle<ifdh_ns::IFDH> ifdh;
+      auto metadata=ifdh->getMetadata(filename);
+
       int run = 0;
       std::string run_str="Runs: ";
       if(metadata.find(run_str)!=std::string::npos){
         int n1 = metadata.find(run_str);
         n1 += run_str.length();
         int n2 = metadata.find(".", n1);
-        //std::cout<<metadata.substr(n1, n2-n1)<<std::endl;
         run = std::stoi(metadata.substr(n1, n2-n1));
         std::cout<<"Run number from metadata: "<<run<<std::endl;
       }
@@ -205,7 +239,7 @@ namespace spdp{
         }
       }
       std::cout<<"Calculated E field in 4 plane gaps as: "<<fEfield[0]<<","<<fEfield[1]<<","<<fEfield[2]<<","<<fEfield[3]<<std::endl;
-    }//End GetHVDriftfromRunTable if  
+    }//End GetHVDriftfrom MetaData if  
    
 
     return retVal;
@@ -243,6 +277,7 @@ namespace spdp{
     fEfield                     = config.Efield();
     fGetHVDriftfromMetaData    = config.fGetHVDriftfromMetaData();
     fGetReadOutWindowSizefromMetaData = config.fGetReadOutWindowSizefromMetaData();
+    fUseRunDependentTemperature = config.fUseRunDependentTemperature();
     fElectronlifetime           = config.Electronlifetime();
     fTemperature                = config.Temperature();
     fElectronsToADC             = config.ElectronsToADC();

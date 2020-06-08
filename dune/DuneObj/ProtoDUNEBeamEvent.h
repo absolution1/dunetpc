@@ -168,7 +168,10 @@ namespace beam
 
   };
 
-  inline ProtoDUNEBeamEvent::ProtoDUNEBeamEvent(){ 
+  inline ProtoDUNEBeamEvent::ProtoDUNEBeamEvent()
+      : t0({0.,0.}), CTBTimestamp(0), RDTimestamp(0), TOFChan(0),
+        theTOF(0.), activeTrigger(0), BITrigger(0), TimingTrigger(0),
+        SpillStart(0.), SpillOffset(0.), MagnetCurrent(0.) { 
   /*
     FBM dummy; 
     dummy.ID = -1;

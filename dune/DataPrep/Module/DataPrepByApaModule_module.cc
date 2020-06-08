@@ -464,8 +464,13 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     evt.getByLabel("timingrawdecoder", "daq", htims);
     if ( htims.isValid() ) {
       ptims = &*htims;
-      if ( ptims->size() != 1 ) {
-        cout << myname << "WARNING: Unexpected timing clocks size: " << ptims->size() << endl;
+      if ( ptims->size() == 0 ) {
+        cout << myname << "No timing clocks found." << endl;
+        for ( unsigned int itim=0; itim<ptims->size() && itim<50; ++itim ) {
+          cout << myname << "  " << ptims->at(itim).GetTimeStamp() << endl;
+        }
+      } else if ( ptims->size() > 1 ) {
+        cout << myname << "ERROR: Too many timing clocks: " << ptims->size() << endl;
         for ( unsigned int itim=0; itim<ptims->size() && itim<50; ++itim ) {
           cout << myname << "  " << ptims->at(itim).GetTimeStamp() << endl;
         }
@@ -731,13 +736,19 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       float tcmax = ntickPrimary*(1.0 + m_DeltaTickCount);
       minTickCount = tcmin > 0.0 ? tcmin : 0;
       maxTickCount = tcmax > 0.0 ? tcmax : 0;
-      cout << myname << "Tick range is (" << minTickCount << ", " << maxTickCount << ")" << endl;
+      cout << myname << "Allowed tick count range is (" << minTickCount << ", " << maxTickCount << ")" << endl;
     }
-    // Update the tick counts.'
+    // Remove out-of-range tick counts.
+    // Those channels will not be processed.
     if ( maxTickCount > 0 ) {
-      for ( NtickCounter::value_type ent : ntickCounter ) {
-        AdcIndex ntick = ent.first;
-        if ( ntick < minTickCount || ntick < maxTickCount ) ntickCounter.erase(ntick);
+      NtickCounter::iterator ient = ntickCounter.begin();
+      while ( ient != ntickCounter.end() ) {
+        AdcIndex ntick = ient->first;
+        if ( ntick < minTickCount || ntick > maxTickCount ) {
+          ient = ntickCounter.erase(ient);
+        } else {
+          ++ient;
+        }
       }
     }
     // Display tick counts.
@@ -745,8 +756,9 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       if ( ntickCounter.size() == 1 ) {
         cout << myname << "Tick count for all channels is " << ntickCounter.begin()->first << endl;
       } else {
-        string slev = "WARNING: ";
-        cout << myname << slev << "Inconsistent tick counts:" << endl;
+        //string slev = "WARNING: ";
+        string slev = "";
+        cout << myname << slev << "Retaining inconsistent tick counts:" << endl;
         cout << myname << slev << "   Ntick   Nchan" << endl;
         for ( NtickCounter::value_type ent : ntickCounter ) {
           cout << myname << slev << setw(8) << ent.first << setw(8) << ent.second << endl;

@@ -28,6 +28,11 @@
 //   LogLevel: Logging level (0=none, 1=ctor, 2=every call)
 //   ApaNumbers: Mapping from TPS to APA numbers. Size is NAPA.
 //   IndexRangeTool: Tool that maps names here to channel ranges.
+//
+// Updates May 2018:
+//   If ApaNumbers is empty, the detector consists of one unnumbered APA,
+//   i.e. expected ranges are apau, apaz, etc.
+//   Add P = z1, z2.
 
 #ifndef ApaChannelGroups_H
 #define ApaChannelGroups_H

@@ -12,6 +12,10 @@ function(params, tools, override = {}) {
 
   local pc = tools.perchanresp_nameuses,
 
+  local resolution = params.adc.resolution,
+  local fullscale = params.adc.fullscale[1] - params.adc.fullscale[0],
+  local ADC_mV_ratio = ((1 << resolution) - 1 ) / fullscale,
+
   // pDSP needs a per-anode sigproc
   make_sigproc(anode, name=null):: g.pnode({
     type: 'OmnibusSigProc',
@@ -44,12 +48,13 @@ function(params, tools, override = {}) {
        */
       anode: wc.tn(anode),
       field_response: wc.tn(tools.field),
+      elecresponse: wc.tn(tools.elec_resp),
       ftoffset: 0.0, // default 0.0
       ctoffset: 1.0*wc.microsecond, // default -8.0
       per_chan_resp: pc.name,
       fft_flag: 0,  // 1 is faster but higher memory, 0 is slightly slower but lower memory
-      postgain: 1,  // default 1.2
-      ADC_mV: 4096 / (1400.0 * wc.mV),  // default 4096/2000
+      postgain: 1.0, // params.elec.postgain,  // default 1.2
+      ADC_mV: ADC_mV_ratio, // 4096 / (1400.0 * wc.mV), 
       troi_col_th_factor: 5.0,  // default 5
       troi_ind_th_factor: 3.0,  // default 3
       lroi_rebin: 6, // default 6
@@ -72,6 +77,6 @@ function(params, tools, override = {}) {
       wiener_threshold_tag: 'threshold%d' % anode.data.ident,
       gauss_tag: 'gauss%d' % anode.data.ident,
     } + override,
-  }, nin=1, nout=1, uses=[anode, tools.field] + pc.uses + spfilt),
+  }, nin=1, nout=1, uses=[anode, tools.field, tools.elec_resp] + pc.uses + spfilt),
 
 }
