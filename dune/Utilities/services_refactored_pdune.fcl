@@ -26,6 +26,7 @@
 #include "protodune_dataprep_services.fcl"
 #include "PdspChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
+#include "lifetimecalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 #include "time_memory_tracker_dune.fcl"
 
@@ -338,6 +339,13 @@ protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                                                 "HadronElastic",
                                                                 "Stopping"]
 
+# Service for TPC simulation (stage 1 of detsim)
+# Skim the unused service and save memory
+protodune_minimal_simulation_services:          @local::protodune_simulation_services
+protodune_minimal_simulation_services.SignalShapingServiceDUNE:                @erase
+protodune_minimal_simulation_services.PhotonVisibilityService:                 @erase
+protodune_minimal_simulation_services.OpDetResponseInterface:                  @erase
+protodune_minimal_simulation_services.ParticleInventoryService:                @erase
 
 # Reco services for ProtoDUNE simulation.
 protodune_reco_services:                            @local::protodune_services
@@ -353,6 +361,8 @@ protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_s
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
+# lifetime calibration service
+protodune_reco_services.LifetimeCalibService:       @local::protodune_lifetimecalib
 # channel map service
 protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
 # channel status service

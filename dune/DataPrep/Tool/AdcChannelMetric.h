@@ -139,8 +139,8 @@ public:
   // The weight is used when averaging over events, e.g. the number
   // of samples or ROIs contributing to the metric value.
   virtual int
-  getMetric(const AdcChannelData& acd, Name met, float& metricValue,
-            Name& metricUnits, float& metricWeight) const;
+  getMetric(const AdcChannelData& acd, Name met, double& metricValue,
+            Name& metricUnits, double& metricWeight) const;
 
 private:
 
@@ -254,7 +254,7 @@ private:
       return sumVals.find(vnam) != sumVals.end();
     }
     // Return a value by name.
-    float getValue(Name vnam) const {
+    double getValue(Name vnam) const {
       if ( vnam == "weightFlag" ) return weightFlag;
       if ( vnam == "weightedEventCount" ) return weightedEventCount;
       if ( vnam == "eventCount" ) return eventCount;
@@ -275,10 +275,10 @@ private:
 
   class Metric {
   public:
-    float value =0.0;
-    float error =0.0;
-    void setValue(float a_value) { value = a_value; }
-    void setError(float a_error) { error = a_error; }
+    double value =0.0;
+    double error =0.0;
+    void setValue(double a_value) { value = a_value; }
+    void setError(double a_error) { error = a_error; }
     bool operator<(const Metric& rhs) const { return value < rhs.value; }
   };
   using MetricMap = std::map<Index, Metric>;

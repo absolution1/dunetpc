@@ -105,85 +105,86 @@ public:
 
   void getS11Info(uint64_t);
 
-  std::vector<double> FetchAndReport(long long, std::string, std::unique_ptr<ifbeam_ns::BeamFolder>& );
+  std::vector<double> FetchAndReport(
+      long long, std::string,
+      std::unique_ptr<ifbeam_ns::BeamFolder>&);
    
 private:
   
-  TTree * fOutTree;
-  TH1F  * fFullMomentum;
-  TH1F  * fCutMomentum;
+  TTree * fOutTree = 0x0;
+  TH1F  * fFullMomentum = 0x0;
+  TH1F  * fCutMomentum = 0x0;
 
-  TTree * fGenTrigTree;
-  TTree * fXTOF1ATree;
-  TTree * fXTOF1BTree;
-  TTree * fXTOF2ATree;
-  TTree * fXTOF2BTree;
+  TTree * fGenTrigTree = 0x0;
+  TTree * fXTOF1ATree = 0x0;
+  TTree * fXTOF1BTree = 0x0;
+  TTree * fXTOF2ATree = 0x0;
+  TTree * fXTOF2BTree = 0x0;
 
 
-  double fGenTrigFrac;
-  double fGenTrigSec;
-  double fGenTrigCoarse; 
-  double fXTOF1AFrac;
-  double fXTOF1ACoarse; 
-  double fXTOF1BFrac;
-  double fXTOF1BCoarse; 
-  double fXTOF2AFrac;
-  double fXTOF2ACoarse; 
-  double fXTOF2BFrac;
-  double fXTOF2BCoarse; 
+  double fGenTrigFrac = 0;
+  double fGenTrigSec = 0;
+  double fGenTrigCoarse = 0; 
+  double fXTOF1AFrac = 0;
+  double fXTOF1ACoarse = 0; 
+  double fXTOF1BFrac = 0;
+  double fXTOF1BCoarse = 0; 
+  double fXTOF2AFrac = 0;
+  double fXTOF2ACoarse = 0; 
+  double fXTOF2BFrac = 0;
+  double fXTOF2BCoarse = 0; 
 
-  double fXTOF1ASec;
-  double fXTOF1BSec;
-  double fXTOF2ASec;
-  double fXTOF2BSec;
+  double fXTOF1ASec = 0;
+  double fXTOF1BSec = 0;
+  double fXTOF2ASec = 0;
+  double fXTOF2BSec = 0;
   std::vector<double> diff2A;
   std::vector<double> diff2B;
  
 
-  long long int eventTime;
-  double SpillStart;
-  ULong_t SpillStart_alt;
-  bool SpillStartValid;
-  bool acqStampValid;
+  long long int eventTime = 0;
+  double SpillStart = 0.;
+  ULong_t SpillStart_alt = 0;
+  bool SpillStartValid = false;
+  bool acqStampValid = false;
   double PrevStart=-99999.;
-  double SpillEnd;
-  double SpillOffset;
-  double ActiveTriggerTime;
-  long long RDTSTime;
-  double RDTSTimeSec;
+  double SpillEnd = 0.;
+  double SpillOffset = 0.;
+  double ActiveTriggerTime = 0.;
+  long long RDTSTime = 0;
+  double RDTSTimeSec = 0.;
   double PrevRDTSTimeSec=-99999.;  
-  double RDTSTimeNano; 
+  double RDTSTimeNano = 0.; 
 
-  long long valid_fetch_time; 
-  long long spill_valid_fetch_time;
+  //long long valid_fetch_time = 0; 
+  //long long spill_valid_fetch_time = 0;
 
-  double s11Sec, s11Nano;
-  double fOutTOF;
-  double fOutP;
-  int    fOutC0, fOutC1;
+  double s11Sec = 0., s11Nano = 0.;
+  double fOutTOF= 0.;
+  double fOutP= 0.;
+  int    fOutC0 = 0, fOutC1 = 0;
 
-  int RDTSTrigger;
+  int RDTSTrigger = 0;
 
-  double acqTime;
-  double acqStampMBPL;
+  double acqTime = 0.;
+  double acqStampMBPL = 0.;
 
-  int C1DB;
-  int C2DB;
+  int C1DB = 0;
+  int C2DB = 0;
 
 
-  int eventNum;
-  int runNum;
-  int subRunNum;
-  double CKov1Pressure;
-  double CKov2Pressure;
-  int CKov1Counts;
-  int CKov2Counts;
+  int eventNum = 0;
+  int runNum = 0;
+  int subRunNum = 0;
+  double CKov1Pressure = 0.;
+  double CKov2Pressure = 0.;
+  int CKov1Counts = 0;
+  int CKov2Counts = 0;
   
   TVector3 fBMBasisX = TVector3(1.,0.,0.);
   TVector3 fBMBasisY = TVector3(0.,1.,0.);
   TVector3 fBMBasisZ = TVector3(0.,0.,1.);
 
-  double  fTimeWindow;
   std::string fBundleName;
   std::string fXCETBundleName;
   std::string fOutputLabel;
@@ -191,7 +192,9 @@ private:
   double fBFEpsilon, fXCETEpsilon;
   double fXCETFetchShift;
   int fIFBeamDebug;
+  double  fTimeWindow;
   uint64_t fFixedTime;
+  std::vector< std::string > fDevices;
 
   std::string firstUpstreamName;
   std::string secondUpstreamName;
@@ -208,7 +211,6 @@ private:
   double fBProf2Shift;
   double fBProf3Shift;
 
-  std::vector< std::string > fDevices;
   std::map<std::string, std::string > fDeviceTypes;
   std::map< std::string, double > fFiberDimension;
 
@@ -228,8 +230,8 @@ private:
 
   // Time of Flights
   std::string fTOF1;
-  std::string fTOF1A, fTOF1B;
   std::string fTOF2;
+  std::string fTOF1A, fTOF1B;
   std::string fTOF2A, fTOF2B;
 
   double fTOFCalAA, fTOFCalBA, fTOFCalAB, fTOFCalBB;
@@ -239,6 +241,7 @@ private:
   std::string fCKov2;
   std::string fXCET1;
   std::string fXCET2;
+  double fFillCacheUp, fFillCacheDown;
 
   double fRotateMonitorXZ;
   double fRotateMonitorYZ;
@@ -255,23 +258,12 @@ private:
   bool   fForceRead;
   bool   fForceMatchS11;
   
-  double fFillCacheUp, fFillCacheDown;
-
-  bool   fPrintDebug;
-  bool   fSaveOutTree;
-  bool   fDebugTOFs;
-  bool   fDebugMomentum;
-
-  bool   gotGeneralTrigger;
-  bool   gotTOFs;
-  bool   gotCurrent;
-
   double fTimingCalibration;
   double fCalibrationTolerance;
   double fOffsetTAI;
-
   double fS11DiffUpper; 
   double fS11DiffLower; 
+
   double fRDTSToS11Upper; 
   double fRDTSToS11Lower; 
 
@@ -280,6 +272,17 @@ private:
 
   double fDownstreamToGenTrig;
   double fUpstreamToDownstream;
+
+  bool   fPrintDebug;
+  bool   fSaveOutTree;
+  bool   fDebugMomentum;
+  bool   fDebugTOFs;
+
+  bool   gotGeneralTrigger;
+  bool   gotTOFs;
+  bool   gotCurrent;
+
+
 
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
@@ -297,7 +300,7 @@ private:
   art::Handle< std::vector<raw::RDTimeStamp> > RDTimeStampHandle;
 
 //  double L1=1.980, L2=1.69472, L3=2.11666;
-  double magnetLen, magnetField;
+  double magnetLen = 1., magnetField = 1000.;
   std::vector<double> current;
 
   //Hardware Parameters for magnetic field stuff
@@ -310,47 +313,107 @@ private:
 
 // Constructor
 proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
-: EDProducer(p)
-{
+    : EDProducer(p),
+      fBundleName(p.get<std::string>("BundleName")),
+    fXCETBundleName(p.get<std::string>("XCETBundleName")),
+    fOutputLabel(p.get<std::string>("OutputLabel")),
+    fURLStr(p.get<std::string>("URLStr")),
+    fBFEpsilon(p.get<double>("BFEpsilon")),
+    fXCETEpsilon(p.get<double>("XCETEpsilon")),
+    fXCETFetchShift(p.get<double>("XCETFetchShift")),
+    fIFBeamDebug(p.get<int>("IFBeamDebug")),
+    fTimeWindow(p.get<double>("TimeWindow")),
+    fFixedTime(p.get<uint64_t>("FixedTime")),
+    fDevices(p.get<std::vector<std::string>>("Devices")),    
+    //For Tracking/////
+    firstUpstreamName(p.get<std::string>("FirstUpstream")),
+    secondUpstreamName(p.get<std::string>("SecondUpstream")),
+    firstDownstreamName(p.get<std::string>("FirstDownstream")),
+    secondDownstreamName(p.get<std::string>("SecondDownstream")),
+    ///////////////////
+    //For Momentum Spectrometry////
+    firstBPROF1(p.get<std::string>("FirstBPROF1")),
+    secondBPROF1(p.get<std::string>("SecondBPROF1")),
+    BPROF2(p.get<std::string>("BPROF2")),
+    BPROF3(p.get<std::string>("BPROF3")),
+    fBeamBend(p.get<double>("BeamBend")),
+    L1(p.get<double>("L1")), 
+    L2(p.get<double>("L2")), 
+    L3(p.get<double>("L3")), 
+    fBProf1Shift(p.get<double>("BProf1Shift")), 
+    fBProf2Shift(p.get<double>("BProf2Shift")), 
+    fBProf3Shift(p.get<double>("BProf3Shift")), 
+    fXBPFPrefix(p.get<std::string>("XBPFPrefix")),
+    fXTOFPrefix(p.get<std::string>("XTOFPrefix")),
+    fXCETPrefix(p.get<std::string>("XCETPrefix")),
+    //XTOF devices 
+    fTOF1(p.get< std::string >("TOF1")),
+    fTOF2(p.get< std::string >("TOF2")),
+    fTOF1A(fTOF1 + "A"),
+    fTOF1B(fTOF1 + "B"),
+    fTOF2A(fTOF2 + "A"),
+    fTOF2B(fTOF2 + "B"),
+    fTOFCalAA(p.get<double>("TOFCalAA")),
+    fTOFCalBA(p.get<double>("TOFCalBA")),
+    fTOFCalAB(p.get<double>("TOFCalAB")),
+    fTOFCalBB(p.get<double>("TOFCalBB")),
+    fCKov1(p.get< std::string >("CKov1")),
+    fCKov2(p.get< std::string >("CKov2")),
+    fXCET1(p.get< std::string >("XCET1")),
+    fXCET2(p.get< std::string >("XCET2")),
+
+    fFillCacheUp(p.get< double >("FillCacheUp")),
+    fFillCacheDown(p.get< double >("FillCacheDown")),
+
+
+
+    //New parameters to match Leigh's
+    fRotateMonitorXZ(p.get<double>("RotateMonitorXZ")),
+    fRotateMonitorYZ(p.get<double>("RotateMonitorYZ")),
+    fRotateMonitorYX(p.get<double>("RotateMonitorYX")),
+
+    fFirstTrackingProfZ(p.get<double>("FirstTrackingProfZ")),
+    fSecondTrackingProfZ(p.get<double>("SecondTrackingProfZ")),
+    fNP04FrontZ(p.get<double>("NP04FrontZ")),  
+
+    fBeamX(p.get<double>("BeamX")),
+    fBeamY(p.get<double>("BeamY")),
+    fBeamZ(p.get<double>("BeamZ")),
+
+    fForceNewFetch(p.get<bool>("ForceNewFetch")),
+    fXCETDebug(p.get<bool>("XCETDebug")),
+    fMatchTime(p.get<bool>("MatchTime")),
+    fForceRead(p.get<bool>("ForceRead")),
+    fForceMatchS11(p.get<bool>("ForceMatchS11")),
+
+
+    fTimingCalibration(p.get<double>("TimingCalibration")),
+    fCalibrationTolerance(p.get<double>("CalibrationTolerance")),
+    fOffsetTAI(p.get<double>("OffsetTAI")),
+
+    fS11DiffUpper(p.get<double>("S11DiffUpper")),
+    fS11DiffLower(p.get<double>("S11DiffLower")),
+
+    fRDTSToS11Upper(p.get<double>("RDTSToS11Upper")),
+    fRDTSToS11Lower(p.get<double>("RDTSToS11Lower")),
+
+    fOffsetCTBtoRDTS(p.get<int>("OffsetCTBtoRDTS")),
+    fToleranceCTBtoRDTS(p.get<int>("ToleranceCTBtoRDTS")),
+
+    fDownstreamToGenTrig(p.get<double>("DownstreamToGenTrig")),
+    fUpstreamToDownstream(p.get<double>("UpstreamToDownstream")),
+
+    fPrintDebug(p.get<bool>("PrintDebug")),
+    fSaveOutTree(p.get<bool>("SaveOutTree")),
+    fDebugMomentum(p.get<bool>("DebugMomentum")),
+    fDebugTOFs(p.get<bool>("DebugTOFs"))
+
+     {
   // Declare products this module will provide
   produces<std::vector<beam::ProtoDUNEBeamEvent>>();  
 
-  // Implementation of optional member function here.
-  fBundleName      = p.get<std::string>("BundleName");
-  fXCETBundleName  = p.get<std::string>("XCETBundleName");
-  fOutputLabel = p.get<std::string>("OutputLabel");
-  fURLStr      = p.get<std::string>("URLStr");
-  fBFEpsilon   = p.get<double>("BFEpsilon");
-  fXCETEpsilon   = p.get<double>("XCETEpsilon");
-  fXCETFetchShift   = p.get<double>("XCETFetchShift");
-  fIFBeamDebug = p.get<int>("IFBeamDebug");
-  fTimeWindow  = p.get<double>("TimeWindow");
-  fFixedTime   = p.get<uint64_t>("FixedTime");
-
-  fDevices     = p.get< std::vector< std::string > >("Devices");    
-
-  //For Tracking/////
-  firstUpstreamName    = p.get< std::string >("FirstUpstream");
-  secondUpstreamName   = p.get< std::string >("SecondUpstream");
-  firstDownstreamName  = p.get< std::string >("FirstDownstream");
-  secondDownstreamName = p.get< std::string >("SecondDownstream");
-  ///////////////////
-
-  //For Momentum Spectrometry////
-  firstBPROF1  = p.get< std::string >("FirstBPROF1");
-  secondBPROF1 = p.get< std::string >("SecondBPROF1");
-  BPROF2       = p.get< std::string >("BPROF2");
-  BPROF3       = p.get< std::string >("BPROF3");
-  fBeamBend    = p.get< double >("BeamBend");
-  L1           = p.get< double >("L1"); 
-  L2           = p.get< double >("L2"); 
-  L3           = p.get< double >("L3"); 
-  fBProf1Shift           = p.get< double >("BProf1Shift"); 
-  fBProf2Shift           = p.get< double >("BProf2Shift"); 
-  fBProf3Shift           = p.get< double >("BProf3Shift"); 
-
-  magnetLen    = 1.;//(m)
-  magnetField  = 1000.;//()
+  //magnetLen    = 1.;//(m)
+  //magnetField  = 1000.;//()
   ///////////////////////////////
 
   std::vector< std::pair<std::string, std::string> >  tempTypes = p.get<std::vector< std::pair<std::string, std::string> >>("DeviceTypes");
@@ -361,74 +424,6 @@ proto::BeamEvent::BeamEvent(fhicl::ParameterSet const & p)
   fFiberDimension = std::map<std::string, double>(tempFiberDims.begin(), tempFiberDims.end());
 
   
-  //XTOF devices 
-  fTOF1 = p.get< std::string >("TOF1");
-  fTOF2 = p.get< std::string >("TOF2");
-
-  fTOF1A = fTOF1 + "A";
-  fTOF1B = fTOF1 + "B";
-  fTOF2A = fTOF2 + "A";
-  fTOF2B = fTOF2 + "B";
-
-  fCKov1 = p.get< std::string >("CKov1");
-  fCKov2 = p.get< std::string >("CKov2");
-  fXCET1 = p.get< std::string >("XCET1");
-  fXCET2 = p.get< std::string >("XCET2");
-
-  fFillCacheUp   = p.get< double >("FillCacheUp");
-  fFillCacheDown = p.get< double >("FillCacheDown");
-
-  fXBPFPrefix      = p.get<std::string>("XBPFPrefix");
-  fXTOFPrefix      = p.get<std::string>("XTOFPrefix");
-  fXCETPrefix      = p.get<std::string>("XCETPrefix");
-
-
-  //New parameters to match Leigh's
-  fRotateMonitorXZ = p.get<double>("RotateMonitorXZ");
-  fRotateMonitorYZ = p.get<double>("RotateMonitorYZ");
-  fRotateMonitorYX = p.get<double>("RotateMonitorYX");
-
-  fFirstTrackingProfZ  = p.get<double>("FirstTrackingProfZ");
-  fSecondTrackingProfZ = p.get<double>("SecondTrackingProfZ");
-  fNP04FrontZ          = p.get<double>("NP04FrontZ");  
-
-  fBeamX               = p.get<double>("BeamX");
-  fBeamY               = p.get<double>("BeamY");
-  fBeamZ               = p.get<double>("BeamZ");
-
-  fForceNewFetch       = p.get<bool>("ForceNewFetch");
-  fMatchTime           = p.get<bool>("MatchTime");
-  fForceRead           = p.get<bool>("ForceRead");
-  fForceMatchS11       = p.get<bool>("ForceMatchS11");
-  fXCETDebug           = p.get<bool>("XCETDebug");
-
-
-  fTimingCalibration      = p.get<double>("TimingCalibration");
-  fCalibrationTolerance   = p.get<double>("CalibrationTolerance");
-  fOffsetTAI              = p.get<double>("OffsetTAI");
-
-  fS11DiffUpper           = p.get<double>("S11DiffUpper");
-  fS11DiffLower           = p.get<double>("S11DiffLower");
-
-  fRDTSToS11Upper         = p.get<double>("RDTSToS11Upper");
-  fRDTSToS11Lower         = p.get<double>("RDTSToS11Lower");
-
-  fOffsetCTBtoRDTS        = p.get<int>("OffsetCTBtoRDTS");
-  fToleranceCTBtoRDTS     = p.get<int>("ToleranceCTBtoRDTS");
-
-  fDownstreamToGenTrig    = p.get<double>("DownstreamToGenTrig");
-  fUpstreamToDownstream   = p.get<double>("UpstreamToDownstream");
-
-  fPrintDebug             = p.get<bool>("PrintDebug");
-  fSaveOutTree            = p.get<bool>("SaveOutTree");
-  fDebugMomentum          = p.get<bool>("DebugMomentum");
-  fDebugTOFs              = p.get<bool>("DebugTOFs");
-
-  fTOFCalAA               = p.get<double>("TOFCalAA");
-  fTOFCalBA               = p.get<double>("TOFCalBA");
-  fTOFCalAB               = p.get<double>("TOFCalAB");
-  fTOFCalBB               = p.get<double>("TOFCalBB");
-
 
 }
 // END Constructor

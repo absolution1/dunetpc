@@ -3,7 +3,7 @@ BEGIN_PROLOG
 proto_beamevent:
 {
   module_type:          "BeamEvent"
-  URLStr:                 "http://ifb-data.fnal.gov:8185/ifbeam"
+  URLStr:                 "https://ifb-data.fnal.gov:8104/ifbeam"
 #  URLStr:                 "http://ifb-data.fnal.gov:8190/ifbeam"
   BFEpsilon:           6.
   XCETEpsilon:         6.

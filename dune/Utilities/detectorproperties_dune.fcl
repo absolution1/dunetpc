@@ -89,7 +89,7 @@ protodunesp_detproperties :
 
  GetHVDriftfromSamweb: true   #will attempt to look up nominal drift HV voltage from samweb metadata
  GetReadOutWindowSizefromSamweb: true #will attempt to look up readout window size samweb metadata
-
+ UseRunDependentTemperature: true #will updated temperature using run number to account for the varition during datataking 
 
   # Drift properties 
 Temperature:      87.68           #Kelvin

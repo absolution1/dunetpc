@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+protodune_lifetimecalib :
+{
+  service_provider: "LifetimeCalibServiceProtoDUNE"
+
+  IsMC: false
+  UseCondbLifetime: false
+  Interpolate: true
+  LifetimeFileName: ""
+  LifetimeDBTag: ""
+
+}
+
+END_PROLOG

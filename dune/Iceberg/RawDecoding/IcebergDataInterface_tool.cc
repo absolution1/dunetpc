@@ -371,21 +371,6 @@ bool IcebergDataInterface::_process_RCE_AUX(
   //<< "   fragmentType = " << (unsigned)frag.type()
   //<< "   Timestamp =  " << frag.timestamp();
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
-  dune::RceFragment rce(frag);
-  
-  if (_rce_save_frags_to_files)
-    {
-      TString outfilename="rce_";
-      outfilename += evt.run();
-      outfilename += "_";
-      outfilename += frag.sequenceID();
-      outfilename += "_";
-      outfilename += frag.fragmentID();
-      outfilename+=".fragment";
-      rce.save(outfilename.Data());
-      std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
-    }
-
 
   artdaq::Fragment cfragloc(frag);
   size_t cdsize = cfragloc.dataSizeBytes();
@@ -404,6 +389,19 @@ bool IcebergDataInterface::_process_RCE_AUX(
   //DataFragmentUnpack df(cdptr);
   //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
 
+  dune::RceFragment rce(frag);
+  if (_rce_save_frags_to_files)
+    {
+      TString outfilename="rce_";
+      outfilename += evt.run();
+      outfilename += "_";
+      outfilename += frag.sequenceID();
+      outfilename += "_";
+      outfilename += frag.fragmentID();
+      outfilename+=".fragment";
+      rce.save(outfilename.Data());
+      std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+    }
 
   uint32_t ch_counter = 0;
   for (int i = 0; i < rce.size(); ++i)

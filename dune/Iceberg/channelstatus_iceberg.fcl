@@ -152,9 +152,35 @@ iceberg_bad_channels: [
 ]
 iceberg_noisy_channels: [
   #### u ####
+    72,   # Very sticky.
     84,   # Noise is a little high
    199,   # Noise is a little high
-   200    # Noise is a little high
+   200,   # Noise is a little high
+   237,   # Very sticky.
+   332,   # Very sticky.
+   361,   # Coherent noisy ASIC.
+   363,   # Coherent noisy ASIC.
+   365,   # Coherent noisy ASIC.
+   367,   # Coherent noisy ASIC.
+   369,   # Coherent noisy ASIC.
+   382,   # Very sticky.
+   387,   # Very sticky.
+  #### v ####
+   414,   # Very sticky.
+   630,   # Coherent noisy ASIC.
+   632,   # Coherent noisy ASIC.
+   634,   # Coherent noisy ASIC.
+   636,   # Coherent noisy ASIC.
+   638,   # Coherent noisy ASIC.
+  #### z1 ####
+   891,   # Very sticky.
+  #### z2 ####
+  1233,   # Coherent noisy ASIC.
+  1235,   # Coherent noisy ASIC.
+  1237,   # Coherent noisy ASIC.
+  1239,   # Coherent noisy ASIC.
+  1241,   # Coherent noisy ASIC.
+  1243    # Coherent noisy ASIC.
 ]
 
 END_PROLOG

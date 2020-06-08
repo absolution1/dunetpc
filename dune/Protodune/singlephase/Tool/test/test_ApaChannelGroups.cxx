@@ -83,7 +83,7 @@ int test_ApaChannelGroups(bool useExistingFcl =false, int show =1) {
   cout << chg << endl;
   assert( ! chg.isValid() );
 
-  vector<string> expApas = {"apa1", "apa2", "apa3", "apa4", "apa5", "apa6"};
+  vector<string> expApas = {"apa3", "apa5", "apa2", "apa6", "apa1", "apa4"};
   vector<string> expTpss = {"tps0", "tps1", "tps2", "tps3", "tps4", "tps5"};
 
   cout << myname << line << endl;
@@ -121,7 +121,7 @@ int test_ApaChannelGroups(bool useExistingFcl =false, int show =1) {
     for ( Name sori : {"z", "c", "u", "v"} ) {
       vector<string> rnams;
       if ( sapt == "apa" ) {
-        for ( Name sapa : { "1", "2", "3", "4", "5", "6" } ) rnams.push_back(rbas + sapa + sori);
+        for ( Name sapa : { "3", "5", "2", "6", "1", "4" } ) rnams.push_back(rbas + sapa + sori);
       } else {
         for ( Name stps : { "0", "1", "2", "3", "4", "5" } ) rnams.push_back(rbas + stps + sori);
       }
