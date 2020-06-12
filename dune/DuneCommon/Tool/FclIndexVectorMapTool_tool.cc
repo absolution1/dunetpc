@@ -51,7 +51,7 @@ FclIndexVectorMapTool::FclIndexVectorMapTool(fhicl::ParameterSet const& ps)
 
 //**********************************************************************
 
-const IndexVectorMapTool::IndexVector& FclIndexVectorMapTool::get(Index idx) const {
+IndexVectorMapTool::IndexVector FclIndexVectorMapTool::get(Index idx) const {
   const Name myname = "FclIndexVectorMapTool::get: ";
   IndexVectorMap::const_iterator ient = m_entryMap.find(idx);
   static const IndexVector empty;
