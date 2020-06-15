@@ -4,6 +4,7 @@
 #include "channelstatus_iceberg.fcl"
 #include "hitfindermodules_dune.fcl"
 #include "trackfindermodules_dune.fcl"
+#include "channelstatus_iceberg.fcl"
 
 process_name: Signal2Noise
 
@@ -60,6 +61,11 @@ physics:
 #services.SpaceCharge.EnableCorrSCE: true
 #services.SpaceCharge.EnableSimEfieldSCE: true
 #services.SpaceCharge.EnableSimulationSCE: true
+
+# channel status service (service_provider should be specified)
+services.ChannelStatusService.BadChannels: @local::iceberg_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::iceberg_noisy_channels
+services.ChannelStatusService.service_provider: "SimpleChannelStatusService"
 
 services.DetectorClocksService:        @local::dunefd_detectorclocks
 services.DetectorPropertiesService:    @local::protodunesp_detproperties

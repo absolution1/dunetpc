@@ -55,6 +55,8 @@
 #include "lardataobj/AnalysisBase/T0.h"
 #include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -154,20 +156,18 @@ private:
   int tamp[kMaxTracks][kMaxHits];
   float ped[kMaxTracks][kMaxHits];
 
-  float noiserms[kMaxTracks][kMaxHits];
-  float fsigma_ped[kMaxTracks][kMaxHits];
+  float noiserms[kMaxTracks][kMaxHits]; // calculate directly
+  float noisermsfit[kMaxTracks][kMaxHits]; // rms from gaus fit
+  float fsigma_ped[kMaxTracks][kMaxHits]; // fit for ped and sigma
   float fped[kMaxTracks][kMaxHits];
   float fchi2[kMaxTracks][kMaxHits];
   int fndf[kMaxTracks][kMaxHits];
 
-  
   // waveform
   int fNticks; 
   int fNticksReadout;
   float fSampleRate;
   TH1I* fWaveForm[10];
-  
-
 };
 
 
@@ -187,10 +187,9 @@ Signal2Noise::Signal2Noise(fhicl::ParameterSet const& p)
   fNticks = detprop->NumberTimeSamples(); // number of clock ticks per event
   fNticksReadout = detprop->ReadOutWindowSize(); // number of clock ticks per readout window
   fSampleRate = detprop->SamplingRate(); // period of the TPC readout electronics clock
-  //cout << "Numer of clock ticks per event: " << fNticks << endl;
-  //cout << "Numer of clock ticks per readout window: " << fNticksReadout << endl;
-  //cout << "Sampling rate: " << fSampleRate << endl;
-
+  cout << "Numer of clock ticks per event: " << fNticks << endl;
+  cout << "Numer of clock ticks per readout window: " << fNticksReadout << endl;
+  cout << "Sampling rate: " << fSampleRate << endl;
 }
 
 
@@ -207,8 +206,8 @@ void Signal2Noise::analyze(art::Event const& e)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
   
-  cout << "tts " << tts << endl;
-  cout << "evttime " << evttime << endl;
+  //cout << "tts " << tts << endl;
+  //cout << "evttime " << evttime << endl;
   
   UInt_t year=0;
   UInt_t month=0;
@@ -222,12 +221,17 @@ void Signal2Noise::analyze(art::Event const& e)
 
   hour_min_sec=tts.GetTime(kTRUE,0,&hour,&min,&sec);
 
+  // channel status
+  lariov::ChannelStatusProvider const& channelStatus
+    = art::ServiceHandle<lariov::ChannelStatusService const>()->GetProvider();
+
   // waveform
   art::Handle< std::vector<raw::RawDigit> > rawdigitListHandle;
   std::vector< art::Ptr<raw::RawDigit> > rawdigitlist;
   if (e.getByLabel("tpcrawdecoder", "daq", rawdigitListHandle)) {
     art::fill_ptr_vector(rawdigitlist, rawdigitListHandle);
   }
+
   //cout << "rawdigitlist.size():  " << rawdigitlist.size() << endl;
 
   // hit
@@ -244,55 +248,14 @@ void Signal2Noise::analyze(art::Event const& e)
     art::fill_ptr_vector(tracklist, trackListHandle);
   }
  
-  // wire
   /*
+  // wire
   art::Handle< std::vector<recob::Wire> > wireListHandle;
   std::vector< art::Ptr<recob::Track> > wirelist;
   if (e.getByLabel("digitwire",wireListHandle)) {
     art::fill_ptr_vector(wirelist, wireListHandle);
   }
   */
-
-  // waveform
-  int nwaveform = 0; // only save 10 waveforms
-  int nwaveform_plane_0 = 0; // only save 3 waveforms
-  int nwaveform_plane_1 = 0; // only save 3 waveforms
-  int nwaveform_plane_2 = 0; // only save 3 waveforms
-  if (fSaveRawWaveForm) {
-    //cout << "rawdigitlist.size(): " << rawdigitlist.size() << endl;
-    for (auto const & rawdigit : rawdigitlist) {
-      // channel number
-      //int channelno = rawdigit->Channel();
-      // number of samples in uncompressed ADC
-      int nSamples = rawdigit->Samples();
-      //cout << "channelno: " << channelno << endl;
-      //cout << "nSamples: " << nSamples << endl;
-      int pedestal = rawdigit->GetPedestal();
-      std::vector<short> uncompressed(nSamples);
-      // with pedestal
-      raw::Uncompress(rawdigit->ADCs(), uncompressed, pedestal, rawdigit->Compression());
-      // subtract pedestals
-      std::vector<short> uncompPed(nSamples);
-      for (int i=0; i<nSamples; i++) {
-        uncompPed.at(i)=uncompressed.at(i)-pedestal;
-      }
-      //store selected wire waveform
-      /*
-      for(int i=0; i<(int)fSelectedWires.size(); i++) {
-        if (channelno == fSelectedWires.at(i)) {
-          fWaveForm[i]->SetNameTitle(Form("AdcChannel_%d", channelno), Form("AdcChannel%d", channelno));
-          for (int j=0; j<nSamples; j++) {
-            fWaveForm[i]->SetBinContent(j+1, uncompPed.at(j));
-          }
-          cout << "channelno..." << channelno << endl;
-        }
-      
-      }
-      */
-      
-    }
-
-  } // end of if fSaveRawWaveForm
 
   art::ServiceHandle<geo::Geometry> geom;
 
@@ -305,7 +268,11 @@ void Signal2Noise::analyze(art::Event const& e)
 
   auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
-  //cout << "tracklist.size(): " << tracklist.size() << endl;
+  // waveform: save several waveforms for check
+  int nwaveform = 0; // only save 10 waveforms
+  int nwaveform_plane_0 = 0; // only save 3 waveforms
+  int nwaveform_plane_1 = 0; // only save 3 waveforms
+  int nwaveform_plane_2 = 0; // only save 3 waveforms
 
   ntrks = 0;
   for (const auto& trk : tracklist) {
@@ -341,7 +308,6 @@ void Signal2Noise::analyze(art::Event const& e)
     // calometry
     if (fmtrkcalo.isValid()) {
       std::vector<art::Ptr<anab::Calorimetry>> calos = fmtrkcalo.at(ntrks);
-      //cout << "calos.size: " << calos.size() << endl;
       for (size_t icalo=0; icalo<calos.size(); icalo++) {
         if (!calos[icalo]) continue;
         if (!calos[icalo]->PlaneID().isValid) continue;
@@ -368,20 +334,14 @@ void Signal2Noise::analyze(art::Event const& e)
           trkx[ntrks][planenum][iHit] = x;
           trkt[ntrks][planenum][iHit] = t;
           trkdqdx[ntrks][planenum][iHit] = (calos[icalo]->dQdx())[iHit];
-        
-
-
         }
 
       } // end loop over icalo
     
     } //  end if fmtrkcalo
 
-
-    
     // hits associated with trk
     std::vector<art::Ptr<recob::Hit>> allhits = fmtrkhit.at(ntrks); // use either trk.key() or ntrks 
-    //cout << "allhits.size(): " << allhits.size() << endl;
     
     for (size_t ihit=0; ihit<allhits.size(); ihit++) {
       // wire plane information
@@ -390,15 +350,8 @@ void Signal2Noise::analyze(art::Event const& e)
       unsigned int wire = allhits[ihit]->WireID().Wire;
       unsigned int tpc = allhits[ihit]->WireID().TPC;
       unsigned int channel = allhits[ihit]->Channel();
-      
-      /*
-      if (ihit < 2) {
-        cout << "track: " << ntrks << " ; hit: " << ihit 
-             << " ; plane: " << wireplane << " ; wire: " << wire 
-             << " ; tpc: " << tpc << " ; channel: " << channel << endl;
-             cout << "trkstart[ntrks][0]: " << trkstart[ntrks][0] << endl;
-      }
-      */
+     
+      if (channelStatus.IsBad(channel)) continue;
 
       // hit position: not all hits are associated with space points, using neighboring space points to interpolate
       double xyz[3] = {-9999.0, -9999.0, -9999.0};
@@ -461,11 +414,9 @@ void Signal2Noise::analyze(art::Event const& e)
       //cout << "track direction: " << trkstartcosxyz[ntrks][0] << ", " << trkstartcosxyz[ntrks][1] << ", " << trkstartcosxyz[ntrks][2]  << endl;
       //cout << "angleToVert: " << angleToVert << endl;
       //cout << "dir: " << dir.X() << ", " << dir.Y() << ", " << dir.Z() << endl;
-      //cout << "tmp_cosgamma: " << tmp_cosgamma << endl;
 
-
-      // check wire direction on each plane
       /*
+      // check wire direction on each plane
       cout << geom->Plane(wireplane).Wire(wire).ThetaZ(true) << endl;
       double wirestart[3];
       double wireend[3];
@@ -476,8 +427,6 @@ void Signal2Noise::analyze(art::Event const& e)
       */
       
       // raw waveform
-      //int datasize = fmhitrawdigit.at(allhits[ihit].key())[0]->Samples();
-
       // loop over rawdigitlist to find the associated rawdighit with same channel of the hit
       int key_rawdigit = -1;
       for (size_t ird=0; ird<rawdigitlist.size(); ird++) {
@@ -495,8 +444,7 @@ void Signal2Noise::analyze(art::Event const& e)
       // pedestal
       ped[ntrks][ihit] = rawdigitlist[key_rawdigit]->GetPedestal(); // Pedestal level (ADC counts)
 
-      //if (fSaveRawWaveForm && nwaveform<10 && nwaveform_plane_0<4 && nwaveform_plane_1<4 && nwaveform_plane_2<5) {
-      if (fSaveRawWaveForm && nwaveform<10 && wireplane == 1) {
+      if (fSaveRawWaveForm && nwaveform<10 && nwaveform_plane_0<4 && nwaveform_plane_1<4 && nwaveform_plane_2<5) {
         if (wireplane==0) nwaveform_plane_0++;
         if (wireplane==1) nwaveform_plane_1++;
         if (wireplane==2) nwaveform_plane_2++;
@@ -514,10 +462,7 @@ void Signal2Noise::analyze(art::Event const& e)
       if (t0<0) t0 = 0;
       int t1 = allhits[ihit]->PeakTime() + 3*(allhits[ihit]->RMS());
       if (t1>= datasize) t1 = datasize - 1;
-
-      //cout << "datasize: " << datasize << endl;
       //cout << "t0: " << t0 << " ; t1: " << t1 << endl;
-      
       
       // maximum pulse height of raw waveform
       float temp_max_pulseheight = -9999.;
@@ -529,47 +474,46 @@ void Signal2Noise::analyze(art::Event const& e)
         }
       }
 
-      /*
-      if (channel == 121) {
-        cout << "check channel: " << channel << endl;
-        cout << "allhits[ihit]->PeakTime(): " << allhits[ihit]->PeakTime() << endl;
-        cout << "temp_t_max_pulseheight: " << temp_t_max_pulseheight << endl;
-        cout << "temp_max_pulseheight: " << temp_max_pulseheight << endl;
-        cout << "ped[ntrks][ihit]: " << ped[ntrks][ihit] << endl;
-        cout << "t0: " << t0 << " ; t1: " << t1 << endl;
-      }
-      */
-
       amp[ntrks][ihit] = temp_max_pulseheight;
       tamp[ntrks][ihit] = temp_t_max_pulseheight;
 
-      /*
-      cout << "wirplane: " << wireplane << endl;
-      cout << "hit peaktime: " << allhits[ihit]->PeakTime() << endl;
-      cout << "ped[ntrks][ihit]: " << ped[ntrks][ihit] << endl;
-      cout << "amp[ntrks][ihit]: " << amp[ntrks][ihit] << endl;
-      cout << "tamp[ntrks][ihit]: " << tamp[ntrks][ihit] << endl;
-      cout << "amp-ped: " << amp[ntrks][ihit] - ped[ntrks][ihit] << endl;
-      cout << "(amp-ped)*cosgma: " << (amp[ntrks][ihit] - ped[ntrks][ihit])*cosgma[ntrks][ihit] << endl;
-      */
-
-      // noise rms calculation
+      // noise rms calculation: ideally, this should be done for all wires, not only wires that have hits
       // method 1: calculate rms directly
       int start_ped = 0; 
-      int end_ped = 50; 
+      int end_ped = 2000; 
       float temp_sum = 0.;
       int temp_number = 0;
       for (int iped=start_ped; iped<=end_ped; iped++) {
-        //if (iped > tamp[ntrks][ihit]-10 && iped < tamp[ntrks][ihit]+10) continue;
+        //if (iped > tamp[ntrks][ihit]-10 && iped < tamp[ntrks][ihit]+10) continue; // ideally we should use this to skip ROI region
         float temp_res = rawadc[iped] - ped[ntrks][ihit];
+        if (abs(temp_res) > 8.) continue; // skip ROI with a threshold
         temp_sum += temp_res*temp_res;
         temp_number++;
       }
       noiserms[ntrks][ihit] = sqrt(temp_sum/temp_number);
-      //cout << "noiserms[ntrks][ihit]: " << noiserms[ntrks][ihit] << endl;
+     
+      // method 2: fit noise histogram with a gaus
+      int nbin_noise = 40;
+      double lbin_noise = -20.;
+      double hbin_noise = 20.;
       
-      // method 2: baseline projection and get sigma of pedestal distribution
-      int nadc_ped = datasize;
+      TH1F *h1_noise = new TH1F(TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), nbin_noise, lbin_noise, hbin_noise);
+      // fill the readout datasize for each wire with hit: signal is included but would not affect the noise rms since signals are far way from the noise peak. One may also exclude signals by using ROI threshold cuts
+      for (int jj=0; jj<datasize; jj++) {
+        h1_noise->Fill(rawadc[jj]-ped[ntrks][ihit]);
+      }
+      TF1 *f1_noise = new TF1("f1_noise", "gaus" , -10., 10.);
+      double par[3];
+      h1_noise->Fit(f1_noise, "WWQ");
+      f1_noise->GetParameters(&par[0]);
+      noisermsfit[ntrks][ihit] = par[2]; // sigma from gaus fit
+
+      delete h1_noise;
+      delete f1_noise;
+
+      // method 3: baseline projection and get sigma of pedestal distribution
+      // To use this, one should be careful. pedestals are different for different plane and wires. plane 0, 1: ~2400  plane 2: ~950
+      int nadc_ped = 3500; // include sig/noise and pedestal
       int rebin_ped = 10;
       int nbin_ped =nadc_ped/rebin_ped;
 
@@ -672,8 +616,6 @@ void Signal2Noise::analyze(art::Event const& e)
       delete phf;
 
     } // end of for ihit
-
-    
     
     ++ ntrks;
   } // end of for trk
@@ -726,6 +668,7 @@ void Signal2Noise::beginJob(){
   fEventTree->Branch("cosgma", cosgma, "cosgma[ntrks][1000]/D");
 
   fEventTree->Branch("noiserms", noiserms, "noiserms[ntrks][1000]/F");
+  fEventTree->Branch("noisermsfit", noisermsfit, "noisermsfit[ntrks][1000]/F");
   fEventTree->Branch("fsigma_ped", fsigma_ped, "fsigma_ped[ntrks][1000]/F");
   fEventTree->Branch("fped", fped, "fped[ntrks][1000]/F");
   fEventTree->Branch("fchi2", fchi2, "fchi2[ntrks][1000]/F");
@@ -790,6 +733,7 @@ void Signal2Noise::reset(){
       tamp[i][k] = -1;
       
       noiserms[i][k] = -999.;
+      noisermsfit[i][k] = -999.;
       fsigma_ped[i][k] = -99999.;
       fped[i][k] = -99999.;
       fchi2[i][k] = -99999.;
