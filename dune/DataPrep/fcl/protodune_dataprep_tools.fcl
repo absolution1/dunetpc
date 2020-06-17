@@ -329,7 +329,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Raw ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.{png,tpad"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.{png,tpad}"
 }
 
 # Prepared data.
@@ -355,7 +355,7 @@ tools.preparedAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Prepared ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.{png,tpad"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.{png,tpad}"
 }
 tools.preparedAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter

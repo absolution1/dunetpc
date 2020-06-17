@@ -2,9 +2,9 @@
 
 // David Adams
 // June 2018
+// June 2020: Change get to return by balue instead of ref.
 //
-// Interface for tools that map one index to another, e.g.
-// online to offline channel or vice versa.
+// Interface for tools that map one index to a vector of indices.
 
 #ifndef IndexVectorMapTool_H
 #define IndexVectorMapTool_H
@@ -24,11 +24,11 @@ public:
   virtual ~IndexVectorMapTool() =default;
 
   // Return the vector for an index.
-  virtual const IndexVector& get(Index idx) const =0;
+  virtual IndexVector get(Index idx) const =0;
 
   // Return if the vector for an index contains a value.
   virtual bool contains(Index idx, Index val) {
-    const IndexVector vec = get(idx);
+    IndexVector vec = get(idx);
     return find(vec.begin(), vec.end(), val) != vec.end();
   }
 
