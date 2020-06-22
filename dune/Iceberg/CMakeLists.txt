@@ -1,4 +1,5 @@
 add_subdirectory(RawDecoding)
 add_subdirectory(Monitor)
 add_subdirectory(icebergpd)
+add_subdirectory(Signal2Noise)
 install_fhicl()
