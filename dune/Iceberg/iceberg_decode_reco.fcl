@@ -63,12 +63,14 @@ physics:
     producers:
     {
         @table::protoDUNE_rawdecoding_producers
+        tpcrawdecoder: @local::iceberg_tpc_raw_decoder
         @table::protoDUNE_reco_data_producers
     }
 
     #Create path to run module
     decode: [ 
        timingrawdecoder,
+       tpcrawdecoder,
        caldata,
        wclsdatasp,
        gaushit,
