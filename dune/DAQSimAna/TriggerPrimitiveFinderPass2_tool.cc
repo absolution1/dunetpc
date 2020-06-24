@@ -36,9 +36,10 @@ private:
 
 TriggerPrimitiveFinderPass2::TriggerPrimitiveFinderPass2(fhicl::ParameterSet const & p)
     : TriggerPrimitiveFinderPass1(p),
-      m_sigmaThreshold(p.get<float>("ThresholdInSigma", 5))
+      m_sigmaThreshold(p.get<float>("ThresholdInSigma", 500))
 // Initialize member data here.
 {
+  std::cout << "Threshold in sigma is " << m_sigmaThreshold  << " (ignore the Threshold = 10 on previous line)\n";
 }
 
 void
