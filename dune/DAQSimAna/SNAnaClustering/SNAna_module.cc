@@ -230,14 +230,23 @@ private:
   std::vector<float>                True_Dirz                ;
   std::vector<float>                True_Time                ;
 
-  std::vector<int>                  True_Bck_Mode            ;
+  std::vector<int>                  True_Bck_Mode            ;   
+  std::vector<int>                  True_Bck_PDG             ;
+  std::vector<int>                  True_Bck_ID              ;
+  std::vector<std::string>          True_Bck_Process         ; // str because why not
+  std::vector<std::string>          True_Bck_EndProcess      ;
+  std::vector<int>                  True_Bck_Mother          ;
+  std::vector<double>               True_Bck_P               ;
   std::vector<double>               True_Bck_VertX           ;
   std::vector<double>               True_Bck_VertY           ;
   std::vector<double>               True_Bck_VertZ           ;
   std::vector<double>               True_Bck_Time            ;
   std::vector<double>               True_Bck_Energy          ;
-  std::vector<int>                  True_Bck_PDG             ;
-  std::vector<int>                  True_Bck_ID              ;
+  std::vector<double>               True_Bck_EndX            ;
+  std::vector<double>               True_Bck_EndY            ;
+  std::vector<double>               True_Bck_EndZ            ;
+  std::vector<double>               True_Bck_EndT            ;
+  std::vector<double>               True_Bck_EndE            ;   
 
   int   NTotIDEs;
   std::vector<int>                  IDEChannel               ;
@@ -409,13 +418,22 @@ void SNAna::ResetVariables()
   True_Time                .clear();
 
   True_Bck_Mode            .clear();
+  True_Bck_PDG             .clear();
+  True_Bck_ID              .clear();
+  True_Bck_Process         .clear();
+  True_Bck_EndProcess      .clear();
+  True_Bck_Mother          .clear();
+  True_Bck_P               .clear();
   True_Bck_VertX           .clear();
   True_Bck_VertY           .clear();
   True_Bck_VertZ           .clear();
   True_Bck_Time            .clear();
   True_Bck_Energy          .clear();
-  True_Bck_PDG             .clear();
-  True_Bck_ID              .clear();
+  True_Bck_EndX            .clear();
+  True_Bck_EndY            .clear();
+  True_Bck_EndZ            .clear();
+  True_Bck_EndT            .clear();
+  True_Bck_EndE            .clear();
 
   // IDEs
   NTotIDEs=0;
@@ -534,14 +552,24 @@ void SNAna::beginJob()
   fSNAnaTree->Branch("True_Dirz"                , &True_Dirz                );
   fSNAnaTree->Branch("True_Time"                , &True_Time                );
 
+
   fSNAnaTree->Branch("True_Bck_Mode"            , &True_Bck_Mode            );
+  fSNAnaTree->Branch("True_Bck_PDG"             , &True_Bck_PDG             );
+  fSNAnaTree->Branch("True_Bck_ID"              , &True_Bck_ID              );
+  fSNAnaTree->Branch("True_Bck_Process"         , &True_Bck_Process         );
+  fSNAnaTree->Branch("True_Bck_EndProcess"      , &True_Bck_EndProcess      );
+  fSNAnaTree->Branch("True_Bck_Mother"          , &True_Bck_Mother          );
+  fSNAnaTree->Branch("True_Bck_P"               , &True_Bck_P               );
   fSNAnaTree->Branch("True_Bck_VertX"           , &True_Bck_VertX           );
   fSNAnaTree->Branch("True_Bck_VertY"           , &True_Bck_VertY           );
   fSNAnaTree->Branch("True_Bck_VertZ"           , &True_Bck_VertZ           );
   fSNAnaTree->Branch("True_Bck_Time"            , &True_Bck_Time            );
   fSNAnaTree->Branch("True_Bck_Energy"          , &True_Bck_Energy          );
-  fSNAnaTree->Branch("True_Bck_PDG"             , &True_Bck_PDG             );
-  fSNAnaTree->Branch("True_Bck_ID"              , &True_Bck_ID              );
+  fSNAnaTree->Branch("True_Bck_EndX"            , &True_Bck_EndX            );
+  fSNAnaTree->Branch("True_Bck_EndY"            , &True_Bck_EndY            );
+  fSNAnaTree->Branch("True_Bck_EndZ"            , &True_Bck_EndZ            );
+  fSNAnaTree->Branch("True_Bck_EndT"            , &True_Bck_EndT            );
+  fSNAnaTree->Branch("True_Bck_EndE"            , &True_Bck_EndE            );  
 
   // IDEs
   if(fSaveIDEs) {
@@ -1089,14 +1117,23 @@ void SNAna::FillTruth(const art::FindManyP<simb::MCParticle> Assn,
   for(size_t i1=0; i1<Hand->size(); ++i1) {
     for ( size_t i2=0; i2 < Assn.at(i1).size(); ++i2 ) {
       const simb::MCParticle ThisPar = (*Assn.at(i1).at(i2));
-      True_Bck_Mode  .push_back(type);
-      True_Bck_VertX .push_back(ThisPar.Vx());
-      True_Bck_VertY .push_back(ThisPar.Vy());
-      True_Bck_VertZ .push_back(ThisPar.Vz());
-      True_Bck_Time  .push_back(ThisPar.T());
-      True_Bck_Energy.push_back(ThisPar.E());
-      True_Bck_PDG   .push_back(ThisPar.PdgCode());
-      True_Bck_ID    .push_back(ThisPar.TrackId());
+      True_Bck_Mode      .push_back(type);
+      True_Bck_PDG       .push_back(ThisPar.PdgCode   ());
+      True_Bck_ID        .push_back(ThisPar.TrackId   ());
+      True_Bck_Mother    .push_back(ThisPar.Mother    ());
+      True_Bck_P         .push_back(ThisPar.P         ());
+      True_Bck_VertX     .push_back(ThisPar.Vx        ());
+      True_Bck_VertY     .push_back(ThisPar.Vy        ());
+      True_Bck_VertZ     .push_back(ThisPar.Vz        ());
+      True_Bck_Time      .push_back(ThisPar.T         ());
+      True_Bck_Energy    .push_back(ThisPar.E         ());
+      True_Bck_EndX      .push_back(ThisPar.EndX      ());
+      True_Bck_EndY      .push_back(ThisPar.EndY      ());
+      True_Bck_EndZ      .push_back(ThisPar.EndZ      ());
+      True_Bck_EndT      .push_back(ThisPar.EndT      ());
+      True_Bck_EndE      .push_back(ThisPar.EndE      ());
+      True_Bck_EndProcess.push_back(ThisPar.EndProcess());
+      True_Bck_Process   .push_back(ThisPar.Process   ());
     }
   }
 }
