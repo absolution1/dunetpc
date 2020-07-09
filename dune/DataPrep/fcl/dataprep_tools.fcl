@@ -404,8 +404,17 @@ tools.adcScaleKeToAdc: {
   tool_type: AdcSampleScaler
   LogLevel: 1
   ScaleFactor: 40.0
-  OutputUnit: "ADC count"
   InputUnit: "ke/tick"
+  OutputUnit: "ADC count"
+}
+
+# Scale samples from ke to ADC count.
+tools.adcScaleAdcToKe: {
+  tool_type: AdcSampleScaler
+  LogLevel: 1
+  ScaleFactor: 0.025
+  InputUnit: "ADC count"
+  OutputUnit: "ke/tick"
 }
 
 # Find ADC signals with simple threshold algorithm.
