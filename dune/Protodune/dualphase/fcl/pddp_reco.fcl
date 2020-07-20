@@ -230,12 +230,12 @@ physics.producers.pandora.PrintOverallRecoStatus: false
 physics.producers.pandora.ShouldPerformSliceId: false
 physics.producers.pandora.ShouldRunAllHitsCosmicReco: true
 physics.producers.pandora.ShouldRunCosmicHitRemoval: false
-physics.producers.pandora.ShouldRunCosmicRecoOption: true
+physics.producers.pandora.ShouldRunCosmicRecoOption: false
 physics.producers.pandora.ShouldRunNeutrinoRecoOption: false
-physics.producers.pandora.ShouldRunSlicing: true
+physics.producers.pandora.ShouldRunSlicing: false
 physics.producers.pandora.ShouldRunStitching: false
 physics.producers.pandora.UseGlobalCoordinates: false
-physics.producers.pandora.UseHitWidths: false
+physics.producers.pandora.UseHitWidths: true
 physics.producers.pandoraTrack.PFParticleLabel:         "pandora"
 physics.producers.pandoraShower.PFParticleLabel:        "pandora"
 
