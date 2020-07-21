@@ -3,3 +3,6 @@
 
 services.ChannelStatusService.BadChannels: @local::iceberg_bad_channels_cots
 services.ChannelStatusService.NoisyChannels: @local::iceberg_noisy_channels_cots
+
+services.DetectorPropertiesService.NumberTimeSamples: 6000
+services.DetectorPropertiesService.ReadOutWindowSize: 6000
