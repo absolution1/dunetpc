@@ -25,7 +25,7 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   message:              @local::dune_message_services_prod_debug
   FileCatalogMetadata:  @local::pddp_art_file_catalog
-                        @table::dunefddphase_reco_services
+                        @table::protodunedphase_reco_services
 }
 
 #services.FileCatalogMetadata.applicationVersion: "v08_32_01"
@@ -60,7 +60,11 @@ tools.pddp_RemoveBadChannels: {
 }
 
 
-dataprep_tool_list: [ "digitReader", "pddp_RemoveBadChannels", "def_adcPedestalFit", "adcSampleFiller", "pddp_adcMultiThreshSignalFinder"]
+dataprep_tool_list: [ "digitReader", 
+   		      "def_adcPedestalFit", 
+		      "adcSampleFiller", 
+		      "pddp_RemoveBadChannels", 	       
+		      "pddp_adcMultiThreshSignalFinder" ]
 services.RawDigitPrepService.AdcChannelToolNames: @local::dataprep_tool_list
 services.AdcWireBuildingService.SaveChanPedRMS: false
 tools.def_adcPedestalFit.FitRmsMin:  0.1
