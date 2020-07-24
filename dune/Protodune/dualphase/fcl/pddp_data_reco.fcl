@@ -11,6 +11,7 @@
 #include "particleid.fcl"
 #include "showerfindermodules_dune.fcl"
 #include "channelstatus_pddp.fcl"
+#include "calorimetry_pdune.fcl"
 
 #include "tools_dune.fcl"
 
@@ -160,7 +161,8 @@ physics:
        pandoraTrack:       @local::dune_pandoraTrackCreation
        pandoraShower:      @local::dune_pandoraShowerCreation
 
-##       calo:               @local::dune10kt_calomc
+### calorimetry
+       calo:               @local::pdune_dp_calodata
  }
 
  #define the producer and filter modules for this path, order matters, 
