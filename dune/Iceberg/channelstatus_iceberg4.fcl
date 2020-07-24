@@ -95,20 +95,20 @@ iceberg4_bad_channels: [
 239,
 # End bad FEMB
 301, # Dead in 5915-9,21
-302, # Weak in 5915-9,21
-303, # Weak in 5915-9,21
-305, # Weak in 5915-9,21
-307, # Weak in 5915-9,21
-308, # Weak in 5915-9,21
+302, # Dead in 5915-9,21
+303, # Dead in 5915-9,21
+305, # Dead in 5915-9,21
+307, # Dead in 5915-9,21
+308, # Dead in 5915-9,21
 309, # Dead in 5915-9,21
 310, # Dead in 5915-9,21
 312, # Dead in 5915-9,21
 314, # Dead in 5915-9,21
-315, # Weak in 5915-9,21
+315, # Dead in 5915-9,21
 316, # Dead in 5915-9,21
-317, # Weak in 5915-9,21
+317, # Dead in 5915-9,21
 318, # Dead in 5915-9,21
-319, # Weak in 5915-9,21
+319, # Dead in 5915-9,21
 320, # Dead in 5915-9,21
 # Begin bad FEMB
 560,
