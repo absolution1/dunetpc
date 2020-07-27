@@ -10,6 +10,7 @@ BEGIN_PROLOG
 # bad channels are from the two missing FEMBs
 
 iceberg4_bad_channels: [
+##### apau #####
 # Begin bad FEMB
 0,
 1,
@@ -110,6 +111,7 @@ iceberg4_bad_channels: [
 318, # Dead in 5915-9,21
 319, # Dead in 5915-9,21
 320, # Dead in 5915-9,21
+##### apav #####
 # Begin bad FEMB
 560,
 561,
@@ -151,6 +153,21 @@ iceberg4_bad_channels: [
 597,
 598,
 599,
+# End bad FEMB
+680, # Dead in 5915-17,21
+681, # Dead in 5915-17,21
+683, # Dead in 5915-17,21
+684, # Dead in 5915-17,21
+685, # Dead in 5915-17,21
+686, # Dead in 5915-17,21
+687, # Dead in 5915-17,21
+688, # Dead in 5915-17,21
+689, # Dead in 5915-17,21
+690, # Dead in 5915-17,21
+692, # Dead in 5915-17,21
+695, # Dead in 5915-17,21
+696, # Dead in 5915-17,21
+698, # Dead in 5915-17,21
 # Begin bad FEMB
 760,
 761,
@@ -193,6 +210,7 @@ iceberg4_bad_channels: [
 798,
 799,
 # End bad FEMB
+##### apaz1 #####
 # Begin bad FEMB
 992,
 993,
@@ -243,6 +261,7 @@ iceberg4_bad_channels: [
 1038,
 1039,
 # End bad FEMB
+##### apaz2 #####
 # Begin bad FEMB
 1040,
 1041,
@@ -291,8 +310,24 @@ iceberg4_bad_channels: [
 1084,
 1085,
 1086,
-1087
+1087,
 # End bad FEMB
+1163, # Dead in 5915-21
+1164, # Dead in 5915-21
+1165, # Dead in 5915-21
+1167, # Dead in 5915-21
+1169, # Dead in 5915-21
+1170, # Dead in 5915-21
+1171, # Dead in 5915-21
+1172, # Dead in 5915-21
+1173, # Dead in 5915-21
+1174, # Dead in 5915-21
+1175, # Dead in 5915-21
+1176, # Dead in 5915-21
+1177, # Dead in 5915-21
+1179, # Dead in 5915-21
+1180, # Dead in 5915-21
+1182  # Dead in 5915-21
 ]
 iceberg4_noisy_channels: []
 
