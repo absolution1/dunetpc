@@ -329,6 +329,27 @@ iceberg4_bad_channels: [
 1180, # Dead in 5915-21
 1182  # Dead in 5915-21
 ]
-iceberg4_noisy_channels: []
+iceberg4_noisy_channels: [
+##### apau #####
+  81, # Noisy in 5921-1,2,3
+  83, # Noisy in 5921-1,2,3
+  85, # Noisy in 5921-1,2,3
+  87, # Noisy in 5921-1,2,3
+  89, # Noisy in 5921-1,2,3
+ 198, # Noisy in 5921-1,2,3
+ 199, # Noisy in 5921-1,2,3
+ 510, # Noisy in 5921-1,2,3
+ 512, # Noisy in 5921-1,2,3
+ 514, # Noisy in 5921-1,2,3
+ 516, # Noisy in 5921-1,2,3
+ 518, # Noisy in 5921-1,2,3
+ 682, # Noisy in 5921-1,2,3
+ 932, # Noisy in 5921-1,2,3
+ 934, # Noisy in 5921-1,2,3
+ 936, # Noisy in 5921-1,2,3
+ 938, # Noisy in 5921-1,2,3
+ 940, # Noisy in 5921-1,2,3
+ 942  # Noisy in 5921-1,2,3
+]
 
 END_PROLOG

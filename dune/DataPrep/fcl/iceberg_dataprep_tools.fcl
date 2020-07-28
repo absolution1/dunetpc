@@ -63,7 +63,7 @@ tools.ib_adcMitigate: {
   FixedCurvThresh: 20.0
 }
 
-# Fill sample and apply calibration.
+# Fill sample and apply calibration for iceberg3.
 tools.ib3SampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
@@ -72,6 +72,17 @@ tools.ib3SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib3"
+}
+
+# Fill sample and apply calibration for iceberg4.
+tools.ib4SampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 4095
+  GainTool: "areaGain_ib4"
 }
 
 # Signal finder to use with tail removal.
