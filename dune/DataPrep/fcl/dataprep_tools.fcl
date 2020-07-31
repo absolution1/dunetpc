@@ -58,7 +58,7 @@ tools.adcStringBuilder: {
   TriggerWidth: 2
   TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
                "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
-               "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
+               "flag 10", "flag 11",    "beam",     "CRT", "NGT"]
 }
 
 # Dump raw ADC channel waveform to a histogram.
