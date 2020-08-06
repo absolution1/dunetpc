@@ -889,6 +889,12 @@ void proto::BeamEvent::produce(art::Event & e){
 
       if( gotGeneralTrigger ){ 
         parseXBPF(fetch_time);
+        /*
+        for(size_t d = 0; d < fDevices.size(); ++d){
+          std::string name = fDevices[d];
+          parseGeneralXBPF(name, time, d);
+        }
+        */
       }
 
       parseXCETDB(fetch_time);
