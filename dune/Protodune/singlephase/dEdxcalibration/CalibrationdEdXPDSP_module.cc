@@ -137,7 +137,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   
   std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
   std::cout << "evttime: " << evttime << std::endl;
-  std::cout << "fLifetime: " << fLifetime << std::endl;
+  std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
 
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
