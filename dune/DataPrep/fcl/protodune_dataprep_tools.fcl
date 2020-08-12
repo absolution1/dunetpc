@@ -97,10 +97,12 @@ tools.channelGroupsIceberg: {
 # Fit ADC distribution to get pedestal.
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
-  SkipFlags: [8, 9, 10, 11, 12]
   LogLevel: 1
+  SkipFlags: [8, 9, 10, 11, 12]
+  AdcFitRange: 100
   FitRmsMin:  3.0
   FitRmsMax: 20.0
+  RemoveStickyCode: true
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -202,7 +204,7 @@ tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
 tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 
 # Scale ke to ADC
-tools.adcScaleKeToAdc.ScaleFactor: 42.735 # 23.4 e/ADC/ticks
+tools.adcScaleKeToAdc.ScaleFactor: 41.649 # 24.01 e/ADC/ticks
 
 ################################################################################
 # Event metrics.
@@ -329,7 +331,7 @@ tools.rawAdcDetectorPlotInd2: {
   ShowGrid: true
   Title: "Raw ADC induction view 2"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.{png,tpad"
+  FileName: "detraw-run%0RUN%-evt%0EVENT%-ind2.{png,tpad}"
 }
 
 # Prepared data.
@@ -355,7 +357,7 @@ tools.preparedAdcDetectorPlotColl: {
   ShowGrid: true
   Title: "Prepared ADC collection view"
   PlotTitle: "Run %RUN% event %EVENT% %UTCTIME2% UTC (%TRIGNAME% trigger)"
-  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.{png,tpad"
+  FileName: "detprep-run%0RUN%-evt%0EVENT%-coll.{png,tpad}"
 }
 tools.preparedAdcDetectorPlotInd1: {
   tool_type: AdcDetectorPlotter

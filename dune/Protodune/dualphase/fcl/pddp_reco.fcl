@@ -25,16 +25,15 @@ services:
   RandomNumberGenerator: {} #ART native random number generator
   message:              @local::dune_message_services_prod_debug
   FileCatalogMetadata:  @local::pddp_art_file_catalog
-                        @table::dunefddphase_reco_services
+                        @table::protodunedphase_reco_services
 }
 
 #services.FileCatalogMetadata.applicationVersion: "v08_32_01"
 
 services.Geometry: @local::protodunedphase_geo
-services.DetectorPropertiesService: @local::protodunedphase_detproperties
-#services.DetectorPropertiesService.Electronlifetime:  1000.0e3         #in us
+services.DetectorPropertiesService:    @local::protodunedphase_detproperties
 services.RawDigitPrepService:          @local::adcprep_with_tools_data
-services.ChannelStatusService:         @local::pddp_channel_status
+services.ChannelStatusService:         @local::pddp_channel_status_lemblind
 services.DetectorPropertiesService.Efield:	[0.166, 4.0, 0.0]
 
 ### to add to common
@@ -60,7 +59,11 @@ tools.pddp_RemoveBadChannels: {
 }
 
 
-dataprep_tool_list: [ "digitReader", "pddp_RemoveBadChannels", "def_adcPedestalFit", "adcSampleFiller", "pddp_adcMultiThreshSignalFinder"]
+dataprep_tool_list: [ "digitReader", 
+   		      "def_adcPedestalFit", 
+		      "adcSampleFiller", 
+		      "pddp_RemoveBadChannels", 	       
+		      "pddp_adcMultiThreshSignalFinder" ]
 services.RawDigitPrepService.AdcChannelToolNames: @local::dataprep_tool_list
 services.AdcWireBuildingService.SaveChanPedRMS: false
 tools.def_adcPedestalFit.FitRmsMin:  0.1
@@ -230,12 +233,12 @@ physics.producers.pandora.PrintOverallRecoStatus: false
 physics.producers.pandora.ShouldPerformSliceId: false
 physics.producers.pandora.ShouldRunAllHitsCosmicReco: true
 physics.producers.pandora.ShouldRunCosmicHitRemoval: false
-physics.producers.pandora.ShouldRunCosmicRecoOption: true
+physics.producers.pandora.ShouldRunCosmicRecoOption: false
 physics.producers.pandora.ShouldRunNeutrinoRecoOption: false
-physics.producers.pandora.ShouldRunSlicing: true
+physics.producers.pandora.ShouldRunSlicing: false
 physics.producers.pandora.ShouldRunStitching: false
 physics.producers.pandora.UseGlobalCoordinates: false
-physics.producers.pandora.UseHitWidths: false
+physics.producers.pandora.UseHitWidths: true
 physics.producers.pandoraTrack.PFParticleLabel:         "pandora"
 physics.producers.pandoraShower.PFParticleLabel:        "pandora"
 

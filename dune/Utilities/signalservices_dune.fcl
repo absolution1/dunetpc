@@ -111,8 +111,8 @@ dunefddphase_signalshapingservice:
   ADCpermV:  1.0     # ADC conversion factor (not used at the moment)
   AmpENC:    1000.0  # noise in electrons from TDR
   DeconNorm: 70.0
-  ShapeFunc: "[0]/([0]-[1]) * ( exp(-(x)/[0]) - exp(-(x)/[1]) )"  
-  ShapeFuncParams: [1.0, 4.5]
+  ShapeFunc: "1/([0]-[1]) * ( exp(-(x)/[0]) - exp(-(x)/[1]) )"
+  ShapeFuncParams: [0.5, 4.0]
   RespSamplingPeriod: 400. # in nano second
  
   AddFieldFunction: false
@@ -128,7 +128,7 @@ dunefddphase_signalshapingservice:
 # ProtoDUNE dual phase
 protodunedphase_signalshapingservice: @local::dunefddphase_signalshapingservice
 protodunedphase_signalshapingservice.ColFilter: "(x>0.0)*gaus"
-protodunedphase_signalshapingservice.ColFilterParams: [ 1.0, 0.0, 0.13 ]
+protodunedphase_signalshapingservice.ColFilterParams: [ 1.0, 0.0, 0.1 ]
 
 # 3x1x1 dual phase TPC
 dunedphase3x1x1_signalshapingservice: @local::dunefddphase_signalshapingservice

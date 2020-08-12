@@ -64,8 +64,10 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
+  m_AdcFitRange(ps.get<float>("AdcFitRange")),
   m_FitRmsMin(ps.get<float>("FitRmsMin")),
   m_FitRmsMax(ps.get<float>("FitRmsMax")),
+  m_RemoveStickyCode(ps.get<bool>("RemoveStickyCode")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
   m_HistManager(ps.get<string>("HistManager")),
@@ -102,18 +104,20 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
        cout << flg;
     }
     cout << "]" << endl;
-    cout << myname << "      FitRmsMin: " << m_FitRmsMin << endl;
-    cout << myname << "      FitRmsMax: " << m_FitRmsMax << endl;
-    cout << myname << "       HistName: " << m_HistName << endl;
-    cout << myname << "      HistTitle: " << m_HistTitle << endl;
-    cout << myname << "   PlotFileName: " << m_PlotFileName << endl;
-    cout << myname << "   RootFileName: " << m_RootFileName << endl;
-    cout << myname << "    HistManager: " << m_HistManager << endl;
-    cout << myname << "      PlotSizeX: " << m_PlotSizeX << endl;
-    cout << myname << "      PlotSizeY: " << m_PlotSizeY << endl;
-    cout << myname << "    PlotShowFit: " << m_PlotShowFit << endl;
-    cout << myname << "     PlotSplitX: " << m_PlotSplitX << endl;
-    cout << myname << "     PlotSplitY: " << m_PlotSplitY << endl;
+    cout << myname << "       AdcFitRange: " << m_AdcFitRange << endl;
+    cout << myname << "         FitRmsMin: " << m_FitRmsMin << endl;
+    cout << myname << "         FitRmsMax: " << m_FitRmsMax << endl;
+    cout << myname << "  RemoveStickyCode: " << m_RemoveStickyCode << endl;
+    cout << myname << "          HistName: " << m_HistName << endl;
+    cout << myname << "         HistTitle: " << m_HistTitle << endl;
+    cout << myname << "      PlotFileName: " << m_PlotFileName << endl;
+    cout << myname << "      RootFileName: " << m_RootFileName << endl;
+    cout << myname << "       HistManager: " << m_HistManager << endl;
+    cout << myname << "         PlotSizeX: " << m_PlotSizeX << endl;
+    cout << myname << "         PlotSizeY: " << m_PlotSizeY << endl;
+    cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
+    cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
+    cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
   }
 }
 
@@ -296,41 +300,46 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( keep[isam] ) phr->Fill(acd.raw[isam]);
   }
+  double wadc = m_AdcFitRange;
   int rbinmax1 = phr->GetMaximumBin();
-  double radcmax1 = phr->GetBinCenter(rbinmax1);
-  double radcmean = phr->GetMean();
-  double radcsum1 = phr->Integral();
-  // Max may be due to a sticky code. Reduce it and find the next maximum.
-  double tmpval = 0.5*(phr->GetBinContent(rbinmax1-1)+phr->GetBinContent(rbinmax1+1));
-  phr->SetBinContent(rbinmax1, tmpval);
-  int rbinmax2 = phr->GetMaximumBin();
-  double radcsum2 = phr->Integral();
-  // Evaluate the histogram mean and peak postition.
-  // If the peak removal has not removed too much data, these values are
-  // re-evaluated using the peak-removed histogram.
-  double adcmean = radcmean;        // Mean position.
-  int rbinmax = rbinmax1;           // Peak position.
-  if ( radcsum2 > 0.01*radcsum1 ) {
-    // Define the max to be the first value if the two maxima are close or the
-    // average if they are far part.
-    if ( abs(rbinmax2-rbinmax1) > 1 ) {
-      rbinmax = (rbinmax1 + rbinmax2)/2;
-      adcmean = phr->GetMean();
+  double adcmax = phr->GetBinCenter(rbinmax1);
+  double adc1 = adcmax - 0.5*wadc;
+  double adc2 = adc1 + wadc;
+  if ( m_RemoveStickyCode ) {
+    double radcmax1 = phr->GetBinCenter(rbinmax1);
+    double radcmean = phr->GetMean();
+    double radcsum1 = phr->Integral();
+    // Max may be due to a sticky code. Reduce it and find the next maximum.
+    double tmpval = 0.5*(phr->GetBinContent(rbinmax1-1)+phr->GetBinContent(rbinmax1+1));
+    phr->SetBinContent(rbinmax1, tmpval);
+    int rbinmax2 = phr->GetMaximumBin();
+    double radcsum2 = phr->Integral();
+    // Evaluate the histogram mean and peak postition.
+    // If the peak removal has not removed too much data, these values are
+    // re-evaluated using the peak-removed histogram.
+    double adcmean = radcmean;        // Mean position.
+    int rbinmax = rbinmax1;           // Peak position.
+    if ( radcsum2 > 0.01*radcsum1 ) {
+      // Define the max to be the first value if the two maxima are close or the
+      // average if they are far part.
+      if ( abs(rbinmax2-rbinmax1) > 1 ) {
+        rbinmax = (rbinmax1 + rbinmax2)/2;
+        adcmean = phr->GetMean();
+      }
+    }
+    adcmax = phr->GetBinCenter(rbinmax);
+    // Make sure the peak bin stays in range.
+    if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
+    adc1 = adcmax - 0.5*wadc;
+    adc1 = 10*int(adc1/10);
+    if ( adcmean > adcmax + 10) adc1 += 10;
+    adc2 = adc1 + wadc;
+    if ( radcmax1 < adc1 || radcmax1+1.0 > adc2 ) {
+      cout << myname << "WARNING: Histogram range (" << adc1 << ", " << adc2
+           << ") does not include peak at " << radcmax1 << "." << endl;
     }
   }
-  double adcmax = phr->GetBinCenter(rbinmax);
   delete phr;
-  double wadc = 100.0;
-  // Make sure the peak bin stays in range.
-  if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
-  double adc1 = adcmax - 0.5*wadc;
-  adc1 = 10*int(adc1/10);
-  if ( adcmean > adcmax + 10) adc1 += 10;
-  double adc2 = adc1 + wadc;
-  if ( radcmax1 < adc1 || radcmax1+1.0 > adc2 ) {
-    cout << myname << "WARNING: Histogram range (" << adc1 << ", " << adc2
-         << ") does not include peak at " << radcmax1 << "." << endl;
-  }
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(nullptr);
   phf->Sumw2();
@@ -412,11 +421,11 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       cout << myname << "WARNING: Fit status is " << fitStat << " for channel "
            << acd.channel << endl;
       cout << myname << "  Errors[0]: " << fitter.GetParErrors()[0] << endl;
-      cout << myname << "  radcmax1 = " << radcmax1 << endl;
-      cout << myname << "  radcmean = " << radcmean << endl;
-      cout << myname << "   adcmean = " << adcmean << endl;
+      //cout << myname << "  radcmax1 = " << radcmax1 << endl;
+      //cout << myname << "  radcmean = " << radcmean << endl;
+      //cout << myname << "   adcmean = " << adcmean << endl;
       cout << myname << "    adcmax = " << adcmax << endl;
-      cout << myname << "  rbinmax1,2: " << rbinmax1 << ", " << rbinmax2 << endl;
+      //cout << myname << "  rbinmax1,2: " << rbinmax1 << ", " << rbinmax2 << endl;
       cout << myname << "  peakBinFraction = " << valmax << "/" << rangeIntegral
            << " = " << peakBinFraction << endl;
       cout << myname << "  allBin = " << allBin << endl;
