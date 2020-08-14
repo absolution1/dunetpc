@@ -6,7 +6,7 @@
 # Default reco for Iceberg 4a.
 
 # Start from the Iceberg 3 reco.
-#include "iceberg_decode_reco.fcl"
+#include "iceberg3_decode_reco.fcl"
 
 # Switch to the Iceberg 4 dataprep.
 services.RawDigitPrepService.AdcChannelToolNames: @local::ib4_dataprep_tools_wirecell
