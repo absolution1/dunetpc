@@ -72,7 +72,7 @@ private:
   bool fApplyXCorrection;
   bool fApplyYZCorrection;
   bool fApplyLifetimeCorrection;
-  bool fUseLifetimeFromDatebase; // true: lifetime from database; false: lifetime from DetectorProperties
+  bool fUseLifetimeFromDatabase; // true: lifetime from database; false: lifetime from DetectorProperties
 
   double fLifetime; // [us]
 
@@ -95,7 +95,7 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   , fApplyXCorrection      (p.get< bool >("ApplyXCorrection"))
   , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
   , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
-  , fUseLifetimeFromDatebase(p.get< bool >("UseLifetimeFromDatebase"))
+  , fUseLifetimeFromDatabase(p.get< bool >("UseLifetimeFromDatabase"))
 {
   detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
   vDrift = detprop->DriftVelocity(); // [cm/us]
@@ -119,12 +119,14 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   calib::LifetimeCalibService & lifetimecalibService = *lifetimecalibHandler; 
   calib::LifetimeCalib *lifetimecalib = lifetimecalibService.provider();
 
-  if (fUseLifetimeFromDatebase) {
-    fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
-    //std::cout << "use lifetime from database   " << fLifetime << std::endl;
-  } 
-  else {
-    fLifetime = detprop->ElectronLifetime(); // [us] 
+  if (fApplyLifetimeCorrection) {
+    if (fUseLifetimeFromDatabase) {
+      fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
+      //std::cout << "use lifetime from database   " << fLifetime << std::endl;
+    } 
+    else {
+      fLifetime = detprop->ElectronLifetime(); // [us] 
+    }
   }
   
   //int run = evt.run();
@@ -137,7 +139,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   
   std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
   std::cout << "evttime: " << evttime << std::endl;
-  std::cout << "fLifetime: " << fLifetime << std::endl;
+  if (fApplyLifetimeCorrection) std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
 
   //Spacecharge services provider 
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
