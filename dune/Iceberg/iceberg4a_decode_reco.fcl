@@ -12,8 +12,8 @@
 services.RawDigitPrepService.AdcChannelToolNames: @local::ib4_dataprep_tools_wirecell
 
 # Switch to Iceberg 4 bad/noisy channels.
-services.ChannelStatusService.BadChannels: @local::iceberg4a_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::iceberg4a_noisy_channels
+services.ChannelStatusService.BadChannels: @local::iceberg4_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::iceberg4_noisy_channels
 
 # Use the Iceberg 4a calibration.
 tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
