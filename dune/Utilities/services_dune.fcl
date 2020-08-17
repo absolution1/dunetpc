@@ -27,6 +27,7 @@
 #include "PdspChannelMapService.fcl"
 #include "IcebergChannelMapService.fcl"
 #include "xyzcalib_dune.fcl"
+#include "lifetimecalib_dune.fcl"
 #include "PhotonCalibratorProtoDUNESP.fcl"
 #include "time_memory_tracker_dune.fcl"
 #include "crp_dune.fcl"
@@ -462,6 +463,8 @@ protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_s
 protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
+# lifetime calibration service
+protodune_reco_services.LifetimeCalibService:       @local::protodune_lifetimecalib
 # channel map service
 protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
 # channel status service

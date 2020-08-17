@@ -82,13 +82,49 @@ protodune_dataprep_tools_wirecell: [
 # Dataprep tool sequences for protoDUNE SP simulation.
 ###################################################################################
 
-protodune_dataprep_tools_sim: [
+pdsim_dataprep_tools_vintage: [
     "digitReader",              # Read RawDigit
     "adcSampleFiller",          # Subtract pedestal, trivial calibration
     "adcVintageDeconvoluter",   # Deconvolution
     "adcThresholdSignalFinder", # ROI
     "pdsp_RemoveBadChannels"    # Set bad channels to 0 ADC
 ]
+
+# ProtoDUNE sim dataprep leaving samples at ADC scale. Passthru for wirecell.
+pdsim_dataprep_tools_adc: [
+  "digitReader"                 # Read RawDigit
+]
+
+# ProtoDUNE sim dataprep converted to ke scale.
+pdsim_dataprep_tools_calib: [
+  "digitReader",                # Read RawDigit
+  "adcSampleFiller",            # Subtract pedestal, trivial calibration
+  "adcScaleAdcToKe"             # Scale samples to nominal ADC counts
+]
+
+# ProtoDUNE sim dataprep at ke scale with tail removal.
+pdsim_dataprep_tools_oldtail: [
+  @sequence::pdsim_dataprep_tools_calib,
+  "adcCorrectUndershootKe"      # correct undershoot
+]
+# ProtoDUNE sim dataprep at ke scale with tail removal.
+
+pdsim_dataprep_tools_tail: [
+  @sequence::pdsim_dataprep_tools_calib,
+  "adcTailRemovalKe"            # correct undershoot
+]
+
+# Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+pdsim_dataprep_tools_wirecell: [
+  @sequence::pdsim_dataprep_tools_tail,
+  "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
+  "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
+  "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
+]
+
+# Specify here the default sequence used in reconstruction of MC data.
+#protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_vintage
+protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_calib
 
 ###################################################################################
 #

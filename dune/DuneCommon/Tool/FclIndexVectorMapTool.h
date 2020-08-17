@@ -37,7 +37,7 @@ public:
   ~FclIndexVectorMapTool() override =default;
 
   // Return the vector for an index.
-  const IndexVector& get(Index ient) const override;
+  IndexVector get(Index ient) const override;
 
 private:
 

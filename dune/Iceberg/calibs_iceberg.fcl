@@ -5,7 +5,7 @@
 
 #####################################################################
 
-# April 2020 Iceberg charge calibration.
+# April 2020 Iceberg charge calibration for Iceberg3.
 # See https://indico.fnal.gov/event/24229/contribution/0/material/slides/0.pdf.
 # Based on March 2020 data.
 tools.areaGain_ib3_b900_v6: {
@@ -21,9 +21,44 @@ tools.areaGain_ib3_b900_v6: {
   ]
 }
 
+# July 2020 Iceberg charge calibration for Iceberg4a.
+# Based on July 2020 data.
+tools.areaGain_ib4a_v10: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib4-v10"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/iceberg/ib4-v10/areaGain_apau.fcl",
+    "calib/iceberg/ib4-v10/areaGain_apav.fcl",
+    "calib/iceberg/ib4-v10/areaGain_apaz1.fcl",
+    "calib/iceberg/ib4-v10/areaGain_apaz2.fcl"
+  ]
+}
+
+# July 2020 Iceberg charge calibration for Iceberg4b.
+# Based on July 2020 data.
+tools.areaGain_ib4b_v10: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib4b-v10"
+  DefaultValue: 0.0
+  FileNames: [
+    "calib/iceberg/ib4b-v10/areaGain_apau.fcl",
+    "calib/iceberg/ib4b-v10/areaGain_apav.fcl",
+    "calib/iceberg/ib4b-v10/areaGain_apaz1.fcl",
+    "calib/iceberg/ib4b-v10/areaGain_apaz2.fcl"
+  ]
+}
+
 #####################################################################
 
 # Assign default calibration.
 tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
+
+# User will have to make one of these assignments based on run number
+# until we have a tool smart enough to do so.
+#tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
+#tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
 
 #####################################################################

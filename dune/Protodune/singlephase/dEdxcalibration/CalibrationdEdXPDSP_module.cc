@@ -25,6 +25,8 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "dune/Calib/XYZCalib.h"
 #include "dune/CalibServices/XYZCalibService.h"
+#include "dune/Calib/LifetimeCalib.h"
+#include "dune/CalibServices/LifetimeCalibService.h"
 
 #include "larevt/SpaceCharge/SpaceCharge.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -32,6 +34,7 @@
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TFile.h"
+#include "TTimeStamp.h"
 
 #include <memory>
 
@@ -69,8 +72,10 @@ private:
   bool fApplyXCorrection;
   bool fApplyYZCorrection;
   bool fApplyLifetimeCorrection;
+  bool fUseLifetimeFromDatabase; // true: lifetime from database; false: lifetime from DetectorProperties
 
-  double fLifetime; //us
+  double fLifetime; // [us]
+
   double vDrift;
   double xAnode;
 };
@@ -88,7 +93,7 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   , fApplyXCorrection      (p.get< bool >("ApplyXCorrection"))
   , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
   , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
-  , fLifetime              (p.get< double >("Lifetime"))
+  , fUseLifetimeFromDatabase(p.get< bool >("UseLifetimeFromDatabase"))
 {
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
@@ -106,6 +111,34 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   art::ServiceHandle<calib::XYZCalibService> xyzcalibHandler;
   calib::XYZCalibService & xyzcalibService = *xyzcalibHandler;
   calib::XYZCalib *xyzcalib = xyzcalibService.provider();
+
+  // Electron lifetime from database calibration service provider
+  art::ServiceHandle<calib::LifetimeCalibService> lifetimecalibHandler;
+  calib::LifetimeCalibService & lifetimecalibService = *lifetimecalibHandler;
+  calib::LifetimeCalib *lifetimecalib = lifetimecalibService.provider();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt);
+
+  if (fApplyLifetimeCorrection) {
+    if (fUseLifetimeFromDatabase) {
+      fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
+      //std::cout << "use lifetime from database   " << fLifetime << std::endl;
+    }
+    else {
+      fLifetime = detProp.ElectronLifetime(); // [us]
+    }
+  }
+
+  //int run = evt.run();
+  //int subrun = evt.subRun();
+  //int event = evt.id().event();
+  // evttime
+  art::Timestamp ts = evt.time();
+  TTimeStamp tts(ts.timeHigh(), ts.timeLow());
+  uint64_t evttime = tts.AsDouble();
+
+  std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
+  std::cout << "evttime: " << evttime << std::endl;
+  if (fApplyLifetimeCorrection) std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
 
   //Spacecharge services provider
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
@@ -128,7 +161,6 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
       <<"Could not get assocated Calorimetry objects";
   }
 
-  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt);
   for (size_t trkIter = 0; trkIter < tracklist.size(); ++trkIter){
     for (size_t i = 0; i<fmcal.at(trkIter).size(); ++i){
       auto & calo = fmcal.at(trkIter)[i];
@@ -149,6 +181,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
         std::vector<float>   deadwire   = calo->DeadWireResRC();
         float                Trk_Length = calo->Range();
         std::vector<float>   fpitch     = calo->TrkPitchVec();
+        const auto&          fHitIndex  = calo->TpIndices();
         const auto&          vXYZ       = calo->XYZ();
         geo::PlaneID         planeID    = calo->PlaneID();
 
@@ -249,6 +282,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
                                                     Trk_Length,
                                                     fpitch,
                                                     vXYZ,
+                                                    fHitIndex,
                                                     planeID));
         util::CreateAssn(*this, evt, *calorimetrycol, tracklist[trkIter], *assn);
       }//calorimetry object not empty

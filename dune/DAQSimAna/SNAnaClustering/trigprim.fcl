@@ -16,6 +16,19 @@ trigprimpass1: {
    }
 }
 
+trigprimpass2: {
+   module_type: "TriggerPrimitiveFinder"
+   InputTag: "simwire"
+   finder: {
+      tool_type: "TriggerPrimitiveFinderPass2"
+      UseSignalKill: true
+      SignalKillLookahead: 6
+      SignalKillThreshold: 15
+      SignalKillNContig: 10
+      ThresholdInSigma: 5
+   }
+}
+
 trigprimpass1_protodune: {
    @table::trigprimpass1
    InputTag: "tpcrawdecoder:daq:DecoderandReco"  

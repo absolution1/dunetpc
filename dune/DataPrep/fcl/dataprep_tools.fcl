@@ -58,7 +58,7 @@ tools.adcStringBuilder: {
   TriggerWidth: 2
   TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
                "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
-               "flag 10", "flag 11",    "beam",     "CRT", "unknown"]
+               "flag 10", "flag 11",    "beam",     "CRT", "NGT"]
 }
 
 # Dump raw ADC channel waveform to a histogram.
@@ -132,8 +132,10 @@ tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   SkipFlags: []
+  AdcFitRange: 100
   FitRmsMin:  1.0
   FitRmsMax: 20.0
+  RemoveStickyCode: false
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -404,8 +406,17 @@ tools.adcScaleKeToAdc: {
   tool_type: AdcSampleScaler
   LogLevel: 1
   ScaleFactor: 40.0
-  OutputUnit: "ADC count"
   InputUnit: "ke/tick"
+  OutputUnit: "ADC count"
+}
+
+# Scale samples from ke to ADC count.
+tools.adcScaleAdcToKe: {
+  tool_type: AdcSampleScaler
+  LogLevel: 1
+  ScaleFactor: 0.025
+  InputUnit: "ADC count"
+  OutputUnit: "ke/tick"
 }
 
 # Find ADC signals with simple threshold algorithm.

@@ -1,3 +1,6 @@
+## same as protoDUNE_SP_keepup_decoder_reco_stage1.fcl, no yz,x,t correction; *calinoxyzt<->*cali; *calipidnoxyzt<->*calipid
+## this fcl is kept; we use two stage recos once we have calibration done:  protoDUNE_SP_keepup_decoder_reco_stage1.fcl and protoDUNE_SP_keepup_decoder_reco_stage2.fcl
+##
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "ProtoDUNETriggerFilter.fcl"
 
@@ -49,7 +52,6 @@ services:
   IFBeam:            {}
   IFDH:              {}
 }
-
 
 #services.message.destinations.LogStandardOut.threshold: "INFO"
 
@@ -112,6 +114,12 @@ services.SpaceCharge.CalibrationInputFilename: "SpaceChargeProtoDUNE/SCE_DataDri
 services.SpaceCharge.RepresentationType: "Voxelized_TH3"
 services.SpaceCharge.EnableCalEfieldSCE: true
 services.SpaceCharge.EnableCalSpatialSCE: true
+
+# lifetime database
+services.LifetimeCalibService.IsMC: false
+services.LifetimeCalibService.UseCondbLifetime: true
+services.LifetimeCalibService.LifetimeDBTag: "v1.0"
+
 
 #<friendly-type>_<module-label>_<instance-name>_<process-name>
 
