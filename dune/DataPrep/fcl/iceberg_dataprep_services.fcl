@@ -18,6 +18,10 @@
 
 BEGIN_PROLOG
 
+###################################################################################
+# Iceberg 3.
+###################################################################################
+
 # No calibration, no noise removal.
 ib3_dataprep_tools_nocal_tail: [
   "digitReader",
@@ -58,6 +62,46 @@ ib3_dataprep_tools_calib_noiserem: [
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 ib3_dataprep_tools_wirecell: [
   @sequence::ib3_dataprep_tools_calib_noiserem
+  , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+  , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
+  , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC
+]
+
+###################################################################################
+# Iceberg 4.
+###################################################################################
+
+# No calibration, no noise removal.
+ib4_dataprep_tools_nocal_tail: [
+  "digitReader",
+  "ib_adcPedestalFit",
+  "adcSampleFiller",
+  "ib_adcMitigate"
+  #"adcCorrectUndershootAdc"     # correct undershoot
+]
+
+# Charge calibration; no mitigation or tail or noise removal.
+ib4_dataprep_tools_calib_only: [
+  "digitReader",                # Read RawDigit
+  "ib4_adcPedestalFit",         # Find pedestal
+  "ib4SampleCalibration"        # Subtract pedestal and apply charge calibration
+]
+
+# Charge calibration, mitigation, tail removal, no noise removal.
+ib4_dataprep_tools_calib_tail: [
+  @sequence::ib4_dataprep_tools_calib_only
+  , "ib3TailRemovalKe"      # correct undershoot
+]
+
+# Charge calibration, noise removal.
+ib4_dataprep_tools_calib_noiserem: [
+  @sequence::ib4_dataprep_tools_calib_tail
+  , "ibNoiseRemovalKe"         # Remove coherent noise
+]
+
+# Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+ib4_dataprep_tools_wirecell: [
+  @sequence::ib4_dataprep_tools_calib_noiserem
   , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
   , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
   , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC

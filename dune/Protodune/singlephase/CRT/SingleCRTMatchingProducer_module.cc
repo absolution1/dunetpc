@@ -500,6 +500,15 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
     lastHit=0;
     }
  if ((trackEndPositionZ_noSCE>90 && trackEndPositionZ_noSCE < 660 && trackStartPositionZ_noSCE <50 && trackStartPositionZ_noSCE<660) || (trackStartPositionZ_noSCE>90 && trackStartPositionZ_noSCE < 660 && trackEndPositionZ_noSCE <50 && trackEndPositionZ_noSCE<660)) {
+
+      double min_delta = DBL_MAX;
+
+      double best_dotProductCos = DBL_MAX;
+      double best_deltaXF = DBL_MAX;
+      double best_deltaYF = DBL_MAX;
+      int bestHitIndex_F=0;
+      double best_trackX1=DBL_MAX;
+      double best_trackX2=DBL_MAX;
       for (unsigned int iHit_F = 0; iHit_F < primaryHits_F.size(); iHit_F++) {
    double xOffset=0;
 
@@ -584,42 +593,78 @@ if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trac
 
         double deltaX1 = (predictedHitPositionX1-X1);
 
-	double deltaX=(deltaX1);
 
         double deltaY1 = (predictedHitPositionY1-Y1);
 
-	double deltaY=deltaY1;
+
+   if (min_delta > std::abs(deltaX1) + std::abs(deltaY1) ){
+
+	   min_delta=std::abs(deltaX1)+std::abs(deltaY1);
+
+            best_dotProductCos = dotProductCos;
+	    best_trackX1=trackStartPositionX;
+	    best_trackX2=trackEndPositionX;
+            best_deltaXF = deltaX1;
+            best_deltaYF = deltaY1;
+	    bestHitIndex_F=iHit_F;
+          }
+
+	}
+   int  f=bestHitIndex_F; 
+ 
+   double deltaX=best_deltaXF; double deltaY=best_deltaYF;
+   double dotProductCos=best_dotProductCos;
+
+   double trackStartPositionX=best_trackX1;
+   double trackStartPositionY=trackStartPositionY_noSCE;
+   double trackStartPositionZ=trackStartPositionZ_noSCE;
+
+   double trackEndPositionX=best_trackX2;
+   double trackEndPositionY=trackEndPositionY_noSCE;
+   double trackEndPositionZ=trackEndPositionZ_noSCE;
+
+
+	TVector3 trackStart(trackStartPositionX, trackStartPositionY, trackStartPositionZ);
+	TVector3 trackEnd(trackEndPositionX, trackEndPositionY, trackEndPositionZ);
 
          tracksPair tPair;
         tPair.tempId = tempId;
-        tPair.CRTTrackId = iHit_F;
+        tPair.CRTTrackId = f;
         tPair.recoId = iRecoTrack;
 
 	tPair.deltaX=deltaX;
         tPair.deltaY=deltaY;
         tPair.dotProductCos=dotProductCos;
 
-        tPair.moduleX1 = primaryHits_F[iHit_F].moduleX;
-        tPair.moduleY1 = primaryHits_F[iHit_F].moduleY;
+        tPair.moduleX1 = primaryHits_F[f].moduleX;
+        tPair.moduleY1 = primaryHits_F[f].moduleY;
 
-        tPair.adcX1=primaryHits_F[iHit_F].adcX;
-        tPair.adcY1=primaryHits_F[iHit_F].adcY;
+        tPair.adcX1=primaryHits_F[f].adcX;
+        tPair.adcY1=primaryHits_F[f].adcY;
 
-        tPair.stripX1 = primaryHits_F[iHit_F].stripX;
-        tPair.stripY1 = primaryHits_F[iHit_F].stripY;
-        tPair.trigNumberX = primaryHits_F[iHit_F].trigNumberX;
-        tPair.trigNumberY = primaryHits_F[iHit_F].trigNumberY;
-        tPair.X1 = X1;
-        tPair.Y1 = Y1;
-        tPair.Z1 = Z1;
-	tPair.timeAvg=primaryHits_F[iHit_F].timeAvg;
+        tPair.stripX1 = primaryHits_F[f].stripX;
+        tPair.stripY1 = primaryHits_F[f].stripY;
+        tPair.trigNumberX = primaryHits_F[f].trigNumberX;
+        tPair.trigNumberY = primaryHits_F[f].trigNumberY;
+        tPair.X1 = primaryHits_F[f].hitPositionX;
+        tPair.Y1 = primaryHits_F[f].hitPositionY;
+        tPair.Z1 = primaryHits_F[f].hitPositionZ;
+	tPair.timeAvg=primaryHits_F[f].timeAvg;
         tPair.trackStartPosition=trackStart;
 	tPair.trackEndPosition=trackEnd;
         tracksPair_B.push_back(tPair);
 
       }
-	}
+	
  if ( (trackStartPositionZ_noSCE<620 && trackEndPositionZ_noSCE > 660 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50) || (trackStartPositionZ_noSCE>660 && trackEndPositionZ_noSCE < 620 && trackStartPositionZ_noSCE > 50 && trackEndPositionZ_noSCE > 50)) {
+      double min_delta = DBL_MAX;
+
+      double best_dotProductCos = DBL_MAX;
+      double best_deltaXF = DBL_MAX;
+      double best_deltaYF = DBL_MAX;     
+      int bestHitIndex_B=0;
+      double best_trackX1=DBL_MAX;
+      double best_trackX2=DBL_MAX;
       for (unsigned int iHit_B = 0; iHit_B < primaryHits_B.size(); iHit_B++) {
 double xOffset=0;
     
@@ -691,41 +736,66 @@ double xOffset=0;
 
         double deltaX1 = (predictedHitPositionX1-X1);
 
-	double deltaX=(deltaX1);
-
         double deltaY1 = (predictedHitPositionY1-Y1);
 
-	double deltaY=(deltaY1);
+      if (min_delta > std::abs(deltaX1) + std::abs(deltaY1) ){
+
+	   min_delta=std::abs(deltaX1)+std::abs(deltaY1);
+
+            best_dotProductCos = dotProductCos;
+	    best_trackX1=trackStartPositionX;
+	    best_trackX2=trackEndPositionX;
+            best_deltaXF = deltaX1;
+            best_deltaYF = deltaY1;
+	    bestHitIndex_B=iHit_B; 
+          }
+
+	}
+   int  f=bestHitIndex_B; 
+ 
+   double deltaX=best_deltaXF; double deltaY=best_deltaYF;
+   double dotProductCos=best_dotProductCos;
+
+
+   double trackStartPositionX=best_trackX1;
+   double trackStartPositionY=trackStartPositionY_noSCE;
+   double trackStartPositionZ=trackStartPositionZ_noSCE;
+
+   double trackEndPositionX=best_trackX2;
+   double trackEndPositionY=trackEndPositionY_noSCE;
+   double trackEndPositionZ=trackEndPositionZ_noSCE;
+
+	TVector3 trackStart(trackStartPositionX, trackStartPositionY, trackStartPositionZ);
+	TVector3 trackEnd(trackEndPositionX, trackEndPositionY, trackEndPositionZ);
 
 
         tracksPair tPair;
         tPair.tempId = tempId;
-        tPair.CRTTrackId = iHit_B;
+        tPair.CRTTrackId = f;
         tPair.recoId = iRecoTrack;
 
 	tPair.deltaX=deltaX;
         tPair.deltaY=deltaY;
         tPair.dotProductCos=dotProductCos;
 
-        tPair.moduleX1 = primaryHits_B[iHit_B].moduleX;
-        tPair.moduleY1 = primaryHits_B[iHit_B].moduleY;
+        tPair.moduleX1 = primaryHits_B[f].moduleX;
+        tPair.moduleY1 = primaryHits_B[f].moduleY;
 
-        tPair.adcX1=primaryHits_B[iHit_B].adcX;
-        tPair.adcY1=primaryHits_B[iHit_B].adcY;
+        tPair.adcX1=primaryHits_B[f].adcX;
+        tPair.adcY1=primaryHits_B[f].adcY;
 
-        tPair.stripX1 = primaryHits_B[iHit_B].stripX;
-        tPair.stripY1 = primaryHits_B[iHit_B].stripY;
-       tPair.trigNumberX = primaryHits_B[iHit_B].trigNumberX;
-        tPair.trigNumberY = primaryHits_B[iHit_B].trigNumberY;
-        tPair.X1 = X1;
-        tPair.Y1 = Y1;
-        tPair.Z1 = Z1;
-	tPair.timeAvg=primaryHits_B[iHit_B].timeAvg;
+        tPair.stripX1 = primaryHits_B[f].stripX;
+        tPair.stripY1 = primaryHits_B[f].stripY;
+       tPair.trigNumberX = primaryHits_B[f].trigNumberX;
+        tPair.trigNumberY = primaryHits_B[f].trigNumberY;
+        tPair.X1 = primaryHits_B[f].hitPositionX;
+        tPair.Y1 = primaryHits_B[f].hitPositionY;
+        tPair.Z1 = primaryHits_B[f].hitPositionZ;
+	tPair.timeAvg=primaryHits_B[f].timeAvg;
         tPair.trackStartPosition=trackStart;
 	tPair.trackEndPosition=trackEnd;
         tracksPair_B.push_back(tPair);
 
-      }
 
       tempId++;
     } //iRecoTrack

@@ -16,7 +16,6 @@ trigprim_snana: {
    @table::standard_snana
    SaveNeighbourADCs:    false
    SaveTruth:            false
-
 }
 END_PROLOG
 #include "opticaldetectormodules_dune.fcl"
@@ -63,16 +62,18 @@ physics: {
       # sure each one has a distinct name, and has a corresponding
       # daqsimana analyzer otherwise you won't get a corresponding
       # TTree in the output file. Also make sure to add it to the "simulate" list below
-      trigprim800: @local::trigprimpass1
-      trigprim1000: @local::trigprimpass1
-      trigprim1200: @local::trigprimpass1
-      trigprim1400: @local::trigprimpass1
-      trigprim1600: @local::trigprimpass1
-      trigprim1800: @local::trigprimpass1
-      trigprim2000: @local::trigprimpass1
-      trigprim2400: @local::trigprimpass1
-      trigprim2800: @local::trigprimpass1
-      trigprim3200: @local::trigprimpass1
+      trigprim12: @local::trigprimpass1
+      trigprim13: @local::trigprimpass1
+      trigprim14: @local::trigprimpass1
+      trigprim15: @local::trigprimpass1
+      trigprim16: @local::trigprimpass1
+      
+      trigprim30sig: @local::trigprimpass2
+      trigprim40sig: @local::trigprimpass2
+      trigprim45sig: @local::trigprimpass2
+      trigprim50sig: @local::trigprimpass2
+      trigprim55sig: @local::trigprimpass2
+      trigprim60sig: @local::trigprimpass2
 
       rns:            { module_type: "RandomNumberSaver" }
    }
@@ -80,27 +81,27 @@ physics: {
    analyzers: {
       # Create an SNAna for each trigger primitive finders. Make
       # sure to add each one to the "ana" list below
-      snanatrigprim800:     @local::trigprim_snana
-      snanatrigprim1000:    @local::trigprim_snana
-      snanatrigprim1200:    @local::trigprim_snana
-      snanatrigprim1400:    @local::trigprim_snana
-      snanatrigprim1600:    @local::trigprim_snana
-      snanatrigprim1800:    @local::trigprim_snana
-      snanatrigprim2000:    @local::trigprim_snana
-      snanatrigprim2400:    @local::trigprim_snana
-      snanatrigprim2800:    @local::trigprim_snana
-      snanatrigprim3200:    @local::trigprim_snana
-      waveformstotree: {
-         module_type: "WaveformsToTree"
-         InputTag: "simwire"
-         MaxChannels: 50
-      }
+      snanatrigprim12:    @local::trigprim_snana
+      snanatrigprim13:    @local::trigprim_snana
+      snanatrigprim14:    @local::trigprim_snana
+      snanatrigprim15:    @local::trigprim_snana
+      snanatrigprim16:    @local::trigprim_snana
+      
+      snanatrigprim30sig: @local::trigprim_snana
+      snanatrigprim40sig: @local::trigprim_snana
+      snanatrigprim45sig: @local::trigprim_snana
+      snanatrigprim50sig: @local::trigprim_snana
+      snanatrigprim55sig: @local::trigprim_snana
+      snanatrigprim60sig: @local::trigprim_snana
    }
 
-   simulate: [ rns, simwire, ophit, trigprim800, trigprim1000, trigprim1200, trigprim1400, trigprim1600, trigprim1800, trigprim2000, trigprim2400, trigprim2800, trigprim3200 ]
-   ana: [ snanatrigprim800, snanatrigprim1000, snanatrigprim1200, snanatrigprim1400, snanatrigprim1600, snanatrigprim1800, snanatrigprim2000, snanatrigprim2400, snanatrigprim2800, snanatrigprim3200, waveformstotree ]
-
-   trigger_paths: [simulate] 
+   simulate: [rns, simwire, ophit,
+              trigprim12,         trigprim13,         trigprim14,         trigprim15,         trigprim16,
+              trigprim30sig,      trigprim40sig,      trigprim45sig,      trigprim50sig,      trigprim55sig,      trigprim60sig]
+   ana     : [snanatrigprim12,    snanatrigprim13,    snanatrigprim14,    snanatrigprim15,    snanatrigprim16,
+              snanatrigprim30sig, snanatrigprim40sig, snanatrigprim45sig, snanatrigprim50sig, snanatrigprim55sig, snanatrigprim60sig]
+   
+   trigger_paths: [ simulate ] 
    end_paths: [ ana ] 
 
 }
@@ -108,33 +109,35 @@ physics: {
 # Modify the settings of each of the trigger primitive finders. If you
 # want to use a different trigger primitive finder class, set
 # "physics.producers.<itemname>.finder.tool_type: MyNewTriggerPrimitiveFinderTool"
-physics.producers.trigprim800.finder.Threshold:   800
-physics.producers.trigprim1000.finder.Threshold: 1000
-physics.producers.trigprim1200.finder.Threshold: 1200
-physics.producers.trigprim1400.finder.Threshold: 1400
-physics.producers.trigprim1600.finder.Threshold: 1600
-physics.producers.trigprim1800.finder.Threshold: 1800
-physics.producers.trigprim2000.finder.Threshold: 2000
-physics.producers.trigprim2400.finder.Threshold: 2400
-physics.producers.trigprim2800.finder.Threshold: 2800
-physics.producers.trigprim3200.finder.Threshold: 3200
+physics.producers.trigprim12.finder.Threshold: 1200
+physics.producers.trigprim13.finder.Threshold: 1300
+physics.producers.trigprim14.finder.Threshold: 1400
+physics.producers.trigprim15.finder.Threshold: 1500
+physics.producers.trigprim16.finder.Threshold: 1600
+physics.producers.trigprim30sig.finder.ThresholdInSigma: 300
+physics.producers.trigprim40sig.finder.ThresholdInSigma: 400
+physics.producers.trigprim45sig.finder.ThresholdInSigma: 450
+physics.producers.trigprim50sig.finder.ThresholdInSigma: 500
+physics.producers.trigprim55sig.finder.ThresholdInSigma: 550
+physics.producers.trigprim60sig.finder.ThresholdInSigma: 600
 
 
 # Set the HitLabel to make sure each DaqAnaSim reads hits from its
 #  corresponding TriggerPrimitiveFinder
-physics.analyzers.snanatrigprim800.HitLabel:  "trigprim800"
-physics.analyzers.snanatrigprim1000.HitLabel: "trigprim1000"
-physics.analyzers.snanatrigprim1200.HitLabel: "trigprim1200"
-physics.analyzers.snanatrigprim1400.HitLabel: "trigprim1400"
-physics.analyzers.snanatrigprim1600.HitLabel: "trigprim1600"
-physics.analyzers.snanatrigprim1800.HitLabel: "trigprim1800"
-physics.analyzers.snanatrigprim2000.HitLabel: "trigprim2000"
-physics.analyzers.snanatrigprim2400.HitLabel: "trigprim2400"
-physics.analyzers.snanatrigprim2800.HitLabel: "trigprim2800"
-physics.analyzers.snanatrigprim3200.HitLabel: "trigprim3200"
+physics.analyzers.snanatrigprim12.HitLabel: "trigprim12"
+physics.analyzers.snanatrigprim13.HitLabel: "trigprim13"
+physics.analyzers.snanatrigprim14.HitLabel: "trigprim14"
+physics.analyzers.snanatrigprim15.HitLabel: "trigprim15"
+physics.analyzers.snanatrigprim16.HitLabel: "trigprim16"
+physics.analyzers.snanatrigprim30sig.HitLabel: "trigprim30sig"
+physics.analyzers.snanatrigprim40sig.HitLabel: "trigprim40sig"
+physics.analyzers.snanatrigprim45sig.HitLabel: "trigprim45sig"
+physics.analyzers.snanatrigprim50sig.HitLabel: "trigprim50sig"
+physics.analyzers.snanatrigprim55sig.HitLabel: "trigprim55sig"
+physics.analyzers.snanatrigprim60sig.HitLabel: "trigprim60sig"
 
 # Only save IDEs in one of the output trees, since they're always the same and will only take up space otherwise
-physics.analyzers.snanatrigprim800.SaveIDEs: true
+# physics.analyzers.snanatrigprim800.SaveIDEs: true
 
 # =====================================================================
 # You probably won't need to change anything below here
@@ -163,4 +166,4 @@ services.AdcCompressService:       @local::cmpreplace
 services.DetPedestalService:       @local::dune_fixedpeds
 
 #Optical detector configuration
-physics.producers.ophit.InputModule:                    "opdigi"
+physics.producers.ophit.InputModule: "opdigi"

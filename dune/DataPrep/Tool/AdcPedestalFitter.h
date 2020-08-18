@@ -3,16 +3,22 @@
 // David Adams
 // August 2017
 //
-// Tool to fit ADC data and extract a pedestal.
+// Tool to fit ADC data and extract a pedestal. The pedestal is the mean of a Gaussian fit to
+// the ADC distributions.
 //
 // If FitRmsMin < FitRmsMax, the the RMS is constrained to the range
 // (FitRmsMin, FitRmsMax) in the fit.
 //
+// The starting mean and center of the histogram is the peak bin. If RemoveStickyCode is true, then
+// one apparent sticky code may be removed when evaluating this peak.
+//
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   SkipFlags - Samples with these flags are excluded
+//   AdcFitRange: Width [ADC counts] of the fit range.
 //   FitRmsMin: Lower limit for RMS fit range.
 //   FitRmsMax: Upper limit for RMS fit range.
+//   RemoveStickyCode: If true, an apparent sticky code may be removed.
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
 //   HistManager: Name of the tool that manages the output histogram.
@@ -110,8 +116,10 @@ private:
   // Configuration data.
   int m_LogLevel;
   IndexVector m_SkipFlags;
+  float m_AdcFitRange;
   float m_FitRmsMin;
   float m_FitRmsMax;
+  bool m_RemoveStickyCode;
   Name m_HistName;
   Name m_HistTitle;
   Name m_HistManager;

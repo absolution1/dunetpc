@@ -4,6 +4,8 @@
   <function name="cePulser" noStreamer="true"/>
   <function name="cePulserToAdc" noStreamer="true"/>
   <function name="cePulserToAdcTF1" noStreamer="true"/>
+  <function name="coldelecResponse" noStreamer="true"/>
+  <function name="coldelecResponseFunction" noStreamer="true"/>
   <function name="offsetLineFullTF1" noStreamer="true"/>
   <class name="RootPalette" />
   <class name="TPadManipulator" ClassVersion="4" noStreamer="true">

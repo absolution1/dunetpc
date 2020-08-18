@@ -50,8 +50,29 @@ tools.channelGroups: @local::tools.channelGroupsIceberg
 tools.adcScaleKeToAdc.ScaleFactor: 41.442 # 24.13 e/ADC/ticks
 
 # Fit ADC distribution to get pedestal.
-tools.ib_adcPedestalFit: @local::tools.pd_adcPedestalFit
-tools.ib_adcPedestalFit.FitRmsMin:  1.0
+tools.ib3_adcPedestalFit: @local::tools.pd_adcPedestalFit
+tools.ib3_adcPedestalFit.FitRmsMin:  1.0
+
+# Pedestal fitter for Iceberg 4 (COTS ADC, no sticky codes)
+tools.ib4_adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  SkipFlags: [8, 9, 10, 11, 12]
+  AdcFitRange: 100
+  FitRmsMin:  0.5
+  FitRmsMax: 10.0
+  RemoveStickyCode: false
+  HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
+  PlotFileName: ""
+  RootFileName: ""
+  HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
+  PlotShowFit: 1
+}
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {
@@ -63,7 +84,7 @@ tools.ib_adcMitigate: {
   FixedCurvThresh: 20.0
 }
 
-# Fill sample and apply calibration.
+# Fill sample and apply calibration for iceberg3.
 tools.ib3SampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
@@ -72,6 +93,17 @@ tools.ib3SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib3"
+}
+
+# Fill sample and apply calibration for iceberg4.
+tools.ib4SampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 4095
+  GainTool: "areaGain_ib4"
 }
 
 # Signal finder to use with tail removal.
