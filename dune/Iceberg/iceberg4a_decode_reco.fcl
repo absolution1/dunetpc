@@ -1,13 +1,12 @@
-# iceberg4_decode_reco.fcl
+# iceberg4a_decode_reco.fcl
 #
 # David Adams
-# July 2020
+# August 2020
 #
-# Reco for Iceberg 4, the COTS data taken with the Iceberg prototype
-# detector July-August 2020.
+# Default reco for Iceberg 4a.
 
 # Start from the Iceberg 3 reco.
-#include "iceberg_decode_reco.fcl"
+#include "iceberg3_decode_reco.fcl"
 
 # Switch to the Iceberg 4 dataprep.
 services.RawDigitPrepService.AdcChannelToolNames: @local::ib4_dataprep_tools_wirecell
@@ -15,3 +14,6 @@ services.RawDigitPrepService.AdcChannelToolNames: @local::ib4_dataprep_tools_wir
 # Switch to Iceberg 4 bad/noisy channels.
 services.ChannelStatusService.BadChannels: @local::iceberg4_bad_channels
 services.ChannelStatusService.NoisyChannels: @local::iceberg4_noisy_channels
+
+# Use the Iceberg 4a calibration.
+tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10

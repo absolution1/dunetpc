@@ -128,8 +128,8 @@ tools.IcebergDecoder:  @local::IcebergDataInterface_tool
 
 physics.producers.caldata.DecoderTool: "IcebergDecoder"
 
-services.ChannelStatusService.BadChannels: @local::iceberg_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::iceberg_noisy_channels
+services.ChannelStatusService.BadChannels: @local::iceberg3_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::iceberg3_noisy_channels
 
 services.DetectorPropertiesService:    @local::protodunesp_detproperties
 services.DetectorPropertiesService.GetHVDriftfromSamweb: false

@@ -53,8 +53,10 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
     fout << "  SkipFlags: []" << endl;
+    fout << "  AdcFitRange: 100" << endl;
     fout << "  FitRmsMin: 1.0" << endl;
     fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  RemoveStickyCode: false" << endl;
     fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
     fout << "  PlotFileName: \"adcped_ev%EVENT%_chan%CHAN%.png\"" << endl;
