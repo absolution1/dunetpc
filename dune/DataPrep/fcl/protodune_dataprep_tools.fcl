@@ -203,6 +203,9 @@ tools.adcTailSignalFinderKe.Threshold: 0.5
 tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
 tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 
+# Scale ADC to ke
+tools.adcScaleAdcToKe.ScaleFactor: 2.401e-2 #24.01 e/ADC/ticks
+
 # Scale ke to ADC
 tools.adcScaleKeToAdc.ScaleFactor: 41.649 # 24.01 e/ADC/ticks
 
