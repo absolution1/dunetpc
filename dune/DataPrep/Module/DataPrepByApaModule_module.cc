@@ -37,6 +37,7 @@
 #include "dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterfaceParent.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -578,6 +579,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     return;
   }
   // Loop over APAs or all.
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for ( const ApaChannelSetMap::value_type& csmPair : m_apachsets ) {
     int iapa = csmPair.first;
     ostringstream ssapa;
@@ -887,7 +889,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Preparing " << nacd << " channel" << (nacd == 1 ? "" : "s") << "." << endl;
     }
-    int rstat = m_pRawDigitPrepService->prepare(datamap, pwiresCrn, nullptr);
+    int rstat = m_pRawDigitPrepService->prepare(clockData, datamap, pwiresCrn, nullptr);
     if ( rstat != 0 ) {
       cout << myname << "ERROR: Data preparation service returned error " << rstat;
       continue;

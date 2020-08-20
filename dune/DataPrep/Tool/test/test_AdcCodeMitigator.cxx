@@ -97,7 +97,7 @@ int test_AdcCodeMitigator(bool useExistingFcl =false, bool interp =false) {
   AdcChannelData acd;
   acd.samples = inpSigs;
   acd.flags = inpFlgs;
-  DataMap ret = pmit->update(acd); 
+  DataMap ret = pmit->update(acd);
   ret.print();
   assert( ret == 0 );
   assert( ret.getInt("mitCount") == 5 );

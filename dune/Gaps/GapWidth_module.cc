@@ -323,7 +323,6 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   ResetVars();
 
   art::ServiceHandle<geo::Geometry> geom;
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 //  art::ServiceHandle<cheat::BackTrackerService> bktrk;
 //  Commenting this out since it does not appear to be used anywhere.
 
@@ -357,11 +356,13 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   evttime = tts.AsDouble();
 
-  efield[0] = detprop->Efield(0);
-  efield[1] = detprop->Efield(1);
-  efield[2] = detprop->Efield(2);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
+  efield[0] = detProp.Efield(0);
+  efield[1] = detProp.Efield(1);
+  efield[2] = detProp.Efield(2);
   
-  t0 = detprop->TriggerOffset();
+  t0 = trigger_offset(clockData);
 
   art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
@@ -436,7 +437,7 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
 	std::vector<const anab::T0*> T0s = fmt0.at(i);
 	for (size_t t0size =0; t0size < T0s.size(); t0size++) {
 	  trkMCTruthT0[i]  = T0s[t0size]->Time();
-	  TickT0 = trkMCTruthT0[i] / detprop->SamplingRate();
+	  TickT0 = trkMCTruthT0[i] / sampling_rate(clockData);
 	} // T0 size
       } // T0 valid
       // Add other T0 handles...with same structure...
@@ -459,10 +460,10 @@ void GapWidth::GapWidth::analyze(art::Event const & evt)
       larStart = tracklist[i]->VertexDirection();
       larEnd = tracklist[i]->EndDirection();
 
-      trkstartx[i]      = trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
+      trkstartx[i]      = trackStart.X() - detProp.ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat ); // Correct X, last entry is first 'hit'
       trkstarty[i]      = trackStart.Y();
       trkstartz[i]      = trackStart.Z();
-      trkendx[i]        = trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
+      trkendx[i]        = trackEnd.X() - detProp.ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat ); // Correct X, first entry is last 'hit'
       trkendy[i]        = trackEnd.Y();
       trkendz[i]        = trackEnd.Z();
       trkstartdcosx[i]  = larStart.X();

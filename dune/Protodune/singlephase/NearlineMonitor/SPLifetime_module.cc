@@ -20,7 +20,7 @@
 
 #include "larcore/Geometry/Geometry.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/Wire.h"
@@ -458,8 +458,8 @@ void nlana::SPLifetime::analyze(art::Event const & evt)
   
   if(run != lastRun) mf::LogVerbatim("LIFE")<<"The run number has changed from "<<lastRun<<" to "<<run<<" This might not be good...";
   
-  const detinfo::DetectorProperties* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double msPerTick = 1E-6 * detprop->SamplingRate();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  double msPerTick = 1E-6 * sampling_rate(clockData);
 
 
   art::ValidHandle<std::vector<recob::Cluster>> clsVecHandle = evt.getValidHandle<std::vector<recob::Cluster>>(fClusterModuleLabel);

@@ -14,6 +14,7 @@ cet_test(test_GeoRopChannelGroupService
     test_GeoRopChannelGroupService.cxx
   LIBRARIES
     larcorealg_Geometry
+    lardataalg_DetectorInfo
     dune_ArtSupport
 )
 

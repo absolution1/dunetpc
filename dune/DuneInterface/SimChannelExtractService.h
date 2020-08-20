@@ -13,6 +13,10 @@
 #include <iostream>
 #include "dune/DuneInterface/AdcTypes.h"
 
+namespace detinfo {
+  class DetectorClocksData;
+}
+
 namespace sim {
 class SimChannel;
 }
@@ -23,7 +27,8 @@ public:
 
   virtual ~SimChannelExtractService() =default;
 
-  virtual int extract(const sim::SimChannel* psc, AdcSignalVector& sig) const =0;
+  virtual int extract(detinfo::DetectorClocksData const& clockData,
+                      const sim::SimChannel* psc, AdcSignalVector& sig) const =0;
 
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
 
@@ -35,4 +40,3 @@ DECLARE_ART_SERVICE_INTERFACE(SimChannelExtractService, LEGACY)
 #endif
 
 #endif
-

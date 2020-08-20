@@ -249,7 +249,6 @@ pdunedp::Purity::Purity(Parameters const & config) : EDAnalyzer(config),
 }
 
 void pdunedp::Purity::beginJob(){
-  auto const* dp = lar::providerFrom<detinfo::DetectorPropertiesService>();
   fADCToElectrons = 1./dp->ElectronsToADC();
   //auto simChannelExtract = &*art::ServiceHandle<detsim::DPhaseSimChannelExtractService>();
   //fTotalGain = simChannelExtract->GainPerView()*2;
@@ -876,9 +875,8 @@ void pdunedp::Purity::FillPurityHist(recob::Track track, std::vector<art::Ptr<re
   mf::LogVerbatim("pdunedp::Purity") << "Start purity for track: " << fMipIndex;
 
   //determine the size (in ticks of each bin)
- auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
  for(int pl=0; pl<(int)geom->Nplanes(0); pl++){
-  int TicksPerBin = detprop->NumberTimeSamples()/fNumOfBins;
+  int TicksPerBin = detProp.NumberTimeSamples()/fNumOfBins;
 
   double charge[100]; double num[100];
   for (int nb=0; nb<fNumOfBins; nb++){ charge[nb]=0; num[nb] =0; } //init the charge bins to 0

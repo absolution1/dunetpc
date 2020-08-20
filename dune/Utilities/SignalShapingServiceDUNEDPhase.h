@@ -54,6 +54,10 @@
 #include "lardata/Utilities/SignalShaping.h"
 #include "TF1.h"
 
+namespace detinfo {
+  class DetectorClocksData;
+}
+
 using DoubleVec = std::vector<double>;
 
 namespace util {
@@ -82,18 +86,19 @@ namespace util {
     //double GetDeconNorm() const {return fDeconNorm;};
 
     // Accessors.
-    int FieldResponseTOffset(unsigned int const channel) const override;
+    int FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
+                             unsigned int const channel) const override;
     const util::SignalShaping& SignalShaping(unsigned int channel) const override;
 
     // Do convolution calcution (for simulation).
     template <class T> void Convolute(unsigned int channel, std::vector<T>& func) const;
-    void Convolute(Channel channel, FloatVector& func) const override;
-    void Convolute(Channel channel, DoubleVector& func) const override;
+    void Convolute(detinfo::DetectorClocksData const& clockData, Channel channel, FloatVector& func) const override;
+    void Convolute(detinfo::DetectorClocksData const& clockData, Channel channel, DoubleVector& func) const override;
     
     // Do deconvolution calcution (for reconstruction).
     template <class T> void Deconvolute(unsigned int channel, std::vector<T>& func) const;
-    void Deconvolute(Channel channel, DoubleVector& func) const override;
-    void Deconvolute(Channel channel, FloatVector& func) const override;
+    void Deconvolute(detinfo::DetectorClocksData const& clockData, Channel channel, DoubleVector& func) const override;
+    void Deconvolute(detinfo::DetectorClocksData const& clockData, Channel channel, FloatVector& func) const override;
 
   private:
 
@@ -110,10 +115,11 @@ namespace util {
     double FieldResponse(double tval_us); //harcoded function to calcuate the field response
 
     // Calculate filter functions.
-    void SetFilters();
+    void SetFilters(detinfo::DetectorClocksData const& clockData);
 
     // Sample the response function, including a configurable drift velocity of electrons
-    void SetResponseSampling( util::SignalShaping &sig );
+    void SetResponseSampling(detinfo::DetectorClocksData const& clockData,
+                             util::SignalShaping &sig );
 
     // Attributes.
     bool fInit;               ///< Initialization flag.

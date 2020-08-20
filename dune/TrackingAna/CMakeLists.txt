@@ -1,5 +1,6 @@
 art_make(BASENAME_ONLY
 	 MODULE_LIBRARIES
+         lardataalg_DetectorInfo
 	 lardataobj_RawData
 	 lardataobj_RecoBase
 	 larcorealg_Geometry
@@ -17,7 +18,6 @@ art_make(BASENAME_ONLY
 	 art_Persistency_Provenance canvas
 	 art_Utilities canvas
 	 ${MF_MESSAGELOGGER}
-	 
 	 cetlib cetlib_except
 	 ${ROOT_BASIC_LIB_LIST}
 	 ${ROOT_GEOM}
