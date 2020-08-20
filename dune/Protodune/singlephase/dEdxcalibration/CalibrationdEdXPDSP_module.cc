@@ -182,6 +182,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
         std::vector<float>   deadwire   = calo->DeadWireResRC();
         float                Trk_Length = calo->Range();
         std::vector<float>   fpitch     = calo->TrkPitchVec();
+        const auto&          fHitIndex  = calo->TpIndices();
         const auto&          vXYZ       = calo->XYZ();
         geo::PlaneID         planeID    = calo->PlaneID();
 
@@ -282,6 +283,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
                                                     Trk_Length,
                                                     fpitch,
                                                     vXYZ,
+                                                    fHitIndex,
                                                     planeID));
         util::CreateAssn(*this, evt, *calorimetrycol, tracklist[trkIter], *assn);
       }//calorimetry object not empty
