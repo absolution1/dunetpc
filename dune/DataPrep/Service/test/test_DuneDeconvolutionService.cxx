@@ -17,6 +17,7 @@
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
 #include "dune/DuneInterface/AdcDeconvolutionService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -83,7 +84,8 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
   ServiceHandle<util::SignalShapingServiceDUNE> hsss;
 
   cout << myname << "Convolute." << endl;
-  hsss->Convolute(acd.channel, sigs);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+  hsss->Convolute(clockData, acd.channel, sigs);
   AdcSignalVector sigsco = sigs;
 
   cout << myname << "Fetch deconvolution service." << endl;
@@ -92,7 +94,7 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 
   cout << myname << line << endl;
   cout << myname << "Deconvolute." << endl;
-  assert( hdco->update(acd) == 0 );
+  assert( hdco->update(clockData, acd) == 0 );
   cout << myname << "Output vector size: " << sigs.size() << endl;
   assert( sigs.size() == sigsco.size() );
   for ( unsigned int isig=0; isig<nsig; ++isig ) {

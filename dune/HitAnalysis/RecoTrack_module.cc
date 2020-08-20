@@ -261,8 +261,8 @@ namespace RecoTrack {
   //-----------------------------------------------------------------------
   void RecoTrack::analyze(const art::Event& event) 
   {
-    auto const* timeHandle = lar::providerFrom<detinfo::DetectorClocksService>(); // to get TPC clock and frequency
-    frequency = timeHandle->TPCClock().Frequency();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event); // to get TPC clock and frequency
+    frequency = clockData.TPCClock().Frequency();
 
     art::Handle< std::vector<recob::Hit> > hitHandle; // to get information about the hits
     event.getByLabel(fHitProducerLabel, hitHandle);
@@ -848,7 +848,7 @@ namespace RecoTrack {
     // For every Hit:
     // for ( auto const& hit : (*hitHandle) )
     //   {
-    // 	frequency = timeHandle->TPCClock().Frequency();
+    //  frequency = clockData.TPCClock().Frequency();
     //  	hittime = hit.PeakTime()/frequency;
 
     //  	hittest.push_back(hittime); // vector with hit times

@@ -2,7 +2,7 @@ cet_enable_asserts()
 art_make( NO_PLUGINS
           LIBRARY_NAME  ProtoDUNEspDataProviders
           LIB_LIBRARIES
-          
+                        lardataalg_DetectorInfo
   	                wda
 	                nuevdb_IFDatabase
                         larcorealg_Geometry

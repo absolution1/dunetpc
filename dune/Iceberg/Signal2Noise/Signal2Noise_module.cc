@@ -183,10 +183,11 @@ Signal2Noise::Signal2Noise(fhicl::ParameterSet const& p)
   fSelectedWires          = p.get<std::vector<int>>("SelectedWires");
 
   // DetectorPropertiesService
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  fNticks = detprop->NumberTimeSamples(); // number of clock ticks per event
-  fNticksReadout = detprop->ReadOutWindowSize(); // number of clock ticks per readout window
-  fSampleRate = detprop->SamplingRate(); // period of the TPC readout electronics clock
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+  fNticks = detProp.NumberTimeSamples(); // number of clock ticks per event
+  fNticksReadout = detProp.ReadOutWindowSize(); // number of clock ticks per readout window
+  fSampleRate = sampling_rate(clockData); // period of the TPC readout electronics clock
   cout << "Numer of clock ticks per event: " << fNticks << endl;
   cout << "Numer of clock ticks per readout window: " << fNticksReadout << endl;
   cout << "Sampling rate: " << fSampleRate << endl;
@@ -266,7 +267,7 @@ void Signal2Noise::analyze(art::Event const& e)
   //art::FindManyP<raw::RawDigit> fmwirerawdigit(wireListHandle, e, "digitwire");
   art::FindManyP<recob::Hit, recob::TrackHitMeta> fmhittrkmeta(trackListHandle, e, fTrackModuleLabel);
 
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
 
   // waveform: save several waveforms for check
   int nwaveform = 0; // only save 10 waveforms
@@ -329,7 +330,7 @@ void Signal2Noise::analyze(art::Event const& e)
           if ((calos[icalo]->TrkPitchVec())[iHit]>1) continue;
           const auto& TrkPos1 = (calos[icalo] -> XYZ())[iHit];
           double x = TrkPos1.X()-minx; //subtract the minx to get correct t0
-          double XDriftVelocity = detprop->DriftVelocity()*1e-3; //cm/ns
+          double XDriftVelocity = detProp.DriftVelocity()*1e-3; //cm/ns
           double t = x/(XDriftVelocity*1000); //change the velocity units to cm/ns to cm/us
           trkx[ntrks][planenum][iHit] = x;
           trkt[ntrks][planenum][iHit] = t;

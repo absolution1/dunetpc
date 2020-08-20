@@ -37,6 +37,11 @@
 #include "TF1.h"
 #include "TH1D.h"
 
+namespace detinfo {
+  class DetectorClocksData;
+  class DetectorPropertiesData;
+}
+
 using DoubleVec = std::vector<double>;
 namespace util {
   class SignalShapingServiceDUNE10kt {
@@ -61,17 +66,20 @@ namespace util {
     double GetDeconNoise(unsigned int const channel) const;
     // Accessors.
 
-    int FieldResponseTOffset(unsigned int const channel) const;
+    int FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
+                             unsigned int const channel) const;
 
     const util::SignalShaping& SignalShaping(unsigned int channel) const;
 
     // Do convolution calcution (for simulation).
 
-    template <class T> void Convolute(unsigned int channel, std::vector<T>& func) const;
+    template <class T> void Convolute(detinfo::DetectorClocksData const& clockData,
+                                      unsigned int channel, std::vector<T>& func) const;
 
     // Do deconvolution calcution (for reconstruction).
 
-    template <class T> void Deconvolute(unsigned int channel, std::vector<T>& func) const;
+    template <class T> void Deconvolute(detinfo::DetectorClocksData const& clockData,
+                                        unsigned int channel, std::vector<T>& func) const;
     double GetDeconNorm(){return fDeconNorm;};
     
   private:
@@ -86,12 +94,13 @@ namespace util {
     // Calculate response functions.
     // Copied from SimWireDUNE10kt.
 
-    void SetFieldResponse();
+    void SetFieldResponse(detinfo::DetectorClocksData const& clockData,
+                          detinfo::DetectorPropertiesData const& detProp);
     void SetElectResponse(double shapingtime, double gain);
 
     // Calculate filter functions.
 
-    void SetFilters();
+    void SetFilters(detinfo::DetectorClocksData const& clockData);
 
     // Attributes.
 
@@ -100,7 +109,7 @@ namespace util {
      // Sample the response function, including a configurable
     // drift velocity of electrons
     
-    void SetResponseSampling();
+    void SetResponseSampling(detinfo::DetectorClocksData const& clockData);
 
     // Fcl parameters.
 
@@ -163,12 +172,13 @@ namespace util {
 }
 //----------------------------------------------------------------------
 // Do convolution.
-template <class T> inline void util::SignalShapingServiceDUNE10kt::Convolute(unsigned int channel, std::vector<T>& func) const
+template <class T> inline void util::SignalShapingServiceDUNE10kt::Convolute(detinfo::DetectorClocksData const& clockData,
+                                                                             unsigned int channel, std::vector<T>& func) const
 {
   SignalShaping(channel).Convolute(func);
 
   //negative number
-  int time_offset = FieldResponseTOffset(channel);
+  int time_offset = FieldResponseTOffset(clockData, channel);
   
   std::vector<T> temp;
   if (time_offset <=0){
@@ -185,11 +195,12 @@ template <class T> inline void util::SignalShapingServiceDUNE10kt::Convolute(uns
 
 //----------------------------------------------------------------------
 // Do deconvolution.
-template <class T> inline void util::SignalShapingServiceDUNE10kt::Deconvolute(unsigned int channel, std::vector<T>& func) const
+template <class T> inline void util::SignalShapingServiceDUNE10kt::Deconvolute(detinfo::DetectorClocksData const& clockData,
+                                                                               unsigned int channel, std::vector<T>& func) const
 {
   SignalShaping(channel).Deconvolute(func);
 
-  int time_offset = FieldResponseTOffset(channel);
+  int time_offset = FieldResponseTOffset(clockData, channel);
   
   std::vector<T> temp;
   if (time_offset <=0){

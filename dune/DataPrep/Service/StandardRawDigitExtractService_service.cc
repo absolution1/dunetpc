@@ -143,4 +143,3 @@ print(std::ostream& out, std::string prefix) const {
 DEFINE_ART_SERVICE_INTERFACE_IMPL(StandardRawDigitExtractService, RawDigitExtractService)
 
 //**********************************************************************
-

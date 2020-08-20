@@ -31,8 +31,8 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 
 // LArSoft includes
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
@@ -69,7 +69,8 @@ public:
   void analyze(art::Event const& evt);
   void reconfigure(fhicl::ParameterSet const& p);
   void reset();
-  int FindTrackID(art::Ptr<recob::Hit> const& hit);
+  int FindTrackID(detinfo::DetectorClocksData const& clockData,
+                  art::Ptr<recob::Hit> const& hit);
 
 private:
 
@@ -99,12 +100,11 @@ private:
   art::ServiceHandle<cheat::BackTrackerService> backtracker;
   art::ServiceHandle<cheat::ParticleInventoryService> particleinventory;
   art::ServiceHandle<geo::Geometry> geom;
-  detinfo::DetectorProperties const* detprop = nullptr;
 
 };
 
-emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset),
-                                                                          detprop(lar::providerFrom<detinfo::DetectorPropertiesService>()) {
+emshower::EMEnergyCalib::EMEnergyCalib(fhicl::ParameterSet const& pset) : EDAnalyzer(pset)
+{
   this->reconfigure(pset);
   fTree = tfs->make<TTree>("EMEnergyCalib","EMEnergyCalib");
   fTree->Branch("TrueEnergy",        &trueEnergy);
@@ -158,6 +158,8 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
   correctedChargeZ = 0;
 
   // Look at the hits
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
   for (unsigned int hitIt = 0; hitIt < hits.size(); ++hitIt) {
 
     if (hitIt >= kMaxHits) continue;
@@ -165,7 +167,7 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     // Get the hit
     art::Ptr<recob::Hit> hit = hits.at(hitIt);
 
-    double correctedHitCharge = ( hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+    double correctedHitCharge = ( hit->Integral() * TMath::Exp( (sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3) ) );
     switch (hit->WireID().Plane) {
     case 0:
       correctedChargeU += correctedHitCharge;
@@ -187,7 +189,7 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
     hit_channel [hitIt] = hit->Channel();
 
     // Find the true track this hit is associated with
-    hit_truetrackid[hitIt] = this->FindTrackID(hit);
+    hit_truetrackid[hitIt] = this->FindTrackID(clockData, hit);
 
     // Find the cluster index this hit it associated with (-1 if unclustered)
     if (fmc.isValid()) {
@@ -258,10 +260,11 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
 
 }
 
-int emshower::EMEnergyCalib::FindTrackID(art::Ptr<recob::Hit> const& hit) {
+int emshower::EMEnergyCalib::FindTrackID(detinfo::DetectorClocksData const& clockData,
+                                         art::Ptr<recob::Hit> const& hit) {
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(hit);
+  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(clockData, hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;

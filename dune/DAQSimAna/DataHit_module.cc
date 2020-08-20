@@ -198,7 +198,6 @@ void DataHit::analyze(art::Event const & evt)
 
     //GET INFORMATION ABOUT THE DETECTOR'S GEOMETRY.
     // auto const* geo = lar::providerFrom<geo::Geometry>();
-    // auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     //GET THE RECO HITS.
     auto reco_hits = evt.getValidHandle<std::vector<recob::Hit> >(fHitLabel);

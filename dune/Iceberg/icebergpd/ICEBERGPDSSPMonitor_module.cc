@@ -158,8 +158,8 @@ void icebergpd::ICEBERGPDSSPMonitor::analyze(art::Event const& evt)
   //  std::cout<< "Event #" << evt.id().event() <<"\t" << OpDetWaveformHandle->size() << std::endl;
 
   // Obtain parameters from DetectorClocksService
-  auto const *timeService = lar::providerFrom< detinfo::DetectorClocksService >();
-  fSampleFreq = timeService->OpticalClock().Frequency();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  fSampleFreq = clockData.OpticalClock().Frequency();
 
   int n = 0; int ntick = 0; int three = 0; int seven = 0;// float adc = 0;
   long int adcmax = 0;  long int adcval = 0; long int adcval3 = 0, adcval7 = 0, sig_adcval3 = 0, sig_adcval7 = 0; 

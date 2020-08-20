@@ -11,7 +11,7 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom()
 #include "TSpline.h"
@@ -162,6 +162,11 @@ void util::SignalShapingServiceDUNEDPhase::init()
   
   fInit = true;
   
+  // Lazy initialization is problematic wrt multi-threading.  For this
+  // case, the best we can do is use the global data as provided by
+  // the detector-clocks service.
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+
   //
   fPulseHeight = SetElectResponse( fColShapeFunc, fColSignalShaping, fAreaNorm );
   // noise in ADC
@@ -169,13 +174,13 @@ void util::SignalShapingServiceDUNEDPhase::init()
   MF_LOG_DEBUG("SignalShapingDUNEDPhase") << "Pulse height in mV 3m view : "<<fPulseHeight;
   MF_LOG_DEBUG("SignalShapingDUNEDPhase") << "Noise in ADC : "<<fAmpENCADC;
   // rebin to appropriate sampling rate of readout
-  SetResponseSampling( fColSignalShaping );
+  SetResponseSampling(clockData, fColSignalShaping );
 
   // 3x1x1 1m view
   fPulseHeight1m = SetElectResponse( fColShapeFunc1m, fColSignalShaping1m, fAreaNorm1m );
   MF_LOG_DEBUG("SignalShapingDUNEDPhase") << "Pulse height in mV 1m view : "<<fPulseHeight1m;
   // rebin to appropriate sampling rate of readout
-  SetResponseSampling( fColSignalShaping1m );
+  SetResponseSampling(clockData, fColSignalShaping1m );
 
 
   // Calculate field and electronics response functions.
@@ -188,7 +193,7 @@ void util::SignalShapingServiceDUNEDPhase::init()
 
   //
   // Calculate filter functions.
-  SetFilters();
+  SetFilters(clockData);
 
   // Configure deconvolution kernels.
   fColSignalShaping.AddFilterFunction(fColFilter);
@@ -354,20 +359,20 @@ double util::SignalShapingServiceDUNEDPhase::SetElectResponse( const TF1* fshape
 
 //----------------------------------------------------------------------
 // (Re)sample electronics (+field?) response
-void util::SignalShapingServiceDUNEDPhase::SetResponseSampling( util::SignalShaping &sig )
+void util::SignalShapingServiceDUNEDPhase::SetResponseSampling(detinfo::DetectorClocksData const& clockData,
+                                                               util::SignalShaping &sig )
 {
   // Get services
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size
-  if( fRespSamplingPeriod > detprop->SamplingRate() )
+  if( fRespSamplingPeriod > sampling_rate(clockData) )
     throw cet::exception(__FUNCTION__) << "\033[93m"
 				       << "Invalid operation: cannot rebin to a more finely binned vector!"
 				       << "\033[00m" << std::endl;
   
   
-  if( fRespSamplingPeriod == detprop->SamplingRate() ) //nothing to do
+  if( fRespSamplingPeriod == sampling_rate(clockData) ) //nothing to do
     {
       return;
     }
@@ -397,7 +402,7 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling( util::SignalShap
   
   // resampling vectors
   std::vector<double> SamplingResp( nticks , 0. );
-  double dt      = detprop->SamplingRate();
+  double dt      = sampling_rate(clockData);
   double maxtime = InputTime.back();
   //
   for ( int itime = 0; itime < nticks; itime++ )
@@ -415,13 +420,12 @@ void util::SignalShapingServiceDUNEDPhase::SetResponseSampling( util::SignalShap
 
 //----------------------------------------------------------------------
 // Calculate filter functions.
-void util::SignalShapingServiceDUNEDPhase::SetFilters()
+void util::SignalShapingServiceDUNEDPhase::SetFilters(detinfo::DetectorClocksData const& clockData)
 {
   // Get services.
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
   
-  double ts = detprop->SamplingRate(); // should return in ns
+  double ts = sampling_rate(clockData); // should return in ns
   int nsize = fft->FFTSize();
   int nhalf = nsize / 2;
   fColFilterFunc->SetRange(0, double(nhalf));
@@ -485,27 +489,32 @@ std::vector<DoubleVec> util::SignalShapingServiceDUNEDPhase::GetNoiseFactVec() c
 
 // n/a
 int util::SignalShapingServiceDUNEDPhase::
-FieldResponseTOffset(unsigned int const channel) const {
+FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
+                     unsigned int const channel) const {
   return 0;
 }
 
 void util::SignalShapingServiceDUNEDPhase::
-Convolute(unsigned int channel, FloatVector& func) const {
+Convolute(detinfo::DetectorClocksData const&,
+          unsigned int channel, FloatVector& func) const {
   return Convolute<float>(channel, func);
 }
 
 void util::SignalShapingServiceDUNEDPhase::
-Convolute(unsigned int channel, DoubleVector& func) const {
+Convolute(detinfo::DetectorClocksData const&,
+          unsigned int channel, DoubleVector& func) const {
   return Convolute<double>(channel, func);
 }
 
 void util::SignalShapingServiceDUNEDPhase::
-Deconvolute(unsigned int channel, FloatVector& func) const {
+Deconvolute(detinfo::DetectorClocksData const&,
+            unsigned int channel, FloatVector& func) const {
   return Deconvolute<float>(channel, func);
 }
 
 void util::SignalShapingServiceDUNEDPhase::
-Deconvolute(unsigned int channel, DoubleVector& func) const {
+Deconvolute(detinfo::DetectorClocksData const&,
+            unsigned int channel, DoubleVector& func) const {
   return Deconvolute<double>(channel, func);
 }
 

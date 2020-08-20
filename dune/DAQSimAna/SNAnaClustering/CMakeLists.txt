@@ -1,4 +1,5 @@
 art_make( BASENAME_ONLY MODULE_LIBRARIES
+  lardataalg_DetectorInfo
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData

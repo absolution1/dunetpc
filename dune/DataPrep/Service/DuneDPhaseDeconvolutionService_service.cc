@@ -23,7 +23,8 @@ DuneDPhaseDeconvolutionService(fhicl::ParameterSet const& pset, art::ActivityReg
 //**********************************************************************
 
 int DuneDPhaseDeconvolutionService::
-update(AdcChannelData& data) const {
+update(detinfo::DetectorClocksData const&,
+       AdcChannelData& data) const {
   const string myname = "DuneDPhaseDeconvolutionService::update: ";
   AdcChannel chan = data.channel;
   AdcSignalVector& samples = data.samples;
