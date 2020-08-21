@@ -277,7 +277,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   logFile.open("ProtoDUNE.log"); // Logfile I don't use right now
 
   //Get triggers
-  cout << "Getting triggers" << endl;
+  //cout << "Getting triggers" << endl;
   const auto & triggers = event.getValidHandle < std::vector < CRT::Trigger >> (fCRTLabel);
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
@@ -334,8 +334,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
     trigID++;
   }
 
-  cout << "Hits compiled for event: " << nEvents << endl;
-  cout << "Number of Hits above Threshold:  " << hitID << endl;
+  //cout << "Hits compiled for event: " << nEvents << endl;
+  //cout << "Number of Hits above Threshold:  " << hitID << endl;
 
   for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
@@ -858,8 +858,8 @@ double xOffset=0;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
         if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.9995 ) {
-	cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
-	cout<<"Displacement of match:"<<deltaX<<','<<deltaY<<endl;
+	//cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
+	//cout<<"Displacement of match:"<<deltaX<<','<<deltaY<<endl;
 
 	std::vector<float> hitF;
 	std::vector<float> hitB;

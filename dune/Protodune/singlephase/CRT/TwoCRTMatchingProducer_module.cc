@@ -211,7 +211,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 
 
   //Get triggers
-  cout << "Getting triggers" << endl;
+  //cout << "Getting triggers" << endl;
   art::Handle < vector < CRT::Trigger > > crtListHandle;
   vector < art::Ptr < CRT::Trigger > > crtList;
   if (event.getByLabel(fCRTLabel, crtListHandle)) {
@@ -229,7 +229,7 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
   //Mapping from channel to trigger
   std::unordered_map < size_t, double > prevTimes;
   int hitID = 0;
-  cout << "Looking for hits in Triggers" << endl;
+  //cout << "Looking for hits in Triggers" << endl;
   int trigID=0;
   for (const auto & trigger: * triggers) {
     const auto & hits = trigger.Hits();
@@ -265,8 +265,8 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
     trigID++;
   }
   nHitsPerEvent=nHits;
-  cout << "Hits compiled for event: " << nEvents << endl;
-  cout << "Number of Hits above Threshold:  " << hitID << endl;
+  //cout << "Hits compiled for event: " << nEvents << endl;
+  //cout << "Number of Hits above Threshold:  " << hitID << endl;
 
   for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
@@ -558,9 +558,9 @@ if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trac
         }
       }
       if (std::abs(best_dotProductCos)>0.99 && std::abs(best_deltaXF)+std::abs(best_deltaXB)<40 && std::abs(best_deltaYF)+std::abs(best_deltaYB)<40 ) {
-        std::cout<<"Found match with TPC*CRT "<<best_dotProductCos<<std::endl;
+        //std::cout<<"Found match with TPC*CRT "<<best_dotProductCos<<std::endl;
 
-std::cout<<"Displacement in front and back "<<best_deltaXF<<","<<best_deltaYF<<","<<best_deltaXB<<","<<best_deltaYB<<std::endl;
+//std::cout<<"Displacement in front and back "<<best_deltaXF<<","<<best_deltaYF<<","<<best_deltaXB<<","<<best_deltaYB<<std::endl;
         std::vector<float> hitF;
 	std::vector<float> hitB;
 	hitF.push_back(best_XF); hitF.push_back(best_YF); hitF.push_back(best_ZF);
