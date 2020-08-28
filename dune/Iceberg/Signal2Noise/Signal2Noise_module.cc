@@ -320,6 +320,7 @@ void Signal2Noise::analyze(art::Event const& e)
 
         double minx = 1e9;
         for (size_t iHit=0; iHit<NHits; ++iHit) {
+          cout << "plane: "<< planenum << "; pitch: " << (calos[icalo]->TrkPitchVec())[iHit] << endl;
           if ((calos[icalo]->TrkPitchVec())[iHit]>1) continue;
           const auto& TrkPos = (calos[icalo] -> XYZ())[iHit];
           if (TrkPos.X()<minx)
@@ -351,7 +352,7 @@ void Signal2Noise::analyze(art::Event const& e)
       unsigned int wire = allhits[ihit]->WireID().Wire;
       unsigned int tpc = allhits[ihit]->WireID().TPC;
       unsigned int channel = allhits[ihit]->Channel();
-     
+       
       if (channelStatus.IsBad(channel)) continue;
 
       // hit position: not all hits are associated with space points, using neighboring space points to interpolate
@@ -436,9 +437,13 @@ void Signal2Noise::analyze(art::Event const& e)
           break;
         }
       }
-
+      
+      if (key_rawdigit == -1) continue; // www
       int datasize = rawdigitlist[key_rawdigit]->Samples();
+      if (datasize==0) continue; // www: check on this
       // to use a compressed RawDigit, one has to create a new buffer, fill and use it
+      //if (ihit==15) cout << "rawdigitlist.size(): " << rawdigitlist.size() << ";  rawdigitlist[key_rawdigit]->Channel(): " << rawdigitlist[key_rawdigit]->Channel() << endl;
+      //if (ihit==15) cout << "channel: " << channel << "; tpc: " <<tpc << "; key_rawdigit: " << key_rawdigit<< "; datasize: " << datasize << endl;
       std::vector<short> rawadc(datasize); // create a buffer
       raw::Uncompress(rawdigitlist[key_rawdigit]->ADCs(), rawadc, rawdigitlist[key_rawdigit]->Compression());
 
@@ -479,12 +484,17 @@ void Signal2Noise::analyze(art::Event const& e)
       tamp[ntrks][ihit] = temp_t_max_pulseheight;
 
       // noise rms calculation: ideally, this should be done for all wires, not only wires that have hits
+        //std::cout << " ntrks: "<< ntrks << "; ihit: " << ihit << std::endl;
+        //std::cout << "rawadc[0]: " << rawadc[0] << std::endl;
       // method 1: calculate rms directly
       int start_ped = 0; 
       int end_ped = 2000; 
       float temp_sum = 0.;
       int temp_number = 0;
-      for (int iped=start_ped; iped<=end_ped; iped++) {
+      for (int iped=start_ped; iped<end_ped; iped++) {
+        //std::cout << "iped: " << iped << "; ntrks: "<< ntrks << "; ihit: " << ihit << std::endl;
+        //std::cout << "rawadc[iped]: " << rawadc[iped] << std::endl;
+        //std::cout << "ped[ntrks][ihit]: "<< ped[ntrks][ihit]<<std::endl;
         //if (iped > tamp[ntrks][ihit]-10 && iped < tamp[ntrks][ihit]+10) continue; // ideally we should use this to skip ROI region
         float temp_res = rawadc[iped] - ped[ntrks][ihit];
         if (abs(temp_res) > 8.) continue; // skip ROI with a threshold
