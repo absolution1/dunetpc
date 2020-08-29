@@ -1,4 +1,5 @@
 simple_plugin(GapFilter "module"
+                        lardataalg_DetectorInfo
                         lardataobj_RawData
                         lardataobj_RecoBase
                         larcorealg_Geometry
@@ -25,6 +26,7 @@ simple_plugin(GapFilter "module"
 )
 
 simple_plugin(GapWidth "module"
+                       lardataalg_DetectorInfo
                        lardataobj_RawData
                        lardataobj_RecoBase
                        lardata_ArtDataHelper

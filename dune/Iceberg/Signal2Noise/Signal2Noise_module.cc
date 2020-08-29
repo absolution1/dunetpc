@@ -183,10 +183,11 @@ Signal2Noise::Signal2Noise(fhicl::ParameterSet const& p)
   fSelectedWires          = p.get<std::vector<int>>("SelectedWires");
 
   // DetectorPropertiesService
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  fNticks = detprop->NumberTimeSamples(); // number of clock ticks per event
-  fNticksReadout = detprop->ReadOutWindowSize(); // number of clock ticks per readout window
-  fSampleRate = detprop->SamplingRate(); // period of the TPC readout electronics clock
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+  fNticks = detProp.NumberTimeSamples(); // number of clock ticks per event
+  fNticksReadout = detProp.ReadOutWindowSize(); // number of clock ticks per readout window
+  fSampleRate = sampling_rate(clockData); // period of the TPC readout electronics clock
   cout << "Numer of clock ticks per event: " << fNticks << endl;
   cout << "Numer of clock ticks per readout window: " << fNticksReadout << endl;
   cout << "Sampling rate: " << fSampleRate << endl;
@@ -266,7 +267,7 @@ void Signal2Noise::analyze(art::Event const& e)
   //art::FindManyP<raw::RawDigit> fmwirerawdigit(wireListHandle, e, "digitwire");
   art::FindManyP<recob::Hit, recob::TrackHitMeta> fmhittrkmeta(trackListHandle, e, fTrackModuleLabel);
 
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataFor(e);
 
   // waveform: save several waveforms for check
   int nwaveform = 0; // only save 10 waveforms
@@ -319,6 +320,7 @@ void Signal2Noise::analyze(art::Event const& e)
 
         double minx = 1e9;
         for (size_t iHit=0; iHit<NHits; ++iHit) {
+          cout << "plane: "<< planenum << "; pitch: " << (calos[icalo]->TrkPitchVec())[iHit] << endl;
           if ((calos[icalo]->TrkPitchVec())[iHit]>1) continue;
           const auto& TrkPos = (calos[icalo] -> XYZ())[iHit];
           if (TrkPos.X()<minx)
@@ -329,7 +331,7 @@ void Signal2Noise::analyze(art::Event const& e)
           if ((calos[icalo]->TrkPitchVec())[iHit]>1) continue;
           const auto& TrkPos1 = (calos[icalo] -> XYZ())[iHit];
           double x = TrkPos1.X()-minx; //subtract the minx to get correct t0
-          double XDriftVelocity = detprop->DriftVelocity()*1e-3; //cm/ns
+          double XDriftVelocity = detProp.DriftVelocity()*1e-3; //cm/ns
           double t = x/(XDriftVelocity*1000); //change the velocity units to cm/ns to cm/us
           trkx[ntrks][planenum][iHit] = x;
           trkt[ntrks][planenum][iHit] = t;
@@ -350,7 +352,7 @@ void Signal2Noise::analyze(art::Event const& e)
       unsigned int wire = allhits[ihit]->WireID().Wire;
       unsigned int tpc = allhits[ihit]->WireID().TPC;
       unsigned int channel = allhits[ihit]->Channel();
-     
+       
       if (channelStatus.IsBad(channel)) continue;
 
       // hit position: not all hits are associated with space points, using neighboring space points to interpolate
@@ -435,9 +437,13 @@ void Signal2Noise::analyze(art::Event const& e)
           break;
         }
       }
-
+      
+      if (key_rawdigit == -1) continue; // www
       int datasize = rawdigitlist[key_rawdigit]->Samples();
+      if (datasize==0) continue; // www: check on this
       // to use a compressed RawDigit, one has to create a new buffer, fill and use it
+      //if (ihit==15) cout << "rawdigitlist.size(): " << rawdigitlist.size() << ";  rawdigitlist[key_rawdigit]->Channel(): " << rawdigitlist[key_rawdigit]->Channel() << endl;
+      //if (ihit==15) cout << "channel: " << channel << "; tpc: " <<tpc << "; key_rawdigit: " << key_rawdigit<< "; datasize: " << datasize << endl;
       std::vector<short> rawadc(datasize); // create a buffer
       raw::Uncompress(rawdigitlist[key_rawdigit]->ADCs(), rawadc, rawdigitlist[key_rawdigit]->Compression());
 
@@ -478,12 +484,17 @@ void Signal2Noise::analyze(art::Event const& e)
       tamp[ntrks][ihit] = temp_t_max_pulseheight;
 
       // noise rms calculation: ideally, this should be done for all wires, not only wires that have hits
+        //std::cout << " ntrks: "<< ntrks << "; ihit: " << ihit << std::endl;
+        //std::cout << "rawadc[0]: " << rawadc[0] << std::endl;
       // method 1: calculate rms directly
       int start_ped = 0; 
       int end_ped = 2000; 
       float temp_sum = 0.;
       int temp_number = 0;
-      for (int iped=start_ped; iped<=end_ped; iped++) {
+      for (int iped=start_ped; iped<end_ped; iped++) {
+        //std::cout << "iped: " << iped << "; ntrks: "<< ntrks << "; ihit: " << ihit << std::endl;
+        //std::cout << "rawadc[iped]: " << rawadc[iped] << std::endl;
+        //std::cout << "ped[ntrks][ihit]: "<< ped[ntrks][ihit]<<std::endl;
         //if (iped > tamp[ntrks][ihit]-10 && iped < tamp[ntrks][ihit]+10) continue; // ideally we should use this to skip ROI region
         float temp_res = rawadc[iped] - ped[ntrks][ihit];
         if (abs(temp_res) > 8.) continue; // skip ROI with a threshold

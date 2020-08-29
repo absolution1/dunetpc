@@ -30,6 +30,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/Filters/ChannelFilter.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
@@ -60,8 +61,10 @@ public:
   void reset();
   double ConvertChargeToEnergy(double charge, int plane);
   double FindDepositedEnergy(int trackID);
-  int FindTrackID(art::Ptr<recob::Hit> const& hit);
-  int FindTrueTrack(std::vector<art::Ptr<recob::Hit> > const& clusterHits);
+  int FindTrackID(detinfo::DetectorClocksData const& clockData,
+                  art::Ptr<recob::Hit> const& hit);
+  int FindTrueTrack(detinfo::DetectorClocksData const& clockData,
+                    std::vector<art::Ptr<recob::Hit> > const& clusterHits);
   double FindVertexDetectorDistance(const simb::MCParticle* particle);
 
 private:
@@ -152,6 +155,7 @@ void emshower::EMPi0Energy::analyze(art::Event const& evt) {
   art::FindManyP<recob::Hit> fmh(clusterHandle, evt, fClusterModuleLabel);
 
   // Look at the clusters
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for (unsigned int clus = 0; clus < clusters.size(); ++clus) {
 
     art::Ptr<recob::Cluster> cluster = clusters.at(clus);
@@ -164,7 +168,7 @@ void emshower::EMPi0Energy::analyze(art::Event const& evt) {
 
     cluster_plane      [clus] = cluster->Plane().Plane;
     cluster_size       [clus] = hits.size();
-    cluster_truetrackid[clus] = this->FindTrueTrack(hits);
+    cluster_truetrackid[clus] = this->FindTrueTrack(clockData, hits);
     cluster_charge     [clus] = charge;
     cluster_energy     [clus] = this->ConvertChargeToEnergy(charge, cluster->Plane().Plane);
 
@@ -251,13 +255,14 @@ double emshower::EMPi0Energy::FindDepositedEnergy(int trackID) {
 
 }
 
-int emshower::EMPi0Energy::FindTrackID(art::Ptr<recob::Hit> const& hit) {
+int emshower::EMPi0Energy::FindTrackID(detinfo::DetectorClocksData const& clockData,
+                                       art::Ptr<recob::Hit> const& hit) {
 
   /// Find the true track ID this hit is associated with
 
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(hit);
+  std::vector<sim::TrackIDE> trackIDs = backtracker->HitToTrackIDEs(clockData, hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;
@@ -267,14 +272,15 @@ int emshower::EMPi0Energy::FindTrackID(art::Ptr<recob::Hit> const& hit) {
   return likelyTrackID;
 }
 
-int emshower::EMPi0Energy::FindTrueTrack(std::vector<art::Ptr<recob::Hit> > const& clusterHits) {
+int emshower::EMPi0Energy::FindTrueTrack(detinfo::DetectorClocksData const& clockData,
+                                         std::vector<art::Ptr<recob::Hit> > const& clusterHits) {
 
   /// Find the true track which is most associated to this cluster
 
   std::map<int,double> trackMap;
   for (std::vector<art::Ptr<recob::Hit> >::const_iterator clusHitIt = clusterHits.begin(); clusHitIt != clusterHits.end(); ++clusHitIt) {
     art::Ptr<recob::Hit> hit = *clusHitIt;
-    int trackID = FindTrackID(hit);
+    int trackID = FindTrackID(clockData, hit);
     trackMap[trackID] += hit->Integral();
   }
   //return std::max_element(trackMap.begin(), trackMap.end(), [](const std::pair<int,double>& p1, const std::pair<int,double>& p2) {return p1.second < p2.second;} )->first;

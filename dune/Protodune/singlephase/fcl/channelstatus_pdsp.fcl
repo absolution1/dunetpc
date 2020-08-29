@@ -11,6 +11,7 @@
 
 BEGIN_PROLOG
 
-pdsp_channel_status: @local::pdsp_channel_status_nov2019
+pdsp_channel_status: @local::pdsp_channel_status_2018
+#pdsp_channel_status: @local::pdsp_channel_status_nov2019
 
 END_PROLOG

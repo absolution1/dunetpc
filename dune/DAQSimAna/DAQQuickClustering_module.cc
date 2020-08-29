@@ -414,7 +414,6 @@ void DAQQuickClustering::analyze(art::Event const & evt)
 
   //GET INFORMATION ABOUT THE DETECTOR'S GEOMETRY.
   auto const* geo = lar::providerFrom<geo::Geometry>();
-  const detinfo::DetectorProperties* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
 // GET THE RECO HITS.
   auto reco_hits = evt.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
@@ -476,7 +475,9 @@ void DAQQuickClustering::analyze(art::Event const & evt)
     VertexChan = geo->PlaneWireToChannel(WireID);
   
   //CM/MICROSECOND.
-  double drift_velocity = detp->DriftVelocity(detp->Efield(),detp->Temperature());
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
+  double drift_velocity = detProp.DriftVelocity(detProp.Efield(),detProp.Temperature());
   //CM/TICK
   drift_velocity = drift_velocity*0.5;
   VertexT = VertX/drift_velocity;
@@ -580,7 +581,7 @@ void DAQQuickClustering::analyze(art::Event const & evt)
     std::vector<const sim::IDE*> ThisSimIDE;
     try
     {
-      ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+      ThisHitIDE = bt_serv->HitToTrackIDEs(clockData,  ThisHit );
     }
     catch(...)
     {
@@ -588,7 +589,7 @@ void DAQQuickClustering::analyze(art::Event const & evt)
       firstCatch++;
       try
       {
-        ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+        ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
       }
       catch(...)
       {
@@ -600,7 +601,7 @@ void DAQQuickClustering::analyze(art::Event const & evt)
     }
     try
     {
-      ThisSimIDE = bt_serv->HitToSimIDEs_Ps(ThisHit);
+      ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
     }
     catch(...)
     {

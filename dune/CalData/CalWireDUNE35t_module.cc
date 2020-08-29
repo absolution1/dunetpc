@@ -170,7 +170,9 @@ namespace caldata {
 
     unsigned int dataSize = digitVec0->Samples(); //size of raw data vectors
     //std::cout << "Xin " << dataSize << std::endl;
-    int readoutwindowsize = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider()->ReadOutWindowSize();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
+    int readoutwindowsize = detProp.ReadOutWindowSize();
     if (int(dataSize) != readoutwindowsize){
       throw art::Exception(art::errors::Configuration)
         << "ReadOutWindowSize "<<readoutwindowsize<<" does not match data size "<<dataSize<<". Please set services.DetectorPropertiesService.NumberTimeSamples and services.DetectorPropertiesService.ReadOutWindowSize in fcl file to "<<dataSize;
@@ -213,7 +215,7 @@ namespace caldata {
 	}
 
 	// Do deconvolution.
-	sss->Deconvolute(channel, holder);
+        sss->Deconvolute(clockData, channel, holder);
 	for(bin = 0; bin < holder.size(); ++bin) holder[bin]=holder[bin]/DeconNorm;
       } // end if not a bad channel 
       
@@ -379,5 +381,3 @@ namespace caldata {
 
 
 } // end namespace caldata
-
-

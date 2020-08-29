@@ -241,8 +241,8 @@ namespace raw_event_display{
 
     fTPCInput       = p.get< std::string >("TPCInputModule");
     fTPCInstance    = p.get< std::string >("TPCInstanceName");
-    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    fNticks         = fDetProp->NumberTimeSamples();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob();
+    fNticks         = detProp.NumberTimeSamples();
     return;
   }
 
@@ -331,4 +331,3 @@ DEFINE_ART_MODULE(raw_event_display::RawEventDisplay)
 
 
 #endif // RawEventDisplay
-
