@@ -90,6 +90,7 @@ physics:
 
 # Fix dataprep module config.
 physics.producers.caldata.ChannelGroups: ["all"]
+physics.producers.caldata.OnlineChannelMapTool: "ib_onlineChannelMapByFemb"
 
 outputs:
 {

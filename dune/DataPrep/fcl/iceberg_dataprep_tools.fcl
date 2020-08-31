@@ -42,6 +42,12 @@ tools.channelGroupsIceberg: {
 tools.channelRanges: @local::tools.channelRangesIceberg
 tools.channelGroups: @local::tools.channelGroupsIceberg
 
+tools.ib_onlineChannelMapByFemb: {
+  tool_type: IcebergOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
+}
+
 ################################################################################
 # Reco.
 ################################################################################
