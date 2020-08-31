@@ -350,7 +350,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       cout << myname << "ERROR: Channel summary histogram value histogram not found: " << vhnam << endl;
       continue;
     }
-    const NameVector valTypes = {"entries", "count", "mean", "peak", "rms", "fitMean", "fitSigma"};
+    const NameVector valTypes = {"entries", "count", "mean", "peak", "rms", "sum", "fitMean", "fitSigma"};
     if ( std::find(valTypes.begin(), valTypes.end(), valType) == valTypes.end() ) {
       cout << myname << "ERROR: Channel summary histogram has invalid variable type: " << valType << endl;
       continue;
@@ -367,6 +367,8 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
       yttl = "Mean of " + valLabel;
     } else if ( valType == "peak" ) {
       yttl = "Peak of " + valLabel;
+    } else if ( valType == "rms" ) {
+      yttl = "Sum of " + valLabel;
     } else if ( valType == "rms" ) {
       yttl = "RMS of " + valLabel;
     } else if ( valType == "fitMean" ) {
@@ -411,6 +413,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     NameVector crns;
     if ( crname0 == "list" ) crns = m_ChannelRanges;
     else crns.push_back(crname0);
+    if ( crns.size() == 0 ) crns.push_back("all");
     for ( Name crname : crns ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Creating channel summary histograms for channel range "
                                   << crname << endl;
@@ -508,9 +511,17 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     cout << myname << "            SumNegate: " << (m_SumNegate ? "true" : "false") << endl;
     cout << myname << "          SumPlotPadX: " << m_SumPlotPadX << endl;
     cout << myname << "          SumPlotPadY: " << m_SumPlotPadY << endl;
+    cout << myname << "        ChannelRanges: [";
+    bool first = true;
+    for ( string crn : m_ChannelRanges ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << crn;
+    }
+    cout << "]" << endl;
     cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
     cout << myname << "  ChannelLinePattern: {";
-    bool first = true;
+    first = true;
     for ( Index icha : m_ChannelLinePattern ) {
       if ( ! first ) cout << ", ";
       first = false;
@@ -1667,6 +1678,8 @@ void AdcRoiViewer::fillChanSumHists() const {
         val = phvar->GetEntries();
       } else if ( vartype == "count" ) {
         val = phvar->Integral();
+      } else if ( vartype == "sum" ) {
+        val = phvar->Integral()*phvar->GetMean();
       } else if ( vartype.substr(0,3) == "fit" ) {
         Index nfun = phvar->GetListOfFunctions()->GetEntries();
         TF1* pf = nfun ? dynamic_cast<TF1*>(phvar->GetListOfFunctions()->At(0)) : nullptr;
@@ -1870,16 +1883,12 @@ void AdcRoiViewer::writeChanSumPlots() const {
     if ( highlightBadChannels ) {
       TH1* php = pman->hist();
       LineColors cols;
-      TH1* phb = dynamic_cast<TH1*>(php->Clone("hbad"));
-      phb->Reset();
-      phb->SetDirectory(nullptr);
-      phb->SetMarkerStyle(4);
-      phb->SetMarkerColor(cols.red());
-      TH1* phn = dynamic_cast<TH1*>(php->Clone("hnoisy"));
-      phn->Reset();
-      phn->SetDirectory(nullptr);
-      phn->SetMarkerStyle(4);
-      phn->SetMarkerColor(cols.brown());
+      TGraph* pgb = new TGraph;
+      TGraph* pgn = new TGraph;
+      pgb->SetMarkerStyle(4);
+      pgb->SetMarkerColor(cols.red());
+      pgn->SetMarkerStyle(4);
+      pgn->SetMarkerColor(cols.brown());
       Index icha0 = php->GetBinLowEdge(1);
       Index nbad = 0;
       Index nnoi = 0;
@@ -1887,16 +1896,16 @@ void AdcRoiViewer::writeChanSumPlots() const {
         Index icha = icha0 + Index(ibin) - 1;
         Index chanStat = getState().getChannelStatus(icha);
         if ( chanStat == AdcChannelStatusBad ) {
-          phb->SetBinContent(ibin, php->GetBinContent(ibin));
-          ++nbad;
+          pgb->SetPoint(nbad++, icha+0.5, php->GetBinContent(ibin));
         }
         if ( chanStat == AdcChannelStatusNoisy ) {
-          phn->SetBinContent(ibin, php->GetBinContent(ibin));
-          ++nnoi;
+          pgn->SetPoint(nnoi++, icha+0.5, php->GetBinContent(ibin));
         }
       }
-      if ( nnoi ) pman->add(phn, "P same");
-      if ( nbad ) pman->add(phb, "P same");
+      if ( nnoi ) pman->add(pgn, "P");
+      if ( nbad ) pman->add(pgb, "P");
+      delete pgb;
+      delete pgn;
     }
     if ( m_ChannelLineModulus ) {
       for ( Index icha : m_ChannelLinePattern ) {

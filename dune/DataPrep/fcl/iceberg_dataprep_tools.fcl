@@ -203,6 +203,21 @@ tools.ibcht_Iplanes.ChannelLineModulus: 40
 tools.ibcht_Iplanes.ChannelLinePattern: [0]
 
 ################################################################################
+# Display tools.
+################################################################################
+
+tools.ibNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:11:0:11"]
+  EventGraphs: ["event:events:1:nfemb:0:11"]
+  ChannelRanges: []
+  ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
+}
+
+################################################################################
 # ADC channel metric plotters for Iceberg.
 ################################################################################
 
