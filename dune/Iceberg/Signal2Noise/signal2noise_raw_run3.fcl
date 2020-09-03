@@ -34,10 +34,16 @@ physics:
     signal2noise:
     {
       module_type: "Signal2Noise"
+      RawDigitLabel: "tpcrawdecoder"
+      RawInstanceLabel: "daq"
+      #WireProducerLabel: "caldata"
+      #WireInstanceLabel: "dataprep"
+      WireProducerLabel: ""
+      WireInstanceLabel: ""
       HitModuleLabel: "linecluster"
       TrackModuleLabel: "pmtrack"
       CalorimetryModuleLabel: "pmtrackcalo"
-      SaveRawWaveForm: true
+      SaveWaveForm: true
       SelectedWires: [75, 180, 101, 187, 900, 1100]
     }
   }
@@ -63,19 +69,11 @@ physics:
 #services.SpaceCharge.EnableSimulationSCE: true
 
 # channel status service (service_provider should be specified)
-services.ChannelStatusService.BadChannels: @local::iceberg4_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::iceberg4_noisy_channels
+services.ChannelStatusService.BadChannels: @local::iceberg3_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::iceberg3_noisy_channels
 services.ChannelStatusService.service_provider: "SimpleChannelStatusService"
 
 services.DetectorClocksService:        @local::dunefd_detectorclocks
-services.DetectorClocksService.ClockSpeedOptical: 150
-services.DetectorClocksService.DefaultBeamTime: 250
-services.DetectorClocksService.DefaultTrigTime: 250
-services.DetectorClocksService.G4RefTime: -250
-services.DetectorClocksService.TriggerOffsetTPC: -250
-
-
-
 services.DetectorPropertiesService:    @local::protodunesp_detproperties
 services.LArPropertiesService:         @local::dunefd_properties
 services.DetectorPropertiesService.GetHVDriftfromSamweb: false
