@@ -34,10 +34,16 @@ physics:
     signal2noise:
     {
       module_type: "Signal2Noise"
+      RawDigitLabel: "tpcrawdecoder"
+      RawInstanceLabel: "daq"
+      #WireProducerLabel: "caldata"
+      #WireInstanceLabel: "dataprep"
+      WireProducerLabel: ""
+      WireInstanceLabel: ""
       HitModuleLabel: "linecluster"
       TrackModuleLabel: "pmtrack"
       CalorimetryModuleLabel: "pmtrackcalo"
-      SaveRawWaveForm: true
+      SaveWaveForm: true
       SelectedWires: [75, 180, 101, 187, 900, 1100]
     }
   }
@@ -49,13 +55,10 @@ physics:
 
 # define the list of LArSoft modules to run through the simulate path
 #change TrackModuleLabel and CalorimetryModuleLabel here to "pmtrack" and "pmtrackcalo" or "pandoraTrack and pandoracalo" if required
-#physics.analyzers.signal2noise.TrackModuleLabel:        "pmtrack"
 #physics.analyzers.signal2noise.CalorimetryModuleLabel:  "pmtrackcalo"
 #
-#services.PdspChannelMapService:        @local::pdspchannelmap
 
 #use linecluster to the old reco files
-#physics.analyzers.signal2noise.HitModuleLabel:  "linecluster"
 
 #services.SpaceCharge.EnableSimSpatialSCE: true
 #services.SpaceCharge.EnableCorrSCE: true
@@ -63,18 +66,26 @@ physics:
 #services.SpaceCharge.EnableSimulationSCE: true
 
 # channel status service (service_provider should be specified)
-services.ChannelStatusService.BadChannels: @local::iceberg_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::iceberg_noisy_channels
+services.ChannelStatusService.BadChannels: @local::iceberg4_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::iceberg4_noisy_channels
 services.ChannelStatusService.service_provider: "SimpleChannelStatusService"
 
 services.DetectorClocksService:        @local::dunefd_detectorclocks
+services.DetectorClocksService.ClockSpeedOptical: 150
+services.DetectorClocksService.DefaultBeamTime: 250
+services.DetectorClocksService.DefaultTrigTime: 250
+services.DetectorClocksService.G4RefTime: -250
+services.DetectorClocksService.TriggerOffsetTPC: -250
+
+
+
 services.DetectorPropertiesService:    @local::protodunesp_detproperties
 services.LArPropertiesService:         @local::dunefd_properties
-#services.DetectorPropertiesService.GetHVDriftfromSamweb: false
-#services.DetectorPropertiesService.GetReadOutWindowSizefromSamweb: false
+services.DetectorPropertiesService.GetHVDriftfromSamweb: false
+services.DetectorPropertiesService.GetReadOutWindowSizefromSamweb: false
 
 services.DetectorPropertiesService.NumberTimeSamples: 2000
 services.DetectorPropertiesService.ReadOutWindowSize: 2000
 
-#services.DetectorPropertiesService.TimeOffsetU: -4
-#services.DetectorPropertiesService.TimeOffsetV: 0
+services.DetectorPropertiesService.TimeOffsetU: -4
+services.DetectorPropertiesService.TimeOffsetV: 0
