@@ -105,9 +105,6 @@ namespace lris
     // number of uncompressed samples per channel
     size_t __nsacro;
     
-    // ped inversion to deal with the inverted signal polarity
-    unsigned __invped; 
-
     // close binary file
     void __close();
 
@@ -123,6 +120,8 @@ namespace lris
     // crp to daq mapping
     std::vector<unsigned> __daqch;
     std::vector<bool>     __keepch;
+    // ped inversion to deal with the inverted signal polarity
+    std::vector<unsigned> __invped; 
 
     // file locations
     std::vector<std::streampos> __events;

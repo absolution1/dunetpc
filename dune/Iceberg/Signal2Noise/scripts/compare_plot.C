@@ -1,4 +1,5 @@
-// this script uses the output of ana.C as input and  plots noise rms, signal size, signal-to-noise ratio, and track angle, length, start/end position.
+// this script uses output of ana.C as input. Note, it has two inputs, one from raw data, the other from dataprep (caldata).
+// It plots the normalized signal and noise rms, and signal-to-noise ratio in the same canvase.
 
 
 double fit_gaus(double *x, double *par) {
@@ -103,239 +104,180 @@ TF1* fit_s2n(TH1F* h, int color) {
 
 
 
-
-
-
-
-
-
-
-void plot() {
+void compare_plot() {
 
   // plot options
   const char * plane_options[3] = {"u","v","y"};
-  const char * draw_options[10] = {"same", "SAME", "SAME", "SAME", "SAME", "SAME", "SAME", "SAME", "SAME", "SAME"};
+  const char * draw_options[10] = {"same hist", "SAME hist", "SAME hist", "SAME hist", "SAME", "SAME", "SAME", "SAME", "SAME", "SAME"};
   const int color_options[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 20};
 
 
   // input
-  TFile *input = TFile::Open("output_ana.root");
+  TFile *input_1 = TFile::Open("../ana_1/output_ana.root"); // raw
+  TFile *input_2 = TFile::Open("../ana_2/output_ana.root"); // caldata
 
-  TH1F *h1_trk_startx = (TH1F*)input->Get("h1_trk_startx");
-  TH1F *h1_trk_starty = (TH1F*)input->Get("h1_trk_starty");
-  TH1F *h1_trk_startz = (TH1F*)input->Get("h1_trk_startz");
+  TH1F* h1_s2n_raw[3];
+  TH1F* h1_rms_raw[3];
+  TH1F* h1_rmsfit_raw[3];
+  TH1F* h1_amp_raw[3];
 
-  TH1F *h1_trk_endx = (TH1F*)input->Get("h1_trk_endx");
-  TH1F *h1_trk_endy = (TH1F*)input->Get("h1_trk_endy");
-  TH1F *h1_trk_endz = (TH1F*)input->Get("h1_trk_endz");
-
-  TH1F *h1_trk_len = (TH1F*)input->Get("h1_trk_len");
-
-  TH1F *h1_trk_thetaxz = (TH1F*)input->Get("h1_trk_thetaxz");
-  TH1F *h1_trk_thetayz = (TH1F*)input->Get("h1_trk_thetayz");
-  TH2F *h2_trk_angle = (TH2F*)input->Get("h2_trk_angle");
-
-  TH1F *h1_trk_thetaxz_1 = (TH1F*)input->Get("h1_trk_thetaxz_1");
-  TH1F *h1_trk_thetayz_1 = (TH1F*)input->Get("h1_trk_thetayz_1");
-  TH2F *h2_trk_angle_1 = (TH2F*)input->Get("h2_trk_angle_1");
-
-  TH1F *h1_trk_thetaxz_2 = (TH1F*)input->Get("h1_trk_thetaxz_2");
-  TH1F *h1_trk_thetayz_2 = (TH1F*)input->Get("h1_trk_thetayz_2");
-  TH2F *h2_trk_angle_2 = (TH2F*)input->Get("h2_trk_angle_2");
-
-  TH1F* h1_s2n[3];
-  TH1F* h1_rms[3];
-  TH1F* h1_rmsfit[3];
-  TH1F* h1_amp[3];
-  TH1F* h1_t_maxpulseheight[3];
-
-  TProfile2D *hp2d_angle[3];
-  TProfile2D *hp2d_angle_1[3];
-  TProfile2D *hp2d_angle_2[3];
-
-  //TH1F* h1_dqdx[3];
-  //TH2F* h2_dqdxtime[3];
-  //TProfile2D *hp2d_angle_dqdx[3];
-
+  TH1F* h1_s2n_dataprep[3];
+  TH1F* h1_rms_dataprep[3];
+  TH1F* h1_rmsfit_dataprep[3];
+  TH1F* h1_amp_dataprep[3];
 
   for (int p=0; p<3; p++) {
-    h1_s2n[p] = (TH1F*)input->Get(TString::Format("h1_s2n_plane_%d", p));
-    h1_s2n[p]->Rebin(4);
-    h1_rms[p] = (TH1F*)input->Get(TString::Format("h1_rms_plane_%d", p)); 
-    h1_rmsfit[p] = (TH1F*)input->Get(TString::Format("h1_rmsfit_plane_%d", p)); 
-    h1_amp[p] = (TH1F*)input->Get(TString::Format("h1_amp_plane_%d", p)); 
-    h1_amp[p]->Rebin(2);
-    h1_t_maxpulseheight[p] = (TH1F*)input->Get(TString::Format("h1_t_maxpulseheight_plane_%d", p));
+    h1_s2n_raw[p] = (TH1F*)input_1->Get(TString::Format("h1_s2n_plane_%d", p));
+    h1_s2n_raw[p]->Rebin(4);
+    h1_s2n_raw[p]->Scale(1./h1_s2n_raw[p]->GetMaximum());
+    h1_rms_raw[p] = (TH1F*)input_1->Get(TString::Format("h1_rms_plane_%d", p)); 
+    h1_rmsfit_raw[p] = (TH1F*)input_1->Get(TString::Format("h1_rmsfit_plane_%d", p)); 
+    h1_amp_raw[p] = (TH1F*)input_1->Get(TString::Format("h1_amp_plane_%d", p)); 
+    h1_amp_raw[p]->Rebin(2);
+    h1_amp_raw[p]->Scale(1./h1_amp_raw[p]->GetMaximum());
 
-    //h1_s2n_aftercut[p] = (TH1F*)input->Get(TString::Format("h1_s2n_aftercut_plane_%d", p));
+    h1_s2n_dataprep[p] = (TH1F*)input_2->Get(TString::Format("h1_s2n_plane_%d", p));
+    h1_s2n_dataprep[p]->Rebin(4);
+    h1_s2n_dataprep[p]->Scale(1./h1_s2n_dataprep[p]->GetMaximum());
+    h1_rms_dataprep[p] = (TH1F*)input_2->Get(TString::Format("h1_rms_plane_%d", p)); 
+    h1_rmsfit_dataprep[p] = (TH1F*)input_2->Get(TString::Format("h1_rmsfit_plane_%d", p)); 
+    h1_amp_dataprep[p] = (TH1F*)input_2->Get(TString::Format("h1_amp_plane_%d", p)); 
+    h1_amp_dataprep[p]->Rebin(2);
+    h1_amp_dataprep[p]->Scale(1./h1_amp_dataprep[p]->GetMaximum());
+  }
 
-    hp2d_angle[p] = (TProfile2D*)input->Get(TString::Format("hp2d_angle_plane_%d",p));
-    hp2d_angle_1[p] = (TProfile2D*)input->Get(TString::Format("hp2d_angle_1_plane_%d",p));
-    hp2d_angle_2[p] = (TProfile2D*)input->Get(TString::Format("hp2d_angle_2_plane_%d",p));
-  
-    //h1_dqdx[p] = (TH1F*)input->Get(TString::Format("h1_dqdx_plane_%d",p));
-    //h2_dqdxtime[p] = (TH2F*)input->Get(TString::Format("h2_dqdxtime_plane_%d",p));
+  // rms and signal
+  TCanvas *c1_sn[3];
+
+  for (int p=0; p<3; p++) {
+    c1_sn[p] = new TCanvas(TString::Format("c1_sn_%d",p), TString::Format("c1_sn_%d",p), 800, 600);
     
-    //hp2d_angle_dqdx[p] = (TProfile2D*)input->Get(TString::Format("hp2d_angle_dqdx_plane_%d",p));
-  }
+    c1_sn[p]->SetLogx();
 
-  // track start and end
-  TCanvas *c1_start_end = new TCanvas("c1_start_end", "c1_start_end", 1200, 800);
-  c1_start_end->Divide(3,2);
-  
-  c1_start_end->cd(1);
-  h1_trk_startx->SetTitle("Start");
-  h1_trk_startx->Draw();
-  c1_start_end->cd(2);
-  h1_trk_starty->SetTitle("Start");
-  h1_trk_starty->Draw();
-  c1_start_end->cd(3);
-  h1_trk_startz->SetTitle("Start");
-  h1_trk_startz->Draw();
-
-  c1_start_end->cd(4);
-  h1_trk_endx->SetTitle("End");
-  h1_trk_endx->Draw();
-  c1_start_end->cd(5);
-  h1_trk_endy->SetTitle("End");
-  h1_trk_endy->Draw();
-  c1_start_end->cd(6);
-  h1_trk_endz->SetTitle("End");
-  h1_trk_endz->Draw();
-  
-  c1_start_end->SaveAs("track_start_end.png");
-
-  // track length
-  TCanvas *c1_len = new TCanvas("c1_len", "c1_len", 800, 600);
-  
-  gPad->SetLogy();
-
-  h1_trk_len->Draw();
-
-  c1_len->SaveAs("track_length.png");
-
-  // track anagle
-  TCanvas *c1_theta = new TCanvas("c1_theta", "c1_theta", 1200, 600);
-  c1_theta->Divide(2,1);
-
-  c1_theta->cd(1);
-  h1_trk_thetaxz->SetStats(0);
-  h1_trk_thetaxz->Draw();
-
-  c1_theta->cd(2);
-  h1_trk_thetayz->SetStats(0);
-  h1_trk_thetayz->Draw();
-
-  c1_theta->SaveAs("track_angle_1d.png");
-  // h2
-  TCanvas *c1_theta_2d = new TCanvas("c1_theta_2d", "c1_theta_2d", 800, 600);
-
-  h2_trk_angle->SetStats(0);
-  h2_trk_angle->Draw("colz");
-  
-  c1_theta_2d->SaveAs("track_angle_2d.png");
-
-  // track anagle 1 (x<0)
-  TCanvas *c1_theta_1 = new TCanvas("c1_theta_1", "c1_theta_1", 1200, 600);
-  c1_theta_1->Divide(2,1);
-
-  c1_theta_1->cd(1);
-  h1_trk_thetaxz_1->SetStats(0);
-  h1_trk_thetaxz_1->Draw();
-
-  c1_theta_1->cd(2);
-  h1_trk_thetaxz_2->SetStats(0);
-  h1_trk_thetaxz_2->Draw();
-
-  c1_theta_1->SaveAs("track_angle_1d_1.png");
-  // h2
-  TCanvas *c1_theta_2d_1 = new TCanvas("c1_theta_2d_1", "c1_theta_2d_1", 800, 600);
-
-  h2_trk_angle_1->SetStats(0);
-  h2_trk_angle_1->Draw("colz");
-  
-  c1_theta_2d_1->SaveAs("track_angle_2d_1.png");
-  
-  // track anagle 2 (x>0)
-  TCanvas *c1_theta_2 = new TCanvas("c1_theta_2", "c1_theta_2", 1200, 600);
-  c1_theta_2->Divide(2,1);
-
-  c1_theta_2->cd(1);
-  h1_trk_thetayz_1->SetStats(0);
-  h1_trk_thetayz_1->Draw();
-
-  c1_theta_2->cd(2);
-  h1_trk_thetayz_2->SetStats(0);
-  h1_trk_thetayz_2->Draw();
-
-  c1_theta_2->SaveAs("track_angle_1d_2.png");
-  // h2
-  TCanvas *c1_theta_2d_2 = new TCanvas("c1_theta_2d_2", "c1_theta_2d_2", 800, 600);
-
-  h2_trk_angle_2->SetStats(0);
-  h2_trk_angle_2->Draw("colz");
-  
-  c1_theta_2d_2->SaveAs("track_angle_2d_2.png");
-
-  //hp2d
-  TCanvas *c1_theta_hp2d[3];
-
-  for (int p=0; p<3; p++) {
-    c1_theta_hp2d[p] = new TCanvas(TString::Format("c1_theta_hp2d_plane_%d",p), TString::Format("c1_theta_hp2d_plane_%d",p), 1000, 400);
-    c1_theta_hp2d[p]->Divide(2,1);
+    TH2F* frame = new TH2F("frame", "", 400, 0.5, 400.5, 125, 0, 1.25); 
+    frame->SetStats(0);
+    frame->GetXaxis()->CenterTitle();
+    frame->GetXaxis()->SetTitle("ADC counts");
+    frame->GetYaxis()->CenterTitle();
+    frame->GetYaxis()->SetTitle("Arbitrary units");
+    frame->Draw();
     
-    c1_theta_hp2d[p]->cd(1);
-    hp2d_angle_1[p]->SetStats(0);
-    hp2d_angle_1[p]->GetZaxis()->SetRangeUser(0, 100);
-    hp2d_angle_1[p]->Draw("colz");
+    auto lg_sn = new TLegend(0.28, 0.45, 0.48, 0.55);
+    auto lg_sn_dataprep = new TLegend(0.01, 0.75, 0.7, 0.85);
+
+    h1_amp_raw[p]->SetStats(0);
+    h1_amp_raw[p]->SetLineColor(1);
+    h1_amp_raw[p]->SetLineWidth(4);
+    h1_amp_raw[p]->SetLineStyle(9);
+    h1_amp_raw[p]->Draw("hist same");
+
+    h1_amp_dataprep[p]->SetStats(0);
+    h1_amp_dataprep[p]->SetLineColor(kRed);
+    h1_amp_dataprep[p]->SetLineWidth(4);
+    h1_amp_dataprep[p]->SetLineStyle(1);
+    h1_amp_dataprep[p]->Draw("hist same");
+
+    h1_rms_raw[p]->SetStats(0);
+    h1_rms_raw[p]->Scale(1./h1_rms_raw[p]->GetMaximum());
+    h1_rms_raw[p]->SetLineColor(1);
+    h1_rms_raw[p]->SetLineWidth(4);
+    h1_rms_raw[p]->SetLineStyle(9);
+    h1_rms_raw[p]->Draw("HIST SAME");
+
+    h1_rms_dataprep[p]->SetStats(0);
+    h1_rms_dataprep[p]->Scale(1./h1_rms_dataprep[p]->GetMaximum());
+    h1_rms_dataprep[p]->SetLineColor(kRed);
+    h1_rms_dataprep[p]->SetLineWidth(4);
+    h1_rms_dataprep[p]->SetLineStyle(1);
+    h1_rms_dataprep[p]->Draw("HIST SAME");
+
+    TLegendEntry* leg_raw = lg_sn->AddEntry(h1_rms_raw[p], "Raw", "l");
+    leg_raw->SetTextColor(1);
+    TLegendEntry* leg_dataprep = lg_sn->AddEntry(h1_rms_dataprep[p], "Noise-filtered", "l");
+    leg_dataprep->SetTextColor(kRed);
+
+    lg_sn->SetTextSize(0.05);
+    lg_sn->SetFillStyle(0);
+    lg_sn->SetLineWidth(0);
+    lg_sn->Draw();
     
-    c1_theta_hp2d[p]->cd(2);
-    hp2d_angle_2[p]->SetStats(0);
-    hp2d_angle_2[p]->GetZaxis()->SetRangeUser(0, 100);
-    hp2d_angle_2[p]->Draw("colz");
+    TString txt_sn(Form("Noise sigma                      Signal size"));
+    lg_sn_dataprep->AddEntry(txt_sn, txt_sn.Data(), "");
+    lg_sn_dataprep->SetTextSize(0.05);
+    lg_sn_dataprep->SetFillStyle(0);
+    lg_sn_dataprep->SetLineWidth(0);
+    lg_sn_dataprep->Draw();
 
-    c1_theta_hp2d[p]->SaveAs(TString::Format("track_angle_sn2d_plane_%d.png",p));
+    TLatex **txt_iceberg = new TLatex*[1];
+    txt_iceberg[0] = new TLatex(0.5, 1.27, "IceBerg");
+    txt_iceberg[0]->SetTextColor(1);
+    txt_iceberg[0]->Draw();
+
+    TLatex **txt_plane = new TLatex*[1];
+    txt_plane[0] = new TLatex(80, 1.27, Form("#bf{Data, plane %s}",plane_options[p]));
+    txt_plane[0]->SetTextColor(1);
+    txt_plane[0]->Draw();
+
+    c1_sn[p]->SaveAs(TString::Format("sn_plane_%d.png",p));
+
+    delete frame;
   }
 
-  // rms
-  TCanvas *c1_rms = new TCanvas("c1_rms","c1_rms", 800, 600);
-  
-  auto lg_rms = new TLegend(0.35, 0.6, 0.9, 0.9);
-  float mean_rms[3];
-  double ymax_rms=-99.;
+
+  // s2n
+  TCanvas *c1_s2n  = new TCanvas("c1_sn3", "c1_sn", 800, 600);
+
+  TH2F* frame_s2n = new TH2F("frame_s2n", "", 160, 0.0, 160., 105, 0, 1.05); 
+  frame_s2n->SetStats(0);
+  frame_s2n->GetXaxis()->CenterTitle();
+  frame_s2n->GetXaxis()->SetTitle("Angle-Corrected Signal-to-Noise Ratio");
+  frame_s2n->GetYaxis()->CenterTitle();
+  frame_s2n->GetYaxis()->SetTitle("Arbitrary units");
+  frame_s2n->Draw();
+
+  auto lg_s2n = new TLegend(0.5, 0.4, 0.9, 0.85);
+
   for (int p=0; p<3; p++) {
-    h1_rms[p]->SetStats(0);
-    h1_rms[p]->GetXaxis()->SetTitle("Noise #sigma [ADC counts]");
-    h1_rms[p]->GetYaxis()->SetTitle("");
-    h1_rms[p]->SetLineColor(5-color_options[p]);
-    h1_rms[p]->SetLineWidth(3);
-    if (ymax_rms<h1_rms[p]->GetMaximum()) ymax_rms = h1_rms[p]->GetMaximum();
-    //h1_rms[p]->Draw(draw_options[p]);
 
-    TLegendEntry* leg = lg_rms->AddEntry(h1_rms[p], TString::Format("plane %s (raw)", plane_options[p]), "");
-    leg->SetTextColor(5-color_options[p]);
+    h1_s2n_raw[p]->SetStats(0);
+    h1_s2n_raw[p]->SetLineColor(5-color_options[p]);
+    h1_s2n_raw[p]->SetLineWidth(4);
+    h1_s2n_raw[p]->SetLineStyle(9);
+    h1_s2n_raw[p]->Draw("hist same");
 
-    TF1 *f1 = fit_rms(h1_rms[p], 1);
-    mean_rms[p] = f1->GetParameter(0);
-    printf("rms[%d]: %.10f\n", p, mean_rms[p]);
-    printf("sigma of rms[%d]: %.10f\n", p, f1->GetParameter(1));
+    h1_s2n_dataprep[p]->SetStats(0);
+    h1_s2n_dataprep[p]->SetLineColor(5-color_options[p]);
+    h1_s2n_dataprep[p]->SetLineWidth(4);
+    h1_s2n_dataprep[p]->SetLineStyle(1);
+    h1_s2n_dataprep[p]->Draw("hist same");
+
+    TLegendEntry* leg_raw = lg_s2n->AddEntry(h1_s2n_raw[p], Form("Plane %s (Raw)", plane_options[p]), "l");
+    leg_raw->SetTextColor(5-color_options[p]);
+
+    TLegendEntry* leg_dataprep = lg_s2n->AddEntry(h1_s2n_dataprep[p], Form("Plane %s (Noise-filtered)", plane_options[p]), "l");
+    leg_dataprep->SetTextColor(5-color_options[p]);
   }
-  for (int p=0; p<3; p++) {
-    h1_rms[p]->GetXaxis()->SetRangeUser(0,10);
-    h1_rms[p]->GetYaxis()->SetRangeUser(0,ymax_rms*1.05);
-    h1_rms[p]->Draw(draw_options[p]);
-  }
+
+  lg_s2n->SetTextSize(0.04);
+  lg_s2n->SetFillStyle(0);
+  lg_s2n->SetLineWidth(0);
+  lg_s2n->Draw();
+
+  TLatex **txt_iceberg = new TLatex*[1];
+  txt_iceberg[0] = new TLatex(0.0, 1.07, "IceBerg");
+  txt_iceberg[0]->SetTextColor(1);
+  txt_iceberg[0]->Draw();
+
+  TLatex **txt_plane = new TLatex*[1];
+  txt_plane[0] = new TLatex(120, 1.07, "#bf{Cosmics Data}");
+  txt_plane[0]->SetTextColor(1);
+  txt_plane[0]->Draw();
+
+  c1_s2n->SaveAs("s2n.png");
+  delete frame_s2n;
   
-  TString rms_txt(Form("Noise #sigma (u/v/y): %.1f/%.1f/%.1f", mean_rms[0], mean_rms[1], mean_rms[2]));
-  lg_rms->AddEntry(rms_txt, rms_txt.Data(), "");
-  lg_rms->SetTextColor(color_options[0]);
-  lg_rms->SetTextSize(0.05);
-  lg_rms->SetFillStyle(0);
-  lg_rms->SetLineWidth(0);
 
-  lg_rms->Draw();
-  c1_rms->SaveAs("noise_rms.png");
-
+  /*
   // rmsfit
   TCanvas *c1_rmsfit = new TCanvas("c1_rmsfit","c1_rmsfit", 800, 600);
   
@@ -496,7 +438,6 @@ void plot() {
 
   lg_s2n->Draw();
   c1_s2n->SaveAs("signal_to_noise_mean.png");
- /* 
   // dqdx
   TCanvas *c1_dqdx = new TCanvas("c1_dqdx", "c1_dqdx", 800, 600);
   auto lg_dqdx = new TLegend(0.7,0.7,0.9,0.9);
@@ -538,7 +479,6 @@ void plot() {
   }
 
 */
-
 
 }
 

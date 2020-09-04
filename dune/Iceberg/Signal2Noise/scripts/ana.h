@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sun Jun 14 16:44:53 2020 by ROOT version 6.18/04
+// Tue Sep  1 23:54:29 2020 by ROOT version 6.18/04
 // from TTree Event/Event
 // found on file: signal2noise.root
 //////////////////////////////////////////////////////////
@@ -29,34 +29,31 @@ public :
    Int_t           year_month_date;
    Int_t           hour_min_sec;
    Int_t           ntrks;
-   Int_t           trkid[375];   //[ntrks]
-   Float_t         trkstart[375][3];   //[ntrks]
-   Float_t         trkend[375][3];   //[ntrks]
-   Float_t         trklen[375];   //[ntrks]
-   Float_t         trkthetaxz[375];   //[ntrks]
-   Float_t         trkthetayz[375];   //[ntrks]
-   Float_t         trkstartcosxyz[375][3];   //[ntrks]
-   Float_t         trkendcosxyz[375][3];   //[ntrks]
-   Int_t           ntrkhits[375][3];   //[ntrks]
-   Float_t         trkdqdx[375][3][1000];   //[ntrks]
-   Float_t         trkx[375][3][1000];   //[ntrks]
-   Float_t         trkt[375][3][1000];   //[ntrks]
-   Double_t        trkhitx[375][3][1000];   //[ntrks]
-   Double_t        trkhity[375][3][1000];   //[ntrks]
-   Double_t        trkhitz[375][3][1000];   //[ntrks]
-   Int_t           wireid[375][1000];   //[ntrks]
-   Int_t           chid[375][1000];   //[ntrks]
-   Int_t           tpcid[375][1000];   //[ntrks]
-   Float_t         hit_plane[375][1000];   //[ntrks]
-   Float_t         ped[375][1000];   //[ntrks]
-   Float_t         amp[375][1000];   //[ntrks]
-   Int_t           tamp[375][1000];   //[ntrks]
-   Double_t        cosgma[375][1000];   //[ntrks]
-   Float_t         noiserms[375][1000];   //[ntrks]
-   Float_t         fsigma_ped[375][1000];   //[ntrks]
-   Float_t         fped[375][1000];   //[ntrks]
-   Float_t         fchi2[375][1000];   //[ntrks]
-   Int_t           fndf[375][1000];   //[ntrks]
+   Int_t           trkid[336];   //[ntrks]
+   Float_t         trkstart[336][3];   //[ntrks]
+   Float_t         trkend[336][3];   //[ntrks]
+   Float_t         trklen[336];   //[ntrks]
+   Float_t         trkthetaxz[336];   //[ntrks]
+   Float_t         trkthetayz[336];   //[ntrks]
+   Float_t         trkstartcosxyz[336][3];   //[ntrks]
+   Float_t         trkendcosxyz[336][3];   //[ntrks]
+   Int_t           ntrkhits[336][3];   //[ntrks]
+   Float_t         trkdqdx[336][3][1000];   //[ntrks]
+   Float_t         trkx[336][3][1000];   //[ntrks]
+   Float_t         trkt[336][3][1000];   //[ntrks]
+   Double_t        trkhitx[336][3][1000];   //[ntrks]
+   Double_t        trkhity[336][3][1000];   //[ntrks]
+   Double_t        trkhitz[336][3][1000];   //[ntrks]
+   Int_t           wireid[336][1000];   //[ntrks]
+   Int_t           chid[336][1000];   //[ntrks]
+   Int_t           tpcid[336][1000];   //[ntrks]
+   Float_t         hit_plane[336][1000];   //[ntrks]
+   Float_t         ped[336][1000];   //[ntrks]
+   Float_t         amp[336][1000];   //[ntrks]
+   Int_t           tamp[336][1000];   //[ntrks]
+   Double_t        cosgma[336][1000];   //[ntrks]
+   Float_t         noiserms[336][1000];   //[ntrks]
+   Float_t         noisermsfit[336][1000];   //[ntrks]
 
    // List of branches
    TBranch        *b_event;   //!
@@ -90,10 +87,7 @@ public :
    TBranch        *b_tamp;   //!
    TBranch        *b_cosgma;   //!
    TBranch        *b_noiserms;   //!
-   TBranch        *b_fsigma_ped;   //!
-   TBranch        *b_fped;   //!
-   TBranch        *b_fchi2;   //!
-   TBranch        *b_fndf;   //!
+   TBranch        *b_noisermsfit;   //!
 
    ana(TTree *tree=0);
    virtual ~ana();
@@ -197,10 +191,7 @@ void ana::Init(TTree *tree)
    fChain->SetBranchAddress("tamp", tamp, &b_tamp);
    fChain->SetBranchAddress("cosgma", cosgma, &b_cosgma);
    fChain->SetBranchAddress("noiserms", noiserms, &b_noiserms);
-   fChain->SetBranchAddress("fsigma_ped", fsigma_ped, &b_fsigma_ped);
-   fChain->SetBranchAddress("fped", fped, &b_fped);
-   fChain->SetBranchAddress("fchi2", fchi2, &b_fchi2);
-   fChain->SetBranchAddress("fndf", fndf, &b_fndf);
+   fChain->SetBranchAddress("noisermsfit", noisermsfit, &b_noisermsfit);
    Notify();
 }
 
