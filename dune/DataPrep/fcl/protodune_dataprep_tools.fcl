@@ -203,6 +203,18 @@ tools.adcTailSignalFinderKe.Threshold: 0.5
 tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
 tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 
+# Correct gain calibration for new induction capacitance and estimates
+# of out-of-plane charge sharing.
+# See D. Adams talk at ProtoDUNE sim/reco 8/26/2020:
+# https://indico.fnal.gov/event/44166/contributions/195159/attachments/133594/164846/adams_dunepdsimrec_20200826_dataprep.pdf
+tools.pdsp_gainCorrection: {
+  tool_type: AdcRangeSampleScaler
+  LogLevel: 1
+  RangeLimits: [800, 1600]
+  RangeModulus: 2560
+  ScaleFactors: [1.052, 1.030, 1.047]
+}
+
 # Scale ADC to ke
 tools.adcScaleAdcToKe.ScaleFactor: 2.401e-2 #24.01 e/ADC/ticks
 

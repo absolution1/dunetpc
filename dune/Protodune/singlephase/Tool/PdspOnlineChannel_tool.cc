@@ -67,7 +67,7 @@ Index PdspOnlineChannel::get(Index chanOff) const {
   Index chanOn = 0;
   if ( m_orderByWib ) {
     chanOn = 2560*kapa + 512*kwib + 128*kcon + kchf;
-  } else if ( m_orderByWib ) {
+  } else if ( m_orderByConnector ) {
     chanOn = 2560*kapa + 640*kcon + 128*kwib + kchf;
   } else if ( m_orderByFemb ) {
     // FEMB index mapping.

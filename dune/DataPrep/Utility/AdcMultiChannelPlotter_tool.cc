@@ -255,8 +255,13 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         }
       }
       // View this channel range.
-      viewMapChannels(crn, acdvec, *pmantop->man(ipadOnPage), ncr, icr);
-      ncha += acds.size();
+      TPadManipulator* ppadPage = pmantop->man(ipadOnPage);
+      if ( ppadPage == nullptr ) {
+        cout << myname << "ERROR: View pad " << ipadOnPage << " not found for pad " << ipad << ", channel range " << crn << "." << endl;
+      } else {
+        viewMapChannels(crn, acdvec, *ppadPage, ncr, icr);
+        ncha += acds.size();
+      }
     }
     // Handle the end of a plot file.
     ++ipadOnPage;
