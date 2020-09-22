@@ -99,6 +99,10 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     m_PedDegree = 2;
   }
   Index nvec = 1 + m_PedDegree+ 2*m_PedFreqs.size();
+  m_fitNames.resize(nvec+1);
+  Index ifit = 0;
+  m_fitNames[ifit++] = "Tail";
+  m_fitNames[ifit++] = "Pedestal";
   Index nsam = m_MaxTick;
   m_pedVectors.resize(nvec, FloatVector(nsam, 1.0));
   FloatVectorVector::iterator ivec = m_pedVectors.begin();
@@ -107,6 +111,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     for ( Index isam=0; isam<nsam; ++isam ) {
       vec[isam] = isam - m_PedTick0;
     }
+    m_fitNames[ifit++] = "Slope";
   }
   if ( m_PedDegree > 1 ) {
     FloatVector& vec = *(++ivec);
@@ -114,6 +119,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
       float dsam = isam - m_PedTick0;
       vec[isam] = dsam*dsam;
     }
+    m_fitNames[ifit++] = "Curvature";
   }
   float twopi = 2.0*acos(-1.0);
   for ( float frq : m_PedFreqs ) {
@@ -123,6 +129,8 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
       cvec[isam] = cos(twopi*frq*isam);
       svec[isam] = sin(twopi*frq*isam);
     }
+    m_fitNames[ifit++] = "Cos";
+    m_fitNames[ifit++] = "Sin";
   }
   if ( ivec != m_pedVectors.end() ) {
     cout << myname << "ERROR: Unexpected pedestal vector size: " << m_pedVectors.size() << endl;
@@ -331,8 +339,8 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         else cout << ", ";
         cout << cof;
       }
+      cout << "}" << endl;
     }
-    cout << "}" << endl;
     ++niter;
   }
 
@@ -356,8 +364,10 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   acd.metadata["uscPedestal"] = cofs[1];
   acd.metadata["uscTail"] = cofs[0];
   acd.metadata["uscNoise"] = noise;
-  ret.setFloat("uscPedestal", cofs[1]);
-  ret.setFloat("uscTail", cofs[0]);
+  for ( Index icof=0; icof<cofs.size(); ++icof ) {
+    Name name = "usc" + m_fitNames[icof];
+    ret.setFloat(name, cofs[icof]);
+  }
   ret.setFloat("uscNoise", noise);
   ret.setInt("uscNsamFit", nsamFit);
   ret.setInt("uscNiteration", niter);

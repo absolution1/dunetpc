@@ -111,6 +111,7 @@ private:
   std::vector<bool> m_checkChannels;
   AdcChannelTool* m_pSignalTool;
   FloatVectorVector m_pedVectors;
+  NameVector m_fitNames;  // Names for the fitted params: {Tail, Pedestal, Slope, Curvature, Cos, Sin, ...)
 
   // private methods
 
