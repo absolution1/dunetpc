@@ -109,14 +109,14 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
   if ( m_PedDegree > 0 ) {
     FloatVector& vec = *(++ivec);
     for ( Index isam=0; isam<nsam; ++isam ) {
-      vec[isam] = isam - m_PedTick0;
+      vec[isam] = float(isam) - m_PedTick0;
     }
     m_fitNames[ifit++] = "Slope";
   }
   if ( m_PedDegree > 1 ) {
     FloatVector& vec = *(++ivec);
     for ( Index isam=0; isam<nsam; ++isam ) {
-      float dsam = isam - m_PedTick0;
+      float dsam = float(isam) - m_PedTick0;
       vec[isam] = dsam*dsam;
     }
     m_fitNames[ifit++] = "Curvature";
@@ -132,7 +132,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     m_fitNames[ifit++] = "Cos";
     m_fitNames[ifit++] = "Sin";
   }
-  if ( ivec != m_pedVectors.end() ) {
+  if ( ++ivec != m_pedVectors.end() ) {
     cout << myname << "ERROR: Unexpected pedestal vector size: " << m_pedVectors.size() << endl;
   }
   if ( m_LogLevel >= 1 ) {
@@ -207,11 +207,12 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
                               << " channel " << acd.channel << endl;
 
-  // Build the initial signal selection.
-  bool checkSignal = true;   // Whether to use only non-signal in fit.
+  // Set flag indicating if signal should be found each iteration.
+  // If not, check that signal is already found.
+  bool checkSignalDefault = true;   // Whether to use only non-signal in fit.
   bool findSignal = false;   // Whether to find signals each iteration.
   if ( m_SignalFlag == 0 ) {
-    checkSignal = false;
+    checkSignalDefault = false;
   } else if ( m_SignalFlag == 1  ) {
     if ( acd.signal.size() < nsam ) {
       cout << myname << "WARNING: Data is missing signal flags--padding from " << acd.signal.size()
@@ -220,7 +221,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   } else if ( m_SignalFlag >= 2  ) {
     if ( m_pSignalTool == nullptr ) {
       cout << myname << "WARNING: Signal-finding tool is missing. Using all signals." << endl;
-      checkSignal = false;
+      checkSignalDefault = false;
     } else {
       findSignal = true;
     }
@@ -245,6 +246,27 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       if ( acd.signal == signalLast ) {
         if ( m_LogLevel >=3 ) cout << myname << "Signal is unchanged. Exiting loop." << endl;
         break;
+      }
+    }
+    // Check that we have enough background to evaluate tau and the pedestal params.
+    bool checkSignal = checkSignalDefault;
+    if ( checkSignal ) {
+      Index nchk = 0;
+      for ( Index  isam=0; isam<nsam; ++isam ) {
+        if ( isam < acd.signal.size() && acd.signal[isam] ) continue;
+        if ( ++nchk >= ncof ) break;
+      }
+      if ( nchk < ncof ) {
+        cout << myname << "WARNING: Background sample count of " << nsamFit
+             << " is not sufficient to evaluate the " << ncof << " fit parameters.";
+        if ( niter == 0 ) {
+          cout << " Using all samples.";
+          checkSignal = false;
+        } else {
+          cout << " Exiting loop.";
+          break;
+        }
+        cout << endl;
       }
     }
     //
@@ -322,17 +344,18 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     sta.setData(samples);
     acd.samples = sta.signal();
     // Evaluate the non-signal rms.
-    double rms = 0.0;
+    double sumsq = 0.0;
     for ( Index  isam=0; isam<nsam; ++isam ) {
       if ( checkSignal &&  isam < acd.signal.size() && acd.signal[isam] ) continue;
       double sig = sta.signal()[isam];
-      rms += sig*sig;
+      sumsq += sig*sig;
     }
     Index ndof = nsamFit > ncof ? nsamFit - ncof : 1;
-    noise = sqrt(rms)/ndof;
+    noise = sqrt(sumsq/ndof);
     // Update iteration count.
     if ( m_LogLevel >= 3 ) {
-      cout << myname << "Iteration " << niter << ": noise=" << noise << "; tau, {ped} : {";
+      cout << myname << "Iteration " << niter << ": nsamfit=" << nsamFit
+           << ", noise=" << noise << "; tau, {ped} : {";
       bool first = true;
       for ( float cof : cofs ) {
         if ( first ) first = false;
@@ -351,7 +374,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     if ( sampleUnit.size() ) cout << " " << sampleUnit;
     cout << " from " << nsamFit << "/" << nsam << " channels" << endl;
     cout << myname << "Final tau0, ped params: " << " {";
-    bool first = false;
+    bool first = true;
     for ( float cof : cofs ) {
       if ( first ) first = false;
       else cout << ", ";

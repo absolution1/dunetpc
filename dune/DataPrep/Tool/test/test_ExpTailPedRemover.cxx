@@ -71,7 +71,7 @@ SigStats::SigStats(const AdcChannelData& acd, string lab) {
 
 //**********************************************************************
 
-int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float noiseSigma, bool setSeed) {
+int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slope, float noiseSigma, bool setSeed) {
   const string myname = "test_ExpTailPedRemover: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -82,8 +82,9 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float noiseSigma, bo
   cout << myname << line << endl;
   string fclfile = "test_ExpTailPedRemover.fcl";
   float decayTime = 100.0;
-  float ped = 5.0;
   float tail0 = -15.0;
+  int tick0 = 150;
+  int pedDegree = slope == 0.0 ? 0 : 1;
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
@@ -105,8 +106,8 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float noiseSigma, bo
     fout << "              SignalTool: \"sigfind\"" << endl;
     fout << "               DecayTime: " << decayTime << endl;
     fout << "                 MaxTick: 400" << endl;
-    fout << "               PedDegree: 0" << endl;
-    fout << "                PedTick0: 150" << endl;
+    fout << "               PedDegree: " << pedDegree << endl;
+    fout << "                PedTick0: " << tick0 << endl;
     fout << "                PedFreqs: []" << endl;
     fout << "    IncludeChannelRanges: [\"all\"]" << endl;
     fout << "    ExcludeChannelRanges: []" << endl;
@@ -158,13 +159,26 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float noiseSigma, bo
 
   cout << myname << "Create sample tailer." << endl;
   SampleTailer sta(decayTime);
-  sta.setPedestal(ped);
+  FloatVector peds;
+  float curv = 0.0;
+  if ( slope == 0.0 ) {
+    sta.setPedestal(ped);
+  } else {
+    peds.resize(nsam);
+    for ( Index isam=0; isam<nsam; ++isam ) {
+      float x = float(isam) - tick0;
+      peds[isam] = ped + slope*x + curv*x*x;
+    }
+    sta.setPedestalVector(&peds);
+  }
   sta.setTail0(tail0);
   sta.setUnit("ADC count");
   cout << myname << "  decayTime: " << sta.decayTime() << endl;
   cout << myname << "       beta: " << sta.beta() << endl;
   cout << myname << "      alpha: " << sta.alpha() << endl;
-  cout << myname << "   pedestal: " << sta.pedestal() << endl;
+  cout << myname << "   pedestal: " << ped << endl;
+  cout << myname << "      slope: " << slope << endl;
+  cout << myname << "  curvature: " << curv << endl;
   cout << myname << "      tail0: " << sta.tail0() << endl;
 
   cout << myname << line << endl;
@@ -207,11 +221,13 @@ int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
   Index flag = 2;
   float noiseSigma = 2.0;
+  float ped = 5.0;
+  float slope = 0.02;
   bool setSeed = false;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [ARG [OPT [noise [setSeed]]]]" << endl;
+      cout << "Usage: " << argv[0] << " [ARG [SLOPE [OPT [noise [setSeed]]]]]" << endl;
       cout << "  If ARG = true, existing FCL file is used." << endl;
       cout << "  OPT [2] is SignalOption = 0, 1, 2, or 3" << endl;
       cout << "  noise [2.0]  is the sigma of the noise added to the data" << endl;
@@ -222,18 +238,23 @@ int main(int argc, char* argv[]) {
   }
   if ( argc > 2 ) {
     string sarg(argv[2]);
-    flag = std::stoi(sarg);
+    istringstream ssarg(sarg);
+    ssarg >> slope;
   }
   if ( argc > 3 ) {
     string sarg(argv[3]);
+    flag = std::stoi(sarg);
+  }
+  if ( argc > 4 ) {
+    string sarg(argv[4]);
     istringstream ssarg(sarg);
     ssarg >> noiseSigma;
   }
-  if ( argc > 4 ) {
-    string sarg(argv[3]);
+  if ( argc > 5 ) {
+    string sarg(argv[5]);
     setSeed = sarg != "0";
   }
-  return test_ExpTailPedRemover(useExistingFcl, flag, noiseSigma, setSeed);
+  return test_ExpTailPedRemover(useExistingFcl, flag, ped, slope, noiseSigma, setSeed);
 }
 
 //**********************************************************************
