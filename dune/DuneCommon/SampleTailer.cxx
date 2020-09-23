@@ -12,13 +12,16 @@ SampleTailer::SampleTailer(float a_decayTime, float a_alpha)
   m_alpha(a_alpha),
   m_pedestal(0.0),
   m_ppedvec(nullptr),
-  m_tail0(0.0) { }
+  m_tail0(0.0) {
+  setDecayTime(a_decayTime, false);
+  setAlpha(a_alpha);
+}
 
 //**********************************************************************
 
 SampleTailer::SampleTailer(float a_decayTime)
 : SampleTailer(a_decayTime, 0) {
-  m_alpha = m_beta > 0.0 ? 1.0 - 1.0/m_beta : 0.0;
+  setDecayTime(a_decayTime, true);
 }
 
 //**********************************************************************

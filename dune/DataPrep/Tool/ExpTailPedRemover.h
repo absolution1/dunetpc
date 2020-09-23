@@ -33,7 +33,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
-//   DecayTime: Exponential decay time in ticks.
+//   DecayTime: Exponential decay time in ticks. If <= 0, the tail is not used.
 //   MaxTick: Maximum # ticks expected. Pedestal arrays are this size.
 //   PedDegree: Degree of the pedestal polynomial: 0, 1 (linear) or 2 (quadratic)
 //   PedTick0: polynomial = SUM lambda_i (isam - PedTick0)^i
@@ -114,6 +114,9 @@ private:
   NameVector m_fitNames;  // Names for the fitted params: {Tail, Pedestal, Slope, Curvature, Cos, Sin, ...)
 
   // private methods
+
+  // Return if tail is used.
+  bool useTail() const { return m_DecayTime > 0.0 }
 
   // Remove the pedestal and tail from a data vactor.
   void getSignal(const Vector& qdats, double ped, double csi, Vector& qsigs) const;

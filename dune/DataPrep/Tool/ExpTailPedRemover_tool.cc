@@ -227,6 +227,8 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     }
   }
 
+  // Iterate over fits based on background samples.
+  // Loop ends when the signal selection does not change or the maximumc # loops is reached.
   Index niter = 0;  // # fit iterations
   Index ncof = 1 + m_pedVectors.size();
   FloatVector cofs(ncof, 0);    // {tau0, lam1, lam2, ...} (ped = lam1)
