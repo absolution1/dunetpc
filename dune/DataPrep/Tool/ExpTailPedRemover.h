@@ -116,7 +116,7 @@ private:
   // private methods
 
   // Return if tail is used.
-  bool useTail() const { return m_DecayTime > 0.0 }
+  bool useTail() const { return m_DecayTime > 0.0; }
 
   // Remove the pedestal and tail from a data vactor.
   void getSignal(const Vector& qdats, double ped, double csi, Vector& qsigs) const;

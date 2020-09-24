@@ -12,8 +12,12 @@
 #include <iomanip>
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneCommon/SampleTailer.h"
+#include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
+#include "TH1F.h"
+#include "TGraphErrors.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -36,35 +40,80 @@ namespace {
 
 struct SigStats {
   Index count = 0;
-  float mean = 0.0;
   float rms = 0.0;
-  SigStats(const AdcChannelData& acd, string lab);
+  Index bgcount = 0;
+  float bgmean = 0.0;
+  float bgrms = 0.0;
+  SigStats(const AdcChannelData& acd, const FloatVector& sigTrue, string lab);
 };
 
-SigStats::SigStats(const AdcChannelData& acd, string lab) {
+SigStats::SigStats(const AdcChannelData& acd, const FloatVector& sigTrue, string lab) {
   Index nSig = 0;
-  double sumSig = 0.0;
   double sumSig2 = 0.0;
+  Index nNsg = 0;
+  double sumNsg = 0.0;
+  double sumNsg2 = 0.0;
   Index nsam = acd.samples.size();
   if ( acd.signal.size() < nsam ) return;
-  bool dbg = false;
   for ( Index isam=0; isam<nsam; ++isam ) {
-    if ( acd.signal[isam] ) continue;
-    ++nSig;
-    double sig = acd.samples[isam];
-    sumSig += sig;
-    sumSig2 += sig*sig;
-    if ( dbg ) cout << lab << setw(5) << isam << ":" << setw(10) << sig << endl;
+    if ( acd.signal[isam] ) {
+      ++nSig;
+      double sig = acd.samples[isam] - sigTrue[isam];
+      sumSig2 += sig*sig;
+    } else {
+      ++nNsg;
+      double sig = acd.samples[isam];
+      sumNsg += sig;
+      sumNsg2 += sig*sig;
+    }
   }
-  if ( nSig == 0 ) return;
   count = nSig;
-  mean = sumSig/nSig;
-  rms = sqrt(sumSig2/nSig - mean*mean);
+  rms = sqrt(sumSig2/nSig);
+  bgcount = nNsg;
+  bgmean = sumNsg/nNsg;
+  bgrms = sqrt(sumNsg2/nNsg - bgmean*bgmean);
+  
   if ( lab.size() ) {
-    cout << lab << "  # signal: " << count << endl;
-    cout << lab << "      mean: " << mean << endl;
-    cout << lab << "       RMS: " << rms << endl;
+    cout << lab << "   # signal: " << count << endl;
+    cout << lab << "       # BG: " << bgcount << endl;
+    cout << lab << "    BG mean: " << bgmean << endl;
+    cout << lab << "     BG RMS: " << bgrms << endl;
+    cout << lab << " Signal RMS: " << rms << endl;
   }
+}
+
+void drawResults(const FloatVector sigin, const FloatVector& sigraw, const FloatVector& sigout) {
+  const string myname = "drawResults: ";
+  string line = "-----------------------------";
+  cout << myname << line << endl;
+  Index nsam = 300;
+  cout << myname << "Draw data." << endl;
+  LineColors lc;
+  TH1* phi = new TH1F("hin", "ExpTailPedRemover fit;Tick;signal", nsam, 0, nsam);
+  phi->SetStats(0);
+  phi->SetLineWidth(2);
+  phi->SetLineColor(lc.blue());
+  TGraphErrors *pgr = new TGraphErrors(nsam);
+  pgr->SetMarkerStyle(2);
+  pgr->SetMarkerColor(lc.black());
+  TGraphErrors *pgo = new TGraphErrors(nsam);
+  pgo->SetMarkerStyle(24);
+  pgo->SetMarkerColor(lc.red());
+  for ( Index isam=0; isam<nsam; ++ isam ) {
+    phi->SetBinContent(isam+1, sigin[isam]);
+    pgr->SetPoint(isam, isam, sigraw[isam]);
+    pgo->SetPoint(isam, isam, sigout[isam]);
+  }
+  TPadManipulator man(1000, 500);
+  man.add(phi, "HIST");
+  man.add(pgr, "P");
+  man.add(pgo, "P");
+  string fnam = "test_ExpTailPedRemover.png";
+  man.setRangeY(-40, 240);
+  man.addHorizontalLine(0.0);
+  man.addAxis();
+  man.print(fnam);
+  cout << myname << "Plot saved as " << fnam << endl;
 }
 
 }  // end unnamed namespace
@@ -138,7 +187,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
   Index npul = pulse.size();
   FloatVector sigs1(nsam, 0.0);
   AdcFilterVector isSignal(nsam, false);
-  IndexVector peakPoss = {10, 100, 115, 230};
+  IndexVector peakPoss = {70, 100, 115, 230};
   FloatVector peakAmps = {0.5, 2.0, 0.7, 1.0};
   Index npea = peakPoss.size();
   for ( Index ipea=0; ipea<npea; ++ipea ) {
@@ -151,6 +200,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
       isSignal[isam] = true;
     }
   }
+  FloatVector sigs0 = sigs1;
 
   cout << myname << line << endl;
   cout << myname << "Add noise to the signal." << endl;
@@ -197,7 +247,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
 
   cout << myname << line << endl;
   cout << myname << "Check input noise." << endl;
-  SigStats inStats(acd, myname);
+  SigStats inStats(acd, sigs0, myname);
   assert( inStats.count > 0 );
 
   cout << myname << line << endl;
@@ -208,8 +258,10 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
 
   cout << myname << line << endl;
   cout << myname << "Check output noise." << endl;
-  SigStats ouStats(acd, myname);
+  SigStats ouStats(acd, sigs0, myname);
   assert( ouStats.count > 0 );
+
+  drawResults(sigs0, sta.data(), acd.samples);
 
   cout << myname << "Done." << endl;
   return 0;
@@ -229,6 +281,7 @@ int main(int argc, char* argv[]) {
     if ( sarg == "-h" ) {
       cout << "Usage: " << argv[0] << " [ARG [SLOPE [OPT [noise [setSeed]]]]]" << endl;
       cout << "  If ARG = true, existing FCL file is used." << endl;
+      cout << "  SLOPE [0.02] is the pedestal slope" << endl;
       cout << "  OPT [2] is SignalOption = 0, 1, 2, or 3" << endl;
       cout << "  noise [2.0]  is the sigma of the noise added to the data" << endl;
       cout << "  setSeed nonzero means a random random seed for the noise" << endl;

@@ -98,23 +98,24 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: Pedestal degree reduced from m_PedDegree to 2." << endl;
     m_PedDegree = 2;
   }
-  Index nvec = 1 + m_PedDegree+ 2*m_PedFreqs.size();
-  m_fitNames.resize(nvec+1);
+  Index nped = 1 + m_PedDegree + 2*m_PedFreqs.size();
+  Index nfit = nped + useTail();
+  m_fitNames.resize(nfit);
   Index ifit = 0;
-  m_fitNames[ifit++] = "Tail";
+  if ( useTail() ) m_fitNames[ifit++] = "Tail";
   m_fitNames[ifit++] = "Pedestal";
   Index nsam = m_MaxTick;
-  m_pedVectors.resize(nvec, FloatVector(nsam, 1.0));
-  FloatVectorVector::iterator ivec = m_pedVectors.begin();
+  m_pedVectors.resize(nped, FloatVector(nsam, 1.0));
+  FloatVectorVector::iterator iped = m_pedVectors.begin();
   if ( m_PedDegree > 0 ) {
-    FloatVector& vec = *(++ivec);
+    FloatVector& vec = *(++iped);
     for ( Index isam=0; isam<nsam; ++isam ) {
       vec[isam] = float(isam) - m_PedTick0;
     }
     m_fitNames[ifit++] = "Slope";
   }
   if ( m_PedDegree > 1 ) {
-    FloatVector& vec = *(++ivec);
+    FloatVector& vec = *(++iped);
     for ( Index isam=0; isam<nsam; ++isam ) {
       float dsam = float(isam) - m_PedTick0;
       vec[isam] = dsam*dsam;
@@ -123,8 +124,8 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
   }
   float twopi = 2.0*acos(-1.0);
   for ( float frq : m_PedFreqs ) {
-    FloatVector& cvec = *(++ivec);
-    FloatVector& svec = *(++ivec);
+    FloatVector& cvec = *(++iped);
+    FloatVector& svec = *(++iped);
     for ( Index isam=0; isam<nsam; ++isam ) {
       cvec[isam] = cos(twopi*frq*isam);
       svec[isam] = sin(twopi*frq*isam);
@@ -132,7 +133,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     m_fitNames[ifit++] = "Cos";
     m_fitNames[ifit++] = "Sin";
   }
-  if ( ++ivec != m_pedVectors.end() ) {
+  if ( ++iped != m_pedVectors.end() ) {
     cout << myname << "ERROR: Unexpected pedestal vector size: " << m_pedVectors.size() << endl;
   }
   if ( m_LogLevel >= 1 ) {
@@ -230,7 +231,9 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   // Iterate over fits based on background samples.
   // Loop ends when the signal selection does not change or the maximumc # loops is reached.
   Index niter = 0;  // # fit iterations
-  Index ncof = 1 + m_pedVectors.size();
+  Index ntai = useTail();           // # tail parameters
+  Index nped = m_pedVectors.size(); // # pedestal parameters
+  Index ncof = ntai + nped;         // # fitted parameters
   FloatVector cofs(ncof, 0);    // {tau0, lam1, lam2, ...} (ped = lam1)
   Index nsamFit = 0;
   Index maxiter = findSignal ? m_SignalIterationLimit : 1;
@@ -259,7 +262,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         if ( ++nchk >= ncof ) break;
       }
       if ( nchk < ncof ) {
-        cout << myname << "WARNING: Background sample count of " << nsamFit
+        cout << myname << "WARNING: Background sample count of " << nchk
              << " is not sufficient to evaluate the " << ncof << " fit parameters.";
         if ( niter == 0 ) {
           cout << " Using all samples.";
@@ -272,34 +275,47 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       }
     }
     //
-    // Evaluate the signal coefficients.
+    // Evaluate the signal coefficients (C_iM in DUNE-doc-20618).
     using DoubleVector = std::vector<double>;
     using DoubleVectorVector = std::vector<DoubleVector>;
-    DoubleVectorVector cofvecs(ncof, DoubleVector(nsam, 0.0));    // Ctau, Clam1, Clam2, ...
+    DoubleVectorVector cofvecs(ncof, DoubleVector(nsam, 0.0));    // [Ctau], Clam1, Clam2, ...
     SampleTailer sta(m_DecayTime);
-    sta.setTail0(1.0);
-    sta.setDataZero(nsam);
-    DoubleVector& ctau = cofvecs[0];
-    copy(sta.signal().begin(), sta.signal().end(), ctau.begin());
-    for ( Index icof=1; icof<ncof; ++icof ) {
-      sta.setTail0(0.0);
-      sta.setPedestalVector(&m_pedVectors[icof-1]);
+    if ( ! useTail() ) sta.setBeta(1.0, true);
+    if ( ! sta.isValid() ) {
+      cout << myname << "ERROR: SampleTailer is invalid. Exiting." << endl;
+      break;
+    }
+    Index icof = 0;
+    // Tail coefficient.
+    if ( useTail() ) {
+      sta.setTail0(1.0);
+      sta.setPedestal(0.0);
       sta.setDataZero(nsam);
-      DoubleVector& cped = cofvecs[icof];
+      DoubleVector& ctau = cofvecs[icof++];
+      copy(sta.signal().begin(), sta.signal().end(), ctau.begin());
+    }
+    // Pedestal coefficients.
+    for ( Index iped=0; iped<nped; ++iped ) {
+      sta.setTail0(0.0);
+      sta.setPedestalVector(&m_pedVectors[iped]);
+      sta.setDataZero(nsam);
+      DoubleVector& cped = cofvecs[icof++];
       copy(sta.signal().begin(), sta.signal().end(), cped.begin());
     }
+    // Data coefficient.
+    sta.setTail0(0.0);
     sta.setPedestal(0.0);
     sta.setData(samples);
     DoubleVector cdat(nsam);
     copy(sta.signal().begin(), sta.signal().end(), cdat.begin());
-    // Evaluate the K-params.
+    // Evaluate the K-params (K_MN in DUNE-doc-20618).
     TMatrixDSym kmat(ncof);
     TVectorD kvec(ncof);
     nsamFit = 0;
-    for ( Index  isam=0; isam<nsam; ++isam ) {
+    for ( Index isam=0; isam<nsam; ++isam ) {
       if ( checkSignal &&  isam < acd.signal.size() && acd.signal[isam] ) continue;
       double cd = cdat[isam];
-      for ( Index icof=0; icof<ncof; ++icof ) {
+      for ( icof=0; icof<ncof; ++icof ) {
         double ci = cofvecs[icof][isam];
         kvec[icof] += cd*ci;
         for ( Index jcof=0; jcof<ncof; ++jcof ) {
@@ -309,7 +325,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       }
       ++nsamFit;
     }
-    // Invert matrix and solve for (ped, tau).
+    // Invert matrix and solve for [tau], {ped}.
     double det = 0.0;
     kmat.Invert(&det);
     if ( ! kmat.IsValid() || det == 0.0 ) {
@@ -317,7 +333,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         cout << myname << "WARNING: Unable to invert K-matrix with "
              << nsamFit << " of " << nsam << " samples--stopping iteration for channel "
              << acd.channel << " with status " << acd.channelStatus << "." << endl;
-        for ( Index icof=0; icof<ncof; ++icof ) {
+        for ( icof=0; icof<ncof; ++icof ) {
           cout << myname;
           for ( Index jcof=0; jcof<ncof; ++jcof ) {
             cout << setw(20) << kmat[icof][jcof];
@@ -329,18 +345,20 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     }
     kvec *= kmat;
     kvec *= -1.0;   // kvec now holds the fitted coefficients {tau, lam1, lam2, ...}
-    for ( Index icof=0; icof<ncof; ++icof ) {
+    for ( icof=0; icof<ncof; ++icof ) {
       cofs[icof] = kvec[icof];
     }
-    float tau = cofs[0];
+    // Use the parameters to remove tail and pedestal from the original data and store
+    // these subtracted samples in the channel data.
+    float tau = useTail() ? cofs[0] : 0.0;
     FloatVector peds(nsam, 0.0);
-    for ( Index icof=1; icof<ncof; ++icof ) {
+    icof = ntai;
+    for ( Index iped=0; iped<nped; ++iped ) {
       for ( Index isam=0; isam<nsam; ++isam ) {
-        peds[isam] += cofs[icof]*m_pedVectors[icof-1][isam];
+        peds[isam] += cofs[icof]*m_pedVectors[iped][isam];
       }
+      ++icof;
     }
-    // Use the parameters to remove tail from the original data and store
-    // these tail-subtracted samples in the channel data.
     sta.setTail0(tau);
     sta.setPedestalVector(&peds);
     sta.setData(samples);
