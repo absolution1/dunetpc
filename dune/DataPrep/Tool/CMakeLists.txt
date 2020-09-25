@@ -186,6 +186,22 @@ simple_plugin(ExpTailRemover   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(ExpTailPedRemover   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                ${ART_FRAMEWORK_CORE}
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                art_Utilities canvas
+                ${CETLIB_LIBS}
+                ${MF_MESSAGELOGGER}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(VintageDeconvoluter   "tool"
                 SignalShapingServiceDUNE_service
                 art_Framework_Services_Registry

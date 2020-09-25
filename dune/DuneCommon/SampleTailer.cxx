@@ -12,13 +12,16 @@ SampleTailer::SampleTailer(float a_decayTime, float a_alpha)
   m_alpha(a_alpha),
   m_pedestal(0.0),
   m_ppedvec(nullptr),
-  m_tail0(0.0) { }
+  m_tail0(0.0) {
+  setDecayTime(a_decayTime, false);
+  setAlpha(a_alpha);
+}
 
 //**********************************************************************
 
 SampleTailer::SampleTailer(float a_decayTime)
 : SampleTailer(a_decayTime, 0) {
-  m_alpha = m_beta > 0.0 ? 1.0 - 1.0/m_beta : 0.0;
+  setDecayTime(a_decayTime, true);
 }
 
 //**********************************************************************
@@ -47,8 +50,8 @@ int SampleTailer::setDecayTime(float val, bool cancelSignal) {
   clear();
   if ( val > 0.0 ) {
     m_decayTime = val;
-    m_beta = exp(-m_decayTime);
-    if ( cancelSignal ) m_alpha = 1.0/m_beta - 1.0;
+    m_beta = exp(-1.0/m_decayTime);
+    if ( cancelSignal ) m_alpha = 1.0/m_beta - 1;
   } else {
     m_decayTime = 0.0;
     m_beta = 0.0;
@@ -64,8 +67,8 @@ int SampleTailer::setBeta(float val, bool cancelSignal) {
   clear();
   if ( val > 0.0 ) {
     m_beta = val;
-    m_decayTime = -log(m_beta);
-    if ( cancelSignal ) m_alpha = 1.0/m_beta - 1.0;
+    m_decayTime = -1.0/log(m_beta);
+    if ( cancelSignal ) m_alpha = 1.0/m_beta - 1;
   } else {
     m_decayTime = 0.0;
     m_beta = 0.0;
@@ -124,7 +127,7 @@ int SampleTailer::setData(const FloatVector& inData) {
   double s = 0.0;
   double ped = m_pedestal;
   for ( Index isam=0; isam<nsam; ++isam ) {
-    if ( isam > 0 ) t = m_beta*t + m_alpha*s;
+    if ( isam > 0 ) t = m_beta*t - m_alpha*s;
     if ( havePedVector ) ped = (*m_ppedvec)[isam];
     s = m_d[isam] - t - ped;
     m_t[isam] = t;
@@ -155,7 +158,7 @@ int SampleTailer::setSignal(const FloatVector& inSignal) {
   double s = 0.0;
   double ped = m_pedestal;
   for ( Index isam=0; isam<nsam; ++isam ) {
-    if ( isam > 0 ) t = m_beta*t + m_alpha*s;
+    if ( isam > 0 ) t = m_beta*t - m_alpha*s;
     s = m_s[isam];
     m_t[isam] = t;
     if ( havePedVector ) ped = (*m_ppedvec)[isam];

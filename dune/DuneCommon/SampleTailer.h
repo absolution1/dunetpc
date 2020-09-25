@@ -12,7 +12,7 @@
 //   s[i] = d[i] - t[i] - p
 // The tail decays and has contribution from signal as follows:
 //   t[i] = beta t[i-1] - alpha s[i-1]
-// Tails are added or removed from a distibution by combining this
+// Tails are added or removed from a distribution by combining this
 // in iteration with the repective preceding expression.
 //
 // The tails are characterized by four parameters:
