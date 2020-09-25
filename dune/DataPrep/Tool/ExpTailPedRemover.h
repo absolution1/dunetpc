@@ -4,7 +4,7 @@
 // September 2020
 //
 // Tool to remove an exponential tail and tim-dependent pedestal from
-// AC-coupled front-end electronics.
+// AC-coupled front-end electronics. See DUNE-doc-20618.
 //
 // The measured charge vector is assumed to be a sum of signal and tail:
 //
@@ -17,7 +17,7 @@
 //
 // Any signal contribution is assumed to be accompanied by an exponential tail
 // whose integral cancels that of the signal. The decay time of the exponential
-// is a parameter of this tool.
+// is a parameter of this tool. If 0, there is no tail.
 //
 // The data is fit with this model and Np + 1 varied parameters: the initial
 // charge Qtail[0] and the Np parameters in the pedestal model and the initial charge of the tail csi.
@@ -27,15 +27,14 @@
 // to evaluate the signal for the next iteration. Iterations stop when the signal
 // evalaution does not change or the maximum # iterations is reached.
 //
-// The fit is done in time-domain, i.e there is no deconvolution following DUNE-doc-20618.
-//
-// ped = 
+// The pedestal model is a polynomial in (tick-Pedtick0) with degree PedDgree
+// plus a series of fixed frequncy terms for the frequncies listed in PedFreqs.
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 //   DecayTime: Exponential decay time in ticks. If <= 0, the tail is not used.
 //   MaxTick: Maximum # ticks expected. Pedestal arrays are this size.
-//   PedDegree: Degree of the pedestal polynomial: 0, 1 (linear) or 2 (quadratic)
+//   PedDegree: Degree of the pedestal polynomial: <0=none, 1=flat, 2=linear, >=3=quadratic
 //   PedTick0: polynomial = SUM lambda_i (isam - PedTick0)^i
 //   PedFreqs: Frequency terms (sin and cos) added for each of these frequencies [1/tick]
 //   SignalFlag: Specifies how signal regions are identified in the samples.
@@ -100,7 +99,7 @@ private:
   Name               m_SignalTool;
   double             m_DecayTime;
   Index              m_MaxTick;
-  Index              m_PedDegree;
+  int                m_PedDegree;
   Index              m_PedTick0;
   FloatVector        m_PedFreqs;
   NameVector         m_IncludeChannelRanges;
@@ -112,11 +111,13 @@ private:
   AdcChannelTool* m_pSignalTool;
   FloatVectorVector m_pedVectors;
   NameVector m_fitNames;  // Names for the fitted params: {Tail, Pedestal, Slope, Curvature, Cos, Sin, ...)
+  Name m_fitNamesString;
 
   // private methods
 
   // Return if tail is used.
   bool useTail() const { return m_DecayTime > 0.0; }
+  bool usePolynomial() const { return m_PedDegree >= 0; }
 
   // Remove the pedestal and tail from a data vactor.
   void getSignal(const Vector& qdats, double ped, double csi, Vector& qsigs) const;
