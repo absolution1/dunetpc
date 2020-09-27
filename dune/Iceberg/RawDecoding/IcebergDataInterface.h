@@ -41,21 +41,21 @@ class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
   IcebergDataInterface(fhicl::ParameterSet const& ps);
 
   int retrieveData(art::Event &evt, std::string inputlabel, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
-		   std::vector<raw::RDStatus> &rdstatuses );
+                   std::vector<raw::RDStatus> &rdstatuses );
 
   // method to get raw digits, RDTimeStamps, RDStatuses from all input fragments specified by an input label (like "daq:ContainerTPC") but ony for
   // APA's (== crate numbers) on a list.  If the list contains a -1 in it, it returns all APA data found in the input label.
 
   int retrieveDataAPAListWithLabels(art::Event &evt, std::string inputlabel, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
-				    std::vector<raw::RDStatus> &rdstatuses, 
-				    std::vector<int> &apalist);
+                                    std::vector<raw::RDStatus> &rdstatuses, 
+                                    std::vector<int> &apalist);
 
   // method to get raw digits, RDTimeStamps, RDStatuses for a specified list of APA's.  The list of possible labels on which to find
   // APA data is proved by fcl configuration.
 
   int retrieveDataForSpecifiedAPAs(art::Event &evt, std::vector<raw::RawDigit> &raw_digits, std::vector<raw::RDTimeStamp> &rd_timestamps,
-				   std::vector<raw::RDStatus> &rdstatuses,  
-				   std::vector<int> &apalist);
+                                   std::vector<raw::RDStatus> &rdstatuses,  
+                                   std::vector<int> &apalist);
 
   // inputLabel examples:  "daq:TPC" or "daq::ContainerTPC" for RCE, "daq:FELIX" or "daq::ContainerFELIX" for FELIX
   // returns:  0:  success, or   1: discarded corrupted data, or 2: kept some corrupted data
@@ -110,48 +110,49 @@ class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
   void _collectRDStatus(std::vector<raw::RDStatus> &rdstatuses);
 
   bool _processRCE(art::Event &evt, 
-		   std::string inputLabel, 
-		   RawDigits& raw_digits, 
-		   RDTimeStamps &timestamps, 
-		   std::vector<int> &apalist);
+                   std::string inputLabel, 
+                   RawDigits& raw_digits, 
+                   RDTimeStamps &timestamps, 
+                   std::vector<int> &apalist);
 
   bool _rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-			   size_t &n_rce_frags, 
-			   bool is_container, 
-			   art::Event &evt, 
-			   RawDigits& raw_digits, 
-			   RDTimeStamps &timestamps, 
-			   std::vector<int> &apalist);
+                           size_t &n_rce_frags, 
+                           bool is_container, 
+                           art::Event &evt, 
+                           RawDigits& raw_digits, 
+                           RDTimeStamps &timestamps, 
+                           std::vector<int> &apalist);
 
   bool _process_RCE_AUX(art::Event &evt,
-			const artdaq::Fragment& frag, 
-			RawDigits& raw_digits, 
-			RDTimeStamps &timestamps, 
-			std::vector<int> &apalist);
+                        const artdaq::Fragment& frag, 
+                        RawDigits& raw_digits, 
+                        RDTimeStamps &timestamps, 
+                        std::vector<int> &apalist);
 
   bool _processFELIX(art::Event &evt, 
-		     std::string inputLabel, 
-		     RawDigits& raw_digits, 
-		     RDTimeStamps &timestamps, 
-		     std::vector<int> &apalist);
+                     std::string inputLabel, 
+                     RawDigits& raw_digits, 
+                     RDTimeStamps &timestamps, 
+                     std::vector<int> &apalist);
 
   bool _felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-			     size_t &n_felix_frags, 
-			     bool is_container, 
-			     art::Event &evt, 
-			     RawDigits& raw_digits,
-			     RDTimeStamps &timestamps, 
-			     std::vector<int> &apalist);
+                             size_t &n_felix_frags, 
+                             bool is_container, 
+                             art::Event &evt, 
+                             RawDigits& raw_digits,
+                             RDTimeStamps &timestamps, 
+                             std::vector<int> &apalist);
 
   bool _process_FELIX_AUX(art::Event &evt,
-			  const artdaq::Fragment& frag, 
-			  RawDigits& raw_digits, 
-			  RDTimeStamps &timestamps, 
-			  std::vector<int> &apalist);
+                          const artdaq::Fragment& frag, 
+                          RawDigits& raw_digits, 
+                          RDTimeStamps &timestamps, 
+                          std::vector<int> &apalist,
+                          uint32_t runNumber);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, 
-			  float &median, 
-			  float &sigma);
+                          float &median, 
+                          float &sigma);
 
 };
 

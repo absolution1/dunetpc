@@ -4,10 +4,7 @@
 // File:        IcebergTPCRawDecoder_module.cc
 //
 // Generated at Fri Mar  2 15:36:20 2018 by Thomas Junk using cetskelgen
-// from cetlib version v3_02_00.
-// Original code from Jingbo Wang in separate RCE and FELIX raw decoders
-// *********************************************************************
-// July, Maggie Greenwood, Added histograms for error checking.
+// from cetlib version v3_02_00.  Original code from Jingbo Wang for ProtoDUNE-SP
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
@@ -116,9 +113,9 @@ private:
   bool          _print_coldata_convert_count;
 
   //declare histogram data memebers
-  bool	_make_histograms;
-  unsigned int 	duplicate_channels;
-  unsigned int 	error_counter;
+  bool  _make_histograms;
+  unsigned int  duplicate_channels;
+  unsigned int  error_counter;
   unsigned int incorrect_ticks;
   unsigned int rcechans;
   unsigned int felixchans;
@@ -146,7 +143,7 @@ private:
   bool _processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
   bool _process_RCE_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm, uint32_t runNumber);
-  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm);
+  bool _process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm, uint32_t runNumber);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
 
@@ -155,7 +152,7 @@ private:
 
 
 IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
-: EDProducer(p)
+  : EDProducer(p)
 {
   std::vector<int> emptyivec;
   _rce_input_label = p.get<std::string>("RCERawDataLabel","daq");
@@ -221,7 +218,7 @@ IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
       fIncorrectTickNumbers->GetXaxis()->SetBinLabel(32,"1024");
       fIncorrectTickNumbers->GetXaxis()->SetBinLabel(38,"4096");
       fIncorrectTickNumbers->GetXaxis()->SetBinLabel(44, "16384");
-	
+        
       //same as fIncorrectTickNumbers but with a zoomed domain
       //fIncorrectTickNumbersZoomed = tFileService->make<TH1I>("fIncorrectTickNumbersZoomed","Channels with Unexpected Number of Ticks", , 0.5, 100.5);
       //fIncorrectTickNumbersZoomed->GetXaxis()->SetTitle("Channels with an Unexpected Number of Tics (log2)");
@@ -299,7 +296,7 @@ void IcebergTPCRawDecoder::produce(art::Event &e)
   if (_enforce_full_channel_count && raw_digits.size() != _full_channel_count) 
     {
       MF_LOG_WARNING("IcebergTPCRawDecoder:") << "Wrong Total number of Channels " << raw_digits.size()  
-					<< " which is not " << _full_channel_count << ". Discarding Data";
+                                              << " which is not " << _full_channel_count << ". Discarding Data";
       _DiscardedCorruptData = true;
       _discard_data = true;
     }
@@ -347,46 +344,46 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 
       //size of RCE fragments into histogram
       if(_make_histograms)
-	{
-	  size_t rcebytes = 0;
-	  for (auto const& cont : *cont_frags)
-	    {
-	      rcebytes = rcebytes + (cont.sizeBytes());
-	    }
-	  fFragSizeRCE->Fill(rcebytes);
-	}
+        {
+          size_t rcebytes = 0;
+          for (auto const& cont : *cont_frags)
+            {
+              rcebytes = rcebytes + (cont.sizeBytes());
+            }
+          fFragSizeRCE->Fill(rcebytes);
+        }
     
       for (auto const& cont : *cont_frags)
-	{
-	  //std::cout << "RCE container fragment size bytes: " << cont.sizeBytes() << std::endl; 
-	  bool process_flag = true;
-	  if (cont.sizeBytes() < _rce_frag_small_size)
-	    {
-	      if ( _drop_events_with_small_rce_frags )
-		{ 
-		  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
-		  _discard_data = true; 
-	          _DiscardedCorruptData = true;
-		  evt.removeCachedProduct(cont_frags);
-		  return false;
-		}
-	      if ( _drop_small_rce_frags )
-		{ 
-		  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
-		  _DiscardedCorruptData = true;
-		  process_flag = false;
-		}
+        {
+          //std::cout << "RCE container fragment size bytes: " << cont.sizeBytes() << std::endl; 
+          bool process_flag = true;
+          if (cont.sizeBytes() < _rce_frag_small_size)
+            {
+              if ( _drop_events_with_small_rce_frags )
+                { 
+                  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
+                  _discard_data = true; 
+                  _DiscardedCorruptData = true;
+                  evt.removeCachedProduct(cont_frags);
+                  return false;
+                }
+              if ( _drop_small_rce_frags )
+                { 
+                  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
+                  _DiscardedCorruptData = true;
+                  process_flag = false;
+                }
               _KeptCorruptData = true;
-	    }
-	  if (process_flag)
-	    {
-	      artdaq::ContainerFragment cont_frag(cont);
-	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-		{
-		  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
-		}
-	    }
-	}
+            }
+          if (process_flag)
+            {
+              artdaq::ContainerFragment cont_frag(cont);
+              for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+                {
+                  if (_process_RCE_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
+                }
+            }
+        }
       evt.removeCachedProduct(cont_frags);
     }
 
@@ -402,42 +399,42 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 
       //size of RCE fragments into histogram
       if(_make_histograms)
-	{
-	  size_t rcebytes = 0;
-	  for (auto const& frag: *frags)
-	    {
-	      rcebytes = rcebytes + (frag.sizeBytes());
-	    }
-	  fFragSizeRCE->Fill(rcebytes);
-	}
+        {
+          size_t rcebytes = 0;
+          for (auto const& frag: *frags)
+            {
+              rcebytes = rcebytes + (frag.sizeBytes());
+            }
+          fFragSizeRCE->Fill(rcebytes);
+        }
 
       for(auto const& frag: *frags)
-	{
-	  bool process_flag = true;
-	  if (frag.sizeBytes() < _rce_frag_small_size)
-	    {
-	      if ( _drop_events_with_small_rce_frags )
-		{ 
-		  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
-		  _discard_data = true; 
-	          _DiscardedCorruptData = true;
+        {
+          bool process_flag = true;
+          if (frag.sizeBytes() < _rce_frag_small_size)
+            {
+              if ( _drop_events_with_small_rce_frags )
+                { 
+                  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
+                  _discard_data = true; 
+                  _DiscardedCorruptData = true;
                   evt.removeCachedProduct(frags);
-		  return false;
-		}
-	      if ( _drop_small_rce_frags )
-		{ 
-		  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
-	          _DiscardedCorruptData = true;
-		  process_flag = false;
-		}
+                  return false;
+                }
+              if ( _drop_small_rce_frags )
+                { 
+                  MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
+                  _DiscardedCorruptData = true;
+                  process_flag = false;
+                }
               _KeptCorruptData = true;
-	    }
+            }
 
-	  if (process_flag)
-	    {
-	      if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
-	    }
-	}
+          if (process_flag)
+            {
+              if (_process_RCE_AUX(frag, raw_digits, timestamps,tsassocs, rdpm, tspm, runNumber)) ++n_rce_frags;
+            }
+        }
       evt.removeCachedProduct(frags);
     }
 
@@ -453,14 +450,14 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 // for data error conditions (_discard_data).
 
 bool IcebergTPCRawDecoder::_process_RCE_AUX(
-					 const artdaq::Fragment& frag, 
-					 RawDigits& raw_digits,
-					 RDTimeStamps &timestamps,
-					 RDTsAssocs &tsassocs,
-					 RDPmkr &rdpm, 
-					 TSPmkr &tspm,
-					 uint32_t runNumber
-					 )
+                                            const artdaq::Fragment& frag, 
+                                            RawDigits& raw_digits,
+                                            RDTimeStamps &timestamps,
+                                            RDTsAssocs &tsassocs,
+                                            RDPmkr &rdpm, 
+                                            TSPmkr &tspm,
+                                            uint32_t runNumber
+                                            )
 {
 
   if (_rce_hex_dump)
@@ -469,25 +466,25 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       oldState.copyfmt(std::cout);
 
       std::cout << "RCE Fragment: all numbers in hex "  << std::hex
-		<< "   SequenceID = " << frag.sequenceID()
-		<< "   fragmentID = " << frag.fragmentID()
-		<< "   fragmentType = " << (unsigned)frag.type()
-		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+                << "   SequenceID = " << frag.sequenceID()
+                << "   fragmentID = " << frag.fragmentID()
+                << "   fragmentType = " << (unsigned)frag.type()
+                << "   Timestamp =  " << frag.timestamp() << std::endl;
       std::cout << "Offset      Data";
       artdaq::Fragment fragloc(frag);
       unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
       size_t dsize = fragloc.dataSizeBytes();
       size_t offcounter=0;
       for (size_t bcounter=0; bcounter<dsize;++bcounter)
-	{
-	  if ( (offcounter % 8) == 0 )
-	    {
-	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
-	    }
-	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
-	  dbegin++;
-	  offcounter++;
-	}
+        {
+          if ( (offcounter % 8) == 0 )
+            {
+              std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
+            }
+          std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+          dbegin++;
+          offcounter++;
+        }
       std::cout << std::endl;
       std::cout.copyfmt(oldState);
     }
@@ -519,19 +516,19 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       _DiscardedCorruptData = true;
       return false; 
     }
-   DataFragmentUnpack df(cdptr);
-   //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
+  DataFragmentUnpack df(cdptr);
+  //std::cout << "isTPpcNormal: " << df.isTpcNormal() << " isTpcDamaged: " << df.isTpcDamaged() << " isTpcEmpty: " << df.isTpcEmpty() << std::endl;
 
   dune::RceFragment rce(frag);
   if (_rce_save_frags_to_files)
     {
-       TString outfilename="rce";
-       outfilename += frag.sequenceID();
-       outfilename += "_";
-       outfilename += frag.fragmentID();
-       outfilename+=".fragment";
-       rce.save(outfilename.Data());
-       std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
+      TString outfilename="rce";
+      outfilename += frag.sequenceID();
+      outfilename += "_";
+      outfilename += frag.fragmentID();
+      outfilename+=".fragment";
+      rce.save(outfilename.Data());
+      std::cout << "Saved an RCE fragment with " << rce.size() << " streams: " << outfilename << std::endl;
     }
 
   uint32_t ch_counter = 0;
@@ -548,193 +545,193 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
 
       if (crateNumber == 0 || crateNumber > 6 || slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
-	{
-	  if (_rce_drop_frags_with_badcsf)
-	    {
-	      MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
-					   << crateNumber << " " << slotNumber << " " << fiberNumber;
+        {
+          if (_rce_drop_frags_with_badcsf)
+            {
+              MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
+                                              << crateNumber << " " << slotNumber << " " << fiberNumber;
               _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false;
+            }
+          _KeptCorruptData = true;
+        }
 
       // inverted ordering on back side, Run 2c (=Run 3)
       // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
 
       if (runNumber > 2572)
-	{
-	  auto oldfiber = fiberNumber;
-	  auto oldslot = slotNumber;
+        {
+          auto oldfiber = fiberNumber;
+          auto oldslot = slotNumber;
 
-	  if (oldslot == 0 && oldfiber == 4)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 4)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 4;
-	    }
-	  if (oldslot == 0 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 4;
-	    }
-	}
+          if (oldslot == 0 && oldfiber == 4)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 4)
+            {
+              slotNumber = 0;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 0;
+              fiberNumber = 4;
+            }
+          if (oldslot == 0 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 4;
+            }
+        }
 
       // two cable swaps on June 20, 2019, and go back to the original on Jan 22, 2020
 
       if (runNumber > 1530 && runNumber < 2572)
-      	{
-	  auto oldfiber = fiberNumber;
-	  auto oldslot = slotNumber;
+        {
+          auto oldfiber = fiberNumber;
+          auto oldslot = slotNumber;
 
-	  // second swap, June 21, 2019 -- see Slack
+          // second swap, June 21, 2019 -- see Slack
 
-	  if (oldslot == 2 && oldfiber == 1)
-	    {
-	      slotNumber = 2;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 1)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 2 && oldfiber == 3)
-	    {
-	      slotNumber = 2;
-	      fiberNumber = 1;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 1;
-	    }
+          if (oldslot == 2 && oldfiber == 1)
+            {
+              slotNumber = 2;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 1)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 2 && oldfiber == 3)
+            {
+              slotNumber = 2;
+              fiberNumber = 1;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 1;
+            }
 
-	  oldfiber = fiberNumber;
-	  oldslot = slotNumber;
+          oldfiber = fiberNumber;
+          oldslot = slotNumber;
 
-	  if (oldslot == 0 && oldfiber == 4)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 4)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 0 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 4;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 4;
-	    }
-     	}
+          if (oldslot == 0 && oldfiber == 4)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 4)
+            {
+              slotNumber = 0;
+              fiberNumber = 3;
+            }
+          if (oldslot == 0 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 4;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 0;
+              fiberNumber = 4;
+            }
+        }
 
       // skip the fake TPC data
 
       if ( slotNumber == 1 && fiberNumber == 1 ) 
-	{
-	  continue;
-	}
+        {
+          continue;
+        }
 
       if ( slotNumber == 2 && fiberNumber == 1 )
-	{
-	  continue;
-	}
+        {
+          continue;
+        }
 
       //std::cout << "  After cable swap : WIB: " << slotNumber+1 << " FEMB: " << fiberNumber-1 << std::endl;
 
       if (_print_coldata_convert_count)
-	{
-	  std::cout << "Printing coldata convert counts for slot: " << slotNumber << " fiber: " << fiberNumber << std::endl;
-	  // from JJ's PdReaderTest.cc
-	  using namespace pdd;
-	  using namespace pdd::access;
-	  //bool printed=false;
-	  TpcStream const        &stream = rce_stream->getStream ();
-	  TpcToc           toc    (stream.getToc    ());
-	  TpcPacket        pktRec (stream.getPacket ());
-	  TpcPacketBody    pktBdy (pktRec.getRecord ());
-	  int   npkts = toc.getNPacketDscs ();
-	  for (int ipkt = 0; ipkt < npkts; ++ipkt)
-	    {
-	      TpcTocPacketDsc pktDsc (toc.getPacketDsc (ipkt));
-	      unsigned int      o64 = pktDsc.getOffset64 ();
-	      unsigned int  pktType = pktDsc.getType ();
-	      unsigned nWibFrames = pktDsc.getNWibFrames ();
-	      WibFrame const *wf = pktBdy.getWibFrames (pktType, o64);
-	      for (unsigned iwf = 0; iwf < nWibFrames; ++iwf)
-		{
-		  auto const &colddata = wf->getColdData ();
-		  auto cvt0 = colddata[0].getConvertCount ();
-		  //auto cvt1 = colddata[1].getConvertCount ();
-		  int diff = (int) cvt0 - (int) iwf; 
-		  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << " Difference: " << diff << std::endl;
-		  //printed = true;
-		  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
-		  //break;
-		}
-	      //if (printed) break;
-	    }
-	}
+        {
+          std::cout << "Printing coldata convert counts for slot: " << slotNumber << " fiber: " << fiberNumber << std::endl;
+          // from JJ's PdReaderTest.cc
+          using namespace pdd;
+          using namespace pdd::access;
+          //bool printed=false;
+          TpcStream const        &stream = rce_stream->getStream ();
+          TpcToc           toc    (stream.getToc    ());
+          TpcPacket        pktRec (stream.getPacket ());
+          TpcPacketBody    pktBdy (pktRec.getRecord ());
+          int   npkts = toc.getNPacketDscs ();
+          for (int ipkt = 0; ipkt < npkts; ++ipkt)
+            {
+              TpcTocPacketDsc pktDsc (toc.getPacketDsc (ipkt));
+              unsigned int      o64 = pktDsc.getOffset64 ();
+              unsigned int  pktType = pktDsc.getType ();
+              unsigned nWibFrames = pktDsc.getNWibFrames ();
+              WibFrame const *wf = pktBdy.getWibFrames (pktType, o64);
+              for (unsigned iwf = 0; iwf < nWibFrames; ++iwf)
+                {
+                  auto const &colddata = wf->getColdData ();
+                  auto cvt0 = colddata[0].getConvertCount ();
+                  //auto cvt1 = colddata[1].getConvertCount ();
+                  int diff = (int) cvt0 - (int) iwf; 
+                  std::cout << "Packet: " << ipkt << " WIB frame: " << iwf << " RCE coldata convert count: " << cvt0 << " Difference: " << diff << std::endl;
+                  //printed = true;
+                  ++wf;  // in case we were looping over WIB frames, but let's stop at the first
+                  //break;
+                }
+              //if (printed) break;
+            }
+        }
 
 
       if(_make_histograms)
-	{
-	  //log the participating RCE channels
-	  rcechans=rcechans+n_ch;
-	}
+        {
+          //log the participating RCE channels
+          rcechans=rcechans+n_ch;
+        }
 
       if (n_ticks != _full_tick_count)
-	{
-	  if (_enforce_full_tick_count)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
-					       << _full_tick_count << " Discarding Data";
-	      error_counter++;
-	      incorrect_ticks++;
-	      _discard_data = true;
+        {
+          if (_enforce_full_tick_count)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
+                                                  << _full_tick_count << " Discarding Data";
+              error_counter++;
+              incorrect_ticks++;
+              _discard_data = true;
               _DiscardedCorruptData = true;
-	      return false; 
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false; 
+            }
+          _KeptCorruptData = true;
+        }
 
       if (!_initialized_tick_count_this_event)
-	{
-	  _initialized_tick_count_this_event = true;
-	  _tick_count_this_event = n_ticks;
-	}
+        {
+          _initialized_tick_count_this_event = true;
+          _tick_count_this_event = n_ticks;
+        }
       else
-	{
-	  if (n_ticks != _tick_count_this_event)
-	    {
-	      if (_enforce_same_tick_count)
-		{
-		  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
-		  error_counter++;
-		  _discard_data = true;
-		  _DiscardedCorruptData = true;
-		  return false;
-		}
-	    }
-	  _KeptCorruptData = true;
-	}
+        {
+          if (n_ticks != _tick_count_this_event)
+            {
+              if (_enforce_same_tick_count)
+                {
+                  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
+                                                      << " vs " << _tick_count_this_event << " Discarding Data";
+                  error_counter++;
+                  _discard_data = true;
+                  _DiscardedCorruptData = true;
+                  return false;
+                }
+            }
+          _KeptCorruptData = true;
+        }
 
 
       //MF_LOG_INFO("_Process_RCE_AUX")
@@ -747,113 +744,113 @@ bool IcebergTPCRawDecoder::_process_RCE_AUX(
       size_t buffer_size = n_ch * n_ticks;
 
       if (buffer_size > _rce_buffer_size_checklimit)
-	{
-	  if (_rce_check_buffer_size)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "n_ch*nticks too large: " << n_ch << " * " << n_ticks << " = " << 
-		buffer_size << " larger than: " <<  _rce_buffer_size_checklimit << ".  Discarding this fragment";
-	      _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  else
-	    {
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if (_rce_check_buffer_size)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "n_ch*nticks too large: " << n_ch << " * " << n_ticks << " = " << 
+                buffer_size << " larger than: " <<  _rce_buffer_size_checklimit << ".  Discarding this fragment";
+              _DiscardedCorruptData = true;
+              return false;
+            }
+          else
+            {
+              _KeptCorruptData = true;
+            }
+        }
 
       if (_buffer.capacity() < buffer_size)
-	{
-	  //  MF_LOG_INFO("_process_RCE_AUX")
-	  //<< "Increase buffer size from " << _buffer.capacity()
-	  //<< " to " << buffer_size;
+        {
+          //  MF_LOG_INFO("_process_RCE_AUX")
+          //<< "Increase buffer size from " << _buffer.capacity()
+          //<< " to " << buffer_size;
 
-	  _buffer.reserve(buffer_size);
-	}
+          _buffer.reserve(buffer_size);
+        }
 
       int16_t* adcs = _buffer.data();
       bool sgmcdretcode = rce_stream->getMultiChannelData(adcs);
       if (!sgmcdretcode)
-	{
-	  if (_enforce_error_free)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
-					       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
-	      error_counter++;
+        {
+          if (_enforce_error_free)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
+                                                  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
+              error_counter++;
               _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false;
+            }
+          _KeptCorruptData = true;
+        }
 
       //std::cout << "RCE raw decoder trj -- adjusted slot and fibers after run 1332: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
       
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
-	{
-	  // hardcode crate number 1 so we don't get warning messages
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
+        {
+          // hardcode crate number 1 so we don't get warning messages
+          unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
 
-	  v_adc.clear();
+          v_adc.clear();
 
-	      for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
-		{
-		  v_adc.push_back(adcs[i_tick]);
-		}
-	  adcs += n_ticks;
+          for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+            {
+              v_adc.push_back(adcs[i_tick]);
+            }
+          adcs += n_ticks;
 
-	  ch_counter++;
+          ch_counter++;
 
-	  if (offlineChannel < _duplicate_channel_checklist_size)
-	    {
-	      if (_duplicate_channel_checklist[offlineChannel])
-		{
-		  if(_make_histograms)
-		    {
-		      duplicate_channels++;
-		    }
+          if (offlineChannel < _duplicate_channel_checklist_size)
+            {
+              if (_duplicate_channel_checklist[offlineChannel])
+                {
+                  if(_make_histograms)
+                    {
+                      duplicate_channels++;
+                    }
 
-		  if (_enforce_no_duplicate_channels)
-		    {
-		      MF_LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
-						       << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
-		      error_counter++;
-		      _discard_data = true;
-		      _DiscardedCorruptData = true;
-		      return false;
-		    }
-		  _KeptCorruptData = true;
-		}
-	      _duplicate_channel_checklist[offlineChannel] = true;
-	    }
-	  
-	  float median=0;
-	  float sigma=0;
-	  computeMedianSigma(v_adc,median,sigma);
+                  if (_enforce_no_duplicate_channels)
+                    {
+                      MF_LOG_WARNING("_process_RCE_AUX:") << "Duplicate Channel: " << offlineChannel
+                                                          << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << i_ch << " Discarding Data";
+                      error_counter++;
+                      _discard_data = true;
+                      _DiscardedCorruptData = true;
+                      return false;
+                    }
+                  _KeptCorruptData = true;
+                }
+              _duplicate_channel_checklist[offlineChannel] = true;
+            }
+          
+          float median=0;
+          float sigma=0;
+          computeMedianSigma(v_adc,median,sigma);
 
-	  /// FEMB 302 IS crate 3, slot 3, fiber 2
+          /// FEMB 302 IS crate 3, slot 3, fiber 2
 
-	  auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
+          auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
 
-	  raw::Compress_t cflag=raw::kNone;
-	  if (_compress_Huffman)
-	    {
-	      cflag = raw::kHuffman;
-	      raw::Compress(v_adc,cflag);
-	    }
-	  // here n_ticks is the uncompressed size as required by the constructor
-	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
-	  raw_digit.SetPedestal(median,sigma);
-	  raw_digits.push_back(raw_digit);  
+          raw::Compress_t cflag=raw::kNone;
+          if (_compress_Huffman)
+            {
+              cflag = raw::kHuffman;
+              raw::Compress(v_adc,cflag);
+            }
+          // here n_ticks is the uncompressed size as required by the constructor
+          raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
+          raw_digit.SetPedestal(median,sigma);
+          raw_digits.push_back(raw_digit);  
 
-	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
-	  timestamps.push_back(rdtimestamp);
+          raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
+          timestamps.push_back(rdtimestamp);
 
-	  //associate the raw digit and the timestamp data products
-	  auto const rawdigitptr = rdpm(raw_digits.size()-1);
-	  auto const rdtimestampptr = tspm(timestamps.size()-1);
-	  tsassocs.addSingle(rawdigitptr,rdtimestampptr);            
-	}
+          //associate the raw digit and the timestamp data products
+          auto const rawdigitptr = rdpm(raw_digits.size()-1);
+          auto const rdtimestampptr = tspm(timestamps.size()-1);
+          tsassocs.addSingle(rawdigitptr,rdtimestampptr);            
+        }
     }
 
   return true;
@@ -874,51 +871,53 @@ bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits,
   bool have_data = false;
   bool have_data_nc = false;
 
+  uint32_t runNumber = evt.run();
+
   if(cont_frags.isValid())
     {
       have_data = true;
 
       //size of felix fragments into histogram
       if(_make_histograms)
-	{
-	  size_t felixbytes = 0;
-	  for (auto const& cont : *cont_frags)
-	    {
-	      felixbytes = felixbytes + (cont.sizeBytes());
-	    }
-	  fFragSizeFELIX->Fill(felixbytes);
-	}
+        {
+          size_t felixbytes = 0;
+          for (auto const& cont : *cont_frags)
+            {
+              felixbytes = felixbytes + (cont.sizeBytes());
+            }
+          fFragSizeFELIX->Fill(felixbytes);
+        }
     
       for (auto const& cont : *cont_frags)
-	{
-	  bool process_flag = true;
-	  if (cont.sizeBytes() < _felix_frag_small_size)
-	    {
-	      if ( _drop_events_with_small_felix_frags )
-		{ 
-		  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
-		  _discard_data = true; 
-	          _DiscardedCorruptData = true;
-		  evt.removeCachedProduct(cont_frags);
-		  return false;
-		}
-	      if ( _drop_small_felix_frags )
-		{ 
-		  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
-		  _DiscardedCorruptData = true;
-		  process_flag = false;
-		}
+        {
+          bool process_flag = true;
+          if (cont.sizeBytes() < _felix_frag_small_size)
+            {
+              if ( _drop_events_with_small_felix_frags )
+                { 
+                  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding Event on request.";
+                  _discard_data = true; 
+                  _DiscardedCorruptData = true;
+                  evt.removeCachedProduct(cont_frags);
+                  return false;
+                }
+              if ( _drop_small_felix_frags )
+                { 
+                  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << cont.sizeBytes() << " Discarding just this fragment on request.";
+                  _DiscardedCorruptData = true;
+                  process_flag = false;
+                }
               _KeptCorruptData = true;
-	    }
-	  if (process_flag)
-	    {
-	      artdaq::ContainerFragment cont_frag(cont);
-	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-		{
-		  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
-		}
-	    }
-	}
+            }
+          if (process_flag)
+            {
+              artdaq::ContainerFragment cont_frag(cont);
+              for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+                {
+                  if (_process_FELIX_AUX(*cont_frag[ii], raw_digits, timestamps, tsassocs, rdpm, tspm, runNumber)) ++n_felix_frags;
+                }
+            }
+        }
       evt.removeCachedProduct(cont_frags);
     }
 
@@ -931,41 +930,41 @@ bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits,
     {
 
       if(_make_histograms)
-	{
-	  size_t felixbytes = 0;
-	  for (auto const& frag: *frags)
-	    {
-	      felixbytes = felixbytes + (frag.sizeBytes());
-	    }
-	  fFragSizeFELIX->Fill(felixbytes);
-	}
+        {
+          size_t felixbytes = 0;
+          for (auto const& frag: *frags)
+            {
+              felixbytes = felixbytes + (frag.sizeBytes());
+            }
+          fFragSizeFELIX->Fill(felixbytes);
+        }
 
       for(auto const& frag: *frags)
-	{
-	  bool process_flag = true;
-	  if (frag.sizeBytes() < _felix_frag_small_size)
-	    {
-	      if ( _drop_events_with_small_felix_frags )
-		{ 
-		  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
-		  _discard_data = true; 
-	          _DiscardedCorruptData = true;
-		  evt.removeCachedProduct(frags);
-		  return false;
-		}
-	      if ( _drop_small_felix_frags )
-		{ 
-		  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
-	          _DiscardedCorruptData = true;
-		  process_flag = false;
-		}
+        {
+          bool process_flag = true;
+          if (frag.sizeBytes() < _felix_frag_small_size)
+            {
+              if ( _drop_events_with_small_felix_frags )
+                { 
+                  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding Event on request.";
+                  _discard_data = true; 
+                  _DiscardedCorruptData = true;
+                  evt.removeCachedProduct(frags);
+                  return false;
+                }
+              if ( _drop_small_felix_frags )
+                { 
+                  MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
+                  _DiscardedCorruptData = true;
+                  process_flag = false;
+                }
               _KeptCorruptData = true;
-	    }
-	  if (process_flag)
-	    {
-	      if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs,rdpm,tspm)) ++n_felix_frags;
-	    }
-	}
+            }
+          if (process_flag)
+            {
+              if (_process_FELIX_AUX(frag, raw_digits,timestamps, tsassocs, rdpm, tspm, runNumber)) ++n_felix_frags;
+            }
+        }
       evt.removeCachedProduct(frags);
     }
 
@@ -980,9 +979,10 @@ bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits,
 }
 
 bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawDigits& raw_digits,
-					   RDTimeStamps &timestamps,
-					   RDTsAssocs &tsassocs,
-					   RDPmkr &rdpm, TSPmkr &tspm)
+                                              RDTimeStamps &timestamps,
+                                              RDTsAssocs &tsassocs,
+                                              RDPmkr &rdpm, TSPmkr &tspm,
+                                              uint32_t runNumber)
 {
 
   //std::cout 
@@ -997,25 +997,25 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       oldState.copyfmt(std::cout);
 
       std::cout << "FELIX Fragment: all numbers in hex "  << std::hex
-		<< "   SequenceID = " << frag.sequenceID()
-		<< "   fragmentID = " << frag.fragmentID()
-		<< "   fragmentType = " << (unsigned)frag.type()
-		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+                << "   SequenceID = " << frag.sequenceID()
+                << "   fragmentID = " << frag.fragmentID()
+                << "   fragmentType = " << (unsigned)frag.type()
+                << "   Timestamp =  " << frag.timestamp() << std::endl;
       std::cout << "Offset      Data";
       artdaq::Fragment fragloc(frag);
       unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
       size_t dsize = fragloc.dataSizeBytes();
       size_t offcounter=0;
       for (size_t bcounter=0; bcounter<dsize;++bcounter)
-	{
-	  if ( (offcounter % 8) == 0 )
-	    {
-	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
-	    }
-	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
-	  dbegin++;
-	  offcounter++;
-	}
+        {
+          if ( (offcounter % 8) == 0 )
+            {
+              std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
+            }
+          std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+          dbegin++;
+          offcounter++;
+        }
       std::cout << std::endl;
       std::cout.copyfmt(oldState);
     }
@@ -1042,21 +1042,21 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
   if (crate == 0 || crate > 6 || slot > 4) 
     {
       if (_felix_drop_frags_with_badcsf)  // we'll check the fiber later
-	{
-	  _DiscardedCorruptData = true;
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
-	  return false;
-	}
+        {
+          _DiscardedCorruptData = true;
+          MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
+          return false;
+        }
       _KeptCorruptData = true;
     }
   if ( _felix_crate_number_to_check > -1 && (int) crate != _felix_crate_number_to_check )
     {
       if (_felix_enforce_exact_crate_number)
-	{
-	  _DiscardedCorruptData = true;
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Crate c=" << (int) crate << " mismatches required crate: " << _felix_crate_number_to_check << " discarding FELIX data.";
-	  return false;  
-	}
+        {
+          _DiscardedCorruptData = true;
+          MF_LOG_WARNING("_process_FELIX_AUX:") << "Crate c=" << (int) crate << " mismatches required crate: " << _felix_crate_number_to_check << " discarding FELIX data.";
+          return false;  
+        }
       _KeptCorruptData = true;
     }
 
@@ -1077,16 +1077,16 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
   if (n_frames*n_channels > _felix_buffer_size_checklimit)
     {
       if (_felix_check_buffer_size)
-	{
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
-	    n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
-	  _DiscardedCorruptData = true;
-	  return false;
-	}
+        {
+          MF_LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
+            n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
+          _DiscardedCorruptData = true;
+          return false;
+        }
       else
-	{
-	  _KeptCorruptData = true;
-	}
+        {
+          _KeptCorruptData = true;
+        }
     }
 
   if(_make_histograms)
@@ -1097,19 +1097,19 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
   for (unsigned int iframe=0; iframe<n_frames; ++iframe)
     {
       if ( felix.wib_errors(iframe) != 0)
-	{
-	  if (_enforce_error_free )
-	    {
-	      _DiscardedCorruptData = true;
-	      MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
-						 << " Discarding Data";
-	      error_counter++;
-	      // drop just this fragment
-	      //_discard_data = true;
-	      return true;
-	    }
-	  _KeptCorruptData = true;
-	}
+        {
+          if (_enforce_error_free )
+            {
+              _DiscardedCorruptData = true;
+              MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
+                                                    << " Discarding Data";
+              error_counter++;
+              // drop just this fragment
+              //_discard_data = true;
+              return true;
+            }
+          _KeptCorruptData = true;
+        }
     }
 
   // check optimization of this -- size not reserved
@@ -1136,104 +1136,136 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     unsigned int fiberloc = 0;
     if (fiber == 1) 
       {
-	fiberloc = 1;
+        fiberloc = 1;
       }
     else if (fiber == 2)
       {
-	fiberloc = 3;
+        fiberloc = 3;
       }
     else
       {
-	MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
-	fiberloc = 1;
-	error_counter++;
-	if (_felix_drop_frags_with_badcsf) 
-	  {
-	    MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
-	    return false;
-	  }
+        MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
+        fiberloc = 1;
+        error_counter++;
+        if (_felix_drop_frags_with_badcsf) 
+          {
+            MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
+            return false;
+          }
       }
 
     unsigned int chloc = ch;
     if (chloc > 127)
       {
-	chloc -= 128;
-	fiberloc++;
+        chloc -= 128;
+        fiberloc++;
       }
     //unsigned int crateloc = crate;  
 
-    // skip the fake TPC data
 
-    if ( slot == 1 && fiberloc == 1 ) 
+    // inverted ordering on back side, Run 2c (=Run 3)
+    // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
+
+    auto slotloc2 = slot;
+    auto fiberloc2 = fiberloc;
+
+    if (runNumber > 2572)
       {
-	continue;
+
+        if (slot == 0 && fiberloc == 4)
+          {
+            slotloc2 = 1;
+            fiberloc2 = 3;
+          }
+        if (slot == 1 && fiberloc == 4)
+          {
+            slotloc2 = 0;
+            fiberloc2 = 3;
+          }
+        if (slot == 1 && fiberloc == 3)
+          {
+            slotloc2 = 0;
+            fiberloc2 = 4;
+          }
+        if (slot == 0 && fiberloc == 3)
+          {
+            slotloc2 = 1;
+            fiberloc2 = 4;
+          }
       }
 
-    if ( slot == 2 && fiberloc == 1 )
+    // skip the fake TPC data
+
+    if ( slotloc2 == 1 && fiberloc2 == 1 ) 
       {
-	continue;
+        continue;
+      }
+
+    if ( slotloc2 == 2 && fiberloc2 == 1 )
+      {
+        continue;
       }
 
     // for iceberg, hardcode the crate number to suppress warnings
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slot, fiberloc, chloc, dune::IcebergChannelMapService::kFELIX); 
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
     if ( v_adc.size() != _full_tick_count)
       {
-	if (_enforce_full_tick_count)
-	  {
-	    MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
-					       << _full_tick_count << " Discarding Data";
-	    error_counter++;
-	    incorrect_ticks++;
-	    _discard_data = true;
-	    _DiscardedCorruptData = true;
-	    return true; 
-	  }
-	_KeptCorruptData = true;
+        if (_enforce_full_tick_count)
+          {
+            MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
+                                                  << _full_tick_count << " Discarding Data";
+            error_counter++;
+            incorrect_ticks++;
+            _discard_data = true;
+            _DiscardedCorruptData = true;
+            return true; 
+          }
+        _KeptCorruptData = true;
       }
 
     if (!_initialized_tick_count_this_event)
       {
-	_initialized_tick_count_this_event = true;
-	_tick_count_this_event = v_adc.size();
+        _initialized_tick_count_this_event = true;
+        _tick_count_this_event = v_adc.size();
       }
     else
       {
-	if (_enforce_same_tick_count)
-	  {
-	    if (v_adc.size() != _tick_count_this_event)
-	      {
-		MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
-						   << " vs " << _tick_count_this_event << " Discarding Data";
-		error_counter++;
-		_discard_data = true;
-		_DiscardedCorruptData = true;
-		return true;
-	      }
-	    _KeptCorruptData = true;
-	  }
+        if (_enforce_same_tick_count)
+          {
+            if (v_adc.size() != _tick_count_this_event)
+              {
+                MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
+                                                      << " vs " << _tick_count_this_event << " Discarding Data";
+                error_counter++;
+                _discard_data = true;
+                _DiscardedCorruptData = true;
+                return true;
+              }
+            _KeptCorruptData = true;
+          }
       }
 
     if (offlineChannel < _duplicate_channel_checklist_size)
       {
-	if (_duplicate_channel_checklist[offlineChannel])
-	  {
-	    if(_make_histograms)
-	      {
-		duplicate_channels++;
-	      }
-	    if (_enforce_no_duplicate_channels)
-	      {
-		MF_LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
-						   << " c:s:f:ich: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) ch << " Discarding Data";
-		error_counter++;
-		_discard_data = true;
-		_DiscardedCorruptData = true;
-		return true;
-	      }
-	    _KeptCorruptData = true;	    
-	  }
-	_duplicate_channel_checklist[offlineChannel] = true;
+        if (_duplicate_channel_checklist[offlineChannel])
+          {
+            if(_make_histograms)
+              {
+                duplicate_channels++;
+              }
+            if (_enforce_no_duplicate_channels)
+              {
+                MF_LOG_WARNING("_process_FELIX_AUX:") << "Duplicate Channel: " << offlineChannel
+                                                      << " c:s:f:ich: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) ch << " Discarding Data";
+                error_counter++;
+                _discard_data = true;
+                _DiscardedCorruptData = true;
+                return true;
+              }
+            _KeptCorruptData = true;        
+          }
+        _duplicate_channel_checklist[offlineChannel] = true;
       }
 
     float median=0;
@@ -1244,8 +1276,8 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     raw::Compress_t cflag=raw::kNone;
     if (_compress_Huffman)
       {
-	cflag = raw::kHuffman;
-	raw::Compress(v_adc,cflag);
+        cflag = raw::kHuffman;
+        raw::Compress(v_adc,cflag);
       }
     // here n_ticks is the uncompressed size as required by the constructor
     raw::RawDigit raw_digit(offlineChannel, n_ticks, v_adc, cflag);
