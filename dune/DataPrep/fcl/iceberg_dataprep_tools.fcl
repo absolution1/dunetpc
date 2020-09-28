@@ -140,6 +140,26 @@ tools.ib3TailSignalFinderKe.Threshold: 0.4
 tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
 tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
 
+# Tail removal 2020.
+tools.ib4TailPedRemovalZKe: {
+  tool_type: ExpTailPedRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: ib3TailSignalFinderKe
+  MaxTick: 2000
+  PedDegree: 1     # 1 ==> linear variation in pedestal
+  PedTick0: 1000
+  PedFreqs: []
+  IncludeChannelRanges: ["apaz"]
+  ExcludeChannelRanges: []
+}
+
+tools.ib4TailPedRemovalIKe: @local::tools.ib4TailPedRemovalZKe
+tools.ib4TailPedRemovalIKe.DecayTime: 6000
+tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
+
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
 tools.ibNoiseRemovalAdc: {
@@ -207,6 +227,25 @@ tools.ibcht_Iplanes: @local::ibcht_template
 tools.ibcht_Iplanes.ChannelRanges: [apau, apav]
 tools.ibcht_Iplanes.ChannelLineModulus: 40
 tools.ibcht_Iplanes.ChannelLinePattern: [0]
+
+################################################################################
+# Ke-scale channel-tick plots for Iceberg.
+################################################################################
+
+ibchtke_template: @local::pdcht_template
+ibchtke_template.HistTitle: "Prepared TPC for Iceberg %CRLABEL%"
+
+# One plot for both collection planes.
+tools.ibchtke_Zplanes: @local::ibchtke_template
+tools.ibchtke_Zplanes.ChannelRanges: [apaz]
+tools.ibchtke_Zplanes.PlotSizeY: 900
+
+# One plot for each induction plane.
+tools.ibchtke_Iplanes: @local::ibchtke_template
+tools.ibchtke_Iplanes.ChannelRanges: [apau, apav]
+tools.ibchtke_Iplanes.ChannelLineModulus: 40
+tools.ibchtke_Iplanes.ChannelLinePattern: [0]
+
 
 ################################################################################
 # Display tools.

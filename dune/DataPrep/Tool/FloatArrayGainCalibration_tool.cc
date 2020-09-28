@@ -27,11 +27,11 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
   const string myname = "FloatArrayGainCalibration::ctor: ";
   DuneToolManager* pdtm = DuneToolManager::instance();
   if ( pdtm == nullptr ) {
-    cout << myname << "Unable to retrieve tool manager." << endl;
+    cout << myname << "ERROR: Unable to retrieve tool manager." << endl;
   } else {
     m_pgains = pdtm->getShared<FloatArrayTool>(m_GainTool);
     if ( ! m_pgains ) {
-      cout << myname << "Unable to retrieve gains tool " << m_GainTool << endl;
+      cout << myname << "ERROR: Unable to retrieve gains tool " << m_GainTool << endl;
     }
   }
   if ( m_LogLevel >= 1 ) {
