@@ -458,12 +458,13 @@ namespace tpc_monitor{
     fNoiseLevelMinNCountsV = p.get<int>("NoiseLevelMinNCountsV");
     fNoiseLevelMinNCountsZ = p.get<int>("NoiseLevelMinNCountsZ");
     fNoiseLevelNSigma     = p.get<double>("NoiseLevelNSigma");
-    auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-    fNticks         = fDetProp->NumberTimeSamples();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob(clockData);
+    fNticks         = detProp.NumberTimeSamples();
     
     std::cout<< "Number of Ticks = "<< fNticks <<std::endl; 
     //get sampling rate
-    fSampleRate = fDetProp->SamplingRate();
+    fSampleRate = sampling_rate(clockData);
     std::cout<<"Sampling rate  = "<<fSampleRate<<std::endl;
     // width of frequencyBin in kHz
     fBinWidth = 1.0/(fNticks*fSampleRate*1.0e-6);
@@ -877,4 +878,3 @@ DEFINE_ART_MODULE(tpc_monitor::IcebergTpcMonitor)
 
 
 #endif // IcebergTpcMonitore_module
-

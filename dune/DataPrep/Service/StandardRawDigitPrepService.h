@@ -64,7 +64,8 @@ public:
 
   StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int prepare(AdcChannelDataMap& prepdigs,
+  int prepare(detinfo::DetectorClocksData const& clockData,
+              AdcChannelDataMap& prepdigs,
               std::vector<recob::Wire>* pwires,
               WiredAdcChannelDataMap* pintStates) const override;
 

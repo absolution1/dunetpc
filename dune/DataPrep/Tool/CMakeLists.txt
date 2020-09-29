@@ -68,6 +68,12 @@ simple_plugin(AdcSampleScaler   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(AdcRangeSampleScaler   "tool"
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(AdcTimingMitigator  "tool"
                 dune_ArtSupport
                 dune_DuneCommon
@@ -165,6 +171,22 @@ simple_plugin(UndershootCorr   "tool"
              )
 
 simple_plugin(ExpTailRemover   "tool"
+                dune_DuneCommon
+                dune_ArtSupport
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                ${ART_FRAMEWORK_CORE}
+                ${ART_FRAMEWORK_PRINCIPAL}
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                art_Utilities canvas
+                ${CETLIB_LIBS}
+                ${MF_MESSAGELOGGER}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(ExpTailPedRemover   "tool"
                 dune_DuneCommon
                 dune_ArtSupport
                 dune-raw-data_Services_ChannelMap_PdspChannelMapService_service

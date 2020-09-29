@@ -1,6 +1,7 @@
 simple_plugin(IcebergTpcMonitor "module"
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
+              lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
               dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service

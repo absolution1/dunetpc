@@ -38,6 +38,7 @@
 #include "dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterfaceParent.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/Wire.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -695,6 +696,7 @@ void DataPrepModule::produce(art::Event& evt) {
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for ( AdcChannelDataMap& datamap : datamaps ) {
 
     Index nacd = datamap.size();
@@ -709,7 +711,7 @@ void DataPrepModule::produce(art::Event& evt) {
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Preparing " << nacd << " channel" << (nacd == 1 ? "" : "s") << "." << endl;
     }
-    int rstat = m_pRawDigitPrepService->prepare(datamap, pwires.get(), pintStates);
+    int rstat = m_pRawDigitPrepService->prepare(clockData, datamap, pwires.get(), pintStates);
     if ( rstat != 0 ) mf::LogWarning("DataPrepModule") << "Data preparation service returned error " << rstat;
 
     // Build associations between wires and digits.

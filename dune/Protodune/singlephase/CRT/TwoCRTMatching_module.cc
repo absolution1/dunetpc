@@ -42,7 +42,6 @@
 
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -388,7 +387,6 @@ void CRT::TwoCRTMatching::analyze(art::Event
 
 
 	//Detector properties service
-	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
   primaryHits_F.clear();
   primaryHits_B.clear();
   allTracksPair.clear();
@@ -581,6 +579,7 @@ art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
 
 
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event);
 
     art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, event, "pandoracalo");
   int tempId = 0;
@@ -691,11 +690,11 @@ art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
 
-		if (!fMCCSwitch) ticksOffset = (t0+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                if (!fMCCSwitch) ticksOffset = (t0+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (t0/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (t0/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
@@ -807,9 +806,9 @@ if(geom->PositionToTPCID(geo::Point_t(trackEndPositionX, trackEndPositionY, trac
 		double ticksOffset=0;
 
 
-		ticksOffset=t0/500.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                ticksOffset=t0/500.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
          trackEndPositionX_noSCE=trackEndPositionX_notCorrected-xOffset;

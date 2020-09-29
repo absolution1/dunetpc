@@ -93,7 +93,8 @@ public:
 
   void setRootObjects();
 
-  recob::OpHit ConstructOpHit(trig_variables &trig, unsigned int channel);
+  recob::OpHit ConstructOpHit(detinfo::DetectorClocksData const& clockData,
+                              trig_variables &trig, unsigned int channel);
 
 private:
 
@@ -456,6 +457,7 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
   
   /// Process all packets:
   
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for(auto const& frag: fragments){
     if((unsigned)frag.type() != 3) continue;
  
@@ -482,13 +484,11 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       struct trig_variables trig;
       readHeader(daqHeader, &trig);
       
-      auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
-      
       /// time
-      ////long double time = trig.timestamp_nova*ts->OpticalClock().TickPeriod(); //in experiment microseconds
-      // DO NOT USE ts->OpticalClock().TickPeriod()!!!! It is not precise enough
+      ////long double time = trig.timestamp_nova*clockData.OpticalClock().TickPeriod(); //in experiment microseconds
+      // DO NOT USE clockData.OpticalClock().TickPeriod()!!!! It is not precise enough
       // use OpticalClock().Frequency, and do the division yourself with high precission.
-      double time = double(trig.timestamp_nova % 1000000000 ) / double(ts->OpticalClock().Frequency());
+      double time = double(trig.timestamp_nova % 1000000000 ) / double(clockData.OpticalClock().Frequency());
       //true time truncated by 10 digits in order to make sure the math works correctly
       //std::cout << time << std::endl;
       unsigned int channel = ((trunc(frag.fragmentID()/10) -1 )*4 + frag.fragmentID()%10 -1 )*number_of_packets + trig.channel_id;
@@ -632,16 +632,16 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
       // Split into internal and external triggers if that has been set.
       if (!fSplitTriggers) {
         waveforms.emplace_back( Waveform );
-        hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+        hits.emplace_back( ConstructOpHit(clockData, trig, mappedchannel) );
       }
       else{
         if (trig.type == 48 ) {
           ext_waveforms.emplace_back( Waveform );
-          ext_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+          ext_hits.emplace_back( ConstructOpHit(clockData, trig, mappedchannel) );
         }
         else if (trig.type == 16) {
           int_waveforms.emplace_back( Waveform );
-          int_hits.emplace_back( ConstructOpHit(trig, mappedchannel) );
+          int_hits.emplace_back( ConstructOpHit(clockData, trig, mappedchannel) );
         }
         else {
           std::cerr << "Unknown trigger type " << trig.type << ", cannot assign to appropriate data product with SplitTriggers enabled." << std::endl;
@@ -673,16 +673,16 @@ void dune::SSPRawDecoder::produce(art::Event & evt){
 
 
 
-recob::OpHit dune::SSPRawDecoder::ConstructOpHit(trig_variables &trig, unsigned int channel)
+recob::OpHit dune::SSPRawDecoder::ConstructOpHit(detinfo::DetectorClocksData const& clockData,
+                                                 trig_variables &trig, unsigned int channel)
 {
   // Get basic information from the header
   unsigned short     OpChannel   = channel;         ///< Derived Optical channel
   unsigned long      FirstSample = trig.timestamp_nova;
   double             TimeStamp   = ((double)FirstSample); ///< first sample experiment time in microseconds
 
-  auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
-  double peakTime = ((double) trig.peaktime) * ts->OpticalClock().TickPeriod(); // microseconds
-  double width = ((double)i1) * ts->OpticalClock().TickPeriod(); // microseconds
+  double peakTime = ((double) trig.peaktime) * clockData.OpticalClock().TickPeriod(); // microseconds
+  double width = ((double)i1) * clockData.OpticalClock().TickPeriod(); // microseconds
   double pedestal = ( (double) trig.baselinesum ) / ( (double) i1 );
   double area =     ( (double) trig.intsum      ) - pedestal * ( (double) i2 );
   double peak =     ( (double) trig.peaksum     ) / ( (double) m1 ) - pedestal;

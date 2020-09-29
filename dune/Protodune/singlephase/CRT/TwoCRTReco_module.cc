@@ -139,6 +139,7 @@ int moduletoCTB(int module2, int module1);
     double measuredT0;
     double CRT_TOF;
     long long timeStamp;
+    int eventNum;
   typedef struct // Structures for arrays to move hits from raw to reco to validation
   {
 
@@ -293,6 +294,7 @@ void CRT::TwoCRTReco::analyze(art::Event
 {
 
     nEvents++;	
+    eventNum=event.event();
     run=event.run();
     subRun=event.subRun();
   if (fMCCSwitch){
@@ -592,7 +594,7 @@ void CRT::TwoCRTReco::beginJob() {
 
 	fCRTTree->Branch("nEvents", &nEvents, "fnEvents/I");
 	fCRTTree->Branch("hRun", &run, "run/I");
-
+        fCRTTree->Branch("hEvent",&eventNum,"eventNum/I");
 
 
 	fCRTTree->Branch("hX_F", &X_F, "X_F/D");

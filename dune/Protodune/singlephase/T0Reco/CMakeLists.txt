@@ -1,6 +1,7 @@
 
 art_make( BASENAME_ONLY
           MODULE_LIBRARIES lardataobj_RecoBase
+                           lardataalg_DetectorInfo
                            lardataobj_AnalysisBase
                            larcorealg_Geometry
                            larcore_Geometry_Geometry_service

@@ -103,7 +103,8 @@ int ToolBasedRawDigitPrepService::endEvent(const DuneEventInfo& devt) const {
 //**********************************************************************
 
 int ToolBasedRawDigitPrepService::
-prepare(AdcChannelDataMap& datamap,
+prepare(detinfo::DetectorClocksData const& clockData,
+        AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "ToolBasedRawDigitPrepService:prepare: ";
   // Loop over tools.
@@ -166,4 +167,3 @@ print(std::ostream& out, std::string prefix) const {
 DEFINE_ART_SERVICE_INTERFACE_IMPL(ToolBasedRawDigitPrepService, RawDigitPrepService)
 
 //**********************************************************************
-

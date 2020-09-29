@@ -24,7 +24,7 @@
 #include "lardataobj/RawData/BeamInfo.h"
 #include "lardataobj/RecoBase/PFParticle.h"
 #include "lardata/Utilities/AssociationUtil.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcoreobj/SummaryData/POTSummary.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -296,6 +296,9 @@ namespace dune{
     true_stopping_muons=0;
     mc_stopping20=0;
     mc_stopping50=0;
+
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+
     size_t NTracks = tracklist.size();
     for(size_t i=0; i<NTracks;++i){
        art::Ptr<recob::Track> ptrack(trackListHandle, i);
@@ -359,7 +362,7 @@ namespace dune{
       // if(min<250) continue;
       for(size_t h=0; h<allHits.size();h++){
 	art::Ptr<recob::Hit> hit=allHits[h];
-	std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToTrackIDEs(hit);
+        std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToTrackIDEs(clockData, hit);
 	for(size_t e=0;e<eveIDs.size(); ++e){
 	  trkide[eveIDs[e].trackID] += eveIDs[e].energy;
 	}

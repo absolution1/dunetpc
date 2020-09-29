@@ -74,7 +74,7 @@ ib3_dataprep_tools_wirecell: [
 # No calibration, no noise removal.
 ib4_dataprep_tools_nocal_tail: [
   "digitReader",
-  "pd_adcPedestalFit",
+  "ib_adcPedestalFit",
   "adcSampleFiller",
   "ib_adcMitigate"
   #"adcCorrectUndershootAdc"     # correct undershoot
@@ -83,7 +83,7 @@ ib4_dataprep_tools_nocal_tail: [
 # Charge calibration; no mitigation or tail or noise removal.
 ib4_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
-  "pd_adcPedestalFit",          # Find pedestal
+  "ib4_adcPedestalFit",         # Find pedestal
   "ib4SampleCalibration"        # Subtract pedestal and apply charge calibration
 ]
 
@@ -91,6 +91,13 @@ ib4_dataprep_tools_calib_only: [
 ib4_dataprep_tools_calib_tail: [
   @sequence::ib4_dataprep_tools_calib_only
   , "ib3TailRemovalKe"      # correct undershoot
+]
+
+# Charge calibration, mitigation, tail+ped removal, no noise removal.
+ib4_dataprep_tools_calib_tailped: [
+  @sequence::ib4_dataprep_tools_calib_only
+  , "ib4TailPedRemovalZKe"   # Remove collection tail and linear pedestal
+  , "ib4TailPedRemovalIKe"   # Remove induction tail and linear pedestal
 ]
 
 # Charge calibration, noise removal.

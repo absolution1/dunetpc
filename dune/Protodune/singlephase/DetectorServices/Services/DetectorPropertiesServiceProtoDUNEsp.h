@@ -28,24 +28,6 @@
 namespace spdp{
   
   /**
-   * @brief "Standard" implementation of DetectorProperties service
-   * 
-   * This class wraps DetectorPropertiesStandard provider into a art service.
-   * It delivers the provider via the standard interface:
-   *     
-   *     detinfo::DetectorProperties const* detprop
-   *       = art::ServiceHandle<detinfo::DetectorPropertiesStandard>()
-   *       ->provider();
-   *     
-   * or, using the standard interface in "CoreUtils/ServiceUtil.h":
-   *     
-   *     auto const* detprop
-   *       = lar::providerFrom<detinfo::DetectorPropertiesStandard>();
-   *     
-   * In addition to the functionality of the provider, this service allows
-   * to read the configuration from the input file, inherited from a previous
-   * run.
-   * 
    * Configuration parameters
    * -------------------------
    * 
@@ -55,7 +37,6 @@ namespace spdp{
    *   configuration database in the ROOT input file is queried and if a
    *   configuration for this service is found, it's used instead of the
    *   one from the current FHiCL configuration
-   * 
    */
   
   class DetectorPropertiesServiceProtoDUNEsp : public detinfo::DetectorPropertiesService {
@@ -89,8 +70,6 @@ namespace spdp{
       void   preOpenFile(const std::string& filename);
       void preBeginRun(const art::Run& run);
       
-      virtual const provider_type* provider() const override { return fProp.get();}
-      
     private:
       std::unique_ptr<spdp::DetectorPropertiesProtoDUNEsp> fProp;
       fhicl::ParameterSet   fPS;       ///< Original parameter set.
@@ -99,6 +78,18 @@ namespace spdp{
       
       bool isDetectorPropertiesServiceProtoDUNEsp(const fhicl::ParameterSet& ps) const;
       
+      detinfo::DetectorPropertiesData
+      getDataForJob(detinfo::DetectorClocksData const& clockData) const override
+      {
+        return fProp->DataFor(clockData);
+      }
+
+      detinfo::DetectorPropertiesData
+      getDataFor(art::Event const&, detinfo::DetectorClocksData const& clockData) const override
+      {
+        return fProp->DataFor(clockData);
+      }
+
     }; // class DetectorPropertiesService
 } //namespace detinfo
 DECLARE_ART_SERVICE_INTERFACE_IMPL(spdp::DetectorPropertiesServiceProtoDUNEsp, detinfo::DetectorPropertiesService, LEGACY)

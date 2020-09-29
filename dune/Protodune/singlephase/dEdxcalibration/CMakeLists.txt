@@ -32,6 +32,7 @@ art_make(
   larsim_MCCheater_BackTrackerService_service
   larsim_MCCheater_ParticleInventoryService_service
   larevt_Filters
+  lardataalg_DetectorInfo
   lardata_RecoObjects
   lardataobj_RecoBase
   lardataobj_MCBase

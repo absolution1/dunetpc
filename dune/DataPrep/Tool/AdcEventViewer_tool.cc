@@ -434,6 +434,7 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcEventViewer::view: ";
   DataMap res;
   if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel
+                              << " (FEMB " << acd.fembID << ")"
                               << " in run " << acd.run << " event " << acd.event << endl;
   if ( acd.event != state().event() || acd.run != state().run() ) {
     if ( state().beginEventCount ) {

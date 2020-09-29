@@ -132,8 +132,10 @@ tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
   SkipFlags: []
+  AdcFitRange: 100
   FitRmsMin:  1.0
   FitRmsMax: 20.0
+  RemoveStickyCode: false
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""

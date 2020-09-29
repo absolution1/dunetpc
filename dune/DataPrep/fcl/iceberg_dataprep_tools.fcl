@@ -42,6 +42,12 @@ tools.channelGroupsIceberg: {
 tools.channelRanges: @local::tools.channelRangesIceberg
 tools.channelGroups: @local::tools.channelGroupsIceberg
 
+tools.ib_onlineChannelMapByFemb: {
+  tool_type: IcebergOnlineChannel
+   LogLevel: 1
+   Ordering: "FEMB"
+}
+
 ################################################################################
 # Reco.
 ################################################################################
@@ -50,8 +56,29 @@ tools.channelGroups: @local::tools.channelGroupsIceberg
 tools.adcScaleKeToAdc.ScaleFactor: 41.442 # 24.13 e/ADC/ticks
 
 # Fit ADC distribution to get pedestal.
-tools.ib_adcPedestalFit: @local::tools.pd_adcPedestalFit
-tools.ib_adcPedestalFit.FitRmsMin:  1.0
+tools.ib3_adcPedestalFit: @local::tools.pd_adcPedestalFit
+tools.ib3_adcPedestalFit.FitRmsMin:  1.0
+
+# Pedestal fitter for Iceberg 4 (COTS ADC, no sticky codes)
+tools.ib4_adcPedestalFit: {
+  tool_type: AdcPedestalFitter
+  LogLevel: 1
+  SkipFlags: [8, 9, 10, 11, 12]
+  AdcFitRange: 100
+  FitRmsMin:  0.5
+  FitRmsMax: 10.0
+  RemoveStickyCode: false
+  HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
+  HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
+  PlotFileName: ""
+  RootFileName: ""
+  HistManager: ""
+  PlotSizeX: 0
+  PlotSizeY: 0
+  PlotSplitX: 0
+  PlotSplitY: 0
+  PlotShowFit: 1
+}
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {
@@ -112,6 +139,26 @@ tools.ib3TailSignalFinderKe.Threshold: 0.4
 
 tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
 tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
+
+# Tail removal 2020.
+tools.ib4TailPedRemovalZKe: {
+  tool_type: ExpTailPedRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: ib3TailSignalFinderKe
+  MaxTick: 2000
+  PedDegree: 1     # 1 ==> linear variation in pedestal
+  PedTick0: 1000
+  PedFreqs: []
+  IncludeChannelRanges: ["apaz"]
+  ExcludeChannelRanges: []
+}
+
+tools.ib4TailPedRemovalIKe: @local::tools.ib4TailPedRemovalZKe
+tools.ib4TailPedRemovalIKe.DecayTime: 6000
+tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
@@ -180,6 +227,40 @@ tools.ibcht_Iplanes: @local::ibcht_template
 tools.ibcht_Iplanes.ChannelRanges: [apau, apav]
 tools.ibcht_Iplanes.ChannelLineModulus: 40
 tools.ibcht_Iplanes.ChannelLinePattern: [0]
+
+################################################################################
+# Ke-scale channel-tick plots for Iceberg.
+################################################################################
+
+ibchtke_template: @local::pdcht_template
+ibchtke_template.HistTitle: "Prepared TPC for Iceberg %CRLABEL%"
+
+# One plot for both collection planes.
+tools.ibchtke_Zplanes: @local::ibchtke_template
+tools.ibchtke_Zplanes.ChannelRanges: [apaz]
+tools.ibchtke_Zplanes.PlotSizeY: 900
+
+# One plot for each induction plane.
+tools.ibchtke_Iplanes: @local::ibchtke_template
+tools.ibchtke_Iplanes.ChannelRanges: [apau, apav]
+tools.ibchtke_Iplanes.ChannelLineModulus: 40
+tools.ibchtke_Iplanes.ChannelLinePattern: [0]
+
+
+################################################################################
+# Display tools.
+################################################################################
+
+tools.ibNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:11:0:11"]
+  EventGraphs: ["event:events:1:nfemb:0:11"]
+  ChannelRanges: []
+  ChannelRangeLabel: "%CRLABEL%"
+  ClockUnit: @local::data.pd_ClockUnit
+  ClockRate: @local::data.pd_TriggerClockRate
+}
 
 ################################################################################
 # ADC channel metric plotters for Iceberg.

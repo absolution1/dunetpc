@@ -3,6 +3,7 @@
 #include "VintageDeconvoluter.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
 
@@ -58,7 +59,8 @@ DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
   // Deconvolute.
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   if ( m_LogLevel >= 3 ) cout << myname << "  Deconvoluting." << endl;
-  hsss->Deconvolute(chan, samples);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  hsss->Deconvolute(clockData, chan, samples);
   if ( pad ) samples.resize(nsam);
   if ( m_LogLevel >= 3 ) cout << myname << "  Normalizing." << endl;
   float dnorm = hsss->GetDeconNorm();

@@ -13,6 +13,11 @@
 
 #include <vector>
 
+namespace detinfo {
+  class DetectorClocksData;
+  class DetectorPropertiesData;
+}
+
 namespace util {
 class SignalShaping;
 }
@@ -36,16 +41,16 @@ public:
   virtual unsigned int GetSignalSize() const =0;   // The number of ticks for convolution.
 
   // Accessors.
-  virtual int FieldResponseTOffset(Channel channel) const =0;
+  virtual int FieldResponseTOffset(detinfo::DetectorClocksData const& clockData, Channel channel) const =0;
   virtual const util::SignalShaping& SignalShaping(Channel channel) const =0;
 
   // Do convolution calcution (for simulation).
-  virtual void Convolute(Channel channel,  FloatVector& sigs) const =0;
-  virtual void Convolute(Channel channel, DoubleVector& sigs) const =0;
+  virtual void Convolute(detinfo::DetectorClocksData const& clockData, Channel channel,  FloatVector& sigs) const =0;
+  virtual void Convolute(detinfo::DetectorClocksData const& clockData, Channel channel, DoubleVector& sigs) const =0;
 
   // Do deconvolution calcution (for reconstruction).
-  virtual void Deconvolute(Channel channel,  FloatVector& sigs) const =0;
-  virtual void Deconvolute(Channel channel, DoubleVector& sigs) const =0;
+  virtual void Deconvolute(detinfo::DetectorClocksData const& clockData, Channel channel,  FloatVector& sigs) const =0;
+  virtual void Deconvolute(detinfo::DetectorClocksData const& clockData, Channel channel, DoubleVector& sigs) const =0;
     
 };
 

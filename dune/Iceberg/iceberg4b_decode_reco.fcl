@@ -1,0 +1,11 @@
+# iceberg4b_decode_reco.fcl
+#
+# David Adams
+# August 2020
+#
+# Default reco for Iceberg 4b.
+
+#include "iceberg4a_decode_reco.fcl"
+
+# Use the Iceberg 4b calibration.
+tools.areaGain_ib4: @local::tools.areaGain_ib4b_v10

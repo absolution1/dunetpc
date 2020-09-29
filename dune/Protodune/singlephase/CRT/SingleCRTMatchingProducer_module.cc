@@ -47,7 +47,6 @@
 
 
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "dune/Protodune/singlephase/CTB/data/pdspctb.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
@@ -267,9 +266,6 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   art::ServiceHandle < cheat::BackTrackerService > backTracker;
   art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
 
-	auto const* detectorPropertiesService = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
-
   primaryHits_F.clear();
   primaryHits_B.clear();
   tracksPair_F.clear();
@@ -281,7 +277,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   logFile.open("ProtoDUNE.log"); // Logfile I don't use right now
 
   //Get triggers
-  cout << "Getting triggers" << endl;
+  //cout << "Getting triggers" << endl;
   const auto & triggers = event.getValidHandle < std::vector < CRT::Trigger >> (fCRTLabel);
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
@@ -338,8 +334,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
     trigID++;
   }
 
-  cout << "Hits compiled for event: " << nEvents << endl;
-  cout << "Number of Hits above Threshold:  " << hitID << endl;
+  //cout << "Hits compiled for event: " << nEvents << endl;
+  //cout << "Number of Hits above Threshold:  " << hitID << endl;
 
   for (unsigned int f = 0; f < tempHits_F.size(); f++) {
     for (unsigned int f_test = 0; f_test < tempHits_F.size(); f_test++) {
@@ -458,6 +454,9 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
   int nTracksReco = trackList.size();
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
   int tempId = 0;
+
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event);
+
   for (int iRecoTrack = 0; iRecoTrack < nTracksReco; ++iRecoTrack) {
     if (primaryHits_F.size()+primaryHits_B.size()<1) break;
    std::vector< art::Ptr<recob::Hit> > allHits =  hitsFromTrack.at(iRecoTrack);
@@ -524,12 +523,12 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
 		//cout<<(primaryHits_F[iHit_F].timeAvg+RDOffset)<<endl;
-		//cout<<detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
-		if (!fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                //cout<<detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat)<<endl;
+                if (!fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (primaryHits_F[iHit_F].timeAvg/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
@@ -680,11 +679,11 @@ double xOffset=0;
 		int RDOffset=0;
 		if (!fMCCSwitch) RDOffset=111;
 		double ticksOffset=0;
-		if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                if (!fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg+RDOffset)/25.f+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 
-		else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detectorPropertiesService->GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+                else if (fMCCSwitch) ticksOffset = (primaryHits_B[iHit_B].timeAvg/500.f)+detProp.GetXTicksOffset(allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		
-	       xOffset=detectorPropertiesService->ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
+               xOffset=detProp.ConvertTicksToX(ticksOffset,allHits[firstHit]->WireID().Plane, allHits[firstHit]->WireID().TPC, allHits[firstHit]->WireID().Cryostat);
 		//double xOffset=.08*ticksOffset
 		
 	 trackStartPositionX_noSCE=trackStartPositionX_notCorrected-xOffset;
@@ -859,8 +858,8 @@ double xOffset=0;
 
        	flashTime=-1*opCRTTDiff-CRTT0;
         if ( fabs(trackX1)<400 &&  fabs(trackX2)<400 && fabs(deltaX)<60 &&  fabs(deltaY)<60 && dotCos>0.9995 ) {
-	cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
-	cout<<"Displacement of match:"<<deltaX<<','<<deltaY<<endl;
+	//cout<<"Found Matched Single CRT Tag with CRT*TPC: "<<fabs(allUniqueTracksPair[u].dotProductCos)<<endl;
+	//cout<<"Displacement of match:"<<deltaX<<','<<deltaY<<endl;
 
 	std::vector<float> hitF;
 	std::vector<float> hitB;

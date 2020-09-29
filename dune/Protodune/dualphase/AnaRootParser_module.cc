@@ -1386,10 +1386,12 @@ namespace dune {
 
     private:
 
-      void   HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity );
+    void   HitsBackTrack(detinfo::DetectorClocksData const& clockData, art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity );
       double length(const recob::Track& track);
-      double driftedLength(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
-      double driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
+    double driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                         const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
+    double driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                         const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom);
       double length(const simb::MCParticle& part, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi);
       double bdist(const TVector3& pos);
       int    CountHits(const art::Event& evt, const art::InputTag& which, unsigned int cryostat, unsigned int tpc, unsigned int plane);
@@ -4219,7 +4221,6 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
 {
 
   //services
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 //  art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
@@ -4621,8 +4622,9 @@ if (fIsMC && fSaveGeantInfo){  evt.getView(fElecDriftModuleLabel, fSimChannels);
     }
   }
 
-
-//  std::cout<<detprop->NumberTimeSamples()<<" "<<detprop->ReadOutWindowSize()<<std::endl;
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
+//  std::cout<<detProp.NumberTimeSamples()<<" "<<detProp.ReadOutWindowSize()<<std::endl;
 //  std::cout<<geom->DetHalfHeight()2<<" "<<geom->DetHalfWidth()2<<" "<<geom->DetLength()<<std::endl;
 //  std::cout<<geom->Nwires(0)<<" "<<geom->Nwires(1)<<" "<<geom->Nwires(2)<<std::endl;
 
@@ -4729,7 +4731,7 @@ if (fSaveHitInfo){
     //quantities from backtracker are different from the real value in MC
 
     if( fIsMC )
-      HitsBackTrack(  hitlist[i], trueID, maxe, purity );
+        HitsBackTrack(clockData, hitlist[i], trueID, maxe, purity );
 
     fData->hit_trueID[i] = trueID;
     fData->hit_trueEnergyMax[i] = maxe;
@@ -5566,7 +5568,7 @@ if (fSaveTrackInfo) {
 
       //quantities from backtracker are different from the real value in MC
       if( fIsMC )
-        HitsBackTrack(  vhit[h], trueID, maxe, purity );
+              HitsBackTrack(clockData, vhit[h], trueID, maxe, purity );
 
       TrackerData.hittrktrueID[HitIterator2] = trueID;
       TrackerData.hittrktrueEnergyMax[HitIterator2] = maxe;
@@ -5698,7 +5700,7 @@ if (fSaveTrackInfo) {
         }
         for (size_t ipl = 0; ipl < 3; ++ipl){
           double maxe = 0;
-          HitsBackTrack(hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
+        HitsBackTrack(clockData, hits[ipl],TrackerData.trkidtruth[iTrk][ipl],TrackerData.trkpurtruth[iTrk][ipl],maxe);
           //std::cout<<"\n"<<iTracker<<"\t"<<iTrk<<"\t"<<ipl<<"\t"<<trkidtruth[iTracker][iTrk][ipl]<<"\t"<<trkpurtruth[iTracker][iTrk][ipl]<<"\t"<<maxe;
           if (TrackerData.trkidtruth[iTrk][ipl]>0){
             const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkidtruth[iTrk][ipl]);
@@ -5716,7 +5718,7 @@ if (fSaveTrackInfo) {
         }
 
         double maxe = 0;
-        HitsBackTrack(allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
+        HitsBackTrack(clockData, allHits,TrackerData.trkg4id[iTrk],TrackerData.trkpurity[iTrk],maxe);
         if (TrackerData.trkg4id[iTrk]>0){
           const art::Ptr<simb::MCTruth> mc = pi_serv->TrackIdToMCTruth_P(TrackerData.trkg4id[iTrk]);
           TrackerData.trkorig[iTrk] = mc->Origin();
@@ -5732,7 +5734,7 @@ if (fSaveTrackInfo) {
               art::Ptr<recob::Hit> hit = all_hits[h];
               std::vector<sim::IDE> ides;
               //bt_serv->HitToSimIDEs(hit,ides);
-              std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+        std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 
               for(size_t e = 0; e < eveIDs.size(); ++e){
                 //std::cout<<h<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -6046,7 +6048,7 @@ if (fSaveTrackInfo) {
         for(std::vector<sim::MCTrack>::const_iterator imctrk = mctrackh->begin();imctrk != mctrackh->end(); ++imctrk) {
           const sim::MCTrack& mctrk = *imctrk;
           TLorentzVector tpcstart, tpcend, tpcmom;
-          double plen = driftedLength(mctrk, tpcstart, tpcend, tpcmom);
+                double plen = driftedLength(detProp, mctrk, tpcstart, tpcend, tpcmom);
           fData->mctrk_origin[trk]          = mctrk.Origin();
           fData->mctrk_pdg[trk]             = mctrk.PdgCode();
           fData->mctrk_TrackId[trk]	    = mctrk.TrackID();
@@ -6712,7 +6714,7 @@ if (fSaveTrackInfo) {
     }//if (mcevts_truth)
   }//if (fIsMC){
 
-    fData->taulife = detprop->ElectronLifetime();
+    fData->taulife = detProp.ElectronLifetime();
 
     fTree->Fill();
 
@@ -6845,7 +6847,7 @@ if (fSaveTrackInfo) {
 
 
 
-    void dune::AnaRootParser::HitsBackTrack( art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity){
+void dune::AnaRootParser::HitsBackTrack(detinfo::DetectorClocksData const& clockData, art::Ptr<recob::Hit> const& hit, int & trackid, float & maxe, float & purity){
 
       trackid = -1;
       purity = -1;
@@ -6856,7 +6858,7 @@ if (fSaveTrackInfo) {
       std::vector<sim::IDE> ides;
 
       //bt_serv->HitToSimIDEs(hit,ides);
-      std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(hit);
+  std::vector<sim::TrackIDE> eveIDs = bt_serv->HitToEveTrackIDEs(clockData, hit);
 
       for(size_t e = 0; e < eveIDs.size(); ++e){
           //std::cout<<" "<<e<<" "<<eveIDs[e].trackID<<" "<<eveIDs[e].energy<<" "<<eveIDs[e].energyFrac<<std::endl;
@@ -6914,17 +6916,17 @@ if (fSaveTrackInfo) {
     }
 
 
-    double dune::AnaRootParser::driftedLength(const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom){
+double dune::AnaRootParser::driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                                          const sim::MCTrack& mctrack, TLorentzVector& tpcstart, TLorentzVector& tpcend, TLorentzVector& tpcmom){
       auto const* geom = lar::providerFrom<geo::Geometry>();
-      auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
       //compute the drift x range
-      double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
+      double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
       double xrange[2] = {DBL_MAX, -DBL_MAX };
       for (unsigned int c=0; c<geom->Ncryostats(); ++c) {
         for (unsigned int t=0; t<geom->NTPC(c); ++t) {
-          double Xat0 = detprop->ConvertTicksToX(0,0,t,c);
-          double XatT = detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,t,c);
+          double Xat0 = detProp.ConvertTicksToX(0,0,t,c);
+          double XatT = detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,t,c);
           xrange[0] = std::min(std::min(Xat0, XatT), xrange[0]);
           xrange[1] = std::max(std::max(Xat0, XatT), xrange[1]);
         }
@@ -6965,18 +6967,18 @@ if (fSaveTrackInfo) {
     }
 
     // Length of MC particle, trajectory by trajectory (with the manual shifting for x correction)
-    double dune::AnaRootParser::driftedLength(const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
+double dune::AnaRootParser::driftedLength(detinfo::DetectorPropertiesData const& detProp,
+                                          const simb::MCParticle& p, TLorentzVector& start, TLorentzVector& end, unsigned int &starti, unsigned int &endi)
     {
       auto const* geom = lar::providerFrom<geo::Geometry>();
-      auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
       //compute the drift x range
-      double vDrift = detprop->DriftVelocity()*1e-3; //cm/ns
+      double vDrift = detProp.DriftVelocity()*1e-3; //cm/ns
       double xrange[2] = {DBL_MAX, -DBL_MAX };
       for (unsigned int c=0; c<geom->Ncryostats(); ++c) {
         for (unsigned int t=0; t<geom->NTPC(c); ++t) {
-          double Xat0 = detprop->ConvertTicksToX(0,0,t,c);
-          double XatT = detprop->ConvertTicksToX(detprop->NumberTimeSamples(),0,t,c);
+          double Xat0 = detProp.ConvertTicksToX(0,0,t,c);
+          double XatT = detProp.ConvertTicksToX(detProp.NumberTimeSamples(),0,t,c);
           xrange[0] = std::min(std::min(Xat0, XatT), xrange[0]);
           xrange[1] = std::max(std::max(Xat0, XatT), xrange[1]);
         }
@@ -7064,5 +7066,3 @@ if (fSaveTrackInfo) {
       DEFINE_ART_MODULE(AnaRootParser)
 
     }
-
-    namespace lar_pandora{class LArPandoraHelper;}

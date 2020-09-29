@@ -119,7 +119,8 @@ public:
 private:
   
   void ResetVars();
-  void MCTruthInformation ( const simb::MCParticle *particle, double &Energy, double &EnergyDeposited, double &TPCLength, 
+  void MCTruthInformation ( detinfo::DetectorClocksData const& clockData,
+                            const simb::MCParticle *particle, double &Energy, double &EnergyDeposited, double &TPCLength,
 			    double &Theta_XZ, double &Theta_YZ, double &Eta_XY, double &Eta_ZY, double &Theta, double &Phi,
 			    int &MCPdgCode, int &MCTrackId );
   void HistoFiller ( struct TrackingEfficiency::TrackingEfficiency::EfficHists *HistPtr, 
@@ -148,10 +149,8 @@ private:
   art::ServiceHandle<geo::Geometry> geom;  
   art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;
 
-  detinfo::DetectorProperties const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  detinfo::DetectorClocks const *ts = lar::providerFrom<detinfo::DetectorClocksService>();
-  double XDriftVelocity      = detprop->DriftVelocity()*1e-3; //cm/ns
-  double WindowSize          = detprop->NumberTimeSamples() * ts->TPCClock().TickPeriod() * 1e3;
+  double XDriftVelocity;
+  double WindowSize;
   // Parameter List
   std::string fHitsModuleLabel;
   std::string fTrackModuleLabel;
@@ -268,7 +267,10 @@ TrackingEfficiency::TrackingEfficiency::TrackingEfficiency(fhicl::ParameterSet c
   , fMCTruthT0ModuleLabel    ( pset.get< std::string >("MCTruthT0ModuleLabel"))
   , fPhotonT0ModuleLabel     ( pset.get< std::string >("PhotonT0ModuleLabel"))
 {
-
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob(clockData);
+  XDriftVelocity      = detProp.DriftVelocity()*1e-3; //cm/ns
+  WindowSize          = detProp.NumberTimeSamples() * clockData.TPCClock().TickPeriod() * 1e3;
 }
 // ******************************************************************************************************
 TrackingEfficiency::TrackingEfficiency::~TrackingEfficiency()
@@ -296,6 +298,8 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
   
   int NPart = 0;
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
   if ( trackListHandle.isValid() ) { // Check that trackListHandle is valid.....
     art::FindManyP<recob::Hit>        fmht  (trackListHandle, evt, fTrackModuleLabel);
     art::FindMany<anab::T0>           fmt0  (trackListHandle, evt, fMCTruthT0ModuleLabel);
@@ -323,7 +327,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
       if (!AllChargedTrack) continue;
     
       // ---- Get MCTruth Information and check that MCParticle goes in TPC ---
-      MCTruthInformation ( particle, MCEnergy, MCEnergyDeposited, MCTPCLength, 
+      MCTruthInformation ( clockData, particle, MCEnergy, MCEnergyDeposited, MCTPCLength,
 			   MCTheta_XZ, MCTheta_YZ, MCEta_XY, MCEta_ZY, MCTheta, MCPhi,
 			   MCPdgCode, MCTrackId );
       if ( MCTPCLength < 1. ) continue;
@@ -348,7 +352,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	  std::vector<const anab::T0*> T0s = fmt0.at(Track);
 	  for (size_t t0size =0; t0size < T0s.size(); t0size++) {
 	    MCTruthT0      = T0s[t0size]->Time();
-	    MCTruthTickT0  = MCTruthT0 / detprop->SamplingRate();
+	    MCTruthTickT0  = MCTruthT0 / sampling_rate(clockData);
 	    MCTruthTrackID = T0s[t0size]->TriggerBits();
 	  } // T0 size
 	  TickT0 = MCTruthTickT0;
@@ -357,7 +361,7 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	  std::vector<const anab::T0*> PhotT0 = fmphot.at(Track);
 	  for (size_t T0it=0; T0it<PhotT0.size(); ++T0it) {
 	    PhotonCounterT0     = PhotT0[T0it]->Time();
-	    PhotonCounterTickT0 = PhotonCounterT0 / detprop->SamplingRate();
+	    PhotonCounterTickT0 = PhotonCounterT0 / sampling_rate(clockData);
 	    PhotonCounterID     = PhotT0[T0it]->TriggerBits();
 	  }
 	  //TickT0 = PhotonCounterTickT0;
@@ -376,8 +380,8 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 	// ---- Correct X positions and get track positions.
         recob::Track::Point_t trackStart, trackEnd;
         std::tie(trackStart, trackEnd) = tracklist[Track]->Extent(); 
-	trackStart.SetX( trackStart.X() - detprop->ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat )); // Correct X, last entry is first 'hit'
-        trackEnd.SetX( trackEnd.X() - detprop->ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat)); // Correct X, first entry is last 'hit'
+	trackStart.SetX( trackStart.X() - detProp.ConvertTicksToX( TickT0, allHits[Hit_Size-1]->WireID().Plane, allHits[Hit_Size-1]->WireID().TPC, allHits[Hit_Size-1]->WireID().Cryostat )); // Correct X, last entry is first 'hit'
+        trackEnd.SetX( trackEnd.X() - detProp.ConvertTicksToX( TickT0, allHits[0]->WireID().Plane, allHits[0]->WireID().TPC, allHits[0]->WireID().Cryostat)); // Correct X, first entry is last 'hit'
 	// ---- Get lengths and angles.
 	art::Ptr<recob::Track> ptrack(trackh, Track);
 	const recob::Track& track = *ptrack;
@@ -443,7 +447,8 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
   //std::cout << "\nThis event had " << NPart << " particles." << std::endl;
 }
 // *********************************** Monte Carlo Truth Extraction ********************************************************
-void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MCParticle *particle, double &Energy, double &EnergyDeposited, double &TPCLength, 
+void TrackingEfficiency::TrackingEfficiency::MCTruthInformation (detinfo::DetectorClocksData const& clockData,
+                                                                 const simb::MCParticle *particle, double &Energy, double &EnergyDeposited, double &TPCLength,
 								  double &Theta_XZ, double &Theta_YZ, double &Eta_XY, double &Eta_ZY, double &Theta, double &Phi,
 								  int &MCPdgCode, int &MCTrackId ) {
   int numberTrajectoryPoints = particle->NumberTrajectoryPoints(); // Looking at each MC hit
@@ -473,8 +478,8 @@ void TrackingEfficiency::TrackingEfficiency::MCTruthInformation ( const simb::MC
       double XPlanePosition      = tpc.PlaneLocation(0)[0];
       double DriftTimeCorrection = fabs( tmpPosition[0] - XPlanePosition ) / XDriftVelocity;
       double TimeAtPlane         = particle->T() + DriftTimeCorrection;
-      if ( TimeAtPlane < detprop->TriggerOffset() 
-	   || TimeAtPlane > detprop->TriggerOffset() + WindowSize 
+      if ( TimeAtPlane < trigger_offset(clockData)
+           || TimeAtPlane > trigger_offset(clockData) + WindowSize
 	   ) continue;
       // -- Good hit in TPC
       LastHit = MCHit;

@@ -135,9 +135,9 @@ dune::T0Counter::T0Counter(fhicl::ParameterSet const & p)
 {
   fSampleTimeCounter = 1.e3/fClockSpeedCounter;//ns
 
-  auto const *clks = lar::providerFrom<detinfo::DetectorClocksService>();
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
 
-  fTriggerOffsetTPC = clks->TriggerOffsetTPC()*1.e3; // ns
+  fTriggerOffsetTPC = clockData.TriggerOffsetTPC()*1.e3; // ns
 
   produces< std::vector< anab::T0 > >();
   produces< art::Assns< anab::T0, raw::ExternalTrigger> >();

@@ -32,6 +32,7 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 #include "lardataobj/RecoBase/Shower.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larsim/MCCheater/BackTrackerService.h"
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -201,9 +202,12 @@ class showerAna::ShowerAnalysis : public art::EDAnalyzer {
   void MakeDataProducts();
   void FillData(const std::map<int,std::shared_ptr<ShowerParticle> >& particles);
   void FillPi0Data(const std::map<int,std::shared_ptr<ShowerParticle> >& particles, const std::vector<int>& pi0Decays);
-  int FindTrueParticle(const std::vector<art::Ptr<recob::Hit> >& hits);
-  int FindParticleID(const art::Ptr<recob::Hit>& hit);
-  std::vector<art::Ptr<recob::Hit> > FindTrueHits(const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle);
+  int FindTrueParticle(detinfo::DetectorClocksData const& clockData,
+                       const std::vector<art::Ptr<recob::Hit> >& hits);
+  int FindParticleID(detinfo::DetectorClocksData const& clockData,
+                     const art::Ptr<recob::Hit>& hit);
+  std::vector<art::Ptr<recob::Hit> > FindTrueHits(detinfo::DetectorClocksData const& clockData,
+                                                  const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle);
 
  private:
 
@@ -326,25 +330,25 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
   }
 
   // Fill recon properties
-
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for (std::vector<art::Ptr<recob::Hit> >::iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt) {
-    int trueParticle = FindParticleID(*hitIt);
+    int trueParticle = FindParticleID(clockData, *hitIt);
     if (particles.count(trueParticle))
       particles[trueParticle]->AddAssociatedHit(*hitIt);
   }
 
   for (std::vector<art::Ptr<recob::Cluster> >::iterator clusterIt = clusters.begin(); clusterIt != clusters.end(); ++clusterIt) {
     std::vector<art::Ptr<recob::Hit> > hits = fmhc.at(clusterIt->key());
-    int trueParticle = FindTrueParticle(hits);
-    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(hits, trueParticle);
+    int trueParticle = FindTrueParticle(clockData, hits);
+    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(clockData, hits, trueParticle);
     if (particles.count(trueParticle))
       particles[trueParticle]->AddAssociatedCluster(*clusterIt, hits, trueHits);
   }
 
   for (std::vector<art::Ptr<recob::Shower> >::iterator showerIt = showers.begin(); showerIt != showers.end(); ++showerIt) {
     std::vector<art::Ptr<recob::Hit> > hits = fmhs.at(showerIt->key());
-    int trueParticle = FindTrueParticle(hits);
-    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(hits, trueParticle);
+    int trueParticle = FindTrueParticle(clockData, hits);
+    std::vector<art::Ptr<recob::Hit> > trueHits = FindTrueHits(clockData, hits, trueParticle);
     if (particles.count(trueParticle))
       particles[trueParticle]->AddAssociatedShower(*showerIt, hits, trueHits);
   }
@@ -462,7 +466,8 @@ void showerAna::ShowerAnalysis::FillPi0Data(const std::map<int,std::shared_ptr<S
   
 }
 
-int showerAna::ShowerAnalysis::FindTrueParticle(const std::vector<art::Ptr<recob::Hit> >& showerHits) {
+int showerAna::ShowerAnalysis::FindTrueParticle(detinfo::DetectorClocksData const& clockData,
+                                                const std::vector<art::Ptr<recob::Hit> >& showerHits) {
 
   /// Returns the true particle most likely associated with this shower
 
@@ -470,7 +475,7 @@ int showerAna::ShowerAnalysis::FindTrueParticle(const std::vector<art::Ptr<recob
   std::map<int,double> trackMap;
   for (std::vector<art::Ptr<recob::Hit> >::const_iterator showerHitIt = showerHits.begin(); showerHitIt != showerHits.end(); ++showerHitIt) {
     art::Ptr<recob::Hit> hit = *showerHitIt;
-    int trackID = FindParticleID(hit);
+    int trackID = FindParticleID(clockData, hit);
     trackMap[trackID] += hit->Integral();
   }
 
@@ -488,13 +493,14 @@ int showerAna::ShowerAnalysis::FindTrueParticle(const std::vector<art::Ptr<recob
 
 }
 
-int showerAna::ShowerAnalysis::FindParticleID(const art::Ptr<recob::Hit>& hit) {
+int showerAna::ShowerAnalysis::FindParticleID(detinfo::DetectorClocksData const& clockData,
+                                              const art::Ptr<recob::Hit>& hit) {
 
   /// Returns the true track ID associated with this hit (if more than one, returns the one with highest energy)
 
   double particleEnergy = 0;
   int likelyTrackID = 0;
-  std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(hit);
+  std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(clockData, hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;
@@ -506,11 +512,12 @@ int showerAna::ShowerAnalysis::FindParticleID(const art::Ptr<recob::Hit>& hit) {
 
 }
 
-std::vector<art::Ptr<recob::Hit> > showerAna::ShowerAnalysis::FindTrueHits(const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle) {
+std::vector<art::Ptr<recob::Hit> > showerAna::ShowerAnalysis::FindTrueHits(detinfo::DetectorClocksData const& clockData,
+                                                                           const std::vector<art::Ptr<recob::Hit> >& hits, int trueParticle) {
 
   std::vector<art::Ptr<recob::Hit> > trueHits;
   for (std::vector<art::Ptr<recob::Hit> >::const_iterator hitIt = hits.begin(); hitIt != hits.end(); ++hitIt)
-    if (FindParticleID(*hitIt) == trueParticle)
+    if (FindParticleID(clockData, *hitIt) == trueParticle)
       trueHits.push_back(*hitIt);
 
   return trueHits;

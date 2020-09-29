@@ -209,11 +209,11 @@ T0RecoSCECalibrations::T0RecoSCECalibrations(fhicl::ParameterSet const & p)
 	}
   
 	// Use '_detp' to find 'efield' and 'temp'
-	auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-	double efield = detp -> Efield();
-	double temp   = detp -> Temperature();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob();
+  double efield = detProp.Efield();
+  double temp   = detProp.Temperature();
 	// Determine the drift velocity from 'efield' and 'temp'
-	fDriftVelocity = detp -> DriftVelocity(efield,temp);
+  fDriftVelocity = detProp.DriftVelocity(efield,temp);
 }  
   
 void T0RecoSCECalibrations::beginJob(){
@@ -297,7 +297,6 @@ void T0RecoSCECalibrations::beginJob(){
   
 void T0RecoSCECalibrations::analyze(art::Event const & e){
 
-	auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
 	event = e.event();
 	subrun = e.subRun();
@@ -380,6 +379,7 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
   	// grab T0 objects associated with tracks
   	art::FindMany<anab::T0> trk_t0_assn_v(track_h, e, fT0Producer ); 	
 
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
 	// prepare a vector of optical flash times, if flash above some PE cut value
 	if(!fCathode){
   	size_t flash_ctr = 0;
@@ -719,9 +719,9 @@ void T0RecoSCECalibrations::analyze(art::Event const & e){
     for (auto& hits : Hit_v){
     	auto peakHit = hits->PeakTime();
     	//if(_debug) std::cout << "\t\tHit time track " << trk_ctr << ": " << peakHit << " in TPC " << hits->WireID().TPC << " plane " << hits->WireID().Plane << " and wire " << hits->WireID().Wire << std::endl;
-    	if( (peakHit > detp->ReadOutWindowSize() - 50.0) || (peakHit < 50.0) ){
+        if( (peakHit > detProp.ReadOutWindowSize() - 50.0) || (peakHit < 50.0) ){
     	 TPC_edge = true;
-    	 if(_debug) std::cout << "\t\tHit time out of range (0 - " << detp->ReadOutWindowSize() << "): " << peakHit << std::endl;
+          if(_debug) std::cout << "\t\tHit time out of range (0 - " << detProp.ReadOutWindowSize() << "): " << peakHit << std::endl;
     	 continue;
     	}
     }
@@ -1274,4 +1274,3 @@ std::vector<std::vector< TLorentzVector >> T0RecoSCECalibrations::BuildMCParticl
 
 
 DEFINE_ART_MODULE(T0RecoSCECalibrations) 
-  

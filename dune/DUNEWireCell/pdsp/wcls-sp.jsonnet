@@ -110,7 +110,7 @@ local wcls_output = {
       anode: wc.tn(mega_anode),
       digitize: false,  // true means save as RawDigit, else recob::Wire
       frame_tags: ['gauss', 'wiener'],
-      frame_scale: [0.005, 0.005],
+      frame_scale: [0.001, 0.001],
       //nticks: params.daq.nticks,
       // nticks: nsample,
       chanmaskmaps: [],
@@ -139,26 +139,27 @@ local chndb = [{
 // an empty omnibus noise filter
 // for suppressing bad channels stored in the noise db
 local obnf = [
-g.pnode({
-  type: 'OmnibusNoiseFilter',
-  name: 'nf%d' %n,
-  data: {
+  g.pnode(
+    {
+      type: 'OmnibusNoiseFilter',
+      name: 'nf%d' % n,
+      data: {
 
-    // This is the number of bins in various filters
-    // nsamples: params.nf.nsamples,
+        // This is the number of bins in various filters
+        // nsamples: params.nf.nsamples,
 
-    channel_filters: [],
-    grouped_filters: [],
-    channel_status_filters: [],
-    noisedb: wc.tn(chndb[n]),
-    intraces: 'orig%d' % n,  // frame tag get all traces
-    outtraces: 'raw%d' % n,
-  },
-}, uses=[chndb[n], tools.anodes[n]], nin=1, nout=1
-)
-for n in std.range(0, std.length(tools.anodes) - 1)
+        channel_filters: [],
+        grouped_filters: [],
+        channel_status_filters: [],
+        noisedb: wc.tn(chndb[n]),
+        intraces: 'orig%d' % n,  // frame tag get all traces
+        outtraces: 'raw%d' % n,
+      },
+    }, uses=[chndb[n], tools.anodes[n]], nin=1, nout=1
+  )
+  for n in std.range(0, std.length(tools.anodes) - 1)
 ];
-local nf_pipes = [g.pipeline([obnf[n]], name='nf%d'%n) for n in std.range(0, std.length(tools.anodes) - 1)];
+local nf_pipes = [g.pipeline([obnf[n]], name='nf%d' % n) for n in std.range(0, std.length(tools.anodes) - 1)];
 
 local sp = sp_maker(params, tools, { sparse: sigoutform == 'sparse' });
 local sp_pipes = [sp.make_sigproc(a) for a in tools.anodes];

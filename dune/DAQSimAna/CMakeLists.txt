@@ -3,6 +3,7 @@ add_subdirectory(SNAnaClustering)
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
   larcore_Geometry_Geometry_service
+  lardataalg_DetectorInfo
   larcorealg_Geometry
   lardataobj_RawData
   lardataobj_RecoBase

@@ -17,6 +17,8 @@
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardataobj/RecoBase/TrackHitMeta.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
 #include "lardata/Utilities/DatabaseUtil.h"
@@ -68,7 +70,9 @@ private:
   // Declare member data here.
 
   // void CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector < recob::TrackHitMeta const* > & data); // MeV/cm
-  void CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data);
+  void CountdEdx(detinfo::DetectorClocksData const& clockData,
+                 detinfo::DetectorPropertiesData const& detProp,
+                 const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data);
   void ResetVars();
 
   TTree *fTree;
@@ -152,6 +156,8 @@ void pdunedp::DEdxdp::analyze(art::Event const & e)
   fNumberOfTracks = trkHandle->size();
 
   const art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trkHandle, e, fTrackModuleLabel);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e, clockData);
 
   if (fmthm.isValid())
   {
@@ -162,13 +168,15 @@ void pdunedp::DEdxdp::analyze(art::Event const & e)
 	     auto vmeta = fmthm.data(t);
 
        fTrackID = t;
-	     CountdEdx(vhit, vmeta);
+       CountdEdx(clockData, detProp, vhit, vmeta);
     }
   }
   fTreere->Fill();
 }
 
-void pdunedp::DEdxdp::CountdEdx(const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data) // MeV/cm
+void pdunedp::DEdxdp::CountdEdx(detinfo::DetectorClocksData const& clockData,
+                                detinfo::DetectorPropertiesData const& detProp,
+                                const std::vector < art::Ptr< recob::Hit > > & hits, const std::vector< recob::TrackHitMeta const* > & data) // MeV/cm
 {
   for (size_t h = 0; h < hits.size(); ++h)
   {
@@ -192,8 +200,8 @@ void pdunedp::DEdxdp::CountdEdx(const std::vector < art::Ptr< recob::Hit > > & h
         {
         	 fdQdx = fdQ/fdx;
         	 fdQdx /= fGainPerView;
-         	 fdEdx = fCalorimetryAlg.dEdx_AREA(fdQdx, time, plane, t0);
-         	 fdQdx *= fCalorimetryAlg.LifetimeCorrection(time, t0);
+                 fdEdx = fCalorimetryAlg.dEdx_AREA(clockData, detProp, fdQdx, time, plane, t0);
+                 fdQdx *= fCalorimetryAlg.LifetimeCorrection(clockData, detProp, time, t0);
          	 //if (fdEdx > 35) fdEdx = 35;
         }
         fTree->Fill();

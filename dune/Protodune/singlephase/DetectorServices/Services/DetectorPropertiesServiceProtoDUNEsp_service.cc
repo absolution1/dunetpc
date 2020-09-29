@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 //Adapted for ProtoDUNE by Owen Goodwin (ogoodwin@fnal.gov) from
 //  \file DetectorProperties_service.cc
-//   
+//
 ////////////////////////////////////////////////////////////////////////
 // Framework includes
 // LArSoft includes
@@ -28,9 +28,11 @@ namespace spdp{
     (fhicl::ParameterSet const& pset, art::ActivityRegistry &reg)
     : fInheritNumberTimeSamples(pset.get<bool>("InheritNumberTimeSamples", false))
   {
+    // Dummy handle to ensure that the DetectorClocksService callbacks are invoked first
+    art::ServiceHandle<detinfo::DetectorClocksService const>{};
+
     // Register for callbacks.
     reg.sPostOpenFile.watch   (this, &DetectorPropertiesServiceProtoDUNEsp::postOpenFile);
-    reg.sPreProcessEvent.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preProcessEvent);
     reg.sPreBeginRun.watch (this, &DetectorPropertiesServiceProtoDUNEsp::preBeginRun);
 
 
@@ -38,50 +40,38 @@ namespace spdp{
 /*
     // obtain the required dependency service providers and create our own
     const geo::GeometryCore* geo = lar::providerFrom<geo::Geometry>();
-    
+
     const detinfo::LArProperties* lp = lar::providerFrom<detinfo::LArPropertiesService>();
-    
-    const detinfo::DetectorClocks* clks = lar::providerFrom<detinfo::DetectorClocksService>();
-    
+
+    const detinfo::DetectorClocks* clks = art::ServiceHandle<detinfo::DetectorClocksService const>()->;
+
     fProp = std::make_unique<detinfo::DetectorPropertiesStandard>(pset,geo,lp,clks);
     */
     fProp = std::make_unique<spdp::DetectorPropertiesProtoDUNEsp>(pset,
       lar::extractProviders<
-        geo::Geometry, 
-        detinfo::LArPropertiesService,
-        detinfo::DetectorClocksService
+        geo::Geometry,
+        detinfo::LArPropertiesService
         >(),
         std::set<std::string>({ "InheritNumberTimeSamples" })
       );
-    
+
     // at this point we need and expect the provider to be fully configured
     fProp->CheckIfConfigured();
-    
+
     // Save the parameter set.
     fPS = pset;
-    
-    
+
+
   }
   //--------------------------------------------------------------------
   void DetectorPropertiesServiceProtoDUNEsp::reconfigure(fhicl::ParameterSet const& p)
   {
     fProp->ValidateAndConfigure(p, { "InheritNumberTimeSamples" });
-    
+
     // Save the parameter set.
     fPS = p;
     return;
   }
-  //-------------------------------------------------------------
-  void DetectorPropertiesServiceProtoDUNEsp::preProcessEvent(const art::Event& evt, art::ScheduleContext)
-  {
-    // Make sure TPC Clock is updated with TimeService (though in principle it shouldn't change
-    fProp->UpdateClocks(lar::providerFrom<detinfo::DetectorClocksService>());
-
-
-
-  }
-
-
 
     void DetectorPropertiesServiceProtoDUNEsp::preBeginRun(const art::Run& run)
   {
@@ -89,9 +79,9 @@ namespace spdp{
       std::cout<<"New run, Num is: "<<run.run()<<" Updating DetectorProperties."<<std::endl;
       // make it into a TTimeStamp
 
-      //Get run dependent temperature  correction  
+      //Get run dependent temperature  correction
 
-      //  Before 11/17/18, temperature = 87.68 and is stable 
+      //  Before 11/17/18, temperature = 87.68 and is stable
       // Between 11/17/18 and 3/1/19, temperature = 87.36 and has a rather large fluctuation. first run in this period 5903
       // After 3/1/19, temperature = 87.65 and is stable.  first run 6930
       fProp->UpdateTemp(run.run());
@@ -105,33 +95,31 @@ namespace spdp{
 
 
 
-    
-    
 
-    
+
+
+
 
     // std::cout<<"new run?"<<isNewRun<<std::endl;
     if(isNewRun){
 
       auto start = filename.rfind("/"); //finds the final "/"
       if (start == std::string::npos)
-	{
-	  start = 0;
-	}
+        {
+          start = 0;
+        }
       else
-	{
+        {
           start += 1;
-	}
+        }
 
       int end = filename.length(); //last postion
       std::string filename_s=(filename.substr(start, end-start)); //creates string of just file name, not path
       // std::cout<<"filename:"<<filename_s<<std::endl;
       art::ServiceHandle<ifdh_ns::IFDH> ifdh;
-      // auto metadata=ifdh->getMetadata(filename_s);
-
-      // auto metadata1=ifdh->getMetadata("protoDune_splitG4_pion_2GeV_mono_detsim_Reference.root");
       fProp->UpdateHV(filename_s); //pass file name to be able update HV value from MetaData (if requested)
-      fProp->UpdateReadoutWindowSize(filename_s); //update Readout window value from MetaData (if requested)
+      auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+      fProp->UpdateReadoutWindowSize(clockData, filename_s); //update Readout window value from filename
       isNewRun=false;
 
     }
@@ -180,9 +168,9 @@ namespace spdp{
             // Check NumberTimeSamples
             //            if(fInheritNumberTimeSamples) {
             unsigned int newNumberTimeSamples = ps.get<unsigned int>("NumberTimeSamples");
-            
+
             // Ignore parameter values that match the current configuration.
-            
+
             if(newNumberTimeSamples != fPS.get<unsigned int>("NumberTimeSamples")) {
               if(nNumberTimeSamples == 0)
                 iNumberTimeSamples = newNumberTimeSamples;
@@ -198,8 +186,8 @@ namespace spdp{
         }
         // Done looping over parameter sets.
         // Now decide which parameters we will actually override.
-        if(// fInheritNumberTimeSamples && 
-           nNumberTimeSamples != 0 && 
+        if(// fInheritNumberTimeSamples &&
+           nNumberTimeSamples != 0 &&
            iNumberTimeSamples != fProp->NumberTimeSamples()) {
           mf::LogInfo("DetectorPropertiesServiceProtoDUNEsp")
             << "Overriding configuration parameter NumberTimeSamples using historical value.\n"
@@ -215,19 +203,19 @@ namespace spdp{
         delete file;
       }
     }
-    
+
   }
   //--------------------------------------------------------------------
   //  Determine whether a parameter set is a DetectorPropertiesService configuration.
-  
+
   bool DetectorPropertiesServiceProtoDUNEsp::isDetectorPropertiesServiceProtoDUNEsp
     (const fhicl::ParameterSet& ps) const
   {
     // This method uses heuristics to determine whether the parameter
     // set passed as argument is a DetectorPropertiesService configuration
     // parameter set.
-    
-    return 
+
+    return
          (ps.get<std::string>("service_type", "") == "DetectorPropertiesService")
       && (ps.get<std::string>("service_provider", "") == "DetectorPropertiesServiceProtoDUNEsp")
       ;
@@ -237,7 +225,7 @@ namespace spdp{
     double d;
     int i;
     unsigned int u;
-    
+
     bool result = !ps.get_if_present("module_label", s);
     result = result && ps.get_if_present("TriggerOffset", i);
     result = result && ps.get_if_present("SamplingRate", d);
