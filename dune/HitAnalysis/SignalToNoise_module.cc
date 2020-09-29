@@ -139,7 +139,6 @@ void dune::SignalToNoise::analyze(art::Event const & e)
   art::FindManyP<recob::Hit, recob::TrackHitMeta> fmthm(trackListHandle, e, fTrackModuleLabel);
 
   art::ServiceHandle<geo::Geometry> geom;
-  auto const* detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   const lariov::ChannelStatusProvider* fCSP = &art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
 
   std::vector<int> c1;  //counter index
@@ -180,6 +179,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
     recob::Track::Vector_t larStart;
     recob::Track::Vector_t larEnd;
  
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
     for (size_t i = 0; i<tracklist.size(); ++i){
       recob::Track::Point_t trackStart, trackEnd;
       std::tie(trackStart, trackEnd) = tracklist[i]->Extent(); 
@@ -264,7 +264,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
                                      cy[c2[0]], cz[c2[0]],
                                      yhit, zhit)){
               xhit = cx[c1[0]] + (cx[c2[0]]-cx[c1[0]])/(cy[c2[0]]-cy[c1[0]])*(yhit-cy[c1[0]]);
-              hdt->Fill(vhit[h]->PeakTime() - detprop->ConvertXToTicks(xhit+(vhit[h]->WireID().TPC%2==1?1:-1)*ctime*0.5*0.1085, vhit[h]->WireID()));
+              hdt->Fill(vhit[h]->PeakTime() - detProp.ConvertXToTicks(xhit+(vhit[h]->WireID().TPC%2==1?1:-1)*ctime*0.5*0.1085, vhit[h]->WireID()));
             }
           }//loop over all associated hits
 
@@ -291,7 +291,7 @@ void dune::SignalToNoise::analyze(art::Event const & e)
                 if (fCSP->IsBad(channel)) continue;
                 if (chused.find(channel)==chused.end()){ //channel not looked at before
                   double tick = intcpt + slope*w;
-                  double x = detprop->ConvertTicksToX(tick, wid);//raw x
+                  double x = detProp.ConvertTicksToX(tick, wid);//raw x
                   x += (wid.TPC%2==1?-1:1)*ctime*0.5*0.1085; //correct for t0
                   double xyzStart[3], xyzEnd[3]; //wire ends
                   geom->WireEndPoints(wid, xyzStart, xyzEnd);

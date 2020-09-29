@@ -53,8 +53,10 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
     fout << "  SkipFlags: []" << endl;
+    fout << "  AdcFitRange: 100" << endl;
     fout << "  FitRmsMin: 1.0" << endl;
     fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  RemoveStickyCode: false" << endl;
     fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
     fout << "  PlotFileName: \"adcped_ev%EVENT%_chan%CHAN%.png\"" << endl;
@@ -107,6 +109,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
   AdcIndex nevt = 2;
   string lab = "plane 3u";
   float peds[10] = {701.1, 711.2, 733.3, 690.4, 688.5, 703.6, 720.7, 720.8, 695.9, 702.0};
+
   for ( AdcIndex ievt=0; ievt<nevt; ++ievt ) {
     cout << myname << "Event " << ievt << endl;
     AdcChannelDataMap datamap;

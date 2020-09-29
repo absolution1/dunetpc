@@ -12,13 +12,14 @@
 //   s[i] = d[i] - t[i] - p
 // The tail decays and has contribution from signal as follows:
 //   t[i] = beta t[i-1] - alpha s[i-1]
-// Tails are added or removed from a distibution by combining this
+// Tails are added or removed from a distribution by combining this
 // in iteration with the repective preceding expression.
 //
 // The tails are characterized by four parameters:
 //   tdec (or beta) - Decay time in ticks. By definition beta = exp(-1/tdec).
 //   alpha - Starting tail fraction of the signal (see above).
 //   pedestal - Data pedestal (p in the expression above).
+//              There is also the option to provide a pedestal vector.
 //   tail0 - Tail level in the first sample, i.e. t[0] above.
 // Note that if
 //   alpha = 1/beta - 1
@@ -62,6 +63,7 @@ public:
   int setBeta(float val, bool cancelSignal);
   int setAlpha(float val);
   int setPedestal(float val);
+  int setPedestalVector(const FloatVector* pval);
   int setTail0(float val);
   int setUnit(Name val) { m_unit = val; return 0; }
 
@@ -107,6 +109,7 @@ private:
   float m_beta;
   float m_alpha;
   float m_pedestal;
+  const FloatVector* m_ppedvec;
   float m_tail0;
   Name m_unit;
   FloatVector m_d;

@@ -19,6 +19,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/raw.h"
 #include "lardataobj/Simulation/sim.h"
 #include "lardataobj/Simulation/SimChannel.h"
@@ -511,6 +512,8 @@ void DAQSimAna::analyze(art::Event const & evt)
   // --- Loop over the reconstructed hits to determine the "size" of each hit 
   NTotHits = reco_hits->size();
 
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
+
   for(int hit = 0; hit < NTotHits; ++hit) {
     // --- Let access this particular hit.
     recob::Hit const& ThisHit = reco_hits->at(hit);  
@@ -525,9 +528,9 @@ void DAQSimAna::analyze(art::Event const & evt)
     // modification
     const double start = ThisHit.PeakTime()-20;
     const double end   = ThisHit.PeakTime()+ThisHit.RMS()+20;
-    std::vector<sim::TrackIDE> ThisHitIDE = bt_serv->ChannelToTrackIDEs(ThisHit.Channel(), start, end);
+    std::vector<sim::TrackIDE> ThisHitIDE = bt_serv->ChannelToTrackIDEs(clockData, ThisHit.Channel(), start, end);
     // The old method
-    // std::vector< sim::TrackIDE > ThisHitIDE = bt_serv->HitToTrackIDEs( ThisHit );
+    // std::vector< sim::TrackIDE > ThisHitIDE = bt_serv->HitToTrackIDEs(clockData,  ThisHit );
     for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
         if ( ThisHitIDE[ideL].energyFrac > TopEFrac ) {
             TopEFrac = ThisHitIDE[ideL].energyFrac;

@@ -127,11 +127,11 @@ namespace CalibrationTreeBuilder {
     private_eventPrep.subrun=evt.id().subRun();
     private_eventPrep.event=evt.id().event();
 
-
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
     unsigned int hitCounter=0;
     for ( auto const& hit : hitList){
       hitCounter++;
-      if(!AddHit(hit, hitCounter)){
+      if(!AddHit(clockData, hit, hitCounter)){
         mf::LogDebug(__FUNCTION__)<<"Hit "<<hitCounter<<" failed to add to the record. Is this hit caused by noise?";
       }
     }//end for hit in hitlist
@@ -401,9 +401,10 @@ namespace CalibrationTreeBuilder {
   //hits to the appropriate particles in the record.
   //We will also add the appropriate references to the hit
   //list to be able to rebuild the "full" hit.
-  bool CalibrationTreeBuilder::AddHit(const art::Ptr<recob::Hit> hit, unsigned int& counter){
+  bool CalibrationTreeBuilder::AddHit(detinfo::DetectorClocksData const& clockData,
+                                      const art::Ptr<recob::Hit> hit, unsigned int& counter){
     art::ServiceHandle<geo::Geometry> geom;
-    std::vector<const sim::IDE*> ides_ps = BTS->HitToSimIDEs_Ps(hit);
+    std::vector<const sim::IDE*> ides_ps = BTS->HitToSimIDEs_Ps(clockData, hit);
     std::vector<std::pair<int, CalibTreeRecord::PartialHit>> track_partials;
     Double_t total_charge = 0.0;
     if(ides_ps.empty()){return false;}

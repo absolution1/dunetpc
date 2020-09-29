@@ -29,7 +29,8 @@ public:
 
   DuneDPhaseDeconvolutionService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
 
-  int update(AdcChannelData& data) const;
+  int update(detinfo::DetectorClocksData const& clockData,
+             AdcChannelData& data) const;
 
   std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const;
 

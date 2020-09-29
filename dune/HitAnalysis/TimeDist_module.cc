@@ -94,7 +94,7 @@ namespace TimeDist {
   //-----------------------------------------------------------------------
   void TimeDist::analyze(const art::Event& event) 
   {
-    auto const* timeHandle = lar::providerFrom<detinfo::DetectorClocksService>();
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event);
 
     art::Handle< std::vector<recob::Hit> > hitHandle;
     event.getByLabel(fHitProducerLabel, hitHandle);
@@ -102,7 +102,7 @@ namespace TimeDist {
     // For every Hit:
     for ( auto const& hit : (*hitHandle) )
       {
-        frequency = timeHandle->TPCClock().Frequency();
+        frequency = clockData.TPCClock().Frequency();
 	hittime = hit.PeakTime()/frequency;
 
 	fTimeHist->Fill(hittime);  // filling the historgram with hit times
@@ -121,7 +121,7 @@ namespace TimeDist {
 
     for ( auto const& hit : (*hitHandle) )
       {
-        double frequency = timeHandle->TPCClock().Frequency();
+        double frequency = clockData.TPCClock().Frequency();
 	double hittime = hit.PeakTime()/frequency;
 	for ( auto const& opflash : (*flashHandle) )
 	  {

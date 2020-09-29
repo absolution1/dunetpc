@@ -48,7 +48,8 @@ public:
   int beginEvent(const DuneEventInfo& devt) const override;
   int endEvent(const DuneEventInfo& devt) const override;
 
-  int prepare(AdcChannelDataMap& prepdigs,
+  int prepare(detinfo::DetectorClocksData const& clockData,
+              AdcChannelDataMap& prepdigs,
               std::vector<recob::Wire>* pwires,
               WiredAdcChannelDataMap* pintStates) const override;
 

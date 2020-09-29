@@ -82,8 +82,8 @@ PdspNoiseRemoval::PdspNoiseRemoval(fhicl::ParameterSet const& ps)
     std::cout << "PdspNoiseRemoval WARNING: correction set to mean value." << std::endl;
     fMode = 1;
   }
-  auto const *fDetProp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-  double binWidth = 1.0/(fFFT->FFTSize()*fDetProp->SamplingRate()*1.0e-6);
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+  double binWidth = 1.0/(fFFT->FFTSize()*sampling_rate(clockData)*1.0e-6);
   fLowPassCoeffs.resize(fFFT->FFTSize() / 2 + 1);
   for(size_t i = 0; i < fLowPassCoeffs.size(); ++i) {
     float f = binWidth * i;
@@ -130,7 +130,7 @@ PdspNoiseRemoval::PdspNoiseRemoval(fhicl::ParameterSet const& ps)
 //**********************************************************************
 DataMap PdspNoiseRemoval::updateMap(AdcChannelDataMap& acds) const {
 	const string myname = "PdspNoiseRemoval::updateMap: ";
-	if( updateWithView() ) return viewMap(acds);
+        if( updateWithView() ) return viewMap(acds);
 	DataMap ret(0);
   if (acds.size() == 0) {
     std::cout << myname << "WARNING: No channels found." << std::endl;

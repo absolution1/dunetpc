@@ -46,42 +46,38 @@
 
 
 namespace {
-  
+
   template <typename T>
   inline T sqr(T v) { return v*v; }
-  
+
 } // local namespace
 namespace spdp{
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp() :
-    fLP(0), fClocks(0), fGeo(0)
+    fLP(0), fGeo(0)
   {
-   
+
   }
-  
+
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
                                                                const geo::GeometryCore* geo,
                                                                const detinfo::LArProperties* lp,
-                                                               const detinfo::DetectorClocks* c,
                                                                std::set<std::string> const& ignore_params /* = {} */
                                                                ):
-    fLP(lp), fClocks(c), fGeo(geo)
+    fLP(lp), fGeo(geo)
   {
     {
       mf::LogInfo debug("setupProvider<DetectorPropertiesStandard>");
-       
+
       debug << "Asked to ignore " << ignore_params.size() << " keys:";
       for (auto const& key: ignore_params) debug << " '" << key << "'";
     }
-    
+
     ValidateAndConfigure(pset, ignore_params);
-    
-    fTPCClock = fClocks->TPCClock();
-    DoUpdateClocks();
 
   }
-    
+
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::DetectorPropertiesProtoDUNEsp(fhicl::ParameterSet const& pset,
                                                                providers_type providers,
@@ -90,43 +86,16 @@ namespace spdp{
     DetectorPropertiesProtoDUNEsp(pset,
                                   providers.get<geo::GeometryCore>(),
                                   providers.get<detinfo::LArProperties>(),
-                                  providers.get<detinfo::DetectorClocks>(),
                                   ignore_params
                                   )
   {}
-  
-  //--------------------------------------------------------------------
-  bool DetectorPropertiesProtoDUNEsp::Update(uint64_t)
-  {
-    DoUpdateClocks();
-
-
-    // auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
-
-    // float t = 1542662093;
-    // std::string name="NP04_DCS_01:Heinz_V";
-    // double rawHV = tpchv->GetValue(name, t);
-    // std::cout<<rawHV<<std::endl;
-
-  
-    // auto *tpchv = lar::providerFrom<slowctrls::TPCHVServiceProtoDUNE>();
-    //slowctrls::SlowControls* tpchv_copy = tpchv;
-    // float t = 1542662093;
-    // double rawHV = tpchv->GetValue("NP04_DCS_01:Heinz_V", t);
-    
-    // //double rawCurr = tpchv->GetValue("NP04_DCS_01:Heinz_V",t);
-    // std::cout<<rawHV<<std::endl;
-    //std::cout<<rawCurr<<std::endl;
-    return true;
-  }
-
 
   bool DetectorPropertiesProtoDUNEsp::UpdateTemp(int run)
   {
 
 
     if(fUseRunDependentTemperature){ // updata the temperature based on run number for data
-      
+
       if ((run > 5903) & (run < 6930)){ //first runs after Nov 17 2019 and March 1 2019, where tempreture average was lower
         fTemperature = 87.36;
       }
@@ -136,11 +105,12 @@ namespace spdp{
       }
     }
 
-    
+
     return true;
   }
 
-  bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(std::string filename){
+  bool DetectorPropertiesProtoDUNEsp::UpdateReadoutWindowSize(detinfo::DetectorClocksData const& clockData,
+                                                              std::string filename){
 
     bool retVal=false;
 
@@ -154,16 +124,16 @@ namespace spdp{
         n1 += window_str.length();
         int n2 = metadata.find("\n", n1);
         double window=std::stod(metadata.substr(n1, n2-n1)); //milliseconds
-        double ticks=window*1000/(fTPCClock.TickPeriod()); //sampling rate 2Mhz 
+        double ticks=window*1000/(clockData.TPCClock().TickPeriod()); //sampling rate 2Mhz
         fNumberTimeSamples=ticks;
         fReadOutWindowSize=ticks;
-        std::cout<<"Setting ReadOutWindowSize and NumberTimeSamples as : "<<fReadOutWindowSize<<" (Ticks), Value retrieved from Metadata"<<std::endl; 
+        std::cout<<"Setting ReadOutWindowSize and NumberTimeSamples as : "<<fReadOutWindowSize<<" (Ticks), Value retrieved from Metadata"<<std::endl;
       }
       else{
         std::cout<<"Run has no specific readout window size entry in Metadata, default to fcl configured value : "<<fReadOutWindowSize<<" (Ticks)"<<std::endl;
-      } 
+      }
     }
-     
+
     return retVal;
 
   }
@@ -173,11 +143,11 @@ namespace spdp{
 
 
 
-  bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string filename) 
+  bool DetectorPropertiesProtoDUNEsp::UpdateHV(std::string filename)
   {
-  
 
- 
+
+
     bool retVal=false;
 
     if(fGetHVDriftfromMetaData){
@@ -201,9 +171,9 @@ namespace spdp{
         int n1 = metadata.find(hv_str);
         n1 += hv_str.length();
         int n2 = metadata.find("\n", n1);
-    
-        fHV_cath=std::stod(metadata.substr(n1, n2-n1)); 
-        std::cout<<"Using HV on cathode as: "<<fHV_cath<<"KV,  Value retreived from samweb MetaData"<<std::endl; 
+
+        fHV_cath=std::stod(metadata.substr(n1, n2-n1));
+        std::cout<<"Using HV on cathode as: "<<fHV_cath<<"KV,  Value retreived from samweb MetaData"<<std::endl;
       }
       else{
         std::cout<<"HV Metadata entry not found"<<std::endl;
@@ -239,8 +209,8 @@ namespace spdp{
         }
       }
       std::cout<<"Calculated E field in 4 plane gaps as: "<<fEfield[0]<<","<<fEfield[1]<<","<<fEfield[2]<<","<<fEfield[3]<<std::endl;
-    }//End GetHVDriftfrom MetaData if  
-   
+    }//End GetHVDriftfrom MetaData if
+
 
     return retVal;
   }
@@ -249,31 +219,15 @@ namespace spdp{
 
 
   //--------------------------------------------------------------------
-  bool DetectorPropertiesProtoDUNEsp::UpdateClocks(const detinfo::DetectorClocks* clks) 
+  detinfo::DetectorPropertiesData
+  DetectorPropertiesProtoDUNEsp::DataFor(const detinfo::DetectorClocksData& clockData) const
   {
-    fClocks = clks;
-    
-    fTPCClock = fClocks->TPCClock();
-    DoUpdateClocks();
-    return true;
+    return CalculateXTicksParams(clockData);
   }
-  
-  //------------------------------------------------------------
-  double DetectorPropertiesProtoDUNEsp::ConvertTDCToTicks(double tdc) const
-  {
-    return fClocks->TPCTDC2Tick(tdc);
-  }
-  
-  //--------------------------------------------------------------
-  double DetectorPropertiesProtoDUNEsp::ConvertTicksToTDC(double ticks) const
-  {
-    return fClocks->TPCTick2TDC(ticks);
-  }
-  
- 
+
   //--------------------------------------------------------------------
   void DetectorPropertiesProtoDUNEsp::Configure(Configuration_t const& config) {
-    
+
     fEfield                     = config.Efield();
     fGetHVDriftfromMetaData    = config.fGetHVDriftfromMetaData();
     fGetReadOutWindowSizefromMetaData = config.fGetReadOutWindowSizefromMetaData();
@@ -288,17 +242,16 @@ namespace spdp{
     fHasTimeOffsetZ = config.TimeOffsetZ(fTimeOffsetZ);
     fHasTimeOffsetY = config.TimeOffsetY(fTimeOffsetY);
     fHasTimeOffsetX = config.TimeOffsetX(fTimeOffsetX);
-    
+
     fSternheimerParameters.a    = config.SternheimerA();
     fSternheimerParameters.k    = config.SternheimerK();
     fSternheimerParameters.x0   = config.SternheimerX0();
     fSternheimerParameters.x1   = config.SternheimerX1();
     fSternheimerParameters.cbar = config.SternheimerCbar();
     fSimpleBoundary = config.SimpleBoundary();
-    DoUpdateClocks();
-    
+
   } // DetectorPropertiesStandard::Configure()
-  
+
   //--------------------------------------------------------------------
   DetectorPropertiesProtoDUNEsp::Configuration_t
   DetectorPropertiesProtoDUNEsp::ValidateConfiguration(
@@ -307,14 +260,14 @@ namespace spdp{
                                                        ) {
     std::set<std::string> ignorable_keys = lar::IgnorableProviderConfigKeys();
     ignorable_keys.insert(ignore_params.begin(), ignore_params.end());
-    
+
     // parses and validates the parameter set:
     fhicl::Table<Configuration_t> config_table { p, ignorable_keys };
-    
+
     return std::move(config_table());
-    
+
   } // DetectorPropertiesStandard::ValidateConfiguration()
-  
+
   //--------------------------------------------------------------------
   void DetectorPropertiesProtoDUNEsp::ValidateAndConfigure(
                                                            fhicl::ParameterSet const& p,
@@ -322,44 +275,43 @@ namespace spdp{
                                                            ) {
     Configure(ValidateConfiguration(p, ignore_params));
   } // ValidateAndConfigure()
-  
-  
+
+
   //------------------------------------------------------------------------------------//
   void DetectorPropertiesProtoDUNEsp::Setup(providers_type providers) {
-    
+
     SetGeometry(providers.get<geo::GeometryCore>());
     SetLArProperties(providers.get<detinfo::LArProperties>());
-    SetDetectorClocks(providers.get<detinfo::DetectorClocks>());
-    
+
     CheckConfigurationAfterSetup();
-    
+
   } // DetectorPropertiesStandard::Setup()
-  
-  
+
+
   //------------------------------------------------------------------------------------//
   double DetectorPropertiesProtoDUNEsp::Efield(unsigned int planegap) const
   {
     if(planegap >= fEfield.size())
       throw cet::exception("DetectorPropertiesStandard") << "requesting Electric field in a plane gap that is not defined\n";
-    
+
 
     return fEfield[planegap];
   }
-  
-  
+
+
   //------------------------------------------------
   double DetectorPropertiesProtoDUNEsp::Density(double temperature) const
   {
     // Default temperature use internal value.
     if(temperature == 0.)
       temperature = Temperature();
-  
+
     double density = -0.00615*temperature + 1.928;
-  
+
     return density;
   } // DetectorPropertiesStandard::Density()
-  
-  
+
+
   //----------------------------------------------------------------------------------
   // Restricted mean energy loss (dE/dx) in units of MeV/cm.
   //
@@ -380,25 +332,25 @@ namespace spdp{
   double DetectorPropertiesProtoDUNEsp::Eloss(double mom, double mass, double tcut) const
   {
     // Some constants.
-  
+
     double K = 0.307075;     // 4 pi N_A r_e^2 m_e c^2 (MeV cm^2/mol).
     double me = 0.510998918; // Electron mass (MeV/c^2).
-  
+
     // Calculate kinematic quantities.
-  
+
     double bg = mom / mass;           // beta*gamma.
     double gamma = sqrt(1. + bg*bg);  // gamma.
     double beta = bg / gamma;         // beta (velocity).
     double mer = 0.001 * me / mass;   // electron mass / mass of incident particle.
     double tmax = 2.*me* bg*bg / (1. + 2.*gamma*mer + mer*mer);  // Maximum delta ray energy (MeV).
-  
+
     // Make sure tcut does not exceed tmax.
-  
+
     if(tcut == 0. || tcut > tmax)
       tcut = tmax;
-  
+
     // Calculate density effect correction (delta).
-  
+
     double x = std::log10(bg);
     double delta = 0.;
     if(x >= fSternheimerParameters.x0) {
@@ -406,42 +358,42 @@ namespace spdp{
       if(x < fSternheimerParameters.x1)
         delta += fSternheimerParameters.a * std::pow(fSternheimerParameters.x1 - x, fSternheimerParameters.k);
     }
-  
+
     // Calculate stopping number.
-  
+
     double B = 0.5 * std::log(2.*me*bg*bg*tcut / (1.e-12 * sqr(fLP->ExcitationEnergy())))
       - 0.5 * beta*beta * (1. + tcut / tmax) - 0.5 * delta;
-  
+
     // Don't let the stopping number become negative.
-  
+
     if(B < 1.)
       B = 1.;
-  
+
     // Calculate dE/dx.
-  
+
     double dedx = Density() * K*fLP->AtomicNumber()*B / (fLP->AtomicMass() * beta*beta);
-  
+
     // Done.
-  
+
     return dedx;
   } // DetectorPropertiesStandard::Eloss()
-  
+
   //----------------------------------------------------------------------------------
   double DetectorPropertiesProtoDUNEsp::ElossVar(double mom, double mass) const
   {
     // Some constants.
-  
+
     double K = 0.307075;     // 4 pi N_A r_e^2 m_e c^2 (MeV cm^2/mol).
     double me = 0.510998918; // Electron mass (MeV/c^2).
-  
+
     // Calculate kinematic quantities.
-  
+
     double bg = mom / mass;          // beta*gamma.
     double gamma2 = 1. + bg*bg;      // gamma^2.
     double beta2 = bg*bg / gamma2;   // beta^2.
-  
+
     // Calculate final result.
-  
+
     double result = gamma2 * (1. - 0.5 * beta2) * me * (fLP->AtomicNumber() / fLP->AtomicMass()) * K * Density();
     return result;
   } // DetectorPropertiesStandard::ElossVar()
@@ -492,10 +444,10 @@ namespace spdp{
     double   P6W =  0.317;
     double   T0W =  90.371;  // K
     // From Craig Thorne . . . currently not documented
-    // smooth transition from linear at small fields to 
+    // smooth transition from linear at small fields to
     //     icarus fit at most fields to Walkowiak at very high fields
     if (efield < xFit) vd=efield*uFit;
-    else if (efield<0.619) { 
+    else if (efield<0.619) {
       vd = ((P1*(temperature-T0)+1)
             *(P3*efield*std::log(1+P4/efield) + P5*std::pow(efield,P6))
             +P2*(temperature-T0));
@@ -511,7 +463,7 @@ namespace spdp{
     else {
       vd = ((P1W*(temperature-T0W)+1)
             *(P3W*efield*std::log(1+P4W/efield) + P5W*std::pow(efield,P6W))
-            +P2W*(temperature-T0W));     
+            +P2W*(temperature-T0W));
     }
     vd /= 10.;
     return vd; // in cm/us
@@ -523,133 +475,106 @@ namespace spdp{
   // parameters:
   //  dQdX in electrons/cm, charge (amplitude or integral obtained) divided by
   //         effective pitch for a given 3D track.
+  //  Electric Field in the drift region in KV/cm
+  //
   // returns dEdX in MeV/cm
   double DetectorPropertiesProtoDUNEsp::BirksCorrection(double dQdx) const
   {
+    return BirksCorrection(dQdx, Efield());
+  }
+  double DetectorPropertiesProtoDUNEsp::BirksCorrection(double dQdx, double E_field) const
+  {
     // Correction for charge quenching using parameterization from
     // S.Amoruso et al., NIM A 523 (2004) 275
-    
+
     double  A3t    = util::kRecombA;
     double  K3t    = util::kRecombk;                     // in KV/cm*(g/cm^2)/MeV
     double  rho    = Density();                    // LAr density in g/cm^3
     double Wion    = 1000./util::kGeVToElectrons;        // 23.6 eV = 1e, Wion in MeV/e
-    double E_field  = Efield();                           // Electric Field in the drift region in KV/cm
     K3t           /= rho;                                // KV/MeV
     double dEdx    = dQdx/(A3t/Wion-K3t/E_field*dQdx);    //MeV/cm
-    
+
     return dEdx;
-  }  
-  
+  }
+
   //----------------------------------------------------------------------------------
-  // Modified Box model correction 
+  // Modified Box model correction
   double DetectorPropertiesProtoDUNEsp::ModBoxCorrection(double dQdx) const
+  {
+    return ModBoxCorrection(dQdx, Efield());
+  }
+  double DetectorPropertiesProtoDUNEsp::ModBoxCorrection(double dQdx, double E_field) const
   {
     // Modified Box model correction has better behavior than the Birks
     // correction at high values of dQ/dx.
     double  rho    = Density();                    // LAr density in g/cm^3
     double Wion    = 1000./util::kGeVToElectrons;        // 23.6 eV = 1e, Wion in MeV/e
-    double E_field  = Efield();                           // Electric Field in the drift region in KV/cm
     double Beta    = util::kModBoxB / (rho * E_field);
     double Alpha   = util::kModBoxA;
     double dEdx = (exp(Beta * Wion * dQdx ) - Alpha) / Beta;
-    
+
     return dEdx;
-    
+
   }
-  
-  //------------------------------------------------------------------------------------//
-  int  DetectorPropertiesProtoDUNEsp::TriggerOffset()     const 
-  {
-    return fTPCClock.Ticks(fClocks->TriggerOffsetTPC() * -1.);
-  }
-  
-  
-  //--------------------------------------------------------------------
-  //  x<--> ticks conversion methods 
-  //
-  //  Ben Jones April 2012, 
-  //  based on code by Herb Greenlee in SpacePointService
-  //  
-  
-  
-  //--------------------------------------------------------------------
-  // Take an X coordinate, and convert to a number of ticks, the
-  // charge deposit occured at t=0
- 
-  double DetectorPropertiesProtoDUNEsp::ConvertXToTicks(double X, int p, int t, int c) const
-  {
-    return (X / (fXTicksCoefficient * fDriftDirection.at(c).at(t)) +  fXTicksOffsets.at(c).at(t).at(p) );
-  }
-  
-  //-------------------------------------------------------------------
-  // Take a cooridnate in ticks, and convert to an x position
-  // assuming event deposit occured at t=0
- 
-  double  DetectorPropertiesProtoDUNEsp::ConvertTicksToX(double ticks, int p, int t, int c) const
-  {
-    return (ticks - fXTicksOffsets.at(c).at(t).at(p)) * fXTicksCoefficient * fDriftDirection.at(c).at(t);  
-  }
-  
+
   //--------------------------------------------------------------------
   void DetectorPropertiesProtoDUNEsp::CheckIfConfigured() const
   {
     if (!fGeo) throw cet::exception(__FUNCTION__) << "Geometry is uninitialized!";
     if (!fLP) throw cet::exception(__FUNCTION__) << "LArPropertiesStandard is uninitialized!";
-    if (!fClocks) throw cet::exception(__FUNCTION__) << "DetectorClocks is uninitialized!";
   }
-  
-  
+
+
   //--------------------------------------------------------------------
   // Recalculte x<-->ticks conversion parameters from detector constants
-  
-  void DetectorPropertiesProtoDUNEsp::CalculateXTicksParams()
+
+  detinfo::DetectorPropertiesData
+  DetectorPropertiesProtoDUNEsp::CalculateXTicksParams(detinfo::DetectorClocksData const& clockData) const
   {
     CheckIfConfigured();
-    
-    double samplingRate   = SamplingRate();
+
+    double samplingRate   = sampling_rate(clockData);
     double efield         = Efield();
     double temperature    = Temperature();
     double driftVelocity  = DriftVelocity(efield, temperature);
-    
-    fXTicksCoefficient    = 0.001 * driftVelocity * samplingRate;
-    double triggerOffset  = TriggerOffset();
-    fXTicksOffsets.clear();
-    fXTicksOffsets.resize(fGeo->Ncryostats());
-    fDriftDirection.clear();
-    fDriftDirection.resize(fGeo->Ncryostats());
+
+    double const x_ticks_coefficient = 0.001 * driftVelocity * samplingRate;
+    double triggerOffset  = trigger_offset(clockData);
+    std::vector<std::vector<std::vector<double>>> x_ticks_offsets(fGeo->Ncryostats());
+    std::vector<std::vector<double>> drift_direction(fGeo->Ncryostats());
     for(size_t cstat = 0; cstat < fGeo->Ncryostats(); ++cstat){
-      fXTicksOffsets[cstat].resize(fGeo->Cryostat(cstat).NTPC());
-      fDriftDirection[cstat].resize(fGeo->Cryostat(cstat).NTPC());
+      x_ticks_offsets[cstat].resize(fGeo->Cryostat(cstat).NTPC());
+      drift_direction[cstat].resize(fGeo->Cryostat(cstat).NTPC());
       for(size_t tpc = 0; tpc < fGeo->Cryostat(cstat).NTPC(); ++tpc) {
         const geo::TPCGeo& tpcgeom = fGeo->Cryostat(cstat).TPC(tpc);
         const double dir((tpcgeom.DriftDirection() == geo::kNegX) ? +1.0 :-1.0);
-        fDriftDirection[cstat][tpc] = dir;
+        drift_direction[cstat][tpc] = dir;
         int nplane = tpcgeom.Nplanes();
-        fXTicksOffsets[cstat][tpc].resize(nplane, 0.);
+        x_ticks_offsets[cstat][tpc].resize(nplane, 0.);
 
         for(int plane = 0; plane < nplane; ++plane) {
           const geo::PlaneGeo& pgeom = tpcgeom.Plane(plane);
           const double* xyz = tpcgeom.PlaneLocation(0);
-          fXTicksOffsets[cstat][tpc][plane] = -xyz[0]/(dir * fXTicksCoefficient) + triggerOffset;
-          
+          x_ticks_offsets[cstat][tpc][plane] = -xyz[0]/(dir * x_ticks_coefficient) + triggerOffset;
+
           // Add view dependent offset
           // FIXME the offset should be plane-dependent
           geo::View_t view = pgeom.View();
           switch (view) {
           case geo::kU:
-            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetU;
+            x_ticks_offsets[cstat][tpc][plane] += fTimeOffsetU;
             break;
           case geo::kV:
-            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetV;
+            x_ticks_offsets[cstat][tpc][plane] += fTimeOffsetV;
             break;
           case geo::kZ:
-            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetZ;
+            x_ticks_offsets[cstat][tpc][plane] += fTimeOffsetZ;
             break;
           case geo::kY:
-            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetY;
+            x_ticks_offsets[cstat][tpc][plane] += fTimeOffsetY;
             break;
           case geo::kX:
-            fXTicksOffsets[cstat][tpc][plane] += fTimeOffsetX;
+            x_ticks_offsets[cstat][tpc][plane] += fTimeOffsetX;
             break;
           default:
             throw cet::exception(__FUNCTION__) << "Bad view = " << view << "\n" ;
@@ -657,34 +582,17 @@ namespace spdp{
         }
       }
     }
+    return detinfo::DetectorPropertiesData{*this, x_ticks_coefficient, move(x_ticks_offsets), move(drift_direction)};
   }
-  //--------------------------------------------------------------------
-  // Get scale factor for x<-->ticks
-  double DetectorPropertiesProtoDUNEsp::GetXTicksCoefficient(int t, int c) const
-  {
-    return fXTicksCoefficient * fDriftDirection.at(c).at(t);
-  }
-  //--------------------------------------------------------------------
-  // Get scale factor for x<-->ticks
-  double DetectorPropertiesProtoDUNEsp::GetXTicksCoefficient() const
-  {
-    return fXTicksCoefficient;
-  }
-  //--------------------------------------------------------------------
-  //  Get offset for x<-->ticks
-  double DetectorPropertiesProtoDUNEsp::GetXTicksOffset(int p, int t, int c) const
-  {
-    return fXTicksOffsets.at(c).at(t).at(p);        
-  }
-  
+
   //--------------------------------------------------------------------
   std::string DetectorPropertiesProtoDUNEsp::CheckTimeOffsetConfigurationAfterSetup
   () const
   {
-    
+
     std::ostringstream errors;
     auto const views = fGeo->Views();
-    
+
     if ((views.count(geo::kU) != 0) != fHasTimeOffsetU) {
       if (fHasTimeOffsetU)
         errors << "TimeOffsetU has been specified, but no U view is present.\n";
@@ -715,31 +623,23 @@ namespace spdp{
       else
         errors << "TimeOffsetX missing for view X.\n";
     }
-    
+
     return errors.str();
-    
+
   } // DetectorPropertiesStandard::CheckTimeOffsetConfigurationAfterSetup()
-  
+
   //--------------------------------------------------------------------
   void DetectorPropertiesProtoDUNEsp::CheckConfigurationAfterSetup() const {
-    
+
     std::string errors;
-    
+
     errors += CheckTimeOffsetConfigurationAfterSetup();
-    
+
     if (!errors.empty()) {
       throw cet::exception("DetectorPropertiesStandard")
         << "Detected configuration errors: \n" << errors;
     }
-    
+
   } // DetectorPropertiesStandard::CheckConfigurationAfterSetup()
-  
-  //--------------------------------------------------------------------
-  void DetectorPropertiesProtoDUNEsp::DoUpdateClocks() 
-  {
-    CalculateXTicksParams();
-  }
-  //--------------------------------------------------------------------
-  
-  
+
 } // namespace

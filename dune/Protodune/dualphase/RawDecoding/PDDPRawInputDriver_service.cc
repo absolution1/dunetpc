@@ -40,13 +40,15 @@
 #define EVDQFLAG(info) ( (info & 0x3F ) == EVCARD0 )
 
 
+using UIntVec = std::vector<unsigned>;
+
 //
 //
 //
 namespace 
 {
   void unpackCroData( const char *buf, size_t nb, bool cflag, 
-		      unsigned nsa, unsigned offset, adcbuf_t &data )
+		      unsigned nsa, adcbuf_t &data )
   {
     //data.clear();
     if( !cflag ) // unpack the uncompressed data into RawDigit
@@ -64,16 +66,16 @@ namespace
 	    uint16_t tmp1 = ((v1 << 4) + ((v2 >> 4) & 0xf)) & 0xfff;
 	    uint16_t tmp2 = (((v2 & 0xf) << 8 ) + (v3 & 0xff)) & 0xfff;
 	    
-	    if( offset > 0 ) // invert baseline: tmp fix for the signal inversion
-	      {
-		float ftmp1 = offset - tmp1;
-		if( ftmp1 < 0 ) ftmp1 = 0;
-		tmp1 = (uint16_t)(ftmp1);
+	    // if( offset > 0 ) // invert baseline: tmp fix for the signal inversion
+	    //   {
+	    // 	float ftmp1 = offset - tmp1;
+	    // 	if( ftmp1 < 0 ) ftmp1 = 0;
+	    // 	tmp1 = (uint16_t)(ftmp1);
 		
-		float ftmp2 = offset - tmp2;
-		if( ftmp2 < 0 ) ftmp2 = 0;
-		tmp2 = (uint16_t)(ftmp2);
-	      }
+	    // 	float ftmp2 = offset - tmp2;
+	    // 	if( ftmp2 < 0 ) ftmp2 = 0;
+	    // 	tmp2 = (uint16_t)(ftmp2);
+	    //   }
 	    
 	    if( sz == nsa ){ data.push_back(raw::RawDigit::ADCvector_t(nsa)); sz = 0; }
 	    data.back()[sz++] = (short)tmp1;
@@ -132,17 +134,29 @@ namespace lris
     __outlbl_digits  = pset.get<std::string>("OutputLabelRawDigits", "daq");
     __outlbl_rdtime  = pset.get<std::string>("OutputLabelRDTime", "daq");
     __outlbl_status  = pset.get<std::string>("OutputLabelRDStatus", "daq");
-    __invped         = pset.get<unsigned>("InvertBaseline", 0);    
+    auto vecped_crps = pset.get<std::vector<UIntVec>>("InvertBaseline", std::vector<UIntVec>());
     auto select_crps = pset.get<std::vector<unsigned>>("SelectCRPs", std::vector<unsigned>());
-    
-    if( __logLevel > 0 )
+        
+    std::map<unsigned, unsigned> invped_crps;
+    if( !vecped_crps.empty() ){
+      for( auto &v : vecped_crps ){
+	if( v.size() != 2 ){
+	  if( __logLevel >= 1 )
+	    std::cerr<<myname<<"Bad vector size for pedestal inversion parameters"<<std::endl;
+	  continue;
+	}
+	// CRP ID = Pedestal inversion
+	invped_crps[ v[0] ] = v[1];
+      }
+    }
+
+    if( __logLevel >= 1 )
       {
 	std::cout << myname << "       Configuration        : " << std::endl;
 	std::cout << myname << "       LogLevel             : " << __logLevel  << std::endl;
 	std::cout << myname << "       OutputLabelRawDigits : " << __outlbl_digits << std::endl;
 	std::cout << myname << "       OutputLabelRDStatus  : " << __outlbl_status << std::endl;
 	std::cout << myname << "       OutputLabelRDtime    : " << __outlbl_rdtime << std::endl;
-	std::cout << myname << "       InvertBaseline       : " << __invped << std::endl;
 	std::cout << myname << "       SelectCRPs           : ";
 	if( select_crps.empty() ) std::cout<<"all"<<std::endl;
 	else
@@ -153,6 +167,13 @@ namespace lris
 	    vstr << select_crps.back();
 	    std::cout << vstr.str() << std::endl;
 	  }
+	std::cout << myname << "       InvertBaseline       : ";
+	if( invped_crps.empty() ) std::cout<<"None"<<std::endl;
+	else {
+	  for( auto const &m : invped_crps )
+	    std::cout<< "[ "<<m.first<<", "<<m.second<<" ] ";
+	  std::cout<<std::endl;
+	}
       }
 
     __prodlbl_digits = __getProducerLabel( __outlbl_digits );
@@ -183,6 +204,8 @@ namespace lris
     for( auto c: crpidx )
       {
 	std::vector<dune::DPChannelId> chidx = cmap->find_by_crp( c, true );
+
+	// check if we want to keep only specific CRPs
 	bool keep = true;
 	if( !select_crps.empty() )
 	  {
@@ -191,18 +214,31 @@ namespace lris
 		keep = false;
 	      }
 	  }
-	if( __logLevel > 0 )
+	if( __logLevel >= 2 )
 	  std::cout<<myname<<"       CRP "<<c<<" selected "<<keep<<std::endl;
+	
+	// check if we need to invert baseline for the group of CRP channels
+	unsigned invped = 0;
+	if( !invped_crps.empty() ){
+	  auto it = invped_crps.find( c );
+	  if( it != invped_crps.end() ){
+	    invped = it->second;
+	  }
+	}
+	if( __logLevel >= 2 )
+	  std::cout<<myname<<"       CRP "<<c<<" baseline "<<invped<<std::endl;
+
 	
 	//std::cout<<chidx.size()<<std::endl;
 	for( auto id: chidx )
 	  {
 	    __daqch.push_back( id.seqn() );
 	    __keepch.push_back( keep );
+	    __invped.push_back( invped );
 	  }
       }
     
-    if( __logLevel > 0 )
+    if( __logLevel >= 1 )
       {
 	std::cout << myname << "       Readout info              : " << std::endl;
 	std::cout<<myname   << "       Number of CRPs from chmap : " << cmap->ncrps()  << std::endl;
@@ -338,13 +374,21 @@ namespace lris
 	    mf::LogError(__FUNCTION__)<<"The channel map appears to be wrong";
 	    break;
 	  }
-	unsigned daqch = __daqch[i];
+	unsigned daqch  = __daqch[i];
 	raw::ChannelID_t ch = i; //daqch; 
 	// raw digit 
-	if( __keepch[i] )
+	if( __keepch[i] ){
+	  unsigned invped = __invped[i];
+	  if( invped > 0 ){
+	    for( auto &e : event.crodata[daqch] ){
+	      float v = (float)invped - e;
+	      e = (short)(v);
+	    }
+	  }
 	  cro_data->push_back( raw::RawDigit(ch, __nsacro, 
 					     std::move( event.crodata[daqch] ), 
 					     event.compression) );
+	}
 	else
 	  cro_data->push_back( raw::RawDigit(ch, 0, dummy, event.compression) );
 
@@ -605,11 +649,11 @@ namespace lris
     std::mutex iomutex;
     std::vector<std::thread> threads(frags.size() - 1);
     unsigned nsa    = __nsacro;
-    unsigned invped = __invped;
+    //unsigned invped = __invped;
     for (unsigned i = 1; i<frags.size(); ++i) 
       {
 	auto afrag = frags.begin() + i;
-	threads[i-1] = std::thread([&iomutex, i, nsa, invped, afrag] {
+	threads[i-1] = std::thread([&iomutex, i, nsa, afrag] {
 	    {
 	      std::lock_guard<std::mutex> iolock(iomutex);
 	      // make it look like we're using i so clang doesn't complain.  This had been commented out
@@ -618,7 +662,7 @@ namespace lris
 	    }
 	    //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
 	    unpackCroData( afrag->bytes + afrag->ei.evszlro, afrag->ei.evszcro, 
-			   GETDCFLAG(afrag->ei.runflags), nsa, invped, afrag->crodata);
+			   GETDCFLAG(afrag->ei.runflags), nsa, afrag->crodata);
 	  });
       }
   
@@ -637,7 +681,7 @@ namespace lris
   
     //unpackLROData( f0->bytes, f0->ei.evszlro, ... );
     unpackCroData( f0->bytes + f0->ei.evszlro, f0->ei.evszcro, GETDCFLAG(f0->ei.runflags),
-		   nsa, invped, event.crodata );
+		   nsa, event.crodata );
     
     event.compression = raw::kNone;
     // the compression should be set for all L1 event builders, 

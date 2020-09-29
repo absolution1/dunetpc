@@ -151,7 +151,8 @@ StandardRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegist
 //**********************************************************************
 
 int StandardRawDigitPrepService::
-prepare(AdcChannelDataMap& datamap,
+prepare(detinfo::DetectorClocksData const& clockData,
+        AdcChannelDataMap& datamap,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "StandardRawDigitPrepService:prepare: ";
   // Extract digits.
@@ -255,7 +256,7 @@ prepare(AdcChannelDataMap& datamap,
   }
   if ( m_DoDeconvolution ) {
     for ( AdcChannelDataMap::value_type& chdata : datamap ) {
-      m_pDeconvolutionService->update(chdata.second);
+      m_pDeconvolutionService->update(clockData, chdata.second);
     }
   }
   if ( m_DoDump ) cout << myname << "   After dco: " << datamap[ichan].samples[isig] << endl;
@@ -374,4 +375,3 @@ print(std::ostream& out, std::string prefix) const {
 DEFINE_ART_SERVICE_INTERFACE_IMPL(StandardRawDigitPrepService, RawDigitPrepService)
 
 //**********************************************************************
-

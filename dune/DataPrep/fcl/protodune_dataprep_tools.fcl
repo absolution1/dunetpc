@@ -97,10 +97,12 @@ tools.channelGroupsIceberg: {
 # Fit ADC distribution to get pedestal.
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
-  SkipFlags: [8, 9, 10, 11, 12]
   LogLevel: 1
+  SkipFlags: [8, 9, 10, 11, 12]
+  AdcFitRange: 100
   FitRmsMin:  3.0
   FitRmsMax: 20.0
+  RemoveStickyCode: true
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
   HistTitle: "ADC pedestal fit for run %RUN% event %EVENT% channel %CHAN%"
   PlotFileName: ""
@@ -185,6 +187,7 @@ tools.adcTailSignalFinderAdc: {
   FlagNegative: true
 }
 
+# Tail removal 2019.
 tools.adcTailRemovalAdc: {
   tool_type: ExpTailRemover
   LogLevel: 1
@@ -200,6 +203,41 @@ tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
 tools.adcTailSignalFinderKe.Threshold: 0.5
 tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
 tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
+
+# Tail removal 2020.
+tools.pdspTailPedRemovalZKe: {
+  tool_type: ExpTailPedRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderKe
+  MaxTick: 6000
+  PedDegree: 0
+  PedTick0: 3000
+  PedFreqs: []
+  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
+  ExcludeChannelRanges: []
+}
+
+tools.pdspTailPedRemovalIKe: @local::tools.pdspTailPedRemovalZKe
+tools.pdspTailPedRemovalIKe.DecayTime: 6000
+tools.pdspTailPedRemovalIKe.IncludeChannelRanges: ["apa1i", "apa2i", "apa3i", "apa4i", "apa5i", "apa6i"]
+
+# Correct gain calibration for new induction capacitance and estimates
+# of out-of-plane charge sharing.
+# See D. Adams talk at ProtoDUNE sim/reco 8/26/2020:
+# https://indico.fnal.gov/event/44166/contributions/195159/attachments/133594/164846/adams_dunepdsimrec_20200826_dataprep.pdf
+tools.pdsp_gainCorrection: {
+  tool_type: AdcRangeSampleScaler
+  LogLevel: 1
+  RangeLimits: [800, 1600]
+  RangeModulus: 2560
+  ScaleFactors: [1.052, 1.030, 1.047]
+}
+
+# Scale ADC to ke
+tools.adcScaleAdcToKe.ScaleFactor: 2.401e-2 #24.01 e/ADC/ticks
 
 # Scale ke to ADC
 tools.adcScaleKeToAdc.ScaleFactor: 41.649 # 24.01 e/ADC/ticks

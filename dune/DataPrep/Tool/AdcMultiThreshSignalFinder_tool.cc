@@ -274,4 +274,3 @@ DataMap AdcMultiThreshSignalFinder::update(AdcChannelData& data) const {
   //
   return res;
 }
-

@@ -153,6 +153,3 @@ AdcSignalVector BaselineDetrend::Smoother( const AdcSignalVector &data ) const
   
   return trend;
 }
-
-
-  

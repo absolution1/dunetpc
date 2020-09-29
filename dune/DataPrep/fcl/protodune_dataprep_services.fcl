@@ -34,7 +34,8 @@ protodune_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
-  "adcSampleCalibration"        # Subtract pedestal and apply charge calibration
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection"         # Correct gain calibration
 ]
 
 # Charge calibration and mitigation, no tail or noise removal.
@@ -43,6 +44,7 @@ protodune_dataprep_tools_calib_mit: [
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate"         # Mitigate FEMB302 timing
 ]
@@ -53,6 +55,7 @@ protodune_dataprep_tools_calib_tail: [
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe"      # correct undershoot
@@ -64,6 +67,7 @@ protodune_dataprep_tools_calib_noiserem: [
   "pdsp_sticky_codes_ped",      # Flag sticky codes
   "pd_adcPedestalFit",          # Find pedestal
   "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
   "adcCorrectUndershootKe",     # correct undershoot
@@ -116,7 +120,7 @@ pdsim_dataprep_tools_tail: [
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 pdsim_dataprep_tools_wirecell: [
-  @sequence::pdsim_dataprep_tools_tail,
+  @sequence::pdsim_dataprep_tools_calib,
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC

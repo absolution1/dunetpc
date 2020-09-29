@@ -13,6 +13,14 @@ simple_plugin(PdspOnlineChannel   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(IcebergOnlineChannel   "tool"
+                dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(ProtoduneOnlineChannel   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except

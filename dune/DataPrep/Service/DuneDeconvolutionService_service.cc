@@ -23,7 +23,8 @@ DuneDeconvolutionService(fhicl::ParameterSet const& pset, art::ActivityRegistry&
 //**********************************************************************
 
 int DuneDeconvolutionService::
-update(AdcChannelData& data) const {
+update(detinfo::DetectorClocksData const& clockData,
+       AdcChannelData& data) const {
   const string myname = "DuneDeconvolutionService::update: ";
   AdcChannel chan = data.channel;
   AdcSignalVector& samples = data.samples;
@@ -50,7 +51,7 @@ update(AdcChannelData& data) const {
   // Deconvolute.
   art::ServiceHandle<util::SignalShapingServiceDUNE> hsss;
   if ( m_LogLevel >= 3 ) cout << myname << "  Deconvoluting." << endl;
-  hsss->Deconvolute(chan, samples);
+  hsss->Deconvolute(clockData, chan, samples);
   if ( pad ) samples.resize(nsam);
   if ( m_LogLevel >= 3 ) cout << myname << "  Normalizing." << endl;
   float norm = 1.0/hsss->GetDeconNorm();

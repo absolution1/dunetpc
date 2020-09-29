@@ -730,6 +730,8 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 						 RDTimeStamps &timestamps, 
 						 std::vector<int> &apalist)
 {
+  uint32_t runNumber = evt.run();
+
   for (auto const& frag : *frags)
     {
       //std::cout << "FELIX fragment size bytes: " << frag.sizeBytes() << std::endl; 
@@ -755,12 +757,12 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist)) ++n_felix_frags;
+		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist, runNumber)) ++n_felix_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist)) ++n_felix_frags;
+	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist, runNumber)) ++n_felix_frags;
 	    }
 	}
     }
@@ -772,7 +774,8 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 					      const artdaq::Fragment& frag, RawDigits& raw_digits,
 					      RDTimeStamps &timestamps,
-					      std::vector<int> &apalist)
+					      std::vector<int> &apalist,
+					      uint32_t runNumber)
 {
 
   //std::cout 
@@ -927,7 +930,52 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
     // David Adams's request for channels to start at zero for coldbox test data
     if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
 
-    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slot, fiberloc, chloc, dune::IcebergChannelMapService::kFELIX); 
+
+    // inverted ordering on back side, Run 2c (=Run 3)
+    // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
+
+    auto slotloc2 = slot;
+    auto fiberloc2 = fiberloc;
+
+    if (runNumber > 2572)
+      {
+
+        if (slot == 0 && fiberloc == 4)
+          {
+            slotloc2 = 1;
+            fiberloc2 = 3;
+          }
+        if (slot == 1 && fiberloc == 4)
+          {
+            slotloc2 = 0;
+            fiberloc2 = 3;
+          }
+        if (slot == 1 && fiberloc == 3)
+          {
+            slotloc2 = 0;
+            fiberloc2 = 4;
+          }
+        if (slot == 0 && fiberloc == 3)
+          {
+            slotloc2 = 1;
+            fiberloc2 = 4;
+          }
+      }
+
+    // skip the fake TPC data
+
+    if ( slotloc2 == 1 && fiberloc2 == 1 ) 
+      {
+        continue;
+      }
+
+    if ( slotloc2 == 2 && fiberloc2 == 1 )
+      {
+        continue;
+      }
+
+
+    unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
     // skip this channel if we are asked to.
 

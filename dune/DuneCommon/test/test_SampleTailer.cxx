@@ -82,7 +82,7 @@ void printResults(const SampleTailer& sta) {
 
 //**********************************************************************
 
-int test_SampleTailer() {
+int test_SampleTailer(bool useVector) {
   const string myname = "test_SampleTailer: ";
   cout << myname << "Starting test" << endl;
 #ifdef NDEBUG
@@ -112,7 +112,15 @@ int test_SampleTailer() {
 
   cout << myname << "Create utility." << endl;
   SampleTailer sta(100.0);
-  sta.setPedestal(5.0);
+  FloatVector peds(nsam);
+  for ( unsigned int isam=0; isam<peds.size(); ++isam ) {
+    peds[isam] = 5.0 + 0.1*isam;
+  }
+  if ( useVector ) {
+    sta.setPedestalVector(&peds);
+  } else {
+    sta.setPedestal(5.0);
+  }
   sta.setTail0(-15.0);
   sta.setUnit("ADC count");
   cout << myname << "  decayTime: " << sta.decayTime() << endl;
@@ -159,7 +167,10 @@ int test_SampleTailer() {
     cout << setw(10) << std::fixed << std::setprecision(2) << sigs1[isam];
     cout << setw(10) << std::fixed << std::setprecision(2) << sigs2[isam];
     cout << setw(10) << std::fixed << std::setprecision(2) << dif;
-    if ( adif > 1.e-3 ) ++nbad;
+    if ( adif > 1.e-3 ) {
+      ++nbad;
+      cout << "  Bad";
+    }
     cout << endl;
   }
   assert( nbad == 0 );
@@ -169,8 +180,9 @@ int test_SampleTailer() {
 
 //**********************************************************************
 
-int main() {
-  return test_SampleTailer();
+int main(int argc, char**) {
+  bool useVector = argc > 1;
+  return test_SampleTailer(useVector);
 }
 
 //**********************************************************************

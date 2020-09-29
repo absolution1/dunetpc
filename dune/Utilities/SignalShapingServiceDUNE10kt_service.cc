@@ -346,7 +346,14 @@ void util::SignalShapingServiceDUNE10kt::init()
 
     // Calculate field and electronics response functions.
 
-    SetFieldResponse();
+    // Lazy initialization is problematic in the context of
+    // multi-threading.  In this case, the best we can do is use the
+    // global data provided by the detector-clocks/properties
+    // services.
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob(clockData);
+
+    SetFieldResponse(clockData, detProp);
     SetElectResponse(fShapeTimeConst.at(2),fASICGainInMVPerFC.at(2));
 
     // Configure convolution kernels.
@@ -374,11 +381,11 @@ void util::SignalShapingServiceDUNE10kt::init()
     //fIndVSignalShaping.SetPeakResponseTime(0.);
         
 
-    SetResponseSampling();
+    SetResponseSampling(clockData);
 
     // Calculate filter functions.
 
-    SetFilters();
+    SetFilters(clockData);
 
     // Configure deconvolution kernels.
 
@@ -396,12 +403,12 @@ void util::SignalShapingServiceDUNE10kt::init()
 
 //----------------------------------------------------------------------
 // Calculate microboone field response.
-void util::SignalShapingServiceDUNE10kt::SetFieldResponse()
+void util::SignalShapingServiceDUNE10kt::SetFieldResponse(detinfo::DetectorClocksData const& clockData,
+                                                          detinfo::DetectorPropertiesData const& detProp)
 {
   // Get services.
 
   art::ServiceHandle<geo::Geometry> geo;
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
   // Get plane pitch.
  
@@ -423,8 +430,8 @@ void util::SignalShapingServiceDUNE10kt::SetFieldResponse()
   // set the response for the collection plane first
   // the first entry is 0
 
-  double driftvelocity=detprop->DriftVelocity()/1000.;  
-  int nbinc = TMath::Nint(fCol3DCorrection*(std::abs(pitch))/(driftvelocity*detprop->SamplingRate())); ///number of bins //KP
+  double driftvelocity=detProp.DriftVelocity()/1000.;
+  int nbinc = TMath::Nint(fCol3DCorrection*(std::abs(pitch))/(driftvelocity*sampling_rate(clockData))); ///number of bins //KP
   double integral = 0;
   ////////////////////////////////////////////////////
    if(fUseFunctionFieldShape)
@@ -499,7 +506,7 @@ void util::SignalShapingServiceDUNE10kt::SetFieldResponse()
      // now the induction plane
      
     
-     int nbini = TMath::Nint(fInd3DCorrection*(fabs(pitch))/(driftvelocity*detprop->SamplingRate()));//KP
+     int nbini = TMath::Nint(fInd3DCorrection*(fabs(pitch))/(driftvelocity*sampling_rate(clockData)));//KP
      for(int i = 0; i < nbini; ++i){
        fIndUFieldResponse[i] = fIndUFieldRespAmp/(1.*nbini);
        fIndUFieldResponse[nbini+i] = -fIndUFieldRespAmp/(1.*nbini);
@@ -590,14 +597,13 @@ void util::SignalShapingServiceDUNE10kt::SetElectResponse(double shapingtime, do
 
 //----------------------------------------------------------------------
 // Calculate microboone filter functions.
-void util::SignalShapingServiceDUNE10kt::SetFilters()
+void util::SignalShapingServiceDUNE10kt::SetFilters(detinfo::DetectorClocksData const& clockData)
 {
   // Get services.
 
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
-  double ts = detprop->SamplingRate();
+  double ts = sampling_rate(clockData);
   int n = fft->FFTSize() / 2;
 
   // Calculate collection filter.
@@ -658,15 +664,14 @@ void util::SignalShapingServiceDUNE10kt::SetFilters()
 //----------------------------------------------------------------------
 // Sample microboone response (the convoluted field and electronic
 // response), will probably add the filter later
-void util::SignalShapingServiceDUNE10kt::SetResponseSampling()
+void util::SignalShapingServiceDUNE10kt::SetResponseSampling(detinfo::DetectorClocksData const& clockData)
 {
   // Get services
   art::ServiceHandle<geo::Geometry> geo;
-  auto const *detprop = lar::providerFrom<detinfo::DetectorPropertiesService>();
   art::ServiceHandle<util::LArFFT> fft;
 
   // Operation permitted only if output of rebinning has a larger bin size
-  if( fInputFieldRespSamplingPeriod > detprop->SamplingRate() )
+  if( fInputFieldRespSamplingPeriod > sampling_rate(clockData) )
     throw cet::exception(__FUNCTION__) << "\033[93m"
 				       << "Invalid operation: cannot rebin to a more finely binned vector!"
 				       << "\033[00m" << std::endl;
@@ -674,9 +679,9 @@ void util::SignalShapingServiceDUNE10kt::SetResponseSampling()
   int nticks = fft->FFTSize();
   std::vector<double> SamplingTime( nticks, 0. );
   for ( int itime = 0; itime < nticks; itime++ ) {
-    SamplingTime[itime] = (1.*itime) * detprop->SamplingRate();
+    SamplingTime[itime] = (1.*itime) * sampling_rate(clockData);
     /// VELOCITY-OUT ... comment out kDVel usage here
-    //SamplingTime[itime] = (1.*itime) * detprop->SamplingRate() / kDVel;
+    //SamplingTime[itime] = (1.*itime) * sampling_rate(clockData) / kDVel;
   }
 
   // Sampling
@@ -745,7 +750,8 @@ void util::SignalShapingServiceDUNE10kt::SetResponseSampling()
 
 
 
-int util::SignalShapingServiceDUNE10kt::FieldResponseTOffset(unsigned int const channel) const
+int util::SignalShapingServiceDUNE10kt::FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
+                                                             unsigned int const channel) const
 {
   art::ServiceHandle<geo::Geometry> geom;
   //geo::SigType_t sigtype = geom->SignalType(channel);
@@ -765,8 +771,7 @@ int util::SignalShapingServiceDUNE10kt::FieldResponseTOffset(unsigned int const 
     throw cet::exception("SignalShapingServiceDUNE35t")<< "can't determine"
 						       << " View\n";
 
-  auto tpc_clock = lar::providerFrom<detinfo::DetectorClocksService>()->TPCClock();
-  return tpc_clock.Ticks(time_offset/1.e3);
+  return clockData.TPCClock().Ticks(time_offset/1.e3);
   
 }
 

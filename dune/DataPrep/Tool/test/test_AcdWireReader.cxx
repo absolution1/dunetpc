@@ -16,6 +16,7 @@
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -114,7 +115,8 @@ int test_AcdWireReader(bool useExistingFcl =false) {
   std::vector<recob::Wire> wires;
   wires.reserve(acds.size());
   assert( acd.samples.size() == 0 );
-  assert( hrdp->prepare(acds, &wires) == 0 );
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataForJob();
+  assert( hrdp->prepare(clockData, acds, &wires) == 0 );
   assert( acd.raw.size() == nsig );
   assert( acd.samples.size() == nsig );
 

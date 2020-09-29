@@ -117,6 +117,7 @@ simple_plugin(PlotOpticalDetails "module"
 simple_plugin(RawEventDisplay "module"
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
+              lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
               ${ART_FRAMEWORK_CORE}
@@ -132,6 +133,7 @@ simple_plugin(RawEventDisplay "module"
 simple_plugin(TpcMonitor "module"
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
+              lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service

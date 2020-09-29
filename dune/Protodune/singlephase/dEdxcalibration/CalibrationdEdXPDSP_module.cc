@@ -25,8 +25,8 @@
 #include "lardataobj/AnalysisBase/Calorimetry.h"
 #include "dune/Calib/XYZCalib.h"
 #include "dune/CalibServices/XYZCalibService.h"
-#include "dune/Calib/LifetimeCalib.h" 
-#include "dune/CalibServices/LifetimeCalibService.h" 
+#include "dune/Calib/LifetimeCalib.h"
+#include "dune/CalibServices/LifetimeCalibService.h"
 
 #include "larevt/SpaceCharge/SpaceCharge.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
@@ -34,7 +34,7 @@
 #include "TH2F.h"
 #include "TH1F.h"
 #include "TFile.h"
-#include "TTimeStamp.h" 
+#include "TTimeStamp.h"
 
 #include <memory>
 
@@ -63,23 +63,21 @@ private:
   std::string fCalorimetryModuleLabel;
 
   calo::CalorimetryAlg caloAlg;
-  
+
   double fModBoxA;
   double fModBoxB;
-  
+
   bool fSCE;
   bool fApplyNormCorrection;
   bool fApplyXCorrection;
   bool fApplyYZCorrection;
   bool fApplyLifetimeCorrection;
-  bool fUseLifetimeFromDatebase; // true: lifetime from database; false: lifetime from DetectorProperties
+  bool fUseLifetimeFromDatabase; // true: lifetime from database; false: lifetime from DetectorProperties
 
   double fLifetime; // [us]
 
   double vDrift;
   double xAnode;
-  const detinfo::DetectorProperties* detprop;
-
 };
 
 
@@ -95,12 +93,12 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   , fApplyXCorrection      (p.get< bool >("ApplyXCorrection"))
   , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
   , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
-  , fUseLifetimeFromDatebase(p.get< bool >("UseLifetimeFromDatebase"))
+  , fUseLifetimeFromDatabase(p.get< bool >("UseLifetimeFromDatabase"))
 {
-  detprop = art::ServiceHandle<detinfo::DetectorPropertiesService>()->provider();
-  vDrift = detprop->DriftVelocity(); // [cm/us]
-  xAnode = std::abs(detprop->ConvertTicksToX(detprop->TriggerOffset(),0,0,0));
-  //std::cout<<detprop->TriggerOffset()<<" "<<xAnode<<std::endl;
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
+  vDrift = detProp.DriftVelocity(); //cm/us
+  xAnode = std::abs(detProp.ConvertTicksToX(trigger_offset(clockData),0,0,0));
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
   produces< art::Assns<recob::Track, anab::Calorimetry> >();
@@ -113,20 +111,23 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   art::ServiceHandle<calib::XYZCalibService> xyzcalibHandler;
   calib::XYZCalibService & xyzcalibService = *xyzcalibHandler;
   calib::XYZCalib *xyzcalib = xyzcalibService.provider();
-  
+
   // Electron lifetime from database calibration service provider
   art::ServiceHandle<calib::LifetimeCalibService> lifetimecalibHandler;
-  calib::LifetimeCalibService & lifetimecalibService = *lifetimecalibHandler; 
+  calib::LifetimeCalibService & lifetimecalibService = *lifetimecalibHandler;
   calib::LifetimeCalib *lifetimecalib = lifetimecalibService.provider();
+  auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt);
 
-  if (fUseLifetimeFromDatebase) {
-    fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
-    //std::cout << "use lifetime from database   " << fLifetime << std::endl;
-  } 
-  else {
-    fLifetime = detprop->ElectronLifetime(); // [us] 
+  if (fApplyLifetimeCorrection) {
+    if (fUseLifetimeFromDatabase) {
+      fLifetime = lifetimecalib->GetLifetime()*1000.0; // [ms]*1000.0 -> [us]
+      //std::cout << "use lifetime from database   " << fLifetime << std::endl;
+    }
+    else {
+      fLifetime = detProp.ElectronLifetime(); // [us]
+    }
   }
-  
+
   //int run = evt.run();
   //int subrun = evt.subRun();
   //int event = evt.id().event();
@@ -134,14 +135,14 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   art::Timestamp ts = evt.time();
   TTimeStamp tts(ts.timeHigh(), ts.timeLow());
   uint64_t evttime = tts.AsDouble();
-  
+
   std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
   std::cout << "evttime: " << evttime << std::endl;
-  std::cout << "fLifetime: " << fLifetime << std::endl;
+  if (fApplyLifetimeCorrection) std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
 
-  //Spacecharge services provider 
+  //Spacecharge services provider
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
-  
+
   //create anab::Calorimetry objects and make association with recob::Track
   std::unique_ptr< std::vector<anab::Calorimetry> > calorimetrycol(new std::vector<anab::Calorimetry>);
   std::unique_ptr< art::Assns<recob::Track, anab::Calorimetry> > assn(new art::Assns<recob::Track, anab::Calorimetry>);
@@ -160,10 +161,10 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
       <<"Could not get assocated Calorimetry objects";
   }
 
-  for (size_t trkIter = 0; trkIter < tracklist.size(); ++trkIter){   
+  for (size_t trkIter = 0; trkIter < tracklist.size(); ++trkIter){
     for (size_t i = 0; i<fmcal.at(trkIter).size(); ++i){
       auto & calo = fmcal.at(trkIter)[i];
-      
+
       if (!(calo->dEdx()).size()){
         //empty calorimetry product, just copy it
         calorimetrycol->push_back(*calo);
@@ -180,6 +181,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
         std::vector<float>   deadwire   = calo->DeadWireResRC();
         float                Trk_Length = calo->Range();
         std::vector<float>   fpitch     = calo->TrkPitchVec();
+        const auto&          fHitIndex  = calo->TpIndices();
         const auto&          vXYZ       = calo->XYZ();
         geo::PlaneID         planeID    = calo->PlaneID();
 
@@ -201,8 +203,8 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           throw art::Exception(art::errors::Configuration)
             <<"plane is invalid "<<planeID.Plane;
         }
-	// update the kinetic energy
-	double EkinNew = 0.;
+        // update the kinetic energy
+        double EkinNew = 0.;
 
         for (size_t j = 0; j<vdQdx.size(); ++j){
           double normcorrection = 1;
@@ -226,52 +228,52 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           //std::cout<<"plane = "<<planeID.Plane<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<std::endl;
 
           vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
-          
-          
+
+
           //set time to be trgger time so we don't do lifetime correction
           //we will turn off lifetime correction in caloAlg, this is just to be double sure
-          //vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detprop->TriggerOffset(), planeID.Plane, 0);
-          
-          
+          //vdEdx[j] = caloAlg.dEdx_AREA(vdQdx[j], detProp.TriggerOffset(), planeID.Plane, 0);
+
+
           //Calculate dE/dx uisng the new recombination constants
           double dQdx_e = caloAlg.ElectronsFromADCArea(vdQdx[j], planeID.Plane);
-          double rho = detprop->Density();  			// LAr density in g/cm^3
+          double rho = detProp.Density();                       // LAr density in g/cm^3
           double Wion = 1000./util::kGeVToElectrons;    // 23.6 eV = 1e, Wion in MeV/e
-          double E_field_nominal = detprop->Efield();   // Electric Field in the drift region in KV/cm
-          
+          double E_field_nominal = detProp.Efield();   // Electric Field in the drift region in KV/cm
+
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0., 0., 0.};
-          
+
           if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()},planeID.TPC);
-          
+
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();
-          
+
           //calculate recombination factors
           double Beta = fModBoxB / (rho * E_field);
           double Alpha = fModBoxA;
           //double old_vdEdx = vdEdx[j];
           vdEdx[j] = (exp(Beta * Wion * dQdx_e) - Alpha) / Beta;
-          
-         /*if (planeID.Plane==2){ 
+
+         /*if (planeID.Plane==2){
          std::cout << sce->EnableCalEfieldSCE() << " " << fSCE << std::endl;
          std::cout << E_field << " " << E_field_nominal << std::endl;
          std::cout << vdQdx[j] << " " << dQdx_e << std::endl;
-         std::cout << old_vdEdx << " " << vdEdx[j] << std::endl; 
+         std::cout << old_vdEdx << " " << vdEdx[j] << std::endl;
          std::cout << rho << " " << Wion << " " << Beta << "\n" << std::endl; }
-         */ 
-	  //update kinetic energy calculation
-	  if (j>=1) {
-	    if ( (vresRange[j] < 0) || (vresRange[j-1] < 0) ) continue;
-	    EkinNew += fabs(vresRange[j]-vresRange[j-1]) * vdEdx[j];
-	  }
-	  if (j==0){
-	    if ( (vresRange[j] < 0) || (vresRange[j+1] < 0) ) continue;
-	    EkinNew += fabs(vresRange[j]-vresRange[j+1]) * vdEdx[j];
-	  }
-	  
+         */
+          //update kinetic energy calculation
+          if (j>=1) {
+            if ( (vresRange[j] < 0) || (vresRange[j-1] < 0) ) continue;
+            EkinNew += fabs(vresRange[j]-vresRange[j-1]) * vdEdx[j];
+          }
+          if (j==0){
+            if ( (vresRange[j] < 0) || (vresRange[j+1] < 0) ) continue;
+            EkinNew += fabs(vresRange[j]-vresRange[j+1]) * vdEdx[j];
+          }
+
         }
-        //save new calorimetry information 
+        //save new calorimetry information
         calorimetrycol->push_back(anab::Calorimetry(EkinNew,// Kin_En, // change by David C. to update kinetic energy calculation
                                                     vdEdx,
                                                     vdQdx,
@@ -280,6 +282,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
                                                     Trk_Length,
                                                     fpitch,
                                                     vXYZ,
+                                                    fHitIndex,
                                                     planeID));
         util::CreateAssn(*this, evt, *calorimetrycol, tracklist[trkIter], *assn);
       }//calorimetry object not empty

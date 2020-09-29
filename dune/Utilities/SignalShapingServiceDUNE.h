@@ -38,6 +38,11 @@
 #include "TF1.h"
 #include "TH1D.h"
 
+namespace detinfo {
+  class DetectorClocksData;
+  class DetectorPropertiesData;
+}
+
 using DoubleVec = std::vector<double>;
 namespace util {
 
@@ -63,18 +68,25 @@ public:
   unsigned int GetSignalSize() const override;
 
   // Accessors.
-  int FieldResponseTOffset(Channel const channel) const override;
+  int FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
+                           Channel const channel) const override;
   const util::SignalShaping& SignalShaping(Channel channel) const override;
 
   // Do convolution calcution (for simulation).
-  template <class T> void Convolute(Channel channel, std::vector<T>& func) const;
-  void Convolute(Channel channel, FloatVector& func) const override;
-  void Convolute(Channel channel, DoubleVector& func) const override;
+  template <class T> void Convolute(detinfo::DetectorClocksData const& clockData,
+                                    Channel channel, std::vector<T>& func) const;
+  void Convolute(detinfo::DetectorClocksData const& clockData,
+                 Channel channel, FloatVector& func) const override;
+  void Convolute(detinfo::DetectorClocksData const& clockData,
+                 Channel channel, DoubleVector& func) const override;
 
   // Do deconvolution calcution (for reconstruction).
-  template <class T> void Deconvolute(Channel channel, std::vector<T>& func) const;
-  void Deconvolute(Channel channel, DoubleVector& func) const override;
-  void Deconvolute(Channel channel, FloatVector& func) const override;
+  template <class T> void Deconvolute(detinfo::DetectorClocksData const& clockData,
+                                      Channel channel, std::vector<T>& func) const;
+  void Deconvolute(detinfo::DetectorClocksData const& clockData,
+                   Channel channel, DoubleVector& func) const override;
+  void Deconvolute(detinfo::DetectorClocksData const& clockData,
+                   Channel channel, FloatVector& func) const override;
 
 private:
 
@@ -85,19 +97,20 @@ private:
   void init();
 
   // Calculate response functions.
-  void SetFieldResponse();
+  void SetFieldResponse(detinfo::DetectorClocksData const& clockData,
+                        detinfo::DetectorPropertiesData const& detProp);
   void SetElectResponse(double shapingtime, double gain);
   void SetRCResponse();
 
   // Calculate filter functions.
-  void SetFilters();
+  void SetFilters(detinfo::DetectorClocksData const& clockData);
 
   // Attributes.
   bool fInit;               ///< Initialization flag.
 
   // Sample the response function, including a configurable
   // drift velocity of electrons
-  void SetResponseSampling();
+  void SetResponseSampling(detinfo::DetectorClocksData const& clockData);
 
   // Fcl parameters.
   int fNFieldBins;         			///< number of bins for field response
@@ -153,11 +166,12 @@ private:
 // Do convolution.
 template <class T>
 inline void util::SignalShapingServiceDUNE::
-Convolute(unsigned int channel, std::vector<T>& func) const {
+Convolute(detinfo::DetectorClocksData const& clockData,
+          unsigned int channel, std::vector<T>& func) const {
   SignalShaping(channel).Convolute(func);
 
   //negative number
-  int time_offset = FieldResponseTOffset(channel);
+  int time_offset = FieldResponseTOffset(clockData, channel);
   
   std::vector<T> temp;
   if (time_offset <=0){
@@ -176,10 +190,11 @@ Convolute(unsigned int channel, std::vector<T>& func) const {
 // Do deconvolution.
 template <class T>
 inline void util::SignalShapingServiceDUNE::
-Deconvolute(unsigned int channel, std::vector<T>& func) const {
+Deconvolute(detinfo::DetectorClocksData const& clockData,
+            unsigned int channel, std::vector<T>& func) const {
   SignalShaping(channel).Deconvolute(func);
 
-  int time_offset = FieldResponseTOffset(channel);
+  int time_offset = FieldResponseTOffset(clockData, channel);
   
   std::vector<T> temp;
   if (time_offset <=0){

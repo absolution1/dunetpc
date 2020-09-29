@@ -12,6 +12,9 @@
 #include <iostream>
 #include "dune/DuneInterface/AdcChannelData.h"
 #include "dune/DuneInterface/WiredAdcChannelDataMap.h"
+namespace detinfo {
+  class DetectorClocksData;
+}
 
 namespace raw {
 class RawDigit;
@@ -41,7 +44,8 @@ public:
   // to this method.
   // If not null, the object pwiredData may be filled with intermediate state information as dictated
   // the configuration of the service implementation.
-  virtual int prepare(AdcChannelDataMap& prepdigs,
+  virtual int prepare(detinfo::DetectorClocksData const& clockData,
+                      AdcChannelDataMap& prepdigs,
                       std::vector<recob::Wire>* pwires =nullptr,
                       WiredAdcChannelDataMap* pwiredData =nullptr) const =0;
 

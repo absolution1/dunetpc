@@ -209,20 +209,20 @@ T0RecoAnodePiercers::T0RecoAnodePiercers(fhicl::ParameterSet const & fcl)
 		}
 
 	// Use 'detp' to find 'efield' and 'temp'
-	auto const* detp = lar::providerFrom<detinfo::DetectorPropertiesService>();
-	double efield = detp -> Efield();
+        auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataForJob();
+        double efield = detProp.Efield();
 	if(fDebug) std::cout << "Nominal electric field is: " << efield << " V/cm" << std::endl;
 
-	double temp   = detp -> Temperature();
+        double temp   = detProp.Temperature();
 	if(fDebug) std::cout << "LAr temperature is: " << temp << " K" << std::endl;
 
 	// Determine the drift velocity from 'efield' and 'temp'
-	DriftVelocity = detp -> DriftVelocity(efield,temp);
+        DriftVelocity = detProp.DriftVelocity(efield,temp);
 	if(fDebug) std::cout << "Drift velocity is: " << DriftVelocity << " cm/us" << std::endl;
 
 	// Get Readout window length
 
-	ReadoutWindow = detp->ReadOutWindowSize();
+        ReadoutWindow = detProp.ReadOutWindowSize();
 	if(fDebug) std::cout << "Readout window is: " << ReadoutWindow << " us" << std::endl;
 
 	// Declare what the module produces
@@ -255,7 +255,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	int track_number = 0;
 
 	// Load detector clocks for later
-	auto const* detclock = lar::providerFrom<detinfo::DetectorClocksService>();
+        auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event);;
 
 	double TPC_trigger_offset = 0.0;
 
@@ -322,7 +322,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 
 	// Get trigger to TPC Offset
 
-	TPC_trigger_offset = detclock->TriggerOffsetTPC();
+        TPC_trigger_offset = clockData.TriggerOffsetTPC();
 	if(fDebug) std::cout << "TPC time offset from trigger: " 
 		<< TPC_trigger_offset << " us" << std::endl;
 
@@ -477,7 +477,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 				continue;
  				}
 
-			double hit_time = detclock->TPCTick2TrigTime(hit_tick);
+                        double hit_time = clockData.TPCTick2TrigTime(hit_tick);
 
 			// If track within window, get reco time from earliest hit time
 			if (hit_time < anode_rc_time) anode_rc_time = hit_time;
@@ -670,4 +670,3 @@ size_t  T0RecoAnodePiercers::FlashMatch(const double reco_time, std::vector<doub
 	}
 
 DEFINE_ART_MODULE(T0RecoAnodePiercers) 
-

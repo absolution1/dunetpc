@@ -26,6 +26,7 @@
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "lardataobj/AnalysisBase/CosmicTag.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #include "TH1F.h"
 
@@ -71,7 +72,8 @@ public:
 
 private:
 
-  const simb::MCParticle* GetTruthParticle(const std::vector< art::Ptr<recob::Hit> > & hits) const;
+  const simb::MCParticle* GetTruthParticle(detinfo::DetectorClocksData const& clockData,
+                                           const std::vector< art::Ptr<recob::Hit> > & hits) const;
 
   const particleType ConvertPDGCode(int pdg) const;
 
@@ -190,13 +192,14 @@ void cosmic::CosmicEfficiency::analyze(art::Event const & evt)
   std::vector<int> matchedTruths;
 
   // Loop over the tracks
+  auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   for(unsigned int t = 0; t < recoTracks->size(); ++t){
   
     // Get the hits
     auto const& trackHits = findTrackHits.at(t);
 
     // Get the best match MC Particle for this track
-    const simb::MCParticle* trueMatch = GetTruthParticle(trackHits);
+    const simb::MCParticle* trueMatch = GetTruthParticle(clockData, trackHits);
 
     if(trueMatch == 0x0) continue;
 
@@ -364,7 +367,8 @@ void cosmic::CosmicEfficiency::endJob()
 }
 
 // Function to find the best matched true particle to a reconstructed particle
-const simb::MCParticle* cosmic::CosmicEfficiency::GetTruthParticle(const std::vector< art::Ptr<recob::Hit> > & hits) const
+const simb::MCParticle* cosmic::CosmicEfficiency::GetTruthParticle(detinfo::DetectorClocksData const& clockData,
+                                                                   const std::vector< art::Ptr<recob::Hit> > & hits) const
 {
   const simb::MCParticle* mcParticle = 0;
 
@@ -373,7 +377,7 @@ const simb::MCParticle* cosmic::CosmicEfficiency::GetTruthParticle(const std::ve
   std::unordered_map<int, double> trkIDE;
   for (auto const & h : hits)
   {
-    for (auto const & ide : bt_serv->HitToTrackIDEs(h)) // loop over std::vector<sim::TrackIDE>
+    for (auto const & ide : bt_serv->HitToTrackIDEs(clockData, h)) // loop over std::vector<sim::TrackIDE>
     {
         trkIDE[ide.trackID] += ide.energy; // sum energy contribution by each track ID
     }
@@ -462,4 +466,3 @@ int cosmic::CosmicEfficiency::ConvertCosmicType(anab::CosmicTagID_t tag) const
 }
 
 DEFINE_ART_MODULE(cosmic::CosmicEfficiency)
-
