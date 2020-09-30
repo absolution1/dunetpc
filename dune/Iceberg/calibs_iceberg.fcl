@@ -59,6 +59,6 @@ tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
 # User will have to make one of these assignments based on run number
 # until we have a tool smart enough to do so.
 #tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
-#tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
+#tools.areaGain_ib4: @local::tools.areaGain_ib4b_v10
 
 #####################################################################

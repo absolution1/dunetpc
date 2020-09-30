@@ -187,6 +187,7 @@ tools.adcTailSignalFinderAdc: {
   FlagNegative: true
 }
 
+# Tail removal 2019.
 tools.adcTailRemovalAdc: {
   tool_type: ExpTailRemover
   LogLevel: 1
@@ -202,6 +203,26 @@ tools.adcTailSignalFinderKe: @local::tools.adcTailSignalFinderAdc
 tools.adcTailSignalFinderKe.Threshold: 0.5
 tools.adcTailRemovalKe: @local::tools.adcTailRemovalAdc
 tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
+
+# Tail removal 2020.
+tools.pdspTailPedRemovalZKe: {
+  tool_type: ExpTailPedRemover
+  LogLevel: 1
+  DecayTime: 2000
+  SignalFlag: 3
+  SignalIterationLimit: 10
+  SignalTool: adcTailSignalFinderKe
+  MaxTick: 6000
+  PedDegree: 0
+  PedTick0: 3000
+  PedFreqs: []
+  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
+  ExcludeChannelRanges: []
+}
+
+tools.pdspTailPedRemovalIKe: @local::tools.pdspTailPedRemovalZKe
+tools.pdspTailPedRemovalIKe.DecayTime: 6000
+tools.pdspTailPedRemovalIKe.IncludeChannelRanges: ["apa1i", "apa2i", "apa3i", "apa4i", "apa5i", "apa6i"]
 
 # Correct gain calibration for new induction capacitance and estimates
 # of out-of-plane charge sharing.

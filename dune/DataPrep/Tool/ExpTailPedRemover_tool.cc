@@ -18,6 +18,7 @@ using std::endl;
 using std::setw;
 using std::copy;
 using std::setw;
+using std::to_string;
 
 using Index = unsigned int;
 using DoubleVector = std::vector<double>;
@@ -33,7 +34,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
   m_SignalTool(ps.get<string>("SignalTool")),
   m_DecayTime(ps.get<double>("DecayTime")) ,
   m_MaxTick(ps.get<Index>("MaxTick")),
-  m_PedDegree(ps.get<Index>("PedDegree")),
+  m_PedDegree(ps.get<int>("PedDegree")),
   m_PedTick0(ps.get<Index>("PedTick0")),
   m_PedFreqs(ps.get<FloatVector>("PedFreqs")) ,
   m_IncludeChannelRanges(ps.get<NameVector>("IncludeChannelRanges")),
@@ -98,43 +99,64 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
     cout << myname << "WARNING: Pedestal degree reduced from m_PedDegree to 2." << endl;
     m_PedDegree = 2;
   }
-  Index nped = 1 + m_PedDegree + 2*m_PedFreqs.size();
+  Index nped = (usePolynomial() ? m_PedDegree + 1 : 0) + 2*m_PedFreqs.size();
   Index nfit = nped + useTail();
   m_fitNames.resize(nfit);
-  Index ifit = 0;
-  if ( useTail() ) m_fitNames[ifit++] = "Tail";
-  m_fitNames[ifit++] = "Pedestal";
-  Index nsam = m_MaxTick;
-  m_pedVectors.resize(nped, FloatVector(nsam, 1.0));
-  FloatVectorVector::iterator iped = m_pedVectors.begin();
-  if ( m_PedDegree > 0 ) {
-    FloatVector& vec = *(++iped);
-    for ( Index isam=0; isam<nsam; ++isam ) {
-      vec[isam] = float(isam) - m_PedTick0;
+  m_fitNamesString = "{";
+  if ( nfit == 0 ) {
+    cout << myname << "WARNING: No fit parameters." << endl;
+    m_fitNamesString += "}";
+  } else if ( m_MaxTick < nfit ) {
+    cout << myname << "ERROR: MaxTick = " << m_MaxTick << " is less than nfit = " << nfit << endl;
+    m_fitNamesString += "}";
+  } else {
+    Index nsam = m_MaxTick;
+    Index ifit = 0;
+    m_pedVectors.resize(nped, FloatVector(nsam, 1.0));
+    FloatVectorVector::iterator iped = m_pedVectors.begin();
+    if ( useTail() ) {
+      m_fitNames[ifit++] = "Tail";
+      m_fitNamesString += "tau0 ";
+      ++nfit;
     }
-    m_fitNames[ifit++] = "Slope";
-  }
-  if ( m_PedDegree > 1 ) {
-    FloatVector& vec = *(++iped);
-    for ( Index isam=0; isam<nsam; ++isam ) {
-      float dsam = float(isam) - m_PedTick0;
-      vec[isam] = dsam*dsam;
+    if ( usePolynomial() ) {
+      m_fitNames[ifit++] = "Pedestal";
+      m_fitNamesString += "ped ";
+      ++iped;
+      if ( m_PedDegree > 0 ) {
+        FloatVector& vec = *(iped++);
+        for ( Index isam=0; isam<nsam; ++isam ) {
+          vec[isam] = float(isam) - m_PedTick0;
+        }
+        m_fitNames[ifit++] = "Slope";
+        m_fitNamesString += "slope ";
+      }
+      if ( m_PedDegree > 1 ) {
+        FloatVector& vec = *(iped++);
+        for ( Index isam=0; isam<nsam; ++isam ) {
+          float dsam = float(isam) - m_PedTick0;
+          vec[isam] = dsam*dsam;
+        }
+        m_fitNames[ifit++] = "Curvature";
+        m_fitNamesString += "curv ";
+      }
     }
-    m_fitNames[ifit++] = "Curvature";
-  }
-  float twopi = 2.0*acos(-1.0);
-  for ( float frq : m_PedFreqs ) {
-    FloatVector& cvec = *(++iped);
-    FloatVector& svec = *(++iped);
-    for ( Index isam=0; isam<nsam; ++isam ) {
-      cvec[isam] = cos(twopi*frq*isam);
-      svec[isam] = sin(twopi*frq*isam);
+    float twopi = 2.0*acos(-1.0);
+    for ( float frq : m_PedFreqs ) {
+      FloatVector& cvec = *(iped++);
+      FloatVector& svec = *(iped++);
+      for ( Index isam=0; isam<nsam; ++isam ) {
+        cvec[isam] = cos(twopi*frq*isam);
+        svec[isam] = sin(twopi*frq*isam);
+      }
+      m_fitNames[ifit++] = "Cos";
+      m_fitNames[ifit++] = "Sin";
+      m_fitNamesString += "cos sin ";
     }
-    m_fitNames[ifit++] = "Cos";
-    m_fitNames[ifit++] = "Sin";
-  }
-  if ( ++iped != m_pedVectors.end() ) {
-    cout << myname << "ERROR: Unexpected pedestal vector size: " << m_pedVectors.size() << endl;
+    m_fitNamesString[m_fitNamesString.size()-1] = '}';
+    if ( iped != m_pedVectors.end() ) {
+      cout << myname << "ERROR: Unexpected pedestal vector size: " << m_pedVectors.size() << endl;
+    }
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Parameters:" << endl;
@@ -175,6 +197,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
            << ( nchaCheck == 1 ? "" : "s") << "." << endl;
     } else {
       cout << myname << "Channel checking disabled." << endl;
+      cout << myname << "Fit parameters: " << m_fitNamesString << endl;
     }
   }
 }
@@ -183,6 +206,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
 
 DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   const string myname = "ExpTailPedRemover::update: ";
+  string mychan = myname + " Channel " + to_string(acd.channel) + ": ";
   DataMap ret;
 
   // Save the data before tail removal.
@@ -199,13 +223,21 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   }
 
   // Check input data size.
-  if ( nsam < 10 ) {
+  Index ntai = useTail();           // # tail parameters
+  Index nped = m_pedVectors.size(); // # pedestal parameters
+  Index ncof = ntai + nped;         // # fitted parameters
+  if ( nsam < ncof ) {
     cout << myname << "WARNING: Data for channel " << acd.channel << " has "
-         << ( nsam==0 ? "no" : "too few" ) << " ticks." << endl;
+         << ( nsam==0 ? "no" : "too few" ) << " ticks: " << nsam << " < " << ncof << endl;
+    return ret.setStatus(1);
+  }
+  if ( nsam > m_MaxTick ) {
+    cout << myname << "WARNING: Data for channel " << acd.channel << " has too many ticks:"
+         << nsam << " > " << m_MaxTick << ". Please increase MaxTick." << endl;
     return ret.setStatus(1);
   }
 
-  if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
+  if ( m_LogLevel >= 3 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
                               << " channel " << acd.channel << endl;
 
   // Set flag indicating if signal should be found each iteration.
@@ -216,12 +248,12 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     checkSignalDefault = false;
   } else if ( m_SignalFlag == 1  ) {
     if ( acd.signal.size() < nsam ) {
-      cout << myname << "WARNING: Data is missing signal flags--padding from " << acd.signal.size()
+      cout << mychan << "WARNING: Data is missing signal flags--padding from " << acd.signal.size()
            << " to " << nsam << " samples." << endl;
     }
   } else if ( m_SignalFlag >= 2  ) {
     if ( m_pSignalTool == nullptr ) {
-      cout << myname << "WARNING: Signal-finding tool is missing. Using all signals." << endl;
+      cout << mychan << "WARNING: Signal-finding tool is missing. Using all signals." << endl;
       checkSignalDefault = false;
     } else {
       findSignal = true;
@@ -231,9 +263,6 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   // Iterate over fits based on background samples.
   // Loop ends when the signal selection does not change or the maximumc # loops is reached.
   Index niter = 0;  // # fit iterations
-  Index ntai = useTail();           // # tail parameters
-  Index nped = m_pedVectors.size(); // # pedestal parameters
-  Index ncof = ntai + nped;         // # fitted parameters
   FloatVector cofs(ncof, 0);    // {tau0, lam1, lam2, ...} (ped = lam1)
   Index nsamFit = 0;
   Index maxiter = findSignal ? m_SignalIterationLimit : 1;
@@ -249,7 +278,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         break;
       }
       if ( acd.signal == signalLast ) {
-        if ( m_LogLevel >=3 ) cout << myname << "Signal is unchanged. Exiting loop." << endl;
+        if ( m_LogLevel >=3 ) cout << mychan << "Signal is unchanged. Exiting loop." << endl;
         break;
       }
     }
@@ -262,7 +291,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         if ( ++nchk >= ncof ) break;
       }
       if ( nchk < ncof ) {
-        cout << myname << "WARNING: Background sample count of " << nchk
+        cout << mychan << "WARNING: Not-signal sample count of " << nchk
              << " is not sufficient to evaluate the " << ncof << " fit parameters.";
         if ( niter == 0 ) {
           cout << " Using all samples.";
@@ -274,7 +303,6 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         cout << endl;
       }
     }
-    //
     // Evaluate the signal coefficients (C_iM in DUNE-doc-20618).
     using DoubleVector = std::vector<double>;
     using DoubleVectorVector = std::vector<DoubleVector>;
@@ -282,7 +310,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     SampleTailer sta(m_DecayTime);
     if ( ! useTail() ) sta.setBeta(1.0, true);
     if ( ! sta.isValid() ) {
-      cout << myname << "ERROR: SampleTailer is invalid. Exiting." << endl;
+      cout << mychan << "ERROR: SampleTailer is invalid. Exiting." << endl;
       break;
     }
     Index icof = 0;
@@ -330,11 +358,11 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     kmat.Invert(&det);
     if ( ! kmat.IsValid() || det == 0.0 ) {
       if ( acd.channelStatus == 0 || m_LogLevel >= 2 ) {
-        cout << myname << "WARNING: Unable to invert K-matrix with "
+        cout << mychan << "WARNING: Unable to invert K-matrix with "
              << nsamFit << " of " << nsam << " samples--stopping iteration for channel "
              << acd.channel << " with status " << acd.channelStatus << "." << endl;
         for ( icof=0; icof<ncof; ++icof ) {
-          cout << myname;
+          cout << mychan;
           for ( Index jcof=0; jcof<ncof; ++jcof ) {
             cout << setw(20) << kmat[icof][jcof];
           }
@@ -374,8 +402,8 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     noise = sqrt(sumsq/ndof);
     // Update iteration count.
     if ( m_LogLevel >= 3 ) {
-      cout << myname << "Iteration " << niter << ": nsamfit=" << nsamFit
-           << ", noise=" << noise << "; tau, {ped} : {";
+      cout << mychan << "Iteration " << niter << ": nsamfit=" << nsamFit
+           << ", noise=" << noise << "; " << m_fitNamesString << ": {";
       bool first = true;
       for ( float cof : cofs ) {
         if ( first ) first = false;
@@ -389,11 +417,11 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
 
   // Log result of interation.
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "Iteration count: " << niter << endl;
-    cout << myname << "Noise: " << noise;
+    cout << mychan << "Iteration count: " << niter << endl;
+    cout << mychan << "Noise: " << noise;
     if ( sampleUnit.size() ) cout << " " << sampleUnit;
     cout << " from " << nsamFit << "/" << nsam << " channels" << endl;
-    cout << myname << "Final tau0, ped params: " << " {";
+    cout << mychan << "Final " << m_fitNamesString << ": {";
     bool first = true;
     for ( float cof : cofs ) {
       if ( first ) first = false;
