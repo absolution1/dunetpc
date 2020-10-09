@@ -1,17 +1,15 @@
-// test_ProtoduneOnlineChannel.cxx
+// test_ProtoduneChannelHelper.cxx
 //
 // David Adams
 // May 2018
 //
-// Test ProtoduneOnlineChannel.
+// Test ProtoduneChannelHelper.
 
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/Protodune/singlephase/Utility/ProtoduneChannelHelper.h"
 #include "TH1F.h"
 
@@ -24,14 +22,13 @@ using std::endl;
 using std::ofstream;
 using std::istringstream;
 using std::setw;
-using fhicl::ParameterSet;
-using Index = IndexMapTool::Index;
+using Index = ProtoduneChannelHelper::Index;
 using IndexVector = std::vector<Index>;
 
 //**********************************************************************
 
-int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
-  const string myname = "test_ProtoduneOnlineChannel: ";
+int test_ProtoduneChannelHelper(Index nshow =64) {
+  const string myname = "test_ProtoduneChannelHelper: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -39,39 +36,13 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   string line = "-----------------------------";
 
   cout << myname << line << endl;
-  string fclfile = "test_ProtoduneOnlineChannel.fcl";
-  if ( ! useExistingFcl ) {
-    cout << myname << "Creating top-level FCL." << endl;
-    ofstream fout(fclfile.c_str());
-    fout << "tools: {" << endl;
-    fout << "  mytool: {" << endl;
-    fout << "    tool_type: ProtoduneOnlineChannel" << endl;
-    fout << "  }" << endl;
-    fout << "}" << endl;
-    fout.close();
-  } else {
-    cout << myname << "Using existing top-level FCL." << endl;
-  }
 
-  cout << myname << line << endl;
-  cout << myname << "Fetching tool manager." << endl;
-  DuneToolManager* ptm = DuneToolManager::instance(fclfile);
-  assert ( ptm != nullptr );
-  DuneToolManager& tm = *ptm;
-  tm.print();
-  assert( tm.toolNames().size() >= 1 );
+  ProtoduneChannelHelper chh(false);
+  Index badIndex = chh.badIndex();
 
-  cout << myname << line << endl;
-  cout << myname << "Fetching tool." << endl;
-  auto cma = tm.getPrivate<IndexMapTool>("mytool");
-  assert( cma != nullptr );
-
-  Index badIndex = IndexMapTool::badIndex();
-
-  cout << myname << line << endl;
   cout << myname << "Check some good values." << endl;
   for ( Index ichaOff : { 0, 102, 1234, 1407, 3967, 15359 } ) {
-    Index ichaOn = cma->get(ichaOff);
+    Index ichaOn = chh.onlineChannel(ichaOff);
     cout << myname << ichaOff << " --> " << ichaOn << endl;
     assert( ichaOff != badIndex );
   }
@@ -79,7 +50,7 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   cout << myname << line << endl;
   cout << myname << "Check some bad values." << endl;
   for ( Index ichaOff : { -1, 15360, 20000 } ) {
-    Index ichaOn = cma->get(ichaOff);
+    Index ichaOn = chh.onlineChannel(ichaOff);
     cout << myname << ichaOff << " --> " << ichaOn << endl;
     assert( ichaOn == badIndex );
   }
@@ -89,9 +60,8 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   const Index ncha = 15360;
   IndexVector onlineCounts(ncha);
   IndexVector offlineChannel(ncha, badIndex);
-  ProtoduneChannelHelper chh(false);
   for ( Index ichaOff=0; ichaOff<ncha; ++ichaOff ) {
-    Index ichaOn = cma->get(ichaOff);
+    Index ichaOn = chh.onlineChannel(ichaOff);
     Index irem = ichaOn;
     Index itps = irem/2560;
     irem = irem%2560;
@@ -133,23 +103,17 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
 //**********************************************************************
 
 int main(int argc, char* argv[]) {
-  bool useExistingFcl = false;
   Index nshow = 64;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [keepFCL] [NSHOW]" << endl;
-      cout << "  keepFCL [false]: If true, existing FCL file is used." << endl;
+      cout << "Usage: " << argv[0] << "[NSHOW]" << endl;
       cout << "  NSHOW [64]: Every nshow'th channels will be displayed in log." << endl;
       return 0;
     }
-    useExistingFcl = sarg == "true" || sarg == "1";
-  }
-  if ( argc > 2 ) {
-    string sarg(argv[2]);
     nshow = std::stoi(sarg);
   }
-  return test_ProtoduneOnlineChannel(useExistingFcl, nshow);
+  return test_ProtoduneChannelHelper(nshow);
 }
 
 //**********************************************************************

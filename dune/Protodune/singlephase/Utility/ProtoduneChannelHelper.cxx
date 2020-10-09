@@ -1,18 +1,64 @@
-// ProtoduneOnlineChannel.cxx
+// ProtoduneChannelHelper.cxx
 
-#include "ProtoduneOnlineChannel.h"
+#include "dune/Protodune/singlephase/Utility/ProtoduneChannelHelper.h"
 #include <iostream>
 #include <vector>
+#include <string>
+#include <iostream>
 
 using std::string;
 using std::cout;
 using std::endl;
-using Index = ProtoduneOnlineChannel::Index;
+
+using Index = ProtoduneChannelHelper::Index;
 
 //**********************************************************************
 
-ProtoduneOnlineChannel::ProtoduneOnlineChannel(const fhicl::ParameterSet&) 
-: m_LogLevel(2) {
+Index ProtoduneChannelHelper::tpcSet(Index chan, bool) {
+  return chan/2560;
+}
+
+//**********************************************************************
+
+Index ProtoduneChannelHelper::apa(Index chan, bool) {
+  static std::vector<Index> apas = {3, 5, 2, 6, 1, 4};
+  Index itps = tpcSet(chan, false);
+  return itps < apas.size() ? apas[itps] : 0;
+}
+
+//**********************************************************************
+
+Index ProtoduneChannelHelper::femb(Index chan, bool isOff) {
+  Index chanOn = isOff ? onlineChannel(chan) : chan;
+  return (chanOn%2560)/128 + 1;
+}
+
+//**********************************************************************
+
+Index ProtoduneChannelHelper::asic(Index chan, bool isOff) {
+  Index chanOn = isOff ? onlineChannel(chan) : chan;
+  return (chanOn%128)/16 + 1;
+}
+
+//**********************************************************************
+
+Index ProtoduneChannelHelper::asicChannel(Index chan, bool isOff) {
+  Index chanOn = isOff ? onlineChannel(chan) : chan;
+  return chanOn%16;
+}
+
+//**********************************************************************
+
+Index ProtoduneChannelHelper::onlineChannel(Index chanOff, Index dbg) {
+  const string myname = "ProtoduneChannelHelper::get: ";
+  static bool init = false;
+  static Index nwirPlane[4] = {800, 800, 480, 480};
+  static Index nwirFemb[4] = {40, 40, 48, 48};
+  static Index uch[40];
+  static Index vch[40];
+  static Index zch[48];
+  if ( ! init ) {
+    if ( dbg ) cout << myname << "Initializing FEMB channel map." << endl;
     Index val = 0;
     // Create the maps from the to CCW wire numbers for each plane to
     // the FEMB channel number.
@@ -154,18 +200,13 @@ ProtoduneOnlineChannel::ProtoduneOnlineChannel(const fhicl::ParameterSet&)
     uch[37] = val++;
     uch[39] = val++;
     if ( val != 128 ) abort();
-}
-
-//**********************************************************************
-
-Index ProtoduneOnlineChannel::get(Index chanOff) const {
-  const string myname = "ProtoduneOnlineChannel::get: ";
+  }
   if ( chanOff >= 15360 ) {
-    if ( m_LogLevel > 1 ) cout << myname << "Invalid offline channel: " << chanOff << endl;
+    if ( dbg ) cout << myname << "Invalid offline channel: " << chanOff << endl;
     return badIndex();
   }
   // Get the TPC set.
-  Index iapa = chanOff/2560;
+  Index itps = chanOff/2560;
   // Get the channel in the apa.
   Index ichApa = chanOff%2560;
   // Get the plane (ipla) and wire number in the plane (ichPla).
@@ -185,11 +226,11 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
     ifmbApa = 19 - ifmbApa;
   }
   // Get the FEMB number in protoDune (0-119)
-  Index ifmbDet = 20*iapa + ifmbApa;
+  Index ifmbDet = 20*itps + ifmbApa;
   // Get the wire number in the FEMB.
   Index iwchFemb = ichPla % nwirFemb[ipla];  // Wire number in the plane and FEMB.
   if ( iwchFemb > nwirFemb[ipla] ) {
-    if ( m_LogLevel > 1 ) cout << myname << "ERROR: Invalid FEMB channel: " << chanOff
+    if ( dbg > 1 ) cout << myname << "ERROR: Invalid FEMB channel: " << chanOff
                                << " --> " << iwchFemb << endl;
     return badIndex();
   }
@@ -205,5 +246,10 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
   Index ichOn = 128*ifmbDet + ichFemb;
   return ichOn;
 }
+
+//**********************************************************************
+
+ProtoduneChannelHelper::ProtoduneChannelHelper(bool isOff)
+: m_isOff(isOff) { }
 
 //**********************************************************************
