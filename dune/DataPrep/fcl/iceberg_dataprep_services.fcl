@@ -88,7 +88,7 @@ ib4_dataprep_tools_calib_only: [
 ]
 
 # Charge calibration, mitigation, tail removal, no noise removal.
-ib4_dataprep_tools_calib_tail: [
+ib4_dataprep_tools_calib_tailonly: [
   @sequence::ib4_dataprep_tools_calib_only
   , "ib3TailRemovalKe"      # correct undershoot
 ]
@@ -97,12 +97,12 @@ ib4_dataprep_tools_calib_tail: [
 ib4_dataprep_tools_calib_tailped: [
   @sequence::ib4_dataprep_tools_calib_only
   , "ib4TailPedRemovalZKe"   # Remove collection tail and linear pedestal
-  , "ib4TailPedRemovalIKe"   # Remove induction tail and linear pedestal
+  , "ib4PedRemovalIKe"       # Remove induction linear pedestal
 ]
 
 # Charge calibration, noise removal.
 ib4_dataprep_tools_calib_noiserem: [
-  @sequence::ib4_dataprep_tools_calib_tail
+  @sequence::ib4_dataprep_tools_calib_tailped
   , "ibNoiseRemovalKe"         # Remove coherent noise
 ]
 

@@ -740,7 +740,7 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%
 # Pedestal RMS for each TPS channel.
 tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::chmet_pdtps_template
 tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
-tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 14
+tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 40
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC count]"
