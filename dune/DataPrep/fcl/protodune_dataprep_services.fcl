@@ -120,7 +120,7 @@ pdsim_dataprep_tools_tail: [
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 pdsim_dataprep_tools_wirecell: [
-  @sequence::pdsim_dataprep_tools_calib,
+  @sequence::pdsim_dataprep_tools_tail,
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
