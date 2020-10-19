@@ -15,7 +15,10 @@
 // ]
 //
 // Parameters:
-//   LogLevel - Message logging level (0=none, 1=ctor, 2=each call, ...)
+//   LogLevel - Message logging level:
+//              0: none
+//              1: show config
+//              2: check for duplicates
 //   DefaultIndex - Index for values that appear in none of the index vector lists.
 //   IndexVectors - Vector of index vectors. Values for the ith entry
 //                  are mapped to index i.
