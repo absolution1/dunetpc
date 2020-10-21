@@ -70,21 +70,23 @@ ToolBasedRawDigitPrepService::~ToolBasedRawDigitPrepService() {
   }
   Index ntoo = m_AdcChannelToolNames.size();
   Index nevt = state().nevtEnd;
-  cout << myname << "Event count: " << nevt << endl;
-  cout << myname << " Call count: " << state().ncall << endl;
-  cout << myname << "Time report for " << ntoo << " tools." << endl;
-  string sunit = "sec/event";
-  float xnevt = float(nevt);
-  if ( nevt == 0 ) {
-    xnevt = 1.0;
-    sunit = "sec";
-  }
-  for ( Index itoo=0; itoo<ntoo; ++itoo ) {
-    string name = m_AdcChannelToolNames[itoo];
-    double time = state().toolTimes[itoo].count();
-    cout << myname << setw(30) << name << ": "
-         << setw(10) << std::fixed << setprecision(2)
-         << time/xnevt << " " << sunit << endl;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "Event count: " << nevt << endl;
+    cout << myname << " Call count: " << state().ncall << endl;
+    cout << myname << "Time report for " << ntoo << " tools." << endl;
+    string sunit = "sec/event";
+    float xnevt = float(nevt);
+    if ( nevt == 0 ) {
+      xnevt = 1.0;
+      sunit = "sec";
+    }
+    for ( Index itoo=0; itoo<ntoo; ++itoo ) {
+      string name = m_AdcChannelToolNames[itoo];
+      double time = state().toolTimes[itoo].count();
+      cout << myname << setw(30) << name << ":"
+           << setw(7) << std::fixed << setprecision(2)
+           << time/xnevt << " " << sunit << endl;
+    }
   }
 }
 
