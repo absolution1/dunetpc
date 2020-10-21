@@ -6,12 +6,16 @@
 #include "dune/DuneInterface/AdcWireBuildingService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include <iostream>
+#include <iomanip>
 
 using std::string;
 using std::cout;
 using std::endl;
 using std::vector;
 using std::ostringstream;
+using std::setw;
+using std::setprecision;
+
 using raw::RawDigit;
 
 using Index = unsigned int;
@@ -23,7 +27,8 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
 : m_LogLevel(pset.get<int>("LogLevel")),
   m_DoWires(pset.get<bool>("DoWires")),
   m_AdcChannelToolNames(pset.get<vector<string>>("AdcChannelToolNames")),
-  m_pWireBuildingService(nullptr) {
+  m_pWireBuildingService(nullptr),
+  m_pstate(new State) {
   const string myname = "ToolBasedRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   // Fetch the tools.
@@ -46,12 +51,27 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
       }
     }
   }
+  state().toolTimes.resize(m_AdcChannelToolNames.size());
   if ( m_DoWires ) {
     if ( m_LogLevel ) cout << myname << "Fetching wire building service." << endl;
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
     if ( m_LogLevel ) cout << myname << "  Wire building service: @" <<  m_pWireBuildingService << endl;
   }
   if ( m_LogLevel >=1 ) print(cout, myname);
+}
+
+//**********************************************************************
+
+ToolBasedRawDigitPrepService::~ToolBasedRawDigitPrepService() {
+  const string myname = "ToolBasedRawDigitPrepService:dtor: ";
+  Index ntoo = m_AdcChannelToolNames.size();
+  cout << myname << "Time report for " << ntoo << " tools." << endl;
+  for ( Index itoo=0; itoo<ntoo; ++itoo ) {
+    string name = m_AdcChannelToolNames[itoo];
+    double time = state().toolTimes[itoo].count();
+    cout << myname << setw(30) << name << ": "
+         << setw(10) << std::fixed << setprecision(2) << time " sec." << endl;
+  }
 }
 
 //**********************************************************************
@@ -111,9 +131,14 @@ prepare(detinfo::DetectorClocksData const& clockData,
   if ( m_LogLevel >= 2 ) cout << myname << "Processing " << datamap.size() << " channels with "
                               << m_AdcChannelNamedTools.size() << " tools." << endl;
   if ( m_AdcChannelNamedTools.size() ) {
+    Index itoo = 0;
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Running tool " << nt.name << endl;
+      auto start = Clock::now();
       DataMap ret = nt.tool->updateMap(datamap);
+      auto stop = Clock::now();
+      Duration dtim =stop - start;
+      state().toolTimes[itoo] += dtim;
       if ( ret ) {
         cout << myname << "WARNING: Tool " << nt.name << " failed";
         if ( ret.haveIntVector("failedChannels") ) {
@@ -132,6 +157,7 @@ prepare(detinfo::DetectorClocksData const& clockData,
         ret.print();
         cout << myname << "----------------------------" << endl;
       }
+      ++itoo;
     }
   }
   if ( m_DoWires ) {

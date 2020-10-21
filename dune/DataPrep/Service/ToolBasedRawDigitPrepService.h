@@ -23,6 +23,7 @@
 #include "dune/DuneInterface/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <map>
+#include <chrono>
 
 class AdcWireBuildingService;
 class AdcChannelDataCopyService;
@@ -42,6 +43,7 @@ public:
   using AdcChannelNamedToolVector = std::vector<NamedTool>;
 
   ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
+  ~ToolBasedRawDigitPrepService();
 
   // Called at begin and end of event processing.
   // Calls the same method for each tool.
@@ -66,6 +68,15 @@ private:
   AdcChannelNamedToolVector m_AdcChannelNamedTools;
   const AdcWireBuildingService* m_pWireBuildingService;
 
+  using Clock = std::chrono::steady_clock;
+  using Duration = std::chrono::duration<double>;
+  class State {
+  public:
+    // Timing.
+    std::vector<Duration> toolTimes;
+  };
+  std::unique_ptr<State> m_pstate;
+  State& state() const { return *m_pstate; }
 
 };
 
