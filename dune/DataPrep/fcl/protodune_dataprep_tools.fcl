@@ -208,7 +208,7 @@ tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 tools.pdspTailPedRemovalZKe: {
   tool_type: ExpTailPedRemover
   LogLevel: 1
-  DecayTime: 2000
+  DecayTime: 2200
   SignalFlag: 3
   SignalIterationLimit: 10
   SignalTool: adcTailSignalFinderKe
@@ -216,7 +216,8 @@ tools.pdspTailPedRemovalZKe: {
   PedDegree: 0
   PedTick0: 3000
   PedFreqs: []
-  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
+  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z",
+                         "apa1c", "apa2c", "apa3c", "apa4c", "apa5c", "apa6c"]
   ExcludeChannelRanges: []
 }
 
