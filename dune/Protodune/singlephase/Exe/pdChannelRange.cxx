@@ -24,7 +24,7 @@ using std::istringstream;
 
 int main(int argc, char** argv) {
   const string myname = "pdChannelRange: ";
-  bool help = argc == 1;
+  bool help = false;
   string crname;
   string tnameRange = "channelRanges";
   string tnameGroup = "channelGroups";

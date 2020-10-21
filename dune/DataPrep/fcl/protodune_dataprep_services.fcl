@@ -109,18 +109,18 @@ pdsim_dataprep_tools_calib: [
 # ProtoDUNE sim dataprep at ke scale with tail removal.
 pdsim_dataprep_tools_oldtail: [
   @sequence::pdsim_dataprep_tools_calib,
-  "adcCorrectUndershootKe"      # correct undershoot
+  "adcCorrectUndershootKe"      # correct undershoot with old tool
 ]
-# ProtoDUNE sim dataprep at ke scale with tail removal.
 
+# ProtoDUNE sim dataprep at ke scale with tail removal.
 pdsim_dataprep_tools_tail: [
   @sequence::pdsim_dataprep_tools_calib,
-  "adcTailRemovalKe"            # correct undershoot
+  "pdspTailPedRemovalZKe"       # correct tails
 ]
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 pdsim_dataprep_tools_wirecell: [
-  @sequence::pdsim_dataprep_tools_calib,
+  @sequence::pdsim_dataprep_tools_tail,
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
@@ -128,7 +128,8 @@ pdsim_dataprep_tools_wirecell: [
 
 # Specify here the default sequence used in reconstruction of MC data.
 #protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_vintage
-protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_calib
+#protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_calib
+protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_tail
 
 ###################################################################################
 #

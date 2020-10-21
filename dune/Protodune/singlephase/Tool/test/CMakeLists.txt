@@ -36,6 +36,7 @@ cet_test(test_IcebergOnlineChannel SOURCES test_IcebergOnlineChannel.cxx
 cet_test(test_ProtoduneOnlineChannel SOURCES test_ProtoduneOnlineChannel.cxx
   LIBRARIES
     dune_ArtSupport
+    dune_Protodune_singlephase_Utility
     art_Utilities
     canvas
     fhiclcpp
