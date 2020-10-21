@@ -64,13 +64,27 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
 
 ToolBasedRawDigitPrepService::~ToolBasedRawDigitPrepService() {
   const string myname = "ToolBasedRawDigitPrepService:dtor: ";
+  if ( state().nevtBegin != state().nevtEnd ) {
+    cout << myname << "WARNING: Event counts are inconsistent: " << state().nevtBegin
+         << " != " << state().nevtEnd << endl;
+  }
   Index ntoo = m_AdcChannelToolNames.size();
+  Index nevt = state().nevtEnd;
+  cout << myname << "Event count: " << nevt << endl;
+  cout << myname << " Call count: " << state().ncall << endl;
   cout << myname << "Time report for " << ntoo << " tools." << endl;
+  string sunit = "sec/event";
+  float xnevt = float(nevt);
+  if ( nevt == 0 ) {
+    xnevt = 1.0;
+    sunit = "sec";
+  }
   for ( Index itoo=0; itoo<ntoo; ++itoo ) {
     string name = m_AdcChannelToolNames[itoo];
     double time = state().toolTimes[itoo].count();
     cout << myname << setw(30) << name << ": "
-         << setw(10) << std::fixed << setprecision(2) << time " sec." << endl;
+         << setw(10) << std::fixed << setprecision(2)
+         << time/xnevt << " " << sunit << endl;
   }
 }
 
@@ -83,6 +97,11 @@ int ToolBasedRawDigitPrepService::beginEvent(const DuneEventInfo& devt) const {
     cout << " event " << devt.event;
     cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
   }
+  if ( state().nevtBegin != state().nevtEnd ) {
+    cout << myname << "WARNING: Event counts are inconsistent: " << state().nevtBegin
+         << " != " << state().nevtEnd << endl;
+  }
+  ++state().nevtBegin;
   Index nfail = 0;
   if ( m_AdcChannelNamedTools.size() ) {
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
@@ -107,12 +126,17 @@ int ToolBasedRawDigitPrepService::endEvent(const DuneEventInfo& devt) const {
     cout << " with " << m_AdcChannelNamedTools.size() << " tools." << endl;
   }
   Index nfail = 0;
+  ++state().nevtEnd;
+  if ( state().nevtBegin != state().nevtEnd ) {
+    cout << myname << "WARNING: Event counts are inconsistent: " << state().nevtBegin
+         << " != " << state().nevtEnd << endl;
+  }
   if ( m_AdcChannelNamedTools.size() ) {
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       DataMap ret = nt.tool->endEvent(devt);
       if ( ret.status() ) {
         ++nfail;
-        cout << myname << "WARNING: Finalization for tool " << nt.name
+        cout << myname << "WARNING: Event finalization for tool " << nt.name
              << " failed for event " << devt.event << " with status code " << ret.status() << endl;
       }
     }
@@ -128,6 +152,7 @@ prepare(detinfo::DetectorClocksData const& clockData,
         std::vector<recob::Wire>* pwires, WiredAdcChannelDataMap* pintStates) const {
   const string myname = "ToolBasedRawDigitPrepService:prepare: ";
   // Loop over tools.
+  ++state().ncall;
   if ( m_LogLevel >= 2 ) cout << myname << "Processing " << datamap.size() << " channels with "
                               << m_AdcChannelNamedTools.size() << " tools." << endl;
   if ( m_AdcChannelNamedTools.size() ) {

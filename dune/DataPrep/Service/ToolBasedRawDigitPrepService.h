@@ -72,6 +72,9 @@ private:
   using Duration = std::chrono::duration<double>;
   class State {
   public:
+    Index nevtBegin = 0;
+    Index nevtEnd = 0;
+    Index ncall = 0;
     // Timing.
     std::vector<Duration> toolTimes;
   };
