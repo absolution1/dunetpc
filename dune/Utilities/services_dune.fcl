@@ -265,7 +265,6 @@ protodunedphase_services: {
  SimChannelExtractService:       @local::scxdp
  CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
- CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 
