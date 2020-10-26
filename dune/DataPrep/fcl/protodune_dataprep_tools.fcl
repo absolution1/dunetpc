@@ -98,6 +98,8 @@ tools.channelGroupsIceberg: {
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  FitOpt: 3
+  FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
   FitRmsMin:  3.0
