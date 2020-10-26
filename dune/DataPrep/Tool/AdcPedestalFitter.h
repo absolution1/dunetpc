@@ -146,8 +146,6 @@ private:
   // State.
   class State {
   public:
-    TH1* phr = nullptr;
-    TH1* phf = nullptr;
     TF1* pfitter = nullptr;
     Index ncall = 0;
     Index npeakBinSuppressed = 0;

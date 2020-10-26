@@ -114,21 +114,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   }
   // Initialize state.
   {
-    string hnam = m_HistName;
-    string hnamr = hnam + "_rebin";
-    string httl = m_HistTitle;
-    TH1*& phr = state().phr;
-    unsigned int nadc = 4096;
-    unsigned int rebin = 10;
-    unsigned int nbin = (nadc + rebin - 0.01)/rebin;
-    double xmax = rebin*nbin;
-    phr = new TH1F(hnamr.c_str(), httl.c_str(), nbin, 0, xmax);
-    phr->SetDirectory(0);
-    TH1*& phf = state().phf;
-    phf = new TH1F(hnam.c_str(), httl.c_str(), nadc, 0, nadc);
-    phf->SetDirectory(0);
-    //phf->Sumw2();     // We don't need this and it sows things down.
-    state().pfitter = new TF1("pedgaus", "gaus", 0, nadc, TF1::EAddToList::kNo);
+    state().pfitter = new TF1("pedgaus", "gaus", 0, 4096, TF1::EAddToList::kNo);
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -333,19 +319,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   htitl += "; ADC count; # samples";
-  TH1* phr = state().phr;
-  if ( 1 ) {
-    unsigned int nadc = 4096;
-    unsigned int rebin = 10;
-    unsigned int nbin = (nadc + rebin - 0.01)/rebin;
-    double xmax = rebin*nbin;
-    string hnamr = hname + "_rebin";
-    phr = new TH1F(hnamr.c_str(), htitl.c_str(), nbin, 0, xmax);
-    phr->SetDirectory(0);
-  } else { 
-    phr->Reset();
-  }
-  Index nbin = phr->GetNbinsX();
+  unsigned int nadc = 4096;
+  unsigned int rebin = 10;
+  unsigned int nbin = (nadc + rebin - 0.01)/rebin;
+  double xmax = rebin*nbin;
+  string hnamr = hname + "_rebin";
+  TH1* phr = new TH1F(hnamr.c_str(), htitl.c_str(), nbin, 0, xmax);
+  phr->SetDirectory(0);
   IndexVector rcounts(nbin, 0);
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( keep[isam] ) {
@@ -399,23 +379,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
            << ") does not include peak at " << radcmax1 << "." << endl;
     }
   }
-  TH1* phf = state().phf;
-  bool saveHisto = false;
-  if ( 0 ) {
-    phf->Reset();
-    phf->GetListOfFunctions()->Clear();
-  } else if ( 0 ) {
-    Index nadc = 4096;
-    phf = new TH1F(hname.c_str(), htitl.c_str(), nadc, 0, nadc);
-    phf->SetDirectory(0);
-    phf->Sumw2();
-    saveHisto = true;
-  } else {
-    phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
-    phf->SetDirectory(0);
-    //phf->Sumw2();
-    saveHisto = true;
-  }
+  TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
+  phf->SetDirectory(0);
+  //phf->Sumw2();
   Index countLo = 0;
   Index countHi = 0;
   Index count = 0;
@@ -531,13 +497,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     } else {
       double valEval = fitter.Eval(xcomax);
       peakBinExcess = (valmax - valEval)/rangeIntegral;
-      if ( dropBin ) phf->SetBinContent(binmax, valmax);
       pedestal = fitter.GetParameter(1) - 0.5;
       pedestalRms = fitter.GetParameter(2);
       fitChiSquare = fitter.GetChisquare();
     }
   }
-  if ( saveHisto ) res.setHist("pedestal", phf, false);
+  if ( dropBin ) phf->SetBinContent(binmax, valmax);
+  res.setHist("pedestal", phf, false);
   res.setFloat("fitFractionLow", fracLo);
   res.setFloat("fitFractionHigh", fracHi);
   res.setFloat("fitPedestal", pedestal);
@@ -572,6 +538,7 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   pman->addVerticalModLines(64);
   pman->showUnderflow();
   pman->showOverflow();
+  pman->addAxis();
   Index istat = acd.channelStatus;
   string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "unknown";
   NameVector slabs(3);
@@ -585,6 +552,23 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
     TLatex* ptxt = new TLatex(xlab, ylab, slab.c_str());
     ptxt->SetNDC();
     ptxt->SetTextFont(42);
+    pman->add(ptxt);
+    ylab -= dylab;
+  }
+  slabs.clear();
+  ostringstream sslab;
+  sslab << "Pedestal: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestal");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
+  slabs.push_back(sslab.str());
+  xlab = 0.94;
+  ylab = 0.86;
+  for ( Name slab : slabs ) {
+    TLatex* ptxt = new TLatex(xlab, ylab, slab.c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    ptxt->SetTextAlign(31);
     pman->add(ptxt);
     ylab -= dylab;
   }
