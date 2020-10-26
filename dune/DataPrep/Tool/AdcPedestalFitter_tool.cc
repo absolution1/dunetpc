@@ -421,10 +421,16 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     ++nbinsRemoved;
   }
   double amean = phf->GetMean() + 0.5;
+  double arms = phf->GetRMS();
   double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
   bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
-  float pedestalRms = 1.0/sqrt(12.0);
+  //float pedestalRms = 1.0/sqrt(12.0);
+  float pedestalRms = arms;
+  if ( m_FitRmsMax > m_FitRmsMin ) {
+    if ( arms < m_FitRmsMin ) arms = m_FitRmsMin;
+    if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
+  }
   float fitChiSquare = 0.0;
   float peakBinExcess = 0.0;
   if ( doFit ) {
@@ -448,7 +454,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     //TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
     TF1& fitter = *state().pfitter;
     for ( Name fopt : m_fitOpts ) {
-      fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
+      fitter.SetParameters(0.1*rangeIntegral, amean, pedestalRms);
       fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
       if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
       if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
