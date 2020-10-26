@@ -214,10 +214,11 @@ tools.pdspTailPedRemovalZKe: {
   SignalFlag: 3
   SignalIterationLimit: 10
   SignalTool: adcTailSignalFinderKe
-  MaxTick: 6000
+  MaxTick: 21000
   PedDegree: 0
   PedTick0: 3000
   PedFreqs: []
+  NoWarnStatuses: [1]
   IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z",
                          "apa1c", "apa2c", "apa3c", "apa4c", "apa5c", "apa6c"]
   ExcludeChannelRanges: []
