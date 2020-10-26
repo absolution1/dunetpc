@@ -8,11 +8,14 @@
 #ifndef ProtoduneChannelHelper_H
 #define ProtoduneChannelHelper_H
 
+#include <string>
+
 class ProtoduneChannelHelper {
 
 public:
 
   using Index = unsigned int;
+  using Name = std::string;
 
   static Index badIndex() { return -1; }
 
@@ -32,11 +35,16 @@ public:
 
   bool isOffline() const { return m_isOff; }
 
-  Index      tpcSet(Index chan) const { return      tpcSet(chan, m_isOff); }
-  Index         apa(Index chan) const { return         apa(chan, m_isOff); }
-  Index        femb(Index chan) const { return        femb(chan, m_isOff); }
-  Index        asic(Index chan) const { return        asic(chan, m_isOff); }
-  Index asicChannel(Index chan) const { return asicChannel(chan, m_isOff); }
+  // Return channel component indices.
+  Index      tpcSet(Index chan) const { return      tpcSet(chan, isOffline()); }
+  Index         apa(Index chan) const { return         apa(chan, isOffline()); }
+  Index        femb(Index chan) const { return        femb(chan, isOffline()); }
+  Index        asic(Index chan) const { return        asic(chan, isOffline()); }
+  Index asicChannel(Index chan) const { return asicChannel(chan, isOffline()); }
+
+  // Return the ASIC location: AFF-CXX
+  // A = APA, FF=FEMB, C=ascic (1-8), XX=asic channel (0-15)
+  Name asicChannelName(Index icha) const;
 
 private:
 

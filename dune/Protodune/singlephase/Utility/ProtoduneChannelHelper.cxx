@@ -5,12 +5,15 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::ostringstream;
 
 using Index = ProtoduneChannelHelper::Index;
+using Name = ProtoduneChannelHelper::Name;
 
 //**********************************************************************
 
@@ -252,4 +255,16 @@ Index ProtoduneChannelHelper::onlineChannel(Index chanOff, Index dbg) {
 ProtoduneChannelHelper::ProtoduneChannelHelper(bool isOff)
 : m_isOff(isOff) { }
 
+//**********************************************************************
+
+Name ProtoduneChannelHelper::asicChannelName(Index icha) const {
+  ostringstream ssout;
+  Index iapa = apa(icha);
+  Index ifmb = femb(icha);
+  Index iasc = asic(icha);
+  Index iach = asicChannel(icha);
+  ssout << iapa << (ifmb < 10 ? "0" : "") << ifmb
+        << "-" << iasc << (iach<10 ? "0" : "") << iach;
+  return ssout.str();
+}
 //**********************************************************************

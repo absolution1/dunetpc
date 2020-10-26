@@ -47,11 +47,35 @@ ChannelStatusConfigTool::ChannelStatusConfigTool(fhicl::ParameterSet const& ps)
   }
   m_vals.resize(idxSize, m_DefaultIndex);
   Index ivec = m_IndexVectors.size();
+  IndexVector counts(idxSize, 0);
   while ( ivec ) {
     const IndexVector& vec = m_IndexVectors[--ivec];
     for ( Index idx : vec ) {
       m_vals[idx] = ivec;
+      ++counts[idx];
     }
+  }
+  if ( m_LogLevel == 2 ) {
+    Index ndup = 0;
+    for ( Index idx=0; idx<idxSize; ++idx ) {
+      if ( counts[idx] > 1 ) {
+        if ( ndup >= 20 ) {
+          cout << ", ...";
+          break;
+        }
+        if ( ndup == 0 ) {
+          cout << myname << "Found indices with duplicate entries: ";
+        } else {
+          cout << ", ";
+        }
+        cout << idx;
+        ++ndup;
+      }
+    }
+    if ( ndup == 0 ) {
+      cout << myname << "No duplicate entries.";
+    }
+    cout << endl;
   }
 }
 

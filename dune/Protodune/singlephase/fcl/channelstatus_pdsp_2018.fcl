@@ -98,7 +98,6 @@ pdsp_channel_status_2018: {
      4656,  # femb501x32, very sticky pedestal
      4658,  # femb501x30, very sticky pedestal
      4660,  # femb501x28, very sticky pedestal
-     4658,  # femb501x26, very sticky pedestal
      4748,  # femb503x36, very sticky pedestal
      4750,  # femb503x34, very sticky pedestal
      4752,  # femb503x32, very sticky pedestal
