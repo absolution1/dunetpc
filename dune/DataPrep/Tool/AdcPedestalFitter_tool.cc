@@ -368,6 +368,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       }
     }
     adcmax = phr->GetBinCenter(rbinmax);
+    delete phr;
     // Make sure the peak bin stays in range.
     if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
     adc1 = adcmax - 0.5*wadc;
