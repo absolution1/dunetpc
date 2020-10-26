@@ -65,3 +65,5 @@ physics:
 }
 physics.producers.beamevent.SaveOutTree: "true"
 physics.producers.beamevent.PrintDebug: "true"
+#physics.producers.beamevent.URLStr: "https://ifb-data.fnal.gov:8104/ifbeam"
+
