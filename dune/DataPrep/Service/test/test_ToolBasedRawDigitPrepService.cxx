@@ -93,6 +93,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "    \"adcThresholdSignalFinder\"" << endl;
     // fout << ",    \"adcRoiViewer\"" << endl;
     fout << "  ]" << endl;
+    fout << "  CallgrindToolNames: []" << endl;
     fout << "}" << endl;
     fout.close();
   }
