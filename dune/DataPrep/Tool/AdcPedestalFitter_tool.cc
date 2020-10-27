@@ -510,7 +510,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     }
   }
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
-  res.setHist("pedestal", phf, false);
+  res.setHist("pedestal", phf, true);
   res.setFloat("fitFractionLow", fracLo);
   res.setFloat("fitFractionHigh", fracHi);
   res.setFloat("fitPedestal", pedestal);
@@ -539,7 +539,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
 int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TPadManipulator* pman) const {
   if ( pman == nullptr ) return 1;
   TH1* phf = dm.getHist("pedestal");
-  pman->add(phf, "hist", false);
+  pman->add(phf, "hist");
   if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
   if ( m_PlotShowFit ) pman->addHistFun(0);
   pman->addVerticalModLines(64);
