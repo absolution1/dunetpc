@@ -242,6 +242,7 @@ adcprep_with_tools_sim: {
     "adcVintageDeconvoluter",
     "adcThresholdSignalFinder"
   ]
+  CallgrindToolNames: []
 }
 
 # Process data using tool-based dataprep.
@@ -255,6 +256,7 @@ adcprep_with_tools_data: {
     "adcVintageDeconvoluter",
     "adcThresholdSignalFinder"
   ]
+  CallgrindToolNames: []
 }
 
 # Process DP 3x1x1 data.
