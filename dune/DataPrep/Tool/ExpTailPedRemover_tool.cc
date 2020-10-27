@@ -37,9 +37,11 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
   m_PedDegree(ps.get<int>("PedDegree")),
   m_PedTick0(ps.get<Index>("PedTick0")),
   m_PedFreqs(ps.get<FloatVector>("PedFreqs")) ,
+  m_NoWarnStatuses(ps.get<IndexVector>("NoWarnStatuses")),
   m_IncludeChannelRanges(ps.get<NameVector>("IncludeChannelRanges")),
   m_ExcludeChannelRanges(ps.get<NameVector>("ExcludeChannelRanges")),
   m_useChannelRanges(false),
+  m_nowarnStatuses(m_NoWarnStatuses.begin(), m_NoWarnStatuses.end()),
   m_pSignalTool(nullptr) {
   const string myname = "ExpTailPedRemover::ctor: ";
   if ( m_SignalFlag > 3 ) {
@@ -184,6 +186,14 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
       cout  << crn;
     }
     cout << "]" << endl;
+    cout << myname << "  NoWarnStatuses: [";
+    first = true;
+    for ( Index ist : m_NoWarnStatuses ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout  << ist;
+    }
+    cout << "]" << endl;
     cout << myname << "  ExcludeChannelRanges: [";
     first = true;
     for ( Name crn : m_ExcludeChannelRanges ) {
@@ -291,16 +301,19 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         if ( ++nchk >= ncof ) break;
       }
       if ( nchk < ncof ) {
-        cout << mychan << "WARNING: Not-signal sample count of " << nchk
-             << " is not sufficient to evaluate the " << ncof << " fit parameters.";
+        Index cstat = acd.channelStatus;
+        string sstat = cstat==0 ? "Good" : cstat==1 ? "Bad" : cstat==2 ? "Noisy" : "Unknown";
+        bool dowarn = m_nowarnStatuses.count(cstat) == 0;
+        if ( dowarn ) cout << myname << "WARNING: " << sstat << " channel " << acd.channel
+                           << ": Not-signal sample count of " << nchk
+                           << " is not sufficient to evaluate the " << ncof << " fit parameters.";
         if ( niter == 0 ) {
-          cout << " Using all samples.";
+          if ( dowarn ) cout << " Using all samples." << endl;
           checkSignal = false;
         } else {
-          cout << " Exiting loop.";
+          if ( dowarn ) cout << " Exiting loop." << endl;;
           break;
         }
-        cout << endl;
       }
     }
     // Evaluate the signal coefficients (C_iM in DUNE-doc-20618).
@@ -357,8 +370,8 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     double det = 0.0;
     kmat.Invert(&det);
     if ( ! kmat.IsValid() || det == 0.0 ) {
-      if ( acd.channelStatus == 0 || m_LogLevel >= 2 ) {
-        cout << mychan << "WARNING: Unable to invert K-matrix with "
+      if ( m_nowarnStatuses.count(acd.channelStatus) == 0 ) {
+        cout << myname << "WARNING: Channel " << acd.channel << ": Unable to invert K-matrix with "
              << nsamFit << " of " << nsam << " samples--stopping iteration for channel "
              << acd.channel << " with status " << acd.channelStatus << "." << endl;
         for ( icof=0; icof<ncof; ++icof ) {
@@ -420,7 +433,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     cout << mychan << "Iteration count: " << niter << endl;
     cout << mychan << "Noise: " << noise;
     if ( sampleUnit.size() ) cout << " " << sampleUnit;
-    cout << " from " << nsamFit << "/" << nsam << " channels" << endl;
+    cout << " from " << nsamFit << "/" << nsam << " samples" << endl;
     cout << mychan << "Final " << m_fitNamesString << ": {";
     bool first = true;
     for ( float cof : cofs ) {

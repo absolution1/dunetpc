@@ -16,6 +16,8 @@
 #include "TROOT.h"
 #include "TError.h"
 #include "TFitResult.h"
+#include "TFitter.h"
+#include "TLatex.h"
 
 using std::string;
 using std::cout;
@@ -63,6 +65,8 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_FitOpt(ps.get<Index>("FitOpt")),
+  m_FitPrecision(ps.get<float>("FitPrecision")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
   m_AdcFitRange(ps.get<float>("AdcFitRange")),
   m_FitRmsMin(ps.get<float>("FitRmsMin")),
@@ -70,7 +74,6 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_RemoveStickyCode(ps.get<bool>("RemoveStickyCode")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
-  m_HistManager(ps.get<string>("HistManager")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
   m_PlotSizeX(ps.get<Index>("PlotSizeX")),
@@ -78,24 +81,46 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
-  m_phm(nullptr) {
+  m_pstate(new State) {
   const string myname = "AdcPedestalFitter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
-  if ( m_HistManager.size() ) {
-    m_phm = ptm->getShared<HistogramManager>(m_HistManager);
-    if ( m_phm == nullptr ) {
-      cout << myname << "WARNING: Histogram manager not found: " << m_HistManager << endl;
-    }
-  }
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
   }
   for ( Index flg : m_SkipFlags ) m_skipFlags.insert(flg);
+  // Set the vector of fit options.
+  // These are tried in turn until one succeeds.
+  {
+    Name foptLsq = "WWB";
+    // Nov2018: Likelihood fit better handles pdsp run 5803 event 86 channel 7309.
+    Name foptLik = "LWB";
+    if ( m_FitOpt == 0 ) {
+      if ( m_LogLevel > 0 ) cout << myname << "Mean used in place of pedestal fit." << endl;
+    } else if ( m_FitOpt == 1 ) {
+      m_fitOpts.push_back(foptLsq);
+      if ( m_LogLevel > 0 ) cout << myname << "Chi-square fit used for pedestal." << endl;
+    } else if ( m_FitOpt == 2 ) {
+      m_fitOpts.push_back(foptLik);
+      if ( m_LogLevel > 0 ) cout << myname << "Likelihood fit used for pedestal." << endl;
+    } else if ( m_FitOpt == 3 ) {
+      if ( m_LogLevel > 0 ) cout << myname << "Chi-square/likelihood fit used for pedestal." << endl;
+      m_fitOpts.push_back(foptLsq);
+      m_fitOpts.push_back(foptLik);
+    } else if ( m_FitOpt != 0.0 ) {
+      cout << "WARNING: Invalid FitOpt: " << m_FitOpt << ". Not fit will be performed." << endl;
+    }
+  }
+  // Initialize state.
+  {
+    state().pfitter = new TF1("pedgaus", "gaus", 0, 4096, TF1::EAddToList::kNo);
+  }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "         FitOpt: " << m_FitOpt << endl;
+    cout << myname << "   FitPrecision: " << m_FitPrecision << endl;
     cout << myname << "      SkipFlags: [";
     bool first = true;
     for ( Index flg : m_SkipFlags ) {
@@ -112,7 +137,6 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "         HistTitle: " << m_HistTitle << endl;
     cout << myname << "      PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "      RootFileName: " << m_RootFileName << endl;
-    cout << myname << "       HistManager: " << m_HistManager << endl;
     cout << myname << "         PlotSizeX: " << m_PlotSizeX << endl;
     cout << myname << "         PlotSizeY: " << m_PlotSizeY << endl;
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
@@ -132,7 +156,7 @@ DataMap AdcPedestalFitter::view(const AdcChannelData& acd) const {
     if ( m_PlotSizeX && m_PlotSizeY ) pman->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
   }
   DataMap res = getPedestal(acd);
-  fillChannelPad(res, pman);
+  fillChannelPad(res, acd, pman);
   if ( pman != nullptr ) {
     string pfname = nameReplace(m_PlotFileName, acd, false);
     if ( m_LogLevel >= 3 ) cout << myname << "Creating plot " << pfname << endl;
@@ -170,7 +194,8 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
   Index npad = 0;
   Index npadx = 0;
   Index npady = 0;
-  if ( m_PlotFileName.size() && m_PlotSplitX > 0 ) {
+  bool doPlot = m_PlotFileName.size() && m_PlotSplitX > 0;
+  if ( doPlot ) {
     npadx = m_PlotSplitX;
     npady = m_PlotSplitY ? m_PlotSplitY : m_PlotSplitX;
     npad = npadx*npady;
@@ -201,7 +226,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
     Index ipad = npad == 0 ? 0 : iacd % npad;
     TPadManipulator* pman = pmantop == nullptr ? nullptr : pmantop->man(ipad);
     DataMap tmpres = getPedestal(acd);
-    fillChannelPad(tmpres, pman);
+    fillChannelPad(tmpres, acd, pman);
     fitStats[iacd] = tmpres.status();
     float fitPedestal = 0.0;
     float fitPedestalRms = 0.0;
@@ -270,16 +295,22 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     return res.setStatus(1);
   }
   // Flag samples to keep in pedestal fit.
+  //return res;
   vector<bool> keep(nsam, true);
   Index nkeep = 0;
+  Index nskip = 0;
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( isam >= acd.flags.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
       break;
     }
     Index flg = acd.flags[isam];
-    if ( m_skipFlags.count(flg) ) keep[isam] = false;
-    else ++nkeep;
+    if ( m_skipFlags.count(flg) ) {
+      keep[isam] = false;
+      ++nskip;
+    } else {
+      ++nkeep;
+    }
   }
   if ( nkeep == 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: No raw data is selected." << endl;
@@ -287,24 +318,33 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
-  string pfname = nameReplace(m_PlotFileName, acd, false);
-  string rfname = nameReplace(m_RootFileName, acd, false);
   htitl += "; ADC count; # samples";
   unsigned int nadc = 4096;
   unsigned int rebin = 10;
   unsigned int nbin = (nadc + rebin - 0.01)/rebin;
   double xmax = rebin*nbin;
   string hnamr = hname + "_rebin";
-  TH1* phr = new TH1F(hname.c_str(), htitl.c_str(), nbin, 0, xmax);
+  TH1* phr = new TH1F(hnamr.c_str(), htitl.c_str(), nbin, 0, xmax);
   phr->SetDirectory(0);
+  IndexVector rcounts(nbin, 0);
   for ( Index isam=0; isam<nsam; ++isam ) {
-    if ( keep[isam] ) phr->Fill(acd.raw[isam]);
+    if ( keep[isam] ) {
+      Index iadc = acd.raw[isam];
+      Index ibin = iadc/10;
+      if ( ibin >= nbin ) cout << myname << "ERROR: Too many samples (isam = " << isam << ")"
+                              << " for rebin histo with size " << nbin << endl;
+      else ++rcounts[ibin];
+    }
+  }
+  for ( Index ibin=0; ibin<nbin; ++ibin ) {
+    phr->SetBinContent(ibin+1, rcounts[ibin]);
   }
   double wadc = m_AdcFitRange;
   int rbinmax1 = phr->GetMaximumBin();
   double adcmax = phr->GetBinCenter(rbinmax1);
   double adc1 = adcmax - 0.5*wadc;
   double adc2 = adc1 + wadc;
+  //return res;
   if ( m_RemoveStickyCode ) {
     double radcmax1 = phr->GetBinCenter(rbinmax1);
     double radcmean = phr->GetMean();
@@ -328,6 +368,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       }
     }
     adcmax = phr->GetBinCenter(rbinmax);
+    delete phr;
     // Make sure the peak bin stays in range.
     if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
     adc1 = adcmax - 0.5*wadc;
@@ -339,19 +380,26 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
            << ") does not include peak at " << radcmax1 << "." << endl;
     }
   }
-  delete phr;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
-  phf->SetDirectory(nullptr);
-  phf->Sumw2();
+  phf->SetDirectory(0);
+  //phf->Sumw2();
   Index countLo = 0;
   Index countHi = 0;
   Index count = 0;
+  IndexVector fcounts(wadc, 0);
   for ( Index isam=0; isam<nsam; ++isam ) {
     AdcIndex val = acd.raw[isam];
-    if ( val < adc1 ) ++countLo;
-    if ( val >= adc2 ) ++countHi;
     ++count;
-    if ( keep[isam] ) phf->Fill(acd.raw[isam]);
+    if ( val < adc1 ) {
+      ++countLo;
+    } else if ( val >= adc2 ) {
+      ++countHi;
+    } else {
+      if ( keep[isam] ) ++fcounts[val-adc1];
+    }
+  }
+  for ( Index iadc=0; iadc<wadc; ++iadc ) {
+    phf->SetBinContent(iadc+1, fcounts[iadc]);
   }
   float fracLo = count > 0 ? float(countLo)/count : 0.0;
   float fracHi = count > 0 ? float(countHi)/count : 0.0;
@@ -374,30 +422,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     ++nbinsRemoved;
   }
   double amean = phf->GetMean() + 0.5;
+  double arms = phf->GetRMS();
   double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
-  bool doFit = peakBinFraction < 0.99;
+  bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
-  float pedestalRms = 1.0/sqrt(12.0);
+  //float pedestalRms = 1.0/sqrt(12.0);
+  float pedestalRms = arms;
+  if ( m_FitRmsMax > m_FitRmsMin ) {
+    if ( arms < m_FitRmsMin ) arms = m_FitRmsMin;
+    if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
+  }
   float fitChiSquare = 0.0;
   float peakBinExcess = 0.0;
   if ( doFit ) {
-    TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
-    fitter.SetParameters(0.1*rangeIntegral, amean, 5.0);
-    fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
-    if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
-    if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-    if ( m_FitRmsMin < m_FitRmsMax ) {
-      fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
-    }
-    fitter.SetParError(0, 0.0);
-    TF1* pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
-    pfinit->SetLineColor(3);
-    pfinit->SetLineStyle(2);
-    string fopt = "0";
-    fopt = "WWB";
-    // Nov2018: Switch to likelihood fix to better handle pdsp run 5803 event 86 channel 7309.
-    fopt = "LWB";
-    if ( m_LogLevel < 3 ) fopt += "Q";
     // Block Root info message for new Canvas produced in fit.
     int levelSave = gErrorIgnoreLevel;
     gErrorIgnoreLevel = 1001;
@@ -410,15 +447,48 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( GetErrorHandler() != pehDefault ) {
       pehSave = SetErrorHandler(pehDefault);
     }
-    // Root calls error handler but returns 0 if the histo has no data in range
-    // so we check that before calling fitter.
-    int fitStat = (phf->Integral() == 0.0) ? 999 : int(phf->Fit(&fitter, fopt.c_str()));
-    //fopt += " S";  // So we can retrieve fit status
-    //TFitResultPtr pfres = phf->Fit(&fitter, fopt.c_str());
-    //bool haveFitStatus = pfres.Get();
-    //int fitStat = haveFitStatus ? pfres->Status() : 999;
+    // Set fit precision. Least-squares only?
+    float fprec = TFitter::GetPrecision();
+    if ( m_FitPrecision > 0.0 ) TFitter::SetPrecision(m_FitPrecision);
+    int fitStat = 99;
+    TF1* pfinit = nullptr;
+    //TF1 fitter("pedgaus", "gaus", adc1, adc2, TF1::EAddToList::kNo);
+    TF1& fitter = *state().pfitter;
+    for ( Name fopt : m_fitOpts ) {
+      fitter.SetParameters(0.1*rangeIntegral, amean, pedestalRms);
+      fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
+      if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
+      if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
+      if ( m_FitRmsMin < m_FitRmsMax ) {
+        fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+      }
+      fitter.SetParError(0, 0.0);
+      if ( m_PlotShowFit >= 2 ) {
+        pfinit = dynamic_cast<TF1*>(fitter.Clone("pedgaus0"));
+        pfinit->SetLineColor(3);
+        pfinit->SetLineStyle(2);
+      }
+      if ( m_LogLevel < 3 ) fopt += "Q";
+      // Root calls error handler but returns 0 if the histo has no data in range
+      // so we check that before calling fitter.
+      fitStat = (phf->Integral() == 0.0) ? 999 : int(phf->Fit(&fitter, fopt.c_str(), "", adc1, adc2));
+      //fopt += " S";  // So we can retrieve fit status
+      //TFitResultPtr pfres = phf->Fit(&fitter, fopt.c_str());
+      //bool haveFitStatus = pfres.Get();
+      //int fitStat = haveFitStatus ? pfres->Status() : 999;
+      if ( fitStat == 0 ) break;
+    }
+    if ( m_FitPrecision > 0.0 ) TFitter::SetPrecision(fprec);
+    if ( pehSave != nullptr ) SetErrorHandler(pehSave);
+    gErrorIgnoreLevel = levelSave;
+    if ( pfinit != nullptr ) {
+      phf->GetListOfFunctions()->AddLast(pfinit, "0");
+      phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
+    }
     if ( fitStat ) {
-      cout << myname << "WARNING: Fit status is " << fitStat << " for channel "
+      Index istat = acd.channelStatus;
+      string sstat = istat == 0 ? "good" : istat == 1 ? "bad" : istat == 2 ? "noisy" : "unknown";
+      cout << myname << "WARNING: Fit status is " << fitStat << " for " << sstat << " channel "
            << acd.channel << endl;
       cout << myname << "  Errors[0]: " << fitter.GetParErrors()[0] << endl;
       //cout << myname << "  radcmax1 = " << radcmax1 << endl;
@@ -431,18 +501,15 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       cout << myname << "  allBin = " << allBin << endl;
       cout << myname << "  dropBin = " << dropBin << endl;
       cout << myname << "  amean = " << amean << " +/- " << ameanWin << endl;
+    } else {
+      double valEval = fitter.Eval(xcomax);
+      peakBinExcess = (valmax - valEval)/rangeIntegral;
+      pedestal = fitter.GetParameter(1) - 0.5;
+      pedestalRms = fitter.GetParameter(2);
+      fitChiSquare = fitter.GetChisquare();
     }
-    if ( pehSave != nullptr ) SetErrorHandler(pehSave);
-    gErrorIgnoreLevel = levelSave;
-    phf->GetListOfFunctions()->AddLast(pfinit, "0");
-    phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
-    double valEval = fitter.Eval(xcomax);
-    peakBinExcess = (valmax - valEval)/rangeIntegral;
-    if ( dropBin ) phf->SetBinContent(binmax, valmax);
-    pedestal = fitter.GetParameter(1) - 0.5;
-    pedestalRms = fitter.GetParameter(2);
-    fitChiSquare = fitter.GetChisquare();
   }
+  if ( dropBin ) phf->SetBinContent(binmax, valmax);
   res.setHist("pedestal", phf, true);
   res.setFloat("fitFractionLow", fracLo);
   res.setFloat("fitFractionHigh", fracHi);
@@ -452,17 +519,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setFloat("fitPeakBinExcess", peakBinExcess);
   res.setInt("fitChannel", acd.channel);
+  res.setInt("fitNSkip", nskip);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
-/*
-  if ( pman != nullptr ) {
-    pman->add(phf, "hist", false);
-    if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
-    if ( m_PlotShowFit ) pman->addHistFun(0);
-    pman->addVerticalModLines(64);
-    pman->showUnderflow();
-    pman->showOverflow();
-  }
-*/
+  string rfname = nameReplace(m_RootFileName, acd, false);
   if ( rfname.size() ) {
     if ( m_LogLevel >=2 ) cout << myname << "Write histogram " << phf->GetName() << " to " << rfname << endl;
     TFile* pf = TFile::Open(rfname.c_str(), "UPDATE");
@@ -477,15 +536,49 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
 
 //**********************************************************************
 
-int AdcPedestalFitter::fillChannelPad(DataMap& dm, TPadManipulator* pman) const {
+int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TPadManipulator* pman) const {
   if ( pman == nullptr ) return 1;
   TH1* phf = dm.getHist("pedestal");
-  pman->add(phf, "hist", false);
+  pman->add(phf, "hist");
   if ( m_PlotShowFit > 1 ) pman->addHistFun(1);
   if ( m_PlotShowFit ) pman->addHistFun(0);
   pman->addVerticalModLines(64);
   pman->showUnderflow();
   pman->showOverflow();
+  pman->addAxis();
+  Index istat = acd.channelStatus;
+  string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "unknown";
+  NameVector slabs(3);
+  slabs[0] = sstat + " channel";
+  slabs[1] = "# skipped bins: " + std::to_string(dm.getInt("fitNSkip"));
+  slabs[2] = "# dropped bins: " + std::to_string(dm.getInt("fitNBinsRemoved"));
+  float xlab = 0.13;
+  float ylab = 0.86;
+  float dylab = 0.06;
+  for ( Name slab : slabs ) {
+    TLatex* ptxt = new TLatex(xlab, ylab, slab.c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    pman->add(ptxt);
+    ylab -= dylab;
+  }
+  slabs.clear();
+  ostringstream sslab;
+  sslab << "Pedestal: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestal");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
+  slabs.push_back(sslab.str());
+  xlab = 0.94;
+  ylab = 0.86;
+  for ( Name slab : slabs ) {
+    TLatex* ptxt = new TLatex(xlab, ylab, slab.c_str());
+    ptxt->SetNDC();
+    ptxt->SetTextFont(42);
+    ptxt->SetTextAlign(31);
+    pman->add(ptxt);
+    ylab -= dylab;
+  }
   return 0;
 }
 

@@ -47,6 +47,7 @@
 //   SignalIterationLimit - Maximum nimber of fit iterations.
 //   SignalTool - Name of the tool used identify signals. The method called is
 //                AdcChannelTool::update, i.e. single-channel signal finding.
+//   NoWarnStatuses - Status flags for which warnings should not be logged.
 //   IncludeChannelRanges - List of channel ranges to correct. If empty, all channels
 //                          Use empty or "all" for all channels or "none" for no channels.
 //                          Tool channelRanges is used to map these names to channels.
@@ -72,12 +73,15 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <vector>
+#include <set>
 
 class ExpTailPedRemover : AdcChannelTool {
 
 public:
 
   using Index = unsigned int;
+  using IndexVector = std::vector<Index>;
+  using IndexSet = std::set<Index>;
   using Vector = std::vector<double>;
   using Name = std::string;
   using NameVector = std::vector<Name>;
@@ -102,11 +106,13 @@ private:
   int                m_PedDegree;
   Index              m_PedTick0;
   FloatVector        m_PedFreqs;
+  IndexVector        m_NoWarnStatuses;
   NameVector         m_IncludeChannelRanges;
   NameVector         m_ExcludeChannelRanges;
 
   // Derived from configuration.
   bool m_useChannelRanges;  // If true, only channels in checkChannels are processed.
+  IndexSet m_nowarnStatuses;
   std::vector<bool> m_checkChannels;
   AdcChannelTool* m_pSignalTool;
   FloatVectorVector m_pedVectors;

@@ -14,6 +14,11 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   FitOpt - 0: Use histogram mean (no fit)
+//            1: Chi-square fit
+//            2: Likelihood fit
+//            3: Chi-square fit fillowed by likelihood fit if chi-square fit fails
+//   FitPrecision - Only used for chi-square fit? (TFitter::SetPrecision)
 //   SkipFlags - Samples with these flags are excluded
 //   AdcFitRange: Width [ADC counts] of the fit range.
 //   FitRmsMin: Lower limit for RMS fit range.
@@ -21,8 +26,6 @@
 //   RemoveStickyCode: If true, an apparent sticky code may be removed.
 //   HistName:  Name for the histogram.
 //   HistTitle: Title for the histogram.
-//   HistManager: Name of the tool that manages the output histogram.
-//                This is obsolete.
 //   PlotFileName: If nonblank, histograms are displayed in this file.
 //   RootFileName: If nonblank, histogram is copied to this file.
 //   PlotSizeX, PlotSizeY: Size in pixels of the plot file.
@@ -89,6 +92,7 @@
 class HistogramManager;
 class AdcChannelStringTool;
 class TH1;
+class TF1;
 class TPadManipulator;
 
 class AdcPedestalFitter
@@ -115,6 +119,8 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  Index m_FitOpt;
+  float m_FitPrecision;
   IndexVector m_SkipFlags;
   float m_AdcFitRange;
   float m_FitRmsMin;
@@ -122,7 +128,6 @@ private:
   bool m_RemoveStickyCode;
   Name m_HistName;
   Name m_HistTitle;
-  Name m_HistManager;
   Name m_PlotFileName;
   Name m_RootFileName;
   Index m_PlotSizeX;
@@ -134,11 +139,19 @@ private:
   // ADC string tool.
   const AdcChannelStringTool* m_adcStringBuilder;
 
-  // Histogram manager.
-  HistogramManager* m_phm;
-
   // Derived from config.
   IndexSet m_skipFlags;
+  NameVector m_fitOpts;
+
+  // State.
+  class State {
+  public:
+    TF1* pfitter = nullptr;
+    Index ncall = 0;
+    Index npeakBinSuppressed = 0;
+  };
+  std::unique_ptr<State> m_pstate;
+  State& state() const { return *m_pstate; }
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, bool isTitle) const;
@@ -148,7 +161,7 @@ private:
 
   // Fill the pad for a channel.
   // Histogram "pedestal" from dm is drawn.
-  int fillChannelPad(DataMap& dm, TPadManipulator* pman) const;
+  int fillChannelPad(DataMap& dm, const AdcChannelData& acd, TPadManipulator* pman) const;
 
 };
 

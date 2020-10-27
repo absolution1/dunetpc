@@ -158,6 +158,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
     fout << "               PedDegree: " << pedDegree << endl;
     fout << "                PedTick0: " << tick0 << endl;
     fout << "                PedFreqs: []" << endl;
+    fout << "    NoWarnStatuses: []" << endl;
     fout << "    IncludeChannelRanges: [\"all\"]" << endl;
     fout << "    ExcludeChannelRanges: []" << endl;
     fout << "  }" << endl;
