@@ -49,6 +49,18 @@ protodune_dataprep_tools_calib_mit: [
   "pdsp_timingMitigate"         # Mitigate FEMB302 timing
 ]
 
+# Charge calibration, mitigation, obsolete tail removal, no noise removal.
+protodune_dataprep_tools_calib_oldtail: [
+  "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection",        # Correct gain calibration
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe"      # correct undershoot
+]
+
 # Charge calibration, mitigation, tail removal, no noise removal.
 protodune_dataprep_tools_calib_tail: [
   "digitReader",                # Read RawDigit
@@ -58,7 +70,7 @@ protodune_dataprep_tools_calib_tail: [
   "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe"      # correct undershoot
+  "pdspTailPedRemovalZKe"       # Tail removal
 ]
 
 # Charge calibration, noise removal.
@@ -70,7 +82,7 @@ protodune_dataprep_tools_calib_noiserem: [
   "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe",     # correct undershoot
+  "pdspTailPedRemovalZKe",      # Tail removal
   "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
 ]
 

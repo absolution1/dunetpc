@@ -52,6 +52,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "tools.mytool: {" << endl;
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
+    fout << "  FitOpt: 3" << endl;
+    fout << "  FitPrecision: 1.0" << endl;
     fout << "  SkipFlags: []" << endl;
     fout << "  AdcFitRange: 100" << endl;
     fout << "  FitRmsMin: 1.0" << endl;

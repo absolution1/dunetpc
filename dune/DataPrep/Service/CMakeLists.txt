@@ -5,6 +5,8 @@
 
 # Add plugin for each service.
 
+include_directories(AFTER $ENV{VALGRIND_INC})
+
 simple_plugin(ConfigurableAdcChannelDataCopyService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except

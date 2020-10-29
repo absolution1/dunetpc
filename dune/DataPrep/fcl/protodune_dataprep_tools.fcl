@@ -98,6 +98,8 @@ tools.channelGroupsIceberg: {
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  FitOpt: 3
+  FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
   FitRmsMin:  3.0
@@ -212,10 +214,11 @@ tools.pdspTailPedRemovalZKe: {
   SignalFlag: 3
   SignalIterationLimit: 10
   SignalTool: adcTailSignalFinderKe
-  MaxTick: 6000
+  MaxTick: 21000
   PedDegree: 0
   PedTick0: 3000
   PedFreqs: []
+  NoWarnStatuses: [1]
   IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z",
                          "apa1c", "apa2c", "apa3c", "apa4c", "apa5c", "apa6c"]
   ExcludeChannelRanges: []
