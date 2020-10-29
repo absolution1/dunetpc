@@ -359,12 +359,18 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       for ( icof=0; icof<ncof; ++icof ) {
         double ci = cofvecs[icof][isam];
         kvec[icof] += cd*ci;
-        for ( Index jcof=0; jcof<ncof; ++jcof ) {
+        for ( Index jcof=0; jcof<=icof; ++jcof ) {
           double cj = cofvecs[jcof][isam];
           kmat[icof][jcof] += ci*cj;
         }
       }
       ++nsamFit;
+    }
+    // TMatrixDSym must be symmetrized!
+    for ( icof=0; icof<ncof; ++icof ) {
+      for ( Index jcof=0; jcof<icof; ++jcof ) {
+        kmat[jcof][icof] = kmat[icof][jcof];
+      }
     }
     // Invert matrix and solve for [tau], {ped}.
     double det = 0.0;
