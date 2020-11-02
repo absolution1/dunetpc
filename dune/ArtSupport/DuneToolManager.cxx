@@ -104,6 +104,31 @@ DuneToolManager::DuneToolManager(std::string fclname)
 
 //**********************************************************************
 
+void DuneToolManager::help() const {
+  cout << "DuneToolManager provides access to named tools." << endl;
+  cout << "It is typically accessed a singleton, e.g." << endl;
+  cout << "  DuneToolManager* ptm = DuneToolManger::instance();" << endl;
+  cout << "The name of the fcl file defining the tools may be provided as an argument." << endl;
+  cout << endl;
+  cout << "Available tools may be listed with:" << endl;
+  cout << "  ptm->print()      // Displays the names of available tools." << endl;
+  cout << "  ptm->toolNames()  // Returns a vector of the tool names." << endl;
+  cout << endl;
+  cout << "A private instance of a tool with type MyTool may be otained with:" << endl;
+  cout << "  ptm->getPrivate<MyTool>(\"tnam\")" << endl;
+  cout << "The tool configuration is taken from the fcl block tools.tnam." << endl;
+  cout << "A unique pointer is returned so the tool instance is destroyed with that pointer." << endl;
+  cout << endl;
+  cout << "A shared instance of a tool may be obtained with:" << endl;
+  cout << "  ptm->getShared<MyTool>(\"tnam\")" << endl;
+  cout << "A bare pointer is returned and subsequent callers receive the same pointer." << endl;
+  cout << "The tool manager deletes all shared tools when it is destroyed." << endl;
+  cout << endl;
+  cout << "In either case, tool instances are created only when they are obtained." << endl;
+}
+
+//**********************************************************************
+
 const std::vector<std::string>& DuneToolManager::toolNames() const {
   return m_toolNames;
 }
