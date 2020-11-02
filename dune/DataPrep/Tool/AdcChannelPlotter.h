@@ -41,6 +41,11 @@
 //    %EVENT% - event number
 //    %CHAN% - channel number
 //    %TYPE% - histogram type (see HistTypes)
+//
+// Datamapp returned by call to view includes:
+//     TH1   HHH  - The waveform histogram (HHH = HistName in configuration)
+//   float   plotSigMin_HHH - min value for the histogram
+//   float   plotSigMax_HHH - max value for the histogram
 
 #ifndef AdcChannelPlotter_H
 #define AdcChannelPlotter_H
