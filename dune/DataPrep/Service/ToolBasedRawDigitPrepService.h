@@ -7,6 +7,10 @@
 // It receives an ADC channel data map, applies a sequence of ADC channel
 // tools (calling updateMap) and then constructs wires.
 //
+// There is an option to list tools for which callgrind should collect statistics.
+// If any tools are listed, callgrind should be invoked with "--collect-atstart=no".
+// Otherwise, callgrind will be disabled when those tools are run.
+//
 // Confguration parameters.
 //   LogLevel - logging level
 //              0 - errors only
@@ -16,6 +20,7 @@
 //              4 - display result from each step
 //   DoWires - If true, the wire building service is called after processing.
 //   AdcChannelToolNames - Names of the ADC channel tools.
+//   CallgrindToolNames - Names of the tools for which callgrind should be enabled.
 
 #ifndef ToolBasedRawDigitPrepService_H
 #define ToolBasedRawDigitPrepService_H
@@ -63,10 +68,12 @@ private:
   int m_LogLevel;
   bool m_DoWires;
   std::vector<std::string> m_AdcChannelToolNames;
+  std::vector<std::string> m_CallgrindToolNames;
 
   AdcChannelToolVector m_AdcChannelTools;
   AdcChannelNamedToolVector m_AdcChannelNamedTools;
   const AdcWireBuildingService* m_pWireBuildingService;
+  std::set<std::string> m_cgset;
 
   using Clock = std::chrono::steady_clock;
   using Duration = std::chrono::duration<double>;

@@ -8,6 +8,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include "valgrind/callgrind.h"
+
 using std::string;
 using std::cout;
 using std::endl;
@@ -27,7 +29,9 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
 : m_LogLevel(pset.get<int>("LogLevel")),
   m_DoWires(pset.get<bool>("DoWires")),
   m_AdcChannelToolNames(pset.get<vector<string>>("AdcChannelToolNames")),
+  m_CallgrindToolNames(pset.get<vector<string>>("CallgrindToolNames")),
   m_pWireBuildingService(nullptr),
+  m_cgset(m_CallgrindToolNames.begin(), m_CallgrindToolNames.end()),
   m_pstate(new State) {
   const string myname = "ToolBasedRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
@@ -161,9 +165,18 @@ prepare(detinfo::DetectorClocksData const& clockData,
     Index itoo = 0;
     for ( NamedTool nt : m_AdcChannelNamedTools ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Running tool " << nt.name << endl;
+      bool useCallgrind = m_cgset.count(nt.name);
+      if ( useCallgrind ) {
+        CALLGRIND_START_INSTRUMENTATION;
+        CALLGRIND_TOGGLE_COLLECT;
+      }
       auto start = Clock::now();
       DataMap ret = nt.tool->updateMap(datamap);
       auto stop = Clock::now();
+      if ( useCallgrind ) {
+        CALLGRIND_TOGGLE_COLLECT;
+        CALLGRIND_STOP_INSTRUMENTATION;
+      }
       Duration dtim =stop - start;
       state().toolTimes[itoo] += dtim;
       if ( ret ) {
@@ -207,6 +220,7 @@ print(std::ostream& out, std::string prefix) const {
     cout << prefix << "     ADC channel tools:";
     for ( const NamedTool& nm : m_AdcChannelNamedTools ) {
        out << "\n" << prefix << "           " << nm.name;
+       if ( m_cgset.count(nm.name) ) cout << " (callgrind enabled)";
     }
     cout << endl;
   } else {
