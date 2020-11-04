@@ -82,24 +82,26 @@ $basename="_";
 ############## Parameters for One Readout Panel ##################
 
 # parameters for 1.5 x 1.7 sub-unit Charge Readout Module
-$widthPCBActive  = 168.7; # cm (3 x 562.5 mm boards)
+$widthPCBActive  = 168.8; # cm (3 x 562.5 mm boards)
 $lengthPCBActive = 150.0; # cm
-$nChannelsViewPerCRM = 320;   # number of channels per view ("fine pitch")
+#$nChannelsViewPerCRM = 320;   # number of channels per view ("fine pitch")
 #$nChannelsViewPerCRM = 256;   # number of channels per view ("coarse pitch")
+$nChannelsViewInd = 320;
+$nChannelsViewCol = 288;
 
-$wirePitchY      = $widthPCBActive / $nChannelsViewPerCRM;
-$wirePitchZ      = $lengthPCBActive / $nChannelsViewPerCRM;
+$wirePitchY      = $widthPCBActive / $nChannelsViewInd; #$nChannelsViewPerCRM;
+$wirePitchZ      = $lengthPCBActive / $nChannelsViewCol; #$nChannelsViewPerCRM;
 $borderCRM       = 0.5;     # dead space at the border of each CRM
 
-$widthCRM_active  = $widthPCBActive;  #$wirePitch * $nChannelsViewPerCRM;
-$lengthCRM_active = $lengthPCBActive; #$wirePitch * $nChannelsViewPerCRM;
+$widthCRM_active  = $widthPCBActive;  
+$lengthCRM_active = $lengthPCBActive; 
 
 $widthCRM  = $widthPCBActive  + 2 * $borderCRM;
 $lengthCRM = $lengthPCBActive + 2 * $borderCRM;
 
 # number of CRMs in y and z
 $nCRM_x   = 4 * 2;
-$nCRM_z   = 19 * 2;
+$nCRM_z   = 20 * 2;
 
 # create a smaller geometry
 if( $workspace == 1 )
@@ -454,7 +456,7 @@ EOF
 
 if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
-for($i=0;$i<$nChannelsViewPerCRM;++$i)
+for($i=0;$i<$nChannelsViewInd;++$i)
 {
 my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
 
@@ -479,7 +481,7 @@ EOF
 
 if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
 {
-for($i=0;$i<$nChannelsViewPerCRM;++$i)
+for($i=0;$i<$nChannelsViewCol;++$i)
 {
 
 my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitchZ + 0.5*$padWidth;
