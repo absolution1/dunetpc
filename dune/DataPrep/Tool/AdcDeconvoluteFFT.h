@@ -15,17 +15,22 @@
 //
 // The response function is configured with an explicit vector that is padded
 // zeroes to the length of the passed data. It is is implictly periodic.
+// If empty, no action is taken.
 //
 // The filter function is Gaussian with time-domain sigma provided in
 // the configuration.
 //
 // Other options may later be added for the reponse or filter.
 //
+// If an index map tool is provided, then it is used with the channel number  to choose
+// the reponse vector and filter. Otherwise, the first entry is used.
+//
 // Configuration:
 //   LogLevel: 0=silent, 1=init, 2=each event, >2=more
 //   Action: Option for action described above.
-//   ResponseVector: Discrete sequence representing the response function.
-//   GausFilterRms - Time-domain sigma [Tick] for the Gaussian filter.
+//   ResponseVectors: Vector of discrete sequences representing the response function.
+//   GausFilterSigmas: - Vector of time-domain sigma [Tick] for the Gaussian filter.
+//   IndexMapTool - Name of the tool mapping channel to response index.
 
 #ifndef AdcDeconvoluteFFT_H
 #define AdcDeconvoluteFFT_H
@@ -33,6 +38,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/IndexMapTool.h"
 
 class AdcDeconvoluteFFT : AdcChannelTool {
 
@@ -46,15 +52,20 @@ public:
 
   DataMap update(AdcChannelData& acd) const override;
 
-  // Internal methods.
-  // Get the
 private:
 
+  using Name = std::string;
+  using ResponseVector = AdcSignalVector;   // Same type as AdcChannel data
+  using ResponseVectorVector = std::vector<ResponseVector>;
+  using FloatVector = std::vector<float>;
+  using IndexMapToolPtr = std::unique_ptr<IndexMapTool>;
+
   // Configuration data.
-  int             m_LogLevel;
-  Index           m_Action;
-  AdcSignalVector m_ResponseVector;
-  float           m_GausFilterSigma;
+  int                  m_LogLevel;
+  Index                m_Action;
+  ResponseVectorVector m_ResponseVectors;
+  FloatVector          m_GausFilterSigmas;
+  Name                 m_IndexMapTool;
 
   // Derived from configuration.
   bool m_useResponse;
@@ -62,6 +73,7 @@ private:
   bool m_doFFTConvolute;
   bool m_doDirectConvolute;
   bool m_doDeconvolute;
+  IndexMapToolPtr m_channelToIndex;
 
 };
 

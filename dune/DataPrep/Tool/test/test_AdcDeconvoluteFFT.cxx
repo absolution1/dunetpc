@@ -103,14 +103,15 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
     fout << "  mydco: {" << endl;
     fout << "           tool_type: AdcDeconvoluteFFT" << endl;
     fout << "            LogLevel: 2" << endl;
-    fout << "      ResponseVector: [";
+    fout << "     ResponseVectors: [[";
     for ( Index ival=0; ival<res.size(); ++ival ) {
       if ( ival ) fout << ", ";
       fout << res[ival];
     }
-    fout << "]" << endl;
+    fout << "]]" << endl;
     fout << "              Action: 1" << endl;
-    fout << "    GausFilterSigma: " << sigmaFilter << endl;
+    fout << "   GausFilterSigmas: [" << sigmaFilter << "]" << endl;
+    fout << "       IndexMapTool: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout << "tools.mycondir: @local::tools.mydco" << endl;
