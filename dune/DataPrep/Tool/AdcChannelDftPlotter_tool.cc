@@ -441,7 +441,7 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     double xmin = m_XMin;
     double xmax = m_XMax;
     // If min >= max, then show the full range.
-    // And for poser plots shift so the zero frequency component is
+    // And for power plots shift so the zero frequency component is
     // in the underflow bin and the highest is included in the last bin.
     if ( xmin >= xmax ) {
       xmin = 0.0;

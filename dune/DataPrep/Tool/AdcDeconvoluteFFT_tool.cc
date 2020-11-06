@@ -243,6 +243,8 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
 
   // Deconvolute/convolute (divide/multiply) in frequency space.
   if ( useFFT ) {
+    xamsOut.resize(namp, 0.0);
+    xphsOut.resize(npha, 0.0);
     if ( m_LogLevel >= 3 ) cout << myname << "Building frequency-domain output vectors." << endl;
     DFT dftOut(fnormData, nsam);
     for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
@@ -279,7 +281,11 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
         cout << endl;
       }
       dftOut.setAmplitude(ifrq, xamOut);
-      if ( ifrq < npha ) dftOut.setPhase(ifrq, xphOut);
+      xamsOut[ifrq] = xamOut;
+      if ( ifrq < npha ) {
+        dftOut.setPhase(ifrq, xphOut);
+        xphsOut[ifrq] = xphOut;
+      }
     }
   
     // Transform back.
@@ -309,8 +315,10 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
 
   // Record results.
   acd.samples = xdasOut;
-  //acd.dftmags = xamsOut;
-  //acd.dftphases = xphsOut;
+  if ( xamsOut.size() ) {
+    acd.dftmags = xamsOut;
+    acd.dftphases = xphsOut;
+  }
 
   return ret;
 }
