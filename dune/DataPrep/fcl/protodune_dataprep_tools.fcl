@@ -90,6 +90,15 @@ tools.channelGroupsIceberg: {
   IndexRangeTool: channelRanges
 }
 
+# Map channels to APA views: 0:U, 1:v, 2:X
+tools.pdspChannelToPlane: {
+  tool_type: BlockIndexMapTool
+  LogLevel: 0
+  Starts: [ 0, 800, 1600]
+  Values: [ 0,   1,    2]
+  Period: 2560
+}
+
 ################################################################################
 # Reco.
 ################################################################################
