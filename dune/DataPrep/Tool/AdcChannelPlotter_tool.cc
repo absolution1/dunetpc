@@ -219,7 +219,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       }
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
-      float sigMin = acd.raw[0];
+      float sigMin = acd.samples[0];
       float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.samples[isam];

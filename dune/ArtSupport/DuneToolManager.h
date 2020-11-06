@@ -68,6 +68,9 @@ public:
   // Ctor from FCL file name.
   explicit DuneToolManager(std::string fclname);
 
+  // Display a help message.
+  void help() const;
+
   // Return a private (not shared) copy of a tool.
   template<class T>
   std::unique_ptr<T> getPrivate(std::string name) {
