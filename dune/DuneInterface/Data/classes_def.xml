@@ -2,4 +2,5 @@
   <class name="IndexRange" />
   <class name="IndexRangeGroup" />
   <class name="AdcChannelData" />
+  <class name="DuneEventInfo" />
 </lcgdict>
