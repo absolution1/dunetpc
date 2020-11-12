@@ -68,7 +68,8 @@ services.RawDigitPrepService.AdcChannelToolNames: @local::dataprep_tool_list
 services.AdcWireBuildingService.SaveChanPedRMS: false
 tools.def_adcPedestalFit.FitRmsMin:  0.1
 tools.def_adcPedestalFit.FitRmsMax:  5.0
-
+tools.def_adcPedestalFit.FitOpt: 1
+tools.def_adcPedestalFit.FitPrecision: 1.0
 
 #source is now a root file
 source:
