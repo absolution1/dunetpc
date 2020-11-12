@@ -65,11 +65,11 @@ public:
   // is made to find the fcl name on the command line following "-c"..
   static DuneToolManager* instance(std::string fclname ="", int dbg =1);
 
+  // Display a help message.
+  static void help();
+
   // Ctor from FCL file name.
   explicit DuneToolManager(std::string fclname);
-
-  // Display a help message.
-  void help() const;
 
   // Return a private (not shared) copy of a tool.
   template<class T>

@@ -43,6 +43,8 @@
 //   XXXSizeY         - YSize in pixels of the multi-plot file.
 //   XXXSplitX        - NX
 //   XXXSplitY        - NY
+//
+// To obtain summary plots, viewMap must called (view is no sufficient).
 
 #ifndef AdcMultiChannelPlotter_H
 #define AdcMultiChannelPlotter_H

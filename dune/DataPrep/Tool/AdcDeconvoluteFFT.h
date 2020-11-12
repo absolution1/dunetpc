@@ -15,17 +15,33 @@
 //
 // The response function is configured with an explicit vector that is padded
 // zeroes to the length of the passed data. It is is implictly periodic.
+// If empty, no action is taken.
 //
-// The filter function is Gaussian with time-domain sigma provided in
-// the configuration.
+// High frequncy filtering is provided by a Gaussian with time-domain sigma
+// specified by a configuration parameter.
+//
+// Low-frequency filtering is provided by the function
+//   1/[ 1 + 1/(W N k)^P ]
+// N is the number of samples and and k is the wave number.
+// The width W and power P are configuration parameters.
+//   W < 0 disables the filter
+//   W = 0 filters out k = 0 only
+//   W > 0 removes k = 0 and applies the above for other values
 //
 // Other options may later be added for the reponse or filter.
+//
+// If an index map tool is provided, then it is used with the channel number  to choose
+// the reponse vector and filter. Otherwise, the first entry is used.
 //
 // Configuration:
 //   LogLevel: 0=silent, 1=init, 2=each event, >2=more
 //   Action: Option for action described above.
-//   ResponseVector: Discrete sequence representing the response function.
-//   GausFilterRms - Time-domain sigma [Tick] for the Gaussian filter.
+//   ResponseVectors: Vector of discrete sequences representing the response function.
+//   ResponseCenters: Vector specifying the zero tick for each of the response fundtions.
+//   GausFilterSigmas: - Vector of time-domain sigmas [Tick] for the Gaussian filter.
+//   LowFilterWidth: - Vector of widths [tick] [Tick] for the low-frequency filter.
+//   LowFilterPower: - Vector of powers time-domain sigma [Tick] for the low-frequncy filter.
+//   IndexMapTool - Name of the tool mapping channel to response index.
 
 #ifndef AdcDeconvoluteFFT_H
 #define AdcDeconvoluteFFT_H
@@ -33,6 +49,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/IndexMapTool.h"
 
 class AdcDeconvoluteFFT : AdcChannelTool {
 
@@ -46,15 +63,24 @@ public:
 
   DataMap update(AdcChannelData& acd) const override;
 
-  // Internal methods.
-  // Get the
 private:
 
+  using Name = std::string;
+  using IndexVector = std::vector<Index>;
+  using ResponseVector = AdcSignalVector;   // Same type as AdcChannel data
+  using ResponseVectorVector = std::vector<ResponseVector>;
+  using FloatVector = std::vector<float>;
+  using IndexMapToolPtr = std::unique_ptr<IndexMapTool>;
+
   // Configuration data.
-  int             m_LogLevel;
-  Index           m_Action;
-  AdcSignalVector m_ResponseVector;
-  float           m_GausFilterSigma;
+  int                  m_LogLevel;
+  Index                m_Action;
+  ResponseVectorVector m_ResponseVectors;
+  IndexVector          m_ResponseCenters;
+  FloatVector          m_GausFilterSigmas;
+  FloatVector          m_LowFilterWidths;
+  FloatVector          m_LowFilterPowers;
+  Name                 m_IndexMapTool;
 
   // Derived from configuration.
   bool m_useResponse;
@@ -62,6 +88,7 @@ private:
   bool m_doFFTConvolute;
   bool m_doDirectConvolute;
   bool m_doDeconvolute;
+  IndexMapToolPtr m_channelToIndex;
 
 };
 
