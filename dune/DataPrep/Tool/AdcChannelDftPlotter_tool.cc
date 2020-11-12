@@ -434,12 +434,9 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     if ( acd.sampleUnit.size() ) {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
     }
-    if ( m_NBinX == 0 ) {
-      cout << myname << "ERROR: Invalid bin count: " << m_NBinX << endl;
-      return ret.setStatus(6);
-    }
     double xmin = m_XMin;
     double xmax = m_XMax;
+    Index nbin = m_NBinX;
     // If min >= max, then show the full range.
     // And for power plots shift so the zero frequency component is
     // in the underflow bin and the highest is included in the last bin.
@@ -452,7 +449,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
         xmax += delx;
       }
     }
-    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), m_NBinX, xmin, xmax);
+    if ( nbin == 0 ) {
+      nbin = (xmax - xmin)/xFac + 0.1;
+    }
+    TH1* ph = new TH1F(hname.c_str(), htitl.c_str(), nbin, xmin, xmax);
     ph->SetDirectory(nullptr);
     ph->SetLineWidth(2);
     ph->GetXaxis()->SetTitle(xtitl.c_str());
@@ -468,10 +468,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
       }
       ph->Fill(x, y);
     }
-    if ( ph->GetBinContent(m_NBinX+1) && xmax > (nmag-1)*xFac ) {
+    if ( ph->GetBinContent(nbin+1) && xmax > (nmag-1)*xFac ) {
       cout << myname << "ERROR: Full range histogram has overflow." << endl;
     }
-    for ( Index ibin=0; ibin<m_NBinX+2; ++ibin ) {
+    for ( Index ibin=0; ibin<nbin; ++ibin ) {
       double y = ph->GetBinContent(ibin);
       if ( y > yValMax ) yValMax = y;
     }

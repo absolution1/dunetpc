@@ -581,8 +581,8 @@ chmet_pdtps_template: {
   DataView: ""
   PedestalReference: ""
   MetricSummaryView: "mean:dmean"
-  MetricBins: 0
   MetricMin: 0.0
+  MetricBins: 0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]

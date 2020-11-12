@@ -110,7 +110,10 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
     }
     fout << "]]" << endl;
     fout << "              Action: 1" << endl;
+    fout << "    ResponseCenters: [5]" << endl;
     fout << "   GausFilterSigmas: [" << sigmaFilter << "]" << endl;
+    fout << "    LowFilterWidths: [-1.0]" << endl;
+    fout << "    LowFilterPowers: [ 2.0]" << endl;
     fout << "       IndexMapTool: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;

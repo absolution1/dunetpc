@@ -27,7 +27,10 @@ AdcDeconvoluteFFT::AdcDeconvoluteFFT(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_Action(ps.get<Index>("Action")),
   m_ResponseVectors(ps.get<ResponseVectorVector>("ResponseVectors")),
+  m_ResponseCenters(ps.get<IndexVector>("ResponseCenters")),
   m_GausFilterSigmas(ps.get<FloatVector>("GausFilterSigmas")),
+  m_LowFilterWidths(ps.get<FloatVector>("LowFilterWidths")),
+  m_LowFilterPowers(ps.get<FloatVector>("LowFilterPowers")),
   m_IndexMapTool(ps.get<Name>("IndexMapTool")),
   m_useResponse(false), m_useFilter(false),
   m_doFFTConvolute(false), m_doDirectConvolute(false), m_doDeconvolute(false) {
@@ -94,12 +97,36 @@ AdcDeconvoluteFFT::AdcDeconvoluteFFT(fhicl::ParameterSet const& ps)
     }
     cout << endl;
     cout << myname << setw(indent-2) << "]" << endl;
+    cout << myname << "    ResponseShifts: [";
+    first = true;
+    for ( Index val : m_ResponseCenters ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << val;
+    }
+    cout << "]" << endl;
     cout << myname << "  GausFilterSigmas: [";
     first = true;
     for ( float sgm : m_GausFilterSigmas ) {
       if ( first ) first = false;
       else cout << ", ";
       cout << sgm;
+    }
+    cout << "]" << endl;
+    cout << myname << "  LowFilterWidths: [";
+    first = true;
+    for ( float val : m_LowFilterWidths ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << val;
+    }
+    cout << "]" << endl;
+    cout << myname << "  LowFilterPowers: [";
+    first = true;
+    for ( float val : m_LowFilterPowers ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << val;
     }
     cout << "]" << endl;
     cout << myname << "    ChannelMapTool: " << m_IndexMapTool << endl;;
@@ -115,7 +142,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   Index icha = acd.channel;
   if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd.run << " event " << acd.event
                               << " channel " << icha << endl;
-  // Retrive the response vector and sigma.
+  // Retrieve the response vector and sigma.
   Index ivec = 0;
   if ( m_channelToIndex ) {
     ivec = m_channelToIndex->get(icha);
@@ -126,12 +153,27 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
     return ret;
   }
   const ResponseVector& responseVector = m_ResponseVectors[ivec];
+  Index ishift = ivec < m_ResponseCenters.size() ? m_ResponseCenters[ivec] : 0;
   if ( ivec >= m_GausFilterSigmas.size() ) {
     cout << "WARNING: There is no Gaus filter sigma for index "
          << ivec << " (channel " << icha << ")." << endl;
     return ret;
   }
   float gausFilterSigma = m_GausFilterSigmas[ivec];
+  float lfwidth = -1.0;
+  float lfpower = 0;
+  if ( ivec >= m_LowFilterWidths.size() ) {
+    cout << "WARNING: There is no low-filter width for index "
+         << ivec << " (channel " << icha << ")." << endl;
+  } else {
+    lfwidth = m_LowFilterWidths[ivec];
+    if ( lfwidth > 0.0 && ivec >= m_LowFilterPowers.size() ) {
+      cout << "WARNING: There is no low-filter width for index "
+           << ivec << " (channel " << icha << ")." << endl;
+      return ret;
+    }
+    lfpower = m_LowFilterPowers[ivec];
+  }
   // Do action.
   DFT::Norm fnormConv(DFT::convolutionNormalization());
   DFT::Norm fnormData(AdcChannelData::dftNormalization());
@@ -161,7 +203,8 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
       return ret.setStatus(2);
     }
     for ( Index isam=0; isam<nres; ++isam ) {
-      xdasRes[isam] = responseVector[isam];
+      Index jsam = isam >= ishift ? isam - ishift : nsam + isam - ishift;
+      xdasRes[jsam] = responseVector[isam];
     }
   }
 
@@ -210,17 +253,15 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   Index npha = dftInp.nPhase();
   
   // Build the filter.
-  // In frequncy space, this is just a Gaussian with sima = N/(2*pi*sigma_t)
+  // In frequncy space, this is just a Gaussian with sigma = N/(2*pi*sigma_t)
   const float xmin = 1.e-20;
   FloatVector xdasFil(nsam, 1.0);
   DFT dftFil(fnormConv);
   if ( m_useFilter ) {
-    FloatVector xamsFil(namp);
+    FloatVector xamsFil(namp, 1.0);
     FloatVector xphsFil(npha, 0.0);
     if ( m_LogLevel >= 3 ) cout << myname << "Building frequency-domain filter vectors." << endl;
-    if ( gausFilterSigma == 0.0 ) {
-      xamsFil[0] = 1.0;
-    } else {
+    if ( gausFilterSigma > 0.0 ) {
       static float novertwopi = 0.5*nsam/acos(-1);
       float sigmaFreq = novertwopi/gausFilterSigma;
       for ( Index ifrq=0; ifrq<xamsFil.size(); ++ifrq ) {
@@ -228,12 +269,25 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
         xamsFil[ifrq] = val;
       }
     }
+    if ( lfwidth == 0.0 ) xamsFil[0] = 0.0;
+    if ( lfwidth > 0.0 ) {
+      double fac = lfwidth/nsam;
+      bool square = lfpower == 2.0;
+      for ( Index ifrq=0; ifrq<xamsFil.size(); ++ifrq ) {
+        double term = fac*ifrq;
+        double termp = square ? term*term : std::pow(term, lfpower);
+        double fac = termp/(1 + termp);
+        xamsFil[ifrq] *= fac;
+      }
+    }
     dftFil.moveIn(xamsFil, xphsFil);
-    cout << myname << "Frequency components:" << endl;
-    for ( Index ifrq=0; ifrq<dftFil.nCompact(); ++ifrq ) {
-      cout << myname << setw(4) << ifrq << ": " << setw(10) << fixed << dftFil.amplitude(ifrq);
-      if ( ifrq < dftFil.nPhase() ) cout << " @ " << setw(10) << fixed << dftFil.phase(ifrq);
-      cout << endl;
+    if ( m_LogLevel >= 4 ) {
+      cout << myname << "Filter frequency components:" << endl;
+      for ( Index ifrq=0; ifrq<dftFil.nCompact(); ++ifrq ) {
+        cout << myname << setw(4) << ifrq << ": " << setw(10) << fixed << dftFil.amplitude(ifrq);
+        if ( ifrq < dftFil.nPhase() ) cout << " @ " << setw(10) << fixed << dftFil.phase(ifrq);
+        cout << endl;
+      }
     }
   }
 

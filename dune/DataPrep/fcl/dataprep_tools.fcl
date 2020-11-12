@@ -250,11 +250,16 @@ tools.rawAdcPlotter: {
 tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  DataView: ""
   Metric: pedestal
   PedestalReference: ""
-  ChannelRanges: []
+  MetricSummaryView: ""
   MetricMin: 0
   MetricMax: 4096
+  MetricBins: 0
+  MetricLabel: "Pedestal"
+  PlotUsesStatus: 0
+  ChannelRanges: []
   ChannelLineModulus: 0
   ChannelLinePattern: []
   HistName: "hchped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
@@ -269,11 +274,16 @@ tools.adcChannelPedestalPlotter: {
 tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  DataView: ""
   Metric: pedestalRms
   PedestalReference: ""
-  ChannelRanges: []
+  MetricSummaryView: ""
   MetricMin: 0
   MetricMax: 11
+  MetricBins: 0
+  MetricLabel: "RMS"
+  PlotUsesStatus: 0
+  ChannelRanges: []
   ChannelLineModulus: 0
   ChannelLinePattern: []
   HistName: "hchpedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
@@ -283,6 +293,20 @@ tools.adcChannelPedestalRmsPlotter: {
   PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
 }
+
+# Sample RMS
+tools.adcChannelSamplelRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
+tools.adcChannelSamplelRmsPlotter.Metric: samRms
+tools.adcChannelSamplelRmsPlotter.HistName: "hchsamrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+tools.adcChannelSamplelRmsPlotter.HistTitle: "ADC sample RMS for run %RUN% event %EVENT%"
+tools.adcChannelSamplelRmsPlotter.PlotFileName: "hchsamrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
+
+# Signal RMS
+tools.adcChannelSignalRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
+tools.adcChannelSignalRmsPlotter.Metric: sigRms
+tools.adcChannelSignalRmsPlotter.HistName: "hchsigrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+tools.adcChannelSignalRmsPlotter.HistTitle: "ADC signal RMS for run %RUN% event %EVENT%"
+tools.adcChannelSignalRmsPlotter.PlotFileName: "hchsigrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {
