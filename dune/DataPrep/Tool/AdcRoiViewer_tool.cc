@@ -590,6 +590,7 @@ AdcRoiViewer::~AdcRoiViewer() {
       TpmPtr& pmantop = itpm.second;
       if ( pmantop ) {
         Name plotFileName = getState().roiPadNames[icha];
+        if ( m_LogLevel >=3 ) cout << myname << "Writing " << plotFileName << endl;
         pmantop->print(plotFileName);
         pmantop.reset(nullptr);
       }
@@ -1028,6 +1029,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
       if (  m_LogLevel >= 3 ) cout << myname << "  Writing " << plotFileName << endl;
       pmantop->print(plotFileName);
       pmantop.reset(nullptr);
+      ++getState().roiPadCounts[acd.channel];
       ipad = 0;
       ++getState().nRoiPlot;
       if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;

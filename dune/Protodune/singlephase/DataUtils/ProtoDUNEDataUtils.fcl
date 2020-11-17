@@ -5,7 +5,7 @@ standard_protodunedatautils:
 {
    TimingTag:                "timingrawdecoder:daq"  
    RawDigitTag:              "caldata:dataprep"   # for use in determining which channels are present
-   RawDigitTimeStampTag:     "tpcrawdecoder:daq"   # generally the same as RawDigitTag -- look at raw::RDTimestamps
+   RawDigitTimeStampTag:     "caldata:dataprep"   # generally the same as RawDigitTag -- look at raw::RDTimestamps
 }
 
 END_PROLOG

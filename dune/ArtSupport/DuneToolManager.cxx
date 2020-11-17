@@ -91,20 +91,7 @@ DuneToolManager* DuneToolManager::instance(string a_fclname, int dbg) {
 
 //**********************************************************************
 
-DuneToolManager::DuneToolManager(std::string fclname)
-: m_fclname(fclname) {
-  cet::filepath_lookup_nonabsolute policy("FHICL_FILE_PATH");
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(fclname, policy, tbl);
-  fhicl::ParameterSet psTop;
-  fhicl::make_ParameterSet(tbl, psTop);
-  m_pstools = psTop.get<fhicl::ParameterSet>("tools");
-  m_toolNames = m_pstools.get_pset_names();
-}
-
-//**********************************************************************
-
-void DuneToolManager::help() const {
+void DuneToolManager::help() {
   cout << "DuneToolManager provides access to named tools." << endl;
   cout << "It is typically accessed a singleton, e.g." << endl;
   cout << "  DuneToolManager* ptm = DuneToolManger::instance();" << endl;
@@ -125,6 +112,19 @@ void DuneToolManager::help() const {
   cout << "The tool manager deletes all shared tools when it is destroyed." << endl;
   cout << endl;
   cout << "In either case, tool instances are created only when they are obtained." << endl;
+}
+
+//**********************************************************************
+
+DuneToolManager::DuneToolManager(std::string fclname)
+: m_fclname(fclname) {
+  cet::filepath_lookup_nonabsolute policy("FHICL_FILE_PATH");
+  fhicl::intermediate_table tbl;
+  fhicl::parse_document(fclname, policy, tbl);
+  fhicl::ParameterSet psTop;
+  fhicl::make_ParameterSet(tbl, psTop);
+  m_pstools = psTop.get<fhicl::ParameterSet>("tools");
+  m_toolNames = m_pstools.get_pset_names();
 }
 
 //**********************************************************************
