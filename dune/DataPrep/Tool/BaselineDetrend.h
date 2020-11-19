@@ -3,8 +3,13 @@
 //  Remove trends in baseline fluctuations. This is basically a very low pass 
 //  filter removing oscillations at ~1 kHz. The smoothed version of the pedestal
 //  is contructed using LOWESS smoothing algorithm implemented in TSmoothGraph 
+//  See docdb DUNE-doc-21111
+//
 //  Parametres:
 //     LogLevel: controls level of printout
+//
+//     UseBasicROI: use basic ROI finder (para: Threshold and Pad ticks) 
+//                  to bypass the signal regions
 //
 //     Threshold: to bypass signals during smoothing
 //
@@ -48,19 +53,19 @@ class BaselineDetrend : public AdcChannelTool
   
  private:
   int      m_LogLevel;
+  bool     m_UseBasicROI;
   float    m_Thresh;
   unsigned m_Pad;
   float    m_MinFrac;
   float    m_Span;
 
   //
-  //AdcSignalVector m_Trend;
-  
   // smoother
   TGraphSmooth *m_GS;
 
   //
-  AdcSignalVector Smoother( const AdcSignalVector &data ) const;
+  AdcSignalVector Smoother( const AdcSignalVector &data,
+			    const std::vector<unsigned> &pedidx ) const;
 };
 
 DEFINE_ART_CLASS_TOOL(BaselineDetrend)

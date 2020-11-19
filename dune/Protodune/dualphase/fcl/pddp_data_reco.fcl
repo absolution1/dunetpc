@@ -75,11 +75,12 @@ tools.pddp_RemoveBadChannels: {
 ### baseline detrending
 tools.pddp_BaselineDetrend: {
   tool_type: BaselineDetrend
-  LogLevel: 1
-  Thresh:   10
-  Pad:      50
-  MinFrac:  0.5
-  Span:     0.04
+  LogLevel:    1
+  UseBasicROI: true
+  Thresh:      10
+  Pad:         50
+  MinFrac:     0.5
+  Span:        0.04
 }
 
 ### coherent noise filtering
