@@ -90,7 +90,7 @@
 // Channel summary histograms
 // --------------------------
 // Channel summary histograms hold a metric for each channel derived from a summary histogram.
-// The following fileds specify a channel summary histogram:
+// The following fields specify a channel summary histogram:
 //     name - name for the summary histogram (%CRNAME% is replaced with the channel range name)
 //    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
