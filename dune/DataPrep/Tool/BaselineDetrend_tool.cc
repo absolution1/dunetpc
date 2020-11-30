@@ -16,7 +16,8 @@ using std::endl;
 
 // ctor
 BaselineDetrend::BaselineDetrend(fhicl::ParameterSet const& ps ) :
-  m_LogLevel( ps.get<int>("LogLevel") ), 
+  m_LogLevel( ps.get<int>("LogLevel") ),
+  m_UseBasicROI( ps.get<bool>("UseBasicROI") ),  
   m_Thresh( ps.get<float>("Thresh") ), 
   m_Pad( ps.get<unsigned>("Pad") ), 
   m_MinFrac( ps.get<float>("MinFrac") ), 
@@ -24,6 +25,7 @@ BaselineDetrend::BaselineDetrend(fhicl::ParameterSet const& ps ) :
 {
   const string myname = "BaselineDetrend::ctor: ";
   if( m_LogLevel >= 1 ){
+    cout<<myname<<"Use basic ROI "<<m_UseBasicROI<<endl;
     cout<<myname<<"Threshold to drop samples from average "<<m_Thresh<<endl;
     cout<<myname<<"Number of ticks to pad around signals above threshold "<<m_Pad<<endl;
     cout<<myname<<"Min fraction of pedestal samples for detrending "<<m_MinFrac<<endl;
@@ -43,18 +45,24 @@ DataMap BaselineDetrend::update(AdcChannelData& acd) const {
   DataMap ret;
   AdcSignalVector& data = acd.samples;
 
-  // init trend baseline
-  //m_Trend.resize( data.size(), 0. );
-  
+  vector<unsigned> pedidx;
+  if( !m_UseBasicROI ){
+    // use info from ROI search already performed
+    auto sig = acd.signal;
+    for( unsigned i=0; i<data.size(); ++i ){
+      if( sig[i] ) continue;
+      pedidx.push_back( i );
+    }
+  }
+
   // computed baseline trend
-  auto trend = Smoother( data );
+  auto trend = Smoother( data, pedidx );
 
   // detrending
   for(size_t i=0;i<data.size();++i){
     data[i] -= trend[i];
   }
 
-  //m_Trend.clear();
   // finished
   return ret;
 }
@@ -63,42 +71,49 @@ DataMap BaselineDetrend::update(AdcChannelData& acd) const {
 //
 //
 // smoother
-AdcSignalVector BaselineDetrend::Smoother( const AdcSignalVector &data ) const
+AdcSignalVector BaselineDetrend::Smoother( const AdcSignalVector &data,
+					   const vector<unsigned> &pedidx ) const
 {
   const string myname = "BaselineDetrend::Smoother: ";
   AdcSignalVector trend( data.size(), 0 );
   
   vector<unsigned> idx;
-  for( unsigned i = 0; i < data.size(); ++i ){
-    if( data[i] > m_Thresh ) {
-      unsigned count = 1;
-      // remove last elements from the vector
-      while( !idx.empty() ){
-	if( count >= m_Pad ) break;
-	//
-	if( (int)idx.back() != ((int)i - (int)count) ) break;
-	idx.pop_back();
-	count++;
-      }
-
-      // move forward until we are below threshold + num of samples to skip after
-      count = 0;
-      for( unsigned j = i+1; j < data.size(); ++j ){
-	if( data[j] > m_Thresh ) continue;
-	if( count >= m_Pad ) { 
-	  i = j;
-	  break;
-	}
-	count++;
-      }
-
-      continue;
-    }
-   
-    //
-    idx.push_back( i );
+  if( !pedidx.empty() ){
+    idx = pedidx;
   }
-  
+  else { // simple ROI threshold finder
+			  
+    for( unsigned i = 0; i < data.size(); ++i ){
+      if( data[i] > m_Thresh ) {
+	unsigned count = 1;
+	// remove last elements from the vector
+	while( !idx.empty() ){
+	  if( count >= m_Pad ) break;
+	  //
+	  if( (int)idx.back() != ((int)i - (int)count) ) break;
+	  idx.pop_back();
+	  count++;
+	}
+
+	// move forward until we are below threshold + num of samples to skip after
+	count = 0;
+	for( unsigned j = i+1; j < data.size(); ++j ){
+	  if( data[j] > m_Thresh ) continue;
+	  if( count >= m_Pad ) { 
+	    i = j;
+	    break;
+	  }
+	  count++;
+	}
+
+	continue;
+      }
+   
+      //
+      idx.push_back( i );
+    }
+  } // simple roi finder
+
   // do nothing if we have only a limited number of ped samples
   if( ((float)idx.size())/data.size() < m_MinFrac ){
     if( m_LogLevel >= 2 ){
@@ -119,7 +134,7 @@ AdcSignalVector BaselineDetrend::Smoother( const AdcSignalVector &data ) const
   // our graph data are sorted in ticks
   gout->SetBit(TGraph::kIsSortedX);
   
-  // compute detranding function
+  // compute detranding function interpolating inside ROIs
   unsigned nidx = idx.size();
   for( unsigned i = 0; i<nidx; ++i ){
     unsigned ii = idx[i];
