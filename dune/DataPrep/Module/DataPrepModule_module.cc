@@ -460,7 +460,9 @@ void DataPrepModule::produce(art::Event& evt) {
     if ( hstats.isValid() ) {
       pstats = &*hstats;
     } else {
-      cout << myname << "WARNING: Raw data status product not found." << endl;
+      if ( evt.isRealData() ) {
+        cout << myname << "WARNING: Raw data status product not found." << endl;
+      }
     }
   }
 
