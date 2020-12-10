@@ -19,6 +19,7 @@ services:
 
   FileCatalogMetadata: @local::art_file_catalog_data
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:            @local::iceberg_geo
 }
 

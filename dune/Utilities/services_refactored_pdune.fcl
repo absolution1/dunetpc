@@ -46,6 +46,7 @@ BEGIN_PROLOG
 #
 #dunefd_services: {
 # ExptGeoHelperInterface:         @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # Geometry:                       @local::dune10kt_geo
 # DetectorClocksService:          @local::dunefd_detectorclocks
 # DetectorPropertiesService:      @local::dunefd_detproperties
@@ -66,6 +67,7 @@ BEGIN_PROLOG
 # LArFFT:                       @local::dunefd_larfft
 # LArG4Parameters:              @local::dunefd_largeantparameters
 # ExptGeoHelperInterface:       @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # Geometry:                     @local::dune10kt_geo
 # DetectorClocksService:        @local::dunefd_detectorclocks
 # DetectorPropertiesService:    @local::dunefd_detproperties
@@ -110,6 +112,7 @@ BEGIN_PROLOG
 #dunefddphase_services: {
 # DatabaseUtil:                   @local::dunefd_database
 # ExptGeoHelperInterface:         @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # ChannelStatusService:           @local::dunefd_channel_status
 # LArFFT:                         @local::dunefd_larfft
 # NuRandomService:                @local::dune_seedservice
@@ -128,6 +131,7 @@ BEGIN_PROLOG
 # LArFFT:                         @local::dunefd_larfft
 # LArG4Parameters:                @local::dunefd_largeantparameters
 # ExptGeoHelperInterface:         @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
 # MagneticField:                  @local::no_mag_larsoft
 # NuRandomService:                @local::dune_seedservice
@@ -173,6 +177,7 @@ BEGIN_PROLOG
 #dunedphase3x1x1_services: {
 # DatabaseUtil:                   @local::dunefd_database
 # ExptGeoHelperInterface:         @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # ChannelStatusService:           @local::dunedphase3x1x1_channel_status
 # LArFFT:                         @local::dunefd_larfft
 # NuRandomService:                @local::dune_seedservice
@@ -191,6 +196,7 @@ BEGIN_PROLOG
 # LArFFT:                         @local::dunefd_larfft
 # LArG4Parameters:                @local::protodune_largeantparameters
 # ExptGeoHelperInterface:         @local::dune_geometry_helper
+# GeometryConfigurationWriter: {}
 # LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
 # MagneticField:                  @local::no_mag_larsoft
 # NuRandomService:                @local::dune_seedservice
@@ -249,6 +255,7 @@ BEGIN_PROLOG
 
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -269,6 +276,7 @@ protodune_services: {
 
 protodune_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -282,6 +290,7 @@ protodune_rawdecoding_services: {
 
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -305,6 +314,7 @@ protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
