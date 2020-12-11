@@ -1,4 +1,4 @@
-#include "services_dune.fcl"
+#include "services_refactored_pdune.fcl"
 #include "CRT.fcl"
 
 process_name: SingleCRTMatching
@@ -15,6 +15,12 @@ services:
                         @table::protodune_services
   TFileService:      { fileName: "SingleCRTMatching.root" }
   IFBeam:            {}
+   BackTrackerService: {
+	BackTracker:{
+
+SimChannelModuleLabel: "tpcrawdecoder:simpleSC"
+G4ModuleLabel: "largeant"	}
+	}
 }
 #services.message.destinations.LogStandardOut.threshold: "INFO" 
 
