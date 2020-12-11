@@ -2,13 +2,21 @@
 
 #
 #
-#  GDML fragment generator for DUNE vertical drift 10kt detector geometry 
-#  with 2 orthogonal view readout. The lower chamber is not added yet 
-#  !!!NOTE!!!: the readout is on a positive Y plane (drift along horizontal X 
+#  First attempt to make a GDML fragment generator for the DUNE vertical drift 
+#  10kt detector geometry with 2 orthogonal view readout 
+#  The lower chamber is not added yet. 
+#  !!!NOTE!!!: the readout is on a positive Y plane (drift along horizontal X)
 #              due to current reco limitations)
-# 
+#  No photon detectors declared
+#  Simplified treatment of inter-module dead spaces
+#
 #  Created: Thu Oct  1 16:45:27 CEST 2020
 #           Vyacheslav Galymov <vgalymov@ipnl.in2p3.fr>
+#
+#  Modified:
+#           VG: Added defs to enable use in the refactored sim framework
+#
+#
 #
 #################################################################################
 
@@ -81,11 +89,9 @@ $basename="_";
 ##################################################################
 ############## Parameters for One Readout Panel ##################
 
-# parameters for 1.5 x 1.7 sub-unit Charge Readout Module
-$widthPCBActive  = 168.8; # cm (3 x 562.5 mm boards)
-$lengthPCBActive = 150.0; # cm
-#$nChannelsViewPerCRM = 320;   # number of channels per view ("fine pitch")
-#$nChannelsViewPerCRM = 256;   # number of channels per view ("coarse pitch")
+# parameters for 1.5 x 1.7 sub-unit Charge Readout Module / Unit
+$widthPCBActive   = 168.8; # cm (3 x 562.5 mm boards)
+$lengthPCBActive  = 150.0; # cm
 $nChannelsViewInd = 320;
 $nChannelsViewCol = 288;
 
@@ -265,6 +271,31 @@ sub usage()
 }
 
 
+sub gen_Extend()
+{
+
+# Create the <define> fragment file name, 
+# add file to list of fragments,
+# and open it
+    $DEF = $basename."_Ext" . $suffix . ".gdml";
+    push (@gdmlFiles, $DEF);
+    $DEF = ">" . $DEF;
+    open(DEF) or die("Could not open file $DEF for writing");
+
+print DEF <<EOF;
+<?xml version='1.0'?>
+<gdml>
+<extension>
+   <color name="magenta"     R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+   <color name="green"       R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+   <color name="red"         R="1.0"  G="0.0"  B="0.0"  A="1.0" />
+   <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
+   <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
+</extension>
+</gdml>
+EOF
+    close (DEF);
+}
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_Define +++++++++++++++++++++++++++++++++++++++
@@ -400,8 +431,6 @@ EOF
 
 
 #++++++++++++++++++++++++++++ Wire Solids ++++++++++++++++++++++++++++++
-# in principle we only need only one wire solid, since CRM is a square 
-# but to be more general ...
 
 print TPC <<EOF;
 
@@ -429,6 +458,9 @@ print TPC <<EOF;
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
+      <colorref ref="blue"/>
     </volume>
 EOF
 
@@ -1048,6 +1080,7 @@ print " Wires              : $wires_on \n";
 if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
 #if ( $Cathode_switch eq "on" ) {  gen_Cathode();	} #Cathode for now has the same geometry as the Ground Grid
 
+gen_Extend();    # generates the GDML color extension for the refactored geometry 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
 gen_TPC();       # generate TPC for a given unit CRM

@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+<gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
+                       xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
+                       xs:noNamespaceSchemaLocation="RefactoredGDMLSchema/SimpleExtension.xsd"> 
+
+
+<extension>
+   <color name="magenta"     R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+   <color name="green"       R="0.0"  G="1.0"  B="0.0"  A="1.0" />
+   <color name="red"         R="1.0"  G="0.0"  B="0.0"  A="1.0" />
+   <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
+   <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
+</extension>
 <define>
 
 <!--
@@ -468,6 +477,9 @@
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
+      <colorref ref="blue"/>
     </volume>
 
     <volume name="volTPCPlaneV">
@@ -745,8 +757,8 @@
     </volume>
 </structure>
 
-<setup name="Default" version="1.0">
-  <world ref="volWorld" />
-</setup>
+  <setup name="Default" version="1.0">
+    <world ref="volWorld"/>
+  </setup>
 
-</gdml>
+</gdml_simple_extension>
