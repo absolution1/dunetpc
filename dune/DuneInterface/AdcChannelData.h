@@ -24,6 +24,7 @@
 //         tick0 - Tick offset between channelClock and first tick in raw/samples data.
 //           raw - Uncompressed array holding the raw ADC count for each tick
 //       samples - Array holding the prepared signal value for each tick
+//    binSamples - Array holding binned samples: binSamples[ibin][itick]
 //    sampleUnit - Unit for samples array (ADC counts, fC, ke, ...)
 //   sampleNoise - Noise level (e.g. RMS for samples)
 //         flags - Array holding the status flag for each tick
@@ -117,6 +118,7 @@ public:
   AdcInt tick0 = 0;
   AdcCountVector raw;
   AdcSignalVector samples;
+  AdcSignalVectorVector binSamples;
   Name sampleUnit;
   AdcSignal sampleNoise =0.0;
   AdcFlagVector flags;
