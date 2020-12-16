@@ -167,6 +167,36 @@ int test_StringManipulator(bool copy, Index logLevel) {
     assert( areEqual(sman.patternSplit(spat), splits[itst]) );
   }
 
+  cout << myname << "Check int conversion." << endl;
+  vector<std::pair<string, int>> ichks;
+  int badInt = -9999;
+  ichks.push_back({"123", 123});
+  ichks.push_back({"+123", 123});
+  ichks.push_back({"-123", -123});
+  ichks.push_back({"xx", badInt});
+  ichks.push_back({"", badInt});
+  ichks.push_back({"--123", badInt});
+  for ( auto vv : ichks ) {
+    int iman = StringManipulator(vv.first).toInt(badInt);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
+    assert( iman == vv.second );
+  }
+ 
+  cout << myname << "Check unsigned int conversion." << endl;
+  vector<std::pair<string, unsigned int>> uchks;
+  unsigned int badUInt = 9999;
+  uchks.push_back({"123", 123});
+  uchks.push_back({"+123", 123});
+  uchks.push_back({"-123", badUInt});
+  uchks.push_back({"xx", badUInt});
+  uchks.push_back({"", badUInt});
+  uchks.push_back({"--123", badUInt});
+  for ( auto vv : uchks ) {
+    unsigned int iman = StringManipulator(vv.first).toUnsignedInt(badUInt);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
+    assert( iman == vv.second );
+  }
+ 
   cout << myname << "Done." << endl;
   return 0;
 }

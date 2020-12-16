@@ -2,6 +2,8 @@
 
 #include "dune/DuneCommon/StringManipulator.h"
 #include <iostream>
+#include <cctype>
+#include <cstdlib>
 
 using std::string;
 using std::cout;
@@ -98,4 +100,44 @@ const StringVector& StringManipulator::patternSplit(string spat) {
   return m_splits;
 }
   
+//**********************************************************************
+
+bool StringManipulator::isDigits() const {
+  if ( str().empty() ) return false;
+  for ( char c : str() ) if ( ! std::isdigit(c) ) return false;
+  return true;
+}
+
+//**********************************************************************
+
+bool StringManipulator::isInt() const {
+  if ( str().empty() ) return false;
+  char c = str()[0];
+  string schk = (c == '+' || c == '-') ? str().substr(1) : str();
+  return StringManipulator(schk).isDigits();
+}
+
+//**********************************************************************
+
+bool StringManipulator::isUnsignedInt() const {
+  if ( str().empty() ) return false;
+  char c = str()[0];
+  string schk = c == '+' ? str().substr(1) : str();
+  return StringManipulator(schk).isDigits();
+}
+
+//**********************************************************************
+
+int StringManipulator::toInt(int badval) const {
+  if ( ! isInt() ) return badval;
+  return std::strtol(c_str(), nullptr, 10);
+}
+
+//**********************************************************************
+
+unsigned int StringManipulator::toUnsignedInt(unsigned int badval) const {
+  if ( ! isUnsignedInt() ) return badval;
+  return std::strtoul(c_str(), nullptr, 10);
+}
+
 //**********************************************************************
