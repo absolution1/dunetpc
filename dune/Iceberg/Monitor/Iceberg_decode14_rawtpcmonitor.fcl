@@ -1,0 +1,6 @@
+#include "Iceberg_decode_rawtpcmonitor.fcl"
+
+physics.producers.tpcrawdecoder.FELIXRawDataNonContainerInstance: "FRAME14"
+physics.producers.tpcrawdecoder.FELIXRawDataContainerInstance: "ContainerFELIX"
+physics.producers.tpcrawdecoder.FELIXFragmentType: 13
+services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
