@@ -1063,7 +1063,7 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       crate = frame14ptr->crate_no(0);
       slot  = frame14ptr->slot_no(0);
       fiber = frame14ptr->fiber_no(0); // decode this one later 
-      std::cout << "IBERG temporary hack: setting fiber to 1 in Fragment ID " << frag.fragmentID() << " old fiber id: " << (int) fiber << std::endl;
+      std::cout << "ICEBERG temporary hack: setting fiber to 1 in Fragment ID " << frag.fragmentID() << " old fiber id: " << (int) fiber << std::endl;
       fiber = 1;
     }
   else
