@@ -83,6 +83,9 @@ public:
   // Return the strings from the last split.
   const StringVector& splits() const { return m_splits; }
 
+  // Conversions to aritmentic types.
+  // These fail if the string is empty or has extra characters following.
+
   // Return if string only contains digits (ddd..., where d = 0, 1, ..., 9).
   bool isDigits() const;
 
@@ -92,11 +95,17 @@ public:
   // Return if the string is a signed int (ddd..., +ddd... or -ddd...).
   bool isInt() const;
 
+  // Return if the string is a float.
+  bool isFloat() const;
+
   // Convert string to int. Return valbad if not int.
   int toInt(int valbad =0) const;
 
   // Convert string to unsigned int. Return valbad if not unsigned int.
   unsigned int toUnsignedInt(unsigned int valbad =0) const;
+
+  // Convert string to float. Return valbad if not int.
+  float toFloat(float valbad =0) const;
 
 private:
 

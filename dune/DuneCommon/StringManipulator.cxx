@@ -128,6 +128,15 @@ bool StringManipulator::isUnsignedInt() const {
 
 //**********************************************************************
 
+bool StringManipulator::isFloat() const {
+  if ( str().size() == 0 ) return false;
+  char* pch = nullptr;
+  strtof(c_str(), &pch);
+  return pch[0] == '\0';
+}
+
+//**********************************************************************
+
 int StringManipulator::toInt(int badval) const {
   if ( ! isInt() ) return badval;
   return std::strtol(c_str(), nullptr, 10);
@@ -138,6 +147,15 @@ int StringManipulator::toInt(int badval) const {
 unsigned int StringManipulator::toUnsignedInt(unsigned int badval) const {
   if ( ! isUnsignedInt() ) return badval;
   return std::strtoul(c_str(), nullptr, 10);
+}
+
+//**********************************************************************
+
+float StringManipulator::toFloat(float badval) const {
+  if ( str().size() == 0 ) return badval;
+  char* pch = nullptr;
+  float val = strtof(c_str(), &pch);
+  return pch[0] == '\0' ? val : badval;
 }
 
 //**********************************************************************

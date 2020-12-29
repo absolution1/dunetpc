@@ -176,6 +176,7 @@ int test_StringManipulator(bool copy, Index logLevel) {
   ichks.push_back({"xx", badInt});
   ichks.push_back({"", badInt});
   ichks.push_back({"--123", badInt});
+  ichks.push_back({"", badInt});
   for ( auto vv : ichks ) {
     int iman = StringManipulator(vv.first).toInt(badInt);
     cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
@@ -191,10 +192,32 @@ int test_StringManipulator(bool copy, Index logLevel) {
   uchks.push_back({"xx", badUInt});
   uchks.push_back({"", badUInt});
   uchks.push_back({"--123", badUInt});
+  uchks.push_back({"", badUInt});
   for ( auto vv : uchks ) {
     unsigned int iman = StringManipulator(vv.first).toUnsignedInt(badUInt);
     cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
     assert( iman == vv.second );
+  }
+
+  cout << myname << "Check float conversion." << endl;
+  vector<std::pair<string, float>> fchks;
+  float badFloat = -999.9;
+  fchks.push_back({"1.23", 1.23});
+  fchks.push_back({"+1.23", 1.23});
+  fchks.push_back({"-1.23", -1.23});
+  fchks.push_back({"xx", badFloat});
+  fchks.push_back({"", badFloat});
+  fchks.push_back({"--1.23", badFloat});
+  fchks.push_back({"1.23e1", 12.3});
+  fchks.push_back({"1.23x", badFloat});
+  fchks.push_back({"", badFloat});
+  for ( auto vv : fchks ) {
+    StringManipulator sman(vv.first);
+    float xman = sman.toFloat(badFloat);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << xman << endl;
+    assert( int(1000*xman) == int(1000*(vv.second)) );
+    bool foundBad = int(1000*xman) == int(1000*badFloat);
+    assert( sman.isFloat() != foundBad );
   }
  
   cout << myname << "Done." << endl;
