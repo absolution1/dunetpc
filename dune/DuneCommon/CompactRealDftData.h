@@ -19,7 +19,7 @@ public:
 
   using Index = RealDftNormalization::Index;
   using FloatVector = std::vector<F>;
-  using Norm = RealDftNormalization::FullNormalization;
+  using Norm = RealDftNormalization;
 
   // Default ctor.
   CompactRealDftData() =default;
@@ -81,6 +81,9 @@ public:
       if ( ifrq < npha ) m_phas[ifrq] = rhs.phase(ifrq);
     }
   }
+
+  // Normalization.
+  const Norm& normalization() const override { return m_norm; }
 
   // Clear data.
   void clear() override {
@@ -149,9 +152,6 @@ public:
     phas = m_phas;
     return 0;
   }
-
-  // Normalization.
-  Norm fullNormalization() const override { return m_norm; }
 
   // Check and return dimension information.
   Index nSample() const override { return nCompact() ? nCompact() + nPhase() - 1 : 0; }

@@ -133,30 +133,35 @@ int test_StringManipulator(bool copy, Index logLevel) {
   cout << myname << "Test split." << endl;
   StringVector strs;
   StringVector sepss(100, ",");
-  StringVV splits;
+  StringVV splits1;
+  StringVV splits2;
   strs.push_back("a,bb,ccc");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"a", "bb", "ccc"});
   strs.push_back(",a,bb,ccc,");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"", "a", "bb", "ccc", ""});
   strs.push_back("a,,bb,ccc");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"a", "", "bb", "ccc"});
   for ( Index itst=0; itst<strs.size(); ++itst ) {
     string str = strs[itst];
     string seps = sepss[itst];
     StringManipulator sman(str, copy);
     sman.setLogLevel(logLevel);
     cout << myname << "  " << str << endl;
-    assert( areEqual(sman.split(seps), splits[itst]) );
+    assert( areEqual(sman.split(seps), splits1[itst]) );
+    assert( areEqual(sman.split(seps, true), splits2[itst]) );
   }
 
   cout << myname << "Test pattern split." << endl;
   strs.clear();
   StringVector spats(100, "{,}");
-  splits.clear();
+  splits1.clear();
   strs.push_back("where did {bob,sally,kim} go?");
-  splits.push_back({"where did bob go?", "where did sally go?", "where did kim go?"});
+  splits1.push_back({"where did bob go?", "where did sally go?", "where did kim go?"});
   strs.push_back("where did {bob,sal,kim} {go,stay}?");
-  splits.push_back({"where did bob go?", "where did bob stay?",
+  splits1.push_back({"where did bob go?", "where did bob stay?",
                     "where did sal go?", "where did sal stay?",
                     "where did kim go?", "where did kim stay?"});
   for ( Index itst=0; itst<strs.size(); ++itst ) {
@@ -164,7 +169,7 @@ int test_StringManipulator(bool copy, Index logLevel) {
     string spat = spats[itst];
     StringManipulator sman(str, copy);
     cout << myname << "  " << str << ", " << spat << endl;
-    assert( areEqual(sman.patternSplit(spat), splits[itst]) );
+    assert( areEqual(sman.patternSplit(spat), splits1[itst]) );
   }
 
   cout << myname << "Check int conversion." << endl;

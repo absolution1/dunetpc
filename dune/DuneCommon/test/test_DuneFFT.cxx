@@ -40,7 +40,7 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
 #endif
   string line = "-----------------------------";
 
-  DFT::FullNormalization norm(ignorm, itnorm);
+  RealDftNormalization norm(ignorm, itnorm);
   cout << line << endl;
   cout << myname << " Global norm: " << ignorm << endl;
   cout << myname << "   Term norm: " << itnorm << endl;
@@ -94,14 +94,14 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
     float amp = dft.amplitude(ifrq);
     float xre = dft.real(ifrq);
     float xim = dft.imag(ifrq);
-    if ( !dft.isPower() || ifrq < dft.nCompact() ) {
+    if ( !dft.normalization().isPower() || ifrq < dft.nCompact() ) {
       pwr3 += amp*amp;
       pwr4 += xre*xre + xim*xim;
     }
   }
   double pfac = 1.0;
-  if ( dft.isStandard() ) pfac = 1.0/nsam;
-  if ( dft.isBin() ) pfac = nsam;
+  if ( dft.normalization().isStandard() ) pfac = 1.0/nsam;
+  if ( dft.normalization().isBin() ) pfac = nsam;
   pwr3 *= pfac;
   pwr4 *= pfac;
   cout << myname << "Tick power: " << pwr1 << endl;

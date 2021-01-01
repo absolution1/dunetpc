@@ -14,7 +14,7 @@ using StringVV = std::vector<StringVector>;
 
 //**********************************************************************
 
-const StringVector& StringManipulator::split(string seps) {
+const StringVector& StringManipulator::split(string seps, bool fullSplit) {
   m_splits.clear();
   if ( seps.size() == 0 ) {
     m_splits.push_back(m_str);
@@ -28,9 +28,11 @@ const StringVector& StringManipulator::split(string seps) {
   }
   // Split.
   string word;
+  bool isSep = false;
   for ( char ch : m_str ) {
-    if ( ch == csep ) {
-      if ( word.size() ) {
+    isSep = ch == csep;
+    if ( isSep ) {
+      if ( fullSplit || word.size() ) {
         m_splits.push_back(word);
         word = "";
       }
@@ -38,7 +40,7 @@ const StringVector& StringManipulator::split(string seps) {
       word += ch;
     }
   }
-  if ( word.size() ) m_splits.push_back(word);
+  if ( word.size() || (fullSplit && isSep) ) m_splits.push_back(word);
   return m_splits;
 }
 

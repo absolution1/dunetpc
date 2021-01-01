@@ -56,6 +56,9 @@ public:
   // Return the manipulated C string.
   const char* c_str() const { return m_str.c_str(); }
 
+  // Return the size of the string.
+  std::string::size_type size() const { return str().size(); }
+
   // Replace all occurences of a substring with a value.
   // Returns the number of replacements (<0 for error).
   template<typename T>
@@ -68,9 +71,11 @@ public:
   int replaceFixedWidth(std::string substr, const T& xsub, Index width);
 
   // Split a string into substrings bounded by the ends and by any of the
-  // characters in seps.
-  // E.g. for seps = "/,", "who,am//I?" --> {"who", "am", "I?"}
-  const std::vector<std::string>& split(std::string seps);
+  // Iff fullSplit is true, empty strings are included.
+  // E.g. for seps = "/,", "who,am//I?/" -->
+  //   {"who", "am", "I?"}         for fullSplit = false and
+  //   {"who", "am", "", "I?", ""} for fullSplit = true
+  const std::vector<std::string>& split(std::string seps, bool fullSplit =false);
 
   // Return the strings obtained by iterating over parts in each split region.
   // e.g. "R. {A,M}. Nixon" --> "R. A. Nixon", "R. M. Nixon".

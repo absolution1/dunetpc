@@ -285,7 +285,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
     lfpower = m_LowFilterPowers[ivec];
   }
   // Do action.
-  DFT::Norm fnormConv(DFT::convolutionNormalization());
+  DFT::Norm fnormConv(RealDftNormalization::convolutionNormalization());
   DFT::Norm fnormData(AdcChannelData::dftNormalization());
   Index rstat = 0;
   Index fftLogLevel = m_LogLevel > 2 ? m_LogLevel - 2 : 0.0;
