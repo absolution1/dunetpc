@@ -21,14 +21,8 @@ class RealDftData {
 public:
 
   using Float = F;
+
   using Index = unsigned int;
-
-  // Clear the DFT, i.e. zero the # samples.
-  // The normalization is retained.
-  virtual void clear() =0;
-
-  // Reset to nsam samples and zero the DFT.
-  virtual void reset(Index nsam) =0;
 
   // Return the normalization.
   virtual const RealDftNormalization& normalization() const =0;
@@ -43,16 +37,23 @@ public:
   bool isEven() const { return (nSample() + 1) % 2; }
   bool isOdd() const { return nSample() % 2; }
 
+  // Check if this object is valid.
+  // Object must have an assigned size so that the frequency status methods work.
+  virtual bool isValid() const { return normalization().isValid() && size() > 0; }
+
+  // Clear the DFT, i.e. zero the # samples.
+  // The normalization is retained.
+  virtual void clear() =0;
+
+  // Reset to nsam samples and zero the DFT.
+  virtual void reset(Index nsam) =0;
+
   // Return the status for a frequency index.
   bool inRange(Index ifrq) const { return ifrq < size(); }
   bool isZero(Index ifrq) const { return ifrq == 0; }
   bool isNyquist(Index ifrq) const { return 2*ifrq == size(); }
   bool isNotAliased(Index ifrq) const { return isZero(ifrq) || isNyquist(ifrq); }
   bool isAliased(Index ifrq) const { return ifrq < size() && !isZero(ifrq) && !isNyquist(ifrq); }
-
-  // Check if this object is valid.
-  // Object must have an assigned size so that the frequency status methods work.
-  virtual bool isValid() const { return normalization().isValid() && size() > 0; }
 
   // Value to return if caller requests a frequency out of range.
   virtual F badValue() const { return 0.0; }

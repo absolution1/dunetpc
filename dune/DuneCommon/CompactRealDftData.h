@@ -3,7 +3,7 @@
 // David Adams
 // April 2019
 //
-// Concrete class that holds a compact representation of DFT data.
+// Concrete class that holds a compact representation of 1D DFT data.
 
 #ifndef CompactRealDftData_H
 #define CompactRealDftData_H
@@ -17,7 +17,7 @@ class CompactRealDftData : public RealDftData<F> {
 
 public:
 
-  using Index = RealDftNormalization::Index;
+  using typename RealDftData<F>::Index;
   using FloatVector = std::vector<F>;
   using Norm = RealDftNormalization;
 
