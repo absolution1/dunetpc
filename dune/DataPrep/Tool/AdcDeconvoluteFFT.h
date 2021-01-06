@@ -9,6 +9,8 @@
 //   3 - Convolute with the filter using FFT. Response is ignored.
 //   4 - Convolute with the response directly. Filter is ignored.
 //   5 - Convolute with the filter directly. Response is ignored.
+//   6-9 - Options for direct deconvolution. Most successful is option 8 which
+//         does chi-square minimization inluding a smoothing term.
 // Note that an attempt to deconvolute with insufficient smearing, e.g. a delta
 // function filter, is likely to result in large oscillations due to noise
 // or numerical rounding.
@@ -38,6 +40,8 @@
 //   Action: Option for action described above.
 //   ResponseVectors: Vector of discrete sequences representing the response function.
 //   ResponseCenters: Vector specifying the zero tick for each of the response fundtions.
+//   SmoothVectors: Vector o discrete sequnces holding smoothing functions.
+//   SmoothScales: Scale factors for the smoothing functions: 1 if missing.
 //   GausFilterSigmas: - Vector of time-domain sigmas [Tick] for the Gaussian filter.
 //   LowFilterWidth: - Vector of widths [tick] [Tick] for the low-frequency filter.
 //   LowFilterPower: - Vector of powers time-domain sigma [Tick] for the low-frequncy filter.
@@ -77,6 +81,8 @@ private:
   Index                m_Action;
   ResponseVectorVector m_ResponseVectors;
   IndexVector          m_ResponseCenters;
+  ResponseVectorVector m_SmoothVectors;
+  FloatVector          m_SmoothScales;
   FloatVector          m_GausFilterSigmas;
   FloatVector          m_LowFilterWidths;
   FloatVector          m_LowFilterPowers;
@@ -88,6 +94,7 @@ private:
   bool m_doFFTConvolute;
   bool m_doDirectConvolute;
   bool m_doDeconvolute;
+  int m_directDeconvolute;
   IndexMapToolPtr m_channelToIndex;
 
 };

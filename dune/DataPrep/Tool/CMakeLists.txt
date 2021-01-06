@@ -307,6 +307,11 @@ simple_plugin(AdcDeconvoluteFFT   "tool"
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )
+simple_plugin(Adc2dConvolute   "tool"
+                dune_ArtSupport
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
 
 simple_plugin(AdcChannelDftPlotter   "tool"
                 dune_DataPrep_Utility

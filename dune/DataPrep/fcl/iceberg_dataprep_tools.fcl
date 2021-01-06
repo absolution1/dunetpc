@@ -65,6 +65,8 @@ tools.ib4_adcPedestalFit: {
   LogLevel: 1
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
+  FitOpt: 3
+  FitPrecision: 1.0
   FitRmsMin:  0.5
   FitRmsMax: 10.0
   RemoveStickyCode: false
@@ -152,6 +154,7 @@ tools.ib4TailPedRemovalZKe: {
   PedDegree: 1     # 1 ==> linear variation in pedestal
   PedTick0: 1000
   PedFreqs: []
+  NoWarnStatuses: [1]
   IncludeChannelRanges: ["apaz"]
   ExcludeChannelRanges: []
 }
