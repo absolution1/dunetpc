@@ -175,9 +175,8 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
   }
   Index isam0 = 0;
   Index nsam = 0;
-  DFT::FullNormalization dftNorm(AdcChannelData::dftNormalization());
+  RealDftNormalization dftNorm(AdcChannelData::dftNormalization());
   DFT dft(dftNorm);
-  //DFT dft(DFT::FullNormalization(AdcChannelData::dftNormalization()));
   int passLog = m_LogLevel < 3 ? 0 : m_LogLevel - 3;
   if ( doForward ) {
     isam0 = m_FirstTick;

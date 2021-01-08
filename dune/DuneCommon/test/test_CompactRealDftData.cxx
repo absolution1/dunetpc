@@ -65,18 +65,18 @@ int test_CompactRealDftData(bool useExistingFcl) {
   Dft dft(mynorm, amps, phas);
   cout << myname << "  # samples: " << dft.size() << endl;
   cout << myname << "      Power: " << dft.power() << endl;
-  assert( dft.hasValidNormalization() );
+  assert( dft.normalization().isValid() );
   assert( dft.isValid() );
   assert( dft.size() );
   assert( dft.nCompact() == namp );
   assert( dft.nAmplitude() == namp );
   assert( dft.nPhase() == npha );
   assert( dft.nSample() == nsam );
-  assert( dft.isStandard() );
-  assert( ! dft.isConsistent() );
-  assert( ! dft.isBin() );
-  assert( dft.isUnit() );
-  assert( ! dft.isPower() );
+  assert( dft.normalization().isStandard() );
+  assert( ! dft.normalization().isConsistent() );
+  assert( ! dft.normalization().isBin() );
+  assert( dft.normalization().isUnit() );
+  assert( ! dft.normalization().isPower() );
 
   // Copy data out.
   cout << myname << line << endl;
@@ -98,7 +98,7 @@ int test_CompactRealDftData(bool useExistingFcl) {
   FloatVector amps2, phas2;
   dft.moveOut(amps2, phas2);
   assert( ! dft.isValid() );
-  assert( dft.hasValidNormalization() );
+  assert( dft.normalization().isValid() );
   assert( dft.size() == 0 );
   assert( dft.nCompact() == 0 );
   assert( dft.nAmplitude() == 0 );

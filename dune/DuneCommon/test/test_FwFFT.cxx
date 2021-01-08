@@ -1,11 +1,11 @@
-// test_DuneFFT.cxx
+// test_FwFFT.cxx
 //
 // David Adams
 // April 2019
 //
-// Test DuneFFT.
+// Test FwFFT.
 
-#include "dune/DuneCommon/DuneFFT.h"
+#include "dune/DuneCommon/FwFFT.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -27,13 +27,13 @@ using std::setw;
 using std::fixed;
 
 using Index = unsigned int;
-using FloatVector = DuneFFT::FloatVector;
-using DFT = DuneFFT::DFT;
+using FloatVector = FwFFT::FloatVector;
+using DFT = FwFFT::DFT;
 
 //**********************************************************************
 
-int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
-  const string myname = "test_DuneFFT: ";
+int test_FwFFT(Index ignorm, Index itnorm, int loglev, Index len) {
+  const string myname = "test_FwFFT: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
   abort();
@@ -69,7 +69,11 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
 
   cout << myname << line << endl;
   cout << myname << "Transform forward." << endl;
-  assert( DuneFFT::fftForward(sams, dft, loglev) == 0 );
+  FwFFT xf(50, 0);
+
+  cout << myname << line << endl;
+  cout << myname << "Transform forward." << endl;
+  assert( xf.fftForward(sams, dft, loglev) == 0 );
   assert( sams.size() == nsam );
   cout << myname << "DFT size: " << dft.size() << endl;
   assert( dft.size() == nsam );
@@ -113,7 +117,7 @@ int test_DuneFFT(Index ignorm, Index itnorm, int loglev, Index len) {
   cout << myname << line << endl;
   cout << myname << "Call inverse." << endl;
   FloatVector sams2, xres2, xims2;
-  int rstat = DuneFFT::fftInverse(dft, sams2, loglev);
+  int rstat = xf.fftInverse(dft, sams2, loglev);
   if ( rstat != 0 ) {
     cout << myname << "FFT invert returned " << rstat << endl;
     assert( false );
@@ -158,7 +162,7 @@ int main(int argc, char* argv[]) {
     string sarg(argv[4]);
     len = std::stoi(sarg);
   }
-  return test_DuneFFT(ignorm, itnorm, loglev, len);
+  return test_FwFFT(ignorm, itnorm, loglev, len);
 }
 
 //**********************************************************************

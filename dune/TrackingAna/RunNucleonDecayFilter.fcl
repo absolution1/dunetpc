@@ -13,6 +13,7 @@ services:
   FileCatalogMetadata:    @local::art_file_catalog_mc
   			  @table::dunefd_simulation_services
   ExptGeoHelperInterface: @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:               @local::dune10kt_geo
   MagneticField:          @local::no_mag  
 }

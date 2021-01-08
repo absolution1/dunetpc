@@ -12,6 +12,7 @@ services:
     TFileService:             	{ fileName: "T0RecoAnodePiercers_reco.root" }
     TimeTracker:              	{}
     ExptGeoHelperInterface:     @local::dune_geometry_helper
+    GeometryConfigurationWriter: {}
     Geometry:                   @local::protodune_geo
     DetectorProperties:         @local::protodune_detproperties
     LArProperties:              @local::dunefd_properties

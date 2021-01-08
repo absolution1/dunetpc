@@ -2,6 +2,8 @@
 
 #include "dune/DuneCommon/StringManipulator.h"
 #include <iostream>
+#include <cctype>
+#include <cstdlib>
 
 using std::string;
 using std::cout;
@@ -12,7 +14,7 @@ using StringVV = std::vector<StringVector>;
 
 //**********************************************************************
 
-const StringVector& StringManipulator::split(string seps) {
+const StringVector& StringManipulator::split(string seps, bool fullSplit) {
   m_splits.clear();
   if ( seps.size() == 0 ) {
     m_splits.push_back(m_str);
@@ -26,9 +28,11 @@ const StringVector& StringManipulator::split(string seps) {
   }
   // Split.
   string word;
+  bool isSep = false;
   for ( char ch : m_str ) {
-    if ( ch == csep ) {
-      if ( word.size() ) {
+    isSep = ch == csep;
+    if ( isSep ) {
+      if ( fullSplit || word.size() ) {
         m_splits.push_back(word);
         word = "";
       }
@@ -36,7 +40,7 @@ const StringVector& StringManipulator::split(string seps) {
       word += ch;
     }
   }
-  if ( word.size() ) m_splits.push_back(word);
+  if ( word.size() || (fullSplit && isSep) ) m_splits.push_back(word);
   return m_splits;
 }
 
@@ -98,4 +102,62 @@ const StringVector& StringManipulator::patternSplit(string spat) {
   return m_splits;
 }
   
+//**********************************************************************
+
+bool StringManipulator::isDigits() const {
+  if ( str().empty() ) return false;
+  for ( char c : str() ) if ( ! std::isdigit(c) ) return false;
+  return true;
+}
+
+//**********************************************************************
+
+bool StringManipulator::isInt() const {
+  if ( str().empty() ) return false;
+  char c = str()[0];
+  string schk = (c == '+' || c == '-') ? str().substr(1) : str();
+  return StringManipulator(schk).isDigits();
+}
+
+//**********************************************************************
+
+bool StringManipulator::isUnsignedInt() const {
+  if ( str().empty() ) return false;
+  char c = str()[0];
+  string schk = c == '+' ? str().substr(1) : str();
+  return StringManipulator(schk).isDigits();
+}
+
+//**********************************************************************
+
+bool StringManipulator::isFloat() const {
+  if ( str().size() == 0 ) return false;
+  char* pch = nullptr;
+  strtof(c_str(), &pch);
+  return pch[0] == '\0';
+}
+
+//**********************************************************************
+
+int StringManipulator::toInt(int badval) const {
+  if ( ! isInt() ) return badval;
+  return std::strtol(c_str(), nullptr, 10);
+}
+
+//**********************************************************************
+
+unsigned int StringManipulator::toUnsignedInt(unsigned int badval) const {
+  if ( ! isUnsignedInt() ) return badval;
+  return std::strtoul(c_str(), nullptr, 10);
+}
+
+//**********************************************************************
+
+float StringManipulator::toFloat(float badval) const {
+  if ( str().size() == 0 ) return badval;
+  char* pch = nullptr;
+  float val = strtof(c_str(), &pch);
+  return pch[0] == '\0' ? val : badval;
+}
+
 //**********************************************************************
