@@ -19,4 +19,5 @@
     <![CDATA[m_axisTitleOpt=0;
      ]]>
   </ioread>
+  <class name="Fw2dFFT" />
 </lcgdict>
