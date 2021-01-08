@@ -3,11 +3,13 @@
 
 #services.Geometry:                   @local::protodune_geo
 #services.ExptGeoHelperInterface:     @local::dune_geometry_helper
+#services.GeometryConfigurationWriter: {}
  
 services:
 { 
   Geometry:               @local::dunefd_services.Geometry
   ExptGeoHelperInterface: @local::dunefd_services.ExptGeoHelperInterface
+  GeometryConfigurationWriter: {}
 } 
 
 source:

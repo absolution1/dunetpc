@@ -14,6 +14,7 @@ services:
   #FileCatalogMetadata:  @local::art_file_catalog_mc
   #                      @table::protodune_services
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::dunefd_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
