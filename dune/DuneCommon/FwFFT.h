@@ -66,7 +66,7 @@ private:
 
   Index m_nsamMax;
   Index m_flag;
-  Float* m_inData;
+  double* m_inData;
   Complex* m_outData;
   PlanMap m_forwardPlans;
   PlanMap m_backwardPlans;

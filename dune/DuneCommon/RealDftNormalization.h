@@ -86,6 +86,7 @@
 #ifndef RealDftNormalization_H
 #define RealDftNormalization_H
 
+#include <string>
 #include <vector>
 #include <cmath>
 
@@ -126,11 +127,22 @@ public:
   bool isStandard() const   { return globalNormalization() == Standard; }
   bool isConsistent() const { return globalNormalization() == Consistent; }
   bool isBin() const        { return globalNormalization() == Bin; }
+  std::string globalName() const {
+    if ( isStandard() ) return "standard";
+    if ( isConsistent() ) return "consistent";
+    if ( isBin() ) return "bin";
+    return "invalid";
+  }
 
   // Return the term normalization.
   TermNormalization termNormalization() const { return m_term; }
   bool isUnit() const { return termNormalization() == Unit; }
   bool isPower() const  { return termNormalization() == Power; }
+  std::string termName() const {
+    if ( isUnit() ) return "unit";
+    if ( isPower() ) return "power";
+    return "invalid";
+  }
 
   // Check normalization is valid.
   bool hasValidGlobalNormalization() const { return isStandard() || isConsistent() || isBin(); }
