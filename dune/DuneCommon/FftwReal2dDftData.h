@@ -73,6 +73,11 @@ public:
   const IndexArray& nSamples() const override {
     return m_nsams;
   }
+  Index nSamples(Index idim) const {
+    if ( idim > rank() ) return 0;
+    return nSamples()[idim];
+  }
+  Index size(Index idim) const { return nSamples(idim); }
 
   // Access the raw data.
   Complex* data() { return m_data.data(); }

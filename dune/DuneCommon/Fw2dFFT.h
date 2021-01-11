@@ -63,7 +63,7 @@ public:
   bool haveBackwardPlan(const IndexArray& nsams) const;
 
   // Return the plan for a data size.
-  // The plan is cretaed if not already existing.
+  // The plan is created if not already existing.
   Plan& forwardPlan(const IndexArray& nsams);
   Plan& backwardPlan(const IndexArray& nsams);
 

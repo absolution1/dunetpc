@@ -74,11 +74,11 @@ public:
   // Number of samples in each dimension.
   // nSample = size = # samples
   const IndexArray& nSamples() const { return m_nsams; }
-  Index nSample(Index idim) const {
+  Index nSamples(Index idim) const {
     if ( idim > rank() ) return 0;
     return nSamples()[idim];
   }
-  Index size(Index idim) const { return nSample(idim); }
+  Index size(Index idim) const { return nSamples(idim); }
 
   // Size of the full data.
   Index size() const { return m_data.size(); }
@@ -139,20 +139,57 @@ public:
     return 0;
   }
 
-  // Return any term, i.e. idat < nSample.
-  // Values depend on global and term normalizations.
-  Float value(const IndexArray& isams) const {
-    if ( ! isValid() ) return badValue();
-    if ( isams.size() != rank() ) return badValue();
-    Index isam0 = isams[0];
-    Index isam1 = isams[1];
-    Index nsam0 = m_nsams[0];
-    if ( isam0 >= nsam0 ) return this->badValue();
-    Index nsam1 = m_nsams[1];
-    if ( isam1 >= nsam1 ) return this->badValue();
-    Index idat = nsam1*isam0 + isam1;
-    if ( idat >= size() ) return badValue();
+  // Return the global index for given dimension indices.
+  // If pchk is not null, then the range of each dimension is checked.
+  Index globalIndex(const IndexArray& isams, Index* pchk =nullptr) const {
+    if ( ! isValid() ) {
+      if ( pchk != nullptr ) *pchk = 1;
+      return size();
+    }
+    if ( isams.size() != rank() ) {
+      if ( pchk != nullptr ) *pchk = 2;
+      return size();
+    }
+    if ( pchk != nullptr ) {
+      for ( Index idim=0; idim<rank(); ++idim ) {
+        if  ( ! inRange(idim, isams[idim]) ) {
+          *pchk = 10 + idim;
+          return size();
+        }
+      }
+      *pchk = 0;
+    }
+    Index idat = isams[0];
+    for ( Index idim=1; idim<rank(); ++idim ) {
+      idat *= m_nsams[idim];
+      idat += isams[idim];
+    }
+    return idat;
+  }
+  
+  // Return the value for indices isams.
+  // The index arrays are checked first iff pchk != nullptr.
+  // If any of these checks fail or the calculated index is out of range,
+  // badValue(0 is returned.
+  Float value(const IndexArray& isams, Index* pchk =nullptr) const {
+    Index idat = globalIndex(isams, pchk);
+    if ( idat >= size() ) return this->badValue();
     return m_data[idat];
+  }
+
+  // Set the value for indices isams.
+  // Set any term, i.e. idat < nSample.
+  // The index arrays are checked if pchk != nullptr.
+  // If any of these checks fail or the calculated index is out of range,
+  // the value is not set and the size of the data is returned.
+  // If the value is set, the global index is returned.
+  // That index is guranteed to be less than the data size.
+  Index setValue(const IndexArray& isams, Float val, Index* pchk =nullptr) {
+    Index idat = globalIndex(isams, pchk);
+    if ( pchk != nullptr && *pchk > 0 ) return size();
+    if ( idat >= size() ) return size();
+    m_data[idat] = val;
+    return idat;
   }
 
   // Return the total power.
