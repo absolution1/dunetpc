@@ -346,7 +346,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
           AdcInt iisam = itck;
           iisam -= dsam;
-          if ( iisam > 0 ) {
+          if ( iisam >= 0 ) {
             AdcIndex isam = iisam;
             float sig = 0.0;
             if ( (isSig || isNsg) && isam >= pacd->signal.size() ) {
