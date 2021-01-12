@@ -55,6 +55,9 @@ public:
   // Normalization.
   Norm normalization() const override { return m_norm; }
 
+  // The number of dimensions.
+  Index rank() const { return 2; }
+
   // Clear data.
   void clear() override {
     for ( Index& nsam : m_nsams ) nsam = 0;
