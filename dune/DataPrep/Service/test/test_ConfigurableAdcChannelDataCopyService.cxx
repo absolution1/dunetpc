@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcChannelDataCopyService.h"
+#include "dune/DuneInterface/Service/AdcChannelDataCopyService.h"
 
 #undef NDEBUG
 #include <cassert>

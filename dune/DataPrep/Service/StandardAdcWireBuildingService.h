@@ -11,7 +11,7 @@
 #ifndef StandardAdcWireBuildingService_H
 #define StandardAdcWireBuildingService_H
 
-#include "dune/DuneInterface/AdcWireBuildingService.h"
+#include "dune/DuneInterface/Service/AdcWireBuildingService.h"
 
 class AdcSuppressService;
 

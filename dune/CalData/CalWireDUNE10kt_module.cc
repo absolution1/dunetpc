@@ -46,7 +46,7 @@
 
 // Dune includes.
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
-#include "dune/DuneInterface/ChannelMappingService.h"
+#include "dune/DuneInterface/Service/ChannelMappingService.h"
 
 using std::string;
 using std::cout;

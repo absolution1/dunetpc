@@ -13,7 +13,7 @@
 #ifndef ThresholdNoiseRemovalService_H
 #define ThresholdNoiseRemovalService_H
 
-#include "dune/DuneInterface/AdcChannelNoiseRemovalService.h"
+#include "dune/DuneInterface/Service/AdcChannelNoiseRemovalService.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
 namespace geo {

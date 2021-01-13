@@ -22,7 +22,7 @@
 #ifndef ConfigurableAdcChannelDataCopyService_H
 #define ConfigurableAdcChannelDataCopyService_H
 
-#include "dune/DuneInterface/AdcChannelDataCopyService.h"
+#include "dune/DuneInterface/Service/AdcChannelDataCopyService.h"
 
 class ConfigurableAdcChannelDataCopyService : public AdcChannelDataCopyService {
 

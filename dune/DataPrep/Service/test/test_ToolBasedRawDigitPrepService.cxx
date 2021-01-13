@@ -16,7 +16,7 @@
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/WiredAdcChannelDataMap.h"
 
 #undef NDEBUG

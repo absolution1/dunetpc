@@ -3,7 +3,7 @@
 #include "ToolBasedRawDigitPrepService.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
-#include "dune/DuneInterface/AdcWireBuildingService.h"
+#include "dune/DuneInterface/Service/AdcWireBuildingService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include <iostream>
 #include <iomanip>

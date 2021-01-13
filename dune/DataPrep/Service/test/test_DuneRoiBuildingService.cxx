@@ -14,7 +14,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
-#include "dune/DuneInterface/AdcRoiBuildingService.h"
+#include "dune/DuneInterface/Service/AdcRoiBuildingService.h"
 
 #undef NDEBUG
 #include <cassert>

@@ -29,7 +29,7 @@
 #ifndef SIGNALSHAPINGSERVICEDUNE_H
 #define SIGNALSHAPINGSERVICEDUNE_H
 
-#include "dune/DuneInterface/SignalShapingService.h"
+#include "dune/DuneInterface/Service/SignalShapingService.h"
 
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"

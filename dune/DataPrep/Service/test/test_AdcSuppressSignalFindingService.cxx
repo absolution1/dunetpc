@@ -14,7 +14,7 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/AdcSignalFindingService.h"
+#include "dune/DuneInterface/Service/AdcSignalFindingService.h"
 
 #undef NDEBUG
 #include <cassert>

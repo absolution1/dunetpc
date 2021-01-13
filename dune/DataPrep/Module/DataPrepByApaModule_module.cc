@@ -41,7 +41,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"

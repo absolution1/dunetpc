@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/AdcSuppressService.h"
+#include "dune/DuneInterface/Service/AdcSuppressService.h"
 
 using std::vector;
 using std::string;

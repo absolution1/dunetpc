@@ -21,7 +21,7 @@
 #ifndef GeoApaChannelGroupService_H
 #define GeoApaChannelGroupService_H
 
-#include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/Service/ChannelGroupService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "larcore/Geometry/Geometry.h"
 

@@ -9,7 +9,7 @@
 #ifndef TEMPLATETRIGGERSERVICE_H
 #define TEMPLATETRIGGERSERVICE_H
 
-#include "dune/DuneInterface/BaseTriggerService.h"
+#include "dune/DuneInterface/Service/BaseTriggerService.h"
 
 #include <memory>
 #include <string>

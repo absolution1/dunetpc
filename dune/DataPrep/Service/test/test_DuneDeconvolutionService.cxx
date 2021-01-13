@@ -16,7 +16,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
-#include "dune/DuneInterface/AdcDeconvolutionService.h"
+#include "dune/DuneInterface/Service/AdcDeconvolutionService.h"
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 
 #undef NDEBUG

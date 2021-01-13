@@ -11,7 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"

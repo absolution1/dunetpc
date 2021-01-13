@@ -38,7 +38,7 @@
 #ifndef StandardRawDigitPrepService_H
 #define StandardRawDigitPrepService_H
 
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 
 class ChannelMappingService;
 namespace lariov {

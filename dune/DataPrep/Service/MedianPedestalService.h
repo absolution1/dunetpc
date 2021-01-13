@@ -16,7 +16,7 @@
 #ifndef MedianPedestalService_H
 #define MedianPedestalService_H
 
-#include "dune/DuneInterface/PedestalEvaluationService.h"
+#include "dune/DuneInterface/Service/PedestalEvaluationService.h"
 #include "dune/DuneInterface/AdcTypes.h"
 
 namespace geo {

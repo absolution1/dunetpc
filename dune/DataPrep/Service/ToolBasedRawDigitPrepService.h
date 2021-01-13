@@ -25,7 +25,7 @@
 #ifndef ToolBasedRawDigitPrepService_H
 #define ToolBasedRawDigitPrepService_H
 
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <map>
 #include <chrono>
