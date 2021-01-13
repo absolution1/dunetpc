@@ -8,7 +8,7 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 #include "dune/DuneInterface/ChannelMappingService.h"
 #include "dune/DuneInterface/RawDigitExtractService.h"
 #include "dune/DuneInterface/AdcMitigationService.h"

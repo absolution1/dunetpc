@@ -11,7 +11,7 @@
 #ifndef AdcChannelDataTester_H
 #define AdcChannelDataTester_H
 
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 
 class AdcChannelDataTester {
 

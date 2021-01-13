@@ -9,7 +9,7 @@
 // Interface for a service that builds a recob::Wire in ADC channel data.
 
 #include <iostream>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 #include "lardataobj/RecoBase/Wire.h"
 
 class AdcWireBuildingService {

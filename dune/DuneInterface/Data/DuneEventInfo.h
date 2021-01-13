@@ -20,13 +20,21 @@ public:
   Index run =0;
   Index event = 0;
   Index subRun = 0;
-  LongIndex triggerClock = 0;
+  time_t time =0;
+  int timerem =0;
+  Index trigger =0;
+  LongIndex triggerClock =0;
+  LongIndex channelClock =0;
 
   // Reset to no event.
   void clear() {
     run = 0;
     event = 0;
     subRun = 0;
+    time = 0;
+    timerem = 0;
+    trigger = 0;
+    triggerClock = 0;
     triggerClock = 0;
   }
 
@@ -51,7 +59,11 @@ public:
     if ( run != rhs.run ) return false;
     if ( subRun != rhs.subRun ) return false;
     if ( event != rhs.event ) return false;
+    if ( time != rhs.time ) return false;
+    if ( timerem != rhs.timerem ) return false;
+    if ( trigger != rhs.trigger ) return false;
     if ( triggerClock != rhs.triggerClock ) return false;
+    if ( channelClock != rhs.channelClock ) return false;
     return true;
   }
 

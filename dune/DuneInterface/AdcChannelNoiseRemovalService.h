@@ -10,7 +10,7 @@
 // Note that AdcNoiseRemovalService removes noise for multiple channels.
 
 #include <iostream>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 
 class AdcChannelNoiseRemovalService {
 

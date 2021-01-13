@@ -10,7 +10,7 @@
 // a larsoft raw digit. The latter holds the TPC samples for one channel.
 
 #include <iostream>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 #include "dune/DuneInterface/WiredAdcChannelDataMap.h"
 namespace detinfo {
   class DetectorClocksData;
