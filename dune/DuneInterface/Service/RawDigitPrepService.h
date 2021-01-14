@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include "dune/DuneInterface/Data/AdcChannelData.h"
-#include "dune/DuneInterface/WiredAdcChannelDataMap.h"
+#include "dune/DuneInterface/Data/WiredAdcChannelDataMap.h"
 namespace detinfo {
   class DetectorClocksData;
 }
