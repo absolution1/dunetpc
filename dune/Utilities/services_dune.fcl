@@ -497,29 +497,6 @@ protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detp
 # Dataprep service.
 protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
 
-##################################################
-### Make Parallel Services for the v7 geometry ###
-##################################################
-
-protodunev7_services:  @local::protodune_services
-protodunev7_services.Geometry: @local::protodunev7_geo
-
-protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
-protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_services:  @local::protodune_data_services
-protodunev7_data_services.Geometry: @local::protodunev7_geo
-
-protodunev7_reco_services:  @local::protodune_reco_services
-protodunev7_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_reco_services:  @local::protodune_data_reco_services
-protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_simulation_services:  @local::protodune_simulation_services
-protodunev7_simulation_services.Geometry: @local::protodunev7_geo
-protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
-
 
 
 
