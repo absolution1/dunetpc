@@ -73,7 +73,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/DuneInterface/Data/DuneEventInfo.h"
 
 namespace raw {
