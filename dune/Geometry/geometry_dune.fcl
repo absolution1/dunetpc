@@ -175,8 +175,11 @@ dune10kt_1x2x6_v4_geo.Name: "dune10kt_v4_1x2x6"
 dune10kt_1x2x6_v4_geo.GDML: "dune10kt_v4_1x2x6.gdml"
 dune10kt_1x2x6_v4_geo.ROOT: "dune10kt_v4_1x2x6.gdml"
 
-dune10kt_1x2x6_geo: @local::dune10kt_1x2x6_v4_geo
+dune10kt_1x2x6_v4_refactored_geo:      @local::dune10kt_1x2x6_v4_geo
+dune10kt_1x2x6_v4_refactored_geo.GDML: "dune10kt_v4_refactored_1x2x6.gdml"
+dune10kt_1x2x6_v4_refactored_geo.ROOT: "dune10kt_v4_refactored_1x2x6.gdml"
 
+dune10kt_1x2x6_geo:         @local::dune10kt_1x2x6_v4_geo
 
 dunedphase10kt_workspace_geo: @local::dunedphase10kt_geo
 dunedphase10kt_workspace_geo.Name: "dunedphase10kt_v2_workspace"
@@ -242,7 +245,12 @@ protodunev7_geo.Name: "protodunev7" # will be made lower case anyway
 protodunev7_geo.GDML: "protodune_v7.gdml"
 protodunev7_geo.ROOT: "protodune_v7.gdml"
 
+protodunev7_refactored_geo: @local::protodunev7_geo
+protodunev7_refactored_geo.GDML: "protodune_v7_refactored_nowires.gdml"
+protodunev7_refactored_geo.ROOT: "protodune_v7_refactored.gdml"
+
 protodune_geo: @local::protodunev7_geo
+protodune_refactored_geo: @local::protodunev7_refactored_geo
 
 iceberg_geo: @local::dune10kt_geo
 iceberg_geo.Name: "iceberg" # will be made lower case anyway
