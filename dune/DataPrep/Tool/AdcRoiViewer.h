@@ -262,7 +262,7 @@ public:
     Index getChannelStatus(Index icha) const;
     Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
-    Index cachedRun = AdcChannelData::badIndex;
+    Index cachedRun = AdcChannelData::badIndex();
     Name cachedSampleUnit;
     Index nRoiPlot =0;
     IndexByIndexMap channelStatuses;     // Status indexed by channel number

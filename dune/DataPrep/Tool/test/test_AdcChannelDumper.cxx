@@ -77,9 +77,7 @@ int test_AdcChannelDumper(bool useExistingFcl =false) {
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
-      data.run = 101;
-      data.subRun = 23;
-      data.event = ievt;
+      data.setEventInfo(101, ievt, 23);
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {

@@ -65,7 +65,7 @@ DataMap AdcUnderflowFlagger::update(AdcChannelData& acd) const {
   AdcChannel icha = acd.channel;
   res.setInt("channel", icha);
   res.setInt("nModify", m_modifyCount);
-  if ( icha == AdcChannelData::badChannel ) {
+  if ( icha == AdcChannelData::badChannel() ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Data does not have an assigned channel." << endl;
     return res.setStatus(1);
   }

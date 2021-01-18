@@ -71,9 +71,7 @@ int test_AdcChannelTrimmer(bool useExistingFcl =false) {
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
   acd.channel = 100123;
-  acd.run = 123;
-  acd.subRun = 45;
-  acd.event = 2468;
+  acd.setEventInfo(123, 2468, 45);
   acd.sampleUnit = "fC";
   acd.samples.resize(15);
   for ( Index isam=0; isam<acd.samples.size(); ++isam ) {

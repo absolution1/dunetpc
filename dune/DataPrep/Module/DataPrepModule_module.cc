@@ -564,6 +564,15 @@ void DataPrepModule::produce(art::Event& evt) {
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
   unsigned int ndigi = pdigits->size();
+  using EventInfo = AdcChannelData::EventInfo;
+  EventInfo* pevt = new EventInfo;
+  pevt->run = evt.run();
+  pevt->subRun = evt.subRun();
+  pevt->time = itim;
+  pevt->timerem = itimrem;
+  pevt->triggerClock = timingClock;
+  pevt->trigger = trigFlag;
+  AdcChannelData::EventInfoPtr pevtShared(pevt);
   for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*pdigits)[idig];
     AdcChannel chan = dig.Channel();
@@ -608,11 +617,7 @@ void DataPrepModule::produce(art::Event& evt) {
     }
     // Build the channel data.
     AdcChannelData& acd = fulldatamap[chan];
-    acd.run = evt.run();
-    acd.subRun = evt.subRun();
-    acd.event = evt.event();
-    acd.time = itim;
-    acd.timerem = itimrem;
+    acd.setEventInfo(pevtShared);
     acd.channel = chan;
     acd.channelStatus = chanStat;
     acd.digitIndex = idig;
@@ -621,8 +626,6 @@ void DataPrepModule::produce(art::Event& evt) {
       acd.fembID = fembID;
       acd.fembChannel = fembChannel;
     }
-    acd.triggerClock = timingClock;
-    acd.trigger = trigFlag;
     if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
     acd.metadata["ndigi"] = ndigi;
     if ( m_BeamEventLabel.size() ) {
@@ -721,10 +724,10 @@ void DataPrepModule::produce(art::Event& evt) {
       for ( const AdcChannelDataMap::value_type& iacd : datamap ) {
         const AdcChannelData& acd = iacd.second;
         AdcIndex idig = acd.digitIndex;
-        if ( idig == AdcChannelData::badIndex )
+        if ( idig == AdcChannelData::badIndex() )
           throw art::Exception(art::errors::ProductRegistrationFailure) << "Digit index is not set.";
         AdcIndex iwir = acd.wireIndex;
-        if ( iwir == AdcChannelData::badIndex ) continue;
+        if ( iwir == AdcChannelData::badIndex() ) continue;
         art::Ptr<raw::RawDigit> pdig(hdigits, idig);
         bool success = util::CreateAssn(*this, evt, *pwires, pdig, *passns, m_WireName, iwir);
         if ( !success ) throw art::Exception(art::errors::ProductRegistrationFailure)

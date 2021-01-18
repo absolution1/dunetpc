@@ -76,8 +76,8 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
   assert( acd1.rois.size() == 0 );
   assert( acd1.digit == nullptr );
   assert( acd1.wire == nullptr );
-  assert( acd1.digitIndex == AdcChannelData::badIndex );
-  assert( acd1.wireIndex == AdcChannelData::badIndex );
+  assert( acd1.digitIndex == AdcChannelData::badIndex() );
+  assert( acd1.wireIndex == AdcChannelData::badIndex() );
 
   cout << myname << line << endl;
   cout << myname << "Fetch service." << endl;
@@ -100,8 +100,8 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
   assert( acd2.rois.size() == 0 );
   assert( acd2.digit == nullptr );
   assert( acd2.wire == nullptr );
-  assert( acd2.digitIndex == AdcChannelData::badIndex );
-  assert( acd2.wireIndex == AdcChannelData::badIndex );
+  assert( acd2.digitIndex == AdcChannelData::badIndex() );
+  assert( acd2.wireIndex == AdcChannelData::badIndex() );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

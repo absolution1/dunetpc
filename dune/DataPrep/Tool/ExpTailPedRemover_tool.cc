@@ -247,7 +247,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     return ret.setStatus(1);
   }
 
-  if ( m_LogLevel >= 3 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
+  if ( m_LogLevel >= 3 ) cout << myname << "Correcting run " << acd.run() << " event " << acd.event()
                               << " channel " << acd.channel << endl;
 
   // Set flag indicating if signal should be found each iteration.
@@ -283,7 +283,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       AdcFilterVector signalLast = acd.signal;
       DataMap fret = m_pSignalTool->update(acd);
       if ( fret ) {
-        cout << myname << "WARNING: Signal-finding failed for event " << acd.event
+        cout << myname << "WARNING: Signal-finding failed for event " << acd.event()
              << " channel " << acd.channel << endl;
         break;
       }

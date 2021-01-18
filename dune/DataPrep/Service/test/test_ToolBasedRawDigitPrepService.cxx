@@ -197,9 +197,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     data.channel = dig.Channel();
     data.digitIndex = idig;
     data.digit = &dig;
-    data.event = 1;
-    data.run = 123;
-    data.subRun = 0;
+    data.setEventInfo(123, 1);
   }
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);

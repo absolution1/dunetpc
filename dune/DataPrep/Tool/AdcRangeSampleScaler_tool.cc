@@ -63,12 +63,12 @@ AdcRangeSampleScaler::AdcRangeSampleScaler(fhicl::ParameterSet const& ps)
 
 DataMap AdcRangeSampleScaler::update(AdcChannelData& acd) const {
   const string myname = "AdcRangeSampleScaler::update: ";
-  if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run << " event " << acd.event
+  if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run() << " event " << acd.event()
                               << " channel " << acd.channel << endl;
   DataMap ret;
 
   // Find the index for the scale factor.
-  if ( acd.channel == AdcChannelData::badIndex ) {
+  if ( acd.channel == AdcChannelData::badIndex() ) {
      cout << myname << "ERROR: Invalid channel." << endl;
     return ret.setStatus(1);
   }

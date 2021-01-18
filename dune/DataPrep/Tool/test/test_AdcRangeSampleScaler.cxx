@@ -77,8 +77,7 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
   AdcChannelDataMap acds;
   for ( Index icha=0; icha<ncha; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.run = 123;
-    acd.event = 456;
+    acd.setEventInfo(123, 456);
     acd.channel = icha;
     acd.samples.resize(nsam, 10.0);
     acd.sampleUnit = "ADC";

@@ -17,9 +17,7 @@ using Index = unsigned int;
 int AdcChannelDataTester::
 fill(AdcChannelData& acd, Index icha, Index isam0) {
   const string myname = "AdcChannelDataTester::fill: ";
-  acd.run = run;
-  acd.subRun = subrun;
-  acd.event = event;
+  acd.setEventInfo(new AdcChannelData::EventInfo(run, event, subrun));
   acd.channel = icha;
   acd.pedestal = pedestal;
   acd.sampleUnit = "ke";

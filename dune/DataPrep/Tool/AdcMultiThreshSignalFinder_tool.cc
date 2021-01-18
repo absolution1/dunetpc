@@ -118,7 +118,7 @@ DataMap AdcMultiThreshSignalFinder::update(AdcChannelData& data) const {
 
   if(m_UseStd)
   {
-    if( ped == AdcChannelData::badSignal )
+    if( ped == AdcChannelData::badSignal() )
       {
 	cout << myname << "  Channel "<<data.channel
 	     <<" pedestal is not valid" << endl;

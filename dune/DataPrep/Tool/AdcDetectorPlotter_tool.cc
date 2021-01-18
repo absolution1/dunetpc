@@ -38,9 +38,9 @@ namespace {
 void initializeState(AdcDetectorPlotter::State& state, const AdcChannelData& acd) {
   state.reportCount = 0;
   state.channelCount = 0;
-  state.run    = acd.run;
-  state.subrun = acd.subRun;
-  state.event  = acd.event;
+  state.run    = acd.run();
+  state.subrun = acd.subRun();
+  state.event  = acd.event();
   state.ppad.reset(nullptr);
 }
 
@@ -172,12 +172,12 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   }
   string sttly = "Wire coordinate [cm]";
   if ( state.reportCount ) {
-    if ( acdFirst.run != state.run ||
-         acdFirst.subRun != state.subrun ||
-         acdFirst.event != state.event ) {
+    if ( acdFirst.run() != state.run ||
+         acdFirst.subRun() != state.subrun ||
+         acdFirst.event() != state.event ) {
       cout << myname << "ERROR: Received unexpected event ID. Clearing data." << endl;
       cout << myname << "State: " << state.event << "-" << state.subrun << "-" << state.event << endl;
-      cout << myname << " Data: " << acdFirst.event << "-" << acdFirst.subRun << "-" << acdFirst.event << endl;
+      cout << myname << " Data: " << acdFirst.event() << "-" << acdFirst.subRun() << "-" << acdFirst.event() << endl;
       state.reportCount = 0;
     }
   }
@@ -242,7 +242,7 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
   ++state.reportCount;
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
-    if ( iacd.first == AdcChannelData::badChannel ) {
+    if ( iacd.first == AdcChannelData::badChannel() ) {
       cout << myname << "WARNING: Channel map has invalid channels. No plot is created." << endl;
     }
     Tick ntick = iacd.second.samples.size();

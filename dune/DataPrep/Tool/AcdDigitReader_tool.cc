@@ -43,12 +43,12 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
     cout << myname << "ERROR: ADC channel has flag data." << endl;
     return DataMap(3);
   }
-  if ( acd.pedestal != AdcChannelData::badSignal ) {
+  if ( acd.pedestal != AdcChannelData::badSignal() ) {
     cout << myname << "ERROR: ADC channel has a pedestal." << endl;
     return DataMap(4);
   }
   // Set or check the channel number.
-  if ( acd.channel == AdcChannelData::badChannel ) {
+  if ( acd.channel == AdcChannelData::badChannel() ) {
     acd.channel = dig.Channel();
   } else {
     if ( acd.channel != dig.Channel() ) {

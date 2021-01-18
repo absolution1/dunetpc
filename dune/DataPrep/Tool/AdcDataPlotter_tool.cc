@@ -189,7 +189,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Find the tick range.
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
-    if ( iacd.first == AdcChannelData::badChannel ) {
+    if ( iacd.first == AdcChannelData::badChannel() ) {
       cout << myname << "WARNING: Channel map has invalid channels. No plot is created." << endl;
     }
     Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
@@ -318,14 +318,14 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         bool isRawPed = false;
         if ( isRaw ) {
           ped = pacd->pedestal;
-          isRawPed = ped != AdcChannelData::badSignal;
+          isRawPed = ped != AdcChannelData::badSignal();
         }
         Tick nsam = isRaw ? raw.size() : sams.size();
         AdcInt dsam = pacd->tick0;
         if ( m_ClockFactor > 0.0 ) {
           double dclk = 0.0;
-          if ( pacd->channelClock >= pacd->triggerClock ) dclk = pacd->channelClock - pacd->triggerClock;
-          else dclk = -double(pacd->triggerClock - pacd->channelClock);
+          if ( pacd->channelClock >= pacd->triggerClock() ) dclk = pacd->channelClock - pacd->triggerClock();
+          else dclk = -double(pacd->triggerClock() - pacd->channelClock);
           dsam += m_ClockFactor*(dclk + m_ClockOffset);
         }
         if ( m_FembTickOffsets.size() ) {

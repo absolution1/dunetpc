@@ -566,6 +566,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   devt.triggerClock = timingClock;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
+  AdcChannelData::EventInfoPtr pevt(new DuneEventInfo(devt));
 
   // Loop over channel ranges.
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -831,11 +832,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         }
       }
       // Build the channel data.
-      acd.run = evt.run();
-      acd.subRun = evt.subRun();
-      acd.event = evt.event();
-      acd.time = itim;
-      acd.timerem = itimrem;
+      acd.setEventInfo(pevt);
       acd.channel = chan;
       acd.channelStatus = chanStat;
       acd.digitIndex = idig;
@@ -844,8 +841,6 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         acd.fembID = fembID;
         acd.fembChannel = fembChannel;
       }
-      acd.triggerClock = timingClock;
-      acd.trigger = trigFlag;
       if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
       acd.metadata["ndigi"] = ndigi;
       if ( m_BeamEventLabel.size() ) {

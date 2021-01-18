@@ -671,7 +671,7 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
 
 int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const {
   const string myname = "AdcRoiViewer::doView: ";
-  unsigned int ievt = acd.event;
+  unsigned int ievt = acd.event();
   ++getState().callCount;
   if ( getState().eventCallCount.find(ievt) == getState().eventCallCount.end() ) {
     getState().eventCallCount[ievt] = 0;
@@ -791,7 +791,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     roiNUnderflows.push_back(nunder);
     roiNOverflows.push_back(nover);
     roiTickMaxs.push_back(roiTickMax);
-    roiTimes.push_back(int(acd.time) - int(m_StartTime));
+    roiTimes.push_back(int(acd.time()) - int(m_StartTime));
     roiSigMins.push_back(sigmin);
     roiSigMaxs.push_back(sigmax);
     roiSigAreas.push_back(sigarea);
@@ -832,9 +832,9 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     }
   }
   writeRoiPlots(roiHists, acd);
-  res.setInt("roiEvent",   acd.event);
-  res.setInt("roiRun",     acd.run);
-  res.setInt("roiSubRun",  acd.subRun);
+  res.setInt("roiEvent",   acd.event());
+  res.setInt("roiRun",     acd.run());
+  res.setInt("roiSubRun",  acd.subRun());
   res.setInt("roiChannel", acd.channel);
   res.setInt("roiCount", nroi);
   res.setInt("roiRawCount", nroiRaw);
@@ -859,13 +859,13 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
     res.setFloatVector("roiFitChiSquareDofs", roiFitChiSquareDofs);
   }
   fillSumHists(acd, res);
-  if ( acd.run != AdcChannelData::badIndex ) {
+  if ( acd.run() != AdcChannelData::badIndex() ) {
     if ( getState().cachedRunCount == 0 ) {
-      getState().cachedRun = acd.run;
+      getState().cachedRun = acd.run();
       getState().cachedRunCount = 1;
     } else {
-      if ( acd.run != getState().cachedRun ) {
-        getState().cachedRun = acd.run;
+      if ( acd.run() != getState().cachedRun ) {
+        getState().cachedRun = acd.run();
         ++getState().cachedRunCount;
       }
     }
@@ -894,9 +894,11 @@ void AdcRoiViewer::writeRoiHists(const DataMapVector& dms, int dbg) const {
   TFile* pfile = nullptr;
   for ( const DataMap& dm : dms ) {
     AdcChannelData acd;
-    acd.run     = dm.getInt("roiRun");
-    acd.subRun  = dm.getInt("roiSubRun");
-    acd.event   = dm.getInt("roiEvent");
+    acd.setEventInfo(
+      dm.getInt("roiRun"),
+      dm.getInt("roiEvent"),
+      dm.getInt("roiSubRun")
+    );
     acd.channel = dm.getInt("roiChannel");
     string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RoiRootFileName);
     if ( ofrname != ofrnameOld ) {
@@ -1044,7 +1046,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
   // Fetch the run data.
   RunData rdat;
   if ( m_pRunDataTool != nullptr ) {
-    rdat = m_pRunDataTool->runData(acd.run, acd.subRun);
+    rdat = m_pRunDataTool->runData(acd.run(), acd.subRun());
     RunData& rdatOld = getState().runData;
     if ( rdat.isValid() && ! rdatOld.isValid() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "Setting run data." << endl;
@@ -1087,12 +1089,12 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
   Index tickOffsetPulserMod = 0;   // Tick offset modulus the pulser period [0, pulserPeriod).
   double timingPhase = 0.0;   // Phase  of the timing clock (0,1]
   if ( m_pTickOffsetTool != nullptr ) {
-    tdat.run = acd.run;
-    tdat.subrun = acd.subRun;
-    tdat.event = acd.event;
+    tdat.run = acd.run();
+    tdat.subrun = acd.subRun();
+    tdat.event = acd.event();
     tdat.channel = acd.channel;
     tdat.fembID = acd.fembID;
-    tdat.triggerClock = acd.triggerClock;
+    tdat.triggerClock = acd.triggerClock();
     TimeOffsetTool::Offset off = m_pTickOffsetTool->offset(tdat);
     if ( off.isValid() ) {
       haveTickOffset = true;
@@ -1152,10 +1154,10 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
     else if ( varx == "timeSec" )           ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeHour" )          ivals = dm.getIntVector("roiTimes");
     else if ( varx == "timeDay" )           ivals = dm.getIntVector("roiTimes");
-    else if ( varx == "procEvent" )         ivals.push_back(acd.event);
-    else if ( varx == "procTimeSec" )       ivals.push_back(int(acd.time) - int(m_StartTime));
-    else if ( varx == "procTimeHour" )      ivals.push_back(int(acd.time) - int(m_StartTime));
-    else if ( varx == "procTimeDay" )       ivals.push_back(int(acd.time) - int(m_StartTime));
+    else if ( varx == "procEvent" )         ivals.push_back(acd.event());
+    else if ( varx == "procTimeSec" )       ivals.push_back(int(acd.time()) - int(m_StartTime));
+    else if ( varx == "procTimeHour" )      ivals.push_back(int(acd.time()) - int(m_StartTime));
+    else if ( varx == "procTimeDay" )       ivals.push_back(int(acd.time()) - int(m_StartTime));
     else {
       if ( m_LogLevel >= 2 ) {
         cout << myname << "ERROR: Invalid variable name: " << varx << endl;
@@ -1354,7 +1356,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
       float val = vals[ival];
       double valy = 0.0;
       if ( vary == "timingPhase" ) valy = timingPhase;
-      if ( vary == "event" ) valy = acd.event;
+      if ( vary == "event" ) valy = acd.event();
       if ( vary == "" ) {
         ph->Fill(val);
       } else {
@@ -1646,7 +1648,7 @@ void AdcRoiViewer::fillChanSumHists() const {
       continue;
     }
     AdcChannelData acd;
-    acd.run = getState().cachedRun;
+    acd.setEventInfo(getState().cachedRun, 0);
     acd.sampleUnit = getState().cachedSampleUnit;
     Index ncha = 0;
     Index nchaGood = 0;

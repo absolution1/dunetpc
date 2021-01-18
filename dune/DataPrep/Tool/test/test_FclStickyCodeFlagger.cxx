@@ -82,9 +82,7 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = 100.0;
-      data.run = 101;
-      data.subRun = 23;
-      data.event = ievt;
+      data.setEventInfo(new AdcChannelData::EventInfo(101, ievt, 23));
       data.channel = icha;
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<20; ++itic ) {
