@@ -77,6 +77,7 @@
 #include <iostream>
 #include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/DuneInterface/Data/DuneEventInfo.h"
+#include "dune/DuneInterface/Data/DuneChannelInfo.h"
 
 namespace raw {
   class RawDigit;
