@@ -14,14 +14,15 @@
 //  triggerClock - Time counter for the trigger
 //
 //       channel - Offline channel number
-//  channelClock - Time counter for then channel data
-// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //        fembID - FEMB ID
 //   fembChannel - Channel number in FEMB (0, 1,..., 127).
+// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //
+//  channelClock - Time counter for the channel data
+//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
 //      pedestal - Pedestal subtracted from the raw count
 //   pedestalRms - Pedestal RMS or sigma
-//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
+//
 //           raw - Uncompressed array holding the raw ADC count for each tick
 //       samples - Array holding the prepared signal value for each tick
 //    binSamples - Array holding binned samples: binSamples[ibin][itick]
@@ -103,15 +104,19 @@ public:
   static Index badChannel() { return EventInfo::badIndex(); }
   static Index badSignal() { return -99999; }
 
+  static const EventInfo& badEventInfo() {
+    return EventInfo::badEventInfo();
+  }
+
   // Channel data.
   // Everything here should be included in copy and assignment.
-  AdcLongIndex channelClock =0;
   AdcChannel channel =badIndex();
-  AdcIndex channelStatus =badIndex();
   AdcIndex fembID =badIndex();
   AdcIndex fembChannel =badIndex();
+  AdcIndex channelStatus =badIndex();
 
   // ADC and derived data.
+  AdcLongIndex channelClock =0;
   AdcSignal pedestal =badSignal();
   AdcSignal pedestalRms =0.0;
   AdcInt tick0 = 0;
@@ -152,10 +157,6 @@ public:
   }
 
   // Return event info.
-  const EventInfo& badEventInfo() const {
-    static EventInfo bei;
-    return bei;
-  }
   bool hasEventInfo() const { return bool(m_peventInfo); }
   EventInfoPtr getEventInfoPtr() const { return m_peventInfo; }
   const DuneEventInfo& getEventInfo() const {

@@ -3,8 +3,7 @@
 // David Adams
 // January 2021
 //
-// This class provides an interface and partial implementation for the data describing
-// a 2D array.
+// This class provides a 2D array of real numbers.
 //
 // It is templated so DFT elements can be stored at different levels of
 // floating point precision.

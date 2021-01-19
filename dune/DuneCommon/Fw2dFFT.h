@@ -23,7 +23,7 @@
 #ifndef Fw2dFFT_H
 #define Fw2dFFT_H
 
-#include "dune/DuneCommon/Real2dData.h"
+#include "dune/DuneInterface/Data/Real2dData.h"
 #include "dune/DuneCommon/FftwReal2dDftData.h"
 #include <map>
 

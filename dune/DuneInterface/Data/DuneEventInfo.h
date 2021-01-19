@@ -18,16 +18,20 @@ public:
   using Index = unsigned int;
   using LongIndex = unsigned long;
 
-  Index run =0;
-  Index event = 0;
-  Index subRun = 0;
+  Index run =badIndex();
+  Index event =badIndex();
+  Index subRun =badIndex();
   time_t time =0;
   int timerem =0;
-  Index trigger =0;
-  LongIndex triggerClock =0;
+  Index trigger =badIndex();
+  LongIndex triggerClock =badLongIndex();
 
   static Index badIndex() { return -1u; }
   static LongIndex badLongIndex() { return -1ul; }
+  static const DuneEventInfo& badEventInfo() {
+    static DuneEventInfo bei;
+    return bei;
+  }
 
   // Reset to no event.
   void clear() {
@@ -52,7 +56,7 @@ public:
     trigger(a_trigger), triggerClock(a_triggerClock) { }
 
   // Is this valid info?
-  bool isValid() const { return run > 0; }
+  bool isValid() const { return run != badIndex(); }
 
   // Order two event info objects.
   bool operator<(const DuneEventInfo& rhs) {
