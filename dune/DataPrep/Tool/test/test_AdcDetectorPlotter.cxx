@@ -109,8 +109,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
   // Loop over events.
   AdcChannelDataTester tester;
   tester.run = 123;
-  tester.subrun = 2;
   tester.event = 0;
+  tester.subrun = 2;
   tester.nsam = 20000;
   bool strumWires = false;
   // Loop over events.
@@ -152,8 +152,8 @@ int test_AdcDetectorPlotter(bool useExistingFcl =false) {
     for ( Index igrp=0; igrp<ngrp; ++igrp ) {
       const AdcChannelDataMap& datamap = datamaps[igrp];
       assert( datamap.size() > 0 );
-      assert( datamap.begin()->second.event == ievt );
-      assert( datamap.begin()->second.run == tester.run );
+      assert( datamap.begin()->second.event() == ievt );
+      assert( datamap.begin()->second.run() == tester.run );
       cout << myname << "Calling tool for event " << ievt << ", group " << igrp
            << ", Nchan = " << datamap.size() << endl;
       assert( padv->viewMap(datamap) == 0 );

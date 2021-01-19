@@ -9,7 +9,7 @@
 // Interface for a service that builds ROIs in ADC channel data.
 
 #include <iostream>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 
 class AdcRoiBuildingService {
 

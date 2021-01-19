@@ -51,6 +51,12 @@ cet_test(test_FwFFT SOURCES test_FwFFT.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_Fw2dFFT SOURCES test_Fw2dFFT.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+
 cet_test(test_coldelecResponse SOURCES test_coldelecResponse.cxx
   LIBRARIES
     dune_DuneCommon

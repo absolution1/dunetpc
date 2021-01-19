@@ -12,9 +12,9 @@
 //       timerem - Time remainder (ns)
 //       trigger - Index indicating which trigger(s) fired.
 //  triggerClock - Time counter for the trigger
-//  channelClock - Time counter for then channel data
 //
 //       channel - Offline channel number
+//  channelClock - Time counter for then channel data
 // channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //        fembID - FEMB ID
 //   fembChannel - Channel number in FEMB (0, 1,..., 127).
@@ -71,9 +71,10 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <map>
 #include <iostream>
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/DuneInterface/Data/DuneEventInfo.h"
 
 namespace raw {
@@ -92,28 +93,26 @@ public:
   using FloatMap = std::map<Name, float>;
   using View = std::vector<AdcChannelData>;
   using ViewMap = std::map<Name, View>;
+  using EventInfo = DuneEventInfo;
+  using EventInfoPtr = std::shared_ptr<const EventInfo>;
+  using Index = EventInfo::Index;
+  using LongIndex = EventInfo::LongIndex;
 
-  static const AdcIndex badIndex =-1;
-  static const AdcChannel badChannel =-1;
-  static const size_t badSignal =-99999;
+  static Index badIndex() { return EventInfo::badIndex(); }
+  static Index badLongIndex() { return EventInfo::badLongIndex(); }
+  static Index badChannel() { return EventInfo::badIndex(); }
+  static Index badSignal() { return -99999; }
 
-  // Event, trigger and channel data.
+  // Channel data.
   // Everything here should be included in copy and assignment.
-  AdcIndex run =badIndex;
-  AdcIndex subRun =badIndex;
-  AdcIndex event =badIndex;
-  time_t time =0;
-  int timerem =0;
-  AdcIndex trigger =badIndex;
-  AdcLongIndex triggerClock =0;
   AdcLongIndex channelClock =0;
-  AdcChannel channel =badIndex;
-  AdcIndex channelStatus =badIndex;
-  AdcIndex fembID =badIndex;
-  AdcIndex fembChannel =badIndex;
+  AdcChannel channel =badIndex();
+  AdcIndex channelStatus =badIndex();
+  AdcIndex fembID =badIndex();
+  AdcIndex fembChannel =badIndex();
 
   // ADC and derived data.
-  AdcSignal pedestal =badSignal;
+  AdcSignal pedestal =badSignal();
   AdcSignal pedestalRms =0.0;
   AdcInt tick0 = 0;
   AdcCountVector raw;
@@ -131,43 +130,56 @@ public:
   // Connections to persistent data.
   const raw::RawDigit* digit =nullptr;
   const recob::Wire* wire =nullptr;
-  AdcIndex digitIndex =badIndex;
-  AdcIndex wireIndex =badIndex;
+  AdcIndex digitIndex =badIndex();
+  AdcIndex wireIndex =badIndex();
 
 private:
+
+  EventInfoPtr m_peventInfo;
 
   // Constituents and altenate views.
   ViewMap m_views;
 
 public:
 
-  // Return event info.
-  DuneEventInfo getEventInfo() const {
-    DuneEventInfo devt;
-    devt.event = event;
-    devt.run = run;
-    devt.subRun = subRun;
-    devt.triggerClock = triggerClock;
-    return devt;
+  // Set event info.
+  void setEventInfo(EventInfoPtr pevi) { m_peventInfo = pevi; }
+  void setEventInfo(const EventInfo* pevi) { m_peventInfo.reset(pevi); }
+  void setEventInfo(Index a_run, Index a_event, Index a_subRun =badIndex(),
+                    time_t a_time =0, int a_timerem =0,
+                    Index a_trigger =badIndex(), LongIndex a_triggerClock =badLongIndex()) {
+    setEventInfo(new EventInfo(a_run, a_event, a_subRun, a_time, a_timerem, a_trigger, a_triggerClock));
   }
+
+  // Return event info.
+  const EventInfo& badEventInfo() const {
+    static EventInfo bei;
+    return bei;
+  }
+  bool hasEventInfo() const { return bool(m_peventInfo); }
+  EventInfoPtr getEventInfoPtr() const { return m_peventInfo; }
+  const DuneEventInfo& getEventInfo() const {
+    return hasEventInfo() ? *m_peventInfo : badEventInfo();
+  }
+  AdcIndex run()              const { return getEventInfo().run; }
+  AdcIndex subRun()           const { return getEventInfo().subRun; }
+  AdcIndex event()            const { return getEventInfo().event; }
+  time_t time()               const { return getEventInfo().time; }
+  int timerem()               const { return getEventInfo().timerem; }
+  AdcIndex trigger()          const { return getEventInfo().trigger; }
+  AdcLongIndex triggerClock() const { return getEventInfo().triggerClock; }
 
   // Copy ctor.
   // Only copy event and channel data and not samples and
   // derived data.
   // Root dictionary (6.08/06) and AdcChannelDataMap (STL) require we keep copy.
   AdcChannelData(const AdcChannelData& rhs) {
-    run           = rhs.run;
-    subRun        = rhs.subRun;
-    event         = rhs.event;
-    time          = rhs.time;
-    timerem       = rhs.timerem;
-    trigger       = rhs.trigger;
-    triggerClock  = rhs.triggerClock;
     channelClock  = rhs.channelClock;
     channel       = rhs.channel;
     channelStatus = rhs.channelStatus;
     channelClock  = rhs.channelClock;
     fembID        = rhs.fembID;
+    m_peventInfo  = rhs.m_peventInfo;
   };
 
   // Delete assignment.
@@ -198,13 +210,13 @@ public:
   // Fetch any property including metadata.
   float getAttribute(Name mname, float def =0.0) const {
     // For basic types, return the value.
-    if ( mname == "run" ) return run;
-    if ( mname == "subRun" ) return subRun;
-    if ( mname == "event" ) return event;
-    if ( mname == "trigger" ) return trigger;
-    if ( mname == "triggerClock" ) return triggerClock;  // lose precision here
+    if ( mname == "run" ) return run();
+    if ( mname == "subRun" ) return subRun();
+    if ( mname == "event" ) return event();
+    if ( mname == "trigger" ) return trigger();
+    if ( mname == "triggerClock" ) return triggerClock();  // lose precision here
     if ( mname == "channelClock" ) return channelClock;  // lose precision here
-    if ( mname == "channelClockOffset" ) return channelClock - triggerClock;
+    if ( mname == "channelClockOffset" ) return channelClock - triggerClock();
     if ( mname == "channel" ) return channel;
     if ( mname == "fembID" ) return fembID;
     if ( mname == "fembChannel" ) return fembChannel;
@@ -288,19 +300,12 @@ typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
 //**********************************************************************
 
 inline void AdcChannelData::clear() {
-  run = badIndex;
-  subRun = badIndex;
-  event = badIndex;
-  time = 0;
-  timerem = 0;
-  trigger = badIndex;
-  triggerClock = 0;
   channelClock = 0;
-  channel = badIndex;
-  channelStatus = badIndex;
-  fembID = badIndex;
-  fembChannel = badIndex;
-  pedestal = badSignal;
+  channel = badIndex();
+  channelStatus = badIndex();
+  fembID = badIndex();
+  fembChannel = badIndex();
+  pedestal = badSignal();
   pedestalRms = 0.0;
   tick0 = 0;
   raw.clear();
@@ -316,9 +321,10 @@ inline void AdcChannelData::clear() {
   wire = nullptr;
   dftmags.clear();
   dftphases.clear();
-  digitIndex = badIndex;
-  wireIndex = badIndex;
+  digitIndex = badIndex();
+  wireIndex = badIndex();
   metadata.clear();
+  m_peventInfo.reset();
 }
 
 //**********************************************************************

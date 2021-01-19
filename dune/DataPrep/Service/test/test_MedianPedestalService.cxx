@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/PedestalEvaluationService.h"
+#include "dune/DuneInterface/Service/PedestalEvaluationService.h"
 
 #undef NDEBUG
 #include <cassert>

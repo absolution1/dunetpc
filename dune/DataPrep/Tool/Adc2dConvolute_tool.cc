@@ -75,7 +75,7 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
   ret.setInt("channelMin", icha1);
   ret.setInt("channelMax", icha2);
   if ( icha2 < icha1 ) return ret.setStatus(1);
-  if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd0.run << " event " << acd0.event
+  if ( m_LogLevel >= 2 ) cout << myname << "Processing run() " << acd0.run() << " event " << acd0.event()
                               << " channel " << icha1 << " to " << icha2 << endl;
 
   bool readBins = m_BinsPerWire;       // Read data from channel rather than local cache.

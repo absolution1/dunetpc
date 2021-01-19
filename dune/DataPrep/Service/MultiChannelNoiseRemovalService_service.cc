@@ -1,7 +1,7 @@
 // MultiChannelNoiseRemovalService_service.cc
 
 #include "MultiChannelNoiseRemovalService.h"
-#include "dune/DuneInterface/AdcChannelNoiseRemovalService.h"
+#include "dune/DuneInterface/Service/AdcChannelNoiseRemovalService.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 

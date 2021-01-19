@@ -32,7 +32,7 @@
 #ifndef DuneRoiBuildingService_H
 #define DuneRoiBuildingService_H
 
-#include "dune/DuneInterface/AdcRoiBuildingService.h"
+#include "dune/DuneInterface/Service/AdcRoiBuildingService.h"
 
 class AdcSuppressService;
 

@@ -435,10 +435,10 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   DataMap res;
   if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel
                               << " (FEMB " << acd.fembID << ")"
-                              << " in run " << acd.run << " event " << acd.event << endl;
-  if ( acd.event != state().event() || acd.run != state().run() ) {
+                              << " in run " << acd.run() << " event " << acd.event() << endl;
+  if ( acd.event() != state().event() || acd.run() != state().run() ) {
     if ( state().beginEventCount ) {
-      cout << myname << "ERROR: Run:event from data " << acd.run << ":" << acd.event
+      cout << myname << "ERROR: Run:event from data " << acd.run() << ":" << acd.event()
            << " does not match that from beginEvent "
            << state().runString() << ":" << state().event() << endl;
       return res.setStatus(1);
@@ -466,7 +466,7 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
     cout << myname << "Processing " << ncha << " channel" << (ncha == 1 ? "" : "s");
     if ( ncha > 0 ) {
       const AdcChannelData& acd = acds.begin()->second;
-      cout << " in run " << acd.run << " event " << acd.event;
+      cout << " in run " << acd.run() << " event " << acd.event();
       cout << ". Count is " << state().beginEventCount << "." << endl;
     }
   }
@@ -477,7 +477,7 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
       return ret;
     }
     const AdcChannelData& acd = acds.begin()->second;
-    if ( acd.event != state().event() ) beginEventState(acd.getEventInfo());
+    if ( acd.event() != state().event() ) beginEventState(acd.getEventInfo());
   }
   ++state().ngroup;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) view(iacd.second);

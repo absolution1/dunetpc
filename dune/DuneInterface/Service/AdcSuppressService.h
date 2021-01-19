@@ -13,8 +13,8 @@
 #include <memory>
 #include <string>
 #include <iostream>
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/AdcCountSelection.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcCountSelection.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 
 namespace fhicl {

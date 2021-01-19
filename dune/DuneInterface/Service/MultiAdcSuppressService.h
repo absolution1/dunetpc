@@ -14,7 +14,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h"
 
 namespace fhicl {

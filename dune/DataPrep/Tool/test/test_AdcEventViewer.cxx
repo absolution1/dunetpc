@@ -76,8 +76,7 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
   Index npul = 100;
   for ( Index icha=250; icha<270; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.run = 111;
-    acd.event = 123;
+    acd.setEventInfo(111, 123);
     acd.channel = icha;
     acd.samples.resize(npul*pulse.size());
     acd.sampleUnit = "ADC count";

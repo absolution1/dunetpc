@@ -313,7 +313,7 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   DataMap ret;
   if ( acds.size() == 0 ) return ret;
   const AdcChannelData* pacd = acds.front();
-  Index evt = pacd->event;
+  Index evt = pacd->event();
   // Check if there have been any other views of this channel range for this event.
   // For now, we implicity expect configurations that do not repeat ranges.
   // Later we might cache results from an earlier attempt.

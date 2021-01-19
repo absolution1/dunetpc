@@ -48,7 +48,7 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
   if ( m_DataView.size() == 0 ) return viewTop(acd);
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event()
            << " channel " << acd.channel << endl;
     }
     return retTop.setStatus(1);
@@ -76,7 +76,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
   DataMap retTop;
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "View " << m_DataView << " not found for event " << acd.event
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event()
            << " channel " << acd.channel << endl;
     }
     return retTop.setStatus(1);

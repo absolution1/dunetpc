@@ -42,9 +42,7 @@ using Name = AdcTickModViewer::Name;
 namespace {
 
 void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
-  acdout.run         = acdin.run;
-  acdout.subRun      = acdin.subRun;
-  acdout.event       = acdin.event;
+  acdout.setEventInfo(acdin.getEventInfoPtr());
   acdout.channel     = acdin.channel;
   acdout.fembID      = acdin.fembID;
   acdout.fembChannel = acdin.fembChannel;
@@ -232,7 +230,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   HistVector& tmhsFull = state().ChannelTickModFullHists[icha];
   Index ntkm = m_TickModPeriod;
   if ( tmhsFull.size() == 0 ) tmhsFull.resize(ntkm, nullptr);
-  Index eventID = acd.event;
+  Index eventID = acd.event();
   Index ndigi = 0;
   if ( m_varNchan ) {
     if ( acd.hasMetadata("ndigi") ) {
@@ -246,11 +244,11 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   Index timingPhase = 0;
   if ( m_tickOffsetTool != nullptr ) {
     TimeOffsetTool::Data dat;
-    dat.run = acd.run;
-    dat.subrun = acd.subRun;
-    dat.event = acd.event;
+    dat.run = acd.run();
+    dat.subrun = acd.subRun();
+    dat.event = acd.event();
     dat.channel = acd.channel;
-    dat.triggerClock = acd.triggerClock;
+    dat.triggerClock = acd.triggerClock();
     TimeOffsetTool::Offset off = m_tickOffsetTool->offset(dat);
     if ( ! off.isValid() ) {
       cout << myname << "Error finding tick offset: " << off.status << endl;
@@ -347,16 +345,16 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
 void AdcTickModViewer::setChannelData(const AdcChannelData& acd) const {
   const string myname = "AdcTickModViewer::setChannelData: ";
   Index icha = acd.channel;
-  if ( icha == AdcChannelData::badIndex ) {
+  if ( icha == AdcChannelData::badIndex() ) {
     cout << myname << "WARNING: Invalid channel index." << endl;
     icha = 0;
   }
   // Find the index of the variable that provides the grouping
   // for phase plots.
-  Index igrp = AdcChannelData::badIndex;
+  Index igrp = AdcChannelData::badIndex();
   if ( m_groupByChannel ) igrp = icha;
   if ( m_groupByFemb ) igrp = acd.fembID;
-  if ( igrp == AdcChannelData::badIndex ) {
+  if ( igrp == AdcChannelData::badIndex() ) {
     cout << myname << "WARNING: Invalid phase channel grouping: " << m_PhaseGrouping << endl;
   }
   state().channel = icha;
@@ -377,7 +375,7 @@ void AdcTickModViewer::setChannelData(const AdcChannelData& acd) const {
 
 Index AdcTickModViewer::setChannel(Index icha) const {
   const string myname = "AdcTickModViewer::setChannel: ";
-  if ( icha == AdcChannelData::badIndex ) {
+  if ( icha == AdcChannelData::badIndex() ) {
     cout << myname << "ERROR: Invalid channel index." << endl;
     icha = 0;
   }
@@ -395,7 +393,7 @@ Index AdcTickModViewer::setChannel(Index icha) const {
 
 void AdcTickModViewer::clearChannelIndex() const {
   const string myname = "AdcTickModViewer::getChannelIndex: ";
-  state().channel = AdcChannelData::badIndex;
+  state().channel = AdcChannelData::badIndex();
   state().currentAcd.clear();
 }
 
@@ -404,7 +402,7 @@ void AdcTickModViewer::clearChannelIndex() const {
 Index AdcTickModViewer::getChannelIndex() const {
   const string myname = "AdcTickModViewer::getChannelIndex: ";
   Index icha = state().channel;
-  if ( icha == AdcChannelData::badIndex ) {
+  if ( icha == AdcChannelData::badIndex() ) {
     cout << myname << "ERROR: Channel index requested before being set." << endl;
     return setChannel(0);
   }
@@ -532,7 +530,7 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     TTree* ptree = state().tickmodTree;
     TickModTreeData& data = state().treedata;
     if ( ptree != nullptr ) {
-      data.run = state().currentAcd.run;
+      data.run = state().currentAcd.run();
       data.chan = state().currentAcd.channel;
       data.femb = state().currentAcd.fembID;
       data.fembChan = state().currentAcd.fembChannel;

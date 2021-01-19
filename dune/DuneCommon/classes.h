@@ -6,3 +6,4 @@
 #include "dune/DuneCommon/RootPalette.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/offsetLine.h"
+#include "dune/DuneCommon/Fw2dFFT.h"

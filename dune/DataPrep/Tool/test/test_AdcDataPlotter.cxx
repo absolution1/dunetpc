@@ -117,8 +117,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
-      data.run = 123;
-      data.event = ievt;
+      data.setEventInfo(123, ievt);
       float ped = peds[icha-icha1];
       data.channel = icha;
       data.pedestal = ped;

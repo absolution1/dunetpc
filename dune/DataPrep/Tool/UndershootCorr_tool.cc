@@ -53,7 +53,7 @@ UndershootCorr::UndershootCorr(fhicl::ParameterSet const& ps)
 
 DataMap UndershootCorr::update(AdcChannelData& acd) const {
   const string myname = "UndershootCorr::view: ";
-  if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run << " event " << acd.event
+  if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run() << " event " << acd.event()
                               << " channel " << acd.channel << endl;
   DataMap ret;
 

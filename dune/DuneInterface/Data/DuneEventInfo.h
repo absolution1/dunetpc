@@ -9,6 +9,7 @@
 #define DuneEventInfo_H
 
 #include <sstream>
+#include <memory>
 
 class DuneEventInfo {
 
@@ -20,15 +21,35 @@ public:
   Index run =0;
   Index event = 0;
   Index subRun = 0;
-  LongIndex triggerClock = 0;
+  time_t time =0;
+  int timerem =0;
+  Index trigger =0;
+  LongIndex triggerClock =0;
+
+  static Index badIndex() { return -1u; }
+  static LongIndex badLongIndex() { return -1ul; }
 
   // Reset to no event.
   void clear() {
-    run = 0;
-    event = 0;
-    subRun = 0;
-    triggerClock = 0;
+    run = badIndex();
+    event = badIndex();
+    subRun = badIndex();
+    time = 0;
+    timerem = 0;
+    trigger = badIndex();
+    triggerClock = badLongIndex();
   }
+
+  // Default ctor.
+  DuneEventInfo() = default;
+
+  // Ctor from components.
+  DuneEventInfo(Index a_run, Index a_event, Index a_subRun =badIndex(),
+                time_t a_time =0, int a_timerem =0,
+                Index a_trigger =badIndex(), LongIndex a_triggerClock =badLongIndex())
+  : run(a_run), event(a_event), subRun(a_subRun),
+    time(a_time), timerem(a_timerem),
+    trigger(a_trigger), triggerClock(a_triggerClock) { }
 
   // Is this valid info?
   bool isValid() const { return run > 0; }
@@ -51,6 +72,9 @@ public:
     if ( run != rhs.run ) return false;
     if ( subRun != rhs.subRun ) return false;
     if ( event != rhs.event ) return false;
+    if ( time != rhs.time ) return false;
+    if ( timerem != rhs.timerem ) return false;
+    if ( trigger != rhs.trigger ) return false;
     if ( triggerClock != rhs.triggerClock ) return false;
     return true;
   }

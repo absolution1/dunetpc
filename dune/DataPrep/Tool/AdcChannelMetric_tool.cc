@@ -280,10 +280,10 @@ AdcChannelMetric::~AdcChannelMetric() {
       }
       AdcChannelData acd;
       if ( getState().runCount == 1 ) {
-        acd.run = getState().firstRun;
-        if ( getState().eventCount == 1 ) {
-          acd.event = getState().firstEvent;
-        }
+        acd.setEventInfo(
+          acd.run(),
+          getState().eventCount==1 ? getState().firstEvent : AdcChannelData::badIndex()
+        );
       }
       Name ofpname = nameReplace(m_PlotFileName, acd, cr);
       Name ofrname = nameReplace(m_RootFileName, acd, cr);
@@ -404,7 +404,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
   Index icha0 = ran.begin;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
-  getState().update(iacd1->second.run, iacd1->second.event);
+  getState().update(iacd1->second.run(), iacd1->second.event());
   MetricSummaryVector& metricSums = getState().crsums[ran];
   if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
@@ -484,7 +484,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nent ? pacd0->pedestalRms : 0.0;
     sunits = "ADC count";
   } else if ( met == "time" ) {
-    val = acdtop.time;
+    val = acdtop.time();
     sunits = "sec";
   } else if ( met == "fembID" ) {
     val = acdtop.fembID;
