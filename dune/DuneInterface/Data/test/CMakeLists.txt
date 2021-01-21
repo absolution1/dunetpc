@@ -21,4 +21,9 @@ cet_test(test_AdcChannelData SOURCES test_AdcChannelData.cxx
   LIBRARIES
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_Tpc2dRoi SOURCES test_Tpc2dRoi.cxx
+  LIBRARIES
+    ${ROOT_BASIC_LIB_LIST}
+)
 cet_enable_asserts()
