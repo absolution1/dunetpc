@@ -65,12 +65,12 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
     return ret.setStatus(2);
   }
   if ( nsam == 0 ) {
-    cout << myname << "ERROR: No samples found in channel " << acd.channel << endl;
+    cout << myname << "ERROR: No samples found in channel " << acd.channel() << endl;
     acd.signal.clear();
     acd.rois.clear();
     return ret.setStatus(1);
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel() << endl;
   float thr = m_ThresholdMin;
   float noise = 0.0;
   float sigfrac = 0.0;
@@ -131,7 +131,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
       cout << myname << "    # ROI: " << acd.rois.size() << endl;
     }
     if ( nloop >= m_MaxLoop ) {
-      cout << myname << "WARNING: Channel " << acd.channel << " exiting after "
+      cout << myname << "WARNING: Channel " << acd.channel() << " exiting after "
            << nloop << " loops." << endl;
       break;
     }
@@ -162,7 +162,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
     }
     float dthrmax = 0.001*thrOld;
     if ( fabs(thr - thrOld) < dthrmax ) {
-      cout << myname << "WARNING: Channel " << acd.channel
+      cout << myname << "WARNING: Channel " << acd.channel()
            << " exiting prematurely due to threshold convergence." << endl;
       break;
     }

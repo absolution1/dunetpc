@@ -171,7 +171,7 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag, float noiseSigma, bool 
   cout << myname << "Create channel data." << endl;
   AdcChannelData acd;
   acd.setEventInfo(123, 456);
-  acd.channel = 789;
+  acd.setChannelInfo(789);
   acd.pedestal = 1000.0;
   acd.samples = sta.data();
   acd.signal = isSignal;

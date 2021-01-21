@@ -124,7 +124,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
       data.setEventInfo(101, ievt, 23);
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;
@@ -156,7 +156,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
     expCount += 25;
     for ( const AdcChannelDataMap::value_type& iacd : acm ) {
       const AdcChannelData& acd = iacd.second;
-      cout << myname << "Event " << acd.event() << ", channel " << acd.channel << endl;
+      cout << myname << "Event " << acd.event() << ", channel " << acd.channel() << endl;
       cout << myname << "ADC channel data size: " << acd.raw.size() << endl;
       DataMap dm = pvtm->view(acd);
       dm.print(myname);

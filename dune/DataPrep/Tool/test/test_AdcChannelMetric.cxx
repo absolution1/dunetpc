@@ -104,7 +104,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
       AdcChannelData& data = idat->second;
       data.setEventInfo(123, ievt);
       float ped = peds[(icha-icha1)%nped];
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + gRandom->Gaus(0.0, 10.0);

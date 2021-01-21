@@ -37,13 +37,13 @@ RemoveBadChannels::RemoveBadChannels(fhicl::ParameterSet const& ps)
 DataMap RemoveBadChannels::update(AdcChannelData& acd) const {
   const string myname = "RemoveBadChannels::update: ";
   if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run() << " event " << acd.event()
-                              << " channel " << acd.channel << endl;
+                              << " channel " << acd.channel() << endl;
   DataMap ret;
 
   //Set channel output to 0 for bad channels
-  if ((m_pChannelStatusProvider->IsBad(acd.channel) && m_RemoveBadChs) ||
-       (m_pChannelStatusProvider->IsNoisy(acd.channel) && m_RemoveNoisyChs)){
-    if ( m_LogLevel >= 2 ) cout << "Zeroing " << acd.run() << " event " << acd.event() << " channel " << acd.channel << endl;
+  if ((m_pChannelStatusProvider->IsBad(acd.channel()) && m_RemoveBadChs) ||
+       (m_pChannelStatusProvider->IsNoisy(acd.channel()) && m_RemoveNoisyChs)){
+    if ( m_LogLevel >= 2 ) cout << "Zeroing " << acd.run() << " event " << acd.event() << " channel " << acd.channel() << endl;
     for ( float& sam : acd.samples ) sam = 0;
   }
 

@@ -169,7 +169,7 @@ DataMap AdcDataDumper::viewMap(const AdcChannelDataMap& acds) const {
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     const AdcChannelData& acd = iacd.second;
     ostringstream sschanpre;
-    sschanpre << pre << setw(wcha) << acd.channel << ":";
+    sschanpre << pre << setw(wcha) << acd.channel() << ":";
     string chanpre = sschanpre.str();
     sschanpre.str("");
     sschanpre << pre << setw(wcha+1) << " ";

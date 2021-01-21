@@ -54,7 +54,7 @@ UndershootCorr::UndershootCorr(fhicl::ParameterSet const& ps)
 DataMap UndershootCorr::update(AdcChannelData& acd) const {
   const string myname = "UndershootCorr::view: ";
   if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run() << " event " << acd.event()
-                              << " channel " << acd.channel << endl;
+                              << " channel " << acd.channel() << endl;
   DataMap ret;
 
   AdcSignalVector& samples = acd.samples;
@@ -62,7 +62,7 @@ DataMap UndershootCorr::update(AdcChannelData& acd) const {
   // Check input data size.
   size_t nticks = samples.size();
   if ( nticks < 10 ) {
-    cout << myname << "Data for channel " << acd.channel << " has "
+    cout << myname << "Data for channel " << acd.channel() << " has "
          << ( nticks==0 ? "no" : "too few" ) << " ticks." << endl;
     return ret;
   }
@@ -78,7 +78,7 @@ DataMap UndershootCorr::update(AdcChannelData& acd) const {
   }
 
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
-  size_t offlineChannel = acd.channel;
+  size_t offlineChannel = acd.channel();
   size_t plane = channelMap->PlaneFromOfflineChannel(offlineChannel);
   if (plane >= m_CorrectFlag.size()) return ret;  
   double pedfit = 0;

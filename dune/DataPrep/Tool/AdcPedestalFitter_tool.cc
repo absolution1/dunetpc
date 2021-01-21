@@ -214,7 +214,7 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
   for ( auto& acdPair : acds ) {
     const AdcChannelData& acd = acdPair.second;
     AdcChannelData& acdMutable = acdPair.second;
-    if ( m_LogLevel >= 3 ) cout << myname << "  " << iacd << ": Processing channel " << acd.channel << endl;
+    if ( m_LogLevel >= 3 ) cout << myname << "  " << iacd << ": Processing channel " << acd.channel() << endl;
     // If needed, create a new canvas.
     if ( npad > 0 && pmantop == nullptr ) {
       if ( m_LogLevel >= 3 ) cout << myname << "  Creating canvas." << endl;
@@ -286,7 +286,7 @@ DataMap
 AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   const string myname = "AdcPedestalFitter::getPedestal: ";
   DataMap res;
-  if ( m_LogLevel >= 2 ) cout << myname << "Fitting pedestal for channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Fitting pedestal for channel " << acd.channel() << endl;
   string hnameBase = m_HistName;
   string htitlBase = m_HistTitle;
   Index nsam = acd.raw.size();
@@ -486,10 +486,10 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       phf->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
     }
     if ( fitStat ) {
-      Index istat = acd.channelStatus;
+      Index istat = acd.channelStatus();
       string sstat = istat == 0 ? "good" : istat == 1 ? "bad" : istat == 2 ? "noisy" : "unknown";
       cout << myname << "WARNING: Fit status is " << fitStat << " for " << sstat << " channel "
-           << acd.channel << endl;
+           << acd.channel() << endl;
       cout << myname << "  Errors[0]: " << fitter.GetParErrors()[0] << endl;
       //cout << myname << "  radcmax1 = " << radcmax1 << endl;
       //cout << myname << "  radcmean = " << radcmean << endl;
@@ -518,7 +518,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitChiSquare", fitChiSquare);
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setFloat("fitPeakBinExcess", peakBinExcess);
-  res.setInt("fitChannel", acd.channel);
+  res.setInt("fitChannel", acd.channel());
   res.setInt("fitNSkip", nskip);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
   string rfname = nameReplace(m_RootFileName, acd, false);
@@ -546,7 +546,7 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   pman->showUnderflow();
   pman->showOverflow();
   pman->addAxis();
-  Index istat = acd.channelStatus;
+  Index istat = acd.channelStatus();
   string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "unknown";
   NameVector slabs(3);
   slabs[0] = sstat + " channel";

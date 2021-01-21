@@ -92,7 +92,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
   for ( AdcChannel icha=0; icha<5; ++icha ) {
     float gain = 0.1 + 0.01*(icha+1);
     AdcChannelData& acd = acds[icha];
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     acd.pedestal = ped;
     for ( AdcSignal sigval : sigvals ) {
       AdcIndex adc = sigval/gain + ped;
@@ -112,7 +112,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     res.print();
     assert( res.status() == 0 );
     assert( res.getInt("calibSampleCount") == int(nsam) );
-    assert( acd.channel == icha );
+    assert( acd.channel() == icha );
     assert( acd.raw.size() == nsam );
     assert( acd.samples.size() == nsam );
     //cout.precision(2);

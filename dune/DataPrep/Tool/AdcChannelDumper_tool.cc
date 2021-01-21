@@ -69,8 +69,8 @@ DataMap AdcChannelDumper::view(const AdcChannelData& acd) const {
   else out << acd.event();
   out << endl;
   out << pre << " Channel: ";
-  if ( acd.channel == AdcChannelData::badChannel() ) out << sbad;
-  else out << acd.channel;
+  if ( acd.channel() == AdcChannelData::badChannel() ) out << sbad;
+  else out << acd.channel();
   out << endl;
   out << pre << " Pedestal: ";
   if ( acd.pedestal == AdcChannelData::badSignal() ) out << sbad;

@@ -166,7 +166,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
   if ( ! doRanges ) {
     for ( AdcChannelDataMap::value_type iacd : acds ) {
       const AdcChannelData& acd = iacd.second;
-      Index icha = acd.channel;
+      Index icha = acd.channel();
       getBaseState().channels.insert(icha);
       ostringstream sscha;
       sscha << icha;
@@ -344,7 +344,7 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
         cout << myname << "    Processing group/range " << cgn << "/" << crn << endl;
       }
       // If needed, create a new canvas and a name.
-      acdPrint.channel = pad.crmap.at(crn).begin;
+      acdPrint.setChannelInfo(pad.crmap.at(crn).begin);
       if ( pmantop == nullptr ) {
         if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas for run " << acdPrint.run()
                                        << ", event " << acdPrint.event() << "." << endl;

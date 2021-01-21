@@ -127,12 +127,12 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
     cout << myname << "    ROI count: " << rois.size() << endl;
     AdcChannelData acd;
     acd.samples = sigsin;
-    acd.channel = chan[idig];
+    acd.setChannelInfo(chan[idig]);
     acd.rois = rois;
     digits.push_back(std::move(dig));
     acd.digit = &digits.back();
     const AdcChannelData& acdMoved = acds[chan[idig]] = std::move(acd);
-    cout << myname << "    Moved data channel: " << chan[idig] << " ?= " << acdMoved.channel
+    cout << myname << "    Moved data channel: " << chan[idig] << " ?= " << acdMoved.channel()
          << " ?= " << acdMoved.digit->Channel() << endl;
   }
 
@@ -147,10 +147,10 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
   wires.reserve(ndig);
   for ( AdcChannelDataMap::value_type& iacd : acds ) {
     AdcChannelData& acd = iacd.second;
-    assert( acd.channel == iacd.first );
+    assert( acd.channel() == iacd.first );
     assert( acd.digit->Channel() == iacd.first );
     int rstat = hwib->build(acd, &wires);
-    cout << myname << "Channel: " << acd.channel
+    cout << myname << "Channel: " << acd.channel()
          << ", # samples: " << acd.samples.size()
          << ", # ROI: " << acd.rois.size()
          << ", wire: " << acd.wire
@@ -175,7 +175,7 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
     cout << myname << "    Signal count: " << wire.NSignal() << endl;
     cout << myname << "    ROI count: " << wire.SignalROI().n_ranges() << endl;
     cout << myname << "    Wire: " << acd.wire << " ?= " << &(wires[idig]) << endl;
-    assert( wire.Channel() == acd.channel );
+    assert( wire.Channel() == acd.channel() );
     assert( wire.NSignal() == acd.samples.size() );
     assert( wire.SignalROI().size() == acd.samples.size() );
     assert( wire.SignalROI().n_ranges() == acd.rois.size() );

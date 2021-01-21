@@ -128,7 +128,7 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   for ( Index icha=250; icha<270; ++icha ) {
     AdcChannelData& acd = acds[icha];
     acd.setEventInfo(111, icha);
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     acd.samples.resize(npul*pulse.size());
     acd.sampleUnit = "ADC count";
     double sigma = 5.0;

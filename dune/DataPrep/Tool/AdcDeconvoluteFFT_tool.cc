@@ -246,7 +246,7 @@ AdcDeconvoluteFFT::AdcDeconvoluteFFT(fhicl::ParameterSet const& ps)
 DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   const string myname = "AdcDeconvoluteFFT::update: ";
   DataMap ret;
-  Index icha = acd.channel;
+  Index icha = acd.channel();
   if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd.run() << " event " << acd.event()
                               << " channel " << icha << endl;
   // Retrieve the response vector and sigma.

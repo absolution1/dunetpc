@@ -61,12 +61,12 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
     acd1.flags.push_back(AdcGood);
   }
   AdcSignalVector& sigs = acd1.samples;
-  acd1.channel = channel;
+  acd1.setChannelInfo(channel);
   acd1.pedestal = pedestal;
 
   cout << myname << line << endl;
   cout << myname << "Check original." << endl;
-  assert( acd1.channel == channel );
+  assert( acd1.channel() == channel );
   assert( acd1.pedestal == pedestal );
   assert( acd1.raw.size() == 0);
   assert( acd1.samples == sigs );
@@ -90,7 +90,7 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
 
   cout << myname << line << endl;
   cout << myname << "Check copy." << endl;
-  assert( acd2.channel == channel );
+  assert( acd2.channel() == channel );
   assert( acd2.pedestal == pedestal );
   assert( acd2.raw.size() == 0);
   assert( acd2.samples == sigs );

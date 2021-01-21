@@ -48,10 +48,10 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
     return DataMap(4);
   }
   // Set or check the channel number.
-  if ( acd.channel == AdcChannelData::badChannel() ) {
-    acd.channel = dig.Channel();
+  if ( acd.channel() == AdcChannelData::badChannel() ) {
+    acd.setChannelInfo(dig.Channel());
   } else {
-    if ( acd.channel != dig.Channel() ) {
+    if ( acd.channel() != dig.Channel() ) {
       cout << myname << "ERROR: Raw digit has inconsistent channel number." << endl;
       return DataMap(5);
     }
@@ -74,7 +74,7 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
   // Initialize flags to good.
   acd.flags.resize(acd.raw.size(), AdcGood);
   if ( m_LogLevel >= 4 ) {
-    cout << myname << setw(8) << acd.channel << ": [";
+    cout << myname << setw(8) << acd.channel() << ": [";
     Index mdig = acd.raw.size();
     bool toomany = mdig > 10 ;
     if ( toomany ) mdig = 10;
@@ -82,7 +82,7 @@ DataMap AcdDigitReader::update(AdcChannelData& acd) const {
     if ( toomany ) cout << " ...";
     cout << "]" << endl;
   } else if ( m_LogLevel >= 3 ) {
-    cout << myname << "Channel " << acd.channel << " raw count: " << acd.raw.size() << endl;
+    cout << myname << "Channel " << acd.channel() << " raw count: " << acd.raw.size() << endl;
   }
   return DataMap(0);
 }

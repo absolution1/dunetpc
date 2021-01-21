@@ -415,7 +415,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     int rstat = getMetric(acd, m_Metric, met, sunits, wt);
     if ( rstat ) {
       cout << myname << "WARNING: Metric evaluation failed for metric " << m_Metric
-           << " channel " << acd.channel << endl;
+           << " channel " << acd.channel() << endl;
       continue;
     }
     Index icha = iacd->first;
@@ -453,7 +453,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
   AdcIndex nent = acdtop.viewSize(m_DataView);
   const AdcChannelData* pacd0 = acdtop.viewEntry(m_DataView, 0);
   if ( nent && pacd0 == nullptr ) {
-    cout << myname << "ERROR: Channel " << acdtop.channel << " view " << m_DataView
+    cout << myname << "ERROR: Channel " << acdtop.channel() << " view " << m_DataView
          << " is missing its first entry." << endl;
     return 4;
   }
@@ -464,10 +464,10 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
   } else if ( met == "pedestalDiff" ) {
     val = nent ? pacd0->pedestal : 0.0;
     if ( m_pPedestalReference != nullptr ) {
-      double pedRef = m_pPedestalReference->value(acdtop.channel, 0.0);
+      double pedRef = m_pPedestalReference->value(acdtop.channel(), 0.0);
       val -= pedRef;
     } else if ( m_PedestalReference == "first" && nent ) {
-      Index icha = acdtop.channel;
+      Index icha = acdtop.channel();
       MetricMap& pedRefs = getState().pedRefs;
       MetricMap::const_iterator ipdr = pedRefs.find(icha);
       if ( ipdr == pedRefs.end() ) {
@@ -487,11 +487,11 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = acdtop.time();
     sunits = "sec";
   } else if ( met == "fembID" ) {
-    val = acdtop.fembID;
+    val = acdtop.fembID();
   } else if ( met == "fembChannel" ) {
-    val = acdtop.fembChannel;
+    val = acdtop.fembChannel();
   } else if ( met == "apaFembID" ) {
-    val = acdtop.fembID%20;
+    val = acdtop.fembID()%20;
   } else if ( met == "nraw" ) {
     val = 0.0;
     weight = 1.0;
@@ -585,7 +585,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
     weight = nsum;
     if ( m_LogLevel >= 4 ) {
-      cout << myname << "Sample count for " << met << " for channel " << acdtop.channel;
+      cout << myname << "Sample count for " << met << " for channel " << acdtop.channel();
       if ( m_DataView.size() ) cout << " view " << m_DataView;
       cout << ": " << nsum << "/" << nsamtot << "."
            << " " << met << " = " << val << endl;
@@ -667,7 +667,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nsam > 0 ? double(ntail)/nsam : 0.0;
   } else if ( nent == 1 && pacd0->hasMetadata(met) ) {
     if ( nent != 1 ) {
-      cout << myname << "WARNING: Channel " << acdtop.channel
+      cout << myname << "WARNING: Channel " << acdtop.channel()
            << " filling metadata only for the first of " << nent
            << " entries." << endl;
     }

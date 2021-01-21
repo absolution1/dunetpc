@@ -63,7 +63,7 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1, bool explicitFcl =true) {
 
   const unsigned int nsig = 100;
   AdcChannelData acd;
-  acd.channel = 100;
+  acd.setChannelInfo(100);
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     acd.samples.push_back(0);
     acd.flags.push_back(AdcGood);

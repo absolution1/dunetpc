@@ -129,7 +129,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.channel = 123456;
+  acd.setChannelInfo(123456);
   acd.setEventInfo(123, 2468, 45);
   acd.sampleUnit = "fC";
   float pi = acos(-1.0);
@@ -145,7 +145,7 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
   AdcChannelDataMap acds;
   for ( Index icha=10000; icha<10010; ++icha ) {
     acds[icha].setEventInfo(acd.run(), acd.event(), acd.subRun());;
-    acds[icha].channel = icha;
+    acds[icha].setChannelInfo(icha);
     acds[icha].dftmags = mags;
     acds[icha].dftphases = phas;
     for ( float& mag : mags ) mag *= 1.02;

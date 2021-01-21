@@ -67,7 +67,7 @@ int test_MultiChannelNoiseRemovalService(int a_LogLevel =1) {
     AdcChannelData& acd = acdmap[chan];
     AdcSignalVector& exp = sigsexp[icha];
     AdcSignalVector& in = sigsin[icha];
-    acd.channel = chan;
+    acd.setChannelInfo(chan);
     for ( unsigned int isig=0; isig<nsig; ++isig ) {
       acd.samples.push_back(20*sin(f[icha]*isig));
       acd.flags.push_back(AdcGood);

@@ -93,7 +93,7 @@ int StandardRawDigitExtractService::extract(AdcChannelData& acd) const {
     ped = dig.GetPedestal();
     pedrms = dig.GetSigma();
   } else if ( m_PedestalOption == 2 ) {
-    ped = m_pPedProv->PedMean(acd.channel);
+    ped = m_pPedProv->PedMean(acd.channel());
   }
   acd.pedestal = ped;
   acd.pedestalRms = pedrms;

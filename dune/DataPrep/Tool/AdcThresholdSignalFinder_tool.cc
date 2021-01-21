@@ -49,12 +49,12 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   DataMap ret;
   AdcIndex nsam = acd.samples.size();
   if ( nsam == 0 ) {
-    cout << myname << "ERROR: No samples found in channel " << acd.channel << endl;
+    cout << myname << "ERROR: No samples found in channel " << acd.channel() << endl;
     acd.signal.clear();
     acd.rois.clear();
     return ret.setStatus(1);
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel() << endl;
   AdcIndex nsamlo = m_BinsBefore;
   AdcIndex nsamhi = m_BinsAfter;
   acd.signal.clear();

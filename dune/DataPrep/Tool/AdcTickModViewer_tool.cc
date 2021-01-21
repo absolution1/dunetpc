@@ -43,9 +43,7 @@ namespace {
 
 void copyAcd(const AdcChannelData& acdin, AdcChannelData& acdout) {
   acdout.setEventInfo(acdin.getEventInfoPtr());
-  acdout.channel     = acdin.channel;
-  acdout.fembID      = acdin.fembID;
-  acdout.fembChannel = acdin.fembChannel;
+  acdout.setChannelInfo(acdin.getChannelInfoPtr());
   acdout.pedestal    = acdin.pedestal;
 }
 
@@ -224,7 +222,7 @@ DataMap AdcTickModViewer::viewMap(const AdcChannelDataMap& acds) const {
 DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcTickModViewer::view: ";
   DataMap res;
-  Index icha = acd.channel;
+  Index icha = acd.channel();
   if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << icha << endl;
   setChannelData(acd);
   HistVector& tmhsFull = state().ChannelTickModFullHists[icha];
@@ -247,7 +245,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
     dat.run = acd.run();
     dat.subrun = acd.subRun();
     dat.event = acd.event();
-    dat.channel = acd.channel;
+    dat.channel = acd.channel();
     dat.triggerClock = acd.triggerClock();
     TimeOffsetTool::Offset off = m_tickOffsetTool->offset(dat);
     if ( ! off.isValid() ) {
@@ -344,7 +342,7 @@ DataMap AdcTickModViewer::view(const AdcChannelData& acd) const {
 
 void AdcTickModViewer::setChannelData(const AdcChannelData& acd) const {
   const string myname = "AdcTickModViewer::setChannelData: ";
-  Index icha = acd.channel;
+  Index icha = acd.channel();
   if ( icha == AdcChannelData::badIndex() ) {
     cout << myname << "WARNING: Invalid channel index." << endl;
     icha = 0;
@@ -353,7 +351,7 @@ void AdcTickModViewer::setChannelData(const AdcChannelData& acd) const {
   // for phase plots.
   Index igrp = AdcChannelData::badIndex();
   if ( m_groupByChannel ) igrp = icha;
-  if ( m_groupByFemb ) igrp = acd.fembID;
+  if ( m_groupByFemb ) igrp = acd.fembID();
   if ( igrp == AdcChannelData::badIndex() ) {
     cout << myname << "WARNING: Invalid phase channel grouping: " << m_PhaseGrouping << endl;
   }
@@ -474,7 +472,7 @@ AdcTickModViewer::processChannelTickMod(const AdcChannelData& acd, Index itkm0, 
     HistPtr phold = ph;
     if ( m_LogLevel >= 4 ) cout << myname << (haveHist ? "Re-c" : "C")
                                 << "reating histogram " << hname
-                                << " for channel " << acd.channel
+                                << " for channel " << acd.channel()
                                 << " tickmod " << itkm
                                 << ": " << nbin << ": [" << xmin << ", " << xmax << ")" << endl;
     if ( nbin <= 0 ) {
@@ -531,9 +529,9 @@ int AdcTickModViewer::processAccumulatedChannel(Index& nplot) const {
     TickModTreeData& data = state().treedata;
     if ( ptree != nullptr ) {
       data.run = state().currentAcd.run();
-      data.chan = state().currentAcd.channel;
-      data.femb = state().currentAcd.fembID;
-      data.fembChan = state().currentAcd.fembChannel;
+      data.chan = state().currentAcd.channel();
+      data.femb = state().currentAcd.fembID();
+      data.fembChan = state().currentAcd.fembChannel();
       data.pedestal = state().currentAcd.pedestal;
     }
     // Loop over tickmods and, for each, create metrics and limited-range ADC

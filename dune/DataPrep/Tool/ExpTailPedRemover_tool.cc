@@ -216,7 +216,7 @@ ExpTailPedRemover::ExpTailPedRemover(fhicl::ParameterSet const& ps)
 
 DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   const string myname = "ExpTailPedRemover::update: ";
-  string mychan = myname + " Channel " + to_string(acd.channel) + ": ";
+  string mychan = myname + " Channel " + to_string(acd.channel()) + ": ";
   DataMap ret;
 
   // Save the data before tail removal.
@@ -226,8 +226,8 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
 
   // Check the channel.
   if ( m_useChannelRanges ) {
-    if ( acd.channel >= m_checkChannels.size() || ! m_checkChannels[acd.channel] ) {
-      if ( m_LogLevel >= 2 ) cout << myname << "Skipping channel " << acd.channel << endl;
+    if ( acd.channel() >= m_checkChannels.size() || ! m_checkChannels[acd.channel()] ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Skipping channel " << acd.channel() << endl;
       return ret;
     }
   }
@@ -237,18 +237,18 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
   Index nped = m_pedVectors.size(); // # pedestal parameters
   Index ncof = ntai + nped;         // # fitted parameters
   if ( nsam < ncof ) {
-    cout << myname << "WARNING: Data for channel " << acd.channel << " has "
+    cout << myname << "WARNING: Data for channel " << acd.channel() << " has "
          << ( nsam==0 ? "no" : "too few" ) << " ticks: " << nsam << " < " << ncof << endl;
     return ret.setStatus(1);
   }
   if ( nsam > m_MaxTick ) {
-    cout << myname << "WARNING: Data for channel " << acd.channel << " has too many ticks:"
+    cout << myname << "WARNING: Data for channel " << acd.channel() << " has too many ticks:"
          << nsam << " > " << m_MaxTick << ". Please increase MaxTick." << endl;
     return ret.setStatus(1);
   }
 
   if ( m_LogLevel >= 3 ) cout << myname << "Correcting run " << acd.run() << " event " << acd.event()
-                              << " channel " << acd.channel << endl;
+                              << " channel " << acd.channel() << endl;
 
   // Set flag indicating if signal should be found each iteration.
   // If not, check that signal is already found.
@@ -284,7 +284,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
       DataMap fret = m_pSignalTool->update(acd);
       if ( fret ) {
         cout << myname << "WARNING: Signal-finding failed for event " << acd.event()
-             << " channel " << acd.channel << endl;
+             << " channel " << acd.channel() << endl;
         break;
       }
       if ( acd.signal == signalLast ) {
@@ -301,10 +301,10 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
         if ( ++nchk >= ncof ) break;
       }
       if ( nchk < ncof ) {
-        Index cstat = acd.channelStatus;
+        Index cstat = acd.channelStatus();
         string sstat = cstat==0 ? "Good" : cstat==1 ? "Bad" : cstat==2 ? "Noisy" : "Unknown";
         bool dowarn = m_nowarnStatuses.count(cstat) == 0;
-        if ( dowarn ) cout << myname << "WARNING: " << sstat << " channel " << acd.channel
+        if ( dowarn ) cout << myname << "WARNING: " << sstat << " channel " << acd.channel()
                            << ": Not-signal sample count of " << nchk
                            << " is not sufficient to evaluate the " << ncof << " fit parameters.";
         if ( niter == 0 ) {
@@ -376,10 +376,10 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
     double det = 0.0;
     kmat.Invert(&det);
     if ( ! kmat.IsValid() || det == 0.0 ) {
-      if ( m_nowarnStatuses.count(acd.channelStatus) == 0 ) {
-        cout << myname << "WARNING: Channel " << acd.channel << ": Unable to invert K-matrix with "
+      if ( m_nowarnStatuses.count(acd.channelStatus()) == 0 ) {
+        cout << myname << "WARNING: Channel " << acd.channel() << ": Unable to invert K-matrix with "
              << nsamFit << " of " << nsam << " samples--stopping iteration for channel "
-             << acd.channel << " with status " << acd.channelStatus << "." << endl;
+             << acd.channel() << " with status " << acd.channelStatus() << "." << endl;
         for ( icof=0; icof<ncof; ++icof ) {
           cout << mychan;
           for ( Index jcof=0; jcof<ncof; ++jcof ) {

@@ -49,7 +49,7 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
       cout << myname << "View " << m_DataView << " not found for event " << acd.event()
-           << " channel " << acd.channel << endl;
+           << " channel " << acd.channel() << endl;
     }
     return retTop.setStatus(1);
   }
@@ -77,7 +77,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
       cout << myname << "View " << m_DataView << " not found for event " << acd.event()
-           << " channel " << acd.channel << endl;
+           << " channel " << acd.channel() << endl;
     }
     return retTop.setStatus(1);
   }
@@ -88,7 +88,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
     AdcChannelData* pacd = acd.mutableViewEntry(m_DataView, ient);
     DataMap ret;
     if ( pacd == nullptr ) {
-      cout << myname << "Channel " << acd.channel << " view entry "
+      cout << myname << "Channel " << acd.channel() << " view entry "
            << m_DataView << "[" << ient << "] is null." << endl;
       ret.setStatus(99);
     } else {
@@ -101,7 +101,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
   retTop.setInt("fftNfail", nproc);
   if ( nfail ) retTop.setStatus(2);
   if ( m_LogLevel >= 3 ) {
-    cout << myname << "Channel " << acd.channel << " entry counts: "
+    cout << myname << "Channel " << acd.channel() << " entry counts: "
          << nproc << " processed, " << nfail << " failed." << endl;
   }
   return retTop;

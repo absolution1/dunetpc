@@ -30,8 +30,7 @@ using Index = unsigned int;
 AdcChannelDataMap makeAdcData(Index ncha =10) {
   AdcChannelDataMap acds;
   for ( Index icha=0; icha<10; ++icha ) {
-    acds[icha].channel = icha;
-    acds[icha].fembID = icha%4;
+    acds[icha].setChannelInfo(icha, icha%4);
   }
   return acds;
 }
@@ -48,9 +47,9 @@ public:
 };
   
 DataMap AdcChannelTool_update::update(AdcChannelData& acd) const {
-  cout << "AdcChannelTool_update::update: Modifying channel " << acd.channel << endl;
-  acd.fembID = 100 + acd.channel;
-  int fembchan = 1000*acd.fembID + acd.channel;
+  cout << "AdcChannelTool_update::update: Modifying channel " << acd.channel() << endl;
+  acd.setChannelInfo(acd.channel(), 100 + acd.channel());
+  int fembchan = 1000*acd.fembID() + acd.channel();
   std::vector<int> fembchans(1, fembchan);
   DataMap ret;
   ret.setInt("fembchan", fembchan);
@@ -134,23 +133,21 @@ int test_AdcChannelTool_update() {
 
   cout << myname << line << endl;
   cout << myname << "Call update." << endl;
-  acd1.channel = 1;
-  acd1.fembID = -1;
+  acd1.setChannelInfo(1);
   ret = act.update(acd1);
   ret.print();
   assert( ret == 0 );
-  assert( acd1.channel == 1 );
-  assert( acd1.fembID == 101 );
+  assert( acd1.channel() == 1 );
+  assert( acd1.fembID() == 101 );
 
   cout << myname << line << endl;
   cout << myname << "Call view." << endl;
-  acd1.channel = 1;
-  acd1.fembID = 200;
+  acd1.setChannelInfo(1, 200);
   ret = act.view(acd1);
   ret.print();
   assert( ! ret );
-  assert( acd1.channel == 1 );
-  assert( acd1.fembID == 200 );
+  assert( acd1.channel() == 1 );
+  assert( acd1.fembID() == 200 );
 
   cout << myname << line << endl;
   cout << myname << "Call updateMap." << endl;
@@ -160,23 +157,23 @@ int test_AdcChannelTool_update() {
   for ( const auto& iacd : acds ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
-    cout << myname << "  icha, femb = " << acd.channel << ", " << acd.fembID << endl;
-    assert(acd.channel == icha);
-    assert(acd.fembID == 100 + acd.channel);
+    cout << myname << "  icha, femb = " << acd.channel() << ", " << acd.fembID() << endl;
+    assert(acd.channel() == icha);
+    assert(acd.fembID() == 100 + acd.channel());
   }
 
   cout << myname << line << endl;
   cout << myname << "Call viewMap." << endl;
-  for ( auto& iacd : acds ) iacd.second.fembID = 200;
+  for ( auto& iacd : acds ) iacd.second.setChannelInfo(iacd.second.channel(), 200);
   ret = act.viewMap(acds);
   ret.print();
   assert( ! ret );
   for ( const auto& iacd : acds ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
-    cout << myname << "  icha, femb = " << acd.channel << ", " << acd.fembID << endl;
-    assert(acd.channel == icha);
-    assert(acd.fembID == 200);
+    cout << myname << "  icha, femb = " << acd.channel() << ", " << acd.fembID() << endl;
+    assert(acd.channel() == icha);
+    assert(acd.fembID() == 200);
   }
   cout << myname << line << endl;
   cout << myname << "Test complete." << endl;

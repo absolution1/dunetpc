@@ -72,7 +72,7 @@ DataMap FembLinearCalibration::view(const AdcChannelData& acd) const {
 DataMap FembLinearCalibration::update(AdcChannelData& acd) const {
   const string myname = "FembLinearCalibration::update: ";
   DataMap res;
-  AdcChannel icha = acd.channel;
+  AdcChannel icha = acd.channel();
   if ( icha == AdcChannelData::badChannel() ) {
     if ( m_LogLevel >= 2 ) {
       cout << myname << "Data does not have a channel ID." << endl;

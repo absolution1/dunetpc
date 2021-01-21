@@ -163,7 +163,7 @@ int test_Adc2dConvolute(bool useExistingFcl) {
   for ( Index icha=100; icha<105; ++icha ) {
     AdcChannelData& acd = data[icha];
     acd.setEventInfo(123, 456);
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     acd.binSamples.resize(4, empty);
   }
   std::map<Index,float> expAreas;
