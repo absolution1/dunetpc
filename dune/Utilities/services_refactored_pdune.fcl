@@ -14,6 +14,7 @@ protodune_refactored_simulation_services:
   @table::protodune_simulation_services
   ParticleInventoryService:     @local::standard_particleinventoryservice
 }
+protodune_refactored_simulation_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 
 protodune_larg4_services: 
 {
@@ -28,6 +29,9 @@ protodune_larg4_services:
 ############################
 ### DUNE FD Single Phase ###
 ############################
+
+dunefd_refactored_simulation_services: @local::dunefd_simulation_services
+dunefd_refactored_simulation_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 
 dunefd_larg4_services: 
 {
