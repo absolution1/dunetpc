@@ -6,7 +6,7 @@
 // This utility provides wrappers for performing forward and backward DFT (discrete
 // 2D Fourier transform) of real (time-domain) data using FFTW.
 //
-// Separate foward and backward FFTW plans are created for each array of data dimensions.
+// Separate forward and backward FFTW plans are created for each array of data dimensions.
 // These may be created in advance by calling fowardPlan or backwardPlan or are created
 // in the first call to perform an FFT with that set of dimentsions.
 //

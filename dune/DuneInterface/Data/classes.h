@@ -4,4 +4,4 @@
 #include "dune/DuneInterface/Data/DuneChannelInfo.h"
 #include "dune/DuneInterface/Data/AdcChannelData.h"
 #include "dune/DuneInterface/Data/Real2dData.h"
-
+#include "dune/DuneInterface/Data/Tpc2dRoi.h"

@@ -121,9 +121,9 @@ public:
 
   // ADC and derived data.
   AdcLongIndex channelClock =0;
+  AdcInt tick0 = 0;
   AdcSignal pedestal =badSignal();
   AdcSignal pedestalRms =0.0;
-  AdcInt tick0 = 0;
   AdcCountVector raw;
   AdcSignalVector samples;
   AdcSignalVectorVector binSamples;

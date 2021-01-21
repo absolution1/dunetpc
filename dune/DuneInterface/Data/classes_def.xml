@@ -6,4 +6,5 @@
   <class name="AdcChannelData" />
   <class name="Real2dData<float>" />
   <class name="Real2dData<double>" />
+  <class name="Tpc2dRoi" />
 </lcgdict>
