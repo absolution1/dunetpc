@@ -7,4 +7,5 @@
   <class name="Real2dData<float>" />
   <class name="Real2dData<double>" />
   <class name="Tpc2dRoi" />
+  <class name="TpcData" />
 </lcgdict>
