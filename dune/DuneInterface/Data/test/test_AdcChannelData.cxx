@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -35,17 +35,16 @@ int test_AdcChannelData() {
   AdcChannelData acdtop;
   cout << line << endl;
   cout << "Checking fill." << endl;
-  acdtop.channel = 12345;
-  acdtop.fembID = 101;
+  acdtop.setChannelInfo(12345, 101);
   for ( int i=0; i<20; ++i ) acdtop.raw.push_back(i);
-  assert( acdtop.channel == 12345 );
-  assert( acdtop.fembID == 101 );
+  assert( acdtop.channel() == 12345 );
+  assert( acdtop.fembID() == 101 );
   assert( acdtop.raw.size() == 20 );
 
   cout << "Checking copy." << endl;
   AdcChannelData acdtopCopy(acdtop);
-  assert( acdtopCopy.channel == 12345 );
-  assert( acdtopCopy.fembID == 101 );
+  assert( acdtopCopy.channel() == 12345 );
+  assert( acdtopCopy.fembID() == 101 );
   assert( acdtopCopy.raw.size() == 0 );
 
 #if 0
@@ -68,7 +67,7 @@ int test_AdcChannelData() {
   for ( ient1=0; ient1<4; ++ient1 ) view1.push_back(acdtop);
   ient1 = 0;
   for ( AdcChannelData& acd1 : view1 ) {
-    assert( acd1.channel == acdtop.channel);
+    assert( acd1.channel() == acdtop.channel());
     acd1.setMetadata("viewIndex1", ient1);
     ++ient1;
   }
@@ -81,13 +80,13 @@ int test_AdcChannelData() {
     const AdcChannelData* pacd1 = acdtop.viewEntry("view1", ient1);
     assert( pacd1 != nullptr );
     const AdcChannelData& acd1 = *pacd1;
-    assert( acd1.channel == acdtop.channel);
+    assert( acd1.channel() == acdtop.channel());
     assert( acd1.hasMetadata("viewIndex1") );
     assert( acd1.getMetadata("viewIndex1", 99) == ient1 );
     AdcChannelData* pacdm = acdtop.mutableViewEntry("view1", ient1);
     assert( pacdm != nullptr );
     const AdcChannelData& acdm = *pacdm;
-    assert( acdm.channel == acdtop.channel);
+    assert( acdm.channel() == acdtop.channel());
     assert( acdm.hasMetadata("viewIndex1") );
     assert( acdm.getMetadata("viewIndex1", 99) == ient1 );
   }
@@ -136,8 +135,8 @@ int test_AdcChannelData() {
       const AdcChannelData* pacd2 = acd1.viewEntry("view2", ient2);
       assert( pacd2 != nullptr );
       const AdcChannelData& acd2 = *pacd2;
-      assert( acd2.channel == 12345 );
-      assert( acd2.fembID == 101 );
+      assert( acd2.channel() == 12345 );
+      assert( acd2.fembID() == 101 );
       assert( acd2.getMetadata("viewIndex1") == ient1 );
       assert( acd2.getMetadata("viewIndex2") == ient2 );
       assert( acd2.getMetadata("viewIndex12") == ient12 );
@@ -155,8 +154,8 @@ int test_AdcChannelData() {
     ient1 = ient1s[ient12];
     ient2 = ient2s[ient12];
     cout << myname << " " << ient1 << " " << ient2 << " " << ient12 << endl;
-    assert( acd12.channel == 12345 );
-    assert( acd12.fembID == 101 );
+    assert( acd12.channel() == 12345 );
+    assert( acd12.fembID() == 101 );
     assert( acd12.getMetadata("viewIndex1") == ient1 );
     assert( acd12.getMetadata("viewIndex2") == ient2 );
     assert( acd12.getMetadata("viewIndex12") == ient12 );
@@ -177,8 +176,8 @@ int test_AdcChannelData() {
          << acd12.getMetadata("viewIndex2", 999) << " "
          << acd12.getMetadata("viewIndex12", 999);
     cout << endl;
-    assert( acd12.channel == 12345 );
-    assert( acd12.fembID == 101 );
+    assert( acd12.channel() == 12345 );
+    assert( acd12.fembID() == 101 );
     assert( acd12.hasMetadata("viewIndex1") );
     assert( acd12.hasMetadata("viewIndex2") );
     assert( acd12.hasMetadata("viewIndex12") );

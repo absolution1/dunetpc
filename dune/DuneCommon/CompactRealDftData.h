@@ -3,7 +3,7 @@
 // David Adams
 // April 2019
 //
-// Concrete class that holds a compact representation of DFT data.
+// Concrete class that holds a compact representation of 1D DFT data.
 
 #ifndef CompactRealDftData_H
 #define CompactRealDftData_H
@@ -17,9 +17,9 @@ class CompactRealDftData : public RealDftData<F> {
 
 public:
 
-  using Index = RealDftNormalization::Index;
+  using typename RealDftData<F>::Index;
   using FloatVector = std::vector<F>;
-  using Norm = RealDftNormalization::FullNormalization;
+  using Norm = RealDftNormalization;
 
   // Default ctor.
   CompactRealDftData() =default;
@@ -81,6 +81,9 @@ public:
       if ( ifrq < npha ) m_phas[ifrq] = rhs.phase(ifrq);
     }
   }
+
+  // Normalization.
+  const Norm& normalization() const override { return m_norm; }
 
   // Clear data.
   void clear() override {
@@ -149,9 +152,6 @@ public:
     phas = m_phas;
     return 0;
   }
-
-  // Normalization.
-  Norm fullNormalization() const override { return m_norm; }
 
   // Check and return dimension information.
   Index nSample() const override { return nCompact() ? nCompact() + nPhase() - 1 : 0; }

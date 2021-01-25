@@ -57,8 +57,8 @@ DataMap FloatArrayGainCalibration::update(AdcChannelData& acd) const {
   const string myname = "FloatArrayGainCalibration::update: ";
   DataMap res;
   if ( ! m_pgains ) return res;
-  AdcChannel icha = acd.channel;
-  if ( icha == AdcChannelData::badChannel ) {
+  AdcChannel icha = acd.channel();
+  if ( icha == AdcChannelData::badChannel() ) {
     if ( m_LogLevel >= 2 ) {
       cout << myname << "Data does not have a channel ID." << endl;
     }

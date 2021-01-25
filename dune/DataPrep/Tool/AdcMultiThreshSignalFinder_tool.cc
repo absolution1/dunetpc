@@ -80,7 +80,7 @@ AdcMultiThreshSignalFinder::~AdcMultiThreshSignalFinder() {
 DataMap AdcMultiThreshSignalFinder::update(AdcChannelData& data) const {
   const string myname = "AdcMultiThreshSignalFinder:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
-                              << data.channel << "." << endl;
+                              << data.channel() << "." << endl;
   data.rois.clear();
   
   //Create dummy DataMap to return
@@ -104,7 +104,7 @@ DataMap AdcMultiThreshSignalFinder::update(AdcChannelData& data) const {
   AdcIndex nsig      = sigs.size();
 
   if ( nsig < 1 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel()
                                 << " has no samples." << endl;
     return res;
   }
@@ -113,14 +113,14 @@ DataMap AdcMultiThreshSignalFinder::update(AdcChannelData& data) const {
   AdcSignal pedrms = data.pedestalRms;
 
   if( m_LogLevel >= 2 )
-    cout << myname << "Channel "<< data.channel
+    cout << myname << "Channel "<< data.channel()
 	 << " pedestal "<<ped<<" "<<pedrms << endl;
 
   if(m_UseStd)
   {
-    if( ped == AdcChannelData::badSignal )
+    if( ped == AdcChannelData::badSignal() )
       {
-	cout << myname << "  Channel "<<data.channel
+	cout << myname << "  Channel "<< data.channel()
 	     <<" pedestal is not valid" << endl;
 	return res;
 

@@ -51,7 +51,7 @@ AdcUnderflowFlagger::AdcUnderflowFlagger(fhicl::ParameterSet const& ps)
 DataMap AdcUnderflowFlagger::view(const AdcChannelData& acd) const {
   const string myname = "AdcUnderflowFlagger::view: ";
   AdcChannelData acdtmp;
-  acdtmp.channel = acd.channel;
+  acdtmp.setChannelInfo(acd.channel());
   acdtmp.raw = acd.raw;
   return update(acdtmp);
 }
@@ -62,10 +62,10 @@ DataMap AdcUnderflowFlagger::update(AdcChannelData& acd) const {
   const string myname = "AdcUnderflowFlagger::update: ";
   if ( m_LogLevel >= 3 ) cout << myname << "Calling " << endl;
   DataMap res(0);
-  AdcChannel icha = acd.channel;
+  AdcChannel icha = acd.channel();
   res.setInt("channel", icha);
   res.setInt("nModify", m_modifyCount);
-  if ( icha == AdcChannelData::badChannel ) {
+  if ( icha == AdcChannelData::badChannel() ) {
     if ( m_LogLevel >= 2 ) cout << myname << "Data does not have an assigned channel." << endl;
     return res.setStatus(1);
   }

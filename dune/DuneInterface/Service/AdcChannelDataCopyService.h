@@ -9,7 +9,7 @@
 // Interface for a service that copies AdcChannelData.
 
 #include <iostream>
-#include "dune/DuneInterface/AdcChannelData.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
 
 class AdcChannelDataCopyService {
 

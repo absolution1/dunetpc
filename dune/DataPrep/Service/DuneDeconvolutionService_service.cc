@@ -26,7 +26,7 @@ int DuneDeconvolutionService::
 update(detinfo::DetectorClocksData const& clockData,
        AdcChannelData& data) const {
   const string myname = "DuneDeconvolutionService::update: ";
-  AdcChannel chan = data.channel;
+  AdcChannel chan = data.channel();
   AdcSignalVector& samples = data.samples;
   unsigned int nsam = samples.size();
   if ( m_LogLevel >= 2 ) cout << myname << "Deconvoluting channel " << chan

@@ -5,7 +5,7 @@
 //
 // Test ChannelStatusConfigTool.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "TH1F.h"

@@ -8,7 +8,7 @@
 #ifndef FixedChannelGroupService_H
 #define FixedChannelGroupService_H
 
-#include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/Service/ChannelGroupService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 class FixedChannelGroupService : public ChannelGroupService {

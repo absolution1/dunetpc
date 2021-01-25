@@ -33,8 +33,8 @@ ConfigurableAdcChannelDataCopyService(fhicl::ParameterSet const& pset, art::Acti
 int ConfigurableAdcChannelDataCopyService::
 copy(const AdcChannelData& acdin, AdcChannelData& acdout) const {
   const string myname = "ConfigurableAdcChannelDataCopyService:copy: ";
-  if ( m_LogLevel >= 2 ) cout << myname << "Copying channel " << acdin.channel << endl;
-  if ( m_CopyChannel )    acdout.channel    = acdin.channel;
+  if ( m_LogLevel >= 2 ) cout << myname << "Copying channel " << acdin.channel() << endl;
+  if ( m_CopyChannel )    acdout.setChannelInfo(acdin.getChannelInfoPtr());
   if ( m_CopyPedestal )   acdout.pedestal   = acdin.pedestal;
   if ( m_CopyRaw )        acdout.raw        = acdin.raw;
   if ( m_CopySamples )    acdout.samples    = acdin.samples;

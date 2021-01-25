@@ -193,7 +193,7 @@ private:  //data
     // Map of empty ADCchannel objects indexed by channel.
     AdcChannelDataMap acdMap;
     // Current channel ADC channel data object. Used to build plot names.
-    Index channel = AdcChannelData::badIndex;
+    Index channel = AdcChannelData::badIndex();
     AdcChannelData currentAcd;
     // Phase index, e.g. femb, for each channel.
     IndexMap phaseIndexMap;

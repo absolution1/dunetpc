@@ -49,6 +49,7 @@ BEGIN_PROLOG
 dunefd_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  Geometry:                       @local::dune10kt_geo
+ GeometryConfigurationWriter: {}
  DetectorClocksService:          @local::dunefd_detectorclocks
  DetectorPropertiesService:      @local::dunefd_detproperties
  LArPropertiesService:           @local::dunefd_properties
@@ -68,6 +69,7 @@ dunefd_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::dunefd_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::dune10kt_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
@@ -112,6 +114,7 @@ dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 dunefddphase_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
@@ -131,6 +134,7 @@ dunefddphase_simulation_services: {
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -177,6 +181,7 @@ dunefddphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.12 
 dunedphase3x1x1_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
@@ -196,6 +201,7 @@ dunedphase3x1x1_simulation_services: {
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -254,6 +260,7 @@ dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1
 protodunedphase_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
@@ -274,6 +281,7 @@ protodunedphase_simulation_services: {
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -351,6 +359,7 @@ protodunedphase_driftY_simulation_services.Geometry: 			 @local::protodunedphase
 
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -370,6 +379,7 @@ protodune_services: {
 
 protodune_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -383,6 +393,7 @@ protodune_rawdecoding_services: {
 
 iceberg_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::iceberg_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -395,6 +406,7 @@ iceberg_rawdecoding_services: {
 
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -419,6 +431,7 @@ protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -516,6 +529,7 @@ protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_pho
 
 dune35t_basic_services: {
   ExptGeoHelperInterface:     @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                   @local::dune35t_geo
   DetectorClocksService:      @local::dune35t_detectorclocks
   DetectorPropertiesService:  @local::dune35t_detproperties

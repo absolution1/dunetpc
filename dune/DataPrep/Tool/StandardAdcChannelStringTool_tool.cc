@@ -85,23 +85,23 @@ string StandardAdcChannelStringTool::
 build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   const string myname = "StandardAdcChannelStringTool::build: ";
   // First replace the indices (run, event, ....)
-  Index itrig = acd.trigger;
-  Index vals[m_nrep] = {acd.run, acd.subRun, acd.event, acd.channel,
+  Index itrig = acd.trigger();
+  Index vals[m_nrep] = {acd.run(), acd.subRun(), acd.event(), acd.channel(),
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
                         Index(dm.getInt("chan2")),
-                        acd.fembID,
+                        acd.fembID(),
                         itrig};
   bool isBad[m_nrep] = {
-    acd.run     == AdcChannelData::badIndex,
-    acd.subRun  == AdcChannelData::badIndex,
-    acd.event   == AdcChannelData::badIndex,
-    acd.channel == AdcChannelData::badChannel,
+    acd.run()     == AdcChannelData::badIndex(),
+    acd.subRun()  == AdcChannelData::badIndex(),
+    acd.event()   == AdcChannelData::badIndex(),
+    acd.channel()   == AdcChannelData::badChannel(),
     !dm.haveInt("count"),
     !dm.haveInt("chan1"),
     !dm.haveInt("chan2"),
-    acd.fembID  == AdcChannelData::badIndex,
-    acd.trigger == AdcChannelData::badIndex
+    acd.fembID()  == AdcChannelData::badIndex(),
+    acd.trigger() == AdcChannelData::badIndex()
   };
   string sout = spat;
   for ( Index irep=0; irep<m_nrep; ++irep ) {
@@ -198,8 +198,8 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   string spatpre = "%UTCTIME";
   ipos = sout.find(spatpre);
   if ( ipos != string::npos ) {
-    time_t tim = acd.time;
-    int rem = acd.timerem;
+    time_t tim = acd.time();
+    int rem = acd.timerem();
     int remMax = 1000000000;
     if ( std::abs(rem) >= remMax ) rem = 0;
     // Hndle rem < 0. Never happens?

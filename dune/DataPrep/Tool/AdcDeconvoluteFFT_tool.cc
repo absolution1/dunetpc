@@ -246,8 +246,8 @@ AdcDeconvoluteFFT::AdcDeconvoluteFFT(fhicl::ParameterSet const& ps)
 DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
   const string myname = "AdcDeconvoluteFFT::update: ";
   DataMap ret;
-  Index icha = acd.channel;
-  if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd.run << " event " << acd.event
+  Index icha = acd.channel();
+  if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd.run() << " event " << acd.event()
                               << " channel " << icha << endl;
   // Retrieve the response vector and sigma.
   Index ivec = 0;
@@ -285,7 +285,7 @@ DataMap AdcDeconvoluteFFT::update(AdcChannelData& acd) const {
     lfpower = m_LowFilterPowers[ivec];
   }
   // Do action.
-  DFT::Norm fnormConv(DFT::convolutionNormalization());
+  DFT::Norm fnormConv(RealDftNormalization::convolutionNormalization());
   DFT::Norm fnormData(AdcChannelData::dftNormalization());
   Index rstat = 0;
   Index fftLogLevel = m_LogLevel > 2 ? m_LogLevel - 2 : 0.0;

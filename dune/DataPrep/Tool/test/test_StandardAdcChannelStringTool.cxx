@@ -72,12 +72,9 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.run = 123;
-  acd.subRun = 45;
-  acd.event = 246;
-  acd.channel = 1357;
+  acd.setEventInfo(123, 246, 45);
+  acd.setChannelInfo(1357, 24);
   acd.sampleUnit = "my units";
-  acd.fembID = 24;
 
   cout << myname << line << endl;
   cout << myname << "Call tool." << endl;

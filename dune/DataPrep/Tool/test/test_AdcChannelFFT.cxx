@@ -88,7 +88,7 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.channel = 123;
+  acd.setChannelInfo(123);
   vector<float> sams = {   3.0,  6.0,  16.1,  28.6,  30.2,  27.7,  16.3,   9.6,  4.2, -1.0,
                           -2.3,  -4.2,  -9.2, -18.6, -21.9, -29.0, -24.3, -14.2, -5.0, -3.0};
   if ( len > 0 ) sams.resize(len, 0.0);

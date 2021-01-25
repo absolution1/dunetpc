@@ -17,10 +17,8 @@ using Index = unsigned int;
 int AdcChannelDataTester::
 fill(AdcChannelData& acd, Index icha, Index isam0) {
   const string myname = "AdcChannelDataTester::fill: ";
-  acd.run = run;
-  acd.subRun = subrun;
-  acd.event = event;
-  acd.channel = icha;
+  acd.setEventInfo(new AdcChannelData::EventInfo(run, event, subrun));
+  acd.setChannelInfo(icha);
   acd.pedestal = pedestal;
   acd.sampleUnit = "ke";
   if ( acd.raw.size() < nsam ) acd.raw.resize(nsam, 0);
@@ -32,7 +30,6 @@ fill(AdcChannelData& acd, Index icha, Index isam0) {
   for ( Index isam=0; isam<samwf.size(); ++isam ) {
     Index ksam = (isam+isam0)%nsam;
     acd.samples[ksam] += samwf[isam];
-//cout << myname << "Channel " << setw(5) << acd.channel << ": acd[" << ksam << "] = " << acd.samples[ksam] << endl;
   }
   return 0;
 }

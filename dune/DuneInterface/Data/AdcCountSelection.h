@@ -10,7 +10,7 @@
 // and filter vector for one ADC channel. The latter indicates which channels are
 // to be retained.
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 
 struct AdcCountSelection {
 

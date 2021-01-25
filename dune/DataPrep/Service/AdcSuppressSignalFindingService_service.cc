@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/AdcSuppressService.h"
+#include "dune/DuneInterface/Service/AdcSuppressService.h"
 
 using std::vector;
 using std::string;
@@ -32,7 +32,7 @@ int AdcSuppressSignalFindingService::find(AdcChannelData& data) const {
     cout << "ERROR: Input prep and raw data have inconsistent sizes." << endl;
     return 2;
   }
-  m_psup->filter(raw, data.channel, data.pedestal, data.signal);
+  m_psup->filter(raw, data.channel(), data.pedestal, data.signal);
   return 0;
 }
 

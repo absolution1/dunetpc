@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcChannelDataCopyService.h"
+#include "dune/DuneInterface/Service/AdcChannelDataCopyService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -61,12 +61,12 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
     acd1.flags.push_back(AdcGood);
   }
   AdcSignalVector& sigs = acd1.samples;
-  acd1.channel = channel;
+  acd1.setChannelInfo(channel);
   acd1.pedestal = pedestal;
 
   cout << myname << line << endl;
   cout << myname << "Check original." << endl;
-  assert( acd1.channel == channel );
+  assert( acd1.channel() == channel );
   assert( acd1.pedestal == pedestal );
   assert( acd1.raw.size() == 0);
   assert( acd1.samples == sigs );
@@ -76,8 +76,8 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
   assert( acd1.rois.size() == 0 );
   assert( acd1.digit == nullptr );
   assert( acd1.wire == nullptr );
-  assert( acd1.digitIndex == AdcChannelData::badIndex );
-  assert( acd1.wireIndex == AdcChannelData::badIndex );
+  assert( acd1.digitIndex == AdcChannelData::badIndex() );
+  assert( acd1.wireIndex == AdcChannelData::badIndex() );
 
   cout << myname << line << endl;
   cout << myname << "Fetch service." << endl;
@@ -90,7 +90,7 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
 
   cout << myname << line << endl;
   cout << myname << "Check copy." << endl;
-  assert( acd2.channel == channel );
+  assert( acd2.channel() == channel );
   assert( acd2.pedestal == pedestal );
   assert( acd2.raw.size() == 0);
   assert( acd2.samples == sigs );
@@ -100,8 +100,8 @@ int test_ConfigurableAdcChannelDataCopyService(int a_LogLevel =1, int a_MaxConse
   assert( acd2.rois.size() == 0 );
   assert( acd2.digit == nullptr );
   assert( acd2.wire == nullptr );
-  assert( acd2.digitIndex == AdcChannelData::badIndex );
-  assert( acd2.wireIndex == AdcChannelData::badIndex );
+  assert( acd2.digitIndex == AdcChannelData::badIndex() );
+  assert( acd2.wireIndex == AdcChannelData::badIndex() );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;

@@ -38,7 +38,7 @@
 #ifndef StickyCodeMetrics_H
 #define StickyCodeMetrics_H
 
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/DuneInterface/Data/DataMap.h"
 #include <map>
 #include <memory>

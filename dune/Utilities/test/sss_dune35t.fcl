@@ -9,6 +9,7 @@ services:
 }
 
 services.ExptGeoHelperInterface: @local::dune_geometry_helper
+services.GeometryConfigurationWriter: {}
 services.Geometry:           @local::dune35t_geo
 services.DetectorClocksService:        @local::dune35t_detectorclocks
 services.DetectorPropertiesService: @local::dune35t_detproperties

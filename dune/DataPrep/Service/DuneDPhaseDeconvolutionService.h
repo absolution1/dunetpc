@@ -21,7 +21,7 @@
 #ifndef DuneDPhaseDeconvolutionService_H
 #define DuneDPhaseDeconvolutionService_H
 
-#include "dune/DuneInterface/AdcDeconvolutionService.h"
+#include "dune/DuneInterface/Service/AdcDeconvolutionService.h"
 
 class DuneDPhaseDeconvolutionService : public AdcDeconvolutionService {
 

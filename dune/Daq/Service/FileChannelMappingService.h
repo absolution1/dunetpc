@@ -15,7 +15,7 @@
 #ifndef FileChannelMappingService_H
 #define FileChannelMappingService_H
 
-#include "dune/DuneInterface/ChannelMappingService.h"
+#include "dune/DuneInterface/Service/ChannelMappingService.h"
 #include <vector>
 #include <iostream>
 

@@ -85,7 +85,7 @@ int test_AdcDataDumper(bool useExistingFcl =false) {
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;

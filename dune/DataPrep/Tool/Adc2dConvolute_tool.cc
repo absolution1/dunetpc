@@ -74,8 +74,8 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
   if ( m_MaxChannel < icha1 ) icha2 = m_MaxChannel;
   ret.setInt("channelMin", icha1);
   ret.setInt("channelMax", icha2);
-  if ( icha2 <= icha1 ) return ret.setStatus(1);
-  if ( m_LogLevel >= 2 ) cout << myname << "Processing run " << acd0.run << " event " << acd0.event
+  if ( icha2 < icha1 ) return ret.setStatus(1);
+  if ( m_LogLevel >= 2 ) cout << myname << "Processing run() " << acd0.run() << " event " << acd0.event()
                               << " channel " << icha1 << " to " << icha2 << endl;
 
   bool readBins = m_BinsPerWire;       // Read data from channel rather than local cache.
@@ -114,12 +114,13 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
       Index jbinRight = (irv + nbinw/2)%nbinw;
       Index jbinLeft = nbinw - jbinRight - 1;
       using ChannelBin = std::pair<Index, Index>;
-      std::vector<ChannelBin> jchbs;
+      // Use set so we don't double count when the bin count is odd.
+      std::set<ChannelBin> jchbs;
       if ( icha + dcha <= icha2 ) {  // Right side.
-        jchbs.emplace_back(icha + dcha, jbinRight);
+        jchbs.emplace(icha + dcha, jbinRight);
       }
       if ( icha >= icha1 + dcha ) {  // Left side.
-        jchbs.emplace_back(icha - dcha, jbinLeft);
+        jchbs.emplace(icha - dcha, jbinLeft);
       }
       // Loop over left and right channel bins.
       for ( ChannelBin jchb : jchbs ) {
@@ -136,7 +137,7 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
         if ( ! readSamples ) {
           if ( acdj.binSamples.size() != m_BinsPerWire ) {
             cout << myname << "ERROR: Input channel " << jcha
-                 << " has an unxpected number of sample bins: "
+                 << " has an unexpected number of sample bins: "
                  << acdj.binSamples.size() << " != " << m_BinsPerWire << endl;
             continue;
           }
