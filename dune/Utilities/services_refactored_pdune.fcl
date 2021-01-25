@@ -33,6 +33,12 @@ protodune_larg4_services:
 dunefd_refactored_simulation_services: @local::dunefd_simulation_services
 dunefd_refactored_simulation_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 
+dunefd_refactored_services: @local::dunefd_services
+dunefd_refactored_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+
+dunefd_refactored_reco_services: @local::dunefd_reco_services
+dunefd_refactored_reco_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+
 dunefd_larg4_services: 
 {
   @table::common_larg4_services
