@@ -24,8 +24,8 @@
 #ifndef StandardRawDigitExtractService_H
 #define StandardRawDigitExtractService_H
 
-#include "dune/DuneInterface/RawDigitExtractService.h"
-#include "dune/DuneInterface/PedestalEvaluationService.h"
+#include "dune/DuneInterface/Service/RawDigitExtractService.h"
+#include "dune/DuneInterface/Service/PedestalEvaluationService.h"
 
 class AdcChannelTool;
 namespace lariov {

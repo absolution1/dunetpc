@@ -41,7 +41,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
@@ -566,6 +566,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   devt.triggerClock = timingClock;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
+  AdcChannelData::EventInfoPtr pevt(new DuneEventInfo(devt));
 
   // Loop over channel ranges.
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -819,33 +820,20 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
       }
       // Fetch the online ID.
-      bool haveFemb = false;
-      AdcChannel fembID = -1;
-      AdcChannel fembChannel = -1;
+      AdcChannel fembID = AdcChannelData::badIndex();
+      AdcChannel fembChannel = AdcChannelData::badIndex();
       if ( m_onlineChannelMapTool ) {
         unsigned int ichOn = m_onlineChannelMapTool->get(chan);
         if ( ichOn != IndexMapTool::badIndex() ) {
           fembID = ichOn/128;
           fembChannel = ichOn % 128;
-          haveFemb = true;
         }
       }
       // Build the channel data.
-      acd.run = evt.run();
-      acd.subRun = evt.subRun();
-      acd.event = evt.event();
-      acd.time = itim;
-      acd.timerem = itimrem;
-      acd.channel = chan;
-      acd.channelStatus = chanStat;
+      acd.setEventInfo(pevt);
+      acd.setChannelInfo(chan, fembID, fembChannel, chanStat);
       acd.digitIndex = idig;
       acd.digit = &dig;
-      if ( haveFemb ) {
-        acd.fembID = fembID;
-        acd.fembChannel = fembChannel;
-      }
-      acd.triggerClock = timingClock;
-      acd.trigger = trigFlag;
       if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
       acd.metadata["ndigi"] = ndigi;
       if ( m_BeamEventLabel.size() ) {

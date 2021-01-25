@@ -13,8 +13,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/RawDigitExtractService.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Service/RawDigitExtractService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -127,7 +127,7 @@ int test_StandardRawDigitExtractService() {
   const AdcCountVector& raw = acd.raw;
   const AdcSignalVector& sigs = acd.samples;
   const AdcFlagVector& flags = acd.flags;
-  AdcChannel chanout = acd.channel;
+  AdcChannel chanout = acd.channel();
   AdcSignal pedout = acd.pedestal;
   cout << myname << "Output raw vector size: " << sigs.size() << endl;
   cout << myname << "Output prep vector size: " << sigs.size() << endl;

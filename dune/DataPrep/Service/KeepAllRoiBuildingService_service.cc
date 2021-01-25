@@ -30,7 +30,7 @@ KeepAllRoiBuildingService(fhicl::ParameterSet const& pset, art::ActivityRegistry
 int KeepAllRoiBuildingService::build(AdcChannelData& data) const {
   const string myname = "KeepAllRoiBuildingService:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
-                              << data.channel << "." << endl;
+                              << data.channel() << "." << endl;
   data.signal.clear();
   data.signal.resize(data.samples.size(), true);
   data.roisFromSignal();

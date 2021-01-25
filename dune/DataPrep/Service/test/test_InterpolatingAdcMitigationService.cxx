@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcMitigationService.h"
+#include "dune/DuneInterface/Service/AdcMitigationService.h"
 
 #undef NDEBUG
 #include <cassert>

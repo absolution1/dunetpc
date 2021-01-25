@@ -83,7 +83,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   AdcChannelDataMap acds;
   for ( AdcChannel icha=0; icha<5; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     for ( AdcCount& adc : acd0.raw ) acd.raw.push_back(adc+dped);
     acd.pedestal = acd0.pedestal + dped;
     dped += 100.0;

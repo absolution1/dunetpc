@@ -42,10 +42,10 @@ DataMap FembMappedAdcModifier::view(const AdcChannelData& acd) const {
 DataMap FembMappedAdcModifier::update(AdcChannelData& acd) const {
   const string myname = "FembMappedAdcModifier::update: ";
   DataMap res;
-  AdcChannel ifmb = acd.fembID;
+  AdcChannel ifmb = acd.fembID();
   ostringstream sstool;
   sstool << m_ToolBase;
-  if  ( ifmb == AdcChannelData::badIndex ) sstool << "Default";
+  if  ( ifmb == AdcChannelData::badIndex() ) sstool << "Default";
   else sstool << ifmb;
   Name toolName = sstool.str();
   DuneToolManager* pdtm = nullptr;

@@ -189,14 +189,14 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
   // Find the tick range.
   Tick maxtick = 0;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
-    if ( iacd.first == AdcChannelData::badChannel ) {
+    if ( iacd.first == AdcChannelData::badChannel() ) {
       cout << myname << "WARNING: Channel map has invalid channels. No plot is created." << endl;
     }
     Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex acdChanFirst = acdFirst.channel;
-  AdcIndex acdChanLast = acdLast.channel;
+  AdcIndex acdChanFirst = acdFirst.channel();
+  AdcIndex acdChanLast = acdLast.channel();
   unsigned long tick1 = 0;
   unsigned long tick2 = maxtick;
   if ( m_tickRange.isValid() ) {
@@ -286,8 +286,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( iacd == acds.end() ) continue;
       const AdcChannelData& acdtop = iacd->second;
       if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
-           m_pChannelStatusProvider->IsBad(acdtop.channel) ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acdtop.channel << endl;
+           m_pChannelStatusProvider->IsBad(acdtop.channel()) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acdtop.channel() << endl;
         continue;
       }
       Index ibiny = chan-chanBegin + 1;
@@ -305,10 +305,10 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
                << "]." << endl;
           continue;
         }
-        if ( pacd->channel != chan ) {
+        if ( pacd->channel() != chan ) {
           cout << myname << "ERROR: Skipping view entry " << m_DataView << "[" << ient
                << "] with the wrong the wrong channel: "
-               << pacd->channel << " != " << chan <<"." << endl;
+               << pacd->channel() << " != " << chan <<"." << endl;
           continue;
         }
         const AdcSignalVector& sams = pacd->samples;
@@ -318,14 +318,14 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         bool isRawPed = false;
         if ( isRaw ) {
           ped = pacd->pedestal;
-          isRawPed = ped != AdcChannelData::badSignal;
+          isRawPed = ped != AdcChannelData::badSignal();
         }
         Tick nsam = isRaw ? raw.size() : sams.size();
         AdcInt dsam = pacd->tick0;
         if ( m_ClockFactor > 0.0 ) {
           double dclk = 0.0;
-          if ( pacd->channelClock >= pacd->triggerClock ) dclk = pacd->channelClock - pacd->triggerClock;
-          else dclk = -double(pacd->triggerClock - pacd->channelClock);
+          if ( pacd->channelClock >= pacd->triggerClock() ) dclk = pacd->channelClock - pacd->triggerClock();
+          else dclk = -double(pacd->triggerClock() - pacd->channelClock);
           dsam += m_ClockFactor*(dclk + m_ClockOffset);
         }
         if ( m_FembTickOffsets.size() ) {
@@ -346,7 +346,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
         for ( Tick itck=tick1; itck<tick2; ++itck, ++ibin ) {
           AdcInt iisam = itck;
           iisam -= dsam;
-          if ( iisam > 0 ) {
+          if ( iisam >= 0 ) {
             AdcIndex isam = iisam;
             float sig = 0.0;
             if ( (isSig || isNsg) && isam >= pacd->signal.size() ) {

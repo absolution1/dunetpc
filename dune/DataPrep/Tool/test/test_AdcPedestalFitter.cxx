@@ -122,10 +122,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
-      data.run = 101;
-      data.subRun = 23;
-      data.event = ievt;
-      data.channel = icha;
+      data.setEventInfo(101, 23);
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;

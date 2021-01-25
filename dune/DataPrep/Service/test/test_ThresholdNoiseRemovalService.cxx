@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcChannelNoiseRemovalService.h"
+#include "dune/DuneInterface/Service/AdcChannelNoiseRemovalService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -51,7 +51,7 @@ int test_ThresholdNoiseRemovalService(int a_LogLevel =1) {
 
   const unsigned int nsig = 100;
   AdcChannelData acd;
-  acd.channel = 100;
+  acd.setChannelInfo(100);
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     acd.samples.push_back(20*sin(0.47*isig));
     acd.flags.push_back(AdcGood);

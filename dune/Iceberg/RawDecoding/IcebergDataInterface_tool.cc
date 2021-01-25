@@ -11,6 +11,7 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/RceFragment.hh"
 #include "dune-raw-data/Overlays/FelixFragment.hh"
+#include "dune-raw-data/Overlays/Frame14Fragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
 #include "dune-raw-data/Services/ChannelMap/IcebergChannelMapService.h"
 #include "dam/HeaderFragmentUnpack.hh"
@@ -696,7 +697,7 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
       if (cont_frags.isValid())
 	{
 	  have_data = true;
-	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist))
+	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist, inputLabel))
 	    {
 	      return false;
 	    }
@@ -710,7 +711,7 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
       if (frags.isValid())
 	{
 	  have_data_nc = true;
-	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist))
+	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist, inputLabel))
 	    {
 	      return false;
 	    }
@@ -728,7 +729,8 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 						 art::Event &evt, 
 						 RawDigits& raw_digits, 
 						 RDTimeStamps &timestamps, 
-						 std::vector<int> &apalist)
+						 std::vector<int> &apalist,
+						 std::string inputLabel)
 {
   uint32_t runNumber = evt.run();
 
@@ -757,12 +759,12 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 	      artdaq::ContainerFragment cont_frag(frag);
 	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
 		{
-		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist, runNumber)) ++n_felix_frags;
+		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
 		}
 	    }
 	  else
 	    {
-	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist, runNumber)) ++n_felix_frags;
+	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
 	    }
 	}
     }
@@ -775,7 +777,8 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 					      const artdaq::Fragment& frag, RawDigits& raw_digits,
 					      RDTimeStamps &timestamps,
 					      std::vector<int> &apalist,
-					      uint32_t runNumber)
+					      uint32_t runNumber,
+					      std::string inputLabel)
 {
 
   //std::cout 
@@ -813,16 +816,51 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       std::cout.copyfmt(oldState);
     }
 
+  if (frag.fragmentID() == 501) 
+    {
+      std::cout << "Temporary hack: discarding fragment ID 501" << std::endl;
+      return false;
+    }
+
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
 
-  //Load overlay class.
-  dune::FelixFragment felix(frag);
+  // Load overlay class.   Either a felix or a frame14 overlay, depending on the
+  // input instance name
+
+  bool is14 = (inputLabel.find("FRAME14") != std::string::npos);
+  std::unique_ptr<dune::FelixFragment> felixptr;
+  std::unique_ptr<dune::Frame14FragmentUnordered> frame14ptr;
+  if (is14)
+    {
+      std::unique_ptr<dune::Frame14FragmentUnordered> ftmp(new dune::Frame14FragmentUnordered(frag));
+      frame14ptr = std::move(ftmp);
+    }
+  else
+    {
+      std::unique_ptr<dune::FelixFragment> ftmp(new dune::FelixFragment(frag));
+      felixptr = std::move(ftmp);
+    }
 
   //Get detector element numbers from the fragment
 
-  uint8_t crate = felix.crate_no(0);
-  uint8_t slot = felix.slot_no(0);
-  uint8_t fiber = felix.fiber_no(0); // decode this one later 
+  uint8_t crate = 0;
+  uint8_t slot  = 0;
+  uint8_t fiber = 0;
+
+  if (is14)
+    {
+      crate = frame14ptr->crate_no(0);
+      slot  = frame14ptr->slot_no(0);
+      fiber = frame14ptr->fiber_no(0); // decode this one later 
+      std::cout << "ICEBERG temporary hack: setting fiber to 1 in Fragment ID " << frag.fragmentID() << " old fiber id: " << (int) fiber << std::endl;
+      fiber = 1;
+    }
+  else
+    {
+      crate = felixptr->crate_no(0);
+      slot  = felixptr->slot_no(0);
+      fiber = felixptr->fiber_no(0); // decode this one later 
+    }
 
   if (slot > 4) 
     {
@@ -851,7 +889,18 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 
   //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
 
-  const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
+  // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
+  unsigned n_frames = 0;
+  if (is14)
+    {
+      n_frames = frame14ptr->total_frames();
+    }
+  else
+    {
+      n_frames = felixptr->total_frames(); 
+    }
+
+
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
   if (n_frames ==0) return true;
@@ -874,19 +923,25 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 	}
     }
 
-  for (unsigned int iframe=0; iframe<n_frames; ++iframe)
+  // this test does not yet exist for Frame14
+
+  if (!is14)
     {
-      if ( felix.wib_errors(iframe) != 0)
+      for (unsigned int iframe=0; iframe<n_frames; ++iframe)
 	{
-	  if (_enforce_error_free )
+	  if ( felixptr->wib_errors(iframe) != 0)
 	    {
-	      _DiscardedCorruptData = true;
-	      MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
-						    << " Discarding Data";
-	      // drop just this fragment
-	      return true;
+	      if (_enforce_error_free )
+		{
+		  _DiscardedCorruptData = true;
+		  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
+							<< " Discarding Data";
+		  // drop just this fragment
+		  //_discard_data = true;
+		  return true;
+		}
+	      _KeptCorruptData = true;
 	    }
-	  _KeptCorruptData = true;
 	}
     }
 
@@ -983,7 +1038,10 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 	(offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
 
     v_adc.clear();
-    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
+    std::vector<dune::adc_t> waveform( is14 ? 
+				       frame14ptr->get_ADCs_by_channel(ch) : 
+				       felixptr->get_ADCs_by_channel(ch) );
+
     for(unsigned int nframe=0;nframe<waveform.size();nframe++){
       v_adc.push_back(waveform.at(nframe));  
     }
@@ -1030,7 +1088,7 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
     raw_digit.SetPedestal(median,sigma);
     raw_digits.push_back(raw_digit);
 
-    raw::RDTimeStamp rdtimestamp(felix.timestamp(),offlineChannel);
+    raw::RDTimeStamp rdtimestamp( is14 ? frame14ptr->timestamp() : felixptr->timestamp(),offlineChannel);
     timestamps.push_back(rdtimestamp);
   }
 

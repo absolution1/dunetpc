@@ -42,8 +42,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
-#include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/ChannelGroupService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/DuneTimeConverter.h"
@@ -564,6 +564,15 @@ void DataPrepModule::produce(art::Event& evt) {
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
   unsigned int ndigi = pdigits->size();
+  using EventInfo = AdcChannelData::EventInfo;
+  EventInfo* pevt = new EventInfo;
+  pevt->run = evt.run();
+  pevt->subRun = evt.subRun();
+  pevt->time = itim;
+  pevt->timerem = itimrem;
+  pevt->triggerClock = timingClock;
+  pevt->trigger = trigFlag;
+  AdcChannelData::EventInfoPtr pevtShared(pevt);
   for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*pdigits)[idig];
     AdcChannel chan = dig.Channel();
@@ -589,15 +598,13 @@ void DataPrepModule::produce(art::Event& evt) {
       if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
     }
     // Fetch the online ID.
-    bool haveFemb = false;
-    AdcChannel fembID = -1;
-    AdcChannel fembChannel = -1;
+    AdcChannel fembID = AdcChannelData::badIndex();
+    AdcChannel fembChannel = AdcChannelData::badIndex();
     if ( m_onlineChannelMapTool ) {
       unsigned int ichOn = m_onlineChannelMapTool->get(chan);
       if ( ichOn != IndexMapTool::badIndex() ) {
         fembID = ichOn/128;
         fembChannel = ichOn % 128;
-        haveFemb = true;
       }
     }
     if ( m_KeepFembs.size() ) {
@@ -608,21 +615,10 @@ void DataPrepModule::produce(art::Event& evt) {
     }
     // Build the channel data.
     AdcChannelData& acd = fulldatamap[chan];
-    acd.run = evt.run();
-    acd.subRun = evt.subRun();
-    acd.event = evt.event();
-    acd.time = itim;
-    acd.timerem = itimrem;
-    acd.channel = chan;
-    acd.channelStatus = chanStat;
+    acd.setEventInfo(pevtShared);
+    acd.setChannelInfo(chan, fembID, fembChannel, chanStat);
     acd.digitIndex = idig;
     acd.digit = &dig;
-    if ( haveFemb ) {
-      acd.fembID = fembID;
-      acd.fembChannel = fembChannel;
-    }
-    acd.triggerClock = timingClock;
-    acd.trigger = trigFlag;
     if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
     acd.metadata["ndigi"] = ndigi;
     if ( m_BeamEventLabel.size() ) {
@@ -721,10 +717,10 @@ void DataPrepModule::produce(art::Event& evt) {
       for ( const AdcChannelDataMap::value_type& iacd : datamap ) {
         const AdcChannelData& acd = iacd.second;
         AdcIndex idig = acd.digitIndex;
-        if ( idig == AdcChannelData::badIndex )
+        if ( idig == AdcChannelData::badIndex() )
           throw art::Exception(art::errors::ProductRegistrationFailure) << "Digit index is not set.";
         AdcIndex iwir = acd.wireIndex;
-        if ( iwir == AdcChannelData::badIndex ) continue;
+        if ( iwir == AdcChannelData::badIndex() ) continue;
         art::Ptr<raw::RawDigit> pdig(hdigits, idig);
         bool success = util::CreateAssn(*this, evt, *pwires, pdig, *passns, m_WireName, iwir);
         if ( !success ) throw art::Exception(art::errors::ProductRegistrationFailure)

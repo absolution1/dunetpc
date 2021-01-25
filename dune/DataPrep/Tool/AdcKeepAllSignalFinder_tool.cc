@@ -40,12 +40,12 @@ DataMap AdcKeepAllSignalFinder::update(AdcChannelData& acdtop) const {
     acd.signal.clear();
     acd.rois.clear();
     if ( nsam == 0 ) {
-      cout << myname << "ERROR: No samples found in channel " << acd.channel
+      cout << myname << "ERROR: No samples found in channel " << acd.channel()
            << " view " << ivie << endl;
       return ret.setStatus(1);
     }
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "Building ROI for channel " << acd.channel
+      cout << myname << "Building ROI for channel " << acd.channel()
            << " view " << ivie << "/" << nvie << "." << endl;
     }
     acd.signal.resize(nsam, true);

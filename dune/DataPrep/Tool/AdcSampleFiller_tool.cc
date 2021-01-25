@@ -29,14 +29,14 @@ AdcSampleFiller::AdcSampleFiller(fhicl::ParameterSet const& ps)
 DataMap AdcSampleFiller::update(AdcChannelData& acd) const {
   const string myname = "AdcSampleFiller::update: ";
   AdcIndex nsam = acd.raw.size();
-  acd.samples.resize(nsam, AdcChannelData::badSignal);
+  acd.samples.resize(nsam, AdcChannelData::badSignal());
   acd.flags.resize(nsam, AdcGood);
   AdcPedestal ped = acd.pedestal;
   if ( m_LogLevel >= 2 ) {
     cout << myname << "# samples: " << nsam << endl;
     cout << myname << " Pedestal: " << ped << endl;
   }
-  if ( ped == AdcChannelData::badSignal ) {
+  if ( ped == AdcChannelData::badSignal() ) {
     cout << myname << "Pedestal is not set." << endl;
     return DataMap(1);
   }

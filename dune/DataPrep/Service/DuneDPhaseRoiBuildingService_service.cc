@@ -39,11 +39,11 @@ DuneDPhaseRoiBuildingService(fhicl::ParameterSet const& pset, art::ActivityRegis
 int DuneDPhaseRoiBuildingService::build(AdcChannelData& data) const {
   const string myname = "DuneDPhaseRoiBuildingService:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
-                              << data.channel << "." << endl;
+                              << data.channel() << "." << endl;
   data.rois.clear();
   // Get signal shaping service.
   art::ServiceHandle<util::SignalShapingServiceDUNEDPhase> hsss;
-  AdcSignal sigma = hsss->GetDeconNoise(data.channel);
+  AdcSignal sigma = hsss->GetDeconNoise(data.channel());
   
   // Use filtered or raw ADC.
   AdcSignalVector sigs;
@@ -60,7 +60,7 @@ int DuneDPhaseRoiBuildingService::build(AdcChannelData& data) const {
   AdcSignal sighigh = m_NSigmaStart*sigma;
   AdcIndex nsig = sigs.size();
   if ( nsig < 1 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel()
                                 << " has no samples." << endl;
     return 0;
   }

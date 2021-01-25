@@ -11,6 +11,7 @@ services:
   TFileService:            { fileName: "T0RecoSCE_ana.root" }
   TimeTracker:             {}
   ExptGeoHelperInterface:         @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                       @local::protodune_geo
   DetectorProperties:             @local::protodune_detproperties
   LArProperties:                  @local::dunefd_properties

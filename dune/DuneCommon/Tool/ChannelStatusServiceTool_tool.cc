@@ -1,7 +1,7 @@
 // ChannelStatusServiceTool_tool.cc
 
 #include "ChannelStatusServiceTool.h"
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 #include "fhiclcpp/intermediate_table.h"
 #include "fhiclcpp/make_ParameterSet.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"

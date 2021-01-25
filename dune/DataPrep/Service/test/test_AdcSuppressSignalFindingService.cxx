@@ -13,8 +13,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/AdcSignalFindingService.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Service/AdcSignalFindingService.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -57,7 +57,7 @@ int test_AdcSuppressSignalFindingService() {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData data;
-  data.channel = 1234;
+  data.setChannelInfo(1234);
   data.pedestal = 1000.0;
   for ( unsigned int tic=0; tic<50; ++tic ) {
     AdcSignal sig = tic%10 - 5.0;
