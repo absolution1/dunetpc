@@ -240,7 +240,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
   cout << myname << "Create channel data." << endl;
   AdcChannelData acd;
   acd.setEventInfo(123, 456);
-  acd.channel = 789;
+  acd.setChannelInfo(789);
   acd.pedestal = 1000.0;
   acd.samples = sta.data();
   acd.signal = isSignal;

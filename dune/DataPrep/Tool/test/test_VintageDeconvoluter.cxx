@@ -70,7 +70,7 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcChannelData data;
-  data.channel = 123;
+  data.setChannelInfo(123);
   for ( AdcIndex itic=0; itic<100; ++itic ) {
     float xadc = rand()%20 - 10.0;
     data.samples.push_back(xadc);

@@ -1,6 +1,10 @@
 <lcgdict>
   <class name="IndexRange" />
   <class name="IndexRangeGroup" />
-  <class name="AdcChannelData" />
   <class name="DuneEventInfo" />
+  <class name="DuneChannelInfo" />
+  <class name="AdcChannelData" />
+  <class name="Real2dData<float>" />
+  <class name="Real2dData<double>" />
+  <class name="Tpc2dRoi" />
 </lcgdict>

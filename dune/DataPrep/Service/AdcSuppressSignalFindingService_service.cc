@@ -32,7 +32,7 @@ int AdcSuppressSignalFindingService::find(AdcChannelData& data) const {
     cout << "ERROR: Input prep and raw data have inconsistent sizes." << endl;
     return 2;
   }
-  m_psup->filter(raw, data.channel, data.pedestal, data.signal);
+  m_psup->filter(raw, data.channel(), data.pedestal, data.signal);
   return 0;
 }
 

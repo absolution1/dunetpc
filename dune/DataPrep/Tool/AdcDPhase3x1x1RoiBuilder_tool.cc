@@ -75,7 +75,7 @@ AdcDPhase3x1x1RoiBuilder::~AdcDPhase3x1x1RoiBuilder() {
 DataMap AdcDPhase3x1x1RoiBuilder::update(AdcChannelData& data) const {
   const string myname = "AdcDPhase3x1x1RoiBuilder:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building ROIs for channel "
-                              << data.channel << "." << endl;
+                              << data.channel() << "." << endl;
   data.rois.clear();
   
   //Create dummy DataMap to return
@@ -105,7 +105,7 @@ DataMap AdcDPhase3x1x1RoiBuilder::update(AdcChannelData& data) const {
   ROIEnd.clear();
 
   if ( nsig < 1 ) {
-    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+    if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel()
                                 << " has no samples." << endl;
     return res;
   }

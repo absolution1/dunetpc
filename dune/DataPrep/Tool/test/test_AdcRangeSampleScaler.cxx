@@ -78,7 +78,7 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
   for ( Index icha=0; icha<ncha; ++icha ) {
     AdcChannelData& acd = acds[icha];
     acd.setEventInfo(123, 456);
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     acd.samples.resize(nsam, 10.0);
     acd.sampleUnit = "ADC";
   }
@@ -103,7 +103,7 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
-    assert( acd.channel == icha );
+    assert( acd.channel() == icha );
     assert( acd.samples.size() == nsam );
     float qsam = acd.samples[0];
     float qexp = qexps[icha];

@@ -124,12 +124,12 @@ DataMap FclStickyCodeFlagger::update(AdcChannelData& acd) const {
   DataMap ret;
   // Make sure flags is as long as raw.
   if ( acd.flags.size() < acd.raw.size() ) {
-    cout << myname << "WARNING: Increasing size of the flags vector for channel " << acd.channel << endl;
+    cout << myname << "WARNING: Increasing size of the flags vector for channel " << acd.channel() << endl;
     acd.flags.resize(acd.raw.size(), AdcGood);
   }
   IndexSet samplesToFlag;
   // Find samples with sticky codes.
-  IndexVectorMap::const_iterator icod = m_stickyCodes.find(acd.channel);
+  IndexVectorMap::const_iterator icod = m_stickyCodes.find(acd.channel());
   if ( icod != m_stickyCodes.end() ) {
     const IndexVector& codes = icod->second;
     for ( Index isam=0; isam<acd.raw.size(); ++isam ) {
@@ -138,7 +138,7 @@ DataMap FclStickyCodeFlagger::update(AdcChannelData& acd) const {
   }
   // Find samples with in sticky code ranges.
   using IndexPairRange = std::pair<IndexPairMap::const_iterator, IndexPairMap::const_iterator>;
-  IndexPairRange irans = m_stickyRanges.equal_range(acd.channel);
+  IndexPairRange irans = m_stickyRanges.equal_range(acd.channel());
   for ( IndexPairMap::const_iterator iran=irans.first; iran!=irans.second; ++iran ) {
     IndexPair ran = iran->second;
     for ( Index isam=0; isam<acd.raw.size(); ++isam ) {
@@ -149,7 +149,7 @@ DataMap FclStickyCodeFlagger::update(AdcChannelData& acd) const {
   // Set flags.
   for ( AdcIndex isam : samplesToFlag ) acd.flags[isam] = m_StickyCode;
   // Fill output data map and return.
-  ret.setInt("stickyChannel", acd.channel);
+  ret.setInt("stickyChannel", acd.channel());
   ret.setInt("stickyCodeCount", samplesToFlag.size());
   return ret;
 }

@@ -639,7 +639,7 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     const AdcChannelData& acd = iacd.second;
     if ( m_LogLevel >= 3 ) {
-      cout << myname << "Processing channel " << acd.channel
+      cout << myname << "Processing channel " << acd.channel()
            << " (" << ncha << "/" << nacd << ")" << endl;
     }
     dms.emplace_back();
@@ -647,7 +647,7 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
     doView(acd, dbg, dm);
     if ( dm.status() ) {
       ++nfail;
-      failedChannels.push_back(acd.channel);
+      failedChannels.push_back(acd.channel());
     }
     ++ncha;
     nroi += dm.getInt("roiCount");
@@ -701,7 +701,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       return res.setStatus(1).status();
     }
   }
-  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel << "."
+  if ( dbg >=2 ) cout << myname << "Processing channel " << acd.channel() << "."
                       << " Input ROI count is " << nroiRaw << endl;
   DataMap::HistVector roiHists;
   DataMap::FloatVector roiSigMins;
@@ -835,7 +835,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   res.setInt("roiEvent",   acd.event());
   res.setInt("roiRun",     acd.run());
   res.setInt("roiSubRun",  acd.subRun());
-  res.setInt("roiChannel", acd.channel);
+  res.setInt("roiChannel", acd.channel());
   res.setInt("roiCount", nroi);
   res.setInt("roiRawCount", nroiRaw);
   res.setInt("roiNTickChannel", ntickChannel);
@@ -873,7 +873,7 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
   if ( getState().cachedSampleUnit.size() == 0 ) {
     getState().cachedSampleUnit = acd.sampleUnit;
   }
-  getState().channelStatuses[acd.channel] = acd.channelStatus;
+  getState().channelStatuses[acd.channel()] = acd.channelStatus();
   return res.status();
 }
 
@@ -899,7 +899,7 @@ void AdcRoiViewer::writeRoiHists(const DataMapVector& dms, int dbg) const {
       dm.getInt("roiEvent"),
       dm.getInt("roiSubRun")
     );
-    acd.channel = dm.getInt("roiChannel");
+    acd.setChannelInfo(dm.getInt("roiChannel"));
     string ofrname = AdcChannelStringTool::build(m_adcStringBuilder, acd, m_RoiRootFileName);
     if ( ofrname != ofrnameOld ) {
       if ( pfile != nullptr ) pfile->Close();
@@ -933,12 +933,12 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
   Index wpadx = 1400;
   Index wpady = 1000;
   TpmPtr pmantopLocal;
-  TpmPtr& pmantop = m_RoiPlotOpt == 2 ? getState().roiPads[acd.channel] : pmantopLocal;
+  TpmPtr& pmantop = m_RoiPlotOpt == 2 ? getState().roiPads[acd.channel()] : pmantopLocal;
   Name plotFileName;
   Index ipad = 0;
   if ( m_RoiPlotOpt == 2 ) {
     // Fetch the print name.
-    plotFileName = getState().roiPadNames[acd.channel];
+    plotFileName = getState().roiPadNames[acd.channel()];
     // Find the first empty sub pad.
     if ( pmantop && npad > 1 ) {
       for ( ipad=0; ipad<npad; ++ipad ) {
@@ -958,15 +958,15 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
       plotFileName = hnam.substr(1) + ".png";  // Strip leading h from histogram name.
       if ( m_RoiPlotOpt == 2 ) {
         ostringstream sscha;
-        sscha << acd.channel;
+        sscha << acd.channel();
         string scha = sscha.str();
         while ( scha.size() < 6 ) scha = "0" + scha;
         ostringstream sspag;
-        sspag << getState().roiPadCounts[acd.channel];
+        sspag << getState().roiPadCounts[acd.channel()];
         string spag = sspag.str();
         while ( spag.size() < 3 ) spag = "0" + spag;
         plotFileName = "roi_chan" + scha + "_" + spag + ".png";
-        getState().roiPadNames[acd.channel] = plotFileName;
+        getState().roiPadNames[acd.channel()] = plotFileName;
       }
       ipad = 0;
       pmantop.reset(new TPadManipulator);
@@ -1005,7 +1005,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
         ssout.precision(1);
         ssout << "#chi^{2}: " << pfit->GetChisquare();
         labs.push_back(ssout.str());
-        Index chanStat = acd.channelStatus;
+        Index chanStat = acd.channelStatus();
         if ( chanStat == AdcChannelStatusBad ) labs.push_back("Bad channel");
         if ( chanStat == AdcChannelStatusNoisy ) labs.push_back("Noisy channel");
       }
@@ -1031,7 +1031,7 @@ void AdcRoiViewer::writeRoiPlots(const HistVector& hsts, const AdcChannelData& a
       if (  m_LogLevel >= 3 ) cout << myname << "  Writing " << plotFileName << endl;
       pmantop->print(plotFileName);
       pmantop.reset(nullptr);
-      ++getState().roiPadCounts[acd.channel];
+      ++getState().roiPadCounts[acd.channel()];
       ipad = 0;
       ++getState().nRoiPlot;
       if ( m_MaxRoiPlots >=0 && getState().nRoiPlot >= Index(m_MaxRoiPlots) ) return;
@@ -1092,8 +1092,8 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
     tdat.run = acd.run();
     tdat.subrun = acd.subRun();
     tdat.event = acd.event();
-    tdat.channel = acd.channel;
-    tdat.fembID = acd.fembID;
+    tdat.channel = acd.channel();
+    tdat.fembID = acd.fembID();
     tdat.triggerClock = acd.triggerClock();
     TimeOffsetTool::Offset off = m_pTickOffsetTool->offset(tdat);
     if ( off.isValid() ) {
@@ -1304,7 +1304,7 @@ void AdcRoiViewer::fillSumHists(const AdcChannelData& acd, const DataMap& dm) co
         ph->GetListOfFunctions()->AddLast(pf);
         ph->GetListOfFunctions()->SetOwner(kTRUE);
       }
-      getState().sumHistChannels[hnam] = acd.channel;
+      getState().sumHistChannels[hnam] = acd.channel();
       getState().sumHists[hnam] = ph;
       getState().sumFitNames[hnam] = fitName;
       if ( plotNameTemplate.size() ) {
@@ -1659,7 +1659,7 @@ void AdcRoiViewer::fillChanSumHists() const {
     //  Index icha = ph->GetBinCenter(ibin);
     for ( Index icha=icha1; icha<icha2; ++icha ) {
       Index ichaBin = icha + 1 - icha1;
-      acd.channel = icha;
+      acd.setChannelInfo(icha);
       Name hnam = AdcChannelStringTool::build(m_adcStringBuilder, acd, hnamTemplate);
       //Index chanStat = getState().getChannelStatus(hnam);
       //if ( chanStat ) continue;

@@ -354,10 +354,10 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
   AcdVector keepAcds;
   for ( const AdcChannelData* pacd : acds ) {
     if ( m_ChannelStatusFlag ) {
-      if ( m_skipBad && pacd->channelStatus==1 ) continue;
-      if ( m_skipNoisy && pacd->channelStatus==2 ) continue;
+      if ( m_skipBad && pacd->channelStatus()==1 ) continue;
+      if ( m_skipNoisy && pacd->channelStatus()==2 ) continue;
     }
-    dftChannels.push_back(pacd->channel);
+    dftChannels.push_back(pacd->channel());
     keepAcds.push_back(pacd);
   }
   // Check consistency of input data.

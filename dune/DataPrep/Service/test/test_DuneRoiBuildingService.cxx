@@ -60,7 +60,7 @@ int test_DuneRoiBuildingService(int a_LogLevel =1) {
 
   const unsigned int nsig = 100;
   AdcChannelData acd;
-  acd.channel = 100;
+  acd.setChannelInfo(100);
   for ( unsigned int isig=0; isig<nsig; ++isig ) {
     acd.samples.push_back(0);
     acd.flags.push_back(AdcGood);
@@ -89,7 +89,7 @@ int test_DuneRoiBuildingService(int a_LogLevel =1) {
 
   cout << myname << "Fetch shaping service." << endl;
   ServiceHandle<util::SignalShapingServiceDUNE> hsss;
-  cout << myname << "Decon noise: " << hsss->GetDeconNoise(acd.channel) << endl;
+  cout << myname << "Decon noise: " << hsss->GetDeconNoise(acd.channel()) << endl;
 
   cout << myname << "Fetch ROI building service." << endl;
   ServiceHandle<AdcRoiBuildingService> hroi;

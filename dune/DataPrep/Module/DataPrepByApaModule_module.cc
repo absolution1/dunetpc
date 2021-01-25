@@ -820,27 +820,20 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
       }
       // Fetch the online ID.
-      bool haveFemb = false;
-      AdcChannel fembID = -1;
-      AdcChannel fembChannel = -1;
+      AdcChannel fembID = AdcChannelData::badIndex();
+      AdcChannel fembChannel = AdcChannelData::badIndex();
       if ( m_onlineChannelMapTool ) {
         unsigned int ichOn = m_onlineChannelMapTool->get(chan);
         if ( ichOn != IndexMapTool::badIndex() ) {
           fembID = ichOn/128;
           fembChannel = ichOn % 128;
-          haveFemb = true;
         }
       }
       // Build the channel data.
       acd.setEventInfo(pevt);
-      acd.channel = chan;
-      acd.channelStatus = chanStat;
+      acd.setChannelInfo(chan, fembID, fembChannel, chanStat);
       acd.digitIndex = idig;
       acd.digit = &dig;
-      if ( haveFemb ) {
-        acd.fembID = fembID;
-        acd.fembChannel = fembChannel;
-      }
       if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
       acd.metadata["ndigi"] = ndigi;
       if ( m_BeamEventLabel.size() ) {

@@ -194,7 +194,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     const RawDigit& dig = digs[idig];
     assert( prepdigs.find(dig.Channel()) == prepdigs.end() );
     AdcChannelData& data = prepdigs[dig.Channel()];
-    data.channel = dig.Channel();
+    data.setChannelInfo(dig.Channel());
     data.digitIndex = idig;
     data.digit = &dig;
     data.setEventInfo(123, 1);

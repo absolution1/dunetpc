@@ -33,7 +33,7 @@ AdcSampleScaler::AdcSampleScaler(fhicl::ParameterSet const& ps)
 DataMap AdcSampleScaler::update(AdcChannelData& acd) const {
   const string myname = "AdcSampleScaler::update: ";
   if ( m_LogLevel >= 2 ) cout << "Processing run " << acd.run() << " event " << acd.event()
-                              << " channel " << acd.channel << endl;
+                              << " channel " << acd.channel() << endl;
   DataMap ret;
 
   // Check input data unit.

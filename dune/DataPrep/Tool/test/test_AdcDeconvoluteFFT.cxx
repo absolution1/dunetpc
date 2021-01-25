@@ -154,7 +154,7 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   cout << myname << "Create data by direct convolution with response." << endl;
   AdcChannelData acd;
   acd.setEventInfo(123, 456);
-  acd.channel = 789;
+  acd.setChannelInfo(789);
   acd.samples = samsTru;
   assert( acd.samples.size() == nsam );
   DataMap ret = pcondir->update(acd);
@@ -169,7 +169,7 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   cout << myname << "Create data by FFT convolution with response." << endl;
   AdcChannelData acdchk;
   acdchk.setEventInfo(123, 456);
-  acdchk.channel = 789;
+  acdchk.setChannelInfo(789);
   acdchk.samples = samsTru;
   DataMap retchk = pconfft->update(acdchk);
   assert( retchk == 0 );

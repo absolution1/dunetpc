@@ -195,8 +195,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     Tick ntick = isRaw ? iacd.second.raw.size() : iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex acdChanFirst = acdFirst.channel;
-  AdcIndex acdChanLast = acdLast.channel;
+  AdcIndex acdChanFirst = acdFirst.channel();
+  AdcIndex acdChanLast = acdLast.channel();
   unsigned long tick1 = 0;
   unsigned long tick2 = maxtick;
   if ( m_tickRange.isValid() ) {
@@ -286,8 +286,8 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
       if ( iacd == acds.end() ) continue;
       const AdcChannelData& acdtop = iacd->second;
       if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
-           m_pChannelStatusProvider->IsBad(acdtop.channel) ) {
-        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acdtop.channel << endl;
+           m_pChannelStatusProvider->IsBad(acdtop.channel()) ) {
+        if ( m_LogLevel >= 3 ) cout << myname << "Skipping bad channel " << acdtop.channel() << endl;
         continue;
       }
       Index ibiny = chan-chanBegin + 1;
@@ -305,10 +305,10 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
                << "]." << endl;
           continue;
         }
-        if ( pacd->channel != chan ) {
+        if ( pacd->channel() != chan ) {
           cout << myname << "ERROR: Skipping view entry " << m_DataView << "[" << ient
                << "] with the wrong the wrong channel: "
-               << pacd->channel << " != " << chan <<"." << endl;
+               << pacd->channel() << " != " << chan <<"." << endl;
           continue;
         }
         const AdcSignalVector& sams = pacd->samples;

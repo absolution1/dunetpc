@@ -433,8 +433,8 @@ DataMap AdcEventViewer::endEvent(const DuneEventInfo& devt) const {
 DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcEventViewer::view: ";
   DataMap res;
-  if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel
-                              << " (FEMB " << acd.fembID << ")"
+  if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel()
+                              << " (FEMB " << acd.fembID() << ")"
                               << " in run " << acd.run() << " event " << acd.event() << endl;
   if ( acd.event() != state().event() || acd.run() != state().run() ) {
     if ( state().beginEventCount ) {
@@ -446,9 +446,9 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
     beginEventState(acd.getEventInfo());
   }
   for ( const IndexRange& cr : m_crs ) {
-    if ( cr.name != "all" && !cr.contains(acd.channel) ) continue;
+    if ( cr.name != "all" && !cr.contains(acd.channel()) ) continue;
     ChannelRangeState& crstate = state().crstates[cr.name];
-    crstate.fembIDSet.insert(acd.fembID);
+    crstate.fembIDSet.insert(acd.fembID());
     ++crstate.nchan;
     crstate.pedSum += acd.pedestal;
     float pedNoise = acd.pedestalRms;

@@ -86,21 +86,21 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
   const string myname = "StandardAdcChannelStringTool::build: ";
   // First replace the indices (run, event, ....)
   Index itrig = acd.trigger();
-  Index vals[m_nrep] = {acd.run(), acd.subRun(), acd.event(), acd.channel,
+  Index vals[m_nrep] = {acd.run(), acd.subRun(), acd.event(), acd.channel(),
                         Index(dm.getInt("count")),
                         Index(dm.getInt("chan1")),
                         Index(dm.getInt("chan2")),
-                        acd.fembID,
+                        acd.fembID(),
                         itrig};
   bool isBad[m_nrep] = {
     acd.run()     == AdcChannelData::badIndex(),
     acd.subRun()  == AdcChannelData::badIndex(),
     acd.event()   == AdcChannelData::badIndex(),
-    acd.channel   == AdcChannelData::badChannel(),
+    acd.channel()   == AdcChannelData::badChannel(),
     !dm.haveInt("count"),
     !dm.haveInt("chan1"),
     !dm.haveInt("chan2"),
-    acd.fembID    == AdcChannelData::badIndex(),
+    acd.fembID()  == AdcChannelData::badIndex(),
     acd.trigger() == AdcChannelData::badIndex()
   };
   string sout = spat;

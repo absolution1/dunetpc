@@ -78,7 +78,7 @@ int test_AdcChannelDumper(bool useExistingFcl =false) {
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
       data.setEventInfo(101, ievt, 23);
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;

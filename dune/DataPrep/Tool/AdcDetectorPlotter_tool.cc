@@ -248,8 +248,8 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     Tick ntick = iacd.second.samples.size();
     if ( ntick > maxtick ) maxtick = ntick;
   }
-  AdcIndex chanFirst = acdFirst.channel;
-  AdcIndex chanLast = acdLast.channel;
+  AdcIndex chanFirst = acdFirst.channel();
+  AdcIndex chanLast = acdLast.channel();
   AdcIndex nchan = chanLast + 1 - chanFirst;
   if ( m_LogLevel >= 2 ) cout << myname << "  Input channel count is " << nchan << endl;
   // Fill graph.
@@ -257,10 +257,10 @@ DataMap AdcDetectorPlotter::viewMap(const AdcChannelDataMap& acds) const {
     if ( m_LogLevel >= 3 ) cout << myname << "    Filling with channel " << iacd.first << endl;
     const AdcChannelData& acd = iacd.second;
     if ( m_SkipBadChannels && m_pChannelStatusProvider != nullptr &&
-         m_pChannelStatusProvider->IsBad(acd.channel) ) {
-      if ( m_LogLevel >= 3 ) cout << myname << "      Skipping bad channel " << acd.channel << endl;
+         m_pChannelStatusProvider->IsBad(acd.channel()) ) {
+      if ( m_LogLevel >= 3 ) cout << myname << "      Skipping bad channel " << acd.channel() << endl;
     } else {
-      if ( m_LogLevel >= 3 ) cout << myname << "      Adding channel " << acd.channel << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "      Adding channel " << acd.channel() << endl;
       addChannel(acd, xsign);
     }
   }
@@ -311,7 +311,7 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
     cout << myname << "ERROR: Graph is missing." << endl;
     return 1;
   }
-  AdcChannel icha = acd.channel;
+  AdcChannel icha = acd.channel();
   auto rng = state.sel.dataMap().equal_range(icha);
   Index nsam = isRaw ? acd.raw.size() : acd.samples.size();
   if ( m_LogLevel >= 4 ) {
@@ -352,7 +352,7 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
     }
   }
 /*
-  AdcChannel chan = acd.channel;
+  AdcChannel chan = acd.channel();
   const AdcSignalVector& sams = acd.samples;
   const AdcCountVector& raw = acd.raw;
   AdcSignal ped = 0.0;

@@ -5,6 +5,7 @@
 //
 // Struct to hold the prepared time samples for a single TPC channel.
 //
+// Held in event info pointer:
 //           run - Run number
 //        subRun - Sub-run number
 //         event - Event number
@@ -13,15 +14,18 @@
 //       trigger - Index indicating which trigger(s) fired.
 //  triggerClock - Time counter for the trigger
 //
+// Held in channel info pointer:
 //       channel - Offline channel number
-//  channelClock - Time counter for then channel data
-// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //        fembID - FEMB ID
 //   fembChannel - Channel number in FEMB (0, 1,..., 127).
+// channelStatus - Channel status (0=ok, 1=bad, 2=noisy)
 //
+// Held directly:
+//  channelClock - Time counter for the channel data
+//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
 //      pedestal - Pedestal subtracted from the raw count
 //   pedestalRms - Pedestal RMS or sigma
-//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
+//
 //           raw - Uncompressed array holding the raw ADC count for each tick
 //       samples - Array holding the prepared signal value for each tick
 //    binSamples - Array holding binned samples: binSamples[ibin][itick]
@@ -76,6 +80,7 @@
 #include <iostream>
 #include "dune/DuneInterface/Data/AdcTypes.h"
 #include "dune/DuneInterface/Data/DuneEventInfo.h"
+#include "dune/DuneInterface/Data/DuneChannelInfo.h"
 
 namespace raw {
   class RawDigit;
@@ -95,26 +100,30 @@ public:
   using ViewMap = std::map<Name, View>;
   using EventInfo = DuneEventInfo;
   using EventInfoPtr = std::shared_ptr<const EventInfo>;
+  using ChannelInfo = DuneChannelInfo;
+  using ChannelInfoPtr = std::shared_ptr<const ChannelInfo>;
   using Index = EventInfo::Index;
   using LongIndex = EventInfo::LongIndex;
+  using Channel = ChannelInfo::Channel;
 
   static Index badIndex() { return EventInfo::badIndex(); }
   static Index badLongIndex() { return EventInfo::badLongIndex(); }
   static Index badChannel() { return EventInfo::badIndex(); }
   static Index badSignal() { return -99999; }
 
-  // Channel data.
-  // Everything here should be included in copy and assignment.
-  AdcLongIndex channelClock =0;
-  AdcChannel channel =badIndex();
-  AdcIndex channelStatus =badIndex();
-  AdcIndex fembID =badIndex();
-  AdcIndex fembChannel =badIndex();
+  static const EventInfo& badEventInfo() {
+    return EventInfo::badEventInfo();
+  }
+
+  static const ChannelInfo& badChannelInfo() {
+    return ChannelInfo::badChannelInfo();
+  }
 
   // ADC and derived data.
+  AdcLongIndex channelClock =0;
+  AdcInt tick0 = 0;
   AdcSignal pedestal =badSignal();
   AdcSignal pedestalRms =0.0;
-  AdcInt tick0 = 0;
   AdcCountVector raw;
   AdcSignalVector samples;
   AdcSignalVectorVector binSamples;
@@ -136,6 +145,7 @@ public:
 private:
 
   EventInfoPtr m_peventInfo;
+  ChannelInfoPtr m_pchanInfo;
 
   // Constituents and altenate views.
   ViewMap m_views;
@@ -152,10 +162,6 @@ public:
   }
 
   // Return event info.
-  const EventInfo& badEventInfo() const {
-    static EventInfo bei;
-    return bei;
-  }
   bool hasEventInfo() const { return bool(m_peventInfo); }
   EventInfoPtr getEventInfoPtr() const { return m_peventInfo; }
   const DuneEventInfo& getEventInfo() const {
@@ -169,17 +175,35 @@ public:
   AdcIndex trigger()          const { return getEventInfo().trigger; }
   AdcLongIndex triggerClock() const { return getEventInfo().triggerClock; }
 
+  // Set channel info.
+  void setChannelInfo(ChannelInfoPtr pchi) { m_pchanInfo = pchi; }
+  void setChannelInfo(const ChannelInfo* pchi) { m_pchanInfo.reset(pchi); }
+  void setChannelInfo(Channel a_channel,
+                      Index a_fembID =badIndex(),
+                      Index a_fembChannel =badIndex(),
+                      Index a_channelStatus =badIndex()) {
+    setChannelInfo(new ChannelInfo(a_channel, a_fembID, a_fembChannel, a_channelStatus));
+  }
+
+  // Return channel info.
+  bool hasChannelInfo() const { return bool(m_pchanInfo); }
+  ChannelInfoPtr getChannelInfoPtr() const { return m_pchanInfo; }
+  const DuneChannelInfo& getChannelInfo() const {
+    return hasChannelInfo() ? *m_pchanInfo : badChannelInfo();
+  }
+  Channel channel()     const { return getChannelInfo().channel; }
+  Index fembID()        const { return getChannelInfo().fembID; }
+  Index fembChannel()   const { return getChannelInfo().fembChannel; }
+  Index channelStatus() const { return getChannelInfo().channelStatus; }
+
   // Copy ctor.
   // Only copy event and channel data and not samples and
   // derived data.
   // Root dictionary (6.08/06) and AdcChannelDataMap (STL) require we keep copy.
   AdcChannelData(const AdcChannelData& rhs) {
     channelClock  = rhs.channelClock;
-    channel       = rhs.channel;
-    channelStatus = rhs.channelStatus;
-    channelClock  = rhs.channelClock;
-    fembID        = rhs.fembID;
     m_peventInfo  = rhs.m_peventInfo;
+    m_pchanInfo  = rhs.m_pchanInfo;
   };
 
   // Delete assignment.
@@ -217,9 +241,9 @@ public:
     if ( mname == "triggerClock" ) return triggerClock();  // lose precision here
     if ( mname == "channelClock" ) return channelClock;  // lose precision here
     if ( mname == "channelClockOffset" ) return channelClock - triggerClock();
-    if ( mname == "channel" ) return channel;
-    if ( mname == "fembID" ) return fembID;
-    if ( mname == "fembChannel" ) return fembChannel;
+    if ( mname == "channel" ) return channel();
+    if ( mname == "fembID" ) return fembID();
+    if ( mname == "fembChannel" ) return fembChannel();
     if ( mname == "pedestal" ) return pedestal;
     if ( mname == "pedestalRms" ) return pedestalRms;
     if ( mname == "sampleNoise" ) return sampleNoise;
@@ -301,10 +325,6 @@ typedef std::map<AdcChannel, AdcChannelData> AdcChannelDataMap;
 
 inline void AdcChannelData::clear() {
   channelClock = 0;
-  channel = badIndex();
-  channelStatus = badIndex();
-  fembID = badIndex();
-  fembChannel = badIndex();
   pedestal = badSignal();
   pedestalRms = 0.0;
   tick0 = 0;
@@ -325,6 +345,7 @@ inline void AdcChannelData::clear() {
   wireIndex = badIndex();
   metadata.clear();
   m_peventInfo.reset();
+  m_pchanInfo.reset();
 }
 
 //**********************************************************************

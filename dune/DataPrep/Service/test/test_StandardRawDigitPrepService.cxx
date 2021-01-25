@@ -258,7 +258,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     const RawDigit& dig = digs[idig];
     assert( prepdigs.find(dig.Channel()) == prepdigs.end() );
     AdcChannelData& data = prepdigs[dig.Channel()];
-    data.channel = dig.Channel();
+    data.setChannelInfo(dig.Channel());
     data.digitIndex = idig;
     data.digit = &dig;
   }

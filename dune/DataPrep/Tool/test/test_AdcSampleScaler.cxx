@@ -81,7 +81,7 @@ int test_AdcSampleScaler(bool useExistingFcl, float qsig, float ped, float noise
   }
   AdcChannelData acd;
   acd.setEventInfo(123, 456);
-  acd.channel = 12345;
+  acd.setChannelInfo(12345);
   acd.samples = qsams;
   acd.sampleUnit = "ADC";
   assert ( qsams.size() == nsam );

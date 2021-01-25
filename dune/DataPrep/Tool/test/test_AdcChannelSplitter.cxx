@@ -79,7 +79,7 @@ int test_AdcChannelSplitter(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.channel = 100123;
+  acd.setChannelInfo(100123);
   acd.setEventInfo(123, 2468, 45);
   acd.sampleUnit = "fC";
   acd.raw.resize(20);
