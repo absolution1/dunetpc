@@ -113,6 +113,16 @@ simple_plugin(ToolBasedRawDigitPrepService   "service"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(TpcToolBasedRawDigitPrepService   "service"
+                dune_DuneInterface_Data
+                dune_ArtSupport
+                lardataobj_RawData
+                lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 simple_plugin(StandardRawDigitPrepService   "service"
                 dune_ArtSupport
                 lardataobj_RawData
