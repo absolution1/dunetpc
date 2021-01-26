@@ -3,3 +3,4 @@
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
 #include "dune/DuneInterface/Tool/FloatArrayTool.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"

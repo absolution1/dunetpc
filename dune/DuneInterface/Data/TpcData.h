@@ -32,10 +32,12 @@ public:
   using AdcData = AdcChannelDataMap;
   using AdcDataPtr = std::unique_ptr<AdcChannelDataMap>;
   using TpcDataSet = std::set<TpcData>;
-  using Tpc2dRoiMap = std::map<Name, Tpc2dRoiVector>;
 
   // Ctor.
   TpcData();
+
+  // Copy ctor.
+  TpcData(const TpcData& rhs) =delete;
 
   // Accessors.
   TpcData* getParent() { return m_parent; }
@@ -44,6 +46,8 @@ public:
   const TpcDataMap& getData() const { return m_dat; }
   AdcData* getAdcData() { return m_padcs.get(); }
   const AdcData* getAdcData() const { return m_padcs.get(); }
+  Tpc2dRoiVector& get2dRois() { return m_2drois; }
+  const Tpc2dRoiVector& get2dRois() const { return m_2drois; }
 
   // Add a named TPC data constituent and return its pointer.
   // If the name is target/subname, constituent subname is inserted
@@ -72,9 +76,10 @@ public:
 
 private:
 
-  TpcData*    m_parent;
-  TpcDataMap  m_dat;
-  AdcDataPtr  m_padcs;
+  TpcData*       m_parent;
+  TpcDataMap     m_dat;
+  AdcDataPtr     m_padcs;
+  Tpc2dRoiVector m_2drois;
 
 };
 
