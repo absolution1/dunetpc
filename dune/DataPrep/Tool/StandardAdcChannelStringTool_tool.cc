@@ -66,7 +66,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
     cout << myname << "    CountWidth: " << m_CountWidth << endl;
     cout << myname << "     FembWidth: " << m_CountWidth << endl;
     cout << myname << "  TriggerWidth: " << m_TriggerWidth << endl;
-    cout << myname << "     TrigNames: [" << endl;
+    cout << myname << "     TrigNames: [";
     Index icnt = 0;
     for ( Name tnam : m_TrigNames ) {
       if ( icnt ) {
@@ -74,6 +74,7 @@ StandardAdcChannelStringTool(fhicl::ParameterSet const& ps)
         if ( (icnt/10)*10 == icnt ) cout << "\n" << myname << "                 ";
       }
       cout << tnam;
+      ++icnt;
     }
     cout << "]" << endl;
   }

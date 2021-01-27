@@ -406,7 +406,9 @@ DataMap AdcEventViewer::beginEvent(const DuneEventInfo& devt) const {
     cout << endl;
   }
   if ( state().haveEvent() ) {
-    cout << myname << "WARNING: Begin called during event processing. Ending current event." << endl;
+    cout << myname << "WARNING: Begin called wth event " << devt.event
+         << " during processing of event " << state().eventInfo.event
+         << ". Ending current event." << endl;
     endEvent(state().eventInfo);
   }
   ++state().beginEventCount;
@@ -508,7 +510,7 @@ void AdcEventViewer::beginEventState(const DuneEventInfo& devt) const {
   if ( m_LogLevel >= 4 ) cout << myname << "Starting run" << devt.runString()
                               << " event " << devt.event << endl;
   if ( state().haveEvent() && state().run() != devt.run ) {
-    cout << "ERROR: change in run number is not (yet) supported." << endl;
+    cout << myname << "ERROR: change in run number is not (yet) supported." << endl;
     return;
   }
   Index ievt = devt.event;
