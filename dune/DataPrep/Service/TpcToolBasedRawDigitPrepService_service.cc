@@ -28,7 +28,7 @@ TpcToolBasedRawDigitPrepService::
 TpcToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(pset.get<int>("LogLevel")),
   m_DoWires(pset.get<bool>("DoWires")),
-  m_TpcDataToolNames(pset.get<vector<string>>("TpcDataToolNames")),
+  m_ToolNames(pset.get<vector<string>>("ToolNames")),
   m_CallgrindToolNames(pset.get<vector<string>>("CallgrindToolNames")),
   m_pWireBuildingService(nullptr),
   m_cgset(m_CallgrindToolNames.begin(), m_CallgrindToolNames.end()),
@@ -36,12 +36,12 @@ TpcToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRe
   const string myname = "TpcToolBasedRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   // Fetch the tools.
-  if ( m_TpcDataToolNames.size() ) {
+  if ( m_ToolNames.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance("");
     if ( ptm == nullptr ) {
       cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
     } else {
-      for ( string tname : m_TpcDataToolNames ) {
+      for ( string tname : m_ToolNames ) {
         if ( m_LogLevel ) cout << myname << "     Fetching " << tname << endl;
         TpcDataToolPtr ptool = ptm->getPrivate<TpcDataTool>(tname);
         NamedTool nt(tname, ptool.get());
@@ -55,7 +55,7 @@ TpcToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRe
       }
     }
   }
-  state().toolTimes.resize(m_TpcDataToolNames.size());
+  state().toolTimes.resize(m_ToolNames.size());
   if ( m_DoWires ) {
     if ( m_LogLevel ) cout << myname << "Fetching wire building service." << endl;
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
@@ -72,7 +72,7 @@ TpcToolBasedRawDigitPrepService::~TpcToolBasedRawDigitPrepService() {
     cout << myname << "WARNING: Event counts are inconsistent: " << state().nevtBegin
          << " != " << state().nevtEnd << endl;
   }
-  Index ntoo = m_TpcDataToolNames.size();
+  Index ntoo = m_ToolNames.size();
   Index nevt = state().nevtEnd;
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Event count: " << nevt << endl;
@@ -85,7 +85,7 @@ TpcToolBasedRawDigitPrepService::~TpcToolBasedRawDigitPrepService() {
       sunit = "sec";
     }
     for ( Index itoo=0; itoo<ntoo; ++itoo ) {
-      string name = m_TpcDataToolNames[itoo];
+      string name = m_ToolNames[itoo];
       double time = state().toolTimes[itoo].count();
       cout << myname << setw(30) << name << ":"
            << setw(7) << std::fixed << setprecision(2)

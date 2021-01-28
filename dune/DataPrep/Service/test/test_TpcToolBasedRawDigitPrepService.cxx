@@ -84,7 +84,7 @@ int test_TpcToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "  service_provider: TpcToolBasedRawDigitPrepService" << endl;
     fout << "  LogLevel: 3" << endl;
     fout << "  DoWires: true" << endl;
-    fout << "  TpcDataToolNames: [" << endl;
+    fout << "  ToolNames: [" << endl;
     fout << "    \"digitReader\"," << endl;
     // fout << "    \"adcChannelDumper\"," << endl;
     fout << "    \"rawAdcPlotter\"," << endl;
