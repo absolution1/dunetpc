@@ -564,6 +564,8 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   devt.subRun = evt.subRun();
   devt.event = evt.event();
   devt.triggerClock = timingClock;
+  devt.time = itim;
+  devt.timerem = itimrem;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
   AdcChannelData::EventInfoPtr pevt(new DuneEventInfo(devt));

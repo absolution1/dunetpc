@@ -80,3 +80,9 @@ cet_test(test_ToolBasedRawDigitPrepService SOURCES test_ToolBasedRawDigitPrepSer
     lardataobj_RawData
     ${ROOT_HIST}
 )
+cet_test(test_TpcToolBasedRawDigitPrepService SOURCES test_TpcToolBasedRawDigitPrepService.cxx
+  LIBRARIES
+    dune_ArtSupport
+    lardataobj_RawData
+    ${ROOT_HIST}
+)
