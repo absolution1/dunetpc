@@ -19,9 +19,9 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 
-class AdcRangeSampleScaler : AdcChannelTool {
+class AdcRangeSampleScaler : TpcDataTool {
 
 public:
 

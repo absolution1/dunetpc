@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -79,7 +79,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padv = tm.getPrivate<TpcDataTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;

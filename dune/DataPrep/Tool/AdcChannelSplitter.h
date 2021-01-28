@@ -25,14 +25,14 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "TH1.h"
 #include <memory>
 
 class AdcChannelStringTool;
 class TPadManipulator;
 
-class AdcChannelSplitter : public AdcChannelTool {
+class AdcChannelSplitter : public TpcDataTool {
 
 public:
 

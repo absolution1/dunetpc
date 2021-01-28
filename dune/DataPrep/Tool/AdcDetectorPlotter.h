@@ -50,7 +50,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/Geometry/WireSelector.h"
 #include <memory>
@@ -65,7 +65,7 @@ namespace lariov {
 
 class AdcChannelStringTool;
 
-class AdcDetectorPlotter : public AdcChannelTool {
+class AdcDetectorPlotter : public TpcDataTool {
 
 public:
 

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -115,11 +115,11 @@ int test_AdcChannelDftPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tools." << endl;
-  auto ppha = tm.getPrivate<AdcChannelTool>("myphases");
-  auto pmag = tm.getPrivate<AdcChannelTool>("mymags");
-  auto ppwr = tm.getPrivate<AdcChannelTool>("mypwr");
-  auto ppwt = tm.getPrivate<AdcChannelTool>("mypwt");
-  auto ppwrv = tm.getPrivate<AdcChannelTool>("mvpwr");
+  auto ppha = tm.getPrivate<TpcDataTool>("myphases");
+  auto pmag = tm.getPrivate<TpcDataTool>("mymags");
+  auto ppwr = tm.getPrivate<TpcDataTool>("mypwr");
+  auto ppwt = tm.getPrivate<TpcDataTool>("mypwt");
+  auto ppwrv = tm.getPrivate<TpcDataTool>("mvpwr");
   assert( ppha != nullptr );
   assert( pmag != nullptr );
   assert( ppwr != nullptr );

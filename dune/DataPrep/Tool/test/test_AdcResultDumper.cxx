@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -64,12 +64,12 @@ int test_AdcResultDumper(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool 1." << endl;
-  auto pard1 = tm.getPrivate<AdcChannelTool>("mytool1");
+  auto pard1 = tm.getPrivate<TpcDataTool>("mytool1");
   assert( pard1 != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool 2." << endl;
-  auto pard2 = tm.getPrivate<AdcChannelTool>("mytool2");
+  auto pard2 = tm.getPrivate<TpcDataTool>("mytool2");
   assert( pard2 != nullptr );
 
   cout << myname << line << endl;

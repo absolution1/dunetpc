@@ -54,10 +54,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 
-class Adc2dConvolute : AdcChannelTool {
+class Adc2dConvolute : TpcDataTool {
 
 public:
 
