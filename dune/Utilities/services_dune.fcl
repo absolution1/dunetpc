@@ -49,15 +49,15 @@ BEGIN_PROLOG
 dunefd_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  Geometry:                       @local::dune10kt_geo
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  DetectorClocksService:          @local::dunefd_detectorclocks
  DetectorPropertiesService:      @local::dunefd_detproperties
  LArPropertiesService:           @local::dunefd_properties
  LArFFT:                         @local::dunefd_larfft
  DatabaseUtil:                   @local::dunefd_database
- BackTrackerService:                    @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
- PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
  SpaceCharge:                    @local::dunefd_spacecharge
  NuRandomService:                @local::dune_seedservice
  SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
@@ -69,7 +69,7 @@ dunefd_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::dunefd_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:  {}
  Geometry:                     @local::dune10kt_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
@@ -77,9 +77,9 @@ dunefd_simulation_services: {
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
- BackTrackerService:                  @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
- PhotonBackTrackerService:            @local::dunefd_photonbacktrackerservice
+ BackTrackerService:           @local::dunefd_backtrackerservice
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::dunefd_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
@@ -114,7 +114,7 @@ dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 dunefddphase_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
@@ -129,12 +129,12 @@ dunefddphase_services: {
 }
 
 dunefddphase_simulation_services: {
- BackTrackerService:                    @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -150,12 +150,12 @@ dunefddphase_simulation_services: {
  SimChannelExtractService:       @local::scxdp
  CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
- DetPedestalService:		 @local::dunedp_fixedpeds
+ DetPedestalService:             @local::dunedp_fixedpeds
 }
 
 dunefddphase_reco_services:                            @local::dunefddphase_services
-dunefddphase_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
-dunefddphase_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
+dunefddphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
+dunefddphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
 dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
 dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
@@ -181,7 +181,7 @@ dunefddphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.12 
 dunedphase3x1x1_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
@@ -196,12 +196,12 @@ dunedphase3x1x1_services: {
 }
 
 dunedphase3x1x1_simulation_services: {
- BackTrackerService:                    @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -217,15 +217,15 @@ dunedphase3x1x1_simulation_services: {
  SimChannelExtractService:       @local::scxdp
  CrpGainService:                 @local::single_crpgain
  SpaceCharge:                    @local::dphase3x1x1_spacecharge
- PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
- PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
- DetPedestalService:		 @local::dunedp_fixedpeds
- OpDigiProperties: 		 @local::dunedphase3x1x1_opdigiproperties
+ PhotonVisibilityService:        @local::dunedphase3x1x1_photonvisibilityservice
+ PhotonVisibilityServiceS2:      @local::dunedphase3x1x1_photonvisibilityserviceS2
+ DetPedestalService:             @local::dunedp_fixedpeds
+ OpDigiProperties:               @local::dunedphase3x1x1_opdigiproperties
 }
 
 dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
-dunedphase3x1x1_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
-dunedphase3x1x1_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
+dunedphase3x1x1_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
+dunedphase3x1x1_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 dunedphase3x1x1_reco_services.RawDigitExtractService:     @local::rdx_std
 dunedphase3x1x1_reco_services.RawDigitPrepService:        @local::adcprep_dunedphase3x1x1
 dunedphase3x1x1_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
@@ -248,10 +248,10 @@ dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
                                            "HadronElastic",
                                            "Stopping",
                                            "NeutronTrackingCut" ]
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 		24000
-dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
-dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 	1
-dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield:     24000
+dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight:   false
+dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale:   1
+dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency:   1.0
 
 ############################
 ### protoDUNE dual phase ###
@@ -260,13 +260,13 @@ dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1
 protodunedphase_services: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
- Geometry: 			 @local::protodunedphase_geo
+ Geometry:                       @local::protodunedphase_geo
  DetectorClocksService:          @local::protodunedphase_detectorclocks
- DetectorPropertiesService: 	 @local::protodunedphase_detproperties
+ DetectorPropertiesService:      @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
@@ -277,12 +277,12 @@ protodunedphase_services: {
 
 
 protodunedphase_simulation_services: {
- BackTrackerService:                    @local::dunefd_backtrackerservice
- ParticleInventoryService:      @local::standard_particleinventoryservice
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::protodune_largeantparameters
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:    {}
  LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
  MagneticField:                  @local::no_mag_larsoft
  NuRandomService:                @local::dune_seedservice
@@ -290,22 +290,22 @@ protodunedphase_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
- Geometry: 			 @local::protodunedphase_geo
+ Geometry:                       @local::protodunedphase_geo
  DetectorClocksService:          @local::protodunedphase_detectorclocks
- DetectorPropertiesService: 	 @local::protodunedphase_detproperties
+ DetectorPropertiesService:      @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
  SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
  SimChannelExtractService:       @local::scxdp
  CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
- PhotonVisibilityService: 	 @local::protodunedp_photonvisibilityservice
- PhotonVisibilityServiceS2: 	 @local::protodunedp_photonvisibilityserviceS2
- DetPedestalService:		 @local::dunedp_fixedpeds
+ PhotonVisibilityService:        @local::protodunedp_photonvisibilityservice
+ PhotonVisibilityServiceS2:      @local::protodunedp_photonvisibilityserviceS2
+ DetPedestalService:             @local::dunedp_fixedpeds
  CrpGainService:                 @local::dunefddphase_crpgain
  OpDigiProperties:               @local::protodunedphase_opdigiproperties
 }
 
-protodunedphase_reco_services:                         	  @local::protodunedphase_services
+protodunedphase_reco_services:                            @local::protodunedphase_services
 protodunedphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
 protodunedphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 protodunedphase_reco_services.RawDigitExtractService:     @local::rdx_std
@@ -336,9 +336,9 @@ protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 1
 protodunedphase_simulation_services.LArPropertiesService.ScintYield: 24000
 protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
-protodunedphase_driftY_simulation_services: @local::protodunedphase_simulation_services
-protodunedphase_driftY_simulation_services.PhotonVisibilityService: 	 @local::protodunedp_driftY_RL99CM_VUVREF_photonvisibilityservice
-protodunedphase_driftY_simulation_services.Geometry: 			 @local::protodunedphase_driftY_geo
+protodunedphase_driftY_simulation_services:                         @local::protodunedphase_simulation_services
+protodunedphase_driftY_simulation_services.PhotonVisibilityService: @local::protodunedp_driftY_RL99CM_VUVREF_photonvisibilityservice
+protodunedphase_driftY_simulation_services.Geometry:                @local::protodunedphase_driftY_geo
 
 
 # dune10kt and dune34kt consolidated into dunefd,
@@ -360,7 +360,7 @@ protodunedphase_driftY_simulation_services.Geometry: 			 @local::protodunedphase
 
 protodune_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:  {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -380,7 +380,7 @@ protodune_services: {
 
 protodune_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
-  GeometryConfigurationWriter: {}
+  GeometryConfigurationWriter:  {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -394,7 +394,7 @@ protodune_rawdecoding_services: {
 
 iceberg_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
-  GeometryConfigurationWriter: {}
+  GeometryConfigurationWriter:  {}
   Geometry:                     @local::iceberg_geo
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -407,7 +407,7 @@ iceberg_rawdecoding_services: {
 
 protodune_data_services: {
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:  {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -432,7 +432,7 @@ protodune_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
- GeometryConfigurationWriter: {}
+ GeometryConfigurationWriter:  {}
  Geometry:                     @local::protodune_geo
  DetectorClocksService:        @local::protodune_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties
@@ -497,29 +497,6 @@ protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detp
 # Dataprep service.
 protodune_data_reco_services.RawDigitPrepService.ToolNames: @local::protodune_dataprep_tools_wirecell
 
-##################################################
-### Make Parallel Services for the v7 geometry ###
-##################################################
-
-protodunev7_services:  @local::protodune_services
-protodunev7_services.Geometry: @local::protodunev7_geo
-
-protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
-protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_services:  @local::protodune_data_services
-protodunev7_data_services.Geometry: @local::protodunev7_geo
-
-protodunev7_reco_services:  @local::protodune_reco_services
-protodunev7_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_reco_services:  @local::protodune_data_reco_services
-protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_simulation_services:  @local::protodune_simulation_services
-protodunev7_simulation_services.Geometry: @local::protodunev7_geo
-protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
-
 
 
 
@@ -537,7 +514,7 @@ dune35t_basic_services: {
   LArPropertiesService:       @local::dune35t_properties
   DatabaseUtil:               @local::dune35t_database
   SpaceCharge:                @local::dune35t_spacecharge
-  NuRandomService:             @local::dune_seedservice
+  NuRandomService:            @local::dune_seedservice
   ChannelStatusService:       @local::dune35t_channel_status_dla
   ChannelGroupService:        @local::changroup_apa_keepall
 }
@@ -546,9 +523,9 @@ dune35t_basic_services: {
 # For now, keep for use with the old reco.
 dune35t_services:                            @local::dune35t_basic_services
 dune35t_services.LArFFT:                     @local::dune35t_larfft
-dune35t_services.BackTrackerService:                @local::dune35t_backtrackerservice
-dune35t_services.ParticleInventoryService:      @local::dune35t_particleinventoryservice
-dune35t_services.PhotonBackTrackerService:          @local::dune35t_photonbacktrackerservice
+dune35t_services.BackTrackerService:         @local::dune35t_backtrackerservice
+dune35t_services.ParticleInventoryService:   @local::dune35t_particleinventoryservice
+dune35t_services.PhotonBackTrackerService:   @local::dune35t_photonbacktrackerservice
 dune35t_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
 
 dune35t_gen_services:                        @local::dune35t_basic_services
@@ -610,9 +587,9 @@ dune35t_simulation_services:                                      @local::dune35
 dune35t_simulation_services.LArFFT:                               @local::dune35t_larfft
 dune35t_simulation_services.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
 dune35t_simulation_services.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
-dune35t_simulation_services.BackTrackerService:                          @local::dune35t_backtrackerservice
-dune35t_simulation_services.ParticleInventoryService:      @local::dune35t_particleinventoryservice
-dune35t_simulation_services.PhotonBackTrackerService:                    @local::dune35t_photonbacktrackerservice
+dune35t_simulation_services.BackTrackerService:                   @local::dune35t_backtrackerservice
+dune35t_simulation_services.ParticleInventoryService:             @local::dune35t_particleinventoryservice
+dune35t_simulation_services.PhotonBackTrackerService:             @local::dune35t_photonbacktrackerservice
 
 # Reco services for 35-ton data.
 dune35tdata_reco_services:                            @local::dune35t_basic_services
