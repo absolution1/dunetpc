@@ -473,7 +473,7 @@ protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
 protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
 # Switch to tool-based dataprep for ProtoDUNE simulation.
 protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
-protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
+protodune_reco_services.RawDigitPrepService.ToolNames: @local::protodune_dataprep_tools_sim
 # xyz calibration service
 protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
 # lifetime calibration service
@@ -495,7 +495,7 @@ protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncal
 # ProtoDUNE detector properties service
 protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
 # Dataprep service.
-protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
+protodune_data_reco_services.RawDigitPrepService.ToolNames: @local::protodune_dataprep_tools_wirecell
 
 ##################################################
 ### Make Parallel Services for the v7 geometry ###
