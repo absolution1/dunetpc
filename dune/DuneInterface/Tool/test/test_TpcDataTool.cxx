@@ -76,10 +76,10 @@ int test_TpcDataTool_default() {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   TpcData tpd;
-  AdcChannelDataMap* pacm = tpd.createAdcData();
+  TpcData::AdcDataPtr pacm = tpd.createAdcData();
   assert( pacm->size() == 0 );
   Index ncha = 10;
-  fillAdcData(pacm, ncha);
+  fillAdcData(pacm.get(), ncha);
   assert( pacm->size() == ncha );
   AdcChannelData acd = (*pacm)[1];
 
@@ -136,10 +136,10 @@ int test_TpcDataTool_update() {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   TpcData tpd;
-  AdcChannelDataMap* pacm = tpd.createAdcData();
+  TpcData::AdcDataPtr pacm = tpd.createAdcData();
   assert( pacm->size() == 0 );
   Index ncha = 10;
-  fillAdcData(pacm, ncha);
+  fillAdcData(pacm.get(), ncha);
   assert( pacm->size() == ncha );
   AdcChannelData acd = (*pacm)[1];
 
@@ -149,7 +149,8 @@ int test_TpcDataTool_update() {
   ret = act.updateTpcData(tpd);
   ret.print();
   assert( ! ret );
-  for ( const auto& iacd : *tpd.getAdcData() ) {
+  assert( tpd.getAdcData().size() == 1 );
+  for ( const auto& iacd : *tpd.getAdcData()[0] ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
     cout << myname << "  icha, femb = " << acd.channel() << ", " << acd.fembID() << endl;
@@ -159,11 +160,11 @@ int test_TpcDataTool_update() {
 
   cout << myname << line << endl;
   cout << myname << "Call view TPC." << endl;
-  for ( auto& iacd : *tpd.getAdcData() ) iacd.second.setChannelInfo(iacd.second.channel(), 200);
+  for ( auto& iacd : *tpd.getAdcData()[0] ) iacd.second.setChannelInfo(iacd.second.channel(), 200);
   ret = act.viewTpcData(tpd);
   ret.print();
   assert( ! ret );
-  for ( const auto& iacd : *tpd.getAdcData() ) {
+  for ( const auto& iacd : *tpd.getAdcData()[0] ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
     cout << myname << "  icha, femb = " << acd.channel() << ", " << acd.fembID() << endl;

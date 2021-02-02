@@ -62,21 +62,22 @@ int test_TpcData() {
 
   cout << line << endl;
   cout << myname << "Add ADC data." << endl;
-  assert( tpd.getAdcData() == nullptr );
-  assert( pdat1->getAdcData() == nullptr );
-  TpcData::AdcData* pacm = tpd.createAdcData();
-  assert( pacm != nullptr );
-  assert( tpd.createAdcData() == nullptr );
-  assert( tpd.getAdcData() == pacm );
-  assert( pdat->getAdcData() == pacm );
-  assert( pdat1->getAdcData() == nullptr );
-  assert( pdat1->findAdcData() == pacm );
-  assert( pdat11->getAdcData() == nullptr );
-  assert( pdat11->findAdcData() == pacm );
-  assert( pdat1c->getAdcData() == nullptr );
-  assert( pdat1c->findAdcData() == pacm );
-  assert( pdat11c->getAdcData() == nullptr );
-  assert( pdat11c->findAdcData() == pacm );
+  assert( tpd.getAdcData().size() == 0 );
+  assert( pdat1->getAdcData().size() == 0 );
+  assert( pdat11->getAdcData().size() == 0 );
+  TpcData::AdcDataPtr pacm0 = tpd.createAdcData();
+  assert( pacm0 );
+  assert( tpd.getAdcData().size() == 1 );
+  assert( pdat1->getAdcData().size() == 0 );
+  TpcData::AdcDataPtr pacm1 = tpd.createAdcData();
+  assert( pacm1 );
+  assert( pacm1 != pacm0 );
+  assert( tpd.getAdcData().size() == 2 );
+  assert( tpd.getAdcData()[0] == pacm0 );
+  assert( pdat1->getAdcData().size() == 0 );
+  assert( pdat11->getAdcData().size() == 0 );
+  assert( pdat1c->getAdcData().size() == 0 );
+  assert( pdat11c->getAdcData().size() == 0 );
 
   cout << line << endl;
   cout << myname << "All tests passed." << endl;

@@ -38,7 +38,11 @@ public:
 inline
 DataMap TpcDataTool::updateTpcData(TpcData& tpd) const {
   if ( forwardTpcData() == 1 ) {
-    if ( tpd.getAdcData() != nullptr ) return updateMap(*tpd.getAdcData());
+    DataMap dm;
+    for ( TpcData::AdcDataPtr padc : tpd.getAdcData() ) {
+      if ( padc ) dm = updateMap(*padc);
+    }
+    return dm;
   } else if ( updateWithView() ) {
     return viewTpcData(tpd);
   }
@@ -50,7 +54,11 @@ DataMap TpcDataTool::updateTpcData(TpcData& tpd) const {
 inline
 DataMap TpcDataTool::viewTpcData(const TpcData& tpd) const {
   if ( forwardTpcData() == 1 ) {
-    if ( tpd.getAdcData() != nullptr ) return viewMap(*tpd.getAdcData());
+    DataMap dm;
+    for ( TpcData::AdcDataPtr padc : tpd.getAdcData() ) {
+      if ( padc ) dm = viewMap(*padc);
+    }
+    return dm;
   }
   // We do not copy TpcData.
   return DataMap(interfaceNotImplemented());
