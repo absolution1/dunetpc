@@ -8,7 +8,7 @@ using std::string;
 using std::cout;
 using std::endl;
 
-using AdcChannelToolPtr = std::unique_ptr<AdcChannelTool>;
+using TpcDataToolPtr = std::unique_ptr<TpcDataTool>;
 
 //**********************************************************************
 // Class methods.
@@ -26,7 +26,7 @@ AdcResultDumper::AdcResultDumper(fhicl::ParameterSet const& ps)
   }
   if ( m_LogLevel ) cout << myname << "Retrieving tool." << endl;
   DuneToolManager* ptm = DuneToolManager::instance();
-  m_ptool = ptm->getPrivate<AdcChannelTool>(m_Tool);
+  m_ptool = ptm->getPrivate<TpcDataTool>(m_Tool);
   if ( m_ptool == nullptr ) {
     cout << myname << "Tool retrieval failed." << endl;
   } else if ( m_LogLevel ) {

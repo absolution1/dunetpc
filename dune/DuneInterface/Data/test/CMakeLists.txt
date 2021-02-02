@@ -26,4 +26,11 @@ cet_test(test_Tpc2dRoi SOURCES test_Tpc2dRoi.cxx
   LIBRARIES
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_TpcData SOURCES test_TpcData.cxx
+  LIBRARIES
+    dune_DuneInterface_Data
+    ${ROOT_BASIC_LIB_LIST}
+)
+
 cet_enable_asserts()

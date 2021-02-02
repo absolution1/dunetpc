@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include <TRandom.h>
@@ -152,7 +152,7 @@ int test_Adc2dConvolute(bool useExistingFcl) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pcondir = tm.getPrivate<AdcChannelTool>("mycon");
+  auto pcondir = tm.getPrivate<TpcDataTool>("mycon");
   assert( pcondir != nullptr );
 
   cout << myname << line << endl;

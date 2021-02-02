@@ -690,6 +690,8 @@ void DataPrepModule::produce(art::Event& evt) {
   devt.run = evt.run();
   devt.subRun = evt.subRun();
   devt.event = evt.event();
+  devt.time = itim;
+  devt.timerem = itimrem;
   devt.triggerClock = timingClock;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;

@@ -41,7 +41,7 @@
 #define PdspNoiseRemoval_H
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "TFFTRealComplex.h"
 #include "TFFTComplexReal.h"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
@@ -50,7 +50,7 @@ namespace geo { class Geometry; }
 namespace util { class LArFFT; }
 using GroupChannelMap = std::unordered_map<unsigned int, std::vector<unsigned int> >;
 	
-class PdspNoiseRemoval : AdcChannelTool {
+class PdspNoiseRemoval : TpcDataTool {
 	
 public:
   PdspNoiseRemoval(fhicl::ParameterSet const& ps);

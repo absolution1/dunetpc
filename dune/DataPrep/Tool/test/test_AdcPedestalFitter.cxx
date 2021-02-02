@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TError.h"
 
@@ -92,16 +92,16 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
 
   cout << myname << line << endl;
   cout << myname << "Fetching histogram manaager." << endl;
-  auto phm = tm.getShared<AdcChannelTool>("mytool");
+  auto phm = tm.getShared<TpcDataTool>("mytool");
   assert( phm != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padvNotUsed = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padvNotUsed = tm.getPrivate<TpcDataTool>("mytool");
   assert( padvNotUsed != nullptr );
-  auto padvsin = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padvsin = tm.getPrivate<TpcDataTool>("mytool");
   assert( padvsin != nullptr );
-  auto padvmap = tm.getPrivate<AdcChannelTool>("mymaptool");
+  auto padvmap = tm.getPrivate<TpcDataTool>("mymaptool");
   assert( padvmap != nullptr );
   if ( ! doUpdate ) padvsin = nullptr;
   if ( ! doUpdateMap ) padvmap = nullptr;

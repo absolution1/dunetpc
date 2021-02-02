@@ -170,7 +170,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Data/RunData.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -182,7 +182,7 @@ class TimeOffsetTool;
 class IndexRangeTool;
 class TH1;
 
-class AdcRoiViewer : AdcChannelTool {
+class AdcRoiViewer : TpcDataTool {
 
 public:
 

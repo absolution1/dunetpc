@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -82,7 +82,7 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pfft = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pfft = tm.getPrivate<TpcDataTool>("mytool");
   assert( pfft != nullptr );
 
   cout << myname << line << endl;
@@ -151,7 +151,7 @@ int test_AdcChannelFFT(bool useExistingFcl, Index len) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching inverse tool." << endl;
-  auto pffi = tm.getPrivate<AdcChannelTool>("mytoolinv");
+  auto pffi = tm.getPrivate<TpcDataTool>("mytoolinv");
   assert( pffi != nullptr );
 
   cout << myname << line << endl;

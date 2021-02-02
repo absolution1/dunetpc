@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneCommon/SampleTailer.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -178,7 +178,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << "Create signals." << endl;

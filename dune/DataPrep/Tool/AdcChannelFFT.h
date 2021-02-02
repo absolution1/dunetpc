@@ -68,10 +68,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneCommon/DuneFFT.h"
 
-class AdcChannelFFT : AdcChannelTool {
+class AdcChannelFFT : TpcDataTool {
 
 public:
 

@@ -99,7 +99,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <vector>
 
 class AdcChannelStringTool;
@@ -109,7 +109,7 @@ namespace lariov {
 
 class FloatArrayTool;
 
-class AdcChannelMetric : AdcChannelTool {
+class AdcChannelMetric : TpcDataTool {
 
 public:
 

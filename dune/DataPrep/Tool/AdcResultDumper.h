@@ -15,10 +15,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <memory>
 
-class AdcResultDumper : public AdcChannelTool {
+class AdcResultDumper : public TpcDataTool {
 
 public:
 
@@ -26,7 +26,7 @@ public:
 
   ~AdcResultDumper() override =default;
 
-  // AdcChannelTool interface.
+  // TpcDataTool interface.
   DataMap view(const AdcChannelData& acd) const override;
   DataMap update(AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
@@ -38,7 +38,7 @@ private:
   int            m_LogLevel;
   std::string    m_Tool;
 
-  std::unique_ptr<AdcChannelTool> m_ptool;
+  std::unique_ptr<TpcDataTool> m_ptool;
 
 };
 
