@@ -25,6 +25,7 @@ public:
   int timerem =0;
   Index trigger =badIndex();
   LongIndex triggerClock =badLongIndex();
+  LongIndex triggerTick0 =badLongIndex();
 
   static Index badIndex() { return -1u; }
   static LongIndex badLongIndex() { return -1ul; }
@@ -42,6 +43,7 @@ public:
     timerem = 0;
     trigger = badIndex();
     triggerClock = badLongIndex();
+    triggerTick0 = badLongIndex();
   }
 
   // Default ctor.
@@ -50,10 +52,14 @@ public:
   // Ctor from components.
   DuneEventInfo(Index a_run, Index a_event, Index a_subRun =badIndex(),
                 time_t a_time =0, int a_timerem =0,
-                Index a_trigger =badIndex(), LongIndex a_triggerClock =badLongIndex())
+                Index a_trigger =badIndex(),
+                LongIndex a_triggerClock =badLongIndex(),
+                LongIndex a_triggerTick0 =badLongIndex())
   : run(a_run), event(a_event), subRun(a_subRun),
     time(a_time), timerem(a_timerem),
-    trigger(a_trigger), triggerClock(a_triggerClock) { }
+    trigger(a_trigger),
+    triggerClock(a_triggerClock),
+    triggerTick0(a_triggerTick0) { }
 
   // Is this valid info?
   bool isValid() const { return run != badIndex(); }
@@ -68,6 +74,8 @@ public:
     if ( rhs.event < event ) return false;
     if ( triggerClock < rhs.triggerClock ) return true;
     if ( rhs.triggerClock < triggerClock ) return false;
+    if ( triggerTick0 < rhs.triggerTick0 ) return true;
+    if ( rhs.triggerTick0 < triggerTick0 ) return false;
     return false;
   }
 
@@ -80,6 +88,7 @@ public:
     if ( timerem != rhs.timerem ) return false;
     if ( trigger != rhs.trigger ) return false;
     if ( triggerClock != rhs.triggerClock ) return false;
+    if ( triggerTick0 != rhs.triggerTick0 ) return false;
     return true;
   }
 

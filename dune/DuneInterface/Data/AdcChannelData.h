@@ -13,6 +13,7 @@
 //       timerem - Time remainder (ns)
 //       trigger - Index indicating which trigger(s) fired.
 //  triggerClock - Time counter for the trigger
+//  triggerTick0 - Tick counter for the event
 //
 // Held in channel info pointer:
 //       channel - Offline channel number
@@ -22,7 +23,7 @@
 //
 // Held directly:
 //  channelClock - Time counter for the channel data
-//         tick0 - Tick offset between channelClock and first tick in raw/samples data.
+//         tick0 - Tick offset between triggerTick0 and first tick in raw/samples data.
 //      pedestal - Pedestal subtracted from the raw count
 //   pedestalRms - Pedestal RMS or sigma
 //
@@ -174,6 +175,7 @@ public:
   int timerem()               const { return getEventInfo().timerem; }
   AdcIndex trigger()          const { return getEventInfo().trigger; }
   AdcLongIndex triggerClock() const { return getEventInfo().triggerClock; }
+  AdcLongIndex triggerTick0() const { return getEventInfo().triggerTick0; }
 
   // Set channel info.
   void setChannelInfo(ChannelInfoPtr pchi) { m_pchanInfo = pchi; }
@@ -195,6 +197,15 @@ public:
   Index fembID()        const { return getChannelInfo().fembID; }
   Index fembChannel()   const { return getChannelInfo().fembChannel; }
   Index channelStatus() const { return getChannelInfo().channelStatus; }
+
+  // Return the tick offset for the raw and samples data in this channel.
+  // This should allow us to align data from and channel and event.
+  AdcLongIndex tickOffset() const {
+    AdcLongIndex tickoff = triggerTick0();
+    if ( tickoff == EventInfo::badLongIndex() ) tickoff = 0;
+    if ( tick0 < 0 ) return tickoff - AdcLongIndex(-tick0);
+    return tickoff + AdcLongIndex(tick0);
+  }
 
   // Copy ctor.
   // Only copy event and channel data and not samples and
