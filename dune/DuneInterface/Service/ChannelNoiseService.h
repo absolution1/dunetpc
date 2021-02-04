@@ -30,7 +30,7 @@ public:
   virtual int addNoise(detinfo::DetectorClocksData const& clockData,
                        detinfo::DetectorPropertiesData const& detProp,
                        Channel chan, AdcSignalVector& sigs) const =0;
-
+  virtual void newEvent() {};
   // Print parameters.
   virtual std::ostream& print(std::ostream& out =std::cout, std::string prefix ="") const =0;
 
