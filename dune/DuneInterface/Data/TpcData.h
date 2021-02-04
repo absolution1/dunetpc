@@ -4,7 +4,7 @@
 // January 2021
 //
 // Class to hold TPC data in two formats:
-//   AdcData: AdcChannelData objects held in an AdcChannelDataMap
+//   AdcData: Vector of shared pointers to maps of AdcChannelData.
 //   TPC 2D ROIs: Tpc2dRoi objects held in a vector.
 // Other may be added later.
 //
@@ -30,11 +30,14 @@ public:
   using Tpc2dRoiVector = std::vector<Tpc2dRoi>;
   using TpcDataMap = std::map<Name, TpcData>;
   using AdcData = AdcChannelDataMap;
-  using AdcDataPtr = std::unique_ptr<AdcChannelDataMap>;
-  using TpcDataSet = std::set<TpcData>;
+  using AdcDataPtr = std::shared_ptr<AdcChannelDataMap>;
+  using AdcDataVector = std::vector<AdcDataPtr>;
 
-  // Ctor.
+  // Default ctor.
   TpcData();
+
+  // Ctor from ADC data.
+  TpcData(const AdcDataVector& adcs);
 
   // Copy ctor.
   TpcData(const TpcData& rhs) =delete;
@@ -44,8 +47,8 @@ public:
   const TpcData* getParent() const { return m_parent; }
   TpcDataMap& getData() { return m_dat; }
   const TpcDataMap& getData() const { return m_dat; }
-  AdcData* getAdcData() { return m_padcs.get(); }
-  const AdcData* getAdcData() const { return m_padcs.get(); }
+  AdcDataVector& getAdcData() { return m_adcs; }
+  const AdcDataVector& getAdcData() const { return m_adcs; }
   Tpc2dRoiVector& get2dRois() { return m_2drois; }
   const Tpc2dRoiVector& get2dRois() const { return m_2drois; }
 
@@ -54,7 +57,8 @@ public:
   // in constituent target.
   // Fails and returns null if the name is already used or the
   // target does not already exist.
-  TpcData* addTpcData(Name nam);
+  // If copyAdcData is true, the new bject copies the AdcData (pointers).
+  TpcData* addTpcData(Name nam, bool copyAdcData =true);
 
   // Return a constituent TPC data object by name.
   // The name "" or "." returns this object.
@@ -63,22 +67,19 @@ public:
   TpcData* getTpcData(Name nam);
   const TpcData* getTpcData(Name nam) const;
 
-  // Create (empty) ADC data.
-  // Fails and returns nullptr if the data is already present.
-  AdcData* createAdcData();
+  // Add ADC data.
+  // If updateParent is true, the same object is added to all ancestors.
+  AdcDataPtr createAdcData(bool updateParent =true);
+  AdcDataPtr addAdcData(AdcDataPtr padc, bool updateParent =true);
 
-  // Delete the ADC data.
+  // Delete the ADC data. References in acestor and descendants are not affected.
   void clearAdcData();
-
-  // Return the ADC data searching this object and then its ancestors.
-  AdcData* findAdcData();
-  const AdcData* findAdcData() const;
 
 private:
 
   TpcData*       m_parent;
   TpcDataMap     m_dat;
-  AdcDataPtr     m_padcs;
+  AdcDataVector  m_adcs;
   Tpc2dRoiVector m_2drois;
 
 };

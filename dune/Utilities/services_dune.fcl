@@ -427,8 +427,8 @@ protodune_data_services: {
  AdcWireBuildingService:       @local::adcwire_std
 }
 
-
-protodune_simulation_services: {
+# Low memory configuration leaving out some heavy services
+protodune_minimal_simulation_services: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::protodune_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
@@ -442,26 +442,31 @@ protodune_simulation_services: {
  MagneticField:                @local::no_mag_larsoft
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
- PhotonVisibilityService:      @local::protodune_photonvisibilityservice
- OpDetResponseInterface:       @local::protodune_opdetresponse
  ChannelStatusService:         @local::dunefd_channel_status
 }
 
 # Enable photon simulation for protoDUNE by default
+protodune_minimal_simulation_services.LArPropertiesService.ScintYield: 24000
+protodune_minimal_simulation_services.LArPropertiesService.ScintPreScale: 0.0287
+protodune_minimal_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+protodune_minimal_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodune_minimal_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                                        "FastOptical",
+                                                                        "SynchrotronAndGN",
+                                                                        "Ion",
+                                                                        "Hadron",
+                                                                        "Decay",
+                                                                        "HadronElastic",
+                                                                        "Stopping" ]
 
-protodune_simulation_services.LArPropertiesService.ScintYield: 24000
-protodune_simulation_services.LArPropertiesService.ScintPreScale: 0.0287
-protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
-protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
-                                                                "FastOptical",
-                                                                "SynchrotronAndGN",
-                                                                "Ion",
-                                                                "Hadron",
-                                                                "Decay",
-                                                                "HadronElastic",
-                                                                "Stopping" ]
+# Full service configuration which includes memory-intensive services
+protodune_simulation_services: {
+  @table::protodune_minimal_simulation_services
+  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
+  PhotonVisibilityService:      @local::protodune_photonvisibilityservice
+  OpDetResponseInterface:       @local::protodune_opdetresponse
+}
+
 
 
 # Reco services for ProtoDUNE simulation.
