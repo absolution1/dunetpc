@@ -2223,7 +2223,7 @@ print ENCL <<EOF;
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
-      <second ref="FoamPadding"/>
+      <second ref="FoamPadBlock"/>
       <positionref ref="posCenter"/>
     </subtraction>
 
