@@ -72,7 +72,7 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.setEventInfo(123, 246, 45);
+  acd.setEventInfo(123, 246, 45, 1847483647, 123456789);
   acd.setChannelInfo(1357, 24);
   acd.sampleUnit = "my units";
 
@@ -93,7 +93,9 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     "Units are% ((SUNIT))%",
     "FEMB is %FEMB%",
     "femb%4FEMB%",
-    "femb%0FEMB%"
+    "femb%0FEMB%",
+    "date: %UTCTIME%",
+    "time: %UTCTIME9%"
   };
   vector<string> expNames = {
     "run123",
@@ -110,7 +112,9 @@ int test_StandardAdcChannelStringTool(bool useExistingFcl =false) {
     "Units are (my units)",
     "FEMB is 24",
     "femb0024",
-    "femb024"
+    "femb024",
+    "date: 2028-07-17 21:54:07",
+    "time: 2028-07-17 21:54:07.123456789"
   };
   DataMap dm;
   dm.setInt("count", 23);

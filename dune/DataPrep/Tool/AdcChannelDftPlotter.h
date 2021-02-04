@@ -49,7 +49,6 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DataPrep/Utility/AdcMultiChannelPlotter.h"
 #include "TH1.h"
 #include <memory>

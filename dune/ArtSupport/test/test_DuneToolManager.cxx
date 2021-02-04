@@ -50,6 +50,7 @@ int test_DuneToolManager(bool useExistingFcl =false) {
   cout << myname << "Retrieve tool manager." << endl;
   DuneToolManager* ptm = DuneToolManager::instance(fclfile);
   assert( ptm != nullptr );
+  assert( DuneToolManager::fclFilename() == fclfile );
   DuneToolManager& dtm = *ptm;
 
   cout << myname << line << endl;

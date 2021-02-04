@@ -42,14 +42,14 @@
 #ifndef AdcCodeMitigator_H
 #define AdcCodeMitigator_H
 
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include <vector>
 #include <set>
 #include <map>
 
-class AdcCodeMitigator : AdcChannelTool {
+class AdcCodeMitigator : TpcDataTool {
 
 public:
 

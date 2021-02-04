@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -112,7 +112,7 @@ int test_FembMappedAdcModifier(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pmod = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pmod = tm.getPrivate<TpcDataTool>("mytool");
   assert( pmod != nullptr );
 
   cout << myname << line << endl;

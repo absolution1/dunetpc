@@ -3,7 +3,7 @@
 // David Adams
 // November, 2017
 //
-// AdcChannelTool that calls another modifier based on FEMB ID.
+// TpcDataTool that calls another modifier based on FEMB ID.
 // The name of the called modifier is ToolBaseFFF where FFF is the FembID.
 // If the FEMB ID is not set, the tool ToolBaseDefault is used.
 //
@@ -24,10 +24,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 
 class FembMappedAdcModifier
-: public AdcChannelTool {
+: public TpcDataTool {
 
 public:
 

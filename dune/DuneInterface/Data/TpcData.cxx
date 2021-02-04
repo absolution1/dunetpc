@@ -8,17 +8,24 @@ TpcData::TpcData() : m_parent(nullptr) { }
 
 //**********************************************************************
 
-TpcData* TpcData::addTpcData(Name nam) {
+TpcData::TpcData(const AdcDataVector& adcs) : m_parent(nullptr), m_adcs(adcs) { }
+
+//**********************************************************************
+
+TpcData* TpcData::addTpcData(Name nam, bool copyAdcData) {
   if ( nam == "" || nam == "." ) return nullptr;
   Name::size_type ipos = nam.rfind("/");
   if ( ipos != Name::npos ) {
     TpcData* pdat = getTpcData(nam.substr(0, ipos));
     if ( pdat == nullptr ) return nullptr;
-    return pdat->addTpcData(nam.substr(ipos+1));
+    return pdat->addTpcData(nam.substr(ipos+1), copyAdcData);
   }
+  
   if ( m_dat.count(nam) ) return nullptr;
-  m_dat[nam].m_parent = this;
-  return &m_dat[nam];
+  TpcData& tpc = m_dat[nam];
+  if ( copyAdcData ) tpc.m_adcs = m_adcs;
+  tpc.m_parent = this;
+  return &tpc;
 }
 
 //**********************************************************************
@@ -50,33 +57,22 @@ const TpcData* TpcData::getTpcData(Name nam) const {
 
 //**********************************************************************
 
-TpcData::AdcData* TpcData::createAdcData() {
-  if ( m_padcs ) return nullptr;
-  m_padcs.reset(new AdcData);
-  return getAdcData();
+TpcData::AdcDataPtr TpcData::createAdcData(bool updateParent) {
+  return addAdcData(AdcDataPtr(new AdcChannelDataMap), updateParent);
+}
+
+//**********************************************************************
+
+TpcData::AdcDataPtr TpcData::addAdcData(AdcDataPtr padc, bool updateParent) {
+  m_adcs.push_back(padc);
+  if ( updateParent && m_parent != nullptr ) m_parent->addAdcData(padc, true);
+  return padc;
 }
 
 //**********************************************************************
 
 void TpcData::clearAdcData() {
-  m_padcs.reset(nullptr);
+  m_adcs.clear();
 }
 
 //**********************************************************************
-
-TpcData::AdcData* TpcData::findAdcData() {
-  AdcData* pacm = getAdcData();
-  if ( pacm != nullptr ) return pacm;
-  if ( getParent() == nullptr ) return nullptr;
-  return getParent()->findAdcData();
-}
-
-//**********************************************************************
-
-const TpcData::AdcData* TpcData::findAdcData() const {
-  const AdcData* pacm = getAdcData();
-  if ( pacm != nullptr ) return pacm;
-  if ( getParent() == nullptr ) return nullptr;
-  return getParent()->findAdcData();
-}
-

@@ -26,12 +26,12 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <string>
 #include <vector>
 
 class DuneAdcSignalFinder
-: public AdcChannelTool {
+: public TpcDataTool {
 
 public:
 

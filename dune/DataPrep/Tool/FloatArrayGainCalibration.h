@@ -39,12 +39,12 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 
 class FloatArrayTool;
 
 class FloatArrayGainCalibration
-: public AdcChannelTool {
+: public TpcDataTool {
 
 public:
 

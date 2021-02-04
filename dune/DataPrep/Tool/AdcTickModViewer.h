@@ -72,7 +72,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DataPrep/Utility/TickModTreeData.h"
 #include "TH1.h"
 #include "TGraph.h"
@@ -86,8 +86,7 @@ class TFile;
 class TTree;
 class TPadManipulator;
 
-class AdcTickModViewer
-: public AdcChannelTool {
+class AdcTickModViewer : public TpcDataTool {
 
 public:
 

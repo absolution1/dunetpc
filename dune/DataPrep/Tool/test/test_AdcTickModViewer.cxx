@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TError.h"
 
@@ -103,7 +103,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
   assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
-  auto pvtm = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pvtm = tm.getPrivate<TpcDataTool>("mytool");
   assert( pvtm != nullptr );
   if ( ! doUpdate ) pvtm = nullptr;
 
