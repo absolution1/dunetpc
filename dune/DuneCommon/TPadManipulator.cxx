@@ -24,6 +24,7 @@
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TExec.h"
+#include "TROOT.h" // gROOT
 
 using std::string;
 using std::cout;
