@@ -90,14 +90,14 @@ $basename="_";
 ############## Parameters for One Readout Panel ##################
 
 # parameters for 1.5 x 1.7 sub-unit Charge Readout Module / Unit
-$widthPCBActive   = 168.8; # cm (3 x 562.5 mm boards)
+$widthPCBActive   = 169.0; # cm
 $lengthPCBActive  = 150.0; # cm
 $nChannelsViewInd = 320;
 $nChannelsViewCol = 288;
 
 $wirePitchY      = $widthPCBActive / $nChannelsViewInd; #$nChannelsViewPerCRM;
 $wirePitchZ      = $lengthPCBActive / $nChannelsViewCol; #$nChannelsViewPerCRM;
-$borderCRM       = 0.5;     # dead space at the border of each CRM
+$borderCRM       = 0.1;     # dead space at the border of each CRM
 
 $widthCRM_active  = $widthPCBActive;  
 $lengthCRM_active = $lengthPCBActive; 
@@ -136,7 +136,7 @@ $widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200 for full module
 $lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000 for full module
 
 # active volume dimensions 
-$driftTPCActive  = 600.0;
+$driftTPCActive  = 650.0;
 
 # model anode strips as wires of some diameter
 $padWidth          = 0.015;
@@ -458,7 +458,7 @@ print TPC <<EOF;
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5*cm"/>
       <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <colorref ref="blue"/>
     </volume>
