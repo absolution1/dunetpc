@@ -84,7 +84,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "  service_provider: ToolBasedRawDigitPrepService" << endl;
     fout << "  LogLevel: 3" << endl;
     fout << "  DoWires: true" << endl;
-    fout << "  AdcChannelToolNames: [" << endl;
+    fout << "  ToolNames: [" << endl;
     fout << "    \"digitReader\"," << endl;
     // fout << "    \"adcChannelDumper\"," << endl;
     fout << "    \"rawAdcPlotter\"," << endl;

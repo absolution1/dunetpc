@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 
@@ -62,9 +62,9 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto psgf = tm.getPrivate<AdcChannelTool>("mytool");
+  auto psgf = tm.getPrivate<TpcDataTool>("mytool");
   assert( psgf != nullptr );
-  auto psgfmod = tm.getPrivate<AdcChannelTool>("mytool");
+  auto psgfmod = tm.getPrivate<TpcDataTool>("mytool");
   assert( psgfmod != nullptr );
 
   cout << myname << line << endl;

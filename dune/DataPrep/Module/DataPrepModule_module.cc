@@ -292,6 +292,9 @@ void DataPrepModule::produce(art::Event& evt) {
   // Flag indicating that non-verbose info level messages should be logged.
   bool logInfo = m_LogLevel >= 2;
 
+  // Factor to convert event clock to ticks.
+  unsigned long triggerPerTick = 25;
+
   // Control flags.
   bool skipAllEvents = false;
   bool skipEventsWithCorruptDataDropped = false;
@@ -412,7 +415,7 @@ void DataPrepModule::produce(art::Event& evt) {
       chClockDiff = chClock > timingClock ?  (chClock - timingClock)
                                                : -(timingClock - chClock);
       bool nearTrigger = fabs(tickdiff - trigTickOffset) < 1.0;
-      tickdiff = chClockDiff/25.0;
+      tickdiff = chClockDiff/triggerPerTick;
       if ( clockCounts.find(chClock) == clockCounts.end() ) {
         clockCounts[chClock] = 1;
         if ( nearTrigger ) tzeroClockCandidates.push_back(chClock);
@@ -436,7 +439,7 @@ void DataPrepModule::produce(art::Event& evt) {
         AdcIndex count = iclk.second;
         long chClockDiff = chClock > timingClock ?  (chClock - timingClock)
                                                  : -(timingClock - chClock);
-        float tickdiff = chClockDiff/25.0;
+        float tickdiff = chClockDiff/triggerPerTick;
         if ( logInfo ) {
           cout << myname << "WARNING:" << setw(10) << chClockDiff << setw(10) << tickdiff
                << setw(8) << count << endl;
@@ -693,6 +696,7 @@ void DataPrepModule::produce(art::Event& evt) {
   devt.time = itim;
   devt.timerem = itimrem;
   devt.triggerClock = timingClock;
+  devt.triggerTick0 = timingClock/triggerPerTick;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
 

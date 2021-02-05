@@ -71,7 +71,7 @@
 //   fitChannel         - ADC channel number
 //   fitNBinsRemoved    - # bins removed before the fit
 
-// The AdcChannelTool methods all return a data map with the following:
+// The TpcDataTool methods all return a data map with the following:
 //
 //   nPedFitGood       - # channels with a successful pedestalfit
 //   nPedFitFail       - # channels with a failed pedestal fit
@@ -84,7 +84,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <string>
 #include <vector>
 #include <set>
@@ -96,7 +96,7 @@ class TF1;
 class TPadManipulator;
 
 class AdcPedestalFitter
-: public AdcChannelTool {
+: public TpcDataTool {
 
 public:
 

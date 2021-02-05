@@ -53,13 +53,13 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Data/IndexRangeGroup.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <set>
 
 class AdcChannelStringTool;
 class TPadManipulator;
 
-class AdcMultiChannelPlotter : public AdcChannelTool {
+class AdcMultiChannelPlotter : public TpcDataTool {
 
 public:
 

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -91,11 +91,11 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padv = tm.getPrivate<TpcDataTool>("mytool");
   assert( padv != nullptr );
-  auto padv2 = tm.getPrivate<AdcChannelTool>("mytool2");
+  auto padv2 = tm.getPrivate<TpcDataTool>("mytool2");
   assert( padv2 != nullptr );
-  auto padv3 = tm.getPrivate<AdcChannelTool>("mytool3");
+  auto padv3 = tm.getPrivate<TpcDataTool>("mytool3");
   assert( padv3 != nullptr );
 
   cout << myname << line << endl;

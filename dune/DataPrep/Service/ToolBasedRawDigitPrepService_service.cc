@@ -28,7 +28,7 @@ ToolBasedRawDigitPrepService::
 ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&)
 : m_LogLevel(pset.get<int>("LogLevel")),
   m_DoWires(pset.get<bool>("DoWires")),
-  m_AdcChannelToolNames(pset.get<vector<string>>("AdcChannelToolNames")),
+  m_ToolNames(pset.get<vector<string>>("ToolNames")),
   m_CallgrindToolNames(pset.get<vector<string>>("CallgrindToolNames")),
   m_pWireBuildingService(nullptr),
   m_cgset(m_CallgrindToolNames.begin(), m_CallgrindToolNames.end()),
@@ -36,12 +36,12 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
   const string myname = "ToolBasedRawDigitPrepService::ctor: ";
   pset.get_if_present<int>("LogLevel", m_LogLevel);
   // Fetch the tools.
-  if ( m_AdcChannelToolNames.size() ) {
+  if ( m_ToolNames.size() ) {
     DuneToolManager* ptm = DuneToolManager::instance("");
     if ( ptm == nullptr ) {
       cout << myname << "ERROR: Unable to retrieve tool manaager." << endl;
     } else {
-      for ( string tname : m_AdcChannelToolNames ) {
+      for ( string tname : m_ToolNames ) {
         if ( m_LogLevel ) cout << myname << "     Fetching " << tname << endl;
         AdcChannelToolPtr ptool = ptm->getPrivate<AdcChannelTool>(tname);
         NamedTool nt(tname, ptool.get());
@@ -55,7 +55,7 @@ ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegis
       }
     }
   }
-  state().toolTimes.resize(m_AdcChannelToolNames.size());
+  state().toolTimes.resize(m_ToolNames.size());
   if ( m_DoWires ) {
     if ( m_LogLevel ) cout << myname << "Fetching wire building service." << endl;
     m_pWireBuildingService = &*art::ServiceHandle<AdcWireBuildingService>();
@@ -72,7 +72,7 @@ ToolBasedRawDigitPrepService::~ToolBasedRawDigitPrepService() {
     cout << myname << "WARNING: Event counts are inconsistent: " << state().nevtBegin
          << " != " << state().nevtEnd << endl;
   }
-  Index ntoo = m_AdcChannelToolNames.size();
+  Index ntoo = m_ToolNames.size();
   Index nevt = state().nevtEnd;
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Event count: " << nevt << endl;
@@ -85,7 +85,7 @@ ToolBasedRawDigitPrepService::~ToolBasedRawDigitPrepService() {
       sunit = "sec";
     }
     for ( Index itoo=0; itoo<ntoo; ++itoo ) {
-      string name = m_AdcChannelToolNames[itoo];
+      string name = m_ToolNames[itoo];
       double time = state().toolTimes[itoo].count();
       cout << myname << setw(30) << name << ":"
            << setw(7) << std::fixed << setprecision(2)

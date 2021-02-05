@@ -12,7 +12,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/DuneInterface/Service/RawDigitPrepService.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "lardataobj/RawData/RawDigit.h"
@@ -122,7 +122,7 @@ int test_AcdWireReader(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetch wire read tool." << endl;
-  auto prdr = tm.getPrivate<AdcChannelTool>("mytool");
+  auto prdr = tm.getPrivate<TpcDataTool>("mytool");
   assert( prdr != nullptr );
 
   cout << myname << line << endl;

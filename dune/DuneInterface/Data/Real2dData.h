@@ -15,6 +15,10 @@
 #include <complex>
 #include <array>
 
+template<typename F> class Real2dData;
+
+using Float2dData = Real2dData<float>;
+
 template<typename F>
 class Real2dData {
 
@@ -182,7 +186,7 @@ public:
   // If any of these checks fail or the calculated index is out of range,
   // the value is not set and the size of the data is returned.
   // If the value is set, the global index is returned.
-  // That index is guranteed to be less than the data size.
+  // That index is guaranteed to be less than the data size.
   Index setValue(const IndexArray& isams, Float val, Index* pchk =nullptr) {
     Index idat = globalIndex(isams, pchk);
     if ( pchk != nullptr && *pchk > 0 ) return size();

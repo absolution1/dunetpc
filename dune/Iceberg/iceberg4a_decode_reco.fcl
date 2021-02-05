@@ -9,7 +9,7 @@
 #include "iceberg3_decode_reco.fcl"
 
 # Switch to the Iceberg 4 dataprep.
-services.RawDigitPrepService.AdcChannelToolNames: @local::ib4_dataprep_tools_wirecell
+services.RawDigitPrepService.ToolNames: @local::ib4_dataprep_tools_wirecell
 
 # Switch to Iceberg 4 bad/noisy channels.
 services.ChannelStatusService.BadChannels: @local::iceberg4_bad_channels

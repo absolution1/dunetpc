@@ -19,7 +19,7 @@
 //              3 - one line for each step (tool call)
 //              4 - display result from each step
 //   DoWires - If true, the wire building service is called after processing.
-//   TpcDataToolNames - Names of the ADC channel tools.
+//   ToolNames - Names of the TpcData tools.
 //   CallgrindToolNames - Names of the tools for which callgrind should be enabled.
 
 #ifndef TpcToolBasedRawDigitPrepService_H
@@ -67,7 +67,7 @@ private:
   // Configuration parameters.
   int m_LogLevel;
   bool m_DoWires;
-  std::vector<std::string> m_TpcDataToolNames;
+  std::vector<std::string> m_ToolNames;
   std::vector<std::string> m_CallgrindToolNames;
 
   TpcDataToolVector m_TpcDataTools;

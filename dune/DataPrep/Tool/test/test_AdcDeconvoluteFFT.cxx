@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include <TRandom.h>
@@ -138,11 +138,11 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pcondir = tm.getPrivate<AdcChannelTool>("mycondir");
+  auto pcondir = tm.getPrivate<TpcDataTool>("mycondir");
   assert( pcondir != nullptr );
-  auto pconfft = tm.getPrivate<AdcChannelTool>("myconfft");
+  auto pconfft = tm.getPrivate<TpcDataTool>("myconfft");
   assert( pconfft != nullptr );
-  auto pdco = tm.getPrivate<AdcChannelTool>("mydco");
+  auto pdco = tm.getPrivate<TpcDataTool>("mydco");
   assert( pdco != nullptr );
 
   cout << myname << line << endl;

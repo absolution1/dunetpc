@@ -25,5 +25,14 @@ BEGIN_PROLOG
 # 
 dune_seedservice: @local::random_NuRandomService # from seedservice.fcl
 
+dune_prod_seedservice: #Similar to per_event_NuRandomService
+{
+  # print into the log all seeds at the end of the job
+  endOfJobSummary: true
+
+  # policy: perEvent
+  # on each event, the seed is computed from event information
+  policy: "perEvent"
+}
 
 END_PROLOG

@@ -55,6 +55,22 @@ int test_Tpc2dRoi() {
   assert( roi1.channelOffset() == icha0 );
 
   cout << line << endl;
+  cout << "Set values." << endl;
+  Float2dData::IndexArray idxs;
+  Index& kcha = idxs[0];
+  Index& ksam = idxs[1];
+  Index ichk = 0;
+  for ( kcha=0; kcha<ncha; ++kcha ) {
+    for ( ksam=0; ksam<nsam; ++ksam ) {
+      float val = nsam*kcha + ksam + 1;
+      roi1.data().setValue(idxs, val, &ichk);
+      assert( ichk == 0 );
+      float chkval = roi1.data().value(idxs, &ichk);
+      assert( chkval == val );
+    }
+  }
+
+  cout << line << endl;
   cout << myname << "All tests passed." << endl;
   return 0;
 }

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -74,7 +74,7 @@ int test_AdcCodeMitigator(bool useExistingFcl =false, bool interp =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pmit = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pmit = tm.getPrivate<TpcDataTool>("mytool");
   assert( pmit != nullptr );
 
   cout << myname << line << endl;
