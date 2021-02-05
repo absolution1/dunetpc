@@ -554,6 +554,12 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
 
       pfpHits = dune_ana::DUNEAnaShowerUtils::GetHits(shower,e,fShowerLabel);
       fPFPNHits[iPfp]=pfpHits.size();
+      std::vector<art::Ptr<recob::Hit> > pfpHitsView0 = dune_ana::DUNEAnaPFParticleUtils::GetViewHits(pfp,e,fPFParticleLabel, 0);
+      fPFPNHitsView[iPfp][0] = pfpHitsView0.size();
+      std::vector<art::Ptr<recob::Hit> > pfpHitsView1 = dune_ana::DUNEAnaPFParticleUtils::GetViewHits(pfp,e,fPFParticleLabel, 1);
+      fPFPNHitsView[iPfp][1] = pfpHitsView1.size();
+      std::vector<art::Ptr<recob::Hit> > pfpHitsView2 = dune_ana::DUNEAnaPFParticleUtils::GetViewHits(pfp,e,fPFParticleLabel, 2);
+      fPFPNHitsView[iPfp][2] = pfpHitsView2.size();
 
       if(!e.isRealData()) {
         TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpHits,fRollUpUnsavedIDs));
@@ -564,6 +570,43 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   	  }
           fPFPTrueParticleMatchedPosition[iPfp] = pos;
         }
+        TruthMatchUtils::G4ID g4IDView0(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpHitsView0,fRollUpUnsavedIDs));
+        if (TruthMatchUtils::Valid(g4ID))
+        {
+            fPFPTrueParticleMatchedIDView[iPfp][0] = g4IDView0;
+         	  for(int unsigned ipos=0; ipos<fNMCParticles; ipos++) 
+            {
+                if (fMCParticleTrackID[ipos] != g4IDView0)
+                    continue;
+                fPFPTrueParticleMatchedPositionView[iPfp][0] = ipos;
+                break;
+            }
+        }
+        TruthMatchUtils::G4ID g4IDView1(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpHitsView1,fRollUpUnsavedIDs));
+        if (TruthMatchUtils::Valid(g4ID))
+        {
+            fPFPTrueParticleMatchedIDView[iPfp][1] = g4IDView1;
+         	  for(int unsigned ipos=0; ipos<fNMCParticles; ipos++) 
+            {
+                if (fMCParticleTrackID[ipos] != g4IDView1)
+                    continue;
+                fPFPTrueParticleMatchedPositionView[iPfp][1] = ipos;
+                break;
+            }
+        }
+        TruthMatchUtils::G4ID g4IDView2(TruthMatchUtils::TrueParticleIDFromTotalRecoHits(clockData,pfpHitsView2,fRollUpUnsavedIDs));
+        if (TruthMatchUtils::Valid(g4ID))
+        {
+            fPFPTrueParticleMatchedIDView[iPfp][2] = g4IDView2;
+         	  for(int unsigned ipos=0; ipos<fNMCParticles; ipos++) 
+            {
+                if (fMCParticleTrackID[ipos] != g4IDView2)
+                    continue;
+                fPFPTrueParticleMatchedPositionView[iPfp][2] = ipos;
+                break;
+            }
+        }
+
       }
     }
 
@@ -588,8 +631,8 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
         }
         if(trackID==fPFPTrueParticleMatchedID[iPfp])++nSharedTrueParticlePfpHits;
       }
-      fPFPCompleteness[iPfp]     = (float)nSharedTrueParticlePfpHits / pfpNHits;
-      fPFPPurity[iPfp]           = (float)nSharedTrueParticlePfpHits / nHitsBestMatchTrueParticle;
+      fPFPPurity[iPfp]         = (float)nSharedTrueParticlePfpHits / pfpNHits;
+      fPFPCompleteness[iPfp]  = (float)nSharedTrueParticlePfpHits / nHitsBestMatchTrueParticle;
     }
     iPfp++;
   }
