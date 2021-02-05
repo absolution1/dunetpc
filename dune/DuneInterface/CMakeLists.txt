@@ -7,6 +7,7 @@
 
 add_subdirectory(Data)
 add_subdirectory(Tool)
+add_subdirectory(Service)
 
 install_headers()
 install_source( README.txt )

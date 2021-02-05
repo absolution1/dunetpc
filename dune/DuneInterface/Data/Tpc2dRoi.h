@@ -3,7 +3,7 @@
 // David Adams
 // January 2021
 //
-// Class that holds the prepared data for a TPC 2D ROI (region of interest),
+// Class that holds the prepared data for a rectangular TPC 2D ROI (region of interest),
 // i.e. an array of floats indexed by channel and tick.
 //
 // The data may be read with data().value(..) and written wiht data().setValue(..).
@@ -45,6 +45,20 @@ public:
   // Return the data array.
   const DataArray& data() const { return m_data; }
   DataArray& data() { return m_data; }
+
+  // Return a value.
+  // Returns valdef for indices out of range.
+  float value(Index icha, LongIndex itck, float valdef =0.0) const {
+    if ( icha < channelOffset() ) return valdef;
+    if ( itck < sampleOffset() ) return valdef;
+    Index chk = 0;
+    DataArray::IndexArray idxs;
+    idxs[0] = icha - channelOffset();
+    idxs[1] = itck - sampleOffset();
+    float val = data().value(idxs, &chk);
+    if ( chk ) return valdef;
+    return val;
+  }
 
 private:
 
