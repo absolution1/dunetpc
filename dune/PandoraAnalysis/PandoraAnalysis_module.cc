@@ -120,6 +120,7 @@ private:
   double fMCParticleVertexTime[kNMaxMCParticles];
   double fMCParticleEndTime[kNMaxMCParticles];
   int fMCParticleNHits[kNMaxMCParticles];
+  int fMCParticleNHitsView[kNMaxMCParticles][kNViews];
   //int fMCPfoMatchedPosition[kNMaxMCParticles];
 
   int fPFPID[kNMaxPFParticles];
@@ -132,6 +133,8 @@ private:
   int fPFPNClusters[kNMaxPFParticles];
   int fPFPNHits[kNMaxPFParticles];
   int fPFPNHitsView[kNMaxPFParticles][kNViews];
+  int fPFPNSharedTrueParticleHits[kNMaxPFParticles];
+  int fPFPNSharedTrueParticleHitsView[kNMaxPFParticles][kNViews];
   int fPFPTrueParticleMatchedIDView[kNMaxPFParticles][kNViews];
   int fPFPTrueParticleMatchedPositionView[kNMaxPFParticles][kNViews];
   int fPFPNTracks[kNMaxPFParticles];
@@ -188,7 +191,9 @@ private:
   double fPFPShowerOpenAngle[kNMaxPFParticles];
 
   double fPFPCompleteness[kNMaxMCParticles];
+  double fPFPCompletenessView[kNMaxMCParticles][kNViews];
   double fPFPPurity[kNMaxMCParticles];
+  double fPFPPurityView[kNMaxMCParticles][kNViews];
 
   std::string fTruthLabel;
   std::string fHitLabel;
@@ -252,6 +257,9 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
     fMCParticleVertexTime[iMc]=0;
     fMCParticleEndTime[iMc]=0;
     fMCParticleNHits[iMc]=0;
+    fMCParticleNHitsView[iMc][0]=0;
+    fMCParticleNHitsView[iMc][1]=0;
+    fMCParticleNHitsView[iMc][2]=0;
     //fMCPfoMatchedPosition[iMc]=999999;
   }
 
@@ -262,12 +270,7 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
    fPFPTrueParticleMatchedPosition[iPfp]=999999;
 
    fPFPNHits[iPfp]=0;
-   for (unsigned int iView = 0; iView < kNViews; iView++)
-   {
-        fPFPNHitsView[iPfp][iView] = 999999;
-        fPFPTrueParticleMatchedIDView[iPfp][iView] = 999999;
-        fPFPTrueParticleMatchedPositionView[iPfp][iView] = 999999;
-   }
+   fPFPNSharedTrueParticleHits[iPfp]=0;
 
    fPFPNClusters[iPfp]=0;
    fPFPIsTrack[iPfp]=0;
@@ -327,6 +330,16 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
    fPFPCompleteness[iPfp]=0;
    fPFPPurity[iPfp]=0;
 
+   for (unsigned int iView = 0; iView < kNViews; iView++)
+   {
+        fPFPNHitsView[iPfp][iView] = 999999;
+        fPFPNSharedTrueParticleHitsView[iPfp][iView]=0;
+        fPFPTrueParticleMatchedIDView[iPfp][iView] = 999999;
+        fPFPTrueParticleMatchedPositionView[iPfp][iView] = 999999;
+        fPFPPurityView[iPfp][iView]=999999;
+        fPFPCompletenessView[iPfp][iView]=999999;
+   }
+
   }
 
   //Get all hits
@@ -336,11 +349,15 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   {art::fill_ptr_vector(allHits, hitHandle);}
 
   //Fill MC particle to hits map
-  std::map<int,int> trueParticleHits;
+  std::map<int,int> trueParticleHits, trueParticleHitsView0, trueParticleHitsView1, trueParticleHitsView2;
   for (const auto& hit: allHits){
       TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleID(clockData, hit, fRollUpUnsavedIDs));
-      if (TruthMatchUtils::Valid(g4ID))
+      if (TruthMatchUtils::Valid(g4ID)){
           trueParticleHits[g4ID]++;
+          if(hit->View()==0)trueParticleHitsView0[g4ID]++;
+          if(hit->View()==1)trueParticleHitsView1[g4ID]++;
+          if(hit->View()==2)trueParticleHitsView2[g4ID]++;
+      }
   }
 
   //Access the truth information
@@ -364,6 +381,9 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
         trueParticle.Process()=="primary"? isMCPrimary=true:isMCPrimary=false;
         fMCIsPrimary[iMc] = isMCPrimary;
         fMCParticleNHits[iMc]=trueParticleHits[trueParticle.TrackId()];
+        fMCParticleNHitsView[iMc][0]=trueParticleHitsView0[trueParticle.TrackId()];
+        fMCParticleNHitsView[iMc][1]=trueParticleHitsView1[trueParticle.TrackId()];
+        fMCParticleNHitsView[iMc][2]=trueParticleHitsView2[trueParticle.TrackId()];
         fMCParticleStartPositionX[iMc] = trueParticle.Position().X();
         fMCParticleStartPositionY[iMc] = trueParticle.Position().Y();
         fMCParticleStartPositionZ[iMc] = trueParticle.Position().Z();
@@ -611,14 +631,7 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
     }
 
     if(!e.isRealData()) {
-      int pfpNHits = fPFPNHits[iPfp];
-      int nHitsBestMatchTrueParticle = fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]]; 
-      //int nSharedHits = 
-      //std::map<int, int> pfpTrueHitsMap = GetTruePrimaryHits(clockData, trueParticles, truePrimaries, pfpHits);
-      //int   pfpHitsTrueHits    = pfpTrueHitsMap.at(trueId.first);
-
       //Fill shared MC particle to hits map for this specific Pfp
-      int nSharedTrueParticlePfpHits(0);
       for (const auto& hit: pfpHits){
         int trackID     = 0;
         float hitEnergy = 0;
@@ -629,10 +642,28 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
             trackID   = TMath::Abs(ide.trackID);
           }
         }
-        if(trackID==fPFPTrueParticleMatchedID[iPfp])++nSharedTrueParticlePfpHits;
+        if(trackID==fPFPTrueParticleMatchedID[iPfp])++fPFPNSharedTrueParticleHits[iPfp];
+        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==0)++fPFPNSharedTrueParticleHitsView[iPfp][0];
+        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==1)++fPFPNSharedTrueParticleHitsView[iPfp][1];
+        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==2)++fPFPNSharedTrueParticleHitsView[iPfp][2];
       }
-      fPFPPurity[iPfp]         = (float)nSharedTrueParticlePfpHits / pfpNHits;
-      fPFPCompleteness[iPfp]  = (float)nSharedTrueParticlePfpHits / nHitsBestMatchTrueParticle;
+      if(fPFPNHits[iPfp]) fPFPPurity[iPfp]         = (float)fPFPNSharedTrueParticleHits[iPfp] / fPFPNHits[iPfp];
+      else fPFPPurity[iPfp] = 999999;
+      if(fPFPNHitsView[iPfp][0]) fPFPPurityView[iPfp][0]        = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fPFPNHitsView[iPfp][0];
+      else fPFPPurityView[iPfp][0] = 999999;
+      if(fPFPNHitsView[iPfp][1]) fPFPPurityView[iPfp][1]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fPFPNHitsView[iPfp][1];
+      else fPFPPurityView[iPfp][1] = 999999;
+      if(fPFPNHitsView[iPfp][2]) fPFPPurityView[iPfp][2]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fPFPNHitsView[iPfp][2];
+      else fPFPPurityView[iPfp][2] = 999999;
+
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]]) fPFPCompleteness[iPfp]  = (float)fPFPNSharedTrueParticleHits[iPfp] / fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]];
+      else fPFPCompleteness[iPfp]  = 999999; 
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0]) fPFPCompletenessView[iPfp][0]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0];
+      else fPFPCompletenessView[iPfp][0]=999999;
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1]) fPFPCompletenessView[iPfp][1]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1];
+      else fPFPCompletenessView[iPfp][1]=999999;
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2]) fPFPCompletenessView[iPfp][2]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2];
+      else fPFPCompletenessView[iPfp][2]=999999;
     }
     iPfp++;
   }
@@ -681,6 +712,7 @@ void test::pandoraAnalysis::beginJob()
   fTree->Branch("mcParticleVertexTime",&fMCParticleVertexTime, "MCParticleVertexTime[nMCParticles]/D");
   fTree->Branch("mcParticleEndTime",&fMCParticleEndTime, "MCParticleEndTime[nMCParticles]/D");
   fTree->Branch("mcParticleNHits", &fMCParticleNHits, "MCParticleNHits[nMCParticles]/I");
+  fTree->Branch("mcParticleNHitsView", &fMCParticleNHitsView, "MCParticleNHitsView[nMCParticles][3]/I");
   //fTree->Branch("mcPfoMatchedPosition", &fMCPfoMatchedPosition, "fMCPfoMatchedPosition[nMCParticles]/I");
 
   //PFP branches
@@ -694,6 +726,8 @@ void test::pandoraAnalysis::beginJob()
   fTree->Branch("pfpNClusters",&fPFPNClusters,"PFPNClusters[nPFParticles]/I");
   fTree->Branch("pfpNHits",&fPFPNHits,"PFPNHits[nPFParticles]/I");
   fTree->Branch("pfpNHitsView",&fPFPNHitsView,"PFPNHitsView[nPFParticles][3]/I");
+  fTree->Branch("pfpNSharedTrueParticleHits",&fPFPNSharedTrueParticleHits,"PFPNSharedTrueParticleHits[nPFParticles]/I");
+  fTree->Branch("pfpNSharedTrueParticleHitsView",&fPFPNSharedTrueParticleHitsView,"PFPNSharedTrueParticleHitsView[nPFParticles][3]/I");
   fTree->Branch("pfpTrueParticleMatchedIDView",&fPFPTrueParticleMatchedIDView,"PFPTrueParticleMatchedIDView[nPFParticles][3]/I");
   fTree->Branch("pfpTrueParticleMatchedPositionView",&fPFPTrueParticleMatchedPositionView,"PFPTrueParticleMatchedPositionView[nPFParticles][3]/I");
   fTree->Branch("pfpNTracks",&fPFPNTracks,"PFPNTracks[nPFParticles]/I");
@@ -749,7 +783,9 @@ void test::pandoraAnalysis::beginJob()
   fTree->Branch("pfpShowerOpeningAngle",&fPFPShowerOpenAngle,"PFPShowerOpenAngle[nPFParticles]/D");
 
   fTree->Branch("pfpCompleteness", &fPFPCompleteness, "PFPCompleteness[nPFParticles]/D");
+  fTree->Branch("pfpCompletenessView", &fPFPCompletenessView, "PFPCompletenessView[nPFParticles][3]/D");
   fTree->Branch("pfpPurity", &fPFPPurity, "PFPPurity[nPFParticles]/D");
+  fTree->Branch("pfpPurityView", &fPFPPurityView, "PFPPurityView[nPFParticles][3]/D");
 }
 void test::pandoraAnalysis::endJob()
 {
