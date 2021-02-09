@@ -29,10 +29,10 @@ int test_Tpc2dRoi() {
   cout << myname << "NDEBUG must be off." << endl;
   abort();
 #endif
-  string line = myname + "-----------------------------";
+  string myline = myname + "-----------------------------";
 
-  cout << line << endl;
-  cout << "Checking default roi." << endl;
+  cout << myline << endl;
+  cout << myname << "Checking default roi." << endl;
   Tpc2dRoi roi0;
   assert( roi0.data().size() == 0 );
   assert( roi0.sampleSize() == 0 );
@@ -40,8 +40,8 @@ int test_Tpc2dRoi() {
   assert( roi0.sampleOffset() == 0 );
   assert( roi0.channelOffset() == 0 );
 
-  cout << line << endl;
-  cout << "Checking finite roi." << endl;
+  cout << myline << endl;
+  cout << myname << "Checking finite roi." << endl;
   Index nsam = 100;
   Index ncha = 20;
   Index ndat = ncha*nsam;
@@ -54,12 +54,13 @@ int test_Tpc2dRoi() {
   assert( roi1.sampleOffset() == isam0 );
   assert( roi1.channelOffset() == icha0 );
 
-  cout << line << endl;
-  cout << "Set values." << endl;
+  cout << myline << endl;
+  cout << myname << "Set values." << endl;
   Float2dData::IndexArray idxs;
   Index& kcha = idxs[0];
   Index& ksam = idxs[1];
   Index ichk = 0;
+  Index ntst = 0;
   for ( kcha=0; kcha<ncha; ++kcha ) {
     for ( ksam=0; ksam<nsam; ++ksam ) {
       float val = nsam*kcha + ksam + 1;
@@ -67,10 +68,31 @@ int test_Tpc2dRoi() {
       assert( ichk == 0 );
       float chkval = roi1.data().value(idxs, &ichk);
       assert( chkval == val );
+      ++ntst;
     }
   }
+  cout << myname << "Test count: " << ntst << endl;
 
-  cout << line << endl;
+  cout << myline << endl;
+  cout << myname << "Retrieve values." << endl;
+  ichk = 0;
+  ntst = 0;
+  for ( kcha=0; kcha<ncha; ++kcha ) {
+    for ( ksam=0; ksam<nsam; ++ksam ) {
+      float expval = nsam*kcha + ksam + 1;
+      float chkval1 = roi1.data().value(idxs, &ichk);
+      assert( ichk == 0 );
+      assert( chkval1 == expval );
+      Index icha = icha0 + kcha;
+      Index isam = isam0 + ksam;
+      float chkval2 = roi1.value(icha, isam);
+      assert( chkval2 == expval );
+      ++ntst;
+    }
+  }
+  cout << myname << "Test count: " << ntst << endl;
+
+  cout << myline << endl;
   cout << myname << "All tests passed." << endl;
   return 0;
 }

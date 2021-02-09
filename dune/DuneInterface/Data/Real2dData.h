@@ -45,7 +45,7 @@ public:
   }
 
   // Constructor.
-  Real2dData() = default;
+  Real2dData() : m_nsams({0,0}) { }
 
   // Constructor from dimension sizes.
   // The data is set to zero.
