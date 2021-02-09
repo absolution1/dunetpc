@@ -16,6 +16,7 @@
 #include "dune/Geometry/ChannelMap35OptAlg.h"
 #include "dune/Geometry/ChannelMapAPAAlg.h"
 #include "dune/Geometry/ChannelMapCRMAlg.h"
+#include "dune/Geometry/ChannelMapCRUAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"

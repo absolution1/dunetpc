@@ -293,9 +293,9 @@ namespace geo{
     unsigned int PlanesThisTPC = fNPlanes[0][tpc];
     
       
-    //for VD last view is collection and first views are dincution
-    SigType_t sigt = geo::kMysteryType;
-    if(      (channel >= fFirstChannelInThisPlane[0][tpc][PlanesThisTPC-1])    )
+    //for VD last view is collection and first views are induction
+    SigType_t sigt = geo::kInduction;
+    if(       channel < fFirstChannelInThisPlane[0][tpc][PlanesThisTPC-1]      )
       { sigt = geo::kInduction; }
     else if( (channel >= fFirstChannelInThisPlane[0][tpc][PlanesThisTPC-1]) &&
 	     (channel <  fFirstChannelInNextPlane[0][tpc][PlanesThisTPC-1])    )

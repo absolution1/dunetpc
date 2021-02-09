@@ -6,7 +6,7 @@
 /// \author vgalymov@ipnl.in2p3.fr
 ////////////////////////////////////////////////////////////////////////
 
-#include "dune/Geometry/GeoObjectSorterCRM.h"
+#include "dune/Geometry/GeoObjectSorterCRU.h"
 #include "dune/Geometry/OpDetSorter.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
@@ -19,9 +19,10 @@
 #include <string>
 #include <cmath> // std::abs()
 
-namespace geo{
 
-  // comparison functions for sorting various geo objects
+// comparison functions for sorting various geo objects
+namespace geo { 
+  
   namespace CRU {
     //----------------------------------------------------------------------------
     // Define sort order for auxdet in VD configuration
@@ -124,6 +125,9 @@ namespace geo{
       
       return xyz1[2] < xyz2[2];
     }
+
+  } // namespace geo::CRU
+
   //----------------------------------------------------------------------------
   GeoObjectSorterCRU::GeoObjectSorterCRU(fhicl::ParameterSet const&)
   {}
