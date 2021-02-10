@@ -13,7 +13,7 @@
 #ifndef Real2dDftData_H
 #define Real2dDftData_H
 
-#include "dune/DuneCommon/RealDftNormalization.h"
+#include "dune/DuneInterface/Data/RealDftNormalization.h"
 #include <complex>
 #include <array>
 
@@ -40,6 +40,9 @@ public:
     }
     return ndat;
   }
+
+  // Dtor.
+  virtual ~Real2dDftData() =default;
 
   // Clear the DFT, i.e. zero the # samples.
   // The normalization is retained.

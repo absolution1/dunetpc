@@ -24,7 +24,7 @@
 #define Fw2dFFT_H
 
 #include "dune/DuneInterface/Data/Real2dData.h"
-#include "dune/DuneCommon/FftwReal2dDftData.h"
+#include "dune/DuneInterface/Data/FftwReal2dDftData.h"
 #include <map>
 
 class Fw2dFFT {

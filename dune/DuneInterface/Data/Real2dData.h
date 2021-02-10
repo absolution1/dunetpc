@@ -11,13 +11,17 @@
 #ifndef Real2dData_H
 #define Real2dData_H
 
-#include "dune/DuneCommon/RealDftNormalization.h"
+#include "dune/DuneInterface/Data/RealDftNormalization.h"
 #include <complex>
 #include <array>
 
-template<typename F> class Real2dData;
+//**********************************************************************
 
+template<typename F> class Real2dData;
 using Float2dData = Real2dData<float>;
+using Double2dData = Real2dData<double>;
+
+//**********************************************************************
 
 template<typename F>
 class Real2dData {
@@ -56,6 +60,9 @@ public:
   : Real2dData(nsams) {
     copyDataIn(data);
   }
+
+  // Virtual dtor so we can inherit.
+  virtual ~Real2dData() =default;
 
   // Clear the data, i.e. zero the # samples.
   void clear() {
