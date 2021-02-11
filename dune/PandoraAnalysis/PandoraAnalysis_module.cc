@@ -137,7 +137,6 @@ private:
   int fPFPNSharedTrueParticleHitsView[kNMaxPFParticles][kNViews];
   int fPFPTrueParticleMatchedIDView[kNMaxPFParticles][kNViews];
   int fPFPTrueParticleMatchedPositionView[kNMaxPFParticles][kNViews];
-  int fPFPNTracks[kNMaxPFParticles];
   bool fPFPIsTrack[kNMaxPFParticles];
   bool fPFPIsShower[kNMaxPFParticles];
   int fPFPCluPlane[kNMaxPFParticles][kNMaxPFPClusters];
@@ -722,7 +721,6 @@ void test::pandoraAnalysis::beginJob()
   fTree->Branch("pfpNSharedTrueParticleHitsView",&fPFPNSharedTrueParticleHitsView,"PFPNSharedTrueParticleHitsView[nPFParticles][3]/I");
   fTree->Branch("pfpTrueParticleMatchedIDView",&fPFPTrueParticleMatchedIDView,"PFPTrueParticleMatchedIDView[nPFParticles][3]/I");
   fTree->Branch("pfpTrueParticleMatchedPositionView",&fPFPTrueParticleMatchedPositionView,"PFPTrueParticleMatchedPositionView[nPFParticles][3]/I");
-  fTree->Branch("pfpNTracks",&fPFPNTracks,"PFPNTracks[nPFParticles]/I");
   fTree->Branch("pfpIsTrack",&fPFPIsTrack,"PFPIsTrack[nPFParticles]/O");
   fTree->Branch("pfpIsShower",&fPFPIsShower,"PFPIsShower[nPFParticles]/O");
   fTree->Branch("pfpTrackID", &fPFPTrackID,"PFPNClusters[nPFParticles]/I");
