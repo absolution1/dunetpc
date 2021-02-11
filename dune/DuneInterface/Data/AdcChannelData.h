@@ -199,7 +199,7 @@ public:
   Index channelStatus() const { return getChannelInfo().channelStatus; }
 
   // Return the tick offset for the raw and samples data in this channel.
-  // This should allow us to align data from and channel and event.
+  // This should allow us to align data from multiple channels and events.
   AdcLongIndex tickOffset() const {
     AdcLongIndex tickoff = triggerTick0();
     if ( tickoff == EventInfo::badLongIndex() ) tickoff = 0;
@@ -283,7 +283,7 @@ public:
   void roisFromSignal();
 
   // Return normalization specifier for the DFT held here.
-  // See DuneCommon/RealDftData.h.
+  // See RealDftNormalization.h
   static AdcIndex dftNormalization() { return 22; }
 
   // Return the number of views.

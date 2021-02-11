@@ -1,3 +1,7 @@
+
+# temporary fix for an extra semicolon in the root v6_22_06a TVirtualPaveStats header
+cet_remove_compiler_flags(CXX -pedantic)
+
 art_make( 
   LIB_LIBRARIES 
   lardataobj_RecoBase

@@ -11,9 +11,17 @@
 #ifndef Real2dData_H
 #define Real2dData_H
 
-#include "dune/DuneCommon/RealDftNormalization.h"
+#include "dune/DuneInterface/Data/RealDftNormalization.h"
 #include <complex>
 #include <array>
+
+//**********************************************************************
+
+template<typename F> class Real2dData;
+using Float2dData = Real2dData<float>;
+using Double2dData = Real2dData<double>;
+
+//**********************************************************************
 
 template<typename F>
 class Real2dData {
@@ -41,7 +49,7 @@ public:
   }
 
   // Constructor.
-  Real2dData() = default;
+  Real2dData() : m_nsams({0,0}) { }
 
   // Constructor from dimension sizes.
   // The data is set to zero.
@@ -52,6 +60,9 @@ public:
   : Real2dData(nsams) {
     copyDataIn(data);
   }
+
+  // Virtual dtor so we can inherit.
+  virtual ~Real2dData() =default;
 
   // Clear the data, i.e. zero the # samples.
   void clear() {
@@ -182,7 +193,7 @@ public:
   // If any of these checks fail or the calculated index is out of range,
   // the value is not set and the size of the data is returned.
   // If the value is set, the global index is returned.
-  // That index is guranteed to be less than the data size.
+  // That index is guaranteed to be less than the data size.
   Index setValue(const IndexArray& isams, Float val, Index* pchk =nullptr) {
     Index idat = globalIndex(isams, pchk);
     if ( pchk != nullptr && *pchk > 0 ) return size();

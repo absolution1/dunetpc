@@ -15,8 +15,14 @@
 #ifndef FftwReal2dDftData_H
 #define FftwReal2dDftData_H
 
-#include "dune/DuneCommon/Real2dDftData.h"
+#include "dune/DuneInterface/Data/Real2dDftData.h"
 #include "fftw3.h"
+
+//**********************************************************************
+
+template<typename F> class FftwReal2dDftData;
+using FftwFloat2dDftData = FftwReal2dDftData<float>;
+using FftwDouble2dDftData = FftwReal2dDftData<double>;
 
 //**********************************************************************
 

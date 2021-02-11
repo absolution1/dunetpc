@@ -13,7 +13,7 @@
 #ifndef RealDftData_H
 #define RealDftData_H
 
-#include "dune/DuneCommon/RealDftNormalization.h"
+#include "dune/DuneInterface/Data/RealDftNormalization.h"
 
 template<typename F>
 class RealDftData {
