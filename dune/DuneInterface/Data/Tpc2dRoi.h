@@ -12,6 +12,8 @@
 #define Tpc2dRoi_H
 
 #include "dune/DuneInterface/Data/Real2dData.h"
+#include "dune/DuneInterface/Data/FftwReal2dDftData.h"
+#include <memory>
 
 class Tpc2dRoi {
 
@@ -21,6 +23,8 @@ public:
   using LongIndex = unsigned long int;
   using DataArray = Real2dData<float>;
   using IndexArray = DataArray::IndexArray;
+  using Dft = FftwDouble2dDftData;
+  using DftPtr = std::unique_ptr<Dft>;
 
   // Ctor for an ROI with no size.
   Tpc2dRoi() : m_sampleOffset(0), m_channelOffset(0) { }
@@ -60,11 +64,16 @@ public:
     return val;
   }
 
+  // Return a pointer to DFT. Null if undefined.
+  Dft* dft() { return m_pdft.get(); }
+  const Dft* dft() const { return m_pdft.get(); }
+
 private:
 
   Real2dData<float> m_data;
   LongIndex m_sampleOffset;
   Index m_channelOffset;
+  DftPtr m_pdft;
 
 };
 
