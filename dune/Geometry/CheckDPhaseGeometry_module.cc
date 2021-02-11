@@ -78,7 +78,15 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 
   // get geometry
   art::ServiceHandle<geo::Geometry> geo;
-  
+  /*
+  // check channel map
+  for( unsigned ch = 0; ch < geo->Nchannels(); ++ch ){
+    auto wids = geo->ChannelToWire(ch);
+    //std::cout<<ch<<" -> wids "<<wids.size()<<std::endl;
+    std::cout<<"Channel to TPC "<< ch <<" "<<wids[0].TPC<<" "<<wids[0].Plane<<" "<<wids[0].Wire<<std::endl;
+  }
+  //return;
+  */
   std::cout<<"Total number of TPC "<<geo->NTPC()<<std::endl;
 
   for (geo::TPCID const& tpcid: geo->IterateTPCIDs()) {
@@ -171,7 +179,8 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	      else if(view == geo::kY){pitch = xyz0[1] - prval; prval = xyz0[1];}
 	      else if(view == geo::kZ){pitch = xyz0[2] - prval; prval = xyz0[2];}
 	      else { 
-		std::cerr<<"cannot determine the view\n"; break;
+		continue;
+		//std::cerr<<"cannot determine the view\n"; break;
 	      }
 	      if( w == 1 ){ refpitch = pitch; }
 	      if(w > 0 && fabs(pitch - refpitch) > 0.00001)

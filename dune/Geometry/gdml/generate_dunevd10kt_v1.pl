@@ -139,8 +139,8 @@ $lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000 for full module
 $driftTPCActive  = 650.0;
 
 # model anode strips as wires of some diameter
-$padWidth          = 0.015;
-$ReadoutPlane      = 2 * $padWidth + 0.5; # 5 mm thick PCB?
+$padWidth          = 0.02;
+$ReadoutPlane      = 2 * $padWidth; ## + 0.5; # 5 mm thick PCB?
 
 ##################################################################
 ############## Parameters for TPC and inner volume ###############
@@ -541,7 +541,7 @@ $posZplane[0] = 0.5*$TPC_x - 0.5*$padWidth;
 $posZplane[1] = 0; 
 $posZplane[2] = 0;
 
-$posTPCActive[0] = -$ReadoutPlane;
+$posTPCActive[0] = -$ReadoutPlane/2;
 $posTPCActive[1] = 0;
 $posTPCActive[2] = 0;
 
@@ -567,7 +567,7 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-         x="@{[$posTPCActive[0]+$padWidth]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
