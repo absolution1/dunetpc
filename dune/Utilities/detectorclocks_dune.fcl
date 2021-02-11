@@ -19,7 +19,7 @@ dunefd_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
 dunefdvd_detectorclocks: @local::dunefd_detectorclocks
 dunefdvd_detectorclocks.FramePeriod:       4250.  # Frame period [us]
 
-dunefdvd_detectorclocks: @local::dunefd_detectorclocks
+dunefddphase_detectorclocks: @local::dunefd_detectorclocks
 # dunefddphase_detectorclocks.TrigModuleName:      ""
 dunefddphase_detectorclocks.InheritClockConfig:   false
 dunefddphase_detectorclocks.G4RefTime:            0.    # G4 time [us] where electronics clock counting start
