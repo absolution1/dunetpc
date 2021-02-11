@@ -232,103 +232,103 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   for(int iMc=0; iMc<kNMaxMCParticles; iMc++){
     fMCIsPrimary[iMc]=0;
     fMCParticlePdgCode[iMc]=0;
-    fMCParticleTrueEnergy[iMc]=0;
+    fMCParticleTrueEnergy[iMc]=-999999;
     fMCParticleTrackID[iMc]=999999;
-    fMCParticleParentTrackID[iMc]=0;
+    fMCParticleParentTrackID[iMc]=999999;
     fMCParticleStartProcess[iMc]="";
     fMCParticleEndProcess[iMc]="";
-    fMCParticleNTrajectoryPoint[iMc]=0;
-    fMCParticleStartPositionX[iMc]=0;
-    fMCParticleStartPositionY[iMc]=0;
-    fMCParticleStartPositionZ[iMc]=0;
-    fMCParticleStartPositionT[iMc]=0;
-    fMCParticleStartMomentumX[iMc]=0;
-    fMCParticleStartMomentumY[iMc]=0;
-    fMCParticleStartMomentumZ[iMc]=0;
-    fMCParticleStartMomentumE[iMc]=0;
-    fMCParticleEndPositionX[iMc]=0;
-    fMCParticleEndPositionY[iMc]=0;
-    fMCParticleEndPositionZ[iMc]=0;
-    fMCParticleEndPositionT[iMc]=0;
-    fMCParticleEndMomentumX[iMc]=0;
-    fMCParticleEndMomentumY[iMc]=0;
-    fMCParticleEndMomentumZ[iMc]=0;
-    fMCParticleEndMomentumE[iMc]=0;
-    fMCParticleVertexTime[iMc]=0;
-    fMCParticleEndTime[iMc]=0;
-    fMCParticleNHits[iMc]=0;
-    fMCParticleNHitsView[iMc][0]=0;
-    fMCParticleNHitsView[iMc][1]=0;
-    fMCParticleNHitsView[iMc][2]=0;
+    fMCParticleNTrajectoryPoint[iMc]=999999;
+    fMCParticleStartPositionX[iMc]=999999;
+    fMCParticleStartPositionY[iMc]=999999;
+    fMCParticleStartPositionZ[iMc]=999999;
+    fMCParticleStartPositionT[iMc]=999999;
+    fMCParticleStartMomentumX[iMc]=999999;
+    fMCParticleStartMomentumY[iMc]=999999;
+    fMCParticleStartMomentumZ[iMc]=999999;
+    fMCParticleStartMomentumE[iMc]=999999;
+    fMCParticleEndPositionX[iMc]=999999;
+    fMCParticleEndPositionY[iMc]=999999;
+    fMCParticleEndPositionZ[iMc]=999999;
+    fMCParticleEndPositionT[iMc]=999999;
+    fMCParticleEndMomentumX[iMc]=999999;
+    fMCParticleEndMomentumY[iMc]=999999;
+    fMCParticleEndMomentumZ[iMc]=999999;
+    fMCParticleEndMomentumE[iMc]=999999;
+    fMCParticleVertexTime[iMc]=999999;
+    fMCParticleEndTime[iMc]=999999;
+    fMCParticleNHits[iMc]=999999;
+    fMCParticleNHitsView[iMc][0]=999999;
+    fMCParticleNHitsView[iMc][1]=999999;
+    fMCParticleNHitsView[iMc][2]=999999;
     //fMCPfoMatchedPosition[iMc]=999999;
   }
 
   for(int iPfp=0; iPfp<kNMaxPFParticles; iPfp++){
 
-   fPFPID[iPfp]=0;
+   fPFPID[iPfp]=999999;
    fPFPTrueParticleMatchedID[iPfp]=999999;
    fPFPTrueParticleMatchedPosition[iPfp]=999999;
 
-   fPFPNHits[iPfp]=0;
+   fPFPNHits[iPfp]=999999;
    fPFPNSharedTrueParticleHits[iPfp]=0;
 
-   fPFPNClusters[iPfp]=0;
+   fPFPNClusters[iPfp]=999999;
    fPFPIsTrack[iPfp]=0;
    fPFPIsShower[iPfp]=0;
 
-   fPFPTrackID[iPfp]=0;
-   fPFPTrackLength[iPfp]=0;
-   fPFPTrackStartX[iPfp]=0;
-   fPFPTrackStartY[iPfp]=0;
-   fPFPTrackStartZ[iPfp]=0;
-   fPFPTrackVertexX[iPfp]=0;
-   fPFPTrackVertexY[iPfp]=0;
-   fPFPTrackVertexZ[iPfp]=0;
-   fPFPTrackEndX[iPfp]=0;
-   fPFPTrackEndY[iPfp]=0;
-   fPFPTrackEndZ[iPfp]=0;
-   fPFPTrackTheta[iPfp]=0;
-   fPFPTrackPhi[iPfp]=0;
-   fPFPTrackZenithAngle[iPfp]=0;
-   fPFPTrackAzimuthAngle[iPfp]=0;
-   fPFPTrackStartDirectionX[iPfp]=0;
-   fPFPTrackStartDirectionY[iPfp]=0;
-   fPFPTrackStartDirectionZ[iPfp]=0;
-   fPFPTrackVertexDirectionX[iPfp]=0;
-   fPFPTrackVertexDirectionY[iPfp]=0;
-   fPFPTrackVertexDirectionZ[iPfp]=0;
-   fPFPTrackEndDirectionX[iPfp]=0;
-   fPFPTrackEndDirectionY[iPfp]=0;
-   fPFPTrackEndDirectionZ[iPfp]=0;
-   fPFPTrackChi2[iPfp]=0;
-   fPFPTrackNdof[iPfp]=0;
+   fPFPTrackID[iPfp]=999999;
+   fPFPTrackLength[iPfp]=999999;
+   fPFPTrackStartX[iPfp]=999999;
+   fPFPTrackStartY[iPfp]=999999;
+   fPFPTrackStartZ[iPfp]=999999;
+   fPFPTrackVertexX[iPfp]=999999;
+   fPFPTrackVertexY[iPfp]=999999;
+   fPFPTrackVertexZ[iPfp]=999999;
+   fPFPTrackEndX[iPfp]=999999;
+   fPFPTrackEndY[iPfp]=999999;
+   fPFPTrackEndZ[iPfp]=999999;
+   fPFPTrackTheta[iPfp]=999999;
+   fPFPTrackPhi[iPfp]=999999;
+   fPFPTrackZenithAngle[iPfp]=999999;
+   fPFPTrackAzimuthAngle[iPfp]=999999;
+   fPFPTrackStartDirectionX[iPfp]=999999;
+   fPFPTrackStartDirectionY[iPfp]=999999;
+   fPFPTrackStartDirectionZ[iPfp]=999999;
+   fPFPTrackVertexDirectionX[iPfp]=999999;
+   fPFPTrackVertexDirectionY[iPfp]=999999;
+   fPFPTrackVertexDirectionZ[iPfp]=999999;
+   fPFPTrackEndDirectionX[iPfp]=999999;
+   fPFPTrackEndDirectionY[iPfp]=999999;
+   fPFPTrackEndDirectionZ[iPfp]=999999;
+   fPFPTrackChi2[iPfp]=999999;
+   fPFPTrackNdof[iPfp]=999999;
    
-   fPFPShowerID[iPfp]=0;
-   fPFPShowerBestPlane[iPfp]=0;
-   fPFPShowerDirectionX[iPfp]=0;
-   fPFPShowerDirectionY[iPfp]=0;
-   fPFPShowerDirectionZ[iPfp]=0;
-   fPFPShowerDirectionErrX[iPfp]=0;
-   fPFPShowerDirectionErrY[iPfp]=0;
-   fPFPShowerDirectionErrZ[iPfp]=0;
-   fPFPShowerStartX[iPfp]=0;
-   fPFPShowerStartY[iPfp]=0;
-   fPFPShowerStartZ[iPfp]=0;
-   fPFPShowerStartErrX[iPfp]=0;
-   fPFPShowerStartErrY[iPfp]=0;
-   fPFPShowerStartErrZ[iPfp]=0;
-   fPFPShowerLength[iPfp]=0;
-   fPFPShowerOpenAngle[iPfp]=0;
+   fPFPShowerID[iPfp]=999999;
+   fPFPShowerBestPlane[iPfp]=999999;
+   fPFPShowerDirectionX[iPfp]=999999;
+   fPFPShowerDirectionY[iPfp]=999999;
+   fPFPShowerDirectionZ[iPfp]=999999;
+   fPFPShowerDirectionErrX[iPfp]=999999;
+   fPFPShowerDirectionErrY[iPfp]=999999;
+   fPFPShowerDirectionErrZ[iPfp]=999999;
+   fPFPShowerStartX[iPfp]=999999;
+   fPFPShowerStartY[iPfp]=999999;
+   fPFPShowerStartZ[iPfp]=999999;
+   fPFPShowerStartErrX[iPfp]=999999;
+   fPFPShowerStartErrY[iPfp]=999999;
+   fPFPShowerStartErrZ[iPfp]=999999;
+   fPFPShowerLength[iPfp]=999999;
+   fPFPShowerOpenAngle[iPfp]=999999;
 
    for(int iClu=0; iClu<kNMaxPFPClusters; iClu++){
-     fPFPCluPlane[iPfp][iClu]=0; 
-     fPFPCluView[iPfp][iClu]=0; 
-     fPFPCluNHits[iPfp][iClu]=0; 
-     fPFPCluIntegral[iPfp][iClu]=0; 
+     fPFPCluPlane[iPfp][iClu]=999999; 
+     fPFPCluView[iPfp][iClu]=999999; 
+     fPFPCluNHits[iPfp][iClu]=999999; 
+     fPFPCluIntegral[iPfp][iClu]=999999; 
    }
 
-   fPFPCompleteness[iPfp]=0;
-   fPFPPurity[iPfp]=0;
+   fPFPCompleteness[iPfp]=999999;
+   fPFPPurity[iPfp]=999999;
 
    for (unsigned int iView = 0; iView < kNViews; iView++)
    {
@@ -647,23 +647,15 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
         if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==1)++fPFPNSharedTrueParticleHitsView[iPfp][1];
         if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==2)++fPFPNSharedTrueParticleHitsView[iPfp][2];
       }
-      if(fPFPNHits[iPfp]) fPFPPurity[iPfp]         = (float)fPFPNSharedTrueParticleHits[iPfp] / fPFPNHits[iPfp];
-      else fPFPPurity[iPfp] = 999999;
-      if(fPFPNHitsView[iPfp][0]) fPFPPurityView[iPfp][0]        = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fPFPNHitsView[iPfp][0];
-      else fPFPPurityView[iPfp][0] = 999999;
-      if(fPFPNHitsView[iPfp][1]) fPFPPurityView[iPfp][1]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fPFPNHitsView[iPfp][1];
-      else fPFPPurityView[iPfp][1] = 999999;
-      if(fPFPNHitsView[iPfp][2]) fPFPPurityView[iPfp][2]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fPFPNHitsView[iPfp][2];
-      else fPFPPurityView[iPfp][2] = 999999;
+      if(fPFPNHits[iPfp] > 0 && fPFPNHits[iPfp] < 999999) fPFPPurity[iPfp]         = (float)fPFPNSharedTrueParticleHits[iPfp] / fPFPNHits[iPfp];
+      if(fPFPNHitsView[iPfp][0] > 0 && fPFPNHitsView[iPfp][0] < 999999) fPFPPurityView[iPfp][0]        = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fPFPNHitsView[iPfp][0];
+      if(fPFPNHitsView[iPfp][1] > 0 && fPFPNHitsView[iPfp][1] < 999999) fPFPPurityView[iPfp][1]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fPFPNHitsView[iPfp][1];
+      if(fPFPNHitsView[iPfp][2] > 0 && fPFPNHitsView[iPfp][2] < 999999) fPFPPurityView[iPfp][2]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fPFPNHitsView[iPfp][2];
 
-      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]]) fPFPCompleteness[iPfp]  = (float)fPFPNSharedTrueParticleHits[iPfp] / fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]];
-      else fPFPCompleteness[iPfp]  = 999999; 
-      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0]) fPFPCompletenessView[iPfp][0]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0];
-      else fPFPCompletenessView[iPfp][0]=999999;
-      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1]) fPFPCompletenessView[iPfp][1]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1];
-      else fPFPCompletenessView[iPfp][1]=999999;
-      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2]) fPFPCompletenessView[iPfp][2]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2];
-      else fPFPCompletenessView[iPfp][2]=999999;
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]] > 0 && fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]] < 999999) fPFPCompleteness[iPfp]  = (float)fPFPNSharedTrueParticleHits[iPfp] / fMCParticleNHits[fPFPTrueParticleMatchedPosition[iPfp]];
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0] < 999999) fPFPCompletenessView[iPfp][0]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0];
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1] < 999999) fPFPCompletenessView[iPfp][1]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1];
+      if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2] < 999999) fPFPCompletenessView[iPfp][2]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2];
     }
     iPfp++;
   }
