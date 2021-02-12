@@ -91,25 +91,28 @@ $basename="_";
 ############## Parameters for One Readout Panel ##################
 
 # parameters for 1.5 x 1.7 sub-unit Charge Readout Module / Unit
-$widthPCBActive   = 169.0; # cm 
-$lengthPCBActive  = 150.0; # cm
+#$widthPCBActive   = 169.0; # cm 
+#$lengthPCBActive  = 150.0; # cm
+
 # views and channel counts
 %nChans = ('Ind1', 256, 'Ind2', 320, 'Col', 288);
 $nViews = keys %nChans;
 #print "$nViews %nChans\n";
 
 # first induction view
-$wirePitchU      = 0.875; # cm
-$wireAngleU      = -48.0;  # deg
+$wirePitchU      = 0.870;  # cm
+$wireAngleU      = -48.37;  # deg
 
 # second induction view
-$wirePitchY      = $widthPCBActive / $nChans{'Ind2'};
+$wirePitchY      = 0.525;
+$widthPCBActive  = $wirePitchY * $nChans{'Ind2'};
 
 # last collection view
-$wirePitchZ      = $lengthPCBActive / $nChans{'Col'};
+$wirePitchZ      = 0.515;
+$lengthPCBActive = $wirePitchZ * $nChans{'Col'};
 
 #
-$borderCRM       = 0.1;     # border space aroud each CRM 
+$borderCRM       = 0.05;     # border space aroud each CRM 
 
 $widthCRM_active  = $widthPCBActive;  
 $lengthCRM_active = $lengthPCBActive; 
@@ -1269,9 +1272,9 @@ EOF
 
 
 print "Some of the principal parameters for this TPC geometry (unit cm unless noted otherwise)\n";
-print " CRM active area    : $widthCRM_active x $lengthCRM_active\n";
-print " CRM total area     : $widthCRM x $lengthCRM\n";
-print " Wire pitch in Y, Z : $wirePitchY, $wirePitchZ\n";
+print " CRM active area       : $widthCRM_active x $lengthCRM_active\n";
+print " CRM total area        : $widthCRM x $lengthCRM\n";
+print " Wire pitch in U, Y, Z : $wirePitchU, $wirePitchY, $wirePitchZ\n";
 print " TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
 print " Argon volume       : ($Argon_x, $Argon_y, $Argon_z) \n"; 
 print " Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 

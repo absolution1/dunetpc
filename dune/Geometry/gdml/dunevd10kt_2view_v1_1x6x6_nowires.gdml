@@ -389,48 +389,48 @@
 <solids>
    <box name="CRM" lunit="cm" 
       x="650.04" 
-      y="169.2" 
-      z="150.2"/>
+      y="168.74" 
+      z="149.284"/>
    <box name="CRMVPlane" lunit="cm" 
       x="0.02" 
-      y="169" 
-      z="150"/>
+      y="168.64" 
+      z="149.184"/>
    <box name="CRMZPlane" lunit="cm" 
       x="0.02"
-      y="169"
-      z="150"/>
+      y="168.64"
+      z="149.184"/>
    <box name="CRMActive" lunit="cm"
       x="650"
-      y="169"
-      z="150"/>
+      y="168.64"
+      z="149.184"/>
 
    <tube name="CRMWireV"
      rmax="0.5*0.02"
-     z="150"               
+     z="149.184"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="0.5*0.02"
-     z="169"               
+     z="168.64"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
 
     <box name="Cryostat" lunit="cm" 
       x="850.28" 
-      y="1215.44" 
-      z="1101.44"/>
+      y="1212.68" 
+      z="1095.944"/>
 
     <box name="ArgonInterior" lunit="cm" 
       x="850.04"
-      y="1215.2"
-      z="1101.2"/>
+      y="1212.44"
+      z="1095.704"/>
 
     <box name="GaseousArgon" lunit="cm" 
       x="100"
-      y="1215.2"
-      z="1101.2"/>
+      y="1212.44"
+      z="1095.704"/>
 
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
@@ -441,8 +441,8 @@
 
     <box name="FoamPadBlock" lunit="cm"
       x="1010.28"
-      y="1375.44"
-      z="1261.44" />
+      y="1372.68"
+      z="1255.944" />
 
     <subtraction name="FoamPadding">
       <first ref="FoamPadBlock"/>
@@ -452,8 +452,8 @@
 
     <box name="SteelSupportBlock" lunit="cm"
       x="1210.28"
-      y="1575.44"
-      z="1461.44" />
+      y="1572.68"
+      z="1455.944" />
 
     <subtraction name="SteelSupport">
       <first ref="SteelSupportBlock"/>
@@ -463,14 +463,14 @@
 
     <box name="DetEnclosure" lunit="cm" 
       x="1310.28"
-      y="1775.44"
-      z="1661.44"/>
+      y="1772.68"
+      z="1655.944"/>
 
 
     <box name="World" lunit="cm" 
       x="9310.28" 
-      y="9775.44" 
-      z="9661.44"/>
+      y="9772.68" 
+      z="9655.944"/>
 </solids>
 <structure>
     <volume name="volTPCActive">
@@ -538,182 +538,182 @@
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-0" unit="cm"
-           x="0" y="-423" z="-375.5"/>
+           x="0" y="-421.85" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-1" unit="cm"
-           x="0" y="-253.8" z="-375.5"/>
+           x="0" y="-253.11" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-2" unit="cm"
-           x="0" y="-84.6" z="-375.5"/>
+           x="0" y="-84.37" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-3" unit="cm"
-           x="0" y="84.6" z="-375.5"/>
+           x="0" y="84.37" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-4" unit="cm"
-           x="0" y="253.8" z="-375.5"/>
+           x="0" y="253.11" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-5" unit="cm"
-           x="0" y="423" z="-375.5"/>
+           x="0" y="421.85" z="-373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-6" unit="cm"
-           x="0" y="-423" z="-225.3"/>
+           x="0" y="-421.85" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-7" unit="cm"
-           x="0" y="-253.8" z="-225.3"/>
+           x="0" y="-253.11" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-8" unit="cm"
-           x="0" y="-84.6" z="-225.3"/>
+           x="0" y="-84.37" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-9" unit="cm"
-           x="0" y="84.6" z="-225.3"/>
+           x="0" y="84.37" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-10" unit="cm"
-           x="0" y="253.8" z="-225.3"/>
+           x="0" y="253.11" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-11" unit="cm"
-           x="0" y="423" z="-225.3"/>
+           x="0" y="421.85" z="-223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-12" unit="cm"
-           x="0" y="-423" z="-75.1"/>
+           x="0" y="-421.85" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-13" unit="cm"
-           x="0" y="-253.8" z="-75.1"/>
+           x="0" y="-253.11" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-14" unit="cm"
-           x="0" y="-84.6" z="-75.1"/>
+           x="0" y="-84.37" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-15" unit="cm"
-           x="0" y="84.6" z="-75.1"/>
+           x="0" y="84.37" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-16" unit="cm"
-           x="0" y="253.8" z="-75.1"/>
+           x="0" y="253.11" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-17" unit="cm"
-           x="0" y="423" z="-75.1"/>
+           x="0" y="421.85" z="-74.642"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-18" unit="cm"
-           x="0" y="-423" z="75.1"/>
+           x="0" y="-421.85" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-19" unit="cm"
-           x="0" y="-253.8" z="75.1"/>
+           x="0" y="-253.11" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-20" unit="cm"
-           x="0" y="-84.6" z="75.1"/>
+           x="0" y="-84.37" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-21" unit="cm"
-           x="0" y="84.6" z="75.1"/>
+           x="0" y="84.37" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-22" unit="cm"
-           x="0" y="253.8" z="75.1"/>
+           x="0" y="253.11" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-23" unit="cm"
-           x="0" y="423" z="75.1"/>
+           x="0" y="421.85" z="74.6419999999999"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-24" unit="cm"
-           x="0" y="-423" z="225.3"/>
+           x="0" y="-421.85" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-25" unit="cm"
-           x="0" y="-253.8" z="225.3"/>
+           x="0" y="-253.11" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-26" unit="cm"
-           x="0" y="-84.6" z="225.3"/>
+           x="0" y="-84.37" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-27" unit="cm"
-           x="0" y="84.6" z="225.3"/>
+           x="0" y="84.37" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-28" unit="cm"
-           x="0" y="253.8" z="225.3"/>
+           x="0" y="253.11" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-29" unit="cm"
-           x="0" y="423" z="225.3"/>
+           x="0" y="421.85" z="223.926"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-30" unit="cm"
-           x="0" y="-423" z="375.5"/>
+           x="0" y="-421.85" z="373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-31" unit="cm"
-           x="0" y="-253.8" z="375.5"/>
+           x="0" y="-253.11" z="373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-32" unit="cm"
-           x="0" y="-84.6" z="375.5"/>
+           x="0" y="-84.37" z="373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-33" unit="cm"
-           x="0" y="84.6" z="375.5"/>
+           x="0" y="84.37" z="373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-34" unit="cm"
-           x="0" y="253.8" z="375.5"/>
+           x="0" y="253.11" z="373.21"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-35" unit="cm"
-           x="0" y="423" z="375.5"/>
+           x="0" y="421.85" z="373.21"/>
       </physvol>
     </volume>
 
@@ -751,7 +751,7 @@
 
       <physvol>
         <volumeref ref="volDetEnclosure"/>
-	<position name="posDetEnclosure" unit="cm" x="50.02" y="0" z="450.5"/>
+	<position name="posDetEnclosure" unit="cm" x="50.02" y="0" z="447.802"/>
       </physvol>
 
     </volume>
