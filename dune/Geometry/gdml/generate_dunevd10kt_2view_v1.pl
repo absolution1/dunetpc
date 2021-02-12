@@ -3,7 +3,7 @@
 #
 #
 #  First attempt to make a GDML fragment generator for the DUNE vertical drift 
-#  10kt detector geometry with 3 views (2 orthogonal + induction at angle)
+#  10kt detector geometry with 2 orthogonal view readout 
 #  The lower chamber is not added yet. 
 #  !!!NOTE!!!: the readout is on a positive Y plane (drift along horizontal X)
 #              due to current reco limitations)
@@ -35,7 +35,6 @@ use Getopt::Long;
 use Math::BigFloat;
 Math::BigFloat->precision(-16);
 
-###
 GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
@@ -91,28 +90,18 @@ $basename="_";
 ############## Parameters for One Readout Panel ##################
 
 # parameters for 1.5 x 1.7 sub-unit Charge Readout Module / Unit
-#$widthPCBActive   = 169.0; # cm 
+#$widthPCBActive   = 169.0; # cm
 #$lengthPCBActive  = 150.0; # cm
+$nChannelsViewInd = 320;
+$nChannelsViewCol = 288;
 
-# views and channel counts
-%nChans = ('Ind1', 256, 'Ind2', 320, 'Col', 288);
-$nViews = keys %nChans;
-#print "$nViews %nChans\n";
+$wirePitchY      = 0.527; # $widthPCBActive / $nChannelsViewInd; 
+$wirePitchZ      = 0.518; # $lengthPCBActive / $nChannelsViewCol; 
 
-# first induction view
-$wirePitchU      = 0.870;  # cm
-$wireAngleU      = -48.37;  # deg
+$widthPCBActive  = $wirePitchY * $nChannelsViewInd;
+$lengthPCBActive = $wirePitchZ * $nChannelsViewCol;
 
-# second induction view
-$wirePitchY      = 0.525;
-$widthPCBActive  = $wirePitchY * $nChans{'Ind2'};
-
-# last collection view
-$wirePitchZ      = 0.515;
-$lengthPCBActive = $wirePitchZ * $nChans{'Col'};
-
-#
-$borderCRM       = 0.05;     # border space aroud each CRM 
+$borderCRM       = 0.05;     # dead space at the border of each CRM
 
 $widthCRM_active  = $widthPCBActive;  
 $lengthCRM_active = $lengthPCBActive; 
@@ -155,7 +144,7 @@ $driftTPCActive  = 650.0;
 
 # model anode strips as wires of some diameter
 $padWidth          = 0.02;
-$ReadoutPlane      = $nViews * $padWidth; # 3 readout planes (no space b/w)!
+$ReadoutPlane      = 2 * $padWidth; ## + 0.5; # 5 mm thick PCB?
 
 ##################################################################
 ############## Parameters for TPC and inner volume ###############
@@ -341,7 +330,6 @@ print DEF <<EOF;
 
    <position name="posCryoInDetEnc"     unit="cm" x="$posCryoInDetEnc_x" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>
-   <rotation name="rUWireAboutX"        unit="deg" x="$wireAngleU" y="0" z="0"/>
    <rotation name="rPlus90AboutX"       unit="deg" x="90" y="0" z="0"/>
    <rotation name="rPlus90AboutY"       unit="deg" x="0" y="90" z="0"/>
    <rotation name="rPlus90AboutXPlus90AboutY" unit="deg" x="90" y="90" z="0"/>
@@ -396,129 +384,9 @@ EOF
     close(MAT);
 }
 
-
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++++ gen_TPC ++++++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# line clip on the rectangle boundary
-sub lineClip {
-    my $x0  = $_[0];
-    my $y0  = $_[1];
-    my $nx  = $_[2];
-    my $ny  = $_[3];
-    my $rcl = $_[4];
-    my $rcw = $_[5];
-
-    my $tol = 1.0E-4;
-    my @endpts = ();
-    if( abs( nx ) < tol ){
-	push( @endpts, ($x0, 0) );
-	push( @endpts, ($x0, $rcw) );
-	return @endpts;
-    }
-    if( abs( ny ) < tol ){
-	push( @endpts, (0, $y0) );
-	push( @endpts, ($rcl, $y0) );
-	return @endpts;
-    }
-    
-    # left border at x = 0
-    my $y = $y0 - $x0 * $ny/$nx;
-    if( $y >= 0 && $y <= $rcw ){
-	push( @endpts, (0, $y) );
-    }
-
-    # right border at x = l
-    $y = $y0 + ($rcl-$x0) * $ny/$nx;
-    if( $y >= 0 && $y <= $rcw ){
-	push( @endpts, ($rcl, $y) );
-	if( scalar(@endpts) == 4 ){
-	    return @endpts;
-	}
-    }
-
-    # bottom border at y = 0
-    my $x = $x0 - $y0 * $nx/$ny;
-    if( $x >= 0 && $x <= $rcl ){
-	push( @endpts, ($x, 0) );
-	if( scalar(@endpts) == 4 ){
-	    return @endpts;
-	}
-    }
-    
-    # top border at y = w
-    $x = $x0 + ($rcw-$y0)* $nx/$ny;
-    if( $x >= 0 && $x <= $rcl ){
-	push( @endpts, ($x, $rcw) );
-    }
-    
-    return @endpts;
-}
-
-sub gen_Wires
-{
-    my $length = $_[0];  # 
-    my $width  = $_[1];  # 
-    my $nch    = $_[2];  # 
-    my $pitch  = $_[3];  # 
-    my $theta  = $_[4];  # deg
-    my $dia    = $_[5];  #
-    
-    $theta  = $theta * pi()/180.0;
-    my @dirw   = (cos($theta), sin($theta));
-    my @dirp   = (cos($theta - pi()/2), sin($theta - pi()/2));
-    my @orig   = (0, 0);
-    if( $dirp[0] < 0 ){
-	$orig[0] = $length;
-    }
-    if( $dirp[1] < 0 ){
-	$orig[1] = $width;
-    }
-
-    #print "origin    : @orig\n";
-    #print "pitch dir : @dirp\n";
-    #print "wire dir  : @dirw\n";
-
-    # gen wires
-    my @winfo  = ();
-    my $offset = $pitch/2;
-    foreach my $ch (0..$nch-1){
-	#print "Processing $ch\n";
-
-	# calculate reference point for this strip
-	my @wcn = (0, 0);
-	$wcn[0] = $orig[0] + $offset * $dirp[0];
-	$wcn[1] = $orig[1] + $offset * $dirp[1];
-
-	# line clip on the rectangle boundary
-	@endpts = lineClip( $wcn[0], $wcn[1], $dirw[0], $dirw[1], $length, $width );
-
-	if( scalar(@endpts) != 4 ){
-	    print "Could not find end points for wire $ch : @endpts\n";
-	    $offset = $offset + $pitch;
-	    next;
-	}
-
-	# calculate the strip center in the rectangle of CRU
-	$wcn[0] = ($endpts[0] + $endpts[2])/2;
-	$wcn[1] = ($endpts[1] + $endpts[3])/2;
-
-	# calculate the length
-	my $dx = $endpts[0] - $endpts[2];
-	my $dy = $endpts[1] - $endpts[3];
-	my $wlen = sqrt($dx**2 + $dy**2);
-
-	# put all info together
-	my @wire = ($ch, $wcn[0], $wcn[1], $wlen);
-	push( @wire, @endpts );
-	push( @winfo, \@wire);
-	$offset = $offset + $pitch;
-	#last;
-    }
-    return @winfo;
-}
-
-#
 sub gen_TPC()
 {
     # CRM active volume
@@ -531,90 +399,59 @@ sub gen_TPC()
     my $TPC_y = $widthCRM;
     my $TPC_z = $lengthCRM;
 
-    print " TPC dimensions     : $TPC_x x $TPC_y x $TPC_z\n";
-    
+	
     $TPC = $basename."_TPC" . $suffix . ".gdml";
     push (@gdmlFiles, $TPC);
     $TPC = ">" . $TPC;
     open(TPC) or die("Could not open file $TPC for writing");
 
-    # The standard XML prefix and starting the gdml
-print TPC <<EOF;
-    <?xml version='1.0'?>
-	<gdml>
+# The standard XML prefix and starting the gdml
+    print TPC <<EOF;
+<?xml version='1.0'?>
+<gdml>
 EOF
 
-    # compute wires for 1st induction
-    my @winfo = ();
-    if( $wires_on == 1 ){
-	@winfo = gen_Wires( $TPCActive_z, $TPCActive_y,
-			    $nChans{'Ind1'}, $wirePitchU,
-			    $wireAngleU, $padWidth );
-    }
-
+    
     # All the TPC solids save the wires.
-print TPC <<EOF;
-    <solids>
-EOF
-
-print TPC <<EOF;
-   <box name="CRM"
+    print TPC <<EOF;
+<solids>
+   <box name="CRM" lunit="cm" 
       x="$TPC_x" 
       y="$TPC_y" 
-      z="$TPC_z"
-      lunit="cm"/>
-   <box name="CRMUPlane" 
+      z="$TPC_z"/>
+   <box name="CRMVPlane" lunit="cm" 
       x="$padWidth" 
       y="$TPCActive_y" 
-      z="$TPCActive_z"
-      lunit="cm"/>
-   <box name="CRMYPlane" 
-      x="$padWidth" 
-      y="$TPCActive_y" 
-      z="$TPCActive_z"
-      lunit="cm"/>
-   <box name="CRMZPlane" 
+      z="$TPCActive_z"/>
+   <box name="CRMZPlane" lunit="cm" 
       x="$padWidth"
       y="$TPCActive_y"
-      z="$TPCActive_z"
-      lunit="cm"/>
-   <box name="CRMActive" 
+      z="$TPCActive_z"/>
+   <box name="CRMActive" lunit="cm"
       x="$TPCActive_x"
       y="$TPCActive_y"
-      z="$TPCActive_z"
-      lunit="cm"/>
+      z="$TPCActive_z"/>
 EOF
 
+
 #++++++++++++++++++++++++++++ Wire Solids ++++++++++++++++++++++++++++++
-if($wires_on==1){
-	    
-    foreach my $wire (@winfo) {
-	my $wid = $wire->[0];
-	my $wln = $wire->[3];
+
 print TPC <<EOF;
-   <tube name="CRMWireU$wid"
-      rmax="0.5*$padWidth"
-      z="$wln"               
-      deltaphi="360"
-      aunit="deg" lunit="cm"/>
-EOF
-    }
-    
-print TPC <<EOF;
-   <tube name="CRMWireY"
-      rmax="0.5*$padWidth"
-      z="$TPCActive_z"               
-      deltaphi="360" 
-      aunit="deg" lunit="cm"/>
+
+   <tube name="CRMWireV"
+     rmax="0.5*$padWidth"
+     z="$TPCActive_z"               
+     deltaphi="360"
+     aunit="deg"
+     lunit="cm"/>
    <tube name="CRMWireZ"
-      rmax="0.5*$padWidth"
-      z="$TPCActive_y"               
-      deltaphi="360"
-      aunit="deg" lunit="cm"/>
-EOF
-}
-print TPC <<EOF;
+     rmax="0.5*$padWidth"
+     z="$TPCActive_y"               
+     deltaphi="360"
+     aunit="deg"
+     lunit="cm"/>
 </solids>
+
 EOF
 
 
@@ -625,123 +462,84 @@ print TPC <<EOF;
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
       <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5*cm"/>
       <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <colorref ref="blue"/>
     </volume>
 EOF
 
-if($wires_on==1) 
-{
-    foreach my $wire (@winfo) 
-    {
-	my $wid = $wire->[0];
-print TPC <<EOF;
-    <volume name="volTPCWireU$wid">
+if ($wires_on==1) 
+{ 
+  print TPC <<EOF;
+    <volume name="volTPCWireV">
       <materialref ref="Copper_Beryllium_alloy25"/>
-      <solidref ref="CRMWireU$wid"/>
+      <solidref ref="CRMWireV"/>
     </volume>
-EOF
-    }
 
-print TPC <<EOF;
-    <volume name="volTPCWireY">
-      <materialref ref="Copper_Beryllium_alloy25"/>
-      <solidref ref="CRMWireY"/>
-    </volume>
     <volume name="volTPCWireZ">
       <materialref ref="Copper_Beryllium_alloy25"/>
       <solidref ref="CRMWireZ"/>
     </volume>
 EOF
 }
-    # 1st induction plane
-print TPC <<EOF;
-   <volume name="volTPCPlaneU">
-     <materialref ref="LAr"/>
-     <solidref ref="CRMUPlane"/>
-EOF
-if ($wires_on==1) # add wires to U plane 
-{
-    # the coordinates were computed with a corner at (0,0)
-    # so we need to move to plane coordinates
-    my $offsetZ = -0.5 * $TPCActive_z;
-    my $offsetY = -0.5 * $TPCActive_y;
 
-    foreach my $wire (@winfo) {
-	my $wid  = $wire->[0];
-	my $zpos = $wire->[1] + $offsetZ;
-	my $ypos = $wire->[2] + $offsetY;
 print TPC <<EOF;
-     <physvol>
-       <volumeref ref="volTPCWireU$wid"/> 
-       <position name="posWireU$wid" unit="cm" x="0" y="$ypos" z="$zpos"/>
-       <rotationref ref="rUWireAboutX"/> 
-     </physvol>
-EOF
-    }
-}
-print TPC <<EOF;
-   </volume>
-EOF
 
-# 2nd induction plane
-print TPC <<EOF;
-  <volume name="volTPCPlaneY">
-    <materialref ref="LAr"/>
-    <solidref ref="CRMYPlane"/>
+    <volume name="volTPCPlaneV">
+      <materialref ref="LAr"/>
+      <solidref ref="CRMVPlane"/>
 EOF
 
 if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
-    for($i=0;$i<$nChans{'Ind2'};++$i)
-    {
-	my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
+for($i=0;$i<$nChannelsViewInd;++$i)
+{
+my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
+
 print TPC <<EOF;
-      <physvol>
-        <volumeref ref="volTPCWireY"/> 
-        <position name="posWireY$i" unit="cm" x="0" y="$ypos" z="0"/>
-	<rotationref ref="rIdentity"/> 
-      </physvol>
+    <physvol>
+      <volumeref ref="volTPCWireV"/> 
+      <position name="posWireV$i" unit="cm" x="0" y="$ypos" z="0"/>
+      <rotationref ref="rIdentity"/> 
+    </physvol>
 EOF
-   }
 }
+}
+
 print TPC <<EOF;
-  </volume>
+   </volume>
+   
+   <volume name="volTPCPlaneZ">
+     <materialref ref="LAr"/>
+     <solidref ref="CRMZPlane"/>
 EOF
 
-# collection plane
-print TPC <<EOF;
-  <volume name="volTPCPlaneZ">
-    <materialref ref="LAr"/>
-    <solidref ref="CRMZPlane"/>
-EOF
+
 if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
-   {
-       for($i=0;$i<$nChans{'Col'};++$i)
-       {
-	   my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitchZ + 0.5*$padWidth;
+{
+for($i=0;$i<$nChannelsViewCol;++$i)
+{
+
+my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitchZ + 0.5*$padWidth;
 print TPC <<EOF;
-       <physvol>
-         <volumeref ref="volTPCWireZ"/>
-         <position name="posWireZ$i" unit="cm" x="0" y="0" z="$zpos"/>
-         <rotationref ref="rPlus90AboutX"/>
-       </physvol>
+    <physvol>
+     <volumeref ref="volTPCWireZ"/>
+     <position name="posWireZ$i" unit="cm" x="0" y="0" z="$zpos"/>
+     <rotationref ref="rPlus90AboutX"/>
+    </physvol>
 EOF
-       }
 }
+}
+
+
 print TPC <<EOF;
-  </volume>
+   </volume>
 EOF
 
-       
-$posUplane[0] = 0.5*$TPC_x - 2.5*$padWidth;
-$posUplane[1] = 0;
-$posUplane[2] = 0;
 
-$posYplane[0] = 0.5*$TPC_x - 1.5*$padWidth;
-$posYplane[1] = 0;
-$posYplane[2] = 0;
+$posVplane[0] = 0.5*$TPC_x - 1.5*$padWidth;
+$posVplane[1] = 0;
+$posVplane[2] = 0;
 
 $posZplane[0] = 0.5*$TPC_x - 0.5*$padWidth;
 $posZplane[1] = 0; 
@@ -754,19 +552,14 @@ $posTPCActive[2] = 0;
 
 #wrap up the TPC file
 print TPC <<EOF;
+
    <volume name="volTPC">
      <materialref ref="LAr"/>
-       <solidref ref="CRM"/>
-       <physvol>
-       <volumeref ref="volTPCPlaneU"/>
-       <position name="posPlaneU" unit="cm" 
-         x="$posUplane[0]" y="$posUplane[1]" z="$posUplane[2]"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
+     <solidref ref="CRM"/>
      <physvol>
-       <volumeref ref="volTPCPlaneY"/>
-       <position name="posPlaneY" unit="cm" 
-         x="$posYplane[0]" y="$posYplane[1]" z="$posYplane[2]"/>
+       <volumeref ref="volTPCPlaneV"/>
+       <position name="posPlaneV" unit="cm" 
+         x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -778,20 +571,22 @@ print TPC <<EOF;
      <physvol>
        <volumeref ref="volTPCActive"/>
        <position name="posActive" unit="cm" 
-        x="$posTPCActive[0]" y="$posTPCAtive[1]" z="$posTPCActive[2]"/>
+         x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
 EOF
-## x="@{[$posTPCActive[0]+$padWidth]}" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
+
 
 print TPC <<EOF;
- </structure>
- </gdml>
+</structure>
+</gdml>
 EOF
 
-    close(TPC);
+close(TPC);
 }
+
+
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #++++++++++++++++++++++++++++++++++++++ gen_FieldCage ++++++++++++++++++++++++++++++++++++
@@ -1272,9 +1067,9 @@ EOF
 
 
 print "Some of the principal parameters for this TPC geometry (unit cm unless noted otherwise)\n";
-print " CRM active area       : $widthCRM_active x $lengthCRM_active\n";
-print " CRM total area        : $widthCRM x $lengthCRM\n";
-print " Wire pitch in U, Y, Z : $wirePitchU, $wirePitchY, $wirePitchZ\n";
+print " CRM active area    : $widthCRM_active x $lengthCRM_active\n";
+print " CRM total area     : $widthCRM x $lengthCRM\n";
+print " Wire pitch in Y, Z : $wirePitchY, $wirePitchZ\n";
 print " TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
 print " Argon volume       : ($Argon_x, $Argon_y, $Argon_z) \n"; 
 print " Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
