@@ -852,8 +852,9 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       crate = frame14ptr->crate_no(0);
       slot  = frame14ptr->slot_no(0);
       fiber = frame14ptr->fiber_no(0); // decode this one later 
-      std::cout << "ICEBERG temporary hack: setting fiber to 1 in Fragment ID " << frag.fragmentID() << " old fiber id: " << (int) fiber << std::endl;
-      fiber = 1;
+      //std::cout << "ICEBERG crate, slot, fiber, fragID: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
+      fiber ++;  // read in 0 to 1, go from 1 to 2
+      crate = 1;  // ignored anyway for Iceberg -- just one crate.
     }
   else
     {
