@@ -49,7 +49,7 @@ public:
 private:
 
   // Declare member data here.
-  const double dpwpitch = 0.3125; //cm
+  //const double dpwpitch = 0.3125; //cm
 
 };
 
@@ -62,8 +62,6 @@ CheckDPhaseGeometry::CheckDPhaseGeometry(fhicl::ParameterSet const & p)
 
 void CheckDPhaseGeometry::analyze(art::Event const & e)
 {
-  //TCanvas *can = new TCanvas("c1","c1");
-  //can->cd();
   std::vector<TBox*> TPCBox;
   std::vector<TLine*> Wires;
 
@@ -167,7 +165,7 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	  double xyz1[3];
 	  unsigned int c = 0;
 	  
-	  if (true)
+	  if(true)
 	    {
 	      geo->WireEndPoints(c,t,p,w,xyz0,xyz1);
 	      Wires.push_back(new TLine(xyz0[2],xyz0[1],xyz1[2],xyz1[1]));
@@ -195,20 +193,23 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
       }
     //break;
   }
-
-  //TH2F *frame = new TH2F("frame",";z (cm);y (cm)",3000,minz,maxz,3000,miny,maxy);
-  //frame->SetStats(0);
-  //frame->Draw();
-  //for (auto box: TPCBox) box->Draw();
-  //for (auto wire: Wires) wire->Draw();
-  //can->Print("wires.pdf");
-  //can->Print("wires.C");
-  //std::cout<<"N wires = "<<nwires<<std::endl;
+  /*
+  TCanvas *can = new TCanvas("c1","c1");
+  can->cd();
+  TH2F *frame = new TH2F("frame",";z (cm);y (cm)",3000,minz,maxz,3000,miny,maxy);
+  frame->SetStats(0);
+  frame->Draw();
+  for (auto box: TPCBox) box->Draw();
+  for (auto wire: Wires) wire->Draw();
+  can->Print("wires.pdf");
+  can->Print("wires.C");
+  std::cout<<"N wires = "<<nwires<<std::endl;
   std::cout<<"Total number of channel wires = "<<nwires<<std::endl;
   //for (int i = 0; i<8; ++i)
   //{
   //std::cout<<"TPC "<<i<<" has "<<nwires_tpc[i]<<" wires"<<std::endl;
   //}
+  */
 }
 
 DEFINE_ART_MODULE(CheckDPhaseGeometry)
