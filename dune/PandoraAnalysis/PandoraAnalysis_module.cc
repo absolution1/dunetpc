@@ -632,20 +632,15 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
     if(!e.isRealData()) {
       //Fill shared MC particle to hits map for this specific Pfp
       for (const auto& hit: pfpHits){
-        int trackID     = 0;
-        float hitEnergy = 0;
-        std::vector<sim::TrackIDE> trackIDEs = btServ->HitToTrackIDEs(clockData, hit);
-        for (const auto& ide: trackIDEs) {
-          if (ide.energy > hitEnergy){
-            hitEnergy = ide.energy;
-            trackID   = TMath::Abs(ide.trackID);
+          TruthMatchUtils::G4ID g4ID(TruthMatchUtils::TrueParticleID(clockData, hit, fRollUpUnsavedIDs));
+          if (TruthMatchUtils::Valid(g4ID)){
+              if(g4ID==fPFPTrueParticleMatchedID[iPfp])++fPFPNSharedTrueParticleHits[iPfp];
+              if(g4ID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==0)++fPFPNSharedTrueParticleHitsView[iPfp][0];
+              if(g4ID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==1)++fPFPNSharedTrueParticleHitsView[iPfp][1];
+              if(g4ID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==2)++fPFPNSharedTrueParticleHitsView[iPfp][2];            
           }
-        }
-        if(trackID==fPFPTrueParticleMatchedID[iPfp])++fPFPNSharedTrueParticleHits[iPfp];
-        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==0)++fPFPNSharedTrueParticleHitsView[iPfp][0];
-        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==1)++fPFPNSharedTrueParticleHitsView[iPfp][1];
-        if(trackID==fPFPTrueParticleMatchedID[iPfp] && hit->View()==2)++fPFPNSharedTrueParticleHitsView[iPfp][2];
       }
+
       if(fPFPNHits[iPfp] > 0 && fPFPNHits[iPfp] < 999999) fPFPPurity[iPfp]         = (float)fPFPNSharedTrueParticleHits[iPfp] / fPFPNHits[iPfp];
       if(fPFPNHitsView[iPfp][0] > 0 && fPFPNHitsView[iPfp][0] < 999999) fPFPPurityView[iPfp][0]        = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fPFPNHitsView[iPfp][0];
       if(fPFPNHitsView[iPfp][1] > 0 && fPFPNHitsView[iPfp][1] < 999999) fPFPPurityView[iPfp][1]         = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fPFPNHitsView[iPfp][1];
@@ -655,6 +650,7 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
       if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0] < 999999) fPFPCompletenessView[iPfp][0]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][0] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][0];
       if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1] < 999999) fPFPCompletenessView[iPfp][1]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][1] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][1];
       if(fPFPTrueParticleMatchedPosition[iPfp]<999999 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2] > 0 && fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2] < 999999) fPFPCompletenessView[iPfp][2]  = (float)fPFPNSharedTrueParticleHitsView[iPfp][2] / fMCParticleNHitsView[fPFPTrueParticleMatchedPosition[iPfp]][2];
+
     }
     iPfp++;
   }
