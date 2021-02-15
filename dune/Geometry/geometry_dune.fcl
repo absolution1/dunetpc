@@ -160,6 +160,11 @@ dune10kt_1x2x6_v1_geo.Name: "dune10kt_v1_1x2x6"
 dune10kt_1x2x6_v1_geo.GDML: "dune10kt_v1_1x2x6.gdml"
 dune10kt_1x2x6_v1_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
 
+dune10kt_1x2x6_v2_geo:      @local::dune10kt_geo
+dune10kt_1x2x6_v2_geo.Name: "dune10kt_v2_1x2x6"
+dune10kt_1x2x6_v2_geo.GDML: "dune10kt_v2_1x2x6.gdml"
+dune10kt_1x2x6_v2_geo.ROOT: "dune10kt_v2_1x2x6.gdml"
+
 dune10kt_1x2x6_v3_geo:      @local::dune10kt_geo
 dune10kt_1x2x6_v3_geo.Name: "dune10kt_v3_1x2x6"
 dune10kt_1x2x6_v3_geo.GDML: "dune10kt_v3_1x2x6.gdml"
@@ -180,6 +185,29 @@ dune10kt_1x2x6_v4_refactored_geo.GDML: "dune10kt_v4_refactored_1x2x6.gdml"
 dune10kt_1x2x6_v4_refactored_geo.ROOT: "dune10kt_v4_refactored_1x2x6.gdml"
 
 dune10kt_1x2x6_geo:         @local::dune10kt_1x2x6_v4_geo
+
+dunevd10kt_1x6x6_2view_v1_geo: @local::dune10kt_geo
+dunevd10kt_1x6x6_2view_v1_geo.Name: "dunevd10kt_2view_v1_1x6x6"
+dunevd10kt_1x6x6_2view_v1_geo.GDML: "dunevd10kt_2view_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_2view_v1_geo.ROOT: "dunevd10kt_2view_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_2view_geo: @local::dunevd10kt_1x6x6_2view_v1_geo
+
+dunevd10kt_1x6x6_3view_v1_geo: @local::dune10kt_geo
+dunevd10kt_1x6x6_3view_v1_geo.Name: "dunevd10kt_3view_v1_1x6x6"
+dunevd10kt_1x6x6_3view_v1_geo.GDML: "dunevd10kt_3view_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_3view_v1_geo.ROOT: "dunevd10kt_3view_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_3view_geo: @local::dunevd10kt_1x6x6_3view_v1_geo
+
+dunevd10kt_1x6x6_3view_30deg_v1_geo: @local::dune10kt_geo
+dunevd10kt_1x6x6_3view_30deg_v1_geo.Name: "dunevd10kt_3view_30deg_v1_1x6x6"
+dunevd10kt_1x6x6_3view_30deg_v1_geo.GDML: "dunevd10kt_3view_30deg_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_3view_30deg_v1_geo.ROOT: "dunevd10kt_3view_30deg_v1_1x6x6.gdml"
+dunevd10kt_1x6x6_3view_30deg_geo: @local::dunevd10kt_1x6x6_3view_30deg_v1_geo
+
+dunevd10kt_1x6x6_geo: @local::dunevd10kt_1x6x6_2view_geo
+
+# temporarily assign workspace geometry
+dunevd10kt_geo : @local::dunevd10kt_1x6x6_geo
 
 
 dunedphase10kt_workspace_geo:        @local::dunedphase10kt_geo

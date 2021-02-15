@@ -1028,11 +1028,11 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       MF_LOG_WARNING("_process_FELIX_AUX:") << " FELIX fragment type " << (int) frag.type() << " doesn't match expected value: " << _felix_fragment_type << " Discarding FELIX fragment";
       return false;
     }
-  if (frag.fragmentID() == 501) 
-    {
-      std::cout << "Temporary hack: discarding fragment ID 501" << std::endl;
-      return false;
-    }
+  //if (frag.fragmentID() == 501) 
+  //  {
+  //    std::cout << "Temporary hack: discarding fragment ID 501" << std::endl;
+  //    return false;
+  //  }
 
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
 
@@ -1062,9 +1062,45 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     {
       crate = frame14ptr->crate_no(0);
       slot  = frame14ptr->slot_no(0);
-      fiber = frame14ptr->fiber_no(0); // decode this one later 
-      std::cout << "ICEBERG temporary hack: setting fiber to 1 in Fragment ID " << frag.fragmentID() << " old fiber id: " << (int) fiber << std::endl;
-      fiber = 1;
+      fiber = frame14ptr->fiber_no(0); // decode this one later
+      //std::cout << "ICEBERG crate, slot, fiber, fragID: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
+
+      fiber ++;  // read in 0 to 1, go from 1 to 2
+
+      // temporary hacks
+      crate = 1;
+      //int fragid = (int) frag.fragmentID();
+      // if (fragid == 600)
+      // 	{
+      // 	  slot = 0;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 601)
+      // 	{
+      // 	  slot = 0;
+      // 	  fiber = 2;
+      // 	}
+      // if (fragid == 700)
+      // 	{
+      // 	  slot = 2;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 701)
+      // 	{
+      // 	  slot = 2;
+      // 	  fiber = 2;
+      // 	}
+      // if (fragid == 800)
+      // 	{
+      // 	  slot = 1;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 801)
+      // 	{
+      // 	  slot = 1;
+      // 	  fiber = 2;
+      // 	}
+
     }
   else
     {

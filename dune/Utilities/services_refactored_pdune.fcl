@@ -57,5 +57,14 @@ dune10kt_1x2x6_larg4_services:
   LArG4Detector:      @local::dune10kt_1x2x6_v4_larg4detector
 }
 
+dunevd10kt_1x6x6_larg4_services: 
+{
+  @table::common_larg4_services
+
+  ParticleListAction: @local::dune_particle_list_action
+  PhysicsList:        @local::dune_physics_list_fastoptical
+  LArG4Detector:      @local::dunevd10kt_1x6x6_larg4detector
+}
+
 
 END_PROLOG

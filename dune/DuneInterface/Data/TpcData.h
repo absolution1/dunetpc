@@ -18,6 +18,7 @@
 
 #include "dune/DuneInterface/Data/AdcChannelData.h"
 #include "dune/DuneInterface/Data/Tpc2dRoi.h"
+#include "dune/DuneInterface/Data/FftwReal2dDftData.h"
 #include <string>
 #include <map>
 #include <set>
@@ -28,6 +29,8 @@ public:
 
   using Name = std::string;
   using Tpc2dRoiVector = std::vector<Tpc2dRoi>;
+  using Roi2dDft = FftwDouble2dDftData;
+  using Tpc2dDftVector = std::vector<Roi2dDft>;
   using TpcDataMap = std::map<Name, TpcData>;
   using AdcData = AdcChannelDataMap;
   using AdcDataPtr = std::shared_ptr<AdcChannelDataMap>;
@@ -51,6 +54,8 @@ public:
   const AdcDataVector& getAdcData() const { return m_adcs; }
   Tpc2dRoiVector& get2dRois() { return m_2drois; }
   const Tpc2dRoiVector& get2dRois() const { return m_2drois; }
+  Tpc2dDftVector& get2dDfts() { return m_2ddfts; }
+  const Tpc2dDftVector& get2dDfts() const { return m_2ddfts; }
 
   // Add a named TPC data constituent and return its pointer.
   // If the name is target/subname, constituent subname is inserted
@@ -81,6 +86,7 @@ private:
   TpcDataMap     m_dat;
   AdcDataVector  m_adcs;
   Tpc2dRoiVector m_2drois;
+  Tpc2dDftVector m_2ddfts;
 
 };
 

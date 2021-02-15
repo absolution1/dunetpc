@@ -283,7 +283,7 @@ public:
   void roisFromSignal();
 
   // Return normalization specifier for the DFT held here.
-  // See DuneCommon/RealDftData.h.
+  // See RealDftNormalization.h
   static AdcIndex dftNormalization() { return 22; }
 
   // Return the number of views.

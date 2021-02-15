@@ -77,7 +77,7 @@ util::CrpGainService::CrpGainService(fhicl::ParameterSet const& ps, art::Activit
       cout<<myname<<"  Use nominal gain : "<<m_UseDefGain<<endl;
     }
 
-  if( !checkGeoConfig() )
+  if( !checkGeoConfig() && !m_UseDefGain )
     {
       throw cet::exception("CrpGainService")
 	<< "Bad geometry configuration detected. ";

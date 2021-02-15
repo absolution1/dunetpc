@@ -15,8 +15,11 @@ dunefd_detectorclocks.ClockSpeedTrigger:   16.  # Trigger clock speed in MHz
 dunefd_detectorclocks.DefaultTrigTime:      0.  # Default trigger time [us].
 dunefd_detectorclocks.DefaultBeamTime:      0.  # Default beam time [us].
 
+# Vertical drift FD
+dunefdvd_detectorclocks: @local::dunefd_detectorclocks
+dunefdvd_detectorclocks.FramePeriod:       4250.  # Frame period [us]
 
-dunefddphase_detectorclocks: @local::standard_detectorclocks
+dunefddphase_detectorclocks: @local::dunefd_detectorclocks
 # dunefddphase_detectorclocks.TrigModuleName:      ""
 dunefddphase_detectorclocks.InheritClockConfig:   false
 dunefddphase_detectorclocks.G4RefTime:            0.    # G4 time [us] where electronics clock counting start
