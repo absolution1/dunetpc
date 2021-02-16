@@ -64,7 +64,7 @@ dataprep_tool_list: [ "digitReader",
 		      "adcSampleFiller", 
 		      "pddp_RemoveBadChannels", 	       
 		      "pddp_adcMultiThreshSignalFinder" ]
-services.RawDigitPrepService.AdcChannelToolNames: @local::dataprep_tool_list
+services.RawDigitPrepService.ToolNames: @local::dataprep_tool_list
 services.AdcWireBuildingService.SaveChanPedRMS: false
 tools.def_adcPedestalFit.FitRmsMin:  0.1
 tools.def_adcPedestalFit.FitRmsMax:  5.0
