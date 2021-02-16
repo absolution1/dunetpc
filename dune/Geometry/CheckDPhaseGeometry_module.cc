@@ -49,7 +49,7 @@ public:
 private:
 
   // Declare member data here.
-  const double dpwpitch = 0.3125; //cm
+  //const double dpwpitch = 0.3125; //cm
 
 };
 
@@ -62,8 +62,6 @@ CheckDPhaseGeometry::CheckDPhaseGeometry(fhicl::ParameterSet const & p)
 
 void CheckDPhaseGeometry::analyze(art::Event const & e)
 {
-  //TCanvas *can = new TCanvas("c1","c1");
-  //can->cd();
   std::vector<TBox*> TPCBox;
   std::vector<TLine*> Wires;
 
@@ -78,7 +76,15 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 
   // get geometry
   art::ServiceHandle<geo::Geometry> geo;
-  
+  /*
+  // check channel map
+  for( unsigned ch = 0; ch < geo->Nchannels(); ++ch ){
+    auto wids = geo->ChannelToWire(ch);
+    //std::cout<<ch<<" -> wids "<<wids.size()<<std::endl;
+    std::cout<<"Channel to TPC "<< ch <<" "<<wids[0].TPC<<" "<<wids[0].Plane<<" "<<wids[0].Wire<<std::endl;
+  }
+  //return;
+  */
   std::cout<<"Total number of TPC "<<geo->NTPC()<<std::endl;
 
   for (geo::TPCID const& tpcid: geo->IterateTPCIDs()) {
@@ -150,15 +156,16 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	std::cout<<"  Wire pitch      : "<<vPlane.WirePitch()<<std::endl;
 	std::cout<<"  Theta Z         : "<<vPlane.ThetaZ()<<std::endl;
 
-	double prval = 0;
+	double prval    = 0; 
+	double refpitch = 0;
 	for (size_t w = 0; w<geo->Nwires(p,t); ++w){
 	  ++nwires;
 	  //++nwires_tpc[t];
 	  double xyz0[3];
 	  double xyz1[3];
 	  unsigned int c = 0;
-
-	  if (true)
+	  
+	  if(true)
 	    {
 	      geo->WireEndPoints(c,t,p,w,xyz0,xyz1);
 	      Wires.push_back(new TLine(xyz0[2],xyz0[1],xyz1[2],xyz1[1]));
@@ -170,11 +177,13 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
 	      else if(view == geo::kY){pitch = xyz0[1] - prval; prval = xyz0[1];}
 	      else if(view == geo::kZ){pitch = xyz0[2] - prval; prval = xyz0[2];}
 	      else { 
-		std::cerr<<"cannot determine the view\n"; break;
+		continue;
+		//std::cerr<<"cannot determine the view\n"; break;
 	      }
-	      if(w > 0 && fabs(pitch - dpwpitch) > 0.00001)
+	      if( w == 1 ){ refpitch = pitch; }
+	      if(w > 0 && fabs(pitch - refpitch) > 0.00001)
 		{
-		  std::cerr<<" Bad pitch : "<<t<<" "<<p<<" "<<w<<" "<<w-1<<" "<<pitch<<std::endl;
+		  std::cerr<<" Bad pitch : "<<t<<" "<<p<<" "<<w<<" "<<w-1<<" "<<pitch<<" "<<refpitch<<std::endl;
 		  //<<std::setprecision(15)<<xyz0[0]<<" "<<xyz0[1]<<" "<<xyz0[2]<<std::endl;
 		}
 	    }
@@ -184,20 +193,23 @@ void CheckDPhaseGeometry::analyze(art::Event const & e)
       }
     //break;
   }
-
-  //TH2F *frame = new TH2F("frame",";z (cm);y (cm)",3000,minz,maxz,3000,miny,maxy);
-  //frame->SetStats(0);
-  //frame->Draw();
-  //for (auto box: TPCBox) box->Draw();
-  //for (auto wire: Wires) wire->Draw();
-  //can->Print("wires.pdf");
-  //can->Print("wires.C");
-  //std::cout<<"N wires = "<<nwires<<std::endl;
+  /*
+  TCanvas *can = new TCanvas("c1","c1");
+  can->cd();
+  TH2F *frame = new TH2F("frame",";z (cm);y (cm)",3000,minz,maxz,3000,miny,maxy);
+  frame->SetStats(0);
+  frame->Draw();
+  for (auto box: TPCBox) box->Draw();
+  for (auto wire: Wires) wire->Draw();
+  can->Print("wires.pdf");
+  can->Print("wires.C");
+  std::cout<<"N wires = "<<nwires<<std::endl;
   std::cout<<"Total number of channel wires = "<<nwires<<std::endl;
   //for (int i = 0; i<8; ++i)
   //{
   //std::cout<<"TPC "<<i<<" has "<<nwires_tpc[i]<<" wires"<<std::endl;
   //}
+  */
 }
 
 DEFINE_ART_MODULE(CheckDPhaseGeometry)

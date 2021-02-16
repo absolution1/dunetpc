@@ -15,6 +15,19 @@ dunefd_detproperties.TimeOffsetU:       0.
 dunefd_detproperties.TimeOffsetV:       0.
 dunefd_detproperties.TimeOffsetZ:       0.
 
+dunefdvd_detproperties:                   @local::standard_detproperties
+dunefdvd_detproperties.Temperature:       87
+dunefdvd_detproperties.Electronlifetime:  3.0e3
+dunefdvd_detproperties.Efield:            [0.5, 1.0, 1.0]  #(placeholder values)
+dunefdvd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+dunefdvd_detproperties.NumberTimeSamples: 8500         # drift length/drift velocity*sampling rate = (650.0 cm)/(0.16 cm/us)*(2 MHz)
+dunefdvd_detproperties.ReadOutWindowSize: 8500         # as per proposal
+dunefdvd_detproperties.TimeOffsetU:       0.
+dunefdvd_detproperties.TimeOffsetV:       0.
+dunefdvd_detproperties.TimeOffsetX:       0.
+dunefdvd_detproperties.TimeOffsetY:       0.
+dunefdvd_detproperties.TimeOffsetZ:       0.
+
 dunefddphase_detproperties:                   @local::standard_detproperties
 # dunefddphase_detproperties.SamplingRate:    400.          # in ns
 dunefddphase_detproperties.Temperature:       87            # in K

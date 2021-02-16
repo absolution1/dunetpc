@@ -104,7 +104,27 @@ dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.05
 dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
 
 
+###########################################
+### Dune FD Vertical Drift Single Phase ###
+###########################################
+dunefdvd_services:              @local::dunefd_services
+dunefdvd_services.Geometry:                  @local::dunevd10kt_geo
+dunefdvd_services.DetectorPropertiesService: @local::dunefdvd_detproperties
+dunefdvd_services.DetectorClocksService:     @local::dunefdvd_detectorclocks
+dunefdvd_services.ChannelGroupService:       @erase
 
+dunefdvd_simulation_services:   @local::dunefd_simulation_services
+dunefdvd_simulation_services.Geometry:                  @local::dunevd10kt_geo
+dunefdvd_simulation_services.DetectorPropertiesService: @local::dunefdvd_detproperties
+dunefdvd_simulation_services.DetectorClocksService:     @local::dunefdvd_detectorclocks
+
+# placeholder for reco services ...
+dunefdvd_reco_services:         @local::dunefdvd_services
+dunefdvd_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefdvd_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
+dunefdvd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
+dunefdvd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
+dunefdvd_reco_services.AdcWireBuildingService:     @local::adcwire_std
 
 
 ####################################
@@ -272,7 +292,6 @@ protodunedphase_services: {
  SimChannelExtractService:       @local::scxdp
  CrpGainService:                 @local::dunefddphase_crpgain
  SpaceCharge:                    @local::dunefddphase_spacecharge
- CrpGainService:                 @local::dunefddphase_crpgain
 }
 
 
