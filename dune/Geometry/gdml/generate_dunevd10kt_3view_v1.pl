@@ -100,7 +100,7 @@ $nViews = keys %nChans;
 #print "$nViews %nChans\n";
 
 # first induction view
-$wirePitchU      = 0.870;  # cm
+$wirePitchU      = 0.8695;  # cm
 $wireAngleU      = -48.37;  # deg
 
 # second induction view
@@ -108,7 +108,7 @@ $wirePitchY      = 0.525;
 $widthPCBActive  = $wirePitchY * $nChans{'Ind2'};
 
 # last collection view
-$wirePitchZ      = 0.515;
+$wirePitchZ      = 0.517;
 $lengthPCBActive = $wirePitchZ * $nChans{'Col'};
 
 #
