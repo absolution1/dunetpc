@@ -158,7 +158,7 @@ int test_Fw2dFFT(Index ignorm, Index itnorm, int loglev) {
   cout << myname << "Create an empty DFT." << endl;
   DftData dft(norm, nsams);
   assert( dft.dataSize(nsams) == nsam );
-  assert( dft.dftDataSize(nsams) == ndft );
+  assert( dft.dftFloatDataSize(nsams) == ndft );
   printData(dft);
 
   cout << myname << line << endl;

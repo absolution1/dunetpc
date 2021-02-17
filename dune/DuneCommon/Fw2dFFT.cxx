@@ -38,7 +38,7 @@ Fw2dFFT::~Fw2dFFT() {
 
 bool Fw2dFFT::checkDataSize(const IndexArray& nsams) const {
   Index ndatIn = Real2dDftData<DataFloat>::dataSize(nsams);
-  Index ndatOut = FftwReal2dDftData<DftFloat>::dftDataSize(nsams);
+  Index ndatOut = FftwReal2dDftData<DftFloat>::dftFloatDataSize(nsams);
   if ( ndatIn > m_ndatMax ) return 1;
   if ( ndatOut > m_ndatMax ) return 2;
   if ( ndatIn == 0 ) return 3;
@@ -101,7 +101,7 @@ fftForward(const Data& dat, DFT& dft, Index logLevel) {
     return 3;
   }
   Index ndatIn = dat.size();
-  Index ndatOut = DFT::dftDataSize(nsams);
+  Index ndatOut = DFT::dftFloatDataSize(nsams);
   Plan& plan = forwardPlan(nsams);
   float fndat = ndatIn;
   float nfac = dft.normalization().isStandard()   ? 1.0             :
@@ -113,7 +113,7 @@ fftForward(const Data& dat, DFT& dft, Index logLevel) {
   }
   fftw_execute(plan);
   dft.reset(nsams);
-  for ( Index idat=0; idat<2*ndatOut; ++idat ) dft.floatData()[idat] = nfac*floatOutData()[idat];
+  for ( Index idat=0; idat<ndatOut; ++idat ) dft.floatData()[idat] = nfac*floatOutData()[idat];
   return 0;
 }
 
@@ -129,7 +129,7 @@ fftBackward(const DFT& dft, Data& dat, Index logLevel) {
     return 2;
   }
   Index ndatIn = Real2dDftData<DataFloat>::dataSize(nsams);
-  Index ndatOut = FftwReal2dDftData<DftFloat>::dftDataSize(nsams);
+  Index ndatOut = FftwReal2dDftData<DftFloat>::dftFloatDataSize(nsams);
   if ( dft.normalization().isPower() ) {
     cout << myname << "ERROR: Power normalization is not (yet) supported." << endl;
     return 3;
