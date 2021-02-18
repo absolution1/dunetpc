@@ -816,12 +816,6 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       std::cout.copyfmt(oldState);
     }
 
-  if (frag.fragmentID() == 501) 
-    {
-      std::cout << "Temporary hack: discarding fragment ID 501" << std::endl;
-      return false;
-    }
-
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
 
   // Load overlay class.   Either a felix or a frame14 overlay, depending on the
