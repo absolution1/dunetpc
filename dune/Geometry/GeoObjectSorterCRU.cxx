@@ -110,11 +110,37 @@ namespace geo {
     bool sortWire(WireGeo const& w1, WireGeo const& w2){
       // wire sorting algorithm
       // z_low -> z_high
-      // if z_w1 == z_w2, y(x)_low -> y(x)_high
+      // for same-z group 
+      //  the sorting either from bottom (y) left (z) corner up for strip angles > pi/2
+      //  and horizontal wires
+      //  or from top corner to bottom otherwise
+      
 
       std::array<double, 3> xyz1, xyz2;
       w1.GetCenter(xyz1.data()); w2.GetCenter(xyz2.data());
-
+      
+      // always sort in the increasing z
+      if( xyz1[2] < xyz2[2] ){
+	return true;
+      }
+      
+      if( w1.isHorizontal() && xyz1[1] < xyz2[1] ){
+	return true;
+      }
+      
+      if( w1.ThetaZ(true) > 90.0 && xyz1[1] < xyz2[1] ){
+	return true;
+      }
+      
+      if( w1.ThetaZ(true) < 90.0 && xyz1[1] > xyz2[1] ){
+	return true;
+      }
+      
+      return false;
+      
+      // sort 
+      
+      /*
       // same z
       if ( std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 ){
 	if (      std::abs(xyz1[1] - xyz2[1]) < 1.0E-4 ) // same y
@@ -124,6 +150,7 @@ namespace geo {
       }
       
       return xyz1[2] < xyz2[2];
+      */
     }
 
   } // namespace geo::CRU
