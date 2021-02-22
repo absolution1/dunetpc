@@ -152,7 +152,7 @@ DataMap AdcToRoi2d::updateTpcData(TpcData& tpd) const {
       }
     }
   } else if ( m_Option == 2 ) {
-    cout << myname << "ERROR: Merging of SDC data is not yet supported." << endl;
+    cout << myname << "ERROR: Merging of ADC data is not yet supported." << endl;
   }
   ret.setStatus(nerr);
   ret.setInt("a2r_nroi", nroi);
