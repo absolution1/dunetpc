@@ -95,9 +95,6 @@ int test_FftwReal2dDftData(Index nsam0, Index nsam1) {
   vector<Complex> datc(nComplexExp);
   vector<Float> datf(2*nComplexExp);
   Index iflt = 0;
-  Index isam0 = 0;
-  Index isam1 = 0;
-  IndexArray isams({isam0, isam1});
   Index idat;
   for ( idat=0; idat<nComplexExp; ++idat ) {
     IndexArrayVector arrs = dft.indexArrays(idat);
