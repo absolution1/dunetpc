@@ -38,8 +38,8 @@ DataMap Roi2dToAdc::updateTpcData(TpcData& tpd) const {
   Index nerr = 0;
   Index nchaZeroed = 0;
   Index nsamZeroed = 0;
-  // Zero the ADC samples.
   if ( m_LogLevel >= 3 ) cout << myname << "ADC map count " << tpd.getAdcData().size() << endl;
+  // Zero the ADC samples, signal, ROIs and DFTs.
   for ( TpcData::AdcDataPtr pacm : tpd.getAdcData() ) {
     if ( ! pacm ) {
       if ( m_LogLevel >= 4 ) cout << myname << "  Skipping null map." << endl;
@@ -104,6 +104,15 @@ DataMap Roi2dToAdc::updateTpcData(TpcData& tpd) const {
     }  // end loop over channels in the ROI
     ++iroi;
   }  // end loop over ROIs
+  // Add ROI info.
+  for ( TpcData::AdcDataPtr pacm : tpd.getAdcData() ) {
+    if ( ! pacm ) continue;
+    for ( auto& iacd : *(pacm) ) {
+      AdcChannelData& acd = iacd.second;
+      if ( m_LogLevel >= 5 ) cout << myname << "    Recording ROIs for channel " << acd.channel() << endl;
+      acd.roisFromSignal();
+    }
+  }
   // Fill result.
   ret.setStatus(nerr);
   ret.setInt("r2a_nchaZeroed", nchaZeroed);

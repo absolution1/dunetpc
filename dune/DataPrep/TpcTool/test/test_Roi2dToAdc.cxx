@@ -26,8 +26,9 @@ using fhicl::ParameterSet;
 using Index = unsigned int;
 
 int showAdcMap(const AdcChannelDataMap& acm, string myname, const AdcChannelDataMap* pacmchk =0) {
-  cout << myname << "  chan  toff  samples" << endl;
   Index nerr = 0;
+  // Display samples.
+  cout << myname << "  chan  toff  samples" << endl;
   for ( auto& iacd : acm ) {
     const AdcChannelData& acd = iacd.second;
     Index icha = acd.channel();
@@ -53,14 +54,30 @@ int showAdcMap(const AdcChannelDataMap& acm, string myname, const AdcChannelData
       cout << setw(4) << sam;
       ++isam;
     }
+    cout << " (";
+    for ( bool sig : acd.signal ) cout << (sig ? "X" : ".");
+    cout << ")" << endl;
+  }
+  // Display ROIs.
+  cout << myname << "  chan  nROI  ROIs" << endl;
+  for ( auto& iacd : acm ) {
+    const AdcChannelData& acd = iacd.second;
+    Index icha = acd.channel();
+    cout << myname << setw(6) << icha << setw(6) << acd.rois.size() << ":";
+    bool first = true;
+    for ( const AdcRoi& roi : acd.rois ) {
+      if ( first ) first = false;
+      else cout << ",";
+      cout << " " << roi.first << "-" << roi.second;
+    }
     cout << endl;
   }
   return nerr;
 }
       
 int showRoi(const Tpc2dRoi& roi, string myname) {
-  cout << myname << "Channel offset: " << roi.channelOffset() << endl;
-  cout << myname << "Sample offset: " << roi.sampleOffset() << endl;
+  cout << myname << "ROI channel offset: " << roi.channelOffset() << endl;
+  cout << myname << "ROI sample offset: " << roi.sampleOffset() << endl;
   for ( Index kcha=0; kcha<roi.channelSize(); ++kcha ) {
     Index icha = roi.channelOffset() + kcha;
     cout << myname << setw(6) << icha << ":";
@@ -116,19 +133,21 @@ int test_Roi2dToAdc(bool useExistingFcl =false) {
   TpcData::AdcDataPtr pacm = tpd.createAdcData();
   AdcChannelDataMap acmchk;
   Index ncha = 4;
-  Index ntck = 5;
-  Index ntckroi = ntck + ncha - 1;
+  Index ntck = 10;
+  Index ntckroi = 6;
   Index icha0 = 100;
   Index itck0 = 1000;
+  Index tckoff = 2;   // Offset from tick0 to signal
   Float2dData::IndexArray idxs;
   assert( tpd.get2dRois().size() == 0 );
-  tpd.get2dRois().emplace_back(ncha, ntckroi, icha0, itck0);
+  tpd.get2dRois().emplace_back(ncha, ntckroi, icha0, itck0+tckoff);
   assert( tpd.get2dRois().size() == 1 );
   Tpc2dRoi& roi = tpd.get2dRois().back();
   Index dtck = 0;
   DuneEventInfo* peviMutable = new DuneEventInfo(123, 1);
   peviMutable->triggerTick0 = itck0;
   AdcChannelData::EventInfoPtr pevi(peviMutable);
+  Index nsig = 0;
   for ( Index kcha=0; kcha<ncha; ++kcha, ++dtck ) {
     Index icha = icha0 + kcha;
     AdcChannelData& acd = (*pacm)[icha];
@@ -144,9 +163,21 @@ int test_Roi2dToAdc(bool useExistingFcl =false) {
     acdchk.setChannelInfo(icha);
     acdchk.tick0 = dtck;
     acdchk.samples.resize(ntck, 0.0);
-    for ( Index ktck=0; ktck<3; ++ktck, ++idxs[1] ) {
+    for ( Index ktck=tckoff; ktck<tckoff+3; ++ktck, ++idxs[1] ) {
       roi.data().setValue(idxs, val);
       acdchk.samples[ktck] = val;
+      if ( acdchk.rois.size() == 0 ) {
+        acdchk.rois.push_back({ktck, ktck});
+      } else {
+        acdchk.rois.back().second = ktck;
+      }
+    }
+    acdchk.signal.resize(ntck, false);
+    Index isig1 = tckoff > kcha ? tckoff - kcha : 0;
+    Index isig2 = std::min(8 - kcha, ntck);
+    for ( Index ktck=isig1; ktck<isig2; ++ktck ) {
+      acdchk.signal[ktck] = true;
+      ++nsig;
     }
   }
   assert( tpd.getAdcData().size() == 1 );
@@ -158,7 +189,7 @@ int test_Roi2dToAdc(bool useExistingFcl =false) {
   assert( roi.channelSize() == ncha );
   assert( roi.channelOffset() == icha0 );
   assert( roi.sampleSize() == ntckroi );
-  assert( roi.sampleOffset() == itck0 );
+  assert( roi.sampleOffset() == itck0 + tckoff );
   
   cout << myname << line << endl;
   cout << myname << "Check ROI data." << endl;
@@ -188,16 +219,16 @@ int test_Roi2dToAdc(bool useExistingFcl =false) {
   DataMap res = ptoo->updateTpcData(tpd);
   res.print();
   assert( res.status() == 0 );
-  assert( res.getInt("r2a_nchaZeroed") == int(ncha) );
-  assert( res.getInt("r2a_nchaFilled") == int(ncha) );
-  assert( res.getInt("r2a_nsamZeroed") == int(ncha*ntck) );
-  assert( res.getInt("r2a_nsamFilled") == int(ncha*ntck) );
 
   cout << myname << line << endl;
   cout << myname << "Check ADC data after tool." << endl;
   assert( tpd.getAdcData().size() == 1 );
   assert( tpd.getAdcData().front() == pacm );
   assert( showAdcMap(acm, myname, &acmchk) == 0 );
+  assert( res.getInt("r2a_nchaZeroed") == int(ncha) );
+  assert( res.getInt("r2a_nchaFilled") == int(ncha) );
+  assert( res.getInt("r2a_nsamZeroed") == int(ncha*ntck) );
+  assert( res.getInt("r2a_nsamFilled") == int(nsig) );
   
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
