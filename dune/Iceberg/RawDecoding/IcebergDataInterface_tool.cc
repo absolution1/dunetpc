@@ -131,7 +131,8 @@ int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
     {
       _processRCE(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
-  else if (inputLabel.find("FELIX") != std::string::npos)
+  else if ( (inputLabel.find("FELIX") != std::string::npos) ||
+	    (inputLabel.find("FRAME14") != std::string::npos) )
     {
       _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
