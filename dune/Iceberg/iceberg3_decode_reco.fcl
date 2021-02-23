@@ -126,6 +126,7 @@ services.SpaceCharge.EnableCalSpatialSCE: true
 #<friendly-type>_<module-label>_<instance-name>_<process-name>
 
 tools.IcebergDecoder:  @local::IcebergDataInterface_tool
+tools.IcebergDecoderFrame14:  @local::IcebergDataInterface_tool_frame14
 
 physics.producers.caldata.DecoderTool: "IcebergDecoder"
 
