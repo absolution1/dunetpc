@@ -331,8 +331,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( keep[isam] ) {
       Index iadc = acd.raw[isam];
       Index ibin = iadc/10;
-      if ( ibin >= nbin ) cout << myname << "ERROR: Too many samples (isam = " << isam << ")"
-                              << " for rebin histo with size " << nbin << endl;
+      if ( ibin >= nbin ) cout << myname << "ERROR: Too many ADC counts for channel " << acd.channel()
+                               << " sample " << isam << ": " << iadc << endl;
       else ++rcounts[ibin];
     }
   }
