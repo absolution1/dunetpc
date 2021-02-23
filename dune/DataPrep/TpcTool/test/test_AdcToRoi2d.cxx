@@ -24,7 +24,7 @@ using std::vector;
 using std::setw;
 using fhicl::ParameterSet;
 
-using Index = unsigned int;
+using Index = Tpc2dRoi::Index;
 
 //**********************************************************************
 

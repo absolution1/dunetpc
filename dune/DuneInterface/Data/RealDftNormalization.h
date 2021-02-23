@@ -149,6 +149,15 @@ public:
   bool hasValidTermNormalization()   const { return isUnit() || isPower(); }
   bool isValid() const { return hasValidGlobalNormalization() && hasValidTermNormalization(); }
 
+  // Equality.
+  bool operator==(const RealDftNormalization& rhs) {
+    if ( ! isValid() ) return false;
+    if ( ! rhs.isValid() ) return false;
+    if ( globalNormalization() != rhs.globalNormalization() ) return false;
+    if ( termNormalization() != rhs.termNormalization() ) return false;
+    return true;
+  }
+
   // Normalization to use for convolution.
   static RealDftNormalization convolutionNormalization() { return RealDftNormalization(Standard, Unit); }
 
