@@ -60,4 +60,9 @@ IcebergDataInterface_tool:
 
   EnforceErrorFree: false
   }
+
+IcebergDataInterface_tool_frame14: @local::IcebergDataInterface_tool
+IcebergDataInterface_tool_frame14.APA1InputLabels: [ "daq:FRAME14" ]
+IcebergDataInterface_tool_frame14.MISCAPAInputLabels: [ "daq:FRAME14" ]
+
 END_PROLOG
