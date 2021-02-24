@@ -131,6 +131,8 @@ tools.adcPlotRawDist: {
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
+  FitOpt: 0
   SkipFlags: []
   AdcFitRange: 100
   FitRmsMin:  1.0
