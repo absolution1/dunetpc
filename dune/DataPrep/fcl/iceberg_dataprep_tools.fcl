@@ -63,6 +63,7 @@ tools.ib3_adcPedestalFit.FitRmsMin:  1.0
 tools.ib4_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
   FitOpt: 3
@@ -81,6 +82,10 @@ tools.ib4_adcPedestalFit: {
   PlotSplitY: 0
   PlotShowFit: 1
 }
+
+# Pedestal fitter for Iceberg 5 (14-bit ADC, no sticky codes)
+tools.ib5_adcPedestalFit: @local::tools.ib4_adcPedestalFit
+tools.ib5_adcPedestalFit.AdcRange: 16384
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {

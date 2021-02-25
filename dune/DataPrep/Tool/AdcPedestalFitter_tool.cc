@@ -65,6 +65,7 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
+  m_AdcRange(ps.get<Index>("AdcRange")),
   m_FitOpt(ps.get<Index>("FitOpt")),
   m_FitPrecision(ps.get<float>("FitPrecision")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
@@ -114,11 +115,12 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   }
   // Initialize state.
   {
-    state().pfitter = new TF1("pedgaus", "gaus", 0, 4096, TF1::EAddToList::kNo);
+    state().pfitter = new TF1("pedgaus", "gaus", 0, m_AdcRange, TF1::EAddToList::kNo);
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
     cout << myname << "       LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       AdcRange: " << m_AdcRange << endl;
     cout << myname << "         FitOpt: " << m_FitOpt << endl;
     cout << myname << "   FitPrecision: " << m_FitPrecision << endl;
     cout << myname << "      SkipFlags: [";
@@ -319,7 +321,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   htitl += "; ADC count; # samples";
-  unsigned int nadc = 4096;
+  unsigned int nadc = m_AdcRange;
   unsigned int rebin = 10;
   unsigned int nbin = (nadc + rebin - 0.01)/rebin;
   double xmax = rebin*nbin;
@@ -331,8 +333,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( keep[isam] ) {
       Index iadc = acd.raw[isam];
       Index ibin = iadc/10;
-      if ( ibin >= nbin ) cout << myname << "ERROR: Too many samples (isam = " << isam << ")"
-                              << " for rebin histo with size " << nbin << endl;
+      if ( ibin >= nbin ) cout << myname << "ERROR: Too many ADC counts for channel " << acd.channel()
+                               << " sample " << isam << ": " << iadc << endl;
       else ++rcounts[ibin];
     }
   }

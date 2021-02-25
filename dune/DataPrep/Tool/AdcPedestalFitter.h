@@ -14,6 +14,7 @@
 //
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   AdcRange - ADC values must less than this value, e.g. 4096 for 12 bits.
 //   FitOpt - 0: Use histogram mean (no fit)
 //            1: Chi-square fit
 //            2: Likelihood fit
@@ -119,6 +120,7 @@ private:
 
   // Configuration data.
   int m_LogLevel;
+  Index m_AdcRange;
   Index m_FitOpt;
   float m_FitPrecision;
   IndexVector m_SkipFlags;
