@@ -119,6 +119,17 @@ tools.ib4SampleCalibration: {
   GainTool: "areaGain_ib4"
 }
 
+# Fill sample and apply calibration for iceberg5.
+tools.ib5SampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: 0.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 16383
+  GainTool: "areaGain_ib5"
+}
+
 # Signal finder to use with tail removal.
 tools.ib3TailSignalFinderAdc: {
   tool_type: AdcThresholdSignalFinder

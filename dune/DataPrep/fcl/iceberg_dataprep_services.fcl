@@ -130,7 +130,7 @@ ib5_dataprep_tools_nocal: [
 ib5_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
   "ib5_adcPedestalFit",         # Find pedestal
-  "ib4SampleCalibration"        # Subtract pedestal and apply charge calibration
+  "ib5SampleCalibration"        # Subtract pedestal and apply charge calibration
 ]
 
 # Charge calibration, mitigation, tail removal, no noise removal.
