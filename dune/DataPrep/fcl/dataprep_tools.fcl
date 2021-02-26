@@ -39,6 +39,13 @@ tools.adcChannelDumper: {
   MaxSample: 0
 }
 
+# Write all ROIs to a TTree.
+tools.adcRoiTreeMaker: {
+  tool_type: AdcRoiToTree
+  LogLevel: 1
+  OutFile: "adcrois.root"
+}
+
 ################################################################################
 # Event displays.
 ################################################################################
