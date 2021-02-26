@@ -52,16 +52,15 @@ tools.areaGain_ib4b_v10: {
 }
 
 # February 2021 rough charge calibration Iceberg 5 before cooldown.
-# Based on run 8226 event 1 hand scan. DAC=5 and h is around 580 ADC.
-# gh = 5*(21.4 ke)/(580 ADC) = 0.184 ke/ADC
-# gA = gh/[K tshap] = (0.184 ke/ADC)/[(1.269 /tick)*(2.2 tick)]
-#    = 0.132 ke/(ADC-tick)
+# Based on run 8226 good-channel ROI areas.
+# gA = (21.4 ke)/(1581 ADC-tick) = 0.135 ke/(ADC-tick)
+#    = 0.135 ke/(ADC-tick)
 # Note that ADC gain is very diffent for cold data.
 tools.areaGain_ib5a_v00: {
   tool_type: FclFileFloatArray
   LogLevel: 1
   Label: "areaGain_ib5a-v00"
-  DefaultValue: 0.132
+  DefaultValue: 0.0135
   FileNames: [
   ]
 }
