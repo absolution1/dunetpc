@@ -2,5 +2,6 @@
 
 physics.producers.daq.AdcSimulator: "adcsim_noisy"
 tools.adcsim_noisy.Noise:5
-services.PdspChannelMapService: pdspchannelmap
-services.ChannelNoiseService: protodunelikenoise
+services.PdspChannelMapService: @local::pdspchannelmap
+
+services.ChannelNoiseService: @local::protodunelikenoise
