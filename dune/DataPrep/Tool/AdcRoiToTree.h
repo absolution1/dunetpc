@@ -33,7 +33,9 @@ public:
     Index nroi =0;
     IndexVector nsam;
     IndexVector isam;
-    FloatVector qke;
+    FloatVector qroi;
+    FloatVector hmin;
+    FloatVector hmax;
   };
 
   // Ctor.
