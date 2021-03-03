@@ -234,8 +234,9 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
              << (ncha == 1 ? "" : "s") << "."  << endl;
       }
       // If needed, create a new canvas and a name.
-      const AdcChannelData& acdFirst = *acdvec[0];
       if ( pmantop == nullptr ) {
+        //const AdcChannelData& acdFirst = *acdvec[0];
+        const AdcChannelData& acdFirst = acds.begin()->second;
         if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas for run " << acdFirst.run()
                                        << ", event " << acdFirst.event() << "." << endl;
         pmantop = new TPadManipulator;
