@@ -143,8 +143,9 @@ namespace geo {
 	return (center1.Y() < center2.Y());
       }
       
-      // wires at angle
+      // wires at angle with same z center
       if( CheckTol( center2.Z() - center1.Z() ) ){
+	if( dz1 < 0 ){ dy1 = -dy1; } // always compare here upstream - downstream ends
 	if( dy1 < 0 ){ return (center1.Y() < center2.Y()); }
 	if( dy1 > 0 ){ return (center1.Y() > center2.Y()); }
       }

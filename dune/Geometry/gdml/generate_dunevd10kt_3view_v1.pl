@@ -15,7 +15,8 @@
 #
 #  Modified:
 #           VG: Added defs to enable use in the refactored sim framework
-#
+#           VG: 23.02.21 Adjust plane dimensions to fit a given number of ch per side
+#           VG: 23.02.21 Group CRUs in CRPs
 #
 #
 #################################################################################
@@ -95,30 +96,32 @@ $basename="_";
 #$lengthPCBActive  = 150.0; # cm
 
 # views and channel counts
-%nChans = ('Ind1', 256, 'Ind2', 320, 'Col', 288);
+%nChans = ('Ind1', 256, 'Ind1Bot', 128, 'Ind2', 320, 'Col', 288);
 $nViews = keys %nChans;
 #print "$nViews %nChans\n";
 
 # first induction view
 $wirePitchU      = 0.8695;  # cm
-$wireAngleU      = -48.37;  # deg
+$wireAngleU      = 131.63;  #-48.37;  # deg
 
 # second induction view
 $wirePitchY      = 0.525;
-$widthPCBActive  = $wirePitchY * $nChans{'Ind2'};
+$widthPCBActive  = 168.00;   #$wirePitchY * $nChans{'Ind2'};
 
 # last collection view
 $wirePitchZ      = 0.517;
-$lengthPCBActive = $wirePitchZ * $nChans{'Col'};
+$lengthPCBActive = 148.9009; #$wirePitchZ * $nChans{'Col'};
 
 #
-$borderCRM       = 0.05;     # border space aroud each CRM 
+$borderCRM       = 0.0;      # border space aroud each CRM 
 
 $widthCRM_active  = $widthPCBActive;  
 $lengthCRM_active = $lengthPCBActive; 
 
 $widthCRM  = $widthPCBActive  + 2 * $borderCRM;
 $lengthCRM = $lengthPCBActive + 2 * $borderCRM;
+
+$borderCRP = 0.5; # cm
 
 # number of CRMs in y and z
 $nCRM_x   = 4 * 2;
@@ -146,9 +149,10 @@ if( $workspace == 3 )
 }
 
 
-# calculate tpc area based on number of CRMs and their dimensions
-$widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200 for full module
-$lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000 for full module
+# calculate tpc area based on number of CRMs and their dimensions 
+# each CRP should have a 2x2 CRMs
+$widthTPCActive  = $nCRM_x * $widthCRM + $nCRM_x * $borderCRP;  # around 1200 for full module
+$lengthTPCActive = $nCRM_z * $lengthCRM + $nCRM_z * $borderCRP; # around 6000 for full module
 
 # active volume dimensions 
 $driftTPCActive  = 650.0;
@@ -189,8 +193,6 @@ $Cryostat_x = $Argon_x + 2*$SteelThickness;
 $Cryostat_y = $Argon_y + 2*$SteelThickness;
 $Cryostat_z = $Argon_z + 2*$SteelThickness;
 
-##################################################################
-############## DetEnc and World relevant parameters  #############
 ##################################################################
 ############## DetEnc and World relevant parameters  #############
 
@@ -460,13 +462,29 @@ sub gen_Wires
     my $length = $_[0];  # 
     my $width  = $_[1];  # 
     my $nch    = $_[2];  # 
-    my $pitch  = $_[3];  # 
-    my $theta  = $_[4];  # deg
-    my $dia    = $_[5];  #
+    my $nchb   = $_[3];  # nch per bottom side
+    my $pitch  = $_[4];  # 
+    my $theta  = $_[5];  # deg
+    my $dia    = $_[6];  #
     
     $theta  = $theta * pi()/180.0;
     my @dirw   = (cos($theta), sin($theta));
     my @dirp   = (cos($theta - pi()/2), sin($theta - pi()/2));
+
+    # calculate
+    my $alpha = $theta;
+    if( $alpha > pi()/2 ){
+	$alpha = pi() - $alpha;
+    }
+    my $dX = $pitch / sin( $alpha );
+    my $dY = $pitch / sin( pi()/2 - $alpha );
+    if( $length <= 0 ){
+        $length = $dX * $nchb;
+    }
+    if( $width <= 0 ){
+	$width = $dY * ($nch - $nchb);
+    }
+
     my @orig   = (0, 0);
     if( $dirp[0] < 0 ){
 	$orig[0] = $length;
@@ -474,11 +492,12 @@ sub gen_Wires
     if( $dirp[1] < 0 ){
 	$orig[1] = $width;
     }
-
+  
     #print "origin    : @orig\n";
     #print "pitch dir : @dirp\n";
     #print "wire dir  : @dirw\n";
-
+    #print "$length x $width cm2\n";
+    
     # gen wires
     my @winfo  = ();
     my $offset = $pitch/2;
@@ -498,6 +517,12 @@ sub gen_Wires
 	    $offset = $offset + $pitch;
 	    next;
 	}
+
+	# re-center on the mid-point
+	$endpts[0] -= $length/2;
+	$endpts[2] -= $length/2;
+	$endpts[1] -= $width/2;
+	$endpts[3] -= $width/2;
 
 	# calculate the strip center in the rectangle of CRU
 	$wcn[0] = ($endpts[0] + $endpts[2])/2;
@@ -547,9 +572,9 @@ EOF
     # compute wires for 1st induction
     my @winfo = ();
     if( $wires_on == 1 ){
-	@winfo = gen_Wires( $TPCActive_z, $TPCActive_y,
-			    $nChans{'Ind1'}, $wirePitchU,
-			    $wireAngleU, $padWidth );
+	@winfo = gen_Wires( 0, 0, # $TPCActive_y,
+			    $nChans{'Ind1'}, $nChans{'Ind1Bot'}, 
+			    $wirePitchU, $wireAngleU, $padWidth );
     }
 
     # All the TPC solids save the wires.
@@ -665,8 +690,8 @@ if ($wires_on==1) # add wires to U plane
 {
     # the coordinates were computed with a corner at (0,0)
     # so we need to move to plane coordinates
-    my $offsetZ = -0.5 * $TPCActive_z;
-    my $offsetY = -0.5 * $TPCActive_y;
+    my $offsetZ = 0; #-0.5 * $TPCActive_z;
+    my $offsetY = 0; #-0.5 * $TPCActive_y;
 
     foreach my $wire (@winfo) {
 	my $wid  = $wire->[0];
@@ -694,9 +719,13 @@ EOF
 
 if ($wires_on==1) # add wires to Y plane (plane with wires reading y position)
 {
-    for($i=0;$i<$nChans{'Ind2'};++$i)
+    for(my $i=0;$i<$nChans{'Ind2'};++$i)
     {
-	my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
+	#my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
+	my $ypos = ($i + 0.5 - $nChans{'Ind2'}/2)*$wirePitchY;
+	if( (0.5 * $TPCActive_y - abs($ypos)) < 0 ){
+	    die "Cannot place wire $i in view Y, as plane is too small\n";
+	}
 print TPC <<EOF;
       <physvol>
         <volumeref ref="volTPCWireY"/> 
@@ -718,9 +747,13 @@ print TPC <<EOF;
 EOF
 if ($wires_on==1) # add wires to Z plane (plane with wires reading z position)
    {
-       for($i=0;$i<$nChans{'Col'};++$i)
+       for(my $i=0;$i<$nChans{'Col'};++$i)
        {
-	   my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitchZ + 0.5*$padWidth;
+	   #my $zpos = -0.5 * $TPCActive_z + ($i+0.5)*$wirePitchZ + 0.5*$padWidth;
+	   my $zpos = ($i + 0.5 - $nChans{'Col'}/2)*$wirePitchZ;
+	   if( (0.5 * $TPCActive_z - abs($zpos)) < 0 ){
+	       die "Cannot place wire $i in view Z, as plane is too small\n";
+	   }
 print TPC <<EOF;
        <physvol>
          <volumeref ref="volTPCWireZ"/>
@@ -968,17 +1001,28 @@ EOF
 EOF
 
 
-if ($tpc_on==1) # place TPC inside croysotat
+if ($tpc_on==1) # place TPC inside croysotat offsetting each pair of CRMs by borderCRP
 {
   $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
   $idx = 0;
-  for($ii=0;$ii<$nCRM_z;$ii++)
+  my $posZ = -0.5*$Argon_z + $zLArBuffer + 0.5*$lengthCRM;
+  for(my $ii=0;$ii<$nCRM_z;$ii++)
   {
-    $posZ = -0.5*$Argon_z + $zLArBuffer + ($ii+0.5)*$lengthCRM;
-
-    for($jj=0;$jj<$nCRM_x;$jj++)
+    if( $ii % 2 == 0 ){
+	$posZ += $borderCRP;
+	if( $ii>0 ){
+	    $posZ += $borderCRP;
+	}
+    }
+    my $posY = -0.5*$Argon_y + $yLArBuffer + 0.5*$widthCRM;
+    for(my $jj=0;$jj<$nCRM_x;$jj++)
     {
-	$posY = -0.5*$Argon_y + $yLArBuffer + ($jj+0.5)*$widthCRM;
+	if( $jj % 2 == 0 ){
+	    $posY += $borderCRP;
+	    if( $jj>0 ){
+		$posY += $borderCRP;
+	    }
+	}
 	print CRYO <<EOF;
       <physvol>
         <volumeref ref="volTPC"/>
@@ -986,8 +1030,11 @@ if ($tpc_on==1) # place TPC inside croysotat
            x="$posX" y="$posY" z="$posZ"/>
       </physvol>
 EOF
-$idx++
+       $idx++;
+       $posY += $widthCRM;
     }
+
+    $posZ += $lengthCRM;
   }
 
 }

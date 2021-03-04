@@ -32,7 +32,9 @@ AdcRoiToTree::AdcRoiToTree(fhicl::ParameterSet const& ps)
     ptre->Branch("nroi",    &tdat.nroi);
     ptre->Branch("nsam",    &tdat.nsam[0], "nsam[nroi]/i");
     ptre->Branch("isam",    &tdat.isam[0], "isam[nroi]/i");
-    ptre->Branch("qke",     &tdat.qke[0],  "qke[nroi]/F");
+    ptre->Branch("qroi",    &tdat.qroi[0],  "qroi[nroi]/F");
+    ptre->Branch("hmin",    &tdat.hmin[0],  "hmin[nroi]/F");
+    ptre->Branch("hmax",    &tdat.hmax[0],  "hmax[nroi]/F");
     ptre->ResetBranchAddresses();
     ptre->Write();
     pfil->Close();
@@ -86,14 +88,18 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
   TreeData tdat;
   tdat.nsam.resize(maxroi);
   tdat.isam.resize(maxroi);
-  tdat.qke.resize(maxroi);
+  tdat.qroi.resize(maxroi);
+  tdat.hmin.resize(maxroi);
+  tdat.hmax.resize(maxroi);
   ptre->SetBranchAddress("run",     &tdat.run);
   ptre->SetBranchAddress("event",   &tdat.event);
   ptre->SetBranchAddress("channel", &tdat.channel);
   ptre->SetBranchAddress("nroi",    &tdat.nroi);
   ptre->SetBranchAddress("nsam",    &tdat.nsam[0]);
   ptre->SetBranchAddress("isam",    &tdat.isam[0]);
-  ptre->SetBranchAddress("qke",     &tdat.qke[0]);
+  ptre->SetBranchAddress("qroi",    &tdat.qroi[0]);
+  ptre->SetBranchAddress("hmin",    &tdat.hmin[0]);
+  ptre->SetBranchAddress("hmax",    &tdat.hmax[0]);
   //ptre->SetBranchAddress("nsample", pflt, "nsample[nroi]/F");
   for ( const auto& iacd : acds ) {
     const AdcChannelData& acd = iacd.second;
@@ -106,16 +112,32 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
       
       Index isam1 = acd.rois[iroi].first;
       Index isam2 = acd.rois[iroi].second;
-      float q = 0.0;
+      float qroi = 0.0;
+      float hmin = 0.0;
+      float hmax = 0.0;
+      bool haveSamples = false;
       if ( acd.samples.size() > isam2 ) {
-        for ( Index isam=isam1; isam<=isam2; ++isam ) q += acd.samples[isam];
+        for ( Index isam=isam1; isam<=isam2; ++isam ) {
+          float qsam = acd.samples[isam];
+          qroi += qsam;
+          if ( haveSamples ) {
+            if ( qsam < hmin ) hmin = qsam;
+            if ( qsam > hmax ) hmax = qsam;
+          } else {
+            hmin = qsam;
+            hmax = qsam;
+            haveSamples = true;
+          }
+        }
       } else {
         cout << myname << "WARNING: Ignoring missing samples for run " << acd.run()
              << ", event " << acd.event() << ", channel " << acd.channel() << endl;
       }
       tdat.nsam[iroi] = 1 + isam2 - isam1;
       tdat.isam[iroi] = isam1;
-      tdat.qke[iroi] = q;
+      tdat.qroi[iroi] = qroi;
+      tdat.hmin[iroi] = hmin;
+      tdat.hmax[iroi] = hmax;
     }
     if ( m_LogLevel >= 3 ) {
       cout << myname << "Filling run " << tdat.run << ", event " << tdat.event
@@ -135,10 +157,10 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
           spre = ", ";
         }
         cout << "]" << endl;
-        spre = myname + "   qke: [";
+        spre = myname + "  qroi: [";
         for ( Index iroi=0; iroi<nroi; ++iroi ) {
           cout << spre;
-          cout << tdat.qke[iroi];
+          cout << tdat.qroi[iroi];
           spre = ", ";
         }
         cout << "]" << endl;

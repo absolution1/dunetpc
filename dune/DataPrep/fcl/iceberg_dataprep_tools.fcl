@@ -155,6 +155,9 @@ tools.ib3TailRemovalAdc: {
 tools.ib3TailSignalFinderKe: @local::tools.ib3TailSignalFinderAdc
 tools.ib3TailSignalFinderKe.Threshold: 0.4
 
+tools.ib5TailSignalFinderKe: @local::tools.ib3TailSignalFinderKe
+tools.ib5TailSignalFinderKe.Threshold: 1.0
+
 tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
 tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
 
@@ -180,14 +183,16 @@ tools.ib4TailPedRemovalIKe.DecayTime: 6000
 tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
 
 tools.ib4PedRemovalIKe: @local::tools.ib4TailPedRemovalIKe
-tools.ib4TailPedRemovalIKe.DecayTime: 0
+tools.ib4PedRemovalIKe.DecayTime: 0
 
 # Tail+ped removal 2021.
 tools.ib5TailPedRemovalZKe: @local::tools.ib4TailPedRemovalZKe
 tools.ib5TailPedRemovalZKe.MaxTick: 2184
+tools.ib5TailPedRemovalZKe.SignalTool: ib5TailSignalFinderKe
 
 tools.ib5PedRemovalIKe: @local::tools.ib4PedRemovalIKe
 tools.ib5PedRemovalIKe.MaxTick: 2184
+tools.ib5PedRemovalIKe.SignalTool: ib5TailSignalFinderKe
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
