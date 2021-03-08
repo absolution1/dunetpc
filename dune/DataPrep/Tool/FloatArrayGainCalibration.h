@@ -19,6 +19,8 @@
 //   Unit - units for the calibrated samples ("fC", "ke", "mV", ...)
 //          If "derived", then /(ADC count) is removed from the gain unit.
 //   GainDefault - Gain used if input gain is <=0 or missing.
+//                 If this value is negative, then the default value of
+//                 GainTool is used instead (Feb 2021).
 //   AdcUnderflowDefault - value for underflow
 //   AdcOverflowDefault - value for overflow
 //   GainTool - Name of the FloatArrayTool holding the gains.

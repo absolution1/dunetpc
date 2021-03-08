@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  GeoObjectSorterCRU.cxx
 /// \brief Interface to algorithm class for sorting VD CRUs of geo::XXXGeo objects
+///        The sorting makes the assumptions on the drift direction along X axis
 ///
 /// \version $Id:  $
 /// \author vgalymov@ipnl.in2p3.fr
@@ -19,6 +20,8 @@
 #include <string>
 #include <cmath> // std::abs()
 
+using std::cout;
+using std::endl;
 
 // comparison functions for sorting various geo objects
 namespace geo { 
@@ -114,43 +117,41 @@ namespace geo {
       //  the sorting either from bottom (y) left (z) corner up for strip angles > pi/2
       //  and horizontal wires
       //  or from top corner to bottom otherwise
-      
+      //  we assume all wires in the plane are parallel
 
-      std::array<double, 3> xyz1, xyz2;
-      w1.GetCenter(xyz1.data()); w2.GetCenter(xyz2.data());
+      //  w1 geo info
+      auto center1 = w1.GetCenter<geo::Point_t>();
+      auto start1  = w1.GetStart<geo::Point_t>();
+      auto end1    = w1.GetEnd<geo::Point_t>();
+      auto Delta   = end1-start1;
+      //double dx1   = Delta.X();
+      double dy1   = Delta.Y();
+      double dz1   = Delta.Z();
       
-      // always sort in the increasing z
-      if( xyz1[2] < xyz2[2] ){
-	return true;
+      // w2 geo info
+      auto center2 = w2.GetCenter<geo::Point_t>();
+      
+      auto CheckTol = [](double val, double tol = 1.E-4){ 
+	return (std::abs( val ) < tol); 
+      };
+      
+      if( CheckTol(dz1) ){ // wires perpendicular to z axis
+	return (center1.Z() < center2.Z());
       }
       
-      if( w1.isHorizontal() && xyz1[1] < xyz2[1] ){
-	return true;
+      if( CheckTol(dy1) ){ // wires perpendicular to y axis
+	return (center1.Y() < center2.Y());
       }
       
-      if( w1.ThetaZ(true) > 90.0 && xyz1[1] < xyz2[1] ){
-	return true;
+      // wires at angle with same z center
+      if( CheckTol( center2.Z() - center1.Z() ) ){
+	if( dz1 < 0 ){ dy1 = -dy1; } // always compare here upstream - downstream ends
+	if( dy1 < 0 ){ return (center1.Y() < center2.Y()); }
+	if( dy1 > 0 ){ return (center1.Y() > center2.Y()); }
       }
-      
-      if( w1.ThetaZ(true) < 90.0 && xyz1[1] > xyz2[1] ){
-	return true;
-      }
-      
-      return false;
-      
-      // sort 
-      
-      /*
-      // same z
-      if ( std::abs(xyz1[2] - xyz2[2]) < 1.0E-4 ){
-	if (      std::abs(xyz1[1] - xyz2[1]) < 1.0E-4 ) // same y
-	  return xyz1[0] < xyz2[0];
-	else if ( std::abs(xyz1[0] - xyz2[0]) < 1.0E-4 ) // same x
-	  return xyz1[1] < xyz2[1];
-      }
-      
-      return xyz1[2] < xyz2[2];
-      */
+
+      // otherwise sorted in z
+      return ( center1.Z() < center2.Z() );
     }
 
   } // namespace geo::CRU

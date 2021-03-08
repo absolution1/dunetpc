@@ -39,6 +39,13 @@ tools.adcChannelDumper: {
   MaxSample: 0
 }
 
+# Write all ROIs to a TTree.
+tools.adcRoiTreeMaker: {
+  tool_type: AdcRoiToTree
+  LogLevel: 1
+  OutFile: "adcrois.root"
+}
+
 ################################################################################
 # Event displays.
 ################################################################################
@@ -131,6 +138,8 @@ tools.adcPlotRawDist: {
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
+  FitOpt: 0
   SkipFlags: []
   AdcFitRange: 100
   FitRmsMin:  1.0

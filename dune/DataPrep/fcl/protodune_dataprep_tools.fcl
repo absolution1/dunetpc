@@ -107,6 +107,7 @@ tools.pdspChannelToPlane: {
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
   FitOpt: 3
   FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]

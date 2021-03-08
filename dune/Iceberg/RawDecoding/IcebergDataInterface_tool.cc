@@ -131,7 +131,8 @@ int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
     {
       _processRCE(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
-  else if (inputLabel.find("FELIX") != std::string::npos)
+  else if ( (inputLabel.find("FELIX") != std::string::npos) ||
+	    (inputLabel.find("FRAME14") != std::string::npos) )
     {
       _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
@@ -846,7 +847,14 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       crate = frame14ptr->crate_no(0);
       slot  = frame14ptr->slot_no(0);
       fiber = frame14ptr->fiber_no(0); // decode this one later 
-      //std::cout << "ICEBERG crate, slot, fiber, fragID: " << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
+      int frame_version = frame14ptr->frame_version(0);
+      //std::cout << "ICEBERG frame_version, crate, slot, fiber, fragID: " << frame_version << " "
+      //   << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
+      if (frame_version == 0) 
+	{
+	  std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
+	  return false;
+	}
       fiber ++;  // read in 0 to 1, go from 1 to 2
       crate = 1;  // ignored anyway for Iceberg -- just one crate.
     }
