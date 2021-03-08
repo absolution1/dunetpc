@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <iomanip>
 #include "TH1F.h"
 #include "TGraph.h"
@@ -22,6 +23,34 @@ using std::vector;
 using std::ostringstream;
 using std::setw;
 using std::fixed;
+using Index = AdcChannelDftPlotter::Index;
+using IndexSet = std::set<Index>;
+using IntVector = DataMap::IntVector;
+using AcdVector = AdcChannelDftPlotter::AcdVector;
+
+//**********************************************************************
+// Local functions.
+//**********************************************************************
+
+namespace {
+
+Index channelCount(const IntVector& chans) {
+  Index ncha = 0;
+  for ( IntVector::const_iterator iven=chans.begin(); iven!=chans.end(); ++iven ) {
+    if ( find(chans.begin(), iven, *iven) == iven ) ++ncha;
+  }
+  return ncha;
+}
+
+Index channelCount(const AcdVector& acds) {
+  IndexSet ichas;
+  for ( const AdcChannelData* pacd : acds ) {
+    ichas.insert(pacd->channel());
+  }
+  return ichas.size();
+}
+
+}
 
 //**********************************************************************
 // Class methods.
@@ -182,13 +211,9 @@ viewMapChannels(Name crn, const AcdVector& acds, TPadManipulator& man, Index ncr
           if ( evtCount > 1 ) phevt->Add(ph);
           else cout << myname << "ERROR: Hist existing for event count " << evtCount << endl;
         }
-        using IntVector = DataMap::IntVector;
         const IntVector& allchans = chret.getIntVector("dftChannels");
         Index nven = allchans.size();
-        Index ncha = 0;
-        for ( IntVector::const_iterator iven=allchans.begin(); iven!=allchans.end(); ++iven ) {
-          if ( find(allchans.begin(), iven, *iven) == iven ) ++ncha;
-        }
+        Index ncha = channelCount(allchans);
         getJobState().nchan(crn) += ncha;
         getJobState().nviewentry(crn) += nven;
         getEventState().nchan(crn) += ncha;
@@ -349,17 +374,6 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     cout << myname << "ERROR: DFT is not valid." << endl;
     return ret.setStatus(3);
   }
-  // Build list of retained channels.
-  DataMap::IntVector dftChannels;
-  AcdVector keepAcds;
-  for ( const AdcChannelData* pacd : acds ) {
-    if ( m_ChannelStatusFlag ) {
-      if ( m_skipBad && pacd->channelStatus()==1 ) continue;
-      if ( m_skipNoisy && pacd->channelStatus()==2 ) continue;
-    }
-    dftChannels.push_back(pacd->channel());
-    keepAcds.push_back(pacd);
-  }
   // Check consistency of input data.
   Index nDataMissing = 0;
   Index nBadMagCount = 0;
@@ -430,6 +444,24 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ret.setGraph("dftGraph", pg);
     ret.setString("dftDopt", "P");
   } else if ( doPwr || doPwt ) {
+    // Build list of retained channels.
+    DataMap::IntVector dftChannels;
+    AcdVector keepAcds;
+    for ( const AdcChannelData* pacd : acds ) {
+      if ( m_ChannelStatusFlag ) {
+        if ( m_skipBad && pacd->channelStatus()==1 ) continue;
+        if ( m_skipNoisy && pacd->channelStatus()==2 ) continue;
+      }
+      dftChannels.push_back(pacd->channel());
+      keepAcds.push_back(pacd);
+    }
+    ret.setIntVector("dftChannels", dftChannels);
+    if ( getLogLevel() >= 4 ) {
+      Index ncha = channelCount(acds);
+      Index nchaKeep = channelCount(keepAcds);
+      cout << myname << "  Retaining " << keepAcds.size() << " of " << acds.size() << " entries in "
+           << nchaKeep << " of " << ncha << " channels." << endl;
+    }
     string ytitl = doPwr ? "Power" : "Power/tick";
     if ( acd.sampleUnit.size() ) {
       ytitl = AdcChannelStringTool::build(m_adcStringBuilder, acd, ytitl + " [(%SUNIT%)^{2}]");
@@ -459,11 +491,14 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ph->GetYaxis()->SetTitle(ytitl.c_str());
     float pwrFac = 1.0/keepAcds.size();
     if ( ! doPwr ) pwrFac /= nsam;
-    for ( Index ipha=0; ipha<nmag; ++ipha ) {
-      float x = ipha*xFac;
+    for ( Index imag=0; imag<nmag; ++imag ) {
+      float x = imag*xFac;
       float y = 0.0;
       for ( const AdcChannelData* pacde : keepAcds ) {
-        float mag = pacde->dftmags[ipha];
+        float mag = pacde->dftmags[imag];
+        if ( getLogLevel() >= 5 ) {
+          cout << myname << "    Channel " << pacde->channel() << " sqrt(pwr[" << imag << "]): " << mag << endl;
+        }
         y += pwrFac*mag*mag;
       }
       ph->Fill(x, y);
@@ -480,7 +515,6 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
     ret.setString("dftDopt", "hist");
   }
   ret.setFloat("dftYValMax", yValMax);
-  ret.setIntVector("dftChannels", dftChannels);
   return ret;
 }
 

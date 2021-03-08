@@ -516,4 +516,18 @@ cet_test(test_AdcRoiSlicer
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_AdcRoiToTree
+  SOURCES
+    test_AdcRoiToTree.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_enable_asserts()
