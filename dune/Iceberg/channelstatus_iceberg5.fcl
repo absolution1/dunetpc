@@ -1,16 +1,17 @@
 # channelsstatus_iceberg5.fcl
 #
-# David Adams, Tom Junk
+# David Adams
 # February 2021
 #
 # For use with runs after 8225
+#
+# Note the lists are now kept in data instead of prolog
 
-BEGIN_PROLOG
-
-# bad channels are from the two missing FEMBs
-
-iceberg5_bad_channels: [
+# Bad channels
+#   Includes two missing FEMBs and resulst of a survey by DLA.
+data.iceberg5_bad_channels: [
 ##### apau #####
+160,         # Early 5a. See DLA Iceberg talk 3/4/2021.
 # Begin bad FEMB
 240,
 241,
@@ -182,6 +183,8 @@ iceberg5_bad_channels: [
 # End bad FEMB
 ##### apaz1 #####
 ##### apaz2 #####
+801,         # Early 5a. See DLA Iceberg talk 3/4/2021.
+945,         # Early 5a. See DLA Iceberg talk 3/4/2021.
 # Begin bad FEMB
 1088,
 1089,
@@ -232,6 +235,7 @@ iceberg5_bad_channels: [
 1134,
 1135,
 # End bad FEMB
+1230,        # Early 5a. See DLA Iceberg talk 3/4/2021.
 # Begin bad FEMB
 1232,
 1233,
@@ -283,7 +287,198 @@ iceberg5_bad_channels: [
 1279
 # End bad FEMB
 ]
-iceberg5_noisy_channels: [
-]
+#  End of data.iceberg5_bad_channels
 
-END_PROLOG
+# Very high RMS.
+# Pedestal RMS above 5 ADC counts in run 8378.
+data.iceberg5_hirms_channels: [
+##### apau #####
+   7,
+  29,
+  40,
+  40,
+  41,
+  42,
+  43,
+  44,
+  45,
+  46,
+  47,
+  48,
+  49,
+ 161,
+ 162,
+ 164,
+ 280,
+##### apav #####
+ 440,
+ 441,
+ 442,
+ 443,
+ 444,
+ 446,
+ 447,
+ 640,
+##### apax1 #####
+1000
+]
+# End high pedestal RMS.
+
+# Moderately high RMS.
+# Pedestal RMS above 3.5 ADC counts in run 8378
+# but not in the hirms category.
+data.iceberg5_modrms_channels: [
+##### apau #####
+   0,
+   3,
+   5,
+   6,
+   8,
+   9,
+  11,
+  12,
+  13,
+  16,
+  17,
+  20,
+  30,
+  32,
+  33,
+  38,
+  39,
+  50,
+  54,
+  56,
+  57,
+  59,
+ 159,
+ 163,
+ 165,
+ 166,
+ 167,
+ 168,
+ 199,
+ 281,
+ 282,
+ 283,
+ 284,
+ 286,
+ 287,
+##### apav #####
+ 416,
+ 421,
+ 434,
+ 435,
+ 436,
+ 437,
+ 438,
+ 439,
+ 434,
+ 445,
+ 448,
+ 449,
+ 560,
+ 560,
+ 561,
+ 562,
+ 563,
+ 564,
+ 565,
+ 566,
+ 567,
+ 568,
+ 571,
+ 574,
+ 584,
+ 592,
+ 641,
+ 642,
+ 643,
+ 644,
+ 645,
+ 646,
+ 647,
+ 648,
+ 649,
+##### apax1 #####
+ 992,
+ 997,
+1003,
+1013,
+1030,
+1035
+##### apax2 #####
+]
+# End moderately high pedestal RMS.
+
+# Split pedestals.
+data.iceberg5_splitped_channels: [
+##### apau #####
+   4,
+   8,
+  10,
+  28,
+  38,
+  51,
+  53,
+ 103,
+ 195,
+ 200,
+ 204,
+ 216,
+ 236,
+ 238,
+ 324,
+ 342,
+ 353,
+##### apav #####
+ 489,
+ 490,
+ 574,
+ 657,
+ 677,
+ 687,
+##### apax1 #####
+ 815,
+ 848,
+ 964,
+ 966,
+ 970,
+ 987,
+##### apax2 #####
+1082,
+1143,
+1161,
+1193,
+1205,
+1209,
+1222
+]
+# End split pedestals.
+
+
+# Sticky codes.
+# One or two codes poke up above the rest.
+# Not bad/noisy?
+data.iceberg5_stickycode_channels: [
+##### apau #####
+ 173,
+ 228,
+##### apav #####
+##### apax1 #####
+ 844,
+##### apax2 #####
+1050,
+1086,
+1195
+]
+# End sticky codes.
+
+# Concatenate the the above for use in the classic channel
+# status service.
+data.iceberg5_noisy_channels: [
+  @sequence::data.iceberg5_hirms_channels,
+  @sequence::data.iceberg5_modrms_channels,
+  @sequence::data.iceberg5_splitped_channels
+  #, @sequence::data.iceberg5_stickycode_channels
+]

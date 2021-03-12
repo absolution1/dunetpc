@@ -1,7 +1,14 @@
+# iceberg3_decode_reco.fcl
+#
+# Prolog
 #include "IcebergRawDecoder.fcl"
 #include "IcebergDataInterfaceTool.fcl"
-#include "channelstatus_iceberg.fcl"
+#include "channelstatus_iceberg3.fcl"
+#include "channelstatus_iceberg4.fcl"
 #include "iceberg_dataprep_services.fcl"
+#
+# Not prolog
+#include "iceberg_dataprep_sequences.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "ProtoDUNETriggerFilter.fcl"
 #include "protodune_tools_dune.fcl"
@@ -152,7 +159,8 @@ services.DetectorPropertiesService.TimeOffsetV: 0
 #turn on the vintage deconvoluter
 
 
-services.RawDigitPrepService.ToolNames: @local::ib3_dataprep_tools_wirecell
+services.RawDigitPrepService.OldToolNames: @local::ib3_dataprep_seqs_wirecell
+services.RawDigitPrepService.ToolNames: @local::data.ib3_dataprep_seqs.wirecell
 
 physics.producers.wclsdatasp.wcls_main.plugins: [
 #        "WireCellRoot",
