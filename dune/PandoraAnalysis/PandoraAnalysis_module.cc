@@ -783,7 +783,6 @@ void test::pandoraAnalysis::reset(bool deepClean)
           fPFPPurityView[iPfp][iView]=999999;
           fPFPCompletenessView[iPfp][iView]=999999;
      }
-
     }
     fNPFParticles = 0;
 
