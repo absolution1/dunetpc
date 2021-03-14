@@ -3,10 +3,12 @@
 # David Adams
 # February 2021
 #
-# Default reco for Iceberg 4a.
+# Default reco for Iceberg 5a.
 
 # Start from the Iceberg 3 reco.
 #include "iceberg3_decode_reco.fcl"
+
+#include "channelstatus_iceberg5.fcl"
 
 physics.producers.caldata.DecoderTool: "IcebergDecoderFrame14"
 services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
@@ -14,9 +16,9 @@ services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME1
 # Switch to the Iceberg 4 dataprep.
 services.RawDigitPrepService.ToolNames: @local::ib5_dataprep_tools_wirecell
 
-# Switch to Iceberg 4 bad/noisy channels.
-services.ChannelStatusService.BadChannels: @local::iceberg5_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::iceberg5_noisy_channels
+# Switch to Iceberg 5 bad/noisy channels.
+services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
 
 # Use the Iceberg 4a calibration.
 tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10

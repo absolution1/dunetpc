@@ -463,6 +463,10 @@ tools.adcThresholdSignalFinder: {
   FlagNegative: true
 }
 
+# Find calibrated signals with simple threshold algorithm.
+tools.calibThresholdSignalFinder: @local::tools.adcThresholdSignalFinder
+tools.calibThresholdSignalFinder.Threshold: 0.5
+
 # Find ADC signals with Dune 35t algorithm.
 tools.adcDuneSignalFinder: {
   tool_type: DuneAdcSignalFinder

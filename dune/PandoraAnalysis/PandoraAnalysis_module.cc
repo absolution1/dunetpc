@@ -70,6 +70,8 @@ public:
   void beginJob() override;
   void endJob() override;
 
+  void reset(bool deepClean=false);
+
 private:
 
   // Declare member data here.
@@ -219,127 +221,14 @@ test::pandoraAnalysis::pandoraAnalysis(fhicl::ParameterSet const& p)
 
 void test::pandoraAnalysis::analyze(art::Event const& e)
 {
+  reset(); //Don't deep clean
   const art::ServiceHandle<cheat::BackTrackerService> btServ;
   fEventID = e.id().event();
   fRunID = e.id().run();
   fSubRunID = e.id().subRun();
-  fNMCParticles = 0;
-  fNPFParticles = 0;
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataFor(e);
   std::cout << "=============== EVENT ID " << fEventID << " == RUN ID " << fRunID << " == SUBRUN ID " << fSubRunID << " ================" << std::endl;
 
-  for(int iMc=0; iMc<kNMaxMCParticles; iMc++){
-    fMCIsPrimary[iMc]=0;
-    fMCParticlePdgCode[iMc]=0;
-    fMCParticleTrueEnergy[iMc]=-999999;
-    fMCParticleTrackID[iMc]=999999;
-    fMCParticleParentTrackID[iMc]=999999;
-    fMCParticleStartProcess[iMc]="";
-    fMCParticleEndProcess[iMc]="";
-    fMCParticleNTrajectoryPoint[iMc]=999999;
-    fMCParticleStartPositionX[iMc]=999999;
-    fMCParticleStartPositionY[iMc]=999999;
-    fMCParticleStartPositionZ[iMc]=999999;
-    fMCParticleStartPositionT[iMc]=999999;
-    fMCParticleStartMomentumX[iMc]=999999;
-    fMCParticleStartMomentumY[iMc]=999999;
-    fMCParticleStartMomentumZ[iMc]=999999;
-    fMCParticleStartMomentumE[iMc]=999999;
-    fMCParticleEndPositionX[iMc]=999999;
-    fMCParticleEndPositionY[iMc]=999999;
-    fMCParticleEndPositionZ[iMc]=999999;
-    fMCParticleEndPositionT[iMc]=999999;
-    fMCParticleEndMomentumX[iMc]=999999;
-    fMCParticleEndMomentumY[iMc]=999999;
-    fMCParticleEndMomentumZ[iMc]=999999;
-    fMCParticleEndMomentumE[iMc]=999999;
-    fMCParticleVertexTime[iMc]=999999;
-    fMCParticleEndTime[iMc]=999999;
-    fMCParticleNHits[iMc]=999999;
-    fMCParticleNHitsView[iMc][0]=999999;
-    fMCParticleNHitsView[iMc][1]=999999;
-    fMCParticleNHitsView[iMc][2]=999999;
-    //fMCPfoMatchedPosition[iMc]=999999;
-  }
-
-  for(int iPfp=0; iPfp<kNMaxPFParticles; iPfp++){
-
-   fPFPID[iPfp]=999999;
-   fPFPTrueParticleMatchedID[iPfp]=999999;
-   fPFPTrueParticleMatchedPosition[iPfp]=999999;
-
-   fPFPNHits[iPfp]=999999;
-   fPFPNSharedTrueParticleHits[iPfp]=0;
-
-   fPFPNClusters[iPfp]=999999;
-   fPFPIsTrack[iPfp]=0;
-   fPFPIsShower[iPfp]=0;
-
-   fPFPTrackID[iPfp]=999999;
-   fPFPTrackLength[iPfp]=999999;
-   fPFPTrackStartX[iPfp]=999999;
-   fPFPTrackStartY[iPfp]=999999;
-   fPFPTrackStartZ[iPfp]=999999;
-   fPFPTrackVertexX[iPfp]=999999;
-   fPFPTrackVertexY[iPfp]=999999;
-   fPFPTrackVertexZ[iPfp]=999999;
-   fPFPTrackEndX[iPfp]=999999;
-   fPFPTrackEndY[iPfp]=999999;
-   fPFPTrackEndZ[iPfp]=999999;
-   fPFPTrackTheta[iPfp]=999999;
-   fPFPTrackPhi[iPfp]=999999;
-   fPFPTrackZenithAngle[iPfp]=999999;
-   fPFPTrackAzimuthAngle[iPfp]=999999;
-   fPFPTrackStartDirectionX[iPfp]=999999;
-   fPFPTrackStartDirectionY[iPfp]=999999;
-   fPFPTrackStartDirectionZ[iPfp]=999999;
-   fPFPTrackVertexDirectionX[iPfp]=999999;
-   fPFPTrackVertexDirectionY[iPfp]=999999;
-   fPFPTrackVertexDirectionZ[iPfp]=999999;
-   fPFPTrackEndDirectionX[iPfp]=999999;
-   fPFPTrackEndDirectionY[iPfp]=999999;
-   fPFPTrackEndDirectionZ[iPfp]=999999;
-   fPFPTrackChi2[iPfp]=999999;
-   fPFPTrackNdof[iPfp]=999999;
-   
-   fPFPShowerID[iPfp]=999999;
-   fPFPShowerBestPlane[iPfp]=999999;
-   fPFPShowerDirectionX[iPfp]=999999;
-   fPFPShowerDirectionY[iPfp]=999999;
-   fPFPShowerDirectionZ[iPfp]=999999;
-   fPFPShowerDirectionErrX[iPfp]=999999;
-   fPFPShowerDirectionErrY[iPfp]=999999;
-   fPFPShowerDirectionErrZ[iPfp]=999999;
-   fPFPShowerStartX[iPfp]=999999;
-   fPFPShowerStartY[iPfp]=999999;
-   fPFPShowerStartZ[iPfp]=999999;
-   fPFPShowerStartErrX[iPfp]=999999;
-   fPFPShowerStartErrY[iPfp]=999999;
-   fPFPShowerStartErrZ[iPfp]=999999;
-   fPFPShowerLength[iPfp]=999999;
-   fPFPShowerOpenAngle[iPfp]=999999;
-
-   for(int iClu=0; iClu<kNMaxPFPClusters; iClu++){
-     fPFPCluPlane[iPfp][iClu]=999999; 
-     fPFPCluView[iPfp][iClu]=999999; 
-     fPFPCluNHits[iPfp][iClu]=999999; 
-     fPFPCluIntegral[iPfp][iClu]=999999; 
-   }
-
-   fPFPCompleteness[iPfp]=999999;
-   fPFPPurity[iPfp]=999999;
-
-   for (unsigned int iView = 0; iView < kNViews; iView++)
-   {
-        fPFPNHitsView[iPfp][iView] = 999999;
-        fPFPNSharedTrueParticleHitsView[iPfp][iView]=0;
-        fPFPTrueParticleMatchedIDView[iPfp][iView] = 999999;
-        fPFPTrueParticleMatchedPositionView[iPfp][iView] = 999999;
-        fPFPPurityView[iPfp][iView]=999999;
-        fPFPCompletenessView[iPfp][iView]=999999;
-   }
-
-  }
 
   //Get all hits
   art::Handle<std::vector<recob::Hit>> hitHandle;
@@ -659,6 +548,9 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
 
 void test::pandoraAnalysis::beginJob()
 {
+
+  //deep clean the variables
+  reset(true);
   // Implementation of optional member function here.
   art::ServiceHandle<art::TFileService> tfs;
   fTree = tfs->make<TTree>("pandoraOutput","Pandora Output Tree");
@@ -776,6 +668,125 @@ void test::pandoraAnalysis::beginJob()
 void test::pandoraAnalysis::endJob()
 {
   // Implementation of optional member function here.
+}
+
+void test::pandoraAnalysis::reset(bool deepClean)
+{
+    for(unsigned int iMc=0; iMc<(deepClean ? kNMaxMCParticles : fNMCParticles); iMc++){
+      fMCIsPrimary[iMc]=0;
+      fMCParticlePdgCode[iMc]=0;
+      fMCParticleTrueEnergy[iMc]=-999999;
+      fMCParticleTrackID[iMc]=999999;
+      fMCParticleParentTrackID[iMc]=999999;
+      fMCParticleStartProcess[iMc]="";
+      fMCParticleEndProcess[iMc]="";
+      fMCParticleNTrajectoryPoint[iMc]=999999;
+      fMCParticleStartPositionX[iMc]=999999;
+      fMCParticleStartPositionY[iMc]=999999;
+      fMCParticleStartPositionZ[iMc]=999999;
+      fMCParticleStartPositionT[iMc]=999999;
+      fMCParticleStartMomentumX[iMc]=999999;
+      fMCParticleStartMomentumY[iMc]=999999;
+      fMCParticleStartMomentumZ[iMc]=999999;
+      fMCParticleStartMomentumE[iMc]=999999;
+      fMCParticleEndPositionX[iMc]=999999;
+      fMCParticleEndPositionY[iMc]=999999;
+      fMCParticleEndPositionZ[iMc]=999999;
+      fMCParticleEndPositionT[iMc]=999999;
+      fMCParticleEndMomentumX[iMc]=999999;
+      fMCParticleEndMomentumY[iMc]=999999;
+      fMCParticleEndMomentumZ[iMc]=999999;
+      fMCParticleEndMomentumE[iMc]=999999;
+      fMCParticleVertexTime[iMc]=999999;
+      fMCParticleEndTime[iMc]=999999;
+      fMCParticleNHits[iMc]=999999;
+      fMCParticleNHitsView[iMc][0]=999999;
+      fMCParticleNHitsView[iMc][1]=999999;
+      fMCParticleNHitsView[iMc][2]=999999;
+      //fMCPfoMatchedPosition[iMc]=999999;
+    }
+    fNMCParticles = 0;
+
+    for(unsigned int iPfp=0; iPfp<(deepClean ? kNMaxPFParticles : fNPFParticles); iPfp++){
+
+     fPFPID[iPfp]=999999;
+     fPFPTrueParticleMatchedID[iPfp]=999999;
+     fPFPTrueParticleMatchedPosition[iPfp]=999999;
+
+     fPFPNHits[iPfp]=999999;
+     fPFPNSharedTrueParticleHits[iPfp]=0;
+
+     fPFPNClusters[iPfp]=999999;
+     fPFPIsTrack[iPfp]=0;
+     fPFPIsShower[iPfp]=0;
+
+     fPFPTrackID[iPfp]=999999;
+     fPFPTrackLength[iPfp]=999999;
+     fPFPTrackStartX[iPfp]=999999;
+     fPFPTrackStartY[iPfp]=999999;
+     fPFPTrackStartZ[iPfp]=999999;
+     fPFPTrackVertexX[iPfp]=999999;
+     fPFPTrackVertexY[iPfp]=999999;
+     fPFPTrackVertexZ[iPfp]=999999;
+     fPFPTrackEndX[iPfp]=999999;
+     fPFPTrackEndY[iPfp]=999999;
+     fPFPTrackEndZ[iPfp]=999999;
+     fPFPTrackTheta[iPfp]=999999;
+     fPFPTrackPhi[iPfp]=999999;
+     fPFPTrackZenithAngle[iPfp]=999999;
+     fPFPTrackAzimuthAngle[iPfp]=999999;
+     fPFPTrackStartDirectionX[iPfp]=999999;
+     fPFPTrackStartDirectionY[iPfp]=999999;
+     fPFPTrackStartDirectionZ[iPfp]=999999;
+     fPFPTrackVertexDirectionX[iPfp]=999999;
+     fPFPTrackVertexDirectionY[iPfp]=999999;
+     fPFPTrackVertexDirectionZ[iPfp]=999999;
+     fPFPTrackEndDirectionX[iPfp]=999999;
+     fPFPTrackEndDirectionY[iPfp]=999999;
+     fPFPTrackEndDirectionZ[iPfp]=999999;
+     fPFPTrackChi2[iPfp]=999999;
+     fPFPTrackNdof[iPfp]=999999;
+     
+     fPFPShowerID[iPfp]=999999;
+     fPFPShowerBestPlane[iPfp]=999999;
+     fPFPShowerDirectionX[iPfp]=999999;
+     fPFPShowerDirectionY[iPfp]=999999;
+     fPFPShowerDirectionZ[iPfp]=999999;
+     fPFPShowerDirectionErrX[iPfp]=999999;
+     fPFPShowerDirectionErrY[iPfp]=999999;
+     fPFPShowerDirectionErrZ[iPfp]=999999;
+     fPFPShowerStartX[iPfp]=999999;
+     fPFPShowerStartY[iPfp]=999999;
+     fPFPShowerStartZ[iPfp]=999999;
+     fPFPShowerStartErrX[iPfp]=999999;
+     fPFPShowerStartErrY[iPfp]=999999;
+     fPFPShowerStartErrZ[iPfp]=999999;
+     fPFPShowerLength[iPfp]=999999;
+     fPFPShowerOpenAngle[iPfp]=999999;
+
+     for(int iClu=0; iClu<kNMaxPFPClusters; iClu++){
+       fPFPCluPlane[iPfp][iClu]=999999; 
+       fPFPCluView[iPfp][iClu]=999999; 
+       fPFPCluNHits[iPfp][iClu]=999999; 
+       fPFPCluIntegral[iPfp][iClu]=999999; 
+     }
+
+     fPFPCompleteness[iPfp]=999999;
+     fPFPPurity[iPfp]=999999;
+
+     for (unsigned int iView = 0; iView < kNViews; iView++)
+     {
+          fPFPNHitsView[iPfp][iView] = 999999;
+          fPFPNSharedTrueParticleHitsView[iPfp][iView]=0;
+          fPFPTrueParticleMatchedIDView[iPfp][iView] = 999999;
+          fPFPTrueParticleMatchedPositionView[iPfp][iView] = 999999;
+          fPFPPurityView[iPfp][iView]=999999;
+          fPFPCompletenessView[iPfp][iView]=999999;
+     }
+    }
+    fNPFParticles = 0;
+
+    return;
 }
 
 DEFINE_ART_MODULE(test::pandoraAnalysis)

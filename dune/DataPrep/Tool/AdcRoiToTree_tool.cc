@@ -29,6 +29,7 @@ AdcRoiToTree::AdcRoiToTree(fhicl::ParameterSet const& ps)
     ptre->Branch("run",     &tdat.run);
     ptre->Branch("event",   &tdat.event);
     ptre->Branch("channel", &tdat.channel);
+    ptre->Branch("status",  &tdat.status);
     ptre->Branch("nroi",    &tdat.nroi);
     ptre->Branch("nsam",    &tdat.nsam[0], "nsam[nroi]/i");
     ptre->Branch("isam",    &tdat.isam[0], "isam[nroi]/i");
@@ -94,6 +95,7 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
   ptre->SetBranchAddress("run",     &tdat.run);
   ptre->SetBranchAddress("event",   &tdat.event);
   ptre->SetBranchAddress("channel", &tdat.channel);
+  ptre->SetBranchAddress("status",  &tdat.status);
   ptre->SetBranchAddress("nroi",    &tdat.nroi);
   ptre->SetBranchAddress("nsam",    &tdat.nsam[0]);
   ptre->SetBranchAddress("isam",    &tdat.isam[0]);
@@ -106,6 +108,7 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
     tdat.run = acd.run();
     tdat.event = acd.event();
     tdat.channel = acd.channel();
+    tdat.status = acd.channelStatus();
     tdat.nroi = acd.rois.size();
     Index nroi = std::min(tdat.nroi, maxroi);
     for ( Index iroi=0; iroi<nroi; ++iroi ) {
