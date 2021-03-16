@@ -868,12 +868,12 @@ void SNAna::analyze(art::Event const & evt)
 
             // ThisHitIDE = bt_serv->HitToTrackIDEs(clockData,  ThisHit );
           } catch(...){
-            std::cout << "FIRST CATCH" << std::endl;
+            // std::cout << "FIRST CATCH" << std::endl;
             firstCatch++;
             try {
               ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
             } catch(...) {
-               std::cout << "SECOND CATCH" << std::endl;
+               // std::cout << "SECOND CATCH" << std::endl;
               secondCatch++;
               // continue;
             }
@@ -884,7 +884,7 @@ void SNAna::analyze(art::Event const & evt)
           try {
             ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
           } catch(...) {
-            std::cout << "THIRD CATCH" << std::endl;
+            // std::cout << "THIRD CATCH" << std::endl;
             thirdCatch++;
             // continue;
           }
