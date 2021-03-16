@@ -1,90 +1,22 @@
-////////////////////////////////////////////////////////////////////////
-// Class:       IcebergFELIXBufferDecoderMarch2021
-// Plugin Type: producer (art v2_10_03)
-// File:        IcebergFELIXBufferDecoderMarch2021_module.cc
-//
-// Generated at Fri Mar  2 15:36:20 2018 by Thomas Junk using cetskelgen
-// from cetlib version v3_02_00.  Original code from Jingbo Wang for ProtoDUNE-SP
-////////////////////////////////////////////////////////////////////////
+// IcebergDataInterfaceFELIXBufferMarch2021_tool.cc
 
-#include "art/Framework/Core/EDProducer.h"
-#include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
-#include "art/Persistency/Common/PtrMaker.h"
-#include "art_root_io/TFileService.h"
-
-#include <memory>
-#include <cmath>
-
-// ROOT includes
+#include "IcebergDataInterfaceFELIXBufferMarch2021.h"
 #include "TMath.h"
+#include "TString.h"
+#include <iostream>
+#include <set>
+#include "lardataobj/RawData/raw.h"
+
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Services/ChannelMap/IcebergChannelMapService.h"
 
-// larsoft includes
-#include "lardataobj/RawData/RawDigit.h"
-#include "lardataobj/RawData/RDTimeStamp.h"
-#include "lardataobj/RawData/raw.h"
-
-// DUNE includes
-#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
-
-#include <stdio.h>
-
-class IcebergFELIXBufferDecoderMarch2021 : public art::EDProducer {
-
-public:
-  explicit IcebergFELIXBufferDecoderMarch2021(fhicl::ParameterSet const & p);
-  IcebergFELIXBufferDecoderMarch2021(IcebergFELIXBufferDecoderMarch2021 const &) = delete;
-  IcebergFELIXBufferDecoderMarch2021(IcebergFELIXBufferDecoderMarch2021 &&) = delete;
-  IcebergFELIXBufferDecoderMarch2021 & operator = (IcebergFELIXBufferDecoderMarch2021 const &) = delete;
-  IcebergFELIXBufferDecoderMarch2021 & operator = (IcebergFELIXBufferDecoderMarch2021 &&) = delete;
-  void produce(art::Event & e) override;
-
-private:
-  typedef std::vector<raw::RawDigit> RawDigits;
-  typedef std::vector<raw::RDTimeStamp> RDTimeStamps;
-  typedef art::Assns<raw::RawDigit,raw::RDTimeStamp> RDTsAssocs;
-  typedef art::PtrMaker<raw::RawDigit> RDPmkr;
-  typedef art::PtrMaker<raw::RDTimeStamp> TSPmkr;
-  typedef std::vector<raw::RDStatus> RDStatuses;
-
-  // open files
-
-  std::vector<FILE*> fInputFilePointers;
-
-  // configuration parameters
-
-  std::vector<std::string>   fInputFiles; 
-  size_t                     fNSamples;
-  std::string                fOutputLabel;
-  bool                       fCompressHuffman;
-
-  void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
-  // Converts 14 bit packed channel data (56 uint32 words from the WIB) to byte-aligned 16 bit arrays (128 uint16 values)
-  void unpack14(const uint32_t *packed, uint16_t *unpacked);
-};
-
-
-IcebergFELIXBufferDecoderMarch2021::IcebergFELIXBufferDecoderMarch2021(fhicl::ParameterSet const & p)
-  : EDProducer(p)
+IcebergDataInterfaceFELIXBufferMarch2021::IcebergDataInterfaceFELIXBufferMarch2021(fhicl::ParameterSet const& p)
 {
   fInputFiles = p.get<std::vector<std::string>>("InputFiles");
   fNSamples = p.get<size_t>("NSamples",2000);
-  fOutputLabel = p.get<std::string>("OutputDataLabel","daq");
   fCompressHuffman = p.get<bool>("CompressHuffman",false);
-
-  produces<RawDigits>( fOutputLabel ); //the strings in <> are the typedefs defined above
-  produces<RDTimeStamps>( fOutputLabel );
-  produces<RDTsAssocs>( fOutputLabel );
-  produces<RDStatuses>( fOutputLabel );
 
   fInputFilePointers.clear();
   for (size_t ifile=0; ifile<fInputFiles.size(); ++ifile)
@@ -93,18 +25,17 @@ IcebergFELIXBufferDecoderMarch2021::IcebergFELIXBufferDecoderMarch2021(fhicl::Pa
     }
 }
 
-void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
+// return all data for the event.  inputLabel is ignored for this as the input files are
+// separately specified and data in them are unlabeled.
+
+int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e, 
+				       std::string inputLabel, 
+				       std::vector<raw::RawDigit> &raw_digits, 
+				       std::vector<raw::RDTimeStamp> &rd_timestamps,
+				       std::vector<raw::RDStatus> &rdstatuses)
 {
 
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
-  RawDigits raw_digits;
-  RDTimeStamps rd_timestamps;
-  RDTsAssocs rd_ts_assocs;
-
-  RDPmkr rdpm(e,fOutputLabel);
-  TSPmkr tspm(e,fOutputLabel);
-
-  bool discard_data = false;
 
   uint32_t framebuf[117];
   uint16_t databuf[128];
@@ -255,45 +186,45 @@ void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
 	  raw::RDTimeStamp rdtimestamp(timestampstart,offlineChannel);
 	  rd_timestamps.push_back(rdtimestamp);
 
-	  //associate the raw digit and the timestamp data products
-	  auto const rawdigitptr = rdpm(raw_digits.size()-1);
-	  auto const rdtimestampptr = tspm(rd_timestamps.size()-1);
-	  rd_ts_assocs.addSingle(rawdigitptr,rdtimestampptr);            
-
 	}
     }
+  return 0;
+}
 
-  if (discard_data)
-    {
-      RawDigits empty_raw_digits;
-      RDTimeStamps empty_rd_timestamps;
-      RDTsAssocs empty_rd_ts_assocs;
-      RDStatuses statuses;
-      statuses.emplace_back(true,false,1);
-      e.put(std::make_unique<decltype(empty_raw_digits)>(std::move(empty_raw_digits)),fOutputLabel);
-      e.put(std::make_unique<decltype(empty_rd_timestamps)>(std::move(empty_rd_timestamps)),fOutputLabel);
-      e.put(std::make_unique<decltype(empty_rd_ts_assocs)>(std::move(empty_rd_ts_assocs)),fOutputLabel);
-      e.put(std::make_unique<decltype(statuses)>(std::move(statuses)),fOutputLabel);
-    }
-  else
-    {
-      RDStatuses statuses;
-      unsigned int statword=0;
-      statuses.emplace_back(false,false,statword);
-      e.put(std::make_unique<decltype(raw_digits)>(std::move(raw_digits)),fOutputLabel);
-      e.put(std::make_unique<decltype(rd_timestamps)>(std::move(rd_timestamps)),fOutputLabel);
-      e.put(std::make_unique<decltype(rd_ts_assocs)>(std::move(rd_ts_assocs)),fOutputLabel);
-      e.put(std::make_unique<decltype(statuses)>(std::move(statuses)),fOutputLabel);
-    }
+// get data for specified APAs.  There's just one APA in ICEBERG so get all the data
+
+int IcebergDataInterfaceFELIXBufferMarch2021::retrieveDataForSpecifiedAPAs(art::Event &evt, 
+						       std::vector<raw::RawDigit> &raw_digits, 
+						       std::vector<raw::RDTimeStamp> &rd_timestamps,
+						       std::vector<raw::RDStatus> &rdstatuses, 
+						       std::vector<int> &apalist)
+{
+  // ignore the APA list and also the input label
+  return retrieveData(evt," ",raw_digits,rd_timestamps,rdstatuses);
+}
+
+// get data for a specific label, but only return those raw digits that correspond to APA's on the list
+// again, just get all the data for this event
+
+int IcebergDataInterfaceFELIXBufferMarch2021::retrieveDataAPAListWithLabels(art::Event &evt, 
+							std::string inputLabel, 
+							std::vector<raw::RawDigit> &raw_digits, 
+							std::vector<raw::RDTimeStamp> &rd_timestamps,
+							std::vector<raw::RDStatus> &rdstatuses, 
+							std::vector<int> &apalist)
+{
+  return retrieveData(evt,inputLabel,raw_digits,rd_timestamps,rdstatuses);
 }
 
 
-// compute median and sigma.  Sigma is half the distance between the upper and lower bounds of the
-// 68% region where 34% is above the median and 34% is below ("centered" on the median).
 
-void IcebergFELIXBufferDecoderMarch2021::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
+
+// compute median and sigma.  
+
+void IcebergDataInterfaceFELIXBufferMarch2021::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma)
 {
   size_t asiz = v_adc.size();
+  int imed=0;
   if (asiz == 0)
     {
       median = 0;
@@ -301,17 +232,31 @@ void IcebergFELIXBufferDecoderMarch2021::computeMedianSigma(raw::RawDigit::ADCve
     }
   else
     {
-      // this is actually faster than the code below by about one second per event.
       // the RMS includes tails from bad samples and signals and may not be the best RMS calc.
 
-      median = TMath::Median(asiz,v_adc.data());
+      imed = TMath::Median(asiz,v_adc.data()) + 0.01;  // add an offset to make sure the floor gets the right integer
+      median = imed;
       sigma = TMath::RMS(asiz,v_adc.data());
-    }
 
-  //  std::cout << "sigma: " << sigma << std::endl;
+      // add in a correction suggested by David Adams, May 6, 2019
+
+      size_t s1 = 0;
+      size_t sm = 0;
+      for (size_t i=0; i<asiz; ++i)
+	{
+	  if (v_adc[i] < imed) s1++;
+	  if (v_adc[i] == imed) sm++;
+	}
+      if (sm > 0)
+	{
+	  float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
+	  //if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
+	  median += mcorr;
+	}
+    }
 }
 
-void IcebergFELIXBufferDecoderMarch2021::unpack14(const uint32_t *packed, uint16_t *unpacked) {
+void IcebergDataInterfaceFELIXBufferMarch2021::unpack14(const uint32_t *packed, uint16_t *unpacked) {
   for (size_t i = 0; i < 128; i++) { // i == n'th U,V,X value
     const size_t low_bit = i*14;
     const size_t low_word = low_bit / 32;
@@ -329,4 +274,3 @@ void IcebergFELIXBufferDecoderMarch2021::unpack14(const uint32_t *packed, uint16
     }
   }
 }
-DEFINE_ART_MODULE(IcebergFELIXBufferDecoderMarch2021)
