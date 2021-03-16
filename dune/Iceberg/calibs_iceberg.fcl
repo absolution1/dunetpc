@@ -51,6 +51,14 @@ tools.areaGain_ib4b_v10: {
   ]
 }
 
+# For Iceberg 5 and beyond.
+# mastser clock now at 62.5 MHz instead of 50 MHz.
+# TPC clock is run at (62.5 MHz)/32 = 1.9531 MHz
+#   ts_nom [us]   <Ts> [tick]     A/h
+#             1           2.1    2.73
+#             2           4.3    5.45
+#             2           6.4    8.18
+
 # February 2021 rough charge calibration Iceberg 5 before cooldown.
 # 2020-02-XX: Warm value (run 8226) is 0.067
 
@@ -69,17 +77,32 @@ tools.areaGain_ib5a_v00: {
   ]
 }
 
-# Run 5b: cold, gain = 14 mV/fC, shaping = 2.0 us.
+# Run 5b: cold, gain = 14 mV/fC, shaping = 3.0 us.
 # March 2021 Cold.
-# 2020-03-01: Based on run 8415 with DAC 10.
-# Meaured height is 4600 ADC counts.
-# Area = 5.85*h = 25700 ADC-tick
-#   gA = (10*21.4 ke)/(25700 ADC-tick) = 0.083 ke/(ADC-tick)
+# 2020-03-01: Based on run 8417 with DAC 10.
+# Meaured height is 4580 ADC counts.
+# Area = 8.18*h = 37500 ADC-tick
+#   gA = (10*21.4 ke)/(38300 ADC-tick) = 0.083 ke/(ADC-tick)
 tools.areaGain_ib5b_v00: {
   tool_type: FclFileFloatArray
   LogLevel: 1
   Label: "areaGain_ib5b-v00"
-  DefaultValue: 0.0083
+  DefaultValue: 0.0057
+  FileNames: [
+  ]
+}
+
+# Run 5c: cold, gain = 14 mV/fC, shaping = 2.0 us.
+# March 2021 Cold.
+# 2020-03-01: Based on run 8415 with DAC 10.
+# Meaured height is 4600 ADC counts.
+# Area = 5.45*h = 25100 ADC-tick
+#   gA = (10*21.4 ke)/(25700 ADC-tick) = 0.083 ke/(ADC-tick)
+tools.areaGain_ib5c_v00: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5c-v00"
+  DefaultValue: 0.0085
   FileNames: [
   ]
 }
@@ -96,6 +119,7 @@ tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
 
 tools.areaGain_ib5a: @local::tools.areaGain_ib5a_v00
 tools.areaGain_ib5b: @local::tools.areaGain_ib5b_v00
-tools.areaGain_ib5: @local::tools.areaGain_ib5b
+tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v00
+tools.areaGain_ib5: @local::tools.areaGain_ib5c
 
 #####################################################################
