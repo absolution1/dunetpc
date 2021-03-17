@@ -41,8 +41,13 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
   uint16_t databuf[128];
   uint64_t timestampstart=0;
 
+  raw_digits.clear();
+  rd_timestamps.clear();
+  rdstatuses.clear();
+
   for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
     {
+      if (fInputFilePointers.at(ifile) == 0) break;
       int slot = 0;
       int fiber = 0;
 
@@ -52,9 +57,17 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
 	  fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
 	  if (feof(fInputFilePointers.at(ifile)))
 	    {
-	      // don't handle this too gracefully at the moment
-	      throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
-		"Attempt to read off the end of file " << fInputFiles.at(ifile);
+	      // a not-graceful way to handle this
+	      // throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+	      //"Attempt to read off the end of file " << fInputFiles.at(ifile);
+
+	      // more graceful -- close all the input files and return what we have.
+	      for (size_t jfile = 0; jfile < fInputFiles.size(); ++jfile)
+		{
+	          fclose(fInputFilePointers.at(jfile));
+	          fInputFilePointers.at(jfile) = 0;
+		}
+	      break;
 	    }
 
 	  int curslot = (framebuf[0] & 0x7000) >> 12;   // assume these are all the same
@@ -171,7 +184,7 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
 	  // for iceberg, hardcode the crate number to suppress warnings
 	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
-	  size_t uncompressed_nticks = fNSamples;  
+	  size_t uncompressed_nticks = adcvv.at(0).size();  
 	  raw::Compress_t cflag=raw::kNone;
 	  if (fCompressHuffman)
 	    {
@@ -188,6 +201,9 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
 
 	}
     }
+  // default all good status
+  unsigned int statword = 0;
+  rdstatuses.emplace_back(false,false,statword);
   return 0;
 }
 
