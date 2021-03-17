@@ -14,12 +14,13 @@ physics.producers.caldata.DecoderTool: "IcebergDecoderFrame14"
 services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
 
 # Switch to the Iceberg 5 dataprep.
-services.RawDigitPrepService.ToolNames: @local::ib5_dataprep_tools_wirecell
-tools.ib5_adcPedestalFit: @local::tools.ib5aPedestalFit
+services.RawDigitPrepService.ToolNames: @local::data.ib5_dataprep_seqs.wirecell
+tools.ib5_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
 
 # Switch to Iceberg 5 bad/noisy channels.
 services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
 services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
 
-# Use the Iceberg 5a calibration.
-tools.areaGain_ib5: @local::tools.areaGain_ib5a_v10
+# Use the default Iceberg 5c calibration.
+# See calibs_iceberg.fcl.
+tools.areaGain_ib5: @local::tools.areaGain_ib5

@@ -120,6 +120,6 @@ tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
 tools.areaGain_ib5a: @local::tools.areaGain_ib5a_v00
 tools.areaGain_ib5b: @local::tools.areaGain_ib5b_v00
 tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v00
-tools.areaGain_ib5: @local::tools.areaGain_ib5c
+tools.areaGain_ib5:  @local::tools.areaGain_ib5c
 
 #####################################################################
