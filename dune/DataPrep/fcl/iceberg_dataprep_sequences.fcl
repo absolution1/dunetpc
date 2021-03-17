@@ -148,8 +148,9 @@ data.ib5_dataprep_seqs.calib_noiserem: [
 ]
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+# DLA 2021-03-21: No tail or noise removal for now.
 data.ib5_dataprep_seqs.wirecell: [
-  @sequence::data.ib5_dataprep_seqs.calib_noiserem
+  @sequence::data.ib5_dataprep_seqs.calib_only
   , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
   , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
   , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC
