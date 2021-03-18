@@ -823,8 +823,7 @@ void SNAna::analyze(art::Event const & evt)
       int colHitCount(0);
       int LoopHits = NTotHit;
 
-      for(int hit = 0; hit < LoopHits; ++hit)
-      {
+      for(int hit = 0; hit < LoopHits; ++hit) {
         recob::Hit const& ThisHit = reco_hits->at(hit);
         if(ThisHit.View() == geo::kU || ThisHit.View() == geo::kV) {
           ++NIndHit;
@@ -838,8 +837,7 @@ void SNAna::analyze(art::Event const & evt)
       // adjacent-channel loop below. Do it here once so we don't have to
       // re-do it for every single hit
       std::set<int> badChannels;
-      for(size_t i=0; i<rawDigitsVecHandle->size(); ++i)
-      {
+      for(size_t i=0; i<rawDigitsVecHandle->size(); ++i) {
         int rawWireChannel=(*rawDigitsVecHandle)[i].Channel();
         std::vector<geo::WireID> adjacentwire = geo->ChannelToWire(rawWireChannel);
 
@@ -851,16 +849,15 @@ void SNAna::analyze(art::Event const & evt)
       // std::cout << "Inserted " << badChannels.size() << " out of " << rawDigitsVecHandle->size() << " channels into set" << std::endl;
 
       auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
-      for(int hit = 0; hit < LoopHits; ++hit)
-      {
+      for(int hit = 0; hit < LoopHits; ++hit) {
         recob::Hit const& ThisHit = reco_hits->at(hit);
 
         if (ThisHit.View() == 2) {
-          std::vector< sim::TrackIDE > ThisHitIDE;
+          std::vector<sim::TrackIDE> ThisHitIDE;
           //GETTING HOLD OF THE SIM::IDEs.
+
           std::vector<const sim::IDE*> ThisSimIDE;
-          try
-          {
+          try {
             // HitToTrackIDEs opens a specific window around the hit. I want a
             // wider one, because the filtering can delay the hit. So this bit
             // is a copy of HitToTrackIDEs from the backtracker, with some
@@ -870,34 +867,26 @@ void SNAna::analyze(art::Event const & evt)
             ThisHitIDE = bt_serv->ChannelToTrackIDEs(clockData, ThisHit.Channel(), start, end);
 
             // ThisHitIDE = bt_serv->HitToTrackIDEs(clockData,  ThisHit );
-          }
-          catch(...)
-          {
+          } catch(...){
             // std::cout << "FIRST CATCH" << std::endl;
             firstCatch++;
-            try
-            {
+            try {
               ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
-            }
-            catch(...)
-            {
-              // std::cout << "SECOND CATCH" << std::endl;
+            } catch(...) {
+               // std::cout << "SECOND CATCH" << std::endl;
               secondCatch++;
-              continue;
+              // continue;
             }
-            continue;
+            // continue;
           }
 
           // Get the simIDEs.
-          try
-          {
+          try {
             ThisSimIDE = bt_serv->HitToSimIDEs_Ps(clockData, ThisHit);
-          }
-          catch(...)
-          {
+          } catch(...) {
             // std::cout << "THIRD CATCH" << std::endl;
             thirdCatch++;
-            continue;
+            // continue;
           }
 
           Hit_View.push_back(ThisHit.View());
