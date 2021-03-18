@@ -92,11 +92,13 @@ tools.ib5b_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
 tools.ib5b_adcPedestalFit.AdcFitRange: 200
 tools.ib5b_adcPedestalFit.FitRmsMin: 2.0
 tools.ib5b_adcPedestalFit.FitRmsMax: 40
-## 5a: 14 mV/fC, 2.0 us, 900 mV
+## 5c: 14 mV/fC, 2.0 us, 900 mV
 tools.ib5c_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
 tools.ib5c_adcPedestalFit.AdcFitRange: 200
 tools.ib5c_adcPedestalFit.FitRmsMin: 2.0
 tools.ib5c_adcPedestalFit.FitRmsMax: 40
+## 5d: 14 mV/fC, 1.0 us, 900 mV
+tools.ib5d_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {
