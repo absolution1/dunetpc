@@ -16,6 +16,8 @@
 # Decoding mods for Iceberg 5.
 physics.producers.caldata.DecoderTool: "IcebergDecoderFrame14"
 services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
+physics.producers.tpcrawdecoder.FELIXRawDataNonContainerInstance: "FRAME14"
+physics.producers.tpcrawdecoder.FELIXFragmentType: 13
 
 # Switch to the Iceberg 5 dataprep.
 services.RawDigitPrepService.ToolNames: @local::data.ib5_dataprep_seqs.wirecell
