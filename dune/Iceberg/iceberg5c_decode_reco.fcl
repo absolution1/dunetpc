@@ -21,7 +21,7 @@ services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME1
 services.RawDigitPrepService.ToolNames: @local::data.ib5_dataprep_seqs.wirecell
 
 # Use the iceberg 5c pedestal fitter.
-tools.ib5c_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
+tools.ib5_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
 
 # Use to Iceberg 5 bad/noisy channels.
 services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels

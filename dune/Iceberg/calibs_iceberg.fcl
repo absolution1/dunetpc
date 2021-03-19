@@ -80,7 +80,7 @@ tools.areaGain_ib5a_v00: {
 # Run 5b: cold, gain = 14 mV/fC, shaping = 3.0 us, low baseline (300 mV)
 # March 2021 Cold.
 # 2020-03-01: Based on run 8417 with DAC 10.
-# Meaured height is 4580 ADC counts.
+# Measured height is 4580 ADC counts.
 # Area = 8.18*h = 37500 ADC-tick
 #   gA = (10*21.4 ke)/(37500 ADC-tick) = 0.057 ke/(ADC-tick)
 tools.areaGain_ib5b_v00: {
@@ -134,6 +134,7 @@ tools.areaGain_ib5b: @local::tools.areaGain_ib5b_v00
 tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v00
 tools.areaGain_ib5d: @local::tools.areaGain_ib5d_v00
 tools.areaGain_ib5e: @local::tools.areaGain_ib5b_v00   # 5e has same gain and shaping as 5e
+tools.areaGain_ib5f: @local::tools.areaGain_ib5c_v00   # 5f has same gain and shaping as 5e
 tools.areaGain_ib5:  @local::tools.areaGain_ib5c
 
 #####################################################################
