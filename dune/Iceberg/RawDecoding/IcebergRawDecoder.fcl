@@ -63,7 +63,20 @@ iceberg_tpc_raw_decoder:
 # requires that no errors are reported by the unpacker (checksum or capture errors)
 
   EnforceErrorFree: false
+}
 
+iceberg_felixbufferdecoder_march2021:
+{
+  module_type: "IcebergFELIXBufferDecoderMarch2021"
+
+  InputFiles: [ "slr1-0-data.bin", 
+                "slr1-64-data.bin", 
+                "slr1-128-data.bin", 
+                "slr1-256-data.bin" ]
+  OutputDataLabel: "daq"
+  NSamples: 2000
+  CompressHuffman: false
+  
 }
 
 timing_raw_decoder:

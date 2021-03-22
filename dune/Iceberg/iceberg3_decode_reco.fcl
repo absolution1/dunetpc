@@ -1,12 +1,19 @@
+# iceberg3_decode_reco.fcl
+#
+# Prolog
 #include "IcebergRawDecoder.fcl"
 #include "IcebergDataInterfaceTool.fcl"
-#include "channelstatus_iceberg.fcl"
-#include "iceberg_dataprep_services.fcl"
+#include "channelstatus_iceberg3.fcl"
+#include "channelstatus_iceberg4.fcl"
+##include "iceberg_dataprep_services.fcl"
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "ProtoDUNETriggerFilter.fcl"
+#
+# Not prolog
 #include "protodune_tools_dune.fcl"
 #include "protodune_dataprep_tools.fcl"
 #include "iceberg_dataprep_tools.fcl"
+#include "iceberg_dataprep_sequences.fcl"
 #include "stickycodes_iceberg.fcl"
 #include "calibs_iceberg.fcl"
 
@@ -63,14 +70,12 @@ physics:
     producers:
     {
         @table::protoDUNE_rawdecoding_producers
-        tpcrawdecoder: @local::iceberg_tpc_raw_decoder
         @table::protoDUNE_reco_data_producers
     }
 
     #Create path to run module
     decode: [ 
        timingrawdecoder,
-       tpcrawdecoder,
        caldata,
        wclsdatasp,
        gaushit,
@@ -92,6 +97,10 @@ physics:
 physics.producers.caldata.ChannelGroups: ["all"]
 physics.producers.caldata.OnlineChannelMapTool: "ib_onlineChannelMapByFemb"
 
+# Turn on dataprep's writing of raw digits since we removed tpcrawdecoder from the decode path
+
+physics.producers.caldata.OutputDigitName: "dataprep"
+
 outputs:
 {
     out1:
@@ -102,8 +111,8 @@ outputs:
         fileName: "%ifb_reco.root"
         dataTier:    "full-reconstructed"
 #        outputCommands: [ "drop *", "keep raw::RawDigitrecob*_*_*_*", "keep recob::*_*_*_*" ]
-#        outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*", "drop raw::RawDigit*_*_*_*", "drop recob::Wires_caldata_dataprep_*", "drop *_wclsdatasp_wiener_*", "drop *_reco3d_noreg_*", "drop *_reco3d_pre_*" ]
-       outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*" ]
+#        outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*", "drop artdaq::Fragments_*_*FRAME14_*", "drop raw::RawDigit*_*_*_*", "drop recob::Wires_caldata_dataprep_*", "drop *_wclsdatasp_wiener_*", "drop *_reco3d_noreg_*", "drop *_reco3d_pre_*" ]
+       outputCommands: [ "keep *", "drop artdaq::Fragments_*_*TPC_*", "drop artdaq::Fragments_*_*FELIX_*", "drop artdaq::Fragments_*_*FRAME14_*" ]
   #      fileProperties: {
   #          maxInputFiles: 1
   #          }
@@ -152,7 +161,8 @@ services.DetectorPropertiesService.TimeOffsetV: 0
 #turn on the vintage deconvoluter
 
 
-services.RawDigitPrepService.ToolNames: @local::ib3_dataprep_tools_wirecell
+#services.RawDigitPrepService.ToolNames: @local::ib3_dataprep_seqs_wirecell
+services.RawDigitPrepService.ToolNames: @local::data.ib3_dataprep_seqs.wirecell
 
 physics.producers.wclsdatasp.wcls_main.plugins: [
 #        "WireCellRoot",

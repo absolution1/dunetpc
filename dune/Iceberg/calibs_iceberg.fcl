@@ -51,16 +51,71 @@ tools.areaGain_ib4b_v10: {
   ]
 }
 
+# For Iceberg 5 and beyond.
+# mastser clock now at 62.5 MHz instead of 50 MHz.
+# TPC clock is run at (62.5 MHz)/32 = 1.9531 MHz
+#   ts_nom [us]   <Ts> [tick]     A/h
+#             1           2.1    2.73
+#             2           4.3    5.45
+#             2           6.4    8.18
+
 # February 2021 rough charge calibration Iceberg 5 before cooldown.
-# Based on run 8226 good-channel ROI areas.
-# gA = (21.4 ke)/(1581 ADC-tick) = 0.135 ke/(ADC-tick)
-#    = 0.135 ke/(ADC-tick)
-# Note that ADC gain is very diffent for cold data.
+# 2020-02-XX: Warm value (run 8226) is 0.067
+
+# Run 5a cold, gain=4.7 mV/fC, shaping = 1.0 us.
+# February 2021.
+# 2020-03-01: Based on run 8393, 8388 and 8393 good-channel ROI areas.
+#   gA = (5*21.4 ke)/(2100 ADC-tick) = 0.051 ke/(ADC-tick)
+# 2020-03-02: From Tom, gain for most channels is 447 ADC-tick/DAC
+#   gA = (21.4 ke)/(447 ADC-tick) = 0.0479 ke/(ADC-tick)
 tools.areaGain_ib5a_v00: {
   tool_type: FclFileFloatArray
   LogLevel: 1
   Label: "areaGain_ib5a-v00"
-  DefaultValue: 0.0135
+  DefaultValue: 0.0479
+  FileNames: [
+  ]
+}
+
+# Run 5b: cold, gain = 14 mV/fC, shaping = 2.0 us, low baseline (300 mV)
+# March 2021 Cold.
+# Corrected shaping time 2021-03-19.
+# 2020-03-01: Based on run 8417 with DAC 10.
+# Measured height is 4580 ADC counts.
+# Area = 5.45*h = 24960 ADC-tick
+#   gA = (10*21.4 ke)/(24960 ADC-tick) = 0.0103 ke/(ADC-tick)
+tools.areaGain_ib5b_v01: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5b-v01"
+  DefaultValue: 0.0086
+  FileNames: [
+  ]
+}
+
+# Run 5c: cold, gain = 14 mV/fC, shaping = 2.0 us.
+# March 2021 Cold.
+# 2020-03-01: Based on run 8415 with DAC 10.
+# Meaured height is 4600 ADC counts.
+# Area = 5.45*h = 25100 ADC-tick
+#   gA = (10*21.4 ke)/(25100 ADC-tick) = 0.083 ke/(ADC-tick)
+tools.areaGain_ib5c_v00: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5c-v00"
+  DefaultValue: 0.0085
+  FileNames: [
+  ]
+}
+
+# Run 5d: cold, gain = 14 mV/fC, shaping = 1.0 us.
+# March 2021 Cold.
+# Scale 5b by shaping time ratio.
+tools.areaGain_ib5d_v00: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5d-v00"
+  DefaultValue: 0.0170
   FileNames: [
   ]
 }
@@ -76,6 +131,11 @@ tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
 #tools.areaGain_ib4: @local::tools.areaGain_ib4b_v10
 
 tools.areaGain_ib5a: @local::tools.areaGain_ib5a_v00
-tools.areaGain_ib5: @local::tools.areaGain_ib5a
+tools.areaGain_ib5b: @local::tools.areaGain_ib5c_v00   # 5b has same gain and shaping as 5c
+tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v00
+tools.areaGain_ib5d: @local::tools.areaGain_ib5d_v00
+tools.areaGain_ib5e: @local::tools.areaGain_ib5c_v00   # 5e has same gain and shaping as 5c
+tools.areaGain_ib5f: @local::tools.areaGain_ib5c_v00   # 5f has same gain and shaping as 5c
+tools.areaGain_ib5:  @local::tools.areaGain_ib5c
 
 #####################################################################

@@ -463,6 +463,10 @@ tools.adcThresholdSignalFinder: {
   FlagNegative: true
 }
 
+# Find calibrated signals with simple threshold algorithm.
+tools.calibThresholdSignalFinder: @local::tools.adcThresholdSignalFinder
+tools.calibThresholdSignalFinder.Threshold: 0.5
+
 # Find ADC signals with Dune 35t algorithm.
 tools.adcDuneSignalFinder: {
   tool_type: DuneAdcSignalFinder
@@ -473,6 +477,23 @@ tools.adcDuneSignalFinder: {
   TicksBefore: 50
   TicksAfter:  50
 }
+
+# Dynamic signal finder.
+tools.adcNoiseSignalFinder: {
+  tool_type: AdcNoiseSignalFinder
+  LogLevel: 1
+  SigFracMax: 0.80
+  ThresholdMin: 20.0
+  ThresholdRatio: 4.0
+  ThresholdRatioTol: 0.1
+  MaxLoop: 20.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+tools.calibNoiseSignalFinder: @local::tools.adcNoiseSignalFinder
+tools.calibNoiseSignalFinder.ThresholdMin: 0.2
 
 # Do FFT.
 tools.adcFFT: {

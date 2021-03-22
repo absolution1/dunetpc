@@ -30,10 +30,13 @@ public:
     Index event =0;
     Index run =0;
     Index channel =0;
+    Index status =0;
     Index nroi =0;
     IndexVector nsam;
     IndexVector isam;
-    FloatVector qke;
+    FloatVector qroi;
+    FloatVector hmin;
+    FloatVector hmax;
   };
 
   // Ctor.

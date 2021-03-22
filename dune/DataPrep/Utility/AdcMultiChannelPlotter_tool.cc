@@ -159,6 +159,7 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
     cout << myname << "Per page pad count is " << npadOnPage << " (" << npady << " x " << npadx << ")" << endl;
   }
   Name plotName;
+  Name cgrn;
   TPadManipulator* pmantop = nullptr;
   bool doRanges = haveChannelRanges() || haveChannelGroups();
   PadVector localPads;
@@ -233,17 +234,24 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
              << " entr" << (nacd == 1 ? "y" : "ies" ) << " in " << ncha << " channel"
              << (ncha == 1 ? "" : "s") << "."  << endl;
       }
-      // If needed, create a new canvas and a name.
-      const AdcChannelData& acdFirst = *acdvec[0];
+      // If needed, create a new canvas.
+      AdcChannelData acdTmp;   // Temporary channel data to hold event and (someday?) channel info.
+      acdTmp.setEventInfo(acds.begin()->second.getEventInfoPtr());
       if ( pmantop == nullptr ) {
-        if ( getLogLevel() >= 3 ) cout << myname << "    Creating canvas for run " << acdFirst.run()
-                                       << ", event " << acdFirst.event() << "." << endl;
         pmantop = new TPadManipulator;
         if ( m_PlotSizeX && m_PlotSizeY ) pmantop->setCanvasSize(m_PlotSizeX, m_PlotSizeY);
         if ( npadOnPage > 1 ) pmantop->split(npadx, npady);
+      }
+      // Assign group/range name using the first plot on the canvas.
+      if ( cgrn.size() == 0 ) {
+        cgrn = overlayGroups() ? cgn : crn;
+      }
+      // Assign plot name using the first plot with data on the canvas.
+      // Thepreviously-assigned group/range name is used.
+      if ( plotName.size() == 0 && acdvec.size() ) {
+        const AdcChannelData& acdFirst = *acdvec[0];
         plotName = AdcChannelStringTool::build(m_adcStringBuilder, acdFirst, getPlotName());
         StringManipulator sman(plotName, false);
-        Name cgrn = overlayGroups() ? cgn : crn;
         sman.replace("%CGNAME%", cgn);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGRNAME%", cgrn);
@@ -253,11 +261,16 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
           if ( plotName.size() ) cout << myname << "    Created pad  with plot name " << plotName << endl;
           else cout << myname << "    Created pad with no plot name." << endl;
         }
+        if ( getLogLevel() >= 3 ) {
+          cout << myname << "    Run " << acdFirst.run() << ", event " << acdFirst.event()
+               << " group/range " << cgrn << " ==> plot name " << plotName << endl;
+        }
       }
       // View this channel range.
       TPadManipulator* ppadPage = pmantop->man(ipadOnPage);
       if ( ppadPage == nullptr ) {
-        cout << myname << "ERROR: View pad " << ipadOnPage << " not found for pad " << ipad << ", channel range " << crn << "." << endl;
+        cout << myname << "ERROR: View pad " << ipadOnPage << " not found for pad " << ipad
+             << ", channel range " << crn << "." << endl;
       } else {
         viewMapChannels(crn, acdvec, *ppadPage, ncr, icr);
         ncha += acds.size();
@@ -271,11 +284,13 @@ DataMap AdcMultiChannelPlotter::viewMap(const AdcChannelDataMap& acds) const {
         if ( getLogLevel() >= 3 ) cout << myname << "  Printing canvas to " << plotName << endl;
         pmantop->print(plotName);
       } else {
-        if ( getLogLevel() >= 3 ) cout << myname << "  Not printing canvas for channel group "
-                                       << cgn << "." << endl;
+        if ( getLogLevel() >= 3 ) cout << myname << "  Not printing canvas for channel group/range "
+                                       << cgrn << "." << endl;
       }
       delete pmantop;
       pmantop = nullptr;
+      plotName = "";
+      cgrn = "";
       ipadOnPage = 0;
       ++nplt;
     }
@@ -326,6 +341,7 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
   const PadVector& pads = doRanges ? m_pads : localPads;
   Index npad = pads.size();
   Name plotName;
+  Name cgrn;
   AdcChannelData acdPrint;
   using EventInfo = AdcChannelData::EventInfo;
   acdPrint.setEventInfo(new EventInfo(getBaseState().run(), getBaseState().event));
@@ -343,6 +359,10 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
       if ( getLogLevel() >= 4 ) {
         cout << myname << "    Processing group/range " << cgn << "/" << crn << endl;
       }
+      // Assign group/range name for the canvas.
+      if ( cgrn.size() == 0 ) {
+        cgrn = overlayGroups() ? cgn : crn;
+      }
       // If needed, create a new canvas and a name.
       acdPrint.setChannelInfo(pad.crmap.at(crn).begin);
       if ( pmantop == nullptr ) {
@@ -358,6 +378,7 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
         StringManipulator sman(plotName, false);
         sman.replace("%CRNAME%", crn);
         sman.replace("%CGNAME%", cgn);
+        sman.replace("%CGRNAME%", cgrn);
         sman.replace("%VIEW%", getDataView());
       }
       // View this channel range.
@@ -373,6 +394,8 @@ void AdcMultiChannelPlotter::viewSummary(Index ilev) const {
       pmantop->print(plotName);
       delete pmantop;
       pmantop = nullptr;
+      plotName = "";
+      cgrn = "";
     }
   }
 }

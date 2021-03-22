@@ -1,0 +1,7 @@
+# iceberg5b_decode_reco.fcl
+
+#include "iceberg5c_decode_reco.fcl"
+
+tools.areaGain_ib5: @local::tools.areaGain_ib5b
+
+tools.ib5_adcPedestalFit: @local::tools.ib5b_adcPedestalFit

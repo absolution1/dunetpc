@@ -281,7 +281,7 @@ AdcChannelMetric::~AdcChannelMetric() {
       AdcChannelData acd;
       if ( getState().runCount == 1 ) {
         acd.setEventInfo(
-          acd.run(),
+          getState().firstRun,
           getState().eventCount==1 ? getState().firstEvent : AdcChannelData::badIndex()
         );
       }
