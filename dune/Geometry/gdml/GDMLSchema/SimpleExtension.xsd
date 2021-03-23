@@ -7,7 +7,7 @@
            xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
-  <xs:redefine schemaLocation="https://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <xs:redefine schemaLocation="gdml.xsd">
 
     <xs:annotation>
       <xs:documentation>
