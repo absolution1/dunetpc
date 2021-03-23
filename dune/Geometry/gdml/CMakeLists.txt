@@ -1,5 +1,5 @@
 
-install_gdml( SUBDIRS GDMLSchema )
+install_gdml( SUBDIRS LegacyGDMLSchema )
 
 add_subdirectory(GDMLRefactoredSchema)
 

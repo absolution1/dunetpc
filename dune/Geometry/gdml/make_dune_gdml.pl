@@ -57,7 +57,7 @@ for ($ifile=0; $ifile<@defFile; ++$ifile) {
 print "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 print "<gdml xmlns:gdml=\"http://cern.ch/2001/Schemas/GDML\"\n";
 print "      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n";
-print "      xsi:noNamespaceSchemaLocation=\"GDMLSchema/gdml.xsd\">\n";
+print "      xsi:noNamespaceSchemaLocation=\"LegacyLegacyGDMLSchema/gdml.xsd\">\n";
 for ($i=0; $i<@gdmlFile; ++$i) 
 { 
     $FILE = @gdmlFile[$i];

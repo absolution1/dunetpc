@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+      xsi:noNamespaceSchemaLocation="LegacyGDMLSchema/gdml.xsd">
 <define>
    <position name="posTPCActive"        unit="cm" x="0.713999999999999" y="0" z="0"/>
    <position name="posCenter"           unit="cm" x="0" y="0" z="0"/>

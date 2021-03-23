@@ -388,7 +388,7 @@ sub gen_header()
 <?xml version="1.0" encoding="UTF-8" ?>
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+      xsi:noNamespaceSchemaLocation="LegacyLegacyGDMLSchema/gdml.xsd">
 EOF
 }
 

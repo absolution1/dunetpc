@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+      xsi:noNamespaceSchemaLocation="LegacyGDMLSchema/gdml.xsd">
 <materials>
   <element name="videRef" formula="VACUUM" Z="1">  <atom value="1"/> </element>
   <element name="bromine" formula="Br" Z="35"> <atom value="79.904"/> </element>
