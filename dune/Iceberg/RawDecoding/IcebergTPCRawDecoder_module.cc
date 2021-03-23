@@ -128,6 +128,7 @@ private:
   TH1D * fErrorsNumber;
   TH1I * fFragSizeRCE;
   TH1I * fFragSizeFELIX;
+  TH1I * fDeltaTimestamp;
 
   // flags and state needed for the data integrity enforcement mechanisms
 
@@ -254,6 +255,9 @@ IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
 
       fFragSizeFELIX = tFileService->make<TH1I>("fFragSizeFELIX", "FELIX Fragment Size", 100, 0.5, 57600000.5);
       fFragSizeFELIX->GetXaxis()->SetTitle("Size of FELIX Fragments (bytes)");
+
+      fDeltaTimestamp = tFileService->make<TH1I>("fDeltaTimestamp", "Delta Timestamp Between Frames", 101, -0.5, 100.5);
+
     }
 
 }
@@ -1308,6 +1312,8 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     // for iceberg, hardcode the crate number to suppress warnings
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
+    //std::cout << "Calling channel map: " << (int) slotloc2 << " " << fiberloc2 << " " << chloc << " " << offlineChannel << std::endl;
+
     if ( v_adc.size() != _full_tick_count)
       {
         if (_enforce_full_tick_count)
@@ -1385,6 +1391,26 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 
     raw::RDTimeStamp rdtimestamp( is14 ? frame14ptr->timestamp() : felixptr->timestamp(),offlineChannel);
     timestamps.push_back(rdtimestamp);
+
+    if (_make_histograms)
+      {
+	uint64_t last_timestamp = (is14 ? frame14ptr->timestamp(0) : felixptr->timestamp(0));
+	for (size_t itick=1; itick<n_ticks; ++itick)
+	  {
+	    uint64_t timestamp = (is14 ? frame14ptr->timestamp(itick) : felixptr->timestamp(itick));
+	    uint64_t tdiff = 0;
+	    if (timestamp > last_timestamp)
+	      {
+		tdiff = timestamp - last_timestamp;
+	      }
+	    else
+	      {
+		tdiff = last_timestamp - timestamp;
+	      }
+	    fDeltaTimestamp->Fill(tdiff);
+	    last_timestamp = timestamp;
+	  }
+      }
 
     //associate the raw digit and the timestamp data products
     auto const rawdigitptr = rdpm(raw_digits.size()-1);
