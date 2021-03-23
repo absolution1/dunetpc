@@ -21382,6 +21382,8 @@
     <volume name="volTPCActiveInner">
       <materialref ref="LAr"/>
       <solidref ref="InnerActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
     </volume>
 
     <volume name="volTPCWireVertInner">
@@ -27798,6 +27800,8 @@
     </volume>
     <volume name="volTPCPlaneUInner">
       <materialref ref="LAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
       <solidref ref="InnerUPlane"/>
       <physvol>
         <volumeref ref="volTPCWireU0Inner"/>
@@ -33548,6 +33552,8 @@
 
     <volume name="volTPCPlaneVInner">
       <materialref ref="LAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
       <solidref ref="InnerVPlane"/>
       <physvol>
         <volumeref ref="volTPCWireV0Inner"/>
@@ -39293,6 +39299,8 @@
 
     <volume name="volTPCPlaneZInner">
       <materialref ref="LAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
       <solidref ref="InnerZPlane"/>
       <physvol>/
         <volumeref ref="volTPCWireVertInner"/>
@@ -41697,6 +41705,8 @@
     </volume>
     <volume name="volTPCInner">
       <materialref ref="LAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
       <solidref ref="Inner"/>
      <physvol>
        <volumeref ref="volTPCPlaneZInner"/>
@@ -41726,6 +41736,8 @@
 
     <volume name="volTPCActiveOuter">
       <materialref ref="LAr"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
       <solidref ref="OuterActive"/>
     </volume>
 

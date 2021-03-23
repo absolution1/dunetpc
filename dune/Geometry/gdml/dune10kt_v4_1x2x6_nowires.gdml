@@ -558,25 +558,35 @@
     <volume name="volTPCActiveInner">
       <materialref ref="LAr"/>
       <solidref ref="InnerActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
     </volume>
 
     <volume name="volTPCPlaneUInner">
       <materialref ref="LAr"/>
       <solidref ref="InnerUPlane"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
     </volume>
 
     <volume name="volTPCPlaneVInner">
       <materialref ref="LAr"/>
       <solidref ref="InnerVPlane"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
     </volume>
 
     <volume name="volTPCPlaneZInner">
       <materialref ref="LAr"/>
       <solidref ref="InnerZPlane"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
     </volume>
     <volume name="volTPCInner">
       <materialref ref="LAr"/>
       <solidref ref="Inner"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxvalue="0.4" auxunit="mm"/>
      <physvol>
        <volumeref ref="volTPCPlaneZInner"/>
        <position name="posInnerPlaneZ" unit="cm" 
