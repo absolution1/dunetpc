@@ -4,41 +4,41 @@
 
 
 # full geometry, no wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1_nowires.gdml -w=0
-perl make_legacy_gdml.pl -i dune10kt_v1_nowires.gdml -o dune10kt_v1_nowires.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_nowires_legacy.gdml -w=0
+perl make_legacy.gdml.pl -i dune10kt_v1_nowires_legacy.gdml -o dune10kt_v1_nowires_legacy.gdml
 # full geometry, with wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1.gdml
-perl make_legacy_gdml.pl -i dune10kt_v1.gdml -o dune10kt_v1.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_legacy.gdml
+perl make_legacy.gdml.pl -i dune10kt_v1_legacy.gdml -o dune10kt_v1_legacy.gdml
 
 
 # workspace geometry, no wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1_workspace_nowires.gdml -w=0 -k=1
-perl make_legacy_gdml.pl -i dune10kt_v1_workspace_nowires.gdml -o dune10kt_v1_workspace_nowires.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_workspace_nowires_legacy.gdml -w=0 -k=1
+perl make_legacy.gdml.pl -i dune10kt_v1_workspace_nowires_legacy.gdml -o dune10kt_v1_workspace_nowires_legacy.gdml
 # workspace geometry, with wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1_workspace.gdml -k=1
-perl make_legacy_gdml.pl -i dune10kt_v1_workspace.gdml -o dune10kt_v1_workspace.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_workspace_legacy.gdml -k=1
+perl make_legacy.gdml.pl -i dune10kt_v1_workspace_legacy.gdml -o dune10kt_v1_workspace_legacy.gdml
 
 
 # 1x2x6 geometry, no wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1_1x2x6_nowires.gdml -w=0 -k=2
-perl make_legacy_gdml.pl -i dune10kt_v1_1x2x6_nowires.gdml -o dune10kt_v1_1x2x6_nowires.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_1x2x6_nowires_legacy.gdml -w=0 -k=2
+perl make_legacy.gdml.pl -i dune10kt_v1_1x2x6_nowires_legacy.gdml -o dune10kt_v1_1x2x6_nowires_legacy.gdml
 # 1x2x6 geometry, with wires
-perl generate_dune10kt_v1.pl -o dune10kt_v1_1x2x6.gdml -k=2
-perl make_legacy_gdml.pl -i dune10kt_v1_1x2x6.gdml -o dune10kt_v1_1x2x6.gdml
+perl generate_dune10kt_v1_legacy.pl -o dune10kt_v1_1x2x6_legacy.gdml -k=2
+perl make_legacy.gdml.pl -i dune10kt_v1_1x2x6_legacy.gdml -o dune10kt_v1_1x2x6_legacy.gdml
 
 # 1x2x6 geometry v2, no wires
-perl generate_dune10kt_v2.pl -o dune10kt_v2_1x2x6_nowires.gdml -w=0 -k=2
-perl make_legacy_gdml.pl -i dune10kt_v2_1x2x6_nowires.gdml -o dune10kt_v2_1x2x6_nowires.gdml
+perl generate_dune10kt_v2_legacy.pl -o dune10kt_v2_1x2x6_nowires_legacy.gdml -w=0 -k=2
+perl make_legacy.gdml.pl -i dune10kt_v2_1x2x6_nowires_legacy.gdml -o dune10kt_v2_1x2x6_nowires_legacy.gdml
 # 1x2x6 geometry v2, with wires
-perl generate_dune10kt_v2.pl -o dune10kt_v2_1x2x6.gdml -k=2
-perl make_legacy_gdml.pl -i dune10kt_v2_1x2x6.gdml -o dune10kt_v2_1x2x6.gdml
+perl generate_dune10kt_v2_legacy.pl -o dune10kt_v2_1x2x6_legacy.gdml -k=2
+perl make_legacy.gdml.pl -i dune10kt_v2_1x2x6_legacy.gdml -o dune10kt_v2_1x2x6_legacy.gdml
 
 # ICEBERG, no wires
-perl generate_iceberg_v1.pl -o iceberg_v1_nowires.gdml -w=0
-perl make_legacy_gdml.pl -i iceberg_v1_nowires.gdml -o iceberg_v1_nowires.gdml
+perl generate_iceberg_v1_legacy.pl -o iceberg_v1_nowires_legacy.gdml -w=0
+perl make_legacy.gdml.pl -i iceberg_v1_nowires_legacy.gdml -o iceberg_v1_nowires_legacy.gdml
 # full geometry, with wires
-perl generate_iceberg_v1.pl -o iceberg_v1.gdml
-perl make_legacy_gdml.pl -i iceberg_v1.gdml -o iceberg_v1.gdml
+perl generate_iceberg_v1_legacy.pl -o iceberg_v1_legacy.gdml
+perl make_legacy.gdml.pl -i iceberg_v1_legacy.gdml -o iceberg_v1_legacy.gdml
 
 #This should also run deacrylify to make sure new geometries are consistent.
-. deacrylify10kt.sh
+. deacrylify10kt_legacy.sh
