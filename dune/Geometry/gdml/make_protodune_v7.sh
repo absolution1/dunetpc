@@ -1,8 +1,11 @@
-# protodune geometry v7, no wires
-perl generate_protodune-sp_v7_legacy.pl -o protodune_v7_nowires_legacy.gdml -w=0 -p=1
-perl make_legacy.gdml.pl -i protodune_v7_nowires_legacy.gdml -o protodune_v7_nowires_legacy.gdml
-# protodune geometry v7, with wires
-perl generate_protodune-sp_v7_legacy.pl -o protodune_v7_legacy.gdml -p=1
-perl make_legacy.gdml.pl -i protodune_v7_legacy.gdml -o protodune_v7_legacy.gdml
+# - D.R. <drivera@fnal.gov>
 
-. deacrylify10kt_legacy.sh
+# refactored protodune geometry v7, no wires
+perl generate_refactored_protodune-sp_v7.pl -o protodune_v7_refactored_nowires.gdml -w=0 -p=1
+perl make_refactored_gdml.pl -i protodune_v7_refactored_nowires.gdml -o protodune_v7_refactored_nowires.gdml
+# protodune geometry v7, with wires
+perl generate_refactored_protodune-sp_v7.pl -o protodune_v7_refactored.gdml -p=1
+perl make_refactored_gdml.pl -i protodune_v7_refactored.gdml -o protodune_v7_refactored.gdml
+
+# why? 
+#. deacrylify10kt.sh
