@@ -174,7 +174,7 @@ print OUTPUT <<EOF;
 <?xml version="1.0" encoding="UTF-8" ?>
 <gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
                        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
-                       xs:noNamespaceSchemaLocation="RefactoredGDMLSchema/SimpleExtension.xsd"> 
+                       xs:noNamespaceSchemaLocation="GDMLRefactoredSchema/SimpleExtension.xsd"> 
 
 
 EOF

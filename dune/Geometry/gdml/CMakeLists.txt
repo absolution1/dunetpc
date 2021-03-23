@@ -1,6 +1,6 @@
 
 install_gdml( SUBDIRS GDMLSchema )
 
-add_subdirectory(RefactoredGDMLSchema)
+add_subdirectory(GDMLRefactoredSchema)
 
 add_subdirectory(dune)
