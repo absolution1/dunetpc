@@ -4,9 +4,9 @@
 # I would love to help!
 
 # Each subroutine generates a fragment GDML file, and the last subroutine
-# creates an XML file that make_gdml.pl will use to appropriately arrange
+# creates an XML file that make_legacy_gdml.pl will use to appropriately arrange
 # the fragment GDML files to create the final desired DUNE GDML file, 
-# to be named by make_gdml output command
+# to be named by make_legacy_gdml output command
 
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
@@ -401,7 +401,7 @@ $SiPM_z                   =    0;
 sub usage()
 {
     print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
-    print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
+    print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_legacy_gdml.pl\n";
     print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
     print "       -h prints this message, then quits\n";
 }
@@ -2129,7 +2129,7 @@ print WORLD <<EOF;
 </gdml>
 EOF
 
-# make_gdml.pl will take care of <setup/>
+# make_legacy_gdml.pl will take care of <setup/>
 
 close(WORLD);
 }
@@ -2143,9 +2143,9 @@ close(WORLD);
 sub write_fragments()
 {
    # This subroutine creates an XML file that summarizes the the subfiles output
-   # by the other sub routines - it is the input file for make_gdml.pl which will
+   # by the other sub routines - it is the input file for make_legacy_gdml.pl which will
    # give the final desired GDML file. Specify its name with the output option.
-   # (you can change the name when running make_gdml)
+   # (you can change the name when running make_legacy_gdml)
 
    # This code is taken straigh from the similar MicroBooNE generate script, Thank you.
 
@@ -2161,7 +2161,7 @@ sub write_fragments()
     print OUTPUT <<EOF;
 <?xml version='1.0'?>
 
-<!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
+<!-- Input to Geometry/gdml/make_legacy_gdml.pl; define the GDML fragments
      that will be zipped together to create a detector description. 
      -->
 
@@ -2171,7 +2171,7 @@ sub write_fragments()
 
       <!-- These files contain GDML <constant></constant>
            blocks. They are read in separately, so they can be
-           interpreted into the remaining GDML. See make_gdml.pl for
+           interpreted into the remaining GDML. See make_legacy_gdml.pl for
            more information. 
          -->
          
@@ -2231,6 +2231,6 @@ gen_Enclosure(); # places two cryostats and concrete volumes
 gen_World();       # places the enclosure among DUSEL Rock
 
 
-write_fragments(); # writes the XML input for make_gdml.pl
+write_fragments(); # writes the XML input for make_legacy_gdml.pl
                   # which zips together the final GDML
 exit;

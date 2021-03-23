@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 
-<!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
+<!-- Input to Geometry/gdml/make_legacy_gdml.pl; define the GDML fragments
      that will be zipped together to create a detector description. 
      -->
 
@@ -10,7 +10,7 @@
 
       <!-- These files contain GDML <constant></constant>
            blocks. They are read in separately, so they can be
-           interpreted into the remaining GDML. See make_gdml.pl for
+           interpreted into the remaining GDML. See make_legacy_gdml.pl for
            more information. 
 	   -->
 	   
