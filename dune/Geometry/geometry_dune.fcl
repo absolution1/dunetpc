@@ -2,7 +2,7 @@
 BEGIN_PROLOG
 
 
-dunefd_geo:
+dunefd_geo_legacy:
 {
 
  # Various configurations for FD-related geometries
@@ -14,24 +14,24 @@ dunefd_geo:
 
  # Choose GDML file
 
- GDML:      "dune10kt_v1.gdml"
- ROOT:      "dune10kt_v1.gdml"
-# GDML:      "dune10kt_v1_workspace.gdml"
-# ROOT:      "dune10kt_v1_workspace.gdml"
-# GDML:      "dune10kt_v1_45deg.gdml"
-# ROOT:      "dune10kt_v1_45deg.gdml"
-# GDML:      "dune10kt_v1_45deg_workspace.gdml"
-# ROOT:      "dune10kt_v1_45deg_workspace.gdml"
-# GDML:      "dune10kt_v1_3mmPitch.gdml"
-# ROOT:      "dune10kt_v1_3mmPitch.gdml"
-# GDML:      "dune10kt_v1_3mmPitch_workspace.gdml"
-# ROOT:      "dune10kt_v1_3mmPitch_workspace.gdml"
-# GDML:      "lbne10kt.gdml"
-# ROOT:      "lbne10kt.gdml"
-# GDML:      "lbne34kt.gdml"
-# ROOT:      "lbne34kt.gdml"
-# GDML:      "lbne4apa36deg.gdml"
-# ROOT:      "lbne4apa36deg.gdml"   # *45deg.gdml or *36deg.gdml
+ GDML:      "dune10kt_v1_legacy.gdml"
+ ROOT:      "dune10kt_v1_legacy.gdml"
+# GDML:      "dune10kt_v1_workspace_legacy.gdml"
+# ROOT:      "dune10kt_v1_workspace_legacy.gdml"
+# GDML:      "dune10kt_v1_45deg_legacy.gdml"
+# ROOT:      "dune10kt_v1_45deg_legacy.gdml"
+# GDML:      "dune10kt_v1_45deg_workspace_legacy.gdml"
+# ROOT:      "dune10kt_v1_45deg_workspace_legacy.gdml"
+# GDML:      "dune10kt_v1_3mmPitch_legacy.gdml"
+# ROOT:      "dune10kt_v1_3mmPitch_legacy.gdml"
+# GDML:      "dune10kt_v1_3mmPitch_workspace_legacy.gdml"
+# ROOT:      "dune10kt_v1_3mmPitch_workspace_legacy.gdml"
+# GDML:      "lbne10kt_legacy.gdml"
+# ROOT:      "lbne10kt_legacy.gdml"
+# GDML:      "lbne34kt_legacy.gdml"
+# ROOT:      "lbne34kt_legacy.gdml"
+# GDML:      "lbne4apa36deg_legacy.gdml"
+# ROOT:      "lbne4apa36deg_legacy.gdml"   # *45deg_legacy.gdml or *36deg_legacy.gdml
 
  SortingParameters:	{ChannelsPerOpDet:	1}
 
@@ -42,12 +42,12 @@ dunefd_geo:
  DisableWiresInG4: true
 }
 
-dune10kt_geo:
+dune10kt_geo_legacy:
 {
  Name:      "dune10kt_v1"
  
- GDML:      "dune10kt_v1.gdml"
- ROOT:      "dune10kt_v1.gdml"
+ GDML:      "dune10kt_v1_legacy.gdml"
+ ROOT:      "dune10kt_v1_legacy.gdml"
 
  SortingParameters:	{ChannelsPerOpDet:	1}
 
@@ -57,12 +57,12 @@ dune10kt_geo:
 
 }
 
-dunedphase10kt_geo:
+dunedphase10kt_geo_legacy:
 {
  Name:      "dunedphase10kt_v2"
  
- GDML:      "dunedphase10kt_v2.gdml"
- ROOT:      "dunedphase10kt_v2.gdml"
+ GDML:      "dunedphase10kt_v2_legacy.gdml"
+ ROOT:      "dunedphase10kt_v2_legacy.gdml"
 
  SortingParameters:	{ChannelsPerOpDet:	1}
 
@@ -71,12 +71,12 @@ dunedphase10kt_geo:
  DisableWiresInG4:   true
 }
 
-dunedphase10kt_driftY_geo:
+dunedphase10kt_driftY_geo_legacy:
 {
  Name:      "dunedphase10kt_v2_driftY"
  
- GDML:      "dunedphase10kt_v2_driftY.gdml"
- ROOT:      "dunedphase10kt_v2_driftY.gdml"
+ GDML:      "dunedphase10kt_v2_driftY_legacy.gdml"
+ ROOT:      "dunedphase10kt_v2_driftY_legacy.gdml"
 
  SortingParameters:	{ChannelsPerOpDet:	1}
 
@@ -85,108 +85,108 @@ dunedphase10kt_driftY_geo:
  DisableWiresInG4:   true
 }
 
-dunedphase10kt_driftY_HalfFoiled_geo: @local::dunedphase10kt_driftY_geo
-dunedphase10kt_driftY_HalfFoiled_geo.Name: "dunedphase10kt_v2_driftY_HalfFoil"
-dunedphase10kt_driftY_HalfFoiled_geo.GDML: "dunedphase10kt_v2_driftY_HalfFoil.gdml"
-dunedphase10kt_driftY_HalfFoiled_geo.ROOT: "dunedphase10kt_v2_driftY_HalfFoil.gdml"
+dunedphase10kt_driftY_HalfFoiled_geo_legacy: @local::dunedphase10kt_driftY_geo_legacy
+dunedphase10kt_driftY_HalfFoiled_geo_legacy.Name: "dunedphase10kt_v2_driftY_HalfFoil"
+dunedphase10kt_driftY_HalfFoiled_geo_legacy.GDML: "dunedphase10kt_v2_driftY_HalfFoil_legacy.gdml"
+dunedphase10kt_driftY_HalfFoiled_geo_legacy.ROOT: "dunedphase10kt_v2_driftY_HalfFoil_legacy.gdml"
 
-protodunedphase_geo:
+protodunedphase_geo_legacy:
 {
  Name:      "protodunedphase"
 
- GDML:      "protodunedphase.gdml"
- ROOT:      "protodunedphase.gdml"
+ GDML:      "protodunedphase_legacy.gdml"
+ ROOT:      "protodunedphase_legacy.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 } 
 
-protodunedphase_driftY_geo:
+protodunedphase_driftY_geo_legacy:
 {
  Name:      "protodunedphase_driftY"
 
- GDML:      "protodunedphase_driftY.gdml"
- ROOT:      "protodunedphase_driftY.gdml"
+ GDML:      "protodunedphase_driftY_legacy.gdml"
+ ROOT:      "protodunedphase_driftY_legacy.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 } 
 
-protodunedphase_driftY_uniform_geo:
+protodunedphase_driftY_uniform_geo_legacy:
 {
  Name:      "protodunedphase_driftY_uniform"
 
- GDML:      "protodunedphase_driftY_uniform.gdml"
- ROOT:      "protodunedphase_driftY_uniform.gdml"
+ GDML:      "protodunedphase_driftY_uniform_legacy.gdml"
+ ROOT:      "protodunedphase_driftY_uniform_legacy.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 } 
 
-dphase3x1x1_geo:
+dphase3x1x1_geo_legacy:
 {
  Name:      "3x1x1dphase"
 
- GDML:      "3x1x1dphase.gdml"
- ROOT:      "3x1x1dphase.gdml"
+ GDML:      "3x1x1dphase_legacy.gdml"
+ ROOT:      "3x1x1dphase_legacy.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 }
 
-dphase3x1x1_driftY_geo:
+dphase3x1x1_driftY_geo_legacy:
 {
  Name:      "3x1x1dphase_driftY"
 
- GDML:      "3x1x1dphase_driftY.gdml"
- ROOT:      "3x1x1dphase_driftY.gdml"
+ GDML:      "3x1x1dphase_driftY_legacy.gdml"
+ ROOT:      "3x1x1dphase_driftY_legacy.gdml"
 
  SortingParameters:    {ChannelsPerOpDet:    1}
  SurfaceY: 0.0                       # Underground option. 4850 feet to cm. from DocDb-3833
  DisableWiresInG4:   true
 }
 
-dune10kt_workspace_geo:      @local::dune10kt_geo
-dune10kt_workspace_geo.Name: "dune10kt_v1_workspace"
-dune10kt_workspace_geo.GDML: "dune10kt_v1_workspace.gdml"
-dune10kt_workspace_geo.ROOT: "dune10kt_v1_workspace.gdml"
+dune10kt_workspace_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_workspace_geo_legacy.Name: "dune10kt_v1_workspace"
+dune10kt_workspace_geo_legacy.GDML: "dune10kt_v1_workspace_legacy.gdml"
+dune10kt_workspace_geo_legacy.ROOT: "dune10kt_v1_workspace_legacy.gdml"
 
-dune10kt_1x2x6_v1_geo:      @local::dune10kt_geo
-dune10kt_1x2x6_v1_geo.Name: "dune10kt_v1_1x2x6"
-dune10kt_1x2x6_v1_geo.GDML: "dune10kt_v1_1x2x6.gdml"
-dune10kt_1x2x6_v1_geo.ROOT: "dune10kt_v1_1x2x6.gdml"
+dune10kt_1x2x6_v1_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_1x2x6_v1_geo_legacy.Name: "dune10kt_v1_1x2x6"
+dune10kt_1x2x6_v1_geo_legacy.GDML: "dune10kt_v1_1x2x6_legacy.gdml"
+dune10kt_1x2x6_v1_geo_legacy.ROOT: "dune10kt_v1_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v2_geo:      @local::dune10kt_geo
-dune10kt_1x2x6_v2_geo.Name: "dune10kt_v2_1x2x6"
-dune10kt_1x2x6_v2_geo.GDML: "dune10kt_v2_1x2x6.gdml"
-dune10kt_1x2x6_v2_geo.ROOT: "dune10kt_v2_1x2x6.gdml"
+dune10kt_1x2x6_v2_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_1x2x6_v2_geo_legacy.Name: "dune10kt_v2_1x2x6"
+dune10kt_1x2x6_v2_geo_legacy.GDML: "dune10kt_v2_1x2x6_legacy.gdml"
+dune10kt_1x2x6_v2_geo_legacy.ROOT: "dune10kt_v2_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v3_geo:      @local::dune10kt_geo
-dune10kt_1x2x6_v3_geo.Name: "dune10kt_v3_1x2x6"
-dune10kt_1x2x6_v3_geo.GDML: "dune10kt_v3_1x2x6.gdml"
-dune10kt_1x2x6_v3_geo.ROOT: "dune10kt_v3_1x2x6.gdml"
+dune10kt_1x2x6_v3_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_1x2x6_v3_geo_legacy.Name: "dune10kt_v3_1x2x6"
+dune10kt_1x2x6_v3_geo_legacy.GDML: "dune10kt_v3_1x2x6_legacy.gdml"
+dune10kt_1x2x6_v3_geo_legacy.ROOT: "dune10kt_v3_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v3_geo:      @local::dune10kt_geo
-dune10kt_1x2x6_v3_geo.Name: "dune10kt_v3_1x2x6"
-dune10kt_1x2x6_v3_geo.GDML: "dune10kt_v3_1x2x6.gdml"
-dune10kt_1x2x6_v3_geo.ROOT: "dune10kt_v3_1x2x6.gdml"
+dune10kt_1x2x6_v3_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_1x2x6_v3_geo_legacy.Name: "dune10kt_v3_1x2x6"
+dune10kt_1x2x6_v3_geo_legacy.GDML: "dune10kt_v3_1x2x6_legacy.gdml"
+dune10kt_1x2x6_v3_geo_legacy.ROOT: "dune10kt_v3_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v4_geo:      @local::dune10kt_geo
-dune10kt_1x2x6_v4_geo.Name: "dune10kt_v4_1x2x6"
-dune10kt_1x2x6_v4_geo.GDML: "dune10kt_v4_1x2x6.gdml"
-dune10kt_1x2x6_v4_geo.ROOT: "dune10kt_v4_1x2x6.gdml"
+dune10kt_1x2x6_v4_geo_legacy:      @local::dune10kt_geo_legacy
+dune10kt_1x2x6_v4_geo_legacy.Name: "dune10kt_v4_1x2x6"
+dune10kt_1x2x6_v4_geo_legacy.GDML: "dune10kt_v4_1x2x6_legacy.gdml"
+dune10kt_1x2x6_v4_geo_legacy.ROOT: "dune10kt_v4_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v4_refactored_geo:      @local::dune10kt_1x2x6_v4_geo
+dune10kt_1x2x6_v4_refactored_geo:      @local::dune10kt_1x2x6_v4_geo_legacy
 dune10kt_1x2x6_v4_refactored_geo.GDML: "dune10kt_v4_refactored_1x2x6.gdml"
 dune10kt_1x2x6_v4_refactored_geo.ROOT: "dune10kt_v4_refactored_1x2x6.gdml"
 
 dune10kt_1x2x6_geo:         @local::dune10kt_1x2x6_v4_refactored_geo
 
-dunevd10kt_1x6x6_2view_v1_geo: @local::dune10kt_geo
+dunevd10kt_1x6x6_2view_v1_geo: @local::dune10kt_geo_legacy
 dunevd10kt_1x6x6_2view_v1_geo.Name: "dunevd10kt_2view_v1_1x6x6"
 dunevd10kt_1x6x6_2view_v1_geo.GDML: "dunevd10kt_2view_v1_1x6x6.gdml"
 dunevd10kt_1x6x6_2view_v1_geo.ROOT: "dunevd10kt_2view_v1_1x6x6.gdml"
@@ -210,89 +210,89 @@ dunevd10kt_1x6x6_geo: @local::dunevd10kt_1x6x6_2view_geo
 dunevd10kt_geo : @local::dunevd10kt_1x6x6_geo
 
 
-dunedphase10kt_workspace_geo:        @local::dunedphase10kt_geo
-dunedphase10kt_workspace_geo.Name:   "dunedphase10kt_v2_workspace"
-dunedphase10kt_workspace_geo.GDML:   "dunedphase10kt_v2_workspace.gdml"
-dunedphase10kt_workspace_geo.ROOT:   "dunedphase10kt_v2_workspace.gdml"
+dunedphase10kt_workspace_geo_legacy:        @local::dunedphase10kt_geo_legacy
+dunedphase10kt_workspace_geo_legacy.Name:   "dunedphase10kt_v2_workspace"
+dunedphase10kt_workspace_geo_legacy.GDML:   "dunedphase10kt_v2_workspace_legacy.gdml"
+dunedphase10kt_workspace_geo_legacy.ROOT:   "dunedphase10kt_v2_workspace_legacy.gdml"
 
-dunedphase10kt_workspace4x2_geo:      @local::dunedphase10kt_geo
-dunedphase10kt_workspace4x2_geo.Name: "dunedphase10kt_v2_workspace4x2"
-dunedphase10kt_workspace4x2_geo.GDML: "dunedphase10kt_v2_workspace4x2.gdml"
-dunedphase10kt_workspace4x2_geo.ROOT: "dunedphase10kt_v2_workspace4x2.gdml"
-
-
-
-
-dunedphase10kt_driftY_workspace_geo: @local::dunedphase10kt_driftY_geo
-dunedphase10kt_driftY_workspace_geo.Name: "dunedphase10kt_v2_driftY_workspace"
-dunedphase10kt_driftY_workspace_geo.GDML: "dunedphase10kt_v2_driftY_workspace.gdml"
-dunedphase10kt_driftY_workspace_geo.ROOT: "dunedphase10kt_v2_driftY_workspace.gdml"
-
-dunedphase10kt_driftY_workspace4x2_geo: @local::dunedphase10kt_driftY_geo
-dunedphase10kt_driftY_workspace4x2_geo.Name: "dunedphase10kt_v2_driftY_workspace4x2"
-dunedphase10kt_driftY_workspace4x2_geo.GDML: "dunedphase10kt_v2_driftY_workspace4x2.gdml"
-dunedphase10kt_driftY_workspace4x2_geo.ROOT: "dunedphase10kt_v2_driftY_workspace4x2.gdml"
-
-dunedphase10kt_driftY_workspace3x3_geo: @local::dunedphase10kt_driftY_geo
-dunedphase10kt_driftY_workspace3x3_geo.Name: "dunedphase10kt_v2_driftY_workspace3x3"
-dunedphase10kt_driftY_workspace3x3_geo.GDML: "dunedphase10kt_v2_driftY_workspace3x3.gdml"
-dunedphase10kt_driftY_workspace3x3_geo.ROOT: "dunedphase10kt_v2_driftY_workspace3x3.gdml"
+dunedphase10kt_workspace4x2_geo_legacy:      @local::dunedphase10kt_geo_legacy
+dunedphase10kt_workspace4x2_geo_legacy.Name: "dunedphase10kt_v2_workspace4x2"
+dunedphase10kt_workspace4x2_geo_legacy.GDML: "dunedphase10kt_v2_workspace4x2_legacy.gdml"
+dunedphase10kt_workspace4x2_geo_legacy.ROOT: "dunedphase10kt_v2_workspace4x2_legacy.gdml"
 
 
 
 
-dune10kt_45deg_workspace_geo: @local::dune10kt_geo
-dune10kt_45deg_workspace_geo.Name: "dune10kt_v1_45deg_workspace"
-dune10kt_45deg_workspace_geo.GDML: "dune10kt_v1_45deg_workspace.gdml"
-dune10kt_45deg_workspace_geo.ROOT: "dune10kt_v1_45deg_workspace.gdml"
+dunedphase10kt_driftY_workspace_geo_legacy: @local::dunedphase10kt_driftY_geo_legacy
+dunedphase10kt_driftY_workspace_geo_legacy.Name: "dunedphase10kt_v2_driftY_workspace"
+dunedphase10kt_driftY_workspace_geo_legacy.GDML: "dunedphase10kt_v2_driftY_workspace_legacy.gdml"
+dunedphase10kt_driftY_workspace_geo_legacy.ROOT: "dunedphase10kt_v2_driftY_workspace_legacy.gdml"
 
-dune10kt_45deg_1x2x6_geo: @local::dune10kt_geo
-dune10kt_45deg_1x2x6_geo.Name: "dune10kt_v1_45deg_1x2x6"
-dune10kt_45deg_1x2x6_geo.GDML: "dune10kt_v1_45deg_1x2x6.gdml"
-dune10kt_45deg_1x2x6_geo.ROOT: "dune10kt_v1_45deg_1x2x6.gdml"
+dunedphase10kt_driftY_workspace4x2_geo_legacy: @local::dunedphase10kt_driftY_geo_legacy
+dunedphase10kt_driftY_workspace4x2_geo_legacy.Name: "dunedphase10kt_v2_driftY_workspace4x2"
+dunedphase10kt_driftY_workspace4x2_geo_legacy.GDML: "dunedphase10kt_v2_driftY_workspace4x2_legacy.gdml"
+dunedphase10kt_driftY_workspace4x2_geo_legacy.ROOT: "dunedphase10kt_v2_driftY_workspace4x2_legacy.gdml"
+
+dunedphase10kt_driftY_workspace3x3_geo_legacy: @local::dunedphase10kt_driftY_geo_legacy
+dunedphase10kt_driftY_workspace3x3_geo_legacy.Name: "dunedphase10kt_v2_driftY_workspace3x3"
+dunedphase10kt_driftY_workspace3x3_geo_legacy.GDML: "dunedphase10kt_v2_driftY_workspace3x3_legacy.gdml"
+dunedphase10kt_driftY_workspace3x3_geo_legacy.ROOT: "dunedphase10kt_v2_driftY_workspace3x3_legacy.gdml"
 
 
-dune10kt_3mmpitch_workspace_geo: @local::dune10kt_geo
-dune10kt_3mmpitch_workspace_geo.Name: "dune10kt_v1_3mmpitch_workspace"
-dune10kt_3mmpitch_workspace_geo.GDML: "dune10kt_v1_3mmpitch_workspace.gdml"
-dune10kt_3mmpitch_workspace_geo.ROOT: "dune10kt_v1_3mmpitch_workspace.gdml"
 
-dune10kt_3mmpitch_1x2x6_geo: @local::dune10kt_geo
-dune10kt_3mmpitch_1x2x6_geo.Name: "dune10kt_v1_3mmpitch_1x2x6"
-dune10kt_3mmpitch_1x2x6_geo.GDML: "dune10kt_v1_3mmpitch_1x2x6.gdml"
-dune10kt_3mmpitch_1x2x6_geo.ROOT: "dune10kt_v1_3mmpitch_1x2x6.gdml"
+
+dune10kt_45deg_workspace_geo_legacy: @local::dune10kt_geo_legacy
+dune10kt_45deg_workspace_geo_legacy.Name: "dune10kt_v1_45deg_workspace"
+dune10kt_45deg_workspace_geo_legacy.GDML: "dune10kt_v1_45deg_workspace_legacy.gdml"
+dune10kt_45deg_workspace_geo_legacy.ROOT: "dune10kt_v1_45deg_workspace_legacy.gdml"
+
+dune10kt_45deg_1x2x6_geo_legacy: @local::dune10kt_geo_legacy
+dune10kt_45deg_1x2x6_geo_legacy.Name: "dune10kt_v1_45deg_1x2x6"
+dune10kt_45deg_1x2x6_geo_legacy.GDML: "dune10kt_v1_45deg_1x2x6_legacy.gdml"
+dune10kt_45deg_1x2x6_geo_legacy.ROOT: "dune10kt_v1_45deg_1x2x6_legacy.gdml"
+
+
+dune10kt_3mmpitch_workspace_geo_legacy: @local::dune10kt_geo_legacy
+dune10kt_3mmpitch_workspace_geo_legacy.Name: "dune10kt_v1_3mmpitch_workspace"
+dune10kt_3mmpitch_workspace_geo_legacy.GDML: "dune10kt_v1_3mmpitch_workspace_legacy.gdml"
+dune10kt_3mmpitch_workspace_geo_legacy.ROOT: "dune10kt_v1_3mmpitch_workspace_legacy.gdml"
+
+dune10kt_3mmpitch_1x2x6_geo_legacy: @local::dune10kt_geo_legacy
+dune10kt_3mmpitch_1x2x6_geo_legacy.Name: "dune10kt_v1_3mmpitch_1x2x6"
+dune10kt_3mmpitch_1x2x6_geo_legacy.GDML: "dune10kt_v1_3mmpitch_1x2x6_legacy.gdml"
+dune10kt_3mmpitch_1x2x6_geo_legacy.ROOT: "dune10kt_v1_3mmpitch_1x2x6_legacy.gdml"
 
 #Updated CRT locations, shorter grid-anode distance, 1.5 cm outer volume
-protodunev6_geo: @local::dune10kt_geo
-protodunev6_geo.Name: "protodune" # will be made lower case anyway
-protodunev6_geo.GDML: "protodune_v6.gdml"
-protodunev6_geo.ROOT: "protodune_v6.gdml"
+protodunev6_geo_legacy: @local::dune10kt_geo_legacy
+protodunev6_geo_legacy.Name: "protodune" # will be made lower case anyway
+protodunev6_geo_legacy.GDML: "protodune_v6_legacy.gdml"
+protodunev6_geo_legacy.ROOT: "protodune_v6_legacy.gdml"
 
 #ARAPUCA geometry
-protodunev7_geo: @local::dune10kt_geo
-protodunev7_geo.Name: "protodunev7" # will be made lower case anyway
-protodunev7_geo.GDML: "protodune_v7.gdml"
-protodunev7_geo.ROOT: "protodune_v7.gdml"
+protodunev7_geo_legacy: @local::dune10kt_geo_legacy
+protodunev7_geo_legacy.Name: "protodunev7" # will be made lower case anyway
+protodunev7_geo_legacy.GDML: "protodune_v7_legacy.gdml"
+protodunev7_geo_legacy.ROOT: "protodune_v7_legacy.gdml"
 
-protodunev7_refactored_geo: @local::protodunev7_geo
+protodunev7_refactored_geo: @local::protodunev7_geo_legacy
 protodunev7_refactored_geo.GDML: "protodune_v7_refactored_nowires.gdml"
 protodunev7_refactored_geo.ROOT: "protodune_v7_refactored.gdml"
 
-protodune_geo: @local::protodunev7_geo
+protodune_geo: @local::protodunev7_geo_legacy
 protodune_refactored_geo: @local::protodunev7_refactored_geo
 
-iceberg_geo: @local::dune10kt_geo
-iceberg_geo.Name: "iceberg" # will be made lower case anyway
-iceberg_geo.GDML: "iceberg_v1.gdml"
-iceberg_geo.ROOT: "iceberg_v1.gdml"
+iceberg_geo_legacy: @local::dune10kt_geo_legacy
+iceberg_geo_legacy.Name: "iceberg" # will be made lower case anyway
+iceberg_geo_legacy.GDML: "iceberg_v1_legacy.gdml"
+iceberg_geo_legacy.ROOT: "iceberg_v1_legacy.gdml"
 
-dune35t_geo:
+dune35t_geo_legacy:
 {
  Name:     "dune35t4apa_v6"
 
  # Choose GDML file and set detector version similarly
- GDML:         "dune35t4apa_v6.gdml"
- ROOT:         "dune35t4apa_v6.gdml"
+ GDML:         "dune35t4apa_v6_legacy.gdml"
+ ROOT:         "dune35t4apa_v6_legacy.gdml"
  SortingParameters: { 
     DetectorVersion: "dune35t4apa_v6"
     ChannelsPerOpDet:	12
@@ -303,12 +303,12 @@ dune35t_geo:
 
 }
 
-larnd_geo:
+larnd_geo_legacy:
 {
  Name:     "larnd"
 
- GDML:     "larnd.gdml"
- ROOT:     "larnd.gdml"
+ GDML:     "larnd_legacy.gdml"
+ ROOT:     "larnd_legacy.gdml"
 
  SortingParameters:	{ChannelsPerOpDet:	1}
  SurfaceY:           5578               #183ft in cm, vertical distance to the surface
