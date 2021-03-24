@@ -15,6 +15,7 @@ FILS='
  iceberg5d_decode_reco.fcl
  iceberg5e_decode_reco.fcl
  iceberg5f_decode_reco.fcl
+ iceberg5p_decode_reco.fcl
 '
 
 NERR=0
