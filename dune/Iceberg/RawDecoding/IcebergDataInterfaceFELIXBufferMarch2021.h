@@ -69,6 +69,8 @@ class IcebergDataInterfaceFELIXBufferMarch2021 : public PDSPTPCDataInterfacePare
   std::vector<std::string>   fInputFiles; 
   size_t                     fNSamples;
   bool                       fCompressHuffman;
+  ULong64_t                  fDesiredStartTimestamp;
+  bool                       fFirstRead;
 
   // some convenience typedefs for porting old code
 

@@ -76,7 +76,8 @@ iceberg_felixbufferdecoder_march2021:
   OutputDataLabel: "daq"
   NSamples: 2000
   CompressHuffman: false
-  
+  StartTimestamp: 0        # 64-bit unsigned timestmap.  0 or any number less than first timestamp in the
+                           # input files means start at the first frame in the input files.
 }
 
 timing_raw_decoder:

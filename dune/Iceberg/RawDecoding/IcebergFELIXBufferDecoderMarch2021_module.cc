@@ -66,6 +66,8 @@ private:
   size_t                     fNSamples;
   std::string                fOutputLabel;
   bool                       fCompressHuffman;
+  ULong64_t                  fDesiredStartTimestamp;
+  bool                       fFirstRead;
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, float &median, float &sigma);
   // Converts 14 bit packed channel data (56 uint32 words from the WIB) to byte-aligned 16 bit arrays (128 uint16 values)
@@ -80,6 +82,7 @@ IcebergFELIXBufferDecoderMarch2021::IcebergFELIXBufferDecoderMarch2021(fhicl::Pa
   fNSamples = p.get<size_t>("NSamples",2000);
   fOutputLabel = p.get<std::string>("OutputDataLabel","daq");
   fCompressHuffman = p.get<bool>("CompressHuffman",false);
+  fDesiredStartTimestamp = p.get<ULong64_t>("StartTimestamp",0);
 
   produces<RawDigits>( fOutputLabel ); //the strings in <> are the typedefs defined above
   produces<RDTimeStamps>( fOutputLabel );
@@ -91,6 +94,7 @@ IcebergFELIXBufferDecoderMarch2021::IcebergFELIXBufferDecoderMarch2021(fhicl::Pa
     {
       fInputFilePointers.push_back(fopen(fInputFiles.at(ifile).data(),"r"));
     }
+  fFirstRead = true;
 }
 
 void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
@@ -109,6 +113,33 @@ void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
   uint32_t framebuf[117];
   uint16_t databuf[128];
   uint64_t timestampstart=0;
+  uint64_t timestamp;
+
+  // search for the first timestamp on the first read
+  // don't do on subsequent reads so we don't always read in a frame just to see what
+  // the timestamp is.
+
+  if (fFirstRead)
+    {
+      for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
+	{
+	  do
+	    {
+	      fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+	      if (feof(fInputFilePointers.at(ifile)))
+		{
+		  // don't handle this too gracefully at the moment
+		  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+		    "Attempt to read off the end of file " << fInputFiles.at(ifile);
+		}
+	      timestamp= framebuf[3];
+	      timestamp <<= 32;
+	      timestamp += framebuf[2];
+	    }
+	  while (timestamp+16 < fDesiredStartTimestamp);
+	}
+      fFirstRead = false;
+    }
 
   for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
     {
