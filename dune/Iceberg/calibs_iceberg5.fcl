@@ -306,4 +306,18 @@ tools.areaGain_ib5o_v02: {
   FileNames: [ ]
 }
 
+# First period with calibrated ADC data.
+# Height gain is now 553 ADC/DAC compared with
+# 490/DAC with uncalibrated ADC.
+# Scaling the above gain factor, we obtain
+#   g = K/g_A/tau_A with K = 0.1995
+# for data with calibrated ADC.
+tools.areaGain_ib5p_v02: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5p-v02"
+  DefaultValue: 0.0071
+  FileNames: [ ]
+}
+
 #######################################################
