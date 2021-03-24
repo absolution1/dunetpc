@@ -180,11 +180,11 @@ dune10kt_1x2x6_v4_geo_legacy.Name: "dune10kt_v4_1x2x6"
 dune10kt_1x2x6_v4_geo_legacy.GDML: "dune10kt_v4_1x2x6_legacy.gdml"
 dune10kt_1x2x6_v4_geo_legacy.ROOT: "dune10kt_v4_1x2x6_legacy.gdml"
 
-dune10kt_1x2x6_v4_refactored_geo:      @local::dune10kt_1x2x6_v4_geo_legacy
-dune10kt_1x2x6_v4_refactored_geo.GDML: "dune10kt_v4_refactored_1x2x6.gdml"
-dune10kt_1x2x6_v4_refactored_geo.ROOT: "dune10kt_v4_refactored_1x2x6.gdml"
+dune10kt_1x2x6_v4_geo:      @local::dune10kt_1x2x6_v4_geo_legacy
+dune10kt_1x2x6_v4_geo.GDML: "dune10kt_v4_1x2x6.gdml"
+dune10kt_1x2x6_v4_geo.ROOT: "dune10kt_v4_1x2x6.gdml"
 
-dune10kt_1x2x6_geo:         @local::dune10kt_1x2x6_v4_refactored_geo
+dune10kt_1x2x6_geo:         @local::dune10kt_1x2x6_v4_geo
 
 dunevd10kt_1x6x6_2view_v1_geo: @local::dune10kt_geo_legacy
 dunevd10kt_1x6x6_2view_v1_geo.Name: "dunevd10kt_2view_v1_1x6x6"
