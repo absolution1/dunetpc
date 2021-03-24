@@ -17,12 +17,14 @@ IcebergDataInterfaceFELIXBufferMarch2021::IcebergDataInterfaceFELIXBufferMarch20
   fInputFiles = p.get<std::vector<std::string>>("InputFiles");
   fNSamples = p.get<size_t>("NSamples",2000);
   fCompressHuffman = p.get<bool>("CompressHuffman",false);
+  fDesiredStartTimestamp = p.get<ULong64_t>("StartTimestamp",0);
 
   fInputFilePointers.clear();
   for (size_t ifile=0; ifile<fInputFiles.size(); ++ifile)
     {
       fInputFilePointers.push_back(fopen(fInputFiles.at(ifile).data(),"r"));
     }
+  fFirstRead = true;
 }
 
 // return all data for the event.  inputLabel is ignored for this as the input files are
@@ -40,10 +42,37 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
   uint32_t framebuf[117];
   uint16_t databuf[128];
   uint64_t timestampstart=0;
+  uint64_t timestamp=0;
 
   raw_digits.clear();
   rd_timestamps.clear();
   rdstatuses.clear();
+
+  // search for the first timestamp on the first read
+  // don't do on subsequent reads so we don't always read in a frame just to see what
+  // the timestamp is.
+
+  if (fFirstRead)
+    {
+      for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
+	{
+	  do
+	    {
+	      fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+	      if (feof(fInputFilePointers.at(ifile)))
+		{
+		  // don't handle this too gracefully at the moment
+		  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+		    "Attempt to read off the end of file " << fInputFiles.at(ifile);
+		}
+	      timestamp= framebuf[3];
+	      timestamp <<= 32;
+	      timestamp += framebuf[2];
+	    }
+	  while (timestamp+16 < fDesiredStartTimestamp);
+	}
+      fFirstRead = false;
+    }
 
   for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
     {
@@ -91,7 +120,7 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
 	      fiber = curfiber;
 	    }
 
-	  uint64_t timestamp= framebuf[3];
+	  timestamp= framebuf[3];
 	  timestamp <<= 32;
 	  timestamp += framebuf[2];
 	  //std::cout << std::dec << "   Slot: " << slot << " Fiber: " << fiber 
