@@ -48,7 +48,7 @@ BEGIN_PROLOG
 
 dunefd_services: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
- Geometry:                       @local::dune10kt_geo
+ Geometry:                       @local::dune10kt_geo_legacy
  GeometryConfigurationWriter:    {}
  DetectorClocksService:          @local::dunefd_detectorclocks
  DetectorPropertiesService:      @local::dunefd_detproperties
@@ -70,7 +70,7 @@ dunefd_simulation_services: {
  LArG4Parameters:              @local::dunefd_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
  GeometryConfigurationWriter:  {}
- Geometry:                     @local::dune10kt_geo
+ Geometry:                     @local::dune10kt_geo_legacy
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::dunefd_detproperties
  LArPropertiesService:         @local::dunefd_properties
@@ -138,7 +138,7 @@ dunefddphase_services: {
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
- Geometry:                       @local::dunedphase10kt_geo
+ Geometry:                       @local::dunedphase10kt_geo_legacy
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -162,7 +162,7 @@ dunefddphase_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
- Geometry:                       @local::dunedphase10kt_geo
+ Geometry:                       @local::dunedphase10kt_geo_legacy
  DetectorClocksService:          @local::dunefddphase_detectorclocks
  DetectorPropertiesService:      @local::dunefddphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -205,7 +205,7 @@ dunedphase3x1x1_services: {
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
- Geometry:                       @local::dphase3x1x1_geo
+ Geometry:                       @local::dphase3x1x1_geo_legacy
  DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -229,7 +229,7 @@ dunedphase3x1x1_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunedphase3x1x1_channel_status
- Geometry:                       @local::dphase3x1x1_geo
+ Geometry:                       @local::dphase3x1x1_geo_legacy
  DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
  DetectorPropertiesService:      @local::dphase3x1x1_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -284,7 +284,7 @@ protodunedphase_services: {
  ChannelStatusService:           @local::dunefd_channel_status
  LArFFT:                         @local::dunefd_larfft
  NuRandomService:                @local::dune_seedservice
- Geometry:                       @local::protodunedphase_geo
+ Geometry:                       @local::protodunedphase_geo_legacy
  DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService:      @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -309,7 +309,7 @@ protodunedphase_simulation_services: {
  OpDetResponseInterface:         @local::standard_opdetresponse
  PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
  ChannelStatusService:           @local::dunefd_channel_status
- Geometry:                       @local::protodunedphase_geo
+ Geometry:                       @local::protodunedphase_geo_legacy
  DetectorClocksService:          @local::protodunedphase_detectorclocks
  DetectorPropertiesService:      @local::protodunedphase_detproperties
  LArPropertiesService:           @local::dunefddphase_properties
@@ -357,7 +357,7 @@ protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: fa
 
 protodunedphase_driftY_simulation_services:                         @local::protodunedphase_simulation_services
 protodunedphase_driftY_simulation_services.PhotonVisibilityService: @local::protodunedp_driftY_RL99CM_VUVREF_photonvisibilityservice
-protodunedphase_driftY_simulation_services.Geometry:                @local::protodunedphase_driftY_geo
+protodunedphase_driftY_simulation_services.Geometry:                @local::protodunedphase_driftY_geo_legacy
 
 
 # dune10kt and dune34kt consolidated into dunefd,
@@ -414,7 +414,7 @@ protodune_rawdecoding_services: {
 iceberg_rawdecoding_services: {
   ExptGeoHelperInterface:       @local::dune_geometry_helper
   GeometryConfigurationWriter:  {}
-  Geometry:                     @local::iceberg_geo
+  Geometry:                     @local::iceberg_geo_legacy
   DetectorClocksService:        @local::protodune_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
   LArPropertiesService:         @local::dunefd_properties
@@ -532,7 +532,7 @@ protodune_data_reco_services.RawDigitPrepService.ToolNames: @local::protodune_da
 dune35t_basic_services: {
   ExptGeoHelperInterface:     @local::dune_geometry_helper
   GeometryConfigurationWriter: {}
-  Geometry:                   @local::dune35t_geo
+  Geometry:                   @local::dune35t_geo_legacy
   DetectorClocksService:      @local::dune35t_detectorclocks
   DetectorPropertiesService:  @local::dune35t_detproperties
   LArPropertiesService:       @local::dune35t_properties
