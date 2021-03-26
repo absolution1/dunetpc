@@ -4,7 +4,7 @@
 // File:        IcebergFELIXBufferDecoderMarch2021_module.cc
 //
 // Generated at Fri Mar  2 15:36:20 2018 by Thomas Junk using cetskelgen
-// from cetlib version v3_02_00.  Original code from Jingbo Wang for ProtoDUNE-SP
+// from cetlib version v3_02_00.  
 ////////////////////////////////////////////////////////////////////////
 
 #include "art/Framework/Core/EDProducer.h"
@@ -113,7 +113,9 @@ void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
   uint32_t framebuf[117];
   uint16_t databuf[128];
   uint64_t timestampstart=0;
-  uint64_t timestamp;
+  uint64_t timestamp=0;
+
+  size_t nfiles = fInputFiles.size();
 
   // search for the first timestamp on the first read
   // don't do on subsequent reads so we don't always read in a frame just to see what
@@ -121,177 +123,235 @@ void IcebergFELIXBufferDecoderMarch2021::produce(art::Event &e)
 
   if (fFirstRead)
     {
-      for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
-	{
-	  do
-	    {
-	      fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
-	      if (feof(fInputFilePointers.at(ifile)))
-		{
-		  // don't handle this too gracefully at the moment
-		  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
-		    "Attempt to read off the end of file " << fInputFiles.at(ifile);
-		}
-	      timestamp= framebuf[3];
-	      timestamp <<= 32;
-	      timestamp += framebuf[2];
-	    }
-	  while (timestamp+16 < fDesiredStartTimestamp);
-	}
+      for (size_t ifile=0; ifile < nfiles; ++ ifile)
+        {
+          do
+            {
+              fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+              if (feof(fInputFilePointers.at(ifile)))
+                {
+                  // don't handle this too gracefully at the moment
+                  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+                    "Attempt to read off the end of file " << fInputFiles.at(ifile);
+                }
+              timestamp= framebuf[3];
+              timestamp <<= 32;
+              timestamp += framebuf[2];
+            }
+          while (timestamp+47 < fDesiredStartTimestamp);  
+          // criterion so the next timestamp (+32) will be the one we want
+        }
       fFirstRead = false;
     }
 
-  for (size_t ifile=0; ifile < fInputFiles.size(); ++ ifile)
+  // align the readin
+
+  std::vector<std::vector<uint32_t>> fbcache(nfiles);
+  std::vector<uint64_t> tscache;
+  uint64_t latest_timestamp=0;
+
+  // read one frame in from each file to see what the latest timestamp is
+
+  for (size_t ifile=0; ifile<nfiles; ++ifile)
+    {
+      fbcache.at(ifile).resize(117);
+      fread(fbcache.at(ifile).data(), sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+      if (feof(fInputFilePointers.at(ifile)))
+        {
+          // don't handle this too gracefully at the moment
+          throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+            "Attempt to read off the end of file " << fInputFiles.at(ifile);
+        }
+      timestamp= fbcache.at(ifile)[3];
+      timestamp <<= 32;
+      timestamp += fbcache.at(ifile)[2];
+      tscache.push_back(timestamp);
+      if (timestamp > latest_timestamp)
+        {
+          latest_timestamp = timestamp;
+        }
+    }
+
+  // read enough frames from the other files so that we align the frames to +- 16 ticks
+
+  for (size_t ifile=0; ifile<nfiles; ++ifile)
+    {
+      while (tscache.at(ifile) + 16 < latest_timestamp)
+        {
+          fread(fbcache.at(ifile).data(), sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+          if (feof(fInputFilePointers.at(ifile)))
+            {
+              // don't handle this too gracefully at the moment
+              throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+                "Attempt to read off the end of file " << fInputFiles.at(ifile);
+            }
+          timestamp= fbcache.at(ifile)[3];
+          timestamp <<= 32;
+          timestamp += fbcache.at(ifile)[2];
+          tscache.at(ifile) = timestamp;
+        }
+    }  
+
+  for (size_t ifile=0; ifile < nfiles; ++ ifile)
     {
       int slot = 0;
       int fiber = 0;
 
       std::vector<raw::RawDigit::ADCvector_t> adcvv(256);
       for (size_t itick=0; itick<fNSamples; ++itick)
-	{
-	  fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
-	  if (feof(fInputFilePointers.at(ifile)))
-	    {
-	      // don't handle this too gracefully at the moment
-	      throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
-		"Attempt to read off the end of file " << fInputFiles.at(ifile);
-	    }
+        {
+          if (itick == 0)  // already read in the first frame
+            {
+              for (size_t i=0; i<117; ++i)
+                {
+                  framebuf[i] = fbcache.at(ifile).at(i);
+                }
+            }
+          else
+            {
+              fread(framebuf, sizeof(uint32_t), 117, fInputFilePointers.at(ifile));
+              if (feof(fInputFilePointers.at(ifile)))
+                {
+                  // don't handle this too gracefully at the moment
+                  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+                    "Attempt to read off the end of file " << fInputFiles.at(ifile);
+                }
+            }
+          int curslot = (framebuf[0] & 0x7000) >> 12;   // assume these are all the same
+          int curfiber = (framebuf[0] & 0x8000) >> 15;
+          if (itick>0)
+            {
+              if (curslot != slot)
+                {
+                  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+                    "Slot mismatch in file: " << curslot << " " << slot;
+                }
+              if (curfiber != fiber)
+                {
+                  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
+                    "Fiber mismatch in file: " << curfiber << " " << fiber;
+                }
+            }
+          else
+            {
+              slot = curslot;
+              fiber = curfiber;
+            }
 
-	  int curslot = (framebuf[0] & 0x7000) >> 12;   // assume these are all the same
-	  int curfiber = (framebuf[0] & 0x8000) >> 15;
-	  if (itick>0)
-	    {
-	      if (curslot != slot)
-		{
-		  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
-		    "Slot mismatch in file: " << curslot << " " << slot;
-		}
-	      if (curfiber != fiber)
-		{
-		  throw cet::exception("IcebergFELXIBufferDecoderMarch2021") <<
-		    "Fiber mismatch in file: " << curfiber << " " << fiber;
-		}
-	    }
-	  else
-	    {
-	      slot = curslot;
-	      fiber = curfiber;
-	    }
+          uint64_t timestamp= framebuf[3];
+          timestamp <<= 32;
+          timestamp += framebuf[2];
+          //std::cout << std::dec << "   Slot: " << slot << " Fiber: " << fiber 
+          //        << " Timestamp: " << std::dec << timestamp <<std::endl;
+          if (itick == 0) 
+            {
+              timestampstart = timestamp;
+            }
 
-	  uint64_t timestamp= framebuf[3];
-	  timestamp <<= 32;
-	  timestamp += framebuf[2];
-	  //std::cout << std::dec << "   Slot: " << slot << " Fiber: " << fiber 
-	  //	    << " Timestamp: " << std::dec << timestamp <<std::endl;
-	  if (itick == 0) 
-	    {
-	      timestampstart = timestamp;
-	    }
+          // do the data-rearrangement transpose
 
-	  // do the data-rearrangement transpose
-
-	  unpack14(&(framebuf[4]),databuf);
-	  for (size_t ichan=0; ichan<128; ++ichan)
-	    {
-	      adcvv.at(ichan).push_back(databuf[ichan]);
-	    }
-	  unpack14(&(framebuf[4+56]),databuf);
-	  for (size_t ichan=0; ichan<128; ++ichan)
-	    {
-	      adcvv.at(ichan+128).push_back(databuf[ichan]);
-	    }
-	}
+          unpack14(&(framebuf[4]),databuf);
+          for (size_t ichan=0; ichan<128; ++ichan)
+            {
+              adcvv.at(ichan).push_back(databuf[ichan]);
+            }
+          unpack14(&(framebuf[4+56]),databuf);
+          for (size_t ichan=0; ichan<128; ++ichan)
+            {
+              adcvv.at(ichan+128).push_back(databuf[ichan]);
+            }
+        }
 
       for (size_t ichan=0; ichan<256; ++ichan)
-	{
-	  float median=0;
-	  float sigma=0;
-	  computeMedianSigma(adcvv.at(ichan),median,sigma);
+        {
+          float median=0;
+          float sigma=0;
+          computeMedianSigma(adcvv.at(ichan),median,sigma);
 
-	  // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
+          // handle 256 channels on two fibers -- use the channel map that assumes 128 chans per fiber (=FEMB)
     
-	  unsigned int fiberloc = 0;
-	  if (fiber == 0) 
-	    {
-	      fiberloc = 1;
-	    }
-	  else if (fiber == 1)
-	    {
-	      fiberloc = 3;
-	    }
+          unsigned int fiberloc = 0;
+          if (fiber == 0) 
+            {
+              fiberloc = 1;
+            }
+          else if (fiber == 1)
+            {
+              fiberloc = 3;
+            }
 
-	  unsigned int chloc = ichan;
-	  if (chloc > 127)
-	    {
-	      chloc -= 128;
-	      fiberloc++;
-	    }
-	  //unsigned int crateloc = crate;  
+          unsigned int chloc = ichan;
+          if (chloc > 127)
+            {
+              chloc -= 128;
+              fiberloc++;
+            }
+          //unsigned int crateloc = crate;  
 
 
-	  // inverted ordering on back side, Run 2c (=Run 3)
-	  // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
+          // inverted ordering on back side, Run 2c (=Run 3)
+          // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
 
-	  auto slotloc2 = slot;
-	  auto fiberloc2 = fiberloc;
+          auto slotloc2 = slot;
+          auto fiberloc2 = fiberloc;
 
-	  if (slot == 0 && fiberloc == 4)
-	    {
-	      slotloc2 = 1;
-	      fiberloc2 = 3;
-	    }
-	  if (slot == 1 && fiberloc == 4)
-	    {
-	      slotloc2 = 0;
-	      fiberloc2 = 3;
-	    }
-	  if (slot == 1 && fiberloc == 3)
-	    {
-	      slotloc2 = 0;
-	      fiberloc2 = 4;
-	    }
-	  if (slot == 0 && fiberloc == 3)
-	    {
-	      slotloc2 = 1;
-	      fiberloc2 = 4;
-	    }
+          if (slot == 0 && fiberloc == 4)
+            {
+              slotloc2 = 1;
+              fiberloc2 = 3;
+            }
+          if (slot == 1 && fiberloc == 4)
+            {
+              slotloc2 = 0;
+              fiberloc2 = 3;
+            }
+          if (slot == 1 && fiberloc == 3)
+            {
+              slotloc2 = 0;
+              fiberloc2 = 4;
+            }
+          if (slot == 0 && fiberloc == 3)
+            {
+              slotloc2 = 1;
+              fiberloc2 = 4;
+            }
 
-	  // skip the fake TPC data
+          // skip the fake TPC data
 
-	  if ( slotloc2 == 1 && fiberloc2 == 1 ) 
-	    {
-	      continue;
-	    }
+          if ( slotloc2 == 1 && fiberloc2 == 1 ) 
+            {
+              continue;
+            }
 
-	  if ( slotloc2 == 2 && fiberloc2 == 1 )
-	    {
-	      continue;
-	    }
+          if ( slotloc2 == 2 && fiberloc2 == 1 )
+            {
+              continue;
+            }
 
-	  // for iceberg, hardcode the crate number to suppress warnings
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
+          // for iceberg, hardcode the crate number to suppress warnings
+          unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
-	  size_t uncompressed_nticks = fNSamples;  
-	  raw::Compress_t cflag=raw::kNone;
-	  if (fCompressHuffman)
-	    {
-	      cflag = raw::kHuffman;
-	      raw::Compress(adcvv.at(ichan),cflag);
-	    }
+          size_t uncompressed_nticks = fNSamples;  
+          raw::Compress_t cflag=raw::kNone;
+          if (fCompressHuffman)
+            {
+              cflag = raw::kHuffman;
+              raw::Compress(adcvv.at(ichan),cflag);
+            }
 
-	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, adcvv.at(ichan), cflag);
-	  raw_digit.SetPedestal(median,sigma);
-	  raw_digits.push_back(raw_digit);  
+          raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, adcvv.at(ichan), cflag);
+          raw_digit.SetPedestal(median,sigma);
+          raw_digits.push_back(raw_digit);  
 
-	  raw::RDTimeStamp rdtimestamp(timestampstart,offlineChannel);
-	  rd_timestamps.push_back(rdtimestamp);
+          raw::RDTimeStamp rdtimestamp(timestampstart,offlineChannel);
+          rd_timestamps.push_back(rdtimestamp);
 
-	  //associate the raw digit and the timestamp data products
-	  auto const rawdigitptr = rdpm(raw_digits.size()-1);
-	  auto const rdtimestampptr = tspm(rd_timestamps.size()-1);
-	  rd_ts_assocs.addSingle(rawdigitptr,rdtimestampptr);            
+          //associate the raw digit and the timestamp data products
+          auto const rawdigitptr = rdpm(raw_digits.size()-1);
+          auto const rdtimestampptr = tspm(rd_timestamps.size()-1);
+          rd_ts_assocs.addSingle(rawdigitptr,rdtimestampptr);            
 
-	}
+        }
     }
 
   if (discard_data)
