@@ -306,6 +306,7 @@ int IcebergDataInterfaceFELIXBufferMarch2021::retrieveData(art::Event &e,
   // default all good status
   unsigned int statword = 0;
   rdstatuses.emplace_back(false,false,statword);
+  //std::cout << "decoder felix tool nrawdigits: " << raw_digits.size() << std::endl;
   return 0;
 }
 
