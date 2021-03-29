@@ -478,6 +478,23 @@ tools.adcDuneSignalFinder: {
   TicksAfter:  50
 }
 
+# Dynamic signal finder.
+tools.adcNoiseSignalFinder: {
+  tool_type: AdcNoiseSignalFinder
+  LogLevel: 1
+  SigFracMax: 0.80
+  ThresholdMin: 20.0
+  ThresholdRatio: 4.0
+  ThresholdRatioTol: 0.1
+  MaxLoop: 20.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+tools.calibNoiseSignalFinder: @local::tools.adcNoiseSignalFinder
+tools.calibNoiseSignalFinder.ThresholdMin: 0.2
+
 # Do FFT.
 tools.adcFFT: {
   tool_type: AdcChannelFFT

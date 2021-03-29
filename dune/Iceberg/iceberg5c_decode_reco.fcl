@@ -1,0 +1,32 @@
+# iceberg5c_decode_reco.fcl
+#
+# David Adams
+# February 2021
+#
+# Default reco for Iceberg 5c.
+#
+# This period has standard amplifier settings: 14 mV/fC, 2 us, 900 mV.
+# ADCs are now 14-bit and so have rougly 1/4 gain of 12-bit.
+
+# Start from the Iceberg 3 reco.
+#include "iceberg3_decode_reco.fcl"
+
+#include "channelstatus_iceberg5.fcl"
+
+# Decoding mods for Iceberg 5.
+physics.producers.caldata.DecoderTool: "IcebergDecoderFrame14"
+services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
+
+# Switch to the Iceberg 5 dataprep.
+services.RawDigitPrepService.ToolNames: @local::data.ib5_dataprep_seqs.wirecell
+
+# Use the iceberg 5c pedestal fitter.
+tools.ib5_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
+
+# Use to Iceberg 5 bad/noisy channels.
+services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
+
+# Use the default Iceberg 5c calibration.
+# See calibs_iceberg.fcl.
+tools.areaGain_ib5: @local::tools.areaGain_ib5c

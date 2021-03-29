@@ -375,7 +375,9 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         rHits.hitPositionX = hitX;
         rHits.hitPositionY = hitY;
         rHits.hitPositionZ = hitZ;
-	rHits.trigNumberX=tempHits_F[f].triggerNumber;
+	rHits.moduleX=tempHits_F[f].module;
+        rHits.moduleY=tempHits_F[f_test].module;
+        rHits.trigNumberX=tempHits_F[f].triggerNumber;
 	rHits.trigNumberY=tempHits_F[f_test].triggerNumber;
 	rHits.stripX=tempHits_F[f].channel;
 	rHits.stripY=tempHits_F[f_test].channel;
@@ -425,6 +427,8 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
         rHits.hitPositionX = hitX;
         rHits.hitPositionY = hitY;
         rHits.hitPositionZ = hitZ;
+        rHits.moduleX=tempHits_B[f].module;
+        rHits.moduleY=tempHits_B[f_test].module;
 	rHits.stripX=tempHits_B[f].channel;
 	rHits.trigNumberX=tempHits_B[f].triggerNumber;
 	rHits.trigNumberY=tempHits_B[f_test].triggerNumber;

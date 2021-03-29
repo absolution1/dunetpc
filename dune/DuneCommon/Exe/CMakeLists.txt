@@ -14,5 +14,5 @@ cet_make_exec(duneRunData
 )
 
 install_scripts(
-  LIST duneHelp
+  LIST duneHelp duneTestFcl
 )
