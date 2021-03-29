@@ -306,18 +306,43 @@ tools.areaGain_ib5o_v02: {
   FileNames: [ ]
 }
 
-# First period with calibrated ADC data.
+# First period 5p with calibrated ADC data.
+# This is at 14 mv/fC, 2 us, 900 mV
 # Height gain is now 553 ADC/DAC compared with
 # 490/DAC with uncalibrated ADC.
 # Scaling the above gain factor, we obtain
 #   g = K/g_A/tau_A with K = 0.1995
 # for data with calibrated ADC.
+#
+# Tom did fit area vs. DAC for each channel
+# in 5q and obtained  mean responses of
+# 1517 and 1523 ADC-tick/DAC for collection
+# and induction.
+# This is at 14 mv/fC, 1 us, 900 mV
+# The average of these gives
+# g = 0.01408 ke/tick and K=0.1971.
+# about 1.2% different from my estimate.
+# Adopt Tom's values below.
+
+# 14 mv/fC, 2 us, 900 mV
 tools.areaGain_ib5p_v02: {
   tool_type: FclFileFloatArray
   LogLevel: 1
   Label: "areaGain_ib5p-v02"
-  DefaultValue: 0.0071
+  DefaultValue: 0.00704
   FileNames: [ ]
 }
+
+# 14 mv/fC, 1 us, 900 mV
+# Measure the same 553 ADC/DAC
+# For comparison Tom Junk area calibration gives 0.0141.
+tools.areaGain_ib5q_v02: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5q-v02"
+  DefaultValue: 0.01408
+  FileNames: [ ]
+}
+
 
 #######################################################

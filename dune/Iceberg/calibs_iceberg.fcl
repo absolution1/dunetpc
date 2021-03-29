@@ -82,5 +82,6 @@ tools.areaGain_ib5m: @local::tools.areaGain_ib5m_v02
 tools.areaGain_ib5n: @local::tools.areaGain_ib5n_v02
 tools.areaGain_ib5o: @local::tools.areaGain_ib5o_v02
 tools.areaGain_ib5p: @local::tools.areaGain_ib5p_v02   # First calibrated ADC data
+tools.areaGain_ib5q: @local::tools.areaGain_ib5q_v02
 
 #####################################################################
