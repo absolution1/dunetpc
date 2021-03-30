@@ -1,24 +1,7 @@
 # iceberg5a_decode_reco.fcl
-#
-# David Adams
-# February 2021
-#
-# Default reco for Iceberg 5a.
 
-# Start from the Iceberg 3 reco.
-#include "iceberg3_decode_reco.fcl"
+#include "iceberg5c_decode_reco.fcl"
 
-#include "channelstatus_iceberg5.fcl"
+tools.areaGain_ib5: @local::tools.areaGain_ib5a
 
-physics.producers.caldata.DecoderTool: "IcebergDecoderFrame14"
-services.IcebergChannelMapService.FELIXFileName: "IcebergChannelMap_FELIX_FRAME14_v1.txt"
-
-# Switch to the Iceberg 4 dataprep.
-services.RawDigitPrepService.ToolNames: @local::ib5_dataprep_tools_wirecell
-
-# Switch to Iceberg 5 bad/noisy channels.
-services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
-services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
-
-# Use the Iceberg 4a calibration.
-tools.areaGain_ib4: @local::tools.areaGain_ib4a_v10
+tools.ib5_adcPedestalFit: @local::tools.ib5a_adcPedestalFit

@@ -386,7 +386,7 @@ protodune_services: {
  LArPropertiesService:         @local::dunefd_properties
  LArFFT:                       @local::dunefd_larfft
  DatabaseUtil:                 @local::dunefd_database
- BackTrackerService:           @local::dunefd_backtrackerservice
+ BackTrackerService:           @local::pdsp_backtrackerservice
  ParticleInventoryService:     @local::dunefd_particleinventoryservice
  PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::protodune_spacecharge
