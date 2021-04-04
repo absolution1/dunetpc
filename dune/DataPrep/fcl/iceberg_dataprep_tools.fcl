@@ -104,6 +104,77 @@ tools.ib5d_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
 tools.ib5j_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
 tools.ib5j_adcPedestalFit.FitRmsMax: 20
 tools.ib5j_adcPedestalFit.FitRmsMin: 40
+# Period B
+tmp.pedestalFitTemplate: @local::tools.ib4_adcPedestalFit
+tmp.pedestalFitTemplate.AdcRange: 16384
+tools.ib5B00_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B01_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B02_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B03_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B10_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B11_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B12_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B13_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B20_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B21_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B22_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B23_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B30_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B31_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B32_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B33_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tmp.pedestalFitTemplate: @erase
+# Fit ranges
+tools.ib5B00_adcPedestalFit.AdcFitRange: 100
+tools.ib5B01_adcPedestalFit.AdcFitRange: 100
+tools.ib5B02_adcPedestalFit.AdcFitRange: 100
+tools.ib5B03_adcPedestalFit.AdcFitRange: 100
+tools.ib5B10_adcPedestalFit.AdcFitRange: 100
+tools.ib5B11_adcPedestalFit.AdcFitRange: 100
+tools.ib5B12_adcPedestalFit.AdcFitRange: 100
+tools.ib5B13_adcPedestalFit.AdcFitRange: 200
+tools.ib5B20_adcPedestalFit.AdcFitRange: 100
+tools.ib5B21_adcPedestalFit.AdcFitRange: 100
+tools.ib5B22_adcPedestalFit.AdcFitRange: 200
+tools.ib5B23_adcPedestalFit.AdcFitRange: 300
+tools.ib5B30_adcPedestalFit.AdcFitRange: 100
+tools.ib5B31_adcPedestalFit.AdcFitRange: 200
+tools.ib5B32_adcPedestalFit.AdcFitRange: 300
+tools.ib5B33_adcPedestalFit.AdcFitRange: 400
+# Fit mins
+tools.ib5B00_adcPedestalFit.FitRmsMin:  0.3
+tools.ib5B01_adcPedestalFit.FitRmsMin:  0.6
+tools.ib5B02_adcPedestalFit.FitRmsMin:  1.2
+tools.ib5B03_adcPedestalFit.FitRmsMin:  1.8
+tools.ib5B10_adcPedestalFit.FitRmsMin:  0.5
+tools.ib5B11_adcPedestalFit.FitRmsMin:  1.0
+tools.ib5B12_adcPedestalFit.FitRmsMin:  2.0
+tools.ib5B13_adcPedestalFit.FitRmsMin:  3.0
+tools.ib5B20_adcPedestalFit.FitRmsMin:  0.9
+tools.ib5B21_adcPedestalFit.FitRmsMin:  1.8
+tools.ib5B22_adcPedestalFit.FitRmsMin:  3.5
+tools.ib5B23_adcPedestalFit.FitRmsMin:  5.0
+tools.ib5B30_adcPedestalFit.FitRmsMin:  1.5
+tools.ib5B31_adcPedestalFit.FitRmsMin:  3.0
+tools.ib5B32_adcPedestalFit.FitRmsMin:  6.0
+tools.ib5B33_adcPedestalFit.FitRmsMin: 10.0
+# Fit maxs
+tools.ib5B00_adcPedestalFit.FitRmsMin:  12
+tools.ib5B01_adcPedestalFit.FitRmsMin:  24
+tools.ib5B02_adcPedestalFit.FitRmsMin:  48
+tools.ib5B03_adcPedestalFit.FitRmsMin:  72
+tools.ib5B10_adcPedestalFit.FitRmsMin:  20
+tools.ib5B11_adcPedestalFit.FitRmsMin:  40
+tools.ib5B12_adcPedestalFit.FitRmsMin:  80
+tools.ib5B13_adcPedestalFit.FitRmsMin: 120
+tools.ib5B20_adcPedestalFit.FitRmsMin:  35
+tools.ib5B21_adcPedestalFit.FitRmsMin:  70
+tools.ib5B22_adcPedestalFit.FitRmsMin: 140
+tools.ib5B23_adcPedestalFit.FitRmsMin: 400
+tools.ib5B30_adcPedestalFit.FitRmsMin: 150
+tools.ib5B31_adcPedestalFit.FitRmsMin: 300
+tools.ib5B32_adcPedestalFit.FitRmsMin: 500
+tools.ib5B33_adcPedestalFit.FitRmsMin: 800
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {

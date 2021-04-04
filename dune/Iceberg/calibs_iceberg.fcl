@@ -81,6 +81,23 @@ tools.areaGain_ib5l: @local::tools.areaGain_ib5l_v02
 tools.areaGain_ib5m: @local::tools.areaGain_ib5m_v02
 tools.areaGain_ib5n: @local::tools.areaGain_ib5n_v02
 tools.areaGain_ib5o: @local::tools.areaGain_ib5o_v02
-tools.areaGain_ib5p: @local::tools.areaGain_ib5p_v02   # First calibrated ADC data
+tools.areaGain_ib5p: @local::tools.areaGain_ib5B22_v02   # First calibrated ADC data
+tools.areaGain_ib5q: @local::tools.areaGain_ib5B21_v02
+tools.areaGain_ib5C00: @local::tools.areaGain_ib5B00_v02
+tools.areaGain_ib5C01: @local::tools.areaGain_ib5B01_v02
+tools.areaGain_ib5C02: @local::tools.areaGain_ib5B02_v02
+tools.areaGain_ib5C03: @local::tools.areaGain_ib5B03_v02
+tools.areaGain_ib5C10: @local::tools.areaGain_ib5B10_v02
+tools.areaGain_ib5C11: @local::tools.areaGain_ib5B11_v02
+tools.areaGain_ib5C12: @local::tools.areaGain_ib5B12_v02
+tools.areaGain_ib5C13: @local::tools.areaGain_ib5B13_v02
+tools.areaGain_ib5C20: @local::tools.areaGain_ib5B20_v02
+tools.areaGain_ib5C21: @local::tools.areaGain_ib5B21_v02
+tools.areaGain_ib5C22: @local::tools.areaGain_ib5B22_v02
+tools.areaGain_ib5C23: @local::tools.areaGain_ib5B23_v02
+tools.areaGain_ib5C30: @local::tools.areaGain_ib5B30_v02
+tools.areaGain_ib5C31: @local::tools.areaGain_ib5B31_v02
+tools.areaGain_ib5C32: @local::tools.areaGain_ib5B32_v02
+tools.areaGain_ib5C33: @local::tools.areaGain_ib5B33_v02
 
 #####################################################################

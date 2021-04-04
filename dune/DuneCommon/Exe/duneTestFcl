@@ -16,6 +16,9 @@ FILS='
  iceberg5e_decode_reco.fcl
  iceberg5f_decode_reco.fcl
  iceberg5p_decode_reco.fcl
+ iceberg5q_decode_reco.fcl
+ iceberg5C22_decode_reco.fcl
+ standard_reco_dune10kt_nu_1x2x6.fcl
 '
 
 NERR=0
