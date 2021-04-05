@@ -277,6 +277,7 @@ tools.adcChannelPedestalPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal RMS for each channel.
@@ -301,6 +302,7 @@ tools.adcChannelPedestalRmsPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Sample RMS

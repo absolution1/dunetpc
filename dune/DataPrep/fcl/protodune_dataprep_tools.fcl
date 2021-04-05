@@ -591,6 +591,7 @@ chmet_pdtps_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Template for metric plots by APA
@@ -627,6 +628,7 @@ pdwz_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 ######## Plots by APA #######
@@ -920,6 +922,7 @@ pdmet_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal for each TPS channel.
