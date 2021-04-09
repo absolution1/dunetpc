@@ -43,6 +43,7 @@ int test_AdcRoiToTree(bool useExistingFcl =false) {
     fout << "  tool_type: AdcRoiToTree" << endl;
     fout << "  LogLevel: 4" << endl;
     fout << "  OutFile: \"adcrois.root\"" << endl;
+    fout << "  MetadataFields: [\"runevt\", \"xcha\"]" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -66,6 +67,7 @@ int test_AdcRoiToTree(bool useExistingFcl =false) {
   cout << myname << "Create test data." << endl;
   Index irun = 123;
   Index ievt = 456;
+  float runevt = 1000*irun + ievt;
   AdcChannelDataMap acds;
   Index ncha = 4;
   Index icha1 = 100;
@@ -73,6 +75,9 @@ int test_AdcRoiToTree(bool useExistingFcl =false) {
   for ( Index icha=icha1; icha<icha2; ++icha ) {
     AdcChannelData& acd = acds[icha];
     acd.setEventInfo(irun, ievt);
+    acd.setMetadata("runevt", runevt);
+    float xcha = 5*(icha%100);   // Wire posn in mm.
+    acd.setMetadata("xcha", xcha);
     acd.setChannelInfo(icha);
     acd.samples.resize(1000, icha);
     Index nroi = icha - icha1 + 1;

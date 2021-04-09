@@ -81,6 +81,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
+  m_MetadataFlags(ps.get<NameVector>("MetadataFlags")),
+  m_mdRead(false), m_mdWrite(false), m_mdWarnAbsent(false), m_mdWarnPresent(false),
   m_doSummary(false),
   m_doSummaryError(false),
   m_pPedestalReference(nullptr),
@@ -89,6 +91,16 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
+  // Process metadata flags.
+  for ( string mflag : m_MetadataFlags ) {
+    if ( mflag == "read" ) m_mdRead = true;
+    else if ( mflag == "write" ) m_mdWrite = true;
+    else if ( mflag == "warnabsent" ) m_mdWarnAbsent = true;
+    else if ( mflag == "warnpresent" ) m_mdWarnPresent = true;
+    else {
+      cout << myname << "WARNING: Ignoring invalid metadata flag: " << mflag << endl;
+    }
+  }
   // Fetch the channel ranges.
   bool toolNotFound = false;
   const IndexRangeTool* pcrt = nullptr;
@@ -223,6 +235,14 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "      PlotUsesStatus: " << m_PlotUsesStatus << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
+    cout << myname << "       MetadataFlags: [";
+    first = true;
+    for ( string mflag : m_MetadataFlags ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << mflag;
+    }
+    cout << "]" << endl;
   }
   // We might have to move this to getMetric.
   initialize();
@@ -373,6 +393,58 @@ DataMap AdcChannelMetric::view(const AdcChannelData& acd) const {
 
 DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcChannelMetric::viewMap: ";
+  MetricMap mets;
+  return viewMapLocal(acds, mets);
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::update(AdcChannelData& acd) const {
+  const string myname = "AdcChannelMetric::update: ";
+  DataMap ret = view(acd);
+  string mnam = m_Metric;
+  if ( m_mdWrite ) {
+    if ( m_mdWarnPresent && acd.hasMetadata(mnam) ) {
+      cout << "WARNING: Run-event-channel " << acd.run() << "-" << acd.event() << "-"
+           << acd.channel() << " already has metadata field " << mnam << endl;
+    }
+    float mval = ret.getFloat("metricValue");
+    acd.setMetadata(mnam, mval);
+  }
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::updateMap(AdcChannelDataMap& acds) const {
+  const string myname = "AdcChannelMetric::updateMap: ";
+  MetricMap mets;
+  DataMap ret = viewMapLocal(acds, mets);
+  if ( m_mdWrite ) {
+    string mnam = m_Metric;
+    for ( const auto& imet : mets ) {
+      Index icha = imet.first;
+      AdcChannelDataMap::iterator iacd = acds.find(icha);
+      if ( iacd == acds.end() ) {
+        cout << myname << "ERROR: Channel map is missing channel " << icha << endl;
+      } else {
+        AdcChannelData& acd = iacd->second;
+        if ( m_mdWarnPresent && acd.hasMetadata(mnam) ) {
+          cout << "WARNING: Run-event-channel " << acd.run() << "-" << acd.event() << "-"
+               << acd.channel() << " already has metadata field " << mnam << endl;
+        }
+        float mval = imet.second.value;
+        acd.setMetadata(mnam, mval);
+      }
+    }
+  }
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::viewMapLocal(const AdcChannelDataMap& acds, MetricMap& mets) const {
+  const string myname = "AdcChannelMetric::viewMapLocal: ";
   DataMap ret;
   if ( acds.size() == 0 ) {
     cout << myname << "Input channel map is empty." << endl;
@@ -389,18 +461,18 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     }
     Index chanLo = std::max(chanFirst, ran.first());
     Index chanHi = std::min(chanLast, ran.last());
-    if ( chanHi >= chanLo ) ret += viewMapForOneRange(acds, ran);
+    if ( chanHi >= chanLo ) ret += viewMapForOneRange(acds, ran, mets);
   }
   return ret;
 }
 
 //**********************************************************************
 
-DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const {
+DataMap AdcChannelMetric::
+viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricMap& mets) const {
   const string myname = "AdcChannelMetric::viewMapForOneRange: ";
   DataMap ret;
   // Extract the metrics for the subset of this range included in the data.
-  MetricMap mets;
   Index icha0 = ran.begin;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());

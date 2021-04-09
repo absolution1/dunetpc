@@ -63,6 +63,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "      PlotUsesStatus: 0" << endl;
     fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%_%CRNAME%.png\"" << endl;
     fout << "        RootFileName: \"\"" << endl;
+    fout << "       MetadataFlags: [\"write\"]" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -124,8 +125,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
         data.samples[isam] *= 0.04;
       }
       data.sampleUnit = "ke";
+      assert( ! data.hasMetadata("pedestal") );
     }
-    DataMap ret = padv->viewMap(datamap);
+    DataMap ret = padv->updateMap(datamap);
     ret.print();
     assert( ret == 0 );
     cout << myname << "Checking histogram " << hname << endl;
@@ -133,6 +135,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     assert( phout != nullptr );
     assert( phout->GetName() == hname );
     assert( phout->GetEntries() == ncha );
+    for ( const auto& idata : datamap ) {
+      assert( idata.second.hasMetadata("pedestal") );
+    }
   }
 
   cout << myname << line << endl;
