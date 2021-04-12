@@ -16,7 +16,8 @@ using fhicl::ParameterSet;
 
 AdcRoiToTree::AdcRoiToTree(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_OutFile(ps.get<Name>("OutFile"))
+  m_OutFile(ps.get<Name>("OutFile")),
+  m_MetadataFields(ps.get<NameVector>("MetadataFields"))
 {
   const string myname = "AdcRoiToTree::ctor: ";
   if ( m_LogLevel >=2 ) cout << myname << "Creating output file." << endl;
@@ -30,6 +31,11 @@ AdcRoiToTree::AdcRoiToTree(fhicl::ParameterSet const& ps)
     ptre->Branch("event",   &tdat.event);
     ptre->Branch("channel", &tdat.channel);
     ptre->Branch("status",  &tdat.status);
+    tdat.mdata.resize(m_MetadataFields.size());
+    float* pmd = &tdat.mdata[0];
+    for ( Name mnam : m_MetadataFields ) {
+      ptre->Branch(mnam.c_str(), pmd++);
+    }
     ptre->Branch("nroi",    &tdat.nroi);
     ptre->Branch("nsam",    &tdat.nsam[0], "nsam[nroi]/i");
     ptre->Branch("isam",    &tdat.isam[0], "isam[nroi]/i");
@@ -45,6 +51,14 @@ AdcRoiToTree::AdcRoiToTree(fhicl::ParameterSet const& ps)
   if ( m_LogLevel>= 1 ) {
     cout << myname << "             LogLevel: " << m_LogLevel << endl;
     cout << myname << "              OutFile: " << m_OutFile << endl;
+    cout << myname << "       MetadataFields: [";
+    bool first = true;
+    for ( Name mnam : m_MetadataFields ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << mnam;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -96,6 +110,11 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
   ptre->SetBranchAddress("event",   &tdat.event);
   ptre->SetBranchAddress("channel", &tdat.channel);
   ptre->SetBranchAddress("status",  &tdat.status);
+  tdat.mdata.resize(m_MetadataFields.size());
+  float* pmd = &tdat.mdata[0];
+  for ( Name mnam : m_MetadataFields ) {
+    ptre->SetBranchAddress(mnam.c_str(), pmd++);
+  }
   ptre->SetBranchAddress("nroi",    &tdat.nroi);
   ptre->SetBranchAddress("nsam",    &tdat.nsam[0]);
   ptre->SetBranchAddress("isam",    &tdat.isam[0]);
@@ -109,6 +128,15 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
     tdat.event = acd.event();
     tdat.channel = acd.channel();
     tdat.status = acd.channelStatus();
+    Index idat = 0;
+    for ( Name mnam : m_MetadataFields ) {
+      if ( ! acd.hasMetadata(mnam) ) {
+        cout << myname << "WARNING: Run/event/channel "
+             << acd.run() << "/" << acd.event() << "/" << acd.channel()
+             << " does not have metadata field " << mnam << endl;
+      }
+      tdat.mdata[idat++] = acd.getMetadata(mnam, 0.0);
+    }
     tdat.nroi = acd.rois.size();
     Index nroi = std::min(tdat.nroi, maxroi);
     for ( Index iroi=0; iroi<nroi; ++iroi ) {

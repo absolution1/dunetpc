@@ -66,38 +66,38 @@ tools.areaGain_ib3: @local::tools.areaGain_ib3_b900_v6
 #tools.areaGain_ib4: @local::tools.areaGain_ib4b_v10
 
 tools.areaGain_ib5: { tool_name: PleaseDefine_areaGain_ib5 }
-tools.areaGain_ib5a: @local::tools.areaGain_ib5a_v02
-tools.areaGain_ib5b: @local::tools.areaGain_ib5c_v02   # 5b has same gain and shaping as 5c
-tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v02
-tools.areaGain_ib5d: @local::tools.areaGain_ib5d_v02
-tools.areaGain_ib5e: @local::tools.areaGain_ib5e_v02
-tools.areaGain_ib5f: @local::tools.areaGain_ib5c_v02   # 5f has same gain and shaping as 5c
-tools.areaGain_ib5g: @local::tools.areaGain_ib5g_v02
-tools.areaGain_ib5h: @local::tools.areaGain_ib5h_v02
-tools.areaGain_ib5i: @local::tools.areaGain_ib5i_v02
-tools.areaGain_ib5j: @local::tools.areaGain_ib5j_v02
-tools.areaGain_ib5k: @local::tools.areaGain_ib5c_v02   # 5k has same gain and shaping as 5c
-tools.areaGain_ib5l: @local::tools.areaGain_ib5l_v02
-tools.areaGain_ib5m: @local::tools.areaGain_ib5m_v02
-tools.areaGain_ib5n: @local::tools.areaGain_ib5n_v02
-tools.areaGain_ib5o: @local::tools.areaGain_ib5o_v02
-tools.areaGain_ib5p: @local::tools.areaGain_ib5B22_v02   # First calibrated ADC data
-tools.areaGain_ib5q: @local::tools.areaGain_ib5B21_v02
-tools.areaGain_ib5C00: @local::tools.areaGain_ib5B00_v02
-tools.areaGain_ib5C01: @local::tools.areaGain_ib5B01_v02
-tools.areaGain_ib5C02: @local::tools.areaGain_ib5B02_v02
-tools.areaGain_ib5C03: @local::tools.areaGain_ib5B03_v02
-tools.areaGain_ib5C10: @local::tools.areaGain_ib5B10_v02
-tools.areaGain_ib5C11: @local::tools.areaGain_ib5B11_v02
-tools.areaGain_ib5C12: @local::tools.areaGain_ib5B12_v02
-tools.areaGain_ib5C13: @local::tools.areaGain_ib5B13_v02
-tools.areaGain_ib5C20: @local::tools.areaGain_ib5B20_v02
-tools.areaGain_ib5C21: @local::tools.areaGain_ib5B21_v02
-tools.areaGain_ib5C22: @local::tools.areaGain_ib5B22_v02
-tools.areaGain_ib5C23: @local::tools.areaGain_ib5B23_v02
-tools.areaGain_ib5C30: @local::tools.areaGain_ib5B30_v02
-tools.areaGain_ib5C31: @local::tools.areaGain_ib5B31_v02
-tools.areaGain_ib5C32: @local::tools.areaGain_ib5B32_v02
-tools.areaGain_ib5C33: @local::tools.areaGain_ib5B33_v02
+tools.areaGain_ib5a: @local::tools.areaGain_ib5a_v03
+tools.areaGain_ib5b: @local::tools.areaGain_ib5c_v03   # 5b has same gain and shaping as 5c
+tools.areaGain_ib5c: @local::tools.areaGain_ib5c_v03
+tools.areaGain_ib5d: @local::tools.areaGain_ib5d_v03
+tools.areaGain_ib5e: @local::tools.areaGain_ib5e_v03
+tools.areaGain_ib5f: @local::tools.areaGain_ib5c_v03   # 5f has same gain and shaping as 5c
+tools.areaGain_ib5g: @local::tools.areaGain_ib5g_v03
+tools.areaGain_ib5h: @local::tools.areaGain_ib5h_v03
+tools.areaGain_ib5i: @local::tools.areaGain_ib5i_v03
+tools.areaGain_ib5j: @local::tools.areaGain_ib5j_v03
+tools.areaGain_ib5k: @local::tools.areaGain_ib5c_v03   # 5k has same gain and shaping as 5c
+tools.areaGain_ib5l: @local::tools.areaGain_ib5l_v03
+tools.areaGain_ib5m: @local::tools.areaGain_ib5m_v03
+tools.areaGain_ib5n: @local::tools.areaGain_ib5n_v03
+tools.areaGain_ib5o: @local::tools.areaGain_ib5o_v03
+tools.areaGain_ib5p: @local::tools.areaGain_ib5B22_v03   # First calibrated ADC data
+tools.areaGain_ib5q: @local::tools.areaGain_ib5B21_v03
+tools.areaGain_ib5C00: @local::tools.areaGain_ib5B00_v03
+tools.areaGain_ib5C01: @local::tools.areaGain_ib5B01_v03
+tools.areaGain_ib5C02: @local::tools.areaGain_ib5B02_v03
+tools.areaGain_ib5C03: @local::tools.areaGain_ib5B03_v03
+tools.areaGain_ib5C10: @local::tools.areaGain_ib5B10_v03
+tools.areaGain_ib5C11: @local::tools.areaGain_ib5B11_v03
+tools.areaGain_ib5C12: @local::tools.areaGain_ib5B12_v03
+tools.areaGain_ib5C13: @local::tools.areaGain_ib5B13_v03
+tools.areaGain_ib5C20: @local::tools.areaGain_ib5B20_v03
+tools.areaGain_ib5C21: @local::tools.areaGain_ib5B21_v03
+tools.areaGain_ib5C22: @local::tools.areaGain_ib5B22_v03
+tools.areaGain_ib5C23: @local::tools.areaGain_ib5B23_v03
+tools.areaGain_ib5C30: @local::tools.areaGain_ib5B30_v03
+tools.areaGain_ib5C31: @local::tools.areaGain_ib5B31_v03
+tools.areaGain_ib5C32: @local::tools.areaGain_ib5B32_v03
+tools.areaGain_ib5C33: @local::tools.areaGain_ib5B33_v03
 
 #####################################################################
