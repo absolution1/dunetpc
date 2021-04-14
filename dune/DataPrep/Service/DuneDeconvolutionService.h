@@ -18,7 +18,7 @@
 #ifndef DuneDeconvolutionService_H
 #define DuneDeconvolutionService_H
 
-#include "dune/DuneInterface/AdcDeconvolutionService.h"
+#include "dune/DuneInterface/Service/AdcDeconvolutionService.h"
 namespace detinfo {
   class DetectorClocksData;
 }

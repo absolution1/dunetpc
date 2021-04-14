@@ -69,4 +69,11 @@ simple_plugin(ChannelStatusConfigTool  "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(BlockIndexMapTool  "tool"
+                art_Framework_Services_Registry
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)

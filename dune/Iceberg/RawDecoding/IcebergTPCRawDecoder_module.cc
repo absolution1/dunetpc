@@ -30,6 +30,7 @@
 // artdaq and dune-raw-data includes
 #include "dune-raw-data/Overlays/RceFragment.hh"
 #include "dune-raw-data/Overlays/FelixFragment.hh"
+#include "dune-raw-data/Overlays/Frame14Fragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
@@ -127,6 +128,7 @@ private:
   TH1D * fErrorsNumber;
   TH1I * fFragSizeRCE;
   TH1I * fFragSizeFELIX;
+  TH1I * fDeltaTimestamp;
 
   // flags and state needed for the data integrity enforcement mechanisms
 
@@ -253,6 +255,9 @@ IcebergTPCRawDecoder::IcebergTPCRawDecoder(fhicl::ParameterSet const & p)
 
       fFragSizeFELIX = tFileService->make<TH1I>("fFragSizeFELIX", "FELIX Fragment Size", 100, 0.5, 57600000.5);
       fFragSizeFELIX->GetXaxis()->SetTitle("Size of FELIX Fragments (bytes)");
+
+      fDeltaTimestamp = tFileService->make<TH1I>("fDeltaTimestamp", "Delta Timestamp Between Frames", 101, -0.5, 100.5);
+
     }
 
 }
@@ -1027,17 +1032,92 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       MF_LOG_WARNING("_process_FELIX_AUX:") << " FELIX fragment type " << (int) frag.type() << " doesn't match expected value: " << _felix_fragment_type << " Discarding FELIX fragment";
       return false;
     }
+  //if (frag.fragmentID() == 501) 
+  //  {
+  //    std::cout << "Temporary hack: discarding fragment ID 501" << std::endl;
+  //    return false;
+  //  }
 
   art::ServiceHandle<dune::IcebergChannelMapService> channelMap;
 
   //Load overlay class.
-  dune::FelixFragment felix(frag);
+
+  bool is14 = _felix_input_noncontainer_instance == "FRAME14" || _felix_input_container_instance == "FRAME14";
+  std::unique_ptr<dune::FelixFragment> felixptr;
+  std::unique_ptr<dune::Frame14FragmentUnordered> frame14ptr;
+  if (is14)
+    {
+      std::unique_ptr<dune::Frame14FragmentUnordered> ftmp(new dune::Frame14FragmentUnordered(frag));
+      frame14ptr = std::move(ftmp);
+    }
+  else
+    {
+      std::unique_ptr<dune::FelixFragment> ftmp(new dune::FelixFragment(frag));
+      felixptr = std::move(ftmp);
+    }
 
   //Get detector element numbers from the fragment
 
-  uint8_t crate = felix.crate_no(0);
-  uint8_t slot = felix.slot_no(0);
-  uint8_t fiber = felix.fiber_no(0); // decode this one later 
+  uint8_t crate = 0;
+  uint8_t slot  = 0;
+  uint8_t fiber = 0;
+
+  if (is14)
+    {
+      crate = frame14ptr->crate_no(0);
+      slot  = frame14ptr->slot_no(0);
+      fiber = frame14ptr->fiber_no(0); // decode this one later
+      int frame_version = frame14ptr->frame_version(0);
+      //std::cout << "ICEBERG frame_version, crate, slot, fiber, fragID: " << frame_version << " "
+      // << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
+      if (frame_version == 0) 
+	{
+	  std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
+	  return false;
+	}
+      fiber ++;  // read in 0 to 1, go from 1 to 2
+
+      // temporary hacks
+      crate = 1;
+      //int fragid = (int) frag.fragmentID();
+      // if (fragid == 600)
+      // 	{
+      // 	  slot = 0;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 601)
+      // 	{
+      // 	  slot = 0;
+      // 	  fiber = 2;
+      // 	}
+      // if (fragid == 700)
+      // 	{
+      // 	  slot = 2;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 701)
+      // 	{
+      // 	  slot = 2;
+      // 	  fiber = 2;
+      // 	}
+      // if (fragid == 800)
+      // 	{
+      // 	  slot = 1;
+      // 	  fiber = 1;
+      // 	}
+      // if (fragid == 801)
+      // 	{
+      // 	  slot = 1;
+      // 	  fiber = 2;
+      // 	}
+
+    }
+  else
+    {
+      crate = felixptr->crate_no(0);
+      slot  = felixptr->slot_no(0);
+      fiber = felixptr->fiber_no(0); // decode this one later 
+    }
 
   if (crate == 0 || crate > 6 || slot > 4) 
     {
@@ -1062,17 +1142,33 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 
   if (_print_coldata_convert_count)
     {
-      uint16_t first_coldata_convert_count = felix.coldata_convert_count(0,0);
+      size_t first_coldata_convert_count = 0;
+      if (is14)
+	{
+	  first_coldata_convert_count = felixptr->coldata_convert_count(0,0);
+	}
+      else
+	{
+	  first_coldata_convert_count = frame14ptr->total_frames();
+	}
       std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
     }
 
-  //std::cout << "FELIX raw decoder trj: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
+  //std::cout << "FELIX raw decoder crate, slot, fiber: " << (int) crate << " " << (int) slot << " " << (int) fiber << std::endl;
+  // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
+  unsigned n_frames = 0;
+  if (is14)
+    {
+      n_frames = frame14ptr->total_frames();
+    }
+  else
+    {
+      n_frames = felixptr->total_frames(); 
+    }
 
-  const unsigned n_frames = felix.total_frames(); // One frame contains 25 felix (20 ns-long) ticks.  A "frame" is an offline tick
   //std::cout<<" Nframes = "<<n_frames<<std::endl;
   //_h_nframes->Fill(n_frames);
   const unsigned n_channels = dune::FelixFrame::num_ch_per_frame;// should be 256
-
 
   if (n_frames*n_channels > _felix_buffer_size_checklimit)
     {
@@ -1094,22 +1190,27 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       felixchans=felixchans+n_channels;
     }
 
-  for (unsigned int iframe=0; iframe<n_frames; ++iframe)
+  // this test does not yet exist for Frame14
+
+  if (!is14)
     {
-      if ( felix.wib_errors(iframe) != 0)
-        {
-          if (_enforce_error_free )
-            {
-              _DiscardedCorruptData = true;
-              MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felix.wib_errors(iframe)
-                                                    << " Discarding Data";
-              error_counter++;
-              // drop just this fragment
-              //_discard_data = true;
-              return true;
-            }
-          _KeptCorruptData = true;
-        }
+      for (unsigned int iframe=0; iframe<n_frames; ++iframe)
+	{
+	  if ( felixptr->wib_errors(iframe) != 0)
+	    {
+	      if (_enforce_error_free )
+		{
+		  _DiscardedCorruptData = true;
+		  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
+							<< " Discarding Data";
+		  error_counter++;
+		  // drop just this fragment
+		  //_discard_data = true;
+		  return true;
+		}
+	      _KeptCorruptData = true;
+	    }
+	}
     }
 
   // check optimization of this -- size not reserved
@@ -1121,7 +1222,9 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
   for(unsigned ch = 0; ch < n_channels; ++ch) {
     v_adc.clear();
     //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
-    std::vector<dune::adc_t> waveform( felix.get_ADCs_by_channel(ch) );
+    std::vector<dune::adc_t> waveform( is14 ? 
+				       frame14ptr->get_ADCs_by_channel(ch) : 
+				       felixptr->get_ADCs_by_channel(ch) );
     for(unsigned int nframe=0;nframe<waveform.size();nframe++){
       // if(ch==0 && nframe<100) {
       //  if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
@@ -1209,6 +1312,8 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     // for iceberg, hardcode the crate number to suppress warnings
     unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(1, slotloc2, fiberloc2, chloc, dune::IcebergChannelMapService::kFELIX); 
 
+    //std::cout << "Calling channel map: " << (int) slotloc2 << " " << fiberloc2 << " " << chloc << " " << offlineChannel << std::endl;
+
     if ( v_adc.size() != _full_tick_count)
       {
         if (_enforce_full_tick_count)
@@ -1284,14 +1389,36 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     raw_digit.SetPedestal(median,sigma);
     raw_digits.push_back(raw_digit);
 
-    raw::RDTimeStamp rdtimestamp(felix.timestamp(),offlineChannel);
+    raw::RDTimeStamp rdtimestamp( is14 ? frame14ptr->timestamp() : felixptr->timestamp(),offlineChannel);
     timestamps.push_back(rdtimestamp);
+
+    if (_make_histograms)
+      {
+	uint64_t last_timestamp = (is14 ? frame14ptr->timestamp(0) : felixptr->timestamp(0));
+	for (size_t itick=1; itick<n_ticks; ++itick)
+	  {
+	    uint64_t timestamp = (is14 ? frame14ptr->timestamp(itick) : felixptr->timestamp(itick));
+	    uint64_t tdiff = 0;
+	    if (timestamp > last_timestamp)
+	      {
+		tdiff = timestamp - last_timestamp;
+	      }
+	    else
+	      {
+		tdiff = last_timestamp - timestamp;
+	      }
+	    fDeltaTimestamp->Fill(tdiff);
+	    last_timestamp = timestamp;
+	  }
+      }
 
     //associate the raw digit and the timestamp data products
     auto const rawdigitptr = rdpm(raw_digits.size()-1);
     auto const rdtimestampptr = tspm(timestamps.size()-1);
     tsassocs.addSingle(rawdigitptr,rdtimestampptr);
   }
+
+
   return true;
 }
 

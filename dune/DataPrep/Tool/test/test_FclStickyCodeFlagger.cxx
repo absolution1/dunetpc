@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -66,7 +66,7 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padv = tm.getPrivate<TpcDataTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
@@ -82,10 +82,8 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = 100.0;
-      data.run = 101;
-      data.subRun = 23;
-      data.event = ievt;
-      data.channel = icha;
+      data.setEventInfo(new AdcChannelData::EventInfo(101, ievt, 23));
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<20; ++itic ) {
         AdcCount iadc = ped + itic;
@@ -95,14 +93,14 @@ int test_FclStickyCodeFlagger(bool useExistingFcl =false) {
       DataMap dm = padv->update(datamap[icha]);
       assert( dm == 0 );
       dm.print();
-      if ( data.channel == 12 ) {
+      if ( data.channel() == 12 ) {
         for ( Index isam=0; isam<data.raw.size(); ++isam ) {
           cout << myname << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
           if ( data.raw[isam] == 105 || data.raw[isam] == 109 || data.raw[isam] == 110 ) assert( data.flags[isam] == 8 );
           else assert( data.flags[isam] == 0 );
         }
       }
-      if ( data.channel == 14 ) {
+      if ( data.channel() == 14 ) {
         for ( Index isam=0; isam<data.raw.size(); ++isam ) {
           cout << myname << "    " << data.raw[isam] << "  " << data.flags[isam] << endl;
           if ( data.raw[isam] == 110 || data.raw[isam] == 111 || data.raw[isam] == 119 ) assert( data.flags[isam] == 8 );

@@ -12,6 +12,7 @@ services:
   FileCatalogMetadata:  @local::art_file_catalog_mc
   @table::iceberg_rawdecoding_services
  ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter: {}
  Geometry:                     @local::iceberg_geo
  DetectorClocksService:        @local::dunefd_detectorclocks
  DetectorPropertiesService:    @local::protodune_detproperties

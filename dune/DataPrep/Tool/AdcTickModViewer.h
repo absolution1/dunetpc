@@ -72,7 +72,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DataPrep/Utility/TickModTreeData.h"
 #include "TH1.h"
 #include "TGraph.h"
@@ -86,8 +86,7 @@ class TFile;
 class TTree;
 class TPadManipulator;
 
-class AdcTickModViewer
-: public AdcChannelTool {
+class AdcTickModViewer : public TpcDataTool {
 
 public:
 
@@ -193,7 +192,7 @@ private:  //data
     // Map of empty ADCchannel objects indexed by channel.
     AdcChannelDataMap acdMap;
     // Current channel ADC channel data object. Used to build plot names.
-    Index channel = AdcChannelData::badIndex;
+    Index channel = AdcChannelData::badIndex();
     AdcChannelData currentAcd;
     // Phase index, e.g. femb, for each channel.
     IndexMap phaseIndexMap;

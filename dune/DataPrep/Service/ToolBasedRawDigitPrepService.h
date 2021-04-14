@@ -7,6 +7,10 @@
 // It receives an ADC channel data map, applies a sequence of ADC channel
 // tools (calling updateMap) and then constructs wires.
 //
+// There is an option to list tools for which callgrind should collect statistics.
+// If any tools are listed, callgrind should be invoked with "--collect-atstart=no".
+// Otherwise, callgrind will be disabled when those tools are run.
+//
 // Confguration parameters.
 //   LogLevel - logging level
 //              0 - errors only
@@ -15,14 +19,16 @@
 //              3 - one line for each step (tool call)
 //              4 - display result from each step
 //   DoWires - If true, the wire building service is called after processing.
-//   AdcChannelToolNames - Names of the ADC channel tools.
+//   ToolNames - Names of the ADC channel tools.
+//   CallgrindToolNames - Names of the tools for which callgrind should be enabled.
 
 #ifndef ToolBasedRawDigitPrepService_H
 #define ToolBasedRawDigitPrepService_H
 
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include <map>
+#include <chrono>
 
 class AdcWireBuildingService;
 class AdcChannelDataCopyService;
@@ -42,6 +48,7 @@ public:
   using AdcChannelNamedToolVector = std::vector<NamedTool>;
 
   ToolBasedRawDigitPrepService(fhicl::ParameterSet const& pset, art::ActivityRegistry&);
+  ~ToolBasedRawDigitPrepService();
 
   // Called at begin and end of event processing.
   // Calls the same method for each tool.
@@ -60,12 +67,26 @@ private:
   // Configuration parameters.
   int m_LogLevel;
   bool m_DoWires;
-  std::vector<std::string> m_AdcChannelToolNames;
+  std::vector<std::string> m_ToolNames;
+  std::vector<std::string> m_CallgrindToolNames;
 
   AdcChannelToolVector m_AdcChannelTools;
   AdcChannelNamedToolVector m_AdcChannelNamedTools;
   const AdcWireBuildingService* m_pWireBuildingService;
+  std::set<std::string> m_cgset;
 
+  using Clock = std::chrono::steady_clock;
+  using Duration = std::chrono::duration<double>;
+  class State {
+  public:
+    Index nevtBegin = 0;
+    Index nevtEnd = 0;
+    Index ncall = 0;
+    // Timing.
+    std::vector<Duration> toolTimes;
+  };
+  std::unique_ptr<State> m_pstate;
+  State& state() const { return *m_pstate; }
 
 };
 

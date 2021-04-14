@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 
@@ -67,7 +67,7 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << line << endl;
@@ -77,9 +77,8 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
   AdcChannelDataMap acds;
   for ( Index icha=0; icha<ncha; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.run = 123;
-    acd.event = 456;
-    acd.channel = icha;
+    acd.setEventInfo(123, 456);
+    acd.setChannelInfo(icha);
     acd.samples.resize(nsam, 10.0);
     acd.sampleUnit = "ADC";
   }
@@ -104,7 +103,7 @@ int test_AdcRangeSampleScaler(bool useExistingFcl, bool useMod) {
   for ( const AdcChannelDataMap::value_type& iacd : acds ) {
     Index icha = iacd.first;
     const AdcChannelData& acd = iacd.second;
-    assert( acd.channel == icha );
+    assert( acd.channel() == icha );
     assert( acd.samples.size() == nsam );
     float qsam = acd.samples[0];
     float qexp = qexps[icha];

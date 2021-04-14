@@ -47,15 +47,15 @@ DataMap AcdWireReader::update(AdcChannelData& acd) const {
     return DataMap(4);
   }
   // Set or check the wire index.
-  if ( acd.wireIndex != AdcChannelData::badIndex ) {
+  if ( acd.wireIndex != AdcChannelData::badIndex() ) {
     cout << myname << "ERROR: ADC channel has a wire index." << endl;
     return DataMap(5);
   }
   // Set or check the channel.
-  if ( acd.channel == AdcChannelData::badChannel ) {
-    acd.channel = wir.Channel();
+  if ( acd.channel() == AdcChannelData::badChannel() ) {
+    acd.setChannelInfo(wir.Channel());
   } else {
-    if ( acd.channel != wir.Channel() ) {
+    if ( acd.channel() != wir.Channel() ) {
       cout << myname << "ERROR: Wire has inconsistent channel number." << endl;
       return DataMap(6);
     }

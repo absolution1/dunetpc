@@ -340,6 +340,8 @@ namespace evgen{
         float fPx, fPy, fPz;
         float fPDG; // Input tree has all floats
 
+        int fTrueID;
+
         // Event and TrackID for good particle tree
 //        float fBeamEvent;
 //        float fTrackID;
@@ -347,6 +349,7 @@ namespace evgen{
         // Same for all particles
         float fAllEventID;
         float fAllTrackID;
+        float fAllParentID;
 
         // We need two times: the trigger time, and the time at the entry point
         // to the TPC where we generate the event.
@@ -450,18 +453,20 @@ evgen::ProtoDUNEBeam::ProtoDUNEBeam(fhicl::ParameterSet const & pset)
     // Or maybe there was --nskip specified in the command line or skipEvents in FHiCL?
     for (auto const & p : fhicl::ParameterSetRegistry::get())
     {
-        if (p.second.has_key("source.skipEvents"))
+        auto const& ps = p.second;
+        if (ps.has_key("source") && ps.has_key("source.skipEvents"))
         {
-            fStartEvent += p.second.get<int>("source.skipEvents");
+            fStartEvent += ps.get<int>("source.skipEvents");
             break; // take the first occurence
         } // no "else", if parameter not found, then just don't change anything
     }
     // ...and if there is -e option or firstEvent in FHiCL, this add up to the no. of events to skip.
     for (auto const & p : fhicl::ParameterSetRegistry::get())
     {
-        if (p.second.has_key("source.firstEvent"))
+        auto const& ps = p.second;
+        if (ps.has_key("source") && ps.has_key("source.firstEvent"))
         {
-            int fe = p.second.get<int>("source.firstEvent") - 1; // events base index is 1
+            int fe = ps.get<int>("source.firstEvent") - 1; // events base index is 1
             if (fe > 0) fStartEvent += fe;
             break; // take the first occurence
         } // no "else", if parameter not found, then just don't change anything
@@ -584,6 +589,7 @@ void evgen::ProtoDUNEBeam::beginJob(){
     // Event and track number
     fAllParticlesTree->SetBranchAddress("EventID",&fAllEventID);
     fAllParticlesTree->SetBranchAddress("TrackID",&fAllTrackID);
+    fAllParticlesTree->SetBranchAddress("ParentID", &fAllParentID);
     
     // We only need the trigger time and event number from the good particle tree.
     // The good particle tree variable should match the names of the other trees
@@ -753,6 +759,7 @@ void evgen::ProtoDUNEBeam::beginJob(){
       fRecoTree->Branch( "RecoFront_x", &fRecoFront_x );
       fRecoTree->Branch( "RecoFront_y", &fRecoFront_y );
       fRecoTree->Branch( "RecoFront_z", &fRecoFront_z );
+      fRecoTree->Branch("TrueID", &fTrueID);
 
     }
 }
@@ -938,6 +945,13 @@ void evgen::ProtoDUNEBeam::GenerateTrueEvent(simb::MCTruth &mcTruth, std::vector
             TLorentzVector pos;
             TLorentzVector mom;
             // If this track is a "good particle", use the usual "primary" tag
+            /*
+            std::cout << "Trig: " << trigEvent << std::endl;
+            std::cout << "SpillGoodEvent: " << spill.fGoodEvent << std::endl;
+            std::cout << "SpillTrack: " << spill.fGoodTrack << std::endl;
+            std::cout << "AllTrack: " << (int)fAllTrackID << std::endl;
+            std::cout << "t: " << t << std::endl;
+            */
             if(trigEvent && (spill.fGoodTrack == (int)fAllTrackID)){
               process="primary";
               // We also need to build the momentum vector using the correct good particle information
@@ -963,6 +977,11 @@ void evgen::ProtoDUNEBeam::GenerateTrueEvent(simb::MCTruth &mcTruth, std::vector
               // At this step the position and momentum matches the GoodPartcle coordinates so apply the same functions
               pos = ConvertCoordinates(tempPos.X()/10.,tempPos.Y()/10.,tempPos.Z()/10.,baseTime+fEntryT);
               mom = MakeMomentumVector(fPx/1000.,fPy/1000.,fPz/1000.,intPDG,false);
+              fGoodParticleTree->GetEntry(spill.fGoodIndex);
+              std::cout << "SpillGoodTrack: " << spill.fGoodTrack << " " << (int)fGoodNP04front_PDGid << std::endl;
+              std::cout << "ParentID: " << (int)fAllParentID << " " << (int)fPDG << std::endl;
+              std::cout << "TrackID: " << (int)fAllTrackID<< std::endl;
+              std::cout << "GoodEvent: " << spill.fGoodEvent << std::endl;
 //              if(fabs(intPDG) == 13){
 //                std::cout << "Found a " << process << " muon at time = " << baseTime+fEntryT << ":" << std::endl;
 //                std::cout << fX/10. << ", " << fY/10. << ", " << fZ/10. << std::endl;
@@ -978,8 +997,12 @@ void evgen::ProtoDUNEBeam::GenerateTrueEvent(simb::MCTruth &mcTruth, std::vector
             
             // Track ID needs to be negative for primaries
             int trackID = -1*(mcTruth.NParticles() + 1); //g4trkid in larsoft
+            if (fSaveRecoTree)
+              fTrueID = trackID;
             
             // Create the particle and add the starting position and momentum
+            //std::cout << "Adding particle with process " << process
+            //          << " and PDG " << intPDG << std::endl;
             simb::MCParticle newParticle(trackID,intPDG,process);
             newParticle.AddTrajectoryPoint(pos,mom);
             

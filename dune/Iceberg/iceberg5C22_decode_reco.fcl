@@ -1,0 +1,11 @@
+# iceberg5C22_decode_reco.fcl
+#
+
+#include "iceberg5c_decode_reco.fcl"
+
+# Set pedestal fitter.
+tools.ib5_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+
+# Set calibration.
+# See calibs_iceberg.fcl.
+tools.areaGain_ib5: @local::tools.areaGain_ib5C22

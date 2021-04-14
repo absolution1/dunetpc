@@ -39,8 +39,8 @@ fftForward(Index nsam, const float* psam, DFT& dft, Index logLevel) {
   FloatVector phas(npha);
   // Loop over the compact samples.
   float nfac = 1.0;
-  if ( dft.isConsistent() ) nfac = 1.0/sqrt(nsam);
-  if ( dft.isBin() ) nfac = 1.0/nsam;
+  if ( dft.normalization().isConsistent() ) nfac = 1.0/sqrt(nsam);
+  if ( dft.normalization().isBin() ) nfac = 1.0/nsam;
   for ( Index ifrq=0; ifrq<namp; ++ifrq ) {
     pfft->GetPointComplex(ifrq, xre, xim);
     // For an even # samples (namp = npha + 1), the Nyquist term is real
@@ -48,7 +48,7 @@ fftForward(Index nsam, const float* psam, DFT& dft, Index logLevel) {
     double xam = ifrq < npha ? sqrt(xre*xre + xim*xim) : xre;
     double xph = atan2(xim, xre);
     float fac = nfac;
-    if ( dft.isPower() && dft.isAliased(ifrq) ) fac *= sqrt(2.0);
+    if ( dft.normalization().isPower() && dft.isAliased(ifrq) ) fac *= sqrt(2.0);
     xam *= fac;
     dft.setAmplitude(ifrq, xam);
     if ( ifrq < npha ) {

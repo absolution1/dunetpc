@@ -39,6 +39,14 @@ tools.adcChannelDumper: {
   MaxSample: 0
 }
 
+# Write all ROIs to a TTree.
+tools.adcRoiTreeMaker: {
+  tool_type: AdcRoiToTree
+  LogLevel: 1
+  OutFile: "adcrois.root"
+  MetadataFields: []
+}
+
 ################################################################################
 # Event displays.
 ################################################################################
@@ -131,6 +139,8 @@ tools.adcPlotRawDist: {
 tools.def_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
+  FitOpt: 0
   SkipFlags: []
   AdcFitRange: 100
   FitRmsMin:  1.0
@@ -250,11 +260,16 @@ tools.rawAdcPlotter: {
 tools.adcChannelPedestalPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  DataView: ""
   Metric: pedestal
   PedestalReference: ""
-  ChannelRanges: []
+  MetricSummaryView: ""
   MetricMin: 0
   MetricMax: 4096
+  MetricBins: 0
+  MetricLabel: "Pedestal"
+  PlotUsesStatus: 0
+  ChannelRanges: []
   ChannelLineModulus: 0
   ChannelLinePattern: []
   HistName: "hchped_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
@@ -263,17 +278,23 @@ tools.adcChannelPedestalPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal RMS for each channel.
 tools.adcChannelPedestalRmsPlotter: {
   tool_type: AdcChannelMetric
   LogLevel: 1
+  DataView: ""
   Metric: pedestalRms
   PedestalReference: ""
-  ChannelRanges: []
+  MetricSummaryView: ""
   MetricMin: 0
   MetricMax: 11
+  MetricBins: 0
+  MetricLabel: "RMS"
+  PlotUsesStatus: 0
+  ChannelRanges: []
   ChannelLineModulus: 0
   ChannelLinePattern: []
   HistName: "hchpedrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
@@ -282,7 +303,22 @@ tools.adcChannelPedestalRmsPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
+
+# Sample RMS
+tools.adcChannelSamplelRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
+tools.adcChannelSamplelRmsPlotter.Metric: samRms
+tools.adcChannelSamplelRmsPlotter.HistName: "hchsamrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+tools.adcChannelSamplelRmsPlotter.HistTitle: "ADC sample RMS for run %RUN% event %EVENT%"
+tools.adcChannelSamplelRmsPlotter.PlotFileName: "hchsamrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
+
+# Signal RMS
+tools.adcChannelSignalRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
+tools.adcChannelSignalRmsPlotter.Metric: sigRms
+tools.adcChannelSignalRmsPlotter.HistName: "hchsigrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+tools.adcChannelSignalRmsPlotter.HistTitle: "ADC signal RMS for run %RUN% event %EVENT%"
+tools.adcChannelSignalRmsPlotter.PlotFileName: "hchsigrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {
@@ -430,6 +466,10 @@ tools.adcThresholdSignalFinder: {
   FlagNegative: true
 }
 
+# Find calibrated signals with simple threshold algorithm.
+tools.calibThresholdSignalFinder: @local::tools.adcThresholdSignalFinder
+tools.calibThresholdSignalFinder.Threshold: 0.5
+
 # Find ADC signals with Dune 35t algorithm.
 tools.adcDuneSignalFinder: {
   tool_type: DuneAdcSignalFinder
@@ -440,6 +480,23 @@ tools.adcDuneSignalFinder: {
   TicksBefore: 50
   TicksAfter:  50
 }
+
+# Dynamic signal finder.
+tools.adcNoiseSignalFinder: {
+  tool_type: AdcNoiseSignalFinder
+  LogLevel: 1
+  SigFracMax: 0.80
+  ThresholdMin: 20.0
+  ThresholdRatio: 4.0
+  ThresholdRatioTol: 0.1
+  MaxLoop: 20.0
+  BinsBefore: 10
+  BinsAfter: 20
+  FlagPositive: true
+  FlagNegative: true
+}
+tools.calibNoiseSignalFinder: @local::tools.adcNoiseSignalFinder
+tools.calibNoiseSignalFinder.ThresholdMin: 0.2
 
 # Do FFT.
 tools.adcFFT: {

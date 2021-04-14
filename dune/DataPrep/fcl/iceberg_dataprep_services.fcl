@@ -26,7 +26,7 @@ BEGIN_PROLOG
 ib3_dataprep_tools_nocal_tail: [
   "digitReader",
   "ibrun3_sticky_codes_ped",
-  "pd_adcPedestalFit",
+  "ib3_adcPedestalFit",
   "adcSampleFiller",
   "ib_adcMitigate"
   #"adcCorrectUndershootAdc"     # correct undershoot
@@ -36,7 +36,7 @@ ib3_dataprep_tools_nocal_tail: [
 ib3_dataprep_tools_calib_only: [
   "digitReader",                # Read RawDigit
   "ibrun3_sticky_codes_ped",    # Read in sticky codes
-  "pd_adcPedestalFit",          # Find pedestal
+  "ib3_adcPedestalFit",          # Find pedestal
   "ib3SampleCalibration"        # Subtract pedestal and apply charge calibration
 ]
 
@@ -74,7 +74,7 @@ ib3_dataprep_tools_wirecell: [
 # No calibration, no noise removal.
 ib4_dataprep_tools_nocal_tail: [
   "digitReader",
-  "ib_adcPedestalFit",
+  "ib3_adcPedestalFit",
   "adcSampleFiller",
   "ib_adcMitigate"
   #"adcCorrectUndershootAdc"     # correct undershoot
@@ -88,7 +88,7 @@ ib4_dataprep_tools_calib_only: [
 ]
 
 # Charge calibration, mitigation, tail removal, no noise removal.
-ib4_dataprep_tools_calib_tail: [
+ib4_dataprep_tools_calib_tailonly: [
   @sequence::ib4_dataprep_tools_calib_only
   , "ib3TailRemovalKe"      # correct undershoot
 ]
@@ -97,18 +97,63 @@ ib4_dataprep_tools_calib_tail: [
 ib4_dataprep_tools_calib_tailped: [
   @sequence::ib4_dataprep_tools_calib_only
   , "ib4TailPedRemovalZKe"   # Remove collection tail and linear pedestal
-  , "ib4TailPedRemovalIKe"   # Remove induction tail and linear pedestal
+  , "ib4PedRemovalIKe"       # Remove induction linear pedestal
 ]
 
 # Charge calibration, noise removal.
 ib4_dataprep_tools_calib_noiserem: [
-  @sequence::ib4_dataprep_tools_calib_tail
+  @sequence::ib4_dataprep_tools_calib_tailped
   , "ibNoiseRemovalKe"         # Remove coherent noise
 ]
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 ib4_dataprep_tools_wirecell: [
   @sequence::ib4_dataprep_tools_calib_noiserem
+  , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+  , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
+  , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC
+]
+
+###################################################################################
+# Iceberg 5.
+###################################################################################
+
+# No calibration, no noise removal.
+ib5_dataprep_tools_nocal: [
+  "digitReader",
+  "ib5_adcPedestalFit",
+  "adcSampleFiller"
+]
+
+# Charge calibration; no mitigation or tail or noise removal.
+ib5_dataprep_tools_calib_only: [
+  "digitReader",                # Read RawDigit
+  "ib5_adcPedestalFit",         # Find pedestal
+  "ib5SampleCalibration"        # Subtract pedestal and apply charge calibration
+]
+
+# Charge calibration, mitigation, tail removal, no noise removal.
+ib5_dataprep_tools_calib_tailonly: [
+  @sequence::ib5_dataprep_tools_calib_only
+  , "ib3TailRemovalKe"      # correct undershoot
+]
+
+# Charge calibration, mitigation, tail+ped removal, no noise removal.
+ib5_dataprep_tools_calib_tailped: [
+  @sequence::ib5_dataprep_tools_calib_only
+  , "ib5TailPedRemovalZKe"   # Remove collection tail and linear pedestal
+  , "ib5PedRemovalIKe"       # Remove induction linear pedestal
+]
+
+# Charge calibration, noise removal.
+ib5_dataprep_tools_calib_noiserem: [
+  @sequence::ib5_dataprep_tools_calib_tailped
+  , "ibNoiseRemovalKe"         # Remove coherent noise
+]
+
+# Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
+ib5_dataprep_tools_wirecell: [
+  @sequence::ib5_dataprep_tools_calib_noiserem
   , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
   , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts
   , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC

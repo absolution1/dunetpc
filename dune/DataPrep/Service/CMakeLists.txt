@@ -5,6 +5,8 @@
 
 # Add plugin for each service.
 
+include_directories(AFTER $ENV{VALGRIND_INC})
+
 simple_plugin(ConfigurableAdcChannelDataCopyService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -103,6 +105,16 @@ simple_plugin(StandardAdcWireBuildingService "service"
              )
 
 simple_plugin(ToolBasedRawDigitPrepService   "service"
+                dune_ArtSupport
+                lardataobj_RawData
+                lardataobj_RecoBase
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
+simple_plugin(TpcToolBasedRawDigitPrepService   "service"
+                dune_DuneInterface_Data
                 dune_ArtSupport
                 lardataobj_RawData
                 lardataobj_RecoBase

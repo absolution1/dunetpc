@@ -75,11 +75,12 @@ tools.pddp_RemoveBadChannels: {
 ### baseline detrending
 tools.pddp_BaselineDetrend: {
   tool_type: BaselineDetrend
-  LogLevel: 1
-  Thresh:   10
-  Pad:      50
-  MinFrac:  0.5
-  Span:     0.04
+  LogLevel:    1
+  UseBasicROI: true
+  Thresh:      10
+  Pad:         50
+  MinFrac:     0.5
+  Span:        0.04
 }
 
 ### coherent noise filtering
@@ -121,10 +122,12 @@ dataprep_tool_list: [ "digitReader",
 		      "pddp_adcMultiThreshSignalFinder",
 		      "pddp_adcVintageDeconvoluter" ]
 
-services.RawDigitPrepService.AdcChannelToolNames: @local::dataprep_tool_list
+services.RawDigitPrepService.ToolNames: @local::dataprep_tool_list
 services.AdcWireBuildingService.SaveChanPedRMS: false
 tools.def_adcPedestalFit.FitRmsMin:  0.1
 tools.def_adcPedestalFit.FitRmsMax:  5.0
+tools.def_adcPedestalFit.FitOpt: 1
+tools.def_adcPedestalFit.FitPrecision: 1.0
 
 #source is DAQ raw data
 source:

@@ -33,7 +33,7 @@ VintageDeconvoluter::VintageDeconvoluter(fhicl::ParameterSet const& ps)
 DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
   const string myname = "VintageDeconvoluter::view: ";
   DataMap ret;
-  AdcChannel chan = acd.channel;
+  AdcChannel chan = acd.channel();
   AdcSignalVector& samples = acd.samples;
   unsigned int nsam = samples.size();
   if ( m_LogLevel >= 2 ) cout << myname << "Deconvoluting channel " << chan

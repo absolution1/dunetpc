@@ -141,14 +141,16 @@ class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
                              art::Event &evt, 
                              RawDigits& raw_digits,
                              RDTimeStamps &timestamps, 
-                             std::vector<int> &apalist);
+                             std::vector<int> &apalist,
+			     std::string inputLabel);
 
   bool _process_FELIX_AUX(art::Event &evt,
                           const artdaq::Fragment& frag, 
                           RawDigits& raw_digits, 
                           RDTimeStamps &timestamps, 
                           std::vector<int> &apalist,
-                          uint32_t runNumber);
+                          uint32_t runNumber,
+			  std::string inputLabel);
 
   void computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc, 
                           float &median, 

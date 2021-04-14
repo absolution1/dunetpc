@@ -10,7 +10,7 @@
 // IFMB is a global FEMB number 6*IAPA + IFMB_APA
 // where IAPA is the offline APA/TPS number and IFMB_APA
 // is the geometric FEMB number in the APA running clockwise
-// from beam left upstream. This is the online numberin convention.
+// from beam left upstream. This is the online numbering convention.
 // See https://wiki.dunescience.org/wiki/ProtoDUNE_geometry.
 //
 // ICHF is the channel number in the FEMB 8*ASIC + ICHA_ASIC.
@@ -30,6 +30,7 @@ public:
 
   ProtoduneOnlineChannel(const fhicl::ParameterSet& ps);
 
+  // Tool interface: offine --> online index.
   Index get(Index chanOff) const override;
 
 private:

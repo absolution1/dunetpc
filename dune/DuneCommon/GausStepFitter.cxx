@@ -5,6 +5,7 @@
 #include "dune/DuneCommon/quietHistFit.h"
 #include "TF1.h"
 #include "TH1.h"
+#include "TList.h"
 #include <iostream>
 
 using std::cout;

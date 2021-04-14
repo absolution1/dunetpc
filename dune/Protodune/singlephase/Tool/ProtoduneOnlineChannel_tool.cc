@@ -2,6 +2,7 @@
 
 #include "ProtoduneOnlineChannel.h"
 #include <iostream>
+#include <vector>
 
 using std::string;
 using std::cout;
@@ -163,7 +164,7 @@ Index ProtoduneOnlineChannel::get(Index chanOff) const {
     if ( m_LogLevel > 1 ) cout << myname << "Invalid offline channel: " << chanOff << endl;
     return badIndex();
   }
-  // Get the APA.
+  // Get the TPC set.
   Index iapa = chanOff/2560;
   // Get the channel in the apa.
   Index ichApa = chanOff%2560;

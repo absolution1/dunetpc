@@ -38,11 +38,11 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include <iostream>
 
-class AdcEventViewer : AdcChannelTool {
+class AdcEventViewer : TpcDataTool {
 
 public:
 
@@ -136,7 +136,7 @@ public:
     Index ngroup =0;            // # groups processed for this event
     ChannelRangeStates crstates;
     // Methods.
-    bool haveEvent() const { return eventInfo.event; }               // Is there a current event?
+    bool haveEvent() const { return eventInfo.isValid(); }           // Is there a current event?
     Index run() const { return eventInfo.run; }                      // Current run number.
     Index event() const { return eventInfo.event; }                  // Current event.
     LongIndex clock() const { return eventInfo.triggerClock; }       // Current timing clock.

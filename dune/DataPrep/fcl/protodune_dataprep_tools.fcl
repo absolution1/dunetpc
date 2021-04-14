@@ -90,6 +90,15 @@ tools.channelGroupsIceberg: {
   IndexRangeTool: channelRanges
 }
 
+# Map channels to APA views: 0:U, 1:v, 2:X
+tools.pdspChannelToPlane: {
+  tool_type: BlockIndexMapTool
+  LogLevel: 0
+  Starts: [ 0, 800, 1600]
+  Values: [ 0,   1,    2]
+  Period: 2560
+}
+
 ################################################################################
 # Reco.
 ################################################################################
@@ -98,6 +107,9 @@ tools.channelGroupsIceberg: {
 tools.pd_adcPedestalFit: {
   tool_type: AdcPedestalFitter
   LogLevel: 1
+  AdcRange: 4096
+  FitOpt: 3
+  FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
   FitRmsMin:  3.0
@@ -208,15 +220,17 @@ tools.adcTailRemovalKe.SignalTool: adcTailSignalFinderKe
 tools.pdspTailPedRemovalZKe: {
   tool_type: ExpTailPedRemover
   LogLevel: 1
-  DecayTime: 2000
+  DecayTime: 2200
   SignalFlag: 3
   SignalIterationLimit: 10
   SignalTool: adcTailSignalFinderKe
-  MaxTick: 6000
+  MaxTick: 21000
   PedDegree: 0
   PedTick0: 3000
   PedFreqs: []
-  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z"]
+  NoWarnStatuses: [1]
+  IncludeChannelRanges: ["apa1z", "apa2z", "apa3z", "apa4z", "apa5z", "apa6z",
+                         "apa1c", "apa2c", "apa3c", "apa4c", "apa5c", "apa6c"]
   ExcludeChannelRanges: []
 }
 
@@ -568,8 +582,8 @@ chmet_pdtps_template: {
   DataView: ""
   PedestalReference: ""
   MetricSummaryView: "mean:dmean"
-  MetricBins: 0
   MetricMin: 0.0
+  MetricBins: 0
   ChannelRanges: [tps0, tps1, tps2, tps3, tps4, tps5]
   ChannelLineModulus: 2560
   ChannelLinePattern: [0, 800, 1600, 2080]
@@ -577,6 +591,7 @@ chmet_pdtps_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: [write]
 }
 
 # Template for metric plots by APA
@@ -613,6 +628,7 @@ pdwz_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 ######## Plots by APA #######
@@ -740,7 +756,7 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%
 # Pedestal RMS for each TPS channel.
 tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::chmet_pdtps_template
 tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
-tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 14
+tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 40
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC count]"
@@ -906,6 +922,7 @@ pdmet_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal for each TPS channel.

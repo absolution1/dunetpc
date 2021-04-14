@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -63,6 +63,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "      PlotUsesStatus: 0" << endl;
     fout << "        PlotFileName: \"mypeds-run%RUN%-evt%EVENT%_%CRNAME%.png\"" << endl;
     fout << "        RootFileName: \"\"" << endl;
+    fout << "       MetadataFlags: [\"write\"]" << endl;
     fout << "}" << endl;
     fout.close();
   } else {
@@ -79,7 +80,7 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padv = tm.getPrivate<TpcDataTool>("mytool");
   assert( padv != nullptr );
 
   cout << myname << line << endl;
@@ -102,10 +103,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
-      data.run = 123;
-      data.event = ievt;
+      data.setEventInfo(123, ievt);
       float ped = peds[(icha-icha1)%nped];
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + gRandom->Gaus(0.0, 10.0);
@@ -125,8 +125,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
         data.samples[isam] *= 0.04;
       }
       data.sampleUnit = "ke";
+      assert( ! data.hasMetadata("pedestal") );
     }
-    DataMap ret = padv->viewMap(datamap);
+    DataMap ret = padv->updateMap(datamap);
     ret.print();
     assert( ret == 0 );
     cout << myname << "Checking histogram " << hname << endl;
@@ -134,6 +135,9 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     assert( phout != nullptr );
     assert( phout->GetName() == hname );
     assert( phout->GetEntries() == ncha );
+    for ( const auto& idata : datamap ) {
+      assert( idata.second.hasMetadata("pedestal") );
+    }
   }
 
   cout << myname << line << endl;

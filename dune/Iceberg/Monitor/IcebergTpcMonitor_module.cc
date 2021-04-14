@@ -286,28 +286,28 @@ namespace tpc_monitor{
 	fStuckCodeOnFrac.push_back(tfs->make<TH1F>(Form("fStuckCodeOnFrac%d",j),Form("Stuck-On Code Fraction APA%d",j),100,0,1));
 
 	// U view
-	fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", j),Form("Profiled raw-ped RMS vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
-	fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",j),Form("Profiled raw-ped MEAN vs Channel(Plane U, APA%d)",j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+	fChanRMSU_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSU%d_pfx", j),Form("Profiled RMS vs Channel(Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
+	fChanMeanU_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanU%d_pfx",j),Form("Profiled MEAN vs Channel(Plane U, APA%d)",j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s")); 
 	fChanFFTU.push_back(tfs->make<TH2F>(Form("fChanFFTU%d", j),Form("fChanFFT (Plane U, APA%d)", j),  UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-	fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",j),Form("Means of Channels in (Plane U, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanMeanDistU.push_back(tfs->make<TH1F>(Form("fChanMeanDistU%d",j),Form("Means of Channels in (Plane U, APA%d)",j), 1000, 0, 16383));
 	fChanRMSDistU.push_back(tfs->make<TH1F>(Form("fChanRMSDistU%d",j),Form("RMSs of Channels in (Plane U, APA%d)",j), 100, 0, 50));
 	fChanStuckCodeOffFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracU%d",j),Form("Stuck-Off Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
 	fChanStuckCodeOnFracU.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracU%d",j),Form("Stuck-On Code Fraction (Plane U, APA%d)",j), UChMax - UChMin + 1, UChMin-0.5, UChMax+0.5, "s"));
       
 	// V view
-	fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
-	fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
+	fChanRMSV_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSV%d_pfx",j),Form("Profiled RMS vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s")); 
+	fChanMeanV_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanV%d_pfx",j),Form("Profiled Mean vs Channel(Plane V, APA%d)",j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));   
 	fChanFFTV.push_back(tfs->make<TH2F>(Form("fChanFFTV%d", j),Form("fChanFFT (Plane V, APA%d)", j),  VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-	fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",j),Form("Means of Channels in (Plane V, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanMeanDistV.push_back(tfs->make<TH1F>(Form("fChanMeanDistV%d",j),Form("Means of Channels in (Plane V, APA%d)",j), 1000, 0, 16383));
 	fChanRMSDistV.push_back(tfs->make<TH1F>(Form("fChanRMSDistV%d",j),Form("RMSs of Channels in (Plane V, APA%d)",j), 100, 0, 50));
 	fChanStuckCodeOffFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracV%d",j),Form("Stuck-Off Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
 	fChanStuckCodeOnFracV.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracV%d",j),Form("Stuck-On Code Fraction (Plane V, APA%d)",j), VChMax - VChMin + 1, VChMin-0.5, VChMax+0.5, "s"));
       
 	// Z view                                                                                                                                                           
-	fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",j),Form("Profiled raw-ped RMS vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
-	fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",j),Form("Profiled raw-ped Mean vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+	fChanRMSZ_pfx.push_back(tfs->make<TProfile>(Form("fChanRMSZ%d_pfx",j),Form("Profiled RMS vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
+	fChanMeanZ_pfx.push_back(tfs->make<TProfile>(Form("fChanMeanZ%d_pfx",j),Form("Profiled Mean vs Channel(Plane Z, APA%d)",j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s")); 
 	fChanFFTZ.push_back(tfs->make<TH2F>(Form("fChanFFTZ%d", j),Form("fChanFFT (Plane Z, APA%d)", j),  ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, fNticks/2,0,fNticks/2*fBinWidth));
-	fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",j),Form("Means of Channels in (Plane Z, APA%d)",j), 4096, -0.5, 4095.5));
+	fChanMeanDistZ.push_back(tfs->make<TH1F>(Form("fChanMeanDistZ%d",j),Form("Means of Channels in (Plane Z, APA%d)",j), 1000, 0, 16383));
 	fChanRMSDistZ.push_back(tfs->make<TH1F>(Form("fChanRMSDistZ%d",j),Form("RMSs of Channels in (Plane Z, APA%d)",j), 100, 0, 50));
 	fChanStuckCodeOffFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOffFracZ%d",j),Form("Stuck-Off Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));
 	fChanStuckCodeOnFracZ.push_back(tfs->make<TProfile>(Form("fChanStuckCodeOnFracZ%d",j),Form("Stuck-On Code Fraction (Plane Z, APA%d)",j), ZChMax - ZChMin + 1, ZChMin-0.5, ZChMax+0.5, "s"));

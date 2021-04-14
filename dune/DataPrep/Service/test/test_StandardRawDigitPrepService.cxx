@@ -14,9 +14,9 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
-#include "dune/DuneInterface/WiredAdcChannelDataMap.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
+#include "dune/DuneInterface/Data/WiredAdcChannelDataMap.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -258,7 +258,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
     const RawDigit& dig = digs[idig];
     assert( prepdigs.find(dig.Channel()) == prepdigs.end() );
     AdcChannelData& data = prepdigs[dig.Channel()];
-    data.channel = dig.Channel();
+    data.setChannelInfo(dig.Channel());
     data.digitIndex = idig;
     data.digit = &dig;
   }

@@ -29,7 +29,7 @@ update(AdcChannelData& data) const {
   const string myname = "InterpolatingAdcMitigationService:update: ";
   if ( m_LogLevel >= 3 ) {
     cout << myname << "Entering..." << endl;
-    cout << myname << "          Channel: " << data.channel << endl;
+    cout << myname << "          Channel: " << data.channel() << endl;
     cout << myname << "Input vector size: " << data.samples.size() << endl;
   }
   AdcSignalVector& sigs = data.samples;
@@ -100,7 +100,7 @@ update(AdcChannelData& data) const {
       isigFirst = sigs.size();
     }
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel
+  if ( m_LogLevel >= 2 ) cout << myname << "Channel " << data.channel()
                               << ": # updated/total = " << nupdated << "/" << sigs.size() << endl;
   return 0;
 }

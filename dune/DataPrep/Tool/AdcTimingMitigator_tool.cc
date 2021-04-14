@@ -41,16 +41,16 @@ AdcTimingMitigator::AdcTimingMitigator(fhicl::ParameterSet const& ps)
 DataMap AdcTimingMitigator::update(AdcChannelData& acd) const {
   const string myname = "AdcTimingMitigator::update: ";
   DataMap ret;
-  if ( m_fembSet.count(acd.fembID) == 0 ) {
+  if ( m_fembSet.count(acd.fembID()) == 0 ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "Skipping channel " << acd.channel << " in FEMB " << acd.fembID << endl;
+      cout << myname << "Skipping channel " << acd.channel() << " in FEMB " << acd.fembID() << endl;
     }
     return ret;
   }
   Index nsam = acd.samples.size();
   if ( nsam == 0 ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "Skipping channel " << acd.channel << " with no samples." << endl;
+      cout << myname << "Skipping channel " << acd.channel() << " with no samples." << endl;
     }
     return ret;
   }
@@ -59,7 +59,7 @@ DataMap AdcTimingMitigator::update(AdcChannelData& acd) const {
   newsams.reserve(nsam/m_SamplingRatio+1);
   // Loop over indices for new sample.
   if ( m_LogLevel >= 3 ) {
-    cout << myname << "Updating samples for channel " << acd.channel << "." << endl;
+    cout << myname << "Updating samples for channel " << acd.channel() << "." << endl;
   }
   for ( Index j=0; ; ++j ) {
     double xj = j*m_SamplingRatio - m_SamplingOffset;
@@ -82,7 +82,7 @@ DataMap AdcTimingMitigator::update(AdcChannelData& acd) const {
     newsams.push_back(yj);
   }
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "Updating samples for channel " << acd.channel << ": size "
+    cout << myname << "Updating samples for channel " << acd.channel() << ": size "
          << nsam << " --> " << newsams.size() << endl;
   }
   acd.samples = newsams;

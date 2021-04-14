@@ -10,15 +10,15 @@
 // Configuration:
 //   LogLevel - 0=silent, 1=init, 2=each event, >2=more
 
-#ifndef VintageDeconvoluter_H
-#define VintageDeconvoluter_H
+#ifndef PddpVintageDeconvoluter_H
+#define PddpVintageDeconvoluter_H
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <vector>
 
-class PddpVintageDeconvoluter : AdcChannelTool {
+class PddpVintageDeconvoluter : TpcDataTool {
 
 public:
 

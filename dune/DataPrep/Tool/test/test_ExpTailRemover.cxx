@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneCommon/SampleTailer.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
@@ -123,7 +123,7 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag, float noiseSigma, bool 
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << "Create signals." << endl;
@@ -170,9 +170,8 @@ int test_ExpTailRemover(bool useExistingFcl, Index flag, float noiseSigma, bool 
   cout << myname << line << endl;
   cout << myname << "Create channel data." << endl;
   AdcChannelData acd;
-  acd.run = 123;
-  acd.event = 456;
-  acd.channel = 789;
+  acd.setEventInfo(123, 456);
+  acd.setChannelInfo(789);
   acd.pedestal = 1000.0;
   acd.samples = sta.data();
   acd.signal = isSignal;

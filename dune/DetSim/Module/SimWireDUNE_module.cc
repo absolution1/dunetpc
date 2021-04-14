@@ -44,14 +44,14 @@
 
 #include "dune/ArtSupport/DuneToolManager.h"
 
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/AdcSimulator.h"
-#include "dune/DuneInterface/AdcSuppressService.h"
-#include "dune/DuneInterface/AdcCompressService.h"
-#include "dune/DuneInterface/SimChannelExtractService.h"
-#include "dune/DuneInterface/ChannelNoiseService.h"
-#include "dune/DuneInterface/PedestalAdditionService.h"
-#include "dune/DuneInterface/AdcDistortionService.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Data/AdcSimulator.h"
+#include "dune/DuneInterface/Service/AdcSuppressService.h"
+#include "dune/DuneInterface/Service/AdcCompressService.h"
+#include "dune/DuneInterface/Service/SimChannelExtractService.h"
+#include "dune/DuneInterface/Service/ChannelNoiseService.h"
+#include "dune/DuneInterface/Service/PedestalAdditionService.h"
+#include "dune/DuneInterface/Service/AdcDistortionService.h"
 
 using std::ostringstream;
 using std::cout;
@@ -219,7 +219,7 @@ void SimWireDUNE::produce(art::Event& evt) {
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(evt, clockData);
   unsigned int nTickReadout  = detProp.ReadOutWindowSize();
-
+  m_pcns->newEvent();
   // Loop over channels.
   std::map<int,double>::iterator mapIter;
   for ( unsigned int chan = 0; chan<m_pgeo->Nchannels(); ++chan ) {

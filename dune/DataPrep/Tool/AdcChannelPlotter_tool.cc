@@ -115,7 +115,7 @@ AdcChannelPlotter::~AdcChannelPlotter() {
 
 DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
   const string myname = "AdcChannelPlotter::view: ";
-  if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << acd.channel << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Processing channel " << acd.channel() << endl;
   DataMap res;
   if ( m_HistTypes.size() == 0 ) {
     cout << myname << "WARNING: No histogram types are specified." << endl;
@@ -219,7 +219,7 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
       }
       ph = new TH1F(hname.c_str(), htitl.c_str(), nsam, 0, nsam);
       hists.push_back(ph);
-      float sigMin = acd.raw[0];
+      float sigMin = acd.samples[0];
       float sigMax = sigMin;
       for ( Index isam=0; isam<nsam; ++isam ) {
         float sig = acd.samples[isam];
@@ -237,10 +237,10 @@ DataMap AdcChannelPlotter::view(const AdcChannelData& acd) const {
     if ( ph == nullptr ) continue;
     ph->SetStats(0);
     ph->SetLineWidth(2);
-    if ( m_ColorBad && m_pChannelStatusProvider->IsBad(acd.channel) ) {
+    if ( m_ColorBad && m_pChannelStatusProvider->IsBad(acd.channel()) ) {
       ph->SetLineColor(m_ColorBad);
     }
-    if ( m_ColorNoisy && m_pChannelStatusProvider->IsNoisy(acd.channel) ) {
+    if ( m_ColorNoisy && m_pChannelStatusProvider->IsNoisy(acd.channel()) ) {
       ph->SetLineColor(m_ColorNoisy);
     }
     res.setHist(type, ph, resManage);

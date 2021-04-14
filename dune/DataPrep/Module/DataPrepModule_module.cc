@@ -42,8 +42,8 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
-#include "dune/DuneInterface/ChannelGroupService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/ChannelGroupService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneCommon/DuneTimeConverter.h"
@@ -292,6 +292,9 @@ void DataPrepModule::produce(art::Event& evt) {
   // Flag indicating that non-verbose info level messages should be logged.
   bool logInfo = m_LogLevel >= 2;
 
+  // Factor to convert event clock to ticks.
+  unsigned long triggerPerTick = 25;
+
   // Control flags.
   bool skipAllEvents = false;
   bool skipEventsWithCorruptDataDropped = false;
@@ -412,7 +415,7 @@ void DataPrepModule::produce(art::Event& evt) {
       chClockDiff = chClock > timingClock ?  (chClock - timingClock)
                                                : -(timingClock - chClock);
       bool nearTrigger = fabs(tickdiff - trigTickOffset) < 1.0;
-      tickdiff = chClockDiff/25.0;
+      tickdiff = chClockDiff/triggerPerTick;
       if ( clockCounts.find(chClock) == clockCounts.end() ) {
         clockCounts[chClock] = 1;
         if ( nearTrigger ) tzeroClockCandidates.push_back(chClock);
@@ -436,7 +439,7 @@ void DataPrepModule::produce(art::Event& evt) {
         AdcIndex count = iclk.second;
         long chClockDiff = chClock > timingClock ?  (chClock - timingClock)
                                                  : -(timingClock - chClock);
-        float tickdiff = chClockDiff/25.0;
+        float tickdiff = chClockDiff/triggerPerTick;
         if ( logInfo ) {
           cout << myname << "WARNING:" << setw(10) << chClockDiff << setw(10) << tickdiff
                << setw(8) << count << endl;
@@ -460,7 +463,9 @@ void DataPrepModule::produce(art::Event& evt) {
     if ( hstats.isValid() ) {
       pstats = &*hstats;
     } else {
-      cout << myname << "WARNING: Raw data status product not found." << endl;
+      if ( evt.isRealData() ) {
+        cout << myname << "WARNING: Raw data status product not found." << endl;
+      }
     }
   }
 
@@ -562,6 +567,15 @@ void DataPrepModule::produce(art::Event& evt) {
   unsigned int nkeep = 0;
   unsigned int nskip = 0;
   unsigned int ndigi = pdigits->size();
+  using EventInfo = AdcChannelData::EventInfo;
+  EventInfo* pevt = new EventInfo;
+  pevt->run = evt.run();
+  pevt->subRun = evt.subRun();
+  pevt->time = itim;
+  pevt->timerem = itimrem;
+  pevt->triggerClock = timingClock;
+  pevt->trigger = trigFlag;
+  AdcChannelData::EventInfoPtr pevtShared(pevt);
   for ( unsigned int idig=0; idig<ndigi; ++idig ) {
     const raw::RawDigit& dig = (*pdigits)[idig];
     AdcChannel chan = dig.Channel();
@@ -587,15 +601,13 @@ void DataPrepModule::produce(art::Event& evt) {
       if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
     }
     // Fetch the online ID.
-    bool haveFemb = false;
-    AdcChannel fembID = -1;
-    AdcChannel fembChannel = -1;
+    AdcChannel fembID = AdcChannelData::badIndex();
+    AdcChannel fembChannel = AdcChannelData::badIndex();
     if ( m_onlineChannelMapTool ) {
       unsigned int ichOn = m_onlineChannelMapTool->get(chan);
       if ( ichOn != IndexMapTool::badIndex() ) {
         fembID = ichOn/128;
         fembChannel = ichOn % 128;
-        haveFemb = true;
       }
     }
     if ( m_KeepFembs.size() ) {
@@ -606,21 +618,10 @@ void DataPrepModule::produce(art::Event& evt) {
     }
     // Build the channel data.
     AdcChannelData& acd = fulldatamap[chan];
-    acd.run = evt.run();
-    acd.subRun = evt.subRun();
-    acd.event = evt.event();
-    acd.time = itim;
-    acd.timerem = itimrem;
-    acd.channel = chan;
-    acd.channelStatus = chanStat;
+    acd.setEventInfo(pevtShared);
+    acd.setChannelInfo(chan, fembID, fembChannel, chanStat);
     acd.digitIndex = idig;
     acd.digit = &dig;
-    if ( haveFemb ) {
-      acd.fembID = fembID;
-      acd.fembChannel = fembChannel;
-    }
-    acd.triggerClock = timingClock;
-    acd.trigger = trigFlag;
     if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
     acd.metadata["ndigi"] = ndigi;
     if ( m_BeamEventLabel.size() ) {
@@ -692,7 +693,10 @@ void DataPrepModule::produce(art::Event& evt) {
   devt.run = evt.run();
   devt.subRun = evt.subRun();
   devt.event = evt.event();
+  devt.time = itim;
+  devt.timerem = itimrem;
   devt.triggerClock = timingClock;
+  devt.triggerTick0 = timingClock/triggerPerTick;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
 
@@ -719,10 +723,10 @@ void DataPrepModule::produce(art::Event& evt) {
       for ( const AdcChannelDataMap::value_type& iacd : datamap ) {
         const AdcChannelData& acd = iacd.second;
         AdcIndex idig = acd.digitIndex;
-        if ( idig == AdcChannelData::badIndex )
+        if ( idig == AdcChannelData::badIndex() )
           throw art::Exception(art::errors::ProductRegistrationFailure) << "Digit index is not set.";
         AdcIndex iwir = acd.wireIndex;
-        if ( iwir == AdcChannelData::badIndex ) continue;
+        if ( iwir == AdcChannelData::badIndex() ) continue;
         art::Ptr<raw::RawDigit> pdig(hdigits, idig);
         bool success = util::CreateAssn(*this, evt, *pwires, pdig, *passns, m_WireName, iwir);
         if ( !success ) throw art::Exception(art::errors::ProductRegistrationFailure)

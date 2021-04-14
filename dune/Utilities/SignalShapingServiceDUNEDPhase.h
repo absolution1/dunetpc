@@ -45,7 +45,7 @@
 #ifndef __SIGNALSHAPINGSERVICEDUNEDPHASE_H__
 #define __SIGNALSHAPINGSERVICEDUNEDPHASE_H__
 
-#include "dune/DuneInterface/SignalShapingService.h"
+#include "dune/DuneInterface/Service/SignalShapingService.h"
 
 #include <vector>
 #include "fhiclcpp/ParameterSet.h"

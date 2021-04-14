@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneCommon/SampleTailer.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -158,6 +158,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
     fout << "               PedDegree: " << pedDegree << endl;
     fout << "                PedTick0: " << tick0 << endl;
     fout << "                PedFreqs: []" << endl;
+    fout << "    NoWarnStatuses: []" << endl;
     fout << "    IncludeChannelRanges: [\"all\"]" << endl;
     fout << "    ExcludeChannelRanges: []" << endl;
     fout << "  }" << endl;
@@ -177,7 +178,7 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << "Create signals." << endl;
@@ -238,9 +239,8 @@ int test_ExpTailPedRemover(bool useExistingFcl, Index flag, float ped, float slo
   cout << myname << line << endl;
   cout << myname << "Create channel data." << endl;
   AdcChannelData acd;
-  acd.run = 123;
-  acd.event = 456;
-  acd.channel = 789;
+  acd.setEventInfo(123, 456);
+  acd.setChannelInfo(789);
   acd.pedestal = 1000.0;
   acd.samples = sta.data();
   acd.signal = isSignal;

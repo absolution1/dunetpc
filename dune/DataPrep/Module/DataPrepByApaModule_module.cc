@@ -41,7 +41,7 @@
 #include "lardata/Utilities/AssociationUtil.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
@@ -420,6 +420,9 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   // Flag indicating that non-verbose info level messages should be logged.
   bool logInfo = m_LogLevel >= 2;
 
+  // Factor to convert event clock to ticks.
+  unsigned long triggerPerTick = 25;
+
   // Control flags.
   bool skipAllEvents = false;
   bool skipEventsWithCorruptDataDropped = false;
@@ -564,8 +567,12 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   devt.subRun = evt.subRun();
   devt.event = evt.event();
   devt.triggerClock = timingClock;
+  devt.triggerTick0 = timingClock/triggerPerTick;
+  devt.time = itim;
+  devt.timerem = itimrem;
   int bstat = m_pRawDigitPrepService->beginEvent(devt);
   if ( bstat ) cout << myname << "WARNING: Event initialization failed." << endl;
+  AdcChannelData::EventInfoPtr pevt(new DuneEventInfo(devt));
 
   // Loop over channel ranges.
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -664,7 +671,7 @@ void DataPrepByApaModule::produce(art::Event& evt) {
       bool badDiff = chClockAbsDiff > maxdiff;
       if ( badDiff ) chClockAbsDiff = maxdiff; 
       long chClockDiff = sign ? chClockAbsDiff : -chClockAbsDiff;
-      tickdiff = chClockDiff/25.0;
+      tickdiff = chClockDiff/triggerPerTick;
       bool nearTrigger = fabs(tickdiff - trigTickOffset) < 1.0;
       if ( clockCounts.find(chClock) == clockCounts.end() ) {
         clockCounts[chClock] = 1;
@@ -819,34 +826,23 @@ void DataPrepByApaModule::produce(art::Event& evt) {
         if ( m_pChannelStatusProvider->IsBad(chan)   ) chanStat = AdcChannelStatusBad;
       }
       // Fetch the online ID.
-      bool haveFemb = false;
-      AdcChannel fembID = -1;
-      AdcChannel fembChannel = -1;
+      AdcChannel fembID = AdcChannelData::badIndex();
+      AdcChannel fembChannel = AdcChannelData::badIndex();
       if ( m_onlineChannelMapTool ) {
         unsigned int ichOn = m_onlineChannelMapTool->get(chan);
         if ( ichOn != IndexMapTool::badIndex() ) {
           fembID = ichOn/128;
           fembChannel = ichOn % 128;
-          haveFemb = true;
         }
       }
       // Build the channel data.
-      acd.run = evt.run();
-      acd.subRun = evt.subRun();
-      acd.event = evt.event();
-      acd.time = itim;
-      acd.timerem = itimrem;
-      acd.channel = chan;
-      acd.channelStatus = chanStat;
+      acd.setEventInfo(pevt);
+      acd.setChannelInfo(chan, fembID, fembChannel, chanStat);
       acd.digitIndex = idig;
       acd.digit = &dig;
-      if ( haveFemb ) {
-        acd.fembID = fembID;
-        acd.fembChannel = fembChannel;
+      if ( channelClocks.size() > idig ) {
+        acd.channelClock = channelClocks[idig];
       }
-      acd.triggerClock = timingClock;
-      acd.trigger = trigFlag;
-      if ( channelClocks.size() > idig ) acd.channelClock = channelClocks[idig];
       acd.metadata["ndigi"] = ndigi;
       if ( m_BeamEventLabel.size() ) {
         acd.metadata["beamTof"] = beamTof;

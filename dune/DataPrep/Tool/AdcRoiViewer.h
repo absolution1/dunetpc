@@ -90,7 +90,7 @@
 // Channel summary histograms
 // --------------------------
 // Channel summary histograms hold a metric for each channel derived from a summary histogram.
-// The following fileds specify a channel summary histogram:
+// The following fields specify a channel summary histogram:
 //     name - name for the summary histogram (%CRNAME% is replaced with the channel range name)
 //    title - histogram title  (substitutions for %CRLABEL%, %RUN%, ...)
 //  valHist - Name of the summary histogram template from which the metric is derived (should include %CHAN%)
@@ -170,7 +170,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Data/RunData.h"
 #include "dune/DuneCommon/TPadManipulator.h"
@@ -182,7 +182,7 @@ class TimeOffsetTool;
 class IndexRangeTool;
 class TH1;
 
-class AdcRoiViewer : AdcChannelTool {
+class AdcRoiViewer : TpcDataTool {
 
 public:
 
@@ -262,7 +262,7 @@ public:
     Index getChannelStatus(Index icha) const;
     Index getChannelStatus(Name hnam) const;  // Argument is a chansum histogram name
     Index cachedRunCount = 0;  // Increment each time run number changes.
-    Index cachedRun = AdcChannelData::badIndex;
+    Index cachedRun = AdcChannelData::badIndex();
     Name cachedSampleUnit;
     Index nRoiPlot =0;
     IndexByIndexMap channelStatuses;     // Status indexed by channel number

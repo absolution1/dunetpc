@@ -58,15 +58,7 @@ CTBOnly: "false"
 SCECorrection: "false"
 }
 
-TwoCRTMatching_refrac:
-{
-module_type: "TwoCRTMatching"
-CRTLabel: "CRTSimRefrac"
-MCC: "true"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
-}
+
 
 TwoCRTMatching_data:
 {
@@ -87,16 +79,15 @@ SCECorrection: "true"
 
 }
 
-TwoCRTMatching_dataDecode:
+TwoCRTMatching_producerData:
 {
-module_type: "TwoCRTMatching"
-CRTLabel: "crtrawdecoderNew"
+module_type: "TwoCRTMatchingProducer"
+CRTLabel: "crtrawdecoder"
 MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
+SCECorrection: "true"
 
 }
+
 
 CRTTimingValidation_data:
 {
@@ -134,15 +125,6 @@ CTBOnly: "false"
 SCECorrection: "false"
 }
 
-SingleCRTMatching_dataDecode:
-{
-module_type: "SingleCRTMatching"
-CRTLabel: "crtrawdecoderNew"
-MCC: "false"
-CTBLabel: "ctbrawdecoder:daq"
-CTBOnly: "false"
-SCECorrection: "false"
-}
 
 SingleCRTMatching_producer:
 {
@@ -161,31 +143,7 @@ MCC: "false"
 SCECorrection: "true"
 }
 
-TwoCRTMatching_producerData:
-{
-module_type: "TwoCRTMatchingProducer"
-CRTLabel: "crtrawdecoder"
-MCC: "false"
-SCECorrection: "true"
 
-}
-
-SingleCRTMatching_producerDataNew:
-{
-module_type: "SingleCRTMatchingProducer"
-CRTLabel: "crtrawdecoderNew"
-MCC: "false"
-SCECorrection: "true"
-}
-
-TwoCRTMatching_producerDataNew:
-{
-module_type: "TwoCRTMatchingProducer"
-CRTLabel: "crtrawdecoderNew"
-MCC: "false"
-SCECorrection: "false"
-MaxCandidates: 5000000
-}
 
 
 END_PROLOG

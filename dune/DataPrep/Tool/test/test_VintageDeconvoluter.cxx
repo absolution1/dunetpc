@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 
@@ -62,15 +62,15 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto psgf = tm.getPrivate<AdcChannelTool>("mytool");
+  auto psgf = tm.getPrivate<TpcDataTool>("mytool");
   assert( psgf != nullptr );
-  auto psgfmod = tm.getPrivate<AdcChannelTool>("mytool");
+  auto psgfmod = tm.getPrivate<TpcDataTool>("mytool");
   assert( psgfmod != nullptr );
 
   cout << myname << line << endl;
   cout << myname << "Create data and call tool." << endl;
   AdcChannelData data;
-  data.channel = 123;
+  data.setChannelInfo(123);
   for ( AdcIndex itic=0; itic<100; ++itic ) {
     float xadc = rand()%20 - 10.0;
     data.samples.push_back(xadc);

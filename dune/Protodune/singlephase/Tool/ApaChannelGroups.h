@@ -4,7 +4,7 @@
 // July 2018
 //
 // Tool to return channel range groups for a detector with NAPA APAs
-// assigend to TPC sets 0, 1, ..., NAPA-1.
+// assigned to TPC sets 0, 1, ..., NAPA-1.
 //      Name    Label          Meaning
 //      tpss    APAs           All TPC sets (set = pair of TPCs for one APA)
 //      apas    APAs           All APAs

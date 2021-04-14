@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# David Adams
+# March 2021
+#
+# Test high-level fcl for DUNE.
+
+FILS='
+ iceberg3_decode_reco.fcl
+ iceberg4a_decode_reco.fcl
+ iceberg4b_decode_reco.fcl
+ iceberg5a_decode_reco.fcl
+ iceberg5b_decode_reco.fcl
+ iceberg5c_decode_reco.fcl
+ iceberg5d_decode_reco.fcl
+ iceberg5e_decode_reco.fcl
+ iceberg5f_decode_reco.fcl
+ iceberg5p_decode_reco.fcl
+ iceberg5q_decode_reco.fcl
+ iceberg5C22_decode_reco.fcl
+ standard_reco_dune10kt_nu_1x2x6.fcl
+'
+
+NERR=0
+LEV=5
+for FIL in $FILS; do
+  if fcldump $FIL $LEV 2>&1 1>/dev/null; then
+    echo $FIL is ok
+  else
+    echo ERROR Unable to process $FIL
+    NERR=$(($NERR+1))
+  fi
+done
+exit $NERR

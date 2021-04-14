@@ -9,6 +9,7 @@
 #define DuneEventInfo_H
 
 #include <sstream>
+#include <memory>
 
 class DuneEventInfo {
 
@@ -17,21 +18,51 @@ public:
   using Index = unsigned int;
   using LongIndex = unsigned long;
 
-  Index run =0;
-  Index event = 0;
-  Index subRun = 0;
-  LongIndex triggerClock = 0;
+  Index run =badIndex();
+  Index event =badIndex();
+  Index subRun =badIndex();
+  time_t time =0;
+  int timerem =0;
+  Index trigger =badIndex();
+  LongIndex triggerClock =badLongIndex();
+  LongIndex triggerTick0 =badLongIndex();
+
+  static Index badIndex() { return -1u; }
+  static LongIndex badLongIndex() { return -1ul; }
+  static const DuneEventInfo& badEventInfo() {
+    static DuneEventInfo bei;
+    return bei;
+  }
 
   // Reset to no event.
   void clear() {
-    run = 0;
-    event = 0;
-    subRun = 0;
-    triggerClock = 0;
+    run = badIndex();
+    event = badIndex();
+    subRun = badIndex();
+    time = 0;
+    timerem = 0;
+    trigger = badIndex();
+    triggerClock = badLongIndex();
+    triggerTick0 = badLongIndex();
   }
 
+  // Default ctor.
+  DuneEventInfo() = default;
+
+  // Ctor from components.
+  DuneEventInfo(Index a_run, Index a_event, Index a_subRun =badIndex(),
+                time_t a_time =0, int a_timerem =0,
+                Index a_trigger =badIndex(),
+                LongIndex a_triggerClock =badLongIndex(),
+                LongIndex a_triggerTick0 =badLongIndex())
+  : run(a_run), event(a_event), subRun(a_subRun),
+    time(a_time), timerem(a_timerem),
+    trigger(a_trigger),
+    triggerClock(a_triggerClock),
+    triggerTick0(a_triggerTick0) { }
+
   // Is this valid info?
-  bool isValid() const { return run > 0; }
+  bool isValid() const { return run != badIndex(); }
 
   // Order two event info objects.
   bool operator<(const DuneEventInfo& rhs) {
@@ -43,6 +74,8 @@ public:
     if ( rhs.event < event ) return false;
     if ( triggerClock < rhs.triggerClock ) return true;
     if ( rhs.triggerClock < triggerClock ) return false;
+    if ( triggerTick0 < rhs.triggerTick0 ) return true;
+    if ( rhs.triggerTick0 < triggerTick0 ) return false;
     return false;
   }
 
@@ -51,7 +84,11 @@ public:
     if ( run != rhs.run ) return false;
     if ( subRun != rhs.subRun ) return false;
     if ( event != rhs.event ) return false;
+    if ( time != rhs.time ) return false;
+    if ( timerem != rhs.timerem ) return false;
+    if ( trigger != rhs.trigger ) return false;
     if ( triggerClock != rhs.triggerClock ) return false;
+    if ( triggerTick0 != rhs.triggerTick0 ) return false;
     return true;
   }
 

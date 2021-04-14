@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -65,15 +65,13 @@ int test_AdcChannelTrimmer(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
 
   cout << myname << line << endl;
   cout << myname << "Create data." << endl;
   AdcChannelData acd;
-  acd.channel = 100123;
-  acd.run = 123;
-  acd.subRun = 45;
-  acd.event = 2468;
+  acd.setEventInfo(123, 2468, 45);
+  acd.setChannelInfo(100123);
   acd.sampleUnit = "fC";
   acd.samples.resize(15);
   for ( Index isam=0; isam<acd.samples.size(); ++isam ) {

@@ -46,11 +46,11 @@ DataMap AdcRoiSlicer::update(AdcChannelData& acd) const {
     return ret.setStatus(2);
   }
   if ( acd.hasView(m_OutViewName) ) {
-    cout << "ERROR: Data for channel " << acd.channel << " already has view " << m_OutViewName << endl;
+    cout << "ERROR: Data for channel " << acd.channel() << " already has view " << m_OutViewName << endl;
     return ret.setStatus(3);
   }
   if ( copyRaw && acd.raw.size() < nsam ) {
-    cout << "ERROR: Insufficient raw data for channel " << acd.channel << ": "
+    cout << "ERROR: Insufficient raw data for channel " << acd.channel() << ": "
          << acd.raw.size() << " < " << nsam << "." << endl;
     copyRaw = false;
   }
@@ -59,7 +59,7 @@ DataMap AdcRoiSlicer::update(AdcChannelData& acd) const {
   Index nsamSkip = 0;
   if ( m_LogLevel >= 3 ) {
     cout << myname << "Looping over " << nsam << " samples for channel "
-         << acd.channel << endl;
+         << acd.channel() << endl;
   }
   for ( Index isam=0; isam<nsam; ++isam ) {
     bool isRoi = acd.signal[isam];

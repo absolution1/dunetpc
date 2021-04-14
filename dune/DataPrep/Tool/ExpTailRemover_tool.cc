@@ -130,21 +130,21 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
 
   // Check the channel.
   if ( m_useChannelRanges ) {
-    if ( acd.channel >= m_checkChannels.size() || ! m_checkChannels[acd.channel] ) {
-      if ( m_LogLevel >= 2 ) cout << myname << "Skipping channel " << acd.channel << endl;
+    if ( acd.channel() >= m_checkChannels.size() || ! m_checkChannels[acd.channel()] ) {
+      if ( m_LogLevel >= 2 ) cout << myname << "Skipping channel " << acd.channel() << endl;
       return ret;
     }
   }
 
   // Check input data size.
   if ( nsam < 10 ) {
-    cout << myname << "WARNING: Data for channel " << acd.channel << " has "
+    cout << myname << "WARNING: Data for channel " << acd.channel() << " has "
          << ( nsam==0 ? "no" : "too few" ) << " ticks." << endl;
     return ret.setStatus(1);
   }
 
-  if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run << " event " << acd.event
-                              << " channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Correcting run " << acd.run() << " event " << acd.event()
+                              << " channel " << acd.channel() << endl;
 
   // Build the initial signal selection.
   bool checkSignal = true;   // Whether to use only non-signal in fit.
@@ -177,8 +177,8 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
       AdcFilterVector signalLast = acd.signal;
       DataMap fret = m_pSignalTool->update(acd);
       if ( fret ) {
-        cout << myname << "WARNING: Signal-finding failed for event " << acd.event
-             << " channel " << acd.channel << endl;
+        cout << myname << "WARNING: Signal-finding failed for event " << acd.event()
+             << " channel " << acd.channel() << endl;
         break;
       }
       if ( acd.signal == signalLast ) {
@@ -226,10 +226,10 @@ DataMap ExpTailRemover::update(AdcChannelData& acd) const {
     // Invert matrix and solve for (ped, tau).
     double den = ktt*kpp - ktp*ktp;
     if ( den == 0.0 ) {
-      if ( acd.channelStatus == 0 || m_LogLevel >= 2 ) {
+      if ( acd.channelStatus() == 0 || m_LogLevel >= 2 ) {
         cout << myname << "WARNING: Unable to invert K-matrix with "
              << nsamKeep << " of " << nsam << " samples--stopping iteration for channel "
-             << acd.channel << " with status " << acd.channelStatus << "." << endl;
+             << acd.channel() << " with status " << acd.channelStatus() << "." << endl;
       }
       break;
     }

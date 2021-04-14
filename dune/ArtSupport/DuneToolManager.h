@@ -59,11 +59,20 @@ public:  // Type aliases and subclasses.
 
 public:
 
+  // Set/retrieve the primary fcl filename.
+  // The name is assigned from setName the first time this method is called.
+  // If setName is blank and the tool manager is not yet set, an attempt
+  // is made to find the fcl name on the command line following "-c".
+  // If a different name is provided in later calls, it is ignored and a
+  // warning message is broadcast.
+  static std::string fclFilename(std::string setName ="", int dbg =1);
+
   // Return the primary instance of this class.
-  // The name is ignored once the tool manager is set.
-  // if fclname is blank and the tool manager is not yet set, an attempt
-  // is made to find the fcl name on the command line following "-c"..
+  // The fcl file returned by fclFilename is read the first time this is called.
   static DuneToolManager* instance(std::string fclname ="", int dbg =1);
+
+  // Display a help message.
+  static void help();
 
   // Ctor from FCL file name.
   explicit DuneToolManager(std::string fclname);

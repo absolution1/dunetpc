@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 
@@ -114,9 +114,9 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo1 = tm.getPrivate<AdcChannelTool>("mytool1");
+  auto ptoo1 = tm.getPrivate<TpcDataTool>("mytool1");
   assert( ptoo1 != nullptr );
-  auto ptoo2 = tm.getPrivate<AdcChannelTool>("mytool2");
+  auto ptoo2 = tm.getPrivate<TpcDataTool>("mytool2");
   assert( ptoo2 != nullptr );
 
   cout << myname << line << endl;
@@ -127,9 +127,8 @@ int test_AdcRoiViewer(bool useExistingFcl =false) {
   Index npul = 100;
   for ( Index icha=250; icha<270; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.run = 111;
-    acd.event = 123;
-    acd.channel = icha;
+    acd.setEventInfo(111, icha);
+    acd.setChannelInfo(icha);
     acd.samples.resize(npul*pulse.size());
     acd.sampleUnit = "ADC count";
     double sigma = 5.0;

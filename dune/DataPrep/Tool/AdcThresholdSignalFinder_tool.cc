@@ -49,12 +49,12 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   DataMap ret;
   AdcIndex nsam = acd.samples.size();
   if ( nsam == 0 ) {
-    cout << myname << "ERROR: No samples found in channel " << acd.channel << endl;
+    cout << myname << "ERROR: No samples found in channel " << acd.channel() << endl;
     acd.signal.clear();
     acd.rois.clear();
     return ret.setStatus(1);
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel << endl;
+  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel() << endl;
   AdcIndex nsamlo = m_BinsBefore;
   AdcIndex nsamhi = m_BinsAfter;
   acd.signal.clear();
@@ -62,15 +62,17 @@ DataMap AdcThresholdSignalFinder::update(AdcChannelData& acd) const {
   AdcIndex nbinAbove = 0;
   AdcIndex isamUnknown = 0;  // First sample which is not known to be inside or ouside a ROI.
   for ( AdcIndex isam=0; isam<nsam; ++isam ) {
-    bool keep = ( m_FlagPositive && acd.samples[isam] >  m_Threshold ) ||
-                ( m_FlagNegative && acd.samples[isam] < -m_Threshold );
+    float val = acd.samples[isam];
+    bool keep = ( m_FlagPositive && val >  m_Threshold ) ||
+                ( m_FlagNegative && val < -m_Threshold );
     if ( keep ) {
       ++nbinAbove;
       AdcIndex jsam1 = isam > nsamlo ? isam - nsamlo : 0;
       if ( jsam1 < isamUnknown ) jsam1 = isamUnknown;
       AdcIndex jsam2 = isam + nsamhi + 1;
       if ( jsam2 > nsam ) jsam2 = nsam;
-      if ( m_LogLevel >= 4 ) cout << myname << "Trigger: " << isam << ", range: ["
+      if ( m_LogLevel >= 4 ) cout << myname << "Trigger: sample[" << isam
+                                  << "] = " << val << " ==> range: ["
                                   << jsam1 << ", " << jsam2 << ")" << endl;
       for ( AdcIndex jsam=jsam1; jsam<jsam2; ++jsam ) acd.signal[jsam] = true;
       isamUnknown = jsam2;

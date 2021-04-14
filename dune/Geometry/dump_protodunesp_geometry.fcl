@@ -3,5 +3,6 @@
 
 services.message.destinations.GeometryLog.filename:  "ProtoDUNE-SP-geometry.txt"
 services.ExptGeoHelperInterface: @local::dune_geometry_helper
+services.GeometryConfigurationWriter: {}
 services.Geometry:               @local::protodune_geo
 

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 
 #undef NDEBUG
@@ -66,7 +66,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pmod = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pmod = tm.getPrivate<TpcDataTool>("mytool");
   assert( pmod != nullptr );
 
   cout << myname << line << endl;
@@ -83,7 +83,7 @@ int test_FembLinearCalibration(bool useExistingFcl =false) {
   AdcChannelDataMap acds;
   for ( AdcChannel icha=0; icha<5; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.channel = icha;
+    acd.setChannelInfo(icha);
     for ( AdcCount& adc : acd0.raw ) acd.raw.push_back(adc+dped);
     acd.pedestal = acd0.pedestal + dped;
     dped += 100.0;

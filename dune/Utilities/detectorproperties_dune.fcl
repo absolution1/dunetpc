@@ -15,6 +15,19 @@ dunefd_detproperties.TimeOffsetU:       0.
 dunefd_detproperties.TimeOffsetV:       0.
 dunefd_detproperties.TimeOffsetZ:       0.
 
+dunefdvd_detproperties:                   @local::standard_detproperties
+dunefdvd_detproperties.Temperature:       87
+dunefdvd_detproperties.Electronlifetime:  3.0e3
+dunefdvd_detproperties.Efield:            [0.5, 1.0, 1.0]  #(placeholder values)
+dunefdvd_detproperties.ElectronsToADC:    6.8906513e-3 # 1fC = 43.008 ADC counts for DUNE fd
+dunefdvd_detproperties.NumberTimeSamples: 8500         # drift length/drift velocity*sampling rate = (650.0 cm)/(0.16 cm/us)*(2 MHz)
+dunefdvd_detproperties.ReadOutWindowSize: 8500         # as per proposal
+dunefdvd_detproperties.TimeOffsetU:       0.
+dunefdvd_detproperties.TimeOffsetV:       0.
+dunefdvd_detproperties.TimeOffsetX:       0.
+dunefdvd_detproperties.TimeOffsetY:       0.
+dunefdvd_detproperties.TimeOffsetZ:       0.
+
 dunefddphase_detproperties:                   @local::standard_detproperties
 # dunefddphase_detproperties.SamplingRate:    400.          # in ns
 dunefddphase_detproperties.Temperature:       87            # in K
@@ -23,8 +36,8 @@ dunefddphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
 dunefddphase_detproperties.ElectronsToADC:    5.1267e-04    # 
 dunefddphase_detproperties.NumberTimeSamples: 20000         # drift length/drift velocity*sampling rate
 dunefddphase_detproperties.ReadOutWindowSize: 20000         # drift length/drift velocity*sampling rate
-dunefddphase_detproperties.TimeOffsetU:       0.
-dunefddphase_detproperties.TimeOffsetV:       0.
+dunefddphase_detproperties.TimeOffsetX:       0.
+dunefddphase_detproperties.TimeOffsetY:       0.
 dunefddphase_detproperties.TimeOffsetZ:       0.
 
 protodunedphase_detproperties:                   @local::standard_detproperties
@@ -34,7 +47,7 @@ protodunedphase_detproperties.Efield:            [0.5,4.0,0.0] # in kV/cm
 protodunedphase_detproperties.ElectronsToADC:    1.02534e-03   # 
 protodunedphase_detproperties.NumberTimeSamples: 10000         # 10000 before beam + 10000 after beam
 protodunedphase_detproperties.ReadOutWindowSize: 10000         # 10000 before beam + 10000 after beam
-#protodunedphase_detproperties.TimeOffsetX:       0.
+protodunedphase_detproperties.TimeOffsetX:       0.
 protodunedphase_detproperties.TimeOffsetY:       0.
 protodunedphase_detproperties.TimeOffsetZ:       0.
 

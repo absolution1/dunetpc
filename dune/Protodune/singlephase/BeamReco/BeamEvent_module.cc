@@ -889,6 +889,12 @@ void proto::BeamEvent::produce(art::Event & e){
 
       if( gotGeneralTrigger ){ 
         parseXBPF(fetch_time);
+        /*
+        for(size_t d = 0; d < fDevices.size(); ++d){
+          std::string name = fDevices[d];
+          parseGeneralXBPF(name, time, d);
+        }
+        */
       }
 
       parseXCETDB(fetch_time);
@@ -1895,9 +1901,9 @@ TVector3 proto::BeamEvent::ConvertProfCoordinates(double x, double y, double z, 
 
   TVector3 old(x,y,z);
 
-  double newX = x*fBMBasisX.X() + y*fBMBasisY.X() + /*(z-zOffset)*fBMBasisZ.X()*/ + off*fabs(fBMBasisZ.X());
-  double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() + /*(z-zOffset)*fBMBasisZ.Y()*/ + off*fabs(fBMBasisZ.Y());
-  double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() + /*(z-zOffset)              */ - off*fabs(fBMBasisZ.Z());
+  double newX = x*fBMBasisX.X() + y*fBMBasisY.X() /*+ (z-zOffset)*fBMBasisZ.X()*/ + off*fabs(fBMBasisZ.X());
+  double newY = x*fBMBasisX.Y() + y*fBMBasisY.Y() /*+ (z-zOffset)*fBMBasisZ.Y()*/ + off*fabs(fBMBasisZ.Y());
+  double newZ = x*fBMBasisX.Z() + y*fBMBasisY.Z() /*+ (z-zOffset)              */ - off*fabs(fBMBasisZ.Z());
 
   newX += fBeamX*10.;
   newY += fBeamY*10.;

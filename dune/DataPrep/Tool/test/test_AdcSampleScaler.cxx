@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 
@@ -66,7 +66,7 @@ int test_AdcSampleScaler(bool useExistingFcl, float qsig, float ped, float noise
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << line << endl;
@@ -80,9 +80,8 @@ int test_AdcSampleScaler(bool useExistingFcl, float qsig, float ped, float noise
     qexps[isam] = 100*qsam;
   }
   AdcChannelData acd;
-  acd.run = 123;
-  acd.event = 456;
-  acd.channel = 12345;
+  acd.setEventInfo(123, 456);
+  acd.setChannelInfo(12345);
   acd.samples = qsams;
   acd.sampleUnit = "ADC";
   assert ( qsams.size() == nsam );

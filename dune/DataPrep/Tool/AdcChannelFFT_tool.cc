@@ -48,8 +48,8 @@ DataMap AdcChannelFFT::view(const AdcChannelData& acd) const {
   if ( m_DataView.size() == 0 ) return viewTop(acd);
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "View " << m_DataView << " not found for event " << acd.event
-           << " channel " << acd.channel << endl;
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event()
+           << " channel " << acd.channel() << endl;
     }
     return retTop.setStatus(1);
   }
@@ -76,8 +76,8 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
   DataMap retTop;
   if ( ! acd.hasView(m_DataView) ) {
     if ( m_LogLevel >= 2 ) {
-      cout << myname << "View " << m_DataView << " not found for event " << acd.event
-           << " channel " << acd.channel << endl;
+      cout << myname << "View " << m_DataView << " not found for event " << acd.event()
+           << " channel " << acd.channel() << endl;
     }
     return retTop.setStatus(1);
   }
@@ -88,7 +88,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
     AdcChannelData* pacd = acd.mutableViewEntry(m_DataView, ient);
     DataMap ret;
     if ( pacd == nullptr ) {
-      cout << myname << "Channel " << acd.channel << " view entry "
+      cout << myname << "Channel " << acd.channel() << " view entry "
            << m_DataView << "[" << ient << "] is null." << endl;
       ret.setStatus(99);
     } else {
@@ -101,7 +101,7 @@ DataMap AdcChannelFFT::update(AdcChannelData& acd) const {
   retTop.setInt("fftNfail", nproc);
   if ( nfail ) retTop.setStatus(2);
   if ( m_LogLevel >= 3 ) {
-    cout << myname << "Channel " << acd.channel << " entry counts: "
+    cout << myname << "Channel " << acd.channel() << " entry counts: "
          << nproc << " processed, " << nfail << " failed." << endl;
   }
   return retTop;
@@ -175,9 +175,8 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
   }
   Index isam0 = 0;
   Index nsam = 0;
-  DFT::FullNormalization dftNorm(AdcChannelData::dftNormalization());
+  RealDftNormalization dftNorm(AdcChannelData::dftNormalization());
   DFT dft(dftNorm);
-  //DFT dft(DFT::FullNormalization(AdcChannelData::dftNormalization()));
   int passLog = m_LogLevel < 3 ? 0 : m_LogLevel - 3;
   if ( doForward ) {
     isam0 = m_FirstTick;

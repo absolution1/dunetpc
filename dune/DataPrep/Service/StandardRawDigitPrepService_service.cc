@@ -8,17 +8,17 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
-#include "dune/DuneInterface/AdcChannelData.h"
-#include "dune/DuneInterface/ChannelMappingService.h"
-#include "dune/DuneInterface/RawDigitExtractService.h"
-#include "dune/DuneInterface/AdcMitigationService.h"
-#include "dune/DuneInterface/AdcSignalFindingService.h"
-#include "dune/DuneInterface/AdcNoiseRemovalService.h"
-#include "dune/DuneInterface/PedestalEvaluationService.h"
-#include "dune/DuneInterface/AdcDeconvolutionService.h"
-#include "dune/DuneInterface/AdcRoiBuildingService.h"
-#include "dune/DuneInterface/AdcWireBuildingService.h"
-#include "dune/DuneInterface/AdcChannelDataCopyService.h"
+#include "dune/DuneInterface/Data/AdcChannelData.h"
+#include "dune/DuneInterface/Service/ChannelMappingService.h"
+#include "dune/DuneInterface/Service/RawDigitExtractService.h"
+#include "dune/DuneInterface/Service/AdcMitigationService.h"
+#include "dune/DuneInterface/Service/AdcSignalFindingService.h"
+#include "dune/DuneInterface/Service/AdcNoiseRemovalService.h"
+#include "dune/DuneInterface/Service/PedestalEvaluationService.h"
+#include "dune/DuneInterface/Service/AdcDeconvolutionService.h"
+#include "dune/DuneInterface/Service/AdcRoiBuildingService.h"
+#include "dune/DuneInterface/Service/AdcWireBuildingService.h"
+#include "dune/DuneInterface/Service/AdcChannelDataCopyService.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 
@@ -175,7 +175,7 @@ prepare(detinfo::DetectorClocksData const& clockData,
       continue;
     }
     m_pExtractSvc->extract(data);
-    if ( chan != data.digit->Channel() || chan != data.channel ) {
+    if ( chan != data.digit->Channel() || chan != data.channel() ) {
       cout << myname << "ERROR: Inconsistent channel number!" << endl;
       skipChannels.push_back(chan);
       continue;
@@ -283,13 +283,15 @@ prepare(detinfo::DetectorClocksData const& clockData,
   }
   if ( m_DoWires ) {
     if ( ! m_DoROI ) {
-      if ( m_WiresWithoutROIFlag >= 2 ) cout << myname << "WARNING: Wire building requested without ROI building." << endl;
+      if ( m_WiresWithoutROIFlag >= 2 ) {
+        cout << myname << "WARNING: Wire building requested without ROI building." << endl;
+      }
       if ( m_WiresWithoutROIFlag >= 3 ) abort();
     }
     for ( auto& chdata : datamap ) {
       AdcChannelData& acd = chdata.second;
       m_pWireBuildingService->build(acd, pwires);
-      if ( m_DoDump && acd.channel==ichan ) {
+      if ( m_DoDump && acd.channel() == ichan ) {
         cout << myname << "        Wire: " << pwires->back().Signal().at(isig) << endl;
       }
     }
@@ -315,8 +317,9 @@ prepare(detinfo::DetectorClocksData const& clockData,
         acd.roisFromSignal();
         // Build wires.
         m_pWireBuildingService->build(acd, pwiresState);
-        if ( m_DoDump && acd.channel==ichan ) {
-          cout << myname << "        State " << sname << " wire: " << pwires->back().Signal().at(isig) << endl;
+        if ( m_DoDump && acd.channel() == ichan ) {
+          cout << myname << "        State " << sname << " wire: "
+               << pwires->back().Signal().at(isig) << endl;
         }
       }
     }

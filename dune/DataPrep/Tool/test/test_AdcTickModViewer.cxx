@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TError.h"
 
@@ -103,7 +103,7 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
   assert( tm.toolNames().size() >= 1 );
 
   cout << myname << line << endl;
-  auto pvtm = tm.getPrivate<AdcChannelTool>("mytool");
+  auto pvtm = tm.getPrivate<TpcDataTool>("mytool");
   assert( pvtm != nullptr );
   if ( ! doUpdate ) pvtm = nullptr;
 
@@ -123,10 +123,8 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
       float ped = peds[icha];
-      data.run = 101;
-      data.subRun = 23;
-      data.event = ievt;
-      data.channel = icha;
+      data.setEventInfo(101, ievt, 23);
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + rand()%20 - 10.0;
@@ -154,11 +152,11 @@ int test_AdcTickModViewer(bool useExistingFcl, bool doUpdate, bool doUpdateMap) 
   cout << myname << "Call tool." << endl;
   unsigned int expCount = 0;
   for ( const AdcChannelDataMap& acm : acms ) {
-    cout << myname << "Event " << acm.begin()->second.event << endl;
+    cout << myname << "Event " << acm.begin()->second.event() << endl;
     expCount += 25;
     for ( const AdcChannelDataMap::value_type& iacd : acm ) {
       const AdcChannelData& acd = iacd.second;
-      cout << myname << "Event " << acd.event << ", channel " << acd.channel << endl;
+      cout << myname << "Event " << acd.event() << ", channel " << acd.channel() << endl;
       cout << myname << "ADC channel data size: " << acd.raw.size() << endl;
       DataMap dm = pvtm->view(acd);
       dm.print(myname);

@@ -38,7 +38,7 @@ util::SignalShapingServiceDUNE::~SignalShapingServiceDUNE()
 void util::SignalShapingServiceDUNE::reconfigure(const fhicl::ParameterSet& pset)
 {
   // Reset initialization flag.
-
+  
   fInit = false;
 
   // Reset kernels.
@@ -208,6 +208,35 @@ util::SignalShapingServiceDUNE::SignalShaping(unsigned int channel) const {
 							  
 return fColSignalShaping;
 }
+const util::SignalShaping&
+util::SignalShapingServiceDUNE::ElectronicShaping(unsigned int channel) const {
+  const string myname = "SignalShapingServiceDUNE::ElectronicShaping: ";
+  if(!fInit)
+    init();
+
+  // Figure out plane type.
+
+  art::ServiceHandle<geo::Geometry> geom;
+  //geo::SigType_t sigtype = geom->SignalType(channel);
+
+   // we need to distinguis between the U and V planes
+  geo::View_t view = geom->View(channel); 
+
+  // Return appropriate shaper.
+
+  if(view == geo::kU)
+    return fIndUElectResponseSignalShaping;
+  else if (view == geo::kV)
+    return fIndVElectResponseSignalShaping;
+  else if(view == geo::kZ)
+    return fColElectResponseSignalShaping;
+  else
+    throw cet::exception("SignalShapingServiceDUNE") << myname
+          << "can't determine view for channel " << channel << " with geometry " << geom->DetectorName() << "\n";
+							  
+  return fColElectResponseSignalShaping;
+}
+
 
 std::vector<DoubleVec> util::SignalShapingServiceDUNE::GetNoiseFactVec() const {
   return fNoiseFactVec;
@@ -373,6 +402,9 @@ void util::SignalShapingServiceDUNE::init()
     fColSignalShaping.save_response();
     fColSignalShaping.set_normflag(false);
     //fColSignalShaping.SetPeakResponseTime(0.);
+    fColElectResponseSignalShaping.AddResponseFunction(fElectResponse);
+    fColElectResponseSignalShaping.save_response();
+    fColElectResponseSignalShaping.set_normflag(false);
 
     SetElectResponse(fShapeTimeConst.at(0),fASICGainInMVPerFC.at(0));
 
@@ -381,6 +413,9 @@ void util::SignalShapingServiceDUNE::init()
     fIndUSignalShaping.save_response();
     fIndUSignalShaping.set_normflag(false);
     //fIndUSignalShaping.SetPeakResponseTime(0.);
+    fIndUElectResponseSignalShaping.AddResponseFunction(fElectResponse);
+    fIndUElectResponseSignalShaping.save_response();
+    fIndUElectResponseSignalShaping.set_normflag(false);
 
     SetElectResponse(fShapeTimeConst.at(1),fASICGainInMVPerFC.at(1));
 
@@ -389,9 +424,13 @@ void util::SignalShapingServiceDUNE::init()
     fIndVSignalShaping.save_response();
     fIndVSignalShaping.set_normflag(false);
     //fIndVSignalShaping.SetPeakResponseTime(0.);
+    fIndVElectResponseSignalShaping.AddResponseFunction(fElectResponse);
+    fIndVElectResponseSignalShaping.save_response();
+    fIndVElectResponseSignalShaping.set_normflag(false);
         
 
     SetResponseSampling(clockData);
+    SetResponseSampling(clockData, true);
 
     // Calculate filter functions.
 
@@ -674,7 +713,7 @@ void util::SignalShapingServiceDUNE::SetFilters(detinfo::DetectorClocksData cons
 //----------------------------------------------------------------------
 // Sample microboone response (the convoluted field and electronic
 // response), will probably add the filter later
-void util::SignalShapingServiceDUNE::SetResponseSampling(detinfo::DetectorClocksData const& clockData)
+void util::SignalShapingServiceDUNE::SetResponseSampling(detinfo::DetectorClocksData const& clockData, bool elect_only)
 {
   // Get services
   art::ServiceHandle<geo::Geometry> geo;
@@ -697,10 +736,18 @@ void util::SignalShapingServiceDUNE::SetResponseSampling(detinfo::DetectorClocks
   // Sampling
   for ( int iplane = 0; iplane < 3; iplane++ ) {
     const std::vector<double>* pResp;
-    switch ( iplane ) {
-    case 0: pResp = &(fIndUSignalShaping.Response_save()); break;
-    case 1: pResp = &(fIndVSignalShaping.Response_save()); break;
-    default: pResp = &(fColSignalShaping.Response_save()); break;
+    if (not elect_only) {
+      switch ( iplane ) {
+      case 0: pResp = &(fIndUSignalShaping.Response_save()); break;
+      case 1: pResp = &(fIndVSignalShaping.Response_save()); break;
+      default: pResp = &(fColSignalShaping.Response_save()); break;
+      }
+    } else {
+      switch ( iplane ) {
+      case 0: pResp = &(fIndUElectResponseSignalShaping.Response_save()); break;
+      case 1: pResp = &(fIndVElectResponseSignalShaping.Response_save()); break;
+      default: pResp = &(fColElectResponseSignalShaping.Response_save()); break;
+      }
     }
 
     std::vector<double> SamplingResp(nticks , 0. );
@@ -743,14 +790,21 @@ void util::SignalShapingServiceDUNE::SetResponseSampling(detinfo::DetectorClocks
     SamplingResp.resize( SamplingCount, 0.);    
 
   
-
-  
-    switch ( iplane ) {
-    case 0: fIndUSignalShaping.AddResponseFunction( SamplingResp, true ); break;
-    case 1: fIndVSignalShaping.AddResponseFunction( SamplingResp, true ); break;
-    default: fColSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+    if (not elect_only) {
+      switch ( iplane ) {
+      case 0: fIndUSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      case 1: fIndVSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      default: fColSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      }
+    } else {
+      switch ( iplane ) {
+      case 0: fIndUElectResponseSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      case 1: fIndVElectResponseSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      default: fColElectResponseSignalShaping.AddResponseFunction( SamplingResp, true ); break;
+      }
+      
     }
-
+    
    
 
   } // for ( int iplane = 0; iplane < fNPlanes; iplane++ )
@@ -795,6 +849,17 @@ void util::SignalShapingServiceDUNE::
 Convolute(detinfo::DetectorClocksData const& clockData,
           unsigned int channel, DoubleVector& func) const {
   return Convolute<double>(clockData, channel, func);
+}
+void util::SignalShapingServiceDUNE::
+ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
+          unsigned int channel, FloatVector& func) const {
+  return ConvoluteElectronicResponse<float>(clockData, channel, func);
+}
+
+void util::SignalShapingServiceDUNE::
+ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
+          unsigned int channel, DoubleVector& func) const {
+  return ConvoluteElectronicResponse<double>(clockData, channel, func);
 }
 
 void util::SignalShapingServiceDUNE::

@@ -12,7 +12,7 @@ using std::endl;
 using std::ostringstream;
 
 using Name = std::string;
-using ToolPtr = std::unique_ptr<AdcChannelTool>;
+using ToolPtr = std::unique_ptr<TpcDataTool>;
 
 //**********************************************************************
 
@@ -42,10 +42,10 @@ DataMap FembMappedAdcModifier::view(const AdcChannelData& acd) const {
 DataMap FembMappedAdcModifier::update(AdcChannelData& acd) const {
   const string myname = "FembMappedAdcModifier::update: ";
   DataMap res;
-  AdcChannel ifmb = acd.fembID;
+  AdcChannel ifmb = acd.fembID();
   ostringstream sstool;
   sstool << m_ToolBase;
-  if  ( ifmb == AdcChannelData::badIndex ) sstool << "Default";
+  if  ( ifmb == AdcChannelData::badIndex() ) sstool << "Default";
   else sstool << ifmb;
   Name toolName = sstool.str();
   DuneToolManager* pdtm = nullptr;
@@ -61,7 +61,7 @@ DataMap FembMappedAdcModifier::update(AdcChannelData& acd) const {
   } else {
     pdtm = DuneToolManager::instance();
   }
-  ToolPtr ptool = pdtm->getPrivate<AdcChannelTool>(toolName);
+  ToolPtr ptool = pdtm->getPrivate<TpcDataTool>(toolName);
   if ( ptool == nullptr ) {
     if ( m_LogLevel >= 2 ) {
       cout << myname << "ERROR: Unable find tool " << toolName << endl;

@@ -33,28 +33,28 @@ StandardAdcWireBuildingService(fhicl::ParameterSet const& pset, art::ActivityReg
 int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwires) const {
   const string myname = "StandardAdcWireBuildingService:build: ";
   if ( m_LogLevel >= 2 ) cout << myname << "Building recob::Wire for channel "
-                              << data.channel << "." << endl;
+                              << data.channel() << "." << endl;
   if ( data.wire != nullptr ) {
-    cout << myname << "WARNING: Wire already exists for channel " << data.channel
+    cout << myname << "WARNING: Wire already exists for channel " << data.channel()
                    << ". No action taken." << endl;
     return 1;
   }
   if ( data.digit == nullptr ) {
-    cout << myname << "WARNING: No digit is specified for channel " << data.channel
+    cout << myname << "WARNING: No digit is specified for channel " << data.channel()
                    << ". No action taken." << endl;
     return 2;
   }
-  if ( data.digit->Channel() != data.channel ) {
-    cout << myname << "WARNING: Input data channel differs from digit: " << data.channel
+  if ( data.digit->Channel() != data.channel() ) {
+    cout << myname << "WARNING: Input data channel differs from digit: " << data.channel()
          << " != " << data.digit->Channel() << ". No action taken." << endl;
     return 3;
   }
   if ( data.samples.size() == 0 ) {
-    cout << myname << "WARNING: Channel " << data.channel << " has no samples." << endl;
+    cout << myname << "WARNING: Channel " << data.channel() << " has no samples." << endl;
     return 4;
   }
   if ( m_LogLevel >= 2 ) {
-    cout << myname << "  Channel " << data.channel << " has " << data.rois.size() << " ROI"
+    cout << myname << "  Channel " << data.channel() << " has " << data.rois.size() << " ROI"
          << (data.rois.size()==1 ? "" : "s") << "." << endl;
   }
   
@@ -116,7 +116,7 @@ int StandardAdcWireBuildingService::build(AdcChannelData& data, WireVector* pwir
       pwires->push_back(wc.move());
       data.wire = &pwires->back();
       if ( m_LogLevel >= 3 )
-        cout << myname << "  Channel " << data.channel << " ROIs stored in container." << endl;
+        cout << myname << "  Channel " << data.channel() << " ROIs stored in container." << endl;
     }
   }
   if ( dataOwnsWire ) {

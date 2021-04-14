@@ -1,0 +1,5 @@
+# iceberg5f_decode_reco.fcl
+#
+# 5f has same gain and shaping as 5c.
+
+#include "iceberg5c_decode_reco.fcl"

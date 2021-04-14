@@ -133,30 +133,35 @@ int test_StringManipulator(bool copy, Index logLevel) {
   cout << myname << "Test split." << endl;
   StringVector strs;
   StringVector sepss(100, ",");
-  StringVV splits;
+  StringVV splits1;
+  StringVV splits2;
   strs.push_back("a,bb,ccc");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"a", "bb", "ccc"});
   strs.push_back(",a,bb,ccc,");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"", "a", "bb", "ccc", ""});
   strs.push_back("a,,bb,ccc");
-  splits.push_back({"a", "bb", "ccc"});
+  splits1.push_back({"a", "bb", "ccc"});
+  splits2.push_back({"a", "", "bb", "ccc"});
   for ( Index itst=0; itst<strs.size(); ++itst ) {
     string str = strs[itst];
     string seps = sepss[itst];
     StringManipulator sman(str, copy);
     sman.setLogLevel(logLevel);
     cout << myname << "  " << str << endl;
-    assert( areEqual(sman.split(seps), splits[itst]) );
+    assert( areEqual(sman.split(seps), splits1[itst]) );
+    assert( areEqual(sman.split(seps, true), splits2[itst]) );
   }
 
   cout << myname << "Test pattern split." << endl;
   strs.clear();
   StringVector spats(100, "{,}");
-  splits.clear();
+  splits1.clear();
   strs.push_back("where did {bob,sally,kim} go?");
-  splits.push_back({"where did bob go?", "where did sally go?", "where did kim go?"});
+  splits1.push_back({"where did bob go?", "where did sally go?", "where did kim go?"});
   strs.push_back("where did {bob,sal,kim} {go,stay}?");
-  splits.push_back({"where did bob go?", "where did bob stay?",
+  splits1.push_back({"where did bob go?", "where did bob stay?",
                     "where did sal go?", "where did sal stay?",
                     "where did kim go?", "where did kim stay?"});
   for ( Index itst=0; itst<strs.size(); ++itst ) {
@@ -164,9 +169,62 @@ int test_StringManipulator(bool copy, Index logLevel) {
     string spat = spats[itst];
     StringManipulator sman(str, copy);
     cout << myname << "  " << str << ", " << spat << endl;
-    assert( areEqual(sman.patternSplit(spat), splits[itst]) );
+    assert( areEqual(sman.patternSplit(spat), splits1[itst]) );
   }
 
+  cout << myname << "Check int conversion." << endl;
+  vector<std::pair<string, int>> ichks;
+  int badInt = -9999;
+  ichks.push_back({"123", 123});
+  ichks.push_back({"+123", 123});
+  ichks.push_back({"-123", -123});
+  ichks.push_back({"xx", badInt});
+  ichks.push_back({"", badInt});
+  ichks.push_back({"--123", badInt});
+  ichks.push_back({"", badInt});
+  for ( auto vv : ichks ) {
+    int iman = StringManipulator(vv.first).toInt(badInt);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
+    assert( iman == vv.second );
+  }
+ 
+  cout << myname << "Check unsigned int conversion." << endl;
+  vector<std::pair<string, unsigned int>> uchks;
+  unsigned int badUInt = 9999;
+  uchks.push_back({"123", 123});
+  uchks.push_back({"+123", 123});
+  uchks.push_back({"-123", badUInt});
+  uchks.push_back({"xx", badUInt});
+  uchks.push_back({"", badUInt});
+  uchks.push_back({"--123", badUInt});
+  uchks.push_back({"", badUInt});
+  for ( auto vv : uchks ) {
+    unsigned int iman = StringManipulator(vv.first).toUnsignedInt(badUInt);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << iman << endl;
+    assert( iman == vv.second );
+  }
+
+  cout << myname << "Check float conversion." << endl;
+  vector<std::pair<string, float>> fchks;
+  float badFloat = -999.9;
+  fchks.push_back({"1.23", 1.23});
+  fchks.push_back({"+1.23", 1.23});
+  fchks.push_back({"-1.23", -1.23});
+  fchks.push_back({"xx", badFloat});
+  fchks.push_back({"", badFloat});
+  fchks.push_back({"--1.23", badFloat});
+  fchks.push_back({"1.23e1", 12.3});
+  fchks.push_back({"1.23x", badFloat});
+  fchks.push_back({"", badFloat});
+  for ( auto vv : fchks ) {
+    StringManipulator sman(vv.first);
+    float xman = sman.toFloat(badFloat);
+    cout << myname << setw(10) << vv.first << ": " << vv.second << " ?= " << xman << endl;
+    assert( int(1000*xman) == int(1000*(vv.second)) );
+    bool foundBad = int(1000*xman) == int(1000*badFloat);
+    assert( sman.isFloat() != foundBad );
+  }
+ 
   cout << myname << "Done." << endl;
   return 0;
 }

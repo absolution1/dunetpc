@@ -445,6 +445,19 @@ cet_test(test_AdcChannelFFT
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
+cet_test(test_Adc2dConvolute SOURCES test_Adc2dConvolute.cxx
+  LIBRARIES
+    dune_ArtSupport
+    dune_DuneCommon
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
 cet_test(test_AdcDeconvoluteFFT
   SOURCES
     test_AdcDeconvoluteFFT.cxx
@@ -492,6 +505,20 @@ cet_test(test_FembMappedAdcModifier
 cet_test(test_AdcRoiSlicer
   SOURCES
     test_AdcRoiSlicer.cxx
+  LIBRARIES
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+)
+
+cet_test(test_AdcRoiToTree
+  SOURCES
+    test_AdcRoiToTree.cxx
   LIBRARIES
     dune_ArtSupport
     art_Utilities

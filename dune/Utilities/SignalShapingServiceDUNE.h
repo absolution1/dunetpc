@@ -29,7 +29,7 @@
 #ifndef SIGNALSHAPINGSERVICEDUNE_H
 #define SIGNALSHAPINGSERVICEDUNE_H
 
-#include "dune/DuneInterface/SignalShapingService.h"
+#include "dune/DuneInterface/Service/SignalShapingService.h"
 
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
@@ -71,14 +71,22 @@ public:
   int FieldResponseTOffset(detinfo::DetectorClocksData const& clockData,
                            Channel const channel) const override;
   const util::SignalShaping& SignalShaping(Channel channel) const override;
+  const util::SignalShaping& ElectronicShaping(unsigned int channel) const;
 
   // Do convolution calcution (for simulation).
   template <class T> void Convolute(detinfo::DetectorClocksData const& clockData,
+                                    Channel channel, std::vector<T>& func) const;
+  template <class T> void ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
                                     Channel channel, std::vector<T>& func) const;
   void Convolute(detinfo::DetectorClocksData const& clockData,
                  Channel channel, FloatVector& func) const override;
   void Convolute(detinfo::DetectorClocksData const& clockData,
                  Channel channel, DoubleVector& func) const override;
+  void ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
+                                   Channel channel, FloatVector& func) const;
+  void ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
+                                   Channel channel, DoubleVector& func) const;
+
 
   // Do deconvolution calcution (for reconstruction).
   template <class T> void Deconvolute(detinfo::DetectorClocksData const& clockData,
@@ -110,7 +118,7 @@ private:
 
   // Sample the response function, including a configurable
   // drift velocity of electrons
-  void SetResponseSampling(detinfo::DetectorClocksData const& clockData);
+  void SetResponseSampling(detinfo::DetectorClocksData const& clockData, bool elect_only=false);
 
   // Fcl parameters.
   int fNFieldBins;         			///< number of bins for field response
@@ -144,6 +152,10 @@ private:
   util::SignalShaping fIndUSignalShaping;
   util::SignalShaping fIndVSignalShaping;
 
+  util::SignalShaping fColElectResponseSignalShaping;
+  util::SignalShaping fIndUElectResponseSignalShaping;
+  util::SignalShaping fIndVElectResponseSignalShaping;
+
   // Field response.
   std::vector<double> fColFieldResponse;
   std::vector<double> fIndUFieldResponse;
@@ -169,6 +181,26 @@ inline void util::SignalShapingServiceDUNE::
 Convolute(detinfo::DetectorClocksData const& clockData,
           unsigned int channel, std::vector<T>& func) const {
   SignalShaping(channel).Convolute(func);
+
+  //negative number
+  int time_offset = FieldResponseTOffset(clockData, channel);
+  
+  std::vector<T> temp;
+  if (time_offset <=0){
+    temp.assign(func.begin(),func.begin()-time_offset);
+    func.erase(func.begin(),func.begin()-time_offset);
+    func.insert(func.end(),temp.begin(),temp.end());
+  }else{
+    temp.assign(func.end()-time_offset,func.end());
+    func.erase(func.end()-time_offset,func.end());
+    func.insert(func.begin(),temp.begin(),temp.end());
+  }
+}
+template <class T>
+inline void util::SignalShapingServiceDUNE::
+ConvoluteElectronicResponse(detinfo::DetectorClocksData const& clockData,
+                            unsigned int channel, std::vector<T>& func) const {
+  ElectronicShaping(channel).Convolute(func);
 
   //negative number
   int time_offset = FieldResponseTOffset(clockData, channel);

@@ -49,6 +49,18 @@ protodune_dataprep_tools_calib_mit: [
   "pdsp_timingMitigate"         # Mitigate FEMB302 timing
 ]
 
+# Charge calibration, mitigation, obsolete tail removal, no noise removal.
+protodune_dataprep_tools_calib_oldtail: [
+  "digitReader",                # Read RawDigit
+  "pdsp_sticky_codes_ped",      # Flag sticky codes
+  "pd_adcPedestalFit",          # Find pedestal
+  "adcSampleCalibration",       # Subtract pedestal and apply charge calibration
+  "pdsp_gainCorrection",        # Correct gain calibration
+  "pdsp_adcMitigate",           # Mitigate sticky codes
+  "pdsp_timingMitigate",        # Mitigate FEMB302 timing
+  "adcCorrectUndershootKe"      # correct undershoot
+]
+
 # Charge calibration, mitigation, tail removal, no noise removal.
 protodune_dataprep_tools_calib_tail: [
   "digitReader",                # Read RawDigit
@@ -58,7 +70,7 @@ protodune_dataprep_tools_calib_tail: [
   "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe"      # correct undershoot
+  "pdspTailPedRemovalZKe"       # Tail removal
 ]
 
 # Charge calibration, noise removal.
@@ -70,7 +82,7 @@ protodune_dataprep_tools_calib_noiserem: [
   "pdsp_gainCorrection",        # Correct gain calibration
   "pdsp_adcMitigate",           # Mitigate sticky codes
   "pdsp_timingMitigate",        # Mitigate FEMB302 timing
-  "adcCorrectUndershootKe",     # correct undershoot
+  "pdspTailPedRemovalZKe",      # Tail removal
   "pdsp_noiseRemovalKe"         # Remove high frequency noise and coherent noise
 ]
 
@@ -109,18 +121,18 @@ pdsim_dataprep_tools_calib: [
 # ProtoDUNE sim dataprep at ke scale with tail removal.
 pdsim_dataprep_tools_oldtail: [
   @sequence::pdsim_dataprep_tools_calib,
-  "adcCorrectUndershootKe"      # correct undershoot
+  "adcCorrectUndershootKe"      # correct undershoot with old tool
 ]
-# ProtoDUNE sim dataprep at ke scale with tail removal.
 
+# ProtoDUNE sim dataprep at ke scale with tail removal.
 pdsim_dataprep_tools_tail: [
   @sequence::pdsim_dataprep_tools_calib,
-  "adcTailRemovalKe"            # correct undershoot
+  "pdspTailPedRemovalZKe"       # correct tails
 ]
 
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 pdsim_dataprep_tools_wirecell: [
-  @sequence::pdsim_dataprep_tools_calib,
+  @sequence::pdsim_dataprep_tools_tail,
   "adcKeepAllSignalFinder",     # Keep all signal (no ROIs)
   "adcScaleKeToAdc",            # Scale samples to nominal ADC counts
   "pdsp_RemoveBadChannels"      # Set bad channels to 0 ADC
@@ -128,7 +140,8 @@ pdsim_dataprep_tools_wirecell: [
 
 # Specify here the default sequence used in reconstruction of MC data.
 #protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_vintage
-protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_calib
+#protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_calib
+protodune_dataprep_tools_sim: @local::pdsim_dataprep_tools_tail
 
 ###################################################################################
 #

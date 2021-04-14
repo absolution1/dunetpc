@@ -1,534 +1,70 @@
-#include "geometry_dune.fcl"
-#include "detectorproperties_dune.fcl"
-#include "larproperties_dune.fcl"
-#include "larfft_dune.fcl"
-#include "messageservice.fcl"
-#include "simulationservices_dune.fcl"
-#include "signalservices_dune.fcl"
-#include "magfield_larsoft.fcl"
-#include "databaseutil_dune.fcl"
-#include "backtrackerservice_dune.fcl"
-#include "particleinventoryservice_dune.fcl"
-#include "photonbacktrackerservice.fcl"
-#include "seedservice_dune.fcl"
-#include "detectorclocks_dune.fcl"
-#include "photpropservices_dune.fcl"
-#include "sam_dune.fcl"
-#include "opticaldetectorservices_dune.fcl"
-#include "channelmapping_dune.fcl"
-#include "channelstatus_dune.fcl"
-#include "channelstatus_pdsp.fcl"
-#include "pedestals_dune.fcl"
-#include "daq_dune.fcl"
-#include "detsimmodules_dune.fcl"
-#include "spacecharge_dune.fcl"
-#include "dataprep_dune.fcl"
-#include "protodune_dataprep_services.fcl"
-#include "PdspChannelMapService.fcl"
-#include "xyzcalib_dune.fcl"
-#include "lifetimecalib_dune.fcl"
-#include "PhotonCalibratorProtoDUNESP.fcl"
-#include "time_memory_tracker_dune.fcl"
+#include "services_dune.fcl"
+#include "larg4services_dune.fcl"
 
 BEGIN_PROLOG
-
-# The above *_dune.fcl include contain the parameter blocks
-# for all dune geometries. All PROLOG files for dune should
-# contain all of the parameters for each dune geometry so
-# that they are in one place and there is only one type of
-# file to include. This file is an example of that
-
-
-
-#############################
-#### Dune FD Single Phase ###
-#############################
-#
-#dunefd_services: {
-# ExptGeoHelperInterface:         @local::dune_geometry_helper
-# Geometry:                       @local::dune10kt_geo
-# DetectorClocksService:          @local::dunefd_detectorclocks
-# DetectorPropertiesService:      @local::dunefd_detproperties
-# LArPropertiesService:           @local::dunefd_properties
-# LArFFT:                         @local::dunefd_larfft
-# DatabaseUtil:                   @local::dunefd_database
-# BackTrackerService:                    @local::dunefd_backtrackerservice
-# ParticleInventoryService:      @local::standard_particleinventoryservice
-# #PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
-# SpaceCharge:                    @local::dunefd_spacecharge
-# NuRandomService:                @local::dune_seedservice
-# SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
-# ChannelStatusService:           @local::dunefd_channel_status
-# ChannelGroupService:            @local::changroup_apa_keepall
-#}
-#
-#dunefd_simulation_services: {
-# LArFFT:                       @local::dunefd_larfft
-# LArG4Parameters:              @local::dunefd_largeantparameters
-# ExptGeoHelperInterface:       @local::dune_geometry_helper
-# Geometry:                     @local::dune10kt_geo
-# DetectorClocksService:        @local::dunefd_detectorclocks
-# DetectorPropertiesService:    @local::dunefd_detproperties
-# LArPropertiesService:         @local::dunefd_properties
-# DatabaseUtil:                 @local::dunefd_database
-# LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
-# MagneticField:                @local::no_mag_larsoft
-# BackTrackerService:                  @local::dunefd_backtrackerservice
-# ParticleInventoryService:      @local::standard_particleinventoryservice
-# #PhotonBackTrackerService:            @local::dunefd_photonbacktrackerservice
-# SpaceCharge:                  @local::dunefd_spacecharge
-# NuRandomService:              @local::dune_seedservice
-# SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
-# OpDetResponseInterface:       @local::dunefd_opdetresponse
-# ChannelStatusService:         @local::dunefd_channel_status
-#}
-#
-## Reco services for 35-ton simulation.
-#dunefd_reco_services:                            @local::dunefd_services
-#dunefd_reco_services.RawDigitExtractService:     @local::rdx_std
-#dunefd_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
-#dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
-#dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
-#dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
-#
-## Settings for optical simulation in the FD. Optical simulation not on by default
-## for FD, turned on by custom physics list and defining a photon visibility
-## services is workspace g4 fhicl file.
-#
-#dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
-#dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.05
-#dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-#
-#
-#
-#
-#
-#####################################
-#### DUNE far detector dual phase ###
-#####################################
-#
-#dunefddphase_services: {
-# DatabaseUtil:                   @local::dunefd_database
-# ExptGeoHelperInterface:         @local::dune_geometry_helper
-# ChannelStatusService:           @local::dunefd_channel_status
-# LArFFT:                         @local::dunefd_larfft
-# NuRandomService:                @local::dune_seedservice
-# Geometry:                       @local::dunedphase10kt_geo
-# DetectorClocksService:          @local::dunefddphase_detectorclocks
-# DetectorPropertiesService:      @local::dunefddphase_detproperties
-# LArPropertiesService:           @local::dunefddphase_properties
-# SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
-# SimChannelExtractService:       @local::scxdp
-# SpaceCharge:                    @local::dunefddphase_spacecharge
-#}
-#
-#dunefddphase_simulation_services: {
-# BackTrackerService:                    @local::dunefd_backtrackerservice
-# ParticleInventoryService:      @local::standard_particleinventoryservice
-# LArFFT:                         @local::dunefd_larfft
-# LArG4Parameters:                @local::dunefd_largeantparameters
-# ExptGeoHelperInterface:         @local::dune_geometry_helper
-# LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
-# MagneticField:                  @local::no_mag_larsoft
-# NuRandomService:                @local::dune_seedservice
-# DatabaseUtil:                   @local::dunefd_database
-# OpDetResponseInterface:         @local::standard_opdetresponse
-# #PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
-# ChannelStatusService:           @local::dunefd_channel_status
-# Geometry:                       @local::dunedphase10kt_geo
-# DetectorClocksService:          @local::dunefddphase_detectorclocks
-# DetectorPropertiesService:      @local::dunefddphase_detproperties
-# LArPropertiesService:           @local::dunefddphase_properties
-# SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
-# SimChannelExtractService:       @local::scxdp
-# SpaceCharge:                    @local::dunefddphase_spacecharge
-# DetPedestalService:		 @local::dunedp_fixedpeds
-#}
-#
-#dunefddphase_reco_services:                            @local::dunefddphase_services
-#dunefddphase_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
-#dunefddphase_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
-#dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
-#dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
-#dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
-#dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
-#dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
-#dunefddphase_reco_services.PedestalEvaluationService:  @local::adcped_median
-#dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
-#
-## Settings for optical simulation in the FD. Optical simulation not on by default
-## for FD, turned on by custom physics list and defining a photon visibility
-## services is workspace g4 fhicl file.
-#
-#dunefddphase_simulation_services.LArPropertiesService.ScintYield: 24000
-#dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 1
-#dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
-#dunefddphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.12 # including TPB from arxiv 1807.07123
-#
-#
-#
-#########################
-#### 3x1x1 dual phase ###
-#########################
-#dunedphase3x1x1_services: {
-# DatabaseUtil:                   @local::dunefd_database
-# ExptGeoHelperInterface:         @local::dune_geometry_helper
-# ChannelStatusService:           @local::dunedphase3x1x1_channel_status
-# LArFFT:                         @local::dunefd_larfft
-# NuRandomService:                @local::dune_seedservice
-# Geometry:                       @local::dphase3x1x1_geo
-# DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
-# DetectorPropertiesService:      @local::dphase3x1x1_detproperties
-# LArPropertiesService:           @local::dunefddphase_properties
-# SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
-# SimChannelExtractService:       @local::scxdp
-# SpaceCharge:                    @local::dunefddphase_spacecharge
-#}
-#
-#dunedphase3x1x1_simulation_services: {
-# BackTrackerService:                    @local::dunefd_backtrackerservice
-# ParticleInventoryService:      @local::standard_particleinventoryservice
-# LArFFT:                         @local::dunefd_larfft
-# LArG4Parameters:                @local::protodune_largeantparameters
-# ExptGeoHelperInterface:         @local::dune_geometry_helper
-# LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
-# MagneticField:                  @local::no_mag_larsoft
-# NuRandomService:                @local::dune_seedservice
-# DatabaseUtil:                   @local::dunefd_database
-# OpDetResponseInterface:         @local::standard_opdetresponse
-# #PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
-# ChannelStatusService:           @local::dunedphase3x1x1_channel_status
-# Geometry:                       @local::dphase3x1x1_geo
-# DetectorClocksService:          @local::dunedphase3x1x1_detectorclocks
-# DetectorPropertiesService:      @local::dphase3x1x1_detproperties
-# LArPropertiesService:           @local::dunefddphase_properties
-# SignalShapingServiceDUNEDPhase: @local::dunedphase3x1x1_signalshapingservice
-# SimChannelExtractService:       @local::scxdp
-# SpaceCharge:                    @local::dphase3x1x1_spacecharge
-# PhotonVisibilityService: 	 @local::dunedphase3x1x1_photonvisibilityservice
-# PhotonVisibilityServiceS2: 	 @local::dunedphase3x1x1_photonvisibilityserviceS2
-# DetPedestalService:		 @local::dunedp_fixedpeds
-# OpDigiProperties: 		 @local::dunedphase3x1x1_opdigiproperties
-#}
-#
-#dunedphase3x1x1_reco_services:                            @local::dunedphase3x1x1_services
-#dunedphase3x1x1_reco_services.BackTrackerService:                @local::dunefd_backtrackerservice
-#dunedphase3x1x1_reco_services.ParticleInventoryService:      @local::standard_particleinventoryservice
-#dunedphase3x1x1_reco_services.RawDigitExtractService:     @local::rdx_std
-#dunedphase3x1x1_reco_services.RawDigitPrepService:        @local::adcprep_dunedphase3x1x1
-#dunedphase3x1x1_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
-#dunedphase3x1x1_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
-#dunedphase3x1x1_reco_services.AdcWireBuildingService:     @local::adcwire_std
-#dunedphase3x1x1_reco_services.PedestalEvaluationService:  @local::adcped_median
-#dunedphase3x1x1_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
-#
-## Settings for optical simulation in the FD. Optical simulation not on by default
-## for FD, turned on by custom physics list and defining a photon visibility
-## services is workspace g4 fhicl file.
-#
-#dunedphase3x1x1_simulation_services.LArG4Parameters.UseCustomPhysics: true
-#dunedphase3x1x1_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
-#                                           "FastOptical",
-#                                           "SynchrotronAndGN",
-#                                           "Ion",
-#                                           "Hadron",
-#                                           "Decay",
-#                                           "HadronElastic",
-#                                           "Stopping",
-#                                           "NeutronTrackingCut" ]
-#dunedphase3x1x1_simulation_services.LArPropertiesService.ScintYield: 		24000
-#dunedphase3x1x1_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
-#dunedphase3x1x1_simulation_services.LArPropertiesService.ScintPreScale: 	1
-#dunedphase3x1x1_simulation_services.OpDetResponseInterface.QuantumEfficiency: 	1.0
-
 
 
 ##############################
 ### ProtoDUNE Single Phase ###
 ##############################
 
-protodune_services: {
- ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::protodune_detectorclocks
- DetectorPropertiesService:    @local::protodune_detproperties
- LArPropertiesService:         @local::dunefd_properties
- LArFFT:                       @local::dunefd_larfft
- DatabaseUtil:                 @local::dunefd_database
- BackTrackerService:           @local::dunefd_backtrackerservice
- ParticleInventoryService:     @local::standard_particleinventoryservice
-# PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
- SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
- ChannelStatusService:         @local::dunefd_channel_status
- ChannelGroupService:          @local::changroup_apa_keepall
+
+protodune_refactored_simulation_services: 
+{
+  @table::protodune_simulation_services
+  ParticleInventoryService:     @local::standard_particleinventoryservice
+  PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice_refactor
+}
+
+protodune_larg4_services: 
+{
+  @table::common_larg4_services
+
+  ParticleListAction: @local::dune_particle_list_action
+  PhysicsList:        @local::dune_physics_list_fastoptical
+  LArG4Detector:      @local::protodune_larg4detector
 }
 
 
+############################
+### DUNE FD Single Phase ###
+############################
 
-protodune_rawdecoding_services: {
-  ExptGeoHelperInterface:       @local::dune_geometry_helper
-  Geometry:                     @local::protodune_geo
-  DetectorClocksService:        @local::protodune_detectorclocks
-  DetectorPropertiesService:    @local::protodune_detproperties
-  LArPropertiesService:         @local::dunefd_properties
-  LArFFT:                       @local::dunefd_larfft  
-  DatabaseUtil:                 @local::dunefd_database
-  ChannelStatusService:         @local::dunefd_channel_status
-#  ChannelGroupService:          @local::changroup_apa
-  PdspChannelMapService:        @local::pdspchannelmap
+dunefd_refactored_simulation_services: @local::dunefd_simulation_services
+dunefd_refactored_simulation_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+
+dunefd_refactored_services: @local::dunefd_services
+dunefd_refactored_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+
+dunefd_refactored_reco_services: @local::dunefd_reco_services
+dunefd_refactored_reco_services.PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+
+dunefd_larg4_services: 
+{
+  @table::common_larg4_services
+
+  ParticleListAction: @local::dune_particle_list_action
+  PhysicsList:        @local::dune_physics_list_fastoptical
+  #LArG4Detector:      No refactored full FD geom, required for this to run
 }
 
-protodune_data_services: {
- ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::protodune_detectorclocks
- DetectorPropertiesService:    @local::protodune_detproperties
- LArPropertiesService:         @local::dunefd_properties
- LArFFT:                       @local::dunefd_larfft
- DatabaseUtil:                 @local::dunefd_database
- SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
- ChannelStatusService:         @local::pdsp_channel_status
- ChannelGroupService:          @local::changroup_apa_keepall
-# Reco services for ProtoDUNE real data.
- RawDigitExtractService:       @local::rdx_std
- RawDigitPrepService:          @local::adcprep_with_services_sim
- AdcDeconvolutionService:      @local::adcdco_dunefd
- AdcRoiBuildingService:        @local::adcroi_dunefd
- AdcWireBuildingService:       @local::adcwire_std
+dune10kt_1x2x6_larg4_services: 
+{
+  @table::common_larg4_services
+
+  ParticleListAction: @local::dune_particle_list_action
+  PhysicsList:        @local::dune_physics_list_fastoptical
+  LArG4Detector:      @local::dune10kt_1x2x6_v4_larg4detector
 }
 
-protodune_simulation_services: {
- LArFFT:                       @local::dunefd_larfft
- LArG4Parameters:              @local::protodune_largeantparameters
- ExptGeoHelperInterface:       @local::dune_geometry_helper
- Geometry:                     @local::protodune_geo
- DetectorClocksService:        @local::protodune_detectorclocks
- DetectorPropertiesService:    @local::protodune_detproperties
- LArPropertiesService:         @local::dunefd_properties
- DatabaseUtil:                 @local::dunefd_database
- LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
- MagneticField:                @local::no_mag_larsoft
- SpaceCharge:                  @local::protodune_spacecharge
- NuRandomService:              @local::dune_seedservice
- SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice
- PhotonVisibilityService:      @local::protodune_photonvisibilityservice
- OpDetResponseInterface:       @local::protodune_opdetresponse
- ChannelStatusService:         @local::dunefd_channel_status
- ParticleInventoryService:     @local::standard_particleinventoryservice
+dunevd10kt_1x6x6_larg4_services: 
+{
+  @table::common_larg4_services
+
+  ParticleListAction: @local::dune_particle_list_action
+  PhysicsList:        @local::dune_physics_list_fastoptical
+  LArG4Detector:      @local::dunevd10kt_1x6x6_larg4detector
 }
 
-
-# Settings for optical simulation in the FD. Optical simulation not on by default
-# for FD, turned on by custom physics list and defining a photon visibility
-# services is workspace g4 fhicl file.
-
-protodune_simulation_services.LArPropertiesService.ScintYield: 		24000
-protodune_simulation_services.LArPropertiesService.ScintPreScale: 	0.0287
-protodune_simulation_services.LArPropertiesService.EnableCerenkovLight: 	false
-protodune_simulation_services.LArG4Parameters.UseCustomPhysics: true
-protodune_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
-                                                                "FastOptical",
-                                                                "SynchrotronAndGN",
-                                                                "Ion",
-                                                                "Hadron",
-                                                                "Decay",
-                                                                "HadronElastic",
-                                                                "Stopping"]
-
-# Service for TPC simulation (stage 1 of detsim)
-# Skim the unused service and save memory
-protodune_minimal_simulation_services:          @local::protodune_simulation_services
-protodune_minimal_simulation_services.SignalShapingServiceDUNE:                @erase
-protodune_minimal_simulation_services.PhotonVisibilityService:                 @erase
-protodune_minimal_simulation_services.OpDetResponseInterface:                  @erase
-protodune_minimal_simulation_services.ParticleInventoryService:                @erase
-
-# Reco services for ProtoDUNE simulation.
-protodune_reco_services:                            @local::protodune_services
-protodune_reco_services.RawDigitExtractService:     @local::rdx_std
-protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
-protodune_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
-protodune_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
-protodune_reco_services.AdcWireBuildingService:     @local::adcwire_std
-# Switch to tool-based dataprep for ProtoDUNE simulation.
-# Comment out the the following lines to go back to the service-based dataprep.
-# Process simulation using tool-based dataprep.
-protodune_reco_services.RawDigitPrepService:        @local::adcprep_with_tools_sim
-protodune_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_sim
-# xyz calibration service
-protodune_reco_services.XYZCalibService:            @local::protodune_xyzcalib
-# lifetime calibration service
-protodune_reco_services.LifetimeCalibService:       @local::protodune_lifetimecalib
-# channel map service
-protodune_reco_services.PdspChannelMapService:      @local::pdspchannelmap
-# channel status service
-protodune_reco_services.ChannelStatusService:       @local::pdsp_channel_status
-
-# Reco services for ProtoDUNE data
-protodune_data_reco_services:                       @local::protodune_reco_services
-# Get rid of low frequency noise
-protodune_data_reco_services.SignalShapingServiceDUNE.IndUFilter: "(x>0.01)*gaus"
-protodune_data_reco_services.SignalShapingServiceDUNE.IndVFilter: "(x>0.01)*gaus"
-# Use channel service for data
-protodune_data_reco_services.ChannelStatusService: @local::pdsp_channel_status
-
-# Add the photon detector calibrator service
-#protodune_data_reco_services.IPhotonCalibrator:    @local::protodunesp_photoncalibrator
-# ProtoDUNE detector properties service
-protodune_data_reco_services.DetectorPropertiesService: @local::protodunesp_detproperties
-# Add the dataprep service.
-protodune_data_reco_services.RawDigitPrepService.AdcChannelToolNames: @local::protodune_dataprep_tools_wirecell
-
-##################################################
-### Make Parallel Services for the v7 geometry ###
-##################################################
-
-protodunev7_services:  @local::protodune_services
-protodunev7_services.Geometry: @local::protodunev7_geo
-
-protodunev7_rawdecoding_services:  @local::protodune_rawdecoding_services
-protodunev7_rawdecoding_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_services:  @local::protodune_data_services
-protodunev7_data_services.Geometry: @local::protodunev7_geo
-
-protodunev7_reco_services:  @local::protodune_reco_services
-protodunev7_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_data_reco_services:  @local::protodune_data_reco_services
-protodunev7_data_reco_services.Geometry: @local::protodunev7_geo
-
-protodunev7_simulation_services:  @local::protodune_simulation_services
-protodunev7_simulation_services.Geometry: @local::protodunev7_geo
-protodunev7_simulation_services.PhotonVisibilityService: @local::protodunev7_photonvisibilityservice
-
-
-########################
-### Message Services ###
-########################
-
-dune_message_services: {
-  debugModules: ["*"]
-  destinations: {
-    LogDebugFile: {
-      type:       "file"
-      filename:   "debug.log"
-      append:     false
-      threshold:  "DEBUG"
-      categories:{
-        default:{ limit: 0 }
-      }
-    }
-    LogStandardOut: {
-      type:       "cout"
-      threshold:  "WARNING"
-      categories:{
-        default:{ }
-        RecoBaseDefaultCtor: { limit: 0 }
-        AnaBaseDefaultCtor:  { limit: 0 }
-        GeometryBadInputPoint: { limit: 5 timespan: 1000}
-      }
-    }
-    LogStandardError: {
-      type:       "cerr"
-      threshold:  "ERROR"
-      categories:{
-        default:{ }
-      }
-    }
-  }
-}
-
-dune_message_services_prod_debug: {
-  debugModules: ["*"]
-  destinations: {
-    LogDebugFile:      @local::dune_message_services.destinations.LogDebugFile
-    LogStandardOut:    @local::dune_message_services.destinations.LogStandardOut
-    LogStandardError:  @local::dune_message_services.destinations.LogStandardError
-  }
-}
-
-dune_message_services_prod_debug.destinations.LogDebugFile.categories:{
-  default: { }
-  RecoBaseDefaultCtor: { limit: 0 }
-  AnaBaseDefaultCtor:  { limit: 0 }
-  Track3DKalmanSPS_GenFit: { limit: 0 }
-  GeometryBadInputPoint: { limit: 5 timespan: 1000}
-  SpacePointAlg: { limit: 0 }
-  KalmanFilterAlg: { limit: 0 }
-  Track3DKalmanHit: { limit: 0 }
-  fuzzyCluster: { limit: 0}
-  ChannelFilter: { limit: 0}
-  HoughBaseAlg: { limit: 0}
-  DBscan: {limit: 0}
-  CosmicTracker: {limit: 0}
-  HitCheater: {limit: 0}
-  DisambigAlg35t: {limit: 0}
-  ClusterCheater: {limit: 0}
-  ClusterCrawlerAlg: {limit: 0}
-  CaloPrtTrk: {limit: 0}
-  CaloPrtHit: {limit: 0}
-  BackTrackerService: {limit: 0}
-  DisambigCheat: {limit: 0}
-  Summary: {limit: 0}
-  CosmicTracker: {limit: 0}
-  ClusterMergeTQ: {limit: 0}
-  LArPandora: {limit: 0} 
-}
-
-
-dune_message_services_prod: {
-  debugModules: ["*"]
-  destinations: {
-    LogDebugFile: {
-      type:       "file"
-      filename:   "debugprod.log"
-      append:     false
-      threshold:  "DEBUG"
-      categories:{
-        default:{ limit: 0 }
-      }
-    }
-    LogStandardOut: {
-      type:       "cout"
-      threshold:  "INFO"
-      categories:{
-        ArtReport: {limit: -1}
-        default:{limit: 0}
-      }
-    }
-    LogStandardError: {
-      type:       "cerr"
-      threshold:  "ERROR"
-      categories:{
-        default:{}
-      }
-    }
-  }
-}
-
-dune_message_services_interactive: {
-  debugModules: ["*"]
-  destinations: {
-    LogDebugFile:      @local::dune_message_services.destinations.LogDebugFile
-    LogStandardOut:    @local::dune_message_services.destinations.LogStandardOut
-    LogStandardError:  @local::dune_message_services.destinations.LogStandardError
-  }
-}
-dune_message_services_interactive.destinations.LogStandardOut.threshold:  "INFO"
-dune_message_services_interactive.destinations.LogStandardOut.categories:{
-  default: { limit: 0 }
-}
-dune_message_services_interactive.destinations.LogStandardError.threshold:  "WARNING"
-dune_message_services_interactive.destinations.LogStandardError.categories: {
-  default: { }
-  RecoBaseDefaultCtor: { limit: 1 }
-  AnaBaseDefaultCtor:  { limit: 1 }
-  GeometryBadInputPoint: { limit: 5 timespan: 1000}
-}
 
 END_PROLOG

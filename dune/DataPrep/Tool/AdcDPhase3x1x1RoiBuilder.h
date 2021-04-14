@@ -13,10 +13,10 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
-#include "dune/DuneInterface/AdcTypes.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
 
-class AdcDPhase3x1x1RoiBuilder : AdcChannelTool {
+class AdcDPhase3x1x1RoiBuilder : TpcDataTool {
 
 public:
 

@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "lardataobj/RawData/RawDigit.h"
 
@@ -91,7 +91,7 @@ int test_AcdDigitReader(bool useExistingFcl =false) {
   const AdcCountVector& raw = acd.raw;
   const AdcSignalVector& sigs = acd.samples;
   const AdcFlagVector& flags = acd.flags;
-  AdcChannel chanout = acd.channel;
+  AdcChannel chanout = acd.channel();
   AdcSignal pedout = acd.pedestal;
   cout << myname << "Output raw vector size: " << sigs.size() << endl;
   cout << myname << "Output prep vector size: " << sigs.size() << endl;

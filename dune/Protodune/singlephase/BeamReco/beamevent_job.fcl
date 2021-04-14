@@ -14,6 +14,7 @@ services:
   #FileCatalogMetadata:  @local::art_file_catalog_mc
   #                      @table::protodune_services
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::dunefd_detectorclocks
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -42,7 +43,7 @@ outputs:
  out1:
   {
     module_type: RootOutput
-    fileName:    "beam_event.root" #default file name, can override from command line with -o or --output
+    fileName:    "%ifb_beam.root"  #default file name, can override from command line with -o or --output
     dataTier:    "reconstructed"
     
   }
@@ -57,7 +58,8 @@ physics:
   beamevent:          @local::proto_beamevent
  }
 
- produce:  [ timingrawdecoder, ctbrawdecoder, beamevent ]
+ #produce:  [ timingrawdecoder, ctbrawdecoder, beamevent ]
+ produce:  [ beamevent ]
  stream1: [ out1 ]
 
  trigger_paths:     [ produce ]
@@ -65,3 +67,5 @@ physics:
 }
 physics.producers.beamevent.SaveOutTree: "true"
 physics.producers.beamevent.PrintDebug: "true"
+#physics.producers.beamevent.URLStr: "https://ifb-data.fnal.gov:8104/ifbeam"
+

@@ -7,8 +7,12 @@
 
 add_subdirectory(test)
 
+art_make(BASENAME_ONLY
+         NO_PLUGINS
+        )
+
 # Needed to build dictionaries
-art_make()
+#art_make()
 
 install_headers()
 install_source( README.txt )

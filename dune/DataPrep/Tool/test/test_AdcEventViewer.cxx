@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 
@@ -65,7 +65,7 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto ptoo = tm.getPrivate<AdcChannelTool>("mytool");
+  auto ptoo = tm.getPrivate<TpcDataTool>("mytool");
   assert( ptoo != nullptr );
 
   cout << myname << line << endl;
@@ -76,9 +76,8 @@ int test_AdcEventViewer(bool useExistingFcl =false) {
   Index npul = 100;
   for ( Index icha=250; icha<270; ++icha ) {
     AdcChannelData& acd = acds[icha];
-    acd.run = 111;
-    acd.event = 123;
-    acd.channel = icha;
+    acd.setEventInfo(111, 123);
+    acd.setChannelInfo(icha);
     acd.samples.resize(npul*pulse.size());
     acd.sampleUnit = "ADC count";
     double sigma = 5.0;

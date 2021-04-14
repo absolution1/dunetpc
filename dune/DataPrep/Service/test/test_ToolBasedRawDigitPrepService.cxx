@@ -15,9 +15,9 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "dune/ArtSupport/ArtServiceHelper.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneInterface/AdcTypes.h"
-#include "dune/DuneInterface/RawDigitPrepService.h"
-#include "dune/DuneInterface/WiredAdcChannelDataMap.h"
+#include "dune/DuneInterface/Data/AdcTypes.h"
+#include "dune/DuneInterface/Service/RawDigitPrepService.h"
+#include "dune/DuneInterface/Data/WiredAdcChannelDataMap.h"
 
 #undef NDEBUG
 #include <cassert>
@@ -84,7 +84,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "  service_provider: ToolBasedRawDigitPrepService" << endl;
     fout << "  LogLevel: 3" << endl;
     fout << "  DoWires: true" << endl;
-    fout << "  AdcChannelToolNames: [" << endl;
+    fout << "  ToolNames: [" << endl;
     fout << "    \"digitReader\"," << endl;
     // fout << "    \"adcChannelDumper\"," << endl;
     fout << "    \"rawAdcPlotter\"," << endl;
@@ -93,6 +93,7 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     fout << "    \"adcThresholdSignalFinder\"" << endl;
     // fout << ",    \"adcRoiViewer\"" << endl;
     fout << "  ]" << endl;
+    fout << "  CallgrindToolNames: []" << endl;
     fout << "}" << endl;
     fout.close();
   }
@@ -193,12 +194,10 @@ int test_ToolBasedRawDigitPrepService(bool useExistingFcl =false) {
     const RawDigit& dig = digs[idig];
     assert( prepdigs.find(dig.Channel()) == prepdigs.end() );
     AdcChannelData& data = prepdigs[dig.Channel()];
-    data.channel = dig.Channel();
+    data.setChannelInfo(dig.Channel());
     data.digitIndex = idig;
     data.digit = &dig;
-    data.event = 1;
-    data.run = 123;
-    data.subRun = 0;
+    data.setEventInfo(123, 1);
   }
   std::vector<recob::Wire> wires;
   wires.reserve(nchan);

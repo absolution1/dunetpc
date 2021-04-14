@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <TRandom.h>
 
@@ -91,11 +91,11 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto padv = tm.getPrivate<AdcChannelTool>("mytool");
+  auto padv = tm.getPrivate<TpcDataTool>("mytool");
   assert( padv != nullptr );
-  auto padv2 = tm.getPrivate<AdcChannelTool>("mytool2");
+  auto padv2 = tm.getPrivate<TpcDataTool>("mytool2");
   assert( padv2 != nullptr );
-  auto padv3 = tm.getPrivate<AdcChannelTool>("mytool3");
+  auto padv3 = tm.getPrivate<TpcDataTool>("mytool3");
   assert( padv3 != nullptr );
 
   cout << myname << line << endl;
@@ -117,10 +117,9 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
       assert(kdat.second);
       AdcChannelDataMap::iterator idat = kdat.first;
       AdcChannelData& data = idat->second;
-      data.run = 123;
-      data.event = ievt;
+      data.setEventInfo(123, ievt);
       float ped = peds[icha-icha1];
-      data.channel = icha;
+      data.setChannelInfo(icha);
       data.pedestal = ped;
       for ( AdcIndex itic=0; itic<100; ++itic ) {
         float xadc = ped + gRandom->Gaus(0.0, 10.0);
@@ -145,7 +144,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     // Add and plot view rois.
     for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
       AdcChannelData& dain = datamap[icha];
-      assert( dain.channel == icha );
+      assert( dain.channel() == icha );
       AdcIndex nsam = dain.samples.size();
       AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
       AdcChannelData::View& vroi = dain.updateView("rois");
@@ -162,7 +161,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     // Add and plot view rnis.
     for ( AdcIndex icha=icha1; icha<icha2; ++icha ) {
       AdcChannelData& dain = datamap[icha];
-      assert( dain.channel == icha );
+      assert( dain.channel() == icha );
       AdcIndex nsam = dain.samples.size();
       AdcIndex tp = 10*ievt + 60 - 2.3*(icha-icha1);
       AdcChannelData::View& vrni = dain.updateView("rnis");

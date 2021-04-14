@@ -40,6 +40,9 @@ public:
   StringManipulator(std::string& strin, bool copy)
   : m_str(copy ? m_strCopy : strin), m_strCopy(strin) { }
 
+  // Ctor from a const string.
+  explicit StringManipulator(const std::string& sin) : m_str(m_strCopy), m_strCopy(sin) { }
+
   // Ctor from a C-string.
   explicit StringManipulator(const char* chin) : m_str(m_strCopy), m_strCopy(chin) { }
 
@@ -48,7 +51,13 @@ public:
   Index logLevel() const { return m_LogLevel; }
 
   // Return the manipulated string.
-  const std::string& str() { return m_str; }
+  const std::string& str() const { return m_str; }
+
+  // Return the manipulated C string.
+  const char* c_str() const { return m_str.c_str(); }
+
+  // Return the size of the string.
+  std::string::size_type size() const { return str().size(); }
 
   // Replace all occurences of a substring with a value.
   // Returns the number of replacements (<0 for error).
@@ -62,9 +71,11 @@ public:
   int replaceFixedWidth(std::string substr, const T& xsub, Index width);
 
   // Split a string into substrings bounded by the ends and by any of the
-  // characters in seps.
-  // E.g. for seps = "/,", "who,am//I?" --> {"who", "am", "I?"}
-  const std::vector<std::string>& split(std::string seps);
+  // Iff fullSplit is true, empty strings are included.
+  // E.g. for seps = "/,", "who,am//I?/" -->
+  //   {"who", "am", "I?"}         for fullSplit = false and
+  //   {"who", "am", "", "I?", ""} for fullSplit = true
+  const std::vector<std::string>& split(std::string seps, bool fullSplit =false);
 
   // Return the strings obtained by iterating over parts in each split region.
   // e.g. "R. {A,M}. Nixon" --> "R. A. Nixon", "R. M. Nixon".
@@ -76,6 +87,30 @@ public:
 
   // Return the strings from the last split.
   const StringVector& splits() const { return m_splits; }
+
+  // Conversions to aritmentic types.
+  // These fail if the string is empty or has extra characters following.
+
+  // Return if string only contains digits (ddd..., where d = 0, 1, ..., 9).
+  bool isDigits() const;
+
+  // Return if the string is an unsigned int (ddd... or +ddd...).
+  bool isUnsignedInt() const;
+
+  // Return if the string is a signed int (ddd..., +ddd... or -ddd...).
+  bool isInt() const;
+
+  // Return if the string is a float.
+  bool isFloat() const;
+
+  // Convert string to int. Return valbad if not int.
+  int toInt(int valbad =0) const;
+
+  // Convert string to unsigned int. Return valbad if not unsigned int.
+  unsigned int toUnsignedInt(unsigned int valbad =0) const;
+
+  // Convert string to float. Return valbad if not int.
+  float toFloat(float valbad =0) const;
 
 private:
 

@@ -9,8 +9,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
+#include "dune/Protodune/singlephase/Utility/ProtoduneChannelHelper.h"
 #include "TH1F.h"
 
 #undef NDEBUG
@@ -21,13 +23,14 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::istringstream;
+using std::setw;
 using fhicl::ParameterSet;
 using Index = IndexMapTool::Index;
 using IndexVector = std::vector<Index>;
 
 //**********************************************************************
 
-int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
+int test_ProtoduneOnlineChannel(bool useExistingFcl =false, Index nshow =64) {
   const string myname = "test_ProtoduneOnlineChannel: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -86,11 +89,25 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
   const Index ncha = 15360;
   IndexVector onlineCounts(ncha);
   IndexVector offlineChannel(ncha, badIndex);
-  Index nshow = 64;
+  ProtoduneChannelHelper chh(false);
   for ( Index ichaOff=0; ichaOff<ncha; ++ichaOff ) {
     Index ichaOn = cma->get(ichaOff);
-    if ( nshow*(ichaOff/nshow) == ichaOff || ichaOn >= ncha )
-      cout <<  myname << "  "  << ichaOff << " --> " << ichaOn << endl;
+    Index irem = ichaOn;
+    Index itps = irem/2560;
+    irem = irem%2560;
+    Index ifmb = irem/128 + 1;
+    irem = irem%128;
+    Index iasc = irem/16 + 1;
+    Index iach = irem%16;
+    if ( nshow*(ichaOff/nshow) == ichaOff || ichaOn >= ncha ) {
+      cout <<  myname << " " << setw(4) << ichaOff << " --> " << setw(4) << ichaOn
+           << " (" << itps << ", " << setw(2) << ifmb << ", "
+           << iasc << ", " << setw(2) << iach << ")" << endl;
+    }
+    assert( itps == chh.tpcSet(ichaOn) );
+    assert( ifmb == chh.femb(ichaOn) );
+    assert( iasc == chh.asic(ichaOn) );
+    assert( iach == chh.asicChannel(ichaOn) );
     assert( ichaOn < ncha );
     if ( offlineChannel[ichaOn] != badIndex ) {
       cout << myname << "ERROR: Online channel " << ichaOn
@@ -117,17 +134,22 @@ int test_ProtoduneOnlineChannel(bool useExistingFcl =false) {
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
+  Index nshow = 64;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [keepFCL] [RUN]" << endl;
-      cout << "  If keepFCL = true, existing FCL file is used." << endl;
-      cout << "  If RUN is nonzero, the data for that run are displayed." << endl;
+      cout << "Usage: " << argv[0] << " [keepFCL] [NSHOW]" << endl;
+      cout << "  keepFCL [false]: If true, existing FCL file is used." << endl;
+      cout << "  NSHOW [64]: Every nshow'th channels will be displayed in log." << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
-  return test_ProtoduneOnlineChannel(useExistingFcl);
+  if ( argc > 2 ) {
+    string sarg(argv[2]);
+    nshow = std::stoi(sarg);
+  }
+  return test_ProtoduneOnlineChannel(useExistingFcl, nshow);
 }
 
 //**********************************************************************

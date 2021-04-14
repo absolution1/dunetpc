@@ -23,6 +23,7 @@ services:
   FileCatalogMetadata:  @local::art_file_catalog_mc
                         @table::protodune_reco_services
   ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
   Geometry:                     @local::protodune_geo
   DetectorClocksService:        @local::dunefd_detectorclocks # will change to protodune
   DetectorPropertiesService:    @local::protodune_detproperties
@@ -35,13 +36,14 @@ services:
     service_provider: ToolBasedRawDigitPrepService
     LogLevel: 3
     DoWires: true
-    AdcChannelToolNames: [
+    ToolNames: [
       "digitReader",
       "pd_adcPedestalFit",
       "adcSampleFiller",
       "adcVintageDeconvoluter",
       "adcDuneSignalFinder"
     ]
+    CallgrindToolNames: []
   }
 
 }

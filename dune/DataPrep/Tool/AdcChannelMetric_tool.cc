@@ -81,6 +81,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PlotFileName(ps.get<Name>("PlotFileName")),
   m_PlotUsesStatus(ps.get<int>("PlotUsesStatus")),
   m_RootFileName(ps.get<Name>("RootFileName")),
+  m_MetadataFlags(ps.get<NameVector>("MetadataFlags")),
+  m_mdRead(false), m_mdWrite(false), m_mdWarnAbsent(false), m_mdWarnPresent(false),
   m_doSummary(false),
   m_doSummaryError(false),
   m_pPedestalReference(nullptr),
@@ -89,6 +91,16 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   const string myname = "AdcChannelMetric::ctor: ";
   string stringBuilder = "adcStringBuilder";
   DuneToolManager* ptm = DuneToolManager::instance();
+  // Process metadata flags.
+  for ( string mflag : m_MetadataFlags ) {
+    if ( mflag == "read" ) m_mdRead = true;
+    else if ( mflag == "write" ) m_mdWrite = true;
+    else if ( mflag == "warnabsent" ) m_mdWarnAbsent = true;
+    else if ( mflag == "warnpresent" ) m_mdWarnPresent = true;
+    else {
+      cout << myname << "WARNING: Ignoring invalid metadata flag: " << mflag << endl;
+    }
+  }
   // Fetch the channel ranges.
   bool toolNotFound = false;
   const IndexRangeTool* pcrt = nullptr;
@@ -223,6 +235,14 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
     cout << myname << "        PlotFileName: " << m_PlotFileName << endl;
     cout << myname << "      PlotUsesStatus: " << m_PlotUsesStatus << endl;
     cout << myname << "        RootFileName: " << m_RootFileName << endl;
+    cout << myname << "       MetadataFlags: [";
+    first = true;
+    for ( string mflag : m_MetadataFlags ) {
+      if ( ! first ) cout << ", ";
+      first = false;
+      cout << mflag;
+    }
+    cout << "]" << endl;
   }
   // We might have to move this to getMetric.
   initialize();
@@ -280,10 +300,10 @@ AdcChannelMetric::~AdcChannelMetric() {
       }
       AdcChannelData acd;
       if ( getState().runCount == 1 ) {
-        acd.run = getState().firstRun;
-        if ( getState().eventCount == 1 ) {
-          acd.event = getState().firstEvent;
-        }
+        acd.setEventInfo(
+          getState().firstRun,
+          getState().eventCount==1 ? getState().firstEvent : AdcChannelData::badIndex()
+        );
       }
       Name ofpname = nameReplace(m_PlotFileName, acd, cr);
       Name ofrname = nameReplace(m_RootFileName, acd, cr);
@@ -373,6 +393,58 @@ DataMap AdcChannelMetric::view(const AdcChannelData& acd) const {
 
 DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
   const string myname = "AdcChannelMetric::viewMap: ";
+  MetricMap mets;
+  return viewMapLocal(acds, mets);
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::update(AdcChannelData& acd) const {
+  const string myname = "AdcChannelMetric::update: ";
+  DataMap ret = view(acd);
+  string mnam = m_Metric;
+  if ( m_mdWrite ) {
+    if ( m_mdWarnPresent && acd.hasMetadata(mnam) ) {
+      cout << "WARNING: Run-event-channel " << acd.run() << "-" << acd.event() << "-"
+           << acd.channel() << " already has metadata field " << mnam << endl;
+    }
+    float mval = ret.getFloat("metricValue");
+    acd.setMetadata(mnam, mval);
+  }
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::updateMap(AdcChannelDataMap& acds) const {
+  const string myname = "AdcChannelMetric::updateMap: ";
+  MetricMap mets;
+  DataMap ret = viewMapLocal(acds, mets);
+  if ( m_mdWrite ) {
+    string mnam = m_Metric;
+    for ( const auto& imet : mets ) {
+      Index icha = imet.first;
+      AdcChannelDataMap::iterator iacd = acds.find(icha);
+      if ( iacd == acds.end() ) {
+        cout << myname << "ERROR: Channel map is missing channel " << icha << endl;
+      } else {
+        AdcChannelData& acd = iacd->second;
+        if ( m_mdWarnPresent && acd.hasMetadata(mnam) ) {
+          cout << "WARNING: Run-event-channel " << acd.run() << "-" << acd.event() << "-"
+               << acd.channel() << " already has metadata field " << mnam << endl;
+        }
+        float mval = imet.second.value;
+        acd.setMetadata(mnam, mval);
+      }
+    }
+  }
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcChannelMetric::viewMapLocal(const AdcChannelDataMap& acds, MetricMap& mets) const {
+  const string myname = "AdcChannelMetric::viewMapLocal: ";
   DataMap ret;
   if ( acds.size() == 0 ) {
     cout << myname << "Input channel map is empty." << endl;
@@ -389,22 +461,22 @@ DataMap AdcChannelMetric::viewMap(const AdcChannelDataMap& acds) const {
     }
     Index chanLo = std::max(chanFirst, ran.first());
     Index chanHi = std::min(chanLast, ran.last());
-    if ( chanHi >= chanLo ) ret += viewMapForOneRange(acds, ran);
+    if ( chanHi >= chanLo ) ret += viewMapForOneRange(acds, ran, mets);
   }
   return ret;
 }
 
 //**********************************************************************
 
-DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const {
+DataMap AdcChannelMetric::
+viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricMap& mets) const {
   const string myname = "AdcChannelMetric::viewMapForOneRange: ";
   DataMap ret;
   // Extract the metrics for the subset of this range included in the data.
-  MetricMap mets;
   Index icha0 = ran.begin;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
-  getState().update(iacd1->second.run, iacd1->second.event);
+  getState().update(iacd1->second.run(), iacd1->second.event());
   MetricSummaryVector& metricSums = getState().crsums[ran];
   if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
@@ -415,7 +487,7 @@ DataMap AdcChannelMetric::viewMapForOneRange(const AdcChannelDataMap& acds, cons
     int rstat = getMetric(acd, m_Metric, met, sunits, wt);
     if ( rstat ) {
       cout << myname << "WARNING: Metric evaluation failed for metric " << m_Metric
-           << " channel " << acd.channel << endl;
+           << " channel " << acd.channel() << endl;
       continue;
     }
     Index icha = iacd->first;
@@ -453,7 +525,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
   AdcIndex nent = acdtop.viewSize(m_DataView);
   const AdcChannelData* pacd0 = acdtop.viewEntry(m_DataView, 0);
   if ( nent && pacd0 == nullptr ) {
-    cout << myname << "ERROR: Channel " << acdtop.channel << " view " << m_DataView
+    cout << myname << "ERROR: Channel " << acdtop.channel() << " view " << m_DataView
          << " is missing its first entry." << endl;
     return 4;
   }
@@ -464,10 +536,10 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
   } else if ( met == "pedestalDiff" ) {
     val = nent ? pacd0->pedestal : 0.0;
     if ( m_pPedestalReference != nullptr ) {
-      double pedRef = m_pPedestalReference->value(acdtop.channel, 0.0);
+      double pedRef = m_pPedestalReference->value(acdtop.channel(), 0.0);
       val -= pedRef;
     } else if ( m_PedestalReference == "first" && nent ) {
-      Index icha = acdtop.channel;
+      Index icha = acdtop.channel();
       MetricMap& pedRefs = getState().pedRefs;
       MetricMap::const_iterator ipdr = pedRefs.find(icha);
       if ( ipdr == pedRefs.end() ) {
@@ -484,14 +556,14 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nent ? pacd0->pedestalRms : 0.0;
     sunits = "ADC count";
   } else if ( met == "time" ) {
-    val = acdtop.time;
+    val = acdtop.time();
     sunits = "sec";
   } else if ( met == "fembID" ) {
-    val = acdtop.fembID;
+    val = acdtop.fembID();
   } else if ( met == "fembChannel" ) {
-    val = acdtop.fembChannel;
+    val = acdtop.fembChannel();
   } else if ( met == "apaFembID" ) {
-    val = acdtop.fembID%20;
+    val = acdtop.fembID()%20;
   } else if ( met == "nraw" ) {
     val = 0.0;
     weight = 1.0;
@@ -585,7 +657,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nsum == 0 ? 0.0 : sqrt(sum/nsum);
     weight = nsum;
     if ( m_LogLevel >= 4 ) {
-      cout << myname << "Sample count for " << met << " for channel " << acdtop.channel;
+      cout << myname << "Sample count for " << met << " for channel " << acdtop.channel();
       if ( m_DataView.size() ) cout << " view " << m_DataView;
       cout << ": " << nsum << "/" << nsamtot << "."
            << " " << met << " = " << val << endl;
@@ -667,7 +739,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
     val = nsam > 0 ? double(ntail)/nsam : 0.0;
   } else if ( nent == 1 && pacd0->hasMetadata(met) ) {
     if ( nent != 1 ) {
-      cout << myname << "WARNING: Channel " << acdtop.channel
+      cout << myname << "WARNING: Channel " << acdtop.channel()
            << " filling metadata only for the first of " << nent
            << " entries." << endl;
     }

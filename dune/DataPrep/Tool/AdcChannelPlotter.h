@@ -41,13 +41,18 @@
 //    %EVENT% - event number
 //    %CHAN% - channel number
 //    %TYPE% - histogram type (see HistTypes)
+//
+// Datamapp returned by call to view includes:
+//     TH1   HHH  - The waveform histogram (HHH = HistName in configuration)
+//   float   plotSigMin_HHH - min value for the histogram
+//   float   plotSigMax_HHH - max value for the histogram
 
 #ifndef AdcChannelPlotter_H
 #define AdcChannelPlotter_H
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -59,7 +64,7 @@ namespace lariov {
 }
 class TH1;
 
-class AdcChannelPlotter : AdcChannelTool {
+class AdcChannelPlotter : TpcDataTool {
 
 public:
 

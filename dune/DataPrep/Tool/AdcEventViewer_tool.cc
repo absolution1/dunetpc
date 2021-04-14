@@ -406,7 +406,9 @@ DataMap AdcEventViewer::beginEvent(const DuneEventInfo& devt) const {
     cout << endl;
   }
   if ( state().haveEvent() ) {
-    cout << myname << "WARNING: Begin called during event processing. Ending current event." << endl;
+    cout << myname << "WARNING: Begin called wth event " << devt.event
+         << " during processing of event " << state().eventInfo.event
+         << ". Ending current event." << endl;
     endEvent(state().eventInfo);
   }
   ++state().beginEventCount;
@@ -433,12 +435,12 @@ DataMap AdcEventViewer::endEvent(const DuneEventInfo& devt) const {
 DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
   const string myname = "AdcEventViewer::view: ";
   DataMap res;
-  if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel
-                              << " (FEMB " << acd.fembID << ")"
-                              << " in run " << acd.run << " event " << acd.event << endl;
-  if ( acd.event != state().event() || acd.run != state().run() ) {
+  if ( m_LogLevel >= 4 ) cout << myname << "Processing channel " << acd.channel()
+                              << " (FEMB " << acd.fembID() << ")"
+                              << " in run " << acd.run() << " event " << acd.event() << endl;
+  if ( acd.event() != state().event() || acd.run() != state().run() ) {
     if ( state().beginEventCount ) {
-      cout << myname << "ERROR: Run:event from data " << acd.run << ":" << acd.event
+      cout << myname << "ERROR: Run:event from data " << acd.run() << ":" << acd.event()
            << " does not match that from beginEvent "
            << state().runString() << ":" << state().event() << endl;
       return res.setStatus(1);
@@ -446,9 +448,9 @@ DataMap AdcEventViewer::view(const AdcChannelData& acd) const {
     beginEventState(acd.getEventInfo());
   }
   for ( const IndexRange& cr : m_crs ) {
-    if ( cr.name != "all" && !cr.contains(acd.channel) ) continue;
+    if ( cr.name != "all" && !cr.contains(acd.channel()) ) continue;
     ChannelRangeState& crstate = state().crstates[cr.name];
-    crstate.fembIDSet.insert(acd.fembID);
+    crstate.fembIDSet.insert(acd.fembID());
     ++crstate.nchan;
     crstate.pedSum += acd.pedestal;
     float pedNoise = acd.pedestalRms;
@@ -466,7 +468,7 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
     cout << myname << "Processing " << ncha << " channel" << (ncha == 1 ? "" : "s");
     if ( ncha > 0 ) {
       const AdcChannelData& acd = acds.begin()->second;
-      cout << " in run " << acd.run << " event " << acd.event;
+      cout << " in run " << acd.run() << " event " << acd.event();
       cout << ". Count is " << state().beginEventCount << "." << endl;
     }
   }
@@ -477,7 +479,7 @@ DataMap AdcEventViewer::viewMap(const AdcChannelDataMap& acds) const {
       return ret;
     }
     const AdcChannelData& acd = acds.begin()->second;
-    if ( acd.event != state().event() ) beginEventState(acd.getEventInfo());
+    if ( acd.event() != state().event() ) beginEventState(acd.getEventInfo());
   }
   ++state().ngroup;
   for ( const AdcChannelDataMap::value_type& iacd : acds ) view(iacd.second);
@@ -508,7 +510,7 @@ void AdcEventViewer::beginEventState(const DuneEventInfo& devt) const {
   if ( m_LogLevel >= 4 ) cout << myname << "Starting run" << devt.runString()
                               << " event " << devt.event << endl;
   if ( state().haveEvent() && state().run() != devt.run ) {
-    cout << "ERROR: change in run number is not (yet) supported." << endl;
+    cout << myname << "ERROR: change in run number is not (yet) supported." << endl;
     return;
   }
   Index ievt = devt.event;

@@ -11,7 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include "dune/DuneInterface/Tool/AdcChannelTool.h"
+#include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneCommon/TPadManipulator.h"
 #include <TRandom.h>
@@ -103,14 +103,20 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
     fout << "  mydco: {" << endl;
     fout << "           tool_type: AdcDeconvoluteFFT" << endl;
     fout << "            LogLevel: 2" << endl;
-    fout << "      ResponseVector: [";
+    fout << "     ResponseVectors: [[";
     for ( Index ival=0; ival<res.size(); ++ival ) {
       if ( ival ) fout << ", ";
       fout << res[ival];
     }
-    fout << "]" << endl;
+    fout << "]]" << endl;
     fout << "              Action: 1" << endl;
-    fout << "    GausFilterSigma: " << sigmaFilter << endl;
+    fout << "    ResponseCenters: [5]" << endl;
+    fout << "      SmoothVectors: [[-0.5, 0.5]]" << endl;
+    fout << "       SmoothScales: [1.0]" << endl;
+    fout << "   GausFilterSigmas: [" << sigmaFilter << "]" << endl;
+    fout << "    LowFilterWidths: [-1.0]" << endl;
+    fout << "    LowFilterPowers: [ 2.0]" << endl;
+    fout << "       IndexMapTool: \"\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout << "tools.mycondir: @local::tools.mydco" << endl;
@@ -132,11 +138,11 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
-  auto pcondir = tm.getPrivate<AdcChannelTool>("mycondir");
+  auto pcondir = tm.getPrivate<TpcDataTool>("mycondir");
   assert( pcondir != nullptr );
-  auto pconfft = tm.getPrivate<AdcChannelTool>("myconfft");
+  auto pconfft = tm.getPrivate<TpcDataTool>("myconfft");
   assert( pconfft != nullptr );
-  auto pdco = tm.getPrivate<AdcChannelTool>("mydco");
+  auto pdco = tm.getPrivate<TpcDataTool>("mydco");
   assert( pdco != nullptr );
 
   cout << myname << line << endl;
@@ -147,9 +153,8 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   cout << myname << line << endl;
   cout << myname << "Create data by direct convolution with response." << endl;
   AdcChannelData acd;
-  acd.run = 123;
-  acd.event = 456;
-  acd.channel = 789;
+  acd.setEventInfo(123, 456);
+  acd.setChannelInfo(789);
   acd.samples = samsTru;
   assert( acd.samples.size() == nsam );
   DataMap ret = pcondir->update(acd);
@@ -163,9 +168,8 @@ int test_AdcDeconvoluteFFT(bool useExistingFcl, float noiseLev, float sigmaFilte
   cout << myname << line << endl;
   cout << myname << "Create data by FFT convolution with response." << endl;
   AdcChannelData acdchk;
-  acdchk.run = 123;
-  acdchk.event = 456;
-  acdchk.channel = 789;
+  acdchk.setEventInfo(123, 456);
+  acdchk.setChannelInfo(789);
   acdchk.samples = samsTru;
   DataMap retchk = pconfft->update(acdchk);
   assert( retchk == 0 );
