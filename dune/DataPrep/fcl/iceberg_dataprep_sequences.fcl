@@ -137,7 +137,7 @@ data.ib5_dataprep_seqs.calib_ped: [
 
 # Charge calibration, noise removal.
 data.ib5_dataprep_seqs.calib_noiserem: [
-  @sequence::data.ib5_dataprep_seqs.calib_ped
+  @sequence::data.ib5_dataprep_seqs.calib_only
   , "ibNoiseRemovalKe"         # Remove coherent noise
 ]
 

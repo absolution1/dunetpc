@@ -27,6 +27,9 @@ tools.ib5_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
 services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
 services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
 
+# Increase FFT size for noise removal.
+services.LArFFT.FFTSize: 4096     # 2048 is not big enough for run 5
+
 # Use the default Iceberg 5c calibration.
 # See calibs_iceberg.fcl.
 tools.areaGain_ib5: @local::tools.areaGain_ib5c
