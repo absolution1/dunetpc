@@ -242,6 +242,36 @@ public:
     metadata[mname] = val;
   }
 
+  // Check if an attribute is defined.
+  float hasAttribute(Name mname, float def =0.0) const {
+    if ( mname == "run" ) return true;;
+    if ( mname == "subRun" ) return true;
+    if ( mname == "event" ) return true;;
+    if ( mname == "trigger" ) return true;;
+    if ( mname == "triggerClock" ) return true;
+    if ( mname == "channelClock" ) return true;
+    if ( mname == "channelClockOffset" ) return true;
+    if ( mname == "channel" ) return true;
+    if ( mname == "fembID" ) return true;
+    if ( mname == "fembChannel" ) return true;
+    if ( mname == "pedestal" ) return true;
+    if ( mname == "pedestalRms" ) return true;
+    if ( mname == "sampleNoise" ) return true;
+    if ( mname == "digitIndex" ) return true;
+    if ( mname == "wireIndex" ) return true;
+    if ( mname == "raw" ) return true;
+    if ( mname == "samples" ) return true;
+    if ( mname == "flags" ) return true;
+    if ( mname == "signal" ) return true;
+    if ( mname == "rois" ) return true;
+    if ( mname == "dftmags" ) return true;
+    if ( mname == "dftphases" ) return true;
+    if ( mname == "digit" ) return true;
+    if ( mname == "wire" ) return true;
+    if ( mname == "metadata" ) return metadata.size();
+    return hasMetadata(mname);
+  }
+
   // Fetch any property including metadata.
   float getAttribute(Name mname, float def =0.0) const {
     // For basic types, return the value.
