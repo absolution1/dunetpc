@@ -1,0 +1,126 @@
+#include "geometry_dune.fcl"
+#include "detectorproperties_dune.fcl"
+#include "larproperties_dune.fcl"
+#include "larfft_dune.fcl"
+#include "messageservices_dune.fcl"
+#include "simulationservices_dune.fcl"
+#include "signalservices_dune.fcl"
+#include "magfield_larsoft.fcl"
+#include "databaseutil_dune.fcl"
+#include "backtrackerservice_dune.fcl"
+#include "particleinventoryservice_dune.fcl"
+#include "photonbacktrackerservice.fcl"
+#include "seedservice_dune.fcl"
+#include "detectorclocks_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "sam_dune.fcl"
+#include "opticaldetectorservices_dune.fcl"
+#include "channelmapping_dune.fcl"
+#include "channelstatus_dune.fcl"
+#include "channelstatus_pdsp.fcl"
+#include "pedestals_dune.fcl"
+#include "daq_dune.fcl"
+#include "detsimmodules_dune.fcl"
+#include "spacecharge_dune.fcl"
+#include "dataprep_dune.fcl"
+#include "protodune_dataprep_services.fcl"
+#include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
+#include "xyzcalib_dune.fcl"
+#include "lifetimecalib_dune.fcl"
+#include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
+#include "crp_dune.fcl"
+#include "services_dunefd_horizdrift.fcl"
+
+
+BEGIN_PROLOG
+
+############################
+### protoDUNE dual phase ###
+############################
+
+protodunedphase_services: {
+ DatabaseUtil:                   @local::dunefd_database
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ ChannelStatusService:           @local::dunefd_channel_status
+ LArFFT:                         @local::dunefd_larfft
+ NuRandomService:                @local::dune_seedservice
+ Geometry:                       @local::protodunedphase_geo
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
+ DetectorPropertiesService:      @local::protodunedphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+}
+
+
+protodunedphase_simulation_services: {
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ LArFFT:                         @local::dunefd_larfft
+ LArG4Parameters:                @local::protodune_largeantparameters
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
+ MagneticField:                  @local::no_mag_larsoft
+ NuRandomService:                @local::dune_seedservice
+ DatabaseUtil:                   @local::dunefd_database
+ OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
+ ChannelStatusService:           @local::dunefd_channel_status
+ Geometry:                       @local::protodunedphase_geo
+ DetectorClocksService:          @local::protodunedphase_detectorclocks
+ DetectorPropertiesService:      @local::protodunedphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::protodunedphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+ PhotonVisibilityService:        @local::protodunedp_photonvisibilityservice
+ PhotonVisibilityServiceS2:      @local::protodunedp_photonvisibilityserviceS2
+ DetPedestalService:             @local::dunedp_fixedpeds
+ CrpGainService:                 @local::dunefddphase_crpgain
+ OpDigiProperties:               @local::protodunedphase_opdigiproperties
+}
+
+protodunedphase_reco_services:                            @local::protodunedphase_services
+protodunedphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
+protodunedphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
+protodunedphase_reco_services.RawDigitExtractService:     @local::rdx_std
+protodunedphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
+protodunedphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+protodunedphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+protodunedphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
+protodunedphase_reco_services.PedestalEvaluationService:  @local::adcped_median
+#protodunedphase_reco_services.AdcNoiseRemovalService:    @local::adcnr_dunedphase3x1x1
+
+# Settings for optical simulation in the protodunedp. Optical simulation IS by default ON,
+# turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+
+protodunedphase_simulation_services.LArG4Parameters.UseCustomPhysics: true
+protodunedphase_simulation_services.LArG4Parameters.EnabledPhysics: [ "Em",
+                                           "FastOptical",
+                                           "SynchrotronAndGN",
+                                           "Ion",
+                                           "Hadron",
+                                           "Decay",
+                                           "HadronElastic",
+                                           "Stopping",
+                                           "NeutronTrackingCut" ]
+
+protodunedphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 1
+protodunedphase_simulation_services.LArPropertiesService.ScintPreScale: 1
+protodunedphase_simulation_services.LArPropertiesService.ScintYield: 24000
+protodunedphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+
+protodunedphase_driftY_simulation_services:                         @local::protodunedphase_simulation_services
+protodunedphase_driftY_simulation_services.PhotonVisibilityService: @local::protodunedp_driftY_RL99CM_VUVREF_photonvisibilityservice
+protodunedphase_driftY_simulation_services.Geometry:                @local::protodunedphase_driftY_geo
+
+
+END_PROLOG
