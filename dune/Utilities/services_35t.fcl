@@ -42,7 +42,7 @@ BEGIN_PROLOG
 dune35t_basic_services: {
   ExptGeoHelperInterface:     @local::dune_geometry_helper
   GeometryConfigurationWriter: {}
-  Geometry:                   @local::dune35t_geo_legacy
+  Geometry:                   @local::dune35t_geo
   DetectorClocksService:      @local::dune35t_detectorclocks
   DetectorPropertiesService:  @local::dune35t_detproperties
   LArPropertiesService:       @local::dune35t_properties
