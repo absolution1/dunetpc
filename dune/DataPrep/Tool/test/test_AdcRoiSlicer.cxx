@@ -160,6 +160,8 @@ int test_AdcRoiSlicer(int opt, Index nsam, bool useExistingFcl =false) {
     cout << myname << "..entry " << ivie << endl;
     const AdcChannelData& acd = data.view(vnam)[ivie];
     assert( checkint(acd.tick0, int(viewTick0s[ivie])) );
+    assert( acd.viewParent != nullptr );
+    assert( acd.viewParent == &data );
     Index nvsam = viewSizes[ivie];
     assert( checkint(acd.samples.size(), nvsam) );
     assert( checkint(acd.signal.size(), nvsam) );

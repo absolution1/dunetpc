@@ -60,6 +60,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
 : AdcMultiChannelPlotter(ps, "Plot"),
   m_Variable(ps.get<Name>("Variable")),
   m_ChannelStatusFlag(ps.get<Index>("ChannelStatusFlag")),
+  m_ChannelSelection(ps.get<Name>("ChannelSelection")),
   m_SampleFreq(ps.get<float>("SampleFreq")),
   m_XMin(0.0),
   m_XMax(0.0),
@@ -98,6 +99,9 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
   m_skipBad = m_ChannelStatusFlag==1 || m_ChannelStatusFlag==3;
   m_skipNoisy = m_ChannelStatusFlag==2 || m_ChannelStatusFlag==3;
   m_shiftFreq0 = (doPwr || doPwt) && (m_XMin >= m_XMax);
+  if ( m_ChannelSelection.size() ) {
+    m_ptfsel.reset(new TFormula("AdcChannelDftPlotter", m_ChannelSelection.c_str()));
+  }
   // Display the configuration.
   if ( getLogLevel() >= 1 ) {
     cout << myname << "Configuration: " << endl;
@@ -108,6 +112,7 @@ AdcChannelDftPlotter::AdcChannelDftPlotter(fhicl::ParameterSet const& ps)
       else cout << " (skip bad)";
     } else if ( m_skipNoisy ) cout << " (skip noisy)";
     cout << endl;
+    cout << myname << "   ChannelSelection: " << m_ChannelSelection << endl;
     cout << myname << "         SampleFreq: " << m_SampleFreq << endl;
     if ( doMag || doPwr || doPwt ) cout << myname << "              NBinX: " << m_NBinX << endl;
     if ( doPwr || doPwt ) {
@@ -452,6 +457,7 @@ DataMap AdcChannelDftPlotter::viewLocal(Name crn, const AcdVector& acds) const {
         if ( m_skipBad && pacd->channelStatus()==1 ) continue;
         if ( m_skipNoisy && pacd->channelStatus()==2 ) continue;
       }
+      if ( skipChannel(*pacd) ) continue;
       dftChannels.push_back(pacd->channel());
       keepAcds.push_back(pacd);
     }
@@ -712,6 +718,26 @@ int AdcChannelDftPlotter::fillPad(DataMap& dm, TPadManipulator& man) const {
     }
   }
   return 0;
+}
+
+//**********************************************************************
+
+bool AdcChannelDftPlotter::skipChannel(const AdcChannelData& acd) const {
+  const string myname = "AdcChannelDftPlotter::skipChannel: ";
+  if ( ! m_ptfsel ) return false;
+  Index npar = m_ptfsel->GetNpar();
+  vector<double> pars(npar);
+  for ( Index ipar=0; ipar<npar; ++ipar ) {
+    string spar = m_ptfsel->GetParName(ipar);
+    if ( ! acd.hasAttribute(spar) ) {
+      cout << myname << "WARNING: Skipping run/event/channel " << acd.run() << "/" << acd.event()
+           << "/" << acd.channel() << " because of missing attribute " << spar << endl;
+      return true;
+    }
+    pars[ipar] = acd.getAttribute(spar);
+  }
+  double val = m_ptfsel->EvalPar(nullptr, &pars[0]);
+  return val == 0.0;
 }
 
 //**********************************************************************

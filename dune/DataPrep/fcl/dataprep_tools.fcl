@@ -326,6 +326,7 @@ adcPlotDftTemplate: {
            LogLevel: 1
        PlotDataView: ""
   ChannelStatusFlag: 0
+   ChannelSelection: ""
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
    PlotSummaryNames: []

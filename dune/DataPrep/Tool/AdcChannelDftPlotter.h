@@ -27,6 +27,10 @@
 //                         1 - skip bad channels
 //                         2 - skip noisy channels
 //                         3 - skip bad and noisy channels
+//   ChannelSelection - TFormula string for selecting channels to be retained.
+//                      Formula parameters can be any AdcChannelDataAttribute.
+//                      Channel is retained if formal returns nonzero.
+//                      E.g. "[samRms]>0.5".
 //   SampleFreq - Sampling frequency in kHz used to define the x-axis.
 //                If zero, frequency index is used instead.
 //   XMin - Specifies the min value for X-axis  in histogram and plot
@@ -51,6 +55,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DataPrep/Utility/AdcMultiChannelPlotter.h"
 #include "TH1.h"
+#include "TFormula.h"
 #include <memory>
 
 class AdcChannelStringTool;
@@ -80,6 +85,7 @@ private:
   // Configuration data.
   Name   m_Variable;
   Index  m_ChannelStatusFlag;
+  Name   m_ChannelSelection;
   float  m_SampleFreq;
   double  m_XMin;     // Need double so user can shift bins
   double  m_XMax;
@@ -94,6 +100,7 @@ private:
   bool m_skipBad;
   bool m_skipNoisy;
   bool m_shiftFreq0;
+  std::unique_ptr<TFormula> m_ptfsel;
 
   // ADC string tools.
   const AdcChannelStringTool* m_adcStringBuilder;
@@ -187,6 +194,10 @@ private:
   // Fill the pad for a channel.
   // Histogram "dftHist" or graph "dftGraph" from dm is drawn.
   int fillPad(DataMap& dm, TPadManipulator& man) const;
+
+  // Use selection formla to check if a channel should be skipped, i.e.
+  // if formal returns zero.
+  bool skipChannel(const AdcChannelData& acd) const;
 
 };
 
