@@ -1,0 +1,99 @@
+#include "geometry_dune.fcl"
+#include "detectorproperties_dune.fcl"
+#include "larproperties_dune.fcl"
+#include "larfft_dune.fcl"
+#include "messageservice.fcl"
+#include "simulationservices_dune.fcl"
+#include "signalservices_dune.fcl"
+#include "magfield_larsoft.fcl"
+#include "databaseutil_dune.fcl"
+#include "backtrackerservice_dune.fcl"
+#include "particleinventoryservice_dune.fcl"
+#include "photonbacktrackerservice.fcl"
+#include "seedservice_dune.fcl"
+#include "detectorclocks_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "sam_dune.fcl"
+#include "opticaldetectorservices_dune.fcl"
+#include "channelmapping_dune.fcl"
+#include "channelstatus_dune.fcl"
+#include "channelstatus_pdsp.fcl"
+#include "pedestals_dune.fcl"
+#include "daq_dune.fcl"
+#include "detsimmodules_dune.fcl"
+#include "spacecharge_dune.fcl"
+#include "dataprep_dune.fcl"
+#include "protodune_dataprep_services.fcl"
+#include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
+#include "xyzcalib_dune.fcl"
+#include "lifetimecalib_dune.fcl"
+#include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
+#include "crp_dune.fcl"
+
+############################
+### Dune FD Single Phase ###
+############################
+
+BEGIN_PROLOG
+
+dunefd_services: {
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ Geometry:                       @local::dune10kt_geo
+ GeometryConfigurationWriter:    {}
+ DetectorClocksService:          @local::dunefd_detectorclocks
+ DetectorPropertiesService:      @local::dunefd_detproperties
+ LArPropertiesService:           @local::dunefd_properties
+ LArFFT:                         @local::dunefd_larfft
+ DatabaseUtil:                   @local::dunefd_database
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
+ SpaceCharge:                    @local::dunefd_spacecharge
+ NuRandomService:                @local::dune_seedservice
+ SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
+ ChannelStatusService:           @local::dunefd_channel_status
+ ChannelGroupService:            @local::changroup_apa_keepall
+}
+
+dunefd_simulation_services: {
+ LArFFT:                       @local::dunefd_larfft
+ LArG4Parameters:              @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter:  {}
+ Geometry:                     @local::dune10kt_geo
+ DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorPropertiesService:    @local::dunefd_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
+ MagneticField:                @local::no_mag_larsoft
+ BackTrackerService:           @local::dunefd_backtrackerservice
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
+ SpaceCharge:                  @local::dunefd_spacecharge
+ NuRandomService:              @local::dune_seedservice
+ SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ OpDetResponseInterface:       @local::dunefd_opdetresponse
+ ChannelStatusService:         @local::dunefd_channel_status
+}
+
+# Reco services for 35-ton simulation.
+dunefd_reco_services:                            @local::dunefd_services
+dunefd_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefd_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
+dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
+dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
+dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
+
+# Settings for optical simulation in the FD. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+
+dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
+dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.05
+dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+
+END_PROLOG
+
