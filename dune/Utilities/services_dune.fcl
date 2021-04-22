@@ -1,36 +1,3 @@
-#include "geometry_dune.fcl"
-#include "detectorproperties_dune.fcl"
-#include "larproperties_dune.fcl"
-#include "larfft_dune.fcl"
-#include "messageservices_dune.fcl"
-#include "simulationservices_dune.fcl"
-#include "signalservices_dune.fcl"
-#include "magfield_larsoft.fcl"
-#include "databaseutil_dune.fcl"
-#include "backtrackerservice_dune.fcl"
-#include "particleinventoryservice_dune.fcl"
-#include "photonbacktrackerservice.fcl"
-#include "seedservice_dune.fcl"
-#include "detectorclocks_dune.fcl"
-#include "photpropservices_dune.fcl"
-#include "sam_dune.fcl"
-#include "opticaldetectorservices_dune.fcl"
-#include "channelmapping_dune.fcl"
-#include "channelstatus_dune.fcl"
-#include "channelstatus_pdsp.fcl"
-#include "pedestals_dune.fcl"
-#include "daq_dune.fcl"
-#include "detsimmodules_dune.fcl"
-#include "spacecharge_dune.fcl"
-#include "dataprep_dune.fcl"
-#include "protodune_dataprep_services.fcl"
-#include "PdspChannelMapService.fcl"
-#include "IcebergChannelMapService.fcl"
-#include "xyzcalib_dune.fcl"
-#include "lifetimecalib_dune.fcl"
-#include "PhotonCalibratorProtoDUNESP.fcl"
-#include "time_memory_tracker_dune.fcl"
-#include "crp_dune.fcl"
 #include "services_35t.fcl"
 #include "services_dunefd_horizdrift.fcl"
 #include "services_dunefd_vertdrift.fcl"
@@ -38,33 +5,3 @@
 #include "services_3x1x1_dualphase.fcl"
 #include "services_protodune_dualphase.fcl"
 #include "services_protodune_singlephase.fcl"
-
-BEGIN_PROLOG
-
-# The above *_dune.fcl include contain the parameter blocks
-# for all dune geometries. All PROLOG files for dune should
-# contain all of the parameters for each dune geometry so
-# that they are in one place and there is only one type of
-# file to include. This file is an example of that
-
-
-
-
-
-
-
-
-# dune10kt and dune34kt consolidated into dunefd,
-# but catch any leftover cases of 10kt...
-#dune10kt_services: @local::dunefd_services
-#dune10kt_services.Geometry.GDML: "dune10kt.gdml"
-#dune10kt_services.Geometry.ROOT: "dune10kt.gdml"
-#dune10kt_simulation_services: @local::dunefd_services
-#dune10kt_simulation_services.Geometry.GDML: "dune10kt.gdml"
-#dune10kt_simulation_services.Geometry.ROOT: "dune10kt.gdml"
-
-
-
-
-
-END_PROLOG
