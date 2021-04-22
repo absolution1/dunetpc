@@ -1,0 +1,105 @@
+#include "geometry_dune.fcl"
+#include "detectorproperties_dune.fcl"
+#include "larproperties_dune.fcl"
+#include "larfft_dune.fcl"
+#include "messageservices_dune.fcl"
+#include "simulationservices_dune.fcl"
+#include "signalservices_dune.fcl"
+#include "magfield_larsoft.fcl"
+#include "databaseutil_dune.fcl"
+#include "backtrackerservice_dune.fcl"
+#include "particleinventoryservice_dune.fcl"
+#include "photonbacktrackerservice.fcl"
+#include "seedservice_dune.fcl"
+#include "detectorclocks_dune.fcl"
+#include "photpropservices_dune.fcl"
+#include "sam_dune.fcl"
+#include "opticaldetectorservices_dune.fcl"
+#include "channelmapping_dune.fcl"
+#include "channelstatus_dune.fcl"
+#include "channelstatus_pdsp.fcl"
+#include "pedestals_dune.fcl"
+#include "daq_dune.fcl"
+#include "detsimmodules_dune.fcl"
+#include "spacecharge_dune.fcl"
+#include "dataprep_dune.fcl"
+#include "protodune_dataprep_services.fcl"
+#include "PdspChannelMapService.fcl"
+#include "IcebergChannelMapService.fcl"
+#include "xyzcalib_dune.fcl"
+#include "lifetimecalib_dune.fcl"
+#include "PhotonCalibratorProtoDUNESP.fcl"
+#include "time_memory_tracker_dune.fcl"
+#include "crp_dune.fcl"
+#include "services_dunefd_horizdrift.fcl"
+
+BEGIN_PROLOG
+
+####################################
+### DUNE far detector dual phase ###
+####################################
+
+dunefddphase_services: {
+ DatabaseUtil:                   @local::dunefd_database
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ ChannelStatusService:           @local::dunefd_channel_status
+ LArFFT:                         @local::dunefd_larfft
+ NuRandomService:                @local::dune_seedservice
+ Geometry:                       @local::dunedphase10kt_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:      @local::dunefddphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+}
+
+dunefddphase_simulation_services: {
+ BackTrackerService:             @local::dunefd_backtrackerservice
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ LArFFT:                         @local::dunefd_larfft
+ LArG4Parameters:                @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
+ MagneticField:                  @local::no_mag_larsoft
+ NuRandomService:                @local::dune_seedservice
+ DatabaseUtil:                   @local::dunefd_database
+ OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
+ ChannelStatusService:           @local::dunefd_channel_status
+ Geometry:                       @local::dunedphase10kt_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:      @local::dunefddphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+ DetPedestalService:             @local::dunedp_fixedpeds
+}
+
+dunefddphase_reco_services:                            @local::dunefddphase_services
+dunefddphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
+dunefddphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
+dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
+dunefddphase_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
+dunefddphase_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+dunefddphase_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+dunefddphase_reco_services.AdcWireBuildingService:     @local::adcwire_std
+dunefddphase_reco_services.PedestalEvaluationService:  @local::adcped_median
+dunefddphase_reco_services.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
+
+# Settings for optical simulation in the FD. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+
+dunefddphase_simulation_services.LArPropertiesService.ScintYield: 24000
+dunefddphase_simulation_services.LArPropertiesService.ScintPreScale: 1
+dunefddphase_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+dunefddphase_simulation_services.OpDetResponseInterface.QuantumEfficiency: 0.12 # including TPB from arxiv 1807.07123
+
+END_PROLOG
+
