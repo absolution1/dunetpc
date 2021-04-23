@@ -64,20 +64,24 @@ dunefd_reco_services_legacy: {
 
 dunefd_services: {
     @table::dunefd_services_legacy
+    NuRandomService:       @local::dune_prod_seedservice
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 }
 
 dunefd_simulation_services: {
     @table::dunefd_simulation_services_legacy
     @table::common_larg4_services
+    NuRandomService:       @local::dune_prod_seedservice
     ParticleListAction: @local::dune_particle_list_action
     PhysicsList:        @local::dune_physics_list_fastoptical
     #LArG4Detector:      No refactored full FD geom, required for this to run
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+    PhotonVisibilityService: @erase
 }
 
 dunefd_reco_services: {
     @table::dunefd_reco_services_legacy
+    NuRandomService:       @local::dune_prod_seedservice
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 }
 
