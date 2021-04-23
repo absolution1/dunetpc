@@ -1,9 +1,9 @@
 #include "services_common_dune.fcl"
 #include "services_dunefd_horizdrift.fcl"
 
-############################
+######################################
 ### Dune FD horizontal drift 1x2x6 ###
-############################
+######################################
 
 BEGIN_PROLOG
 
@@ -30,8 +30,6 @@ dunefd_1x2x6_simulation_services_legacy: {
                           "NeutronTrackingCut" ]
     }
 }
-#dunefd_1x2x6_simulation_services_legacy.LArG4Parameters.
-#dunefd_1x2x6_simulation_services_legacy.LArG4Parameters.
                                                         
 dunefd_1x2x6_reco_services_legacy: {
     @table::dunefd_reco_services_legacy
