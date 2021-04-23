@@ -44,6 +44,7 @@ dunefd_simulation_services_legacy: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
+ ChannelStatusService:         @local::dunefd_channel_status
 }
 # Settings for optical simulation in the FD. Optical simulation not on by default
 # for FD, turned on by custom physics list and defining a photon visibility
