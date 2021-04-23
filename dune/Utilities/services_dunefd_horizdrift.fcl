@@ -6,7 +6,7 @@
 
 BEGIN_PROLOG
 
-dunefd_services: {
+dunefd_services_legacy: {
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  Geometry:                       @local::dune10kt_geo
  GeometryConfigurationWriter:    {}
@@ -25,7 +25,7 @@ dunefd_services: {
  ChannelGroupService:            @local::changroup_apa_keepall
 }
 
-dunefd_simulation_services: {
+dunefd_simulation_services_legacy: {
  LArFFT:                       @local::dunefd_larfft
  LArG4Parameters:              @local::dunefd_largeantparameters
  ExptGeoHelperInterface:       @local::dune_geometry_helper
@@ -44,24 +44,40 @@ dunefd_simulation_services: {
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
  OpDetResponseInterface:       @local::dunefd_opdetresponse
- ChannelStatusService:         @local::dunefd_channel_status
 }
-
-# Reco services for 35-ton simulation.
-dunefd_reco_services:                            @local::dunefd_services
-dunefd_reco_services.RawDigitExtractService:     @local::rdx_std
-dunefd_reco_services.RawDigitPrepService:        @local::adcprep_with_services_sim
-dunefd_reco_services.AdcDeconvolutionService:    @local::adcdco_dunefd
-dunefd_reco_services.AdcRoiBuildingService:      @local::adcroi_dunefd
-dunefd_reco_services.AdcWireBuildingService:     @local::adcwire_std
-
 # Settings for optical simulation in the FD. Optical simulation not on by default
 # for FD, turned on by custom physics list and defining a photon visibility
 # services is workspace g4 fhicl file.
+dunefd_simulation_services_legacy.LArPropertiesService.ScintYield: 24000
+dunefd_simulation_services_legacy.LArPropertiesService.ScintPreScale: 0.05
+dunefd_simulation_services_legacy.LArPropertiesService.EnableCerenkovLight: false
 
-dunefd_simulation_services.LArPropertiesService.ScintYield: 24000
-dunefd_simulation_services.LArPropertiesService.ScintPreScale: 0.05
-dunefd_simulation_services.LArPropertiesService.EnableCerenkovLight: false
+dunefd_reco_services_legacy: {
+    @table::dunefd_services_legacy
+    RawDigitExtractService:     @local::rdx_std
+    RawDigitPrepService:        @local::adcprep_with_services_sim
+    AdcDeconvolutionService:    @local::adcdco_dunefd
+    AdcRoiBuildingService:      @local::adcroi_dunefd
+    AdcWireBuildingService:     @local::adcwire_std
+}
+
+dunefd_services: {
+    @table::dunefd_services_legacy
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+}
+
+dunefd_simulation_services: {
+    @table::dunefd_simulation_services_legacy
+    @table::common_larg4_services
+    ParticleListAction: @local::dune_particle_list_action
+    PhysicsList:        @local::dune_physics_list_fastoptical
+    #LArG4Detector:      No refactored full FD geom, required for this to run
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+}
+
+dunefd_reco_services: {
+    @table::dunefd_reco_services_legacy
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+}
 
 END_PROLOG
-
