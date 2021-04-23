@@ -38,18 +38,18 @@ dunefd_1x2x6_reco_services_legacy: {
 
 dunefd_1x2x6_services: {
     @table::dunefd_services
-    Geometry: @local::dune10kt_1x2x6_geo
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
 }
 
 dunefd_1x2x6_simulation_services: {
     @table::dunefd_simulation_services
-    Geometry: @local::dune10kt_1x2x6_geo
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
     LArG4Detector:      @local::dune10kt_1x2x6_v4_larg4detector
 }
 
 dunefd_1x2x6_reco_services: {
     @table::dunefd_reco_services
-    Geometry: @local::dune10kt_1x2x6_geo
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
 }
 
 END_PROLOG
