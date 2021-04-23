@@ -1,5 +1,6 @@
 #include "services_35t.fcl"
 #include "services_dunefd_horizdrift.fcl"
+#include "services_dunefd_horizdrift_1x2x6.fcl"
 #include "services_dunefd_vertdrift.fcl"
 #include "services_dunefd_dualphase.fcl"
 #include "services_3x1x1_dualphase.fcl"
