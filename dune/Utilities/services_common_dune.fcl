@@ -31,3 +31,4 @@
 #include "PhotonCalibratorProtoDUNESP.fcl"
 #include "time_memory_tracker_dune.fcl"
 #include "crp_dune.fcl"
+#include "larg4services_dune.fcl"
