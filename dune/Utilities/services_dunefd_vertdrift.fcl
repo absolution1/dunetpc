@@ -24,6 +24,7 @@ dunefdvd_simulation_services: {
 
 dunefdvd_reco_services: {
     @table::dunefd_reco_services
+    Geometry:                  @local::dunevd10kt_geo
 }
 
 END_PROLOG
