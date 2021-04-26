@@ -23,12 +23,7 @@ dunefdvd_simulation_services: {
 }
 
 dunefdvd_reco_services: {
-    @table::dunefdvd_services
-    RawDigitExtractService:     @local::rdx_std
-    RawDigitPrepService:        @local::adcprep_with_services_sim
-    AdcDeconvolutionService:    @local::adcdco_dunefd
-    AdcRoiBuildingService:      @local::adcroi_dunefd
-    AdcWireBuildingService:     @local::adcwire_std
+    @table::dunefd_reco_services
 }
 
 END_PROLOG
