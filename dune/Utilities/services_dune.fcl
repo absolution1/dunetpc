@@ -4,6 +4,6 @@
 #include "services_dunefd_vertdrift.fcl"
 #include "services_dunefd_vertdrift_1x6x6.fcl"
 #include "services_dunefd_dualphase.fcl"
-#include "services_3x1x1_dualphase.fcl"
+#include "services_dualphase_3x1x1.fcl"
 #include "services_protodune_dualphase.fcl"
 #include "services_protodune_singlephase.fcl"
