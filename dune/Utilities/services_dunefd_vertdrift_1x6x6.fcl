@@ -1,0 +1,25 @@
+#include "services_common_dune.fcl"
+#include "services_dunefd_vertdrift.fcl"
+
+
+BEGIN_PROLOG
+
+###########################################
+### Dune FD Vertical Drift Single Phase ###
+###########################################
+dunefdvd_1x6x6_services: {
+    @table::dunefdvd_services
+    Geometry:                  @local::dunevd10kt_1x6x6_geo
+}
+
+dunefdvd_1x6x6_simulation_services: {
+    @table::dunefd_simulation_services
+    Geometry:                  @local::dunevd10kt_1x6x6_geo
+}
+
+dunefdvd_1x6x6_reco_services: {
+    @table::dunefd_reco_services
+    Geometry:                  @local::dunevd10kt_1x6x6_geo
+}
+
+END_PROLOG
