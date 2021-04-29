@@ -23,4 +23,21 @@ dunefdvd_1x6x6_reco_services: {
     Geometry:                  @local::dunevd10kt_1x6x6_geo
 }
 
+dunevd10kt_1x6x6_3view_geo: @local::dunevd10kt_1x6x6_3view_v1_geo
+
+dunefdvd_1x6x6_3view_services: {
+    @table::dunefdvd_1x6x6_services
+    Geometry:                  @local::dunevd10kt_1x6x6_3view_geo
+}
+
+dunefdvd_1x6x6_3view_simulation_services: {
+    @table::dunefdvd_1x6x6_simulation_services
+    Geometry:                  @local::dunevd10kt_1x6x6_3view_geo
+}
+
+dunefdvd_1x6x6_3view_reco_services: {
+    @table::dunefdvd_1x6x6_reco_services
+    Geometry:                  @local::dunevd10kt_1x6x6_3view_geo
+}
+
 END_PROLOG
