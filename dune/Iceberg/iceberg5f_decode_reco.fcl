@@ -1,9 +1,6 @@
-# iceberg5p_decode_reco.fcl
+# iceberg5f_decode_reco.fcl
 #
-# This is 14 mV/fC, 2 us with calibrated ADCs.
+# This is 14 mV/fC, 2 us without calibrated ADCs.
+# Same as 5c.
 
 #include "iceberg5c_decode_reco.fcl"
-
-# Use the Iceberg 5p calibration.
-# See calibs_iceberg.fcl.
-tools.areaGain_ib5: @local::tools.areaGain_ib5p
