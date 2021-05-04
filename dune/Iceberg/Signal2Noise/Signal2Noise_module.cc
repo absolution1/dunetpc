@@ -380,7 +380,7 @@ void Signal2Noise::analyze(art::Event const& e)
 	    // nb.  LArPandoraTrackCreation_module.cc fills the max of a signed int in an unsigned int
 	    // to indicate an invalid index
 
-            if (vmeta[ii]->Index() == (unsigned int) std::numeric_limits<int>::max()) {
+            if (vmeta[ii]->Index() >= (unsigned int) std::numeric_limits<int32_t>::max()) {
               fBadhit = true;
               continue;
             }
