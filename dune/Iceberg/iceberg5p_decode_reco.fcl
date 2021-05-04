@@ -1,5 +1,11 @@
-# iceberg5f_decode_reco.fcl
-#
-# 5f has same gain and shaping as 5c.
+# iceberg5p_decode_reco.fcl
 
 #include "iceberg5c_decode_reco.fcl"
+
+# Use the iceberg 5c pedestal fitter.
+tools.ib5_adcPedestalFit: @local::tools.ib5p_adcPedestalFit
+
+# Use the default Iceberg 5p calibration.
+# See calibs_iceberg.fcl.
+tools.areaGain_ib5: @local::tools.areaGain_ib5p
+
