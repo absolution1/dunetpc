@@ -377,7 +377,10 @@ void Signal2Noise::analyze(art::Event const& e)
         for (size_t ii=0; ii<vhit.size(); ii++) {
           if (vhit[ii].key() == allhits[ihit].key()) {
             
-            if (vmeta[ii]->Index() == std::numeric_limits<int>::max()) {
+	    // nb.  LArPandoraTrackCreation_module.cc fills the max of a signed int in an unsigned int
+	    // to indicate an invalid index
+
+            if (vmeta[ii]->Index() == (unsigned int) std::numeric_limits<int>::max()) {
               fBadhit = true;
               continue;
             }
