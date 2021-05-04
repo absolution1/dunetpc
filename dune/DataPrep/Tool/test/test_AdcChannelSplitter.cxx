@@ -104,6 +104,12 @@ int test_AdcChannelSplitter(bool useExistingFcl =false) {
   cout << endl;
   assert( acd.viewSize("split") == 2 );
   assert( acd.viewSize("split2") == 0 );
+  for ( Name vnam : acd.viewNames() ) {
+    for ( const AdcChannelData& acv : acd.view(vnam) ) {
+      assert( acv.viewParent != nullptr );
+      assert( acv.viewParent == &acd );
+    }
+  }
 
   cout << myname << line << endl;
   cout << myname << "Split the split." << endl;

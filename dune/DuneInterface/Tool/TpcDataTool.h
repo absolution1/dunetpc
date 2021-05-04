@@ -5,8 +5,8 @@
 //
 // Interface for tools that view or update TpcData objects.
 //
-// It inherits from AdcChannelTool and the default implemnetations here
-// call the ADC channel map methods of that class.
+// It inherits from AdcChannelTool and the default implementation here
+// calls the ADC channel map methods of that class.
 
 #ifndef TpcDataTool_H
 #define TpcDataTool_H

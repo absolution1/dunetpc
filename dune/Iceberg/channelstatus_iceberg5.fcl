@@ -320,8 +320,9 @@ data.iceberg5_hirms_channels: [
  447,
  640,
 ##### apax1 #####
-1000
+1000,
 ##### apax2 #####
+1176        # Pedestal shows huge jump in 9000-2
 ]
 # End high pedestal RMS.
 

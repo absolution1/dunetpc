@@ -59,6 +59,7 @@ DataMap AdcChannelSplitter::update(AdcChannelData& acd) const {
       if ( !copyRaw && !copySam ) break;
       acds.push_back(*pacd);
       AdcChannelData& acdNew = acds.back();
+      acdNew.viewParent = pacd;
       acdNew.tick0 = pacd->tick0 + itck;
       if ( copyRaw ) {
         for ( Index iraw=itck; iraw<jtck; ++iraw ) {

@@ -304,6 +304,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( isam >= acd.flags.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+      nkeep += nsam - isam;    // 2021-04-30: Keep unflagged samples
       break;
     }
     Index flg = acd.flags[isam];
@@ -549,7 +550,7 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   pman->showOverflow();
   pman->addAxis();
   Index istat = acd.channelStatus();
-  string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "unknown";
+  string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "No-status";
   NameVector slabs(3);
   slabs[0] = sstat + " channel";
   slabs[1] = "# skipped bins: " + std::to_string(dm.getInt("fitNSkip"));

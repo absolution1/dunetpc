@@ -141,6 +141,7 @@ tools.def_adcPedestalFit: {
   LogLevel: 1
   AdcRange: 4096
   FitOpt: 0
+  FitPrecision: 1.0
   SkipFlags: []
   AdcFitRange: 100
   FitRmsMin:  1.0
@@ -151,11 +152,28 @@ tools.def_adcPedestalFit: {
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
-  PlotSizeX: 0
-  PlotSizeY: 0
-  PlotSplitX: 0
-  PlotSplitY: 0
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotSplitX: 4
+  PlotSplitY: 4
   PlotShowFit: 1
+}
+
+# Dump ADC map raw contents to the log file.
+tools.adcRawDumper: {
+  tool_type: AdcDataDumper
+  FileName: ""
+  Prefix: "ADC raw dump for "
+  NewFile: false
+  ShowChannelCount: true
+  ShowTickCounts: false
+  ShowRaw: true
+  ShowPrepared: false
+  ShowFirst: 0
+  ShowRebin: 0
+  ShowMax: 20
+  ShowThreshold: 10
+  ShowOpt: 1
 }
 
 # Dump ADC map contents to the log file.
@@ -326,6 +344,7 @@ adcPlotDftTemplate: {
            LogLevel: 1
        PlotDataView: ""
   ChannelStatusFlag: 0
+   ChannelSelection: ""
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
    PlotSummaryNames: []

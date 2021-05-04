@@ -141,6 +141,12 @@ data.ib5_dataprep_seqs.calib_noiserem: [
   , "ibNoiseRemovalKe"         # Remove coherent noise
 ]
 
+# Charge calibration, ped removal, noise removal.
+data.ib5_dataprep_seqs.calib_ped_noiserem: [
+  @sequence::data.ib5_dataprep_seqs.calib_ped
+  , "ibNoiseRemovalKe"         # Remove coherent noise
+]
+
 # Drop ROIs, scale back to ADC and zero bad/noisy channels for wirecell processing.
 # DLA 2021-03-21: No tail or noise removal for now.
 data.ib5_dataprep_seqs.wirecell: [
