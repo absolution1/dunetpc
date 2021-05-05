@@ -212,7 +212,7 @@ tools.preparedAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Prepared ADC for event %EVENT%"
+  HistTitle: "Prepared ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
@@ -237,7 +237,7 @@ tools.signalAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Signal ADC for event %EVENT%"
+  HistTitle: "Signal ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
@@ -262,11 +262,11 @@ tools.rawAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Raw ADC for event %EVENT%"
+  HistTitle: "Raw ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  PlotFileName: "adcrawRun%0RUN%Event%0EVENT%Chan%CHAN1%-%CHAN2%.png"
   RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
 
