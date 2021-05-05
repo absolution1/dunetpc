@@ -2,6 +2,12 @@
 
 #include "iceberg5c_decode_reco.fcl"
 
-# Use the default Iceberg 5c calibration.
+# Use the iceberg 5c pedestal fitter.
+tools.ib5_adcPedestalFit: @local::tools.ib5q_adcPedestalFit
+
+# Use the default Iceberg 5p calibration.
 # See calibs_iceberg.fcl.
 tools.areaGain_ib5: @local::tools.areaGain_ib5q
+
+# Define pedestal finder used in the pedestal update.
+tools.ib5TailPedSignalFinder: @local::tools.ib5qTailPedSignalFinder

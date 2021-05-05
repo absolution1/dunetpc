@@ -452,7 +452,7 @@ DataMap AdcChannelMetric::viewMapLocal(const AdcChannelDataMap& acds, MetricMap&
   }
   Index chanFirst = acds.begin()->first;
   Index chanLast = acds.rbegin()->first;
-  if ( m_LogLevel >= 2 ) cout << "Processing " << acds.size() << " channels: ["
+  if ( m_LogLevel >= 2 ) cout << myname << "Processing " << acds.size() << " channels: ["
                               << chanFirst << ", " << chanLast << "]" << endl;
   for ( IndexRange ran : m_crs ) {
     if ( ran.name == "all" ) {
@@ -874,7 +874,8 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       //  if ( met > m_MetricMax ) gval = m_MetricMax;
       //}
       Index iptAll = pgAll->GetN();
-      pgAll->SetPoint(iptAll, icha, gval);
+      float xcha = icha + 0.5;
+      pgAll->SetPoint(iptAll, xcha, gval);
       if ( pgeAll != nullptr ) pgeAll->SetPointError(iptAll, ex, err);
       if ( m_PlotUsesStatus ) {
         Index stat = channelStatus(icha);
@@ -882,7 +883,7 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
           TGraph* pgStat = graphs[stat];
           TGraphErrors* pgeStat = egraphs[stat];
           Index iptStat = pgStat->GetN();
-          pgStat->SetPoint(iptStat, icha, gval);
+          pgStat->SetPoint(iptStat, xcha, gval);
           if ( pgeStat != nullptr ) pgeStat->SetPointError(iptStat, ex, err);
         }
       }
