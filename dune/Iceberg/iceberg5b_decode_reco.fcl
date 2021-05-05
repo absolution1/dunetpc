@@ -5,3 +5,6 @@
 tools.areaGain_ib5: @local::tools.areaGain_ib5b
 
 tools.ib5_adcPedestalFit: @local::tools.ib5b_adcPedestalFit
+
+# Define pedestal finder used in the pedestal update.
+tools.ib5TailPedSignalFinder: @local::tools.ib5bTailPedSignalFinder

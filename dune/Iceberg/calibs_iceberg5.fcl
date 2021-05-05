@@ -191,7 +191,7 @@ tools.areaGain_ib5o_v00: {
 }
 
 #######################################################
-# Updated estimates.
+# Updated estimates v02.
 # March 2021
 #######################################################
 #
@@ -201,7 +201,7 @@ tools.areaGain_ib5o_v00: {
 # is within 2% of the the 5c value when scaled by gA,
 # the amplifier gain.
 #
-# Here all gain are obtaine by scaling the 5a gains:
+# Here all gains are obtained by scaling the 5a gains:
 #   g = K/g_A/tau_A with K = 0.225
 # where gA and tau_A are the nominal amplififier values.
 #
@@ -323,6 +323,54 @@ tools.areaGain_ib5o_v02: {
 # g = 0.01408 ke/tick and K=0.1971.
 # about 1.2% different from my estimate.
 # Adopt Tom's values below.
+#
+# 2021-03-21: All gain estamates use the old value of 21.4 ke/DAC
+# from injection capicitance of 183 fC. But last June Shanshan
+# reported a new measurement of 187.8 ==> conversion factor
+# is 21.98 ke/DAC, 2.7 % higher
+
+# Template
+data.calibTemplate: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5p-v02"
+  DefaultValue: 0.0
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5B00_v02: @local::data.calibTemplate
+tools.areaGain_ib5B01_v02: @local::data.calibTemplate
+tools.areaGain_ib5B02_v02: @local::data.calibTemplate
+tools.areaGain_ib5B03_v02: @local::data.calibTemplate
+tools.areaGain_ib5B10_v02: @local::data.calibTemplate
+tools.areaGain_ib5B11_v02: @local::data.calibTemplate
+tools.areaGain_ib5B12_v02: @local::data.calibTemplate
+tools.areaGain_ib5B13_v02: @local::data.calibTemplate
+tools.areaGain_ib5B20_v02: @local::data.calibTemplate
+tools.areaGain_ib5B21_v02: @local::data.calibTemplate
+tools.areaGain_ib5B22_v02: @local::data.calibTemplate
+tools.areaGain_ib5B23_v02: @local::data.calibTemplate
+tools.areaGain_ib5B30_v02: @local::data.calibTemplate
+tools.areaGain_ib5B31_v02: @local::data.calibTemplate
+tools.areaGain_ib5B32_v02: @local::data.calibTemplate
+tools.areaGain_ib5B33_v02: @local::data.calibTemplate
+
+tools.areaGain_ib5B00_v02.DefaultValue: 0.0839
+tools.areaGain_ib5B01_v02.DefaultValue: 0.0419
+tools.areaGain_ib5B02_v02.DefaultValue: 0.0210 
+tools.areaGain_ib5B03_v02.DefaultValue: 0.01398
+tools.areaGain_ib5B10_v02.DefaultValue: 0.0505
+tools.areaGain_ib5B11_v02.DefaultValue: 0.0253
+tools.areaGain_ib5B12_v02.DefaultValue: 0.01263
+tools.areaGain_ib5B13_v02.DefaultValue: 0.00842
+tools.areaGain_ib5B20_v02.DefaultValue: 0.0282
+tools.areaGain_ib5B21_v02.DefaultValue: 0.01408      # 5q
+tools.areaGain_ib5B22_v02.DefaultValue: 0.00704      # 5p
+tools.areaGain_ib5B23_v02.DefaultValue: 0.00469
+tools.areaGain_ib5B30_v02.DefaultValue: 0.01577
+tools.areaGain_ib5B31_v02.DefaultValue: 0.00788
+tools.areaGain_ib5B32_v02.DefaultValue: 0.00394
+tools.areaGain_ib5B33_v02.DefaultValue: 0.00263
 
 # 14 mv/fC, 2 us, 900 mV
 tools.areaGain_ib5p_v02: {
@@ -335,7 +383,6 @@ tools.areaGain_ib5p_v02: {
 
 # 14 mv/fC, 1 us, 900 mV
 # Measure the same 553 ADC/DAC
-# For comparison Tom Junk area calibration gives 0.0141.
 tools.areaGain_ib5q_v02: {
   tool_type: FclFileFloatArray
   LogLevel: 1
@@ -344,5 +391,176 @@ tools.areaGain_ib5q_v02: {
   FileNames: [ ]
 }
 
+#######################################################
+# Updated estimates v03.
+# April 2021
+#
+# New voltage step from Shanshan gives charge 20.92 ke/step.
+# Values from v02 are sclaed by 209.9/21.4 = 0.978
+#
+# Use c for periods b, f and k.
+#######################################################
+
+tools.areaGain_ib5a_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5a-v03"
+  DefaultValue: 0.0468
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5c_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5c-v03"
+  DefaultValue: 0.0079
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5d_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5d-v03"
+  DefaultValue: 0.0157
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5e_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5e-v03"
+  DefaultValue: 0.00524
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5g_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5g-v03"
+  DefaultValue: 0.0234
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5h_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5h-v03"
+  DefaultValue: 0.0141
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5i_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5i-v03"
+  DefaultValue: 0.00440
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5j_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5j-v03"
+  DefaultValue: 0.0314
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5l_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5l-v03"
+  DefaultValue: 0.0088
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5m_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5m-v03"
+  DefaultValue: 0.00293
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5n_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5n-v03"
+  DefaultValue: 0.0282
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5o_v03: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5o-v03"
+  DefaultValue: 0.0094
+  FileNames: [ ]
+}
+
+# First period 5p with calibrated ADC data.
+# This is at 14 mv/fC, 2 us, 900 mV
+# Height gain is now 553 ADC/DAC compared with
+# 490/DAC with uncalibrated ADC.
+# Scaling the above gain factor, we obtain
+#   g = K/g_A/tau_A with K = 0.1995
+# for data with calibrated ADC.
+#
+# Tom did fit area vs. DAC for each channel
+# in 5q and obtained  mean responses of
+# 1517 and 1523 ADC-tick/DAC for collection
+# and induction.
+# This is at 14 mv/fC, 1 us, 900 mV
+# The average of these gives
+# g = 0.01408 ke/tick and K=0.1971.
+# about 1.2% different from my estimate.
+# Adopt Tom's values below.
+#
+# 2021-03-21: All gain estamates use the old value of 21.4 ke/DAC
+# from injection capicitance of 183 fC. But last June Shanshan
+# reported a new measurement of 187.8 ==> conversion factor
+# is 21.98 ke/DAC, 2.7 % higher
+
+# Template
+data.calibTemplate: {
+  tool_type: FclFileFloatArray
+  LogLevel: 1
+  Label: "areaGain_ib5p-v03"
+  DefaultValue: 0.0
+  FileNames: [ ]
+}
+
+tools.areaGain_ib5B00_v03: @local::data.calibTemplate
+tools.areaGain_ib5B01_v03: @local::data.calibTemplate
+tools.areaGain_ib5B02_v03: @local::data.calibTemplate
+tools.areaGain_ib5B03_v03: @local::data.calibTemplate
+tools.areaGain_ib5B10_v03: @local::data.calibTemplate
+tools.areaGain_ib5B11_v03: @local::data.calibTemplate
+tools.areaGain_ib5B12_v03: @local::data.calibTemplate
+tools.areaGain_ib5B13_v03: @local::data.calibTemplate
+tools.areaGain_ib5B20_v03: @local::data.calibTemplate
+tools.areaGain_ib5B21_v03: @local::data.calibTemplate
+tools.areaGain_ib5B22_v03: @local::data.calibTemplate
+tools.areaGain_ib5B23_v03: @local::data.calibTemplate
+tools.areaGain_ib5B30_v03: @local::data.calibTemplate
+tools.areaGain_ib5B31_v03: @local::data.calibTemplate
+tools.areaGain_ib5B32_v03: @local::data.calibTemplate
+tools.areaGain_ib5B33_v03: @local::data.calibTemplate
+
+tools.areaGain_ib5B00_v03.DefaultValue: 0.0820
+tools.areaGain_ib5B01_v03.DefaultValue: 0.0410
+tools.areaGain_ib5B02_v03.DefaultValue: 0.0205 
+tools.areaGain_ib5B03_v03.DefaultValue: 0.01367
+tools.areaGain_ib5B10_v03.DefaultValue: 0.0494
+tools.areaGain_ib5B11_v03.DefaultValue: 0.0247
+tools.areaGain_ib5B12_v03.DefaultValue: 0.01235
+tools.areaGain_ib5B13_v03.DefaultValue: 0.00823
+tools.areaGain_ib5B20_v03.DefaultValue: 0.0275
+tools.areaGain_ib5B21_v03.DefaultValue: 0.01376      # 5q
+tools.areaGain_ib5B22_v03.DefaultValue: 0.00688      # 5p
+tools.areaGain_ib5B23_v03.DefaultValue: 0.00459
+tools.areaGain_ib5B30_v03.DefaultValue: 0.01541
+tools.areaGain_ib5B31_v03.DefaultValue: 0.00771
+tools.areaGain_ib5B32_v03.DefaultValue: 0.00385
+tools.areaGain_ib5B33_v03.DefaultValue: 0.00257
 
 #######################################################
