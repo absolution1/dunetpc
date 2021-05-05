@@ -33,3 +33,6 @@ tools.ib5_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
 # Use the default Iceberg 5c calibration.
 # See calibs_iceberg.fcl.
 tools.areaGain_ib5: @local::tools.areaGain_ib5c
+
+# Define pedestal finder used in the pedestal update.
+tools.ib5TailPedSignalFinder: @local::tools.ib5cTailPedSignalFinder
