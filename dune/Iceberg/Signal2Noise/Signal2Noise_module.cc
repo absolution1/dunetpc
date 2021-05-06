@@ -167,7 +167,7 @@ private:
   int fNticks; 
   int fNticksReadout;
   float fSampleRate;
-  TH1I* fWaveForm[10];
+  TH1F* fWaveForm[10];
 };
 
 
@@ -630,7 +630,7 @@ void Signal2Noise::beginJob(){
   // waveform
   if (fSaveWaveForm) {
     for (int i=0; i<10; i++) {
-      fWaveForm[i] = tfs->make<TH1I>(Form("waveform_%d",i), "wire waveform", fNticksReadout, 0, fNticksReadout);
+      fWaveForm[i] = tfs->make<TH1F>(Form("waveform_%d",i), "wire waveform", fNticksReadout, 0, fNticksReadout);
       fWaveForm[i]->SetStats(0);
       fWaveForm[i]->GetXaxis()->SetTitle("Time [ticks]");
       fWaveForm[i]->GetYaxis()->SetTitle("ADC");

@@ -1,0 +1,89 @@
+#include "services_dune.fcl"
+#include "IcebergRawDecoder.fcl"
+#include "IcebergDataInterfaceTool.fcl"
+#include "hitfindermodules_dune.fcl"
+#include "trackfindermodules_dune.fcl"
+#include "channelstatus_iceberg5.fcl"
+
+process_name: Signal2Noise
+
+services:
+{
+  TFileService: { fileName: "signal2noise.root" }
+  TimeTracker:       {}
+  MemoryTracker:     {}
+  RandomNumberGenerator: {}                     #ART native random number generator
+  IFDH :{}
+  message:      @local::dune_message_services_prod
+
+  FileCatalogMetadata: @local::art_file_catalog_data
+  ExptGeoHelperInterface:       @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
+  Geometry:            @local::iceberg_geo
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  10            # Number of events to create
+}
+
+physics:
+{
+  analyzers:{
+    signal2noise:
+    {
+      module_type: "Signal2Noise"
+      RawDigitLabel: "caldata"
+      RawInstanceLabel: "dataprep"
+      WireProducerLabel: ""
+      WireInstanceLabel: ""
+      HitModuleLabel: "linecluster"
+      TrackModuleLabel: "pmtrack"
+      CalorimetryModuleLabel: "pmtrackcalo"
+      SaveWaveForm: true
+      SelectedWires: [75, 180, 101, 187, 900, 1100]
+    }
+  }
+ 
+  ana:  [ signal2noise ]
+
+  end_paths:     [  ana ]
+}
+
+# define the list of LArSoft modules to run through the simulate path
+#change TrackModuleLabel and CalorimetryModuleLabel here to "pmtrack" and "pmtrackcalo" or "pandoraTrack and pandoracalo" if required
+#physics.analyzers.signal2noise.CalorimetryModuleLabel:  "pmtrackcalo"
+#
+
+#use linecluster to the old reco files
+
+#services.SpaceCharge.EnableSimSpatialSCE: true
+#services.SpaceCharge.EnableCorrSCE: true
+#services.SpaceCharge.EnableSimEfieldSCE: true
+#services.SpaceCharge.EnableSimulationSCE: true
+
+# channel status service (service_provider should be specified)
+services.ChannelStatusService.BadChannels: @local::data.iceberg5_bad_channels
+services.ChannelStatusService.NoisyChannels: @local::data.iceberg5_noisy_channels
+services.ChannelStatusService.service_provider: "SimpleChannelStatusService"
+
+services.DetectorClocksService:        @local::dunefd_detectorclocks
+services.DetectorClocksService.ClockSpeedOptical: 150
+services.DetectorClocksService.DefaultBeamTime: 250
+services.DetectorClocksService.DefaultTrigTime: 250
+services.DetectorClocksService.G4RefTime: -250
+services.DetectorClocksService.TriggerOffsetTPC: -335
+
+
+
+services.DetectorPropertiesService:    @local::protodunesp_detproperties
+services.LArPropertiesService:         @local::dunefd_properties
+services.DetectorPropertiesService.GetHVDriftfromSamweb: false
+services.DetectorPropertiesService.GetReadOutWindowSizefromSamweb: false
+
+services.DetectorPropertiesService.NumberTimeSamples: 2127
+services.DetectorPropertiesService.ReadOutWindowSize: 2000
+
+services.DetectorPropertiesService.TimeOffsetU: -4
+services.DetectorPropertiesService.TimeOffsetV: 0
