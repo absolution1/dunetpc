@@ -10,3 +10,5 @@ services.RawDigitPrepService.ToolNames: [
   , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts (Drop this to work at ke scale)
   , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC (drop this to retain bad channels)
 ]
+
+tools.adcScaleKeToAdc.ScaleFactor: 126.58228
