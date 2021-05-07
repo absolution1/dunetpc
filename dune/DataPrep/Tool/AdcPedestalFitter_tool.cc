@@ -572,6 +572,16 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   sslab.str("");
   sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
   slabs.push_back(sslab.str());
+  sslab.str("");
+  float frac = dm.getFloat("fitFractionLow");
+  int prec = frac > 0 ? int(-log10(frac)) + 3 : 0;
+  sslab << "f_{lo}: " << std::fixed << std::setprecision(prec) << frac;
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  frac = dm.getFloat("fitFractionHigh");
+  prec = frac > 0 ? int(-log10(frac)) + 3 : 0;
+  sslab << "f_{hi}: " << std::fixed << std::setprecision(prec) << frac;
+  slabs.push_back(sslab.str());
   xlab = 0.94;
   ylab = 0.86;
   for ( Name slab : slabs ) {
