@@ -616,10 +616,10 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
   slabs.push_back(sslab.str());
   sslab.str("");
-  sslab << "Fit #chi^{2}: " << std::fixed << std::setprecision(1) << dm.getFloat("fitChiSquare");
-  slabs.push_back(sslab.str());
-  sslab.str("");
-  sslab << "Fit #chi^{2}/DOF: " << std::fixed << std::setprecision(1) << dm.getFloat("fitReducedChiSquare");
+  //sslab << "Fit #chi^{2}: " << std::fixed << std::setprecision(1) << dm.getFloat("fitChiSquare");
+  //slabs.push_back(sslab.str());
+  //sslab.str("");
+  sslab << "#chi^{2}/DOF: " << std::fixed << std::setprecision(1) << dm.getFloat("fitReducedChiSquare");
   slabs.push_back(sslab.str());
   sslab.str("");
   float frac = dm.getFloat("fitFractionLow");
