@@ -357,7 +357,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     phr->SetBinContent(rbinmax1, tmpval);
     int rbinmax2 = phr->GetMaximumBin();
     double radcsum2 = phr->Integral();
-    // Evaluate the histogram mean and peak postition.
+    // Evaluate the histogram mean and peak position.
     // If the peak removal has not removed too much data, these values are
     // re-evaluated using the peak-removed histogram.
     double adcmean = radcmean;        // Mean position.
@@ -371,7 +371,6 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       }
     }
     adcmax = phr->GetBinCenter(rbinmax);
-    delete phr;
     // Make sure the peak bin stays in range.
     if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
     adc1 = adcmax - 0.5*wadc;
@@ -383,6 +382,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
            << ") does not include peak at " << radcmax1 << "." << endl;
     }
   }
+  delete phr;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(0);
   //phf->Sumw2();
@@ -410,13 +410,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   phf->SetLineWidth(2);
   // Fetch the peak bin and suppress it for the fit if more than 20% (but not
   // all) the data is in it.
+  // May 2021: We expect the peak bin to hold 20% of the samples if the RMS is near
+  // or below 2.0. Don't drop bin for low RMS and log a warning if bin is dropped
+  // and fit sigm < 2.5.
   int binmax = phf->GetMaximumBin();
   double valmax = phf->GetBinContent(binmax);
+  float peakFrac = valmax/phf->Integral();
   double xcomax = phf->GetBinLowEdge(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
   double peakBinFraction = (rangeIntegral > 0) ? valmax/rangeIntegral : 1.0;
   bool allBin = peakBinFraction > 0.99;
-  bool dropBin = valmax > 0.2*phf->Integral() && !allBin;
+  float rawRms = phf->GetRMS();
+  bool isNarrow = rawRms < 2.5;
+  bool dropBin = m_RemoveStickyCode && peakFrac > 0.2 && !allBin && !isNarrow;
   int nbinsRemoved = 0;
   if ( dropBin ) {
     double tmpval = 0.5*(phf->GetBinContent(binmax-1)+phf->GetBinContent(binmax+1));
@@ -510,6 +516,15 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       pedestal = fitter.GetParameter(1) - 0.5;
       pedestalRms = fitter.GetParameter(2);
       fitChiSquare = fitter.GetChisquare();
+      if ( dropBin && pedestalRms < 2.5 ) {
+        int precSave = cout.precision();
+        cout.precision(2);
+        cout << myname << "WARNING: Bin was dropped for channel " << acd.channel()
+             << " with fit sigma=" << fixed << pedestalRms
+             << ", raw RMS=" << fixed << rawRms
+             << " and peak fraction=" << fixed << peakFrac << endl;
+        cout.precision(precSave);
+      }
     }
   }
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
