@@ -44,6 +44,7 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedestal"] = res.getFloat("fitPedestal");
   acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
   acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
+  acd.metadata["fitPedReducedChiSquare"] = res.getFloat("fitReducedChiSquare");
   acd.metadata["fitPedPeakBinFraction"] = res.getFloat("fitPeakBinFraction");
   acd.metadata["fitPedPeakBinExcess"] = res.getFloat("fitPeakBinExcess");
   acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
@@ -403,6 +404,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   for ( Index iadc=0; iadc<wadc; ++iadc ) {
     phf->SetBinContent(iadc+1, fcounts[iadc]);
+    //float err = sqrt(fcounts[iadc]);
+    //if ( err <= 0.0 ) err = 1.0;
+    //phf->SetBinError(iadc+1, err);
   }
   float fracLo = count > 0 ? float(countLo)/count : 0.0;
   float fracHi = count > 0 ? float(countHi)/count : 0.0;
@@ -442,6 +446,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
   }
   float fitChiSquare = 0.0;
+  float fitReducedChiSquare = 0.0;
   float peakBinExcess = 0.0;
   if ( doFit ) {
     // Block Root info message for new Canvas produced in fit.
@@ -515,7 +520,28 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       peakBinExcess = (valmax - valEval)/rangeIntegral;
       pedestal = fitter.GetParameter(1) - 0.5;
       pedestalRms = fitter.GetParameter(2);
+      // Chi-square from the fitter.
       fitChiSquare = fitter.GetChisquare();
+      // Estimate of chi-square/DOF
+      float ibin1 = int(pedestal - 3.0*pedestalRms) - adc1;
+      if ( ibin1 < 1 ) ibin1 = 1;
+      float ibin2 = int(pedestal + 3.0*pedestalRms + 2.0) - adc1;
+      if ( ibin2 > wadc ) ibin2 = wadc;
+      int nbin = 0;
+      double sumsq = 0.0;
+      for ( int ibin=ibin1; ibin<=ibin2; ++ibin ) {
+        float xfun = adc1 + ibin - 0.5;
+        float yfun = fitter.Eval(xfun);
+        if ( yfun < 1.0 ) continue;
+        float yhst = phf->GetBinContent(ibin);
+        float dely = yhst - yfun;
+        float vary = yfun > 1.0 ? yfun : 1.0;
+        sumsq += dely*dely/vary;
+        ++nbin;
+      }
+      float estndof = nbin > 4 ? nbin - 3 : 1;
+      fitReducedChiSquare = sumsq/estndof;
+      // Warn if bin was dropped for a too-narrow distribution.
       if ( dropBin && pedestalRms < 2.5 ) {
         int precSave = cout.precision();
         cout.precision(2);
@@ -536,6 +562,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitChiSquare", fitChiSquare);
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setFloat("fitPeakBinExcess", peakBinExcess);
+  res.setFloat("fitChiSquare", fitChiSquare);
+  res.setFloat("fitReducedChiSquare", fitReducedChiSquare);
   res.setInt("fitChannel", acd.channel());
   res.setInt("fitNSkip", nskip);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
@@ -586,6 +614,12 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   slabs.push_back(sslab.str());
   sslab.str("");
   sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  sslab << "Fit #chi^{2}: " << std::fixed << std::setprecision(1) << dm.getFloat("fitChiSquare");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  sslab << "Fit #chi^{2}/DOF: " << std::fixed << std::setprecision(1) << dm.getFloat("fitReducedChiSquare");
   slabs.push_back(sslab.str());
   sslab.str("");
   float frac = dm.getFloat("fitFractionLow");
