@@ -771,6 +771,15 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail f
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
+# Pedestal reduced chi-square for each TPS channel.
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter: @local::chmet_pdtps_template
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.Metric: fitPedReducedChiSquare
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.MetricMax: 1000
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.HistName: "hchpd%CRNAME%_rchsq_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.HistTitle: "ADC pedestal #chi^{2}/DOF for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.MetricLabel: "#chi^{2}/DOF"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.PlotFileName: "chmet_pedrchsq_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
 # ---- Here and below merging events ----
 
 # -- As above but including multiple events. --
