@@ -141,6 +141,15 @@ DuneToolManager::DuneToolManager(std::string fclname)
 
 //**********************************************************************
 
+int DuneToolManager::deleteShared(std::string tnam) {
+  SharedToolMap::iterator itoo = m_sharedTools.find(tnam);
+  if ( itoo == m_sharedTools.end() ) return 1;
+  m_sharedTools.erase(tnam);
+  return 0;
+}
+
+//**********************************************************************
+
 const std::vector<std::string>& DuneToolManager::toolNames() const {
   return m_toolNames;
 }
