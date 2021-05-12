@@ -205,18 +205,24 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     m_pRunDataTool = ptm->getShared<RunDataTool>(m_RunDataTool);
     if ( m_pRunDataTool == nullptr ) {
       cout << myname << "WARNING: RunDataTool not found: " << m_RunDataTool << endl;
+    } else {
+      cout << myname << "Found run data tool." << endl;
     }
   }
   if ( m_TickOffsetTool.size() ) {
     m_pTickOffsetTool = ptm->getShared<TimeOffsetTool>(m_TickOffsetTool);
     if ( m_pTickOffsetTool == nullptr ) {
       cout << myname << "WARNING: Tick offset tool not found: " << m_TickOffsetTool << endl;
+    } else {
+      cout << myname << "Found tick offset tool." << endl;
     }
   }
   if ( m_ChannelRangeTool.size() ) {
     m_pChannelRangeTool = ptm->getShared<IndexRangeTool>(m_ChannelRangeTool);
     if ( m_pChannelRangeTool == nullptr ) {
       cout << myname << "WARNING: Index range tool not found: " << m_ChannelRangeTool << endl;
+    } else {
+      cout << myname << "Found channel range tool." << endl;
     }
   }
   // Build the label substitutions.
