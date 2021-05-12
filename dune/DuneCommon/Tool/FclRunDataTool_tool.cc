@@ -55,14 +55,14 @@ FclRunDataTool::FclRunDataTool(fhicl::ParameterSet const& ps)
   const Name myname = "FclRunDataTool::ctor: ";
   m_fclPath = gSystem->Getenv("FHICL_FILE_PATH");
   if ( m_LogLevel ) {
-    cout << "Configuration:" << endl;
-    cout << "   LogLevel: " << m_LogLevel << endl;
-    cout << "  FileNames: ";
+    cout << myname << "Configuration:" << endl;
+    cout << myname << "   LogLevel: " << m_LogLevel << endl;
+    cout << myname << "  FileNames: ";
     if ( m_FileNames.size() == 0 ) {
       cout << "<empty>";
     }
     for ( Name fname : m_FileNames ) {
-      cout << "\n    " << fname;
+      cout << "\n" << myname << "                 " << fname;
     }
     cout << endl;
   }
@@ -84,9 +84,9 @@ RunData FclRunDataTool::runData(Index run, Index subRun) const {
     sman.replaceFixedWidth("%RUN%", run, 6);
     sman.replaceFixedWidth("%SUBRUN%", subRun, 6);
     if ( parseFcl(m_fclPath, fname, rdat) ) {
-      if ( m_LogLevel >= 3 ) cout << "Unable to find/read " << fname << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "Unable to find/read " << fname << endl;
     } else {
-      if ( m_LogLevel >= 3 ) cout << "  Read " << fname << endl;
+      if ( m_LogLevel >= 3 ) cout << myname << "  Read " << fname << endl;
     }
   }
   return rdat;
