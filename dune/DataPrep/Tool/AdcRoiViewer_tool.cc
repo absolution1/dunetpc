@@ -1755,14 +1755,15 @@ void AdcRoiViewer::fillChanSumHists() const {
         Name vlabOld = paxis->GetTitle();
         Name vlabNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, vlabOld);
         if ( vlabNew != vlabOld ) {
-          if ( m_LogLevel >= 3 ) cout << "Setting variable label for " << hnam
+          if ( m_LogLevel >= 3 ) cout << myname << "Setting variable label for " << hnam
                                       << " to \"" << vlabNew << "\"." << endl;
           paxis->SetTitle(vlabNew.c_str());
         }
         Name httlOld = ph->GetTitle();
         Name httlNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, httlOld);
         if ( httlNew != httlOld ) {
-          if ( m_LogLevel >= 3 ) cout << "Setting title for " << hnam << " to \"" << httlNew << "\"." << endl;
+          if ( m_LogLevel >= 3 ) cout << myname << "Setting title for " << hnam << " to \""
+                                      << httlNew << "\"." << endl;
           ph->SetTitle(httlNew.c_str());
         }
       }
