@@ -35,6 +35,7 @@ int parseFcl(string path, string fclname, RunData& rdat) {
   ps.get_if_present<IndexVector>("apas", rdat.accessApas());
   ps.get_if_present<float>("gain", rdat.accessGain());
   ps.get_if_present<float>("shaping", rdat.accessShaping());
+  ps.get_if_present<float>("baseline", rdat.accessBaseline());
   ps.get_if_present<float>("leakage", rdat.accessLeakage());
   ps.get_if_present<float>("hvfrac", rdat.accessHvfrac());
   ps.get_if_present<Index>("pulserAmplitude", rdat.accessPulserAmplitude());
