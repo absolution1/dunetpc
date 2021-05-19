@@ -9,6 +9,7 @@
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
+#include "dune/DuneCommon/shiftHistFit.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/GausStepFitter.h"
@@ -820,7 +821,12 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       fopt = "WWB";
       //fopt = "LWB";  // Use likelihood fit to include empty bins. Do we want this here?
       if ( dbg < 3 ) fopt += "Q";
-      int fstat = quietHistFit(ph, pf, fopt.c_str());
+      // Do shifted fit to avoid numerical issues if t0 is large.
+      double xshift = 0.0;
+      if ( t0 > 500.0 ) {
+        xshift = 500*(long(t0)/500);
+      }
+      int fstat = shiftHistFit(ph, pf, fopt.c_str(), 2, xshift);
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
       ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
       ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pfinit
