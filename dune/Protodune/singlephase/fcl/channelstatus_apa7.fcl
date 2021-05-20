@@ -7,7 +7,22 @@
 
 BEGIN_PROLOG
 
-apa7warm_channel_status: {
+allgood_channel_status: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+  ]
+
+}
+
+apa7warm_channel_status_2019: {
  
   # implements IChannelStatusService
   service_provider: SimpleChannelStatusService
@@ -34,7 +49,7 @@ apa7warm_channel_status: {
 
 }
 
-apa7cold_channel_status: {
+apa7cold_channel_status_2019: {
  
   # implements IChannelStatusService
   service_provider: SimpleChannelStatusService
@@ -56,6 +71,35 @@ apa7cold_channel_status: {
     2084,   # Small RMS ==> disconnected wire
     # femb710x
     2558   # Small RMS ==> disconnected wire
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: []
+
+}
+
+apa7warm_channel_status_2021: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
+  ]
+
+  # list of bad noisy channels:
+  NoisyChannels: [
+  ]
+
+}
+
+apa7cold_channel_status_2021: {
+ 
+  # implements IChannelStatusService
+  service_provider: SimpleChannelStatusService
+
+  # list of bad channels:
+  BadChannels:   [
   ]
 
   # list of bad noisy channels:

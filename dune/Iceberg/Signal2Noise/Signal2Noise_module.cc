@@ -167,7 +167,9 @@ private:
   int fNticks; 
   int fNticksReadout;
   float fSampleRate;
-  TH1I* fWaveForm[10];
+  TH1F* fWaveForm[10];
+  float fMaxNoise = 40.; // set an upper limit for noise ADC
+  TH1F* fWaveFormHist[10];
 };
 
 
@@ -493,19 +495,6 @@ void Signal2Noise::analyze(art::Event const& e)
         }
       } // if (!wirelist.empty())
 
-      if (fSaveWaveForm && nwaveform<10 && nwaveform_plane_0<4 && nwaveform_plane_1<4 && nwaveform_plane_2<5) {
-        if (wireplane==0) nwaveform_plane_0++;
-        if (wireplane==1) nwaveform_plane_1++;
-        if (wireplane==2) nwaveform_plane_2++;
-
-        fWaveForm[nwaveform]->SetNameTitle(Form("plane_%d_AdcChannel_%d", wireplane,  channel), Form("AdcChannel%d", channel));  
-        
-        for (int jj=0; jj<datasize; jj++) {
-          fWaveForm[nwaveform]->SetBinContent(jj+1, adcvec[jj]);
-        }
-        nwaveform++;
-      }
-
       // ROI from the reconstructed hits
       int t0 = allhits[ihit]->PeakTime() - 5*(allhits[ihit]->RMS());
       if (t0<0) t0 = 0;
@@ -544,30 +533,45 @@ void Signal2Noise::analyze(art::Event const& e)
       int temp_number = 0;
       for (int iped=start_ped; iped<=end_ped; iped++) {
         if (iped > t0 && iped < t1) continue; // ideally we should use this to skip ROI region
-        if (abs(adcvec[iped]) > 8.) continue; // skip ROI with a threshold, protection for multiple hits on a wire
+        if (abs(adcvec[iped]) > fMaxNoise) continue; // skip ROI with a threshold, protection for multiple hits on a wire
         temp_sum += adcvec[iped]*adcvec[iped];
         temp_number++;
       }
       noiserms[ntrks][ihit] = sqrt(temp_sum/temp_number);
      
       // method 2: fit noise histogram with a gaus
-      int nbin_noise = 40;
-      double lbin_noise = -20.;
-      double hbin_noise = 20.;
-      
-      TH1F *h1_noise = new TH1F(TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), nbin_noise, lbin_noise, hbin_noise);
+      TH1F *h1_noise = new TH1F(TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), TString::Format("noise_trk%d_hit%d",ntrks, (int)ihit), (int)fMaxNoise, -fMaxNoise, fMaxNoise);
+
       // fill the readout datasize for each wire with hit: signal is included but would not affect the noise rms since signals are far way from the noise peak. One may also exclude signals by using ROI threshold cuts
       for (int jj=0; jj<datasize; jj++) {
         if (jj > t0 && jj < t1) continue; // ideally we should use this to skip ROI region
-        if (abs(adcvec[jj]) > 8.) continue; // skip ROI with a threshold, protection for multiple hits on a wire
+        if (abs(adcvec[jj]) > fMaxNoise) continue; // skip ROI with a threshold, protection for multiple hits on a wire
         h1_noise->Fill(adcvec[jj]);
       }
-      TF1 *f1_noise = new TF1("f1_noise", "gaus" , -10., 10.);
+      TF1 *f1_noise = new TF1("f1_noise", "gaus" , -fMaxNoise, fMaxNoise);
       double par[3];
       h1_noise->Fit(f1_noise, "WWQ");
       f1_noise->GetParameters(&par[0]);
       noisermsfit[ntrks][ihit] = par[2]; // sigma from gaus fit
 
+      if (fSaveWaveForm && nwaveform<10 && nwaveform_plane_0<4 && nwaveform_plane_1<4 && nwaveform_plane_2<5) {
+        if (wireplane==0) nwaveform_plane_0++;
+        if (wireplane==1) nwaveform_plane_1++;
+        if (wireplane==2) nwaveform_plane_2++;
+
+        fWaveForm[nwaveform]->SetNameTitle(Form("plane_%d_AdcChannel_%d", wireplane,  channel), Form("AdcChannel%d", channel));
+
+        for (int jj=0; jj<datasize; jj++) {
+          fWaveForm[nwaveform]->SetBinContent(jj+1, adcvec[jj]);
+        }//fWaveForm
+
+        fWaveFormHist[nwaveform]->SetNameTitle(Form("Noise_%d_AdcChannel_%d", wireplane,  channel), Form("NhistChannel%d", channel));
+        for (int tt=1; tt<=h1_noise->GetNbinsX(); tt++){
+          fWaveFormHist[nwaveform]->SetBinContent(tt, h1_noise->GetBinContent(tt));
+        }//fWaveFormHist
+        nwaveform++;
+      }
+      
       delete h1_noise;
       delete f1_noise;
 
@@ -630,10 +634,11 @@ void Signal2Noise::beginJob(){
   // waveform
   if (fSaveWaveForm) {
     for (int i=0; i<10; i++) {
-      fWaveForm[i] = tfs->make<TH1I>(Form("waveform_%d",i), "wire waveform", fNticksReadout, 0, fNticksReadout);
+      fWaveForm[i] = tfs->make<TH1F>(Form("waveform_%d",i), "wire waveform", fNticksReadout, 0, fNticksReadout);
       fWaveForm[i]->SetStats(0);
       fWaveForm[i]->GetXaxis()->SetTitle("Time [ticks]");
       fWaveForm[i]->GetYaxis()->SetTitle("ADC");
+      fWaveFormHist[i] = tfs->make<TH1F>(Form("Noise_%d",i), "noise", (int)fMaxNoise, -fMaxNoise, fMaxNoise);
     }
   }
 }

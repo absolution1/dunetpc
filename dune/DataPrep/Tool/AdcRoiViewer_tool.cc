@@ -9,6 +9,7 @@
 #include "dune/DuneCommon/gausTF1.h"
 #include "dune/DuneCommon/coldelecResponse.h"
 #include "dune/DuneCommon/quietHistFit.h"
+#include "dune/DuneCommon/shiftHistFit.h"
 #include "dune/DuneCommon/StringManipulator.h"
 #include "dune/DuneCommon/LineColors.h"
 #include "dune/DuneCommon/GausStepFitter.h"
@@ -205,18 +206,24 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
     m_pRunDataTool = ptm->getShared<RunDataTool>(m_RunDataTool);
     if ( m_pRunDataTool == nullptr ) {
       cout << myname << "WARNING: RunDataTool not found: " << m_RunDataTool << endl;
+    } else {
+      cout << myname << "Found run data tool." << endl;
     }
   }
   if ( m_TickOffsetTool.size() ) {
     m_pTickOffsetTool = ptm->getShared<TimeOffsetTool>(m_TickOffsetTool);
     if ( m_pTickOffsetTool == nullptr ) {
       cout << myname << "WARNING: Tick offset tool not found: " << m_TickOffsetTool << endl;
+    } else {
+      cout << myname << "Found tick offset tool." << endl;
     }
   }
   if ( m_ChannelRangeTool.size() ) {
     m_pChannelRangeTool = ptm->getShared<IndexRangeTool>(m_ChannelRangeTool);
     if ( m_pChannelRangeTool == nullptr ) {
       cout << myname << "WARNING: Index range tool not found: " << m_ChannelRangeTool << endl;
+    } else {
+      cout << myname << "Found channel range tool." << endl;
     }
   }
   // Build the label substitutions.
@@ -814,7 +821,12 @@ int AdcRoiViewer::doView(const AdcChannelData& acd, int dbg, DataMap& res) const
       fopt = "WWB";
       //fopt = "LWB";  // Use likelihood fit to include empty bins. Do we want this here?
       if ( dbg < 3 ) fopt += "Q";
-      int fstat = quietHistFit(ph, pf, fopt.c_str());
+      // Do shifted fit to avoid numerical issues if t0 is large.
+      double xshift = 0.0;
+      if ( t0 > 500.0 ) {
+        xshift = 500*(long(t0)/500);
+      }
+      int fstat = shiftHistFit(ph, pf, fopt.c_str(), 2, xshift);
       ph->GetListOfFunctions()->AddLast(pfinit, "0");
       ph->GetListOfFunctions()->Last()->SetBit(TF1::kNotDraw, true);
       ph->GetListOfFunctions()->SetOwner(kTRUE);  // So the histogram owns pfinit
@@ -1749,14 +1761,15 @@ void AdcRoiViewer::fillChanSumHists() const {
         Name vlabOld = paxis->GetTitle();
         Name vlabNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, vlabOld);
         if ( vlabNew != vlabOld ) {
-          if ( m_LogLevel >= 3 ) cout << "Setting variable label for " << hnam
+          if ( m_LogLevel >= 3 ) cout << myname << "Setting variable label for " << hnam
                                       << " to \"" << vlabNew << "\"." << endl;
           paxis->SetTitle(vlabNew.c_str());
         }
         Name httlOld = ph->GetTitle();
         Name httlNew = AdcChannelStringTool::build(m_adcStringBuilder, acd, httlOld);
         if ( httlNew != httlOld ) {
-          if ( m_LogLevel >= 3 ) cout << "Setting title for " << hnam << " to \"" << httlNew << "\"." << endl;
+          if ( m_LogLevel >= 3 ) cout << myname << "Setting title for " << hnam << " to \""
+                                      << httlNew << "\"." << endl;
           ph->SetTitle(httlNew.c_str());
         }
       }

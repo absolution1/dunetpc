@@ -67,6 +67,7 @@ calib::XYZCalibProtoDUNE::XYZCalibProtoDUNE(
 //------------------------------------------------
 bool calib::XYZCalibProtoDUNE::Configure(fhicl::ParameterSet const& pset)
 {  
+  fIsMC            = pset.get<bool>("IsMC");
   fUseCondbXYZCorr = pset.get<bool>("UseCondbXYZCorr");
   fInterpolate     = pset.get<bool>("Interpolate");
   fXCorrFileName   = pset.get<std::string>("XCorrFileName");

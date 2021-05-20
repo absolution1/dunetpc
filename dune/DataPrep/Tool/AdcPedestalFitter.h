@@ -51,26 +51,29 @@
 //
 // The updating methods add metadata to the ADC channel data:
 //
-//   fitPedFractionLow     - fraction of samples below the fit range
-//   fitPedFractionHigh    - fraction of samples above the fit range
-//   fitPedestal           - fitted pedestal (same as the assigned value)
-//   fitPedRms             - Fit sigma of the pedestal
-//   fitPedChiSquare       - Chi-square of the fit
-//   fitPedPeakBinFraction - Fraction of the pedestal distribution in the peak channel
-//   fitPedPeakBinExcess   - Fraction above fit the peak channel
-//   fitPedNBinsRemoved    - Number of sticky bins removed before fit
+//   fitPedFractionLow      - fraction of samples below the fit range
+//   fitPedFractionHigh     - fraction of samples above the fit range
+//   fitPedestal            - fitted pedestal (same as the assigned value)
+//   fitPedRms              - Fit sigma of the pedestal
+//   fitPedChiSquare        - Chi-square of the fit
+//   fitPedReducedChiSquare - An estimate of the chi-square/DOF using only the central
+//                            (3-sigma) part of the pedestal distribution
+//   fitPedPeakBinFraction  - Fraction of the pedestal distribution in the peak channel
+//   fitPedPeakBinExcess    - Fraction above fit the peak channel
+//   fitPedNBinsRemoved     - Number of sticky bins removed before fit
 //
 // The single-channel methods return a data map with the following:
-//   pedestal           - pedestal histogram
-//   fitFractionLow     - fraction of samples below the fit range
-//   fitFractionHigh    - fraction of samples above the fit range
-//   fitPedestal        - mean from the pedestal fit
-//   fitPedestalRms     - sigma from the pedestal
-//   fitChiSquare       - chi-square from the pedestal fit
-//   fitPeakBinFraction - Fraction of the pedestal distribution in the peak channel
-//   fitPeakBinExcess   - Fraction above fit the peak channel
-//   fitChannel         - ADC channel number
-//   fitNBinsRemoved    - # bins removed before the fit
+//   pedestal            - pedestal histogram
+//   fitFractionLow      - fraction of samples below the fit range
+//   fitFractionHigh     - fraction of samples above the fit range
+//   fitPedestal         - mean from the pedestal fit
+//   fitPedestalRms      - sigma from the pedestal
+//   fitChiSquare        - chi-square from the pedestal fit
+//   fitReducedChiSquare  - extimate of central reduced chi-square
+//   fitPeakBinFraction  - Fraction of the pedestal distribution in the peak channel
+//   fitPeakBinExcess    - Fraction above fit the peak channel
+//   fitChannel          - ADC channel number
+//   fitNBinsRemoved     - # bins removed before the fit
 
 // The TpcDataTool methods all return a data map with the following:
 //

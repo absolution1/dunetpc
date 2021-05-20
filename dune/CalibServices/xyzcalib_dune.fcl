@@ -4,6 +4,7 @@ protodune_xyzcalib :
 {
   service_provider: "XYZCalibServiceProtoDUNE"
 
+  IsMC: false
   UseCondbXYZCorr: true
   Interpolate: false
 
