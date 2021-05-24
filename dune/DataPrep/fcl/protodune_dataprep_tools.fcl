@@ -112,7 +112,7 @@ tools.pd_adcPedestalFit: {
   FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
-  FitRmsMin:  3.0
+  FitRmsMin:  1.0
   FitRmsMax: 20.0
   RemoveStickyCode: true
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
