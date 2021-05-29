@@ -43,7 +43,7 @@ GetOptions( "help|h" => \$help,
             "workspace|k:s" => \$wkspc,
             "pdsconfig|pds:s" => \$pdsconfig);
 
-my $FieldCage_switch="off";
+my $FieldCage_switch="on";
 my $Cathode_switch="off";
 
 if ( defined $help )
@@ -262,14 +262,18 @@ $OriginZSet =   $DetEncZ/2.0
 ############## Field Cage Parameters ###############
 $FieldShaperLongTubeLength  =  $lengthTPCActive;
 $FieldShaperShortTubeLength =  $widthTPCActive;
-$FieldShaperInnerRadius = 1.485;
-$FieldShaperOuterRadius = 1.685;
-$FieldShaperTorRad = 1.69;
+#$FieldShaperInnerRadius = 1.485;
+#$FieldShaperOuterRadius = 1.685;
+#$FieldShaperTorRad = 1.69;
+$FieldShaperInnerRadius = 0.5; #cm
+$FieldShaperOuterRadius = 2.285; #cm
+$FieldShaperOuterRadiusSlim = 0.75; #cm
+$FieldShaperTorRad = 2.3; #cm
 
 $FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 $FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 
-$FieldShaperSeparation = 5.0;
+$FieldShaperSeparation = 6.0; #cm
 $NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
 
 $FieldCageSizeX = $FieldShaperSeparation*$NFieldShapers+2;
@@ -680,6 +684,7 @@ print FieldCage <<EOF;
 <solids>
      <torus name="FieldShaperCorner" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" rtor="$FieldShaperTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
      <tube name="FieldShaperLongtube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtubeSlim" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadiusSlim" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
      <tube name="FieldShaperShorttube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperShortTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
 
     <union name="FSunion1">
@@ -729,6 +734,55 @@ print FieldCage <<EOF;
    		<position name="esquinapos7" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
 		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
     </union>
+    
+    <union name="FSunionSlim1">
+      <first ref="FieldShaperLongtubeSlim"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunionSlim2">
+      <first ref="FSunionSlim1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[+0.5*$FieldShaperLongTubeLength+$FieldShaperTorRad]}"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunionSlim3">
+      <first ref="FSunionSlim2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunionSlim4">
+      <first ref="FSunionSlim3"/>
+      <second ref="FieldShaperLongtubeSlim"/>
+   		<position name="esquinapos4" unit="cm" x="@{[-$FieldShaperShortTubeLength-2*$FieldShaperTorRad]}" y="0" z="0"/>
+    </union>
+
+    <union name="FSunionSlim5">
+      <first ref="FSunionSlim4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunionSlim6">
+      <first ref="FSunionSlim5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength-$FieldShaperTorRad]}"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolidSlim">
+      <first ref="FSunionSlim6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+    
 </solids>
 
 EOF
@@ -739,6 +793,10 @@ print FieldCage <<EOF;
 <volume name="volFieldShaper">
   <materialref ref="Al2O3"/>
   <solidref ref="FieldShaperSolid"/>
+</volume>
+<volume name="volFieldShaperSlim">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolidSlim"/>
 </volume>
 </structure>
 
@@ -858,7 +916,7 @@ print CRYO <<EOF;
     </volume>
 EOF
 
-if($pdsconfig == 0){  #4-pi PDS converage
+if ($pdsconfig == 0){  #4-pi PDS converage
 for($i=0 ; $i<$nCRM_x/2 ; $i++){ #arapucas over the cathode
 for($j=0 ; $j<$nCRM_z/2 ; $j++){
 for($p=0 ; $p<4 ; $p++){
@@ -877,8 +935,8 @@ EOF
 }
 }
 
-if($nCRM_x==8){ #arapucas on the laterals
-for($j=0 ; $j<$nCRM_z ; $j++){
+if ($nCRM_x==8){ #arapucas on the laterals
+for($j=0 ; $j<$nCRM_z/2 ; $j++){
 for($p=0 ; $p<8 ; $p++){
   print CRYO <<EOF;
     <volume name="volArapucaLat_$j\-$p">
@@ -894,9 +952,9 @@ EOF
 }
 }
 
-if($pdsconfig =! 0){  #4-pi PDS converage
-if($nCRM_x==8){ #arapucas on the laterals
-for($j=0 ; $j<$nCRM_z ; $j++){
+if ($pdsconfig != 0){  #Membrane PDS converage
+if ($nCRM_x==8) { #arapucas on the laterals
+for($j=0 ; $j<$nCRM_z/2 ; $j++){
 for($p=8 ; $p<18 ; $p++){
   print CRYO <<EOF;
     <volume name="volArapucaLat_$j\-$p">
@@ -956,7 +1014,18 @@ $idx++
 #The +50 in the x positions must depend on some other parameter
   if ( $FieldCage_switch eq "on" ) {
     for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
+    $dist=$i*$FieldShaperSeparation;
 $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+	if ($pdsconfig==0){
+		if ($dist>250){
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
+     <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+EOF
+		}else{
 	print CRYO <<EOF;
   <physvol>
      <volumeref ref="volFieldShaper"/>
@@ -964,6 +1033,16 @@ $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
      <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
   </physvol>
 EOF
+		}
+	}else{
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
+     <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+EOF
+	}
     }
   }
 
@@ -986,7 +1065,7 @@ EOF
   $FrameLenght_x= 2.0*$widthCRM_active;
   $FrameLenght_z= 2.0*$lengthCRM_active;
   
-if($pdsconfig == 0){  #4-pi PDS converage
+if ($pdsconfig == 0) {  #4-pi PDS converage
 
 #for placing the Arapucas over the cathode
   $FrameCenter_x=-1.5*$FrameLenght_x+(4-$nCRM_x/2)/2*$FrameLenght_x;
@@ -1002,25 +1081,25 @@ for($j=0;$j<$nCRM_z/2;$j++){
 }
 }
 
-if($pdsconfig == 0){  #4-pi PDS converage
+if ($pdsconfig == 0) {  #4-pi PDS converage
 #for placing the Arapucas on laterals
-if($nCRM_x==8){
+if ($nCRM_x==8) {
   $FrameCenter_y=$posVplane[0]; #anode position
-  $FrameCenter_z=-19.5*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
-for($j=0;$j<$nCRM_z;$j++){#nCRM will give the collumn number (2 collumns per frame)
+  $FrameCenter_z=-19*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
+for($j=0;$j<$nCRM_z/2;$j++){#nCRM will give the collumn number (1 collumn per frame)
   place_OpDetsLateral($FrameCenter_y, $FrameCenter_z, $j);
-  $FrameCenter_z+=$FrameLenght_z/2;
+  $FrameCenter_z+=$FrameLenght_z;
 }
 }
 
-}else{  #membrane only PDS converage
+} else {  #membrane only PDS converage
 
-if($nCRM_x==8){
+if ($nCRM_x==8) {
   $FrameCenter_y=$posVplane[0]; #anode position
-  $FrameCenter_z=-19.5*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
-for($j=0;$j<$nCRM_z;$j++){#nCRM will give the collumn number (2 collumns per frame)
+  $FrameCenter_z=-19*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
+for($j=0;$j<$nCRM_z/2;$j++){#nCRM will give the collumn number (1 collumn per frame)
   place_OpDetsMembOnly($FrameCenter_y, $FrameCenter_z, $j);
-  $FrameCenter_z+=$FrameLenght_z/2;
+  $FrameCenter_z+=$FrameLenght_z;
 }
 }
 
@@ -1099,17 +1178,17 @@ for ($ara = 0; $ara<8; $ara++)
              # Y coordinates are defined with respect to the cathode position
              # There are two collumns per frame on each side.
 
-             if($ara<4) {$Ara_Y = -0.5*$Argon_y + $FrameToArapucaSpaceLat;
+             if ($ara<4) {$Ara_Y = -0.5*$Argon_y + $FrameToArapucaSpaceLat;
                          $Ara_YSens = ($Ara_Y+0.5*$ArapucaOut_y-0.5*$ArapucaAcceptanceWindow_y-0.01);
                          $rot= "rIdentity"; }
              else {$Ara_Y = 0.5*$Argon_y - $FrameToArapucaSpaceLat;
                          $Ara_YSens = ($Ara_Y-0.5*$ArapucaOut_y+0.5*$ArapucaAcceptanceWindow_y+0.01);
                          $rot = "rPlus180AboutX";} #GEOMETRY IS ROTATED: X--> Y AND Y--> X
-             if($ara==0||$ara==4) {$Ara_X = $FrameCenter_y-40.0;} #first tile's center 40 cm bellow anode
+             if ($ara==0||$ara==4) {$Ara_X = $FrameCenter_y-40.0;} #first tile's center 40 cm bellow anode
              else {$Ara_X-=$VerticalPDdist;} #other tiles separated by VerticalPDdist
              $Ara_Z = $FrameCenter_z;
 
-        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
+#        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
         
 	print CRYO <<EOF;
      <physvol>
@@ -1160,7 +1239,7 @@ for ($ara = 0; $ara<18; $ara++)
              else {$Ara_X-=$ArapucaOut_x - $FrameToArapucaSpace;} #other tiles separated by minimal distance + buffer
              $Ara_Z = $FrameCenter_z;
 
-        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
+#        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
         
 	print CRYO <<EOF;
      <physvol>
@@ -1436,6 +1515,7 @@ print " Field Cage         : $FieldCage_switch \n";
 print " Cathode            : $Cathode_switch \n";
 print " Workspace          : $workspace \n";
 print " Wires              : $wires_on \n";
+print " PDS                : $pdsconfig \n";
 
 # run the sub routines that generate the fragments
 if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
