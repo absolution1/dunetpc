@@ -366,7 +366,7 @@ tools.adcPlotDftMag: @local::adcPlotDftTemplate
 tools.adcPlotDftMag.Variable: magnitude
 tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
 tools.adcPlotDftMag.YMax: 50
-tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftMag.PlotName: "dftmag_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -382,7 +382,7 @@ tools.adcPlotDftPower: @local::adcPlotDftTemplate
 tools.adcPlotDftPower.Variable: power
 tools.adcPlotDftPower.YMax: 10000
 tools.adcPlotDftPower.NBinX: 50
-tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftPower.HistSummaryTitles:["DFT power for run %RUN%", "DFT power for run %RUN% event %EVENT%"]
 tools.adcPlotDftPower.PlotName: "dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
@@ -394,7 +394,7 @@ tools.adcPlotDftTickPower: @local::tools.adcPlotDftPower
 tools.adcPlotDftTickPower.Variable: "power/tick"
 tools.adcPlotDftTickPower.YMax: -2.0
 tools.adcPlotDftTickPower.NBinX: 50
-tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
