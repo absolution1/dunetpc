@@ -451,7 +451,7 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
     art::fill_ptr_vector(trackList, trackListHandle);
   }
   if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
-
+  if (pfplist.size()<1) return;
   art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
 
