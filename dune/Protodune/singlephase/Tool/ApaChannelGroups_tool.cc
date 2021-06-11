@@ -98,6 +98,18 @@ ApaChannelGroups::ApaChannelGroups(fhicl::ParameterSet const& ps)
 
 IndexRangeGroup ApaChannelGroups::get(Name nam) const {
   const Name myname = "ApaChannelGroups::get: ";
+  if ( nam == "list" ) {
+    IndexVector grps;
+    cout << myname << "Available groups: ";
+    bool first = true;
+    for ( const auto& igrp : m_groups ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << igrp.first;
+    }
+    cout << endl;
+    return IndexRangeGroup();
+  }
   if ( m_pIndexRangeTool == nullptr ) {
     if ( m_LogLevel >= 2 ) cout << myname << "No IndexRangeTool." << endl;
     return IndexRangeGroup();

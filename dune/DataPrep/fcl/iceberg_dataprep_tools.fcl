@@ -35,7 +35,7 @@ tools.channelRangesIceberg: {
 tools.channelGroupsIceberg: {
   tool_type: ApaChannelGroups
   LogLevel: 0
-  ApaNumbers: [8]
+  ApaNumbers: []
   IndexRangeTool: channelRanges
 }
 
