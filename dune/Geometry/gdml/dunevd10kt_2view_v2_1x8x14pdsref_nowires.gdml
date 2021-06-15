@@ -378,6 +378,108 @@
 
 </materials>
 <solids>
+     <torus name="FieldShaperCorner" rmin="0.5" rmax="2.285" rtor="2.3" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtube" rmin="0.5" rmax="2.285" z="2089.976" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtubeSlim" rmin="0.5" rmax="0.75" z="2089.976" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperShorttube" rmin="0.5" rmax="2.285" z="1349.92" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+
+    <union name="FSunion1">
+      <first ref="FieldShaperLongtube"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="-2.3" y="0" z="1044.988"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunion2">
+      <first ref="FSunion1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="-677.26" y="0" z="1047.288"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunion3">
+      <first ref="FSunion2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="-1352.22" y="0" z="1044.988"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunion4">
+      <first ref="FSunion3"/>
+      <second ref="FieldShaperLongtube"/>
+   		<position name="esquinapos4" unit="cm" x="-1354.52" y="0" z="0"/>
+    </union>
+
+    <union name="FSunion5">
+      <first ref="FSunion4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="-1352.22" y="0" z="-1044.988"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunion6">
+      <first ref="FSunion5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="-677.26" y="0" z="-1047.288"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolid">
+      <first ref="FSunion6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="-2.3" y="0" z="-1044.988"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+    
+    <union name="FSunionSlim1">
+      <first ref="FieldShaperLongtubeSlim"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="-2.3" y="0" z="1044.988"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunionSlim2">
+      <first ref="FSunionSlim1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="-677.26" y="0" z="1047.288"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunionSlim3">
+      <first ref="FSunionSlim2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="-1352.22" y="0" z="1044.988"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunionSlim4">
+      <first ref="FSunionSlim3"/>
+      <second ref="FieldShaperLongtubeSlim"/>
+   		<position name="esquinapos4" unit="cm" x="-1354.52" y="0" z="0"/>
+    </union>
+
+    <union name="FSunionSlim5">
+      <first ref="FSunionSlim4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="-1352.22" y="0" z="-1044.988"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunionSlim6">
+      <first ref="FSunionSlim5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="-677.26" y="0" z="-1047.288"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolidSlim">
+      <first ref="FSunionSlim6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="-2.3" y="0" z="-1044.988"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+    
+
    <box name="CRM" lunit="cm" 
       x="650.04" 
       y="168.74" 
@@ -409,9 +511,9 @@
      lunit="cm"/>
 
     <box name="ArapucaOut" lunit="cm"
-      x="70"
+      x="65"
       y="2.5"
-      z="68"/>
+      z="65"/>
 
     <box name="ArapucaIn" lunit="cm"
       x="60"
@@ -502,6 +604,15 @@
       z="10850.216"/>
 </solids>
 <structure>
+<volume name="volFieldShaper">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolid"/>
+</volume>
+<volume name="volFieldShaperSlim">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolidSlim"/>
+</volume>
+
     <volume name="volTPCActive">
       <materialref ref="LAr"/>
       <solidref ref="CRMActive"/>
@@ -1907,454 +2018,6 @@
       <materialref ref="LAr"/>
       <solidref ref="ArapucaAcceptanceWindow"/>
     </volume>
-    <volume name="volArapucaLat_7-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_7-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_7-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_8-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_8-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_9-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_9-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_10-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_10-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_11-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_11-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_12-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_12-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-0">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-0">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-1">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-1">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-2">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-2">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-3">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-3">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-4">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-4">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-5">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-5">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-6">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-6">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
-    <volume name="volArapucaLat_13-7">
-      <materialref ref="G10" />
-      <solidref ref="ArapucaWalls" />
-    </volume>
-    <volume name="volOpDetSensitive_ArapucaLat_13-7">
-      <materialref ref="LAr"/>
-      <solidref ref="ArapucaAcceptanceWindow"/>
-    </volume>
 
     <volume name="volCryostat">
       <materialref ref="LAr" />
@@ -2927,1795 +2590,2335 @@
 	<position name="posTPC-111" unit="cm"
            x="0" y="590.59" z="970.346"/>
       </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper0" unit="cm"  x="-322.02" y="-677.26" z="0" />
+     <rotation name="rotFS0" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper1" unit="cm"  x="-316.02" y="-677.26" z="0" />
+     <rotation name="rotFS1" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper2" unit="cm"  x="-310.02" y="-677.26" z="0" />
+     <rotation name="rotFS2" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper3" unit="cm"  x="-304.02" y="-677.26" z="0" />
+     <rotation name="rotFS3" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper4" unit="cm"  x="-298.02" y="-677.26" z="0" />
+     <rotation name="rotFS4" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper5" unit="cm"  x="-292.02" y="-677.26" z="0" />
+     <rotation name="rotFS5" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper6" unit="cm"  x="-286.02" y="-677.26" z="0" />
+     <rotation name="rotFS6" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper7" unit="cm"  x="-280.02" y="-677.26" z="0" />
+     <rotation name="rotFS7" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper8" unit="cm"  x="-274.02" y="-677.26" z="0" />
+     <rotation name="rotFS8" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper9" unit="cm"  x="-268.02" y="-677.26" z="0" />
+     <rotation name="rotFS9" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper10" unit="cm"  x="-262.02" y="-677.26" z="0" />
+     <rotation name="rotFS10" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper11" unit="cm"  x="-256.02" y="-677.26" z="0" />
+     <rotation name="rotFS11" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper12" unit="cm"  x="-250.02" y="-677.26" z="0" />
+     <rotation name="rotFS12" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper13" unit="cm"  x="-244.02" y="-677.26" z="0" />
+     <rotation name="rotFS13" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper14" unit="cm"  x="-238.02" y="-677.26" z="0" />
+     <rotation name="rotFS14" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper15" unit="cm"  x="-232.02" y="-677.26" z="0" />
+     <rotation name="rotFS15" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper16" unit="cm"  x="-226.02" y="-677.26" z="0" />
+     <rotation name="rotFS16" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper17" unit="cm"  x="-220.02" y="-677.26" z="0" />
+     <rotation name="rotFS17" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper18" unit="cm"  x="-214.02" y="-677.26" z="0" />
+     <rotation name="rotFS18" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper19" unit="cm"  x="-208.02" y="-677.26" z="0" />
+     <rotation name="rotFS19" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper20" unit="cm"  x="-202.02" y="-677.26" z="0" />
+     <rotation name="rotFS20" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper21" unit="cm"  x="-196.02" y="-677.26" z="0" />
+     <rotation name="rotFS21" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper22" unit="cm"  x="-190.02" y="-677.26" z="0" />
+     <rotation name="rotFS22" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper23" unit="cm"  x="-184.02" y="-677.26" z="0" />
+     <rotation name="rotFS23" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper24" unit="cm"  x="-178.02" y="-677.26" z="0" />
+     <rotation name="rotFS24" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper25" unit="cm"  x="-172.02" y="-677.26" z="0" />
+     <rotation name="rotFS25" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper26" unit="cm"  x="-166.02" y="-677.26" z="0" />
+     <rotation name="rotFS26" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper27" unit="cm"  x="-160.02" y="-677.26" z="0" />
+     <rotation name="rotFS27" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper28" unit="cm"  x="-154.02" y="-677.26" z="0" />
+     <rotation name="rotFS28" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper29" unit="cm"  x="-148.02" y="-677.26" z="0" />
+     <rotation name="rotFS29" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper30" unit="cm"  x="-142.02" y="-677.26" z="0" />
+     <rotation name="rotFS30" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper31" unit="cm"  x="-136.02" y="-677.26" z="0" />
+     <rotation name="rotFS31" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper32" unit="cm"  x="-130.02" y="-677.26" z="0" />
+     <rotation name="rotFS32" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper33" unit="cm"  x="-124.02" y="-677.26" z="0" />
+     <rotation name="rotFS33" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper34" unit="cm"  x="-118.02" y="-677.26" z="0" />
+     <rotation name="rotFS34" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper35" unit="cm"  x="-112.02" y="-677.26" z="0" />
+     <rotation name="rotFS35" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper36" unit="cm"  x="-106.02" y="-677.26" z="0" />
+     <rotation name="rotFS36" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper37" unit="cm"  x="-100.02" y="-677.26" z="0" />
+     <rotation name="rotFS37" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper38" unit="cm"  x="-94.02" y="-677.26" z="0" />
+     <rotation name="rotFS38" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper39" unit="cm"  x="-88.02" y="-677.26" z="0" />
+     <rotation name="rotFS39" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper40" unit="cm"  x="-82.02" y="-677.26" z="0" />
+     <rotation name="rotFS40" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaper"/>
+     <position name="posFieldShaper41" unit="cm"  x="-76.02" y="-677.26" z="0" />
+     <rotation name="rotFS41" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper42" unit="cm"  x="-70.02" y="-677.26" z="0" />
+     <rotation name="rotFS42" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper43" unit="cm"  x="-64.02" y="-677.26" z="0" />
+     <rotation name="rotFS43" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper44" unit="cm"  x="-58.02" y="-677.26" z="0" />
+     <rotation name="rotFS44" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper45" unit="cm"  x="-52.02" y="-677.26" z="0" />
+     <rotation name="rotFS45" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper46" unit="cm"  x="-46.02" y="-677.26" z="0" />
+     <rotation name="rotFS46" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper47" unit="cm"  x="-40.02" y="-677.26" z="0" />
+     <rotation name="rotFS47" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper48" unit="cm"  x="-34.02" y="-677.26" z="0" />
+     <rotation name="rotFS48" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper49" unit="cm"  x="-28.02" y="-677.26" z="0" />
+     <rotation name="rotFS49" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper50" unit="cm"  x="-22.02" y="-677.26" z="0" />
+     <rotation name="rotFS50" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper51" unit="cm"  x="-16.02" y="-677.26" z="0" />
+     <rotation name="rotFS51" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper52" unit="cm"  x="-10.02" y="-677.26" z="0" />
+     <rotation name="rotFS52" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper53" unit="cm"  x="-4.02000000000002" y="-677.26" z="0" />
+     <rotation name="rotFS53" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper54" unit="cm"  x="1.97999999999998" y="-677.26" z="0" />
+     <rotation name="rotFS54" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper55" unit="cm"  x="7.97999999999998" y="-677.26" z="0" />
+     <rotation name="rotFS55" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper56" unit="cm"  x="13.98" y="-677.26" z="0" />
+     <rotation name="rotFS56" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper57" unit="cm"  x="19.98" y="-677.26" z="0" />
+     <rotation name="rotFS57" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper58" unit="cm"  x="25.98" y="-677.26" z="0" />
+     <rotation name="rotFS58" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper59" unit="cm"  x="31.98" y="-677.26" z="0" />
+     <rotation name="rotFS59" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper60" unit="cm"  x="37.98" y="-677.26" z="0" />
+     <rotation name="rotFS60" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper61" unit="cm"  x="43.98" y="-677.26" z="0" />
+     <rotation name="rotFS61" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper62" unit="cm"  x="49.98" y="-677.26" z="0" />
+     <rotation name="rotFS62" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper63" unit="cm"  x="55.98" y="-677.26" z="0" />
+     <rotation name="rotFS63" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper64" unit="cm"  x="61.98" y="-677.26" z="0" />
+     <rotation name="rotFS64" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper65" unit="cm"  x="67.98" y="-677.26" z="0" />
+     <rotation name="rotFS65" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper66" unit="cm"  x="73.98" y="-677.26" z="0" />
+     <rotation name="rotFS66" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper67" unit="cm"  x="79.98" y="-677.26" z="0" />
+     <rotation name="rotFS67" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper68" unit="cm"  x="85.98" y="-677.26" z="0" />
+     <rotation name="rotFS68" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper69" unit="cm"  x="91.98" y="-677.26" z="0" />
+     <rotation name="rotFS69" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper70" unit="cm"  x="97.98" y="-677.26" z="0" />
+     <rotation name="rotFS70" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper71" unit="cm"  x="103.98" y="-677.26" z="0" />
+     <rotation name="rotFS71" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper72" unit="cm"  x="109.98" y="-677.26" z="0" />
+     <rotation name="rotFS72" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper73" unit="cm"  x="115.98" y="-677.26" z="0" />
+     <rotation name="rotFS73" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper74" unit="cm"  x="121.98" y="-677.26" z="0" />
+     <rotation name="rotFS74" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper75" unit="cm"  x="127.98" y="-677.26" z="0" />
+     <rotation name="rotFS75" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper76" unit="cm"  x="133.98" y="-677.26" z="0" />
+     <rotation name="rotFS76" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper77" unit="cm"  x="139.98" y="-677.26" z="0" />
+     <rotation name="rotFS77" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper78" unit="cm"  x="145.98" y="-677.26" z="0" />
+     <rotation name="rotFS78" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper79" unit="cm"  x="151.98" y="-677.26" z="0" />
+     <rotation name="rotFS79" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper80" unit="cm"  x="157.98" y="-677.26" z="0" />
+     <rotation name="rotFS80" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper81" unit="cm"  x="163.98" y="-677.26" z="0" />
+     <rotation name="rotFS81" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper82" unit="cm"  x="169.98" y="-677.26" z="0" />
+     <rotation name="rotFS82" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper83" unit="cm"  x="175.98" y="-677.26" z="0" />
+     <rotation name="rotFS83" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper84" unit="cm"  x="181.98" y="-677.26" z="0" />
+     <rotation name="rotFS84" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper85" unit="cm"  x="187.98" y="-677.26" z="0" />
+     <rotation name="rotFS85" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper86" unit="cm"  x="193.98" y="-677.26" z="0" />
+     <rotation name="rotFS86" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper87" unit="cm"  x="199.98" y="-677.26" z="0" />
+     <rotation name="rotFS87" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper88" unit="cm"  x="205.98" y="-677.26" z="0" />
+     <rotation name="rotFS88" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper89" unit="cm"  x="211.98" y="-677.26" z="0" />
+     <rotation name="rotFS89" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper90" unit="cm"  x="217.98" y="-677.26" z="0" />
+     <rotation name="rotFS90" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper91" unit="cm"  x="223.98" y="-677.26" z="0" />
+     <rotation name="rotFS91" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper92" unit="cm"  x="229.98" y="-677.26" z="0" />
+     <rotation name="rotFS92" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper93" unit="cm"  x="235.98" y="-677.26" z="0" />
+     <rotation name="rotFS93" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper94" unit="cm"  x="241.98" y="-677.26" z="0" />
+     <rotation name="rotFS94" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper95" unit="cm"  x="247.98" y="-677.26" z="0" />
+     <rotation name="rotFS95" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper96" unit="cm"  x="253.98" y="-677.26" z="0" />
+     <rotation name="rotFS96" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper97" unit="cm"  x="259.98" y="-677.26" z="0" />
+     <rotation name="rotFS97" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper98" unit="cm"  x="265.98" y="-677.26" z="0" />
+     <rotation name="rotFS98" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper99" unit="cm"  x="271.98" y="-677.26" z="0" />
+     <rotation name="rotFS99" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper100" unit="cm"  x="277.98" y="-677.26" z="0" />
+     <rotation name="rotFS100" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper101" unit="cm"  x="283.98" y="-677.26" z="0" />
+     <rotation name="rotFS101" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper102" unit="cm"  x="289.98" y="-677.26" z="0" />
+     <rotation name="rotFS102" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper103" unit="cm"  x="295.98" y="-677.26" z="0" />
+     <rotation name="rotFS103" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper104" unit="cm"  x="301.98" y="-677.26" z="0" />
+     <rotation name="rotFS104" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper105" unit="cm"  x="307.98" y="-677.26" z="0" />
+     <rotation name="rotFS105" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper106" unit="cm"  x="313.98" y="-677.26" z="0" />
+     <rotation name="rotFS106" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper107" unit="cm"  x="319.98" y="-677.26" z="0" />
+     <rotation name="rotFS107" unit="deg" x="0" y="0" z="90" />
+  </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-0-0"/>
        <position name="posArapucaDouble0-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-0-0"/>
        <position name="posOpArapucaDouble0-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-0-1"/>
        <position name="posArapucaDouble1-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-0-1"/>
        <position name="posOpArapucaDouble1-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-0-2"/>
        <position name="posArapucaDouble2-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-0-2"/>
        <position name="posOpArapucaDouble2-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-0-3"/>
        <position name="posArapucaDouble3-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-0-3"/>
        <position name="posOpArapucaDouble3-Frame-0-0" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-1-0"/>
        <position name="posArapucaDouble0-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-1-0"/>
        <position name="posOpArapucaDouble0-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-1-1"/>
        <position name="posArapucaDouble1-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-1-1"/>
        <position name="posOpArapucaDouble1-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-1-2"/>
        <position name="posArapucaDouble2-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-1-2"/>
        <position name="posOpArapucaDouble2-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-1-3"/>
        <position name="posArapucaDouble3-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-1-3"/>
        <position name="posOpArapucaDouble3-Frame-0-1" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-2-0"/>
        <position name="posArapucaDouble0-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-2-0"/>
        <position name="posOpArapucaDouble0-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-2-1"/>
        <position name="posArapucaDouble1-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-2-1"/>
        <position name="posOpArapucaDouble1-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-2-2"/>
        <position name="posArapucaDouble2-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-2-2"/>
        <position name="posOpArapucaDouble2-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-2-3"/>
        <position name="posArapucaDouble3-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-2-3"/>
        <position name="posOpArapucaDouble3-Frame-0-2" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-3-0"/>
        <position name="posArapucaDouble0-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-3-0"/>
        <position name="posOpArapucaDouble0-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-3-1"/>
        <position name="posArapucaDouble1-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-3-1"/>
        <position name="posOpArapucaDouble1-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-3-2"/>
        <position name="posArapucaDouble2-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-3-2"/>
        <position name="posOpArapucaDouble2-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-3-3"/>
        <position name="posArapucaDouble3-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-3-3"/>
        <position name="posOpArapucaDouble3-Frame-0-3" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-4-0"/>
        <position name="posArapucaDouble0-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-4-0"/>
        <position name="posOpArapucaDouble0-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-4-1"/>
        <position name="posArapucaDouble1-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-4-1"/>
        <position name="posOpArapucaDouble1-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-4-2"/>
        <position name="posArapucaDouble2-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-4-2"/>
        <position name="posOpArapucaDouble2-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-4-3"/>
        <position name="posArapucaDouble3-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-4-3"/>
        <position name="posOpArapucaDouble3-Frame-0-4" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-5-0"/>
        <position name="posArapucaDouble0-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-5-0"/>
        <position name="posOpArapucaDouble0-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-5-1"/>
        <position name="posArapucaDouble1-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-5-1"/>
        <position name="posOpArapucaDouble1-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-5-2"/>
        <position name="posArapucaDouble2-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-5-2"/>
        <position name="posOpArapucaDouble2-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-5-3"/>
        <position name="posArapucaDouble3-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-5-3"/>
        <position name="posOpArapucaDouble3-Frame-0-5" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-6-0"/>
        <position name="posArapucaDouble0-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-6-0"/>
        <position name="posOpArapucaDouble0-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-627.61" 
+         x="-327.02"
+	 y="-630.11" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-6-1"/>
        <position name="posArapucaDouble1-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-6-1"/>
        <position name="posOpArapucaDouble1-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-541.42" 
+         x="-327.02"
+	 y="-538.92" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-6-2"/>
        <position name="posArapucaDouble2-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-6-2"/>
        <position name="posOpArapucaDouble2-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-470.42" 
+         x="-327.02"
+	 y="-472.92" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_0-6-3"/>
        <position name="posArapucaDouble3-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_0-6-3"/>
        <position name="posOpArapucaDouble3-Frame-0-6" unit="cm" 
-         x="-326.52"
-	 y="-384.23" 
+         x="-327.02"
+	 y="-381.73" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-0-0"/>
        <position name="posArapucaDouble0-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-0-0"/>
        <position name="posOpArapucaDouble0-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-0-1"/>
        <position name="posArapucaDouble1-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-0-1"/>
        <position name="posOpArapucaDouble1-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-0-2"/>
        <position name="posArapucaDouble2-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-0-2"/>
        <position name="posOpArapucaDouble2-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-0-3"/>
        <position name="posArapucaDouble3-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-0-3"/>
        <position name="posOpArapucaDouble3-Frame-1-0" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-1-0"/>
        <position name="posArapucaDouble0-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-1-0"/>
        <position name="posOpArapucaDouble0-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-1-1"/>
        <position name="posArapucaDouble1-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-1-1"/>
        <position name="posOpArapucaDouble1-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-1-2"/>
        <position name="posArapucaDouble2-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-1-2"/>
        <position name="posOpArapucaDouble2-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-1-3"/>
        <position name="posArapucaDouble3-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-1-3"/>
        <position name="posOpArapucaDouble3-Frame-1-1" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-2-0"/>
        <position name="posArapucaDouble0-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-2-0"/>
        <position name="posOpArapucaDouble0-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-2-1"/>
        <position name="posArapucaDouble1-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-2-1"/>
        <position name="posOpArapucaDouble1-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-2-2"/>
        <position name="posArapucaDouble2-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-2-2"/>
        <position name="posOpArapucaDouble2-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-2-3"/>
        <position name="posArapucaDouble3-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-2-3"/>
        <position name="posOpArapucaDouble3-Frame-1-2" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-3-0"/>
        <position name="posArapucaDouble0-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-3-0"/>
        <position name="posOpArapucaDouble0-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-3-1"/>
        <position name="posArapucaDouble1-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-3-1"/>
        <position name="posOpArapucaDouble1-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-3-2"/>
        <position name="posArapucaDouble2-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-3-2"/>
        <position name="posOpArapucaDouble2-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-3-3"/>
        <position name="posArapucaDouble3-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-3-3"/>
        <position name="posOpArapucaDouble3-Frame-1-3" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-4-0"/>
        <position name="posArapucaDouble0-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-4-0"/>
        <position name="posOpArapucaDouble0-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-4-1"/>
        <position name="posArapucaDouble1-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-4-1"/>
        <position name="posOpArapucaDouble1-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-4-2"/>
        <position name="posArapucaDouble2-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-4-2"/>
        <position name="posOpArapucaDouble2-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-4-3"/>
        <position name="posArapucaDouble3-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-4-3"/>
        <position name="posOpArapucaDouble3-Frame-1-4" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-5-0"/>
        <position name="posArapucaDouble0-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-5-0"/>
        <position name="posOpArapucaDouble0-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-5-1"/>
        <position name="posArapucaDouble1-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-5-1"/>
        <position name="posOpArapucaDouble1-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-5-2"/>
        <position name="posArapucaDouble2-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-5-2"/>
        <position name="posOpArapucaDouble2-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-5-3"/>
        <position name="posArapucaDouble3-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-5-3"/>
        <position name="posOpArapucaDouble3-Frame-1-5" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-6-0"/>
        <position name="posArapucaDouble0-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-6-0"/>
        <position name="posOpArapucaDouble0-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-290.33" 
+         x="-327.02"
+	 y="-292.83" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-6-1"/>
        <position name="posArapucaDouble1-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-6-1"/>
        <position name="posOpArapucaDouble1-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-204.14" 
+         x="-327.02"
+	 y="-201.64" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-6-2"/>
        <position name="posArapucaDouble2-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-6-2"/>
        <position name="posOpArapucaDouble2-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-133.14" 
+         x="-327.02"
+	 y="-135.64" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_1-6-3"/>
        <position name="posArapucaDouble3-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_1-6-3"/>
        <position name="posOpArapucaDouble3-Frame-1-6" unit="cm" 
-         x="-326.52"
-	 y="-46.95" 
+         x="-327.02"
+	 y="-44.45" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-0-0"/>
        <position name="posArapucaDouble0-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-0-0"/>
        <position name="posOpArapucaDouble0-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-0-1"/>
        <position name="posArapucaDouble1-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-0-1"/>
        <position name="posOpArapucaDouble1-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-0-2"/>
        <position name="posArapucaDouble2-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-0-2"/>
        <position name="posOpArapucaDouble2-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-0-3"/>
        <position name="posArapucaDouble3-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-0-3"/>
        <position name="posOpArapucaDouble3-Frame-2-0" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-1-0"/>
        <position name="posArapucaDouble0-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-1-0"/>
        <position name="posOpArapucaDouble0-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-1-1"/>
        <position name="posArapucaDouble1-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-1-1"/>
        <position name="posOpArapucaDouble1-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-1-2"/>
        <position name="posArapucaDouble2-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-1-2"/>
        <position name="posOpArapucaDouble2-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-1-3"/>
        <position name="posArapucaDouble3-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-1-3"/>
        <position name="posOpArapucaDouble3-Frame-2-1" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-2-0"/>
        <position name="posArapucaDouble0-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-2-0"/>
        <position name="posOpArapucaDouble0-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-2-1"/>
        <position name="posArapucaDouble1-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-2-1"/>
        <position name="posOpArapucaDouble1-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-2-2"/>
        <position name="posArapucaDouble2-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-2-2"/>
        <position name="posOpArapucaDouble2-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-2-3"/>
        <position name="posArapucaDouble3-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-2-3"/>
        <position name="posOpArapucaDouble3-Frame-2-2" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-3-0"/>
        <position name="posArapucaDouble0-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-3-0"/>
        <position name="posOpArapucaDouble0-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-3-1"/>
        <position name="posArapucaDouble1-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-3-1"/>
        <position name="posOpArapucaDouble1-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-3-2"/>
        <position name="posArapucaDouble2-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-3-2"/>
        <position name="posOpArapucaDouble2-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-3-3"/>
        <position name="posArapucaDouble3-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-3-3"/>
        <position name="posOpArapucaDouble3-Frame-2-3" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-4-0"/>
        <position name="posArapucaDouble0-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-4-0"/>
        <position name="posOpArapucaDouble0-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-4-1"/>
        <position name="posArapucaDouble1-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-4-1"/>
        <position name="posOpArapucaDouble1-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-4-2"/>
        <position name="posArapucaDouble2-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-4-2"/>
        <position name="posOpArapucaDouble2-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-4-3"/>
        <position name="posArapucaDouble3-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-4-3"/>
        <position name="posOpArapucaDouble3-Frame-2-4" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-5-0"/>
        <position name="posArapucaDouble0-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-5-0"/>
        <position name="posOpArapucaDouble0-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-5-1"/>
        <position name="posArapucaDouble1-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-5-1"/>
        <position name="posOpArapucaDouble1-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-5-2"/>
        <position name="posArapucaDouble2-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-5-2"/>
        <position name="posOpArapucaDouble2-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-5-3"/>
        <position name="posArapucaDouble3-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-5-3"/>
        <position name="posOpArapucaDouble3-Frame-2-5" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-6-0"/>
        <position name="posArapucaDouble0-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-6-0"/>
        <position name="posOpArapucaDouble0-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="46.95" 
+         x="-327.02"
+	 y="44.45" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-6-1"/>
        <position name="posArapucaDouble1-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-6-1"/>
        <position name="posOpArapucaDouble1-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="133.14" 
+         x="-327.02"
+	 y="135.64" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-6-2"/>
        <position name="posArapucaDouble2-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-6-2"/>
        <position name="posOpArapucaDouble2-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="204.14" 
+         x="-327.02"
+	 y="201.64" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_2-6-3"/>
        <position name="posArapucaDouble3-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_2-6-3"/>
        <position name="posOpArapucaDouble3-Frame-2-6" unit="cm" 
-         x="-326.52"
-	 y="290.33" 
+         x="-327.02"
+	 y="292.83" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-0-0"/>
        <position name="posArapucaDouble0-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-0-0"/>
        <position name="posOpArapucaDouble0-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-0-1"/>
        <position name="posArapucaDouble1-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-0-1"/>
        <position name="posOpArapucaDouble1-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-0-2"/>
        <position name="posArapucaDouble2-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-0-2"/>
        <position name="posOpArapucaDouble2-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-0-3"/>
        <position name="posArapucaDouble3-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-0-3"/>
        <position name="posOpArapucaDouble3-Frame-3-0" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-1-0"/>
        <position name="posArapucaDouble0-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-1-0"/>
        <position name="posOpArapucaDouble0-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-1-1"/>
        <position name="posArapucaDouble1-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-1-1"/>
        <position name="posOpArapucaDouble1-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-1-2"/>
        <position name="posArapucaDouble2-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-1-2"/>
        <position name="posOpArapucaDouble2-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-1-3"/>
        <position name="posArapucaDouble3-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-1-3"/>
        <position name="posOpArapucaDouble3-Frame-3-1" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-2-0"/>
        <position name="posArapucaDouble0-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-2-0"/>
        <position name="posOpArapucaDouble0-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="-263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-2-1"/>
        <position name="posArapucaDouble1-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-2-1"/>
        <position name="posOpArapucaDouble1-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-2-2"/>
        <position name="posArapucaDouble2-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-2-2"/>
        <position name="posOpArapucaDouble2-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="-195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-2-3"/>
        <position name="posArapucaDouble3-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-2-3"/>
        <position name="posOpArapucaDouble3-Frame-3-2" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-3-0"/>
        <position name="posArapucaDouble0-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-3-0"/>
        <position name="posOpArapucaDouble0-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="34.6709999999999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-3-1"/>
        <position name="posArapucaDouble1-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-3-1"/>
        <position name="posOpArapucaDouble1-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="-103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-3-2"/>
        <position name="posArapucaDouble2-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-3-2"/>
        <position name="posOpArapucaDouble2-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="103.263"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-3-3"/>
        <position name="posArapucaDouble3-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-3-3"/>
        <position name="posOpArapucaDouble3-Frame-3-3" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="-34.6710000000001"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-4-0"/>
        <position name="posArapucaDouble0-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-4-0"/>
        <position name="posOpArapucaDouble0-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="333.039"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-4-1"/>
        <position name="posArapucaDouble1-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-4-1"/>
        <position name="posOpArapucaDouble1-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="195.105"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-4-2"/>
        <position name="posArapucaDouble2-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-4-2"/>
        <position name="posOpArapucaDouble2-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="401.631"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-4-3"/>
        <position name="posArapucaDouble3-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-4-3"/>
        <position name="posOpArapucaDouble3-Frame-3-4" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="263.697"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-5-0"/>
        <position name="posArapucaDouble0-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-5-0"/>
        <position name="posOpArapucaDouble0-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="631.407"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-5-1"/>
        <position name="posArapucaDouble1-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-5-1"/>
        <position name="posOpArapucaDouble1-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="493.473"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-5-2"/>
        <position name="posArapucaDouble2-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-5-2"/>
        <position name="posOpArapucaDouble2-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="699.999"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-5-3"/>
        <position name="posArapucaDouble3-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-5-3"/>
        <position name="posOpArapucaDouble3-Frame-3-5" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="562.065"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-6-0"/>
        <position name="posArapucaDouble0-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-6-0"/>
        <position name="posOpArapucaDouble0-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="384.23" 
+         x="-327.02"
+	 y="381.73" 
 	 z="929.775"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-6-1"/>
        <position name="posArapucaDouble1-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-6-1"/>
        <position name="posOpArapucaDouble1-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="470.42" 
+         x="-327.02"
+	 y="472.92" 
 	 z="791.841"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-6-2"/>
        <position name="posArapucaDouble2-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-6-2"/>
        <position name="posOpArapucaDouble2-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="541.42" 
+         x="-327.02"
+	 y="538.92" 
 	 z="998.367"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaDouble_3-6-3"/>
        <position name="posArapucaDouble3-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_3-6-3"/>
        <position name="posOpArapucaDouble3-Frame-3-6" unit="cm" 
-         x="-326.52"
-	 y="627.61" 
+         x="-327.02"
+	 y="630.11" 
 	 z="860.433"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
@@ -4724,7 +4927,7 @@
        <position name="posArapuca0-Lat-0" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4732,14 +4935,14 @@
        <position name="posOpArapuca0-Lat-0" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-1"/>
        <position name="posArapuca1-Lat-0" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4747,14 +4950,14 @@
        <position name="posOpArapuca1-Lat-0" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-2"/>
        <position name="posArapuca2-Lat-0" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4762,14 +4965,14 @@
        <position name="posOpArapuca2-Lat-0" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-3"/>
        <position name="posArapuca3-Lat-0" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4777,14 +4980,14 @@
        <position name="posOpArapuca3-Lat-0" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-4"/>
        <position name="posArapuca4-Lat-0" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4792,14 +4995,14 @@
        <position name="posOpArapuca4-Lat-0" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-5"/>
        <position name="posArapuca5-Lat-0" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4807,14 +5010,14 @@
        <position name="posOpArapuca5-Lat-0" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-6"/>
        <position name="posArapuca6-Lat-0" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4822,14 +5025,14 @@
        <position name="posOpArapuca6-Lat-0" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_0-7"/>
        <position name="posArapuca7-Lat-0" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-969.696"/>
+	 z="-895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4837,14 +5040,14 @@
        <position name="posOpArapuca7-Lat-0" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-969.696"/>
+	 z="-895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-0"/>
        <position name="posArapuca0-Lat-1" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4852,14 +5055,14 @@
        <position name="posOpArapuca0-Lat-1" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-1"/>
        <position name="posArapuca1-Lat-1" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4867,14 +5070,14 @@
        <position name="posOpArapuca1-Lat-1" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-2"/>
        <position name="posArapuca2-Lat-1" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4882,14 +5085,14 @@
        <position name="posOpArapuca2-Lat-1" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-3"/>
        <position name="posArapuca3-Lat-1" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4897,14 +5100,14 @@
        <position name="posOpArapuca3-Lat-1" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-4"/>
        <position name="posArapuca4-Lat-1" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4912,14 +5115,14 @@
        <position name="posOpArapuca4-Lat-1" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-5"/>
        <position name="posArapuca5-Lat-1" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4927,14 +5130,14 @@
        <position name="posOpArapuca5-Lat-1" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-6"/>
        <position name="posArapuca6-Lat-1" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4942,14 +5145,14 @@
        <position name="posOpArapuca6-Lat-1" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_1-7"/>
        <position name="posArapuca7-Lat-1" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-820.512"/>
+	 z="-596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -4957,14 +5160,14 @@
        <position name="posOpArapuca7-Lat-1" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-820.512"/>
+	 z="-596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-0"/>
        <position name="posArapuca0-Lat-2" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4972,14 +5175,14 @@
        <position name="posOpArapuca0-Lat-2" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-1"/>
        <position name="posArapuca1-Lat-2" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -4987,14 +5190,14 @@
        <position name="posOpArapuca1-Lat-2" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-2"/>
        <position name="posArapuca2-Lat-2" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5002,14 +5205,14 @@
        <position name="posOpArapuca2-Lat-2" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-3"/>
        <position name="posArapuca3-Lat-2" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5017,14 +5220,14 @@
        <position name="posOpArapuca3-Lat-2" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-4"/>
        <position name="posArapuca4-Lat-2" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5032,14 +5235,14 @@
        <position name="posOpArapuca4-Lat-2" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-5"/>
        <position name="posArapuca5-Lat-2" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5047,14 +5250,14 @@
        <position name="posOpArapuca5-Lat-2" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-6"/>
        <position name="posArapuca6-Lat-2" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5062,14 +5265,14 @@
        <position name="posOpArapuca6-Lat-2" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_2-7"/>
        <position name="posArapuca7-Lat-2" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-671.328"/>
+	 z="-298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5077,14 +5280,14 @@
        <position name="posOpArapuca7-Lat-2" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-671.328"/>
+	 z="-298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-0"/>
        <position name="posArapuca0-Lat-3" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5092,14 +5295,14 @@
        <position name="posOpArapuca0-Lat-3" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-1"/>
        <position name="posArapuca1-Lat-3" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5107,14 +5310,14 @@
        <position name="posOpArapuca1-Lat-3" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-2"/>
        <position name="posArapuca2-Lat-3" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5122,14 +5325,14 @@
        <position name="posOpArapuca2-Lat-3" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-3"/>
        <position name="posArapuca3-Lat-3" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5137,14 +5340,14 @@
        <position name="posOpArapuca3-Lat-3" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-4"/>
        <position name="posArapuca4-Lat-3" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5152,14 +5355,14 @@
        <position name="posOpArapuca4-Lat-3" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-5"/>
        <position name="posArapuca5-Lat-3" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5167,14 +5370,14 @@
        <position name="posOpArapuca5-Lat-3" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-6"/>
        <position name="posArapuca6-Lat-3" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5182,14 +5385,14 @@
        <position name="posOpArapuca6-Lat-3" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_3-7"/>
        <position name="posArapuca7-Lat-3" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5197,14 +5400,14 @@
        <position name="posOpArapuca7-Lat-3" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-522.144"/>
+	 z="-1.13686837721616e-13"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-0"/>
        <position name="posArapuca0-Lat-4" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5212,14 +5415,14 @@
        <position name="posOpArapuca0-Lat-4" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-1"/>
        <position name="posArapuca1-Lat-4" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5227,14 +5430,14 @@
        <position name="posOpArapuca1-Lat-4" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-2"/>
        <position name="posArapuca2-Lat-4" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5242,14 +5445,14 @@
        <position name="posOpArapuca2-Lat-4" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-3"/>
        <position name="posArapuca3-Lat-4" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5257,14 +5460,14 @@
        <position name="posOpArapuca3-Lat-4" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-4"/>
        <position name="posArapuca4-Lat-4" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5272,14 +5475,14 @@
        <position name="posOpArapuca4-Lat-4" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-5"/>
        <position name="posArapuca5-Lat-4" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5287,14 +5490,14 @@
        <position name="posOpArapuca5-Lat-4" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-6"/>
        <position name="posArapuca6-Lat-4" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5302,14 +5505,14 @@
        <position name="posOpArapuca6-Lat-4" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_4-7"/>
        <position name="posArapuca7-Lat-4" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-372.96"/>
+	 z="298.368"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5317,14 +5520,14 @@
        <position name="posOpArapuca7-Lat-4" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-372.96"/>
+	 z="298.368"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-0"/>
        <position name="posArapuca0-Lat-5" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5332,14 +5535,14 @@
        <position name="posOpArapuca0-Lat-5" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-1"/>
        <position name="posArapuca1-Lat-5" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5347,14 +5550,14 @@
        <position name="posOpArapuca1-Lat-5" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-2"/>
        <position name="posArapuca2-Lat-5" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5362,14 +5565,14 @@
        <position name="posOpArapuca2-Lat-5" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-3"/>
        <position name="posArapuca3-Lat-5" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5377,14 +5580,14 @@
        <position name="posOpArapuca3-Lat-5" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-4"/>
        <position name="posArapuca4-Lat-5" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5392,14 +5595,14 @@
        <position name="posOpArapuca4-Lat-5" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-5"/>
        <position name="posArapuca5-Lat-5" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5407,14 +5610,14 @@
        <position name="posOpArapuca5-Lat-5" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-6"/>
        <position name="posArapuca6-Lat-5" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5422,14 +5625,14 @@
        <position name="posOpArapuca6-Lat-5" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_5-7"/>
        <position name="posArapuca7-Lat-5" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-223.776"/>
+	 z="596.736"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5437,14 +5640,14 @@
        <position name="posOpArapuca7-Lat-5" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-223.776"/>
+	 z="596.736"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-0"/>
        <position name="posArapuca0-Lat-6" unit="cm" 
          x="284.97"
 	 y="-734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5452,14 +5655,14 @@
        <position name="posOpArapuca0-Lat-6" unit="cm" 
          x="284.97"
 	 y="-734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-1"/>
        <position name="posArapuca1-Lat-6" unit="cm" 
          x="209.97"
 	 y="-734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5467,14 +5670,14 @@
        <position name="posOpArapuca1-Lat-6" unit="cm" 
          x="209.97"
 	 y="-734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-2"/>
        <position name="posArapuca2-Lat-6" unit="cm" 
          x="134.97"
 	 y="-734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5482,14 +5685,14 @@
        <position name="posOpArapuca2-Lat-6" unit="cm" 
          x="134.97"
 	 y="-734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-3"/>
        <position name="posArapuca3-Lat-6" unit="cm" 
          x="59.97"
 	 y="-734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
@@ -5497,14 +5700,14 @@
        <position name="posOpArapuca3-Lat-6" unit="cm" 
          x="59.97"
 	 y="-734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-4"/>
        <position name="posArapuca4-Lat-6" unit="cm" 
          x="284.97"
 	 y="734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5512,14 +5715,14 @@
        <position name="posOpArapuca4-Lat-6" unit="cm" 
          x="284.97"
 	 y="734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-5"/>
        <position name="posArapuca5-Lat-6" unit="cm" 
          x="209.97"
 	 y="734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5527,14 +5730,14 @@
        <position name="posOpArapuca5-Lat-6" unit="cm" 
          x="209.97"
 	 y="734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-6"/>
        <position name="posArapuca6-Lat-6" unit="cm" 
          x="134.97"
 	 y="734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5542,14 +5745,14 @@
        <position name="posOpArapuca6-Lat-6" unit="cm" 
          x="134.97"
 	 y="734.22" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
      </physvol>
      <physvol>
        <volumeref ref="volArapucaLat_6-7"/>
        <position name="posArapuca7-Lat-6" unit="cm" 
          x="59.97"
 	 y="734.96" 
-	 z="-74.5919999999998"/>
+	 z="895.104"/>
        <rotationref ref="rPlus180AboutX"/>
      </physvol>
      <physvol>
@@ -5557,847 +5760,7 @@
        <position name="posOpArapuca7-Lat-6" unit="cm" 
          x="59.97"
 	 y="734.22" 
-	 z="-74.5919999999998"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-0"/>
-       <position name="posArapuca0-Lat-7" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-0"/>
-       <position name="posOpArapuca0-Lat-7" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-1"/>
-       <position name="posArapuca1-Lat-7" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-1"/>
-       <position name="posOpArapuca1-Lat-7" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-2"/>
-       <position name="posArapuca2-Lat-7" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-2"/>
-       <position name="posOpArapuca2-Lat-7" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-3"/>
-       <position name="posArapuca3-Lat-7" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-3"/>
-       <position name="posOpArapuca3-Lat-7" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-4"/>
-       <position name="posArapuca4-Lat-7" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-4"/>
-       <position name="posOpArapuca4-Lat-7" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-5"/>
-       <position name="posArapuca5-Lat-7" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-5"/>
-       <position name="posOpArapuca5-Lat-7" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-6"/>
-       <position name="posArapuca6-Lat-7" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-6"/>
-       <position name="posOpArapuca6-Lat-7" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_7-7"/>
-       <position name="posArapuca7-Lat-7" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="74.5920000000002"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_7-7"/>
-       <position name="posOpArapuca7-Lat-7" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="74.5920000000002"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-0"/>
-       <position name="posArapuca0-Lat-8" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="223.776"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-0"/>
-       <position name="posOpArapuca0-Lat-8" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-1"/>
-       <position name="posArapuca1-Lat-8" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="223.776"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-1"/>
-       <position name="posOpArapuca1-Lat-8" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-2"/>
-       <position name="posArapuca2-Lat-8" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="223.776"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-2"/>
-       <position name="posOpArapuca2-Lat-8" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-3"/>
-       <position name="posArapuca3-Lat-8" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="223.776"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-3"/>
-       <position name="posOpArapuca3-Lat-8" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-4"/>
-       <position name="posArapuca4-Lat-8" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="223.776"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-4"/>
-       <position name="posOpArapuca4-Lat-8" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-5"/>
-       <position name="posArapuca5-Lat-8" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="223.776"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-5"/>
-       <position name="posOpArapuca5-Lat-8" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-6"/>
-       <position name="posArapuca6-Lat-8" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="223.776"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-6"/>
-       <position name="posOpArapuca6-Lat-8" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_8-7"/>
-       <position name="posArapuca7-Lat-8" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="223.776"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_8-7"/>
-       <position name="posOpArapuca7-Lat-8" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="223.776"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-0"/>
-       <position name="posArapuca0-Lat-9" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="372.96"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-0"/>
-       <position name="posOpArapuca0-Lat-9" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-1"/>
-       <position name="posArapuca1-Lat-9" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="372.96"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-1"/>
-       <position name="posOpArapuca1-Lat-9" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-2"/>
-       <position name="posArapuca2-Lat-9" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="372.96"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-2"/>
-       <position name="posOpArapuca2-Lat-9" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-3"/>
-       <position name="posArapuca3-Lat-9" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="372.96"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-3"/>
-       <position name="posOpArapuca3-Lat-9" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-4"/>
-       <position name="posArapuca4-Lat-9" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="372.96"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-4"/>
-       <position name="posOpArapuca4-Lat-9" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-5"/>
-       <position name="posArapuca5-Lat-9" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="372.96"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-5"/>
-       <position name="posOpArapuca5-Lat-9" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-6"/>
-       <position name="posArapuca6-Lat-9" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="372.96"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-6"/>
-       <position name="posOpArapuca6-Lat-9" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_9-7"/>
-       <position name="posArapuca7-Lat-9" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="372.96"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_9-7"/>
-       <position name="posOpArapuca7-Lat-9" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="372.96"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-0"/>
-       <position name="posArapuca0-Lat-10" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="522.144"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-0"/>
-       <position name="posOpArapuca0-Lat-10" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-1"/>
-       <position name="posArapuca1-Lat-10" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="522.144"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-1"/>
-       <position name="posOpArapuca1-Lat-10" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-2"/>
-       <position name="posArapuca2-Lat-10" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="522.144"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-2"/>
-       <position name="posOpArapuca2-Lat-10" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-3"/>
-       <position name="posArapuca3-Lat-10" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="522.144"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-3"/>
-       <position name="posOpArapuca3-Lat-10" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-4"/>
-       <position name="posArapuca4-Lat-10" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="522.144"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-4"/>
-       <position name="posOpArapuca4-Lat-10" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-5"/>
-       <position name="posArapuca5-Lat-10" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="522.144"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-5"/>
-       <position name="posOpArapuca5-Lat-10" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-6"/>
-       <position name="posArapuca6-Lat-10" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="522.144"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-6"/>
-       <position name="posOpArapuca6-Lat-10" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_10-7"/>
-       <position name="posArapuca7-Lat-10" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="522.144"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_10-7"/>
-       <position name="posOpArapuca7-Lat-10" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="522.144"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-0"/>
-       <position name="posArapuca0-Lat-11" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="671.328"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-0"/>
-       <position name="posOpArapuca0-Lat-11" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-1"/>
-       <position name="posArapuca1-Lat-11" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="671.328"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-1"/>
-       <position name="posOpArapuca1-Lat-11" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-2"/>
-       <position name="posArapuca2-Lat-11" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="671.328"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-2"/>
-       <position name="posOpArapuca2-Lat-11" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-3"/>
-       <position name="posArapuca3-Lat-11" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="671.328"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-3"/>
-       <position name="posOpArapuca3-Lat-11" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-4"/>
-       <position name="posArapuca4-Lat-11" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="671.328"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-4"/>
-       <position name="posOpArapuca4-Lat-11" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-5"/>
-       <position name="posArapuca5-Lat-11" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="671.328"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-5"/>
-       <position name="posOpArapuca5-Lat-11" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-6"/>
-       <position name="posArapuca6-Lat-11" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="671.328"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-6"/>
-       <position name="posOpArapuca6-Lat-11" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_11-7"/>
-       <position name="posArapuca7-Lat-11" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="671.328"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_11-7"/>
-       <position name="posOpArapuca7-Lat-11" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="671.328"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-0"/>
-       <position name="posArapuca0-Lat-12" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="820.512"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-0"/>
-       <position name="posOpArapuca0-Lat-12" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-1"/>
-       <position name="posArapuca1-Lat-12" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="820.512"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-1"/>
-       <position name="posOpArapuca1-Lat-12" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-2"/>
-       <position name="posArapuca2-Lat-12" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="820.512"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-2"/>
-       <position name="posOpArapuca2-Lat-12" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-3"/>
-       <position name="posArapuca3-Lat-12" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="820.512"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-3"/>
-       <position name="posOpArapuca3-Lat-12" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-4"/>
-       <position name="posArapuca4-Lat-12" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="820.512"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-4"/>
-       <position name="posOpArapuca4-Lat-12" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-5"/>
-       <position name="posArapuca5-Lat-12" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="820.512"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-5"/>
-       <position name="posOpArapuca5-Lat-12" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-6"/>
-       <position name="posArapuca6-Lat-12" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="820.512"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-6"/>
-       <position name="posOpArapuca6-Lat-12" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_12-7"/>
-       <position name="posArapuca7-Lat-12" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="820.512"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_12-7"/>
-       <position name="posOpArapuca7-Lat-12" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="820.512"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-0"/>
-       <position name="posArapuca0-Lat-13" unit="cm" 
-         x="284.97"
-	 y="-734.96" 
-	 z="969.696"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-0"/>
-       <position name="posOpArapuca0-Lat-13" unit="cm" 
-         x="284.97"
-	 y="-734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-1"/>
-       <position name="posArapuca1-Lat-13" unit="cm" 
-         x="209.97"
-	 y="-734.96" 
-	 z="969.696"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-1"/>
-       <position name="posOpArapuca1-Lat-13" unit="cm" 
-         x="209.97"
-	 y="-734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-2"/>
-       <position name="posArapuca2-Lat-13" unit="cm" 
-         x="134.97"
-	 y="-734.96" 
-	 z="969.696"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-2"/>
-       <position name="posOpArapuca2-Lat-13" unit="cm" 
-         x="134.97"
-	 y="-734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-3"/>
-       <position name="posArapuca3-Lat-13" unit="cm" 
-         x="59.97"
-	 y="-734.96" 
-	 z="969.696"/>
-       <rotationref ref="rIdentity"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-3"/>
-       <position name="posOpArapuca3-Lat-13" unit="cm" 
-         x="59.97"
-	 y="-734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-4"/>
-       <position name="posArapuca4-Lat-13" unit="cm" 
-         x="284.97"
-	 y="734.96" 
-	 z="969.696"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-4"/>
-       <position name="posOpArapuca4-Lat-13" unit="cm" 
-         x="284.97"
-	 y="734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-5"/>
-       <position name="posArapuca5-Lat-13" unit="cm" 
-         x="209.97"
-	 y="734.96" 
-	 z="969.696"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-5"/>
-       <position name="posOpArapuca5-Lat-13" unit="cm" 
-         x="209.97"
-	 y="734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-6"/>
-       <position name="posArapuca6-Lat-13" unit="cm" 
-         x="134.97"
-	 y="734.96" 
-	 z="969.696"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-6"/>
-       <position name="posOpArapuca6-Lat-13" unit="cm" 
-         x="134.97"
-	 y="734.22" 
-	 z="969.696"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volArapucaLat_13-7"/>
-       <position name="posArapuca7-Lat-13" unit="cm" 
-         x="59.97"
-	 y="734.96" 
-	 z="969.696"/>
-       <rotationref ref="rPlus180AboutX"/>
-     </physvol>
-     <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaLat_13-7"/>
-       <position name="posOpArapuca7-Lat-13" unit="cm" 
-         x="59.97"
-	 y="734.22" 
-	 z="969.696"/>
+	 z="895.104"/>
      </physvol>
     </volume>
 

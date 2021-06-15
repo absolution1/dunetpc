@@ -1,5 +1,3 @@
-add_subdirectory(SNAnaClustering)
-add_subdirectory(RunningSumHitFinder)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
@@ -29,26 +27,25 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   
   cetlib cetlib_except
   ${ROOT_BASIC_LIB_LIST}
-  EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderPass2_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
+  EXCLUDE read_packed.cxx RunningSumTPFinderPass1_tool.cc RunningSumTPFinderPass2_tool.cc RunningSumTPFinderPass3_tool.cc RunningSumTPFinderPass4_tool.cc
   )
 
-simple_plugin(TriggerPrimitiveFinderPass1 "tool"
+simple_plugin(RunningSumTPFinderPass1 "tool"
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
-
-simple_plugin(TriggerPrimitiveFinderPass2 "tool"
-  fhiclcpp cetlib cetlib_except
-  ${Boost_SYSTEM_LIBRARY}
-  dune_DAQSimAna_TriggerPrimitiveFinderPass1_tool
-)
-
-simple_plugin(TriggerPrimitiveFinderTemplate "tool"
+simple_plugin(RunningSumTPFinderPass2 "tool"
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
-
-cet_make_exec(read_packed SOURCE read_packed.cxx)
+simple_plugin(RunningSumTPFinderPass3 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
+simple_plugin(RunningSumTPFinderPass4 "tool"
+  fhiclcpp cetlib cetlib_except
+  ${Boost_SYSTEM_LIBRARY}
+)
 
 install_fhicl()
 install_headers()
