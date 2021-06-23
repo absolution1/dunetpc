@@ -154,7 +154,7 @@ private:
 
 };
 
-std::ostream& operator<<(std::ostream& lhs, const RunData& rhs) {
+inline std::ostream& operator<<(std::ostream& lhs, const RunData& rhs) {
   return rhs.print(lhs);
 }
 
