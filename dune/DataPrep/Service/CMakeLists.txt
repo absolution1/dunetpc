@@ -51,6 +51,7 @@ simple_plugin(DuneDPhase3x1x1NoiseRemovalService   "service"
              )
 
 simple_plugin(MedianPedestalService   "service"
+		${ART_FRAMEWORK_SERVICES_REGISTRY}
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
@@ -70,6 +71,7 @@ simple_plugin(DuneDeconvolutionService "service"
              )
 
 simple_plugin(DuneDPhaseDeconvolutionService "service"
+		lardata_Utilities
                 art_Utilities canvas
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}

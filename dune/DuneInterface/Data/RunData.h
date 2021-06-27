@@ -119,6 +119,22 @@ public:
     return lhs;
   }
 
+  void clear() {
+    m_run = 0;
+    m_cryostat = "";
+    m_apas.clear();
+    m_gain = 0.0;
+    m_shaping = 0.0;
+    m_baseline = 0.0;
+    m_leakage = 0.0;
+    m_hvfrac = 0.0;
+    m_pulserAmplitude = 999;
+    m_pulserSource = 0;  // 1=preamp, 2=FEMB
+    m_pulserPeriod = 0;
+    m_phaseGroup = "";
+    m_phases.clear();
+  }
+
 private:
 
   // Data.
