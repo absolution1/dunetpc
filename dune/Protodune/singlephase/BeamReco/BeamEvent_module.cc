@@ -67,6 +67,7 @@ public:
   // Required functions.
   //void reconfigure(fhicl::ParameterSet const & p);
   void reset();
+  void reset_gentrigs();
   void produce(art::Event & e) override;
 
   // Selected optional functions.
@@ -155,6 +156,7 @@ private:
   double RDTSTimeSec = 0.;
   double PrevRDTSTimeSec=-99999.;  
   double RDTSTimeNano = 0.; 
+  double RDTSSec, RDTSNano;
 
   //long long valid_fetch_time = 0; 
   //long long spill_valid_fetch_time = 0;
@@ -163,6 +165,9 @@ private:
   double fOutTOF= 0.;
   double fOutP= 0.;
   int    fOutC0 = 0, fOutC1 = 0;
+
+  std::vector<double> genTrigFracs, genTrigCoarses, genTrigSecs;
+  bool fMatched;
 
   int RDTSTrigger = 0;
 
@@ -491,6 +496,8 @@ void proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     //Units are 20 nanoseconds ticks
     RDTSTimeSec  = 20.e-9 * RDTSTickSec;
     RDTSTimeNano = 20.    * RDTSTickNano;
+    RDTSSec  = 20.e-9 * RDTSTickSec;
+    RDTSNano = 20.    * RDTSTickNano;
 
   }
 
@@ -687,6 +694,12 @@ void proto::BeamEvent::SetBeamEvent(){
 }
 
 
+void proto::BeamEvent::reset_gentrigs(){
+  genTrigFracs.clear();
+  genTrigCoarses.clear();
+  genTrigSecs.clear();
+}
+
 void proto::BeamEvent::reset(){
   acqTime = 0;
   acqStampMBPL = 0;
@@ -699,14 +712,17 @@ void proto::BeamEvent::reset(){
   
   s11Nano     = -1.;
   s11Sec      = -1.;
-  
+
   ActiveTriggerTime = -1;
   RDTSTime   = 0;
+  RDTSSec = -999.;
+  RDTSNano = -999.;
 
   fOutP = -1.;
   fOutTOF = -1.;
   fOutC0 = -1;
   fOutC1 = -1;
+  fMatched = false;
 }
 
 
@@ -769,6 +785,7 @@ void proto::BeamEvent::produce(art::Event & e){
     //Can be overridden with a flag from the fcl
     if( ( ( PrevStart != SpillStart) || ( !SpillStartValid && ( abs(RDTSTimeSec - PrevRDTSTimeSec) > 5 ) ) )
     || fForceNewFetch){
+      reset_gentrigs();
 
       if( fPrintDebug )
         MF_LOG_INFO("BeamEvent") << "New spill or forced new fetch. Getting new beamspill info" << "\n";
@@ -841,8 +858,9 @@ void proto::BeamEvent::produce(art::Event & e){
             MF_LOG_INFO("BeamEvent") << "new xcet cache_end: "   << cache_end << "\n";
           }
         }
-        catch( std::exception const& ){
+        catch( std::exception const& e){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
+          MF_LOG_ERROR("BeamEvent") << e.what() << "\n";
         }
       }      
       else{
@@ -854,14 +872,16 @@ void proto::BeamEvent::produce(art::Event & e){
         try{        
           bfp->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception const& ){
+        catch( std::exception const& e){
           MF_LOG_WARNING("BeamEvent") << "Could not fill cache\n"; 
+          MF_LOG_ERROR("BeamEvent") << e.what() << "\n";
         }
         try{
           bfp_xcet->FillCache( fetch_time - fFillCacheDown );
         }
-        catch( std::exception const& ){
+        catch( std::exception const& e){
           MF_LOG_WARNING("BeamEvent") << "Could not fill xcet cache\n"; 
+          MF_LOG_ERROR("BeamEvent") << e.what() << "\n";
         }
 
         if( fPrintDebug ){
@@ -1057,6 +1077,10 @@ void proto::BeamEvent::produce(art::Event & e){
     fOutC1 = beamevt->GetCKov1Status();
     std::cout << "CKovs: " << beamevt->GetCKov0Status() << " " << beamevt->GetCKov1Status() << std::endl;
     std::cout << "TOF, P: " << fOutTOF << " " << fOutP << std::endl;
+
+  
+
+    fMatched = beamevt->CheckIsMatched();
     fOutTree->Fill();
   }
 
@@ -1230,6 +1254,10 @@ void proto::BeamEvent::parseXTOF(uint64_t time){
     fGenTrigSec    = secondsGeneralTrigger[2*i + 1];
     fGenTrigCoarse = coarseGeneralTrigger[i];
     fGenTrigFrac   = fracGeneralTrigger[i];
+
+    genTrigSecs.push_back(fGenTrigSec);
+    genTrigFracs.push_back(fGenTrigFrac);
+    genTrigCoarses.push_back(fGenTrigCoarse);
 
     unorderedGenTrigTime.push_back( std::make_pair(fGenTrigSec, (fGenTrigCoarse*8. + fGenTrigFrac/512.)) );
 
@@ -1799,6 +1827,8 @@ void proto::BeamEvent::beginJob()
     fOutTree = tfs->make<TTree>("tree", "lines"); 
     fOutTree->Branch("Time", &eventTime);
     fOutTree->Branch("RDTS", &RDTSTime);
+    fOutTree->Branch("RDTSSec", &RDTSSec);
+    fOutTree->Branch("RDTSNano", &RDTSNano);
     fOutTree->Branch("RDTSTrigger", &RDTSTrigger);
     fOutTree->Branch("Event", &eventNum);
     fOutTree->Branch("SpillStart", &SpillStart);
@@ -1817,6 +1847,10 @@ void proto::BeamEvent::beginJob()
     fOutTree->Branch("C2DB",        &C2DB);
     fOutTree->Branch("s11Sec",      &s11Sec);
     fOutTree->Branch("s11Nano",      &s11Nano);
+    fOutTree->Branch("genTrigFracs", &genTrigFracs);
+    fOutTree->Branch("genTrigCoarses", &genTrigCoarses);
+    fOutTree->Branch("genTrigSecs", &genTrigSecs);
+    fOutTree->Branch("matched", &fMatched);
 
     fOutTree->Branch("TOF", &fOutTOF );
     fOutTree->Branch("P",   &fOutP );

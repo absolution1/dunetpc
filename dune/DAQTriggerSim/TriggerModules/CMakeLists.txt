@@ -4,7 +4,8 @@ art_make( BASENAME_ONLY
                            larcore_Geometry_Geometry_service
                            larcorealg_Geometry
                            #lardataobj_RawData
-                           nusimdata_SimulationBase	
+                           nusimdata_SimulationBase
+                           larsim_MCCheater_ParticleInventoryService_service
                            ${ART_FRAMEWORK_CORE}
                            ${ART_FRAMEWORK_PRINCIPAL}
                            ${ART_FRAMEWORK_SERVICES_REGISTRY}

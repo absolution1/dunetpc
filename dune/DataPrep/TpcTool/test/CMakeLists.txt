@@ -18,6 +18,7 @@ cet_test(test_AdcToRoi2d SOURCES test_AdcToRoi2d.cxx
     cetlib_except
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_test(test_Roi2dToAdc SOURCES test_Roi2dToAdc.cxx
@@ -31,6 +32,7 @@ cet_test(test_Roi2dToAdc SOURCES test_Roi2dToAdc.cxx
     cetlib_except
     ${SQLITE3}
     ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
 )
 
 cet_enable_asserts()
