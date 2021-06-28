@@ -7,6 +7,8 @@
   <function name="coldelecResponse" noStreamer="true"/>
   <function name="coldelecResponseFunction" noStreamer="true"/>
   <function name="offsetLineFullTF1" noStreamer="true"/>
+  <function name="gausTF1" noStreamer="true"/>
+  <function name="shiftFitHist" noStreamer="true"/>
   <class name="RootPalette" />
   <class name="TPadManipulator" ClassVersion="4" noStreamer="true">
    <version ClassVersion="4" checksum="31706553"/>

@@ -2,9 +2,9 @@
 
 #
 #
-#  First attempt to make a GDML fragment generator for the DUNE vertical drift
-#  10kt detector geometry with 2 orthogonal view readout
-#  The lower chamber is not added yet.
+#  First attempt to make a GDML fragment generator for the DUNE vertical drift 
+#  10kt detector geometry with 2 orthogonal view readout 
+#  The lower chamber is not added yet. 
 #  !!!NOTE!!!: the readout is on a positive Y plane (drift along horizontal X)
 #              due to current reco limitations)
 #  No photon detectors declared
@@ -15,15 +15,15 @@
 #
 #  Modified:
 #           VG: Added defs to enable use in the refactored sim framework
-#           Laura Paulucci (lpaulucc@fnal.gov): PDS added. Use option -pds=1 for
-#                cathode only coverage. Default (pds=0) is the 4-pi configuration.
+#           Laura Paulucci (lpaulucc@fnal.gov): PDS added. Use option -pds=1 for 
+#                backup design (membrane only coverage). Default (pds=0) is the 4-pi configuration (reference design).
 #
 #
 #################################################################################
 
 # Each subroutine generates a fragment GDML file, and the last subroutine
 # creates an XML file that make_gdml.pl will use to appropriately arrange
-# the fragment GDML files to create the final desired DUNE GDML file,
+# the fragment GDML files to create the final desired DUNE GDML file, 
 # to be named by make_gdml output command
 
 ##################################################################################
@@ -39,11 +39,11 @@ Math::BigFloat->precision(-16);
 GetOptions( "help|h" => \$help,
 	    "suffix|s:s" => \$suffix,
 	    "output|o:s" => \$output,
-	    "wires|w:s" => \$wires,
+	    "wires|w:s" => \$wires,  
             "workspace|k:s" => \$wkspc,
             "pdsconfig|pds:s" => \$pdsconfig);
 
-my $FieldCage_switch="off";
+my $FieldCage_switch="on";
 my $Cathode_switch="off";
 
 if ( defined $help )
@@ -68,7 +68,7 @@ else
 
 
 $workspace = 0;
-if(defined $wkspc )
+if(defined $wkspc ) 
 {
     $workspace = $wkspc;
 }
@@ -80,11 +80,11 @@ elsif ( $workspace != 0 )
 if ( ! defined $pdsconfig )
 {
     $pdsconfig = 0;
-    print "\t\tCreating 4-pi PDS converage.\n";
+    print "\t\tCreating reference design: 4-pi PDS converage.\n";
 }
 elsif ( $pdsconfig != 0 )
 {
-    print "\t\tCreating geometry with cathode-only PDS coverage.\n";
+    print "\t\tCreating backup design: membrane-only PDS coverage.\n";
 }
 
 # set wires on to be the default, unless given an input by the user
@@ -107,16 +107,16 @@ $basename="_";
 $nChannelsViewInd = 320;
 $nChannelsViewCol = 288;
 
-$wirePitchY      = 0.527; # $widthPCBActive / $nChannelsViewInd;
-$wirePitchZ      = 0.518; # $lengthPCBActive / $nChannelsViewCol;
+$wirePitchY      = 0.527; # $widthPCBActive / $nChannelsViewInd; 
+$wirePitchZ      = 0.518; # $lengthPCBActive / $nChannelsViewCol; 
 
 $widthPCBActive  = $wirePitchY * $nChannelsViewInd;
 $lengthPCBActive = $wirePitchZ * $nChannelsViewCol;
 
 $borderCRM       = 0.05;     # dead space at the border of each CRM
 
-$widthCRM_active  = $widthPCBActive;
-$lengthCRM_active = $lengthPCBActive;
+$widthCRM_active  = $widthPCBActive;  
+$lengthCRM_active = $lengthPCBActive; 
 
 $widthCRM  = $widthPCBActive  + 2 * $borderCRM;
 $lengthCRM = $lengthPCBActive + 2 * $borderCRM;
@@ -146,12 +146,18 @@ if( $workspace == 3 )
     $nCRM_z = 3 * 2;
 }
 
+if( $workspace == 4 )
+{
+    $nCRM_x = 4 * 2;
+    $nCRM_z = 7 * 2;
+}
+
 
 # calculate tpc area based on number of CRMs and their dimensions
 $widthTPCActive  = $nCRM_x * $widthCRM;  # around 1200 for full module
 $lengthTPCActive = $nCRM_z * $lengthCRM; # around 6000 for full module
 
-# active volume dimensions
+# active volume dimensions 
 $driftTPCActive  = 650.0;
 
 # model anode strips as wires of some diameter
@@ -183,7 +189,7 @@ $xLArBuffer = $Argon_x - $driftTPCActive - $HeightGaseousAr - $ReadoutPlane;
 $yLArBuffer = 0.5 * ($Argon_y - $widthTPCActive);
 $zLArBuffer = 0.5 * ($Argon_z - $lengthTPCActive);
 
-# cryostat
+# cryostat 
 $SteelThickness = 0.12; # membrane
 
 $Cryostat_x = $Argon_x + 2*$SteelThickness;
@@ -197,8 +203,8 @@ $Cryostat_z = $Argon_z + 2*$SteelThickness;
 
 $SteelSupport_x  =  100;
 $SteelSupport_y  =  100;
-$SteelSupport_z  =  100;
-$FoamPadding     =  80;
+$SteelSupport_z  =  100; 
+$FoamPadding     =  80;  
 $FracMassOfSteel =  0.5; #The steel support is not a solid block, but a mixture of air and steel
 $FracMassOfAir   =  1 - $FracMassOfSteel;
 
@@ -239,12 +245,12 @@ $OriginYSet =   $DetEncY/2.0
               - $widthTPCActive/2.0;
 
   # We want the world origin to be at the very front of the fiducial volume.
-  # move it to the front of the enclosure, then back it up through the concrete/foam,
+  # move it to the front of the enclosure, then back it up through the concrete/foam, 
   # then through the Cryostat shell, then through the upstream dead LAr (including the
   # dead LAr on the edge of the TPC)
   # This is to be added to the z position of every volume in volWorld
 
-$OriginZSet =   $DetEncZ/2.0
+$OriginZSet =   $DetEncZ/2.0 
               - $SpaceSteelSupportToWall
               - $SteelSupport_z
               - $FoamPadding
@@ -256,14 +262,18 @@ $OriginZSet =   $DetEncZ/2.0
 ############## Field Cage Parameters ###############
 $FieldShaperLongTubeLength  =  $lengthTPCActive;
 $FieldShaperShortTubeLength =  $widthTPCActive;
-$FieldShaperInnerRadius = 1.485;
-$FieldShaperOuterRadius = 1.685;
-$FieldShaperTorRad = 1.69;
+#$FieldShaperInnerRadius = 1.485;
+#$FieldShaperOuterRadius = 1.685;
+#$FieldShaperTorRad = 1.69;
+$FieldShaperInnerRadius = 0.5; #cm
+$FieldShaperOuterRadius = 2.285; #cm
+$FieldShaperOuterRadiusSlim = 0.75; #cm
+$FieldShaperTorRad = 2.3; #cm
 
 $FieldShaperLength = $FieldShaperLongTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 $FieldShaperWidth =  $FieldShaperShortTubeLength + 2*$FieldShaperOuterRadius+ 2*$FieldShaperTorRad;
 
-$FieldShaperSeparation = 5.0;
+$FieldShaperSeparation = 6.0; #cm
 $NFieldShapers = ($driftTPCActive/$FieldShaperSeparation) - 1;
 
 $FieldCageSizeX = $FieldShaperSeparation*$NFieldShapers+2;
@@ -275,9 +285,9 @@ $FieldCageSizeZ = $FieldShaperLength+2;
 ######################## ARAPUCA Dimensions ########################
 ## in cm
 
-$ArapucaOut_x = 70.0;
+$ArapucaOut_x = 65.0; 
 $ArapucaOut_y = 2.5;
-$ArapucaOut_z = 68.0;
+$ArapucaOut_z = 65.0; 
 $ArapucaIn_x = 60.0;
 $ArapucaIn_y = 2.0;
 $ArapucaIn_z = 60.0;
@@ -288,8 +298,8 @@ $BlockPD_x = 0.5*$widthCRM_active - 6.35; #Sub-division of Frame (4 n x, 4 in z)
 $BlockPD_z = 0.5*$lengthCRM_active - 6.25;
 $GapPD = 0.5; #Size of supporting bars in Frame
 $FrameToArapucaSpace       =    1.0; #At this moment, should cover the thickness of Frame + small gap to prevent overlap. VALUE NEEDS TO BE CHECKED!!!
-$FrameToArapucaSpaceLat    =    1.5; #At this moment, should cover the thickness of Frame + small gap to prevent overlap. VALUE NEEDS TO BE CHECKED!!!
-$VerticalPDdist = 169.0; #distance of arapucas (center to center) in the y direction
+$FrameToArapucaSpaceLat    =   $yLArBuffer - 60.0; #Arapucas 60 cm behind FC. At this moment, should cover the thickness of Frame + small gap to prevent overlap. VALUE NEEDS TO BE CHECKED!!!
+$VerticalPDdist = 75.0; #distance of arapucas (center to center) in the y direction 
 $HorizontalPDdist = 150.0; #distance of arapucas (center to center) in the x direction
 
 #Positions of the 4 arapucas with respect to the Frame center --> arapucas over the cathode
@@ -322,7 +332,7 @@ sub usage()
 sub gen_Extend()
 {
 
-# Create the <define> fragment file name,
+# Create the <define> fragment file name, 
 # add file to list of fragments,
 # and open it
     $DEF = $basename."_Ext" . $suffix . ".gdml";
@@ -338,7 +348,7 @@ print DEF <<EOF;
    <color name="green"       R="0.0"  G="1.0"  B="0.0"  A="1.0" />
    <color name="red"         R="1.0"  G="0.0"  B="0.0"  A="1.0" />
    <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
-   <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />
+   <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
 </extension>
 </gdml>
 EOF
@@ -352,7 +362,7 @@ EOF
 sub gen_Define()
 {
 
-# Create the <define> fragment file name,
+# Create the <define> fragment file name, 
 # add file to list of fragments,
 # and open it
     $DEF = $basename."_Def" . $suffix . ".gdml";
@@ -443,7 +453,7 @@ sub gen_TPC()
     my $TPC_y = $widthCRM;
     my $TPC_z = $lengthCRM;
 
-
+	
     $TPC = $basename."_TPC" . $suffix . ".gdml";
     push (@gdmlFiles, $TPC);
     $TPC = ">" . $TPC;
@@ -455,19 +465,19 @@ sub gen_TPC()
 <gdml>
 EOF
 
-
+    
     # All the TPC solids save the wires.
     print TPC <<EOF;
 <solids>
-   <box name="CRM" lunit="cm"
-      x="$TPC_x"
-      y="$TPC_y"
+   <box name="CRM" lunit="cm" 
+      x="$TPC_x" 
+      y="$TPC_y" 
       z="$TPC_z"/>
-   <box name="CRMVPlane" lunit="cm"
-      x="$padWidth"
-      y="$TPCActive_y"
+   <box name="CRMVPlane" lunit="cm" 
+      x="$padWidth" 
+      y="$TPCActive_y" 
       z="$TPCActive_z"/>
-   <box name="CRMZPlane" lunit="cm"
+   <box name="CRMZPlane" lunit="cm" 
       x="$padWidth"
       y="$TPCActive_y"
       z="$TPCActive_z"/>
@@ -484,13 +494,13 @@ print TPC <<EOF;
 
    <tube name="CRMWireV"
      rmax="0.5*$padWidth"
-     z="$TPCActive_z"
+     z="$TPCActive_z"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
    <tube name="CRMWireZ"
      rmax="0.5*$padWidth"
-     z="$TPCActive_y"
+     z="$TPCActive_y"               
      deltaphi="360"
      aunit="deg"
      lunit="cm"/>
@@ -512,8 +522,8 @@ print TPC <<EOF;
     </volume>
 EOF
 
-if ($wires_on==1)
-{
+if ($wires_on==1) 
+{ 
   print TPC <<EOF;
     <volume name="volTPCWireV">
       <materialref ref="Copper_Beryllium_alloy25"/>
@@ -542,9 +552,9 @@ my $ypos = -0.5 * $TPCActive_y + ($i+0.5)*$wirePitchY + 0.5*$padWidth;
 
 print TPC <<EOF;
     <physvol>
-      <volumeref ref="volTPCWireV"/>
+      <volumeref ref="volTPCWireV"/> 
       <position name="posWireV$i" unit="cm" x="0" y="$ypos" z="0"/>
-      <rotationref ref="rIdentity"/>
+      <rotationref ref="rIdentity"/> 
     </physvol>
 EOF
 }
@@ -552,7 +562,7 @@ EOF
 
 print TPC <<EOF;
    </volume>
-
+   
    <volume name="volTPCPlaneZ">
      <materialref ref="LAr"/>
      <solidref ref="CRMZPlane"/>
@@ -577,9 +587,9 @@ EOF
 
 print TPC <<EOF;
    </volume>
-
+   
    <volume name="volReflectiveCathode">
-     <materialref ref="VM2000"/>
+     <materialref ref="vm2000"/>
      <solidref ref="CRMZPlane"/>
 EOF
 
@@ -593,11 +603,11 @@ $posVplane[1] = 0;
 $posVplane[2] = 0;
 
 $posZplane[0] = 0.5*$TPC_x - 1.5*$padWidth;
-$posZplane[1] = 0;
+$posZplane[1] = 0; 
 $posZplane[2] = 0;
 
 $posReflCathode[0] = 0.5*$TPC_x - 0.5*$padWidth;
-$posReflCathode[1] = 0;
+$posReflCathode[1] = 0; 
 $posReflCathode[2] = 0;
 
 $posTPCActive[0] = -$ReadoutPlane/2;
@@ -613,25 +623,25 @@ print TPC <<EOF;
      <solidref ref="CRM"/>
      <physvol>
        <volumeref ref="volTPCPlaneV"/>
-       <position name="posPlaneV" unit="cm"
+       <position name="posPlaneV" unit="cm" 
          x="$posVplane[0]" y="$posVplane[1]" z="$posVplane[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volTPCPlaneZ"/>
-       <position name="posPlaneZ" unit="cm"
+       <position name="posPlaneZ" unit="cm" 
          x="$posZplane[0]" y="$posZplane[1]" z="$posZplane[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
      <physvol>
        <volumeref ref="volReflectiveCathode"/>
-       <position name="posReflectiveCathode" unit="cm"
+       <position name="posReflectiveCathode" unit="cm" 
          x="$posReflCathode[0]" y="$posReflCathode[1]" z="$posReflCathode[2]"/>
        <rotationref ref="rIdentity"/>
-     </physvol>
+     </physvol>     
      <physvol>
        <volumeref ref="volTPCActive"/>
-       <position name="posActive" unit="cm"
+       <position name="posActive" unit="cm" 
          x="$posTPCActive[0]" y="$posTPCActive[1]" z="$posTPCActive[2]"/>
        <rotationref ref="rIdentity"/>
      </physvol>
@@ -674,6 +684,7 @@ print FieldCage <<EOF;
 <solids>
      <torus name="FieldShaperCorner" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" rtor="$FieldShaperTorRad" deltaphi="90" startphi="0" aunit="deg" lunit="cm"/>
      <tube name="FieldShaperLongtube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
+     <tube name="FieldShaperLongtubeSlim" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadiusSlim" z="$FieldShaperLongTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
      <tube name="FieldShaperShorttube" rmin="$FieldShaperInnerRadius" rmax="$FieldShaperOuterRadius" z="$FieldShaperShortTubeLength" deltaphi="360" startphi="0" aunit="deg" lunit="cm"/>
 
     <union name="FSunion1">
@@ -723,6 +734,55 @@ print FieldCage <<EOF;
    		<position name="esquinapos7" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
 		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
     </union>
+    
+    <union name="FSunionSlim1">
+      <first ref="FieldShaperLongtubeSlim"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos1" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot1" unit="deg" x="90" y="0" z="0" />
+    </union>
+
+    <union name="FSunionSlim2">
+      <first ref="FSunionSlim1"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos2" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[+0.5*$FieldShaperLongTubeLength+$FieldShaperTorRad]}"/>
+   		<rotation name="rot2" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FSunionSlim3">
+      <first ref="FSunionSlim2"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos3" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot3" unit="deg" x="90" y="270" z="0" />
+    </union>
+
+    <union name="FSunionSlim4">
+      <first ref="FSunionSlim3"/>
+      <second ref="FieldShaperLongtubeSlim"/>
+   		<position name="esquinapos4" unit="cm" x="@{[-$FieldShaperShortTubeLength-2*$FieldShaperTorRad]}" y="0" z="0"/>
+    </union>
+
+    <union name="FSunionSlim5">
+      <first ref="FSunionSlim4"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos5" unit="cm" x="@{[-$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot5" unit="deg" x="90" y="180" z="0" />
+    </union>
+
+    <union name="FSunionSlim6">
+      <first ref="FSunionSlim5"/>
+      <second ref="FieldShaperShorttube"/>
+   		<position name="esquinapos6" unit="cm" x="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength-$FieldShaperTorRad]}"/>
+		<rotation name="rot6" unit="deg" x="0" y="90" z="0" />
+    </union>
+
+    <union name="FieldShaperSolidSlim">
+      <first ref="FSunionSlim6"/>
+      <second ref="FieldShaperCorner"/>
+   		<position name="esquinapos7" unit="cm" x="@{[-$FieldShaperTorRad]}" y="0" z="@{[-0.5*$FieldShaperLongTubeLength]}"/>
+		<rotation name="rot7" unit="deg" x="90" y="90" z="0" />
+    </union>
+    
 </solids>
 
 EOF
@@ -733,6 +793,10 @@ print FieldCage <<EOF;
 <volume name="volFieldShaper">
   <materialref ref="Al2O3"/>
   <solidref ref="FieldShaperSolid"/>
+</volume>
+<volume name="volFieldShaperSlim">
+  <materialref ref="Al2O3"/>
+  <solidref ref="FieldShaperSolidSlim"/>
 </volume>
 </structure>
 
@@ -772,17 +836,17 @@ EOF
 # All the cryostat solids.
 print CRYO <<EOF;
 <solids>
-    <box name="Cryostat" lunit="cm"
-      x="$Cryostat_x"
-      y="$Cryostat_y"
+    <box name="Cryostat" lunit="cm" 
+      x="$Cryostat_x" 
+      y="$Cryostat_y" 
       z="$Cryostat_z"/>
 
-    <box name="ArgonInterior" lunit="cm"
+    <box name="ArgonInterior" lunit="cm" 
       x="$Argon_x"
       y="$Argon_y"
       z="$Argon_z"/>
 
-    <box name="GaseousArgon" lunit="cm"
+    <box name="GaseousArgon" lunit="cm" 
       x="$HeightGaseousAr"
       y="$Argon_y"
       z="$Argon_z"/>
@@ -852,6 +916,7 @@ print CRYO <<EOF;
     </volume>
 EOF
 
+if ($pdsconfig == 0){  #4-pi PDS converage
 for($i=0 ; $i<$nCRM_x/2 ; $i++){ #arapucas over the cathode
 for($j=0 ; $j<$nCRM_z/2 ; $j++){
 for($p=0 ; $p<4 ; $p++){
@@ -868,9 +933,10 @@ EOF
 }
 }
 }
+}
 
-if($nCRM_x==8){ #arapucas on the laterals
-for($j=0 ; $j<$nCRM_z ; $j++){
+if ($nCRM_x==8){ #arapucas on the laterals
+for($j=0 ; $j<$nCRM_z/2 ; $j++){
 for($p=0 ; $p<8 ; $p++){
   print CRYO <<EOF;
     <volume name="volArapucaLat_$j\-$p">
@@ -886,19 +952,21 @@ EOF
 }
 }
 
-if($nCRM_z==40){ #arapucas on the laterals front and back of cryostat
-for($j=0 ; $j<$nCRM_x ; $j++){
-for($p=0 ; $p<8 ; $p++){
+if ($pdsconfig != 0){  #Membrane PDS converage
+if ($nCRM_x==8) { #arapucas on the laterals
+for($j=0 ; $j<$nCRM_z/2 ; $j++){
+for($p=8 ; $p<18 ; $p++){
   print CRYO <<EOF;
-    <volume name="volArapucaFront_$j\-$p">
+    <volume name="volArapucaLat_$j\-$p">
       <materialref ref="G10" />
       <solidref ref="ArapucaWalls" />
     </volume>
-    <volume name="volOpDetSensitive_ArapucaFront_$j\-$p">
+    <volume name="volOpDetSensitive_ArapucaLat_$j\-$p">
       <materialref ref="LAr"/>
       <solidref ref="ArapucaAcceptanceWindow"/>
     </volume>
 EOF
+}
 }
 }
 }
@@ -921,7 +989,7 @@ EOF
 
 if ($tpc_on==1) # place TPC inside cryostat
 {
-  $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
+  $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
   $idx = 0;
   for($ii=0;$ii<$nCRM_z;$ii++)
   {
@@ -946,7 +1014,18 @@ $idx++
 #The +50 in the x positions must depend on some other parameter
   if ( $FieldCage_switch eq "on" ) {
     for ( $i=0; $i<$NFieldShapers; $i=$i+1 ) { # pmts with coating
-$posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
+    $dist=$i*$FieldShaperSeparation;
+$posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane); 
+	if ($pdsconfig==0){
+		if ($dist>250){
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
+     <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+EOF
+		}else{
 	print CRYO <<EOF;
   <physvol>
      <volumeref ref="volFieldShaper"/>
@@ -954,6 +1033,16 @@ $posX =  $Argon_x/2 - $HeightGaseousAr - 0.5*($driftTPCActive + $ReadoutPlane);
      <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
   </physvol>
 EOF
+		}
+	}else{
+	print CRYO <<EOF;
+  <physvol>
+     <volumeref ref="volFieldShaperSlim"/>
+     <position name="posFieldShaper$i" unit="cm"  x="@{[-$OriginXSet+50+($i-$NFieldShapers*0.5)*$FieldShaperSeparation]}" y="@{[-0.5*$FieldShaperShortTubeLength-$FieldShaperTorRad]}" z="0" />
+     <rotation name="rotFS$i" unit="deg" x="0" y="0" z="90" />
+  </physvol>
+EOF
+	}
     }
   }
 
@@ -973,9 +1062,12 @@ $CathodePosZ = 0;
 EOF
   }
 
-#for placing the Arapucas over the cathode
   $FrameLenght_x= 2.0*$widthCRM_active;
   $FrameLenght_z= 2.0*$lengthCRM_active;
+  
+if ($pdsconfig == 0) {  #4-pi PDS converage
+
+#for placing the Arapucas over the cathode
   $FrameCenter_x=-1.5*$FrameLenght_x+(4-$nCRM_x/2)/2*$FrameLenght_x;
   $FrameCenter_y=$CathodePosX;
   $FrameCenter_z=-9.5*$FrameLenght_z+(20-$nCRM_z/2)/2*$FrameLenght_z;
@@ -987,29 +1079,33 @@ for($j=0;$j<$nCRM_z/2;$j++){
   $FrameCenter_x+=$FrameLenght_x;
   $FrameCenter_z=-9.5*$FrameLenght_z+(20-$nCRM_z/2)/2*$FrameLenght_z;
 }
+}
 
-if($pdsconfig == 0){  #4-pi PDS converage
+if ($pdsconfig == 0) {  #4-pi PDS converage
 #for placing the Arapucas on laterals
-if($nCRM_x==8){
-  $FrameCenter_y=$CathodePosX;
-  $FrameCenter_z=-19.5*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
-for($j=0;$j<$nCRM_z;$j++){#nCRM will give the collumn number (2 collumns per frame)
+if ($nCRM_x==8) {
+  $FrameCenter_y=$posVplane[0]; #anode position
+  $FrameCenter_z=-19*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
+for($j=0;$j<$nCRM_z/2;$j++){#nCRM will give the collumn number (1 collumn per frame)
   place_OpDetsLateral($FrameCenter_y, $FrameCenter_z, $j);
-  $FrameCenter_z+=$FrameLenght_z/2;
+  $FrameCenter_z+=$FrameLenght_z;
 }
 }
 
-#for placing the Arapucas on laterals front and back
-if($nCRM_z==40){
-  $FrameCenter_y=$CathodePosX;
-  $FrameCenter_x=-3.5*$HorizontalPDdist+(8-$nCRM_x)/2*$HorizontalPDdist;
-for($j=0;$j<$nCRM_x;$j++){#nCRM will give the collumn number (8 collumns for whole volume)
-  place_OpDetsLateralFront($FrameCenter_x, $FrameCenter_y, $j);
-  $FrameCenter_x+=$HorizontalPDdist;
+} else {  #membrane only PDS converage
+
+if ($nCRM_x==8) {
+  $FrameCenter_y=$posVplane[0]; #anode position
+  $FrameCenter_z=-19*$FrameLenght_z/2+(40-$nCRM_z)/2*$FrameLenght_z/2;
+for($j=0;$j<$nCRM_z/2;$j++){#nCRM will give the collumn number (1 collumn per frame)
+  place_OpDetsMembOnly($FrameCenter_y, $FrameCenter_z, $j);
+  $FrameCenter_z+=$FrameLenght_z;
 }
 }
 
 }
+
+
  print CRYO <<EOF;
     </volume>
 </structure>
@@ -1045,17 +1141,17 @@ for ($ara = 0; $ara<4; $ara++)
 	print CRYO <<EOF;
      <physvol>
        <volumeref ref="volArapucaDouble_$Frame_x\-$Frame_z\-$ara"/>
-       <position name="posArapucaDouble$ara-Frame\-$Frame_x\-$Frame_z" unit="cm"
+       <position name="posArapucaDouble$ara-Frame\-$Frame_x\-$Frame_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_Y]}"
+	 y="@{[$Ara_Y]}" 
 	 z="@{[$Ara_Z]}"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaDouble_$Frame_x\-$Frame_z\-$ara"/>
-       <position name="posOpArapucaDouble$ara-Frame\-$Frame_x\-$Frame_z" unit="cm"
+       <position name="posOpArapucaDouble$ara-Frame\-$Frame_x\-$Frame_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_Y]}"
+	 y="@{[$Ara_Y]}" 
 	 z="@{[$Ara_Z]}"/>
        <rotation name="rPlus90AboutXPlus90AboutZ" unit="deg" x="90" y="0" z="90"/>
      </physvol>
@@ -1082,85 +1178,90 @@ for ($ara = 0; $ara<8; $ara++)
              # Y coordinates are defined with respect to the cathode position
              # There are two collumns per frame on each side.
 
-             if($ara<4) {$Ara_Y = -0.5*$Argon_y + $yLArBuffer - $FrameToArapucaSpaceLat;
+             if ($ara<4) {$Ara_Y = -0.5*$Argon_y + $FrameToArapucaSpaceLat;
                          $Ara_YSens = ($Ara_Y+0.5*$ArapucaOut_y-0.5*$ArapucaAcceptanceWindow_y-0.01);
                          $rot= "rIdentity"; }
-             else {$Ara_Y = 0.5*$Argon_y - $yLArBuffer + $FrameToArapucaSpaceLat;
+             else {$Ara_Y = 0.5*$Argon_y - $FrameToArapucaSpaceLat;
                          $Ara_YSens = ($Ara_Y-0.5*$ArapucaOut_y+0.5*$ArapucaAcceptanceWindow_y+0.01);
                          $rot = "rPlus180AboutX";} #GEOMETRY IS ROTATED: X--> Y AND Y--> X
-             if($ara==0||$ara==4) {$Ara_X = $FrameCenter_y+$VerticalPDdist/2;}
-             else {$Ara_X+=$VerticalPDdist;}
+             if ($ara==0||$ara==4) {$Ara_X = $FrameCenter_y-40.0;} #first tile's center 40 cm bellow anode
+             else {$Ara_X-=$VerticalPDdist;} #other tiles separated by VerticalPDdist
              $Ara_Z = $FrameCenter_z;
 
+#        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
+        
 	print CRYO <<EOF;
      <physvol>
        <volumeref ref="volArapucaLat_$Lat_z\-$ara"/>
-       <position name="posArapuca$ara-Lat\-$Lat_z" unit="cm"
+       <position name="posArapuca$ara-Lat\-$Lat_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_Y]}"
+	 y="@{[$Ara_Y]}" 
 	 z="@{[$Ara_Z]}"/>
        <rotationref ref="$rot"/>
      </physvol>
      <physvol>
        <volumeref ref="volOpDetSensitive_ArapucaLat_$Lat_z\-$ara"/>
-       <position name="posOpArapuca$ara-Lat\-$Lat_z" unit="cm"
+       <position name="posOpArapuca$ara-Lat\-$Lat_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_YSens]}"
+	 y="@{[$Ara_YSens]}" 
 	 z="@{[$Ara_Z]}"/>
      </physvol>
 EOF
-
+        
 }#end Ara for-loop
 
 }
 
 
-sub place_OpDetsLateralFront()
+sub place_OpDetsMembOnly()
 {
 
-    $FrameCenter_x = $_[0];
-    $FrameCenter_y = $_[1];
-    $Lat_x = $_[2];
+    $FrameCenter_y = $_[0];
+    $FrameCenter_z = $_[1];
+    $Lat_z = $_[2];
 
-#Placing Arapucas on the laterals front and back of cryo if nCRM_z=40 -- Single Sided
-for ($ara = 0; $ara<8; $ara++)
+#Placing Arapucas on the laterals if nCRM_x=8 -- Single Sided
+for ($ara = 0; $ara<18; $ara++)
 {
-             # Arapucas on laterals at front and back of cryostat
-             # All Arapuca centers on a given collumn will have the same Z and X coordinates
-             # X coordinates are either front or back
+             # Arapucas on laterals
+             # All Arapuca centers on a given collumn will have the same Z coordinate
+             # X coordinates are on the left and right laterals
              # Y coordinates are defined with respect to the cathode position
-             # There are 4 arapucas per collumns on each side.
+             # There are two collumns per frame on each side.
 
-             if($ara<4) {$Ara_Z = -0.5*$Argon_z + $zLArBuffer - $FrameToArapucaSpaceLat;
-                         $Ara_ZSens = ($Ara_Z+0.5*$ArapucaOut_y-0.5*$ArapucaAcceptanceWindow_y-0.01);
-                         $rot= "rMinus90AboutYMinus90AboutX"; }
-             else {$Ara_Z = 0.5*$Argon_z - $zLArBuffer + $FrameToArapucaSpaceLat;
-                         $Ara_ZSens = ($Ara_Z-0.5*$ArapucaOut_y+0.5*$ArapucaAcceptanceWindow_y+0.01);
-                         $rot = "rPlus90AboutXPlus90AboutY";} #GEOMETRY IS ROTATED: X--> Y AND Y--> X
-             if($ara==0||$ara==4) {$Ara_X = $FrameCenter_y+$VerticalPDdist/2;}
-             else {$Ara_X+=$VerticalPDdist;}
-             $Ara_Y = $FrameCenter_x;
+             if($ara<9) {$Ara_Y = -0.5*$Argon_y + $FrameToArapucaSpaceLat;
+                         $Ara_YSens = ($Ara_Y+0.5*$ArapucaOut_y-0.5*$ArapucaAcceptanceWindow_y-0.01);
+                         $rot= "rIdentity"; }
+             else {$Ara_Y = 0.5*$Argon_y - $FrameToArapucaSpaceLat;
+                         $Ara_YSens = ($Ara_Y-0.5*$ArapucaOut_y+0.5*$ArapucaAcceptanceWindow_y+0.01);
+                         $rot = "rPlus180AboutX";} #GEOMETRY IS ROTATED: X--> Y AND Y--> X
+             if($ara==0||$ara==9) {$Ara_X = $FrameCenter_y-$ArapucaOut_x/2;} #first tile's center right below anode
+             else {$Ara_X-=$ArapucaOut_x - $FrameToArapucaSpace;} #other tiles separated by minimal distance + buffer
+             $Ara_Z = $FrameCenter_z;
 
+#        print "lateral arapucas: $Ara_X, $Ara_Y, $Ara_Z \n";
+        
 	print CRYO <<EOF;
      <physvol>
-       <volumeref ref="volArapucaFront_$Lat_x\-$ara"/>
-       <position name="posArapuca$ara-Front\-$Lat_x" unit="cm"
+       <volumeref ref="volArapucaLat_$Lat_z\-$ara"/>
+       <position name="posArapuca$ara-Lat\-$Lat_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_Y]}"
+	 y="@{[$Ara_Y]}" 
 	 z="@{[$Ara_Z]}"/>
        <rotationref ref="$rot"/>
      </physvol>
      <physvol>
-       <volumeref ref="volOpDetSensitive_ArapucaFront_$Lat_x\-$ara"/>
-       <position name="posOpArapuca$ara-Front\-$Lat_x" unit="cm"
+       <volumeref ref="volOpDetSensitive_ArapucaLat_$Lat_z\-$ara"/>
+       <position name="posOpArapuca$ara-Lat\-$Lat_z" unit="cm" 
          x="@{[$Ara_X]}"
-	 y="@{[$Ara_Y]}"
-	 z="@{[$Ara_ZSens]}"/>
-       <rotationref ref="$rot"/>
+	 y="@{[$Ara_YSens]}" 
+	 z="@{[$Ara_Z]}"/>
      </physvol>
 EOF
-
+        
 }#end Ara for-loop
+
+
 
 }
 
@@ -1213,7 +1314,7 @@ print ENCL <<EOF;
       <positionref ref="posCenter"/>
     </subtraction>
 
-    <box name="DetEnclosure" lunit="cm"
+    <box name="DetEnclosure" lunit="cm" 
       x="$DetEncX"
       y="$DetEncY"
       z="$DetEncZ"/>
@@ -1294,9 +1395,9 @@ EOF
 # All the World solids.
 print WORLD <<EOF;
 <solids>
-    <box name="World" lunit="cm"
-      x="@{[$DetEncX+2*$RockThickness]}"
-      y="@{[$DetEncY+2*$RockThickness]}"
+    <box name="World" lunit="cm" 
+      x="@{[$DetEncX+2*$RockThickness]}" 
+      y="@{[$DetEncY+2*$RockThickness]}" 
       z="@{[$DetEncZ+2*$RockThickness]}"/>
 </solids>
 EOF
@@ -1340,7 +1441,7 @@ sub write_fragments()
 
     if ( ! defined $output )
     {
-	$output = "-"; # write to STDOUT
+	$output = "-"; # write to STDOUT 
     }
 
     # Set up the output file.
@@ -1351,7 +1452,7 @@ sub write_fragments()
 <?xml version='1.0'?>
 
 <!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
-     that will be zipped together to create a detector description.
+     that will be zipped together to create a detector description. 
      -->
 
 <config>
@@ -1361,9 +1462,9 @@ sub write_fragments()
       <!-- These files contain GDML <constant></constant>
            blocks. They are read in separately, so they can be
            interpreted into the remaining GDML. See make_gdml.pl for
-           more information.
+           more information. 
 	   -->
-
+	   
 EOF
 
     foreach $filename (@defFiles)
@@ -1406,25 +1507,26 @@ print " CRM active area    : $widthCRM_active x $lengthCRM_active\n";
 print " CRM total area     : $widthCRM x $lengthCRM\n";
 print " Wire pitch in Y, Z : $wirePitchY, $wirePitchZ\n";
 print " TPC active volume  : $driftTPCActive x $widthTPCActive x $lengthTPCActive\n";
-print " Argon volume       : ($Argon_x, $Argon_y, $Argon_z) \n";
-print " Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n";
+print " Argon volume       : ($Argon_x, $Argon_y, $Argon_z) \n"; 
+print " Argon buffer       : ($xLArBuffer, $yLArBuffer, $zLArBuffer) \n"; 
 print " Detector enclosure : $DetEncX x $DetEncY x $DetEncZ\n";
 print " TPC Origin         : ($OriginXSet, $OriginYSet, $OriginZSet) \n";
 print " Field Cage         : $FieldCage_switch \n";
 print " Cathode            : $Cathode_switch \n";
 print " Workspace          : $workspace \n";
 print " Wires              : $wires_on \n";
+print " PDS                : $pdsconfig \n";
 
 # run the sub routines that generate the fragments
 if ( $FieldCage_switch eq "on" ) {  gen_FieldCage();	}
 #if ( $Cathode_switch eq "on" ) {  gen_Cathode();	} #Cathode for now has the same geometry as the Ground Grid
 
-gen_Extend();    # generates the GDML color extension for the refactored geometry
+gen_Extend();    # generates the GDML color extension for the refactored geometry 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
 gen_TPC();       # generate TPC for a given unit CRM
-gen_Cryostat();  #
-gen_Enclosure(); #
+gen_Cryostat();  # 
+gen_Enclosure(); # 
 gen_World();	 # places the enclosure among DUSEL Rock
 write_fragments(); # writes the XML input for make_gdml.pl
 		   # which zips together the final GDML

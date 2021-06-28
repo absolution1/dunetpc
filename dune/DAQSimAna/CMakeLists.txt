@@ -1,4 +1,5 @@
 add_subdirectory(SNAnaClustering)
+add_subdirectory(RunningSumHitFinder)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service

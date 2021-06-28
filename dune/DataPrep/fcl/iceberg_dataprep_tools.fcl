@@ -35,7 +35,7 @@ tools.channelRangesIceberg: {
 tools.channelGroupsIceberg: {
   tool_type: ApaChannelGroups
   LogLevel: 0
-  ApaNumbers: [8]
+  ApaNumbers: []
   IndexRangeTool: channelRanges
 }
 
@@ -500,6 +500,11 @@ tools.ibmet_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPede
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: @local::ibFembPat
+
+tools.ibmet_adcChannelPedestalReducedChiSquarePlotter: @local::tools.pdtps_adcChannelPedestalReducedChiSquarePlotter
+tools.ibmet_adcChannelPedestalReducedChiSquarePlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestaleducedChiSquareRPlotter.HistTitle: "ADC pedestal #chi^{2}/DOF for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRReducedChiSquarePlotter.ChannelLinePattern: @local::ibFembPat
 
 # Add a plot of UTC (aka GMT, unix time)
 tools.ibmet_adcChannelUtcPlotter: @local::tools.ibmet_adcChannelPedestalPlotter

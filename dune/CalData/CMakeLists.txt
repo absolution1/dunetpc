@@ -8,6 +8,7 @@ art_make( BASENAME_ONLY
 			lardataobj_RawData
 			lardataobj_RecoBase
 			lardata_ArtDataHelper
+			lardataalg_detectorinfo
 			SignalShapingServiceDUNEDPhase_service
                         SignalShapingServiceDUNE_service
                         ${ART_FRAMEWORK_CORE}

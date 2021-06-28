@@ -92,3 +92,10 @@ cet_test(test_SampleTailer SOURCES test_SampleTailer.cxx
     dune_DuneCommon
     ${ROOT_BASIC_LIB_LIST}
 )
+
+cet_test(test_shiftHistFit SOURCES test_shiftHistFit.cxx
+  LIBRARIES
+    dune_DuneCommon
+    ${ROOT_BASIC_LIB_LIST}
+)
+

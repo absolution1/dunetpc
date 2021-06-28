@@ -10,3 +10,5 @@ tools.ib5_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
 # See calibs_iceberg.fcl.
 tools.areaGain_ib5: @local::tools.areaGain_ib5C22
 
+# Define pedestal finder used in the pedestal update.
+tools.ib5TailPedSignalFinder: @local::tools.ib5C22TailPedSignalFinder
