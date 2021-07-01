@@ -1,10 +1,12 @@
 art_make(BASENAME_ONLY
 	 MODULE_LIBRARIES
+	 larreco_RecoAlg
 	 lardataobj_RecoBase
          lardataobj_RawData
          lardata_ArtDataHelper
 	 larcore_Geometry_Geometry_service
          larcorealg_Geometry
+	 lardataalg_detectorinfo
          nusimdata_SimulationBase
 	 larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
