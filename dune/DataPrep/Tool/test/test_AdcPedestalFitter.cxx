@@ -52,11 +52,11 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "tools.mytool: {" << endl;
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
-    fout << "  AdcRange: 4096" << endl;
+    fout << "  AdcRange: \"pow(2,12)\"" << endl;
     fout << "  FitOpt: 3" << endl;
     fout << "  FitPrecision: 1.0" << endl;
     fout << "  SkipFlags: []" << endl;
-    fout << "  AdcFitRange: 100" << endl;
+    fout << "  AdcFitRange: \"10*int(0.7*[gain]+1)\"" << endl;
     fout << "  FitRmsMin: 1.0" << endl;
     fout << "  FitRmsMax: 20.0" << endl;
     fout << "  RemoveStickyCode: false" << endl;
@@ -152,8 +152,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         assert( ! datamap[icha].hasMetadata("fitPedPeakBinFraction") );
         assert( padvsin->update(datamap[icha]) == 0 );
         double ped2 = datamap[icha].pedestal;
-        cout << "Old pedestal: " << ped0 << endl;
-        cout << "New pedestal: " << ped2 << endl;
+        cout << myname << "Old pedestal: " << ped0 << endl;
+        cout << myname << "New pedestal: " << ped2 << endl;
         assert( ped1 == ped0 );
         assert( ped2 != ped0 );
         assert( ped2 != 0.0 );
