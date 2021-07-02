@@ -77,9 +77,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  // trj 1 July 2021 disable test
-  return 0;
-  //if ( opt == 0 ) return 0;
-  //int rstat = test_ArtServiceHelper(opt);
-  //return rstat;
+  if ( opt == 0 ) return 0;
+  int rstat = test_ArtServiceHelper(opt);
+  return rstat;
 }
