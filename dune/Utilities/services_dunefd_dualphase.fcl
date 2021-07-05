@@ -49,7 +49,7 @@ dunefddphase_simulation_services_legacy: {
  DetPedestalService:             @local::dunedp_fixedpeds
 }
 
-dunefddphase_reco_services:                            @local::dunefddphase_services
+dunefddphase_reco_services:                            @local::dunefddphase_services_legacy
 dunefddphase_reco_services.BackTrackerService:         @local::dunefd_backtrackerservice
 dunefddphase_reco_services.ParticleInventoryService:   @local::standard_particleinventoryservice
 dunefddphase_reco_services.RawDigitExtractService:     @local::rdx_std
