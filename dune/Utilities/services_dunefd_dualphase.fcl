@@ -7,7 +7,7 @@ BEGIN_PROLOG
 ### DUNE far detector dual phase ###
 ####################################
 
-dunefddphase_services: {
+dunefddphase_services_legacy: {
  DatabaseUtil:                   @local::dunefd_database
  ExptGeoHelperInterface:         @local::dune_geometry_helper
  GeometryConfigurationWriter:    {}
@@ -24,7 +24,7 @@ dunefddphase_services: {
  SpaceCharge:                    @local::dunefddphase_spacecharge
 }
 
-dunefddphase_simulation_services: {
+dunefddphase_simulation_services_legacy: {
  BackTrackerService:             @local::dunefd_backtrackerservice
  ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
