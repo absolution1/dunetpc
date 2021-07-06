@@ -48,7 +48,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "#include \"test_dataprep.fcl\"" << endl;   // For adcNameManipulator
     fout << "tools.mytool: {" << endl;
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
@@ -78,7 +78,16 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "tools.mymaptool.RootFileName: \"\"" << endl;
     fout << "tools.mymaptool.PlotSizeX: 1400" << endl;
     fout << "tools.mymaptool.PlotSizeY: 1000" << endl;
+    fout << "tools.runDataTool: {" << endl;
+    fout << "  tool_type: FclRunDataTool" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FileNames: [\"rundata.fcl\"]" << endl;
+    fout << "}" << endl;
     fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }
