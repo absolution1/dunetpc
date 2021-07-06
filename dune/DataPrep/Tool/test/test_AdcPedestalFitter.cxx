@@ -57,8 +57,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "  FitPrecision: 1.0" << endl;
     fout << "  SkipFlags: []" << endl;
     fout << "  AdcFitRange: \"10*int(0.7*[gain]+1)\"" << endl;
-    fout << "  FitRmsMin: 1.0" << endl;
-    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  FitRmsMin: \"1.0\"" << endl;
+    fout << "  FitRmsMax: \"20.0\"" << endl;
     fout << "  RemoveStickyCode: false" << endl;
     fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;

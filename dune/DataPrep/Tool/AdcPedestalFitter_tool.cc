@@ -89,8 +89,8 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_FitPrecision(ps.get<float>("FitPrecision")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
   m_AdcFitRange(ps.get<Name>("AdcFitRange")),
-  m_FitRmsMin(ps.get<float>("FitRmsMin")),
-  m_FitRmsMax(ps.get<float>("FitRmsMax")),
+  m_FitRmsMin(ps.get<Name>("FitRmsMin")),
+  m_FitRmsMax(ps.get<Name>("FitRmsMax")),
   m_RemoveStickyCode(ps.get<bool>("RemoveStickyCode")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -136,6 +136,8 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   // Fetch the formula parameters.
   m_tfs["AdcRange"] = new TFormula("adcRange", m_AdcRange.c_str(), false),
   m_tfs["AdcFitRange"] = new TFormula("adcFitRange", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMin"] = new TFormula("fitRmsMin", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMax"] = new TFormula("fitRmsMax", m_AdcFitRange.c_str(), false),
   m_haveFormulaParams = false;
   for ( const auto& itf : m_tfs ) {
     m_tfpars[itf.first] = getFormulaParams(itf.second, itf.first);
@@ -547,14 +549,16 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   double amean = phf->GetMean() + 0.5;
   double arms = phf->GetRMS();
-  double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
+  double fitRmsMin = m_tfs.at("FitRmsMin")->Eval(0);
+  double fitRmsMax = m_tfs.at("FitRmsMax")->Eval(0);
+  double ameanWin = fitRmsMax > fitRmsMin ? fitRmsMax : 0.0;
   bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
   //float pedestalRms = 1.0/sqrt(12.0);
   float pedestalRms = arms;
-  if ( m_FitRmsMax > m_FitRmsMin ) {
-    if ( arms < m_FitRmsMin ) arms = m_FitRmsMin;
-    if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
+  if ( fitRmsMax > fitRmsMin ) {
+    if ( arms < fitRmsMin ) arms = fitRmsMin;
+    if ( arms > fitRmsMax ) arms = fitRmsMax;
   }
   float fitChiSquare = 0.0;
   float fitReducedChiSquare = 0.0;
@@ -584,8 +588,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
       if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
       if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-      if ( m_FitRmsMin < m_FitRmsMax ) {
-        fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+      if ( fitRmsMin < fitRmsMax ) {
+        fitter.SetParLimits(2, fitRmsMin, fitRmsMax);
       }
       fitter.SetParError(0, 0.0);
       if ( m_PlotShowFit >= 2 ) {

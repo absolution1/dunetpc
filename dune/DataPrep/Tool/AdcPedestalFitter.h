@@ -135,8 +135,8 @@ private:
   float m_FitPrecision;
   IndexVector m_SkipFlags;
   Name m_AdcFitRange;
-  float m_FitRmsMin;
-  float m_FitRmsMax;
+  Name m_FitRmsMin;
+  Name m_FitRmsMax;
   bool m_RemoveStickyCode;
   Name m_HistName;
   Name m_HistTitle;
