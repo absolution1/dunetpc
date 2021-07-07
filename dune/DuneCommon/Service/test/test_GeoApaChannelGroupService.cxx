@@ -37,8 +37,8 @@ int test_GeoApaChannelGroupService(string sgeo) {
   cout << myname << line << endl;
   cout << myname << "Create fcl file." << endl;
   std::ostringstream oss;
-  oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services: @local::" << sgeo << endl;
+  oss << "#include \"geometry.fcl\"" << endl;
+  oss << "services: @local::" << sgeo << "_geometry_services" << endl;
   oss << "services.ChannelGroupService: {" << endl;
   oss << "  service_provider: \"GeoApaChannelGroupService\"" << endl;
   oss << "  LogLevel: 1" << endl;
@@ -52,15 +52,18 @@ int test_GeoApaChannelGroupService(string sgeo) {
   hcgs->print(cout, myname);
 
   cout << myname << line << endl;
-  cout << myname << "Geo fcl: " << sgeo << endl;
+  cout << myname << "Geometry: " << sgeo << endl;
+
 
   cout << myname << line << endl;
   unsigned int napa = hcgs->size();
   cout << myname << "Check APA count: " << napa << endl;
-  if ( sgeo == "dunefd_services" ) {
-    assert( napa == 150 );
+  if ( sgeo == "lartpcdetector" ) {
+    assert( napa == 1 );
+  } else if ( sgeo == "bo" ) {
+    assert( napa == 1 );
   } else {
-    assert( napa == 4 );
+    cout << myname << "Unknown geometry" << endl;
   }
 
   cout << myname << line << endl;
@@ -82,13 +85,13 @@ int test_GeoApaChannelGroupService(string sgeo) {
 }
 
 int main(int argc, char* argv[]) {
-  string sgeo = "dune35t_basic_services";
+  string sgeo = "lartpcdetector";
   if ( argc > 1 ) {
     sgeo = argv[1];
     if ( sgeo == "-h" ) {
       cout << "Usage: " << argv[0] << endl;
-      cout << "       " << argv[0] << " dune35t_basic_services" << endl;
-      cout << "       " << argv[0] << " dunefd_services" << endl;
+      cout << "       " << argv[0] << " lartpcdetector";
+      cout << "       " << argv[0] << " bo" << endl;
       return 0;
     }
   }
