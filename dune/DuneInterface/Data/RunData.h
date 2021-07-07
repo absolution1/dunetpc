@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <TFormula.h>
 
 class RunData {
 
@@ -72,6 +73,42 @@ public:
   void setPulserPeriod(Index val) { m_pulserPeriod = val; }
   void setPhaseGroup(Name val) { m_phaseGroup = val; }
   void setPhases(const IndexVector& val) { m_phases = val; }
+
+  // Set params for a formula.
+  // E.g. gainshap = "[gain]*[shaping]"
+  // Returns
+  //   nset = # params for which values were set
+  //   nerr = # params for which values are missing
+  struct SetStat {
+    Index nset =0;
+    Index nerr =0;
+  };
+  SetStat setFormulaPars(TFormula* form) {
+    SetStat sstat;
+    const std::string myname = "setFormulaPars: ";
+    int npar = form->GetNpar();
+    for ( int ipar=0; ipar<npar; ++ipar ) {
+      std::string spar = form->GetParName(ipar);
+      if ( spar == "gain" ) {
+        if ( haveGain() ) {
+          form->SetParameter("gain", gain());
+          ++sstat.nset;
+        } else {
+          std::cout << myname << "WARNING: RunData does not have gain." << std::endl;
+          ++sstat.nerr;
+        }
+      } else if ( spar == "shaping" ) {
+        if ( haveShaping() ) {
+          form->SetParameter("shaping", shaping());
+          ++sstat.nset;
+        } else {
+          std::cout << myname << "WARNING: RunData does not have shaping." << std::endl;
+          ++sstat.nerr;
+        }
+      }
+    }
+    return sstat;
+  }
 
   // Accessors.
   Index&       accessRun()             { return m_run; }
