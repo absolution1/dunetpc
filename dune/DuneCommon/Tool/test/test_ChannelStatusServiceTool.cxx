@@ -31,7 +31,7 @@ using Index = unsigned int;
 
 //**********************************************************************
 
-int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServices = false) {
+int test_ChannelStatusServiceTool(bool useExistingFcl =false, string extrafcl ="") {
   const string myname = "test_ChannelStatusServiceTool: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -58,8 +58,8 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
     fout << "    LogLevel: 1" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
-    if ( useDuneServices ) {
-      fout << "#include \"dune_services.fcl\"" << endl;
+    if ( extrafcl.size() ) {
+      fout << "#include \"" + extrafcl + "\"" << endl;
     }
     fout.close();
   } else {
@@ -104,23 +104,21 @@ int test_ChannelStatusServiceTool(bool useExistingFcl =false, bool useDuneServic
 
 int main(int argc, char* argv[]) {
   bool useExistingFcl = false;
-  bool useDuneServices = false;
+  string extrafcl;
   if ( argc > 1 ) {
     string sarg(argv[1]);
     if ( sarg == "-h" ) {
-      cout << "Usage: " << argv[0] << " [keepFCL] [useDuneServices]" << endl;
+      cout << "Usage: " << argv[0] << " [keepFCL] [extrafcl]" << endl;
       cout << "  If keepFCL = true, existing FCL file is used." << endl;
-      cout << "  If useDuneServices, include dune services." << endl;
+      cout << "  If extrafcl is give, that file is included in the config" << endl;
       return 0;
     }
     useExistingFcl = sarg == "true" || sarg == "1";
   }
   if ( argc > 2 ) {
-    string sarg(argv[2]);
-    istringstream ssarg(argv[2]);
-    useDuneServices = sarg == "true" || sarg == "1";
+    extrafcl = argv[2];
   }
-  return test_ChannelStatusServiceTool(useExistingFcl, useDuneServices);
+  return test_ChannelStatusServiceTool(useExistingFcl, extrafcl);
 }
 
 //**********************************************************************
