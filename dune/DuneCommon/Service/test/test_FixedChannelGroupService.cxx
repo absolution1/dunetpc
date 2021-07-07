@@ -50,11 +50,8 @@ int test_FixedChannelGroupService() {
   ServiceHandle<ChannelGroupService> hcgs;
   hcgs->print(cout, myname);
 
-  cout << myname << line << endl;
-  cout << myname << "Geo fcl: " << sgeo << endl;
-
-  cout << myname << "Check group count: " << ngrp << endl;
   unsigned int ngrp = hcgs->size();
+  cout << myname << "Check group count: " << ngrp << endl;
   assert( ngrp == 2 );
 
   cout << myname << line << endl;
