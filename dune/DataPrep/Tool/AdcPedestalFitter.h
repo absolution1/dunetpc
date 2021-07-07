@@ -154,7 +154,7 @@ private:
   // Derived from config.
   IndexSet m_skipFlags;
   NameVector m_fitOpts;
-  TFormulaMap m_tfs;         // Formulas for AdcRange, AdcFitRange
+  TFormulaMap m_tfs;         // Formulas for AdcRange, AdcFitRange, FitRmsMin, FitRmsMax
   NameSetMap m_tfpars;       // Formula parameters.
   bool m_haveFormulaParams;  // Do any formulas have parameters?
   const RunDataTool* m_prdtool; // Run data tool.

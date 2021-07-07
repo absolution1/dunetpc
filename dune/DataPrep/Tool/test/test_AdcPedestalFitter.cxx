@@ -85,6 +85,7 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "}" << endl;
     fout.close();
     ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
     fout2 << "gain: 14.0" << endl;
     fout2 << "shaping: 2.0" << endl;
     fout2.close();

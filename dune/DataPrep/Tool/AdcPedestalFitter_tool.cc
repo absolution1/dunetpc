@@ -326,44 +326,33 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
 DataMap AdcPedestalFitter::beginEvent(const DuneEventInfo& evi) const {
   const string myname = "AdcPedestalFitter::beginEvent: ";
   DataMap res;
-  float defaultGain = 14.0;
-  float defaultShaping = 2.0;
   ++state().nevt;
   if ( evi.run == state().run ) return res;
   if ( m_LogLevel >= 2 ) {
     cout << myname << "Setting run " << evi.run << endl;
   }
   state().run = evi.run;
+  string msg;
   if ( m_haveFormulaParams ) {
     RunData rdat;
     if ( m_prdtool == nullptr ) {
-      cout << myname << "WARNING: RunData tool not found. Using default parameters." << endl;
+      msg = "WARNING: RunData tool not found. Using default parameters.";
     } else {
       rdat = m_prdtool->runData(evi.run);
     }
-    for ( const auto& itf : m_tfs ) {
-      Name nam = itf.first;
-      if ( m_tfpars.at(nam).size() ) {
-        TFormula* form = itf.second;
-        int npar = form->GetNpar();
-        for ( int ipar=0; ipar<npar; ++ipar ) {
-          string spar = form->GetParName(ipar);
-          if ( spar == "gain" ) {
-            if ( rdat.haveGain() ) {
-              form->SetParameter("gain", rdat.gain());
-            } else {
-              cout << myname << "WARNING: RunData does not have gain. Using default." << endl;
-              form->SetParameter("gain", defaultGain);
-            }
-          } else if ( spar == "shaping" ) {
-            if ( rdat.haveShaping() ) {
-              form->SetParameter("shaping", rdat.shaping());
-            } else {
-              cout << myname << "WARNING: RunData does not have shaping. Using default." << endl;
-              form->SetParameter("shaping", defaultShaping);
-            }
-          }
-        }
+    if ( msg.size() == 0 && ! rdat.isValid() ) {
+      msg = "WARNING: RunData not found. Using default parameters.";
+    }
+    if ( msg.size() ) {
+      cout << myname << msg << endl;
+      rdat.setGain(14.0);
+      rdat.setShaping(2.0);
+    }
+    for ( auto itr : m_tfs ) {
+      RunData::SetStat sstat = rdat.setFormulaPars(itr.second);
+      if ( sstat.nerr ) {
+        cout << "ERROR: Unable to set " << sstat.nerr << " parameter" << (sstat.nerr ==1 ? "" : "s")
+             << " from RunData for formula " << itr.first << endl;
       }
     }
   }
