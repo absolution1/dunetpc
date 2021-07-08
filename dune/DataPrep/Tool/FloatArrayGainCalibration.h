@@ -24,6 +24,7 @@
 //   AdcUnderflowDefault - value for underflow
 //   AdcOverflowDefault - value for overflow
 //   GainTool - Name of the FloatArrayTool holding the gains.
+//   ScaleFactor - Scale factor for the gain (tool or default)
 //
 // Output:
 //   calibSampleCount    - # of samples calibrated (size of raw data)
@@ -68,6 +69,7 @@ private:
   AdcIndex m_AdcUnderflowDefault;
   AdcIndex m_AdcOverflowDefault;
   Name m_GainTool;
+  Name m_ScaleFactor;
 
   // Derived parameters.
   FloatArrayPtr m_pgains;

@@ -31,12 +31,30 @@ using std::setprecision;
 using std::vector;
 
 using Index = unsigned int;
+using NameSet = std::set<string>;
 
 //**********************************************************************
 // Local definitions.
 //**********************************************************************
 
 namespace {
+
+NameSet getFormulaParams(TFormula* form, string nam) {
+  string myname = "AdcPedestalFitter::getFormulaParams: ";
+  NameSet tfpars;
+  int npar = form->GetNpar();
+  for ( int ipar=0; ipar<npar; ++ipar ) {
+    string spar = form->GetParName(ipar);
+    if ( spar != "gain" && spar != "shaping" ) {
+      cout << myname << "WARNING: Invalid formula parameter " << spar
+           << " is assigned value 0 in formula for " << nam << endl;
+      form->SetParameter(spar.c_str(), 0.0);
+    } else {
+      tfpars.insert(spar);
+    }
+  }
+  return tfpars;
+}
 
 void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedFractionLow"] = res.getFloat("fitFractionLow");
@@ -66,13 +84,13 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_AdcRange(ps.get<Index>("AdcRange")),
+  m_AdcRange(ps.get<Name>("AdcRange")),
   m_FitOpt(ps.get<Index>("FitOpt")),
   m_FitPrecision(ps.get<float>("FitPrecision")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
-  m_AdcFitRange(ps.get<float>("AdcFitRange")),
-  m_FitRmsMin(ps.get<float>("FitRmsMin")),
-  m_FitRmsMax(ps.get<float>("FitRmsMax")),
+  m_AdcFitRange(ps.get<Name>("AdcFitRange")),
+  m_FitRmsMin(ps.get<Name>("FitRmsMin")),
+  m_FitRmsMax(ps.get<Name>("FitRmsMax")),
   m_RemoveStickyCode(ps.get<bool>("RemoveStickyCode")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -83,6 +101,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
+  m_prdtool(nullptr),
   m_pstate(new State) {
   const string myname = "AdcPedestalFitter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -114,9 +133,27 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
       cout << "WARNING: Invalid FitOpt: " << m_FitOpt << ". Not fit will be performed." << endl;
     }
   }
-  // Initialize state.
-  {
-    state().pfitter = new TF1("pedgaus", "gaus", 0, m_AdcRange, TF1::EAddToList::kNo);
+  // Fetch the formula parameters.
+  m_tfs["AdcRange"] = new TFormula("adcRange", m_AdcRange.c_str(), false),
+  m_tfs["AdcFitRange"] = new TFormula("adcFitRange", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMin"] = new TFormula("fitRmsMin", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMax"] = new TFormula("fitRmsMax", m_AdcFitRange.c_str(), false),
+  m_haveFormulaParams = false;
+  for ( const auto& itf : m_tfs ) {
+    m_tfpars[itf.first] = getFormulaParams(itf.second, itf.first);
+    m_haveFormulaParams |= m_tfpars[itf.first].size();
+  }
+  if ( m_haveFormulaParams ) {
+    string stnam = "runDataTool";
+    m_prdtool = ptm->getShared<RunDataTool>(stnam);
+    if ( m_prdtool == nullptr ) {
+      cout << myname << "ERROR: RunDataTool " << stnam
+           << " not found. Formulas will not be evaluated." << endl;
+    } else {
+      cout << myname << "RunDataTool retrieved." << endl;
+    }
+  } else {
+    cout << myname << "No formula parameters. RunDataTool is not retrieved." << endl;
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -145,6 +182,17 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
     cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
+    for ( const auto& itf : m_tfs ) {
+      Name nam = itf.first;
+      cout << myname << setw(15) << nam << ": [";
+      first = true;
+      for ( string spar : m_tfpars[nam] ) {
+        if ( first ) first = false;
+        else cout << ", ";
+        cout << spar;
+      }
+      cout << "]" << endl;
+    }
   }
 }
 
@@ -275,6 +323,44 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
 
 //**********************************************************************
 
+DataMap AdcPedestalFitter::beginEvent(const DuneEventInfo& evi) const {
+  const string myname = "AdcPedestalFitter::beginEvent: ";
+  DataMap res;
+  ++state().nevt;
+  if ( evi.run == state().run ) return res;
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Setting run " << evi.run << endl;
+  }
+  state().run = evi.run;
+  string msg;
+  if ( m_haveFormulaParams ) {
+    RunData rdat;
+    if ( m_prdtool == nullptr ) {
+      msg = "WARNING: RunData tool not found. Using default parameters.";
+    } else {
+      rdat = m_prdtool->runData(evi.run);
+    }
+    if ( msg.size() == 0 && ! rdat.isValid() ) {
+      msg = "WARNING: RunData not found. Using default parameters.";
+    }
+    if ( msg.size() ) {
+      cout << myname << msg << endl;
+      rdat.setGain(14.0);
+      rdat.setShaping(2.0);
+    }
+    for ( auto itr : m_tfs ) {
+      RunData::SetStat sstat = rdat.setFormulaPars(itr.second);
+      if ( sstat.nerr ) {
+        cout << "ERROR: Unable to set " << sstat.nerr << " parameter" << (sstat.nerr ==1 ? "" : "s")
+             << " from RunData for formula " << itr.first << endl;
+      }
+    }
+  }
+  return res;
+}
+
+//**********************************************************************
+
 string AdcPedestalFitter::
 nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
@@ -296,6 +382,12 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   if ( nsam == 0 ) {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return res.setStatus(1);
+  }
+  // If we need RunData parameters and Make sure that beginEvent has been called to
+  // evaluate formulas.
+  if ( m_haveFormulaParams && state().nevt == 0 ) {
+    cout << myname << "WARNING: Calling beginEvent to evaluate formulas." << endl;
+    beginEvent(acd.getEventInfo());
   }
   // Flag samples to keep in pedestal fit.
   //return res;
@@ -323,7 +415,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   htitl += "; ADC count; # samples";
-  unsigned int nadc = m_AdcRange;
+  Index adcRange = m_tfs.at("AdcRange")->Eval(0);
+  if ( state().pfitter == nullptr || adcRange != state().adcRange ) {
+    cout << myname << "New ADC range is " << adcRange << endl;
+    state().pfitter = new TF1("pedgaus", "gaus", 0, adcRange, TF1::EAddToList::kNo);
+  }
+  state().adcRange = adcRange;
+  unsigned int nadc = adcRange;
   unsigned int rebin = 10;
   unsigned int nbin = (nadc + rebin - 0.01)/rebin;
   double xmax = rebin*nbin;
@@ -343,12 +441,16 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index ibin=0; ibin<nbin; ++ibin ) {
     phr->SetBinContent(ibin+1, rcounts[ibin]);
   }
-  double wadc = m_AdcFitRange;
+  double wadc = m_tfs.at("AdcFitRange")->Eval(0);
+  if ( wadc < 10 ) {
+    cout << myname << "INFO: Invalid fit range: " << wadc << " < 10 ADC counts" << endl;
+    return res.setStatus(3);
+  }
+  cout << myname << "INFO: Width = " << wadc << " ADC counts" << endl;
   int rbinmax1 = phr->GetMaximumBin();
   double adcmax = phr->GetBinCenter(rbinmax1);
   double adc1 = adcmax - 0.5*wadc;
   double adc2 = adc1 + wadc;
-  //return res;
   if ( m_RemoveStickyCode ) {
     double radcmax1 = phr->GetBinCenter(rbinmax1);
     double radcmean = phr->GetMean();
@@ -436,14 +538,16 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   double amean = phf->GetMean() + 0.5;
   double arms = phf->GetRMS();
-  double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
+  double fitRmsMin = m_tfs.at("FitRmsMin")->Eval(0);
+  double fitRmsMax = m_tfs.at("FitRmsMax")->Eval(0);
+  double ameanWin = fitRmsMax > fitRmsMin ? fitRmsMax : 0.0;
   bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
   //float pedestalRms = 1.0/sqrt(12.0);
   float pedestalRms = arms;
-  if ( m_FitRmsMax > m_FitRmsMin ) {
-    if ( arms < m_FitRmsMin ) arms = m_FitRmsMin;
-    if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
+  if ( fitRmsMax > fitRmsMin ) {
+    if ( arms < fitRmsMin ) arms = fitRmsMin;
+    if ( arms > fitRmsMax ) arms = fitRmsMax;
   }
   float fitChiSquare = 0.0;
   float fitReducedChiSquare = 0.0;
@@ -473,8 +577,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
       if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
       if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-      if ( m_FitRmsMin < m_FitRmsMax ) {
-        fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+      if ( fitRmsMin < fitRmsMax ) {
+        fitter.SetParLimits(2, fitRmsMin, fitRmsMax);
       }
       fitter.SetParError(0, 0.0);
       if ( m_PlotShowFit >= 2 ) {

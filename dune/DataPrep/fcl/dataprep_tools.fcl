@@ -456,6 +456,7 @@ tools.adcSampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_calib20191213_dec18ext"
+  ScaleFactor: 1.0
 }
 
 # Perform deconvolution with SignalShapingService.

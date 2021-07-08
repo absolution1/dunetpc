@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <TFormula.h>
 
 class RunData {
 
@@ -73,6 +74,42 @@ public:
   void setPhaseGroup(Name val) { m_phaseGroup = val; }
   void setPhases(const IndexVector& val) { m_phases = val; }
 
+  // Set params for a formula.
+  // E.g. gainshap = "[gain]*[shaping]"
+  // Returns
+  //   nset = # params for which values were set
+  //   nerr = # params for which values are missing
+  struct SetStat {
+    Index nset =0;
+    Index nerr =0;
+  };
+  SetStat setFormulaPars(TFormula* form) {
+    SetStat sstat;
+    const std::string myname = "setFormulaPars: ";
+    int npar = form->GetNpar();
+    for ( int ipar=0; ipar<npar; ++ipar ) {
+      std::string spar = form->GetParName(ipar);
+      if ( spar == "gain" ) {
+        if ( haveGain() ) {
+          form->SetParameter("gain", gain());
+          ++sstat.nset;
+        } else {
+          std::cout << myname << "WARNING: RunData does not have gain." << std::endl;
+          ++sstat.nerr;
+        }
+      } else if ( spar == "shaping" ) {
+        if ( haveShaping() ) {
+          form->SetParameter("shaping", shaping());
+          ++sstat.nset;
+        } else {
+          std::cout << myname << "WARNING: RunData does not have shaping." << std::endl;
+          ++sstat.nerr;
+        }
+      }
+    }
+    return sstat;
+  }
+
   // Accessors.
   Index&       accessRun()             { return m_run; }
   Name&        accessCryostat()        { return m_cryostat; }
@@ -119,6 +156,22 @@ public:
     return lhs;
   }
 
+  void clear() {
+    m_run = 0;
+    m_cryostat = "";
+    m_apas.clear();
+    m_gain = 0.0;
+    m_shaping = 0.0;
+    m_baseline = 0.0;
+    m_leakage = 0.0;
+    m_hvfrac = 0.0;
+    m_pulserAmplitude = 999;
+    m_pulserSource = 0;  // 1=preamp, 2=FEMB
+    m_pulserPeriod = 0;
+    m_phaseGroup = "";
+    m_phases.clear();
+  }
+
 private:
 
   // Data.
@@ -138,7 +191,7 @@ private:
 
 };
 
-std::ostream& operator<<(std::ostream& lhs, const RunData& rhs) {
+inline std::ostream& operator<<(std::ostream& lhs, const RunData& rhs) {
   return rhs.print(lhs);
 }
 
