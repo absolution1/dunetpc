@@ -87,6 +87,9 @@ simple_plugin(
 	  lardataobj_RecoBase
 	  lardata_RecoObjects
 	  lardata_ArtDataHelper
+	  lardataalg_detectorinfo
+	  larcorealg_Geometry
+	  larcorealg_GeoAlgo
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
 	  SignalShapingServiceDUNE10kt_service

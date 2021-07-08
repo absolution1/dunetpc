@@ -27,6 +27,13 @@ tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
 tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }
 
 ################################################################################
+# DUNE default clock data.
+################################################################################
+
+data.dune_ClockUnit: "Mtick"
+data.dune_TriggerClockRate: 50000000.0
+
+################################################################################
 # Dumpers.
 ################################################################################
 
@@ -45,6 +52,22 @@ tools.adcRoiTreeMaker: {
   LogLevel: 1
   OutFile: "adcrois.root"
   MetadataFields: []
+}
+
+################################################################################
+# Event metrics.
+################################################################################
+
+# FEMB multiplicity for a single-APA detector.
+tools.apa_evtviewNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:21:0:21"]
+  EventGraphs: ["event:events:1:nfemb:0:21"]
+  ChannelRanges: []
+  ChannelRangeLabel: ""
+  ClockUnit: @local::data.dune_ClockUnit
+  ClockRate: @local::data.dune_TriggerClockRate
 }
 
 ################################################################################
@@ -366,7 +389,7 @@ tools.adcPlotDftMag: @local::adcPlotDftTemplate
 tools.adcPlotDftMag.Variable: magnitude
 tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
 tools.adcPlotDftMag.YMax: 50
-tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftMag.PlotName: "dftmag_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -382,7 +405,7 @@ tools.adcPlotDftPower: @local::adcPlotDftTemplate
 tools.adcPlotDftPower.Variable: power
 tools.adcPlotDftPower.YMax: 10000
 tools.adcPlotDftPower.NBinX: 50
-tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftPower.HistSummaryTitles:["DFT power for run %RUN%", "DFT power for run %RUN% event %EVENT%"]
 tools.adcPlotDftPower.PlotName: "dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
@@ -394,7 +417,7 @@ tools.adcPlotDftTickPower: @local::tools.adcPlotDftPower
 tools.adcPlotDftTickPower.Variable: "power/tick"
 tools.adcPlotDftTickPower.YMax: -2.0
 tools.adcPlotDftTickPower.NBinX: 50
-tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -433,6 +456,7 @@ tools.adcSampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_calib20191213_dec18ext"
+  ScaleFactor: 1.0
 }
 
 # Perform deconvolution with SignalShapingService.

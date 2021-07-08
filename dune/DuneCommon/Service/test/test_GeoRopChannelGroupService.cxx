@@ -38,8 +38,9 @@ int test_GeoRopChannelGroupService(string sgeo) {
   cout << myname << "Create fcl file." << endl;
 
   std::ostringstream oss;
-  oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services: @local::" << sgeo << endl;
+  // Default geometries from larcore: lartpcdetector_geometry, bo_geo
+  oss << "#include \"geometry.fcl\"" << endl;
+  oss << "services: @local::" << sgeo << "_geometry_services" << endl;
   oss << "services.ChannelGroupService: {" << endl;
   oss << "  service_provider: \"GeoRopChannelGroupService\"" << endl;
   oss << "}" << endl;
@@ -51,15 +52,17 @@ int test_GeoRopChannelGroupService(string sgeo) {
   hcgs->print(cout, myname);
 
   cout << myname << line << endl;
-  cout << myname << "Geo fcl: " << sgeo << endl;
+  cout << myname << "Geometry: " << sgeo << endl;
 
   cout << myname << line << endl;
   unsigned int nrop = hcgs->size();
   cout << myname << "Check ROP count: " << nrop << endl;
-  if ( sgeo == "dunefd_services" ) {
-    assert( nrop == 600 );
+  if ( sgeo == "lartpcdetector" ) {
+    assert( nrop == 3 );
+  } else if ( sgeo == "bo" ) {
+    assert( nrop == 3 );
   } else {
-    assert( nrop == 16 );
+    cout << myname << "Unknown geometry" << endl;
   }
 
   cout << myname << line << endl;
@@ -81,13 +84,13 @@ int test_GeoRopChannelGroupService(string sgeo) {
 }
 
 int main(int argc, char* argv[]) {
-  string sgeo = "dune35t_basic_services";
+  string sgeo = "lartpcdetector";
   if ( argc > 1 ) {
     sgeo = argv[1];
     if ( sgeo == "-h" ) {
       cout << "Usage: " << argv[0] << endl;
-      cout << "       " << argv[0] << " dune35t_basic_services" << endl;
-      cout << "       " << argv[0] << " dunefd_services" << endl;
+      cout << "       " << argv[0] << " lartpcdetector";
+      cout << "       " << argv[0] << " bo" << endl;
       return 0;
     }
   }

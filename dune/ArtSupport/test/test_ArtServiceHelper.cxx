@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <cassert>
@@ -20,6 +21,7 @@ using std::string;
 using std::cout;
 using std::endl;
 using std::istringstream;
+using std::ofstream;
 using art::ServiceHandle;
 
 #undef NDEBUG
@@ -34,17 +36,17 @@ int test_ArtServiceHelper(int opt) {
 #endif
   string line = "-----------------------------";
   string scfg;
+  string fclfile = "test_ArtServiceHelper.fcl";
+  string datafile = "mytest.root";
 
   if ( opt == 1 ) {
-    std::string const config{"#include \"prodsingle_common_dune35t.fcl\"\n"
-                             "services.TFileService.fileName: 'mytest.root'"};
-    ArtServiceHelper::load_services(config);
-  } else if ( opt == 2 ) {
-    cout << myname << line << endl;
-    cout << myname << "Adding 35t reco services" << endl;
-    ArtServiceHelper::load_services("standard_reco_dune35t.fcl",
-                                    ArtServiceHelper::FileOnPath);
+    ofstream fout(fclfile);
+    fout << "services: {" << endl;
+    fout << "  RandomNumberGenerator: {}" << endl;
+    fout << "  TFileService: {fileName: \"" << datafile << "\"}" << endl;
+    fout << "}" << endl;
   }
+  ArtServiceHelper::load(fclfile);
 
   cout << myname << line << endl;
   cout << myname << "Check RandomNumberGenerator is available." << endl;
@@ -56,6 +58,7 @@ int test_ArtServiceHelper(int opt) {
   ServiceHandle<art::TFileService> htf;
   cout << myname << "  " << &*hrng << endl;
   cout << myname << "  TFile name: " << htf->file().GetName() << endl;
+  //assert( htf->file().GetName() == datafile );
 
   cout << myname << line << endl;
   cout << myname << "Done." << endl;
@@ -76,6 +79,7 @@ int main(int argc, char** argv) {
       cout << "        2 to load all services from a file." << endl;
     }
   }
+
   if ( opt == 0 ) return 0;
   int rstat = test_ArtServiceHelper(opt);
   return rstat;

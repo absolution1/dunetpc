@@ -19,6 +19,7 @@
 #include "dune/Geometry/ChannelMapCRUAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
+#include "dune/Geometry/ProtoDUNEChannelMapAlgv8.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "dune/Geometry/GeoObjectSorterAPA.h"
 #include "dune/Geometry/GeoObjectSorter35.h"
@@ -66,6 +67,8 @@ DUNEGeometryHelper::doConfigureChannelMapAlg(fhicl::ParameterSet const& pset,
       channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlg>(pset);
     } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv7" ) {
       channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv7>(pset);
+    } else if ( fChannelMapClass == "ProtoDUNEChannelMapAlgv8" ) {
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv8>(pset);
     } else {
       throw cet::exception("DUNEGeometryHelper") << "Invalid channel map class name:" << fChannelMapClass << "\n";
     }
@@ -115,6 +118,10 @@ DUNEGeometryHelper::doConfigureChannelMapAlg(fhicl::ParameterSet const& pset,
     // protoDUNE with arapucas
     } else if ( detectorName.find("protodunev7") != std::string::npos ) {
       channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv7>(pset);
+
+    // protoDUNE with arapucas and updated paddles
+    } else if ( detectorName.find("protodunev8") != std::string::npos ) {
+      channelMap = std::make_unique<geo::ProtoDUNEChannelMapAlgv8>(pset);
 
     // protoDUNE
     } else if ( ( detectorName.find("protodune") != std::string::npos )

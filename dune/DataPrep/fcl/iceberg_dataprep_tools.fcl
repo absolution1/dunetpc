@@ -35,7 +35,7 @@ tools.channelRangesIceberg: {
 tools.channelGroupsIceberg: {
   tool_type: ApaChannelGroups
   LogLevel: 0
-  ApaNumbers: [8]
+  ApaNumbers: []
   IndexRangeTool: channelRanges
 }
 
@@ -194,6 +194,7 @@ tools.ib3SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib3"
+  ScaleFactor: "1.0"
 }
 
 # Fill sample and apply calibration for iceberg4.
@@ -205,6 +206,7 @@ tools.ib4SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib4"
+  ScaleFactor: "1.0"
 }
 
 # Fill sample and apply calibration for iceberg5.
@@ -216,6 +218,7 @@ tools.ib5SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 16383
   GainTool: "areaGain_ib5"
+  ScaleFactor: "1.0"
 }
 
 #############################################################
