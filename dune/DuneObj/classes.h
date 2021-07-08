@@ -19,7 +19,7 @@
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
 #include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNETimeStamp.h"
-
+#include "dune/DuneObj/RDStatus.h"
 #include <vector>
 #include <map>
 //#include <array>
