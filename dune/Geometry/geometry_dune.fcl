@@ -291,8 +291,9 @@ protodunev8_refactored_geo: @local::protodunev8_geo
 protodunev8_refactored_geo.GDML: "protodune_v8_refactored_nowires.gdml"
 protodunev8_refactored_geo.ROOT: "protodune_v8_refactored.gdml"
 
-protodune_geo: @local::protodunev8_geo
-protodune_refactored_geo: @local::protodunev8_refactored_geo
+#To be made default eventually
+#protodune_geo: @local::protodunev8_geo
+#protodune_refactored_geo: @local::protodunev8_refactored_geo
 
 iceberg_geo: @local::dune10kt_geo
 iceberg_geo.Name: "iceberg" # will be made lower case anyway
