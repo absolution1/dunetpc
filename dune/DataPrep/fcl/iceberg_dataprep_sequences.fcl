@@ -128,22 +128,22 @@ data.ib5_dataprep_seqs.calib_only: [
   "ib5SampleCalibration"        # Subtract pedestal and apply charge calibration
 ]
 
-# Charge calibration, mitigation, tail removal, no noise removal.
-data.ib5_dataprep_seqs.calib_tailonly: [
+# Charge calibration, mitigation, ped removal, no noise removal.
+# High level fcl must define ib5TailPedSignalFinder or tools.ib5PedRemoval
+data.ib5_dataprep_seqs.calib_ped: [
   @sequence::data.ib5_dataprep_seqs.calib_only
-  , "ib3TailRemovalKe"      # correct undershoot
-]
-
-# Charge calibration, mitigation, tail+ped removal, no noise removal.
-data.ib5_dataprep_seqs.calib_tailped: [
-  @sequence::data.ib5_dataprep_seqs.calib_only
-  , "ib5TailPedRemovalZKe"   # Remove collection tail and linear pedestal
-  , "ib5PedRemovalIKe"       # Remove induction linear pedestal
+  , "ib5PedRemoval"      # re-evaluate pedestal
 ]
 
 # Charge calibration, noise removal.
 data.ib5_dataprep_seqs.calib_noiserem: [
-  @sequence::data.ib5_dataprep_seqs.calib_tailped
+  @sequence::data.ib5_dataprep_seqs.calib_only
+  , "ibNoiseRemovalKe"         # Remove coherent noise
+]
+
+# Charge calibration, ped removal, noise removal.
+data.ib5_dataprep_seqs.calib_ped_noiserem: [
+  @sequence::data.ib5_dataprep_seqs.calib_ped
   , "ibNoiseRemovalKe"         # Remove coherent noise
 ]
 

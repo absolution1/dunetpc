@@ -35,7 +35,7 @@ tools.channelRangesIceberg: {
 tools.channelGroupsIceberg: {
   tool_type: ApaChannelGroups
   LogLevel: 0
-  ApaNumbers: [8]
+  ApaNumbers: []
   IndexRangeTool: channelRanges
 }
 
@@ -84,21 +84,96 @@ tools.ib4_adcPedestalFit: {
 }
 
 # Pedestal fitters for Iceberg 5 (14-bit ADC, no sticky codes)
-## 5a: 4.7 mV/fC, 1.0 us, 900 mV
-tools.ib5a_adcPedestalFit: @local::tools.ib4_adcPedestalFit
-tools.ib5a_adcPedestalFit.AdcRange: 16384
-## 5a: 14 mV/fC, 3.0 us, 200 mV
-tools.ib5b_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
-tools.ib5b_adcPedestalFit.AdcFitRange: 200
-tools.ib5b_adcPedestalFit.FitRmsMin: 2.0
-tools.ib5b_adcPedestalFit.FitRmsMax: 40
-## 5c: 14 mV/fC, 2.0 us, 900 mV
-tools.ib5c_adcPedestalFit: @local::tools.ib5a_adcPedestalFit
-tools.ib5c_adcPedestalFit.AdcFitRange: 200
-tools.ib5c_adcPedestalFit.FitRmsMin: 2.0
-tools.ib5c_adcPedestalFit.FitRmsMax: 40
-## 5d: 14 mV/fC, 1.0 us, 900 mV
-tools.ib5d_adcPedestalFit: @local::tools.ib5c_adcPedestalFit
+tools.ib5_adcPedestalFit: { tool_type: PleaseDefine_ib5_adcPedestalFit }
+# Period B
+tmp.pedestalFitTemplate: @local::tools.ib4_adcPedestalFit
+tmp.pedestalFitTemplate.AdcRange: 16384
+tools.ib5B00_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B01_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B02_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B03_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B10_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B11_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B12_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B13_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B20_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B21_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B22_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B23_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B30_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B31_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B32_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tools.ib5B33_adcPedestalFit: @local::tmp.pedestalFitTemplate
+tmp.pedestalFitTemplate: @erase
+# Fit ranges
+tools.ib5B00_adcPedestalFit.AdcFitRange: 100
+tools.ib5B01_adcPedestalFit.AdcFitRange: 100
+tools.ib5B02_adcPedestalFit.AdcFitRange: 100
+tools.ib5B03_adcPedestalFit.AdcFitRange: 100
+tools.ib5B10_adcPedestalFit.AdcFitRange: 100
+tools.ib5B11_adcPedestalFit.AdcFitRange: 100
+tools.ib5B12_adcPedestalFit.AdcFitRange: 100
+tools.ib5B13_adcPedestalFit.AdcFitRange: 200
+tools.ib5B20_adcPedestalFit.AdcFitRange: 100
+tools.ib5B21_adcPedestalFit.AdcFitRange: 100
+tools.ib5B22_adcPedestalFit.AdcFitRange: 200
+tools.ib5B23_adcPedestalFit.AdcFitRange: 300
+tools.ib5B30_adcPedestalFit.AdcFitRange: 100
+tools.ib5B31_adcPedestalFit.AdcFitRange: 200
+tools.ib5B32_adcPedestalFit.AdcFitRange: 300
+tools.ib5B33_adcPedestalFit.AdcFitRange: 400
+# Fit mins
+tools.ib5B00_adcPedestalFit.FitRmsMin:  0.3
+tools.ib5B01_adcPedestalFit.FitRmsMin:  0.6
+tools.ib5B02_adcPedestalFit.FitRmsMin:  1.2
+tools.ib5B03_adcPedestalFit.FitRmsMin:  1.8
+tools.ib5B10_adcPedestalFit.FitRmsMin:  0.5
+tools.ib5B11_adcPedestalFit.FitRmsMin:  1.0
+tools.ib5B12_adcPedestalFit.FitRmsMin:  2.0
+tools.ib5B13_adcPedestalFit.FitRmsMin:  3.0
+tools.ib5B20_adcPedestalFit.FitRmsMin:  0.9
+tools.ib5B21_adcPedestalFit.FitRmsMin:  1.8
+tools.ib5B22_adcPedestalFit.FitRmsMin:  3.5
+tools.ib5B23_adcPedestalFit.FitRmsMin:  5.0
+tools.ib5B30_adcPedestalFit.FitRmsMin:  1.5
+tools.ib5B31_adcPedestalFit.FitRmsMin:  3.0
+tools.ib5B32_adcPedestalFit.FitRmsMin:  6.0
+tools.ib5B33_adcPedestalFit.FitRmsMin: 10.0
+# Fit maxs
+tools.ib5B00_adcPedestalFit.FitRmsMax:  12
+tools.ib5B01_adcPedestalFit.FitRmsMax:  24
+tools.ib5B02_adcPedestalFit.FitRmsMax:  48
+tools.ib5B03_adcPedestalFit.FitRmsMax:  72
+tools.ib5B10_adcPedestalFit.FitRmsMax:  20
+tools.ib5B11_adcPedestalFit.FitRmsMax:  40
+tools.ib5B12_adcPedestalFit.FitRmsMax:  80
+tools.ib5B13_adcPedestalFit.FitRmsMax: 120
+tools.ib5B20_adcPedestalFit.FitRmsMax:  35
+tools.ib5B21_adcPedestalFit.FitRmsMax:  70
+tools.ib5B22_adcPedestalFit.FitRmsMax: 140
+tools.ib5B23_adcPedestalFit.FitRmsMax: 400
+tools.ib5B30_adcPedestalFit.FitRmsMax: 150
+tools.ib5B31_adcPedestalFit.FitRmsMax: 300
+tools.ib5B32_adcPedestalFit.FitRmsMax: 500
+tools.ib5B33_adcPedestalFit.FitRmsMax: 800
+# Periods a-q
+tools.ib5a_adcPedestalFit: @local::tools.ib5B01_adcPedestalFit
+tools.ib5b_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+tools.ib5c_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+tools.ib5d_adcPedestalFit: @local::tools.ib5B21_adcPedestalFit
+tools.ib5e_adcPedestalFit: @local::tools.ib5B23_adcPedestalFit
+tools.ib5f_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+tools.ib5g_adcPedestalFit: @local::tools.ib5B01_adcPedestalFit
+tools.ib5h_adcPedestalFit: @local::tools.ib5B12_adcPedestalFit
+tools.ib5i_adcPedestalFit: @local::tools.ib5B32_adcPedestalFit
+tools.ib5j_adcPedestalFit: @local::tools.ib5B20_adcPedestalFit
+tools.ib5k_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+tools.ib5l_adcPedestalFit: @local::tools.ib5B31_adcPedestalFit
+tools.ib5m_adcPedestalFit: @local::tools.ib5B33_adcPedestalFit
+tools.ib5n_adcPedestalFit: @local::tools.ib5B11_adcPedestalFit
+tools.ib5o_adcPedestalFit: @local::tools.ib5B13_adcPedestalFit
+tools.ib5p_adcPedestalFit: @local::tools.ib5B22_adcPedestalFit
+tools.ib5q_adcPedestalFit: @local::tools.ib5B21_adcPedestalFit
 
 # Sticky code mitigation.
 tools.ib_adcMitigate: {
@@ -119,6 +194,7 @@ tools.ib3SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib3"
+  ScaleFactor: "1.0"
 }
 
 # Fill sample and apply calibration for iceberg4.
@@ -130,6 +206,7 @@ tools.ib4SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_ib4"
+  ScaleFactor: "1.0"
 }
 
 # Fill sample and apply calibration for iceberg5.
@@ -141,7 +218,10 @@ tools.ib5SampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 16383
   GainTool: "areaGain_ib5"
+  ScaleFactor: "1.0"
 }
+
+#############################################################
 
 # Signal finder to use with tail removal.
 tools.ib3TailSignalFinderAdc: {
@@ -167,9 +247,6 @@ tools.ib3TailRemovalAdc: {
 
 tools.ib3TailSignalFinderKe: @local::tools.ib3TailSignalFinderAdc
 tools.ib3TailSignalFinderKe.Threshold: 0.4
-
-tools.ib5TailSignalFinderKe: @local::tools.ib3TailSignalFinderKe
-tools.ib5TailSignalFinderKe.Threshold: 1.0
 
 tools.ib3TailRemovalKe: @local::tools.ib3TailRemovalAdc
 tools.ib3TailRemovalKe.SignalTool: ib3TailSignalFinderKe
@@ -198,14 +275,91 @@ tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
 tools.ib4PedRemovalIKe: @local::tools.ib4TailPedRemovalIKe
 tools.ib4PedRemovalIKe.DecayTime: 0
 
-# Tail+ped removal 2021.
-tools.ib5TailPedRemovalZKe: @local::tools.ib4TailPedRemovalZKe
-tools.ib5TailPedRemovalZKe.MaxTick: 2184
-tools.ib5TailPedRemovalZKe.SignalTool: ib5TailSignalFinderKe
+# Tail/pedestal signal finders for Iceberg 5.
+# Iceberg 5 ped/tail signal finder for periods b, c, f (14 mV/fC, 2.0 us).
+tools.ib5TailPedSignalFinderKe: @local::tools.ib3TailSignalFinderKe
+tools.ib5TailPedSignalFinderKe.BinsBefore: 20
+tools.ib5TailPedSignalFinderKe.BinsAfter: 30
+tools.ib5TailPedSignalFinderKe.Threshold: 0.3
 
-tools.ib5PedRemovalIKe: @local::tools.ib4PedRemovalIKe
-tools.ib5PedRemovalIKe.MaxTick: 2184
-tools.ib5PedRemovalIKe.SignalTool: ib5TailSignalFinderKe
+tools.ib5aTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5bTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5cTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5dTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5eTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5fTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5gTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5hTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5iTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5jTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5kTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5lTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5mTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5nTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5oTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5pTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5qTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C00TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C01TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C02TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C03TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C10TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C11TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C12TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C13TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C20TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C21TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C22TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C23TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C30TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C31TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C32TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+tools.ib5C33TailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
+
+tools.ib5aTailPedSignalFinder.Threshold: 0.6
+tools.ib5bTailPedSignalFinder.Threshold: 0.3
+tools.ib5cTailPedSignalFinder.Threshold: 0.3
+tools.ib5dTailPedSignalFinder.Threshold: 0.6
+tools.ib5eTailPedSignalFinder.Threshold: 0.2
+tools.ib5fTailPedSignalFinder.Threshold: 0.3
+tools.ib5gTailPedSignalFinder.Threshold: 0.3
+tools.ib5hTailPedSignalFinder.Threshold: 0.3
+tools.ib5iTailPedSignalFinder.Threshold: 0.3
+tools.ib5jTailPedSignalFinder.Threshold: 1.2
+tools.ib5kTailPedSignalFinder.Threshold: 0.3
+tools.ib5lTailPedSignalFinder.Threshold: 0.6
+tools.ib5mTailPedSignalFinder.Threshold: 0.2
+tools.ib5nTailPedSignalFinder.Threshold: 0.6
+tools.ib5oTailPedSignalFinder.Threshold: 0.2
+tools.ib5pTailPedSignalFinder.Threshold: 0.3
+tools.ib5qTailPedSignalFinder.Threshold: 0.6
+tools.ib5C00TailPedSignalFinder.Threshold: 1.2
+tools.ib5C01TailPedSignalFinder.Threshold: 0.6
+tools.ib5C02TailPedSignalFinder.Threshold: 0.3
+tools.ib5C03TailPedSignalFinder.Threshold: 0.2
+tools.ib5C10TailPedSignalFinder.Threshold: 1.2
+tools.ib5C11TailPedSignalFinder.Threshold: 0.6
+tools.ib5C12TailPedSignalFinder.Threshold: 0.3
+tools.ib5C13TailPedSignalFinder.Threshold: 0.2
+tools.ib5C20TailPedSignalFinder.Threshold: 1.2
+tools.ib5C21TailPedSignalFinder.Threshold: 0.6
+tools.ib5C22TailPedSignalFinder.Threshold: 0.3
+tools.ib5C23TailPedSignalFinder.Threshold: 0.2
+tools.ib5C30TailPedSignalFinder.Threshold: 1.2
+tools.ib5C31TailPedSignalFinder.Threshold: 0.6
+tools.ib5C32TailPedSignalFinder.Threshold: 0.3
+tools.ib5C33TailPedSignalFinder.Threshold: 0.2
+
+# Force high level fcl to set this.
+tools.ib5TailPedSignalFinder: { tool_type: PleaseDefine_ib5TailPedSignalFinder }
+
+# Pedestal removal  for iceberg 5.
+# We expect no tails. For all planes.
+tools.ib5PedRemoval: @local::tools.ib4TailPedRemovalZKe
+tools.ib5PedRemoval.PedDegree: 0
+tools.ib5PedRemoval.IncludeChannelRanges: []
+tools.ib5PedRemoval.MaxTick: 2184
+tools.ib5PedRemoval.SignalTool: ib5TailPedSignalFinder
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
@@ -349,6 +503,11 @@ tools.ibmet_adcChannelPedestalRawTailPlotter: @local::tools.pdtps_adcChannelPede
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelRanges: [all]
 tools.ibmet_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal tail for Iceberg run %RUN% event %EVENT%"
 tools.ibmet_adcChannelPedestalRawTailPlotter.ChannelLinePattern: @local::ibFembPat
+
+tools.ibmet_adcChannelPedestalReducedChiSquarePlotter: @local::tools.pdtps_adcChannelPedestalReducedChiSquarePlotter
+tools.ibmet_adcChannelPedestalReducedChiSquarePlotter.ChannelRanges: [all]
+tools.ibmet_adcChannelPedestaleducedChiSquareRPlotter.HistTitle: "ADC pedestal #chi^{2}/DOF for Iceberg run %RUN% event %EVENT%"
+tools.ibmet_adcChannelPedestalRReducedChiSquarePlotter.ChannelLinePattern: @local::ibFembPat
 
 # Add a plot of UTC (aka GMT, unix time)
 tools.ibmet_adcChannelUtcPlotter: @local::tools.ibmet_adcChannelPedestalPlotter

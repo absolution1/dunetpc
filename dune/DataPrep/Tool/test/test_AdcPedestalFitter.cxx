@@ -48,17 +48,17 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
-    fout << "#include \"dataprep_tools.fcl\"" << endl;   // Need adcNameManipulator
+    fout << "#include \"test_dataprep.fcl\"" << endl;   // For adcNameManipulator
     fout << "tools.mytool: {" << endl;
     fout << "  tool_type: AdcPedestalFitter" << endl;
     fout << "  LogLevel: 1" << endl;
-    fout << "  AdcRange: 4096" << endl;
+    fout << "  AdcRange: \"pow(2,12)\"" << endl;
     fout << "  FitOpt: 3" << endl;
     fout << "  FitPrecision: 1.0" << endl;
     fout << "  SkipFlags: []" << endl;
-    fout << "  AdcFitRange: 100" << endl;
-    fout << "  FitRmsMin: 1.0" << endl;
-    fout << "  FitRmsMax: 20.0" << endl;
+    fout << "  AdcFitRange: \"10*int(0.7*[gain]+1)\"" << endl;
+    fout << "  FitRmsMin: \"1.0\"" << endl;
+    fout << "  FitRmsMax: \"20.0\"" << endl;
     fout << "  RemoveStickyCode: false" << endl;
     fout << "  HistName: \"adcped_%EVENT%_%CHAN%\"" << endl;
     fout << "  HistTitle: \"ADC pedestal for event %EVENT% channel %CHAN%\"" << endl;
@@ -78,7 +78,17 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
     fout << "tools.mymaptool.RootFileName: \"\"" << endl;
     fout << "tools.mymaptool.PlotSizeX: 1400" << endl;
     fout << "tools.mymaptool.PlotSizeY: 1000" << endl;
+    fout << "tools.runDataTool: {" << endl;
+    fout << "  tool_type: FclRunDataTool" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FileNames: [\"rundata.fcl\"]" << endl;
+    fout << "}" << endl;
     fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }
@@ -152,8 +162,8 @@ int test_AdcPedestalFitter(bool useExistingFcl, bool doUpdate, bool doUpdateMap)
         assert( ! datamap[icha].hasMetadata("fitPedPeakBinFraction") );
         assert( padvsin->update(datamap[icha]) == 0 );
         double ped2 = datamap[icha].pedestal;
-        cout << "Old pedestal: " << ped0 << endl;
-        cout << "New pedestal: " << ped2 << endl;
+        cout << myname << "Old pedestal: " << ped0 << endl;
+        cout << myname << "New pedestal: " << ped2 << endl;
         assert( ped1 == ped0 );
         assert( ped2 != ped0 );
         assert( ped2 != 0.0 );

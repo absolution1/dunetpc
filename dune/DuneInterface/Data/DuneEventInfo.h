@@ -110,7 +110,7 @@ public:
   std::string runString(Index opt =2) const {
     std::ostringstream ssout;
     ssout << run;
-    if ( opt == 1 || (opt ==2 && subRun > 0) ) {
+    if ( opt == 1 || (opt ==2 && subRun > 0 && subRun!=badIndex()) ) {
       ssout << "-" << subRun;
     }
     return ssout.str();

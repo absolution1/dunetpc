@@ -27,6 +27,13 @@ tools.tickRanges.plotTicks: { begin:3000 end:4000 labels:["Plot ticks"] }
 tools.tickRanges.plotAllTicks: { begin:0 end:0 labels:["All ticks"] }
 
 ################################################################################
+# DUNE default clock data.
+################################################################################
+
+data.dune_ClockUnit: "Mtick"
+data.dune_TriggerClockRate: 50000000.0
+
+################################################################################
 # Dumpers.
 ################################################################################
 
@@ -44,6 +51,23 @@ tools.adcRoiTreeMaker: {
   tool_type: AdcRoiToTree
   LogLevel: 1
   OutFile: "adcrois.root"
+  MetadataFields: []
+}
+
+################################################################################
+# Event metrics.
+################################################################################
+
+# FEMB multiplicity for a single-APA detector.
+tools.apa_evtviewNfemb: {
+  tool_type: AdcEventViewer
+  LogLevel: 2
+  EventHists: ["hnfemb:21:0:21"]
+  EventGraphs: ["event:events:1:nfemb:0:21"]
+  ChannelRanges: []
+  ChannelRangeLabel: ""
+  ClockUnit: @local::data.dune_ClockUnit
+  ClockRate: @local::data.dune_TriggerClockRate
 }
 
 ################################################################################
@@ -140,6 +164,7 @@ tools.def_adcPedestalFit: {
   LogLevel: 1
   AdcRange: 4096
   FitOpt: 0
+  FitPrecision: 1.0
   SkipFlags: []
   AdcFitRange: 100
   FitRmsMin:  1.0
@@ -150,11 +175,28 @@ tools.def_adcPedestalFit: {
   PlotFileName: ""
   RootFileName: ""
   HistManager: ""
-  PlotSizeX: 0
-  PlotSizeY: 0
-  PlotSplitX: 0
-  PlotSplitY: 0
+  PlotSizeX: 1400
+  PlotSizeY: 1000
+  PlotSplitX: 4
+  PlotSplitY: 4
   PlotShowFit: 1
+}
+
+# Dump ADC map raw contents to the log file.
+tools.adcRawDumper: {
+  tool_type: AdcDataDumper
+  FileName: ""
+  Prefix: "ADC raw dump for "
+  NewFile: false
+  ShowChannelCount: true
+  ShowTickCounts: false
+  ShowRaw: true
+  ShowPrepared: false
+  ShowFirst: 0
+  ShowRebin: 0
+  ShowMax: 20
+  ShowThreshold: 10
+  ShowOpt: 1
 }
 
 # Dump ADC map contents to the log file.
@@ -193,7 +235,7 @@ tools.preparedAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcprp_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Prepared ADC for event %EVENT%"
+  HistTitle: "Prepared ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
@@ -218,7 +260,7 @@ tools.signalAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcsig_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Signal ADC for event %EVENT%"
+  HistTitle: "Signal ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
@@ -243,11 +285,11 @@ tools.rawAdcPlotter: {
   ChannelLinePattern: [0, 800, 1600, 2080]
   Palette: 2020
   HistName: "hadcraw_evt%EVENT%_ch_%CHAN1%"
-  HistTitle: "Raw ADC for event %EVENT%"
+  HistTitle: "Raw ADC for run %RUN% event %EVENT%"
   PlotTitle: ""
   PlotSizeX: 1400
   PlotSizeY: 1000
-  PlotFileName: "adcraw_run%RUN%_evt%EVENT%_ch%CHAN1%-%CHAN2%.png"
+  PlotFileName: "adcrawRun%0RUN%Event%0EVENT%Chan%CHAN1%-%CHAN2%.png"
   RootFileName: ""   # or "adc_evt%EVENT%.root"
 }
 
@@ -277,6 +319,7 @@ tools.adcChannelPedestalPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchped_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal RMS for each channel.
@@ -301,6 +344,7 @@ tools.adcChannelPedestalRmsPlotter: {
   PlotSizeY:  500
   PlotFileName: "hchpedrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Sample RMS
@@ -323,6 +367,7 @@ adcPlotDftTemplate: {
            LogLevel: 1
        PlotDataView: ""
   ChannelStatusFlag: 0
+   ChannelSelection: ""
          SampleFreq: @local::adcSampleFreq
            PlotName: ""
    PlotSummaryNames: []
@@ -344,7 +389,7 @@ tools.adcPlotDftMag: @local::adcPlotDftTemplate
 tools.adcPlotDftMag.Variable: magnitude
 tools.adcPlotDftMag.SampleFreq: @local::adcSampleFreq
 tools.adcPlotDftMag.YMax: 50
-tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftMag.HistName: "hdftmags_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftMag.HistTitle: "DFT amplitudes for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftMag.PlotName: "dftmag_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -360,7 +405,7 @@ tools.adcPlotDftPower: @local::adcPlotDftTemplate
 tools.adcPlotDftPower.Variable: power
 tools.adcPlotDftPower.YMax: 10000
 tools.adcPlotDftPower.NBinX: 50
-tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftPower.HistName: "hdftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftPower.HistSummaryTitles:["DFT power for run %RUN%", "DFT power for run %RUN% event %EVENT%"]
 tools.adcPlotDftPower.PlotName: "dftpower_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
@@ -372,7 +417,7 @@ tools.adcPlotDftTickPower: @local::tools.adcPlotDftPower
 tools.adcPlotDftTickPower.Variable: "power/tick"
 tools.adcPlotDftTickPower.YMax: -2.0
 tools.adcPlotDftTickPower.NBinX: 50
-tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT_ch%0CHAN%%"
+tools.adcPlotDftTickPower.HistName: "hdftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%"
 tools.adcPlotDftTickPower.HistTitle: "DFT power for run %RUN% event %EVENT% channel %CHAN%"
 tools.adcPlotDftTickPower.PlotName: "dftpowt_run%0RUN%_evt%0EVENT%_ch%0CHAN%.png"
 
@@ -411,6 +456,7 @@ tools.adcSampleCalibration: {
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 4095
   GainTool: "areaGain_calib20191213_dec18ext"
+  ScaleFactor: 1.0
 }
 
 # Perform deconvolution with SignalShapingService.

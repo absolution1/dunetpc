@@ -20,7 +20,6 @@
 #include "channelstatus_dune.fcl"
 #include "channelstatus_pdsp.fcl"
 #include "pedestals_dune.fcl"
-#include "daq_dune.fcl"
 #include "detsimmodules_dune.fcl"
 #include "spacecharge_dune.fcl"
 #include "dataprep_dune.fcl"

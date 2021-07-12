@@ -67,7 +67,8 @@ IcebergDataInterface_tool_FELIXBufferMarch2021:
   InputFiles: [ "slr1-0-data.bin", 
                 "slr1-64-data.bin", 
                 "slr1-128-data.bin", 
-                "slr1-256-data.bin" ]
+                "slr1-256-data.bin",
+                "slr1-320-data.bin" ]
   NSamples: 2000
   CompressHuffman: false
 

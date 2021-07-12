@@ -282,6 +282,20 @@ protodunev7_refactored_geo.ROOT: "protodune_v7_refactored.gdml"
 protodune_geo: @local::protodunev7_geo
 protodune_refactored_geo: @local::protodunev7_refactored_geo
 
+#ARAPUCA geometry and updated paddles
+protodunev8_geo: @local::dune10kt_geo
+protodunev8_geo.Name: "protodunev8" # will be made lower case anyway
+protodunev8_geo.GDML: "protodune_v8.gdml"
+protodunev8_geo.ROOT: "protodune_v8.gdml"
+
+protodunev8_refactored_geo: @local::protodunev8_geo
+protodunev8_refactored_geo.GDML: "protodune_v8_refactored_nowires.gdml"
+protodunev8_refactored_geo.ROOT: "protodune_v8_refactored.gdml"
+
+#To be made default eventually
+#protodune_geo: @local::protodunev8_geo
+#protodune_refactored_geo: @local::protodunev8_refactored_geo
+
 iceberg_geo: @local::dune10kt_geo
 iceberg_geo.Name: "iceberg" # will be made lower case anyway
 iceberg_geo.GDML: "iceberg_v1.gdml"

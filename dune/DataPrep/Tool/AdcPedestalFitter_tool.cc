@@ -31,6 +31,7 @@ using std::setprecision;
 using std::vector;
 
 using Index = unsigned int;
+using NameSet = std::set<string>;
 
 //**********************************************************************
 // Local definitions.
@@ -38,12 +39,30 @@ using Index = unsigned int;
 
 namespace {
 
+NameSet getFormulaParams(TFormula* form, string nam) {
+  string myname = "AdcPedestalFitter::getFormulaParams: ";
+  NameSet tfpars;
+  int npar = form->GetNpar();
+  for ( int ipar=0; ipar<npar; ++ipar ) {
+    string spar = form->GetParName(ipar);
+    if ( spar != "gain" && spar != "shaping" ) {
+      cout << myname << "WARNING: Invalid formula parameter " << spar
+           << " is assigned value 0 in formula for " << nam << endl;
+      form->SetParameter(spar.c_str(), 0.0);
+    } else {
+      tfpars.insert(spar);
+    }
+  }
+  return tfpars;
+}
+
 void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedFractionLow"] = res.getFloat("fitFractionLow");
   acd.metadata["fitPedFractionHigh"] = res.getFloat("fitFractionHigh");
   acd.metadata["fitPedestal"] = res.getFloat("fitPedestal");
   acd.metadata["fitPedRms"] = res.getFloat("fitPedestalRms");
   acd.metadata["fitPedChiSquare"] = res.getFloat("fitChiSquare");
+  acd.metadata["fitPedReducedChiSquare"] = res.getFloat("fitReducedChiSquare");
   acd.metadata["fitPedPeakBinFraction"] = res.getFloat("fitPeakBinFraction");
   acd.metadata["fitPedPeakBinExcess"] = res.getFloat("fitPeakBinExcess");
   acd.metadata["fitPedNBinsRemoved"] = res.getFloat("fitNBinsRemoved");
@@ -65,13 +84,13 @@ void copyMetadata(const DataMap& res, AdcChannelData& acd) {
 
 AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_AdcRange(ps.get<Index>("AdcRange")),
+  m_AdcRange(ps.get<Name>("AdcRange")),
   m_FitOpt(ps.get<Index>("FitOpt")),
   m_FitPrecision(ps.get<float>("FitPrecision")),
   m_SkipFlags(ps.get<IndexVector>("SkipFlags")),
-  m_AdcFitRange(ps.get<float>("AdcFitRange")),
-  m_FitRmsMin(ps.get<float>("FitRmsMin")),
-  m_FitRmsMax(ps.get<float>("FitRmsMax")),
+  m_AdcFitRange(ps.get<Name>("AdcFitRange")),
+  m_FitRmsMin(ps.get<Name>("FitRmsMin")),
+  m_FitRmsMax(ps.get<Name>("FitRmsMax")),
   m_RemoveStickyCode(ps.get<bool>("RemoveStickyCode")),
   m_HistName(ps.get<string>("HistName")),
   m_HistTitle(ps.get<string>("HistTitle")),
@@ -82,6 +101,7 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
   m_PlotShowFit(ps.get<Index>("PlotShowFit")),
   m_PlotSplitX(ps.get<Index>("PlotSplitX")),
   m_PlotSplitY(ps.get<Index>("PlotSplitY")),
+  m_prdtool(nullptr),
   m_pstate(new State) {
   const string myname = "AdcPedestalFitter::ctor: ";
   DuneToolManager* ptm = DuneToolManager::instance();
@@ -113,9 +133,27 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
       cout << "WARNING: Invalid FitOpt: " << m_FitOpt << ". Not fit will be performed." << endl;
     }
   }
-  // Initialize state.
-  {
-    state().pfitter = new TF1("pedgaus", "gaus", 0, m_AdcRange, TF1::EAddToList::kNo);
+  // Fetch the formula parameters.
+  m_tfs["AdcRange"] = new TFormula("adcRange", m_AdcRange.c_str(), false),
+  m_tfs["AdcFitRange"] = new TFormula("adcFitRange", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMin"] = new TFormula("fitRmsMin", m_AdcFitRange.c_str(), false),
+  m_tfs["FitRmsMax"] = new TFormula("fitRmsMax", m_AdcFitRange.c_str(), false),
+  m_haveFormulaParams = false;
+  for ( const auto& itf : m_tfs ) {
+    m_tfpars[itf.first] = getFormulaParams(itf.second, itf.first);
+    m_haveFormulaParams |= m_tfpars[itf.first].size();
+  }
+  if ( m_haveFormulaParams ) {
+    string stnam = "runDataTool";
+    m_prdtool = ptm->getShared<RunDataTool>(stnam);
+    if ( m_prdtool == nullptr ) {
+      cout << myname << "ERROR: RunDataTool " << stnam
+           << " not found. Formulas will not be evaluated." << endl;
+    } else {
+      cout << myname << "RunDataTool retrieved." << endl;
+    }
+  } else {
+    cout << myname << "No formula parameters. RunDataTool is not retrieved." << endl;
   }
   if ( m_LogLevel >= 1 ) {
     cout << myname << "Configuration parameters:" << endl;
@@ -144,6 +182,17 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
     cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
+    for ( const auto& itf : m_tfs ) {
+      Name nam = itf.first;
+      cout << myname << setw(15) << nam << ": [";
+      first = true;
+      for ( string spar : m_tfpars[nam] ) {
+        if ( first ) first = false;
+        else cout << ", ";
+        cout << spar;
+      }
+      cout << "]" << endl;
+    }
   }
 }
 
@@ -274,6 +323,44 @@ DataMap AdcPedestalFitter::updateMap(AdcChannelDataMap& acds) const {
 
 //**********************************************************************
 
+DataMap AdcPedestalFitter::beginEvent(const DuneEventInfo& evi) const {
+  const string myname = "AdcPedestalFitter::beginEvent: ";
+  DataMap res;
+  ++state().nevt;
+  if ( evi.run == state().run ) return res;
+  if ( m_LogLevel >= 2 ) {
+    cout << myname << "Setting run " << evi.run << endl;
+  }
+  state().run = evi.run;
+  string msg;
+  if ( m_haveFormulaParams ) {
+    RunData rdat;
+    if ( m_prdtool == nullptr ) {
+      msg = "WARNING: RunData tool not found. Using default parameters.";
+    } else {
+      rdat = m_prdtool->runData(evi.run);
+    }
+    if ( msg.size() == 0 && ! rdat.isValid() ) {
+      msg = "WARNING: RunData not found. Using default parameters.";
+    }
+    if ( msg.size() ) {
+      cout << myname << msg << endl;
+      rdat.setGain(14.0);
+      rdat.setShaping(2.0);
+    }
+    for ( auto itr : m_tfs ) {
+      RunData::SetStat sstat = rdat.setFormulaPars(itr.second);
+      if ( sstat.nerr ) {
+        cout << "ERROR: Unable to set " << sstat.nerr << " parameter" << (sstat.nerr ==1 ? "" : "s")
+             << " from RunData for formula " << itr.first << endl;
+      }
+    }
+  }
+  return res;
+}
+
+//**********************************************************************
+
 string AdcPedestalFitter::
 nameReplace(string name, const AdcChannelData& acd, bool isTitle) const {
   const AdcChannelStringTool* pnbl = m_adcStringBuilder;
@@ -296,6 +383,12 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     if ( m_LogLevel >= 2 ) cout << myname << "WARNING: Raw data is empty." << endl;
     return res.setStatus(1);
   }
+  // If we need RunData parameters and Make sure that beginEvent has been called to
+  // evaluate formulas.
+  if ( m_haveFormulaParams && state().nevt == 0 ) {
+    cout << myname << "WARNING: Calling beginEvent to evaluate formulas." << endl;
+    beginEvent(acd.getEventInfo());
+  }
   // Flag samples to keep in pedestal fit.
   //return res;
   vector<bool> keep(nsam, true);
@@ -304,6 +397,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index isam=0; isam<nsam; ++isam ) {
     if ( isam >= acd.flags.size() ) {
       if ( m_LogLevel >= 2 ) cout << myname << "WARNING: flags are missing." << endl;
+      nkeep += nsam - isam;    // 2021-04-30: Keep unflagged samples
       break;
     }
     Index flg = acd.flags[isam];
@@ -321,7 +415,13 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   htitl += "; ADC count; # samples";
-  unsigned int nadc = m_AdcRange;
+  Index adcRange = m_tfs.at("AdcRange")->Eval(0);
+  if ( state().pfitter == nullptr || adcRange != state().adcRange ) {
+    cout << myname << "New ADC range is " << adcRange << endl;
+    state().pfitter = new TF1("pedgaus", "gaus", 0, adcRange, TF1::EAddToList::kNo);
+  }
+  state().adcRange = adcRange;
+  unsigned int nadc = adcRange;
   unsigned int rebin = 10;
   unsigned int nbin = (nadc + rebin - 0.01)/rebin;
   double xmax = rebin*nbin;
@@ -341,12 +441,16 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index ibin=0; ibin<nbin; ++ibin ) {
     phr->SetBinContent(ibin+1, rcounts[ibin]);
   }
-  double wadc = m_AdcFitRange;
+  double wadc = m_tfs.at("AdcFitRange")->Eval(0);
+  if ( wadc < 10 ) {
+    cout << myname << "INFO: Invalid fit range: " << wadc << " < 10 ADC counts" << endl;
+    return res.setStatus(3);
+  }
+  cout << myname << "INFO: Width = " << wadc << " ADC counts" << endl;
   int rbinmax1 = phr->GetMaximumBin();
   double adcmax = phr->GetBinCenter(rbinmax1);
   double adc1 = adcmax - 0.5*wadc;
   double adc2 = adc1 + wadc;
-  //return res;
   if ( m_RemoveStickyCode ) {
     double radcmax1 = phr->GetBinCenter(rbinmax1);
     double radcmean = phr->GetMean();
@@ -356,7 +460,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     phr->SetBinContent(rbinmax1, tmpval);
     int rbinmax2 = phr->GetMaximumBin();
     double radcsum2 = phr->Integral();
-    // Evaluate the histogram mean and peak postition.
+    // Evaluate the histogram mean and peak position.
     // If the peak removal has not removed too much data, these values are
     // re-evaluated using the peak-removed histogram.
     double adcmean = radcmean;        // Mean position.
@@ -370,7 +474,6 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       }
     }
     adcmax = phr->GetBinCenter(rbinmax);
-    delete phr;
     // Make sure the peak bin stays in range.
     if ( abs(adcmax-radcmax1) > 0.45*wadc ) adcmax = radcmax1;
     adc1 = adcmax - 0.5*wadc;
@@ -382,6 +485,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
            << ") does not include peak at " << radcmax1 << "." << endl;
     }
   }
+  delete phr;
   TH1* phf = new TH1F(hname.c_str(), htitl.c_str(), wadc, adc1, adc2);
   phf->SetDirectory(0);
   //phf->Sumw2();
@@ -402,6 +506,9 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   for ( Index iadc=0; iadc<wadc; ++iadc ) {
     phf->SetBinContent(iadc+1, fcounts[iadc]);
+    //float err = sqrt(fcounts[iadc]);
+    //if ( err <= 0.0 ) err = 1.0;
+    //phf->SetBinError(iadc+1, err);
   }
   float fracLo = count > 0 ? float(countLo)/count : 0.0;
   float fracHi = count > 0 ? float(countHi)/count : 0.0;
@@ -409,13 +516,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   phf->SetLineWidth(2);
   // Fetch the peak bin and suppress it for the fit if more than 20% (but not
   // all) the data is in it.
+  // May 2021: We expect the peak bin to hold 20% of the samples if the RMS is near
+  // or below 2.0. Don't drop bin for low RMS and log a warning if bin is dropped
+  // and fit sigm < 2.5.
   int binmax = phf->GetMaximumBin();
   double valmax = phf->GetBinContent(binmax);
+  float peakFrac = valmax/phf->Integral();
   double xcomax = phf->GetBinLowEdge(binmax);
   double rangeIntegral = phf->Integral(1, phf->GetNbinsX());
   double peakBinFraction = (rangeIntegral > 0) ? valmax/rangeIntegral : 1.0;
   bool allBin = peakBinFraction > 0.99;
-  bool dropBin = valmax > 0.2*phf->Integral() && !allBin;
+  float rawRms = phf->GetRMS();
+  bool isNarrow = rawRms < 2.5;
+  bool dropBin = m_RemoveStickyCode && peakFrac > 0.2 && !allBin && !isNarrow;
   int nbinsRemoved = 0;
   if ( dropBin ) {
     double tmpval = 0.5*(phf->GetBinContent(binmax-1)+phf->GetBinContent(binmax+1));
@@ -425,16 +538,19 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   double amean = phf->GetMean() + 0.5;
   double arms = phf->GetRMS();
-  double ameanWin = m_FitRmsMax > m_FitRmsMin ? m_FitRmsMax : 0.0;
+  double fitRmsMin = m_tfs.at("FitRmsMin")->Eval(0);
+  double fitRmsMax = m_tfs.at("FitRmsMax")->Eval(0);
+  double ameanWin = fitRmsMax > fitRmsMin ? fitRmsMax : 0.0;
   bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
   //float pedestalRms = 1.0/sqrt(12.0);
   float pedestalRms = arms;
-  if ( m_FitRmsMax > m_FitRmsMin ) {
-    if ( arms < m_FitRmsMin ) arms = m_FitRmsMin;
-    if ( arms > m_FitRmsMax ) arms = m_FitRmsMax;
+  if ( fitRmsMax > fitRmsMin ) {
+    if ( arms < fitRmsMin ) arms = fitRmsMin;
+    if ( arms > fitRmsMax ) arms = fitRmsMax;
   }
   float fitChiSquare = 0.0;
+  float fitReducedChiSquare = 0.0;
   float peakBinExcess = 0.0;
   if ( doFit ) {
     // Block Root info message for new Canvas produced in fit.
@@ -461,8 +577,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       fitter.SetParLimits(0, 0.01*rangeIntegral, rangeIntegral);
       if ( ameanWin > 0.0 ) fitter.SetParLimits(1, amean - ameanWin, amean + ameanWin);
       if ( allBin ) fitter.FixParameter(1, amean);  // Fix posn.
-      if ( m_FitRmsMin < m_FitRmsMax ) {
-        fitter.SetParLimits(2, m_FitRmsMin, m_FitRmsMax);
+      if ( fitRmsMin < fitRmsMax ) {
+        fitter.SetParLimits(2, fitRmsMin, fitRmsMax);
       }
       fitter.SetParError(0, 0.0);
       if ( m_PlotShowFit >= 2 ) {
@@ -508,7 +624,37 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
       peakBinExcess = (valmax - valEval)/rangeIntegral;
       pedestal = fitter.GetParameter(1) - 0.5;
       pedestalRms = fitter.GetParameter(2);
+      // Chi-square from the fitter.
       fitChiSquare = fitter.GetChisquare();
+      // Estimate of chi-square/DOF
+      float ibin1 = int(pedestal - 3.0*pedestalRms) - adc1;
+      if ( ibin1 < 1 ) ibin1 = 1;
+      float ibin2 = int(pedestal + 3.0*pedestalRms + 2.0) - adc1;
+      if ( ibin2 > wadc ) ibin2 = wadc;
+      int nbin = 0;
+      double sumsq = 0.0;
+      for ( int ibin=ibin1; ibin<=ibin2; ++ibin ) {
+        float xfun = adc1 + ibin - 0.5;
+        float yfun = fitter.Eval(xfun);
+        if ( yfun < 1.0 ) continue;
+        float yhst = phf->GetBinContent(ibin);
+        float dely = yhst - yfun;
+        float vary = yfun > 1.0 ? yfun : 1.0;
+        sumsq += dely*dely/vary;
+        ++nbin;
+      }
+      float estndof = nbin > 4 ? nbin - 3 : 1;
+      fitReducedChiSquare = sumsq/estndof;
+      // Warn if bin was dropped for a too-narrow distribution.
+      if ( dropBin && pedestalRms < 2.5 ) {
+        int precSave = cout.precision();
+        cout.precision(2);
+        cout << myname << "WARNING: Bin was dropped for channel " << acd.channel()
+             << " with fit sigma=" << fixed << pedestalRms
+             << ", raw RMS=" << fixed << rawRms
+             << " and peak fraction=" << fixed << peakFrac << endl;
+        cout.precision(precSave);
+      }
     }
   }
   if ( dropBin ) phf->SetBinContent(binmax, valmax);
@@ -520,6 +666,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   res.setFloat("fitChiSquare", fitChiSquare);
   res.setFloat("fitPeakBinFraction", peakBinFraction);
   res.setFloat("fitPeakBinExcess", peakBinExcess);
+  res.setFloat("fitChiSquare", fitChiSquare);
+  res.setFloat("fitReducedChiSquare", fitReducedChiSquare);
   res.setInt("fitChannel", acd.channel());
   res.setInt("fitNSkip", nskip);
   res.setInt("fitNBinsRemoved", nbinsRemoved);
@@ -549,7 +697,7 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   pman->showOverflow();
   pman->addAxis();
   Index istat = acd.channelStatus();
-  string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "unknown";
+  string sstat = istat == 0 ? "Good" : istat == 1 ? "Bad" : istat == 2 ? "Noisy" : "No-status";
   NameVector slabs(3);
   slabs[0] = sstat + " channel";
   slabs[1] = "# skipped bins: " + std::to_string(dm.getInt("fitNSkip"));
@@ -570,6 +718,22 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
   slabs.push_back(sslab.str());
   sslab.str("");
   sslab << "Ped RMS: " << std::fixed << std::setprecision(1) << dm.getFloat("fitPedestalRms");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  //sslab << "Fit #chi^{2}: " << std::fixed << std::setprecision(1) << dm.getFloat("fitChiSquare");
+  //slabs.push_back(sslab.str());
+  //sslab.str("");
+  sslab << "#chi^{2}/DOF: " << std::fixed << std::setprecision(1) << dm.getFloat("fitReducedChiSquare");
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  float frac = dm.getFloat("fitFractionLow");
+  int prec = frac > 0 ? int(-log10(frac)) + 3 : 0;
+  sslab << "f_{lo}: " << std::fixed << std::setprecision(prec) << frac;
+  slabs.push_back(sslab.str());
+  sslab.str("");
+  frac = dm.getFloat("fitFractionHigh");
+  prec = frac > 0 ? int(-log10(frac)) + 3 : 0;
+  sslab << "f_{hi}: " << std::fixed << std::setprecision(prec) << frac;
   slabs.push_back(sslab.str());
   xlab = 0.94;
   ylab = 0.86;

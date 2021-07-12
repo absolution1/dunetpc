@@ -58,6 +58,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     fout << "    AdcUnderflowDefault: 0" << endl;
     fout << "    AdcOverflowDefault: 255" << endl;
     fout << "    GainTool: calvals" << endl;
+    fout << "    ScaleFactor: \"[gain]/14.0\"" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

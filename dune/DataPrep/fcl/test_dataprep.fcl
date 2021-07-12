@@ -1,0 +1,25 @@
+# test_dataprep.fcl
+
+# David Adams
+# July 2021
+
+# Tools for tests.
+
+# Add ADC info to names and titles, e.g.
+#  MyTitle = "Run %RUN%-%SUBRUN% event %EVENT% channel %CHAN%"
+#  MyFileName = "run%0RUN%-%0SUBRUN%_evt%0EVENT%_cha%0CHAN%"
+tools.adcStringBuilder: {
+  tool_type: StandardAdcChannelStringTool
+  LogLevel: 1
+  RunWidth: 6
+  SubRunWidth: 4
+  EventWidth: 6
+  ChannelWidth: 5
+  CountWidth: 4
+  FembWidth: 3
+  TriggerWidth: 2
+  TrigNames: [ "flag 0",  "flag 1",  "flag 2",  "flag 3",  "flag 4",
+               "flag 5",  "flag 6",  "flag 7",  "random",  "flag 9",
+               "flag 10", "flag 11",    "beam",     "CRT", "NGT"]
+}
+

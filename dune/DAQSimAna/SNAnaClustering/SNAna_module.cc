@@ -923,7 +923,7 @@ void SNAna::analyze(art::Event const & evt)
           double TopEFrac = -DBL_MAX;
 
           Hit_True_EvEnergy.push_back(0);
-          Hit_True_MainTrID.push_back(0);
+          Hit_True_MainTrID.push_back(-1);
           for (size_t ideL=0; ideL < ThisHitIDE.size(); ++ideL) {
             Hit_True_TrackID.push_back(ThisHitIDE[ideL].trackID);
             for (size_t ipart=0; ipart<allTruthParts.size(); ++ipart) {

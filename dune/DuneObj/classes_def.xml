@@ -92,6 +92,7 @@
  <class name="beam::FBM"/>
  <class name="std::map<string,std::vector<beam::FBM>>"/>
  <class name="std::map<string,beam::FBM>"/>
+ <class name="std::pair<string,beam::FBM>"/>
  <class name="std::vector<beam::FBM>"/>
 
  <class name="art::Ptr<beam::ProtoDUNEBeamEvent>" />
@@ -111,4 +112,14 @@
 
 <!-- <class name="std::bitset"/> -->
 <!-- <class name="std::array"/> -->
+  <!-- The data product added in this directory -->
+
+  <class name="raw::RDStatus" ClassVersion="10">
+   <version ClassVersion="10" checksum="2422597770"/>
+  </class>
+
+  <class name="art::Ptr<raw::RDStatus>"/>
+  <class name="std::vector<raw::RDStatus>"/>
+  <class name="art::Wrapper<std::vector<raw::RDStatus>>"/>
+
 </lcgdict>

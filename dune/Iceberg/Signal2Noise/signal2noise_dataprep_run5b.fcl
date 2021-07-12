@@ -1,0 +1,3 @@
+#include "signal2noise_dataprep_run5.fcl"
+
+services.DetectorPropertiesService.NumberTimeSamples: 2128

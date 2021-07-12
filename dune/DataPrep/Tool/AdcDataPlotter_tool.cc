@@ -135,8 +135,6 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
     }
     cout << "]" << endl;
     cout << myname << "       FembTickOffsets: [";
-    cout << myname << "           ClockFactor: " << m_ClockFactor << endl;
-    cout << myname << "           ClockOffset: " << m_ClockOffset << endl;
     first = true;
     for ( int ioff : m_FembTickOffsets ) {
       if ( first ) first = false;
@@ -144,6 +142,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       cout << ioff;
     }
     cout << "]" << endl;
+    cout << myname << "           ClockFactor: " << m_ClockFactor << endl;
+    cout << myname << "           ClockOffset: " << m_ClockOffset << endl;
     if ( m_FembTickOffsets.size() ) {
       cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << " @ "
            << m_pOnlineChannelMapTool << endl;

@@ -120,7 +120,7 @@ dunefddphase_signalshapingservice:
   ColFieldFunctionParams: [1.0]
   ColFieldRespAmp: 1.0
 
-  ColFilter:       "[0]*exp(-1.2*(((x-[1])/[2])^2)^[3])"
+  ColFilter:       "(x>0.0)*gaus"
   ColFilterParams: [ 1.0, 0.0, 0.136, 2.5 ]
   #FieldFunctionParameters: [1.0, 1.0, 1.0, 1.0] #0 step width #1 step height #2 slow/fast (could be taken from E field) #Tau (could be taken from field and temperature). 0 and Tau in us
 }
