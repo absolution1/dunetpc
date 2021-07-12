@@ -89,6 +89,8 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
+#include "TFormula.h"
 #include <string>
 #include <vector>
 #include <set>
@@ -116,20 +118,25 @@ public:
 
   DataMap updateMap(AdcChannelDataMap& acds) const override;
 
+  DataMap beginEvent(const DuneEventInfo&) const override;
+
 private:
 
   using Name = std::string;
   using NameVector = std::vector<Name>;
+  using TFormulaMap = std::map<Name, TFormula*>;
+  using NameSet = std::set<Name>;
+  using NameSetMap = std::map<Name, NameSet>;
 
   // Configuration data.
   int m_LogLevel;
-  Index m_AdcRange;
+  Name m_AdcRange;
   Index m_FitOpt;
   float m_FitPrecision;
   IndexVector m_SkipFlags;
-  float m_AdcFitRange;
-  float m_FitRmsMin;
-  float m_FitRmsMax;
+  Name m_AdcFitRange;
+  Name m_FitRmsMin;
+  Name m_FitRmsMax;
   bool m_RemoveStickyCode;
   Name m_HistName;
   Name m_HistTitle;
@@ -147,13 +154,20 @@ private:
   // Derived from config.
   IndexSet m_skipFlags;
   NameVector m_fitOpts;
+  TFormulaMap m_tfs;         // Formulas for AdcRange, AdcFitRange, FitRmsMin, FitRmsMax
+  NameSetMap m_tfpars;       // Formula parameters.
+  bool m_haveFormulaParams;  // Do any formulas have parameters?
+  const RunDataTool* m_prdtool; // Run data tool.
 
   // State.
   class State {
   public:
+    Index adcRange =0;
     TF1* pfitter = nullptr;
     Index ncall = 0;
     Index npeakBinSuppressed = 0;
+    Index run = -1;
+    Index nevt = 0;
   };
   std::unique_ptr<State> m_pstate;
   State& state() const { return *m_pstate; }
