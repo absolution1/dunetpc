@@ -7,3 +7,5 @@
 #include "dune/DuneCommon/TPadManipulator.h"
 #include "dune/DuneCommon/offsetLine.h"
 #include "dune/DuneCommon/Fw2dFFT.h"
+#include "dune/DuneCommon/gausTF1.h"
+#include "dune/DuneCommon/shiftHistFit.h"

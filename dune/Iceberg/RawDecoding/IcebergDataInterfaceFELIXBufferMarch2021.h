@@ -29,8 +29,7 @@
 #include "art/Persistency/Common/PtrMaker.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
-#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
-#include "dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterfaceParent.h"
+#include "dune/DuneObj/PDSPTPCDataInterfaceParent.h"
 
 class IcebergDataInterfaceFELIXBufferMarch2021 : public PDSPTPCDataInterfaceParent {
 
@@ -69,6 +68,8 @@ class IcebergDataInterfaceFELIXBufferMarch2021 : public PDSPTPCDataInterfacePare
   std::vector<std::string>   fInputFiles; 
   size_t                     fNSamples;
   bool                       fCompressHuffman;
+  ULong64_t                  fDesiredStartTimestamp;
+  bool                       fFirstRead;
 
   // some convenience typedefs for porting old code
 

@@ -45,4 +45,6 @@ echo "  product_sizes_dumper - Display the products and size in an event data fi
 echo "               fcldump - Display the resolved configuration for a fcl file."
 echo "               liblist - List available plugin libraries."
 echo "        pdChannelRange - Display protoDUNE channel grops and ranges."
+echo "           duneRunData - Display run data for a run."
+echo "           duneTestFcl - Test some high-level fcl configurations."
 echo "Use option \"-h\" with any of these for more information."

@@ -27,7 +27,7 @@ using art::ServiceHandle;
 #undef NDEBUG
 #include <cassert>
 
-int test_FixedChannelGroupService(string sgeo) {
+int test_FixedChannelGroupService() {
   const string myname = "test_FixedChannelGroupService: ";
 #ifdef NDEBUG
   cout << myname << "NDEBUG must be off." << endl;
@@ -38,8 +38,6 @@ int test_FixedChannelGroupService(string sgeo) {
   cout << myname << line << endl;
   cout << myname << "Create fcl file." << endl;
   std::ostringstream oss;
-  oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services: @local::" << sgeo << endl;
   oss << "services.ChannelGroupService: {" << endl;
   oss << "  service_provider: \"FixedChannelGroupService\"" << endl;
   oss << "  group1: [1, 2, 3, 4]" << endl;
@@ -52,17 +50,9 @@ int test_FixedChannelGroupService(string sgeo) {
   ServiceHandle<ChannelGroupService> hcgs;
   hcgs->print(cout, myname);
 
-  cout << myname << line << endl;
-  cout << myname << "Geo fcl: " << sgeo << endl;
-
-  cout << myname << line << endl;
   unsigned int ngrp = hcgs->size();
   cout << myname << "Check group count: " << ngrp << endl;
-  if ( sgeo == "dunefd_services" ) {
-    assert( ngrp == 150 );
-  } else {
-    assert( ngrp == 2 );
-  }
+  assert( ngrp == 2 );
 
   cout << myname << line << endl;
   cout << myname << "Group names and channels:" << endl;
@@ -88,17 +78,10 @@ int test_FixedChannelGroupService(string sgeo) {
 }
 
 int main(int argc, char* argv[]) {
-  string sgeo = "dune35t_basic_services";
   if ( argc > 1 ) {
-    sgeo = argv[1];
-    if ( sgeo == "-h" ) {
-      cout << "Usage: " << argv[0] << endl;
-      cout << "       " << argv[0] << " dune35t_basic_services" << endl;
-      cout << "       " << argv[0] << " dunefd_services" << endl;
-      return 0;
-    }
+    cout << "Usage: " << argv[0] << endl;
   }
-  return test_FixedChannelGroupService(sgeo);
+  return test_FixedChannelGroupService();
 }
 
 

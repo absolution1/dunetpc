@@ -23,7 +23,8 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
   m_GainDefault(ps.get<float>("GainDefault")),
   m_AdcUnderflowDefault(ps.get<unsigned int>("AdcUnderflowDefault")),
   m_AdcOverflowDefault(ps.get<unsigned int>("AdcOverflowDefault")),
-  m_GainTool(ps.get<string>("GainTool")) {
+  m_GainTool(ps.get<string>("GainTool")),
+  m_ScaleFactor(ps.get<Name>("ScaleFactor")) {
   const string myname = "FloatArrayGainCalibration::ctor: ";
   DuneToolManager* pdtm = DuneToolManager::instance();
   if ( pdtm == nullptr ) {
@@ -39,6 +40,7 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
     cout << myname << "          Unit: " << m_Unit << endl;
     cout << myname << "   GainDefault: " << m_GainDefault << endl;
     cout << myname << "      GainTool: " << m_GainTool  << " (@" << m_pgains << ")" << endl;
+    cout << myname << "   ScaleFactor: " << m_ScaleFactor << endl;
   }
 }
 

@@ -112,7 +112,7 @@ tools.pd_adcPedestalFit: {
   FitPrecision: 1.0
   SkipFlags: [8, 9, 10, 11, 12]
   AdcFitRange: 100
-  FitRmsMin:  3.0
+  FitRmsMin:  1.0
   FitRmsMax: 20.0
   RemoveStickyCode: true
   HistName: "adcped_ev%0EVENT%_ch%0CHAN%"
@@ -591,6 +591,7 @@ chmet_pdtps_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: [write]
 }
 
 # Template for metric plots by APA
@@ -627,6 +628,7 @@ pdwz_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 ######## Plots by APA #######
@@ -768,6 +770,15 @@ tools.pdtps_adcChannelPedestalRawTailPlotter.HistName: "hchpd%CRNAME%_rawtail_%0
 tools.pdtps_adcChannelPedestalRawTailPlotter.HistTitle: "ADC pedestal raw tail fraction for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
 tools.pdtps_adcChannelPedestalRawTailPlotter.MetricLabel: "Pedestal tail fraction"
 tools.pdtps_adcChannelPedestalRawTailPlotter.PlotFileName: "chmet_pedrawtail_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Pedestal reduced chi-square for each TPS channel.
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter: @local::chmet_pdtps_template
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.Metric: fitPedReducedChiSquare
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.MetricMax: 1000
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.HistName: "hchpd%CRNAME%_rchsq_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.HistTitle: "ADC pedestal #chi^{2}/DOF for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.MetricLabel: "#chi^{2}/DOF"
+tools.pdtps_adcChannelPedestalReducedChiSquarePlotter.PlotFileName: "chmet_pedrchsq_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # ---- Here and below merging events ----
 
@@ -920,6 +931,7 @@ pdmet_template: {
   PlotSizeY:  500
   PlotUsesStatus: 1
   RootFileName: ""
+  MetadataFlags: []
 }
 
 # Pedestal for each TPS channel.

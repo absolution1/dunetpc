@@ -124,6 +124,13 @@ public:
     }
   }
 
+  // Delete a shared tool.
+  // Returns 0 if tool is deleted.
+  // These tools are otherwise deleted when the tool manager is deleted. This method
+  // provides the opportunity to ensure this destruction occurs before general C++
+  // closeout, e.g. before Root objects begin to dissappear.
+  int deleteShared(std::string name);
+
   // Return the list of available tool names.
   const std::vector<std::string>& toolNames() const;
 

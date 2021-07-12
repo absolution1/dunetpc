@@ -29,10 +29,9 @@
 #include "art/Persistency/Common/PtrMaker.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
-#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
-#include "PDSPTPCDataInterfaceParent.h"
+#include "dune/DuneObj/PDSPTPCDataInterfaceParent.h"
 
 class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 

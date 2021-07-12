@@ -9,7 +9,13 @@ cet_make_exec(pdChannelRange
   SOURCE pdChannelRange.cxx
   LIBRARIES
     dune_ArtSupport
-    cetlib cetlib_except
+    ${ART_FRAMEWORK_CORE}
+    art_Utilities
+    art_Persistency_Common
+    fhiclcpp
+    canvas
+    cetlib 
+    cetlib_except
 )
 
 install_source()

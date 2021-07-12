@@ -51,7 +51,7 @@ DataMap AdcSampleScaler::update(AdcChannelData& acd) const {
 
   // Scale samples.
   for ( float& sam : acd.samples ) sam *= m_ScaleFactor;
-  acd.sampleUnit = m_OutputUnit;
+  if ( m_OutputUnit.size() ) acd.sampleUnit = m_OutputUnit;
 
   ret.setInt("acsUnitCheck", unitCheck);
   ret.setInt("acsSampleCount", acd.samples.size());

@@ -1,5 +1,14 @@
 # iceberg5f_decode_reco.fcl
 #
-# 5f has same gain and shaping as 5c.
+# This is 14 mV/fC, 2 us without calibrated ADCs.
+# Same as 5c.
 
 #include "iceberg5c_decode_reco.fcl"
+services.RawDigitPrepService.ToolNames: [
+  @sequence::data.ib5_dataprep_seqs.calib_ped_noiserem
+  , "adcKeepAllSignalFinder"     # Keep all signal (no ROIs)
+  , "adcScaleKeToAdc"            # Scale samples to nominal ADC counts (Drop this to work at ke scale)
+  , "pdsp_RemoveBadChannels"     # Set bad channels to 0 ADC (drop this to retain bad channels)
+]
+
+tools.adcScaleKeToAdc.ScaleFactor: 126.58228

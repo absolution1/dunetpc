@@ -57,7 +57,7 @@
 #include "lardataobj/RawData/raw.h"
 
 // DUNE includes
-#include "dune/Protodune/singlephase/RawDecoding/data/RDStatus.h"
+#include "dune/DuneObj/RDStatus.h"
 
 class PDSPTPCRawDecoder;
 

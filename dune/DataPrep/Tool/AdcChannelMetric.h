@@ -76,6 +76,11 @@
 //   RootFileName - Name for the output root file.
 //                  If blank, histograms are not written out.
 //                  Existing file with the same is updated.
+//   MetadataFlags - Vector of any of none of the following:
+//                     write - Write value as ADC channel metadata.
+//                     warnpresent - Warn if metadata field is present before write.
+//                     read - read value from metadata (insteda of calculation) if present
+//                     warnabsent - Warn if requested metatdata field is not present
 // For the title and file names, the following sustitutions are made:
 //     %RUN%    --> run number
 //     %SUBRUN% --> subrun number
@@ -131,7 +136,8 @@ public:
   // Tool interface.
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
-  bool updateWithView() const override { return true; }
+  DataMap update(AdcChannelData& acd) const override;
+  DataMap updateMap(AdcChannelDataMap& acds) const override;
 
   // Local method that directly returns the metric value and units.
   // Subclasses may overrride this to add metrics. They are expected to
@@ -165,6 +171,13 @@ private:
   Name           m_PlotFileName;
   int            m_PlotUsesStatus;
   Name           m_RootFileName;
+  NameVector     m_MetadataFlags;
+
+  // Derived data.
+  bool m_mdRead;
+  bool m_mdWrite;
+  bool m_mdWarnAbsent;
+  bool m_mdWarnPresent;
 
   // Channel ranges.
   IndexRangeVector m_crs;
@@ -183,9 +196,6 @@ private:
 
   // Channel status provider.
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
-
-  // Create the plot for one range.
-  DataMap viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran) const;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;
@@ -309,6 +319,15 @@ private:
 
   // Return the state.
   State& getState() const { return *m_state; }
+
+  // Tool interface plus map to hold results.
+  // The update methods can attach the metrics to the channel data.
+  // The view methods ignore those reults.
+  DataMap viewMapLocal(const AdcChannelDataMap& acds, MetricMap& mets) const;
+
+  // Create the plot for one range.
+  DataMap viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran,
+                             MetricMap& mets) const;
 
   // Local method that fills the metric histogram and creates plots
   // for the provided range and data.

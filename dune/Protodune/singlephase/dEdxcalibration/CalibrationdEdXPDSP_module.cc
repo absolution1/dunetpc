@@ -73,6 +73,7 @@ private:
   bool fApplyYZCorrection;
   bool fApplyLifetimeCorrection;
   bool fUseLifetimeFromDatabase; // true: lifetime from database; false: lifetime from DetectorProperties
+  std::vector<double> fReferencedQdx; 
 
   double fLifetime; // [us]
 
@@ -94,6 +95,7 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   , fApplyYZCorrection     (p.get< bool >("ApplyYZCorrection"))
   , fApplyLifetimeCorrection(p.get< bool >("ApplyLifetimeCorrection"))
   , fUseLifetimeFromDatabase(p.get< bool >("UseLifetimeFromDatabase"))
+  , fReferencedQdx         (p.get<std::vector<double>>("ReferencedQdx"))
 {
   auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService>()->DataForJob();
   auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob(clockData);
@@ -139,7 +141,14 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
   std::cout << "evttime: " << evttime << std::endl;
   if (fApplyLifetimeCorrection) std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
-
+  static bool first = true;
+  if (fApplyNormCorrection && first){
+    std::cout<<"Plane\tReference dQ/dx\tGlobal median dQ/dx\tCalorimetry constant"<<std::endl;
+    for (int i = 0; i<3; ++i){
+      printf("Plane[%d]\t%f\t%f\t%f\n",i,fReferencedQdx[i], xyzcalib->GetNormCorr(i), 1./caloAlg.ElectronsFromADCArea(1, i));
+    }
+    first = false;
+  }
   //Spacecharge services provider
   auto const* sce = lar::providerFrom<spacecharge::SpaceChargeService>();
 
@@ -210,6 +219,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           double normcorrection = 1;
           if (fApplyNormCorrection){
             normcorrection = xyzcalib->GetNormCorr(planeID.Plane);
+            if (normcorrection) normcorrection = fReferencedQdx[planeID.Plane]/normcorrection;
             if (!normcorrection) normcorrection = 1.;
           }
           double xcorrection = 1;

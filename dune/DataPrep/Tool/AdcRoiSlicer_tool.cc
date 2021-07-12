@@ -70,6 +70,7 @@ DataMap AdcRoiSlicer::update(AdcChannelData& acd) const {
       if ( m_LogLevel >= 3 ) cout << myname << "Creating data view at tick " << isam << endl;
       view.push_back(acd);
       AdcChannelData& acdout = view.back();
+      acdout.viewParent = &acd;
       acdout.tick0 = isam;
     }
     if ( keep ) {
