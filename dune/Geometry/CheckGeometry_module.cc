@@ -479,6 +479,14 @@ void dune::CheckGeometry::analyze(art::Event const & evt)
   cancrt->Print("crt.pdf");
   cancrt->Print("crt.png");
 
+  //convert channel number to t/p/w
+  outfile.clear();
+  outfile.open("channelmap.txt");
+  for (size_t i = 0; i<geo->Nchannels(); ++i){
+    auto wire = geo->ChannelToWire(i)[0];
+    outfile<<i<<" "<<wire.TPC<<" "<<wire.Plane<<" "<<wire.Wire<<std::endl;
+  }
+
 }
 
 void dune::CheckGeometry::reconfigure(fhicl::ParameterSet const & p)
