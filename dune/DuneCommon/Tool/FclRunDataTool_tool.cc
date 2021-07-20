@@ -1,7 +1,7 @@
 // FclRunDataTool_tool.cc
 
 #include "FclRunDataTool.h"
-#include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "fhiclcpp/intermediate_table.h"
 #include "fhiclcpp/make_ParameterSet.h"
 #include "TString.h"

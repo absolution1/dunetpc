@@ -8,7 +8,7 @@
 #ifndef CompactRealDftData_H
 #define CompactRealDftData_H
 
-#include "dune/DuneCommon/RealDftData.h"
+#include "dune/DuneCommon/Utility/RealDftData.h"
 
 //**********************************************************************
 

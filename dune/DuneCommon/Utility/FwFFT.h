@@ -17,7 +17,7 @@
 #ifndef FwFFT_H
 #define FwFFT_H
 
-#include "dune/DuneCommon/CompactRealDftData.h"
+#include "dune/DuneCommon/Utility/CompactRealDftData.h"
 #include "fftw3.h"
 #include <map>
 

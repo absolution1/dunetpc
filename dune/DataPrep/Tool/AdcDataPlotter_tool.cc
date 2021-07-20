@@ -3,9 +3,9 @@
 #include "AdcDataPlotter.h"
 #include <iostream>
 #include <sstream>
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
-#include "dune/DuneCommon/RootPalette.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
+#include "dune/DuneCommon/Utility/RootPalette.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"

@@ -31,8 +31,8 @@
 
 #include "TGraph.h"
 #include "TH2F.h"
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/LineColors.h"
 
 using std::string;
 using std::cout;

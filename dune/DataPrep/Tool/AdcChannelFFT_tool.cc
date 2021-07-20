@@ -1,7 +1,7 @@
 // AdcChannelFFT_tool.cc
 
 #include "AdcChannelFFT.h"
-#include "dune/DuneCommon/DuneFFT.h"
+#include "dune/DuneCommon/Utility/DuneFFT.h"
 #include <iostream>
 #include <sstream>
 #include <vector>
