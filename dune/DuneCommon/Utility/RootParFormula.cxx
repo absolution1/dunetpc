@@ -19,6 +19,12 @@ m_defval(0.0) {
 
 //**********************************************************************
 
+bool RootParFormula::isPar(Name parnam) const {
+  return std::find(m_parNames.begin(), m_parNames.end(), parnam) != m_parNames.end();
+}
+
+//**********************************************************************
+
 Names RootParFormula::setPars() const {
   Names nams;
   for ( Index ipar=0; ipar<npar(); ++ipar ) {

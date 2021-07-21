@@ -25,6 +25,9 @@ public:
 
 public:  // const methods
 
+  // Dtor;
+  virtual ~ParFormula() { }
+
   // Formula name.
   virtual Name name() const { return ""; }
 
@@ -45,6 +48,9 @@ public:  // const methods
   virtual Names setPars() const =0;
   virtual Names unsetPars() const =0;
   virtual Names resetPars() const =0;
+
+  // Return if a parameter appears in the equation.
+  virtual bool isPar(Name parnam) const =0;
 
   // Return if all parameters are set.
   virtual bool ready() const { return setPars().size() == npar(); }

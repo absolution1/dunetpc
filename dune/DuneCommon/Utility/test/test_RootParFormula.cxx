@@ -74,6 +74,12 @@ int test_RootParFormula() {
   assert( ! rpf.ready() );
 
   cout << myname << line << endl;
+  cout << myname << "Check par names" << endl;
+  assert( rpf.isPar("offset") );
+  assert( rpf.isPar("scale") );
+  assert( ! rpf.isPar("nosuch") );
+
+  cout << myname << line << endl;
   cout << myname << "Set parameters." << endl;
   assert( rpf.unsetPars().size() == 2 );
   assert( rpf.resetPars().size() == 0 );

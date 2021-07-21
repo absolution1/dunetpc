@@ -16,6 +16,7 @@
 #include <vector>
 #include <iostream>
 #include <TFormula.h>
+#include "dune/DuneInterface/Utility/ParFormula.h"
 
 class RunData {
 
@@ -108,6 +109,31 @@ public:
       }
     }
     return sstat;
+  }
+
+  // Set parameters in a ParFormula formula.
+  int setFormulaPars(ParFormula& form) {
+    const std::string myname = "setFormulaPars: ";
+    ParFormula::Names fpars = form.pars();
+    int nbad = 0;
+    for ( Name spar : fpars ) {
+      if ( spar == "gain" ) {
+        if ( haveGain() ) {
+          form.setParValue("gain", gain());
+        } else {
+          std::cout << myname << "WARNING: RunData does not have gain." << std::endl;
+          ++nbad;
+        }
+      } else if ( spar == "shaping" ) {
+        if ( haveShaping() ) {
+          form.setParValue("shaping", shaping());
+        } else {
+          std::cout << myname << "WARNING: RunData does not have shaping." << std::endl;
+          ++nbad;
+        }
+      }
+    }
+    return nbad;
   }
 
   // Accessors.
