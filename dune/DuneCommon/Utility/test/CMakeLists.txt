@@ -99,3 +99,9 @@ cet_test(test_shiftHistFit SOURCES test_shiftHistFit.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_RootParFormula SOURCES test_RootParFormula.cxx
+  LIBRARIES
+    dune_DuneCommon_Utility
+    ${ROOT_BASIC_LIB_LIST}
+)
+
