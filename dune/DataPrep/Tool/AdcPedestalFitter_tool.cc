@@ -3,8 +3,9 @@
 #include "AdcPedestalFitter.h"
 #include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
-#include "dune/DuneInterface/Tool/HistogramManager.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneCommon/Utility/RootParFormula.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -38,23 +39,6 @@ using NameSet = std::set<string>;
 //**********************************************************************
 
 namespace {
-
-NameSet getFormulaParams(TFormula* form, string nam) {
-  string myname = "AdcPedestalFitter::getFormulaParams: ";
-  NameSet tfpars;
-  int npar = form->GetNpar();
-  for ( int ipar=0; ipar<npar; ++ipar ) {
-    string spar = form->GetParName(ipar);
-    if ( spar != "gain" && spar != "shaping" ) {
-      cout << myname << "WARNING: Invalid formula parameter " << spar
-           << " is assigned value 0 in formula for " << nam << endl;
-      form->SetParameter(spar.c_str(), 0.0);
-    } else {
-      tfpars.insert(spar);
-    }
-  }
-  return tfpars;
-}
 
 void copyMetadata(const DataMap& res, AdcChannelData& acd) {
   acd.metadata["fitPedFractionLow"] = res.getFloat("fitFractionLow");
@@ -134,14 +118,13 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     }
   }
   // Fetch the formula parameters.
-  m_tfs["AdcRange"] = new TFormula("adcRange", m_AdcRange.c_str(), false),
-  m_tfs["AdcFitRange"] = new TFormula("adcFitRange", m_AdcFitRange.c_str(), false),
-  m_tfs["FitRmsMin"] = new TFormula("fitRmsMin", m_AdcFitRange.c_str(), false),
-  m_tfs["FitRmsMax"] = new TFormula("fitRmsMax", m_AdcFitRange.c_str(), false),
+  m_tfs["AdcRange"]    = new RootParFormula("adcRange", m_AdcRange);
+  m_tfs["AdcFitRange"] = new RootParFormula("adcFitRange", m_AdcFitRange);
+  m_tfs["FitRmsMin"]   = new RootParFormula("fitRmsMin", m_FitRmsMin);
+  m_tfs["FitRmsMax"]   = new RootParFormula("fitRmsMax", m_FitRmsMax);
   m_haveFormulaParams = false;
   for ( const auto& itf : m_tfs ) {
-    m_tfpars[itf.first] = getFormulaParams(itf.second, itf.first);
-    m_haveFormulaParams |= m_tfpars[itf.first].size();
+    if ( itf.second->npar() > 0 ) m_haveFormulaParams = true;
   }
   if ( m_haveFormulaParams ) {
     string stnam = "runDataTool";
@@ -348,11 +331,22 @@ DataMap AdcPedestalFitter::beginEvent(const DuneEventInfo& evi) const {
       rdat.setGain(14.0);
       rdat.setShaping(2.0);
     }
-    for ( auto itr : m_tfs ) {
-      RunData::SetStat sstat = rdat.setFormulaPars(itr.second);
-      if ( sstat.nerr ) {
-        cout << "ERROR: Unable to set " << sstat.nerr << " parameter" << (sstat.nerr ==1 ? "" : "s")
-             << " from RunData for formula " << itr.first << endl;
+    for ( auto& itr : m_tfs ) {
+      ParFormula& form = *itr.second;
+      form.unsetParValues();
+      rdat.setFormulaPars(form);
+      if ( form.unsetPars().size() ) {
+        cout << "ERROR: Formula " << form.name() << " has unset parameters: [";
+        bool first = true;
+        for ( string spar : form.unsetPars() ) {
+          if ( first ) first = false;
+          else cout << ", ";
+          cout << spar;
+        }
+        cout << "]" << endl;
+      }
+      if ( form.resetPars().size() ) {
+        cout << "WARNING: Formula " << form.name() << " has reset parameters" << endl;
       }
     }
   }
@@ -415,7 +409,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   string hname = nameReplace(hnameBase, acd, false);
   string htitl = nameReplace(htitlBase, acd, true);
   htitl += "; ADC count; # samples";
-  Index adcRange = m_tfs.at("AdcRange")->Eval(0);
+  Index adcRange = m_tfs.at("AdcRange")->eval();
   if ( state().pfitter == nullptr || adcRange != state().adcRange ) {
     cout << myname << "New ADC range is " << adcRange << endl;
     state().pfitter = new TF1("pedgaus", "gaus", 0, adcRange, TF1::EAddToList::kNo);
@@ -441,7 +435,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   for ( Index ibin=0; ibin<nbin; ++ibin ) {
     phr->SetBinContent(ibin+1, rcounts[ibin]);
   }
-  double wadc = m_tfs.at("AdcFitRange")->Eval(0);
+  double wadc = m_tfs.at("AdcFitRange")->eval();
   if ( wadc < 10 ) {
     cout << myname << "INFO: Invalid fit range: " << wadc << " < 10 ADC counts" << endl;
     return res.setStatus(3);
@@ -538,8 +532,8 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
   }
   double amean = phf->GetMean() + 0.5;
   double arms = phf->GetRMS();
-  double fitRmsMin = m_tfs.at("FitRmsMin")->Eval(0);
-  double fitRmsMax = m_tfs.at("FitRmsMax")->Eval(0);
+  double fitRmsMin = m_tfs.at("FitRmsMin")->eval();
+  double fitRmsMax = m_tfs.at("FitRmsMax")->eval();
   double ameanWin = fitRmsMax > fitRmsMin ? fitRmsMax : 0.0;
   bool doFit = peakBinFraction < 0.99 && m_fitOpts.size() > 0;
   float pedestal = phf->GetMean();
