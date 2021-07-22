@@ -35,7 +35,7 @@ public:
   Names resetPars() const override;
 
   // Return if a parameter appears in the equation.
-  bool isPar(Name parnam) const;
+  bool isPar(Name parnam) const override;
 
   // Default return.
   Value defaultEval() const override { return m_defval; }
