@@ -128,7 +128,7 @@ cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
 cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
   LIBRARIES
     dune_ArtSupport
-    dune_DuneCommon
+    dune_DuneCommon_Utility
     art_Utilities
     canvas
     fhiclcpp
@@ -142,7 +142,7 @@ cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
 cet_test(test_ExpTailPedRemover SOURCES test_ExpTailPedRemover.cxx
   LIBRARIES
     dune_ArtSupport
-    dune_DuneCommon
+    dune_DuneCommon_Utility
     art_Utilities
     canvas
     fhiclcpp
@@ -476,7 +476,7 @@ cet_test(test_AdcChannelFFT
 cet_test(test_Adc2dConvolute SOURCES test_Adc2dConvolute.cxx
   LIBRARIES
     dune_ArtSupport
-    dune_DuneCommon
+    dune_DuneCommon_Utility
     art_Utilities
     canvas
     fhiclcpp
@@ -492,7 +492,7 @@ cet_test(test_AdcDeconvoluteFFT
     test_AdcDeconvoluteFFT.cxx
   LIBRARIES
     dune_ArtSupport
-    dune_DuneCommon
+    dune_DuneCommon_Utility
     art_Utilities
     canvas
     fhiclcpp

@@ -5,7 +5,7 @@
 //
 // Test Fw2dFFT.
 
-#include "dune/DuneCommon/Fw2dFFT.h"
+#include "dune/DuneCommon/Utility/Fw2dFFT.h"
 #include <string>
 #include <iostream>
 #include <fstream>

@@ -1,7 +1,7 @@
 // AdcPedestalFitter_tool.cc
 
 #include "AdcPedestalFitter.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/HistogramManager.h"
 #include "dune/ArtSupport/DuneToolManager.h"
@@ -446,7 +446,7 @@ AdcPedestalFitter::getPedestal(const AdcChannelData& acd) const {
     cout << myname << "INFO: Invalid fit range: " << wadc << " < 10 ADC counts" << endl;
     return res.setStatus(3);
   }
-  cout << myname << "INFO: Width = " << wadc << " ADC counts" << endl;
+  if ( m_LogLevel >= 4 ) cout << myname << "INFO: Width = " << wadc << " ADC counts" << endl;
   int rbinmax1 = phr->GetMaximumBin();
   double adcmax = phr->GetBinCenter(rbinmax1);
   double adc1 = adcmax - 0.5*wadc;

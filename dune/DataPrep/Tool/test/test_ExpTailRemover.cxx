@@ -11,7 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
-#include "dune/DuneCommon/SampleTailer.h"
+#include "dune/DuneCommon/Utility/SampleTailer.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 

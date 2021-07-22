@@ -5,8 +5,8 @@
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TH1.h"
 #include <iostream>

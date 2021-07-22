@@ -2,8 +2,8 @@
 
 #include "AdcTickModViewer.h"
 #include "dune/DataPrep/Utility/StickyCodeMetrics.h"
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/TimeOffsetTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
