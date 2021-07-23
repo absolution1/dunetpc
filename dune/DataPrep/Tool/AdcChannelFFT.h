@@ -19,7 +19,7 @@
 // of nsam terms all but the first and Nyquist (last only for even # samples) must be scaled
 // by 1/sqrt(2).
 //
-// This is the Consistent-Power normalization described in DuneCommon/RealDftData.h.
+// This is the Consistent-Power normalization described in DuneCommon/Utility/RealDftData.h.
 //
 // The DFT phases
 //
@@ -69,7 +69,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
-#include "dune/DuneCommon/DuneFFT.h"
+#include "dune/DuneCommon/Utility/DuneFFT.h"
 
 class AdcChannelFFT : TpcDataTool {
 

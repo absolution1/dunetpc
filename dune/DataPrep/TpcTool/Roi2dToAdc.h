@@ -27,7 +27,7 @@
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Data/RunData.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include <iostream>
 
 class Roi2dToAdc : TpcDataTool {

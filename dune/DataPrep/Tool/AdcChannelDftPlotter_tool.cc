@@ -2,9 +2,9 @@
 
 #include "AdcChannelDftPlotter.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
-#include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
+#include "dune/DuneCommon/Utility/LineColors.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "canvas/Utilities/Exception.h"
 #include <iostream>

@@ -5,4 +5,5 @@
   <class name="FloatArrayTool" />
   <class name="AdcChannelTool" />
   <class name="TpcDataTool" />
+  <class name="RunDataTool" />
 </lcgdict>
