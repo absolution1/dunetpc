@@ -36,6 +36,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
 
   cout << myname << line << endl;
   string fclfile = "test_FloatArrayGainCalibration.fcl";
+  double scaleFac = 2.0;
   if ( ! useExistingFcl ) {
     cout << myname << "Creating top-level FCL." << endl;
     ofstream fout(fclfile.c_str());
@@ -47,9 +48,8 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     fout << "          Offset: 0" << endl;
     fout << "           Label: myvals" << endl;
     fout << "            Unit: ke" << endl;
-    fout << "          Values: [ 0.11, 0.12, 0.13, 0.14, 0.15 ]" << endl;
+    fout << "          Values: [ 0.012, 0.014, 0.016, 0.018, 0.020 ]" << endl;
     fout << "  }" << endl;
-
     fout << "  mytool: {" << endl;
     fout << "    tool_type: FloatArrayGainCalibration" << endl;
     fout << "    LogLevel: 2" << endl;
@@ -58,9 +58,20 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     fout << "    AdcUnderflowDefault: 0" << endl;
     fout << "    AdcOverflowDefault: 255" << endl;
     fout << "    GainTool: calvals" << endl;
-    fout << "    ScaleFactor: \"[gain]/14.0\"" << endl;
+    fout << "    ScaleFactor: \"" << scaleFac << "*[gain]/14.0\"" << endl;
+    fout << "  }" << endl;
+    fout << "  runDataTool: {" << endl;
+    fout << "    tool_type: FclRunDataTool" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    FileNames: [\"rundata.fcl\"]" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
+    fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -72,7 +83,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 2 );
+  assert( tm.toolNames().size() == 3 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -91,12 +102,12 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
   AdcSignal dped = 1.0;
   AdcChannelDataMap acds;
   for ( AdcChannel icha=0; icha<5; ++icha ) {
-    float gain = 0.1 + 0.01*(icha+1);
+    float gain = 0.01 + 0.002*(icha+1);
     AdcChannelData& acd = acds[icha];
     acd.setChannelInfo(icha);
     acd.pedestal = ped;
     for ( AdcSignal sigval : sigvals ) {
-      AdcIndex adc = sigval/gain + ped;
+      AdcIndex adc = sigval/gain/scaleFac + ped;
       acd.raw.push_back(adc);
     }
     ped += dped;
@@ -117,12 +128,13 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     assert( acd.raw.size() == nsam );
     assert( acd.samples.size() == nsam );
     //cout.precision(2);
-    cout << "       ADC     signal  flag" << endl;
+    cout << "       ADC     signal  flag  [   exp]" << endl;
     for ( Index isam=0; isam<nsam; ++isam ) {
       cout << setw(3) << isam << ": " << setw(5) << acd.raw[isam]
            << setw(11) << acd.samples[isam]
-           << setw(6) << acd.flags[isam] << endl;
-      assert( fabs(acd.samples[isam] - sigvals[isam]) < 0.5 );
+           << setw(6) << acd.flags[isam]
+           << "  [" << setw(6) << sigvals[isam] << "]" << endl;
+      assert( fabs(acd.samples[isam] - sigvals[isam]) < 0.2 );
     }
   }
 

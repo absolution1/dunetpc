@@ -291,6 +291,7 @@ simple_plugin(FembLinearCalibration   "tool"
              )
 
 simple_plugin(FloatArrayGainCalibration   "tool"
+                dune_DuneCommon_Utility
                 dune_ArtSupport
 		canvas
                 cetlib cetlib_except

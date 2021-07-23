@@ -2,7 +2,10 @@
 
 #include "FloatArrayGainCalibration.h"
 #include "dune/ArtSupport/DuneToolManager.h"
+#include "dune/DuneInterface/Data/RunData.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneInterface/Tool/FloatArrayTool.h"
+#include "dune/DuneCommon/Utility/RootParFormula.h"
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -24,7 +27,8 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
   m_AdcUnderflowDefault(ps.get<unsigned int>("AdcUnderflowDefault")),
   m_AdcOverflowDefault(ps.get<unsigned int>("AdcOverflowDefault")),
   m_GainTool(ps.get<string>("GainTool")),
-  m_ScaleFactor(ps.get<Name>("ScaleFactor")) {
+  m_ScaleFactor(new RootParFormula("ScaleFactor", ps.get<Name>("ScaleFactor"))),
+  m_prdtool(nullptr) {
   const string myname = "FloatArrayGainCalibration::ctor: ";
   DuneToolManager* pdtm = DuneToolManager::instance();
   if ( pdtm == nullptr ) {
@@ -34,13 +38,24 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
     if ( ! m_pgains ) {
       cout << myname << "ERROR: Unable to retrieve gains tool " << m_GainTool << endl;
     }
+    string stnam = "runDataTool";
+    if ( m_ScaleFactor->npar() ) {
+      m_prdtool = pdtm->getShared<RunDataTool>(stnam);
+      if ( m_prdtool == nullptr ) {
+        cout << myname << "ERROR: RunDataTool " << stnam
+             << " not found. Scale factor formula will not be evaluated." << endl;
+      } else {
+        cout << myname << "RunDataTool retrieved." << endl;
+      }
+    }
   }
+  m_ScaleFactor->setDefaultEval(1.0);
   if ( m_LogLevel >= 1 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "          Unit: " << m_Unit << endl;
     cout << myname << "   GainDefault: " << m_GainDefault << endl;
     cout << myname << "      GainTool: " << m_GainTool  << " (@" << m_pgains << ")" << endl;
-    cout << myname << "   ScaleFactor: " << m_ScaleFactor << endl;
+    cout << myname << "   ScaleFactor: " << m_ScaleFactor->formulaString() << endl;
   }
 }
 
@@ -72,7 +87,16 @@ DataMap FloatArrayGainCalibration::update(AdcChannelData& acd) const {
       cout << myname << "Gain not found for channel " << icha << endl;
     }
   }
+  if ( m_prdtool != nullptr ) {
+    RunData rdat = m_prdtool->runData(acd.run());
+    if ( ! rdat.isValid() ) cout << myname << "WARNING: RunData not found." << endl;
+    else rdat.setFormulaPars(*m_ScaleFactor);
+  }
+  if ( ! m_ScaleFactor->ready() ) {
+    cout << myname << "WARNING: Using default scale factor " << m_ScaleFactor->defaultEval() << endl;
+  } 
   float gain = m_GainDefault >= 0 ? gains.value(icha, m_GainDefault) : gains.value(icha);
+  gain *= m_ScaleFactor->eval();
   AdcCount adcudr = m_AdcUnderflowDefault;
   AdcCount adcovr = m_AdcOverflowDefault;
   acd.samples.resize(acd.raw.size(), 0.0);
