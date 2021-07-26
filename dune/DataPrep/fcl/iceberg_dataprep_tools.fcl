@@ -227,7 +227,7 @@ tools.ib5SampleCalibration: {
 tools.ib3TailSignalFinderAdc: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 15.0
+  Threshold: "15.0"
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true

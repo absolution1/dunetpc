@@ -243,6 +243,8 @@ simple_plugin(AdcKeepAllSignalFinder   "tool"
              )
 
 simple_plugin(AdcThresholdSignalFinder   "tool"
+                dune_ArtSupport
+                dune_DuneCommon_Utility
                 cetlib cetlib_except
                 ${ROOT_BASIC_LIB_LIST}
              )

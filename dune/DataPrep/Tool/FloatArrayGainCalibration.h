@@ -46,7 +46,6 @@
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 
 class FloatArrayTool;
-class ParFormula;
 class RunDataTool;
 
 class FloatArrayGainCalibration
