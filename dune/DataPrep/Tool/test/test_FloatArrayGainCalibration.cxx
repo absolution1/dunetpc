@@ -54,7 +54,7 @@ int test_FloatArrayGainCalibration(bool useExistingFcl =false) {
     fout << "    tool_type: FloatArrayGainCalibration" << endl;
     fout << "    LogLevel: 2" << endl;
     fout << "    Unit: fC" << endl;
-    fout << "    GainDefault: 1.0" << endl;
+    fout << "    GainDefault: \"1.0\"" << endl;
     fout << "    AdcUnderflowDefault: 0" << endl;
     fout << "    AdcOverflowDefault: 255" << endl;
     fout << "    GainTool: calvals" << endl;

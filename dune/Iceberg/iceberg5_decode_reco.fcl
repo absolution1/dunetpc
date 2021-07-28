@@ -1,0 +1,13 @@
+# iceberg5_decode_reco.fcl
+
+#include "iceberg5c_decode_reco.fcl"
+
+# Pedestal fitter.
+tools.ib5_adcPedestalFit: @local::tools.ib5cond_adcPedestalFit
+
+# Charge calibration.
+tools.ib5SampleCalibration: @local::tools.ib5CondSVSampleCalibration
+
+# Define pedestal finder used in the pedestal update.
+# NEED conditons based tool here!!!!
+tools.ib5TailPedSignalFinder: @local::tools.ib5bTailPedSignalFinder

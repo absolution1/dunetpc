@@ -23,38 +23,47 @@ using Index = unsigned int;
 FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_Unit(ps.get<string>("Unit")),
-  m_GainDefault(ps.get<float>("GainDefault")),
+  m_GainDefault(new RootParFormula("GainDefault", ps.get<Name>("GainDefault"))),
   m_AdcUnderflowDefault(ps.get<unsigned int>("AdcUnderflowDefault")),
   m_AdcOverflowDefault(ps.get<unsigned int>("AdcOverflowDefault")),
   m_GainTool(ps.get<string>("GainTool")),
   m_ScaleFactor(new RootParFormula("ScaleFactor", ps.get<Name>("ScaleFactor"))),
+  m_pgains(nullptr),
   m_prdtool(nullptr) {
   const string myname = "FloatArrayGainCalibration::ctor: ";
   DuneToolManager* pdtm = DuneToolManager::instance();
-  if ( pdtm == nullptr ) {
+  if ( m_GainTool.size() == 0 ) {
+    cout << myname << "No gain tool. Default calibration will be used." << endl;
+  } else if ( pdtm == nullptr ) {
     cout << myname << "ERROR: Unable to retrieve tool manager." << endl;
   } else {
     m_pgains = pdtm->getShared<FloatArrayTool>(m_GainTool);
     if ( ! m_pgains ) {
       cout << myname << "ERROR: Unable to retrieve gains tool " << m_GainTool << endl;
     }
+  }
+  // Fetch run data tool.
+  if ( m_GainDefault->npar() || m_ScaleFactor->npar() ) {
     string stnam = "runDataTool";
-    if ( m_ScaleFactor->npar() ) {
-      m_prdtool = pdtm->getShared<RunDataTool>(stnam);
-      if ( m_prdtool == nullptr ) {
-        cout << myname << "ERROR: RunDataTool " << stnam
-             << " not found. Scale factor formula will not be evaluated." << endl;
-      } else {
-        cout << myname << "RunDataTool retrieved." << endl;
-      }
+    m_prdtool = pdtm->getShared<RunDataTool>(stnam);
+    if ( m_prdtool == nullptr ) {
+      cout << myname << "ERROR: RunDataTool " << stnam
+           << " not found. Formulas will not be evaluated." << endl;
+    } else {
+      cout << myname << "RunDataTool retrieved." << endl;
     }
   }
+  m_GainDefault->setDefaultEval(1.0);
   m_ScaleFactor->setDefaultEval(1.0);
   if ( m_LogLevel >= 1 ) {
     cout << myname << "      LogLevel: " << m_LogLevel << endl;
     cout << myname << "          Unit: " << m_Unit << endl;
-    cout << myname << "   GainDefault: " << m_GainDefault << endl;
-    cout << myname << "      GainTool: " << m_GainTool  << " (@" << m_pgains << ")" << endl;
+    cout << myname << "   GainDefault: " << m_GainDefault->formulaString() << endl;
+    if ( m_pgains == nullptr ) {
+      cout << myname << "   No GainTool." << endl;
+    } else {
+      cout << myname << "      GainTool: " << m_GainTool  << " (@" << m_pgains << ")" << endl;
+    }
     cout << myname << "   ScaleFactor: " << m_ScaleFactor->formulaString() << endl;
   }
 }
@@ -73,7 +82,6 @@ DataMap FloatArrayGainCalibration::view(const AdcChannelData& acd) const {
 DataMap FloatArrayGainCalibration::update(AdcChannelData& acd) const {
   const string myname = "FloatArrayGainCalibration::update: ";
   DataMap res;
-  if ( ! m_pgains ) return res;
   AdcChannel icha = acd.channel();
   if ( icha == AdcChannelData::badChannel() ) {
     if ( m_LogLevel >= 2 ) {
@@ -81,21 +89,29 @@ DataMap FloatArrayGainCalibration::update(AdcChannelData& acd) const {
     }
     return res.setStatus(2);
   }
-  const FloatArrayTool& gains = *m_pgains;
   if ( m_LogLevel >= 2 ) {
-    if ( ! gains.inRange(icha) ) {
+    if ( m_pgains != nullptr && ! m_pgains->inRange(icha) ) {
       cout << myname << "Gain not found for channel " << icha << endl;
     }
   }
   if ( m_prdtool != nullptr ) {
     RunData rdat = m_prdtool->runData(acd.run());
     if ( ! rdat.isValid() ) cout << myname << "WARNING: RunData not found." << endl;
-    else rdat.setFormulaPars(*m_ScaleFactor);
+    else {
+      rdat.setFormulaPars(*m_GainDefault);
+      rdat.setFormulaPars(*m_ScaleFactor);
+    }
   }
+  if ( ! m_GainDefault->ready() ) {
+    cout << myname << "WARNING: Using default gain default " << m_GainDefault->defaultEval() << endl;
+  } 
   if ( ! m_ScaleFactor->ready() ) {
     cout << myname << "WARNING: Using default scale factor " << m_ScaleFactor->defaultEval() << endl;
   } 
-  float gain = m_GainDefault >= 0 ? gains.value(icha, m_GainDefault) : gains.value(icha);
+  float gdef = m_GainDefault->eval();
+  float gain = m_pgains == nullptr ? gdef :
+               gdef >= 0 ? m_pgains->value(icha, gdef) :
+               m_pgains->value(icha);
   gain *= m_ScaleFactor->eval();
   AdcCount adcudr = m_AdcUnderflowDefault;
   AdcCount adcovr = m_AdcOverflowDefault;

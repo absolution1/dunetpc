@@ -217,8 +217,40 @@ tools.ib4SampleCalibration: {
   ScaleFactor: "1.0"
 }
 
-# Fill sample and apply calibration for iceberg5.
-tools.ib5SampleCalibration: {
+# Fill sample and apply calibration for iceberg5
+# for user-specified calibration array.
+# Caller must set areaGain_ib5 to the desired calibration array.
+tools.ib5RunPeriodSampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: -1.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 16383
+  GainTool: "areaGain_ib5"
+  ScaleFactor: "1.0"
+}
+
+# Fill sample and apply calibration for iceberg5
+# using the same conditions-based gain for all channels.
+tools.ib5CondSVSampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: "[run]<8198?0.0:[run]<8951?0.2201[run]<9744?0.1927:0.0":
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 16383
+  GainTool: ""
+  ScaleFactor: "1.0"
+}
+
+tools.ib5SampleCalibration: "Please_define_tool_ib5SampleCalibration"
+
+#############################################################
+# Fill sample and apply calibration for iceberg5
+# for user-specified calibration array.
+# Caller must set areaGain_ib5 to the desired calibration array.
+tools.ib5RunPeriodSampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
   Unit: "ke/tick"
