@@ -56,8 +56,8 @@
 //                   Ranges are obtained from the tool channelRanges.
 //                   Special name "all" or "" plots all channels with label "All".
 //                   If the list is empty, all are plotted.
-//   MetricMin - Minimum for the metric axis.
-//   MetricMax - Maximum for the metric axis.
+//   MetricMin - Formula for the minimum for the metric axis.
+//   MetricMax - Formula for the maximum for the metric axis.
 //   MetricBins - If nonzero, # channels vs metric is plotted with this binning instead of
 //                metric vs channel.
 //   ChannelLineModulus - Repeat spacing for horizontal lines
