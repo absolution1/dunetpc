@@ -85,6 +85,14 @@ tools.ib4_adcPedestalFit: {
 
 # Pedestal fitters for Iceberg 5 (14-bit ADC, no sticky codes)
 tools.ib5_adcPedestalFit: { tool_type: PleaseDefine_ib5_adcPedestalFit }
+
+# Config with conditions data.
+tools.ib5cond_adcPedestalFit: @local::tools.ib4_adcPedestalFit
+tools.ib5cond_adcPedestalFit.AdcRange: "16384"
+tools.ib5cond_adcPedestalFit.AdcFitRange: "100*(1+int(0.01*[gain]))"
+tools.ib5cond_adcPedestalFit.FitRmsMin: "0.5*[gain]"
+tools.ib5cond_adcPedestalFit.FitRmsMax: "10.0*[gain]"
+
 # Period B
 tmp.pedestalFitTemplate: @local::tools.ib4_adcPedestalFit
 tmp.pedestalFitTemplate.AdcRange: 16384

@@ -165,17 +165,6 @@ AdcPedestalFitter::AdcPedestalFitter(fhicl::ParameterSet const& ps)
     cout << myname << "       PlotShowFit: " << m_PlotShowFit << endl;
     cout << myname << "        PlotSplitX: " << m_PlotSplitX << endl;
     cout << myname << "        PlotSplitY: " << m_PlotSplitY << endl;
-    for ( const auto& itf : m_tfs ) {
-      Name nam = itf.first;
-      cout << myname << setw(15) << nam << ": [";
-      first = true;
-      for ( string spar : m_tfpars[nam] ) {
-        if ( first ) first = false;
-        else cout << ", ";
-        cout << spar;
-      }
-      cout << "]" << endl;
-    }
   }
 }
 

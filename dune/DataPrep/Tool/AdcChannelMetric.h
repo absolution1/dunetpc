@@ -103,6 +103,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Utility/ParFormula.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <vector>
@@ -113,6 +114,7 @@ namespace lariov {
 }
 
 class FloatArrayTool;
+class RunDataTool;
 
 class AdcChannelMetric : TpcDataTool {
 
@@ -158,8 +160,8 @@ private:
   Name           m_MetricSummaryView;
   NameVector     m_ChannelRanges;
   IndexVector    m_ChannelCounts;
-  float          m_MetricMin;
-  float          m_MetricMax;
+  ParFormula*    m_MetricMin;
+  ParFormula*    m_MetricMax;
   Index          m_MetricBins;
   Index          m_ChannelLineModulus;
   IndexVector    m_ChannelLinePattern;
@@ -178,6 +180,7 @@ private:
   bool m_mdWrite;
   bool m_mdWarnAbsent;
   bool m_mdWarnPresent;
+  RunDataTool* m_prdtool;
 
   // Channel ranges.
   IndexRangeVector m_crs;
@@ -309,8 +312,10 @@ private:
     Index runCount =0;
     MetricSummaryMap crsums;    // Summary for each channel.
     MetricMap pedRefs;          // Reference pedestal for each channel;
-    void update(Index run, Index event);
+    bool update(Index run, Index event);
     IndexVector channelStatuses;
+    float metricMin =0;
+    float metricMax =100;
   };
 
   // Shared pointer so we can make sure only one reference is out at a time.
@@ -343,6 +348,9 @@ private:
   //   2 - bad
   //   3 - good
   Index channelStatus(Index icha) const;
+
+  // Evaluate the metric formulas and store results in the state.
+  void evaluateFormulas() const;
 
 };
 
