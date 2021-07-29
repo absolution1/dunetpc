@@ -237,7 +237,7 @@ tools.ib5CondSVSampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
   Unit: "ke/tick"
-  GainDefault: "[run]<8198?0.0:[run]<8951?0.2201[run]<9744?0.1927:0.0":
+  GainDefault: "[run]<8198?0.0:[run]<8951?0.2201[run]<9744?0.1927:0.0"
   AdcUnderflowDefault: 0
   AdcOverflowDefault: 16383
   GainTool: ""
