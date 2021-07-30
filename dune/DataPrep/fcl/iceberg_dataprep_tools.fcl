@@ -325,10 +325,10 @@ tools.ib5CondTailPedSignalFinderKe.Threshold: "0.6/[shaping]"
 
 # Tail/pedestal signal finders for Iceberg 5.
 # Iceberg 5 ped/tail signal finder for periods b, c, f (14 mV/fC, 2.0 us).
-tools.ib5TailPedSignalFinder: @local::tools.ib3TailSignalFinderKe
-tools.ib5TailPedSignalFinder.BinsBefore: 20
-tools.ib5TailPedSignalFinder.BinsAfter: 30
-tools.ib5TailPedSignalFinder.Threshold: 0.3
+tools.ib5TailPedSignalFinderKe: @local::tools.ib3TailSignalFinderKe
+tools.ib5TailPedSignalFinderKe.BinsBefore: 20
+tools.ib5TailPedSignalFinderKe.BinsAfter: 30
+tools.ib5TailPedSignalFinderKe.Threshold: 0.3
 
 tools.ib5aTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
 tools.ib5bTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
