@@ -315,12 +315,20 @@ tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
 tools.ib4PedRemovalIKe: @local::tools.ib4TailPedRemovalIKe
 tools.ib4PedRemovalIKe.DecayTime: 0
 
+# Iceberg 5 Conditions-based threshold for an area-calibrated signal.
+tools.ib5CondTailPedSignalFinderKe: @local::tools.ib3TailSignalFinderKe
+tools.ib5CondTailPedSignalFinderKe.BinsBefore: 20
+tools.ib5CondTailPedSignalFinderKe.BinsAfter: 30
+tools.ib5CondTailPedSignalFinderKe.Threshold: "0.6/[shaping]"
+
+############# Obsolete below ###############
+
 # Tail/pedestal signal finders for Iceberg 5.
 # Iceberg 5 ped/tail signal finder for periods b, c, f (14 mV/fC, 2.0 us).
-tools.ib5TailPedSignalFinderKe: @local::tools.ib3TailSignalFinderKe
-tools.ib5TailPedSignalFinderKe.BinsBefore: 20
-tools.ib5TailPedSignalFinderKe.BinsAfter: 30
-tools.ib5TailPedSignalFinderKe.Threshold: 0.3
+tools.ib5TailPedSignalFinder: @local::tools.ib3TailSignalFinderKe
+tools.ib5TailPedSignalFinder.BinsBefore: 20
+tools.ib5TailPedSignalFinder.BinsAfter: 30
+tools.ib5TailPedSignalFinder.Threshold: 0.3
 
 tools.ib5aTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
 tools.ib5bTailPedSignalFinder: @local::tools.ib5TailPedSignalFinderKe
@@ -393,13 +401,15 @@ tools.ib5C33TailPedSignalFinder.Threshold: 0.2
 # Force high level fcl to set this.
 tools.ib5TailPedSignalFinder: { tool_type: PleaseDefine_ib5TailPedSignalFinder }
 
+############# Obsolete above ###############
+
 # Pedestal removal  for iceberg 5.
 # We expect no tails. For all planes.
 tools.ib5PedRemoval: @local::tools.ib4TailPedRemovalZKe
 tools.ib5PedRemoval.PedDegree: 0
 tools.ib5PedRemoval.IncludeChannelRanges: []
 tools.ib5PedRemoval.MaxTick: 2184
-tools.ib5PedRemoval.SignalTool: ib5TailPedSignalFinder
+tools.ib5PedRemoval.SignalTool: ib5CondTailPedSignalFinder
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
