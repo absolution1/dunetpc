@@ -20,6 +20,20 @@ using Index = unsigned int;
 
 //**********************************************************************
 
+// Stream a vector as CSV.
+template<class T>
+std::ostream& operator<<(std::ostream& lhs, const std::vector<T>& vals) {
+  bool first = true;
+  for ( const T& val : vals ) {
+    if ( first ) first = false;
+    else lhs << ", ";
+    lhs << val;
+  }
+  return lhs;
+}
+
+//**********************************************************************
+
 FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
   m_Unit(ps.get<string>("Unit")),
@@ -33,7 +47,7 @@ FloatArrayGainCalibration::FloatArrayGainCalibration(fhicl::ParameterSet const& 
   const string myname = "FloatArrayGainCalibration::ctor: ";
   DuneToolManager* pdtm = DuneToolManager::instance();
   if ( m_GainTool.size() == 0 ) {
-    cout << myname << "No gain tool. Default calibration will be used." << endl;
+    cout << myname << "INFO: No gain array tool. Default gain will be used." << endl;
   } else if ( pdtm == nullptr ) {
     cout << myname << "ERROR: Unable to retrieve tool manager." << endl;
   } else {
@@ -103,10 +117,12 @@ DataMap FloatArrayGainCalibration::update(AdcChannelData& acd) const {
     }
   }
   if ( ! m_GainDefault->ready() ) {
-    cout << myname << "WARNING: Using default gain default " << m_GainDefault->defaultEval() << endl;
+    cout << myname << "WARNING: Unset parameters in GainDefault: [" << m_GainDefault->unsetPars()
+         << "]. Using default value " << m_GainDefault->defaultEval() << endl;
   } 
   if ( ! m_ScaleFactor->ready() ) {
-    cout << myname << "WARNING: Using default scale factor " << m_ScaleFactor->defaultEval() << endl;
+    cout << myname << "WARNING: Unset parameters in ScaleFactor: [" << m_ScaleFactor->unsetPars()
+         << "]. Using default value " << m_ScaleFactor->defaultEval() << endl;
   } 
   float gdef = m_GainDefault->eval();
   float gain = m_pgains == nullptr ? gdef :
