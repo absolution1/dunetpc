@@ -9,4 +9,5 @@
   <class name="FftwDouble2dDftData" />
   <class name="Tpc2dRoi" />
   <class name="TpcData" />
+  <class name="RunData" />
 </lcgdict>
