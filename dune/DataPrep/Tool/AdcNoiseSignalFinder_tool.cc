@@ -70,7 +70,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
     acd.rois.clear();
     return ret.setStatus(1);
   }
-  if ( m_LogLevel >= 2 ) cout << myname << "Finding ROIs for channel " << acd.channel() << endl;
+  if ( m_LogLevel >= 3 ) cout << myname << "Finding ROIs for channel " << acd.channel() << endl;
   float thr = m_ThresholdMin;
   float noise = 0.0;
   float sigfrac = 0.0;
@@ -97,7 +97,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
         if ( jsam1 < isamUnknown ) jsam1 = isamUnknown;
         AdcIndex jsam2 = isam + nsamhi + 1;
         if ( jsam2 > nsam ) jsam2 = nsam;
-        if ( m_LogLevel >= 4 ) cout << myname << "Trigger: " << isam << ", range: ["
+        if ( m_LogLevel >= 5 ) cout << myname << "Trigger: " << isam << ", range: ["
                                     << jsam1 << ", " << jsam2 << ")" << endl;
         for ( AdcIndex jsam=jsam1; jsam<jsam2; ++jsam ) acd.signal[jsam] = true;
         isamUnknown = jsam2;
@@ -120,7 +120,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
     sigfrac = float(nsig)/nsam;
     // Check is we need andother loop and rest threshold accordingly.
     ++nloop;
-    if ( m_LogLevel >= 3 ) {
+    if ( m_LogLevel >= 4 ) {
       cout << myname << "  Loop " << nloop << endl;
       cout << myname << "    Threshold: " << thr << endl;
       cout << myname << "    Noise: " << noise << endl;
@@ -161,10 +161,18 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
       else thr = 0.5*(thr + thrTooLow);
     }
     float dthrmax = 0.001*thrOld;
-    if ( fabs(thr - thrOld) < dthrmax ) {
-      cout << myname << "WARNING: Channel " << acd.channel()
-           << " exiting prematurely due to threshold convergence." << endl;
-      break;
+    if ( m_LogLevel >= 1 ) {
+      if ( fabs(thr - thrOld) < dthrmax ) {
+        Index chstat = acd.channelStatus();
+        if ( m_LogLevel >= 2 || (m_LogLevel == 1 && chstat == 0) ) {
+          string schstat = chstat==0 ? "Good" :
+                           chstat==1 ? "Bad" :
+                           chstat==2 ? "Noisy" : "UnkownStatus";
+          cout << myname << "WARNING: " << schstat << " channel " << acd.channel()
+             << " exiting prematurely due to threshold convergence." << endl;
+        }
+        break;
+      }
     }
   }
   acd.roisFromSignal();
@@ -173,7 +181,7 @@ DataMap AdcNoiseSignalFinder::update(AdcChannelData& acd) const {
   ret.setFloat("nsfThreshold", thr);
   ret.setInt(  "nsfLoopCount", nloop);
   ret.setInt(   "nsfRoiCount", acd.rois.size());
-  if ( m_LogLevel >= 3 ) ret.print(myname);
+  if ( m_LogLevel >= 4 ) ret.print(myname);
   acd.metadata[  "nsfSigFrac"] = sigfrac;
   acd.metadata[    "nsfNoise"] = noise;
   acd.metadata["nsfThreshold"] = thr;

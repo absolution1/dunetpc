@@ -23,7 +23,8 @@
 // the loop count reaches MaxLoop.
 //
 // Configuration:
-//   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   LogLevel - 0=silent, 1=init, 3=each event, >4=more
+//              1 shows warnings for good channels, 2 for all
 //   SigFracMax - maximum allowed value for sigfrac
 //   ThresholdMin  - minimum and starting threshold
 //   ThresholdRatio - Target threshold/noise
