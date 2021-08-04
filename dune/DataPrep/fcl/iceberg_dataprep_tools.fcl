@@ -303,7 +303,7 @@ tools.ib4TailPedRemovalZKe: {
   PedDegree: 1     # 1 ==> linear variation in pedestal
   PedTick0: 1000
   PedFreqs: []
-  NoWarnStatuses: [1]
+  NoWarnStatuses: [1, 2]
   IncludeChannelRanges: ["apaz"]
   ExcludeChannelRanges: []
 }
@@ -409,7 +409,7 @@ tools.ib5PedRemoval: @local::tools.ib4TailPedRemovalZKe
 tools.ib5PedRemoval.PedDegree: 0
 tools.ib5PedRemoval.IncludeChannelRanges: []
 tools.ib5PedRemoval.MaxTick: 2184
-tools.ib5PedRemoval.SignalTool: ib5CondTailPedSignalFinder
+tools.ib5PedRemoval.SignalTool: ib5CondTailPedSignalFinderKe
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.
