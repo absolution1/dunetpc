@@ -31,7 +31,7 @@
 // plus a series of fixed frequncy terms for the frequncies listed in PedFreqs.
 //
 // Configuration:
-//   LogLevel - 0=silent, 1=init, 2=each event, >2=more
+//   LogLevel - 0=silent, 1=init, 3=each event, >4=more
 //   DecayTime: Exponential decay time in ticks. If <= 0, the tail is not used.
 //   MaxTick: Maximum # ticks expected. Pedestal arrays are this size.
 //   PedDegree: Degree of the pedestal polynomial: <0=none, 1=flat, 2=linear, >=3=quadratic
