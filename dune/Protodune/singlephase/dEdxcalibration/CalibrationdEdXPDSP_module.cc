@@ -79,6 +79,8 @@ private:
 
   double vDrift;
   double xAnode;
+
+  bool first;
 };
 
 
@@ -104,7 +106,7 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   //create calorimetry product and its association with track
   produces< std::vector<anab::Calorimetry>              >();
   produces< art::Assns<recob::Track, anab::Calorimetry> >();
-
+  first = true;
 }
 
 void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
@@ -141,8 +143,12 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   std::cout << "run: " << evt.run() << " ; subrun: " << evt.subRun() << " ; event: " << evt.id().event() << std::endl;
   std::cout << "evttime: " << evttime << std::endl;
   if (fApplyLifetimeCorrection) std::cout << "fLifetime: " << fLifetime << " [us]" << std::endl;
-  static bool first = true;
-  if (fApplyNormCorrection && first){
+  if (first){
+    std::cout<<"fApplyNormCorrection: "<<fApplyNormCorrection<<std::endl;
+    std::cout<<"fApplyXCorrection: "<<fApplyXCorrection<<std::endl;
+    std::cout<<"fApplyYZCorrection: "<<fApplyYZCorrection<<std::endl;
+    std::cout<<"fApplyLifetimeCorrection: "<<fApplyLifetimeCorrection<<std::endl;
+    std::cout<<"fUseLifetimeFromDatabase: "<<fUseLifetimeFromDatabase<<std::endl;
     std::cout<<"Plane\tReference dQ/dx\tGlobal median dQ/dx\tCalorimetry constant"<<std::endl;
     for (int i = 0; i<3; ++i){
       printf("Plane[%d]\t%f\t%f\t%f\n",i,fReferencedQdx[i], xyzcalib->GetNormCorr(i), 1./caloAlg.ElectronsFromADCArea(1, i));

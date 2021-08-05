@@ -25,9 +25,12 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Utility/ParFormula.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <string>
 #include <vector>
+
+class RunDataTool;
 
 class AdcThresholdSignalFinder
 : public TpcDataTool {
@@ -46,11 +49,14 @@ private:
 
   // Configuration data.
   int m_LogLevel;
-  float m_Threshold;
+  ParFormula* m_Threshold;
   unsigned int m_BinsBefore;
   unsigned int m_BinsAfter;
   bool m_FlagPositive;
   bool m_FlagNegative;
+
+  // Derived data.
+  RunDataTool* m_prdtool;
 
 };
 

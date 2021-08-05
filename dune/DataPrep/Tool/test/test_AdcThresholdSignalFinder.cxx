@@ -39,13 +39,24 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
     fout << "  mytool: {" << endl;
     fout << "    tool_type: AdcThresholdSignalFinder" << endl;
     fout << "    LogLevel: 1" << endl;
-    fout << "    Threshold: 100" << endl;
+    fout << "    Threshold: \"100*[gain]/14.0\"" << endl;
     fout << "    BinsAfter: 10" << endl;
     fout << "    BinsBefore: 5" << endl;
     fout << "    FlagPositive: true" << endl;
     fout << "    FlagNegative: true" << endl;
     fout << "  }" << endl;
+    fout << "  runDataTool: {" << endl;
+    fout << "    tool_type: FclRunDataTool" << endl;
+    fout << "    LogLevel: 1" << endl;
+    fout << "    FileNames: [\"rundata.fcl\"]" << endl;
+    fout << "  }" << endl;
     fout << "}" << endl;
+    fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
     fout.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
@@ -57,7 +68,7 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() == 1 );
+  assert( tm.toolNames().size() == 2 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;
@@ -86,7 +97,9 @@ int test_AdcThresholdSignalFinder(bool useExistingFcl =false) {
   cout << myname << line << endl;
   cout << myname << "Checking results." << endl;
   assert( resmod == 0 );
+  assert( fabs(resmod.getFloat("threshold") - 100) < 0.1 );
   assert( resmod.getInt("nThresholdBins") == 1 );
+  assert( resmod.getInt("nroi") == 1 );
   assert( data.signal.size() == 100 );
   assert( data.rois.size() == 1 );
   assert( data.rois[0].first == 25 );

@@ -5,12 +5,15 @@
 #include <sstream>
 #include <iomanip>
 #include <set>
+#include "dune/DuneInterface/Data/RunData.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneInterface/Tool/FloatArrayTool.h"
 #include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "dune/DuneCommon/Utility/LineColors.h"
+#include "dune/DuneCommon/Utility/RootParFormula.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
@@ -42,19 +45,25 @@ using TGraphErrorsVector = std::vector<TGraphErrors*>;
 // Sublass methods.
 //**********************************************************************
 
-void AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
+bool AdcChannelMetric::AdcChannelMetric::State::update(Index run, Index event) {
+  bool runHasChanged = false;
   if ( callCount == 0 ) {
     firstRun = run;
     firstEvent = event;
     runCount = 1;
     eventCount = 1;
+    runHasChanged = true;
   } else {
-    if ( run != lastRun ) ++runCount;
+    if ( run != lastRun ) {
+      ++runCount;
+      runHasChanged = true;
+    }
     if ( event != lastEvent ) ++eventCount;
   }
   ++callCount;
   lastEvent = event;
   lastRun = run;
+  return runHasChanged;
 }
 
 //**********************************************************************
@@ -68,8 +77,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_PedestalReference(ps.get<Name>("PedestalReference")),
   m_MetricSummaryView(ps.get<Name>("MetricSummaryView")),
   m_ChannelRanges(ps.get<NameVector>("ChannelRanges")),
-  m_MetricMin(ps.get<float>("MetricMin")),
-  m_MetricMax(ps.get<float>("MetricMax")),
+  m_MetricMin(new RootParFormula("MetricMin", ps.get<Name>("MetricMin"))),
+  m_MetricMax(new RootParFormula("MetricMax", ps.get<Name>("MetricMax"))),
   m_MetricBins(ps.get<Index>("MetricBins")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
   m_ChannelLinePattern(ps.get<IndexVector>("ChannelLinePattern")),
@@ -83,6 +92,7 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_RootFileName(ps.get<Name>("RootFileName")),
   m_MetadataFlags(ps.get<NameVector>("MetadataFlags")),
   m_mdRead(false), m_mdWrite(false), m_mdWarnAbsent(false), m_mdWarnPresent(false),
+  m_prdtool(nullptr),
   m_doSummary(false),
   m_doSummaryError(false),
   m_pPedestalReference(nullptr),
@@ -144,6 +154,17 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
   if ( m_adcStringBuilder == nullptr ) {
     cout << myname << "WARNING: AdcChannelStringTool not found: " << stringBuilder << endl;
+  }
+  // Fetch the run data tool.
+  if ( m_MetricMin->npar() || m_MetricMax->npar() ) {
+    string stnam = "runDataTool";
+    m_prdtool = ptm->getShared<RunDataTool>(stnam);
+    if ( m_prdtool == nullptr ) {
+      cout << myname << "ERROR: RunDataTool " << stnam
+           << " not found. Metric limits will not be evaluated." << endl;
+    } else {
+      cout << myname << "RunDataTool retrieved." << endl;
+    }
   }
   // Set summary fields.
   m_doSummary = m_HistName.find("EVENT%") == string::npos;
@@ -207,8 +228,8 @@ AdcChannelMetric::AdcChannelMetric(fhicl::ParameterSet const& ps)
       cout << ran.name;
     }
     cout << "]" << endl;
-    cout << myname << "           MetricMin: " << m_MetricMin << endl;
-    cout << myname << "           MetricMax: " << m_MetricMax << endl;
+    cout << myname << "           MetricMin: " << m_MetricMin->formulaString() << endl;
+    cout << myname << "           MetricMax: " << m_MetricMax->formulaString() << endl;
     cout << myname << "          MetricBins: " << m_MetricBins << endl;
     cout << myname << "  ChannelLineModulus: " << m_ChannelLineModulus << endl;
     cout << myname << "  ChannelLinePattern: {";
@@ -292,7 +313,7 @@ AdcChannelMetric::~AdcChannelMetric() {
             if ( m_LogLevel >=3 ) cout << myname << "Channel: summary value: " << icha << ": " << met.value;
             if ( m_summaryError.size() ) {
               met.setError(msum.getValue(m_summaryError));
-              if ( m_LogLevel >=3 ) cout << myname << " +/- " << met.error;
+              if ( m_LogLevel >=3 ) cout << " +/- " << met.error;
             }
             if ( m_LogLevel >=3 ) cout << endl;
           }
@@ -476,7 +497,9 @@ viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricM
   Index icha0 = ran.begin;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
   AdcChannelDataMap::const_iterator iacd2=acds.upper_bound(ran.last());
-  getState().update(iacd1->second.run(), iacd1->second.event());
+  if ( getState().update(iacd1->second.run(), iacd1->second.event()) ) {
+    evaluateFormulas();
+  }
   MetricSummaryVector& metricSums = getState().crsums[ran];
   if ( metricSums.size() < ran.size() ) metricSums.resize(ran.size());
   for ( AdcChannelDataMap::const_iterator iacd=iacd1; iacd!=iacd2; ++iacd ) {
@@ -869,10 +892,6 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
       ph->SetBinContent(bin, met);
       if ( err ) ph->SetBinError(bin, err);
       double gval = met;
-      //if ( m_MetricMax > m_MetricMin ) {
-      //  if ( met < m_MetricMin ) gval = m_MetricMin;
-      //  if ( met > m_MetricMax ) gval = m_MetricMax;
-      //}
       Index iptAll = pgAll->GetN();
       float xcha = icha + 0.5;
       pgAll->SetPoint(iptAll, xcha, gval);
@@ -915,7 +934,9 @@ processMetricsForOneRange(const IndexRange& ran, const MetricMap& mets, TH1* ph,
         }
       }
       man.setRangeX(ran.begin, ran.end);
-      if ( m_MetricMax > m_MetricMin ) man.setRangeY(m_MetricMin, m_MetricMax);
+      float mmin = getState().metricMin;
+      float mmax = getState().metricMax;
+      if ( mmax > mmin ) man.setRangeY(mmin, mmax);
       man.showGraphOverflow("BLTR", 2, statCols[0]);
       man.setGridY();
       man.print(ofpname);
@@ -947,7 +968,7 @@ TH1* AdcChannelMetric::createHisto(const AdcChannelData& acd, const IndexRange& 
     ph->GetXaxis()->SetTitle("Channel");
     ph->GetYaxis()->SetTitle(slabm.c_str());
   } else {
-    ph = new TH1F(hname.c_str(), htitl.c_str(), nbins, m_MetricMin, m_MetricMax);
+    ph = new TH1F(hname.c_str(), htitl.c_str(), nbins, getState().metricMin, getState().metricMax);
     ph->GetXaxis()->SetTitle(slabm.c_str());
     ph->GetYaxis()->SetTitle("# channels");
   }
@@ -969,6 +990,36 @@ Index AdcChannelMetric::channelStatus(Index icha) const {
     else                                                stat = 1;
   }
   return stat;
+}
+
+//**********************************************************************
+
+void AdcChannelMetric::evaluateFormulas() const {
+  const string myname = "AdcChannelMetric::evaluateFormulas: ";
+  if ( m_prdtool != nullptr ) {
+    Index run = getState().lastRun;
+    RunData rdat = m_prdtool->runData(run);
+    if ( ! rdat.isValid() ) {
+      cout << myname << "WARNING: RunData not found for run " << run << "." << endl;
+    } else {
+      rdat.setFormulaPars(*m_MetricMin);
+      rdat.setFormulaPars(*m_MetricMax);
+    }
+  }
+  float mmin = 0.0;
+  float mmax = 100.0;
+  if ( m_MetricMin->ready() ) {
+    mmin = m_MetricMin->eval();
+  } else {
+    cout << myname << "WARNING: Using default metric min " << mmin << endl;
+  } 
+  getState().metricMin = mmin;
+  if ( m_MetricMax->ready() ) {
+    mmax = m_MetricMax->eval();
+  } else {
+    cout << myname << "WARNING: Using default metric max " << mmax << endl;
+  } 
+  getState().metricMax = mmax;
 }
 
 //**********************************************************************
