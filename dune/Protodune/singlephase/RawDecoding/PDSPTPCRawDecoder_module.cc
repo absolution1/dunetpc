@@ -421,8 +421,7 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
     }
   else  // get all the fragments in the event and look for the ones that say TPC in them
     {
-      std::vector<art::Handle<artdaq::Fragments> > fraghv;  // fragment handle vector
-      evt.getManyByType(fraghv);
+      auto const fraghv = evt.getMany<artdaq::Fragments>();
       for (size_t ihandle=0; ihandle<fraghv.size(); ++ihandle)
 	{
 	  if (fraghv.at(ihandle).provenance()->inputTag().instance().find("TPC") != std::string::npos)
@@ -1025,8 +1024,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
     }
   else  // get all the fragments in the event and look for the ones that say FELIX in them
     {
-      std::vector<art::Handle<artdaq::Fragments> > fraghv;  // fragment handle vector
-      evt.getManyByType(fraghv);
+      auto const fraghv = evt.getMany<artdaq::Fragments>();
       for (size_t ihandle=0; ihandle<fraghv.size(); ++ihandle)
 	{
 	  if (fraghv.at(ihandle).provenance()->inputTag().instance().find("FELIX") != std::string::npos)

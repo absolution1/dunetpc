@@ -20,7 +20,6 @@ using std::istringstream;
 using std::make_shared;
 using cet::filepath_lookup;
 using fhicl::ParameterSet;
-using fhicl::make_ParameterSet;
 
 typedef std::shared_ptr<ParameterSet> PSPtr;
 typedef std::vector<PSPtr> PSPtrVector;
@@ -217,7 +216,7 @@ int main(int argc, char** argv) {
 
   // Fetch top-level configuration and print.
   PSPtrVector cfgs(maxlev, std::make_shared<ParameterSet>());
-  make_ParameterSet(fname, fpm, *cfgs[0]);
+  *cfgs.front() = ParameterSet::make(fname, fpm);
   string prefix;
   print_block(prefix, &cfgs[0], maxlev-1);
   return 0;

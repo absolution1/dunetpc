@@ -116,8 +116,7 @@ void CRT::CRTSimRefac::produce(art::Event & e)
 
 
   //const auto & crtHits =  e.getValidHandle<std::vector<sim::AuxDetHit>>("largeant");
-  std::vector<art::Handle<sim::AuxDetHitCollection>> allSims;
-  e.getManyByType(allSims);
+  auto const allSims = e.getMany<sim::AuxDetHitCollection>();
 
   // -- Get all MCParticles to do assns later
   const auto & mcp_handle = e.getValidHandle<std::vector<simb::MCParticle>>("largeant"); // -- TODO: make this an input tag

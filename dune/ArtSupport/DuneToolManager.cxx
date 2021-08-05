@@ -131,11 +131,9 @@ void DuneToolManager::help() {
 DuneToolManager::DuneToolManager(std::string fclname)
 : m_fclname(fclname) {
   cet::filepath_lookup_nonabsolute policy("FHICL_FILE_PATH");
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(fclname, policy, tbl);
-  fhicl::ParameterSet psTop;
-  fhicl::make_ParameterSet(tbl, psTop);
-  m_pstools = psTop.get<fhicl::ParameterSet>("tools");
+  m_pstools =
+    fhicl::ParameterSet::make(fhicl::parse_document(fclname, policy)).
+    get<fhicl::ParameterSet>("tools");
   m_toolNames = m_pstools.get_pset_names();
 }
 
@@ -165,21 +163,25 @@ void DuneToolManager::print() const {
 
 //**********************************************************************
 
-int DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet& ps) {
-  // Strip surrounding braces.
-  if ( scfgin.size() < 1 ) return 1;
-  string scfg;
-  if ( scfgin[0] == '{' ) {
-    if ( scfgin[scfgin.size()-1] != '}' ) return 2;
-    scfg = scfgin.substr(1, scfgin.size()-2);
-  } else {
-    scfg = scfgin;
+int
+DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet & ps) {
+  int status{0};
+  std::string_view scfg(scfgin);
+  if (scfg.empty()) {
+    status = 1;
+  } else if (scfg.front() == '{') {
+    if (scfg.back() == '}') {
+      scfg.remove_prefix(1);
+      scfg.remove_suffix(1);
+    } else {
+      status = 2;
+    }
   }
-  // Parse the configuration string.
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(scfg, tbl);
-  fhicl::make_ParameterSet(tbl, ps);
-  return 0;
+  if (status == 0) {
+    // Parse the configuration string.
+    ps = fhicl::ParameterSet::make(fhicl::parse_document(scfg.data()));
+  }
+  return status;
 }
 
 //**********************************************************************
