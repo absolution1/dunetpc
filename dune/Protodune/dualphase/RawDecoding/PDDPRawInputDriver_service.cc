@@ -4,6 +4,7 @@
 
  */
 
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"

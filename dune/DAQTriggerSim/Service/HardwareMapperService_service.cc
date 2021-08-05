@@ -6,6 +6,7 @@
 // Description: Dish out vectors of raw::ChannelID_t to the user for requested hardware element
 
 #include "dune/DAQTriggerSim/Service/HardwareMapperService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 

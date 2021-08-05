@@ -50,6 +50,7 @@
 #include "TTimeStamp.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include <iomanip>
 
 using std::cout;

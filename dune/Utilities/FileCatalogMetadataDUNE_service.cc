@@ -13,6 +13,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Utilities/FileCatalogMetadataDUNE.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
   //--------------------------------------------------------------------
   // Constructor.

@@ -46,6 +46,7 @@
 #include <fstream>
 #include <algorithm>
 #include "dune/Utilities/TFileMetadataDUNE.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "dune/Utilities/FileCatalogMetadataDUNE.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
