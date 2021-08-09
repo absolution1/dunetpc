@@ -18,7 +18,7 @@
 #ifndef DuneFFT_H
 #define DuneFFT_H
 
-#include "dune/DuneCommon/CompactRealDftData.h"
+#include "dune/DuneCommon/Utility/CompactRealDftData.h"
 
 class DuneFFT {
 

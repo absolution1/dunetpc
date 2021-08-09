@@ -1,8 +1,8 @@
 // GausStepFitter.cxx
 
 #include "GausStepFitter.h"
-#include "dune/DuneCommon/gausTF1.h"
-#include "dune/DuneCommon/quietHistFit.h"
+#include "dune/DuneCommon/Utility/gausTF1.h"
+#include "dune/DuneCommon/Utility/quietHistFit.h"
 #include "TF1.h"
 #include "TH1.h"
 #include "TList.h"

@@ -7,7 +7,7 @@
 
 #undef NDEBUG
 
-#include "dune/DuneCommon/gausTF1.h"
+#include "dune/DuneCommon/Utility/gausTF1.h"
 #include <string>
 #include <iostream>
 #include <iomanip>

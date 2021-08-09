@@ -1,7 +1,7 @@
 // AdcDeconvoluteFFT_tool.cc
 
 #include "AdcDeconvoluteFFT.h"
-#include "dune/DuneCommon/DuneFFT.h"
+#include "dune/DuneCommon/Utility/DuneFFT.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TMath.h"
 #include "TDecompLU.h"

@@ -324,7 +324,7 @@ tools.areaGain_ib5o_v02: {
 # about 1.2% different from my estimate.
 # Adopt Tom's values below.
 #
-# 2021-03-21: All gain estamates use the old value of 21.4 ke/DAC
+# 2021-03-21: All gain estimates use the old value of 21.4 ke/DAC
 # from injection capicitance of 183 fC. But last June Shanshan
 # reported a new measurement of 187.8 ==> conversion factor
 # is 21.98 ke/DAC, 2.7 % higher
@@ -396,7 +396,7 @@ tools.areaGain_ib5q_v02: {
 # April 2021
 #
 # New voltage step from Shanshan gives charge 20.92 ke/step.
-# Values from v02 are sclaed by 209.9/21.4 = 0.978
+# Values from v02 are scaled by 209.9/21.4 = 0.978
 #
 # Use c for periods b, f and k.
 #######################################################
@@ -515,7 +515,7 @@ tools.areaGain_ib5o_v03: {
 # about 1.2% different from my estimate.
 # Adopt Tom's values below.
 #
-# 2021-03-21: All gain estamates use the old value of 21.4 ke/DAC
+# 2021-03-21: All gain estimates use the old value of 21.4 ke/DAC
 # from injection capicitance of 183 fC. But last June Shanshan
 # reported a new measurement of 187.8 ==> conversion factor
 # is 21.98 ke/DAC, 2.7 % higher
@@ -563,4 +563,8 @@ tools.areaGain_ib5B31_v03.DefaultValue: 0.00771
 tools.areaGain_ib5B32_v03.DefaultValue: 0.00385
 tools.areaGain_ib5B33_v03.DefaultValue: 0.00257
 
+#######################################################
+
+# Formula-based, single gain calibration.
+#
 #######################################################

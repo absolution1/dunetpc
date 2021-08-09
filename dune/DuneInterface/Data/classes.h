@@ -7,3 +7,4 @@
 #include "dune/DuneInterface/Data/FftwReal2dDftData.h"
 #include "dune/DuneInterface/Data/Tpc2dRoi.h"
 #include "dune/DuneInterface/Data/TpcData.h"
+#include "dune/DuneInterface/Data/RunData.h"

@@ -23,8 +23,8 @@
 //                     Offset is zero for FEMBs beyond range.
 //                     Values should be zero (empty array) for undistorted plots
 //   OnlineChannelMapTool - Name of tool mapping channel # to online channel #.
-//   MinSignal - If absent, -MaxSignal is used.
-//   MaxSignal - Displayed signal range is (-MaxSignal, MaxSignal)
+//   MinSignal - Formula for min signal. If absent, -(max signal) is used.
+//   MaxSignal - Formula for max signal. Displayed signal range is (min signal, max signal)
 //   SkipBadChannels - If true, skip channels flagged as bad.
 //   EmptyColor - If >=0, empty bins are drawn in this color (See TAttColor).
 //                Otherwise empty bins are drawn with value zero.
@@ -70,6 +70,7 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Utility/ParFormula.h"
 #include "dune/DuneInterface/Data/IndexRange.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <vector>
@@ -81,6 +82,7 @@ class IndexRangeTool;
 namespace lariov {
   class ChannelStatusProvider;
 }
+class RunDataTool;
 
 class AdcDataPlotter : TpcDataTool {
 
@@ -113,8 +115,8 @@ private:
   float          m_ClockOffset;
   IntVector      m_FembTickOffsets;
   Name           m_OnlineChannelMapTool;
-  double         m_MinSignal;
-  double         m_MaxSignal;
+  ParFormula*    m_MinSignal;
+  ParFormula*    m_MaxSignal;
   bool           m_SkipBadChannels;
   Index          m_EmptyColor;
   Index          m_ChannelLineModulus;
@@ -130,6 +132,7 @@ private:
 
   // Derived configuration data.
   IndexRange m_tickRange;
+  bool m_needRunData;
 
   // Channel ranges.
   IndexRangeVector m_crs;
@@ -138,6 +141,7 @@ private:
   const AdcChannelStringTool* m_adcStringBuilder;
   const IndexMapTool* m_pOnlineChannelMapTool;
   const lariov::ChannelStatusProvider* m_pChannelStatusProvider;
+  const RunDataTool* m_prdtool;
 
   // Make replacements in a name.
   Name nameReplace(Name name, const AdcChannelData& acd, const IndexRange& ran) const;

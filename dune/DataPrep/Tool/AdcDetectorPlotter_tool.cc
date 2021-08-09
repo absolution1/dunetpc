@@ -3,9 +3,9 @@
 #include "AdcDetectorPlotter.h"
 #include <iostream>
 #include <sstream>
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/RootPalette.h"
-#include "dune/DuneCommon/LineColors.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/RootPalette.h"
+#include "dune/DuneCommon/Utility/LineColors.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "larcore/Geometry/Geometry.h"

@@ -51,7 +51,7 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/Geometry/WireSelector.h"
 #include <memory>
 #include "TLatex.h"

@@ -7,9 +7,9 @@
 
 #undef NDEBUG
 
-#include "dune/DuneCommon/shiftHistFit.h"
-#include "dune/DuneCommon/gausTF1.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/shiftHistFit.h"
+#include "dune/DuneCommon/Utility/gausTF1.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include <string>
 #include <iostream>
 #include <sstream>

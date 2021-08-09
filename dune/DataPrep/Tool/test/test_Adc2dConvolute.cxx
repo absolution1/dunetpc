@@ -13,7 +13,7 @@
 #include <iomanip>
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include "dune/ArtSupport/DuneToolManager.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include <TRandom.h>
 #include <TH1F.h>
 #include <TCanvas.h>
