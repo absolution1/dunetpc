@@ -998,16 +998,16 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
         // run 7 slot, run 7 fiber, run 5 slot, run 5 fiber
         unsigned int sfmap[10][4] = 
           {
-            4, 1,  0, 4,
-            3, 4,  1, 4,
-            3, 3,  2, 4,
-            3, 2,  0, 3,
-            3, 1,  1, 3,
-            0, 1,  0, 1,
-            0, 2,  2, 2,
-            0, 3,  1, 2,
-            0, 4,  0, 2,
-            1, 1,  2, 3
+            {4, 1,  0, 4},
+	    {3, 4,  1, 4},
+            {3, 3,  2, 4},
+	    {3, 2,  0, 3},
+	    {3, 1,  1, 3},
+	    {0, 1,  0, 1},
+	    {0, 2,  2, 2},
+	    {0, 3,  1, 2},
+	    {0, 4,  0, 2},
+	    {1, 1,  2, 3}
           };
         bool found = false;
         for (size_t imap = 0; imap<10; ++imap)
