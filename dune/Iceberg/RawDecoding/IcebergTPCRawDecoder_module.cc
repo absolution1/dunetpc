@@ -1071,45 +1071,45 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       //std::cout << "ICEBERG frame_version, crate, slot, fiber, fragID: " << frame_version << " "
       // << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
       if (frame_version == 0) 
-	{
-	  std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
-	  return false;
-	}
+        {
+          std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
+          return false;
+        }
       fiber ++;  // read in 0 to 1, go from 1 to 2
 
       // temporary hacks
       crate = 1;
       //int fragid = (int) frag.fragmentID();
       // if (fragid == 600)
-      // 	{
-      // 	  slot = 0;
-      // 	  fiber = 1;
-      // 	}
+      //        {
+      //          slot = 0;
+      //          fiber = 1;
+      //        }
       // if (fragid == 601)
-      // 	{
-      // 	  slot = 0;
-      // 	  fiber = 2;
-      // 	}
+      //        {
+      //          slot = 0;
+      //          fiber = 2;
+      //        }
       // if (fragid == 700)
-      // 	{
-      // 	  slot = 2;
-      // 	  fiber = 1;
-      // 	}
+      //        {
+      //          slot = 2;
+      //          fiber = 1;
+      //        }
       // if (fragid == 701)
-      // 	{
-      // 	  slot = 2;
-      // 	  fiber = 2;
-      // 	}
+      //        {
+      //          slot = 2;
+      //          fiber = 2;
+      //        }
       // if (fragid == 800)
-      // 	{
-      // 	  slot = 1;
-      // 	  fiber = 1;
-      // 	}
+      //        {
+      //          slot = 1;
+      //          fiber = 1;
+      //        }
       // if (fragid == 801)
-      // 	{
-      // 	  slot = 1;
-      // 	  fiber = 2;
-      // 	}
+      //        {
+      //          slot = 1;
+      //          fiber = 2;
+      //        }
 
     }
   else
@@ -1144,13 +1144,13 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     {
       size_t first_coldata_convert_count = 0;
       if (is14)
-	{
-	  first_coldata_convert_count = felixptr->coldata_convert_count(0,0);
-	}
+        {
+          first_coldata_convert_count = felixptr->coldata_convert_count(0,0);
+        }
       else
-	{
-	  first_coldata_convert_count = frame14ptr->total_frames();
-	}
+        {
+          first_coldata_convert_count = frame14ptr->total_frames();
+        }
       std::cout << "FELIX Coldata convert count: " << (int) first_coldata_convert_count << std::endl;
     }
 
@@ -1195,22 +1195,22 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
   if (!is14)
     {
       for (unsigned int iframe=0; iframe<n_frames; ++iframe)
-	{
-	  if ( felixptr->wib_errors(iframe) != 0)
-	    {
-	      if (_enforce_error_free )
-		{
-		  _DiscardedCorruptData = true;
-		  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
-							<< " Discarding Data";
-		  error_counter++;
-		  // drop just this fragment
-		  //_discard_data = true;
-		  return true;
-		}
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if ( felixptr->wib_errors(iframe) != 0)
+            {
+              if (_enforce_error_free )
+                {
+                  _DiscardedCorruptData = true;
+                  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
+                                                        << " Discarding Data";
+                  error_counter++;
+                  // drop just this fragment
+                  //_discard_data = true;
+                  return true;
+                }
+              _KeptCorruptData = true;
+            }
+        }
     }
 
   // check optimization of this -- size not reserved
@@ -1223,8 +1223,8 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
     v_adc.clear();
     //std::cout<<"crate:slot:fiber = "<<crate<<", "<<slot<<", "<<fiber<<std::endl;
     std::vector<dune::adc_t> waveform( is14 ? 
-				       frame14ptr->get_ADCs_by_channel(ch) : 
-				       felixptr->get_ADCs_by_channel(ch) );
+                                       frame14ptr->get_ADCs_by_channel(ch) : 
+                                       felixptr->get_ADCs_by_channel(ch) );
     for(unsigned int nframe=0;nframe<waveform.size();nframe++){
       // if(ch==0 && nframe<100) {
       //  if(nframe==0) std::cout<<"Print the first 100 ADCs of Channel#1"<<std::endl;  
@@ -1265,9 +1265,52 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
       }
     //unsigned int crateloc = crate;  
 
+    // conversion of Run 7 slot and fibers to Run 5
+
+    if (runNumber > 9745)
+      {
+        auto slotloc3 = slot;
+        auto fiberloc3 = fiberloc;
+
+        // conversion map
+        // run 7 slot, run 7 fiber, run 5 slot, run 5 fiber
+        unsigned int sfmap[10][4] = 
+          {
+            4, 1,  0, 4,
+            3, 4,  1, 4,
+            3, 3,  2, 4,
+            3, 2,  0, 3,
+            3, 1,  1, 3,
+            0, 1,  0, 1,
+            0, 2,  2, 2,
+            0, 3,  1, 2,
+            0, 4,  0, 2,
+            1, 1,  2, 3
+          };
+        bool found = false;
+        for (size_t imap = 0; imap<10; ++imap)
+          {
+            if (slot == sfmap[imap][0] && fiberloc == sfmap[imap][1])
+              {
+                slotloc3 = sfmap[imap][2];
+                fiberloc3 = sfmap[imap][3];
+                found = true;
+                break;
+              }
+            if (!found)
+              {
+                std::cout << "Slot, fiber not understood in mapping from Run 7 to Run 5: " << (int) slot << " " << (int) fiberloc << std::endl;
+                slotloc3 = 0;
+                fiberloc3 = 4;
+              }
+          }
+        slot = slotloc3;
+        fiberloc = fiberloc3;
+      }
 
     // inverted ordering on back side, Run 2c (=Run 3)
     // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
+    // This goes up to run 5
 
     auto slotloc2 = slot;
     auto fiberloc2 = fiberloc;
@@ -1394,22 +1437,22 @@ bool IcebergTPCRawDecoder::_process_FELIX_AUX(const artdaq::Fragment& frag, RawD
 
     if (_make_histograms)
       {
-	uint64_t last_timestamp = (is14 ? frame14ptr->timestamp(0) : felixptr->timestamp(0));
-	for (size_t itick=1; itick<n_ticks; ++itick)
-	  {
-	    uint64_t timestamp = (is14 ? frame14ptr->timestamp(itick) : felixptr->timestamp(itick));
-	    uint64_t tdiff = 0;
-	    if (timestamp > last_timestamp)
-	      {
-		tdiff = timestamp - last_timestamp;
-	      }
-	    else
-	      {
-		tdiff = last_timestamp - timestamp;
-	      }
-	    fDeltaTimestamp->Fill(tdiff);
-	    last_timestamp = timestamp;
-	  }
+        uint64_t last_timestamp = (is14 ? frame14ptr->timestamp(0) : felixptr->timestamp(0));
+        for (size_t itick=1; itick<n_ticks; ++itick)
+          {
+            uint64_t timestamp = (is14 ? frame14ptr->timestamp(itick) : felixptr->timestamp(itick));
+            uint64_t tdiff = 0;
+            if (timestamp > last_timestamp)
+              {
+                tdiff = timestamp - last_timestamp;
+              }
+            else
+              {
+                tdiff = last_timestamp - timestamp;
+              }
+            fDeltaTimestamp->Fill(tdiff);
+            last_timestamp = timestamp;
+          }
       }
 
     //associate the raw digit and the timestamp data products

@@ -987,6 +987,48 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
     unsigned int crateloc = crate;  
     // David Adams's request for channels to start at zero for coldbox test data
     if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
+    // conversion of Run 7 slot and fibers to Run 5
+
+    if (runNumber > 9745)
+      {
+        auto slotloc3 = slot;
+        auto fiberloc3 = fiberloc;
+
+        // conversion map
+        // run 7 slot, run 7 fiber, run 5 slot, run 5 fiber
+        unsigned int sfmap[10][4] = 
+          {
+            4, 1,  0, 4,
+            3, 4,  1, 4,
+            3, 3,  2, 4,
+            3, 2,  0, 3,
+            3, 1,  1, 3,
+            0, 1,  0, 1,
+            0, 2,  2, 2,
+            0, 3,  1, 2,
+            0, 4,  0, 2,
+            1, 1,  2, 3
+          };
+        bool found = false;
+        for (size_t imap = 0; imap<10; ++imap)
+          {
+            if (slot == sfmap[imap][0] && fiberloc == sfmap[imap][1])
+              {
+                slotloc3 = sfmap[imap][2];
+                fiberloc3 = sfmap[imap][3];
+                found = true;
+                break;
+              }
+            if (!found)
+              {
+                std::cout << "Slot, fiber not understood in mapping from Run 7 to Run 5: " << (int) slot << " " << (int) fiberloc << std::endl;
+                slotloc3 = 0;
+                fiberloc3 = 4;
+              }
+          }
+        slot = slotloc3;
+        fiberloc = fiberloc3;
+      }
 
 
     // inverted ordering on back side, Run 2c (=Run 3)
