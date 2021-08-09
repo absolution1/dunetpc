@@ -8,6 +8,12 @@ TpcData::TpcData() : m_parent(nullptr) { }
 
 //**********************************************************************
 
+TpcData::TpcData(Index npla) : m_parent(nullptr), m_adcs(npla) {
+  for ( Index ipla=0; ipla<npla; ++ipla ) m_adcs[ipla].reset(new AdcChannelDataMap);
+}
+
+//**********************************************************************
+
 TpcData::TpcData(const AdcDataVector& adcs) : m_parent(nullptr), m_adcs(adcs) { }
 
 //**********************************************************************

@@ -26,6 +26,7 @@ class TpcData {
 
 public:
 
+  using Index = unsigned int;
   using Name = std::string;
   using Tpc2dRoiVector = std::vector<Tpc2dRoi>;
   using TpcDataMap = std::map<Name, TpcData>;
@@ -35,6 +36,9 @@ public:
 
   // Default ctor.
   TpcData();
+
+  // Ctor to create npla AdcChannelData maps.
+  TpcData(Index npla);
 
   // Ctor from ADC data.
   TpcData(const AdcDataVector& adcs);
