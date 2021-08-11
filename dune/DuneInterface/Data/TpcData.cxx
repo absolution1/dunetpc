@@ -48,6 +48,36 @@ TpcData* TpcData::getTpcData(Name nam) {
 
 //**********************************************************************
 
+TpcData::Index TpcData::getTpcData(Name nam, TpcDataVector& out) {
+  Index nerr = 0;
+  if ( nam == "" || nam == "." ) {
+    out.push_back(this);
+    return 0;
+  }
+  if ( nam == "*" ) {
+    for ( TpcDataMap::value_type& idat : m_dat ) {
+      out.push_back(&idat.second);
+    }
+    return 0;
+  }
+  // Split nam --> dnam/rnam
+  Name::size_type ipos = nam.find("/");
+  if ( ipos == Name::npos ) {
+    TpcData* pdat = getTpcData(nam);
+    if ( pdat == nullptr ) ++nerr;
+    else out.push_back(pdat);
+  } else {
+    Name dnam = nam.substr(0,ipos);
+    Name rnam = ipos == Name::npos ? "" : nam.substr(ipos+1);
+    TpcDataVector dirs;
+    nerr += getTpcData(dnam, dirs);
+    for ( TpcData* pdat : dirs ) nerr += pdat->getTpcData(rnam, out);
+  }
+  return nerr;
+}
+
+//**********************************************************************
+
 const TpcData* TpcData::getTpcData(Name nam) const {
   if ( nam == "" || nam == "." ) return this;
   Name::size_type ipos = nam.find("/");

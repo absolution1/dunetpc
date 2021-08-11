@@ -9,7 +9,7 @@
 // Other may be added later.
 //
 // The object may also hold named objects of the same type so that data can
-// can be split by detector region or processing stage.
+// can be split by detector region (e.g. TPC plane) or processing stage.
 // Branches below the first level, are referenced in slash-separated path format
 // e.g. "apa3/z" refers to TPC data "z" in TPC data "apa3".
 
@@ -30,6 +30,7 @@ public:
   using Name = std::string;
   using Tpc2dRoiVector = std::vector<Tpc2dRoi>;
   using TpcDataMap = std::map<Name, TpcData>;
+  using TpcDataVector = std::vector<TpcData*>;
   using AdcData = AdcChannelDataMap;
   using AdcDataPtr = std::shared_ptr<AdcChannelDataMap>;
   using AdcDataVector = std::vector<AdcDataPtr>;
@@ -70,6 +71,13 @@ public:
   // constituent target is returned.
   TpcData* getTpcData(Name nam);
   const TpcData* getTpcData(Name nam) const;
+
+  // Appends named constituent TPC data objects to a vector.
+  // The name "" or "." appends this object.
+  // If the name is a/b/.../z all matching constituents are returned
+  // with "*" used to select all at any level.
+  // Returns non-zero if any errors arise.
+  Index getTpcData(Name nam, TpcDataVector& out);
 
   // Add ADC data.
   // If updateParent is true, the same object is added to all ancestors.
