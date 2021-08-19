@@ -10,7 +10,7 @@ art_make(
   LIB_LIBRARIES
 		    MF_MessageLogger
 		    cetlib cetlib_except
-		    ${ROOT_BASIC_LIB_LIST}
+		    ROOT_BASIC_LIB_LIST
   DICT_LIBRARIES
   #  EXCLUDE OpDetDivRec.h OpDetDivRec.cc
   )

@@ -8,25 +8,25 @@
 simple_plugin(FclRunDataTool  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FclIndexRangeTool  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FclIndexVectorMapTool  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FixedTimeOffsetTool  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(TimingRawDecoderOffsetTool  "tool"
@@ -34,46 +34,46 @@ simple_plugin(TimingRawDecoderOffsetTool  "tool"
                 dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FclFloatArray  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FclFileFloatArray  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(SimpleHistogramManager  "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(ChannelStatusServiceTool  "tool"
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(ChannelStatusConfigTool  "tool"
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(BlockIndexMapTool  "tool"
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 add_subdirectory(test)

@@ -16,7 +16,7 @@ art_make(
     cetlib
     cetlib_except
     ${Boost_SYSTEM_LIBRARY}
-    ${ROOT_CORE}
+    ROOT::Core
 )
 
 add_subdirectory(Tool)

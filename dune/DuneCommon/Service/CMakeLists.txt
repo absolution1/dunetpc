@@ -9,20 +9,20 @@ simple_plugin(GeoRopChannelGroupService   "service"
                 larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(GeoApaChannelGroupService   "service"
                 larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(FixedChannelGroupService   "service"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 add_subdirectory(test)

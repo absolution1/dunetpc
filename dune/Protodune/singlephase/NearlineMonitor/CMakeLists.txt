@@ -5,21 +5,22 @@ simple_plugin(SPLifetime "module"
               larsim_MCCheater_BackTrackerService_service
               larsim_MCCheater_ParticleInventoryService_service
               nusimdata_SimulationBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
               art_Persistency_Common
               art_Utilities
               canvas
-              ${MF_MESSAGELOGGER}
+              messagefacility::MF_MessageLogger
               cetlib cetlib_except
-              ${ROOT_MATHCORE}
-              ${ROOT_GENVECTOR}
-              ${ROOT_GEOM}
-              ${ROOT_BASIC_LIB_LIST}
+              ROOT_MATHCORE
+              ROOT_GENVECTOR
+              ROOT_GEOM
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(PlotTrackT0 "module"
@@ -29,21 +30,22 @@ simple_plugin(PlotTrackT0 "module"
               larsim_MCCheater_BackTrackerService_service
               larsim_MCCheater_ParticleInventoryService_service
               nusimdata_SimulationBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
               art_Persistency_Common
               art_Utilities
               canvas
-              ${MF_MESSAGELOGGER}
+              messagefacility::MF_MessageLogger
               cetlib cetlib_except
-              ${ROOT_MATHCORE}
-              ${ROOT_GENVECTOR}
-              ${ROOT_GEOM}
-              ${ROOT_BASIC_LIB_LIST}
+              ROOT_MATHCORE
+              ROOT_GENVECTOR
+              ROOT_GEOM
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(PlotTrackDetails "module"
@@ -53,21 +55,22 @@ simple_plugin(PlotTrackDetails "module"
               larsim_MCCheater_BackTrackerService_service
               larsim_MCCheater_ParticleInventoryService_service
               nusimdata_SimulationBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
               art_Persistency_Common
               art_Utilities
               canvas
-              ${MF_MESSAGELOGGER}
+              messagefacility::MF_MessageLogger
               cetlib cetlib_except
-              ${ROOT_MATHCORE}
-              ${ROOT_GENVECTOR}
-              ${ROOT_GEOM}
-              ${ROOT_BASIC_LIB_LIST}
+              ROOT_MATHCORE
+              ROOT_GENVECTOR
+              ROOT_GEOM
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(PlotEventDetails "module"
@@ -77,41 +80,43 @@ simple_plugin(PlotEventDetails "module"
       larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service
       nusimdata_SimulationBase
-      ${ART_FRAMEWORK_CORE}
-      ${ART_FRAMEWORK_PRINCIPAL}
-      ${ART_FRAMEWORK_SERVICES_REGISTRY}
-      ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-      ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-      ${ART_PERSISTENCY_PROVENANCE}
+      ART_FRAMEWORK_CORE
+      ART_FRAMEWORK_PRINCIPAL
+      ART_FRAMEWORK_SERVICES_REGISTRY
+      ART_ROOT_IO_TFILE_SUPPORT
+      ROOT::Core
+      ART_ROOT_IO_TFILESERVICE_SERVICE
+      ART_PERSISTENCY_PROVENANCE
       art_Persistency_Common
       art_Utilities 
       canvas
-      ${MF_MESSAGELOGGER}
+      messagefacility::MF_MessageLogger
       cetlib cetlib_except
-      ${ROOT_MATHCORE}
-      ${ROOT_GENVECTOR}
-      ${ROOT_GEOM}
-      ${ROOT_BASIC_LIB_LIST}
+      ROOT_MATHCORE
+      ROOT_GENVECTOR
+      ROOT_GEOM
+      ROOT_BASIC_LIB_LIST
       BASENAME_ONLY
 )
 
 simple_plugin(PlotOpticalDetails "module"
               lardataobj_RecoBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
               art_Persistency_Common
               art_Utilities
               canvas
-              ${MF_MESSAGELOGGER}
+              messagefacility::MF_MessageLogger
               cetlib cetlib_except
-              ${ROOT_MATHCORE}
-              ${ROOT_GENVECTOR}
-              ${ROOT_GEOM}
-              ${ROOT_BASIC_LIB_LIST}
+              ROOT_MATHCORE
+              ROOT_GENVECTOR
+              ROOT_GEOM
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(RawEventDisplay "module"
@@ -120,14 +125,15 @@ simple_plugin(RawEventDisplay "module"
               lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${MF_MESSAGELOGGER}
-              ${CETLIB}
-              ${ROOT_BASIC_LIB_LIST}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              messagefacility::MF_MessageLogger
+              CETLIB
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(TpcMonitor "module"
@@ -137,15 +143,16 @@ simple_plugin(TpcMonitor "module"
               lardataobj_RawData
               nusimdata_SimulationBase
               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
-              ${MF_MESSAGELOGGER}
-              ${CETLIB}
-              ${ROOT_BASIC_LIB_LIST}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
+              messagefacility::MF_MessageLogger
+              CETLIB
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(SSPMonitor "module"
@@ -154,30 +161,32 @@ simple_plugin(SSPMonitor "module"
               lardataobj_RawData
               lardataobj_RecoBase
               nusimdata_SimulationBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
-              ${MF_MESSAGELOGGER}
-              ${CETLIB}
-              ${ROOT_BASIC_LIB_LIST}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
+              messagefacility::MF_MessageLogger
+              CETLIB
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(PDSPNearlineHeader "module"
               lardataobj_RecoBase
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
               art_Persistency_Common
               art_Utilities
               canvas
-              ${MF_MESSAGELOGGER}
+              messagefacility::MF_MessageLogger
               cetlib cetlib_except
-              ${ROOT_BASIC_LIB_LIST}
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 simple_plugin(PDSPHitMonitor "module"
@@ -186,15 +195,16 @@ simple_plugin(PDSPHitMonitor "module"
               lardataobj_RawData
               nusimdata_SimulationBase
               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-              ${ART_FRAMEWORK_CORE}
-              ${ART_FRAMEWORK_PRINCIPAL}
-              ${ART_FRAMEWORK_SERVICES_REGISTRY}
-              ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-              ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-              ${ART_PERSISTENCY_PROVENANCE}
-              ${MF_MESSAGELOGGER}
-              ${CETLIB}
-              ${ROOT_BASIC_LIB_LIST}
+              ART_FRAMEWORK_CORE
+              ART_FRAMEWORK_PRINCIPAL
+              ART_FRAMEWORK_SERVICES_REGISTRY
+              ART_ROOT_IO_TFILE_SUPPORT
+              ROOT::Core
+              ART_ROOT_IO_TFILESERVICE_SERVICE
+              ART_PERSISTENCY_PROVENANCE
+              messagefacility::MF_MessageLogger
+              CETLIB
+              ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
 install_headers()

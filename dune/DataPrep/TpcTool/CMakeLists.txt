@@ -11,14 +11,14 @@ simple_plugin(AdcToRoi2d   "tool"
                 dune_DuneInterface_Data
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(Roi2dToAdc   "tool"
                 dune_DuneInterface_Data
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 add_subdirectory(test)

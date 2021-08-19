@@ -15,8 +15,8 @@ cet_test(test_FclRunDataTool SOURCES test_FclRunDataTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -28,8 +28,8 @@ cet_test(test_FclIndexRangeTool SOURCES test_FclIndexRangeTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -41,8 +41,8 @@ cet_test(test_FclIndexVectorMapTool SOURCES test_FclIndexVectorMapTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -54,8 +54,8 @@ cet_test(test_FixedTimeOffsetTool SOURCES test_FixedTimeOffsetTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -67,8 +67,8 @@ cet_test(test_TimingRawDecoderOffsetTool SOURCES test_TimingRawDecoderOffsetTool
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -80,8 +80,8 @@ cet_test(test_SimpleHistogramManager SOURCES test_SimpleHistogramManager.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -93,8 +93,8 @@ cet_test(test_FclFloatArray SOURCES test_FclFloatArray.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 cet_test(test_FclFileFloatArray SOURCES test_FclFileFloatArray.cxx
@@ -105,8 +105,8 @@ cet_test(test_FclFileFloatArray SOURCES test_FclFileFloatArray.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -118,8 +118,8 @@ cet_test(test_ChannelStatusServiceTool SOURCES test_ChannelStatusServiceTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -131,8 +131,8 @@ cet_test(test_ChannelStatusConfigTool SOURCES test_ChannelStatusConfigTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 cet_test(test_BlockIndexMapTool SOURCES test_BlockIndexMapTool.cxx
@@ -143,8 +143,8 @@ cet_test(test_BlockIndexMapTool SOURCES test_BlockIndexMapTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 

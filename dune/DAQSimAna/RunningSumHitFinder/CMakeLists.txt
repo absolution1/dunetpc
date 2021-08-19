@@ -14,19 +14,19 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   lardata_ArtDataHelper
   nusimdata_SimulationBase	
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
   art_Persistency_Common canvas
   art_Persistency_Provenance canvas
   art_Utilities canvas
-  ${MF_MESSAGELOGGER}
+  messagefacility::MF_MessageLogger
   
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
+  ROOT_BASIC_LIB_LIST
   EXCLUDE read_packed.cxx RunningSumTPFinderPass1_tool.cc RunningSumTPFinderPass2_tool.cc RunningSumTPFinderPass3_tool.cc RunningSumTPFinderPass4_tool.cc
   )
 

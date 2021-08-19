@@ -10,8 +10,8 @@ cet_find_library( IFBEAM NAMES ifbeam PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
 
 art_make(  MODULE_LIBRARIES
                         dune_ArtSupport
-                        ${IFBEAM}
-                        ${IFBEAMSERVICE}
+                        IFBEAM
+                        IFBEAMSERVICE
                         lardataobj_RawData
                         lardataobj_RecoBase
                         larreco_RecoAlg
@@ -30,17 +30,18 @@ art_make(  MODULE_LIBRARIES
                         larsim_MCCheater_ParticleInventoryService_service
                         nug4_ParticleNavigation 
                         nusimdata_SimulationBase
-                        ${ART_FRAMEWORK_CORE}
-                        ${ART_FRAMEWORK_PRINCIPAL}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-                        ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+                        ART_FRAMEWORK_CORE
+                        ART_FRAMEWORK_PRINCIPAL
+                        ART_FRAMEWORK_SERVICES_REGISTRY
+                        ART_ROOT_IO_TFILE_SUPPORT
+                        ROOT::Core
+                        ART_ROOT_IO_TFILESERVICE_SERVICE
                         art_Persistency_Common canvas
                         art_Persistency_Provenance canvas
                         art_Utilities canvas
-                        ${MF_MESSAGELOGGER}
+                        messagefacility::MF_MessageLogger
                         cetlib cetlib_except
-                        ${ROOT_BASIC_LIB_LIST}
+                        ROOT_BASIC_LIB_LIST
 	  #ProtoDUNEDataUtils
 )
 

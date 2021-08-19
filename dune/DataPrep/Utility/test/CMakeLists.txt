@@ -14,8 +14,8 @@ cet_test(test_StickyCodeMetrics SOURCES test_StickyCodeMetrics.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 

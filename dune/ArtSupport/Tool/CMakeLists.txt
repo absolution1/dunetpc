@@ -8,5 +8,5 @@
 simple_plugin(TestTool   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )

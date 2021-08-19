@@ -15,9 +15,9 @@ cet_test(test_StandardAdcChannelStringTool SOURCES test_StandardAdcChannelString
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcResultDumper SOURCES test_AdcResultDumper.cxx
@@ -28,9 +28,9 @@ cet_test(test_AdcResultDumper SOURCES test_AdcResultDumper.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcChannelDumper SOURCES test_AdcChannelDumper.cxx
@@ -41,9 +41,9 @@ cet_test(test_AdcChannelDumper SOURCES test_AdcChannelDumper.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcChannelPlotter SOURCES test_AdcChannelPlotter.cxx
@@ -54,9 +54,9 @@ cet_test(test_AdcChannelPlotter SOURCES test_AdcChannelPlotter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
@@ -68,9 +68,9 @@ cet_test(test_AdcTickModViewer SOURCES test_AdcTickModViewer.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcChannelTrimmer SOURCES test_AdcChannelTrimmer.cxx
@@ -81,9 +81,9 @@ cet_test(test_AdcChannelTrimmer SOURCES test_AdcChannelTrimmer.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcChannelSplitter SOURCES test_AdcChannelSplitter.cxx
@@ -94,9 +94,9 @@ cet_test(test_AdcChannelSplitter SOURCES test_AdcChannelSplitter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
@@ -107,9 +107,9 @@ cet_test(test_AdcPedestalFitter SOURCES test_AdcPedestalFitter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
@@ -120,9 +120,9 @@ cet_test(test_AdcCodeMitigator SOURCES test_AdcCodeMitigator.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
@@ -134,9 +134,9 @@ cet_test(test_ExpTailRemover SOURCES test_ExpTailRemover.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_ExpTailPedRemover SOURCES test_ExpTailPedRemover.cxx
@@ -148,9 +148,9 @@ cet_test(test_ExpTailPedRemover SOURCES test_ExpTailPedRemover.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
@@ -161,9 +161,9 @@ cet_test(test_VintageDeconvoluter SOURCES test_VintageDeconvoluter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcSampleScaler SOURCES test_AdcSampleScaler.cxx
@@ -174,9 +174,9 @@ cet_test(test_AdcSampleScaler SOURCES test_AdcSampleScaler.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRangeSampleScaler SOURCES test_AdcRangeSampleScaler.cxx
@@ -187,9 +187,9 @@ cet_test(test_AdcRangeSampleScaler SOURCES test_AdcRangeSampleScaler.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
@@ -200,9 +200,9 @@ cet_test(test_AdcDataDumper SOURCES test_AdcDataDumper.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcEventViewer SOURCES test_AdcEventViewer.cxx
@@ -213,9 +213,9 @@ cet_test(test_AdcEventViewer SOURCES test_AdcEventViewer.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
@@ -226,14 +226,14 @@ cet_test(test_AdcDataPlotter SOURCES test_AdcDataPlotter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcDetectorPlotter SOURCES test_AdcDetectorPlotter.cxx
   LIBRARIES
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     dune_ArtSupport
     dune_Geometry
     larcorealg_Geometry
@@ -242,9 +242,9 @@ cet_test(test_AdcDetectorPlotter SOURCES test_AdcDetectorPlotter.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 
 )
 
@@ -258,9 +258,9 @@ cet_test(test_AdcChannelMetric SOURCES test_AdcChannelMetric.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
@@ -272,9 +272,9 @@ cet_test(test_AcdDigitReader SOURCES test_AcdDigitReader.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcSampleFiller
@@ -287,9 +287,9 @@ cet_test(test_AdcSampleFiller
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_FclStickyCodeFlagger
@@ -302,9 +302,9 @@ cet_test(test_FclStickyCodeFlagger
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcKeepAllSignalFinder
@@ -317,9 +317,9 @@ cet_test(test_AdcKeepAllSignalFinder
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcThresholdSignalFinder
@@ -332,9 +332,9 @@ cet_test(test_AdcThresholdSignalFinder
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcNoiseSignalFinder
@@ -347,9 +347,9 @@ cet_test(test_AdcNoiseSignalFinder
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRoiShifter
@@ -362,9 +362,9 @@ cet_test(test_AdcRoiShifter
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRegularSignalFinder
@@ -377,9 +377,9 @@ cet_test(test_AdcRegularSignalFinder
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_DuneAdcSignalFinder
@@ -392,14 +392,14 @@ cet_test(test_DuneAdcSignalFinder
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
   LIBRARIES
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     lardataobj_RawData
     dune_ArtSupport
     art_Utilities
@@ -407,9 +407,9 @@ cet_test(test_AcdWireReader SOURCES test_AcdWireReader.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRoiViewer
@@ -423,8 +423,8 @@ cet_test(test_AdcRoiViewer
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
-    ${SQLITE3}
+    ROOT_BASIC_LIB_LIST
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -438,9 +438,9 @@ cet_test(test_FembLinearCalibration
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_FloatArrayGainCalibration
@@ -453,9 +453,9 @@ cet_test(test_FloatArrayGainCalibration
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcChannelFFT
@@ -468,9 +468,9 @@ cet_test(test_AdcChannelFFT
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_Adc2dConvolute SOURCES test_Adc2dConvolute.cxx
@@ -482,9 +482,9 @@ cet_test(test_Adc2dConvolute SOURCES test_Adc2dConvolute.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcDeconvoluteFFT
@@ -496,10 +496,10 @@ cet_test(test_AdcDeconvoluteFFT
     art_Utilities
     canvas
     fhiclcpp
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -513,9 +513,9 @@ cet_test(test_AdcChannelDftPlotter
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_FembMappedAdcModifier
@@ -528,9 +528,9 @@ cet_test(test_FembMappedAdcModifier
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRoiSlicer
@@ -543,9 +543,9 @@ cet_test(test_AdcRoiSlicer
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcRoiToTree
@@ -558,9 +558,9 @@ cet_test(test_AdcRoiToTree
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_enable_asserts()

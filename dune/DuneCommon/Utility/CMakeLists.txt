@@ -17,7 +17,7 @@ art_make(BASENAME_ONLY
          art_Persistency_Provenance
          canvas
          ROOT::HistPainter
-         ${ROOT_BASIC_LIB_LIST}
+         ROOT_BASIC_LIB_LIST
          FFTW
          PUBLIC ROOT::Core
          NO_PLUGINS

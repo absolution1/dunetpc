@@ -11,18 +11,18 @@ art_make( BASENAME_ONLY
   larsim_MCCheater_ParticleInventoryService_service
   #lardataobj_RecoBase
   #lardataobj_RawData
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
   art_Persistency_Common canvas
   art_Persistency_Provenance canvas
   art_Utilities canvas
   cetlib cetlib_except
   ${Boost_FILESYSTEM_LIBRARY}            
   ${Boost_SYSTEM_LIBRARY}
-  ${ROOT_BASIC_LIB_LIST}
-  ${MF_MESSAGELOGGER}
-  ${FHICLCPP}
+  ROOT_BASIC_LIB_LIST
+  messagefacility::MF_MessageLogger
+  FHICLCPP
   dune_DAQTriggerSim_TriggerDataProducts
   #          DICT_LIBRARIES   lardataobj_RawData
   )
