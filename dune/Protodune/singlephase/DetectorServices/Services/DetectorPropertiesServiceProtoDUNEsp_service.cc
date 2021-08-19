@@ -23,6 +23,8 @@
 
 #include "IFDH_service.h"
 
+#include "TFile.h"
+
 namespace spdp{
   //--------------------------------------------------------------------
   DetectorPropertiesServiceProtoDUNEsp::DetectorPropertiesServiceProtoDUNEsp
