@@ -5,6 +5,9 @@
 
 # Add plugin for each tool.
 
+build_plugin(AdcThresholdSignalFinder "TpcDataTool"
+  LIBRARIES PRIVATE dune::DuneCommon_Utility)
+
 simple_plugin(StandardAdcChannelStringTool   "tool"
                 art_Utilities canvas
                 cetlib cetlib_except
@@ -238,13 +241,6 @@ simple_plugin(FclStickyCodeFlagger   "tool"
              )
 
 simple_plugin(AdcKeepAllSignalFinder   "tool"
-                cetlib cetlib_except
-                ROOT_BASIC_LIB_LIST
-             )
-
-simple_plugin(AdcThresholdSignalFinder   "tool"
-                dune_ArtSupport
-                dune_DuneCommon_Utility
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
