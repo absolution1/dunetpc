@@ -381,6 +381,38 @@ void PDSPTPCRawDecoder::produce(art::Event &e)
     }
 }
 
+#include "art/Framework/Principal/SelectorBase.h"
+#include "canvas/Persistency/Provenance/BranchDescription.h"
+
+#include <functional>
+
+namespace {
+
+  class SelectorByFunction : public art::SelectorBase {
+public:
+    template <typename FUNC>
+    explicit SelectorByFunction(FUNC func, std::string description)
+      : func_(func), description_(description)
+      {}
+
+private:
+    bool
+    doMatch(art::BranchDescription const& p) const override
+      {
+        return func_(p);
+      }
+
+    std::string
+    doPrint(std::string const& indent) const override
+      {
+        return indent + description_;
+      }
+
+    std::function<bool(art::BranchDescription const &)> func_;
+    std::string description_;
+  };
+}
+
 bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_rce_frags = 0;
@@ -987,81 +1019,56 @@ bool PDSPTPCRawDecoder::_process_RCE_AUX(
 bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_felix_frags = 0;
-  bool have_data=false;
-  bool have_data_nc=false;
+
+  bool found_fragments = false;
+  auto processFragments =
+    [&evt, &raw_digits, &timestamps, &tsassocs, &rdpm, &tspm,
+     &found_fragments, &n_felix_frags, this]
+    (auto const & handle, bool is_container) -> bool
+    {
+      found_fragments = true;
+      return _felixProcContNCFrags(handle, n_felix_frags, is_container,
+                                   evt, raw_digits, timestamps,
+                                   tsassocs, rdpm, tspm);
+    };
 
   if (_felix_useInputLabels)
+  {
+    for (auto const& label : _felix_input_labels)
     {
-      for (size_t ilabel = 0; ilabel < _felix_input_labels.size(); ++ ilabel)
-	{
-	  if (_felix_input_labels.at(ilabel).find("Container") != std::string::npos)
-	    {
-              art::Handle<artdaq::Fragments> cont_frags;
-	      evt.getByLabel(_felix_input_labels.at(ilabel), cont_frags);  
-	      if (cont_frags.isValid())
-		{
-		  have_data = true;
-	          if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
-		    {
-		      return false;
-		    }
-		}
-	    }
-	  else
-	    {
-	      art::Handle<artdaq::Fragments> frags;
-	      evt.getByLabel(_felix_input_labels.at(ilabel), frags); 
-
-	      if (frags.isValid())
-		{
-		  have_data_nc = true;
-	          if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
-		    {
-		      return false;
-		    }
-		}
-	    }
-	}
+      for (auto const & handle : evt.getMany<artdaq::Fragments>(art::ModuleLabelSelector(label)))
+      {
+        if (handle.isValid() &&
+            ! processFragments(handle,
+                               label.find("Container") != std::string::npos))
+        {
+          return false;
+        }
+      }
     }
-  else  // get all the fragments in the event and look for the ones that say FELIX in them
+  }
+  else  // Find all fragments in the event whose instance names have FELIX in them.
+  {
+    auto const selectorFunc =
+      [](art::BranchDescription const& p) -> bool
+      {
+        return p.productInstanceName().find("FELIX") != std::string::npos;
+      };
+    for (auto const & handle : 
+           evt.getMany<artdaq::Fragments>
+           (SelectorByFunction{selectorFunc, "FELIX fragments"}))
     {
-      auto const fraghv = evt.getMany<artdaq::Fragments>();
-      for (size_t ihandle=0; ihandle<fraghv.size(); ++ihandle)
-	{
-	  if (fraghv.at(ihandle).provenance()->inputTag().instance().find("FELIX") != std::string::npos)
-	    {
-	      if (fraghv.at(ihandle).isValid())
-		{
-	          if (fraghv.at(ihandle).provenance()->inputTag().instance().find("Container") != std::string::npos)
-		    {
-		      have_data = true;
-		      if (! _felixProcContNCFrags(fraghv.at(ihandle), n_felix_frags,true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm) )
-			{
-			  return false;
-			}
-		    }
-		  else
-		    {
-		      have_data_nc = true;
-		      if (! _felixProcContNCFrags(fraghv.at(ihandle), n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
-			{
-			  return false;
-			}
-		    }
-		}
-
-	      // we had swept in all the TPC fragments, possibly for a second time, so remove them
-	      // be even more aggressive and remove all cached fragments -- anyone who needs them
-	      // should read them in, and getManyByType had swept them all into memory.  Awaiting
-	      // a getManyLabelsByType if we go this route
-
-	      else // if (fraghv.at(ihandle).provenance()->inputTag().instance().find("TPC") != std::string::npos) 
-		{
-		  evt.removeCachedProduct(fraghv.at(ihandle));
-		}
-	    }
-	}
+      if (handle.isValid())
+      {
+        if (! processFragments(handle,
+                               handle.provenance()->inputTag().instance().find("Container") !=
+                               std::string::npos))
+        {
+          return false;
+        }
+      }
     }
+  }
 
   //MF_LOG_INFO("_processFELIX")
   //<< " Processed " << n_felix_frags
@@ -1072,7 +1079,7 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
   // returns true if we want to add to the number of fragments processed.  Separate flag used
   // for data error conditions (_discard_data).
 
-  return have_data || have_data_nc;
+  return found_fragments;
 }
 
 bool PDSPTPCRawDecoder::_felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, size_t &n_felix_frags, bool is_container, 

@@ -45,7 +45,7 @@ void HardwareMapperService::checkGeomVsFileDetectorName(art::Run const& run){
   //Inspired by Geometry_service.cc
   mf::LogInfo loginfo(fServiceName);
 
-  auto const rdcol = run.getMany<sumData::RunData>();
+  auto const rdcol = run.getMany<sumdata::RunData>();
   if (rdcol.empty()) {
     mf::LogError(fServiceName) << "Can't find sumdata::RunData for geometry vs. file detector name checks";
     return;
