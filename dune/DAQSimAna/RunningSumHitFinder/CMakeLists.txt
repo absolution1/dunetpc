@@ -31,19 +31,19 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   EXCLUDE read_packed.cxx RunningSumTPFinderPass1_tool.cc RunningSumTPFinderPass2_tool.cc RunningSumTPFinderPass3_tool.cc RunningSumTPFinderPass4_tool.cc
   )
 
-simple_plugin(RunningSumTPFinderPass1 "tool"
+cet_build_plugin(RunningSumTPFinderPass1 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
-simple_plugin(RunningSumTPFinderPass2 "tool"
+cet_build_plugin(RunningSumTPFinderPass2 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
-simple_plugin(RunningSumTPFinderPass3 "tool"
+cet_build_plugin(RunningSumTPFinderPass3 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
-simple_plugin(RunningSumTPFinderPass4 "tool"
+cet_build_plugin(RunningSumTPFinderPass4 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )

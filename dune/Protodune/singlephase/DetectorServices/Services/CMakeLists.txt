@@ -1,4 +1,4 @@
-simple_plugin(DetectorPropertiesServiceProtoDUNEsp "service" 
+cet_build_plugin(DetectorPropertiesServiceProtoDUNEsp art::service 
 	          ProtoDUNEspDataProviders
               lardataalg_DetectorInfo
               larcore_Geometry_Geometry_service

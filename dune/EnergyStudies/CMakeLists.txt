@@ -1,5 +1,5 @@
 
-simple_plugin(dunezsanalysis "module"
+cet_build_plugin(dunezsanalysis art::module
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
@@ -20,7 +20,7 @@ simple_plugin(dunezsanalysis "module"
   BASENAME_ONLY
   )
 
-simple_plugin(dEdx "module"
+cet_build_plugin(dEdx art::module
   larcore_Geometry_Geometry_service
   larcorealg_Geometry
   lardataobj_RawData
@@ -44,7 +44,7 @@ simple_plugin(dEdx "module"
   BASENAME_ONLY
   )
 
-simple_plugin(EMEnergyCalib "module"
+cet_build_plugin(EMEnergyCalib art::module
   lardataalg_DetectorInfo
   lardataobj_RawData
   lardataobj_RecoBase
@@ -71,7 +71,7 @@ simple_plugin(EMEnergyCalib "module"
   BASENAME_ONLY
   )
 
-simple_plugin(EMPi0Energy "module"
+cet_build_plugin(EMPi0Energy art::module
   lardataobj_RawData
   lardataobj_RecoBase
   larcorealg_Geometry

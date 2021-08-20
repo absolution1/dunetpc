@@ -1,4 +1,4 @@
-simple_plugin(IcebergTpcMonitor "module"
+cet_build_plugin(IcebergTpcMonitor art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataalg_DetectorInfo

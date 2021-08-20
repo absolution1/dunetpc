@@ -1,4 +1,4 @@
-simple_plugin(ImportFull311File "source"
+cet_build_plugin(ImportFull311File art::source
 			RawData311InputDriver_service
 
 			lardataobj_RawData

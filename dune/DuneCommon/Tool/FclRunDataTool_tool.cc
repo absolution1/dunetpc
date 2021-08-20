@@ -91,3 +91,5 @@ RunData FclRunDataTool::runData(Index run, Index subRun) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclRunDataTool)

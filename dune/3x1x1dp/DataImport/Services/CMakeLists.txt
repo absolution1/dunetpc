@@ -1,4 +1,4 @@
-simple_plugin(RawData311InputDriver "service"
+cet_build_plugin(RawData311InputDriver art::service
 			EventDecoder_service
 			dlardaq_service
 
@@ -18,7 +18,7 @@ simple_plugin(RawData311InputDriver "service"
 			BASENAME_ONLY
 )
 
-simple_plugin(dlardaq "service"
+cet_build_plugin(dlardaq art::service
 			lardataobj_RawData
 			lardataobj_RecoBase
 			larreco_RecoAlg
@@ -47,7 +47,7 @@ simple_plugin(dlardaq "service"
 )
 
 
-simple_plugin(EventDecoder "service"
+cet_build_plugin(EventDecoder art::service
 			dlardaq_service
 			HuffDataCompressor_service
 			
@@ -79,7 +79,7 @@ simple_plugin(EventDecoder "service"
 )
 
 
-simple_plugin(HuffDataCompressor "service"
+cet_build_plugin(HuffDataCompressor art::service
 			dlardaq_service
 
 			lardataobj_RawData

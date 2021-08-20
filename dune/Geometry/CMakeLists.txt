@@ -25,7 +25,7 @@ art_make( BASENAME_ONLY
                         ROOT_BASIC_LIB_LIST
         )
 
-simple_plugin ( CheckGeometry "module"
+cet_build_plugin ( CheckGeometry art::module
                      larcorealg_Geometry
                      larcore_Geometry_Geometry_service
                      ART_FRAMEWORK_CORE
@@ -49,7 +49,7 @@ simple_plugin ( CheckGeometry "module"
                BASENAME_ONLY
           )
 
-simple_plugin ( CheckDPhaseGeometry "module"
+cet_build_plugin ( CheckDPhaseGeometry art::module
                      larcorealg_Geometry
                      larcore_Geometry_Geometry_service
                      ART_FRAMEWORK_CORE

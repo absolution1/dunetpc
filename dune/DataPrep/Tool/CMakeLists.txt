@@ -6,42 +6,47 @@
 # Add plugin for each tool.
 
 cet_build_plugin(AdcThresholdSignalFinder dune::TpcDataTool
-  LIBRARIES PRIVATE ROOT::Core)
+                 LIBRARIES PRIVATE
+                 ROOT::Core
+                 canvas::canvas
+                 art::Utilities
+                 dune::ArtSupport
+                 dune::DuneCommon_Utility)
 
-simple_plugin(StandardAdcChannelStringTool   "tool"
+cet_build_plugin(StandardAdcChannelStringTool   art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcResultDumper   "tool"
+cet_build_plugin(AdcResultDumper   art::tool
                 dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelDumper   "tool"
+cet_build_plugin(AdcChannelDumper   art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelTrimmer  "tool"
+cet_build_plugin(AdcChannelTrimmer  art::tool
                 dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelSplitter  "tool"
+cet_build_plugin(AdcChannelSplitter  art::tool
                 dune_ArtSupport
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelPlotter  "tool"
+cet_build_plugin(AdcChannelPlotter  art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
 		ART_FRAMEWORK_SERVICES_REGISTRY
@@ -50,7 +55,7 @@ simple_plugin(AdcChannelPlotter  "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcPedestalFitter  "tool"
+cet_build_plugin(AdcPedestalFitter  art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 art_Utilities canvas
@@ -58,7 +63,7 @@ simple_plugin(AdcPedestalFitter  "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcCodeMitigator  "tool"
+cet_build_plugin(AdcCodeMitigator  art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 art_Utilities canvas
@@ -66,19 +71,19 @@ simple_plugin(AdcCodeMitigator  "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcSampleScaler   "tool"
+cet_build_plugin(AdcSampleScaler   art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRangeSampleScaler   "tool"
+cet_build_plugin(AdcRangeSampleScaler   art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcTimingMitigator  "tool"
+cet_build_plugin(AdcTimingMitigator  art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 art_Utilities canvas
@@ -86,13 +91,13 @@ simple_plugin(AdcTimingMitigator  "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDataDumper   "tool"
+cet_build_plugin(AdcDataDumper   art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcTickModViewer   "tool"
+cet_build_plugin(AdcTickModViewer   art::tool
                 dune_DataPrep_Utility
                 dune_ArtSupport
                 dune_DuneCommon_Utility
@@ -101,7 +106,7 @@ simple_plugin(AdcTickModViewer   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDataPlotter   "tool"
+cet_build_plugin(AdcDataPlotter   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
 		ART_FRAMEWORK_SERVICES_REGISTRY
@@ -110,7 +115,7 @@ simple_plugin(AdcDataPlotter   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDetectorPlotter   "tool"
+cet_build_plugin(AdcDetectorPlotter   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 dune_Geometry
@@ -120,7 +125,7 @@ simple_plugin(AdcDetectorPlotter   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelMetric   "tool"
+cet_build_plugin(AdcChannelMetric   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
 		ART_FRAMEWORK_SERVICES_REGISTRY
@@ -129,7 +134,7 @@ simple_plugin(AdcChannelMetric   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcEventViewer   "tool"
+cet_build_plugin(AdcEventViewer   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
 		ART_FRAMEWORK_SERVICES_REGISTRY
@@ -138,7 +143,7 @@ simple_plugin(AdcEventViewer   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AcdDigitReader   "tool"
+cet_build_plugin(AcdDigitReader   art::tool
                 dune_DuneCommon_Utility
                 lardataobj_RawData
                 art_Utilities canvas
@@ -146,7 +151,7 @@ simple_plugin(AcdDigitReader   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AcdWireReader   "tool"
+cet_build_plugin(AcdWireReader   art::tool
                 dune_DuneCommon_Utility
                 lardataobj_RecoBase
                 art_Utilities canvas
@@ -154,17 +159,17 @@ simple_plugin(AcdWireReader   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcSampleFiller   "tool"
+cet_build_plugin(AdcSampleFiller   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(SubtractBaseline   "tool"
+cet_build_plugin(SubtractBaseline   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(UndershootCorr   "tool"
+cet_build_plugin(UndershootCorr   art::tool
               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ART_FRAMEWORK_CORE
@@ -178,7 +183,7 @@ simple_plugin(UndershootCorr   "tool"
                         ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(ExpTailRemover   "tool"
+cet_build_plugin(ExpTailRemover   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
                 dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
@@ -194,7 +199,7 @@ simple_plugin(ExpTailRemover   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(ExpTailPedRemover   "tool"
+cet_build_plugin(ExpTailPedRemover   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
                 dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
@@ -210,7 +215,7 @@ simple_plugin(ExpTailPedRemover   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(VintageDeconvoluter   "tool"
+cet_build_plugin(VintageDeconvoluter   art::tool
                 SignalShapingServiceDUNE_service
                 art_Framework_Services_Registry
                 art_Utilities
@@ -219,7 +224,7 @@ simple_plugin(VintageDeconvoluter   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(PddpVintageDeconvoluter   "tool"
+cet_build_plugin(PddpVintageDeconvoluter   art::tool
                 SignalShapingServiceDUNEDPhase_service
 		lardata_Utilities
                 art_Framework_Services_Registry
@@ -230,42 +235,42 @@ simple_plugin(PddpVintageDeconvoluter   "tool"
              )
 
 
-simple_plugin(AdcUnderflowFlagger   "tool"
+cet_build_plugin(AdcUnderflowFlagger   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FclStickyCodeFlagger   "tool"
+cet_build_plugin(FclStickyCodeFlagger   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcKeepAllSignalFinder   "tool"
+cet_build_plugin(AdcKeepAllSignalFinder   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcNoiseSignalFinder   "tool"
+cet_build_plugin(AdcNoiseSignalFinder   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRoiShifter   "tool"
+cet_build_plugin(AdcRoiShifter   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(DuneAdcSignalFinder   "tool"
+cet_build_plugin(DuneAdcSignalFinder   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRegularSignalFinder   "tool"
+cet_build_plugin(AdcRegularSignalFinder   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRoiViewer   "tool"
+cet_build_plugin(AdcRoiViewer   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
 		canvas
@@ -274,7 +279,7 @@ simple_plugin(AdcRoiViewer   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDPhase3x1x1LocalRoiBuilder   "tool"
+cet_build_plugin(AdcDPhase3x1x1LocalRoiBuilder   art::tool
                 dune_DuneCommon_Utility
                 lardataobj_RawData
                 lardataobj_RecoBase
@@ -283,12 +288,12 @@ simple_plugin(AdcDPhase3x1x1LocalRoiBuilder   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FembLinearCalibration   "tool"
+cet_build_plugin(FembLinearCalibration   art::tool
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FloatArrayGainCalibration   "tool"
+cet_build_plugin(FloatArrayGainCalibration   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
 		canvas
@@ -296,34 +301,34 @@ simple_plugin(FloatArrayGainCalibration   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FembMappedAdcModifier   "tool"
+cet_build_plugin(FembMappedAdcModifier   art::tool
                 dune_ArtSupport
 		canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelFFT   "tool"
+cet_build_plugin(AdcChannelFFT   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDeconvoluteFFT   "tool"
+cet_build_plugin(AdcDeconvoluteFFT   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
 		canvas
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
-simple_plugin(Adc2dConvolute   "tool"
+cet_build_plugin(Adc2dConvolute   art::tool
                 dune_ArtSupport
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcChannelDftPlotter   "tool"
+cet_build_plugin(AdcChannelDftPlotter   art::tool
                 dune_DataPrep_Utility
                 dune_DuneCommon_Utility
                 dune_ArtSupport
@@ -331,7 +336,7 @@ simple_plugin(AdcChannelDftPlotter   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
+cet_build_plugin(AdcDPhase3x1x1RoiBuilder   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 lardataobj_RawData
@@ -341,14 +346,14 @@ simple_plugin(AdcDPhase3x1x1RoiBuilder   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcMultiThreshSignalFinder   "tool"
+cet_build_plugin(AdcMultiThreshSignalFinder   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(PdspNoiseRemoval   "tool"
+cet_build_plugin(PdspNoiseRemoval   art::tool
                dune_ArtSupport
                larcorealg_Geometry
                dune_DuneCommon_Utility
@@ -362,7 +367,7 @@ simple_plugin(PdspNoiseRemoval   "tool"
                ROOT_SPECTRUM
              )
 
-simple_plugin(RemoveBadChannels   "tool"
+cet_build_plugin(RemoveBadChannels   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
 		ART_FRAMEWORK_SERVICES_REGISTRY
@@ -371,7 +376,7 @@ simple_plugin(RemoveBadChannels   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRoiSlicer   "tool"
+cet_build_plugin(AdcRoiSlicer   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 art_Utilities canvas
@@ -379,14 +384,14 @@ simple_plugin(AdcRoiSlicer   "tool"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(BaselineDetrend   "tool"
+cet_build_plugin(BaselineDetrend   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 cetlib cetlib_except
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(AdcRoiToTree   "tool"
+cet_build_plugin(AdcRoiToTree   art::tool
                 dune_ArtSupport
                 dune_DuneCommon_Utility
                 cetlib cetlib_except
@@ -395,4 +400,3 @@ simple_plugin(AdcRoiToTree   "tool"
 
 add_subdirectory(test)
 install_source()
-

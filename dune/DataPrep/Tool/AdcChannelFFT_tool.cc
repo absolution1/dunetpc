@@ -246,3 +246,5 @@ internalView(const AdcChannelData& acd, FloatVector& sams, FloatVector& xams, Fl
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelFFT)

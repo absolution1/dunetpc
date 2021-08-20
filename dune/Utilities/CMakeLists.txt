@@ -23,43 +23,43 @@ set( dune_util_lib_list lardata_Utilities_LArFFT_service
     )
 
 
-simple_plugin( SignalShapingServiceDUNE  "service"
+cet_build_plugin( SignalShapingServiceDUNE  art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
 
-simple_plugin( SignalShapingServiceDUNE10kt  "service"
+cet_build_plugin( SignalShapingServiceDUNE10kt  art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
 
-simple_plugin( SignalShapingServiceDUNEDPhase  "service"
+cet_build_plugin( SignalShapingServiceDUNEDPhase  art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
 	             
-simple_plugin( SignalShapingServiceDUNE34kt  "service"
+cet_build_plugin( SignalShapingServiceDUNE34kt  art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
               
 
-simple_plugin( SignalShapingServiceDUNE35t  "service"
+cet_build_plugin( SignalShapingServiceDUNE35t  art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
         )
 
-simple_plugin( FileCatalogMetadataDUNE "service"
+cet_build_plugin( FileCatalogMetadataDUNE art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
 	)
 
-simple_plugin( TFileMetadataDUNE "service"
+cet_build_plugin( TFileMetadataDUNE art::service
                ${dune_util_lib_list}
 	       BASENAME_ONLY
 	)
 
-simple_plugin(CrpGainService   "service"
+cet_build_plugin(CrpGainService   art::service
                 dune_ArtSupport
                 larcorealg_Geometry
 		lardataobj_Simulation

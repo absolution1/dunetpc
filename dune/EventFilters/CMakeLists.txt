@@ -1,5 +1,5 @@
 
-simple_plugin(DuneEventFilter "module"
+cet_build_plugin(DuneEventFilter art::module
 			dune_ArtSupport
 			lardataobj_RawData
                         lardataobj_RecoBase

@@ -159,6 +159,5 @@ class PDSPTPCDataInterface : public PDSPTPCDataInterfaceParent {
 
 };
 
-DEFINE_ART_CLASS_TOOL(PDSPTPCDataInterface)
 
 #endif

@@ -10,7 +10,7 @@ art_make( MODULE_LIBRARIES larcorealg_Geometry
 	  lardataobj_AnalysisBase
 	  lardata_RecoObjects
           lardata_ArtDataHelper
-          lardataalg_detectorinfo
+          lardataalg_DetectorInfo
 	  larreco_RecoAlg
 	  larpandora_LArPandoraInterface
 	  SignalShapingServiceDUNE10kt_service

@@ -377,3 +377,5 @@ int AdcDetectorPlotter::addChannel(const AdcChannelData& acd, double xsign) cons
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcDetectorPlotter)

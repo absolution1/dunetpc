@@ -1,4 +1,4 @@
-simple_plugin(ICEBERGPDSSPMonitor "module"
+cet_build_plugin(ICEBERGPDSSPMonitor art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataobj_RawData

@@ -1,4 +1,4 @@
-simple_plugin(PDSPmatch "module"
+cet_build_plugin(PDSPmatch art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
                         dune-raw-data_Overlays
@@ -18,7 +18,7 @@ simple_plugin(PDSPmatch "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDSPmatchmc "module"
+cet_build_plugin(PDSPmatchmc art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
                         dune-raw-data_Overlays

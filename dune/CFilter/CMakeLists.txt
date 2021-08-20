@@ -1,5 +1,5 @@
 
-simple_plugin(CFilter "module"
+cet_build_plugin(CFilter art::module
 		      lardataobj_RawData
 		      lardataobj_RecoBase
 		      dune_Geometry

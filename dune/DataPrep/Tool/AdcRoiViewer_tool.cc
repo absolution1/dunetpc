@@ -1950,3 +1950,5 @@ void AdcRoiViewer::setPlotLabels(Name& sttl) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcRoiViewer)

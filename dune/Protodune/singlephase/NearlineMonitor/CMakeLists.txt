@@ -1,4 +1,4 @@
-simple_plugin(SPLifetime "module"
+cet_build_plugin(SPLifetime art::module
               lardataobj_RecoBase
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
@@ -23,7 +23,7 @@ simple_plugin(SPLifetime "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(PlotTrackT0 "module"
+cet_build_plugin(PlotTrackT0 art::module
               lardataobj_RecoBase
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
@@ -48,7 +48,7 @@ simple_plugin(PlotTrackT0 "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(PlotTrackDetails "module"
+cet_build_plugin(PlotTrackDetails art::module
               lardataobj_RecoBase
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
@@ -73,7 +73,7 @@ simple_plugin(PlotTrackDetails "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(PlotEventDetails "module"
+cet_build_plugin(PlotEventDetails art::module
       lardataobj_RecoBase
       larcorealg_Geometry
       larcore_Geometry_Geometry_service
@@ -99,7 +99,7 @@ simple_plugin(PlotEventDetails "module"
       BASENAME_ONLY
 )
 
-simple_plugin(PlotOpticalDetails "module"
+cet_build_plugin(PlotOpticalDetails art::module
               lardataobj_RecoBase
               ART_FRAMEWORK_CORE
               ART_FRAMEWORK_PRINCIPAL
@@ -119,7 +119,7 @@ simple_plugin(PlotOpticalDetails "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(RawEventDisplay "module"
+cet_build_plugin(RawEventDisplay art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataalg_DetectorInfo
@@ -136,7 +136,7 @@ simple_plugin(RawEventDisplay "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(TpcMonitor "module"
+cet_build_plugin(TpcMonitor art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataalg_DetectorInfo
@@ -155,7 +155,7 @@ simple_plugin(TpcMonitor "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(SSPMonitor "module"
+cet_build_plugin(SSPMonitor art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataobj_RawData
@@ -173,7 +173,7 @@ simple_plugin(SSPMonitor "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(PDSPNearlineHeader "module"
+cet_build_plugin(PDSPNearlineHeader art::module
               lardataobj_RecoBase
               ART_FRAMEWORK_CORE
               ART_FRAMEWORK_PRINCIPAL
@@ -189,7 +189,7 @@ simple_plugin(PDSPNearlineHeader "module"
               ROOT_BASIC_LIB_LIST
               BASENAME_ONLY)
 
-simple_plugin(PDSPHitMonitor "module"
+cet_build_plugin(PDSPHitMonitor art::module
               larcorealg_Geometry
               larcore_Geometry_Geometry_service
               lardataobj_RawData

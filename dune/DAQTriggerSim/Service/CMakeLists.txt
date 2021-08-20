@@ -5,7 +5,7 @@
 #
 # CMake instructions for DAQTriggerSim/Services
 
-simple_plugin(TemplateTriggerService   "service"
+cet_build_plugin(TemplateTriggerService   art::service
                 ART_ROOT_IO_TFILE_SUPPORT
                 ROOT::Core
                 ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE
@@ -18,7 +18,7 @@ simple_plugin(TemplateTriggerService   "service"
                 ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(HardwareMapperService   "service"
+cet_build_plugin(HardwareMapperService   art::service
                 larcorealg_Geometry
                 dune_Geometry
                 ART_FRAMEWORK_CORE

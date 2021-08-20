@@ -404,3 +404,5 @@ size_t PdspNoiseRemoval::getDAQChan(size_t LAr_chan) {
   return DaqChan;
 }
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(PdspNoiseRemoval)

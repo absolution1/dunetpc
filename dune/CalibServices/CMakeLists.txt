@@ -1,4 +1,4 @@
-simple_plugin(XYZCalibServiceProtoDUNE "service"
+cet_build_plugin(XYZCalibServiceProtoDUNE art::service
               dune_Calib
 	      ART_FRAMEWORK_CORE
 	      ART_FRAMEWORK_PRINCIPAL
@@ -17,7 +17,7 @@ simple_plugin(XYZCalibServiceProtoDUNE "service"
               
 )
 
-simple_plugin(LifetimeCalibServiceProtoDUNE "service"
+cet_build_plugin(LifetimeCalibServiceProtoDUNE art::service
       dune_Calib
       ART_FRAMEWORK_CORE
       ART_FRAMEWORK_PRINCIPAL

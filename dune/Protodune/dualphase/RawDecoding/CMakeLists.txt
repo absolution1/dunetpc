@@ -1,4 +1,4 @@
-simple_plugin(PDDPChannelMap "service"
+cet_build_plugin(PDDPChannelMap art::service
                         ART_FRAMEWORK_CORE
 			ART_FRAMEWORK_IO_SOURCES
                         ART_FRAMEWORK_PRINCIPAL
@@ -12,7 +12,7 @@ simple_plugin(PDDPChannelMap "service"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDDPRawInput "source"
+cet_build_plugin(PDDPRawInput art::source
 			PDDPRawInputDriver_service
                         lardataobj_RawData
                         lardata_Utilities
@@ -29,7 +29,7 @@ simple_plugin(PDDPRawInput "source"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDDPRawInputDriver "service"
+cet_build_plugin(PDDPRawInputDriver art::service
 			PDDPChannelMap_service
 			pthread
 			lardataobj_RawData
@@ -47,7 +47,7 @@ simple_plugin(PDDPRawInputDriver "service"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDDPTPCRawDecoderTest "module"
+cet_build_plugin(PDDPTPCRawDecoderTest art::module
 			lardataobj_RawData
                         ART_FRAMEWORK_CORE
 			ART_FRAMEWORK_PRINCIPAL

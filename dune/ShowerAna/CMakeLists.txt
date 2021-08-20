@@ -1,5 +1,5 @@
 
-simple_plugin(ShowerAnalysis "module"
+cet_build_plugin(ShowerAnalysis art::module
 			     lardataobj_RawData
 		      	     lardataobj_RecoBase
 		      	     lardata_ArtDataHelper

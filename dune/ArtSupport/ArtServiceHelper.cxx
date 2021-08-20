@@ -28,8 +28,7 @@ void ArtServiceHelper::load_services(std::istream& config)
 void ArtServiceHelper::load_services(std::string const& filename, FileOnPath_t)
 {
   cet::filepath_lookup lookup{"FHICL_FILE_PATH"};
-  load_services(fhicl::ParameterSet::make
-                (fhicl::parse_document(filename, lookup)));
+  load_services(fhicl::ParameterSet::make(filename, lookup));
 }
 
 void ArtServiceHelper::load_services(fhicl::ParameterSet const& pset)

@@ -79,6 +79,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(FloatArrayGainCalibration)
 
 #endif

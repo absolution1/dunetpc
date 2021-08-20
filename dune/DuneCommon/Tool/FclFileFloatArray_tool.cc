@@ -66,3 +66,5 @@ void FclFileFloatArray::init() {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclFileFloatArray)

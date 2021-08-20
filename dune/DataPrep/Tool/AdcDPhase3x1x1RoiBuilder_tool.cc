@@ -394,3 +394,5 @@ signal[m_BinsToSkip] = false;
   return res;
 }
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcDPhase3x1x1RoiBuilder)

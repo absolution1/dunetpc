@@ -6,7 +6,7 @@ art_make(BASENAME_ONLY
          lardata_ArtDataHelper
 	 larcore_Geometry_Geometry_service
          larcorealg_Geometry
-	 lardataalg_detectorinfo
+	 lardataalg_DetectorInfo
          nusimdata_SimulationBase
 	 larsim_MCCheater_BackTrackerService_service
            larsim_MCCheater_ParticleInventoryService_service

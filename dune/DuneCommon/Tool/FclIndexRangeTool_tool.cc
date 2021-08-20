@@ -59,3 +59,5 @@ IndexRange FclIndexRangeTool::get(Name nam) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclIndexRangeTool)

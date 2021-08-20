@@ -1,7 +1,7 @@
 include_directories( "$ENV{DUNEPDSPRCE_INC}" )
 cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
 
-simple_plugin(PDSPTPCDataInterface   "tool"
+cet_build_plugin(PDSPTPCDataInterface   art::tool
 				     art_utilities
 				     canvas
 				     cetlib
@@ -26,7 +26,7 @@ simple_plugin(PDSPTPCDataInterface   "tool"
              )
 
 
-simple_plugin(TimingRawDecoder "module"
+cet_build_plugin(TimingRawDecoder art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
                         dune_DuneObj
@@ -44,7 +44,7 @@ simple_plugin(TimingRawDecoder "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(SSPRawDecoder "module"
+cet_build_plugin(SSPRawDecoder art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
                         dune-raw-data_Overlays
@@ -65,7 +65,7 @@ simple_plugin(SSPRawDecoder "module"
 )
 
 #[[
-simple_plugin(PDWaveform "module"
+cet_build_plugin(PDWaveform art::module
                          lardataobj_RawData
                          lardataobj_RecoBase
                          dune-raw-data_Overlays
@@ -88,7 +88,7 @@ simple_plugin(PDWaveform "module"
 ]]
 
 
-simple_plugin(RceRawDecoder "module"
+cet_build_plugin(RceRawDecoder art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
@@ -108,29 +108,7 @@ simple_plugin(RceRawDecoder "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(FelixRawDecoder "module"
-                        lardataobj_RawData
-                        dune-raw-data_Overlays
-			artdaq_core::artdaq-core_Data
-			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-			dune_Geometry
-                        ART_FRAMEWORK_CORE
-                        ART_FRAMEWORK_PRINCIPAL
-                        ART_FRAMEWORK_SERVICES_REGISTRY
-                        ART_ROOT_IO_TFILE_SUPPORT
-                        ROOT::Core
-                        ART_ROOT_IO_TFILESERVICE_SERVICE
-                        ART_PERSISTENCY_PROVENANCE
-                        messagefacility::MF_MessageLogger
-                        CETLIB
-                        ROOT_BASIC_LIB_LIST
-                        RCEDAMLIB
-                        z
-                        BASENAME_ONLY
-)
-
-simple_plugin(FelixIntegrityTest "module"
+cet_build_plugin(FelixRawDecoder art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
@@ -152,7 +130,29 @@ simple_plugin(FelixIntegrityTest "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDSPTPCRawDecoder "module"
+cet_build_plugin(FelixIntegrityTest art::module
+                        lardataobj_RawData
+                        dune-raw-data_Overlays
+			artdaq_core::artdaq-core_Data
+			artdaq-core_Utilities
+                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+			dune_Geometry
+                        ART_FRAMEWORK_CORE
+                        ART_FRAMEWORK_PRINCIPAL
+                        ART_FRAMEWORK_SERVICES_REGISTRY
+                        ART_ROOT_IO_TFILE_SUPPORT
+                        ROOT::Core
+                        ART_ROOT_IO_TFILESERVICE_SERVICE
+                        ART_PERSISTENCY_PROVENANCE
+                        messagefacility::MF_MessageLogger
+                        CETLIB
+                        ROOT_BASIC_LIB_LIST
+                        RCEDAMLIB
+                        z
+                        BASENAME_ONLY
+)
+
+cet_build_plugin(PDSPTPCRawDecoder art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
@@ -173,7 +173,7 @@ simple_plugin(PDSPTPCRawDecoder "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(CRTRawDecoder "module"
+cet_build_plugin(CRTRawDecoder art::module
                         dune-raw-data_Overlays
                         dune_Geometry
 			artdaq_core::artdaq-core_Data
@@ -192,7 +192,7 @@ simple_plugin(CRTRawDecoder "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(PDSPCTBRawDecoder "module"
+cet_build_plugin(PDSPCTBRawDecoder art::module
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities

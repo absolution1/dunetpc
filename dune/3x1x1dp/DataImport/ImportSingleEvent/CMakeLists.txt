@@ -1,4 +1,4 @@
-simple_plugin(ImportSingle311Event "module"
+cet_build_plugin(ImportSingle311Event art::module
 			EventDecoder_service
 
 			lardataobj_RawData

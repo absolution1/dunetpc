@@ -1,4 +1,4 @@
-simple_plugin(		recobWireCheck "module"
+cet_build_plugin(		recobWireCheck art::module
 			lardataobj_RecoBase
                         lardata_ArtDataHelper
                         lardata_Utilities

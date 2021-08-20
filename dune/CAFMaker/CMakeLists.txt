@@ -3,7 +3,7 @@ include_directories ( $ENV{GENIE_INC}/GENIE )
 # nusystematics
 ##cet_find_library( SYSTTOOLS NAMES systematicstools_interface systematicstools_interpreters systematicstools_utility PATHS ENV SYSTEMATICSTOOLS_LIB NO_DEFAULT_PATH )
 
-simple_plugin(CAFMaker   "module"
+cet_build_plugin(CAFMaker   art::module
                         nugen_NuReweight
                         nugen_NuReweight_art
 			nusimdata_SimulationBase

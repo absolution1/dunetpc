@@ -128,3 +128,5 @@ DataMap AdcChannelDumper::view(const AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelDumper)

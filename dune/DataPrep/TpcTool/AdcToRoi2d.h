@@ -47,6 +47,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcToRoi2d)
 
 #endif

@@ -2,7 +2,7 @@
 include_directories( "$ENV{DUNEPDSPRCE_INC}" ) 
 cet_find_library( RCEDAMLIB NAMES protodune-dam PATHS ENV DUNEPDSPRCE_LIB NO_DEFAULT_PATH )
 
-simple_plugin(IcebergTPCRawDecoder "module"
+cet_build_plugin(IcebergTPCRawDecoder art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
@@ -27,7 +27,7 @@ simple_plugin(IcebergTPCRawDecoder "module"
 )
 
 
-simple_plugin(IcebergFELIXBufferDecoderMarch2021 "module"
+cet_build_plugin(IcebergFELIXBufferDecoderMarch2021 art::module
                         lardataobj_RawData
                         dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
@@ -51,7 +51,7 @@ simple_plugin(IcebergFELIXBufferDecoderMarch2021 "module"
                         BASENAME_ONLY
 )
 
-simple_plugin(IcebergDataInterface   "tool"
+cet_build_plugin(IcebergDataInterface   art::tool
 				     art_utilities
 				     canvas
 				     cetlib
@@ -76,7 +76,7 @@ simple_plugin(IcebergDataInterface   "tool"
              )
 
 
-simple_plugin(IcebergDataInterfaceFELIXBufferMarch2021   "tool"
+cet_build_plugin(IcebergDataInterfaceFELIXBufferMarch2021   art::tool
 				     art_utilities
 				     canvas
 				     cetlib

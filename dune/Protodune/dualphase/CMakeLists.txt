@@ -1,7 +1,7 @@
 
 
-simple_plugin(
-           CRTGen "module"
+cet_build_plugin(
+           CRTGen art::module
            nusimdata_SimulationBase
            cetlib
            cetlib_except
@@ -22,8 +22,8 @@ simple_plugin(
            ROOT_GDML
 )
 if(FALSE)
-simple_plugin(
-			Purity "module"
+cet_build_plugin(
+			Purity art::module
 			dune_DetSim
                         lardataobj_RecoBase
                         larreco_Calorimetry
@@ -50,8 +50,8 @@ simple_plugin(
                         BASENAME_ONLY
 )
 endif()
-simple_plugin(
-			DEdxdp "module"
+cet_build_plugin(
+			DEdxdp art::module
 			dune_DetSim
                         lardataobj_RecoBase
                         larreco_Calorimetry
@@ -77,8 +77,8 @@ simple_plugin(
                         BASENAME_ONLY
 )
 
-simple_plugin(
-	  AnaRootParser "module"
+cet_build_plugin(
+	  AnaRootParser art::module
 	  larcore_Geometry_Geometry_service
 	  larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTrackerService_service
@@ -89,7 +89,7 @@ simple_plugin(
 	  lardataobj_RecoBase
 	  lardata_RecoObjects
 	  lardata_ArtDataHelper
-	  lardataalg_detectorinfo
+	  lardataalg_DetectorInfo
 	  larcorealg_Geometry
 	  larcorealg_GeoAlgo
 	  larreco_RecoAlg
