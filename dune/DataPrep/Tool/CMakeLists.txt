@@ -5,8 +5,8 @@
 
 # Add plugin for each tool.
 
-build_plugin(AdcThresholdSignalFinder "TpcDataTool"
-  LIBRARIES PRIVATE dune::DuneCommon_Utility)
+cet_build_plugin(AdcThresholdSignalFinder dune::TpcDataTool
+  LIBRARIES PRIVATE ROOT::Core)
 
 simple_plugin(StandardAdcChannelStringTool   "tool"
                 art_Utilities canvas

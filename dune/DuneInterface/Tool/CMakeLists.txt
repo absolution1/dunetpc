@@ -11,7 +11,6 @@
 # Make the dictionary.
 art_dictionary()
 
-
 ####################################
 # Define interface targets (no code, only depedencies) when headers do
 # not have an associated implementation compilation unit, but do confer
@@ -39,6 +38,22 @@ cet_make_library(LIBRARY_NAME TpcDataTool INTERFACE
   dune::AdcChannelTool
 )
 
+###################################
+# Generate CMake tool builder functions for use by build_plugin().
+
+include(MakeDuneToolBuilder)
+make_dune_tool_builder(dune::AdcChannelStringTool)
+make_dune_tool_builder(dune::FloatArrayTool)
+make_dune_tool_builder(dune::IndexMapTool)
+make_dune_tool_builder(dune::IndexRangeGroupTool)
+make_dune_tool_builder(dune::IndexRangeTool)
+make_dune_tool_builder(dune::IndexVectorMapTool)
+make_dune_tool_builder(dune::RunDataTool)
+make_dune_tool_builder(dune::TimeOffsetTool)
+make_dune_tool_builder(dune::TpcDataTool)
+
+cet_collect_plugin_builders(Modules dune::ToolTypes)
+####################################
 
 install_headers()
 install_source( README.txt )

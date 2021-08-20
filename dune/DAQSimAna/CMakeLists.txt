@@ -1,5 +1,8 @@
+include(MakeDuneToolBuilder)
 add_subdirectory(SNAnaClustering)
 add_subdirectory(RunningSumHitFinder)
+
+make_dune_tool_builder(dune::TriggerPrimitiveFinderTool)
 
 art_make( BASENAME_ONLY MODULE_LIBRARIES
   dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
