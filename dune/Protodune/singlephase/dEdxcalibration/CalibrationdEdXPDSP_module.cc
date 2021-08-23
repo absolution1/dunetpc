@@ -61,6 +61,7 @@ private:
 
   std::string fTrackModuleLabel;
   std::string fCalorimetryModuleLabel;
+  std::string fHitModuleLabel;
 
   calo::CalorimetryAlg caloAlg;
 
@@ -88,6 +89,7 @@ dune::CalibrationdEdXPDSP::CalibrationdEdXPDSP(fhicl::ParameterSet const & p)
   : EDProducer(p)
   , fTrackModuleLabel      (p.get< std::string >("TrackModuleLabel"))
   , fCalorimetryModuleLabel(p.get< std::string >("CalorimetryModuleLabel"))
+  , fHitModuleLabel        (p.get< std::string >("HitModuleLabel"))
   , caloAlg                (p.get< fhicl::ParameterSet >("CaloAlg"))
   , fModBoxA               (p.get< double >("ModBoxA"))
   , fModBoxB               (p.get< double >("ModBoxB"))
@@ -171,6 +173,13 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
 
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 
+  //get hits
+  art::Handle< std::vector<recob::Hit> > hitListHandle;
+  evt.getByLabel(fHitModuleLabel,hitListHandle);
+
+  std::vector<art::Ptr<recob::Hit> > hitlist;
+  art::fill_ptr_vector(hitlist, hitListHandle);
+
   if (!fmcal.isValid()){
     throw art::Exception(art::errors::ProductNotFound)
       <<"Could not get assocated Calorimetry objects";
@@ -222,6 +231,11 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
         double EkinNew = 0.;
 
         for (size_t j = 0; j<vdQdx.size(); ++j){
+          auto & hit = hitlist[fHitIndex[j]];
+          if (hit->WireID().Plane != planeID.Plane){
+            throw art::Exception(art::errors::Configuration)
+              <<"Hit plane = "<<hit->WireID().Plane<<" calo plane = "<<planeID.Plane;
+          }
           double normcorrection = 1;
           if (fApplyNormCorrection){
             normcorrection = xyzcalib->GetNormCorr(planeID.Plane);
@@ -241,7 +255,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           if (fApplyLifetimeCorrection){
             xcorrection *= exp((xAnode-std::abs(vXYZ[j].X()))/(fLifetime*vDrift));
           }
-          //std::cout<<"plane = "<<planeID.Plane<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<std::endl;
+          //if (planeID.Plane == 2 && tracklist[trkIter]->ID() == 0) std::cout<<"plane = "<<planeID.Plane<<" x = "<<vXYZ[j].X()<<" y = "<<vXYZ[j].Y()<<" z = "<<vXYZ[j].Z()<<" normcorrection = "<<normcorrection<<" xcorrection = "<<xcorrection<<" yzcorrection = "<<yzcorrection<<" "<<vdQdx[j]<<std::endl;
 
           vdQdx[j] = normcorrection*xcorrection*yzcorrection*vdQdx[j];
 
@@ -260,7 +274,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           //correct Efield for SCE
           geo::Vector_t E_field_offsets = {0., 0., 0.};
 
-          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()},planeID.TPC);
+          if(sce->EnableCalEfieldSCE()&&fSCE) E_field_offsets = sce->GetCalEfieldOffsets(geo::Point_t{vXYZ[j].X(), vXYZ[j].Y(), vXYZ[j].Z()},hit->WireID().TPC);
 
           TVector3 E_field_vector = {E_field_nominal*(1 + E_field_offsets.X()), E_field_nominal*E_field_offsets.Y(), E_field_nominal*E_field_offsets.Z()};
           double E_field = E_field_vector.Mag();
@@ -270,6 +284,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           double Alpha = fModBoxA;
           //double old_vdEdx = vdEdx[j];
           vdEdx[j] = (exp(Beta * Wion * dQdx_e) - Alpha) / Beta;
+          //if (planeID.Plane == 2 && tracklist[trkIter]->ID() == 0) std::cout<<vdEdx[j]<<" "<<vdQdx[j]<<" "<<E_field<<" "<<rho<<" "<<Beta<<" "<<Alpha<<" "<<E_field_nominal<<" "<<E_field_offsets.X()<<" "<<E_field_offsets.Y()<<" "<<E_field_offsets.Z()<<std::endl;
 
          /*if (planeID.Plane==2){
          std::cout << sce->EnableCalEfieldSCE() << " " << fSCE << std::endl;
