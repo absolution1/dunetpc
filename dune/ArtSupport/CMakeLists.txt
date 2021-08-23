@@ -25,4 +25,4 @@ add_subdirectory(exe)
 
 install_headers()
 install_fhicl()
-install_source( README.txt )
+install_source()

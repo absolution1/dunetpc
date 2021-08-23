@@ -56,6 +56,6 @@ cet_collect_plugin_builders(Modules dune::ToolTypes)
 ####################################
 
 install_headers()
-install_source( README.txt )
+install_source()
 
 add_subdirectory(test)

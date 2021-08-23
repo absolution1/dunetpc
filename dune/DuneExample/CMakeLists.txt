@@ -10,7 +10,7 @@ art_make(BASENAME_ONLY
          LIB_LIBRARIES
          art_Persistency_Provenance canvas
          ROOT_BASIC_LIB_LIST
-         ${ROOTSYS}/lib/libHistPainter.so
+         ROOT::HistPainter
          NO_PLUGINS
         )
 
