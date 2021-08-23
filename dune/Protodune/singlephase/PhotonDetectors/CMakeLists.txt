@@ -1,7 +1,7 @@
 cet_build_plugin(PDSPmatch art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
                         artdaq_core::artdaq-core_Data
                         dune_Geometry
                         ART_FRAMEWORK_CORE
@@ -21,7 +21,7 @@ cet_build_plugin(PDSPmatch art::module
 cet_build_plugin(PDSPmatchmc art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
                         artdaq_core::artdaq-core_Data
                         dune_Geometry
                         nusimdata_SimulationBase

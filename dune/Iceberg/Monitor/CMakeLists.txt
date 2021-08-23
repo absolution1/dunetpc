@@ -4,7 +4,7 @@ cet_build_plugin(IcebergTpcMonitor art::module
               lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
-              dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
+              dune_raw_data::dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
               ART_FRAMEWORK_CORE
               ART_FRAMEWORK_PRINCIPAL
               ART_FRAMEWORK_SERVICES_REGISTRY

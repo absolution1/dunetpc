@@ -7,10 +7,10 @@ cet_build_plugin(PDSPTPCDataInterface   art::tool
 				     cetlib
 				     cetlib_except
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
@@ -28,7 +28,7 @@ cet_build_plugin(PDSPTPCDataInterface   art::tool
 
 cet_build_plugin(TimingRawDecoder art::module
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
                         dune_DuneObj
 			artdaq-core_Utilities
                         ART_FRAMEWORK_CORE
@@ -47,8 +47,8 @@ cet_build_plugin(TimingRawDecoder art::module
 cet_build_plugin(SSPRawDecoder art::module
                         lardataobj_RawData
                         lardataobj_RecoBase
-                        dune-raw-data_Overlays
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
                         ART_FRAMEWORK_CORE
@@ -68,8 +68,8 @@ cet_build_plugin(SSPRawDecoder art::module
 cet_build_plugin(PDWaveform art::module
                          lardataobj_RawData
                          lardataobj_RecoBase
-                         dune-raw-data_Overlays
-                         dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                         dune_raw_data::dune-raw-data_Overlays
+                         dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
  			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
                          ART_FRAMEWORK_CORE
@@ -90,10 +90,10 @@ cet_build_plugin(PDWaveform art::module
 
 cet_build_plugin(RceRawDecoder art::module
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
@@ -110,10 +110,10 @@ cet_build_plugin(RceRawDecoder art::module
 
 cet_build_plugin(FelixRawDecoder art::module
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
 			dune_Geometry
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
@@ -132,10 +132,10 @@ cet_build_plugin(FelixRawDecoder art::module
 
 cet_build_plugin(FelixIntegrityTest art::module
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
 			dune_Geometry
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
@@ -154,10 +154,10 @@ cet_build_plugin(FelixIntegrityTest art::module
 
 cet_build_plugin(PDSPTPCRawDecoder art::module
                         lardataobj_RawData
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
@@ -174,7 +174,7 @@ cet_build_plugin(PDSPTPCRawDecoder art::module
 )
 
 cet_build_plugin(CRTRawDecoder art::module
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
                         dune_Geometry
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
@@ -193,7 +193,7 @@ cet_build_plugin(CRTRawDecoder art::module
 )
 
 cet_build_plugin(PDSPCTBRawDecoder art::module
-                        dune-raw-data_Overlays
+                        dune_raw_data::dune-raw-data_Overlays
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
                         ART_FRAMEWORK_CORE
@@ -216,7 +216,7 @@ art_make_library( LIBRARY_NAME dunetpc_protodune_RawDecodingUtils
                   RawDecodingUtils.cc
                   LIBRARIES
                   lardataobj_RawData
-                  dune-raw-data_Overlays
+                  dune_raw_data::dune-raw-data_Overlays
                   artdaq_core::artdaq-core_Data
 		  artdaq-core_Utilities
                   ART_FRAMEWORK_CORE

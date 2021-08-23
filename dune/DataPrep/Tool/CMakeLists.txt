@@ -170,8 +170,7 @@ cet_build_plugin(SubtractBaseline   art::tool
              )
 
 cet_build_plugin(UndershootCorr   art::tool
-              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                        dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
@@ -186,8 +185,7 @@ cet_build_plugin(UndershootCorr   art::tool
 cet_build_plugin(ExpTailRemover   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 ART_FRAMEWORK_CORE
                 ART_FRAMEWORK_PRINCIPAL
                 ART_FRAMEWORK_SERVICES_REGISTRY
@@ -202,8 +200,7 @@ cet_build_plugin(ExpTailRemover   art::tool
 cet_build_plugin(ExpTailPedRemover   art::tool
                 dune_DuneCommon_Utility
                 dune_ArtSupport
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 ART_FRAMEWORK_CORE
                 ART_FRAMEWORK_PRINCIPAL
                 ART_FRAMEWORK_SERVICES_REGISTRY
@@ -362,7 +359,7 @@ cet_build_plugin(PdspNoiseRemoval   art::tool
                ART_FRAMEWORK_SERVICES_REGISTRY
                art_Utilities canvas
                cetlib cetlib_except
-               dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+               dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                ROOT_BASIC_LIB_LIST
                ROOT_SPECTRUM
              )

@@ -142,7 +142,7 @@ cet_build_plugin(TpcMonitor art::module
               lardataalg_DetectorInfo
               lardataobj_RawData
               nusimdata_SimulationBase
-              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+              dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
               ART_FRAMEWORK_CORE
               ART_FRAMEWORK_PRINCIPAL
               ART_FRAMEWORK_SERVICES_REGISTRY
@@ -194,7 +194,7 @@ cet_build_plugin(PDSPHitMonitor art::module
               larcore_Geometry_Geometry_service
               lardataobj_RawData
               nusimdata_SimulationBase
-              dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+              dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
               ART_FRAMEWORK_CORE
               ART_FRAMEWORK_PRINCIPAL
               ART_FRAMEWORK_SERVICES_REGISTRY

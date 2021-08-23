@@ -6,7 +6,7 @@
 # Add plugin for each tool.
 
 cet_build_plugin(PdspOnlineChannel   art::tool
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except
                 ART_FRAMEWORK_SERVICES_REGISTRY
@@ -14,7 +14,7 @@ cet_build_plugin(PdspOnlineChannel   art::tool
              )
 
 cet_build_plugin(IcebergOnlineChannel   art::tool
-                dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
+                dune_raw_data::dune-raw-data_Services_ChannelMap_IcebergChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except
                 ART_FRAMEWORK_SERVICES_REGISTRY
