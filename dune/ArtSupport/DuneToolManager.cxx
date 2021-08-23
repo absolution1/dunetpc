@@ -163,25 +163,19 @@ void DuneToolManager::print() const {
 
 //**********************************************************************
 
-int
-DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet & ps) {
-  int status{0};
-  std::string_view scfg(scfgin);
-  if (scfg.empty()) {
-    status = 1;
-  } else if (scfg.front() == '{') {
-    if (scfg.back() == '}') {
-      scfg.remove_prefix(1);
-      scfg.remove_suffix(1);
-    } else {
-      status = 2;
-    }
+int DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet& ps) {
+  // Strip surrounding braces.
+  if ( scfgin.size() < 1 ) return 1;
+  string scfg;
+  if ( scfgin[0] == '{' ) {
+    if ( scfgin[scfgin.size()-1] != '}' ) return 2;
+    scfg = scfgin.substr(1, scfgin.size()-2);
+  } else {
+    scfg = scfgin;
   }
-  if (status == 0) {
-    // Parse the configuration string.
-    ps = fhicl::ParameterSet::make(fhicl::parse_document(scfg.data()));
-  }
-  return status;
+  // Parse the configuration string.
+  ps = fhicl::ParameterSet::make(scfg);
+  return 0;
 }
 
 //**********************************************************************
