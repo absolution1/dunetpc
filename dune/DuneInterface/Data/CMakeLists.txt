@@ -22,4 +22,4 @@ cet_make_library(LIBRARY_NAME dune_DuneInterface_Data_RunData INTERFACE
   LIBRARIES INTERFACE ROOT::Hist)
 
 install_headers()
-install_source( README.txt )
+install_source()
