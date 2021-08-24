@@ -88,7 +88,10 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
   ret.setInt("responseVectorCount", nrv);
 
   // If we are reading and writing to samples, make a copy of the former.
-  //Adc...
+  std::map<AdcChannel, AdcSignalVector> inSamples;
+  for ( Index icha=icha1; icha<=icha2; ++icha ) {
+    if ( acds.count(icha) ) inSamples[icha] = acds[icha].samples;
+  }
 
   // Loop over output channels.
   Index nmult = 0;
@@ -130,7 +133,7 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
           cout << myname << "    Filling from channel/bin " << jcha << "/" << jbin << endl;
         }
         if ( acds.count(jcha) == 0 ) {
-          cout << myname << "Skipping missing input channel " << jcha << endl;
+          cout << myname << "      Skipping missing input channel " << jcha << endl;
           continue;
         }
         const AdcChannelData& acdj = acds[jcha];
@@ -142,10 +145,10 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
             continue;
           }
         }
-        const AdcSignalVector& samsj = readSamples ? acdj.samples : acdj.binSamples[jbin];
+        const AdcSignalVector& samsj = readSamples ? inSamples[jcha] : acdj.binSamples[jbin];
         Index nsamj = samsj.size();
         if ( nsamj == 0 ) {
-          cout << myname << "Skipping empty channel/bin " << jcha << "/" << jbin << endl;
+          cout << myname << "      Skipping empty channel/bin " << jcha << "/" << jbin << endl;
           continue;
         }
         Index nsami = (nsamj-1)/nbint + 1;

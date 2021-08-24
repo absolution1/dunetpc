@@ -28,7 +28,9 @@ string optionString(Index iopt) {
 
 AdcToRoi2d::AdcToRoi2d(fhicl::ParameterSet const& ps)
 : m_LogLevel(ps.get<int>("LogLevel")),
-  m_Option(ps.get<Index>("Option")) {
+  m_Option(ps.get<Index>("Option")),
+  m_InputAdcMaps(ps.get<IndexVector>("InputAdcMaps")),
+  m_OutputNames(ps.get<NameVector>("OutputNames")) {
   const string myname = "AdcToRoi2d::ctor: ";
   if ( m_Option > 2 ) {
     cout << myname << "WARNING: Invalid option: " << m_Option
@@ -36,9 +38,17 @@ AdcToRoi2d::AdcToRoi2d(fhicl::ParameterSet const& ps)
   }
   // Display the configuration.
   if ( m_LogLevel>= 1 ) {
-    cout << myname << "             LogLevel: " << m_LogLevel << endl;
-    cout << myname << "               Option: " << m_Option
+    cout << myname << "     LogLevel: " << m_LogLevel << endl;
+    cout << myname << "       Option: " << m_Option
          << " (" << optionString(m_Option) << ")" << endl;
+    cout << myname << "  OutputNames: [";
+    bool first = true;
+    for ( Name nam : m_OutputNames ) {
+      if ( first ) first = false;
+      else cout << ", ";
+      cout << nam;
+    }
+    cout << "]" << endl;
   }
 }
 
@@ -62,7 +72,15 @@ DataMap AdcToRoi2d::updateTpcData(TpcData& tpd) const {
   vector<Index> ndats(nacm, 0);
   Index nerr = 0;
   if ( m_LogLevel >= 3 ) cout << myname << "Channel map count: " << nacm << endl;
-  for ( Index iacm=0; iacm<nacm; ++iacm ) {
+  IndexVector mapIndices = m_InputAdcMaps;
+  if ( mapIndices.size() == 0 ) {
+    for ( Index iacm=0; iacm<nacm; ++iacm ) mapIndices.push_back(iacm);
+  }
+  for ( Index iacm : mapIndices ) {
+    if ( iacm >= tpd.getAdcData().size() ) {
+      cout << myname << "WARNING: Skipping invalid ADC map index " << iacm << endl;
+      continue;
+    }
     LongIndex ndat = 0;
     const TpcData::AdcDataPtr pacm = tpd.getAdcData().at(iacm);
     if ( ! pacm ) {
@@ -133,7 +151,27 @@ DataMap AdcToRoi2d::updateTpcData(TpcData& tpd) const {
       // Create and fill ROI.
       tpd.get2dRois().emplace_back(ncha, ntck, icha1, itck1);
       ++nroi;
-      Tpc2dRoi& roi = tpd.get2dRois().back();
+      TpcData* ptpdo = &tpd;
+      if ( m_OutputNames.size() ) {
+        if ( iacm >= m_OutputNames.size() ) {
+          cout << myname << "WARNING: No outpu name supplied for ADC map " << iacm << endl;
+        } else {
+          Name nam = m_OutputNames[iacm];
+          ptpdo = tpd.getTpcData(nam);
+          if ( ptpdo == nullptr ) {
+            ptpdo = tpd.addTpcData(nam);
+            if ( ptpdo == nullptr ) {
+              cout << myname << "ERROR: Unable to add TpcData directory " << nam << endl;
+              continue;
+            } else if ( m_LogLevel >= 2 ) {
+              cout << myname << "Added TpcData directory " << nam << endl;
+            }
+          } else if ( m_LogLevel >= 2 ) {
+            cout << myname << "Using existing TpcData directory " << nam << endl;
+          }
+        }
+      }
+      Tpc2dRoi& roi = ptpdo->get2dRois().back();
       const TpcData::AdcDataPtr pacm = tpd.getAdcData().at(iacm);
       Tpc2dRoi::DataArray::IndexArray idxs;
       Index ndat = 0;

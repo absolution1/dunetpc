@@ -71,10 +71,10 @@ IcebergDataInterface::IcebergDataInterface(fhicl::ParameterSet const& p)
 // wrapper for backward compatibility.  Return data for all APA's represented in the fragments on these labels
 
 int IcebergDataInterface::retrieveData(art::Event &evt, 
-				       std::string inputLabel, 
-				       std::vector<raw::RawDigit> &raw_digits, 
-				       std::vector<raw::RDTimeStamp> &rd_timestamps,
-				       std::vector<raw::RDStatus> &rdstatuses)
+                                       std::string inputLabel, 
+                                       std::vector<raw::RawDigit> &raw_digits, 
+                                       std::vector<raw::RDTimeStamp> &rd_timestamps,
+                                       std::vector<raw::RDStatus> &rdstatuses)
 {
   std::vector<int> apalist;
   apalist.push_back(-1);
@@ -87,10 +87,10 @@ int IcebergDataInterface::retrieveData(art::Event &evt,
 // keep track of all the branch labels an APA's data might be on.
 
 int IcebergDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt, 
-						       std::vector<raw::RawDigit> &raw_digits, 
-						       std::vector<raw::RDTimeStamp> &rd_timestamps,
-						       std::vector<raw::RDStatus> &rdstatuses, 
-						       std::vector<int> &apalist)
+                                                       std::vector<raw::RawDigit> &raw_digits, 
+                                                       std::vector<raw::RDTimeStamp> &rd_timestamps,
+                                                       std::vector<raw::RDStatus> &rdstatuses, 
+                                                       std::vector<int> &apalist)
 {
   int totretcode = 0;
 
@@ -98,14 +98,14 @@ int IcebergDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
     { 
       auto lli = _input_labels_by_apa.find(apalist.at(i));
       if (lli == _input_labels_by_apa.end())
-	{
-	  MF_LOG_WARNING("IcebergDataInterface:") << " No list of input labels known for APA " << apalist.at(i) << " Returning no data.";
-	}
+        {
+          MF_LOG_WARNING("IcebergDataInterface:") << " No list of input labels known for APA " << apalist.at(i) << " Returning no data.";
+        }
       for (size_t j=0; j<lli->second.size(); ++j)
-	{
-	  int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rdstatuses, apalist );
-	  if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
-	}
+        {
+          int retcode = retrieveDataAPAListWithLabels(evt, lli->second.at(j), raw_digits, rd_timestamps, rdstatuses, apalist );
+          if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
+        }
     }
   _collectRDStatus(rdstatuses);
   return totretcode;
@@ -114,11 +114,11 @@ int IcebergDataInterface::retrieveDataForSpecifiedAPAs(art::Event &evt,
 // get data for a specific label, but only return those raw digits that correspond to APA's on the list
 
 int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt, 
-							std::string inputLabel, 
-							std::vector<raw::RawDigit> &raw_digits, 
-							std::vector<raw::RDTimeStamp> &rd_timestamps,
-							std::vector<raw::RDStatus> &rdstatuses, 
-							std::vector<int> &apalist)
+                                                        std::string inputLabel, 
+                                                        std::vector<raw::RawDigit> &raw_digits, 
+                                                        std::vector<raw::RDTimeStamp> &rd_timestamps,
+                                                        std::vector<raw::RDStatus> &rdstatuses, 
+                                                        std::vector<int> &apalist)
 {
 
   art::ServiceHandle<dune::IcebergChannelMapService> cmap;
@@ -132,7 +132,7 @@ int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
       _processRCE(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
   else if ( (inputLabel.find("FELIX") != std::string::npos) ||
-	    (inputLabel.find("FRAME14") != std::string::npos) )
+            (inputLabel.find("FRAME14") != std::string::npos) )
     {
       _processFELIX(evt, inputLabel, raw_digits, rd_timestamps, apalist);
     }
@@ -148,21 +148,21 @@ int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
       std::set<unsigned int> channels_seen;
 
       for (const auto& rd : raw_digits)
-	{
-	  unsigned int ichan = rd.Channel();
-	  if (channels_seen.find(ichan) == channels_seen.end())
-	    {
-	      channels_seen.insert(ichan);
-	    }
-	  else
-	    {
-	      MF_LOG_WARNING("IcebergDataInterface:") << " Duplicate channel detected: " << ichan << " Discarding TPC data for this chunk: " << inputLabel;
-	      raw_digits.clear();
-	      rd_timestamps.clear();
-	      flagged_duplicate = true;
-	      break;
-	    }
-	}
+        {
+          unsigned int ichan = rd.Channel();
+          if (channels_seen.find(ichan) == channels_seen.end())
+            {
+              channels_seen.insert(ichan);
+            }
+          else
+            {
+              MF_LOG_WARNING("IcebergDataInterface:") << " Duplicate channel detected: " << ichan << " Discarding TPC data for this chunk: " << inputLabel;
+              raw_digits.clear();
+              rd_timestamps.clear();
+              flagged_duplicate = true;
+              break;
+            }
+        }
     }
 
   if (_enforce_median_tick_count)
@@ -173,42 +173,42 @@ int IcebergDataInterface::retrieveDataAPAListWithLabels(art::Event &evt,
 
       std::vector<size_t> ticklist;
       for (size_t i=0; i<raw_digits.size(); ++i)
-	{
-	  ticklist.push_back(raw_digits.at(i).Samples());
-	}
+        {
+          ticklist.push_back(raw_digits.at(i).Samples());
+        }
       size_t tls = ticklist.size();
       size_t tickmed = 0;
       if (tls != 0)
-	{
-	  tickmed = TMath::Median(tls,ticklist.data());
-	}
+        {
+          tickmed = TMath::Median(tls,ticklist.data());
+        }
       size_t tickexample=0;
       std::vector<size_t> dlist;
       for (size_t i=0; i<raw_digits.size(); ++i)
-	{
-	  if (ticklist.at(i) != tickmed)
-	    {
-	      unsigned int channel = raw_digits.at(i).Channel();
-	      unsigned int crate = cmap->APAFromOfflineChannel(channel);
-	      unsigned int slot = cmap->WIBFromOfflineChannel(channel);
-	      unsigned int fiber = cmap->FEMBFromOfflineChannel(channel);
-	      //std::cout << "tick not at median: " << channel << " " << crate << " " << slot << " " << fiber << " " << ticklist.at(i) << " " << tickmed << std::endl;
-	      if ( (crate == 3) && (slot == 3) && (fiber == 2) && ( ticklist.at(i) > 0.9*tickmed && ticklist.at(i) < tickmed ) ) continue;  // FEMB 302
-	      dlist.push_back(i);
-	      tickexample = ticklist.at(i);
-	    }
-	}
+        {
+          if (ticklist.at(i) != tickmed)
+            {
+              unsigned int channel = raw_digits.at(i).Channel();
+              unsigned int crate = cmap->APAFromOfflineChannel(channel);
+              unsigned int slot = cmap->WIBFromOfflineChannel(channel);
+              unsigned int fiber = cmap->FEMBFromOfflineChannel(channel);
+              //std::cout << "tick not at median: " << channel << " " << crate << " " << slot << " " << fiber << " " << ticklist.at(i) << " " << tickmed << std::endl;
+              if ( (crate == 3) && (slot == 3) && (fiber == 2) && ( ticklist.at(i) > 0.9*tickmed && ticklist.at(i) < tickmed ) ) continue;  // FEMB 302
+              dlist.push_back(i);
+              tickexample = ticklist.at(i);
+            }
+        }
 
       if (dlist.size() != 0)
-	{
-	  //std::cout << "IcebergDataInterface_tool: Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample << std::endl;
-	  MF_LOG_WARNING("IcebergDataInterface_tool:") << " Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample;
-	  for (size_t i=dlist.size(); i>0; --i)
-	    {
-	      raw_digits.erase(raw_digits.begin() + dlist.at(i-1));
-	      rd_timestamps.erase(rd_timestamps.begin() + dlist.at(i-1));
-	    } 
-	}
+        {
+          //std::cout << "IcebergDataInterface_tool: Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample << std::endl;
+          MF_LOG_WARNING("IcebergDataInterface_tool:") << " Discarding data with n_ticks not at the median. Example invalid ticks: " << tickexample;
+          for (size_t i=dlist.size(); i>0; --i)
+            {
+              raw_digits.erase(raw_digits.begin() + dlist.at(i-1));
+              rd_timestamps.erase(rd_timestamps.begin() + dlist.at(i-1));
+            } 
+        }
     }
 
   unsigned int statword=0;
@@ -239,10 +239,10 @@ void IcebergDataInterface::_collectRDStatus(std::vector<raw::RDStatus> &rdstatus
 
 
 bool IcebergDataInterface::_processRCE(art::Event &evt, 
-				       std::string inputLabel,  
-				       RawDigits& raw_digits, 
-				       RDTimeStamps &timestamps, 
-				       std::vector<int> &apalist)
+                                       std::string inputLabel,  
+                                       RawDigits& raw_digits, 
+                                       RDTimeStamps &timestamps, 
+                                       std::vector<int> &apalist)
 {
   size_t n_rce_frags = 0;
   bool have_data=false;
@@ -253,13 +253,13 @@ bool IcebergDataInterface::_processRCE(art::Event &evt,
       art::Handle<artdaq::Fragments> cont_frags;
       evt.getByLabel(inputLabel,cont_frags);  
       if (cont_frags.isValid())
-	{
-	  have_data = true;
-	  if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, apalist))
-	    {
-	      return false;
-	    }
-	}
+        {
+          have_data = true;
+          if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, apalist))
+            {
+              return false;
+            }
+        }
     }
   else
     {
@@ -267,13 +267,13 @@ bool IcebergDataInterface::_processRCE(art::Event &evt,
       evt.getByLabel(inputLabel, frags); 
 
       if (frags.isValid())
-	{
-	  have_data_nc = true;
-	  if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, apalist))
-	    {
-	      return false;
-	    }
-	}
+        {
+          have_data_nc = true;
+          if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, apalist))
+            {
+              return false;
+            }
+        }
     }
 
   // returns true if we want to add to the number of fragments processed. 
@@ -282,12 +282,12 @@ bool IcebergDataInterface::_processRCE(art::Event &evt,
 }
 
 bool IcebergDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-					       size_t &n_rce_frags, 
-					       bool is_container, 
-					       art::Event &evt, 
-					       RawDigits& raw_digits, 
-					       RDTimeStamps &timestamps, 
-					       std::vector<int> &apalist)
+                                               size_t &n_rce_frags, 
+                                               bool is_container, 
+                                               art::Event &evt, 
+                                               RawDigits& raw_digits, 
+                                               RDTimeStamps &timestamps, 
+                                               std::vector<int> &apalist)
 {
     
   for (auto const& frag : *frags)
@@ -296,33 +296,33 @@ bool IcebergDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 
       bool process_flag = true;
       if (frag.sizeBytes() < _rce_frag_small_size)
-	{
-	  if ( _drop_small_rce_frags )
-	    { 
-	      MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
-	      _DiscardedCorruptData = true;
-	      process_flag = false;
-	    }
-	  else
-	    {
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if ( _drop_small_rce_frags )
+            { 
+              MF_LOG_WARNING("_process_RCE:") << " Small RCE fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
+              _DiscardedCorruptData = true;
+              process_flag = false;
+            }
+          else
+            {
+              _KeptCorruptData = true;
+            }
+        }
       if (process_flag)
-	{
-	  if (is_container)
-	    {
-	      artdaq::ContainerFragment cont_frag(frag);
-	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-		{
-		  if (_process_RCE_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist)) ++n_rce_frags;
-		}
-	    }
-	  else
-	    {
-	      if (_process_RCE_AUX(evt,frag, raw_digits, timestamps, apalist)) ++n_rce_frags;
-	    }
-	}
+        {
+          if (is_container)
+            {
+              artdaq::ContainerFragment cont_frag(frag);
+              for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+                {
+                  if (_process_RCE_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist)) ++n_rce_frags;
+                }
+            }
+          else
+            {
+              if (_process_RCE_AUX(evt,frag, raw_digits, timestamps, apalist)) ++n_rce_frags;
+            }
+        }
     }
   evt.removeCachedProduct(frags);  // do this always, even if we need to re-read a TBranch
   return true;
@@ -330,12 +330,12 @@ bool IcebergDataInterface::_rceProcContNCFrags(art::Handle<artdaq::Fragments> fr
 
 
 bool IcebergDataInterface::_process_RCE_AUX(
-					    art::Event &evt,
-					    const artdaq::Fragment& frag, 
-					    RawDigits& raw_digits,
-					    RDTimeStamps &timestamps,
-					    std::vector<int> &apalist
-					    )
+                                            art::Event &evt,
+                                            const artdaq::Fragment& frag, 
+                                            RawDigits& raw_digits,
+                                            RDTimeStamps &timestamps,
+                                            std::vector<int> &apalist
+                                            )
 {
 
   if (_rce_hex_dump)
@@ -344,25 +344,25 @@ bool IcebergDataInterface::_process_RCE_AUX(
       oldState.copyfmt(std::cout);
 
       std::cout << "RCE Fragment: all numbers in hex "  << std::hex
-		<< "   SequenceID = " << frag.sequenceID()
-		<< "   fragmentID = " << frag.fragmentID()
-		<< "   fragmentType = " << (unsigned)frag.type()
-		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+                << "   SequenceID = " << frag.sequenceID()
+                << "   fragmentID = " << frag.fragmentID()
+                << "   fragmentType = " << (unsigned)frag.type()
+                << "   Timestamp =  " << frag.timestamp() << std::endl;
       std::cout << "Offset      Data";
       artdaq::Fragment fragloc(frag);
       unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
       size_t dsize = fragloc.dataSizeBytes();
       size_t offcounter=0;
       for (size_t bcounter=0; bcounter<dsize;++bcounter)
-	{
-	  if ( (offcounter % 8) == 0 )
-	    {
-	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
-	    }
-	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
-	  dbegin++;
-	  offcounter++;
-	}
+        {
+          if ( (offcounter % 8) == 0 )
+            {
+              std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
+            }
+          std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+          dbegin++;
+          offcounter++;
+        }
       std::cout << std::endl;
       std::cout.copyfmt(oldState);
     }
@@ -423,15 +423,15 @@ bool IcebergDataInterface::_process_RCE_AUX(
       // only take this rce stream if it has data from an APA we are interested in
       bool foundapainlist = false;
       for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
-	{
-	  if (  ( (apalist[ialist] == -1) && (!_rce_drop_frags_with_badc || (crateNumber >0 && crateNumber < 7)) )  || 
-		(apalist[ialist] == (int) crateNumber) ||
-		(apalist[ialist] == 7 && (crateNumber == 0 || crateNumber > 6)) )
-	    {
-	      foundapainlist = true;
-	      break;
-	    }
-	}
+        {
+          if (  ( (apalist[ialist] == -1) && (!_rce_drop_frags_with_badc || (crateNumber >0 && crateNumber < 7)) )  || 
+                (apalist[ialist] == (int) crateNumber) ||
+                (apalist[ialist] == 7 && (crateNumber == 0 || crateNumber > 6)) )
+            {
+              foundapainlist = true;
+              break;
+            }
+        }
       if (!foundapainlist) continue;
       
       //std::cout << "Processing an RCE Stream: " << crateNumber << " " << slotNumber << " " << fiberNumber << " " << n_ticks << " " << n_ch << std::endl;
@@ -446,98 +446,98 @@ bool IcebergDataInterface::_process_RCE_AUX(
       // note Shekhar's FEMB number is fiber-1, and WIB is slot+1
 
       if (runNumber > 2572)
-	{
-	  auto oldfiber = fiberNumber;
-	  auto oldslot = slotNumber;
+        {
+          auto oldfiber = fiberNumber;
+          auto oldslot = slotNumber;
 
-	  if (oldslot == 0 && oldfiber == 4)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 4)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 4;
-	    }
-	  if (oldslot == 0 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 4;
-	    }
-	}
+          if (oldslot == 0 && oldfiber == 4)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 4)
+            {
+              slotNumber = 0;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 0;
+              fiberNumber = 4;
+            }
+          if (oldslot == 0 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 4;
+            }
+        }
 
       // two cable swaps on June 20, 2019, and go back to the original on Jan 22, 2020
 
       if (runNumber > 1530 && runNumber < 2572)
-      	{
-	  auto oldfiber = fiberNumber;
-	  auto oldslot = slotNumber;
+        {
+          auto oldfiber = fiberNumber;
+          auto oldslot = slotNumber;
 
-	  // second swap, June 21, 2019 -- see Slack
+          // second swap, June 21, 2019 -- see Slack
 
-	  if (oldslot == 2 && oldfiber == 1)
-	    {
-	      slotNumber = 2;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 1)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 2 && oldfiber == 3)
-	    {
-	      slotNumber = 2;
-	      fiberNumber = 1;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 1;
-	    }
+          if (oldslot == 2 && oldfiber == 1)
+            {
+              slotNumber = 2;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 1)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 2 && oldfiber == 3)
+            {
+              slotNumber = 2;
+              fiberNumber = 1;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 1;
+            }
 
-	  oldfiber = fiberNumber;
-	  oldslot = slotNumber;
+          oldfiber = fiberNumber;
+          oldslot = slotNumber;
 
-	  if (oldslot == 0 && oldfiber == 4)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 1 && oldfiber == 4)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 3;
-	    }
-	  if (oldslot == 0 && oldfiber == 3)
-	    {
-	      slotNumber = 1;
-	      fiberNumber = 4;
-	    }
-	  if (oldslot == 1 && oldfiber == 3)
-	    {
-	      slotNumber = 0;
-	      fiberNumber = 4;
-	    }
-     	}
+          if (oldslot == 0 && oldfiber == 4)
+            {
+              slotNumber = 1;
+              fiberNumber = 3;
+            }
+          if (oldslot == 1 && oldfiber == 4)
+            {
+              slotNumber = 0;
+              fiberNumber = 3;
+            }
+          if (oldslot == 0 && oldfiber == 3)
+            {
+              slotNumber = 1;
+              fiberNumber = 4;
+            }
+          if (oldslot == 1 && oldfiber == 3)
+            {
+              slotNumber = 0;
+              fiberNumber = 4;
+            }
+        }
 
       // skip the fake TPC data
 
       if ( slotNumber == 1 && fiberNumber == 1 ) 
-	{
-	  continue;
-	}
+        {
+          continue;
+        }
 
       if ( slotNumber == 2 && fiberNumber == 1 )
-	{
-	  continue;
-	}
+        {
+          continue;
+        }
 
       //std::cout << "  After cable swap : WIB: " << slotNumber+1 << " FEMB: " << fiberNumber-1 << std::endl;
 
@@ -546,48 +546,48 @@ bool IcebergDataInterface::_process_RCE_AUX(
       //------------------------------------------------------------------------------------------
 
       if (slotNumber > 4 || fiberNumber == 0 || fiberNumber > 4)
-	{
-	  if (_rce_drop_frags_with_badsf)
-	    {
-	      MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
-					      << crateNumber << " " << slotNumber << " " << fiberNumber;
+        {
+          if (_rce_drop_frags_with_badsf)
+            {
+              MF_LOG_WARNING("_process_RCE:") << "Bad crate, slot, fiber number, discarding fragment on request: " 
+                                              << crateNumber << " " << slotNumber << " " << fiberNumber;
               _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false;
+            }
+          _KeptCorruptData = true;
+        }
 
       if (n_ticks != _full_tick_count)
-	{
-	  if (_enforce_full_tick_count)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
-						  << _full_tick_count << " Discarding Data";
+        {
+          if (_enforce_full_tick_count)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks not the required value: " << n_ticks << " " 
+                                                  << _full_tick_count << " Discarding Data";
               _DiscardedCorruptData = true;
-	      return false; 
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false; 
+            }
+          _KeptCorruptData = true;
+        }
 
       if (!_initialized_tick_count_this_event)
-	{
-	  _initialized_tick_count_this_event = true;
-	  _tick_count_this_event = n_ticks;
-	}
+        {
+          _initialized_tick_count_this_event = true;
+          _tick_count_this_event = n_ticks;
+        }
       else
-	{
-	  if (n_ticks != _tick_count_this_event)
-	    {
-	      if (_enforce_same_tick_count)
-		{
-		  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
-						      << " vs " << _tick_count_this_event << " Discarding Data";
-		  _DiscardedCorruptData = true;
-		  return false;
-		}
-	    }
-	  _KeptCorruptData = true;
-	}
+        {
+          if (n_ticks != _tick_count_this_event)
+            {
+              if (_enforce_same_tick_count)
+                {
+                  MF_LOG_WARNING("_process_RCE_AUX:") << "Nticks different for two channel streams: " << n_ticks 
+                                                      << " vs " << _tick_count_this_event << " Discarding Data";
+                  _DiscardedCorruptData = true;
+                  return false;
+                }
+            }
+          _KeptCorruptData = true;
+        }
 
 
       //MF_LOG_INFO("_Process_RCE_AUX")
@@ -600,35 +600,35 @@ bool IcebergDataInterface::_process_RCE_AUX(
       size_t buffer_size = n_ch * n_ticks;
 
       if (buffer_size > _rce_buffer_size_checklimit)
-	{
-	  if (_rce_check_buffer_size)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "n_ch*nticks too large: " << n_ch << " * " << n_ticks << " = " << 
-		buffer_size << " larger than: " <<  _rce_buffer_size_checklimit << ".  Discarding this fragment";
-	      _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  else
-	    {
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if (_rce_check_buffer_size)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "n_ch*nticks too large: " << n_ch << " * " << n_ticks << " = " << 
+                buffer_size << " larger than: " <<  _rce_buffer_size_checklimit << ".  Discarding this fragment";
+              _DiscardedCorruptData = true;
+              return false;
+            }
+          else
+            {
+              _KeptCorruptData = true;
+            }
+        }
 
       std::vector<int16_t> _buffer(buffer_size);
 
       int16_t* adcs = _buffer.data();
       bool sgmcdretcode = rce_stream->getMultiChannelData(adcs);
       if (!sgmcdretcode)
-	{
-	  if (_enforce_error_free)
-	    {
-	      MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
-						  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
+        {
+          if (_enforce_error_free)
+            {
+              MF_LOG_WARNING("_process_RCE_AUX:") << "getMutliChannelData returns error flag: " 
+                                                  << " c:s:f:ich: " << crateNumber << " " << slotNumber << " " << fiberNumber << " Discarding Data";
               _DiscardedCorruptData = true;
-	      return false;
-	    }
-	  _KeptCorruptData = true;
-	}
+              return false;
+            }
+          _KeptCorruptData = true;
+        }
 
       //std::cout << "RCE raw decoder trj: " << crateNumber << " " << slotNumber << " " << fiberNumber << std::endl;
 
@@ -639,41 +639,41 @@ bool IcebergDataInterface::_process_RCE_AUX(
 
       raw::RawDigit::ADCvector_t v_adc;
       for (size_t i_ch = 0; i_ch < n_ch; i_ch++)
-	{
-	  unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
+        {
+          unsigned int offlineChannel = channelMap->GetOfflineNumberFromDetectorElements(crateloc, slotNumber, fiberNumber, i_ch, dune::IcebergChannelMapService::kRCE);
 
-	  if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
-	      (offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+          if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
+              (offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
 
-	  v_adc.clear();
+          v_adc.clear();
 
-	  for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
-	    {
-	      v_adc.push_back(adcs[i_tick]);
-	    }
+          for (size_t i_tick = 0; i_tick < n_ticks; i_tick++)
+            {
+              v_adc.push_back(adcs[i_tick]);
+            }
 
-	  adcs += n_ticks;
+          adcs += n_ticks;
 
-	  ch_counter++;
+          ch_counter++;
 
-	  float median=0;
-	  float sigma=0;
-	  computeMedianSigma(v_adc,median,sigma);
+          float median=0;
+          float sigma=0;
+          computeMedianSigma(v_adc,median,sigma);
 
-	  /// FEMB 302 IS crate 3, slot 3, fiber 2
+          /// FEMB 302 IS crate 3, slot 3, fiber 2
 
-	  auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
+          auto uncompressed_nticks = v_adc.size();  // can be different from n_ticks due to padding of FEMB 302
 
-	  raw::Compress_t cflag=raw::kNone;
-	  // here n_ticks is the uncompressed size as required by the constructor
-	  raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
-	  raw_digit.SetPedestal(median,sigma);
-	  raw_digits.push_back(raw_digit);  
+          raw::Compress_t cflag=raw::kNone;
+          // here n_ticks is the uncompressed size as required by the constructor
+          raw::RawDigit raw_digit(offlineChannel, uncompressed_nticks, v_adc, cflag);
+          raw_digit.SetPedestal(median,sigma);
+          raw_digits.push_back(raw_digit);  
 
-	  raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
-	  timestamps.push_back(rdtimestamp);
+          raw::RDTimeStamp rdtimestamp(rce_stream->getTimeStamp(),offlineChannel);
+          timestamps.push_back(rdtimestamp);
 
-	} // end loop over channels
+        } // end loop over channels
     }  // end loop over RCE streams (1 per FEMB)
   // end processing one RCE fragment
   return true;
@@ -682,10 +682,10 @@ bool IcebergDataInterface::_process_RCE_AUX(
 
 
 bool IcebergDataInterface::_processFELIX(art::Event &evt, 
-					 std::string inputLabel, 
-					 RawDigits& raw_digits, 
-					 RDTimeStamps &timestamps, 
-					 std::vector<int> &apalist)
+                                         std::string inputLabel, 
+                                         RawDigits& raw_digits, 
+                                         RDTimeStamps &timestamps, 
+                                         std::vector<int> &apalist)
 {
   size_t n_felix_frags = 0;
   bool have_data=false;
@@ -696,13 +696,13 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
       art::Handle<artdaq::Fragments> cont_frags;
       evt.getByLabel(inputLabel,cont_frags);  
       if (cont_frags.isValid())
-	{
-	  have_data = true;
-	  if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist, inputLabel))
-	    {
-	      return false;
-	    }
-	}
+        {
+          have_data = true;
+          if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist, inputLabel))
+            {
+              return false;
+            }
+        }
     }
   else
     {
@@ -710,13 +710,13 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
       evt.getByLabel(inputLabel, frags); 
 
       if (frags.isValid())
-	{
-	  have_data_nc = true;
-	  if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist, inputLabel))
-	    {
-	      return false;
-	    }
-	}
+        {
+          have_data_nc = true;
+          if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist, inputLabel))
+            {
+              return false;
+            }
+        }
     }
 
   // returns true if we want to add to the number of fragments processed. 
@@ -725,13 +725,13 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
 }
 
 bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> frags, 
-						 size_t &n_felix_frags, 
-						 bool is_container, 
-						 art::Event &evt, 
-						 RawDigits& raw_digits, 
-						 RDTimeStamps &timestamps, 
-						 std::vector<int> &apalist,
-						 std::string inputLabel)
+                                                 size_t &n_felix_frags, 
+                                                 bool is_container, 
+                                                 art::Event &evt, 
+                                                 RawDigits& raw_digits, 
+                                                 RDTimeStamps &timestamps, 
+                                                 std::vector<int> &apalist,
+                                                 std::string inputLabel)
 {
   uint32_t runNumber = evt.run();
 
@@ -741,33 +741,33 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 
       bool process_flag = true;
       if (frag.sizeBytes() < _felix_frag_small_size)
-	{
-	  if ( _drop_small_felix_frags )
-	    { 
-	      MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
-	      _DiscardedCorruptData = true;
-	      process_flag = false;
-	    }
-	  else
-	    {
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if ( _drop_small_felix_frags )
+            { 
+              MF_LOG_WARNING("_process_FELIX:") << " Small FELIX fragment size: " << frag.sizeBytes() << " Discarding just this fragment on request.";
+              _DiscardedCorruptData = true;
+              process_flag = false;
+            }
+          else
+            {
+              _KeptCorruptData = true;
+            }
+        }
       if (process_flag)
-	{
-	  if (is_container)
-	    {
-	      artdaq::ContainerFragment cont_frag(frag);
-	      for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
-		{
-		  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
-		}
-	    }
-	  else
-	    {
-	      if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
-	    }
-	}
+        {
+          if (is_container)
+            {
+              artdaq::ContainerFragment cont_frag(frag);
+              for (size_t ii = 0; ii < cont_frag.block_count(); ++ii)
+                {
+                  if (_process_FELIX_AUX(evt,*cont_frag[ii], raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
+                }
+            }
+          else
+            {
+              if (_process_FELIX_AUX(evt,frag, raw_digits, timestamps, apalist, runNumber, inputLabel)) ++n_felix_frags;
+            }
+        }
     }
   evt.removeCachedProduct(frags);
   return true;
@@ -775,11 +775,11 @@ bool IcebergDataInterface::_felixProcContNCFrags(art::Handle<artdaq::Fragments> 
 
 
 bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
-					      const artdaq::Fragment& frag, RawDigits& raw_digits,
-					      RDTimeStamps &timestamps,
-					      std::vector<int> &apalist,
-					      uint32_t runNumber,
-					      std::string inputLabel)
+                                              const artdaq::Fragment& frag, RawDigits& raw_digits,
+                                              RDTimeStamps &timestamps,
+                                              std::vector<int> &apalist,
+                                              uint32_t runNumber,
+                                              std::string inputLabel)
 {
 
   //std::cout 
@@ -794,25 +794,25 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       oldState.copyfmt(std::cout);
 
       std::cout << "FELIX Fragment: all numbers in hex "  << std::hex
-		<< "   SequenceID = " << frag.sequenceID()
-		<< "   fragmentID = " << frag.fragmentID()
-		<< "   fragmentType = " << (unsigned)frag.type()
-		<< "   Timestamp =  " << frag.timestamp() << std::endl;
+                << "   SequenceID = " << frag.sequenceID()
+                << "   fragmentID = " << frag.fragmentID()
+                << "   fragmentType = " << (unsigned)frag.type()
+                << "   Timestamp =  " << frag.timestamp() << std::endl;
       std::cout << "Offset      Data";
       artdaq::Fragment fragloc(frag);
       unsigned char *dbegin = reinterpret_cast<unsigned char *>(fragloc.dataAddress());
       size_t dsize = fragloc.dataSizeBytes();
       size_t offcounter=0;
       for (size_t bcounter=0; bcounter<dsize;++bcounter)
-	{
-	  if ( (offcounter % 8) == 0 )
-	    {
-	      std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
-	    }
-	  std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
-	  dbegin++;
-	  offcounter++;
-	}
+        {
+          if ( (offcounter % 8) == 0 )
+            {
+              std::cout << std::endl << std::hex << std::setfill('0') << std::setw(8) << offcounter << " ";
+            }
+          std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) *dbegin << " ";
+          dbegin++;
+          offcounter++;
+        }
       std::cout << std::endl;
       std::cout.copyfmt(oldState);
     }
@@ -851,10 +851,10 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
       //std::cout << "ICEBERG frame_version, crate, slot, fiber, fragID: " << frame_version << " "
       //   << (int) crate << " " << (int) slot << " " << (int) fiber << " " << (int) frag.fragmentID() << std::endl;
       if (frame_version == 0) 
-	{
-	  std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
-	  return false;
-	}
+        {
+          std::cout << "ICEBERG frame_version = 0; skipping this fragment" << std::endl;
+          return false;
+        }
       fiber ++;  // read in 0 to 1, go from 1 to 2
       crate = 1;  // ignored anyway for Iceberg -- just one crate.
     }
@@ -868,11 +868,11 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
   if (slot > 4) 
     {
       if (_felix_drop_frags_with_badsf)  
-	{
-	  _DiscardedCorruptData = true;
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
-	  return false;
-	}
+        {
+          _DiscardedCorruptData = true;
+          MF_LOG_WARNING("_process_FELIX_AUX:") << "Invalid crate or slot: c=" << (int) crate << " s=" << (int) slot << " discarding FELIX data.";
+          return false;
+        }
       _KeptCorruptData = true;
     }
 
@@ -881,12 +881,12 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
   for (size_t ialist=0; ialist < apalist.size(); ++ ialist)
     {
       if ( ( (apalist[ialist] == -1)    && (!_rce_drop_frags_with_badc || (crate >0 && crate < 7)) )      || 
-	   (apalist[ialist] == (int) crate) || 
-	   (apalist[ialist] == 7 && (crate == 0 || crate > 6)) )
-	{
-	  foundapainlist = true;
-	  break;
-	}
+           (apalist[ialist] == (int) crate) || 
+           (apalist[ialist] == 7 && (crate == 0 || crate > 6)) )
+        {
+          foundapainlist = true;
+          break;
+        }
     }
   if (!foundapainlist) return true;
 
@@ -914,16 +914,16 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
   if (n_frames*n_channels > _felix_buffer_size_checklimit)
     {
       if (_felix_check_buffer_size)
-	{
-	  MF_LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
-	    n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
-	  _DiscardedCorruptData = true;
-	  return false;
-	}
+        {
+          MF_LOG_WARNING("_process_FELIX_AUX:") << "n_channels*n_frames too large: " << n_channels << " * " << n_frames << " = " << 
+            n_frames*n_channels << " larger than: " <<  _felix_buffer_size_checklimit << ".  Discarding this fragment";
+          _DiscardedCorruptData = true;
+          return false;
+        }
       else
-	{
-	  _KeptCorruptData = true;
-	}
+        {
+          _KeptCorruptData = true;
+        }
     }
 
   // this test does not yet exist for Frame14
@@ -931,21 +931,21 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
   if (!is14)
     {
       for (unsigned int iframe=0; iframe<n_frames; ++iframe)
-	{
-	  if ( felixptr->wib_errors(iframe) != 0)
-	    {
-	      if (_enforce_error_free )
-		{
-		  _DiscardedCorruptData = true;
-		  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
-							<< " Discarding Data";
-		  // drop just this fragment
-		  //_discard_data = true;
-		  return true;
-		}
-	      _KeptCorruptData = true;
-	    }
-	}
+        {
+          if ( felixptr->wib_errors(iframe) != 0)
+            {
+              if (_enforce_error_free )
+                {
+                  _DiscardedCorruptData = true;
+                  MF_LOG_WARNING("_process_FELIX_AUX:") << "WIB Errors on frame: " << iframe << " : " << felixptr->wib_errors(iframe)
+                                                        << " Discarding Data";
+                  // drop just this fragment
+                  //_discard_data = true;
+                  return true;
+                }
+              _KeptCorruptData = true;
+            }
+        }
     }
 
   // check optimization of this -- size not reserved
@@ -961,32 +961,74 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
     unsigned int fiberloc = 0;
     if (fiber == 1) 
       {
-	fiberloc = 1;
+        fiberloc = 1;
       }
     else if (fiber == 2)
       {
-	fiberloc = 3;
+        fiberloc = 3;
       }
     else
       {
-	MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
-	fiberloc = 1;
-	if (_felix_drop_frags_with_badsf) 
-	  {
-	    MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
-	    return false;
-	  }
+        MF_LOG_WARNING("_process_FELIX_AUX:") << " Fiber number " << (int) fiber << " is expected to be 1 or 2 -- revisit logic";
+        fiberloc = 1;
+        if (_felix_drop_frags_with_badsf) 
+          {
+            MF_LOG_WARNING("_process_FELIX_AUX:") << " Dropping FELIX Data";
+            return false;
+          }
       }
 
     unsigned int chloc = ch;
     if (chloc > 127)
       {
-	chloc -= 128;
-	fiberloc++;
+        chloc -= 128;
+        fiberloc++;
       }
     unsigned int crateloc = crate;  
     // David Adams's request for channels to start at zero for coldbox test data
     if (crateloc == 0 || crateloc > 6) crateloc = _default_crate_if_unexpected;  
+    // conversion of Run 7 slot and fibers to Run 5
+
+    if (runNumber > 9745)
+      {
+        auto slotloc3 = slot;
+        auto fiberloc3 = fiberloc;
+
+        // conversion map
+        // run 7 slot, run 7 fiber, run 5 slot, run 5 fiber
+        unsigned int sfmap[10][4] = 
+          {
+            {4, 1,  0, 4},
+	    {3, 4,  1, 4},
+            {3, 3,  2, 4},
+	    {3, 2,  0, 3},
+	    {3, 1,  1, 3},
+	    {0, 1,  0, 1},
+	    {0, 2,  2, 2},
+	    {0, 3,  1, 2},
+	    {0, 4,  0, 2},
+	    {1, 1,  2, 3}
+          };
+        bool found = false;
+        for (size_t imap = 0; imap<10; ++imap)
+          {
+            if (slot == sfmap[imap][0] && fiberloc == sfmap[imap][1])
+              {
+                slotloc3 = sfmap[imap][2];
+                fiberloc3 = sfmap[imap][3];
+                found = true;
+                break;
+              }
+            if (!found)
+              {
+                std::cout << "Slot, fiber not understood in mapping from Run 7 to Run 5: " << (int) slot << " " << (int) fiberloc << std::endl;
+                slotloc3 = 0;
+                fiberloc3 = 4;
+              }
+          }
+        slot = slotloc3;
+        fiberloc = fiberloc3;
+      }
 
 
     // inverted ordering on back side, Run 2c (=Run 3)
@@ -1038,12 +1080,12 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
     // skip this channel if we are asked to.
 
     if (_max_offline_channel >= 0 && _min_offline_channel >= 0 && _max_offline_channel >= _min_offline_channel && 
-	(offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
+        (offlineChannel < (size_t) _min_offline_channel || offlineChannel > (size_t) _max_offline_channel) ) continue;
 
     v_adc.clear();
     std::vector<dune::adc_t> waveform( is14 ? 
-				       frame14ptr->get_ADCs_by_channel(ch) : 
-				       felixptr->get_ADCs_by_channel(ch) );
+                                       frame14ptr->get_ADCs_by_channel(ch) : 
+                                       felixptr->get_ADCs_by_channel(ch) );
 
     for(unsigned int nframe=0;nframe<waveform.size();nframe++){
       v_adc.push_back(waveform.at(nframe));  
@@ -1051,34 +1093,34 @@ bool IcebergDataInterface::_process_FELIX_AUX(art::Event &evt,
 
     if ( v_adc.size() != _full_tick_count)
       {
-	if (_enforce_full_tick_count)
-	  {
-	    MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
-						  << _full_tick_count << " Discarding Data";
-	    _DiscardedCorruptData = true;
-	    return true; 
-	  }
-	_KeptCorruptData = true;
+        if (_enforce_full_tick_count)
+          {
+            MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks not the required value: " << v_adc.size() << " " 
+                                                  << _full_tick_count << " Discarding Data";
+            _DiscardedCorruptData = true;
+            return true; 
+          }
+        _KeptCorruptData = true;
       }
 
     if (!_initialized_tick_count_this_event)
       {
-	_initialized_tick_count_this_event = true;
-	_tick_count_this_event = v_adc.size();
+        _initialized_tick_count_this_event = true;
+        _tick_count_this_event = v_adc.size();
       }
     else
       {
-	if (_enforce_same_tick_count)
-	  {
-	    if (v_adc.size() != _tick_count_this_event)
-	      {
-		MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
-						      << " vs " << _tick_count_this_event << " Discarding Data";
-		_DiscardedCorruptData = true;
-		return true;
-	      }
-	    _KeptCorruptData = true;
-	  }
+        if (_enforce_same_tick_count)
+          {
+            if (v_adc.size() != _tick_count_this_event)
+              {
+                MF_LOG_WARNING("_process_FELIX_AUX:") << "Nticks different for two channel streams: " << v_adc.size() 
+                                                      << " vs " << _tick_count_this_event << " Discarding Data";
+                _DiscardedCorruptData = true;
+                return true;
+              }
+            _KeptCorruptData = true;
+          }
       }
 
     float median=0;
@@ -1123,16 +1165,16 @@ void IcebergDataInterface::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc,
       size_t s1 = 0;
       size_t sm = 0;
       for (size_t i=0; i<asiz; ++i)
-	{
-	  if (v_adc[i] < imed) s1++;
-	  if (v_adc[i] == imed) sm++;
-	}
+        {
+          if (v_adc[i] < imed) s1++;
+          if (v_adc[i] == imed) sm++;
+        }
       if (sm > 0)
-	{
-	  float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
-	  //if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
-	  median += mcorr;
-	}
+        {
+          float mcorr = (-0.5 + (0.5*(float) asiz - (float) s1)/ ((float) sm) );
+          //if (std::abs(mcorr)>1.0) std::cout << "mcorr: " << mcorr << std::endl;
+          median += mcorr;
+        }
     }
 }
 
