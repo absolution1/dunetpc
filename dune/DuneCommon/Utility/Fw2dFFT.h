@@ -56,7 +56,7 @@ public:
   //   1 - Insufficent size for input data.
   //   2 - Insufficient size for output (DFT) data.
   //   3 - One or more dimensions has size zero.
-  bool checkDataSize(const IndexArray& nsams) const;
+  Index checkDataSize(const IndexArray& nsams) const;
 
   // Return if we have  plan for given data sizes.
   bool haveForwardPlan(const IndexArray& nsams) const;

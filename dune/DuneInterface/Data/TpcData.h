@@ -62,7 +62,7 @@ public:
   // in constituent target.
   // Fails and returns null if the name is already used or the
   // target does not already exist.
-  // If copyAdcData is true, the new bject copies the AdcData (pointers).
+  // If copyAdcData is true, the new object copies the AdcData (pointers).
   TpcData* addTpcData(Name nam, bool copyAdcData =true);
 
   // Return a constituent TPC data object by name.

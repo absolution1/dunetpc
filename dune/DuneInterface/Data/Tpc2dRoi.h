@@ -68,6 +68,10 @@ public:
   Dft* dft() { return m_pdft.get(); }
   const Dft* dft() const { return m_pdft.get(); }
 
+  // Reset the DFT data pointer. Existing data is deleted.
+  // This class now owns that DFT data.
+  void resetDft(Dft* pdft) { m_pdft.reset(pdft); }
+
 private:
 
   Real2dData<float> m_data;

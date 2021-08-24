@@ -127,6 +127,8 @@ public:
   }
 
   // Return the index arrays for a global index.
+  // Empty if idat is out of range (>= size())
+  // Otherwise returns one or two pairs
   IndexArrayVector indexArrays(Index idat) const  {
     IndexArrayVector arrs;
     Index nfrq0 = m_nsams[0];
