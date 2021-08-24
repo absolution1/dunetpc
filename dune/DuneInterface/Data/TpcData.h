@@ -87,6 +87,13 @@ public:
   // Delete the ADC data. References in acestor and descendants are not affected.
   void clearAdcData();
 
+  // Print a brief description of thid object:
+  // # ADC maps and channels for each.
+  // # 2D ROIS
+  // # constituents
+  // Same for each constituent to the indicated depth.
+  std::ostream& print(Name prefix, Index depth =10) const;
+
 private:
 
   TpcData*       m_parent;

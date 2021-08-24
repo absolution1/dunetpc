@@ -2,6 +2,9 @@
 
 #include "dune/DuneInterface/Data/TpcData.h"
 
+using std::cout;
+using std::endl;
+
 //**********************************************************************
 
 TpcData::TpcData() : m_parent(nullptr) { }
@@ -109,6 +112,36 @@ TpcData::AdcDataPtr TpcData::addAdcData(AdcDataPtr padc, bool updateParent) {
 
 void TpcData::clearAdcData() {
   m_adcs.clear();
+}
+
+//**********************************************************************
+
+std::ostream& TpcData::print(Name prefix, Index depth) const {
+  Index nmap = getAdcData().size();
+  cout << prefix << "ADC Channel map count is " << nmap;
+  if ( nmap ) cout << ":";
+  cout << endl;
+  for ( const AdcDataPtr& pacm : getAdcData() ) {
+    if ( ! pacm ) cout << "NULL" << endl;
+    else {
+      cout << prefix << "  " << "Channel count " << pacm->size();
+      if ( pacm->size() ) {
+        cout << " in range [" << pacm->begin()->first << ", " << pacm->rbegin()->first << "]";
+      }
+      cout << endl;
+    }
+  }
+  cout << prefix << "2D ROI count is " << get2dRois().size() << endl;
+  cout << prefix << "TPC data count is " << getData().size();
+  if ( getData().size() ) cout << ":";
+  cout << endl;
+  if ( depth > 0 ) {
+    for ( const TpcDataMap::value_type& itpd : getData() ) {
+      cout << prefix << itpd.first << ":" << endl;
+      itpd.second.print(prefix + "  ", depth - 1);
+    }
+  }
+  return cout;
 }
 
 //**********************************************************************

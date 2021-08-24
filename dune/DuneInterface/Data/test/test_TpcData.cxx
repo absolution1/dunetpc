@@ -124,6 +124,10 @@ int test_TpcData() {
   assert( dats1x[1] == pdat12 );
 
   cout << line << endl;
+  cout << myname << "Print object." << endl;
+  tpd.print(myname);
+
+  cout << line << endl;
   cout << myname << "All tests passed." << endl;
   return 0;
 }
