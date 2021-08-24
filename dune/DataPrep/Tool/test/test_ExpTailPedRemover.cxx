@@ -11,9 +11,9 @@
 #include <sstream>
 #include <iomanip>
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
-#include "dune/DuneCommon/SampleTailer.h"
-#include "dune/DuneCommon/LineColors.h"
-#include "dune/DuneCommon/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/SampleTailer.h"
+#include "dune/DuneCommon/Utility/LineColors.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TRandom.h"
 #include "TH1F.h"

@@ -4,8 +4,8 @@
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeGroupTool.h"
-#include "dune/DuneCommon/TPadManipulator.h"
-#include "dune/DuneCommon/StringManipulator.h"
+#include "dune/DuneCommon/Utility/TPadManipulator.h"
+#include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include <iostream>
 #include <sstream>

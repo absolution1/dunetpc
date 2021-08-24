@@ -45,7 +45,7 @@
 #include "dune/DuneInterface/Service/ChannelGroupService.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
 #include "dune/DuneInterface/Tool/IndexRangeTool.h"
-#include "dune/DuneCommon/DuneTimeConverter.h"
+#include "dune/DuneCommon/Utility/DuneTimeConverter.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "TTimeStamp.h"
 #include "lardataobj/RawData/RDTimeStamp.h"

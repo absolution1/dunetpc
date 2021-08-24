@@ -7,7 +7,7 @@
 
 #undef NDEBUG
 
-#include "dune/DuneCommon/RootPalette.h"
+#include "dune/DuneCommon/Utility/RootPalette.h"
 #include <string>
 #include <iostream>
 #include <iomanip>

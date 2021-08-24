@@ -7,7 +7,7 @@
 
 #undef NDEBUG
 
-#include "dune/DuneCommon/coldelecResponse.h"
+#include "dune/DuneCommon/Utility/coldelecResponse.h"
 #include <string>
 #include <iostream>
 #include <iomanip>

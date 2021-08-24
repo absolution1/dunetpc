@@ -1,6 +1,6 @@
 // quietHistFit.cxx
 
-#include "dune/DuneCommon/quietHistFit.h"
+#include "dune/DuneCommon/Utility/quietHistFit.h"
 #include "TFitResult.h"
 
 #include "TF1.h"

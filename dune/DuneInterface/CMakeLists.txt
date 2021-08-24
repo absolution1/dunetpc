@@ -6,6 +6,7 @@
 # CMake instructions for DUNE service interface classes.
 
 add_subdirectory(Data)
+add_subdirectory(Utility)
 add_subdirectory(Tool)
 add_subdirectory(Service)
 

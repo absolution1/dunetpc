@@ -15,7 +15,7 @@ dunefd_services_legacy: {
  LArPropertiesService:           @local::dunefd_properties
  LArFFT:                         @local::dunefd_larfft
  DatabaseUtil:                   @local::dunefd_database
- BackTrackerService:             @local::dunefd_backtrackerservice
+ BackTrackerService:             @local::dunefd_backtrackerservice_legacy
  ParticleInventoryService:       @local::standard_particleinventoryservice
  PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice
  SpaceCharge:                    @local::dunefd_spacecharge
@@ -37,7 +37,7 @@ dunefd_simulation_services_legacy: {
  DatabaseUtil:                 @local::dunefd_database
  LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
  MagneticField:                @local::no_mag_larsoft
- BackTrackerService:           @local::dunefd_backtrackerservice
+ BackTrackerService:           @local::dunefd_backtrackerservice_legacy
  ParticleInventoryService:     @local::standard_particleinventoryservice
  PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
  SpaceCharge:                  @local::dunefd_spacecharge
@@ -66,6 +66,7 @@ dunefd_services: {
     @table::dunefd_services_legacy
     NuRandomService:       @local::dune_prod_seedservice
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
+    BackTrackerService:           @local::dunefd_backtrackerservice
 }
 
 dunefd_simulation_services: {
@@ -75,6 +76,7 @@ dunefd_simulation_services: {
     ParticleListAction: @local::dune_particle_list_action
     PhysicsList:        @local::dune_physics_list_fastoptical
     #LArG4Detector:      No refactored full FD geom, required for this to run
+    BackTrackerService:           @local::dunefd_backtrackerservice
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
     PhotonVisibilityService: @erase
 }
@@ -82,6 +84,7 @@ dunefd_simulation_services: {
 dunefd_reco_services: {
     @table::dunefd_reco_services_legacy
     NuRandomService:       @local::dune_prod_seedservice
+    BackTrackerService:           @local::dunefd_backtrackerservice
     PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice_refactor
 }
 
