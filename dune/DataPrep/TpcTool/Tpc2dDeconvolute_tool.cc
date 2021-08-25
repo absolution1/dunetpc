@@ -245,8 +245,9 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
 
 //**********************************************************************
 
-DataMap Tpc2dDeconvolute::viewTpcData(TpcData&) const {
+DataMap Tpc2dDeconvolute::viewTpcData(const TpcData&) const {
   const string myname = "Tpc2dDeconvolute::updateTpcData: ";
+  cout << myname << "ERROR: View of TPC data is not supported here." << endl;
   DataMap ret;
   return ret.setStatus(1);
 }

@@ -68,10 +68,10 @@ public:
   ~Tpc2dDeconvolute() override =default;
 
   // Deconvolute.
-  DataMap updateTpcData(TpcData&) const;
+  DataMap updateTpcData(TpcData&) const override;
 
   // Viewing fails (for now).
-  DataMap viewTpcData(TpcData&) const;
+  DataMap viewTpcData(const TpcData&) const override;
 
   // Return the FFT transform (eventually for this thread).
   Fw2dFFT& fft() const;
