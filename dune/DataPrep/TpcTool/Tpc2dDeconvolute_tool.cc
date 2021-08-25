@@ -92,17 +92,30 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
   // Find input data.
   TpcData* ptpdIn = tpd.getTpcData(m_InPath);
   if ( ptpdIn == nullptr ) {
-    cout << myname << "WARNING: Input TPC data not found: m_InPath." << endl;
+    cout << myname << "WARNING: Input TPC data not found at " << m_InPath << "." << endl;
     return ret.setStatus(1);
   }
   TpcData::Tpc2dRoiVector& inrois = ptpdIn->get2dRois();
   // Create output data object.
-  TpcData* ptpdOut = tpd.addTpcData(m_OutPath);
-  if ( ptpdOut == nullptr ) {
-    cout << myname << "ERROR: Unable to create output TPC data at m_InPath." << endl;
-    return ret.setStatus(2);
+  TpcData::Tpc2dRoiVector* poutrois = nullptr;
+  if ( m_OutPath.size() && m_OutPath != "." ) {
+    TpcData* ptpdOut = tpd.getTpcData(m_OutPath);
+    if ( ptpdOut == nullptr ) {
+      if ( m_LogLevel >= 2 ) {
+        cout << myname << "Adding data path " << m_OutPath << "." << endl;
+      }
+      ptpdOut = tpd.addTpcData(m_OutPath);
+      if ( ptpdOut == nullptr ) {
+        cout << myname << "ERROR: Unable to create output TPC data at " << m_OutPath << "." << endl;
+        return ret.setStatus(2);
+      }
+    }
+    poutrois = &ptpdOut->get2dRois();
+    if ( poutrois->size() ) {
+      // Might want to add config flag to disable this message.
+      cout << myname << "WARNING: Output 2D ROI container is not empty." << endl;
+    }
   }
-  TpcData::Tpc2dRoiVector& outrois = ptpdOut->get2dRois();
   // Define DFT normalization.
   RealDftNormalization dftNorm(12);
   // Loop over 2d ROIs.
@@ -226,12 +239,15 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
       cout << myname << "Response power: " << resDft.power() << endl;
       cout << myname << "  Output power: " << poutDft->power() << endl;
     }
-    // Create the output ROI and attach the DFt data.
-    outrois.emplace_back(ncha, nsam, roi.channelOffset(), roi.sampleOffset());
-    Tpc2dRoi& outroi = outrois.back();
-    outroi.resetDft(poutDft);
+    // Create the output ROI and attach the DFT data.
+    Tpc2dRoi* poutroi = &roi;
+    if ( poutrois != nullptr ) {
+      poutrois->emplace_back(ncha, nsam, roi.channelOffset(), roi.sampleOffset());
+      poutroi = &poutrois->back();
+    }
+    poutroi->resetDft(poutDft);
     // Evaluate deconvoluted reponse.
-    int dstat = fft().fftBackward(*outroi.dft(), outroi.data());
+    int dstat = fft().fftBackward(*poutroi->dft(), poutroi->data());
     if ( dstat ) {
       cout << myname << "ERROR: Reverse xform failed with error " << dstat << endl;
       continue;
@@ -245,8 +261,9 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
 
 //**********************************************************************
 
-DataMap Tpc2dDeconvolute::viewTpcData(TpcData&) const {
+DataMap Tpc2dDeconvolute::viewTpcData(const TpcData&) const {
   const string myname = "Tpc2dDeconvolute::updateTpcData: ";
+  cout << myname << "ERROR: View of TPC data is not supported here." << endl;
   DataMap ret;
   return ret.setStatus(1);
 }

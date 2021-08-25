@@ -43,7 +43,7 @@
 //   ReponseCenter: Center tick for the response function (tick0 above).
 //   FftSize: Maximum FFT size, roughly ncha*nsam.
 //   InPath: Path to the input 2D ROIs.
-//   OutPath: Path to the output 2D ROIs.
+//   OutPath: Path to the output 2D ROIs. If "" or ".", the input ROIs are updated.
 //   SampleSigma: Tick sigma used to construct the sample filter. Zero means no filter.
 //   ChannelSigma: Channel sigma used to construct the sample filter. Zero means no filter.
 //
@@ -68,10 +68,10 @@ public:
   ~Tpc2dDeconvolute() override =default;
 
   // Deconvolute.
-  DataMap updateTpcData(TpcData&) const;
+  DataMap updateTpcData(TpcData&) const override;
 
   // Viewing fails (for now).
-  DataMap viewTpcData(TpcData&) const;
+  DataMap viewTpcData(const TpcData&) const override;
 
   // Return the FFT transform (eventually for this thread).
   Fw2dFFT& fft() const;
