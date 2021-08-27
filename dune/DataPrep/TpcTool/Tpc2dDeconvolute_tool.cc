@@ -199,7 +199,7 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
     // with sigma_freq = Ncha/(2 pi sigma_time).
     std::vector<double> chaFilt(ncha, 1.0);
     if ( m_ChannelSigma > 0.0 ) {
-      float freqSigma = nsam/(2.0*acos(-1.0)*m_SampleSigma);
+      float freqSigma = nsam/(2.0*acos(-1.0)*m_ChannelSigma);
       for ( Index ifrq=0; ifrq<ncha; ++ifrq ) {
         float xf = ifrq/freqSigma;
         float fac = exp(-xf*xf/2.0);
