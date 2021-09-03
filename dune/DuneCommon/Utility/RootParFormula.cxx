@@ -7,7 +7,8 @@ using Names = ParFormula::Names;
 //**********************************************************************
 
 RootParFormula::RootParFormula(Name snam, Name sform) :
-m_ptf(new TFormula(snam.c_str(), sform.c_str())),
+m_nam(snam),
+m_ptf(sform.size() ? new TFormula(snam.c_str(), sform.c_str()) : nullptr),
 m_sform(sform),
 m_defval(0.0) {
   for ( int ipar=0; ipar<m_ptf->GetNpar(); ++ipar ) {
@@ -21,6 +22,16 @@ m_defval(0.0) {
 
 bool RootParFormula::isPar(Name parnam) const {
   return std::find(m_parNames.begin(), m_parNames.end(), parnam) != m_parNames.end();
+}
+
+//**********************************************************************
+
+bool RootParFormula::ready() const {
+  if ( m_ptf == nullptr ) return false;
+  for ( Index nset : m_setCounts ) {
+    if ( nset == 0 ) return false;
+  }
+  return true;
 }
 
 //**********************************************************************

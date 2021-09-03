@@ -24,7 +24,7 @@
 //   AdcUnderflowDefault - value for underflow
 //   AdcOverflowDefault - value for overflow
 //   GainTool - Name of the FloatArrayTool holding the gains.
-//   ScaleFactor - Scale factor for the gain (tool or default)
+//   ScaleFactor - Scale factor formula for the gain (tool or default)
 //
 // Output:
 //   calibSampleCount    - # of samples calibrated (size of raw data)
@@ -42,9 +42,11 @@
 
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "dune/DuneInterface/Utility/ParFormula.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 
 class FloatArrayTool;
+class RunDataTool;
 
 class FloatArrayGainCalibration
 : public TpcDataTool {
@@ -62,17 +64,18 @@ public:
 
 private:
 
-  // Configuartion parameters.
+  // Configuration parameters.
   int m_LogLevel;
   Name m_Unit;
-  float m_GainDefault;
+  ParFormula* m_GainDefault;
   AdcIndex m_AdcUnderflowDefault;
   AdcIndex m_AdcOverflowDefault;
   Name m_GainTool;
-  Name m_ScaleFactor;
+  ParFormula* m_ScaleFactor;
 
   // Derived parameters.
   FloatArrayPtr m_pgains;
+  const RunDataTool* m_prdtool; // Run data tool.
 
 };
 

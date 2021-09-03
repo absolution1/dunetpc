@@ -58,9 +58,10 @@ public:  // const methods
   // Default evaluation value.
   virtual Value defaultEval() const { return 0.0; }
 
-  // Evaluate the formula.
+  // Evaluate the formula for N, 1 and 0 variables.
   virtual double eval(const Values& vars) const =0;
   virtual double eval(Value var) const =0;
+  virtual double eval() const =0;
 
 public:  // non-const methods
 

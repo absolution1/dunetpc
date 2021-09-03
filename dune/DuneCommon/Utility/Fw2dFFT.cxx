@@ -36,7 +36,7 @@ Fw2dFFT::~Fw2dFFT() {
 
 //**********************************************************************
 
-bool Fw2dFFT::checkDataSize(const IndexArray& nsams) const {
+Fw2dFFT::Index Fw2dFFT::checkDataSize(const IndexArray& nsams) const {
   Index ndatIn = Real2dDftData<DataFloat>::dataSize(nsams);
   Index ndatOut = FftwReal2dDftData<DftFloat>::dftFloatDataSize(nsams);
   if ( ndatIn > m_ndatMax ) return 1;
@@ -97,7 +97,7 @@ fftForward(const Data& dat, DFT& dft, Index logLevel) {
   dft.reset(nsams);
   if ( ! dft.isValid() ) return 2;
   if ( dft.normalization().isPower() ) {
-    cout << "ERROR: Power normalization is not (yet) supported." << endl;
+    cout << myname << "ERROR: Power normalization is not (yet) supported." << endl;
     return 3;
   }
   Index ndatIn = dat.size();

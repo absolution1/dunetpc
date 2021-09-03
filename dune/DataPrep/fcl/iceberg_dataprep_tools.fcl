@@ -85,6 +85,14 @@ tools.ib4_adcPedestalFit: {
 
 # Pedestal fitters for Iceberg 5 (14-bit ADC, no sticky codes)
 tools.ib5_adcPedestalFit: { tool_type: PleaseDefine_ib5_adcPedestalFit }
+
+# Config with conditions data.
+tools.ib5cond_adcPedestalFit: @local::tools.ib4_adcPedestalFit
+tools.ib5cond_adcPedestalFit.AdcRange: "16384"
+tools.ib5cond_adcPedestalFit.AdcFitRange: "100*(1+int(0.01*[gain]))"
+tools.ib5cond_adcPedestalFit.FitRmsMin: "0.5*[gain]"
+tools.ib5cond_adcPedestalFit.FitRmsMax: "10.0*[gain]"
+
 # Period B
 tmp.pedestalFitTemplate: @local::tools.ib4_adcPedestalFit
 tmp.pedestalFitTemplate.AdcRange: 16384
@@ -209,8 +217,40 @@ tools.ib4SampleCalibration: {
   ScaleFactor: "1.0"
 }
 
-# Fill sample and apply calibration for iceberg5.
-tools.ib5SampleCalibration: {
+# Fill sample and apply calibration for iceberg5
+# for user-specified calibration array.
+# Caller must set areaGain_ib5 to the desired calibration array.
+tools.ib5RunPeriodSampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: -1.0
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 16383
+  GainTool: "areaGain_ib5"
+  ScaleFactor: "1.0"
+}
+
+# Fill sample and apply calibration for iceberg5
+# using the same conditions-based gain for all channels.
+tools.ib5CondSVSampleCalibration: {
+  tool_type: FloatArrayGainCalibration
+  LogLevel: 1
+  Unit: "ke/tick"
+  GainDefault: "([run]<8198||[run]>9743)?0.0:([run]<8951?0.2201:0.1927)/[gain]/[shaping]"
+  AdcUnderflowDefault: 0
+  AdcOverflowDefault: 16383
+  GainTool: ""
+  ScaleFactor: "1.0"
+}
+
+tools.ib5SampleCalibration: "Please_define_tool_ib5SampleCalibration"
+
+#############################################################
+# Fill sample and apply calibration for iceberg5
+# for user-specified calibration array.
+# Caller must set areaGain_ib5 to the desired calibration array.
+tools.ib5RunPeriodSampleCalibration: {
   tool_type: FloatArrayGainCalibration
   LogLevel: 1
   Unit: "ke/tick"
@@ -227,7 +267,7 @@ tools.ib5SampleCalibration: {
 tools.ib3TailSignalFinderAdc: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 15.0
+  Threshold: "15.0"
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true
@@ -263,7 +303,7 @@ tools.ib4TailPedRemovalZKe: {
   PedDegree: 1     # 1 ==> linear variation in pedestal
   PedTick0: 1000
   PedFreqs: []
-  NoWarnStatuses: [1]
+  NoWarnStatuses: [1, 2]
   IncludeChannelRanges: ["apaz"]
   ExcludeChannelRanges: []
 }
@@ -274,6 +314,14 @@ tools.ib4TailPedRemovalIKe.IncludeChannelRanges: ["apai"]
 
 tools.ib4PedRemovalIKe: @local::tools.ib4TailPedRemovalIKe
 tools.ib4PedRemovalIKe.DecayTime: 0
+
+# Iceberg 5 Conditions-based threshold for an area-calibrated signal.
+tools.ib5CondTailPedSignalFinderKe: @local::tools.ib3TailSignalFinderKe
+tools.ib5CondTailPedSignalFinderKe.BinsBefore: 20
+tools.ib5CondTailPedSignalFinderKe.BinsAfter: 30
+tools.ib5CondTailPedSignalFinderKe.Threshold: "0.6/[shaping]"
+
+############# Obsolete below ###############
 
 # Tail/pedestal signal finders for Iceberg 5.
 # Iceberg 5 ped/tail signal finder for periods b, c, f (14 mV/fC, 2.0 us).
@@ -353,13 +401,15 @@ tools.ib5C33TailPedSignalFinder.Threshold: 0.2
 # Force high level fcl to set this.
 tools.ib5TailPedSignalFinder: { tool_type: PleaseDefine_ib5TailPedSignalFinder }
 
+############# Obsolete above ###############
+
 # Pedestal removal  for iceberg 5.
 # We expect no tails. For all planes.
 tools.ib5PedRemoval: @local::tools.ib4TailPedRemovalZKe
 tools.ib5PedRemoval.PedDegree: 0
 tools.ib5PedRemoval.IncludeChannelRanges: []
 tools.ib5PedRemoval.MaxTick: 2184
-tools.ib5PedRemoval.SignalTool: ib5TailPedSignalFinder
+tools.ib5PedRemoval.SignalTool: ib5CondTailPedSignalFinderKe
 
 # Remove coherent noise (not high frequency noise) with local
 # ROI finding at ADC scale.

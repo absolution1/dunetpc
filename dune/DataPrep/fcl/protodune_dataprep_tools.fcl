@@ -192,7 +192,7 @@ tools.adcCorrectUndershoot: @local::tools.adcCorrectUndershootAdc
 tools.adcTailSignalFinderAdc: {
   tool_type: AdcThresholdSignalFinder
   LogLevel: 1
-  Threshold: 20.0
+  Threshold: "20.0"
   BinsBefore: 10
   BinsAfter: 20
   FlagPositive: true

@@ -19,13 +19,13 @@ public:
   RootParFormula(Name snam, Name sform);
 
   // Name.
-  Name name() const override { return m_ptf->GetName(); }
+  Name name() const override { return m_nam; }
 
   // Formula.
   Name formulaString() const override { return m_sform; }
 
   // Variable dimension.
-  Index nvar() const override { return m_ptf->GetNdim(); }
+  Index nvar() const override { return m_ptf == nullptr ? 0  : m_ptf->GetNdim(); }
 
   // Parameter counts.
   Index npar() const override { return m_parNames.size(); }
@@ -37,6 +37,9 @@ public:
   // Return if a parameter appears in the equation.
   bool isPar(Name parnam) const override;
 
+  // Return if ready for evaluation.
+  bool ready() const override;
+
   // Default return.
   Value defaultEval() const override { return m_defval; }
 
@@ -46,6 +49,9 @@ public:
   }
   double eval(Value var) const override {
     return ready() && nvar() <= 1 ? m_ptf->Eval(var) : m_defval;
+  }
+  double eval() const override {
+    return ready() && nvar() == 0 ? m_ptf->Eval(0.0) : m_defval;
   }
 
   // Set a parameter value.
@@ -59,6 +65,7 @@ public:
 
 private:
 
+  Name m_nam;
   TFormula* m_ptf;
   Name m_sform;
   Names m_parNames;

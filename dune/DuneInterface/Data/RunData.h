@@ -90,7 +90,15 @@ public:
     int npar = form->GetNpar();
     for ( int ipar=0; ipar<npar; ++ipar ) {
       std::string spar = form->GetParName(ipar);
-      if ( spar == "gain" ) {
+      if ( spar == "run" ) {
+        if ( haveRun() ) {
+          form->SetParameter("run", run());
+          ++sstat.nset;
+        } else {
+          std::cout << myname << "WARNING: RunData does not have run." << std::endl;
+          ++sstat.nerr;
+        }
+      } else if ( spar == "gain" ) {
         if ( haveGain() ) {
           form->SetParameter("gain", gain());
           ++sstat.nset;
@@ -117,7 +125,14 @@ public:
     ParFormula::Names fpars = form.pars();
     int nbad = 0;
     for ( Name spar : fpars ) {
-      if ( spar == "gain" ) {
+      if ( spar == "run" ) {
+        if ( haveRun() ) {
+          form.setParValue("run", run());
+        } else {
+          std::cout << myname << "WARNING: RunData does not have run." << std::endl;
+          ++nbad;
+        }
+      } else if ( spar == "gain" ) {
         if ( haveGain() ) {
           form.setParValue("gain", gain());
         } else {

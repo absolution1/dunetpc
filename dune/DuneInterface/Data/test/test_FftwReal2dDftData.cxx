@@ -124,6 +124,28 @@ int test_FftwReal2dDftData(Index nsam0, Index nsam1) {
   }
 
   cout << line << endl;
+  cout << myname << "Copy object." << endl;
+  DftData dft2(dft);
+  assert( dft2.rank() == 2 );
+  assert( dft2.normalization() == norm );
+  assert( dft2.size() == ndftComplex );
+  assert( dft2.nSamples(0) == nsam0 );
+  assert( dft2.size(0) == nsam0 );
+  assert( dft2.nSamples(1) == nsam1 );
+  assert( dft2.size(1) == nsam1 );
+  for ( Index idat=0; idat<nComplexExp; ++idat ) {
+    IndexArrayVector idxas = dft.indexArrays(idat);
+    assert( idxas.size() );
+    Complex cval = dft2.value(idat);
+    Index ire = cval.real() + 0.1;
+    Index iim = cval.imag() + 0.1;
+    cout << myname << setw(3) << idat << ": ["
+         << setw(3) << idxas[0][0] << "," << setw(3) << idxas[0][1] << "]: "
+         << "(" << setw(3) << ire << "," << setw(3) << iim << ")"
+         << endl;
+  }
+
+  cout << line << endl;
   cout << myname << "All tests passed." << endl;
   return 0;
 }
