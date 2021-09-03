@@ -287,7 +287,7 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
              << " channel " << acd.channel() << endl;
         break;
       }
-      if ( acd.signal == signalLast ) {
+      if ( acd.signal == signalLast && niter > 0 ) {
         if ( m_LogLevel >=3 ) cout << mychan << "Signal is unchanged. Exiting loop." << endl;
         break;
       }

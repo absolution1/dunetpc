@@ -60,6 +60,19 @@ int test_TpcData() {
   const TpcData* pdat11c = pdat11;
   assert( pdat11c->getParent() == pdat1 );
 
+  cout << myname << "Add sub12" << endl;
+  assert( tpd.getTpcData("sub1/sub12") == nullptr );
+  TpcData* pdat12 = tpd.addTpcData("sub1/sub12");
+  assert( pdat12 != nullptr );
+  assert( pdat12 != pdat11 );
+  assert( tpd.addTpcData("sub1") == nullptr );
+  assert( tpd.addTpcData("sub1/sub12") == nullptr );
+  assert( tpd.getTpcData("sub1") == pdat1 );
+  assert( tpd.getTpcData("sub1/sub12") == pdat12 );
+  assert( pdat12->getParent() == pdat1 );
+  const TpcData* pdat12c = pdat12;
+  assert( pdat12c->getParent() == pdat1 );
+
   cout << line << endl;
   cout << myname << "Add ADC data." << endl;
   assert( tpd.getAdcData().size() == 0 );
@@ -78,6 +91,41 @@ int test_TpcData() {
   assert( pdat11->getAdcData().size() == 0 );
   assert( pdat1c->getAdcData().size() == 0 );
   assert( pdat11c->getAdcData().size() == 0 );
+
+  cout << line << endl;
+  cout << myname << "Check TPC data retrieval." << endl;
+  assert(tpd.getTpcData("") == &tpd );
+  assert(tpd.getTpcData(".") == &tpd );
+  assert(tpd.getTpcData("sub3") == nullptr );
+  assert(tpd.getTpcData("sub1") == pdat1 );
+  assert(tpd.getTpcData("sub1/sub13") == nullptr );
+  assert(tpd.getTpcData("sub1/sub11") == pdat11 );
+  assert(tpd.getTpcData("sub1/sub12") == pdat12 );
+  TpcData::TpcDataVector dats1;
+  cout << myname << "...sub1" << endl;
+  assert( tpd.getTpcData("sub1", dats1) == 0 );
+  assert( dats1.size() == 1 );
+  assert( dats1[0] == pdat1 );
+  cout << myname << "...sub1" << endl;
+  TpcData::TpcDataVector dats11;
+  assert( tpd.getTpcData("sub1/sub11", dats11) == 0 );
+  assert( dats11.size() == 1 );
+  assert( dats11[0] == pdat11 );
+  cout << myname << "...sub1/sub12" << endl;
+  TpcData::TpcDataVector dats12;
+  assert( tpd.getTpcData("sub1/sub12", dats12) == 0 );
+  assert( dats12.size() == 1 );
+  assert( dats12[0] == pdat12 );
+  cout << myname << "...sub1/*" << endl;
+  TpcData::TpcDataVector dats1x;
+  assert( tpd.getTpcData("sub1/*", dats1x) == 0 );
+  assert( dats1x.size() == 2 );
+  assert( dats1x[0] == pdat11 );
+  assert( dats1x[1] == pdat12 );
+
+  cout << line << endl;
+  cout << myname << "Print object." << endl;
+  tpd.print(myname);
 
   cout << line << endl;
   cout << myname << "All tests passed." << endl;

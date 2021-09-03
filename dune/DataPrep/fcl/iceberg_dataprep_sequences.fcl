@@ -129,7 +129,7 @@ data.ib5_dataprep_seqs.calib_only: [
 ]
 
 # Charge calibration, mitigation, ped removal, no noise removal.
-# High level fcl must define ib5TailPedSignalFinder or tools.ib5PedRemoval
+# A conditions-based tools.ib5PedRemoval is defined in iceberg_datatprep_tools.fcl.
 data.ib5_dataprep_seqs.calib_ped: [
   @sequence::data.ib5_dataprep_seqs.calib_only
   , "ib5PedRemoval"      # re-evaluate pedestal

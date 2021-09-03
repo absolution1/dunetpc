@@ -35,4 +35,19 @@ cet_test(test_Roi2dToAdc SOURCES test_Roi2dToAdc.cxx
     ${ROOT_BASIC_LIB_LIST}
 )
 
+cet_test(test_Tpc2dDeconvolute SOURCES test_Tpc2dDeconvolute.cxx
+  LIBRARIES
+    dune_DuneCommon_Utility
+    dune_DuneInterface_Data
+    dune_ArtSupport
+    art_Utilities
+    canvas
+    fhiclcpp
+    cetlib cetlib_except
+    cetlib_except
+    ${SQLITE3}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${ROOT_BASIC_LIB_LIST}
+)
+
 cet_enable_asserts()

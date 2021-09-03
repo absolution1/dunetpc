@@ -9,7 +9,7 @@
 // Other may be added later.
 //
 // The object may also hold named objects of the same type so that data can
-// can be split by detector region or processing stage.
+// can be split by detector region (e.g. TPC plane) or processing stage.
 // Branches below the first level, are referenced in slash-separated path format
 // e.g. "apa3/z" refers to TPC data "z" in TPC data "apa3".
 
@@ -26,15 +26,20 @@ class TpcData {
 
 public:
 
+  using Index = unsigned int;
   using Name = std::string;
   using Tpc2dRoiVector = std::vector<Tpc2dRoi>;
   using TpcDataMap = std::map<Name, TpcData>;
+  using TpcDataVector = std::vector<TpcData*>;
   using AdcData = AdcChannelDataMap;
   using AdcDataPtr = std::shared_ptr<AdcChannelDataMap>;
   using AdcDataVector = std::vector<AdcDataPtr>;
 
   // Default ctor.
   TpcData();
+
+  // Ctor to create npla AdcChannelData maps.
+  TpcData(Index npla);
 
   // Ctor from ADC data.
   TpcData(const AdcDataVector& adcs);
@@ -57,7 +62,7 @@ public:
   // in constituent target.
   // Fails and returns null if the name is already used or the
   // target does not already exist.
-  // If copyAdcData is true, the new bject copies the AdcData (pointers).
+  // If copyAdcData is true, the new object copies the AdcData (pointers).
   TpcData* addTpcData(Name nam, bool copyAdcData =true);
 
   // Return a constituent TPC data object by name.
@@ -67,6 +72,13 @@ public:
   TpcData* getTpcData(Name nam);
   const TpcData* getTpcData(Name nam) const;
 
+  // Appends named constituent TPC data objects to a vector.
+  // The name "" or "." appends this object.
+  // If the name is a/b/.../z all matching constituents are returned
+  // with "*" used to select all at any level.
+  // Returns non-zero if any errors arise.
+  Index getTpcData(Name nam, TpcDataVector& out);
+
   // Add ADC data.
   // If updateParent is true, the same object is added to all ancestors.
   AdcDataPtr createAdcData(bool updateParent =true);
@@ -74,6 +86,13 @@ public:
 
   // Delete the ADC data. References in acestor and descendants are not affected.
   void clearAdcData();
+
+  // Print a brief description of thid object:
+  // # ADC maps and channels for each.
+  // # 2D ROIS
+  // # constituents
+  // Same for each constituent to the indicated depth.
+  std::ostream& print(Name prefix, Index depth =10) const;
 
 private:
 
