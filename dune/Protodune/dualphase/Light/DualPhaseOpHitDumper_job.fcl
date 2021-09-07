@@ -4,7 +4,7 @@ process_name: OpHitAna
 
 services:
 {
-  @table::dunefddphase_simulation_services
+  @table::dunefddphase_simulation_services_legacy
   TFileService:          { fileName: "OpHitAna.root" }
   TimeTracker:           {}
   MemoryTracker:         {}

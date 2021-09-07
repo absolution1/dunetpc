@@ -2,7 +2,7 @@
 
 process_name: ImportFull311FileProcess
 
-services: 				@local::dunedphase3x1x1_services
+services: 				@local::dunedphase3x1x1_services_legacy
 services.RandomNumberGenerator: 	{}
 
 source:
