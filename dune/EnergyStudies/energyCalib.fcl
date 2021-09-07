@@ -4,7 +4,7 @@
 services:
 {
   TFileService: { fileName: "EMEnergyCalib.root" }
-        @table::dune35t_services
+        @table::dune35t_services_legacy
 }
 
 source:

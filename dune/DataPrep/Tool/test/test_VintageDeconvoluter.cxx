@@ -42,7 +42,7 @@ int test_VintageDeconvoluter(bool useExistingFcl =false) {
     std::ofstream config{fclfile};
     config << "#include \"services_dune.fcl\"" << endl;
     //config << "services: @local::protodune_reco_services" << endl;
-    config << "services: @local::dune35t_services" << endl;
+    config << "services: @local::dune35t_services_legacy" << endl;
     config << "tools: {" << endl;
     config << "  mytool: {" << endl;
     config << "    tool_type: VintageDeconvoluter" << endl;
