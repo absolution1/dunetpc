@@ -2,12 +2,14 @@
 
 #include "dune/DuneCommon/Utility/StringManipulator.h"
 #include <iostream>
+#include <sstream>
 #include <cctype>
 #include <cstdlib>
 
 using std::string;
 using std::cout;
 using std::endl;
+using std::ostringstream;
 
 using StringVector = StringManipulator::StringVector;
 using StringVV = std::vector<StringVector>;
@@ -102,6 +104,45 @@ const StringVector& StringManipulator::patternSplit(string spat) {
   return m_splits;
 }
   
+//**********************************************************************
+
+string StringManipulator::
+floatToString(float val, int prec, bool trunc, string sdot, string smin) {
+  ostringstream ssout;
+  ssout.setf(std::ios::fixed);
+  ssout.precision(prec);
+  ssout << val;
+  string sout = ssout.str();
+  if ( trunc && sout.size() ) {
+    string::size_type ipos = sout.size() - 1;
+    while ( ipos > 0 ) {
+      if ( sout[ipos] == '.' ) {
+        --ipos;
+        break;
+      } else if ( sout[ipos] == '0' ) --ipos;
+      else break;
+    }
+    sout = sout.substr(0, ipos + 1);
+    if ( sdot.size() && sdot != "." ) {
+      for ( ipos=0; ipos<sout.size(); ++ipos ) {
+        if ( sout[ipos] == '.' ) {
+          sout.replace(ipos, 1, sdot);
+          ipos += sdot.size() - 1;
+        }
+      }
+    }
+    if ( smin.size() && smin != "." ) {
+      for ( ipos=0; ipos<sout.size(); ++ipos ) {
+        if ( sout[ipos] == '-' ) {
+          sout.replace(ipos, 1, smin);
+          ipos += smin.size() - 1;
+        }
+      }
+    }
+  }
+  return sout;
+}
+
 //**********************************************************************
 
 bool StringManipulator::isDigits() const {
