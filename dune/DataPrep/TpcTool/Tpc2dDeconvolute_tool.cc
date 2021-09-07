@@ -53,6 +53,8 @@ Tpc2dDeconvolute::Tpc2dDeconvolute(fhicl::ParameterSet const& ps)
   m_OutPath(ps.get<Name>("OutPath")),
   m_SampleSigma(ps.get<float>("SampleSigma")),
   m_ChannelSigma(ps.get<float>("ChannelSigma")),
+  m_LowFilterWidth(ps.get<float>("LowFilterWidth")),
+  m_LowFilterPower(ps.get<float>("LowFilterPower")),
   m_pfft(new Fw2dFFT(m_FftSize, 1)) {
   const string myname = "Tpc2dDeconvolute::ctor: ";
   if ( m_LogLevel >= 1 ) {
@@ -81,6 +83,10 @@ Tpc2dDeconvolute::Tpc2dDeconvolute(fhicl::ParameterSet const& ps)
     cout << myname << "          FftSize: " << m_FftSize << endl;
     cout << myname << "           InPath: " << m_InPath << endl;
     cout << myname << "          OutPath: " << m_OutPath << endl;
+    cout << myname << "      SampleSigma: " << m_SampleSigma << endl;
+    cout << myname << "     ChannelSigma: " << m_ChannelSigma << endl;
+    cout << myname << "   LowFilterPower: " << m_LowFilterPower << endl;
+    cout << myname << "   LowFilterWidth: " << m_LowFilterWidth << endl;
   }
 }
 
@@ -207,6 +213,19 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
         if ( m_LogLevel >= 3 ) cout << myname << "  chafil[" << ifrq << "]: " << fac << endl;
       }
     }
+    std::vector<double> samFiltLow(nsam, 1.0);
+    if ( m_LowFilterPower > 0 ) {
+      if ( m_LowFilterWidth == 0.0 ) {
+        samFiltLow[0] = 0.0;
+      } else {
+        samFiltLow[0] = 0.0;
+        double fac = nsam/m_LowFilterWidth;
+        for ( Index ifrq=1; ifrq<nsam; ++ifrq ) {
+          double arg = pow(fac/ifrq, m_LowFilterPower);
+          samFiltLow[ifrq] = 1.0/(1.0 + arg);
+        }
+      }
+    }
     // Evaluate deconvoluted DFT.
     // Copy the input ROI DFT, multiply by filter and divide by response.
     DftData* poutDft = new DftData(roiDft);
@@ -226,6 +245,7 @@ DataMap Tpc2dDeconvolute::updateTpcData(TpcData& tpd) const {
       }
       val *= chaFilt[dchaFilt];
       val *= samFilt[dsamFilt];
+      val *= samFiltLow[dsamFilt];
       Tpc2dRoi::Dft::Complex resp = resDft.data()[idat];
       if ( resp != 0.0 ) val /= resp;
       if ( logEntry ) {
