@@ -24,7 +24,7 @@ dunedphase3x1x1_services_legacy: {
 }
 
 dunedphase3x1x1_simulation_services_legacy: {
- BackTrackerService:             @local::dunefd_backtrackerservice
+ BackTrackerService:             @local::dunefd_backtrackerservice_legacy
  ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::protodune_largeantparameters
@@ -52,7 +52,7 @@ dunedphase3x1x1_simulation_services_legacy: {
 }
 
 dunedphase3x1x1_reco_services_legacy:                            @local::dunedphase3x1x1_services_legacy
-dunedphase3x1x1_reco_services_legacy.BackTrackerService:         @local::dunefd_backtrackerservice
+dunedphase3x1x1_reco_services_legacy.BackTrackerService:         @local::dunefd_backtrackerservice_legacy
 dunedphase3x1x1_reco_services_legacy.ParticleInventoryService:   @local::standard_particleinventoryservice
 dunedphase3x1x1_reco_services_legacy.RawDigitExtractService:     @local::rdx_std
 dunedphase3x1x1_reco_services_legacy.RawDigitPrepService:        @local::adcprep_dunedphase3x1x1

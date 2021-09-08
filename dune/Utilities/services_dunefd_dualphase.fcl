@@ -25,7 +25,7 @@ dunefddphase_services_legacy: {
 }
 
 dunefddphase_simulation_services_legacy: {
- BackTrackerService:             @local::dunefd_backtrackerservice
+ BackTrackerService:             @local::dunefd_backtrackerservice_legacy
  ParticleInventoryService:       @local::standard_particleinventoryservice
  LArFFT:                         @local::dunefd_larfft
  LArG4Parameters:                @local::dunefd_largeantparameters
@@ -50,7 +50,7 @@ dunefddphase_simulation_services_legacy: {
 }
 
 dunefddphase_reco_services_legacy:                            @local::dunefddphase_services_legacy
-dunefddphase_reco_services_legacy.BackTrackerService:         @local::dunefd_backtrackerservice
+dunefddphase_reco_services_legacy.BackTrackerService:         @local::dunefd_backtrackerservice_legacy
 dunefddphase_reco_services_legacy.ParticleInventoryService:   @local::standard_particleinventoryservice
 dunefddphase_reco_services_legacy.RawDigitExtractService:     @local::rdx_std
 dunefddphase_reco_services_legacy.RawDigitPrepService:        @local::adcprep_with_services_sim
