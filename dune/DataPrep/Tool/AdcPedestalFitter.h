@@ -89,13 +89,12 @@
 #include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
-#include "dune/DuneInterface/Tool/RunDataTool.h"
-#include "TFormula.h"
 #include <string>
 #include <vector>
 #include <set>
 
-class HistogramManager;
+class ParFormula;
+class RunDataTool;
 class AdcChannelStringTool;
 class TH1;
 class TF1;
@@ -124,7 +123,7 @@ private:
 
   using Name = std::string;
   using NameVector = std::vector<Name>;
-  using TFormulaMap = std::map<Name, TFormula*>;
+  using FormulaMap = std::map<Name, ParFormula*>;
   using NameSet = std::set<Name>;
   using NameSetMap = std::map<Name, NameSet>;
 
@@ -154,7 +153,7 @@ private:
   // Derived from config.
   IndexSet m_skipFlags;
   NameVector m_fitOpts;
-  TFormulaMap m_tfs;         // Formulas for AdcRange, AdcFitRange, FitRmsMin, FitRmsMax
+  FormulaMap m_tfs;         // Formulas for AdcRange, AdcFitRange, FitRmsMin, FitRmsMax
   NameSetMap m_tfpars;       // Formula parameters.
   bool m_haveFormulaParams;  // Do any formulas have parameters?
   const RunDataTool* m_prdtool; // Run data tool.

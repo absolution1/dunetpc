@@ -54,7 +54,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "         ClockFactor: 0.0" << endl;
     fout << "         ClockOffset: 0.0" << endl;
     fout << "     FembTickOffsets: []" << endl;
-    fout << "           MaxSignal: 10" << endl;
+    fout << "           MaxSignal: \"10*[gain]/14.0\"" << endl;
     fout << "     SkipBadChannels: false" << endl;
     fout << "          EmptyColor: 18" << endl;
     fout << "  ChannelLineModulus:  4" << endl;
@@ -76,7 +76,17 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
     fout << "tools.mytool3.DataView: rnis" << endl;
     fout << "tools.mytool3.HistTitle: \"Prepared not ROI ADC run %RUN% event %EVENT%\"" << endl;
     fout << "tools.mytool3.PlotFileName: \"myplotrni-run%0RUN%-evt%0EVENT%.png\"" << endl;
+    fout << "tools.runDataTool: {" << endl;
+    fout << "  tool_type: FclRunDataTool" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FileNames: [\"rundata.fcl\"]" << endl;
+    fout << "}" << endl;
     fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }
@@ -87,7 +97,7 @@ int test_AdcDataPlotter(bool useExistingFcl =false) {
   assert ( ptm != nullptr );
   DuneToolManager& tm = *ptm;
   tm.print();
-  assert( tm.toolNames().size() >= 1 );
+  assert( tm.toolNames().size() >= 4 );
 
   cout << myname << line << endl;
   cout << myname << "Fetching tool." << endl;

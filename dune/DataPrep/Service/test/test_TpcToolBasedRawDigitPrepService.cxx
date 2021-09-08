@@ -74,7 +74,7 @@ int test_TpcToolBasedRawDigitPrepService(bool useExistingFcl =false) {
   if (!useExistingFcl) {
     std::ofstream fout{fclfile};
     fout << "#include \"services_dune.fcl\"" << endl;
-    fout << "services:      @local::dune35t_services" << endl;    // Need geometry for wire building.
+    fout << "services:      @local::dune35t_services_legacy" << endl;    // Need geometry for wire building.
     fout << "#include \"tools_dune.fcl\"" << endl;
     fout << "services.AdcWireBuildingService: {" << endl;
     fout << "  service_provider: StandardAdcWireBuildingService" << endl;

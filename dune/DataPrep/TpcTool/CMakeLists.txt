@@ -21,6 +21,14 @@ simple_plugin(Roi2dToAdc   "tool"
                 ${ROOT_BASIC_LIB_LIST}
              )
 
+simple_plugin(Tpc2dDeconvolute   "tool"
+                dune_DuneInterface_Data
+                dune_DuneCommon_Utility
+                art_Utilities canvas
+                cetlib cetlib_except
+                ${ROOT_BASIC_LIB_LIST}
+             )
+
 add_subdirectory(test)
 install_source()
 

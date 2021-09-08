@@ -50,7 +50,7 @@ int test_KeepAllRoiBuildingService(int a_LogLevel =1, bool explicitFcl =true) {
   cout << myname << "Create top-level FCL." << endl;
   std::ostringstream fout;
   fout << "#include \"services_dune.fcl\"" << endl;
-  fout << "services: @local::dune35t_services" << endl;
+  fout << "services: @local::dune35t_services_legacy" << endl;
   if ( explicitFcl ) {
     fout << "services.AdcRoiBuildingService: {" << endl;
     fout << "  service_provider: KeepAllRoiBuildingService" << endl;

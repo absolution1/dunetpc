@@ -43,9 +43,11 @@ int test_AdcToRoi2d(bool useExistingFcl =false) {
     ofstream fout(fclfile.c_str());
     fout << "#include \"dataprep_tools.fcl\"" << endl;
     fout << "tools.mytool1: {" << endl;
-    fout << "  tool_type: AdcToRoi2d" << endl;
-    fout << "  LogLevel: 3" << endl;
-    fout << "  Option: 1" << endl;
+    fout << "     tool_type: AdcToRoi2d" << endl;
+    fout << "      LogLevel: 3" << endl;
+    fout << "        Option: 1" << endl;
+    fout << "  InputAdcMaps: []" << endl;
+    fout << "   OutputNames: []" << endl;
     fout << "}" << endl;
     fout.close();
   } else {

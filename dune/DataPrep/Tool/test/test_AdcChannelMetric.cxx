@@ -51,8 +51,8 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "   MetricSummaryView: \"\"" << endl;
     fout << "       ChannelRanges: [all, tpp3c, tpp3z]" << endl;
     fout << "          MetricBins: 0" << endl;
-    fout << "           MetricMin: 0.0" << endl;
-    fout << "           MetricMax: 2000.0" << endl;
+    fout << "           MetricMin: \"0.0\"" << endl;
+    fout << "           MetricMax: \"2000.0*[gain]/14.0\"" << endl;
     fout << "  ChannelLineModulus:  40" << endl;
     fout << "  ChannelLinePattern:  [10]" << endl;
     fout << "            HistName: \"hchped_%CRNAME%\"" << endl;
@@ -65,7 +65,17 @@ int test_AdcChannelMetric(bool useExistingFcl =false) {
     fout << "        RootFileName: \"\"" << endl;
     fout << "       MetadataFlags: [\"write\"]" << endl;
     fout << "}" << endl;
+    fout << "tools.runDataTool: {" << endl;
+    fout << "  tool_type: FclRunDataTool" << endl;
+    fout << "  LogLevel: 1" << endl;
+    fout << "  FileNames: [\"rundata.fcl\"]" << endl;
+    fout << "}" << endl;
     fout.close();
+    ofstream fout2("rundata.fcl");
+    fout2 << "run: 123" << endl;
+    fout2 << "gain: 14.0" << endl;
+    fout2 << "shaping: 2.0" << endl;
+    fout2.close();
   } else {
     cout << myname << "Using existing top-level FCL." << endl;
   }

@@ -298,7 +298,8 @@ bool calib::XYZCalibProtoDUNE::LoadXCorr()
     double xmin = fXCorr[ip][0].x;
     double xmax = fXCorr[ip][nbins-1].x;
     double bw = (xmax-xmin)/(nbins-1);
-    fXCorrHist[ip] = TH1F(hname,"",nbins,xmin-bw,xmax+bw);
+    fXCorrHist[ip] = TH1F(hname,"",nbins,xmin-bw/2,xmax+bw/2);
+    std::cout<<"fXcorrHist["<<ip<<"] binning: Nbins = "<<fXCorrHist[ip].GetNbinsX()<<" Xmin = "<<fXCorrHist[ip].GetXaxis()->GetXmin()<<" Xmax = "<<fXCorrHist[ip].GetXaxis()->GetXmax()<<std::endl;
     for (unsigned int j=0; j<fXCorr[ip].size(); ++j) 
       fXCorrHist[ip].SetBinContent(j+1,fXCorr[ip][j].corr);
   }
@@ -408,8 +409,10 @@ bool calib::XYZCalibProtoDUNE::LoadYZCorr()
     }
     char hname[256];
     sprintf(hname,"yzCorrHist_%d",i);
-    fYZCorrHist[ip] = TH2F(hname,"",nbinsz,zmin-bwz,zmax+bwz,
-			   nbinsy,ymin-bwy,ymax+bwy);
+    fYZCorrHist[ip] = TH2F(hname,"",nbinsz,zmin-bwz/2,zmax+bwz/2,
+			   nbinsy,ymin-bwy/2,ymax+bwy/2);
+    std::cout<<"fYZcorrHist["<<ip<<"] binning: Nbins = "<<fYZCorrHist[ip].GetNbinsX()<<" Xmin = "<<fYZCorrHist[ip].GetXaxis()->GetXmin()<<" Xmax = "<<fYZCorrHist[ip].GetXaxis()->GetXmax()<<" Ymin = "<<fYZCorrHist[ip].GetYaxis()->GetXmin()<<" Ymax = "<<fYZCorrHist[ip].GetYaxis()->GetXmax()<<std::endl;
+
     for (unsigned int j=0; j<fYZCorr[ip].size(); ++j) 
       fYZCorrHist[ip].Fill(fYZCorr[ip][j].z,fYZCorr[ip][j].y,fYZCorr[ip][j].corr);
   }

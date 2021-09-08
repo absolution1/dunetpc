@@ -56,7 +56,8 @@ dunefd_simulation_services_legacy.LArPropertiesService.EnableCerenkovLight: fals
 dunefd_reco_services_legacy: {
     @table::dunefd_services_legacy
     RawDigitExtractService:     @local::rdx_std
-    RawDigitPrepService:        @local::adcprep_with_services_sim
+    #RawDigitPrepService:        @local::adcprep_with_services_sim
+    RawDigitPrepService:        @local::adcprep_with_tools_simwc
     AdcDeconvolutionService:    @local::adcdco_dunefd
     AdcRoiBuildingService:      @local::adcroi_dunefd
     AdcWireBuildingService:     @local::adcwire_std

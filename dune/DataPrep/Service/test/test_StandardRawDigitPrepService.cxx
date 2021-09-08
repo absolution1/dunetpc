@@ -100,7 +100,7 @@ int test_StandardRawDigitPrepService(bool useExistingFcl =false, bool useFclFile
   } else {
     std::stringstream config;
     config << "#include \"services_dune.fcl\"" << endl;
-    config << "services:      @local::dune35t_services" << endl;
+    config << "services:      @local::dune35t_services_legacy" << endl;
     config << "services.RawDigitExtractService: {" << endl;
     config << "  service_provider: StandardRawDigitExtractService" << endl;
     config << "  LogLevel:        1" << endl;

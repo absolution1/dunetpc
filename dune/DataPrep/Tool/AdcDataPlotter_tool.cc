@@ -3,9 +3,12 @@
 #include "AdcDataPlotter.h"
 #include <iostream>
 #include <sstream>
+#include "dune/DuneInterface/Data/RunData.h"
+#include "dune/DuneInterface/Tool/RunDataTool.h"
 #include "dune/DuneCommon/Utility/TPadManipulator.h"
 #include "dune/DuneCommon/Utility/StringManipulator.h"
 #include "dune/DuneCommon/Utility/RootPalette.h"
+#include "dune/DuneCommon/Utility/RootParFormula.h"
 #include "dune/ArtSupport/DuneToolManager.h"
 #include "dune/DuneInterface/Tool/AdcChannelStringTool.h"
 #include "dune/DuneInterface/Tool/IndexMapTool.h"
@@ -41,8 +44,8 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_ClockFactor(ps.get<float>("ClockFactor")),
   m_ClockOffset(ps.get<float>("ClockOffset")),
   m_FembTickOffsets(ps.get<IntVector>("FembTickOffsets")),
-  m_MinSignal(1.e30),
-  m_MaxSignal(ps.get<double>("MaxSignal")),
+  m_MinSignal(nullptr),
+  m_MaxSignal(new RootParFormula("MaxSignal", ps.get<Name>("MaxSignal"))),
   m_SkipBadChannels(ps.get<bool>("SkipBadChannels")),
   m_EmptyColor(ps.get<double>("EmptyColor")),
   m_ChannelLineModulus(ps.get<Index>("ChannelLineModulus")),
@@ -55,11 +58,18 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
   m_PlotSizeY(ps.get<Index>("PlotSizeY")),
   m_PlotFileName(ps.get<string>("PlotFileName")),
   m_RootFileName(ps.get<string>("RootFileName")),
+  m_needRunData(false),
   m_pOnlineChannelMapTool(nullptr),
-  m_pChannelStatusProvider(nullptr) {
+  m_pChannelStatusProvider(nullptr),
+  m_prdtool(nullptr) {
   const string myname = "AdcDataPlotter::ctor: ";
-  m_MinSignal = -m_MaxSignal;
-  ps.get_if_present("MinSignal", m_MinSignal);
+  string stmp;
+  if ( m_MaxSignal->npar() ) m_needRunData = true;
+  ps.get_if_present("MinSignal", stmp);
+  if ( stmp.size() ) {
+    m_MinSignal = new RootParFormula("MinSignal", stmp);
+    if ( m_MinSignal->npar() ) m_needRunData = true;
+  }
   DuneToolManager* ptm = DuneToolManager::instance();
   string stringBuilder = "adcStringBuilder";
   m_adcStringBuilder = ptm->getShared<AdcChannelStringTool>(stringBuilder);
@@ -118,6 +128,17 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       cout << myname << "WARNING: Channel status provider not found." << endl;
     }
   }
+  // Fetch the run data tool.
+  if ( m_needRunData ) {
+    string stnam = "runDataTool";
+    m_prdtool = ptm->getShared<RunDataTool>(stnam);
+    if ( m_prdtool == nullptr ) {
+      cout << myname << "ERROR: RunDataTool " << stnam
+           << " not found. Metric limits will not be evaluated." << endl;
+    } else {
+      cout << myname << "RunDataTool retrieved." << endl;
+    }
+  }
   // Display configuration.
   if ( m_LogLevel ) {
     cout << myname << "Configuration: " << endl;
@@ -148,8 +169,9 @@ AdcDataPlotter::AdcDataPlotter(fhicl::ParameterSet const& ps)
       cout << myname << "  OnlineChannelMapTool: " << m_OnlineChannelMapTool << " @ "
            << m_pOnlineChannelMapTool << endl;
     }
-    cout << myname << "             MinSignal: " << m_MinSignal << endl;
-    cout << myname << "             MaxSignal: " << m_MaxSignal << endl;
+    if ( m_MinSignal != nullptr )
+      cout << myname << "             MinSignal: " << m_MinSignal->formulaString() << endl;
+    cout << myname << "             MaxSignal: " << m_MaxSignal->formulaString() << endl;
     cout << myname << "            EmptyColor: " << m_EmptyColor << endl;
     cout << myname << "    ChannelLineModulus: " << m_ChannelLineModulus << endl;
     cout << myname << "    ChannelLinePattern: {";
@@ -209,6 +231,19 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     cout << myname << "ERROR: Invalid tick range." << endl;
     return ret.setStatus(2);
   }
+  // Evaluate formulas.
+  if ( m_prdtool != nullptr ) {
+    Index run = acdFirst.run();
+    RunData rdat = m_prdtool->runData(run);
+    if ( ! rdat.isValid() ) {
+      cout << myname << "WARNING: RunData not found for run " << run << "." << endl;
+    } else {
+      rdat.setFormulaPars(*m_MaxSignal);
+      if ( m_MinSignal != nullptr ) rdat.setFormulaPars(*m_MinSignal);
+    }
+  }
+  double zmax = m_MaxSignal->eval();
+  double zmin = m_MinSignal == nullptr ? -zmax : m_MinSignal->eval();
   // Loop over channel ranges.
   Index nhist = 0;
   for ( IndexRange ran : m_crs ) {
@@ -270,8 +305,6 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     ph->SetDirectory(nullptr);
     ph->SetStats(0);
     if ( m_LogLevel >= 2 ) cout << myname << "Created histogram " << hname << endl;
-    double zmin = m_MinSignal;
-    double zmax = m_MaxSignal;
     ph->GetZaxis()->SetRangeUser(zmin, zmax);
     ph->SetContour(200);
     double zempty = colorEmptyBins ? zmin - 1000.0 : 0.0;
@@ -409,7 +442,7 @@ DataMap AdcDataPlotter::viewMap(const AdcChannelDataMap& acds) const {
     man.setPalette(m_Palette);
     if ( m_PlotSizeX && m_PlotSizeY ) man.setCanvasSize(m_PlotSizeX, m_PlotSizeY);
     man.add(ph, "colz");
-    man.setRangeZ(m_MinSignal, m_MaxSignal);
+    man.setRangeZ(zmin, zmax);
     man.addAxis();
     // Root uses the frame color for underflows.
     // If we are coloring empty bins, we use that color.
