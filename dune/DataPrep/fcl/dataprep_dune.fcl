@@ -245,6 +245,21 @@ adcprep_with_tools_sim: {
   CallgrindToolNames: []
 }
 
+# Process simulation using tool-based dataprep
+# followed by wirecell service.
+# Default tool sequence here writes the digits out as wires.
+adcprep_with_tools_simwc: {
+  service_provider: ToolBasedRawDigitPrepService
+  LogLevel: 3
+  DoWires: true
+  ToolNames: [
+    "digitReader",
+    "adcSampleFiller",
+    "adcKeepAllSignalFinder"
+  ]
+  CallgrindToolNames: []
+}
+
 # Process data using tool-based dataprep.
 adcprep_with_tools_data: {
   service_provider: ToolBasedRawDigitPrepService
