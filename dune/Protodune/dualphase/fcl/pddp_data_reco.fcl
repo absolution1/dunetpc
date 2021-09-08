@@ -31,7 +31,7 @@ services:
      MapName: "pddp2crp"
   }
   FileCatalogMetadata:  @local::pddp_art_file_catalog
-                        @table::protodunedphase_reco_services
+                        @table::protodunedphase_reco_services_legacy
 }
 
 #services.FileCatalogMetadata.applicationVersion: "v08_54_00"
