@@ -514,6 +514,12 @@
       z="148.9009"
       lunit="cm"/>
 
+    <box name="CRMExternalLateral" 
+      x="650"
+      y="50"
+      z="2000"
+      lunit="cm"/>
+
     <box name="ArapucaOut" lunit="cm"
       x="65"
       y="2.5"
@@ -671,6 +677,18 @@
        <rotationref ref="rIdentity"/>
      </physvol>
    </volume>
+
+    <volume name="volLateralExternal">
+      <materialref ref="LAr"/>
+      <solidref ref="CRMExternalLateral"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
+      <colorref ref="green"/>
+    </volume>
+
+
+
  
     <volume name="volSteelShell">
       <materialref ref="STEEL_STAINLESS_Fe7Cr2Ni" />
@@ -2029,9 +2047,6 @@
     <volume name="volCryostat">
       <materialref ref="LAr" />
       <solidref ref="Cryostat" />
-        <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
-      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <physvol>
         <volumeref ref="volGaseousArgon"/>
         <position name="posGaseousArgon" unit="cm" x="375.04" y="0" z="0"/>
@@ -2040,6 +2055,14 @@
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
       </physvol>
+
+      <physvol>
+       <volumeref ref="volLateralExternal"/>
+       <position name="posLateralExternal" unit="cm" 
+        x="0" y="700" z="0"/>
+       <rotationref ref="rIdentity"/>
+      </physvol>
+
       <physvol>
         <volumeref ref="volTPC"/>
 	<position name="posTPC-0" unit="cm"

@@ -8671,6 +8671,9 @@
     <volume name="volCryostat">
       <materialref ref="LAr" />
       <solidref ref="Cryostat" />
+  <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <physvol>
         <volumeref ref="volGaseousArgon"/>
         <position name="posGaseousArgon" unit="cm" x="375.04" y="0" z="0"/>
