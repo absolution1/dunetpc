@@ -8,7 +8,7 @@ include_directories( $ENV{IFBEAM_FQ_DIR}/include )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # temporary fix for an extra semicolon in the root v6_22_06a TVirtualPaveStats header
-cet_remove_compiler_flags(CXX -pedantic)
+cet_add_compiler_flags(CXX -Wno-pedantic)
 
 art_make( MODULE_LIBRARIES
                         lardataalg_DetectorInfo
