@@ -187,6 +187,8 @@ int test_Tpc2dDeconvolute(bool useExistingFcl) {
     fout << "            OutPath: \"dcon\"" << endl;
     fout << "        SampleSigma: 2.0" << endl;
     fout << "       ChannelSigma: 0.0" << endl;
+    fout << "     LowFilterPower: 0.0" << endl;
+    fout << "     LowFilterWidth: 0.0" << endl;
     fout << "  }" << endl;
     fout << "}" << endl;
     fout.close();

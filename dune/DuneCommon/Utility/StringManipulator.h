@@ -34,6 +34,15 @@ public:
     return '_';
   }
 
+  // Convert a float to string.
+  //   val - input float
+  //   prec - precision of the output: # digits after decimal point (dp)
+  //   trunc - If true, trailing zeroes afterd dp and trailing dp are removed
+  //   sdot - If not blank, dp is replaced with this string
+  //   sdot - If not blank, minus sign is replaced with this string
+  static std::string
+  floatToString(float val, int prec, bool trunc, std::string sdot ="", std::string smin ="");
+
   // Ctor from a string.
   // If copy is false, this object will modify the passed string.
   // If true, the modified copy may be retrieved with str().

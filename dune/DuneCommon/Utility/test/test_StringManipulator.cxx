@@ -26,6 +26,14 @@ using StringVV = std::vector<StringVector>;
 
 //**********************************************************************
 
+bool checkEqual(string s1, string s2) {
+  string prefix = "Stringmanipulator: ";
+  cout << prefix << s1;
+  cout << (s1 == s2 ? " == " : " != ");
+  cout << s2 << endl;
+  return s1 == s2;
+}
+
 bool areEqual(const StringVector& lhs, const StringVector& rhs) {
   string myname = "areEqual: ";
   if ( lhs == rhs ) return true; 
@@ -53,6 +61,14 @@ int test_StringManipulator(bool copy, Index logLevel) {
 #endif
   string line = "-----------------------------";
   string scfg;
+
+  cout << myname << "Checking float to string." << endl;
+  assert( checkEqual(StringManipulator::floatToString(123, 6, true, "p"), "123") );
+  assert( checkEqual(StringManipulator::floatToString(1.23, 6, true, "p"), "1p23") );
+  assert( checkEqual(StringManipulator::floatToString(-1.23, 6, true, "p"), "-1p23") );
+  assert( checkEqual(StringManipulator::floatToString(-1.23, 6, true, "p", "Minus"), "Minus1p23") );
+  assert( checkEqual(StringManipulator::floatToString(1., 6, true, "p"), "1") );
+  assert( checkEqual(StringManipulator::floatToString(0.009, 6, true, "p"), "0p009") );
 
   char cfill = 'x';
   cout << myname << "Checking fill char." << endl;
