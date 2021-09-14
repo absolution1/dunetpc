@@ -20,11 +20,21 @@
 //
 //   Qe(kn,kj) = Fc(kn) Ft(kj) Qd(km,ki) /R(km-kn,ki-kj)
 //
-// Filter functions Fc and Ft are introduced to suppress large values that can
+// HF filter functions Fc and Ft are introduced to suppress large values that can
 // arise where R approaches zero and noise in the measurement of Qd keeps
 // that value finite.
 // The filter functions are Gaussian derived from user-supplied Gaussian sigmas in
 // sample (tick) and channel.
+//
+// Low-frequency filtering is provided in sample only by the function
+//   1/[ 1 + 1/(W N k)^P ]
+// N is the number of samples and and k is the wave number.
+// The width W and power P are configuration parameters.
+//   W < 0 disables the filter
+//   W = 0 filters out k = 0 only
+//   W > 0 removes k = 0 and applies the above for other values
+//
+// Other options may later be added for the response or filter.
 //
 // The response matrix is derived from an input reponse matrix ri(m,i) read from a
 // channel-indexed vector of tick-indexed reponse vectors. This input reponse is
@@ -46,6 +56,8 @@
 //   OutPath: Path to the output 2D ROIs. If "" or ".", the input ROIs are updated.
 //   SampleSigma: Tick sigma used to construct the sample filter. Zero means no filter.
 //   ChannelSigma: Channel sigma used to construct the sample filter. Zero means no filter.
+//   LowFilterWidth: - Vector of widths [tick] [Tick] for the low-frequency sample filter.
+//   LowFilterPower: - Vector of powers time-domain sigma [Tick] for the LF sample filter.
 //
 
 #ifndef Tpc2dDeconvolute_H
@@ -92,6 +104,8 @@ private:
   Name                 m_OutPath;
   float                m_SampleSigma;
   float                m_ChannelSigma;
+  float                m_LowFilterWidth;
+  float                m_LowFilterPower;
 
   // Transform.
   std::unique_ptr<Fw2dFFT> m_pfft;
