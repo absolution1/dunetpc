@@ -1,0 +1,29 @@
+#14th September 2021 Dom Brailsford
+#This is a temporary fcl file that essentially reverts all of the structural changes in the service renaming for DUNE FD.  
+#As the develop branch transitions to the refactored LArG4, this temporary fcl file can be removed
+
+
+#include "services_dunefd_horizdrift.fcl"
+#include "services_dunefd_horizdrift_1x2x6.fcl"
+
+BEGIN_PROLOG
+
+dunefd_1x2x6_services_refactored:    @local::dunefd_1x2x6_services
+dunefd_1x2x6_services:               @local::dunefd_1x2x6_services_legacy
+
+dunefd_1x2x6_simulation_services_refactored:    @local::dunefd_1x2x6_simulation_services
+dunefd_1x2x6_simulation_services:               @local::dunefd_1x2x6_simulation_services_legacy
+
+dunefd_1x2x6_reco_services_refactored:    @local::dunefd_1x2x6_reco_services
+dunefd_1x2x6_reco_services:               @local::dunefd_1x2x6_reco_services_legacy
+
+dunefd_services_refactored:    @local::dunefd_services
+dunefd_services:               @local::dunefd_services_legacy
+
+dunefd_simulation_services_refactored:    @local::dunefd_simulation_services
+dunefd_simulation_services:               @local::dunefd_simulation_services_legacy
+
+dunefd_reco_services_refactored:    @local::dunefd_reco_services
+dunefd_reco_services:               @local::dunefd_reco_services_legacy
+
+END_PROLOG
