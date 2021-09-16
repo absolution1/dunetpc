@@ -2,6 +2,8 @@
 <gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"
                        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"          
                        xs:noNamespaceSchemaLocation="RefactoredGDMLSchema/SimpleExtension.xsd"> 
+
+
 <extension>
    <color name="magenta"     R="0.0"  G="1.0"  B="0.0"  A="1.0" />
    <color name="green"       R="0.0"  G="1.0"  B="0.0"  A="1.0" />
@@ -9,6 +11,7 @@
    <color name="blue"        R="0.0"  G="0.0"  B="1.0"  A="1.0" />
    <color name="yellow"      R="1.0"  G="1.0"  B="0.0"  A="1.0" />    
 </extension>
+
 <define>
 
 <!--
@@ -572,6 +575,21 @@
       y="1548"
       z="2291.6126"/>
 
+    <box name="ExternalAuxOut" lunit="cm" 
+      x="850.08 - 100"
+      y="1548 - 2*2.5 - 2*40"
+      z="2291.6126"/>
+
+    <box name="ExternalAuxIn" lunit="cm" 
+      x="850.08"
+      y="1359.17"
+      z="2291.6126 + 1"/>
+
+   <subtraction name="ExternalActive">
+      <first ref="ExternalAuxOut"/>
+      <second ref="ExternalAuxIn"/>
+    </subtraction>
+
     <subtraction name="SteelShell">
       <first ref="Cryostat"/>
       <second ref="ArgonInterior"/>
@@ -679,6 +697,14 @@
     <volume name="volGaseousArgon">
       <materialref ref="ArGas"/>
       <solidref ref="GaseousArgon"/>
+    </volume>
+    <volume name="volExternalActive">
+      <materialref ref="LAr"/>
+      <solidref ref="ExternalActive"/>
+      <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
+      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
+      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="0*V/cm"/>
+      <colorref ref="green"/>
     </volume>
     <volume name="volArapucaDouble_0-0-0">
       <materialref ref="G10" />
@@ -2029,9 +2055,6 @@
     <volume name="volCryostat">
       <materialref ref="LAr" />
       <solidref ref="Cryostat" />
-        <auxiliary auxtype="SensDet" auxvalue="SimEnergyDeposit"/>
-      <auxiliary auxtype="StepLimit" auxunit="cm" auxvalue="0.5208*cm"/>
-      <auxiliary auxtype="Efield" auxunit="V/cm" auxvalue="500*V/cm"/>
       <physvol>
         <volumeref ref="volGaseousArgon"/>
         <position name="posGaseousArgon" unit="cm" x="375.04" y="0" z="0"/>
@@ -2039,6 +2062,10 @@
       <physvol>
         <volumeref ref="volSteelShell"/>
         <position name="posSteelShell" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="volExternalActive"/>
+        <position name="posExternalActive" unit="cm" x="-100/2" y="0" z="0"/>
       </physvol>
       <physvol>
         <volumeref ref="volTPC"/>
@@ -5701,7 +5728,9 @@
 
     </volume>
 </structure>
-  <setup name="Default" version="1.0">
-    <world ref="volWorld"/>
-  </setup>
+
+<setup name="Default" version="1.0">
+  <world ref="volWorld" />
+</setup>
+
 </gdml_simple_extension>
