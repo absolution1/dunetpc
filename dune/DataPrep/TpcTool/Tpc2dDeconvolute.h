@@ -56,8 +56,8 @@
 //   OutPath: Path to the output 2D ROIs. If "" or ".", the input ROIs are updated.
 //   SampleSigma: Tick sigma used to construct the sample filter. Zero means no filter.
 //   ChannelSigma: Channel sigma used to construct the sample filter. Zero means no filter.
-//   LowFilterWidth: - Vector of widths [tick] [Tick] for the low-frequency sample filter.
-//   LowFilterPower: - Vector of powers time-domain sigma [Tick] for the LF sample filter.
+//   LowFilterWidth: - Width [tick] for the low-frequency sample filter. Zero means only k=0.
+//   LowFilterPower: - Power for the LF sample filter. Value <=0 disables the filter.
 //
 
 #ifndef Tpc2dDeconvolute_H

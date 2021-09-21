@@ -102,6 +102,13 @@ public:
   // Optional call at the start of processing an event.
   virtual DataMap endEvent(const DuneEventInfo&) const { return DataMap(); }
 
+  // Optional call to notify tool all events have been processed.
+  // Tools which produce an end-of-processing report or plots should put
+  // or call that code from here and call this method from their dtor
+  // in case it is not called directly.
+  // Argument provides means to pass data in.
+  virtual DataMap close(const DataMap* dmin =nullptr) { return DataMap(); }
+
 };
 
 //**********************************************************************

@@ -1,0 +1,127 @@
+#include "services_common_dune.fcl"
+
+#######################
+### 35ton Prototype ###
+#######################
+
+BEGIN_PROLOG
+
+dune35t_basic_services_legacy: {
+  ExptGeoHelperInterface:     @local::dune_geometry_helper
+  GeometryConfigurationWriter: {}
+  Geometry:                   @local::dune35t_geo
+  DetectorClocksService:      @local::dune35t_detectorclocks
+  DetectorPropertiesService:  @local::dune35t_detproperties
+  LArPropertiesService:       @local::dune35t_properties
+  DatabaseUtil:               @local::dune35t_database
+  SpaceCharge:                @local::dune35t_spacecharge
+  NuRandomService:            @local::dune_seedservice
+  ChannelStatusService:       @local::dune35t_channel_status_dla
+  ChannelGroupService:        @local::changroup_apa_keepall
+}
+
+# DLA Aug2016: Drop this in favor of dune35t_reco_services_legacy?
+# For now, keep for use with the old reco.
+dune35t_services_legacy:                            @local::dune35t_basic_services_legacy
+dune35t_services_legacy.LArFFT:                     @local::dune35t_larfft
+dune35t_services_legacy.BackTrackerService:         @local::dune35t_backtrackerservice
+dune35t_services_legacy.ParticleInventoryService:   @local::dune35t_particleinventoryservice
+dune35t_services_legacy.PhotonBackTrackerService:   @local::dune35t_photonbacktrackerservice
+dune35t_services_legacy.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
+
+dune35t_gen_services:                        @local::dune35t_basic_services_legacy
+dune35t_gen_services.MagneticField:          @local::no_mag_larsoft
+
+dune35t_g4_services_legacy:                         @local::dune35t_gen_services
+dune35t_g4_services_legacy.LArG4Parameters:         @local::dune35t_largeantparameters
+dune35t_g4_services_legacy.LArVoxelCalculator:      @local::dune35t_larvoxelcalculator
+dune35t_g4_services_legacy.PhotonVisibilityService: @local::dune35t_photonvisibilityservice
+dune35t_g4_services_legacy.OpDetResponseInterface:  @local::dune35t_opdetresponse
+
+##
+# Settings to turn on and configure photon simulation
+##
+
+# Pre-scale the scintillation yield to save memory (correct when applying QE)
+# MUST match between g4 and detsim steps
+dune35t_g4_services_legacy.LArPropertiesService.ScintYield:    24000
+dune35t_g4_services_legacy.LArPropertiesService.ScintPreScale: 0.0023
+
+# disable cerenkov
+dune35t_g4_services_legacy.LArPropertiesService.EnableCerenkovLight: false
+
+# enable "FastOptical" in geant4
+dune35t_g4_services_legacy.LArG4Parameters.UseCustomPhysics: true
+dune35t_g4_services_legacy.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                      "FastOptical",
+                                                      "SynchrotronAndGN",
+                                                      "Ion",
+                                                      "Hadron",
+                                                      "Decay",
+                                                      "HadronElastic",
+                                                      "Stopping",
+                                                      "NeutronTrackingCut" ]
+
+dune35t_detsim_services_legacy:                              @local::dune35t_basic_services_legacy
+dune35t_detsim_services_legacy.LArFFT:                       @local::dune35t_larfft
+dune35t_detsim_services_legacy.SignalShapingServiceDUNE:     @local::dune35t_signalshapingservice
+dune35t_detsim_services_legacy.OpDetResponseInterface:       @local::dune35t_opdetresponse
+dune35t_detsim_services_legacy.LArG4Parameters:              @local::dune35t_largeantparameters
+
+# enable "FastOptical" in geant4
+dune35t_detsim_services_legacy.LArG4Parameters.UseCustomPhysics: true
+dune35t_detsim_services_legacy.LArG4Parameters.EnabledPhysics: [ "Em",
+                                                          "FastOptical",
+                                                          "SynchrotronAndGN",
+                                                          "Ion",
+                                                          "Hadron",
+                                                          "Decay",
+                                                          "HadronElastic",
+                                                          "Stopping",
+                                                          "NeutronTrackingCut" ]
+
+# Pre-scale the scintillation yield to save memory (correct when applying QE)
+# MUST match between g4 and detsim steps
+dune35t_detsim_services_legacy.LArPropertiesService.ScintPreScale:      0.0023
+
+dune35t_simulation_services_legacy:                                      @local::dune35t_g4_services_legacy
+dune35t_simulation_services_legacy.LArFFT:                               @local::dune35t_larfft
+dune35t_simulation_services_legacy.SignalShapingServiceDUNE:             @local::dune35t_signalshapingservice
+dune35t_simulation_services_legacy.PhotonVisibilityService:              @local::dune35t_photonvisibilityservice
+dune35t_simulation_services_legacy.BackTrackerService:                   @local::dune35t_backtrackerservice
+dune35t_simulation_services_legacy.ParticleInventoryService:             @local::dune35t_particleinventoryservice
+dune35t_simulation_services_legacy.PhotonBackTrackerService:             @local::dune35t_photonbacktrackerservice
+
+# Reco services for 35-ton data.
+dune35tdata_reco_services:                            @local::dune35t_basic_services_legacy
+dune35tdata_reco_services.LArFFT:                     @local::dune35t_larfft
+dune35tdata_reco_services.BackTrackerService:         @local::dune35t_backtrackerservice
+dune35tdata_reco_services.ParticleInventoryService:   @local::dune35t_particleinventoryservice
+dune35tdata_reco_services.SignalShapingServiceDUNE:   @local::dune35t_signalshapingservice
+dune35tdata_reco_services.AdcChannelDataCopyService:  @local::adccopy
+dune35tdata_reco_services.RawDigitExtractService:     @local::rdx_35tdata
+dune35tdata_reco_services.AdcSuppressonService:       @local::adcmit_dune35t
+dune35tdata_reco_services.AdcSuppressService:         @local::adcsuppress_legacy35t
+dune35tdata_reco_services.AdcNSignalFindingService:   @local::adcsigfind_suppress
+dune35tdata_reco_services.PedestalEvaluationService:  @local::adcped_median
+dune35tdata_reco_services.AdcDeconvolutionService:    @local::adcdco_dune35t
+dune35tdata_reco_services.AdcRoiBuildingService:      @local::adcroi_dune35t
+dune35tdata_reco_services.AdcWireBuildingService:     @local::adcwire_std
+dune35tdata_reco_services.RawDigitPrepService:        @local::adcprep_dune35tdata
+
+# Reco services for 35-ton simulation.
+dune35tsim_reco_services:                             @local::dune35tdata_reco_services
+dune35tsim_reco_services.RawDigitExtractService:      @local::rdx_std
+dune35tsim_reco_services.RawDigitPrepService:         @local::adcprep_with_services_sim
+
+dune35t_milliblock_reco_services_legacy:                                 @local::dune35tsim_reco_services
+dune35t_milliblock_reco_services_legacy.DetectorPropertiesService:       @local::dune35t_milliblock_detproperties
+
+dune35t_milliblock_detsim_services:                               @local::dune35t_detsim_services_legacy
+dune35t_milliblock_detsim_services.DetectorPropertiesService:     @local::dune35t_milliblock_detproperties
+
+dune35t_milliblock_simulation_services:                           @local::dune35t_simulation_services_legacy
+dune35t_milliblock_simulation_services.DetectorPropertiesService: @local::dune35t_milliblock_detproperties
+
+END_PROLOG
+

@@ -1,0 +1,55 @@
+#include "services_common_dune.fcl"
+#include "services_dunefd_horizdrift.fcl"
+
+######################################
+### Dune FD horizontal drift 1x2x6 ###
+######################################
+
+BEGIN_PROLOG
+
+dunefd_1x2x6_services_legacy: {
+    @table::dunefd_services_legacy
+    Geometry: @local::dune10kt_1x2x6_geo
+}
+
+dunefd_1x2x6_simulation_services_legacy: {
+    @table::dunefd_simulation_services_legacy
+    Geometry: @local::dune10kt_1x2x6_geo
+    PhotonVisibilityService: @local::dune10kt_1x2x6_photonvisibilityservice
+    LArG4Parameters: {
+        @table::dunefd_simulation_services_legacy.LArG4Parameters
+        UseCustomPhysics: true
+        EnabledPhysics: [ "Em",
+                          "FastOptical",
+                          "SynchrotronAndGN",
+                          "Ion",
+                          "Hadron",
+                          "Decay",
+                          "HadronElastic",
+                          "Stopping",
+                          "NeutronTrackingCut" ]
+    }
+}
+                                                        
+dunefd_1x2x6_reco_services_legacy: {
+    @table::dunefd_reco_services_legacy
+    Geometry: @local::dune10kt_1x2x6_geo
+}
+
+dunefd_1x2x6_services: {
+    @table::dunefd_services
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
+}
+
+dunefd_1x2x6_simulation_services: {
+    @table::dunefd_simulation_services
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
+    LArG4Detector:      @local::dune10kt_1x2x6_v4_larg4detector
+}
+
+dunefd_1x2x6_reco_services: {
+    @table::dunefd_reco_services
+    Geometry: @local::dune10kt_1x2x6_refactored_geo
+}
+
+END_PROLOG

@@ -1,0 +1,73 @@
+#include "services_common_dune.fcl"
+#include "services_dunefd_horizdrift.fcl"
+
+BEGIN_PROLOG
+
+####################################
+### DUNE far detector dual phase ###
+####################################
+
+dunefddphase_services_legacy: {
+ DatabaseUtil:                   @local::dunefd_database
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ ChannelStatusService:           @local::dunefd_channel_status
+ LArFFT:                         @local::dunefd_larfft
+ NuRandomService:                @local::dune_seedservice
+ Geometry:                       @local::dunedphase10kt_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:      @local::dunefddphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+}
+
+dunefddphase_simulation_services_legacy: {
+ BackTrackerService:             @local::dunefd_backtrackerservice_legacy
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ LArFFT:                         @local::dunefd_larfft
+ LArG4Parameters:                @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ GeometryConfigurationWriter:    {}
+ LArVoxelCalculator:             @local::dunefd_larvoxelcalculator
+ MagneticField:                  @local::no_mag_larsoft
+ NuRandomService:                @local::dune_seedservice
+ DatabaseUtil:                   @local::dunefd_database
+ OpDetResponseInterface:         @local::standard_opdetresponse
+ PhotonBackTrackerService:       @local::standard_photonbacktrackerservice
+ ChannelStatusService:           @local::dunefd_channel_status
+ Geometry:                       @local::dunedphase10kt_geo
+ DetectorClocksService:          @local::dunefddphase_detectorclocks
+ DetectorPropertiesService:      @local::dunefddphase_detproperties
+ LArPropertiesService:           @local::dunefddphase_properties
+ SignalShapingServiceDUNEDPhase: @local::dunefddphase_signalshapingservice
+ SimChannelExtractService:       @local::scxdp
+ CrpGainService:                 @local::dunefddphase_crpgain
+ SpaceCharge:                    @local::dunefddphase_spacecharge
+ DetPedestalService:             @local::dunedp_fixedpeds
+}
+
+dunefddphase_reco_services_legacy:                            @local::dunefddphase_services_legacy
+dunefddphase_reco_services_legacy.BackTrackerService:         @local::dunefd_backtrackerservice_legacy
+dunefddphase_reco_services_legacy.ParticleInventoryService:   @local::standard_particleinventoryservice
+dunefddphase_reco_services_legacy.RawDigitExtractService:     @local::rdx_std
+dunefddphase_reco_services_legacy.RawDigitPrepService:        @local::adcprep_with_services_sim
+dunefddphase_reco_services_legacy.AdcDeconvolutionService:    @local::adcdco_dunefddphase
+dunefddphase_reco_services_legacy.AdcRoiBuildingService:      @local::adcroi_dunefddphase
+dunefddphase_reco_services_legacy.AdcWireBuildingService:     @local::adcwire_std
+dunefddphase_reco_services_legacy.PedestalEvaluationService:  @local::adcped_median
+dunefddphase_reco_services_legacy.AdcNoiseRemovalService:     @local::adcnr_dunedphase3x1x1
+
+# Settings for optical simulation in the FD. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+
+dunefddphase_simulation_services_legacy.LArPropertiesService.ScintYield: 24000
+dunefddphase_simulation_services_legacy.LArPropertiesService.ScintPreScale: 1
+dunefddphase_simulation_services_legacy.LArPropertiesService.EnableCerenkovLight: false
+dunefddphase_simulation_services_legacy.OpDetResponseInterface.QuantumEfficiency: 0.12 # including TPB from arxiv 1807.07123
+
+END_PROLOG
+

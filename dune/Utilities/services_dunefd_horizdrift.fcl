@@ -1,0 +1,92 @@
+#include "services_common_dune.fcl"
+
+############################
+### Dune FD Single Phase ###
+############################
+
+BEGIN_PROLOG
+
+dunefd_services_legacy: {
+ ExptGeoHelperInterface:         @local::dune_geometry_helper
+ Geometry:                       @local::dune10kt_geo
+ GeometryConfigurationWriter:    {}
+ DetectorClocksService:          @local::dunefd_detectorclocks
+ DetectorPropertiesService:      @local::dunefd_detproperties
+ LArPropertiesService:           @local::dunefd_properties
+ LArFFT:                         @local::dunefd_larfft
+ DatabaseUtil:                   @local::dunefd_database
+ BackTrackerService:             @local::dunefd_backtrackerservice_legacy
+ ParticleInventoryService:       @local::standard_particleinventoryservice
+ PhotonBackTrackerService:       @local::dunefd_photonbacktrackerservice_legacy
+ SpaceCharge:                    @local::dunefd_spacecharge
+ NuRandomService:                @local::dune_seedservice
+ SignalShapingServiceDUNE:       @local::dunefd_signalshapingservice
+ ChannelStatusService:           @local::dunefd_channel_status
+ ChannelGroupService:            @local::changroup_apa_keepall
+}
+
+dunefd_simulation_services_legacy: {
+ LArFFT:                       @local::dunefd_larfft
+ LArG4Parameters:              @local::dunefd_largeantparameters
+ ExptGeoHelperInterface:       @local::dune_geometry_helper
+ GeometryConfigurationWriter:  {}
+ Geometry:                     @local::dune10kt_geo
+ DetectorClocksService:        @local::dunefd_detectorclocks
+ DetectorPropertiesService:    @local::dunefd_detproperties
+ LArPropertiesService:         @local::dunefd_properties
+ DatabaseUtil:                 @local::dunefd_database
+ LArVoxelCalculator:           @local::dunefd_larvoxelcalculator
+ MagneticField:                @local::no_mag_larsoft
+ BackTrackerService:           @local::dunefd_backtrackerservice_legacy
+ ParticleInventoryService:     @local::standard_particleinventoryservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice_legacy
+ SpaceCharge:                  @local::dunefd_spacecharge
+ NuRandomService:              @local::dune_seedservice
+ SignalShapingServiceDUNE:     @local::dunefd_signalshapingservice
+ OpDetResponseInterface:       @local::dunefd_opdetresponse
+ ChannelStatusService:         @local::dunefd_channel_status
+}
+# Settings for optical simulation in the FD. Optical simulation not on by default
+# for FD, turned on by custom physics list and defining a photon visibility
+# services is workspace g4 fhicl file.
+dunefd_simulation_services_legacy.LArPropertiesService.ScintYield: 24000
+dunefd_simulation_services_legacy.LArPropertiesService.ScintPreScale: 0.05
+dunefd_simulation_services_legacy.LArPropertiesService.EnableCerenkovLight: false
+
+dunefd_reco_services_legacy: {
+    @table::dunefd_services_legacy
+    RawDigitExtractService:     @local::rdx_std
+    RawDigitPrepService:        @local::adcprep_with_services_sim
+    #RawDigitPrepService:        @local::adcprep_with_tools_simwc
+    AdcDeconvolutionService:    @local::adcdco_dunefd
+    AdcRoiBuildingService:      @local::adcroi_dunefd
+    AdcWireBuildingService:     @local::adcwire_std
+}
+
+dunefd_services: {
+    @table::dunefd_services_legacy
+    NuRandomService:       @local::dune_prod_seedservice
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice
+    BackTrackerService:           @local::dunefd_backtrackerservice
+}
+
+dunefd_simulation_services: {
+    @table::dunefd_simulation_services_legacy
+    @table::common_larg4_services
+    NuRandomService:       @local::dune_prod_seedservice
+    ParticleListAction: @local::dune_particle_list_action
+    PhysicsList:        @local::dune_physics_list_fastoptical
+    #LArG4Detector:      No refactored full FD geom, required for this to run
+    BackTrackerService:           @local::dunefd_backtrackerservice
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice
+    PhotonVisibilityService: @erase
+}
+
+dunefd_reco_services: {
+    @table::dunefd_reco_services_legacy
+    NuRandomService:       @local::dune_prod_seedservice
+    BackTrackerService:           @local::dunefd_backtrackerservice
+    PhotonBackTrackerService: @local::dunefd_photonbacktrackerservice
+}
+
+END_PROLOG

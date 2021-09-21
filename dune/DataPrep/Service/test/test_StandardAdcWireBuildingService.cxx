@@ -48,7 +48,7 @@ int test_StandardAdcWireBuildingService(int a_LogLevel =1) {
 
   std::ostringstream oss;
   oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services:      @local::dune35t_services_legacy" << endl;
   oss << "services.AdcWireBuildingService: {" << endl;
   oss << "  service_provider: StandardAdcWireBuildingService" << endl;
   oss << "  LogLevel:       " << a_LogLevel << endl;

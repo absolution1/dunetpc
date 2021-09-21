@@ -55,7 +55,7 @@ int test_DuneDeconvolutionService(int a_LogLevel =-1) {
 
   std::ostringstream oss;
   oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services:      @local::dune35t_services_legacy" << endl;
   oss << "services.AdcDeconvolutionService: {" << endl;
   oss << "  service_provider: DuneDeconvolutionService" << endl;
   oss << "  LogLevel:              " << a_LogLevel << endl;

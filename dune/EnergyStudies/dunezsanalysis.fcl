@@ -23,7 +23,7 @@ services:
   TimeTracker:       {}
   RandomNumberGenerator: {} 
   message:      @local::standard_info
-                @table::dune35t_simulation_services
+                @table::dune35t_simulation_services_legacy
 }
 
 source:

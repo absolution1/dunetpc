@@ -1,0 +1,30 @@
+#include "services_common_dune.fcl"
+#include "services_dunefd_horizdrift.fcl"
+
+
+BEGIN_PROLOG
+
+###########################################
+### Dune FD Vertical Drift Single Phase ###
+###########################################
+dunefdvd_services: {
+    @table::dunefd_services
+    Geometry:                  @local::dunevd10kt_geo
+    DetectorPropertiesService: @local::dunefdvd_detproperties
+    DetectorClocksService:     @local::dunefdvd_detectorclocks
+    ChannelGroupService:       @erase
+}
+
+dunefdvd_simulation_services: {
+    @table::dunefd_simulation_services
+    Geometry:                  @local::dunevd10kt_geo
+    DetectorPropertiesService: @local::dunefdvd_detproperties
+    DetectorClocksService:     @local::dunefdvd_detectorclocks
+}
+
+dunefdvd_reco_services: {
+    @table::dunefd_reco_services
+    Geometry:                  @local::dunevd10kt_geo
+}
+
+END_PROLOG

@@ -47,7 +47,7 @@ int test_DuneRoiBuildingService(int a_LogLevel =1) {
 
   std::ostringstream oss;
   oss << "#include \"services_dune.fcl\"" << endl;
-  oss << "services:      @local::dune35t_services" << endl;
+  oss << "services:      @local::dune35t_services_legacy" << endl;
   oss << "services.AdcRoiBuildingService: {" << endl;
   oss << "  service_provider: DuneRoiBuildingService" << endl;
   oss << "  NSigmaStart:  4.0" << endl;
