@@ -5,6 +5,7 @@
 #include "dune/DuneInterface/Tool/AdcChannelTool.h"
 #include "dune/DuneInterface/Service/AdcWireBuildingService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include <iostream>
 #include <iomanip>
 

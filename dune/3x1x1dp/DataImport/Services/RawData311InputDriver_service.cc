@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "RawData311InputDriver.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 #include "larcore/Geometry/Geometry.h"
 

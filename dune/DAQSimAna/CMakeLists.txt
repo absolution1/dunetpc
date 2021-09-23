@@ -1,8 +1,11 @@
+include(MakeDuneToolBuilder)
 add_subdirectory(SNAnaClustering)
 add_subdirectory(RunningSumHitFinder)
 
+make_dune_tool_builder(dune::TriggerPrimitiveFinderTool)
+
 art_make( BASENAME_ONLY MODULE_LIBRARIES
-  dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+  dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
   larcore_Geometry_Geometry_service
   lardataalg_DetectorInfo
   larcorealg_Geometry
@@ -16,34 +19,34 @@ art_make( BASENAME_ONLY MODULE_LIBRARIES
   larsim_Simulation nug4_ParticleNavigation lardataobj_Simulation
   lardata_ArtDataHelper
   nusimdata_SimulationBase	
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
   art_Persistency_Common canvas
   art_Persistency_Provenance canvas
   art_Utilities canvas
-  ${MF_MESSAGELOGGER}
+  messagefacility::MF_MessageLogger
   
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
+  ROOT_BASIC_LIB_LIST
   EXCLUDE read_packed.cxx TriggerPrimitiveFinderPass1_tool.cc TriggerPrimitiveFinderPass2_tool.cc TriggerPrimitiveFinderTemplate_tool.cc
   )
 
-simple_plugin(TriggerPrimitiveFinderPass1 "tool"
+cet_build_plugin(TriggerPrimitiveFinderPass1 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )
 
-simple_plugin(TriggerPrimitiveFinderPass2 "tool"
+cet_build_plugin(TriggerPrimitiveFinderPass2 art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
   dune_DAQSimAna_TriggerPrimitiveFinderPass1_tool
 )
 
-simple_plugin(TriggerPrimitiveFinderTemplate "tool"
+cet_build_plugin(TriggerPrimitiveFinderTemplate art::tool
   fhiclcpp cetlib cetlib_except
   ${Boost_SYSTEM_LIBRARY}
 )

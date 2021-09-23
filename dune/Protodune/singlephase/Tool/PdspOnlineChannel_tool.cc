@@ -86,3 +86,5 @@ Index PdspOnlineChannel::get(Index chanOff) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(PdspOnlineChannel)

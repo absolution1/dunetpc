@@ -12,9 +12,9 @@ art_make_library(  LIBRARY_NAME  dune_Calib
 	                wda
 	                nuevdb_IFDatabase
                         cetlib cetlib_except
-                        ${MF_MESSAGELOGGER}
-			${FHICLCPP}
-                        ${ROOT_BASIC_LIB_LIST}
+                        messagefacility::MF_MessageLogger
+			FHICLCPP
+                        ROOT_BASIC_LIB_LIST
 			${Boost_SYSTEM_LIBRARY}
         )
  

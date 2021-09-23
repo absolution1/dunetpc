@@ -5,75 +5,75 @@
 
 # Add plugin for each tool.
 
-simple_plugin(FclRunDataTool  "tool"
+cet_build_plugin(FclRunDataTool  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FclIndexRangeTool  "tool"
+cet_build_plugin(FclIndexRangeTool  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FclIndexVectorMapTool  "tool"
+cet_build_plugin(FclIndexVectorMapTool  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FixedTimeOffsetTool  "tool"
+cet_build_plugin(FixedTimeOffsetTool  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(TimingRawDecoderOffsetTool  "tool"
+cet_build_plugin(TimingRawDecoderOffsetTool  art::tool
                 dune_ArtSupport
-                dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FclFloatArray  "tool"
+cet_build_plugin(FclFloatArray  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FclFileFloatArray  "tool"
+cet_build_plugin(FclFileFloatArray  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(SimpleHistogramManager  "tool"
+cet_build_plugin(SimpleHistogramManager  art::tool
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(ChannelStatusServiceTool  "tool"
+cet_build_plugin(ChannelStatusServiceTool  art::tool
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(ChannelStatusConfigTool  "tool"
+cet_build_plugin(ChannelStatusConfigTool  art::tool
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(BlockIndexMapTool  "tool"
+cet_build_plugin(BlockIndexMapTool  art::tool
                 art_Framework_Services_Registry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 add_subdirectory(test)

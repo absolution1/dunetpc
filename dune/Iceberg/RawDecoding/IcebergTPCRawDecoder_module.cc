@@ -18,7 +18,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
 #include "art_root_io/TFileService.h"
-
+#include "canvas/Persistency/Common/Assns.h"
 #include <memory>
 #include <cmath>
 

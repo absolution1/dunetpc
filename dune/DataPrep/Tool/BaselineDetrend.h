@@ -68,6 +68,5 @@ class BaselineDetrend : public TpcDataTool
 			    const std::vector<unsigned> &pedidx ) const;
 };
 
-DEFINE_ART_CLASS_TOOL(BaselineDetrend)
 
 #endif

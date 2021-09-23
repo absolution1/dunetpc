@@ -393,3 +393,5 @@ void IcebergDataInterfaceFELIXBufferMarch2021::unpack14(const uint32_t *packed, 
     }
   }
 }
+
+DEFINE_ART_CLASS_TOOL(IcebergDataInterfaceFELIXBufferMarch2021)

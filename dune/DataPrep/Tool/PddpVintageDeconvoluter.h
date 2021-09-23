@@ -35,6 +35,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(PddpVintageDeconvoluter)
 
 #endif

@@ -101,6 +101,7 @@
 
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServicesManager.h"
+#include "art/Utilities/SharedResource.h"
 
 #include <iosfwd>
 #include <map>
@@ -122,6 +123,7 @@ public:
 private:
   explicit ArtServiceHelper(fhicl::ParameterSet&& pset);
   art::ActivityRegistry activityRegistry_;
+  art::detail::SharedResources sharedResources_;
   art::ServicesManager servicesManager_;
 };
 

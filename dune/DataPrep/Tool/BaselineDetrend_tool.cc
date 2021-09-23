@@ -168,3 +168,5 @@ AdcSignalVector BaselineDetrend::Smoother( const AdcSignalVector &data,
   
   return trend;
 }
+
+DEFINE_ART_CLASS_TOOL(BaselineDetrend)

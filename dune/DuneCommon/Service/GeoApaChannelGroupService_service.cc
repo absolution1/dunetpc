@@ -1,6 +1,7 @@
 // GeoApaChannelGroupService.cxx
 
 #include "dune/DuneCommon/Service/GeoApaChannelGroupService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include <sstream>
 #include <iomanip>
 #include "larcorealg/Geometry/GeometryCore.h"

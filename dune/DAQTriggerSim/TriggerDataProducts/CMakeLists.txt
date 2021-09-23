@@ -5,10 +5,10 @@ art_make(
           LIB_LIBRARIES lardataobj_RawData
 	  art_Persistency_Common canvas
 	  art_Persistency_Provenance canvas
-	  ${MF_MESSAGELOGGER}
+	  messagefacility::MF_MessageLogger
 	  
 	  cetlib cetlib_except
-	  ${ROOT_BASIC_LIB_LIST}
+	  ROOT_BASIC_LIB_LIST
 	)
 
 install_headers()
