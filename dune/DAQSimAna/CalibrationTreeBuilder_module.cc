@@ -93,8 +93,7 @@ namespace CalibrationTreeBuilder {
           art::ServiceHandle<cheat::BackTrackerService> BTS;
           art::ServiceHandle<cheat::PhotonBackTrackerService> PBS;*/
     //Get a list of generator names.
-    std::vector< art::Handle< std::vector< simb::MCTruth > > > mcHandles;
-    evt.getManyByType(mcHandles);
+    auto const mcHandles = evt.getMany<std::vector<simb::MCTruth>>();
     std::vector< std::pair<int, std::string>> track_id_to_label;
 
     for( auto const& mcHandle : mcHandles ){

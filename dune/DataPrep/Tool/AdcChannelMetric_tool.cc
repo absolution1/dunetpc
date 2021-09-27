@@ -1023,3 +1023,5 @@ void AdcChannelMetric::evaluateFormulas() const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelMetric)

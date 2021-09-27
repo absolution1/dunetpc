@@ -1177,3 +1177,5 @@ void IcebergDataInterface::computeMedianSigma(raw::RawDigit::ADCvector_t &v_adc,
         }
     }
 }
+
+DEFINE_ART_CLASS_TOOL(IcebergDataInterface)

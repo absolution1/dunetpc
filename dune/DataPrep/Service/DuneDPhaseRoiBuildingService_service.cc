@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "dune/Utilities/SignalShapingServiceDUNEDPhase.h"
 #include "lardata/Utilities/LArFFT.h"
 

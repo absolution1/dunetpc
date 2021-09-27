@@ -23,17 +23,18 @@
 #ifndef AdcThresholdSignalFinder_H
 #define AdcThresholdSignalFinder_H
 
-#include "art/Utilities/ToolMacros.h"
-#include "fhiclcpp/ParameterSet.h"
-#include "dune/DuneInterface/Utility/ParFormula.h"
 #include "dune/DuneInterface/Tool/TpcDataTool.h"
 #include <string>
 #include <vector>
 
+// Forward declarations.
+namespace fhicl {
+  class ParameterSet;
+}
 class RunDataTool;
+class ParFormula;
 
-class AdcThresholdSignalFinder
-: public TpcDataTool {
+class AdcThresholdSignalFinder: public TpcDataTool {
 
 public:
 
@@ -59,7 +60,5 @@ private:
   RunDataTool* m_prdtool;
 
 };
-
-DEFINE_ART_CLASS_TOOL(AdcThresholdSignalFinder)
 
 #endif

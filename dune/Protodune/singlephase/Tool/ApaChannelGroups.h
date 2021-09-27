@@ -77,6 +77,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(ApaChannelGroups)
 
 #endif

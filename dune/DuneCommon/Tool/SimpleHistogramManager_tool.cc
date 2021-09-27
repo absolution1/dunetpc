@@ -94,3 +94,5 @@ int SimpleHistogramManager::release(Name hname) {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(SimpleHistogramManager)

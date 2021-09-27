@@ -16,9 +16,9 @@ cet_test(test_AdcToRoi2d SOURCES test_AdcToRoi2d.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_Roi2dToAdc SOURCES test_Roi2dToAdc.cxx
@@ -30,9 +30,9 @@ cet_test(test_Roi2dToAdc SOURCES test_Roi2dToAdc.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_Tpc2dDeconvolute SOURCES test_Tpc2dDeconvolute.cxx

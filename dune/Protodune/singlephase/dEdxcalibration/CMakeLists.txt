@@ -1,6 +1,6 @@
 
 # temporary fix for an extra semicolon in the root v6_22_06a TVirtualPaveStats header
-cet_remove_compiler_flags(CXX -pedantic)
+cet_add_compiler_flags(CXX -Wno-pedantic)
 
 art_make( 
   LIB_LIBRARIES 
@@ -14,21 +14,20 @@ art_make(
   larana_OpticalDetector_OpDigiProperties_service
   lardata_Utilities
   nusimdata_SimulationBase
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
+  ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE
   art_Persistency_Common
   art_Utilities
   canvas
-  ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
-  ${FHICLCPP}
+  messagefacility::MF_MessageLogger
+  FHICLCPP
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
+  ROOT_BASIC_LIB_LIST
   MODULE_LIBRARIES larana_OpticalDetector_OpDigiProperties_service
   larana_OpticalDetector_OpHitFinder
   larana_OpticalDetector
@@ -50,40 +49,38 @@ art_make(
   lardataobj_AnalysisBase
   nurandom_RandomUtils_NuRandomService_service
   nusimdata_SimulationBase
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-  ${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-  ${ART_PERSISTENCY_PROVENANCE}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
+  ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE
+  ART_PERSISTENCY_PROVENANCE
   art_Persistency_Common
   art_Utilities
   canvas
-  ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
-  ${FHICLCPP}
+  messagefacility::MF_MessageLogger
+  FHICLCPP
   cetlib cetlib_except
-  ${ROOT_BASIC_LIB_LIST}
+  ROOT_BASIC_LIB_LIST
   SERVICE_LIBRARIES
   larcorealg_Geometry
   larcore_Geometry_Geometry_service
-  ${ART_FRAMEWORK_CORE}
-  ${ART_FRAMEWORK_PRINCIPAL}
-  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-  ${ART_FRAMEWORK_SERVICES_BASIC}
-  ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-  ${ART_ROOT_IO_TFILESERVICE_SERVICE}
+  ART_FRAMEWORK_CORE
+  ART_FRAMEWORK_PRINCIPAL
+  ART_FRAMEWORK_SERVICES_REGISTRY
+  ART_ROOT_IO_TFILE_SUPPORT
+  ROOT::Core
+  ART_ROOT_IO_TFILESERVICE_SERVICE
   art_Persistency_Common
   art_Utilities
   canvas
-  ${MF_MESSAGELOGGER}
-  ${MF_UTILITIES}
-  ${FHICLCPP}
+  messagefacility::MF_MessageLogger
+  FHICLCPP
   cetlib cetlib_except
-  ${CLHEP}
-  ${ROOT_BASIC_LIB_LIST}
+  CLHEP
+  ROOT_BASIC_LIB_LIST
   )
 
 install_headers()

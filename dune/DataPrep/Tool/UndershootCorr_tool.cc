@@ -210,3 +210,5 @@ void UndershootCorr::wlinfit(std::vector<double> x, std::vector<double> &y,
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(UndershootCorr)

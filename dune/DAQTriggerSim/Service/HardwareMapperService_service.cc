@@ -6,6 +6,7 @@
 // Description: Dish out vectors of raw::ChannelID_t to the user for requested hardware element
 
 #include "dune/DAQTriggerSim/Service/HardwareMapperService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -44,8 +45,7 @@ void HardwareMapperService::checkGeomVsFileDetectorName(art::Run const& run){
   //Inspired by Geometry_service.cc
   mf::LogInfo loginfo(fServiceName);
 
-  std::vector< art::Handle<sumdata::RunData> > rdcol;
-  run.getManyByType(rdcol);
+  auto const rdcol = run.getMany<sumdata::RunData>();
   if (rdcol.empty()) {
     mf::LogError(fServiceName) << "Can't find sumdata::RunData for geometry vs. file detector name checks";
     return;

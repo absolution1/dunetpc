@@ -7,18 +7,18 @@
 #
 # Add plugin for each tool.
 
-simple_plugin(AdcToRoi2d   "tool"
+cet_build_plugin(AdcToRoi2d   art::tool
                 dune_DuneInterface_Data
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(Roi2dToAdc   "tool"
+cet_build_plugin(Roi2dToAdc   art::tool
                 dune_DuneInterface_Data
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 simple_plugin(Tpc2dDeconvolute   "tool"

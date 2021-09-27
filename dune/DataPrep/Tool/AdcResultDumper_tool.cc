@@ -79,3 +79,5 @@ DataMap AdcResultDumper::updateMap(AdcChannelDataMap& acds) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcResultDumper)

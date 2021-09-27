@@ -25,11 +25,8 @@ int parseFcl(string path, string fclname, RunData& rdat) {
   gSystem->FindFile(path.c_str(), ts);
   string pfname = ts.Data();
   if ( pfname.size() == 0 ) return 1;
-  fhicl::intermediate_table tbl;
   cet::filepath_maker policy;
-  fhicl::parse_document(pfname, policy, tbl);
-  fhicl::ParameterSet ps;
-  fhicl::make_ParameterSet(tbl, ps);
+  auto ps = fhicl::ParameterSet::make(fhicl::parse_document(pfname, policy));
   ps.get_if_present<Index>("run", rdat.accessRun());
   ps.get_if_present<string>("cryostat", rdat.accessCryostat());
   ps.get_if_present<IndexVector>("apas", rdat.accessApas());
@@ -94,3 +91,5 @@ RunData FclRunDataTool::runData(Index run, Index subRun) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclRunDataTool)

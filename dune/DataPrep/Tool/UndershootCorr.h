@@ -64,6 +64,5 @@ private:
   void wlinfit(std::vector<double> x, std::vector<double> &y, std::vector<double> &e, double &slope, double &intercept) const;
 };
 
-DEFINE_ART_CLASS_TOOL(UndershootCorr)
 
 #endif

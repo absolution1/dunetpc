@@ -3,6 +3,7 @@
 #include "DuneDeconvolutionService.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "lardata/Utilities/LArFFT.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
 

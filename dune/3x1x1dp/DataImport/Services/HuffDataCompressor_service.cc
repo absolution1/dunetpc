@@ -20,6 +20,7 @@
 
 #include "LogMsg.h"
 #include "HuffDataCompressor.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 using namespace std;
 using namespace dlardaq;

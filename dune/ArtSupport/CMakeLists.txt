@@ -16,7 +16,7 @@ art_make(
     cetlib
     cetlib_except
     ${Boost_SYSTEM_LIBRARY}
-    ${ROOT_CORE}
+    ROOT::Core
 )
 
 add_subdirectory(Tool)
@@ -25,4 +25,4 @@ add_subdirectory(exe)
 
 install_headers()
 install_fhicl()
-install_source( README.txt )
+install_source()

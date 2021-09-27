@@ -86,10 +86,8 @@ int test_make_tool(bool doCrash, bool useExistingFcl) {
   }
 
   cet::filepath_lookup policy("FHICL_FILE_PATH");
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(fclfile, policy, tbl);
-  fhicl::ParameterSet psTop;
-  fhicl::make_ParameterSet(tbl, psTop);
+  auto psTop = fhicl::ParameterSet::make
+               (fhicl::parse_document(fclfile, policy));
   fhicl::ParameterSet pstools = psTop.get<fhicl::ParameterSet>("tools");
   fhicl::ParameterSet pstool1 = pstools.get<fhicl::ParameterSet>("mytool1");
   fhicl::ParameterSet pstool2 = pstools.get<fhicl::ParameterSet>("mytool2");

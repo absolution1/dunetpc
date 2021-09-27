@@ -200,3 +200,5 @@ DataMap Adc2dConvolute::updateMap(AdcChannelDataMap& acds) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(Adc2dConvolute)

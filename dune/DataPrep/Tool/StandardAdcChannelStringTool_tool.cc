@@ -226,3 +226,5 @@ build(const AdcChannelData& acd, const DataMap& dm, string spat) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(StandardAdcChannelStringTool)

@@ -514,3 +514,5 @@ nameReplace(string name, const AdcChannelData& acd, const IndexRange& ran) const
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcDataPlotter)

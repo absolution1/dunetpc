@@ -1,38 +1,38 @@
-simple_plugin(XYZCalibServiceProtoDUNE "service"
+cet_build_plugin(XYZCalibServiceProtoDUNE art::service
               dune_Calib
-	      ${ART_FRAMEWORK_CORE}
-	      ${ART_FRAMEWORK_PRINCIPAL}
-	      ${ART_FRAMEWORK_SERVICES_REGISTRY}
+	      ART_FRAMEWORK_CORE
+	      ART_FRAMEWORK_PRINCIPAL
+	      ART_FRAMEWORK_SERVICES_REGISTRY
 	      art_Persistency_Common canvas
 	      art_Persistency_Provenance canvas
-	      ${ART_FRAMEWORK_SERVICES_BASIC}
-	      ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-	      ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-	      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
+	      ART_ROOT_IO_TFILE_SUPPORT
+	      ROOT::Core
+	      ART_ROOT_IO_TFILESERVICE_SERVICE
+	      ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE
 	      art_Utilities canvas
-	      ${MF_MESSAGELOGGER}
+	      messagefacility::MF_MessageLogger
 	      
   	      cetlib cetlib_except
-   	      ${ROOT_BASIC_LIB_LIST}
+   	      ROOT_BASIC_LIB_LIST
               
 )
 
-simple_plugin(LifetimeCalibServiceProtoDUNE "service"
+cet_build_plugin(LifetimeCalibServiceProtoDUNE art::service
       dune_Calib
-      ${ART_FRAMEWORK_CORE}
-      ${ART_FRAMEWORK_PRINCIPAL}
-      ${ART_FRAMEWORK_SERVICES_REGISTRY}
+      ART_FRAMEWORK_CORE
+      ART_FRAMEWORK_PRINCIPAL
+      ART_FRAMEWORK_SERVICES_REGISTRY
       art_Persistency_Common canvas
       art_Persistency_Provenance canvas
-      ${ART_FRAMEWORK_SERVICES_BASIC}
-      ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
-      ${ART_ROOT_IO_TFILESERVICE_SERVICE}
-      ${ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE}
+      ART_ROOT_IO_TFILE_SUPPORT
+      ROOT::Core
+      ART_ROOT_IO_TFILESERVICE_SERVICE
+      ART_FRAMEWORK_SERVICES_SYSTEM_FILECATALOGMETADATA_SERVICE
       art_Utilities canvas
-      ${MF_MESSAGELOGGER}
+      messagefacility::MF_MessageLogger
 
       cetlib cetlib_except
-      ${ROOT_BASIC_LIB_LIST}
+      ROOT_BASIC_LIB_LIST
 
 ) 
 

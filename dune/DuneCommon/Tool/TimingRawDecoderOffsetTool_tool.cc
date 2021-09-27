@@ -159,3 +159,5 @@ Offset TimingRawDecoderOffsetTool::offset(const Data& dat) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(TimingRawDecoderOffsetTool)

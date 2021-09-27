@@ -16,6 +16,8 @@
 #include "LogMsg.h"
 #include "Timer.h"
 
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+
 using namespace std;
 using namespace dlardaq;
 

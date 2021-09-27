@@ -44,6 +44,5 @@ private:
   AdcIndex m_PadHigh;
 };
 
-DEFINE_ART_CLASS_TOOL(AdcDPhase3x1x1RoiBuilder)
 
 #endif
