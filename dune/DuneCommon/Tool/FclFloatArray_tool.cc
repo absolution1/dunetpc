@@ -55,3 +55,5 @@ FclFloatArray::FclFloatArray(fhicl::ParameterSet const& ps)
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclFloatArray)

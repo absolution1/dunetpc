@@ -350,6 +350,7 @@ tools.adcChannelPedestalRmsPlotter: {
 # Sample RMS
 tools.adcChannelSamplelRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
 tools.adcChannelSamplelRmsPlotter.Metric: samRms
+tools.adcChannelSamplelRmsPlotter.MetricLabel: "RMS [ke]"
 tools.adcChannelSamplelRmsPlotter.HistName: "hchsamrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.adcChannelSamplelRmsPlotter.HistTitle: "ADC sample RMS for run %RUN% event %EVENT%"
 tools.adcChannelSamplelRmsPlotter.PlotFileName: "hchsamrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
@@ -357,9 +358,18 @@ tools.adcChannelSamplelRmsPlotter.PlotFileName: "hchsamrms_run%0RUN%_evt%0EVENT%
 # Signal RMS
 tools.adcChannelSignalRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
 tools.adcChannelSignalRmsPlotter.Metric: sigRms
+tools.adcChannelSignalRmsPlotter.MetricLabel: "RMS [ke]"
 tools.adcChannelSignalRmsPlotter.HistName: "hchsigrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
 tools.adcChannelSignalRmsPlotter.HistTitle: "ADC signal RMS for run %RUN% event %EVENT%"
 tools.adcChannelSignalRmsPlotter.PlotFileName: "hchsigrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
+
+# Not-signal RMS
+tools.adcChannelNotSignalRmsPlotter: @local::tools.adcChannelPedestalRmsPlotter
+tools.adcChannelNotSignalRmsPlotter.Metric: nsgRms
+tools.adcChannelNotSignalRmsPlotter.MetricLabel: "RMS [ke]"
+tools.adcChannelNotSignalRmsPlotter.HistName: "hchnsgrms_%0RUN%_%0EVENT%_%0CHAN1%_%0CHAN2%"
+tools.adcChannelNotSignalRmsPlotter.HistTitle: "ADC not-signal RMS for run %RUN% event %EVENT%"
+tools.adcChannelNotSignalRmsPlotter.PlotFileName: "hchnsgrms_run%0RUN%_evt%0EVENT%_chans%0CHAN1%-%0CHAN2%.png"
 
 adcSampleFreq: 2000
 adcPlotDftTemplate: {

@@ -19,6 +19,7 @@
 #include "dlardaq.h"
 #include "LogMsg.h"
 
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 using namespace std;
 using namespace dlardaq;
 

@@ -87,6 +87,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(Adc2dConvolute)
 
 #endif

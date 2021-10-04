@@ -19,7 +19,7 @@ services:
   TimeTracker:           {}
   MemoryTracker:         {}
   RandomNumberGenerator: {}
-  PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice
+  PhotonBackTrackerService:              @local::dunefd_photonbacktrackerservice_legacy
   BackTrackerService:                    @local::dunefd_backtrackerservice
   ParticleInventoryService:              @local::dunefd_particleinventoryservice
   #Geometry:              @local::dune10kt_1x2x6_geo

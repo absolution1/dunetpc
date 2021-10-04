@@ -179,3 +179,5 @@ insertLen(Name nam, Index begin, Index len, Name lab, Name lab1, Name lab2) {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(ProtoDuneChannelRanges)

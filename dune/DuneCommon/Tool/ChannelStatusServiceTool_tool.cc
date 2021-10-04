@@ -49,3 +49,5 @@ Index ChannelStatusServiceTool::get(Index icha) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(ChannelStatusServiceTool)

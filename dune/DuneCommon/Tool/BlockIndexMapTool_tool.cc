@@ -69,3 +69,5 @@ Index BlockIndexMapTool::get(Index icha) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(BlockIndexMapTool)

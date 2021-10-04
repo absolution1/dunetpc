@@ -1,4 +1,2 @@
-
-INSTALL( FILES base_dependency_database
-               README
-         DESTINATION "${product}/${version}/releaseDB" )
+install(FILES base_dependency_database README
+  DESTINATION "releaseDB")

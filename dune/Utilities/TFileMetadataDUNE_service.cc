@@ -46,6 +46,7 @@
 #include <fstream>
 #include <algorithm>
 #include "dune/Utilities/TFileMetadataDUNE.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "dune/Utilities/FileCatalogMetadataDUNE.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
@@ -129,11 +130,20 @@ void util::TFileMetadataDUNE::postBeginJob()
   
   if ((it=mdmap.find("applicationFamily"))!=mdmap.end()) std::get<0>(md.fapplication) = it->second;
   else std::get<0>(md.fapplication) = "\" \"";   
+
+  if ((it=mdmap.find("application.family"))!=mdmap.end()) std::get<0>(md.fapplication) = it->second;
+  else std::get<0>(md.fapplication) = "\" \"";   
    
   if ((it=mdmap.find("process_name"))!=mdmap.end()) std::get<1>(md.fapplication) = it->second;
   else std::get<1>(md.fapplication) = "\" \"";  
+
+  if ((it=mdmap.find("art.process_name"))!=mdmap.end()) std::get<1>(md.fapplication) = it->second;
+  else std::get<1>(md.fapplication) = "\" \"";  
   
   if ((it=mdmap.find("applicationVersion"))!=mdmap.end()) std::get<2>(md.fapplication) = it->second;
+  else  std::get<2>(md.fapplication) = "\" \"";   
+
+  if ((it=mdmap.find("application.version"))!=mdmap.end()) std::get<2>(md.fapplication) = it->second;
   else  std::get<2>(md.fapplication) = "\" \"";   
   
   if ((it=mdmap.find("group"))!=mdmap.end()) md.fgroup = it->second;
@@ -143,6 +153,9 @@ void util::TFileMetadataDUNE::postBeginJob()
   else  md.ffile_type = "\" \"";  
     
   if ((it=mdmap.find("run_type"))!=mdmap.end()) frunType = it->second;
+  else frunType = "\" \"";         	     	
+
+  if ((it=mdmap.find("art.run_type"))!=mdmap.end()) frunType = it->second;
   else frunType = "\" \"";         	     	
 }
 

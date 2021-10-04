@@ -753,14 +753,32 @@ tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.HistTitle: "ADC pedestal peak
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.MetricLabel: "Peak excess fraction"
 tools.pdtps_adcChannelPedestalPeakBinExcessPlotter.PlotFileName: "chmet_pedexc_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
-# Pedestal RMS for each TPS channel.
+# Peestal-subtracted ADC RMS for each TPS channel.
 tools.pdtps_adcChannelPedestalRawRmsPlotter: @local::chmet_pdtps_template
 tools.pdtps_adcChannelPedestalRawRmsPlotter.Metric: rawRms
 tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricMax: 40
 tools.pdtps_adcChannelPedestalRawRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
-tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC pedestal raw RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
-tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "Pedestal raw RMS [ADC count]"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.HistTitle: "ADC RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalRawRmsPlotter.MetricLabel: "ADC RMS [ADC count]"
 tools.pdtps_adcChannelPedestalRawRmsPlotter.PlotFileName: "chmet_pedrawrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Sample RMS for each TPS channel.
+tools.pdtps_adcChannelPedestalSamRmsPlotter: @local::chmet_pdtps_template
+tools.pdtps_adcChannelPedestalSamRmsPlotter.Metric: rawRms
+tools.pdtps_adcChannelPedestalSamRmsPlotter.MetricMax: 1.0
+tools.pdtps_adcChannelPedestalSamRmsPlotter.HistName: "hchpd%CRNAME%_rawrms_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalSamRmsPlotter.HistTitle: "Sample RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalSamRmsPlotter.MetricLabel: "Sample RMS [ke]"
+tools.pdtps_adcChannelPedestalSamRmsPlotter.PlotFileName: "chmet_samrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
+
+# Not-signal sample RMS for each TPS channel.
+tools.pdtps_adcChannelPedestalNsgRmsPlotter: @local::chmet_pdtps_template
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.Metric: samRms
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.MetricMax: 1.0
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.HistName: "hchpd%CRNAME%_nsgrms_%0RUN%_%0EVENT%"
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.HistTitle: "Not-signal sample RMS for run %RUN% event %EVENT% %CRLABEL% (%CRLABEL2%: %CRLABEL1%)"
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.MetricLabel: "Not-signal sample RMS [ke]"
+tools.pdtps_adcChannelPedestalNsgRmsPlotter.PlotFileName: "chmet_nsgrms_%CRNAME%_run%0RUN%_evt%0EVENT%.png"
 
 # Pedestal tail fraction for each TPS channel.
 tools.pdtps_adcChannelPedestalRawTailPlotter: @local::chmet_pdtps_template

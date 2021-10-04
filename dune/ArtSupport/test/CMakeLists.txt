@@ -18,7 +18,7 @@ cet_test(test_ArtServiceHelper SOURCES test_ArtServiceHelper.cxx
     dune_ArtSupport
     art_root_io_TFileService_service
     art_Framework_Services_Optional_RandomNumberGenerator_service
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_DuneToolManager SOURCES test_DuneToolManager.cxx

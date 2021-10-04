@@ -4,23 +4,11 @@
 
 #include "dune/ArtSupport/ArtServiceHelper.h"
 
-// The following is an ugly hack, but it is necessary for being able
-// to set the services manager.
-namespace art {
-  class EventProcessor {
-  public:
-    static void set_services_manager(ServicesManager* manager)
-    {
-      ServiceRegistry::instance().setManager(manager);
-    }
-  };
-}
-
 ArtServiceHelper::ArtServiceHelper(fhicl::ParameterSet&& pset) :
   activityRegistry_{},
-  servicesManager_{std::move(pset), activityRegistry_}
+  sharedResources_{},
+  servicesManager_{std::move(pset), activityRegistry_, sharedResources_}
 {
-  art::EventProcessor::set_services_manager(&servicesManager_);
   servicesManager_.forceCreation();
 }
 
@@ -33,21 +21,14 @@ void ArtServiceHelper::load_services(std::string const& config)
 void ArtServiceHelper::load_services(std::istream& config)
 {
   cet::filepath_lookup lookup{"FHICL_FILE_PATH"};
-  fhicl::intermediate_table table;
-  fhicl::parse_document(config, lookup, table);
-  fhicl::ParameterSet pset;
-  fhicl::make_ParameterSet(table, pset);
-  load_services(std::move(pset));
+  load_services(fhicl::ParameterSet::make
+                (fhicl::parse_document(config, lookup)));
 }
 
 void ArtServiceHelper::load_services(std::string const& filename, FileOnPath_t)
 {
   cet::filepath_lookup lookup{"FHICL_FILE_PATH"};
-  fhicl::intermediate_table table;
-  fhicl::parse_document(filename, lookup, table);
-  fhicl::ParameterSet pset;
-  fhicl::make_ParameterSet(table, pset);
-  load_services(std::move(pset));
+  load_services(fhicl::ParameterSet::make(filename, lookup));
 }
 
 void ArtServiceHelper::load_services(fhicl::ParameterSet const& pset)

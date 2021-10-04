@@ -7,6 +7,8 @@
 // class header
 #include "dune/Geometry/DUNEGeometryHelper.h"
 
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapAlg.h"

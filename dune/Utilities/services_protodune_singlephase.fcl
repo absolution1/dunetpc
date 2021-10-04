@@ -17,7 +17,7 @@ protodune_services: {
  DatabaseUtil:                 @local::dunefd_database
  BackTrackerService:           @local::pdsp_backtrackerservice
  ParticleInventoryService:     @local::dunefd_particleinventoryservice
- PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice
+ PhotonBackTrackerService:     @local::dunefd_photonbacktrackerservice_legacy
  SpaceCharge:                  @local::protodune_spacecharge
  NuRandomService:              @local::dune_seedservice
  SignalShapingServiceDUNE:     @local::protodunesp_signalshapingservice

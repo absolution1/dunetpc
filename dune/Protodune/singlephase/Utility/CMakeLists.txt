@@ -7,7 +7,7 @@ art_make(BASENAME_ONLY
          art_Utilities
          canvas
          cetlib
-         ${ROOT_BASIC_LIB_LIST}
+         ROOT_BASIC_LIB_LIST
          NO_PLUGINS
         )
 

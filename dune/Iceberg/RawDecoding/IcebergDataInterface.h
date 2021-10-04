@@ -157,6 +157,5 @@ class IcebergDataInterface : public PDSPTPCDataInterfaceParent {
 
 };
 
-DEFINE_ART_CLASS_TOOL(IcebergDataInterface)
 
 #endif

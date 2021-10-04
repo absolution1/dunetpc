@@ -30,7 +30,7 @@
 //   W = 0 filters out k = 0 only
 //   W > 0 removes k = 0 and applies the above for other values
 //
-// Other options may later be added for the reponse or filter.
+// Other options may later be added for the response or filter.
 //
 // If an index map tool is provided, then it is used with the channel number  to choose
 // the reponse vector and filter. Otherwise, the first entry is used.
@@ -99,6 +99,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcDeconvoluteFFT)
 
 #endif

@@ -108,5 +108,4 @@ private:
   // Get DAQ channel number from the LArSoft's channel index.
   static size_t getDAQChan(size_t LAr_chan);
 };
-DEFINE_ART_CLASS_TOOL(PdspNoiseRemoval)
 #endif

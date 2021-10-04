@@ -43,7 +43,7 @@
 //     SumRootFileName - Name of file to which the summary histograms are copied.
 // ChanSumRootFileName - Name of file to which the channel summary histograms are copied.
 //          PlotLabels - Array of strings that may be used whe constructin plot titles.
-//                      The are referencesd as %LAB0%, %LAB1%, ... %LAB9%
+//                       The are referencesd as %LAB0%, %LAB1%, ... %LAB9%
 //
 // Summary histograms
 // ------------------
@@ -271,6 +271,7 @@ public:
     // Count doView calls.
     Index callCount =0;                   // Total
     IndexByIndexMap eventCallCount;       // For each event. Size of this is the event count.
+    Index closeCount = 0;
   };
 
   using StatePtr = std::shared_ptr<State>;
@@ -283,6 +284,7 @@ public:
   DataMap view(const AdcChannelData& acd) const override;
   DataMap viewMap(const AdcChannelDataMap& acds) const override;
   bool updateWithView() const override { return true; }
+  DataMap close(const DataMap* dmin) override;
 
   // Internal methods where most of the work is done.
 
@@ -313,7 +315,7 @@ public:
   // Write the summary histograms to the summary Root files
   // and summary plots to the plot files.
   void writeSumHists() const;
-  void writeSumPlots() const;
+  void writeSumPlots(const DataMap* pdmin) const;
   void writeChanSumHists() const;
   void writeChanSumPlots() const;
 
@@ -365,6 +367,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcRoiViewer)
 
 #endif
