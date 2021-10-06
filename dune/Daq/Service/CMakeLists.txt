@@ -7,6 +7,6 @@
 
 # Add plugin for each service.
 
-simple_plugin(FileChannelMappingService  "service" cetlib_except)
+cet_build_plugin(FileChannelMappingService  art::service cetlib_except)
 
 add_subdirectory(test)

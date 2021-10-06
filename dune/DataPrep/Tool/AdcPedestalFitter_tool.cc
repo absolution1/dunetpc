@@ -732,3 +732,5 @@ int AdcPedestalFitter::fillChannelPad(DataMap& dm, const AdcChannelData& acd, TP
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcPedestalFitter)

@@ -131,11 +131,9 @@ void DuneToolManager::help() {
 DuneToolManager::DuneToolManager(std::string fclname)
 : m_fclname(fclname) {
   cet::filepath_lookup_nonabsolute policy("FHICL_FILE_PATH");
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(fclname, policy, tbl);
-  fhicl::ParameterSet psTop;
-  fhicl::make_ParameterSet(tbl, psTop);
-  m_pstools = psTop.get<fhicl::ParameterSet>("tools");
+  m_pstools =
+    fhicl::ParameterSet::make(fhicl::parse_document(fclname, policy)).
+    get<fhicl::ParameterSet>("tools");
   m_toolNames = m_pstools.get_pset_names();
 }
 
@@ -176,9 +174,7 @@ int DuneToolManager::makeParameterSet(std::string scfgin, fhicl::ParameterSet& p
     scfg = scfgin;
   }
   // Parse the configuration string.
-  fhicl::intermediate_table tbl;
-  fhicl::parse_document(scfg, tbl);
-  fhicl::make_ParameterSet(tbl, ps);
+  ps = fhicl::ParameterSet::make(scfg);
   return 0;
 }
 

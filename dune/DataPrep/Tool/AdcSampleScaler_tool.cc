@@ -60,3 +60,5 @@ DataMap AdcSampleScaler::update(AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcSampleScaler)

@@ -1,6 +1,7 @@
 // FixedChannelGroupService.cxx
 
 #include "dune/DuneCommon/Service/FixedChannelGroupService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include <sstream>
 #include <iomanip>
 

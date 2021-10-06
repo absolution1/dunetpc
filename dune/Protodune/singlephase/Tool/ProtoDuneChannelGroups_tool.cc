@@ -101,3 +101,5 @@ IndexRangeGroup ProtoDuneChannelGroups::get(Name nam) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(ProtoDuneChannelGroups)

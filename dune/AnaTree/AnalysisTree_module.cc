@@ -3660,8 +3660,7 @@ void dune::AnalysisTree::analyze(const art::Event& evt)
   if (isMC) { //is MC
 
     //find origin
-    std::vector< art::Handle< std::vector<simb::MCTruth> > > allmclists;
-    evt.getManyByType(allmclists);
+    auto const allmclists = evt.getMany<std::vector<simb::MCTruth>>();
     for(size_t mcl = 0; mcl < allmclists.size(); ++mcl){
       art::Handle< std::vector<simb::MCTruth> > mclistHandle = allmclists[mcl];
       for(size_t m = 0; m < mclistHandle->size(); ++m){

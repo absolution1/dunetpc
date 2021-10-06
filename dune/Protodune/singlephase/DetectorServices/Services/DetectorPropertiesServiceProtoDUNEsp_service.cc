@@ -6,6 +6,7 @@
 // Framework includes
 // LArSoft includes
 #include "dune/Protodune/singlephase/DetectorServices/Services/DetectorPropertiesServiceProtoDUNEsp.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "lardataalg/DetectorInfo/LArProperties.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
@@ -21,6 +22,8 @@
 
 
 #include "IFDH_service.h"
+
+#include "TFile.h"
 
 namespace spdp{
   //--------------------------------------------------------------------
@@ -160,8 +163,7 @@ namespace spdp{
         sqlite3_stmt * stmt = 0;
         sqlite3_prepare_v2(sqliteDB, "SELECT PSetBlob from ParameterSets;", -1, &stmt, NULL);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
-          fhicl::ParameterSet ps;
-          fhicl::make_ParameterSet(reinterpret_cast<char const *>(sqlite3_column_text(stmt, 0)), ps);
+          auto ps = fhicl::ParameterSet::make(reinterpret_cast<char const *>(sqlite3_column_text(stmt, 0)));
           // Is this a DetectorPropertiesService parameter set?
           bool psok = isDetectorPropertiesServiceProtoDUNEsp(ps);
           if(psok) {

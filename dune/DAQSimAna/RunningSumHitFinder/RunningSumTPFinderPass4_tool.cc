@@ -12,7 +12,7 @@
 #include "dune/DAQSimAna/AlgParts.h"
 
 #include <algorithm> // for std::transform
-
+#include <numeric> // for std::accumulate
 
 
 RunningSumTPFinderPass4::RunningSumTPFinderPass4(fhicl::ParameterSet const & p)

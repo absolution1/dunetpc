@@ -199,3 +199,5 @@ DataMap AdcToRoi2d::updateTpcData(TpcData& tpd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcToRoi2d)

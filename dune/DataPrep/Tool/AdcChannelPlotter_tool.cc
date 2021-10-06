@@ -451,3 +451,5 @@ nameReplace(string name, const AdcChannelData& acd, string type) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelPlotter)

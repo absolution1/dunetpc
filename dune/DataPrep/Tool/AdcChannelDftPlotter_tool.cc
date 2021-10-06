@@ -741,3 +741,5 @@ bool AdcChannelDftPlotter::skipChannel(const AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelDftPlotter)

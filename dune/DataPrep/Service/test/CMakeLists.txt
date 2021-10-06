@@ -14,10 +14,10 @@ cet_test(test_ConfigurableAdcChannelDataCopyService SOURCES test_ConfigurableAdc
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtractService.cxx
@@ -26,10 +26,10 @@ cet_test(test_StandardRawDigitExtractService SOURCES test_StandardRawDigitExtrac
     lardataobj_RawData
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_InterpolatingAdcMitigationService SOURCES test_InterpolatingAdcMitigationService.cxx
@@ -37,10 +37,10 @@ cet_test(test_InterpolatingAdcMitigationService SOURCES test_InterpolatingAdcMit
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_ThresholdNoiseRemovalService SOURCES test_ThresholdNoiseRemovalService
@@ -48,10 +48,10 @@ cet_test(test_ThresholdNoiseRemovalService SOURCES test_ThresholdNoiseRemovalSer
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_MultiChannelNoiseRemovalService SOURCES test_MultiChannelNoiseRemovalService
@@ -59,10 +59,10 @@ cet_test(test_MultiChannelNoiseRemovalService SOURCES test_MultiChannelNoiseRemo
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_MedianPedestalService SOURCES test_MedianPedestalService
@@ -72,10 +72,10 @@ cet_test(test_MedianPedestalService SOURCES test_MedianPedestalService
     canvas
     cetlib
     cetlib_except
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFindingService
@@ -83,10 +83,10 @@ cet_test(test_AdcSuppressSignalFindingService SOURCES test_AdcSuppressSignalFind
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
@@ -95,10 +95,10 @@ cet_test(test_DuneDeconvolutionService SOURCES test_DuneDeconvolutionService
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_KeepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
@@ -106,10 +106,10 @@ cet_test(test_KeepAllRoiBuildingService SOURCES test_KeepAllRoiBuildingService
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_DuneRoiBuildingService SOURCES test_DuneRoiBuildingService
@@ -118,10 +118,10 @@ cet_test(test_DuneRoiBuildingService SOURCES test_DuneRoiBuildingService
     dune_ArtSupport
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildingService
@@ -130,10 +130,10 @@ cet_test(test_StandardAdcWireBuildingService SOURCES test_StandardAdcWireBuildin
     lardataobj_RawData
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepService.cxx
@@ -142,10 +142,10 @@ cet_test(test_StandardRawDigitPrepService SOURCES test_StandardRawDigitPrepServi
     lardataobj_RawData
     art_Utilities
     canvas
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_ToolBasedRawDigitPrepService SOURCES test_ToolBasedRawDigitPrepService.cxx
@@ -154,11 +154,11 @@ cet_test(test_ToolBasedRawDigitPrepService SOURCES test_ToolBasedRawDigitPrepSer
     lardataobj_RawData
     art_Utilities
     canvas
-    ${ROOT_HIST}
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ROOT_HIST
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )
 
 cet_test(test_TpcToolBasedRawDigitPrepService SOURCES test_TpcToolBasedRawDigitPrepService.cxx
@@ -167,9 +167,9 @@ cet_test(test_TpcToolBasedRawDigitPrepService SOURCES test_TpcToolBasedRawDigitP
     lardataobj_RawData
     art_Utilities
     canvas
-    ${ROOT_HIST}
-    ${ART_FRAMEWORK_SERVICES_REGISTRY}
+    ROOT_HIST
+    ART_FRAMEWORK_SERVICES_REGISTRY
     cetlib
     cetlib_except
-    ${ROOT_BASIC_LIB_LIST}
+    ROOT_BASIC_LIB_LIST
 )

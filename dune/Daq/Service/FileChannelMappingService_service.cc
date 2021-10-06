@@ -1,6 +1,7 @@
 // FileChannelMappingService.cxx
 
 #include "dune/Daq/Service/FileChannelMappingService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include <limits>
 #include <fstream>
 

@@ -47,11 +47,8 @@ void FclFileFloatArray::init() {
       cout << myname << "WARNING: Unable to find file " << fname << endl;
       continue;
     }
-    fhicl::intermediate_table tbl;
     cet::filepath_maker policy;
-    fhicl::parse_document(pfname, policy, tbl);
-    fhicl::ParameterSet ps;
-    fhicl::make_ParameterSet(tbl, ps);
+    auto ps = fhicl::ParameterSet::make(fhicl::parse_document(pfname, policy));
     auto pfat = art::make_tool<FloatArrayTool>(ps);
     if ( m_LogLevel >= 2 ) cout << myname << "Reading tool " << pfat->label() << endl;
     if ( first ) {
@@ -69,3 +66,5 @@ void FclFileFloatArray::init() {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclFileFloatArray)

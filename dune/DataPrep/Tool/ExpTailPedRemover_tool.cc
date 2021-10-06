@@ -466,3 +466,5 @@ DataMap ExpTailPedRemover::update(AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(ExpTailPedRemover)

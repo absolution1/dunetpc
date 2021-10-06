@@ -72,3 +72,5 @@ DataMap FembMappedAdcModifier::update(AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FembMappedAdcModifier)

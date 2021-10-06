@@ -74,3 +74,5 @@ DataMap VintageDeconvoluter::update(AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(VintageDeconvoluter)

@@ -209,3 +209,5 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcRoiToTree)

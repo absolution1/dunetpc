@@ -77,6 +77,5 @@ private:
   } ROICandidate_t;
 };
 
-DEFINE_ART_CLASS_TOOL(AdcMultiThreshSignalFinder)
 
 #endif

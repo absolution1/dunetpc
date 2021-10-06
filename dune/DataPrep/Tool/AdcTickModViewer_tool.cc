@@ -946,3 +946,5 @@ int AdcTickModViewer::plotPhaseGraphs() const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcTickModViewer)

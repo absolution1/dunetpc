@@ -1,4 +1,4 @@
-simple_plugin(DetectorPropertiesServiceProtoDUNEsp "service" 
+cet_build_plugin(DetectorPropertiesServiceProtoDUNEsp art::service 
 	          ProtoDUNEspDataProviders
               lardataalg_DetectorInfo
               larcore_Geometry_Geometry_service
@@ -6,15 +6,15 @@ simple_plugin(DetectorPropertiesServiceProtoDUNEsp "service"
               art_Framework_Principal
               ifdh
 
-	      ${ART_ROOT_IO_ROOTDB}
-	      ${ART_FRAMEWORK_SERVICES_REGISTRY}
+	      ART_ROOT_IO_ROOTDB
+	      ART_FRAMEWORK_SERVICES_REGISTRY
 	      art_Utilities
 	      canvas
-	      ${SQLITE3}
-	      ${MF_MESSAGELOGGER}
+	      SQLITE3
+	      messagefacility::MF_MessageLogger
 	      
 	      cetlib cetlib_except
-	      ${ROOT_BASIC_LIB_LIST}
+	      ROOT_BASIC_LIB_LIST
               
 )
 
