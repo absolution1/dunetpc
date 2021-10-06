@@ -715,7 +715,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
           cout << " metric " << met << ": " << pacd->signal.size() << " != " << nsam << "." << endl;
           continue;
         }
-        for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
+        for ( Index isam0=0; isam0+ncnt<=nsam; ++isam0 ) {
           bool foundSignal = false;
           float samSum = 0.0;
           for ( Index icnt=0; icnt<ncnt; ++icnt ) {
