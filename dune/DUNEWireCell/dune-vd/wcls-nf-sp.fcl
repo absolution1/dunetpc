@@ -6,29 +6,30 @@ process_name: wclsdatanfsp
 services:
 {
   #message:              @local::dune_message_services_prod_debug
-  TimeTracker:       {}
-  RandomNumberGenerator: {}
+  # TimeTracker:       {}
+  # RandomNumberGenerator: {}
   # @table::dunefdvd_simulation_services
-  @table::protodune_services
+  # @table::protodune_services
+  # @table::dunefdvd_1x6x6_3view_simulation_services
   # @table::protodune_rawdecoding_services
   # @table::protodune_simulation_services
   # @table::protodune_data_services
-  TFileService: { 
-   closeFileFast: true  # default
-   fileName:  "%ifb_raw_anal.root"
-   tmpDir: "<parent-path-of-filename>"  # default
-  }
-  IFBeam:            {}
+  # TFileService: { 
+  #  closeFileFast: true  # default
+  #  fileName:  "%ifb_raw_anal.root"
+  #  tmpDir: "<parent-path-of-filename>"  # default
+  # }
+  # IFBeam:            {}
 }
 
 
-source: {
-   module_type: RootInput
-   saveMemoryObjectThreshold: 10485760
+# source: {
+#    module_type: RootInput
+#    saveMemoryObjectThreshold: 10485760
 
-   #inputCommands: ["drop *", "keep raw::RawDigits_*_*_*"]
-   #inputCommands: ["drop *", "keep *_*_*_Swizzler"]
-}
+#    #inputCommands: ["drop *", "keep raw::RawDigits_*_*_*"]
+#    #inputCommands: ["drop *", "keep *_*_*_Swizzler"]
+# }
 
 physics :{
    producers: {
@@ -36,13 +37,14 @@ physics :{
          module_type : WireCellToolkit
          wcls_main: {
             tool_type: WCLS
+            # Pgrapher, TbbFlow
             apps: ["Pgrapher"]
 
             logsinks: ["stdout"]
             loglevels: ["debug", "pgraph:info"]
 
             # Libraries in which to look for WCT components
-            plugins: ["WireCellGen", "WireCellSigProc", "WireCellRoot", "WireCellPgraph", "WireCellLarsoft"]
+            plugins: ["WireCellGen", "WireCellSigProc", "WireCellRoot", "WireCellPgraph", "WireCellTbb", "WireCellLarsoft"]
 
             # The tool marshals the art::Event to these visitors before.
             # See notes below in params.
@@ -101,6 +103,9 @@ physics :{
             }
             # ext-code, code
             structs : {
+                # number of time samples
+                nticks: @local::dunefdvd_detproperties.NumberTimeSamples
+
                 # for nticks calculation in common/params.jsonnet: elec
                 driftSpeed: 1.565
                 
