@@ -19,7 +19,7 @@ physics :{
             plugins: ["WireCellPgraph", "WireCellGen","WireCellSio","WireCellRoot","WireCellLarsoft","WireCellTbb"]
 
             // needs to be found via your WIRECELL_PATH
-            configs: ["pgrapher/experiment/dune-vd/wcls-sim-drift-simchannel.jsonnet"]
+            configs: ["pgrapher/experiment/dune-vd/wcls-sim-drift-simchannel-nf-sp.jsonnet"]
 
 
             // Contract note: these exact "type:name" must be used to identify
@@ -28,10 +28,7 @@ physics :{
             inputers: ["wclsSimDepoSource:"]
             outputers: [
                "wclsSimChannelSink:postdrift",
-               "wclsFrameSaver:simdigits"
-            //   ,"wclsFrameSaver:nfdigits",
-            //   "wclsFrameSaver:spsignals",
-            //   "wclsFrameSaver:spthresholds"
+               "wclsFrameSaver:spsignals"
             ]
 
             // Make available parameters via Jsonnet's std.extVar()
@@ -86,12 +83,6 @@ outputs: {
       outputCommands :   [
          // "drop *", "keep recob::Wires_*_*_*"
          "keep *_*_*_*"
-         // "drop *_nfspl1_raw_*",
-         // "drop *_nfspl1_threshold_*",
-         // "drop *_nfspl1_wiener_*",
-         // "drop *_nfspl1_gauss_*",
-         // "drop *_wcNoiseFilter_*_*",
-         // "drop *_daq_*_*"
       ]
 
    }

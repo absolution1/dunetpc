@@ -4,7 +4,7 @@
 local wc = import "wirecell.jsonnet";
 local base = import "pgrapher/common/params.jsonnet";
 
-function(response_plane) base {
+function(params) base {
     // This section will be overwritten in simparams.jsonnet
     det : {
 
@@ -14,7 +14,7 @@ function(response_plane) base {
         // Only one CRP is defined in this geometry 
         // CRMs are oneside anodes     
 
-        response_plane: response_plane,
+        response_plane: params.response_plane,
 
         local upper_crp_x = 325.00*wc.cm, //300.507*wc.cm,
         local upper_resp_x = upper_crp_x-self.response_plane,
@@ -36,17 +36,12 @@ function(response_plane) base {
     daq: super.daq {
 
         tick: 0.5*wc.us, // check this in the TDR, LArSoft
-
-        nticks: 9375, // 1.6 mm/us per 0.5 us assuming 6000 mm drift leght. 
+        nticks: params.nticks, //9375, // 1.6 mm/us per 0.5 us assuming 6000 mm drift leght. 
 
         //readout_time: self.tick*self.nticks,
-
         //nreadouts: 1,
-
         //start_time: 0.0*wc.s,
-
         //stop_time: self.start_time + self.nreadouts*self.readout_time,
-
         //first_frame_number: 0,
     },
 
@@ -54,10 +49,12 @@ function(response_plane) base {
         
         // Set 0 for now
         //baselines: [0*wc.millivolt, 0*wc.millivolt, 0*wc.millivolt],
-
         //resolution: 12,
-
         //fullscale: [0.2*wc.volt, 1.6*wc.volt],
+
+        // Copied from pdsp. induction plane: 2350 ADC, collection plane: 900 ADC
+        // baselines: [1003.4*wc.millivolt,1003.4*wc.millivolt,507.7*wc.millivolt],
+        // fullscale: [0.2*wc.volt, 1.6*wc.volt],
 
     },
 
@@ -66,18 +63,12 @@ function(response_plane) base {
 
         type: "ColdElecResponse",
 
-        gain: 12*wc.mV/wc.fC,
-        
-        shaping: 1.2*wc.us,
-
-        postgain: 1.0,
-
+        // copied from pdsp
+        gain: 14*wc.mV/wc.fC,
+        shaping: 2.2 * wc.us,
+        postgain: 1.1365,
         start: 0,
     },
-
-
-
-
 
     sim: super.sim {
 
@@ -86,6 +77,7 @@ function(response_plane) base {
 
     },
 
+    overall_short_padding: 0.2*wc.ms,
     sys_status: false,
     sys_resp: {
         start: 0.0 * wc.us,
@@ -100,7 +92,7 @@ function(response_plane) base {
 
         // Based on the simulations made for the 50L prototype 
         fields: [
-            "dunevd-resp-isoc3views.json.bz2",
+            "dunevd-resp-isoc3views-18d92.json.bz2",
         ],
 
         // fixme: this is for microboone and probably bogus for

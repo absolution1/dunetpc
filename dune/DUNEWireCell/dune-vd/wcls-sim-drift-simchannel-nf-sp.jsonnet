@@ -230,9 +230,9 @@ local multipass = [
                 // sinks.orig_pipe[n],
                 // nf_pipes[n],
                 // nfmagnify_pipe[n],
-                // sp_pipes[n],
+                sp_pipes[n],
                 // spmagnify_pipe[n],
-                // sinks.decon_pipe[n],
+                sinks.decon_pipe[n],
                 // sinks.debug_pipe[n], // use_roi_debug_mode=true in sp.jsonnet
              ],
              'multipass%d' % n)
@@ -261,7 +261,7 @@ local retagger = g.pnode({
 //local frameio = io.numpy.frames(output);
 local sink = sim.frame_sink;
 
-local graph = g.pipeline([wcls_input.depos, drifter, wcls_simchannel_sink, bagger, bi_manifold, retagger, wcls_output.sim_digits, sink]);
+local graph = g.pipeline([wcls_input.depos, drifter, wcls_simchannel_sink, bagger, bi_manifold, retagger, wcls_output.sp_signals, sink]);
 
 local app = {
     type: 'Pgrapher', //Pgrapher, TbbFlow
