@@ -284,7 +284,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
           double Alpha = fModBoxA;
           //double old_vdEdx = vdEdx[j];
           vdEdx[j] = (exp(Beta * Wion * dQdx_e) - Alpha) / Beta;
-          //if (planeID.Plane == 2 && tracklist[trkIter]->ID() == 0) std::cout<<vdEdx[j]<<" "<<vdQdx[j]<<" "<<E_field<<" "<<rho<<" "<<Beta<<" "<<Alpha<<" "<<E_field_nominal<<" "<<E_field_offsets.X()<<" "<<E_field_offsets.Y()<<" "<<E_field_offsets.Z()<<std::endl;
+          //if (planeID.Plane == 2 && tracklist[trkIter]->ID() == 1) std::cout<<calo->dQdx()[j]<<" "<<vdEdx[j]<<" "<<vdQdx[j]<<" "<<vresRange[j]<<" "<<E_field<<" "<<rho<<" "<<Beta<<" "<<Alpha<<" "<<E_field_nominal<<" "<<E_field<<" "<<E_field_offsets.X()<<" "<<E_field_offsets.Y()<<" "<<E_field_offsets.Z()<<" "<<vXYZ[j].X()<<" "<<vXYZ[j].Y()<<" "<<vXYZ[j].Z()<<" "<<hit->WireID().TPC<<" "<<fHitIndex[j]<<" "<<normcorrection<<" "<<xcorrection<<" "<<yzcorrection<<std::endl;
 
          /*if (planeID.Plane==2){
          std::cout << sce->EnableCalEfieldSCE() << " " << fSCE << std::endl;
