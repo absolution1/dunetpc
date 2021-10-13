@@ -258,26 +258,26 @@ void showerAna::ShowerAnalysis::analyze(const art::Event& evt) {
 
   // Get showers out of event
   std::vector<art::Ptr<recob::Shower> > showers;
-  art::Handle<std::vector<recob::Shower> > showerHandle;
-  if (evt.getByLabel(fShowerModuleLabel, showerHandle))
+  auto showerHandle = evt.getHandle<std::vector<recob::Shower> >(fShowerModuleLabel);
+  if (showerHandle)
     art::fill_ptr_vector(showers, showerHandle);
 
   // Get clusters out of event
   std::vector<art::Ptr<recob::Cluster> > clusters;
-  art::Handle<std::vector<recob::Cluster> > clusterHandle;
-  if (evt.getByLabel(fClusterModuleLabel, clusterHandle))
+  auto clusterHandle = evt.getHandle<std::vector<recob::Cluster> >(fClusterModuleLabel);
+  if (clusterHandle)
     art::fill_ptr_vector(clusters, clusterHandle);
 
   // Get hits out of event
   std::vector<art::Ptr<recob::Hit> > hits;
-  art::Handle<std::vector<recob::Hit> > hitHandle;
-  if (evt.getByLabel(fHitsModuleLabel, hitHandle))
+  auto hitHandle = evt.getHandle<std::vector<recob::Hit> >(fHitsModuleLabel);
+  if (hitHandle)
     art::fill_ptr_vector(hits, hitHandle);
 
   // Get space points out of event
   std::vector<art::Ptr<recob::SpacePoint> > spacePoints;
-  art::Handle<std::vector<recob::SpacePoint> > spacePointHandle;
-  if (evt.getByLabel(fShowerModuleLabel, spacePointHandle))
+  auto spacePointHandle = evt.getHandle<std::vector<recob::SpacePoint> >(fShowerModuleLabel);
+  if (spacePointHandle)
     art::fill_ptr_vector(spacePoints, spacePointHandle);
 
   // Get associations out of event

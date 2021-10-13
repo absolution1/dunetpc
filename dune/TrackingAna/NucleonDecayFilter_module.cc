@@ -111,16 +111,14 @@ namespace filt{
     auto const* geo = lar::providerFrom<geo::Geometry>();
     
     // Make a map of MCParticles which I can access later.
-    art::Handle<std::vector<simb::MCParticle> > truth;
-    e.getByLabel("largeant", truth);
+    auto truth = e.getHandle<std::vector<simb::MCParticle> >("largeant");
     truthmap.clear();
     for (size_t i=0; i<truth->size(); i++)
       truthmap[truth->at(i).TrackId()]=&((*truth)[i]);
     //std::cout << "The primary muon in this event had an energy of " << truthmap[1]->E() << std::endl;
 
     // Get a vector of sim channels.
-    art::Handle<std::vector<sim::SimChannel> > simchannels;
-    e.getByLabel("largeant", simchannels);
+    auto simchannels = e.getHandle<std::vector<sim::SimChannel> >("largeant");
 
     // Make vectors to hold all of my particle TrackIDs
     std::vector<int> MuonVec, PionVec, Pi0Vec, KaonVec, ElecVec;
