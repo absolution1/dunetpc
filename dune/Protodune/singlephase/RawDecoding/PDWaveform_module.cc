@@ -223,9 +223,9 @@ namespace pd_monitor {
       << "-------------------- Photodetector waveforms -------------------";
     
     // Get the data with the correct label and instance from the root file	
-    art::Handle< std::vector<raw::OpDetWaveform> > RawSSP;
-    //event.getByLabel("ssprawdecoder", "external", RawSSP);
-    event.getByLabel(fSSPInput,fSSPInstance,RawSSP);
+    //art::InputTag itag1("ssprawdecoder", "external");
+    art::InputTag itag1(fSSPInput,fSSPInstance);
+    auto RawSSP = event.getHandle< std::vector<raw::OpDetWaveform> >(itag1);
     
     // Make sure data is collected
     try { RawSSP->size(); }

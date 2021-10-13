@@ -245,21 +245,18 @@ namespace dune{
     art::ServiceHandle<cheat::BackTrackerService> bt_serv;
     art::ServiceHandle<cheat::ParticleInventoryService> pi_serv;     
     
-
-    art::Handle< std::vector<recob::Track> > trackListHandle;
-    art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
-   
     std::vector<art::Ptr<recob::Track> > tracklist;
+    auto trackListHandle = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+    if (trackListHandle) art::fill_ptr_vector(tracklist, trackListHandle);
+
     std::vector<art::Ptr<recob::PFParticle> > pfplist;
-
-
-    if(evt.getByLabel(fTrackModuleLabel,trackListHandle)) art::fill_ptr_vector(tracklist, trackListHandle);
-    if(evt.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+    auto PFPListHandle = evt.getHandle< std::vector<recob::PFParticle> >("pandora");
+    if (PFPListHandle) art::fill_ptr_vector(pfplist, PFPListHandle);
   
     /******new lines*************************/
-    art::Handle< std::vector<recob::Hit> > hitListHandle; // to get information about the hits
     std::vector<art::Ptr<recob::Hit>> hitlist;
-    if(evt.getByLabel(fHitsModuleLabel, hitListHandle))
+    auto hitListHandle = evt.getHandle< std::vector<recob::Hit> >(fHitsModuleLabel); // to get information about the hits
+    if (hitListHandle)
       art::fill_ptr_vector(hitlist, hitListHandle);
        
     art::FindManyP<recob::Hit> fmtht(trackListHandle, evt, fTrackModuleLabel); // to associate tracks and hits

@@ -157,8 +157,8 @@ void dune::T0Counter::produce(art::Event & e)
   event = e.id().event();
   
   // get raw::ExternalTriggers
-  art::Handle< std::vector< raw::ExternalTrigger> > externalTriggerListHandle;
-  if (e.getByLabel(fTriggerModuleLabel, externalTriggerListHandle) )
+  auto externalTriggerListHandle = e.getHandle< std::vector< raw::ExternalTrigger> >(fTriggerModuleLabel);
+  if (externalTriggerListHandle)
     {
 
       std::vector< art::Ptr< raw::ExternalTrigger> > trigs;
