@@ -311,6 +311,11 @@ iceberg_geo.Name: "iceberg" # will be made lower case anyway
 iceberg_geo.GDML: "iceberg_v1.gdml"
 iceberg_geo.ROOT: "iceberg_v1.gdml"
 
+dunevdcb_geo: @local::dune10kt_geo
+dunevdcb_geo.Name: "dunevdcb1"
+dunevdcb_geo.GDML: "dunevdcb1_refactored.gdml"
+dunevdcb_geo.ROOT: "dunevdcb1_refactored.gdml"
+
 dune35t_geo:
 {
  Name:     "dune35t4apa_v6"
