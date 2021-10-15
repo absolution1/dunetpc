@@ -1,3 +1,9 @@
+simple_plugin(VDColdboxHDF5RawInput "source"
+  dune_raw_data::dune-raw-data_Overlays
+  dune_raw_data::dune-raw-data_HDFUtils
+  art_Framework_Services_Registry
+)
+
 cet_build_plugin(VDColdboxDataInterface   art::tool
 				     art_utilities
 				     canvas
