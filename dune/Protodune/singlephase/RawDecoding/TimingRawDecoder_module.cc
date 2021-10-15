@@ -147,8 +147,8 @@ void dune::TimingRawDecoder::beginJob(){
 void dune::TimingRawDecoder::produce(art::Event & evt){
   //std::cout<<"-------------------- Timing RawDecoder -------------------"<<std::endl;
   // Implementation of required member function here.
-  art::Handle<artdaq::Fragments> rawFragments;
-  evt.getByLabel(fRawDataLabel, "TIMING", rawFragments);
+  art::InputTag itag1(fRawDataLabel, "TIMING");
+  auto rawFragments = evt.getHandle<artdaq::Fragments>(itag1);
 
   art::EventNumber_t eventNumber = evt.event();
   art::RunNumber_t runNumber = evt.run();

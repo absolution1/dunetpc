@@ -165,8 +165,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   std::unique_ptr< art::Assns<recob::Track, anab::Calorimetry> > assn(new art::Assns<recob::Track, anab::Calorimetry>);
 
   //get existing track/calorimetry objects
-  art::Handle< std::vector<recob::Track> > trackListHandle;
-  evt.getByLabel(fTrackModuleLabel,trackListHandle);
+  auto trackListHandle = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
 
   std::vector<art::Ptr<recob::Track> > tracklist;
   art::fill_ptr_vector(tracklist, trackListHandle);
@@ -174,8 +173,7 @@ void dune::CalibrationdEdXPDSP::produce(art::Event & evt)
   art::FindManyP<anab::Calorimetry> fmcal(trackListHandle, evt, fCalorimetryModuleLabel);
 
   //get hits
-  art::Handle< std::vector<recob::Hit> > hitListHandle;
-  evt.getByLabel(fHitModuleLabel,hitListHandle);
+  auto hitListHandle = evt.getHandle< std::vector<recob::Hit> >(fHitModuleLabel);
 
   std::vector<art::Ptr<recob::Hit> > hitlist;
   art::fill_ptr_vector(hitlist, hitListHandle);

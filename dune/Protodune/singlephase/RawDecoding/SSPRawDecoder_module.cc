@@ -316,16 +316,15 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
   art::EventNumber_t eventNumber = evt.event();
 
-  art::Handle<artdaq::Fragments> rawFragments;
-  art::Handle<artdaq::Fragments> containerFragments;
-
   bool have_data = true;
 
   /// look for Container Fragments:
-  evt.getByLabel(fRawDataLabel, "ContainerPHOTON", containerFragments);
+  art::InputTag itag1(fRawDataLabel, "ContainerPHOTON");
+  auto containerFragments = evt.getHandle<artdaq::Fragments>(itag1);
+
   // Check if there is SSP data in this event.  Rearranged -- the isValid test tells us whether the branch was found
 
-  if(!containerFragments.isValid()){
+  if(!containerFragments){
     have_data = false;
   }
 
@@ -367,12 +366,13 @@ void dune::SSPRawDecoder::getFragments(art::Event &evt, std::vector<artdaq::Frag
 
   bool have_data2=true;
 
-  evt.getByLabel(fRawDataLabel, "PHOTON", rawFragments);
+  art::InputTag itag2(fRawDataLabel, "PHOTON");
+  auto rawFragments = evt.getHandle<artdaq::Fragments>(itag2);
     
   // Check if there is SSP data in this event
 
   //Check that the data is valid
-  if(!rawFragments.isValid()){
+  if (!rawFragments){
     have_data2 = false;
   }
 

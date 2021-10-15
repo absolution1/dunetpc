@@ -11,17 +11,21 @@
 //#include <sstream>
 
 artdaq::Fragments
-dune::getByLabelChecked(const art::Event& evt, const std::string& label, 
+dune::getHandleChecked(const art::Event& evt, const std::string& label, 
 			const std::string& fragtype, const bool& expectFragsInContainer) {
   
   artdaq::Fragments fragments;
+
+/*  
   art::Handle<artdaq::Fragments> handleFragments;
 
-/*  if (expectFragsInContainer) {
-    evt.getByLabel(label, "Container", handleFragments);
+  if (expectFragsInContainer) {
+    art::InputTag itag1(label, "Container");
+    handleFragments = evt.getHandle<artdaq::Fragments>(itag1);
   } 
   else {
-    evt.getByLabel(label, fragtype, handleFragments);
+    art::inputTag itag2(label, fragtype);
+    handleFragments = evt.getHandle<artdaq::Fragments>(itag2);
   }
 
   if(!handleFragments.isValid()) {
@@ -31,11 +35,11 @@ dune::getByLabelChecked(const art::Event& evt, const std::string& label,
 	      << " is NOT VALID" << std::endl;
 
     if (expectFragsInContainer) {
-      //throw cet::exception("getByLabelChecked") << "getByLabel call for fragments of type \"Container\" NOT VALID";
-      throw std::runtime_error("(THIS SHOULD BE CHANGED TO A cet::exception) getByLabel call for fragments NOT VALID");
+      //throw cet::exception("getHandleChecked") << "getHandle call for fragments of type \"Container\" NOT VALID";
+      throw std::runtime_error("(THIS SHOULD BE CHANGED TO A cet::exception) getHandle call for fragments NOT VALID");
     } else {
-      //      throw cet::exception("getByLabelChecked") << "getByLabel call for fragments of type \"" << fragtype << "\" NOT VALID";
-      throw std::runtime_error("(THIS SHOULD BE CHANGED TO A cet::exception) getByLabel call for fragments NOT VALID");
+      //      throw cet::exception("getHandleChecked") << "getHandle call for fragments of type \"" << fragtype << "\" NOT VALID";
+      throw std::runtime_error("(THIS SHOULD BE CHANGED TO A cet::exception) getHandle call for fragments NOT VALID");
     }
   }
   if (expectFragsInContainer) {
