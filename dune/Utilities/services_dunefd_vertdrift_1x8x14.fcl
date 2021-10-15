@@ -23,4 +23,52 @@ dunefdvd_1x8x14_3view_reco_services: {
     Geometry:                  @local::dunevd10kt_1x8x14_3view_geo
 }
 
+dunefdvd_1x8x14_3view_30deg_services: {
+    @table::dunefdvd_services
+    Geometry:                  @local::dunevd10kt_1x8x14_3view_30deg_geo
+}
+
+dunefdvd_1x8x14_3view_30deg_simulation_services: {
+    @table::dunefdvd_simulation_services
+    Geometry:                  @local::dunevd10kt_1x8x14_3view_30deg_geo
+    LArG4Detector:             @local::dunevd10kt_1x8x14_3view_30deg_larg4detector
+}
+
+dunefdvd_1x8x14_3view_30deg_reco_services: {
+    @table::dunefdvd_reco_services
+    Geometry:                  @local::dunevd10kt_1x8x14_3view_30deg_geo
+}
+
+dunefdvd_1x8x14_2view_services: {
+    @table::dunefdvd_services
+    Geometry:                  @local::dunevd10kt_1x8x14_2view_geo
+}
+
+dunefdvd_1x8x14_2view_simulation_services: {
+    @table::dunefdvd_simulation_services
+    Geometry:                  @local::dunevd10kt_1x8x14_2view_geo
+    LArG4Detector:             @local::dunevd10kt_1x8x14_2view_larg4detector
+}
+
+dunefdvd_1x8x14_2view_reco_services: {
+    @table::dunefdvd_reco_services
+    Geometry:                  @local::dunevd10kt_1x8x14_2view_geo
+}
+
+dunefdvd_1x8x14backup_3view_services: {
+    @table::dunefdvd_services
+    Geometry:                  @local::dunevd10kt_1x8x14backup_3view_geo
+}
+
+dunefdvd_1x8x14backup_3view_simulation_services: {
+    @table::dunefdvd_simulation_services
+    Geometry:                  @local::dunevd10kt_1x8x14backup_3view_geo
+    LArG4Detector:             @local::dunevd10kt_1x8x14backup_3view_larg4detector
+}
+
+dunefdvd_1x8x14backup_3view_reco_services: {
+    @table::dunefdvd_reco_services
+    Geometry:                  @local::dunevd10kt_1x8x14backup_3view_geo
+}
+
 END_PROLOG
