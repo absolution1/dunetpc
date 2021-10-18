@@ -101,7 +101,8 @@ DUNEGeometryHelper::doConfigureChannelMapAlg(fhicl::ParameterSet const& pset,
       channelMap = std::make_unique<geo::ChannelMapCRMAlg>(pset);
 
     // DUNE 10kt vd
-    } else if ( detectorName.find("dunevd10kt") != std::string::npos ) {
+    } else if ( ( detectorName.find("dunevd10kt") != std::string::npos )
+	     || ( detectorName.find("dunevdcb") != std::string::npos ) ) {
       channelMap = std::make_unique<geo::ChannelMapCRUAlg>(pset);
 
     // protoDUNE 6x6x6 dual phase

@@ -209,12 +209,35 @@ dunevd10kt_1x6x6_geo: @local::dunevd10kt_1x6x6_2view_geo
 
 
 dunevd10kt_1x8x14_3view_v2_geo: @local::dune10kt_geo
-dunevd10kt_1x8x14_3view_v2_geo.Name: "dunevd10kt_3view_v2_1x8x14ref"
-dunevd10kt_1x8x14_3view_v2_geo.GDML: "dunevd10kt_3view_v2_1x8x14ref.gdml"
-dunevd10kt_1x8x14_3view_v2_geo.ROOT: "dunevd10kt_3view_v2_1x8x14ref.gdml"
+dunevd10kt_1x8x14_3view_v2_geo.Name: "dunevd10kt_3view_v2_refactored_1x8x14ref"
+dunevd10kt_1x8x14_3view_v2_geo.GDML: "dunevd10kt_3view_v2_refactored_1x8x14ref.gdml"
+dunevd10kt_1x8x14_3view_v2_geo.ROOT: "dunevd10kt_3view_v2_refactored_1x8x14ref.gdml"
 
 dunevd10kt_1x8x14_3view_geo: @local::dunevd10kt_1x8x14_3view_v2_geo
 
+
+dunevd10kt_1x8x14_3view_30deg_v2_geo: @local::dune10kt_geo
+dunevd10kt_1x8x14_3view_30deg_v2_geo.Name: "dunevd10kt_3view_30deg_v2_refactored_1x8x14ref"
+dunevd10kt_1x8x14_3view_30deg_v2_geo.GDML: "dunevd10kt_3view_30deg_v2_refactored_1x8x14ref.gdml"
+dunevd10kt_1x8x14_3view_30deg_v2_geo.ROOT: "dunevd10kt_3view_30deg_v2_refactored_1x8x14ref.gdml"
+
+dunevd10kt_1x8x14_3view_30deg_geo: @local::dunevd10kt_1x8x14_3view_30deg_v2_geo
+
+
+dunevd10kt_1x8x14_2view_v2_geo: @local::dune10kt_geo
+dunevd10kt_1x8x14_2view_v2_geo.Name: "dunevd10kt_2view_v2_refactored_1x8x14ref"
+dunevd10kt_1x8x14_2view_v2_geo.GDML: "dunevd10kt_2view_v2_refactored_1x8x14ref.gdml"
+dunevd10kt_1x8x14_2view_v2_geo.ROOT: "dunevd10kt_2view_v2_refactored_1x8x14ref.gdml"
+
+dunevd10kt_1x8x14_2view_geo: @local::dunevd10kt_1x8x14_2view_v2_geo
+
+
+dunevd10kt_1x8x14backup_3view_v2_geo: @local::dune10kt_geo
+dunevd10kt_1x8x14backup_3view_v2_geo.Name: "dunevd10kt_3view_v2_refactored_1x8x14backup"
+dunevd10kt_1x8x14backup_3view_v2_geo.GDML: "dunevd10kt_3view_v2_refactored_1x8x14backup.gdml"
+dunevd10kt_1x8x14backup_3view_v2_geo.ROOT: "dunevd10kt_3view_v2_refactored_1x8x14backup.gdml"
+
+dunevd10kt_1x8x14backup_3view_geo: @local::dunevd10kt_1x8x14backup_3view_v2_geo
 
 
 # temporarily assign workspace geometry
@@ -310,6 +333,11 @@ iceberg_geo: @local::dune10kt_geo
 iceberg_geo.Name: "iceberg" # will be made lower case anyway
 iceberg_geo.GDML: "iceberg_v1.gdml"
 iceberg_geo.ROOT: "iceberg_v1.gdml"
+
+dunevdcb_geo: @local::dune10kt_geo
+dunevdcb_geo.Name: "dunevdcb1"
+dunevdcb_geo.GDML: "dunevdcb1_refactored.gdml"
+dunevdcb_geo.ROOT: "dunevdcb1_refactored.gdml"
 
 dune35t_geo:
 {

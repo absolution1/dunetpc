@@ -404,14 +404,13 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
   auto const* geo = lar::providerFrom<geo::Geometry>();
   /*
   // Implementation of required member function here. 
-  art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+  auto trackListHandle = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  if (trackListHandle)
     art::fill_ptr_vector(tracklist, trackListHandle);
   */
   // Make a map of MCParticles which I can access later.
-  art::Handle<std::vector<simb::MCParticle> > truth;
-  evt.getByLabel("largeant", truth);
+  auto truth = evt.getHandle<std::vector<simb::MCParticle> >("largeant");
   truthmap.clear();
   for (size_t i=0; i<truth->size(); i++) {
     truthmap[truth->at(i).TrackId()]=&((*truth)[i]);
@@ -430,8 +429,7 @@ void NeutronDecayN2Ana::NeutronDecayN2Ana::analyze(art::Event const & evt) {
     std::cout << "There were " << nPrim << " primary particles." << std::endl;
 
   // Get a vector of sim channels.
-  art::Handle<std::vector<sim::SimChannel> > simchannels;
-  evt.getByLabel("largeant", simchannels);
+  auto simchannels = evt.getHandle<std::vector<sim::SimChannel> >("largeant");
   
   // Make vectors to hold all of my particle TrackIDs
   std::vector<int> MuonVec, PionVec, Pi0Vec, KaonVec, ElecVec, ProtVec;

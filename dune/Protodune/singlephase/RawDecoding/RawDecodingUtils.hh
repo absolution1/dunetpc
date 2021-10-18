@@ -10,7 +10,7 @@
 namespace dune {
 
   artdaq::Fragments
-  getByLabelChecked(const art::Event& evt, const std::string& label, 
+  getHandleChecked(const art::Event& evt, const std::string& label, 
 		    const std::string& fragtype, const bool& inContainer);
 }
 

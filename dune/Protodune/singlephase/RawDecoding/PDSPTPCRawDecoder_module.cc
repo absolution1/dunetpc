@@ -393,9 +393,8 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 	{
 	  if (_rce_input_labels.at(ilabel).find("Container") != std::string::npos)
 	    {
-              art::Handle<artdaq::Fragments> cont_frags;
-	      evt.getByLabel(_rce_input_labels.at(ilabel),cont_frags);  
-	      if (cont_frags.isValid())
+              auto cont_frags = evt.getHandle<artdaq::Fragments>(_rce_input_labels.at(ilabel));
+	      if (cont_frags)
 		{
 		  have_data = true;
 	          if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
@@ -406,10 +405,8 @@ bool PDSPTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTi
 	    }
 	  else
 	    {
-	      art::Handle<artdaq::Fragments> frags;
-	      evt.getByLabel(_rce_input_labels.at(ilabel), frags); 
-
-	      if (frags.isValid())
+	      auto frags = evt.getHandle<artdaq::Fragments>(_rce_input_labels.at(ilabel));
+	      if (frags)
 		{
 		  have_data_nc = true;
 	          if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
@@ -999,9 +996,8 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	{
 	  if (_felix_input_labels.at(ilabel).find("Container") != std::string::npos)
 	    {
-              art::Handle<artdaq::Fragments> cont_frags;
-	      evt.getByLabel(_felix_input_labels.at(ilabel), cont_frags);  
-	      if (cont_frags.isValid())
+              auto cont_frags = evt.getHandle<artdaq::Fragments>(_felix_input_labels.at(ilabel));
+	      if (cont_frags)
 		{
 		  have_data = true;
 	          if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
@@ -1012,10 +1008,8 @@ bool PDSPTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits, RD
 	    }
 	  else
 	    {
-	      art::Handle<artdaq::Fragments> frags;
-	      evt.getByLabel(_felix_input_labels.at(ilabel), frags); 
-
-	      if (frags.isValid())
+	      auto frags = evt.getHandle<artdaq::Fragments>(_felix_input_labels.at(ilabel));
+	      if (frags)
 		{
 		  have_data_nc = true;
 	          if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, tsassocs, rdpm, tspm))
