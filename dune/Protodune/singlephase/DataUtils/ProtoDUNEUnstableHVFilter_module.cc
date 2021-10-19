@@ -95,7 +95,9 @@ filter::ProtoDUNEUnstableHVFilter::~ProtoDUNEUnstableHVFilter() { }
 uint64_t filter::ProtoDUNEUnstableHVFilter::GetRawDecoderInfo(art::Event & e){
     MF_LOG_INFO("BeamEvent") << "\n";
     MF_LOG_INFO("BeamEvent") << "Getting Raw Decoder Info" << "\n";
-    e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
+
+    art::InputTag itag1("timingrawdecoder","daq");
+    RDTimeStampHandle = e.getHandle< std::vector<raw::RDTimeStamp> >(itag1);
     MF_LOG_INFO("BeamEvent") << "RDTS valid? " << RDTimeStampHandle.isValid() << "\n";
     for (auto const & RDTS : *RDTimeStampHandle){
         MF_LOG_INFO("BeamEvent") << "High: " << RDTS.GetTimeStamp_High() << "\n";

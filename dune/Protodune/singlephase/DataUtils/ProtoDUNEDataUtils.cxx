@@ -30,13 +30,12 @@ bool protoana::ProtoDUNEDataUtils::IsBeamTrigger(art::Event const & evt) const{
 
   // Accessing the trigger information as done in DataPrepModule
   // The information is stored in the time stamps
-  art::Handle<std::vector<raw::RDTimeStamp>> timeStamps;
-  evt.getByLabel(fTimingTag,timeStamps);
+  auto timeStamps = evt.getHandle<std::vector<raw::RDTimeStamp>>(fTimingTag);
 
   // Return false if we have no time stamps
-  if(!timeStamps.isValid()) return isBeam;
+  if (!timeStamps) return isBeam;
   // We should only have one RDTimeStamp
-  if(timeStamps->size() > 1) return isBeam;
+  if (timeStamps->size() > 1) return isBeam;
   
   // Access the trigger information. Beam trigger flag = 0xc
   const raw::RDTimeStamp& timeStamp = timeStamps->at(0);
@@ -57,15 +56,14 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
   std::set<int> apaset;
 
   // Get raw digits time stamps
-  art::Handle< std::vector<raw::RDTimeStamp> > RawdigitTSListHandle;
   std::vector<art::Ptr<raw::RDTimeStamp> > digitTSlist;
   
 
   // Get raw digits
-  art::Handle< std::vector<raw::RawDigit> > RawdigitListHandle;
   std::vector<art::Ptr<raw::RawDigit> > digitlist;
 
-  if (evt.getByLabel(fRawDigitTag, RawdigitListHandle)){
+  auto RawdigitListHandle = evt.getHandle< std::vector<raw::RawDigit> >(fRawDigitTag);
+  if (RawdigitListHandle){
   	
     art::fill_ptr_vector(digitlist, RawdigitListHandle);  
 
@@ -87,8 +85,8 @@ int protoana::ProtoDUNEDataUtils::GetNActiveFembsForAPA(art::Event const & evt, 
   }
 
   else{ // if raw digits have been dropped use RDTimeStamps instead
-    evt.getByLabel(fRawDigitTimeStampTag, RawdigitTSListHandle);
-	
+
+    auto RawdigitTSListHandle = evt.getHandle< std::vector<raw::RDTimeStamp> >(fRawDigitTimeStampTag);
     art::fill_ptr_vector(digitTSlist, RawdigitTSListHandle);  
 	
     for(auto const & dptr : digitTSlist) {
@@ -124,9 +122,8 @@ bool protoana::ProtoDUNEDataUtils::CheckTimeStampConsistencyForAPAs(art::Event c
 								    int &apainconsist) const
 {
   art::ServiceHandle<dune::PdspChannelMapService> channelMap;
-  art::Handle< std::vector<raw::RDTimeStamp> > RawTSListHandle;
   std::vector<art::Ptr<raw::RDTimeStamp> > TSlist;
-  evt.getByLabel(fRawDigitTimeStampTag, RawTSListHandle);	
+  auto RawTSListHandle = evt.getHandle< std::vector<raw::RDTimeStamp> >(fRawDigitTimeStampTag);
   art::fill_ptr_vector(TSlist, RawTSListHandle);
 
   timestamp = 0;

@@ -92,10 +92,9 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
 
   std::vector<raw::ctb::pdspctb> pdspctbs;
 
-  art::Handle<artdaq::Fragments> cont_frags;
-  evt.getByLabel(fInputLabel, fInputContainerInstance, cont_frags);  
-
-  if(cont_frags.isValid())
+  art::InputTag itag1(fInputLabel, fInputContainerInstance);
+  auto cont_frags = evt.getHandle<artdaq::Fragments>(itag1);
+  if (cont_frags)
     {
       for (auto const& cont : *cont_frags)
 	{
@@ -107,10 +106,9 @@ void PDSPCTBRawDecoder::produce(art::Event & evt)
 	}
     }
 
-  art::Handle<artdaq::Fragments> frags;
-  evt.getByLabel(fInputLabel, fInputNonContainerInstance, frags); 
-
-  if(frags.isValid())
+  art::InputTag itag2(fInputLabel, fInputNonContainerInstance);
+  auto frags = evt.getHandle<artdaq::Fragments>(itag2);
+  if (frags)
     {
       for(auto const& frag: *frags)
 	{

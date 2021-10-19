@@ -85,10 +85,10 @@ namespace filt{
     std::string stinfo = "Trigger check disabled.";
     if ( keep && checkTriggerFlag ) {
       // Fetch the trigger and timing clock.
-      art::Handle<std::vector<raw::RDTimeStamp>> htims;
-      evt.getByLabel(fTimingLabel, fTimingInstance, htims);
-      //art::Handle<std::vector<raw::ctb::pdspctb> > hctb;
-      //evt.getByLabel(fTriggerLabel, fTriggerInstance, hctb);
+      art::InputTag itag1(fTimingLabel, fTimingInstance);
+      auto htims = evt.getHandle<std::vector<raw::RDTimeStamp>>(itag1);
+      //art::InputTag itag2(fTriggerLabel, fTriggerInstance);
+      //auto hctb = evt.getHandle<std::vector<raw::ctb::pdspctb> >(itag2);
 
       if ( ! htims.isValid() ) {
         std::cout << myname << "WARNING: Timing clocks product not found." << std::endl;
