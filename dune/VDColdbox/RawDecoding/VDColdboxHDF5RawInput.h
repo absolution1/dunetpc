@@ -22,6 +22,7 @@
 //Is raw a good namespace?
 namespace raw {
 //Forward declare the class
+//The Class name is too long
 class VDColdboxHDF5RawInputDetail;
 }
 
