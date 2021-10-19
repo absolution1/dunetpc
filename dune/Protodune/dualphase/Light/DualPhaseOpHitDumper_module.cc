@@ -320,8 +320,8 @@ void DualPhaseOpHitDumper::analyze(art::Event const & evt)
   //LIFT OUT THE SignEY PARTICLES.
   //auto SignTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fSIGNLabel);
 
-   art::Handle< std::vector<simb::MCTruth> > SignTrue;
-   if(evt.getByLabel(fSIGNLabel, SignTrue)) {
+  auto SignTrue = evt.getHandle< std::vector<simb::MCTruth> >(fSIGNLabel);
+   if (SignTrue) {
     art::FindManyP<simb::MCParticle> SignAssn(SignTrue,evt,fGEANTLabel);
 
     FillMyMaps( SignParts, SignAssn, SignTrue );
@@ -330,40 +330,40 @@ void DualPhaseOpHitDumper::analyze(art::Event const & evt)
     if(fSaveTruth) FillTruth(SignAssn , SignTrue , kSign );
   }
 
-  art::Handle< std::vector<simb::MCTruth> > Ar39True;
-  if(evt.getByLabel(fAr39Label, Ar39True)) {
+  auto Ar39True = evt.getHandle< std::vector<simb::MCTruth> >(fAr39Label);
+  if (Ar39True) {
     art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
     FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
     TotGen_Ar39 = Ar39Parts.size();
     if(fSaveTruth) FillTruth(Ar39Assn, Ar39True, kAr39);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > NeutTrue;
-  if(evt.getByLabel(fNeutLabel, NeutTrue)) {
+  auto NeutTrue = evt.getHandle< std::vector<simb::MCTruth> >(fNeutLabel);
+  if (NeutTrue) {
     art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
     FillMyMaps( NeutParts, NeutAssn, NeutTrue );
     TotGen_Neut = NeutParts.size();
     if(fSaveTruth) FillTruth(NeutAssn, NeutTrue, kNeut);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > KrypTrue;
-  if(evt.getByLabel(fKrypLabel, KrypTrue)) {
+  auto KrypTrue = evt.getHandle< std::vector<simb::MCTruth> >(fKrypLabel);
+  if (KrypTrue) {
     art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
     FillMyMaps( KrypParts, KrypAssn, KrypTrue );
     TotGen_Kryp = KrypParts.size();
     if(fSaveTruth) FillTruth(KrypAssn, KrypTrue, kKryp);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > RdonTrue;
-  if(evt.getByLabel(fRdonLabel, RdonTrue)) {
+  auto RdonTrue = evt.getHandle< std::vector<simb::MCTruth> >(fRdonLabel);
+  if (RdonTrue) {
     art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
     FillMyMaps( RdonParts, RdonAssn, RdonTrue );
     TotGen_Rdon = RdonParts.size();
     if(fSaveTruth) FillTruth(RdonAssn, RdonTrue, kRdon);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > Ar42True;
-  if(evt.getByLabel(fAr42Label, Ar42True)) {
+  auto Ar42True = evt.getHandle< std::vector<simb::MCTruth> >(fAr42Label);
+  if (Ar42True) {
     art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
     FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
     TotGen_Ar42 = Ar42Parts.size();
@@ -408,11 +408,11 @@ void DualPhaseOpHitDumper::analyze(art::Event const & evt)
 
   if (fSavePDS) {
 
-    art::Handle< std::vector< recob::OpHit > > OpHitHandle;
     std::vector<art::Ptr<recob::OpHit> > ophitlist;
     std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
 
-    if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
+    auto OpHitHandle = evt.getHandle< std::vector< recob::OpHit > >(fOpHitModuleLabel);
+    if (OpHitHandle) {
       art::fill_ptr_vector(ophitlist, OpHitHandle);
 
       std::cout << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;
@@ -511,8 +511,8 @@ void DualPhaseOpHitDumper::FillTruth(const art::FindManyP<simb::MCParticle> Assn
 }
 
 
-//   art::Handle< std::vector<simb::MCTruth> > SignTrue;
-//   if(evt.getByLabel(fSIGNLabel, SignTrue)) {
+//   auto SignTrue = evt.getHandle< std::vector<simb::MCTruth> >(fSIGNLabel);
+//   if (SignTrue) {
 //    art::FindManyP<simb::MCParticle> SignAssn(SignTrue,evt,fGEANTLabel);
 
 

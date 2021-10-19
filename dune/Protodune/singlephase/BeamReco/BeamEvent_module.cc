@@ -287,8 +287,6 @@ private:
   bool   gotTOFs;
   bool   gotCurrent;
 
-
-
   beam::ProtoDUNEBeamEvent * beamevt;
   beam::ProtoDUNEBeamEvent prev_beamevt;
 
@@ -468,7 +466,8 @@ void proto::BeamEvent::GetRawDecoderInfo(art::Event & e){
     MF_LOG_INFO("BeamEvent") << "Getting Raw Decoder Info" << "\n";
   }
 
-  e.getByLabel("timingrawdecoder","daq",RDTimeStampHandle);
+  art::InputTag itag1("timingrawdecoder","daq");
+  RDTimeStampHandle = e.getHandle< std::vector<raw::RDTimeStamp> >(itag1);
 
   for (auto const & RDTS : *RDTimeStampHandle){
 
