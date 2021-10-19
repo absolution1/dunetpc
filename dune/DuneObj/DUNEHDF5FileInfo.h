@@ -9,6 +9,12 @@ class DUNEHDF5FileInfo {
    : fFileName(filename), fHDF5FileHandle(file_handle),
      fFormatVersion(version), fEventGroupName(group) {};
   DUNEHDF5FileInfo(std::initializer_list<DUNEHDF5FileInfo>) {};
+
+  const std::string & GetFileName() const {return fFileName;};
+  const int & GetFormatVersion() const {return fFormatVersion;};
+  const std::string & GetEventGroupName() const {return fEventGroupName;};
+  const hid_t & GetHDF5FileHandle() const {return fHDF5FileHandle;};
+
  private:
   std::string fFileName;
   hid_t fHDF5FileHandle;
