@@ -1,6 +1,26 @@
+art_make_library(LIBRARY_NAME VDColdboxHDF5Utils
+         SOURCE VDColdboxHDF5Utils.cc
+         LIBRARIES
+         #artdaq-core_Data
+         #artdaq-core_Utilities
+         #${ARTDAQ_DAQDATA}
+         ${CETLIB_EXCEPT}
+         ${Boost_SYSTEM_LIBRARY}
+         ${FHICLCPP}
+         ${MF_MESSAGELOGGER}
+         ${MF_MESSAGEUTILITIES}
+         #${RCEDAMLIB}
+         ${GALLERY_LIB}
+         ${ART_LIB}
+         art_Framework_Principal
+         LIBHDF5 
+         pthread
+         z
+)
+
 simple_plugin(VDColdboxHDF5RawInput "source"
   dune_raw_data::dune-raw-data_Overlays
-  dune_raw_data::dune-raw-data_HDFUtils
+  VDColdboxHDF5Utils
   art_Framework_Services_Registry
 )
 
