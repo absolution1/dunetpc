@@ -250,9 +250,8 @@ bool IcebergDataInterface::_processRCE(art::Event &evt,
 
   if (inputLabel.find("Container") != std::string::npos)
     {
-      art::Handle<artdaq::Fragments> cont_frags;
-      evt.getByLabel(inputLabel,cont_frags);  
-      if (cont_frags.isValid())
+      auto cont_frags = evt.getHandle<artdaq::Fragments>(inputLabel);
+      if (cont_frags)
         {
           have_data = true;
           if (! _rceProcContNCFrags(cont_frags, n_rce_frags, true, evt, raw_digits, timestamps, apalist))
@@ -263,10 +262,8 @@ bool IcebergDataInterface::_processRCE(art::Event &evt,
     }
   else
     {
-      art::Handle<artdaq::Fragments> frags;
-      evt.getByLabel(inputLabel, frags); 
-
-      if (frags.isValid())
+      auto frags = evt.getHandle<artdaq::Fragments>(inputLabel);
+      if (frags)
         {
           have_data_nc = true;
           if (! _rceProcContNCFrags(frags, n_rce_frags, false, evt, raw_digits, timestamps, apalist))
@@ -693,9 +690,8 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
 
   if (inputLabel.find("Container") != std::string::npos)
     {
-      art::Handle<artdaq::Fragments> cont_frags;
-      evt.getByLabel(inputLabel,cont_frags);  
-      if (cont_frags.isValid())
+      auto cont_frags = evt.getHandle<artdaq::Fragments>(inputLabel);
+      if (cont_frags)
         {
           have_data = true;
           if (! _felixProcContNCFrags(cont_frags, n_felix_frags, true, evt, raw_digits, timestamps, apalist, inputLabel))
@@ -706,10 +702,9 @@ bool IcebergDataInterface::_processFELIX(art::Event &evt,
     }
   else
     {
-      art::Handle<artdaq::Fragments> frags;
-      evt.getByLabel(inputLabel, frags); 
+      auto frags = evt.getHandle<artdaq::Fragments>(inputLabel);
 
-      if (frags.isValid())
+      if (frags)
         {
           have_data_nc = true;
           if (! _felixProcContNCFrags(frags, n_felix_frags, false, evt, raw_digits, timestamps, apalist, inputLabel))
