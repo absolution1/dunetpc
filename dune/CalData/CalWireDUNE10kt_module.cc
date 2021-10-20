@@ -192,8 +192,8 @@ void CalWireDUNE10kt::produce(art::Event& evt) {
     (new art::Assns<raw::RawDigit,recob::Wire>);
   
   // Read in the digit List object(s). 
-  art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
-  evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
+  art::InputTag itag1(fDigitModuleLabel, fSpillName);
+  auto digitVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(itag1);
 
   if (!digitVecHandle->size())  return;
   mf::LogInfo("CalWireDUNE10kt") << "CalWireDUNE10kt:: digitVecHandle size is " << digitVecHandle->size();
