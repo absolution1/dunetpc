@@ -1,4 +1,5 @@
 #include "VDColdboxHDF5Utils.h"
+#include <cstring>
 
 namespace dune {
 namespace VDColdboxHDF5Utils {
@@ -28,7 +29,7 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
 }
 
 std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr) {
-  hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr,"/", H5P_DEFAULT);
+  hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr, "/", H5P_DEFAULT);
   std::list<std::string> theList = getMidLevelGroupNames(grp);
   H5Gclose(grp);
   return theList;
@@ -68,5 +69,76 @@ bool attrExists(hid_t object, const std::string &attrname) {
   return result;
 }
     
+hid_t getGroupFromPath(hid_t fd, const std::string &path) {
+  hid_t grp = H5Gopen(fd, path.data(), H5P_DEFAULT);
+  return grp;
+}
+
+void getHeaderInfo(hid_t the_group, const std::string & det_type,
+                   HeaderInfo & info) {
+  hid_t datasetid = H5Dopen(the_group, det_type.data(), H5P_DEFAULT);
+  hsize_t ds_size = H5Dget_storage_size(datasetid);
+  //std::cout << "      Data Set Size (bytes): " << ds_size << std::endl;
+  // todo -- check for zero size
+  if (ds_size < 64) {
+    //std::cout << "TriggerRecordHeader datset too small" << std::endl; 
+  }
+  size_t narray = ds_size / sizeof(char);
+  size_t rdr = ds_size % sizeof(char);
+  if (rdr > 0 || narray == 0) narray++;
+  char *ds_data = new char[narray];
+  /*herr_t ecode = */H5Dread(datasetid, H5T_STD_I8LE, H5S_ALL, H5S_ALL,
+                         H5P_DEFAULT, ds_data);
+  int firstbyte = ds_data[0];
+  firstbyte &= 0xFF;
+  int lastbyte = ds_data[narray-1];
+  lastbyte &= 0xFF;
+  //std::cout << std::hex << "      Retrieved data: ecode: " << ecode <<
+               //"  first byte: " << firstbyte << " last byte: " <<
+               //lastbyte << std::dec << std::endl;
+  H5Dclose(datasetid);
+  
+  
+  //int magic_word = 0;
+  memcpy(&info.magicWord, &ds_data[0],4);
+  //std::cout << "   Magic word: 0x" << std::hex << info.magicWord << std::dec <<
+               //std::endl;
+  
+  //int version = 0;
+  memcpy(&info.version, &ds_data[4],4);
+  //std::cout << "   Version: " << std::dec << info.version << std::dec <<
+               //std::endl;
+  
+  //uint64_t trignum=0;
+  memcpy(&info.trigNum, &ds_data[8],8);
+  //std::cout << "   Trig Num: " << std::dec << info.trigNum << std::dec <<
+               //std::endl;
+  
+  //uint64_t trig_timestamp=0;
+  memcpy(&info.trigTimestamp, &ds_data[16],8);
+  //std::cout << "   Trig Timestamp: " << std::dec << info.trigTimestamp <<
+               //std::dec << std::endl;
+  
+  //uint64_t nreq=0;
+  memcpy(&info.nReq, &ds_data[24],8);
+  //std::cout << "   No. of requested components:   " << std::dec << info.nReq <<
+               //std::dec << std::endl;
+  
+  //int runno=0;
+  memcpy(&info.runNum, &ds_data[32], 4);
+  //std::cout << "   Run Number: " << std::dec << info.runNum << std::endl;
+  //run_id = info.runNum;
+  
+  //int errbits=0;
+  memcpy(&info.errBits, &ds_data[36], 4);
+  //std::cout << "   Error bits: " << std::dec << info.errBits << std::endl;
+  
+  //short triggertype=0;
+  memcpy(&info.triggerType, &ds_data[40], 2);
+  //std::cout << "   Trigger type: " << std::dec << info.triggerType << std::endl;
+  
+  delete[] ds_data;  // free up memory
+} 
+
 }
 }
