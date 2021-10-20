@@ -3,6 +3,9 @@
 #include "art/Framework/IO/Sources/SourceTraits.h"
 #include "dune/VDColdbox/RawDecoding/VDColdboxHDF5RawInput.h"
 
+#include "dune/DuneObj/DUNEHDF5FileInfo.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
+
 // Use the standard service interfaces (CatalogInterface and
 // FileTransfer) to obtain files.
 //namespace art {
@@ -19,7 +22,7 @@ raw::VDColdboxHDF5RawInputDetail::VDColdboxHDF5RawInputDetail(
   : pretend_module_name(ps.get<std::string>("raw_data_label", "daq")),
     pmaker(sh) {
   rh.reconstitutes<raw::DUNEHDF5FileInfo, art::InEvent>(pretend_module_name); 
-  rh.reconstitutes<raw::RDTimeStamp, art::InEvent>(pretend_module_name);
+  rh.reconstitutes<raw::RDTimeStamp, art::InEvent>(pretend_module_name, "trigger");
 }
 
 void raw::VDColdboxHDF5RawInputDetail::readFile(
@@ -77,6 +80,7 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
       hdf_file_->filePtr, nextEventGroupName);
   std::list<std::string> detector_types =
       dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
+  dune::VDColdboxHDF5Utils::HeaderInfo header_info;
   for (auto & det_type : detector_types) {
     MF_LOG_INFO("VDColdboxHDF5") << "Detector type: " << det_type <<
                                     std::endl;
@@ -84,25 +88,30 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
     //that coincides with the top level group names vector
     if (det_type == "TriggerRecordHeader") {
       MF_LOG_INFO("VDColdboxHDF5") << "Found " << det_type << std::endl;
-      dune::VDColdboxHDF5Utils::HeaderInfo info;
-      dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, info);
-      std::cout << "   Magic word: 0x" << std::hex << info.magicWord <<
+      dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, header_info);
+      std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
                    std::dec << std::endl;
-      std::cout << "   Version: " << std::dec << info.version << std::dec <<
-                   std::endl;
-      std::cout << "   Trig Num: " << std::dec << info.trigNum << std::dec <<
-                   std::endl;
-      std::cout << "   Trig Timestamp: " << std::dec << info.trigTimestamp <<
+      std::cout << "   Version: " << std::dec << header_info.version <<
                    std::dec << std::endl;
+      std::cout << "   Trig Num: " << std::dec << header_info.trigNum <<
+                   std::dec << std::endl;
+      std::cout << "   Trig Timestamp: " << std::dec <<
+                   header_info.trigTimestamp << std::dec << std::endl;
       std::cout << "   No. of requested components:   " << std::dec <<
-                   info.nReq << std::dec << std::endl;
-      std::cout << "   Run Number: " << std::dec << info.runNum << std::endl;
-      std::cout << "   Error bits: " << std::dec << info.errBits << std::endl;
-      std::cout << "   Trigger type: " << std::dec << info.triggerType <<
+                   header_info.nReq << std::dec << std::endl;
+      std::cout << "   Run Number: " << std::dec << header_info.runNum <<
                    std::endl;
-      run_id = info.runNum;
+      std::cout << "   Error bits: " << std::dec << header_info.errBits <<
+                   std::endl;
+      std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
+                   std::endl;
+      //Check for filling header_info?
     }
   }
+
+  run_id = header_info.runNum;
+  std::unique_ptr<raw::RDTimeStamp> rd_timestamp(
+    new raw::RDTimeStamp(header_info.trigTimestamp));
 
   // make new run if inR is 0 or if the run has changed
   if (inR == 0 || inR->run() != run_id) {
@@ -131,8 +140,8 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
 
   put_product_in_principal(std::move(the_info), *outE, pretend_module_name,
                            "");
-  //put_product_in_principal(std::move(the_info), *outE, pretend_module_name,
-  //                         "trigger");
+  put_product_in_principal(std::move(rd_timestamp), *outE, pretend_module_name,
+                           "trigger");
 
   return true;
 }

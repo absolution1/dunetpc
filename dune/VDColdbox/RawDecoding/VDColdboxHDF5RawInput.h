@@ -18,8 +18,6 @@
 //#include "dune-raw-data/HDFUtils/HDFFileReader.hh"
 #include "dune/VDColdbox/RawDecoding/VDColdboxHDF5Utils.h"
 
-#include "lardataobj/RawData/RDTimeStamp.h"
-#include "dune/DuneObj/DUNEHDF5FileInfo.h"
 
 
 //Is raw a good namespace?
