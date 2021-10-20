@@ -612,8 +612,8 @@ void SNAna::analyze(art::Event const & evt)
 
   //LIFT OUT THE MARLEY PARTICLES.
   //auto MarlTrue = evt.getValidHandle<std::vector<simb::MCTruth> >(fMARLLabel);
-  art::Handle< std::vector<simb::MCTruth> > MarlTrue;
-  if(evt.getByLabel(fMARLLabel, MarlTrue)) {
+  auto MarlTrue = evt.getHandle< std::vector<simb::MCTruth> >(fMARLLabel);
+  if (MarlTrue) {
     art::FindManyP<simb::MCParticle> MarlAssn(MarlTrue,evt,fGEANTLabel);
     FillMyMaps( MarlParts, MarlAssn, MarlTrue, &trkIDToMarleyIndex );
     TotGen_Marl = MarlParts.size();
@@ -694,8 +694,8 @@ void SNAna::analyze(art::Event const & evt)
       FillTruth(MarlAssn, MarlTrue, kMarl);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > APATrue;
-  if(evt.getByLabel(fAPALabel, APATrue)) {
+  auto APATrue = evt.getHandle< std::vector<simb::MCTruth> >(fAPALabel);
+  if (APATrue) {
     art::FindManyP<simb::MCParticle> APAAssn(APATrue,evt,fGEANTLabel);
     FillMyMaps( APAParts, APAAssn, APATrue );
     TotGen_APA = APAParts.size();
@@ -703,56 +703,56 @@ void SNAna::analyze(art::Event const & evt)
 
   }
 
-  art::Handle< std::vector<simb::MCTruth> > CPATrue;
-  if(evt.getByLabel(fCPALabel, CPATrue)) {
+  auto CPATrue = evt.getHandle< std::vector<simb::MCTruth> >(fCPALabel);
+  if (CPATrue) {
     art::FindManyP<simb::MCParticle> CPAAssn(CPATrue,evt,fGEANTLabel);
     FillMyMaps( CPAParts, CPAAssn, CPATrue );
     TotGen_CPA = CPAParts.size();
     if(fSaveTruth) FillTruth(CPAAssn , CPATrue , kCPA );
   }
 
-  art::Handle< std::vector<simb::MCTruth> > Ar39True;
-  if(evt.getByLabel(fAr39Label, Ar39True)) {
+  auto Ar39True = evt.getHandle< std::vector<simb::MCTruth> >(fAr39Label);
+  if (Ar39True) {
     art::FindManyP<simb::MCParticle> Ar39Assn(Ar39True,evt,fGEANTLabel);
     FillMyMaps( Ar39Parts, Ar39Assn, Ar39True );
     TotGen_Ar39 = Ar39Parts.size();
     if(fSaveTruth) FillTruth(Ar39Assn, Ar39True, kAr39);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > NeutTrue;
-  if(evt.getByLabel(fNeutLabel, NeutTrue)) {
+  auto NeutTrue = evt.getHandle< std::vector<simb::MCTruth> >(fNeutLabel);
+  if (NeutTrue) {
     art::FindManyP<simb::MCParticle> NeutAssn(NeutTrue,evt,fGEANTLabel);
     FillMyMaps( NeutParts, NeutAssn, NeutTrue );
     TotGen_Neut = NeutParts.size();
     if(fSaveTruth) FillTruth(NeutAssn, NeutTrue, kNeut);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > KrypTrue;
-  if(evt.getByLabel(fKrypLabel, KrypTrue)) {
+  auto KrypTrue = evt.getHandle< std::vector<simb::MCTruth> >(fKrypLabel);
+  if (KrypTrue) {
     art::FindManyP<simb::MCParticle> KrypAssn(KrypTrue,evt,fGEANTLabel);
     FillMyMaps( KrypParts, KrypAssn, KrypTrue );
     TotGen_Kryp = KrypParts.size();
     if(fSaveTruth) FillTruth(KrypAssn, KrypTrue, kKryp);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > PlonTrue;
-  if(evt.getByLabel(fPlonLabel, PlonTrue)) {
+  auto PlonTrue = evt.getHandle< std::vector<simb::MCTruth> >(fPlonLabel);
+  if (PlonTrue) {
     art::FindManyP<simb::MCParticle> PlonAssn(PlonTrue,evt,fGEANTLabel);
     FillMyMaps( PlonParts, PlonAssn, PlonTrue );
     TotGen_Plon = PlonParts.size();
     if(fSaveTruth) FillTruth(PlonAssn, PlonTrue, kPlon);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > RdonTrue;
-  if(evt.getByLabel(fRdonLabel, RdonTrue)) {
+  auto RdonTrue = evt.getHandle< std::vector<simb::MCTruth> >(fRdonLabel);
+  if (RdonTrue) {
     art::FindManyP<simb::MCParticle> RdonAssn(RdonTrue,evt,fGEANTLabel);
     FillMyMaps( RdonParts, RdonAssn, RdonTrue );
     TotGen_Rdon = RdonParts.size();
     if(fSaveTruth) FillTruth(RdonAssn, RdonTrue, kRdon);
   }
 
-  art::Handle< std::vector<simb::MCTruth> > Ar42True;
-  if(evt.getByLabel(fAr42Label, Ar42True)) {
+  auto Ar42True = evt.getHandle< std::vector<simb::MCTruth> >(fAr42Label);
+  if (Ar42True) {
     art::FindManyP<simb::MCParticle> Ar42Assn(Ar42True,evt,fGEANTLabel);
     FillMyMaps( Ar42Parts, Ar42Assn, Ar42True );
     TotGen_Ar42 = Ar42Parts.size();
@@ -803,11 +803,10 @@ void SNAna::analyze(art::Event const & evt)
   mf::LogInfo(fname) << "THE EVENTS NUMBER IS: " << Event << std::endl;
 
   if (fSaveTPC) {
-    art::Handle< std::vector<recob::Hit> >    reco_hits         ;
-    art::Handle< std::vector<raw::RawDigit> > rawDigitsVecHandle;
+    auto reco_hits = evt.getHandle< std::vector<recob::Hit> >(fHitLabel);
+    auto rawDigitsVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(fRawDigitLabel);
 
-    if(evt.getByLabel(fHitLabel,           reco_hits         ) &&
-       evt.getByLabel(fRawDigitLabel,      rawDigitsVecHandle)) {
+    if ( reco_hits && rawDigitsVecHandle ) {
       std::vector< recob::Hit > ColHits_Marl;
       std::vector< recob::Hit > ColHits_CPA ;
       std::vector< recob::Hit > ColHits_APA ;
@@ -1012,11 +1011,11 @@ void SNAna::analyze(art::Event const & evt)
 
   if (fSavePDS) {
 
-    art::Handle< std::vector< recob::OpHit > > OpHitHandle;
     std::vector<art::Ptr<recob::OpHit> > ophitlist;
     std::map<PType, std::vector<art::Ptr<recob::OpHit> > > map_of_ophit;
 
-    if (evt.getByLabel(fOpHitModuleLabel, OpHitHandle)) {
+    auto OpHitHandle = evt.getHandle< std::vector< recob::OpHit > >(fOpHitModuleLabel);
+    if (OpHitHandle) {
       art::fill_ptr_vector(ophitlist, OpHitHandle);
 
       mf::LogDebug(fname) << "There are " << ophitlist.size() << " optical hits in the event." << std::endl;

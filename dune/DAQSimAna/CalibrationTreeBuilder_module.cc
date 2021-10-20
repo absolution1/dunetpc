@@ -106,13 +106,13 @@ namespace CalibrationTreeBuilder {
       }
     }
 
-    art::Handle<std::vector<recob::Hit>> hitHandle;
     std::vector<art::Ptr<recob::Hit>> hitList;
-    if(evt.getByLabel(private_HitLabel,hitHandle) )
+    auto hitHandle = evt.getHandle<std::vector<recob::Hit>>(private_HitLabel);
+    if ( hitHandle )
       art::fill_ptr_vector(hitList, hitHandle);
-    art::Handle<std::vector<recob::OpHit>> opHitHandle;
     std::vector<art::Ptr<recob::OpHit>> opHitList;
-    if(evt.getByLabel(private_OpHitLabel,opHitHandle) )
+    auto opHitHandle = evt.getHandle<std::vector<recob::OpHit>>(private_OpHitLabel);
+    if ( opHitHandle )
       art::fill_ptr_vector(opHitList, opHitHandle);
 
     //private_eventBuffer is the event record

@@ -139,15 +139,15 @@ void emshower::EMEnergyCalib::analyze(art::Event const& evt) {
   this->reset();
 
   // Get the hits out of the event record
-  art::Handle<std::vector<recob::Hit> > hitHandle;
   std::vector<art::Ptr<recob::Hit> > hits;
-  if (evt.getByLabel(fHitsModuleLabel,hitHandle))
+  auto hitHandle = evt.getHandle<std::vector<recob::Hit> >(fHitsModuleLabel);
+  if (hitHandle)
     art::fill_ptr_vector(hits, hitHandle);
 
   // Get the clusters out of the event record
-  art::Handle<std::vector<recob::Cluster> > clusterHandle;
   std::vector<art::Ptr<recob::Cluster> > clusters;
-  if (evt.getByLabel(fClusterModuleLabel,clusterHandle))
+  auto clusterHandle = evt.getHandle<std::vector<recob::Cluster> >(fClusterModuleLabel);
+  if (clusterHandle)
     art::fill_ptr_vector(clusters, clusterHandle);
 
   art::FindManyP<recob::Cluster> fmc(hitHandle, evt, fClusterModuleLabel);
