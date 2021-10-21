@@ -94,8 +94,8 @@ namespace filt{
 
     //    int icount=0; int trkind;
     // define the handle as an MCParticle vector and fill it with events from the simulation
-    art::Handle< std::vector<simb::MCParticle> > particleHandle;
-    event.getByLabel(fSimulationProducerLabel, particleHandle);
+    auto particleHandle = event.getHandle< std::vector<simb::MCParticle> >(fSimulationProducerLabel);
+
     // define a sorted map in which to put the particles
     std::map< int, const simb::MCParticle* > particleMap;
     // loop over all the particles, find the primary muon, and get the initial/final positions

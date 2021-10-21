@@ -315,34 +315,22 @@ namespace dunemva {
   //------------------------------------------------------------------------------
   void CAFMaker::beginSubRun(const art::SubRun& sr)
   {
-    art::Handle< sumdata::POTSummary > pots;
-    if( sr.getByLabel("generator",pots) ) meta_pot += pots->totpot;
+    auto pots = sr.getHandle< sumdata::POTSummary >("generator");
+    if( pots ) meta_pot += pots->totpot;
   }
 
   //------------------------------------------------------------------------------
   void CAFMaker::analyze(art::Event const & evt)
   {
-    art::Handle<dunemva::MVASelectPID> pidin;
-    evt.getByLabel(fMVASelectLabel, pidin);
-
-    art::Handle<dunemva::MVASelectPID> pidinnue;
-    evt.getByLabel(fMVASelectNueLabel, pidinnue);
-
-    art::Handle<dunemva::MVASelectPID> pidinnumu;
-    evt.getByLabel(fMVASelectNumuLabel, pidinnumu);
-
-    art::Handle<std::vector<cvn::Result>> cvnin;
-    evt.getByLabel(fCVNLabel, "cvnresult", cvnin);
-
-    art::Handle<std::vector<cnn::RegCNNResult>> regcnnin;
-    evt.getByLabel(fRegCNNLabel, "regcnnresult", regcnnin);
-
-
-    art::Handle<dune::EnergyRecoOutput> ereconuein;
-    evt.getByLabel(fEnergyRecoNueLabel, ereconuein);
-
-    art::Handle<dune::EnergyRecoOutput> ereconumuin;
-    evt.getByLabel(fEnergyRecoNumuLabel, ereconumuin);
+    auto pidin = evt.getHandle<dunemva::MVASelectPID>(fMVASelectLabel);
+    auto pidinnue = evt.getHandle<dunemva::MVASelectPID>(fMVASelectNueLabel);
+    auto pidinnumu = evt.getHandle<dunemva::MVASelectPID>(fMVASelectNumuLabel);
+    art::InputTag itag1(fCVNLabel, "cvnresult");
+    auto cvnin = evt.getHandle<std::vector<cvn::Result>>(itag1);
+    art::InputTag itag2(fRegCNNLabel, "regcnnresult");
+    auto regcnnin = evt.getHandle<std::vector<cnn::RegCNNResult>>(itag2);
+    auto ereconuein = evt.getHandle<dune::EnergyRecoOutput>(fEnergyRecoNueLabel);
+    auto ereconumuin = evt.getHandle<dune::EnergyRecoOutput>(fEnergyRecoNumuLabel);
 
     fRun = evt.id().run();
     fSubrun = evt.id().subRun();
@@ -427,24 +415,23 @@ namespace dunemva {
       }
     }
 
-    art::Handle< std::vector<simb::MCTruth> > mct;
     std::vector< art::Ptr<simb::MCTruth> > truth;
-    if( evt.getByLabel("generator", mct) )
+    auto mct = evt.getHandle< std::vector<simb::MCTruth> >("generator");
+    if ( mct )
       art::fill_ptr_vector(truth, mct);
     else
       mf::LogWarning("CAFMaker") << "No MCTruth.";
 
-
-    art::Handle< std::vector<simb::MCFlux> > mcf;
     std::vector< art::Ptr<simb::MCFlux> > flux;
-    if( evt.getByLabel("generator", mcf) )
+    auto mcf = evt.getHandle< std::vector<simb::MCFlux> >("generator");
+    if ( mcf )
       art::fill_ptr_vector(flux, mcf);
     else
       mf::LogWarning("CAFMaker") << "No MCFlux.";
 /*
-    art::Handle< std::vector<simb::GTruth> > gt;
     std::vector< art::Ptr<simb::GTruth> > gtru;
-    if( evt.getByLabel("generator", gt) )
+    auto gt = evt.getHandle< std::vector<simb::GTruth> >("generator");
+    if ( gt )
       art::fill_ptr_vector(gtru, gt);
     else
       mf::LogWarning("CAFMaker") << "No GTruth.";

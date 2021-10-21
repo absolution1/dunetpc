@@ -121,8 +121,8 @@ namespace unstick {
     std::unique_ptr< std::vector<raw::RawDigit>   >  digcol(new std::vector<raw::RawDigit>);
 
     // Read in the digit List object(s). 
-    art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
-    evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
+    art::InputTag itag1(fDigitModuleLabel, fSpillName);
+    auto digitVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(itag1);
 
     if (!digitVecHandle->size())  return;
     mf::LogInfo("UnstickADCCodes") << "UnstickADCCodes:: digitVecHandle size is " << digitVecHandle->size();
