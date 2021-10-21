@@ -14,14 +14,14 @@
 #include "dune-raw-data/Overlays/FelixFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "dune/DuneObj/DUNEHDF5FileInfo.h"
 
 
 
 // Keep this here for now. This needs scrutiny regarding whether the input labels are fetching right values.
 
-VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
-{
-  _input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
+VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p) {
+  //_input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
   //  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
   //  _input_labels_by_apa[3] = p.get< std::vector<std::string> >("APA3InputLabels");
   //  _input_labels_by_apa[4] = p.get< std::vector<std::string> >("APA4InputLabels");
@@ -38,8 +38,7 @@ int VDColdboxDataInterface::retrieveData(
     std::string inputLabel, 
     std::vector<raw::RawDigit> &raw_digits, 
     std::vector<raw::RDTimeStamp> &rd_timestamps,
-    std::vector<raw::RDStatus> &rdstatuses)
-{
+    std::vector<raw::RDStatus> &rdstatuses) {
   return 0;
 }
 
@@ -54,10 +53,14 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::vector<raw::RawDigit> &raw_digits, 
     std::vector<raw::RDTimeStamp> &rd_timestamps,
     std::vector<raw::RDStatus> &rdstatuses, 
-    std::vector<int> &apalist)
-{
+    std::vector<int> &apalist) {
+
+  auto infos = evt.getHandle<raw::DUNEHDF5FileInfo>("daq");
+  std::cout << "Got infos? " << infos << std::endl;
+
   int totretcode = 0;
  
+  /*
   for (size_t i=0; i<apalist.size(); ++i) 
   { 
     auto lli = _input_labels_by_apa.find(apalist.at(i)); 
@@ -71,7 +74,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
 	if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
       }
   }
-  _collectRDStatus(rdstatuses);
+  _collectRDStatus(rdstatuses);*/
  
   return totretcode;
 }
@@ -85,7 +88,8 @@ int VDColdboxDataInterface::retrieveDataAPAListWithLabels(
     std::vector<raw::RawDigit> &raw_digits, 
     std::vector<raw::RDTimeStamp> &rd_timestamps,
     std::vector<raw::RDStatus> &rdstatuses, 
-    std::vector<int> &apalist)
-{
+    std::vector<int> &apalist) {
   return 0;
 }
+
+DEFINE_ART_CLASS_TOOL(VDColdboxDataInterface)
