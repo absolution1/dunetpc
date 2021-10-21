@@ -146,14 +146,11 @@ public:
   TPadManipulator* progenitor();
 
   // Return the number of subpads.
-  unsigned int npad() const { return m_subMans.size(); }
+  unsigned int npad() const;
 
   // Return the manipulator for a subpad.
   // If there are no subpads and ipad=0,  the top manipulator is returned.
-  TPadManipulator* man(unsigned int ipad =0) {
-    if ( npad() == 0 && ipad == 0 ) return this;
-    return ipad<npad() ? &m_subMans[ipad] : nullptr;
-  }
+  TPadManipulator* man(unsigned int ipad =0);
 
   // Return the parent pad.
   TPadManipulator* parent() { return m_parent; }
