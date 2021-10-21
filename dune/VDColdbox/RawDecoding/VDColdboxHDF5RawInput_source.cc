@@ -81,33 +81,24 @@ bool raw::VDColdboxHDF5RawInputDetail::readNext(
   std::list<std::string> detector_types =
       dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
   dune::VDColdboxHDF5Utils::HeaderInfo header_info;
-  for (auto & det_type : detector_types) {
-    MF_LOG_INFO("VDColdboxHDF5") << "Detector type: " << det_type <<
-                                    std::endl;
-    //Do we want to do this in readFile? We could just store in a vector
-    //that coincides with the top level group names vector
-    if (det_type == "TriggerRecordHeader") {
-      MF_LOG_INFO("VDColdboxHDF5") << "Found " << det_type << std::endl;
-      dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, header_info);
-      std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
-                   std::dec << std::endl;
-      std::cout << "   Version: " << std::dec << header_info.version <<
-                   std::dec << std::endl;
-      std::cout << "   Trig Num: " << std::dec << header_info.trigNum <<
-                   std::dec << std::endl;
-      std::cout << "   Trig Timestamp: " << std::dec <<
-                   header_info.trigTimestamp << std::dec << std::endl;
-      std::cout << "   No. of requested components:   " << std::dec <<
-                   header_info.nReq << std::dec << std::endl;
-      std::cout << "   Run Number: " << std::dec << header_info.runNum <<
-                   std::endl;
-      std::cout << "   Error bits: " << std::dec << header_info.errBits <<
-                   std::endl;
-      std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
-                   std::endl;
-      //Check for filling header_info?
-    }
-  }
+  std::string det_type = "TriggerRecordHeader";
+  dune::VDColdboxHDF5Utils::getHeaderInfo(the_group, det_type, header_info);
+  std::cout << "   Magic word: 0x" << std::hex << header_info.magicWord <<
+               std::dec << std::endl;
+  std::cout << "   Version: " << std::dec << header_info.version <<
+               std::dec << std::endl;
+  std::cout << "   Trig Num: " << std::dec << header_info.trigNum <<
+               std::dec << std::endl;
+  std::cout << "   Trig Timestamp: " << std::dec <<
+               header_info.trigTimestamp << std::dec << std::endl;
+  std::cout << "   No. of requested components:   " << std::dec <<
+               header_info.nReq << std::dec << std::endl;
+  std::cout << "   Run Number: " << std::dec << header_info.runNum <<
+               std::endl;
+  std::cout << "   Error bits: " << std::dec << header_info.errBits <<
+               std::endl;
+  std::cout << "   Trigger type: " << std::dec << header_info.triggerType <<
+               std::endl;
 
   run_id = header_info.runNum;
   std::unique_ptr<raw::RDTimeStamp> rd_timestamp(
