@@ -1,7 +1,17 @@
 #ifndef VDColdboxDataInterface_H
 #define VDColdboxDataInterface_H
-#include "dune/DuneObj/PDSPTPCDataInterfaceParent.h"
+
+#include "art/Utilities/ToolMacros.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Persistency/Common/PtrMaker.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
+#include "artdaq-core/Data/Fragment.hh"
+#include "dune/DuneObj/PDSPTPCDataInterfaceParent.h"
+
+
 
 class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
@@ -28,6 +38,10 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
 
 
+ private:
+
+  std::map<int,std::vector<std::string>> _input_labels_by_apa;
+  void _collectRDStatus(std::vector<raw::RDStatus> &rdstatuses){};
 };
 
 #endif
