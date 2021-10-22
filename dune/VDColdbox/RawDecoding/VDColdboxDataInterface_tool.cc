@@ -14,7 +14,9 @@
 #include "dune-raw-data/Overlays/FelixFragment.hh"
 #include "dune-raw-data/Overlays/FragmentType.hh"
 #include "dune-raw-data/Services/ChannelMap/PdspChannelMapService.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "dune/DuneObj/DUNEHDF5FileInfo.h"
+#include "dune/VDColdbox/RawDecoding/VDColdboxHDF5Utils.h"
 
 
 
@@ -55,8 +57,31 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::vector<raw::RDStatus> &rdstatuses, 
     std::vector<int> &apalist) {
 
-  auto infos = evt.getHandle<raw::DUNEHDF5FileInfo>("daq");
-  std::cout << "Got infos? " << infos << std::endl;
+  auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>("daq");
+  std::cout << "Got infos? " << infoHandle << std::endl;
+  //Add check for infoHandle?
+
+  //NOTE: this bit of code is just for testing/demonstration
+  const std::string & event_group = infoHandle->GetEventGroupName();
+  const std::string & file_name = infoHandle->GetFileName();
+  //const hid_t & hdf_file = infoHandle->GetHDF5FileHandle();
+  std::cout << "\t" << file_name << std::endl;
+  std::cout << "\t" << infoHandle->GetFormatVersion() << std::endl;
+  std::cout << "\t" << event_group << std::endl;
+
+  hid_t hdf_file = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+      hdf_file, event_group);
+
+
+  std::list<std::string> det_types
+      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
+  std::cout << "\tDet types: " << det_types.size() << std::endl;
+  /////////////////////////////////////////////
+
+
+  //Here: need to form Fragments -- reimplement getFragmentsForEvent from HDFFileReader
+  //Then: process these as in PDSPTPCDataInterface
 
   int totretcode = 0;
  

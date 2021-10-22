@@ -34,6 +34,7 @@ cet_build_plugin(VDColdboxDataInterface   art::tool
 			artdaq_core::artdaq-core_Data
 			artdaq-core_Utilities
                         dune_raw_data::dune-raw-data_Services_ChannelMap_PdspChannelMapService_service
+                        VDColdboxHDF5Utils
                         ART_FRAMEWORK_CORE
                         ART_FRAMEWORK_PRINCIPAL
                         ART_FRAMEWORK_SERVICES_REGISTRY
