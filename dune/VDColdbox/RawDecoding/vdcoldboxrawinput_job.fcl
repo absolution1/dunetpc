@@ -1,0 +1,20 @@
+outputs: {
+  rootout: {
+    module_type: RootOutput
+    fileName: "rawinput_test.root"
+    compressionLevel: 1
+  }
+}
+
+physics: {
+#  my_output_modules: [ rootout ]
+output : [ rootout ]
+end_paths : [ output ]
+}
+
+source: {
+  module_type: VDColdboxHDF5RawInput
+  fileName: "/dune/data/users/barnali/download"
+}
+
+process_name: DAQ
