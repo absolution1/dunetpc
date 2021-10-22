@@ -42,6 +42,9 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
   void _collectRDStatus(std::vector<raw::RDStatus> &rdstatuses){};
+
+  //For nicer log syntax
+  std::string logname = "VDColdboxDataInterface";
 };
 
 #endif
