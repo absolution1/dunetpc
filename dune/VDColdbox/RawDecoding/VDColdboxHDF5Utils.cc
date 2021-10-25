@@ -34,12 +34,22 @@ void closeFile(HDFFileInfoPtr hdfFileInfoPtr) {
   hdfFileInfoPtr->filePtr = 0;
 }
 
-std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr) {
-  hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr, "/", H5P_DEFAULT);
-  std::list<std::string> theList = getMidLevelGroupNames(grp);
-  H5Gclose(grp);
-  return theList;
-}
+
+  // change to a fileinfo reference from a file pointer
+  std::list<std::string> findTopLevelGroupNames(hid_t fd)
+  {
+    hid_t grp = H5Gopen(fd,"/", H5P_DEFAULT);
+    std::list<std::string> theList = getMidLevelGroupNames(grp);
+    H5Gclose(grp);
+    return theList;
+  }
+
+  std::list<std::string> getTopLevelGroupNames(HDFFileInfoPtr& hdfFileInfoPtr) {
+    hid_t grp = H5Gopen(hdfFileInfoPtr->filePtr, "/", H5P_DEFAULT);
+    std::list<std::string> theList = getMidLevelGroupNames(grp);
+    H5Gclose(grp);
+    return theList;
+  }
 
 std::list<std::string> getMidLevelGroupNames(hid_t grp) {
   std::list<std::string> theList;

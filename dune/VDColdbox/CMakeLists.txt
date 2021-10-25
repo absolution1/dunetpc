@@ -1,1 +1,2 @@
 add_subdirectory(RawDecoding)
+add_subdirectory(ChannelMap)
