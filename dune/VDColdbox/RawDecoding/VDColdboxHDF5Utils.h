@@ -6,8 +6,17 @@
 #include <memory>
 #include <list>
 
+#include "daqdataformats/Fragment.hpp"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RawData/RDTimeStamp.h"
+
 namespace dune {
 namespace VDColdboxHDF5Utils {
+
+using dunedaq::daqdataformats::Fragment;
+using dunedaq::daqdataformats::FragmentHeader;
+typedef std::vector<raw::RawDigit> RawDigits;
+typedef std::vector<raw::RDTimeStamp> RDTimeStamps;
 
 struct HDFFileInfo {
   hid_t filePtr;
@@ -39,6 +48,10 @@ hid_t getGroupFromPath(hid_t fd, const std::string &path);
 void getHeaderInfo(hid_t the_group, const std::string & det_type,
                    HeaderInfo & info);
 
+typedef std::vector<Fragment> Fragments;
+typedef std::map<std::string, std::unique_ptr<Fragments>> FragmentListsByType;
+void getFragmentsForEvent(hid_t hdf_file, const std::string & group_name,
+                          RawDigits& raw_digits, RDTimeStamps &timestamps);
 
 }
 }

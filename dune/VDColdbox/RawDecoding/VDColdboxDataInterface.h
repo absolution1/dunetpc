@@ -10,8 +10,11 @@
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "artdaq-core/Data/Fragment.hh"
 #include "dune/DuneObj/PDSPTPCDataInterfaceParent.h"
+#include "daqdataformats/Fragment.hpp"
+#include <hdf5.h>
 
-
+typedef dunedaq::daqdataformats::Fragment duneFragment;
+typedef std::vector<duneFragment> duneFragments; 
 
 class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
@@ -40,8 +43,17 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
 
  private:
 
+  void processFragments(
+      std::vector<raw::RawDigit> &raw_digits, 
+      std::vector<raw::RDTimeStamp> &rd_timestamps,
+      std::unique_ptr<duneFragments> & frags);
+
   std::map<int,std::vector<std::string>> _input_labels_by_apa;
   void _collectRDStatus(std::vector<raw::RDStatus> &rdstatuses){};
+
+  void getFragmentsForEvent(
+      hid_t hdf_file, const std::string & group_name,
+      std::map<std::string, duneFragments> & results);
 
   //For nicer log syntax
   std::string logname = "VDColdboxDataInterface";

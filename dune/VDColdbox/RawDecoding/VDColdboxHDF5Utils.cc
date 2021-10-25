@@ -1,8 +1,14 @@
 #include "VDColdboxHDF5Utils.h"
 #include <cstring>
+#include <iostream>
+#include "detdataformats/wib/WIBFrame.hpp"
+#include <algorithm>
 
 namespace dune {
 namespace VDColdboxHDF5Utils {
+
+using dunedaq::detdataformats::WIBFrame;
+using dunedaq::detdataformats::WIBHeader;
 
 HDFFileInfoPtr openFile(const std::string& fileName) {
   HDFFileInfoPtr hdfFileInfoPtr(new HDFFileInfo());
@@ -140,5 +146,88 @@ void getHeaderInfo(hid_t the_group, const std::string & det_type,
   delete[] ds_data;  // free up memory
 } 
 
+void getFragmentsForEvent(
+    hid_t hdf_file, const std::string & group_name,
+    RawDigits& raw_digits, RDTimeStamps &timestamps) {
+  FragmentListsByType results;
+
+  std::cout << "Frag" << std::endl;
+  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+      hdf_file, group_name);
+
+  std::list<std::string> det_types
+      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
+  for (const auto & det : det_types) {
+    if (det != "TPC") continue;
+    results["TPC"] = std::make_unique<Fragments>();
+    std::cout << "\t" << det << std::endl;
+    hid_t det_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+        the_group, det);
+    std::list<std::string> subdet_types
+        = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(det_group);
+    for (const auto & subdet: subdet_types) {
+      std::cout << "\t\t" << subdet << std::endl;
+      hid_t subdet_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+          det_group, subdet);
+      std::list<std::string> link_names
+          = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(subdet_group);
+      for (const auto & t : link_names) {
+        std::cout << "\t\t\t" << t << std::endl;
+        
+        hid_t dataset = H5Dopen(subdet_group, t.data(), H5P_DEFAULT);
+        hsize_t ds_size = H5Dget_storage_size(dataset);
+        if (ds_size <= sizeof(FragmentHeader)) continue; //Too small
+
+        std::vector<char> ds_data(ds_size);   
+        H5Dread(dataset, H5T_STD_I8LE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+                ds_data.data());
+        H5Dclose(dataset);
+
+        //Each fragment is a collection of WIB Frames
+        Fragment frag(
+            &ds_data[0], Fragment::BufferAdoptionMode::kReadOnlyMode);
+        std::cout << "Got fragment of size: " << frag.get_size() << std::endl;
+
+        size_t n_frames = (ds_size - sizeof(FragmentHeader))/sizeof(WIBFrame);
+        std::cout << "N frames: " << n_frames << std::endl;
+
+        std::vector<raw::RawDigit::ADCvector_t> adc_vectors(256);
+        int crate = -1, slot = -1, fiber = -1;
+        for (size_t i = 0; i < n_frames; ++i) {
+          //std::cout << "Frame: " << i << std::endl;
+          auto frame = reinterpret_cast<WIBFrame*>(
+              static_cast<uint8_t*>(frag.get_data()) + i*sizeof(WIBFrame));
+          //std::cout << *(frame->get_wib_header()) << std::endl;
+          //for (size_t j = 0; j < adc_vectors.size(); ++j) {
+          //  adc_vectors[j].push_back(frame->get_channel(j));
+          //}
+
+          if (i == 0) {
+            crate = frame->get_wib_header()->crate_no;
+            slot = frame->get_wib_header()->slot_no;
+            fiber = frame->get_wib_header()->fiber_no;
+          }
+        }
+
+        /*
+        for (size_t iChan = 0; iChan < 256; ++iChan) {
+          raw::RawDigit::ADCvector_t v_adc;
+          for (size_t iFrame = 0; iFrame < n_frames; ++iFrame) {
+            v_adc.push_back(ds_data[80 + iFrame*256 + iChan]);
+          }
+          std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() <<
+                       " Timestamp: " << frag->get_trigger_timestamp() <<
+                       std::endl;
+        }*/
+        //raw::RDTimeStamp rd_ts(frag->get_trigger_timestamp(), offline_chan);
+        //
+        //raw::RawDigit rd(offline_chan, v_adc.size(), v_adc, flag);
+      }
+      H5Gclose(subdet_group);
+    }
+    H5Gclose(det_group);
+  }
+  H5Gclose(the_group);
+}
 }
 }
