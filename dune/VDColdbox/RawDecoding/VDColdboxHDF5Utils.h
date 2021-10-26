@@ -58,6 +58,8 @@ typedef std::vector<Fragment> Fragments;
 typedef std::map<std::string, std::unique_ptr<Fragments>> FragmentListsByType;
 void getFragmentsForEvent(hid_t hdf_file, const std::string & group_name,
                           RawDigits& raw_digits, RDTimeStamps &timestamps);
+void getMedianSigma(const raw::RawDigit::ADCvector_t &v_adc, float &median,
+                    float &sigma);
 }
 }
 #endif

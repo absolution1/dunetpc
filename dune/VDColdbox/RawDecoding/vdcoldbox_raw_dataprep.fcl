@@ -1,7 +1,7 @@
 #include "protoDUNE_reco_data_Dec2018.fcl"
 #include "protodune_tools_dune.fcl"
-#
-process_name: VDRawDigit
+
+process_name: VDSourcePrep
 
 services: {
   TimeTracker:       @local::dune_time_tracker
@@ -28,9 +28,7 @@ services: {
     
 
   VDColdboxChannelMapService: {
-    #FileName:         "vdcbce_chanmap_v1.txt"
-    #FileName: "vdcbce_chanmap_v1_verticalslice.txt"
-    FileName: "vdcbce_chanmap_v1_dcchan3456_verticalslice.txt"
+    FileName:         "vdcbce_chanmap_v1.txt"
     LogLevel:         1
   }
   TFileService: { 
@@ -42,6 +40,15 @@ services: {
   IFDH:              {}
 }
 
+outputs: {
+  rootout: {
+    module_type: RootOutput
+    fileName: "rawinput_test.root"
+    dataTier:    "full-reconstructed"
+    compressionLevel: 1
+  }
+}
+
 physics: {
   producers: {
     caldata: @local::protoDUNE_reco_data_producers.caldata
@@ -51,36 +58,22 @@ physics: {
     caldata
   ]
 
-  output: [out1]
+  output : [ rootout ]
   trigger_paths: [produce]
-  end_paths: [output]
+  end_paths : [ output ]
 }
 
-outputs: {
-  out1: {
-    compressionLevel: 1
-    module_type: RootOutput
-    saveMemoryObjectThreshold: 10485760
-    fileName: "%ifb_reco1.root"
-    dataTier:    "full-reconstructed"
-    #outputCommands: [ "drop *", "keep raw::RawDigitrecob*_*_*_*", "keep recob::*_*_*_*" ]
-  }
-}
-
-source:
-{
-    module_type: RootInput
-    maxEvents : -1
+source: {
+  module_type: VDColdboxHDF5RawInput
+  #fileName: "dune_test.root"
 }
 
 tools.vdtool: {
   tool_type: "VDColdboxDataInterface"
-  ForceOpen: true
 }
 
 
 services.LArFFT.FFTSize: 10000
-services.RawDigitPrepService.DoWires: false
 physics.producers.caldata.DecoderTool: "vdtool"
 physics.producers.caldata.ChannelGroups: ["all"]
-
+#process_name: DAQ

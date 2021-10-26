@@ -211,6 +211,10 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::vector<raw::RDStatus> &rdstatuses, 
     std::vector<int> &apalist) {
 
+  //if (apalist.size() > 0) {
+  //  if (apalist[0] > 1) return 0;
+  //}
+
   std::cout << "Retrieving Data for " << apalist.size() << " APAs: ";
   for (const int & i : apalist)
     std::cout << i << " ";
