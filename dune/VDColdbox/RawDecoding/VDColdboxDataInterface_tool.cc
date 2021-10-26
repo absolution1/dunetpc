@@ -219,8 +219,12 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   std::cout << "\t" << file_name << std::endl;
   std::cout << "\t" << infoHandle->GetFormatVersion() << std::endl;
   std::cout << "\t" << event_group << std::endl;
+  int image = H5Fget_file_image(infoHandle->GetHDF5FileHandle(), NULL, 0);
+  std::cout << "\tImage:" << image << std::endl;
 
-  hid_t hdf_file = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+  hid_t hdf_file = (image > 0 ?
+                    infoHandle->GetHDF5FileHandle() :
+                    H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT));
   hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
       hdf_file, event_group);
 

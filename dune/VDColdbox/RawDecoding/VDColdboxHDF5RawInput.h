@@ -41,7 +41,10 @@ class raw::VDColdboxHDF5RawInputDetail {
                 art::SubRunPrincipal*& outSR,
                 art::EventPrincipal*& outE);
 
-  void closeCurrentFile() {};
+  void closeCurrentFile() {
+    if (hdf_file_->filePtr)
+      dune::VDColdboxHDF5Utils::closeFile(std::move(hdf_file_));
+  };
 
  private:
   std::unique_ptr<dune::VDColdboxHDF5Utils::HDFFileInfo> hdf_file_;
