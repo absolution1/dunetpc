@@ -7,7 +7,7 @@
 int main(int argc, char **argv)
 {
   const bool debug=false;
-  
+
   std::string stripid;
   int connector = 0;
   int pin = 0;
