@@ -7,8 +7,6 @@
  * \warning Only one CRP is currently supported with 48 deg ind1
  */
 
-#include "ColdBoxChannelMapAlg.h"
-
 
 // LArSoft libraries
 #include "larcorealg/Geometry/CryostatGeo.h"
@@ -37,17 +35,30 @@
 #include <functional> // std::mem_fn()
 #include <tuple>
 
+#include "ColdBoxChannelMapAlg.h"
+
+using geo::dune::vd::ChannelToWireMap;
+
+namespace {
+  
+  // ---------------------------------------------------------------------------
+  fhicl::ParameterSet getOptionalParameterSet
+  (fhicl::OptionalDelegatedParameter const& param)
+  {
+    fhicl::ParameterSet pset; // empty by default
+    param.get_if_present(pset);
+    return pset;
+  }
+}
 
 // -----------------------------------------------------------------------------
-dune::ColdBoxChannelMapAlg::ColdBoxChannelMapAlg(Config const& config)
-  : fWirelessChannelCounts
-    (extractWirelessChannelParams(config.WirelessChannels()))
-  , fSorter(getOptionalParameterSet(config.Sorter))
-  {}
+geo::ColdBoxChannelMapAlg::ColdBoxChannelMapAlg(Config const& config):
+  fSorter(geo::GeoObjectSorterCRU(getOptionalParameterSet(config.Sorter)))
+{}
 
 
 // -----------------------------------------------------------------------------
-void dune::ColdBoxChannelMapAlg::Initialize(geo::GeometryData_t const& geodata)
+void geo::ColdBoxChannelMapAlg::Initialize(geo::GeometryData_t const& geodata)
 {
   // This is the only INFO level message we want this object to produce;
   // given the dynamic nature of the channel mapping choice,
@@ -61,21 +72,21 @@ void dune::ColdBoxChannelMapAlg::Initialize(geo::GeometryData_t const& geodata)
   MF_LOG_TRACE("ColdBoxChannelMapAlg")
     << "ColdBoxChannelMapAlg::Initialize() completed.";
   
-} // dune::ColdBoxChannelMapAlg::Initialize()
+} // geo::ColdBoxChannelMapAlg::Initialize()
 
 
 // -----------------------------------------------------------------------------
-void dune::ColdBoxChannelMapAlg::Uninitialize() {
+void geo::ColdBoxChannelMapAlg::Uninitialize() {
   
   fReadoutMapInfo.clear();
   fChannelToWireMap.clear();
   fPlaneInfo.clear();
   
-} // dune::ColdBoxChannelMapAlg::Uninitialize()
+} // geo::ColdBoxChannelMapAlg::Uninitialize()
 
 
 //------------------------------------------------------------------------------
-std::vector<geo::WireID> dune::ColdBoxChannelMapAlg::ChannelToWire
+std::vector<geo::WireID> geo::ColdBoxChannelMapAlg::ChannelToWire
   (raw::ChannelID_t channel) const
 {
   //
@@ -91,11 +102,11 @@ std::vector<geo::WireID> dune::ColdBoxChannelMapAlg::ChannelToWire
   //
   // find the ROP with that channel
   //
-  ChannelsInROPStruct const* channelInfo
+  ChannelToWireMap::ChannelsInROPStruct const* channelInfo
     = fChannelToWireMap.find(channel);
   if (!channelInfo) {
     throw cet::exception("Geometry")
-      << "dune::ColdBoxChannelMapAlg::ChannelToWire(" << channel
+      << "geo::ColdBoxChannelMapAlg::ChannelToWire(" << channel
       << "): invalid channel requested (must be lower than "
       << Nchannels() << ")\n";
   }
@@ -122,28 +133,28 @@ std::vector<geo::WireID> dune::ColdBoxChannelMapAlg::ChannelToWire
   
   return AllSegments;
   
-} // dune::ColdBoxChannelMapAlg::ChannelToWire()
+} // geo::ColdBoxChannelMapAlg::ChannelToWire()
 
 
 //------------------------------------------------------------------------------
-unsigned int dune::ColdBoxChannelMapAlg::Nchannels() const {
+unsigned int geo::ColdBoxChannelMapAlg::Nchannels() const {
   
   return fChannelToWireMap.nChannels();
-} // dune::ColdBoxChannelMapAlg::Nchannels()
+} // geo::ColdBoxChannelMapAlg::Nchannels()
 
 
 //------------------------------------------------------------------------------
-unsigned int dune::ColdBoxChannelMapAlg::Nchannels
+unsigned int geo::ColdBoxChannelMapAlg::Nchannels
   (readout::ROPID const& ropid) const 
 {
-  dune::details::ChannelToWireMap::ChannelsInROPStruct const* ROPinfo
+  ChannelToWireMap::ChannelsInROPStruct const* ROPinfo
     = fChannelToWireMap.find(ropid);
   return ROPinfo? ROPinfo->nChannels: 0U;
-} // dune::ColdBoxChannelMapAlg::Nchannels(ROPID)
+} // geo::ColdBoxChannelMapAlg::Nchannels(ROPID)
 
 
 //------------------------------------------------------------------------------
-double dune::ColdBoxChannelMapAlg::WireCoordinate
+double geo::ColdBoxChannelMapAlg::WireCoordinate
   (double YPos, double ZPos, geo::PlaneID const& planeID) const
 {
   /*
@@ -155,14 +166,14 @@ double dune::ColdBoxChannelMapAlg::WireCoordinate
     "\nPlease update calling software to use geo::PlaneGeo::WireCoordinate()`:"
     "\n";
   
-  lar::debug::printBacktrace(e, 4U);
+  //lar::debug::printBacktrace(e, 4U);
   
   throw e;
-} // dune::ColdBoxChannelMapAlg::WireCoordinate()
+} // geo::ColdBoxChannelMapAlg::WireCoordinate()
 
 
 //------------------------------------------------------------------------------
-geo::WireID dune::ColdBoxChannelMapAlg::NearestWireID
+geo::WireID geo::ColdBoxChannelMapAlg::NearestWireID
   (const TVector3& worldPos, geo::PlaneID const& planeID) const
 {
   /*
@@ -174,22 +185,22 @@ geo::WireID dune::ColdBoxChannelMapAlg::NearestWireID
     "\nPlease update calling software to use geo::PlaneGeo::NearestWireID()`:"
     "\n";
   
-  lar::debug::printBacktrace(e, 3U);
+  //lar::debug::printBacktrace(e, 3U);
   
   throw e;
-} // dune::ColdBoxChannelMapAlg::NearestWireID()
+} // geo::ColdBoxChannelMapAlg::NearestWireID()
 
 
 //------------------------------------------------------------------------------
-raw::ChannelID_t dune::ColdBoxChannelMapAlg::PlaneWireToChannel
+raw::ChannelID_t geo::ColdBoxChannelMapAlg::PlaneWireToChannel
   (geo::WireID const& wireID) const
 {
   return fPlaneInfo[wireID].firstChannel() + wireID.Wire;
-} // dune::ColdBoxChannelMapAlg::PlaneWireToChannel()
+} // geo::ColdBoxChannelMapAlg::PlaneWireToChannel()
 
 
 //------------------------------------------------------------------------------
-std::set<geo::PlaneID> const& dune::ColdBoxChannelMapAlg::PlaneIDs() const {
+std::set<geo::PlaneID> const& geo::ColdBoxChannelMapAlg::PlaneIDs() const {
   
   /*
    * this should NOT be called... it shouldn't be here at all!
@@ -200,50 +211,50 @@ std::set<geo::PlaneID> const& dune::ColdBoxChannelMapAlg::PlaneIDs() const {
     "\nPlease update calling software to use geo::GeometryCore::IteratePlanes()`"
     "\n";
   
-  lar::debug::printBacktrace(e, 3U);
+  //lar::debug::printBacktrace(e, 3U);
   
   throw e;
   
-} // dune::ColdBoxChannelMapAlg::PlaneIDs()
+} // geo::ColdBoxChannelMapAlg::PlaneIDs()
 
 
 //------------------------------------------------------------------------------
-unsigned int dune::ColdBoxChannelMapAlg::NTPCsets
+unsigned int geo::ColdBoxChannelMapAlg::NTPCsets
   (readout::CryostatID const& cryoid) const
 {
   return HasCryostat(cryoid)? TPCsetCount(cryoid): 0U;
-} // dune::ColdBoxChannelMapAlg::NTPCsets()
+} // geo::ColdBoxChannelMapAlg::NTPCsets()
 
 
 //------------------------------------------------------------------------------
 /// Returns the largest number of TPC sets any cryostat in the detector has
-unsigned int dune::ColdBoxChannelMapAlg::MaxTPCsets() const {
+unsigned int geo::ColdBoxChannelMapAlg::MaxTPCsets() const {
   assert(fReadoutMapInfo);
   return fReadoutMapInfo.MaxTPCsets();
-} // dune::ColdBoxChannelMapAlg::MaxTPCsets()
+} // geo::ColdBoxChannelMapAlg::MaxTPCsets()
 
 
 //------------------------------------------------------------------------------
 /// Returns whether we have the specified TPC set
 /// @return whether the TPC set is valid and exists
-bool dune::ColdBoxChannelMapAlg::HasTPCset
+bool geo::ColdBoxChannelMapAlg::HasTPCset
   (readout::TPCsetID const& tpcsetid) const
 {
   return
     HasCryostat(tpcsetid)? (tpcsetid.TPCset < TPCsetCount(tpcsetid)): false;
-} // dune::ColdBoxChannelMapAlg::HasTPCset()
+} // geo::ColdBoxChannelMapAlg::HasTPCset()
 
 
 //------------------------------------------------------------------------------
-readout::TPCsetID dune::ColdBoxChannelMapAlg::TPCtoTPCset
+readout::TPCsetID geo::ColdBoxChannelMapAlg::TPCtoTPCset
   (geo::TPCID const& tpcid) const
 {
   return tpcid? TPCtoTPCset()[tpcid]: readout::TPCsetID{};
-} // dune::ColdBoxChannelMapAlg::TPCtoTPCset()
+} // geo::ColdBoxChannelMapAlg::TPCtoTPCset()
 
 
 //------------------------------------------------------------------------------
-std::vector<geo::TPCID> dune::ColdBoxChannelMapAlg::TPCsetToTPCs
+std::vector<geo::TPCID> geo::ColdBoxChannelMapAlg::TPCsetToTPCs
   (readout::TPCsetID const& tpcsetid) const
 {
   std::vector<geo::TPCID> TPCs;
@@ -255,11 +266,11 @@ std::vector<geo::TPCID> dune::ColdBoxChannelMapAlg::TPCsetToTPCs
     std::mem_fn(&geo::TPCGeo::ID)
     );
   return TPCs;
-} // dune::ColdBoxChannelMapAlg::TPCsetToTPCs()
+} // geo::ColdBoxChannelMapAlg::TPCsetToTPCs()
 
 
 //------------------------------------------------------------------------------
-geo::TPCID dune::ColdBoxChannelMapAlg::FirstTPCinTPCset
+geo::TPCID geo::ColdBoxChannelMapAlg::FirstTPCinTPCset
   (readout::TPCsetID const& tpcsetid) const
 {
   if (!tpcsetid) return {};
@@ -267,27 +278,27 @@ geo::TPCID dune::ColdBoxChannelMapAlg::FirstTPCinTPCset
   auto const& TPClist = TPCsetTPCs(tpcsetid);
   return TPClist.empty()? geo::TPCID{}: TPClist.front()->ID();
   
-} // dune::ColdBoxChannelMapAlg::FirstTPCinTPCset()
+} // geo::ColdBoxChannelMapAlg::FirstTPCinTPCset()
 
 
 //------------------------------------------------------------------------------
-unsigned int dune::ColdBoxChannelMapAlg::NROPs
+unsigned int geo::ColdBoxChannelMapAlg::NROPs
   (readout::TPCsetID const& tpcsetid) const
 {
   return HasTPCset(tpcsetid)? ROPcount(tpcsetid): 0U;
-} // dune::ColdBoxChannelMapAlg::NROPs()
+} // geo::ColdBoxChannelMapAlg::NROPs()
 
 
 //------------------------------------------------------------------------------
-unsigned int dune::ColdBoxChannelMapAlg::MaxROPs() const {
+unsigned int geo::ColdBoxChannelMapAlg::MaxROPs() const {
   assert(fReadoutMapInfo);
   return fReadoutMapInfo.MaxROPs();
-} // dune::ColdBoxChannelMapAlg::MaxROPs()
+} // geo::ColdBoxChannelMapAlg::MaxROPs()
 
 //------------------------------------------------------------------------------
-bool dune::ColdBoxChannelMapAlg::HasROP(readout::ROPID const& ropid) const {
+bool geo::ColdBoxChannelMapAlg::HasROP(readout::ROPID const& ropid) const {
   return HasTPCset(ropid)? (ropid.ROP < ROPcount(ropid)): false;
-} // dune::ColdBoxChannelMapAlg::HasROP()
+} // geo::ColdBoxChannelMapAlg::HasROP()
 
 
 //------------------------------------------------------------------------------
@@ -303,15 +314,16 @@ bool dune::ColdBoxChannelMapAlg::HasROP(readout::ROPID const& ropid) const {
    * does not necessarily imply that the plane specified by the ID actually
    * exists.
    */
-readout::ROPID dune::ColdBoxChannelMapAlg::WirePlaneToROP
+readout::ROPID geo::ColdBoxChannelMapAlg::WirePlaneToROP
   (geo::PlaneID const& planeid) const
 {
   return planeid? PlaneToROP(planeid): readout::ROPID{};
-} // dune::ColdBoxChannelMapAlg::WirePlaneToROP()
+  //return planeid?fReadoutMapInfo.fPlaneToROP[planeid]:readout::ROPID{};
+} // geo::ColdBoxChannelMapAlg::WirePlaneToROP()
 
 
 //------------------------------------------------------------------------------
-std::vector<geo::PlaneID> dune::ColdBoxChannelMapAlg::ROPtoWirePlanes
+std::vector<geo::PlaneID> geo::ColdBoxChannelMapAlg::ROPtoWirePlanes
   (readout::ROPID const& ropid) const
 {
   std::vector<geo::PlaneID> Planes;
@@ -323,11 +335,11 @@ std::vector<geo::PlaneID> dune::ColdBoxChannelMapAlg::ROPtoWirePlanes
     std::mem_fn(&geo::PlaneGeo::ID)
     );
   return Planes;
-} // dune::ColdBoxChannelMapAlg::ROPtoWirePlanes()
+} // geo::ColdBoxChannelMapAlg::ROPtoWirePlanes()
 
 
 //------------------------------------------------------------------------------
-std::vector<geo::TPCID> dune::ColdBoxChannelMapAlg::ROPtoTPCs
+std::vector<geo::TPCID> geo::ColdBoxChannelMapAlg::ROPtoTPCs
   (readout::ROPID const& ropid) const
 {
   std::vector<geo::TPCID> TPCs;
@@ -339,54 +351,54 @@ std::vector<geo::TPCID> dune::ColdBoxChannelMapAlg::ROPtoTPCs
     std::mem_fn(&geo::PlaneGeo::ID)
     );
   return TPCs;
-} // dune::ColdBoxChannelMapAlg::ROPtoTPCs()
+} // geo::ColdBoxChannelMapAlg::ROPtoTPCs()
 
 
 //------------------------------------------------------------------------------
-readout::ROPID dune::ColdBoxChannelMapAlg::ChannelToROP
+readout::ROPID geo::ColdBoxChannelMapAlg::ChannelToROP
   (raw::ChannelID_t channel) const
 {
   if (!raw::isValidChannelID(channel)) return {};
   
-  ChannelsInROPStruct const* info
+  ChannelToWireMap::ChannelsInROPStruct const* info
     = fChannelToWireMap.find(channel);
   return info? info->ropid: readout::ROPID{};
-} // dune::ColdBoxChannelMapAlg::ChannelToROP()
+} // geo::ColdBoxChannelMapAlg::ChannelToROP()
 
 
 //------------------------------------------------------------------------------
-raw::ChannelID_t dune::ColdBoxChannelMapAlg::FirstChannelInROP
+raw::ChannelID_t geo::ColdBoxChannelMapAlg::FirstChannelInROP
   (readout::ROPID const& ropid) const
 {
   if (!ropid) return raw::InvalidChannelID;
   
-  ChannelsInROPStruct const* info
+  ChannelToWireMap::ChannelsInROPStruct const* info
     = fChannelToWireMap.find(ropid);
   return info? info->firstChannel: raw::InvalidChannelID;
-} // dune::ColdBoxChannelMapAlg::FirstChannelInROP()
+} // geo::ColdBoxChannelMapAlg::FirstChannelInROP()
 
 
 //------------------------------------------------------------------------------
-geo::PlaneID dune::ColdBoxChannelMapAlg::FirstWirePlaneInROP
+geo::PlaneID geo::ColdBoxChannelMapAlg::FirstWirePlaneInROP
   (readout::ROPID const& ropid) const
 {
   if (!ropid) return {};
   PlaneColl_t const& planes = ROPplanes(ropid);
   return planes.empty()? geo::PlaneID{}: planes.front()->ID();
-} // dune::ColdBoxChannelMapAlg::FirstWirePlaneInROP()
+} // geo::ColdBoxChannelMapAlg::FirstWirePlaneInROP()
 
 
 //------------------------------------------------------------------------------
-bool dune::ColdBoxChannelMapAlg::HasCryostat
+bool geo::ColdBoxChannelMapAlg::HasCryostat
   (readout::CryostatID const& cryoid) const
 {
   assert(fReadoutMapInfo);
   return cryoid.Cryostat < fReadoutMapInfo.NCryostats();
-} // dune::ColdBoxChannelMapAlg::HasCryostat()
+} // geo::ColdBoxChannelMapAlg::HasCryostat()
 
 
 //------------------------------------------------------------------------------
-void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
+void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
   (geo::GeometryData_t::CryostatList_t const& Cryostats)
 {
   
@@ -442,10 +454,7 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
         // assign available channels to all wires of the first plane
         nextChannel += (*iPlane)->Nwires();
         fPlaneInfo[(*iPlane)->ID()] = {
-          ChannelRange_t
-            { firstROPchannel + WirelessChannelCounts.first, nextChannel },
-          rid
-          };
+          ChannelRange_t{ firstROPchannel, nextChannel }, rid };
         log << " [" << (*iPlane)->ID() << "] "
           << fPlaneInfo[(*iPlane)->ID()].firstChannel()
           << " -- " << fPlaneInfo[(*iPlane)->ID()].lastChannel() << ";";
@@ -508,38 +517,40 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
   mf::LogTrace("ColdBoxChannelMapAlg")
     << "Counted " << fChannelToWireMap.nChannels() << " channels.";
   
-} // dune::ColdBoxChannelMapAlg::fillChannelToWireMap()
+} // geo::ColdBoxChannelMapAlg::fillChannelToWireMap()
 
 
 // -----------------------------------------------------------------------------
-void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
+void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
   (geo::GeometryData_t::CryostatList_t const& Cryostats)
 {
+  auto const [ NCryostats, MaxTPCs, MaxPlanes ]
+    = geo::details::extractMaxGeometryElements<3U>(Cryostats);
 
   if( Cryostats.size() > 1 ){
     throw cet::exception("Geometry")
-      << "dune::ColdBoxChannelMapAlg::buildReadoutPlanes " << Cryostats.size()
+      << "geo::ColdBoxChannelMapAlg::buildReadoutPlanes " << Cryostats.size()
       << ": more than one cryostat is currently not supported\n";
   }
   
   if( Cryostats[0].NTPC() != 4 ){
     throw cet::exception("Geometry")
-      << "dune::ColdBoxChannelMapAlg::buildReadoutPlanes " << Cryostats[0].NTPC() != 4
+      << "geo::ColdBoxChannelMapAlg::buildReadoutPlanes " << Cryostats[0].NTPC()
       << ": more than four TPCs is currently not supported\n";
   }
   
   // currently do it by hand for CB --> to be generalized for FD
   auto cryo = Cryostats[0];
-  unsigned int MaxTPCs = cryo.NTPC();
+  //unsigned int MaxTPCs = cryo.NTPC();
+  //unsigned int MaxPlanes = 3;
   unsigned int MaxROPs = 3;
-  unsigned int MaxPlanes = 3;
   std::vector<unsigned int> TPCsetCount = {2};
   std::vector<TPCColl_t> AllTPCsInTPCsets;       // TPCs belonging to a set
   AllTPCsInTPCsets.resize( TPCsetCount.size() ); // set index
   // the standard CRU sorter is assumed (fixing this another "todo")
   AllTPCsInTPCsets[0] = {cryo.TPCPtr(0), cryo.TPCPtr(2)};
   AllTPCsInTPCsets[1] = {cryo.TPCPtr(1), cryo.TPCPtr(3)};
-  readout::TPCsetDataContainer<TPCColl_t> TPCsetTPCs(1, TPCsetCount.size());
+  readout::TPCsetDataContainer<TPCColl_t> TPCsetTPCs(NCryostats, TPCsetCount.size());
   
   for( auto&& [s, TPCPtrs ]: util::enumerate(AllTPCsInTPCsets) ){
     readout::TPCsetID const tpcsetid
@@ -548,12 +559,12 @@ void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
   }
 
   //  number of readout planes in each TPC set
-  readout::TPCsetDataContainer<unsigned int> ROPcount( TPCsetTPCs.dimSize<0U>(), 
-						       TPCsetTPCs.dimSize<1U>(), 0 );
+  readout::TPCsetDataContainer<unsigned int> ROPcount;
+  ROPcount.resize( TPCsetTPCs.dimSize<0U>(), TPCsetTPCs.dimSize<1U>(), 0U );
   
   // geo::PlaneGeo objects in each readout plane
-  readout::ROPDataContainer<PlaneColl_t> ROPplanes(TPCsetTPCs.dimSize<0U>(),
-						   TPCsetTPCs.dimSize<1U>(), MaxROPs);
+  readout::ROPDataContainer<PlaneColl_t> ROPplanes;
+  ROPplanes.resize(TPCsetTPCs.dimSize<0U>(), TPCsetTPCs.dimSize<1U>(), MaxROPs);
   
   for (auto [ c, nTPCsets ]: util::enumerate(TPCsetCount)) {
     readout::CryostatID const cryoid
@@ -579,7 +590,8 @@ void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
   
   //
   // the TPC set each TPC belongs to 
-  geo::TPCDataContainer<readout::TPCsetID> TPCtoTPCset( 1, MaxTPCs, {});
+  geo::TPCDataContainer<readout::TPCsetID> TPCtoTPCset;
+  TPCtoTPCset.resize( NCryostats, MaxTPCs, {});
   for (auto c
 	 : util::counter<geo::CryostatID::CryostatID_t>(TPCsetTPCs.dimSize<0>())){
     
@@ -598,6 +610,7 @@ void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
   
   // ROP each wire belongs to
   geo::PlaneDataContainer<readout::ROPID> PlaneToROP;
+  PlaneToROP.resize( NCryostats, MaxTPCs, MaxPlanes, {} );
   for (auto c
     : util::counter<geo::CryostatID::CryostatID_t>(ROPplanes.dimSize<0>())
        )
@@ -621,16 +634,16 @@ void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
   
   // copy to ReadoutMapInfo struct
   fReadoutMapInfo.set(
-		      std::move(results).TPCsetCount(), std::move(results).TPCsetTPCs(),
-		      std::move(results).ROPcount(), std::move(results).ROPplanes(),
-		      std::move(results).TPCtoTPCset(), std::move(results).PlaneToROP()
+		      std::move(TPCsetCount), std::move(TPCsetTPCs),
+		      std::move(ROPcount), std::move(ROPplanes),
+		      std::move(TPCtoTPCset), std::move(PlaneToROP)
 		      );
   
-} // dune::ColdBoxChannelMapAlg::buildReadoutPlanes()
+} // geo::ColdBoxChannelMapAlg::buildReadoutPlanes()
 
 
 // -----------------------------------------------------------------------------
-PlaneType_t dune::ColdBoxChannelMapAlg::findPlaneType(readout::ROPID const& rid) const
+std::size_t geo::ColdBoxChannelMapAlg::findPlaneType(readout::ROPID const& rid) const
 {
   /*
    * This implementation is very fragile, relying on the fact that the first
@@ -651,14 +664,14 @@ PlaneType_t dune::ColdBoxChannelMapAlg::findPlaneType(readout::ROPID const& rid)
     return PlaneTypes[planeNo];
   else return kUnknownType;
   
-} // dune::ColdBoxChannelMapAlg::findPlaneType()
+} // geo::ColdBoxChannelMapAlg::findPlaneType()
 
 
 // ----------------------------------------------------------------------------
-geo::SigType_t dune::ColdBoxChannelMapAlg::SignalTypeForChannelImpl
+geo::SigType_t geo::ColdBoxChannelMapAlg::SignalTypeForChannelImpl
   (raw::ChannelID_t const channel) const
 {
-  ChannelsInROPStruct const* channelInfo
+  ChannelToWireMap::ChannelsInROPStruct const* channelInfo
     = fChannelToWireMap.find(channel);
   if (!channelInfo) return geo::kMysteryType;
   
@@ -672,12 +685,13 @@ geo::SigType_t dune::ColdBoxChannelMapAlg::SignalTypeForChannelImpl
       return geo::kMysteryType;
   } // switch
   
-} // dune::ColdBoxChannelMapAlg::SignalTypeForChannelImpl()
+  return geo::kMysteryType;
+} // geo::ColdBoxChannelMapAlg::SignalTypeForChannelImpl()
 
 
 /*
 // -----------------------------------------------------------------------------
-auto dune::ColdBoxChannelMapAlg::extractWirelessChannelParams
+auto geo::ColdBoxChannelMapAlg::extractWirelessChannelParams
   (Config::WirelessChannelStruct const& params) -> WirelessChannelCounts_t
 {
   return {
@@ -713,11 +727,11 @@ auto dune::ColdBoxChannelMapAlg::extractWirelessChannelParams
     }
     };
   
-} // dune::ColdBoxChannelMapAlg::extractWirelessChannelParams()
+} // geo::ColdBoxChannelMapAlg::extractWirelessChannelParams()
 */
 
 // ----------------------------------------------------------------------------
-std::string dune::ColdBoxChannelMapAlg::PlaneTypeName(PlaneType_t planeType) {
+std::string geo::ColdBoxChannelMapAlg::PlaneTypeName(PlaneType_t planeType) {
   
   using namespace std::string_literals;
   switch (planeType) {
@@ -729,7 +743,7 @@ std::string dune::ColdBoxChannelMapAlg::PlaneTypeName(PlaneType_t planeType) {
       return "unsupported ("s + std::to_string(planeType) + ")"s;
   } // switch
   
-} // dune::ColdBoxChannelMapAlg::PlaneTypeName()
+} // geo::ColdBoxChannelMapAlg::PlaneTypeName()
 
 
 // ----------------------------------------------------------------------------

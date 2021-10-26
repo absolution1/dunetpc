@@ -35,18 +35,17 @@
 
 // -----------------------------------------------------------------------------
 // forward declarations
-namespace dune {
+namespace geo {
   
   class ColdBoxChannelMapAlg;
   
 } // namespace dune
 
 // -----------------------------------------------------------------------------
-namespace {
+namespace geo { namespace dune{ namespace vd {
 
   class ChannelToWireMap
   {
-    typedef unsigned int Index;
     
   public:
 
@@ -58,17 +57,17 @@ namespace {
       ChannelsInROPStruct() = default;
       ChannelsInROPStruct(
 			  raw::ChannelID_t firstChannel,
-			  unsigned int nChannels//,
-			  readout::ROPID const& ropid
-			  )
+			  unsigned int nChannels,
+			  readout::ROPID const& ropid )
 	: firstChannel(firstChannel), nChannels(nChannels), ropid(ropid)
       {}
     };
+    
 
     /// Returns data of the ROP including `channel`, `nullptr` if none.
     ChannelsInROPStruct const* find(raw::ChannelID_t channel) const
     {
-      auto const dbegin    = fROPfirstChannel.begin(), dend = fROPfirstChannel.end();
+      auto const dend = fROPfirstChannel.end();
       auto const iNextData = fROPfirstChannel.upper_bound( channel );
       assert(iNextData != dbegin);
       return ((iNextData == dend) && (channel >= endChannel()))
@@ -80,10 +79,10 @@ namespace {
     ChannelsInROPStruct const* find(readout::ROPID const& ropid) const
     {
       auto const dbegin = fROPfirstChannel.begin(), dend = fROPfirstChannel.end();
-      auto const iData = std::find_if( dbegin, dend,
-				       [&data](std::pair<raw::ChannelID_t, ChannelsInROPStruct>){
-					 return data.ropid == ropid; });
-      return (iData == dend)? nullptr: &(iData->second);
+      for( auto it = dbegin; it != dend; ++it ){
+	if (it->second.ropid == ropid) return &(it->second);
+      }
+      return nullptr;
     }
     
     /// Returns the ID of the first invalid channel (the last channel, plus 1).
@@ -102,11 +101,10 @@ namespace {
       fEndChannel = raw::ChannelID_t{ 0 };
     }
 
-    void addROP( //readout::ROPID const& rid,
-		raw::ChannelID_t firstROPchannel, unsigned int nChannels )
+    void addROP( readout::ROPID const& rid,
+		 raw::ChannelID_t firstROPchannel, unsigned int nChannels )
     {
-      auto it = fROPfirstChannel.find( firstROPchannel );
-      assert( it == fROPfirstChannel.end() );
+      assert( fROPfirstChannel.find( firstROPchannel ) != fROPfirstChannel.end() );
       fROPfirstChannel[ firstROPchannel ] = {firstROPchannel, nChannels, rid};
     }
 
@@ -115,11 +113,11 @@ namespace {
     std::map<raw::ChannelID_t, ChannelsInROPStruct> fROPfirstChannel;
     raw::ChannelID_t fEndChannel = 0;
   };
-} // anonym namespace
+    }}} //namespaces
 
 // -----------------------------------------------------------------------------
 
-class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
+class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   
   // import definitions
   using TPCColl_t   = std::vector<geo::TPCGeo const*>;
@@ -520,7 +518,7 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   ReadoutMappingInfo_t fReadoutMapInfo;
   
   /// Mapping of channels and ROP's.
-  ChannelToWireMap fChannelToWireMap;
+  geo::dune::vd::ChannelToWireMap fChannelToWireMap;
   
   /// Range of channels covered by each ROP
   
@@ -590,12 +588,6 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   geo::TPCDataContainer<readout::TPCsetID> const& TPCtoTPCset() const
     { assert(fReadoutMapInfo); return fReadoutMapInfo.fTPCtoTPCset; }
   
-  /* // something similar to this already belongs to the interface
-  /// The TPC set the specified TPC `tid` belongs to.
-  readout::TPCsetID const& TPCtoTPCset(geo::TPCID const& tid) const
-    { return TPCtoTPCset()[tid]; }
-  */
-  
   /// The readout plane including each wire plane.
   geo::PlaneDataContainer<readout::ROPID> const& PlaneToROP() const
     { assert(fReadoutMapInfo); return fReadoutMapInfo.fPlaneToROP; }
@@ -603,7 +595,7 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   /// The readout plane the specified wire plane `pid` belongs to.
   readout::ROPID const& PlaneToROP(geo::PlaneID const& pid) const
     { return PlaneToROP()[pid]; }
-  
+    
   /// @}
   // --- END -- Readout element information access -----------------------------
   
@@ -670,7 +662,7 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   //
   std::string fLogCategory = "ColdBoxChannelMapAlg";
   
-}; // class dune::ColdBoxChannelMapAlg
+}; // class geo::ColdBoxChannelMapAlg
 
 
 #endif //
