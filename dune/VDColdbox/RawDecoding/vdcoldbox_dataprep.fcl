@@ -80,7 +80,6 @@ tools.vdtool: {
 
 
 services.LArFFT.FFTSize: 10000
-services.RawDigitPrepService.DoWires: false
 physics.producers.caldata.DecoderTool: "vdtool"
 physics.producers.caldata.ChannelGroups: ["all"]
 

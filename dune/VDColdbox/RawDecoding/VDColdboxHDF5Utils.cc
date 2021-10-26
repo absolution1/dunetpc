@@ -241,13 +241,13 @@ void getFragmentsForEvent(
 
         for (size_t iChan = 0; iChan < 256; ++iChan) {
           const raw::RawDigit::ADCvector_t & v_adc = adc_vectors[iChan];
-          std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() <<
+          /*std::cout << "Channel: " << iChan << " N ticks: " << v_adc.size() <<
                        " Timestamp: " << frag.get_trigger_timestamp() <<
-                       std::endl;
+                       std::endl;*/
 
           int offline_chan = channelMap->getOfflChanFromSlotFiberChan(
               slot, fiber, iChan);
-          std::cout << "Offline chan: " << offline_chan << std::endl;
+          //std::cout << "Offline chan: " << offline_chan << std::endl;
 
           raw::RDTimeStamp rd_ts(frag.get_trigger_timestamp(), offline_chan);
           timestamps.push_back(rd_ts);
