@@ -41,6 +41,81 @@ namespace dune {
   
 } // namespace dune
 
+// -----------------------------------------------------------------------------
+namespace {
+
+  class ChannelToWireMap
+  {
+    typedef unsigned int Index;
+    
+  public:
+
+    struct ChannelsInROPStruct
+    {
+      raw::ChannelID_t firstChannel = raw::InvalidChannelID;
+      unsigned int nChannels        = 0U;
+      readout::ROPID ropid; ///< ID of the ROP we cover.
+      ChannelsInROPStruct() = default;
+      ChannelsInROPStruct(
+			  raw::ChannelID_t firstChannel,
+			  unsigned int nChannels//,
+			  readout::ROPID const& ropid
+			  )
+	: firstChannel(firstChannel), nChannels(nChannels), ropid(ropid)
+      {}
+    };
+
+    /// Returns data of the ROP including `channel`, `nullptr` if none.
+    ChannelsInROPStruct const* find(raw::ChannelID_t channel) const
+    {
+      auto const dbegin    = fROPfirstChannel.begin(), dend = fROPfirstChannel.end();
+      auto const iNextData = fROPfirstChannel.upper_bound( channel );
+      assert(iNextData != dbegin);
+      return ((iNextData == dend) && (channel >= endChannel()))
+	? nullptr: &(std::prev(iNextData)->second);
+    }
+
+    
+    /// Returns data of the ROP `ropid`, `nullptr` if none.
+    ChannelsInROPStruct const* find(readout::ROPID const& ropid) const
+    {
+      auto const dbegin = fROPfirstChannel.begin(), dend = fROPfirstChannel.end();
+      auto const iData = std::find_if( dbegin, dend,
+				       [&data](std::pair<raw::ChannelID_t, ChannelsInROPStruct>){
+					 return data.ropid == ropid; });
+      return (iData == dend)? nullptr: &(iData->second);
+    }
+    
+    /// Returns the ID of the first invalid channel (the last channel, plus 1).
+    raw::ChannelID_t endChannel() const { return fEndChannel; }
+    
+    /// Returns the number of mapped channels.
+    unsigned int nChannels() const
+    { return endChannel(); }
+    
+    /// Sets the ID of the channels after the last valid one.
+    void setEndChannel(raw::ChannelID_t channel) { fEndChannel = channel; }
+    
+    /// Resets the data of the map to like just constructed.
+    void clear(){
+      fROPfirstChannel.clear();
+      fEndChannel = raw::ChannelID_t{ 0 };
+    }
+
+    void addROP( //readout::ROPID const& rid,
+		raw::ChannelID_t firstROPchannel, unsigned int nChannels )
+    {
+      auto it = fROPfirstChannel.find( firstROPchannel );
+      assert( it == fROPfirstChannel.end() );
+      fROPfirstChannel[ firstROPchannel ] = {firstROPchannel, nChannels, rid};
+    }
+
+  private:
+				       
+    std::map<raw::ChannelID_t, ChannelsInROPStruct> fROPfirstChannel;
+    raw::ChannelID_t fEndChannel = 0;
+  };
+} // anonym namespace
 
 // -----------------------------------------------------------------------------
 
@@ -444,8 +519,12 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   /// Information about TPC sets and readout planes in the geometry.
   ReadoutMappingInfo_t fReadoutMapInfo;
   
-  /// Mapping of channels to wire planes and ROP's.
-  //icarus::details::ChannelToWireMap fChannelToWireMap;
+  /// Mapping of channels and ROP's.
+  ChannelToWireMap fChannelToWireMap;
+  
+  /// Range of channels covered by each ROP
+  
+  
   
   /// Range of channels covered by each of the wire planes.
   geo::PlaneDataContainer<PlaneInfo_t> fPlaneInfo;
@@ -584,11 +663,6 @@ class dune::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   /// Returns the type of signal on the specified `channel`.
   virtual geo::SigType_t SignalTypeForChannelImpl
     (raw::ChannelID_t const channel) const override;
-  
-  
-  static WirelessChannelCounts_t extractWirelessChannelParams
-    (Config::WirelessChannelStruct const& params);
-  
   
   /// Returns the name of the specified plane type.
   static std::string PlaneTypeName(PlaneType_t planeType);

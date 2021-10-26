@@ -91,7 +91,7 @@ std::vector<geo::WireID> dune::ColdBoxChannelMapAlg::ChannelToWire
   //
   // find the ROP with that channel
   //
-  dune::details::ChannelToWireMap::ChannelsInROPStruct const* channelInfo
+  ChannelsInROPStruct const* channelInfo
     = fChannelToWireMap.find(channel);
   if (!channelInfo) {
     throw cet::exception("Geometry")
@@ -129,7 +129,6 @@ std::vector<geo::WireID> dune::ColdBoxChannelMapAlg::ChannelToWire
 unsigned int dune::ColdBoxChannelMapAlg::Nchannels() const {
   
   return fChannelToWireMap.nChannels();
-  
 } // dune::ColdBoxChannelMapAlg::Nchannels()
 
 
@@ -348,7 +347,8 @@ readout::ROPID dune::ColdBoxChannelMapAlg::ChannelToROP
   (raw::ChannelID_t channel) const
 {
   if (!raw::isValidChannelID(channel)) return {};
-  dune::details::ChannelToWireMap::ChannelsInROPStruct const* info
+  
+  ChannelsInROPStruct const* info
     = fChannelToWireMap.find(channel);
   return info? info->ropid: readout::ROPID{};
 } // dune::ColdBoxChannelMapAlg::ChannelToROP()
@@ -359,7 +359,8 @@ raw::ChannelID_t dune::ColdBoxChannelMapAlg::FirstChannelInROP
   (readout::ROPID const& ropid) const
 {
   if (!ropid) return raw::InvalidChannelID;
-  dune::details::ChannelToWireMap::ChannelsInROPStruct const* info
+  
+  ChannelsInROPStruct const* info
     = fChannelToWireMap.find(ropid);
   return info? info->firstChannel: raw::InvalidChannelID;
 } // dune::ColdBoxChannelMapAlg::FirstChannelInROP()
@@ -407,8 +408,7 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
   
   raw::ChannelID_t nextChannel = 0; // next available channel
   
-  // once again we do not have iteration facilities from `geo::GeometryCore`
-  // available yet, so we go the nested loop way and bite it
+
   for (geo::CryostatGeo const& cryo: Cryostats) {
     
     readout::CryostatID const cid { cryo.ID() };
@@ -419,13 +419,6 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
     for (readout::TPCsetID::TPCsetID_t s: util::counter(nTPCsets)) {
       
       readout::TPCsetID const sid { cid, s };
-      
-      // select the channel count according to whether the TPC set is even or
-      // odd; the selected structure is an array with one element for wire
-      // plane signal type (first induction, second induction and collection):
-      auto const& TPCsetChannelCounts
-        = fWirelessChannelCounts.at(sid.TPCset & 1);
-      
       auto const nROPs = static_cast<readout::ROPID::ROPID_t>(ROPcount(sid));
       
       for (readout::ROPID::ROPID_t r: util::counter(nROPs)) {
@@ -437,9 +430,6 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
         log << "ROP: " << rid
           << " (plane type: " << PlaneTypeName(planeType) << ")";
         
-        auto const& WirelessChannelCounts
-          = TPCsetChannelCounts.at(planeType);
-        
         PlaneColl_t const& planes = ROPplanes(rid);
         log << " (" << planes.size() << " planes):";
         assert(!planes.empty());
@@ -450,7 +440,7 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
         auto const pend = util::end(planes);
         
         // assign available channels to all wires of the first plane
-        nextChannel += WirelessChannelCounts.first + (*iPlane)->Nwires();
+        nextChannel += (*iPlane)->Nwires();
         fPlaneInfo[(*iPlane)->ID()] = {
           ChannelRange_t
             { firstROPchannel + WirelessChannelCounts.first, nextChannel },
@@ -503,8 +493,7 @@ void dune::ColdBoxChannelMapAlg::fillChannelToWireMap
           
         } // while
         
-        nextChannel += WirelessChannelCounts.second;
-        unsigned int const nChannels = nextChannel - firstROPchannel;
+	unsigned int const nChannels = nextChannel - firstROPchannel;
         fChannelToWireMap.addROP(rid, firstROPchannel, nChannels);
         log
           << " => " << nChannels << " channels starting at " << firstROPchannel;
@@ -622,7 +611,7 @@ void dune::ColdBoxChannelMapAlg::buildReadoutPlanes
 	      readout::ROPID const rid { sid, r };
 	      for (geo::PlaneGeo const* plane: ROPplanes[rid]) {
 		assert(plane && plane->ID());
-		fPlaneToROP[plane->ID()] = rid;
+		PlaneToROP[plane->ID()] = rid;
 		MF_LOG_TRACE(fLogCategory) << plane->ID() << " => " << rid;
 	      } // for planes in readout plane
 	    } // for readout planes in TPC set
@@ -669,12 +658,7 @@ PlaneType_t dune::ColdBoxChannelMapAlg::findPlaneType(readout::ROPID const& rid)
 geo::SigType_t dune::ColdBoxChannelMapAlg::SignalTypeForChannelImpl
   (raw::ChannelID_t const channel) const
 {
-  /*
-   * We rely on the accuracy of `findPlaneType()` (which is admittedly less than
-   * great) to assign signal type accordingly.
-   */
-  
-  dune::details::ChannelToWireMap::ChannelsInROPStruct const* channelInfo
+  ChannelsInROPStruct const* channelInfo
     = fChannelToWireMap.find(channel);
   if (!channelInfo) return geo::kMysteryType;
   
