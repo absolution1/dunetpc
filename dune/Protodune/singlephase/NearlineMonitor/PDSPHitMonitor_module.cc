@@ -264,12 +264,9 @@ namespace PDSPHitmonitor_module{
   //-----------------------------------------------------------------------
   void PDSPHitMonitorModule::analyze(const art::Event& evt){
 
-    art::Handle<std::vector<recob::Hit> > hitHandle;
     // Many options here: gaushit, hitfd, linecluster, lineclusterdc, robusthit, fasthit, etc.
-    bool retVal = evt.getByLabel(fTPCHitTag, hitHandle);
-    if(retVal==true)
-      ;
-    else{
+    auto hitHandle = evt.getHandle<std::vector<recob::Hit> >(fTPCHitTag);
+    if (!hitHandle) {
       mf::LogWarning("HitMonitor") << " Getting Hits FAIL: " << fTPCHitTag << std::endl;
       return;
     }

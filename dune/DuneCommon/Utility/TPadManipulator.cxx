@@ -422,6 +422,19 @@ TPadManipulator* TPadManipulator::progenitor() {
 
 //**********************************************************************
 
+unsigned int TPadManipulator::npad() const {
+  return m_subMans.size();
+}
+
+//**********************************************************************
+
+TPadManipulator* TPadManipulator::man(unsigned int ipad) {
+  if ( npad() == 0 && ipad == 0 ) return this;
+  return ipad<npad() ? &m_subMans[ipad] : nullptr;
+}
+
+//**********************************************************************
+
 TObject* TPadManipulator::object() const {
   if ( haveHist() ) return hist();
   return graph();

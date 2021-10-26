@@ -251,8 +251,7 @@ namespace deconvgaushf {
     // ##########################################
     // ### Reading in the Wire List object(s) ###
     // ##########################################
-    //art::Handle< std::vector<recob::Wire> > wireVecHandle;
-    //evt.getByLabel(fCalDataModuleLabel,wireVecHandle);
+    //auto wireVecHandle = evt.getHandle< std::vector<recob::Wire> >(fCalDataModuleLabel);
     //art::ServiceHandle<geo::Geometry> geom;
     
     // #########################################################
@@ -279,9 +278,10 @@ namespace deconvgaushf {
 	  
 
     // Read in the digit List object(s). 
+    art::InputTag itag1(fDigitModuleLabel, fSpillName);
     art::Handle< std::vector<raw::RawDigit> > digitVecHandle;
-    if(fSpillName.size()>0) evt.getByLabel(fDigitModuleLabel, fSpillName, digitVecHandle);
-    else evt.getByLabel(fDigitModuleLabel, digitVecHandle);
+    if (fSpillName.size()>0) digitVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(itag1);
+    else digitVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(fDigitModuleLabel);
 
     if (!digitVecHandle->size())  return;
     mf::LogInfo("DeconvGausHFDUNE35t") << "DeconvGausHFDUNE35t:: digitVecHandle size is " << digitVecHandle->size();

@@ -461,11 +461,11 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
   using TimeStampVector  = std::vector<raw::RDTimeStamp>;
-  art::Handle<TimeStampVector> htims;
   const TimeStampVector* ptims = nullptr;
   if ( true ) {
-    evt.getByLabel("timingrawdecoder", "daq", htims);
-    if ( htims.isValid() ) {
+    art::InputTag itag1("timingrawdecoder", "daq"); 
+    auto htims = evt.getHandle<TimeStampVector>(itag1);
+    if ( htims ) {
       ptims = &*htims;
       if ( ptims->size() == 0 ) {
         cout << myname << "No timing clocks found." << endl;
@@ -505,9 +505,9 @@ void DataPrepByApaModule::produce(art::Event& evt) {
   // Fetch beam information
   float beamTof = 0.0;    // Time of flight.
   if ( m_BeamEventLabel.size() ) {
-    art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
     std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
-    if ( evt.getByLabel(m_BeamEventLabel, pdbeamHandle) ) {
+    auto pdbeamHandle = evt.getHandle< std::vector<beam::ProtoDUNEBeamEvent> >(m_BeamEventLabel);
+    if ( pdbeamHandle ) {
       art::fill_ptr_vector(beaminfo, pdbeamHandle);
       if ( beaminfo.size() == 0 ) {
         cout << myname << "WARNING: Beam event vector is empty." << endl;

@@ -231,9 +231,9 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
 
 
   //Get all hits
-  art::Handle<std::vector<recob::Hit>> hitHandle;
   std::vector<art::Ptr<recob::Hit> > allHits;
-  if(e.getByLabel(fHitLabel,hitHandle))
+  auto hitHandle = e.getHandle<std::vector<recob::Hit>>(fHitLabel);
+  if (hitHandle)
   {art::fill_ptr_vector(allHits, hitHandle);}
 
   //Fill MC particle to hits map
@@ -303,23 +303,20 @@ void test::pandoraAnalysis::analyze(art::Event const& e)
   }
 
   //Access the Clusters
-  art::Handle<std::vector<recob::Cluster>> clusterHandle;
   std::vector<art::Ptr<recob::Cluster>> clusterVect;
-  if (e.getByLabel(fPFParticleLabel,clusterHandle))
+  auto clusterHandle = e.getHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
+  if (clusterHandle)
     art::fill_ptr_vector(clusterVect,clusterHandle);
 
   art::FindManyP<recob::Cluster> clusterParticleAssoc(pfparticleVect, e, fPFParticleLabel);
 
-  art::Handle<std::vector<recob::Track>> trackHandle;
-  if (!(e.getByLabel(fTrackLabel, trackHandle))){
+  auto trackHandle = e.getHandle<std::vector<recob::Track> >(fTrackLabel);
+  if (!trackHandle){
     std::cout<<"Unable to find std::vector<recob::Track> with module label: " << fTrackLabel << std::endl;
     return;
   }
-
   std::vector<art::Ptr<recob::Track> > trackList;
-  if (e.getByLabel(fTrackLabel,trackHandle)){
-    art::fill_ptr_vector(trackList, trackHandle);
-  }
+  art::fill_ptr_vector(trackList, trackHandle);
 
   //std::map<int,int> pfpToMcMap;
   int iPfp(0);

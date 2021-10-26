@@ -241,35 +241,36 @@ void Signal2Noise::analyze(art::Event const& e)
     = art::ServiceHandle<lariov::ChannelStatusService const>()->GetProvider();
 
   // get RawDigit
-  art::Handle< std::vector<raw::RawDigit> > rawdigitListHandle;
   std::vector< art::Ptr<raw::RawDigit> > rawdigitlist;
-  //if (e.getByLabel("tpcrawdecoder", "daq", rawdigitListHandle)) {
-  if (e.getByLabel(fRawDigitLabel, fRawInstanceLabel, rawdigitListHandle)) {
+  art::InputTag itag1(fRawDigitLabel, fRawInstanceLabel);
+  auto rawdigitListHandle = e.getHandle< std::vector<raw::RawDigit> >(itag1);
+  if (rawdigitListHandle) {
     art::fill_ptr_vector(rawdigitlist, rawdigitListHandle);
   }
 
   //cout << "rawdigitlist.size():  " << rawdigitlist.size() << endl;
 
   // get Wire
-  art::Handle< std::vector<recob::Wire> > wireListHandle;
   std::vector<art::Ptr<recob::Wire> > wirelist;
-  if (e.getByLabel(fWireProducerLabel, "dataprep", wireListHandle)) {
+  art::InputTag itag2(fWireProducerLabel, "dataprep");
+  auto wireListHandle = e.getHandle< std::vector<recob::Wire> >(itag2);
+  if (wireListHandle) {
     art::fill_ptr_vector(wirelist, wireListHandle);
   }
 
   //cout << "wirelist.size():  " << wirelist.size() << endl;
 
   // hit
-  art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector< art::Ptr<recob::Hit> > hitlist;
-  if (e.getByLabel(fHitModuleLabel, hitListHandle)) {
+  auto hitListHandle = e.getHandle< std::vector<recob::Hit> >(fHitModuleLabel);
+  if (hitListHandle) {
     art::fill_ptr_vector(hitlist, hitListHandle);
   }
 
   // track
-  art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector< art::Ptr<recob::Track> > tracklist;
-  if (e.getByLabel(fTrackModuleLabel,trackListHandle)) {
+  auto trackListHandle = e.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  if (trackListHandle) {
     art::fill_ptr_vector(tracklist, trackListHandle);
   }
  

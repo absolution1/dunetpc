@@ -325,16 +325,16 @@ void pdsp::PDSPmatch::analyze(art::Event const& e){
 	fPE.push_back(OpHit.PE());
       }
       
-      art::Handle<std::vector<recob::Track>> PandoTrkHandle;
       std::vector<art::Ptr<recob::Track>> PandoTrk;
-      if(e.getByLabel(fPandoLabel,PandoTrkHandle)) art::fill_ptr_vector(PandoTrk,PandoTrkHandle);
+      auto PandoTrkHandle = e.getHandle<std::vector<recob::Track>>(fPandoLabel);
+      if (PandoTrkHandle) art::fill_ptr_vector(PandoTrk,PandoTrkHandle);
       else {
 	mf::LogWarning("Empty PandoTrk Fragment") << "Empty PandoTrk Vector for this event. Skipping. \n";
 	return;
       }
       
-      art::Handle<std::vector<recob::PFParticle>> PFParListHandle;
-      if(!(e.getByLabel(fPFParListLabel,PFParListHandle))){;
+      auto PFParListHandle = e.getHandle<std::vector<recob::PFParticle>>(fPFParListLabel);
+      if(!PFParListHandle){;
 	mf::LogWarning("Empty PFParticle Vector") << "Empty PFParticle Vector for this event. Skipping. \n";
 	return;
       }

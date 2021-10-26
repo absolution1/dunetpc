@@ -120,8 +120,8 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
   std::cout << "-------------------- FELIX Integrity Test -------------------";
 
   if (_expect_container_fragments) {
-    art::Handle<artdaq::Fragments> cont_frags;
-    evt.getByLabel(_input_label, "ContainerFELIX", cont_frags);
+    art::InputTag itag1(_input_label, "ContainerFELIX");
+    auto cont_frags = evt.getHandle<artdaq::Fragments>(itag1);
     art::EventNumber_t eventNumber = evt.event();
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
@@ -131,7 +131,7 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
       return;
     }
     //Check that the data is valid
-    if(!cont_frags.isValid()){
+    if (!cont_frags){
       MF_LOG_ERROR("FelixIntegrityTest")
           << "Run: " << evt.run()
           << ", SubRun: " << evt.subRun()
@@ -152,8 +152,8 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
   }
   else
   {
-    art::Handle<artdaq::Fragments> frags;
-    evt.getByLabel(_input_label, "FELIX", frags);
+    art::InputTag itag2(_input_label, "FELIX");
+    auto frags = evt.getHandle<artdaq::Fragments>(itag2);
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
     art::EventNumber_t eventNumber = evt.event();
@@ -164,7 +164,7 @@ void dune::FelixIntegrityTest::analyze(const art::Event & evt){
     }
 
     //Check that the data is valid
-    if(!frags.isValid()){
+    if (!frags){
       MF_LOG_ERROR("FelixIntegrityTest")
           << "Run: " << evt.run()
           << ", SubRun: " << evt.subRun()

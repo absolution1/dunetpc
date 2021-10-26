@@ -212,9 +212,9 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 
   //Get triggers
   //cout << "Getting triggers" << endl;
-  art::Handle < vector < CRT::Trigger > > crtListHandle;
   vector < art::Ptr < CRT::Trigger > > crtList;
-  if (event.getByLabel(fCRTLabel, crtListHandle)) {
+  auto crtListHandle = event.getHandle < vector < CRT::Trigger > >(fCRTLabel);
+  if (crtListHandle) {
     art::fill_ptr_vector(crtList, crtListHandle);
   }
   const auto & triggers = event.getValidHandle < std::vector < CRT::Trigger >> (fCRTLabel);
@@ -356,9 +356,9 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
 	 }
     }
   }
-  art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
-  if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
+  auto trackListHandle = event.getHandle < vector < recob::Track > >(fTrackModuleLabel);
+  if (trackListHandle) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
   else{
@@ -366,9 +366,9 @@ void CRT::TwoCRTMatchingProducer::produce(art::Event & event)
     return;
   }
 
-  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
   vector<art::Ptr<recob::PFParticle> > pfplist;
-  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+  auto PFPListHandle = event.getHandle< std::vector<recob::PFParticle> >("pandora");
+  if (PFPListHandle) art::fill_ptr_vector(pfplist, PFPListHandle);
   if(pfplist.size()<1) return;
   art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");

@@ -112,27 +112,27 @@ void dune::SignalToNoise::analyze(art::Event const & e)
   event = e.id().event();
 
   // * tracks
-  art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (e.getByLabel(fTrackModuleLabel,trackListHandle))
+  auto trackListHandle = e.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  if (trackListHandle)
     art::fill_ptr_vector(tracklist, trackListHandle);
 
   // * External Counters
-  art::Handle< std::vector<raw::ExternalTrigger> > countListHandle;
   std::vector<art::Ptr<raw::ExternalTrigger> > countlist;
-  if (e.getByLabel(fExternalCounterModuleLabel,countListHandle))
+  auto countListHandle = e.getHandle< std::vector<raw::ExternalTrigger> >(fExternalCounterModuleLabel);
+  if (countListHandle)
     art::fill_ptr_vector(countlist, countListHandle);
  
   // * Raw Digits
-  art::Handle<std::vector<raw::RawDigit> > rawListHandle;
   std::vector<art::Ptr<raw::RawDigit> > rawlist;
-  if (e.getByLabel(fRawDigitModuleLabel,rawListHandle))
+  auto rawListHandle = e.getHandle<std::vector<raw::RawDigit> >(fRawDigitModuleLabel);
+  if (rawListHandle)
     art::fill_ptr_vector(rawlist, rawListHandle);
 
   // * Noise removed
-  art::Handle<std::vector<recob::Wire> > wireListHandle;
   std::vector<art::Ptr<recob::Wire> > wirelist;
-  if (e.getByLabel(fCalDataModuleLabel,wireListHandle))
+  auto wireListHandle = e.getHandle<std::vector<recob::Wire> >(fCalDataModuleLabel);
+  if (wireListHandle)
     art::fill_ptr_vector(wirelist, wireListHandle);
 
   // * associations

@@ -329,10 +329,9 @@ void CRT::SingleCRTMatching::analyze(art::Event
   art::ServiceHandle < cheat::ParticleInventoryService > partInventory;
 
 
-	art::Handle< std::vector<recob::OpFlash> > opListHandle;
 	std::vector<art::Ptr<recob::OpFlash> > opHitList;
-
-	if (event.getByLabel(fopModuleLabel, opListHandle))
+	auto opListHandle = event.getHandle< std::vector<recob::OpFlash> >(fopModuleLabel);
+	if (opListHandle)
 	    {
 		art::fill_ptr_vector(opHitList, opListHandle);
 	    }
@@ -506,14 +505,16 @@ void CRT::SingleCRTMatching::analyze(art::Event
   // Reconstruciton information
  art::Handle < vector < recob::Track > > trackListHandle;
   vector < art::Ptr < recob::Track > > trackList;
-  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
   vector<art::Ptr<recob::PFParticle> > pfplist;
-  if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
+  auto PFPListHandle = event.getHandle< std::vector<recob::PFParticle> >(fTrackModuleLabel);
+  if (trackListHandle) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
-  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+  
+  auto PFPListHandle2 = event.getHandle< std::vector<recob::PFParticle> >("pandora");
+  if (PFPListHandle2) art::fill_ptr_vector(pfplist, PFPListHandle2);
 
-  art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
+  art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle2, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");
   art::FindManyP<recob::Hit> trackHits(trackListHandle, event, "pandoraTrack");
 

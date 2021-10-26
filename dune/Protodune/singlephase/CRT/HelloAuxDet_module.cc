@@ -86,7 +86,7 @@ namespace
       for(const auto& label: labels)
       {
         algs.emplace_back();
-        e.getByLabel(label, algs.back());
+	algs.back() = e.getHandle<std::vector<PRODUCT>>(label);
       }
     }
     for(const auto& prods: algs)

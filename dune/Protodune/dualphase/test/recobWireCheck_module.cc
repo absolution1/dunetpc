@@ -88,8 +88,8 @@ pddp::recobWireCheck::recobWireCheck(fhicl::ParameterSet const& p)
 void pddp::recobWireCheck::analyze(art::Event const& e)
 {
   //auto const& wireHandle = e.getValidHandle(fWireToken);
-  art::Handle< std::vector<recob::Wire> > wireHandle;
-  if( !e.getByLabel(fInputLabel, wireHandle) )
+  auto wireHandle = e.getHandle< std::vector<recob::Wire> >(fInputLabel);
+  if( !wireHandle )
     {
       std::cerr<<"Product "<<fInputLabel<<" was not found\n";
     }

@@ -165,8 +165,7 @@ namespace AnalysisExample
   void dEdx::analyze( const art::Event& event )
   {
 
-    art::Handle<std::vector<sim::SimChannel>> simChanHandle;
-    event.getByLabel(fSimulationProducerLabel, simChanHandle);
+    auto simChanHandle = event.getHandle<std::vector<sim::SimChannel>>(fSimulationProducerLabel);
 
     // initialize at the start of every event
     dE = 0.;
@@ -216,8 +215,7 @@ namespace AnalysisExample
       if(dE < 0.5) fNullList.push_back(event.id().event());
     }
 
-    art::Handle< std::vector<simb::MCParticle> > particleHandle;
-    event.getByLabel(fSimulationProducerLabel, particleHandle);
+    auto particleHandle = event.getHandle< std::vector<simb::MCParticle> >(fSimulationProducerLabel);
 
     for(auto const& particle : (*particleHandle))
     {

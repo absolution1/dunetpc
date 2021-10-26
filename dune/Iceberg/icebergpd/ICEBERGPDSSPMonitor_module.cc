@@ -148,12 +148,10 @@ void icebergpd::ICEBERGPDSSPMonitor::analyze(art::Event const& evt)
 {
 
   // Get Ophit from the event
-  art::Handle< std::vector< recob::OpHit > > OpHitHandle;
-  evt.getByLabel(fOpHitModuleLabel, OpHitHandle);
+  auto OpHitHandle = evt.getHandle< std::vector< recob::OpHit > >(fOpHitModuleLabel);
 
   // Get OpDetWaveforms from the event
-  art::Handle< std::vector< raw::OpDetWaveform > > OpDetWaveformHandle;
-  evt.getByLabel(fOpDetWaveformModuleLabel, OpDetWaveformHandle);
+  auto OpDetWaveformHandle = evt.getHandle< std::vector< raw::OpDetWaveform > >(fOpDetWaveformModuleLabel);
 
   //  std::cout<< "Event #" << evt.id().event() <<"\t" << OpDetWaveformHandle->size() << std::endl;
 
