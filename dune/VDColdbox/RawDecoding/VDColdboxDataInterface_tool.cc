@@ -271,40 +271,9 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   }
   /////////////////////////////////////////////
 
-  /*auto frags
-      = */dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile,
-                                                         event_group,
-                                                         raw_digits,
-                                                         rd_timestamps);
-  //std::map<std::string, std::unique_ptr<duneFragments>> frags;
-  //std::map<std::string, duneFragments> frags;
-  //getFragmentsForEvent(hdf_file, event_group, frags);
-
-  //for (auto it = frags.begin(); it != frags.end(); ++it) {
-    //std::cout << "TPC" << " has " << frags["TPC"]->size() << std::endl;
-    //for (size_t i = 0; i < 8; ++i) {
-    //  std::cout << "\t" << (frags["TPC"])[i].get_size() << std::endl;
-    //}
-    //processFragments(raw_digits, rd_timestamps, frags["TPC"]);
-//  }
-
-  //Here: need to form Fragments -- reimplement getFragmentsForEvent from HDFFileReader
-  //$DUNE_RAW_DATA_DIR/source/dune-raw-data/HDFUtils/HDFFileReader.cc
-  //There's a block for TPC data starting at 172, that should work for our needs
-  //
-  //
-  //
-  //Then: process these as in PDSPTPCDataInterface
-  //dunetpc/dune/Protodune/singlephase/RawDecoding/PDSPTPCDataInterface_tool.cc
-  //within retrieveDataForSpecifiedAPAs(...):
-  //   retrieveDataAPAListWithLabels(...):
-  //       _processFELIX(...):
-  //           _felixProcContNCFrags(...):
-  //               _process_FELIX_AUX(...) <-- This is where the fragments are actually converted 
-  //                                           into RawDigits
-
+  dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile, event_group,
+                                                 raw_digits, rd_timestamps);
   int totretcode = 0;
- 
   /*
   for (size_t i=0; i<apalist.size(); ++i) 
   { 
@@ -319,7 +288,7 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
 	if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
       }
   }
-  _collectRDStatus(rdstatuses);*/
+*/
  
 
   //Currently putting in dummy values for the RD Statuses
@@ -327,15 +296,6 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
   rdstatuses.emplace_back(false, false, 0);
 
   return totretcode;
-}
-
-void VDColdboxDataInterface::processFragments(
-    std::vector<raw::RawDigit> &raw_digits, 
-    std::vector<raw::RDTimeStamp> &rd_timestamps,
-    std::unique_ptr<duneFragments> & frags) {
-  for (const duneFragment & frag : *frags) {
-    std::cout << frag.get_size() << std::endl;  
-  }
 }
 
 // get data for a specific label, but only return those raw digits that correspond to APA's on the list
@@ -347,66 +307,6 @@ int VDColdboxDataInterface::retrieveDataAPAListWithLabels(
     std::vector<raw::RDStatus> &rdstatuses, 
     std::vector<int> &apalist) {
   return 0;
-}
-
-void VDColdboxDataInterface::getFragmentsForEvent(
-    hid_t hdf_file, const std::string & group_name,
-    std::map<std::string, duneFragments> & results) {
-  std::cout << "Frag" << std::endl;
-  hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      hdf_file, group_name);
-
-  std::list<std::string> det_types
-      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
-  for (const auto & det : det_types) {
-    if (det != "TPC") continue;
-    results["TPC"] = duneFragments();
-    std::cout << "\t" << det << std::endl;
-    hid_t det_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-        the_group, det);
-    std::list<std::string> subdet_types
-        = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(det_group);
-    for (const auto & subdet: subdet_types) {
-      std::cout << "\t\t" << subdet << std::endl;
-      hid_t subdet_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-          det_group, subdet);
-      std::list<std::string> link_names
-          = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(subdet_group);
-      for (const auto & t : link_names) {
-        std::cout << "\t\t\t" << t << std::endl;
-        
-        hid_t dataset = H5Dopen(subdet_group, t.data(), H5P_DEFAULT);
-        hsize_t ds_size = H5Dget_storage_size(dataset);
-        if (ds_size <= sizeof(dunedaq::daqdataformats::FragmentHeader)) continue; //Too small
-
-        std::vector<char> ds_data(ds_size);   
-        H5Dread(dataset, H5T_STD_I8LE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
-                ds_data.data());
-        H5Dclose(dataset);
-
-        std::unique_ptr<duneFragment> frag
-            = std::make_unique<duneFragment>(
-                &ds_data[0], duneFragment::BufferAdoptionMode::kReadOnlyMode);
-        std::cout << "Got fragment of size: " << frag->get_size() << std::endl;
-        results["TPC"].emplace_back(std::move(*frag.release()));
-        std::cout << results["TPC"].back().get_size() << std::endl;
-
-        //Make 256 --> n_channels configurable?
-        //size_t n_frames = (ds_size - sizeof(FragmentHeader))/256;
-        //std::cout << "N frames: " << n_frames << std::endl;
-        //for (size_t iFrame = 0; iFrame < n_frames; ++iFrame) {
-        //  size_t start = iFrame*256;
-        //  WIBFrame this_frame;
-        //  for (size_t iChan = 0; iChan < 256; ++iChan) {
-        //    this_frame.set_channel(iChan, ds_data[80 + start + iChan]);
-        //  }
-        //}
-      }
-      H5Gclose(subdet_group);
-    }
-    H5Gclose(det_group);
-  }
-  H5Gclose(the_group);
 }
 
 DEFINE_ART_CLASS_TOOL(VDColdboxDataInterface)
