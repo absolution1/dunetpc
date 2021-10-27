@@ -3,8 +3,9 @@
  * \brief   Channel mapping algorithms for VD ColdBox CRP.
  * \details Adapted from ICARUSChannelMapAlg by G. Petrillo
  * \date    October 25, 2021
- * \author  Vyacheslav Galymov (vgalymov@ipnl.in2p3.fr)
  * \warning Only one CRP is currently supported with 48 deg ind1
+ * 
+ *  vgalymov@ipnl.in2p3.fr
  */
 
 #ifndef DUNE_COLDBOXCHANNELMAPALG_H
@@ -120,33 +121,12 @@ namespace geo { namespace dune{ namespace vd {
 class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   
   // import definitions
-  using TPCColl_t   = std::vector<geo::TPCGeo const*>;
-  using PlaneColl_t = std::vector<geo::PlaneGeo const*>;
+  using TPCColl_t   = std::vector<geo::TPCID>;
+  using PlaneColl_t = std::vector<geo::PlaneID>;
   
  public:
   
-  struct Config {
-    
-    using Name = fhicl::Name;
-    using Comment = fhicl::Comment;
-    
-    //
-    fhicl::OptionalDelegatedParameter Sorter {
-      Name("Sorter"),
-	Comment("configuration of the geometry object sorter")
-	};
-  }; // struct Config
-  
-  /// Type of FHiCL configuration table for this object.
-  using Parameters = fhicl::Table<Config>;
-
-  /// Constructor: taked a configuration object.
-  ColdBoxChannelMapAlg(Config const& config);
-  
-  /// Constructor: takes a FHiCL table object.
-  ColdBoxChannelMapAlg(Parameters const& config)
-    : ColdBoxChannelMapAlg(config()) {}
-
+  ColdBoxChannelMapAlg(fhicl::ParameterSet const& p);
   
   /// Prepares the algorithm extracting information from the geometry.
   virtual void Initialize(geo::GeometryData_t const& geodata) override;
@@ -421,13 +401,13 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
     /// Number of TPC sets in each cryostat.
     std::vector<unsigned int> fTPCsetCount;
     
-    /// All `geo::TPCGeo` objects in each TPC set, sorted by increasing _z_.
+    /// All `geo::TPCGeo` objects in each TPC set.
     readout::TPCsetDataContainer<TPCColl_t> fTPCsetTPCs;
     
     /// Number of readout planes in each TPC set.
     readout::TPCsetDataContainer<unsigned int> fROPcount;
     
-    /// All `geo::PlaneGeo` objects in each readout plane, sorted by _z_.
+    /// All `geo::PlaneGeo` objects in each readout plane.
     readout::ROPDataContainer<PlaneColl_t> fROPplanes;
     
     /// The TPC set each TPC belongs to.
@@ -439,12 +419,12 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
     ReadoutMappingInfo_t() = default;
     
     void set(
-      std::vector<unsigned int>&& TPCsetCount,
-      readout::TPCsetDataContainer<TPCColl_t>&& TPCsetTPCs,
+      std::vector<unsigned int>&&                  TPCsetCount,
+      readout::TPCsetDataContainer<TPCColl_t>&&    TPCsetTPCs,
       readout::TPCsetDataContainer<unsigned int>&& ROPcount,
-      readout::ROPDataContainer<PlaneColl_t>&& ROPplanes,
-      geo::TPCDataContainer<readout::TPCsetID>&& TPCtoTPCset,
-      geo::PlaneDataContainer<readout::ROPID>&& PlaneToROP
+      readout::ROPDataContainer<PlaneColl_t>&&     ROPplanes,
+      geo::TPCDataContainer<readout::TPCsetID>&&   TPCtoTPCset,
+      geo::PlaneDataContainer<readout::ROPID>&&    PlaneToROP
       )
       {
         fTPCsetCount = std::move(TPCsetCount);
@@ -472,7 +452,7 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
     void clear()
       {
         fTPCsetCount.clear(); fTPCsetTPCs.clear();
-        fROPcount.clear(); fROPplanes.clear();
+        fROPcount.clear();    fROPplanes.clear();
         fTPCtoTPCset.clear(); fPlaneToROP.clear();
       }
     
@@ -520,19 +500,10 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   /// Mapping of channels and ROP's.
   geo::dune::vd::ChannelToWireMap fChannelToWireMap;
   
-  /// Range of channels covered by each ROP
-  
-  
-  
   /// Range of channels covered by each of the wire planes.
   geo::PlaneDataContainer<PlaneInfo_t> fPlaneInfo;
   
-  
-  /// Count of wireless channels on each plane.
-  ///WirelessChannelCounts_t const fWirelessChannelCounts;
-  
-  
-  geo::GeoObjectSorterCRU  fSorter;              ///< class to sort geo objects
+   geo::GeoObjectSorterCRU  fSorter;              ///< class to sort geo objects
   
   
   using PlaneType_t = std::size_t; ///< Type for plane type identifier.
@@ -560,11 +531,11 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   unsigned int TPCsetCount(readout::CryostatID const& cid) const
     { return TPCsetCount()[cid.Cryostat]; }
   
-  /// All `geo::TPCGeo` objects in each TPC set, sorted by increasing _z_.
+  /// All `geo::TPCGeo` objects in each TPC set
   readout::TPCsetDataContainer<TPCColl_t> const& TPCsetTPCs() const
     { assert(fReadoutMapInfo); return fReadoutMapInfo.fTPCsetTPCs; }
   
-  /// All `geo::TPCGeo` objects in the specified TPC set `sid`.
+  /// All `geo::TPCID` objects in the specified TPC set `sid`.
   TPCColl_t const& TPCsetTPCs(readout::TPCsetID const& sid) const
     { return TPCsetTPCs()[sid]; }
   
@@ -576,11 +547,11 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   unsigned int ROPcount(readout::TPCsetID const& sid) const
     { return ROPcount()[sid]; }
   
-  /// All `geo::PlaneGeo` objects in each readout plane, sorted by _z_.
+  /// All `geo::PlaneGeo` objects in each readout plane
   readout::ROPDataContainer<PlaneColl_t> const& ROPplanes() const
     { assert(fReadoutMapInfo); return fReadoutMapInfo.fROPplanes; }
   
-  /// All `geo::PlaneGeo` objects in the specified readout plane `rid`.
+  /// All `geo::PlaneId` objects in the specified readout plane `rid`.
   PlaneColl_t const& ROPplanes(readout::ROPID const& rid) const
     { return ROPplanes()[rid]; }
   
@@ -621,17 +592,6 @@ class geo::ColdBoxChannelMapAlg: public geo::ChannelMapAlg {
   /**
    * @brief Fills information about the TPC set and readout plane structure.
    * @param Cryostats the sorted list of cryostats in the detector
-   * 
-   * This method extracts and fills the following information:
-   * * the number of TPC sets in each cryostat (`fTPCsetCount`);
-   * * all `geo::TPCGeo` objects in each TPC set, sorted by increasing _z_
-   *     (`fTPCsetTPCs`);
-   * * the number of readout planes in each TPC set (`fROPcount`);
-   * * all `geo::PlaneGeo` objects in each readout plane, sorted by increasing
-   *     _z_ (`fROPplanes`).
-   * 
-   * Cryostats and its components are expected to be already in the final order
-   * and with all their ID's set.
    * 
    */
   void buildReadoutPlanes(geo::GeometryData_t::CryostatList_t const& Cryostats);

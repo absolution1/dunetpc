@@ -3,8 +3,9 @@
  * \brief   Channel mapping algorithms for VD ColdBox CRP.
  * \details Adapted from ICARUSChannelMapAlg by G. Petrillo
  * \date    October 25, 2021
- * \author  Vyacheslav Galymov (vgalymov@ipnl.in2p3.fr)
  * \warning Only one CRP is currently supported with 48 deg ind1
+ *
+ *  vgalymov@ipnl.in2p3.fr
  */
 
 
@@ -38,7 +39,7 @@
 #include "ColdBoxChannelMapAlg.h"
 
 using geo::dune::vd::ChannelToWireMap;
-
+/*
 namespace {
   
   // ---------------------------------------------------------------------------
@@ -55,14 +56,16 @@ namespace {
 geo::ColdBoxChannelMapAlg::ColdBoxChannelMapAlg(Config const& config):
   fSorter(geo::GeoObjectSorterCRU(getOptionalParameterSet(config.Sorter)))
 {}
+*/
+// -----------------------------------------------------------------------------
+geo::ColdBoxChannelMapAlg::ColdBoxChannelMapAlg(fhicl::ParameterSet const& p):
+  fSorter(geo::GeoObjectSorterCRU(p))
+{}
 
 
 // -----------------------------------------------------------------------------
 void geo::ColdBoxChannelMapAlg::Initialize(geo::GeometryData_t const& geodata)
 {
-  // This is the only INFO level message we want this object to produce;
-  // given the dynamic nature of the channel mapping choice,
-  // it's better for the log to have some indication of chosen channel mapping.
   mf::LogInfo("ColdBoxChannelMapAlg")
     << "Initializing ColdBoxChannelMapAlg channel mapping algorithm.";
   
@@ -71,7 +74,6 @@ void geo::ColdBoxChannelMapAlg::Initialize(geo::GeometryData_t const& geodata)
   
   MF_LOG_TRACE("ColdBoxChannelMapAlg")
     << "ColdBoxChannelMapAlg::Initialize() completed.";
-  
 } // geo::ColdBoxChannelMapAlg::Initialize()
 
 
@@ -120,9 +122,9 @@ std::vector<geo::WireID> geo::ColdBoxChannelMapAlg::ChannelToWire
   // associate one wire for each of those wire planes to the channel
   //
   AllSegments.reserve(planes.size()); // this is sometimes (often?) too much
-  for (geo::PlaneGeo const* plane: planes) {
+  for (auto const pid: planes) {
     
-    geo::PlaneID const& pid = plane->ID();
+    //geo::PlaneID const& pid = plane->ID();
     ChannelRange_t const& channelRange = fPlaneInfo[pid].channelRange();
     
     if (!channelRange.contains(channel)) continue;
@@ -260,12 +262,7 @@ std::vector<geo::TPCID> geo::ColdBoxChannelMapAlg::TPCsetToTPCs
   std::vector<geo::TPCID> TPCs;
   if (!tpcsetid) return TPCs;
   
-  auto const& TPClist = TPCsetTPCs(tpcsetid);
-  TPCs.reserve(TPClist.size());
-  std::transform(TPClist.begin(), TPClist.end(), std::back_inserter(TPCs),
-    std::mem_fn(&geo::TPCGeo::ID)
-    );
-  return TPCs;
+  return TPCsetTPCs(tpcsetid);
 } // geo::ColdBoxChannelMapAlg::TPCsetToTPCs()
 
 
@@ -276,7 +273,7 @@ geo::TPCID geo::ColdBoxChannelMapAlg::FirstTPCinTPCset
   if (!tpcsetid) return {};
   
   auto const& TPClist = TPCsetTPCs(tpcsetid);
-  return TPClist.empty()? geo::TPCID{}: TPClist.front()->ID();
+  return TPClist.empty()? geo::TPCID{}: TPClist.front();
   
 } // geo::ColdBoxChannelMapAlg::FirstTPCinTPCset()
 
@@ -328,13 +325,7 @@ std::vector<geo::PlaneID> geo::ColdBoxChannelMapAlg::ROPtoWirePlanes
 {
   std::vector<geo::PlaneID> Planes;
   if (!ropid) return Planes;
-  
-  auto const& PlaneList = ROPplanes(ropid);
-  Planes.reserve(PlaneList.size());
-  std::transform(PlaneList.begin(), PlaneList.end(), std::back_inserter(Planes),
-    std::mem_fn(&geo::PlaneGeo::ID)
-    );
-  return Planes;
+  return ROPplanes(ropid);
 } // geo::ColdBoxChannelMapAlg::ROPtoWirePlanes()
 
 
@@ -347,9 +338,10 @@ std::vector<geo::TPCID> geo::ColdBoxChannelMapAlg::ROPtoTPCs
   
   auto const& PlaneList = ROPplanes(ropid);
   TPCs.reserve(PlaneList.size());
-  std::transform(PlaneList.begin(), PlaneList.end(), std::back_inserter(TPCs),
-    std::mem_fn(&geo::PlaneGeo::ID)
-    );
+  for( auto const pid : PlaneList ){
+    TPCs.push_back( pid );
+  }
+
   return TPCs;
 } // geo::ColdBoxChannelMapAlg::ROPtoTPCs()
 
@@ -384,7 +376,7 @@ geo::PlaneID geo::ColdBoxChannelMapAlg::FirstWirePlaneInROP
 {
   if (!ropid) return {};
   PlaneColl_t const& planes = ROPplanes(ropid);
-  return planes.empty()? geo::PlaneID{}: planes.front()->ID();
+  return planes.empty()? geo::PlaneID{}: planes.front();
 } // geo::ColdBoxChannelMapAlg::FirstWirePlaneInROP()
 
 
@@ -408,31 +400,29 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
   assert(fReadoutMapInfo);
   assert(!Cryostats.empty());
   
+  //mf::LogInfo("ColdBoxChannelMapAlg")<<"fillChannelToWireMap\n";
   //
   // output setup
   //
   assert(fPlaneInfo.empty());
   std::array<unsigned int, 3U> maxSizes
     = geo::details::extractMaxGeometryElements<3U>(Cryostats);
-
+ 
   fPlaneInfo.resize(maxSizes[0U], maxSizes[1U], maxSizes[2U]);
   
-  
   raw::ChannelID_t nextChannel = 0; // next available channel
-  
-
   for (geo::CryostatGeo const& cryo: Cryostats) {
     
     readout::CryostatID const cid { cryo.ID() };
     
     auto const nTPCsets 
       = static_cast<readout::TPCsetID::TPCsetID_t>(TPCsetCount(cid));
-    
+
     for (readout::TPCsetID::TPCsetID_t s: util::counter(nTPCsets)) {
       
       readout::TPCsetID const sid { cid, s };
       auto const nROPs = static_cast<readout::ROPID::ROPID_t>(ROPcount(sid));
-      
+
       for (readout::ROPID::ROPID_t r: util::counter(nROPs)) {
         
         mf::LogTrace log("ColdBoxChannelMapAlg");
@@ -441,10 +431,16 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
         auto const planeType = findPlaneType(rid);
         log << "ROP: " << rid
           << " (plane type: " << PlaneTypeName(planeType) << ")";
-        
-        PlaneColl_t const& planes = ROPplanes(rid);
-        log << " (" << planes.size() << " planes):";
-        assert(!planes.empty());
+
+        PlaneColl_t const& plane_ids = ROPplanes(rid);
+	assert(!plane_idss.empty());
+        log << " (" << plane_ids.size() << " planes):";
+	
+	std::vector<geo::PlaneGeo const*> planes;
+	planes.reserve( plane_ids.size() );
+	for( auto const pid : plane_ids ){
+	  planes.push_back( cryo.TPC( pid ).PlanePtr( pid ) );
+	}
         
         raw::ChannelID_t const firstROPchannel = nextChannel;
         
@@ -460,7 +456,7 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
           << " -- " << fPlaneInfo[(*iPlane)->ID()].lastChannel() << ";";
         
         geo::Point_t lastWirePos = (*iPlane)->LastWire().GetCenter<geo::Point_t>();
-        
+	
         while (++iPlane != pend) {
           
           geo::PlaneGeo const& plane = **iPlane;
@@ -480,7 +476,7 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
             ;
           */
           
-          //
+          // For ROP = 0 (1st induction)
           // the first channel in this plane (`iPlane`) is the one associated
           // to the first wire in the plane, which has local wire number `0`;
           // the last channel from the previous plane (`nextChannel - 1`)
@@ -488,8 +484,9 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
           // which has some wire number (`lastMatchedWireID.Wire`).
           //
           auto const nWires = plane.Nwires();
-          raw::ChannelID_t const firstChannel
-            = (nextChannel - 1) - lastMatchedWireID.Wire;
+          raw::ChannelID_t const firstChannel = 
+	    (r == 0)?((nextChannel - 1) - lastMatchedWireID.Wire):nextChannel;
+
           nextChannel = firstChannel + nWires;
           
           fPlaneInfo[plane.ID()] = { { firstChannel, nextChannel }, rid };
@@ -514,7 +511,7 @@ void geo::ColdBoxChannelMapAlg::fillChannelToWireMap
   } // for cryostat
   
   fChannelToWireMap.setEndChannel(nextChannel);
-  mf::LogTrace("ColdBoxChannelMapAlg")
+  mf::LogInfo("ColdBoxChannelMapAlg")
     << "Counted " << fChannelToWireMap.nChannels() << " channels.";
   
 } // geo::ColdBoxChannelMapAlg::fillChannelToWireMap()
@@ -526,6 +523,10 @@ void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
 {
   auto const [ NCryostats, MaxTPCs, MaxPlanes ]
     = geo::details::extractMaxGeometryElements<3U>(Cryostats);
+  
+  //mf::LogInfo("ColdBoxChannelMapAlg")
+  //<< "Build readout planes for "<<NCryostats<<" "<<MaxTPCs<<" "<<MaxPlanes<<"\n";
+  
 
   if( Cryostats.size() > 1 ){
     throw cet::exception("Geometry")
@@ -543,19 +544,25 @@ void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
   auto cryo = Cryostats[0];
   //unsigned int MaxTPCs = cryo.NTPC();
   //unsigned int MaxPlanes = 3;
-  unsigned int MaxROPs = 3;
+  unsigned int MaxROPs    = 3;
+  unsigned int MaxTPCsets = MaxTPCs/2;
   std::vector<unsigned int> TPCsetCount = {2};
-  std::vector<TPCColl_t> AllTPCsInTPCsets;       // TPCs belonging to a set
-  AllTPCsInTPCsets.resize( TPCsetCount.size() ); // set index
+  std::vector<std::vector<const geo::TPCGeo*>> AllTPCsInTPCsets( MaxTPCsets );       // TPCs belonging to a set
   // the standard CRU sorter is assumed (fixing this another "todo")
   AllTPCsInTPCsets[0] = {cryo.TPCPtr(0), cryo.TPCPtr(2)};
   AllTPCsInTPCsets[1] = {cryo.TPCPtr(1), cryo.TPCPtr(3)};
-  readout::TPCsetDataContainer<TPCColl_t> TPCsetTPCs(NCryostats, TPCsetCount.size());
+  readout::TPCsetDataContainer<TPCColl_t> TPCsetTPCs(NCryostats, MaxTPCsets);
   
-  for( auto&& [s, TPCPtrs ]: util::enumerate(AllTPCsInTPCsets) ){
+  for( auto&& [s, TPClist ]: util::enumerate(AllTPCsInTPCsets) ){
     readout::TPCsetID const tpcsetid
     { cryo.ID(), static_cast<readout::TPCsetID::TPCsetID_t>(s) };
-    TPCsetTPCs[tpcsetid] = TPCPtrs;
+    //mf::LogInfo("ColdBoxChannelMapAlg")<< tpcsetid <<" "<<TPCPtrs.size()<<"\n";
+    std::vector<geo::TPCID> TPCs;
+    TPCs.reserve(TPClist.size());
+    std::transform(TPClist.begin(), TPClist.end(), std::back_inserter(TPCs),
+		   std::mem_fn(&geo::TPCGeo::ID));
+
+    TPCsetTPCs[tpcsetid] = std::move(TPCs);
   }
 
   //  number of readout planes in each TPC set
@@ -565,29 +572,47 @@ void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
   // geo::PlaneGeo objects in each readout plane
   readout::ROPDataContainer<PlaneColl_t> ROPplanes;
   ROPplanes.resize(TPCsetTPCs.dimSize<0U>(), TPCsetTPCs.dimSize<1U>(), MaxROPs);
-  
+
   for (auto [ c, nTPCsets ]: util::enumerate(TPCsetCount)) {
     readout::CryostatID const cryoid
     { static_cast<readout::CryostatID::CryostatID_t>(c) };
     for (readout::TPCsetID::TPCsetID_t s = 0; s < nTPCsets; ++s) {
       readout::TPCsetID const tpcsetid { cryoid, s };
-      unsigned int nROP  = 3;
-      ROPcount[tpcsetid] = 3;
+      unsigned int nROP  = MaxROPs;
+      ROPcount[tpcsetid] = nROP;
 
-      auto TPCs = TPCsetTPCs[tpcsetid];
+      auto TPCs = AllTPCsInTPCsets[s];
       for( unsigned r = 0; r<nROP;++r ){ // assuming the number of rops == number of planes per TPC
 	// get PlaneColl_t for each set for each plane
 	PlaneColl_t planes;
-	for (geo::TPCGeo const* TPC: TPCs){ 
-	  planes.emplace_back( TPC->PlanePtr(r) );
+	
+	for ( const geo::TPCGeo* TPC: TPCs){ 
+	  planes.push_back( TPC->Plane(r).ID() );
 	}
 	readout::ROPID const ropid { tpcsetid, r };
+	mf::LogTrace log(fLogCategory);
+	log << "Readout plane " << ropid << " assigned with " << planes.size()
+            << " planes:";
+	for (auto const plane: planes)
+	  log << "  (" << plane << ")";
+	
+        if(!ROPplanes[ropid].empty()) {
+          //
+          // If this happens, it may be that the geometry is not compatible
+          // with the algorithm, or just a bug.
+          // Enabling the debug stream will show which planes are assigned
+          // each time, including the two conflicting assignments.
+          //
+          throw cet::exception(fLogCategory)
+            << "Logic error: ROPID " << ropid
+            << " has already been assigned!\n";
+        }
+	
 	ROPplanes[ ropid ] = std::move( planes );
       } // ROPs/ planes
     } // tpcs in tpcset
   }//cryo, TPCSets
       
-  
   //
   // the TPC set each TPC belongs to 
   geo::TPCDataContainer<readout::TPCsetID> TPCtoTPCset;
@@ -599,14 +624,12 @@ void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
     for (auto s: util::counter<readout::TPCsetID::TPCsetID_t>(TPCsetTPCs.dimSize<1>()))
       {
 	readout::TPCsetID const sid { cid, s };
-      	for (geo::TPCGeo const* TPC: TPCsetTPCs[sid]) {
-	  assert(TPC && TPC->ID());
-	  TPCtoTPCset[TPC->ID()] = sid;
-	  MF_LOG_TRACE(fLogCategory) << TPC->ID() << " => " << sid;
+      	for (auto const TPCid: TPCsetTPCs[sid]) {
+	  TPCtoTPCset[TPCid] = sid;
+	  MF_LOG_TRACE(fLogCategory) << TPCid << " => " << sid;
 	} // for TPCs in TPC set
       } // for TPC sets in cryostat
   } // for cryostats
-  
   
   // ROP each wire belongs to
   geo::PlaneDataContainer<readout::ROPID> PlaneToROP;
@@ -622,23 +645,21 @@ void geo::ColdBoxChannelMapAlg::buildReadoutPlanes
 	  for (auto r: util::counter<readout::ROPID::ROPID_t>(ROPplanes.dimSize<2>()))
 	    {
 	      readout::ROPID const rid { sid, r };
-	      for (geo::PlaneGeo const* plane: ROPplanes[rid]) {
-		assert(plane && plane->ID());
-		PlaneToROP[plane->ID()] = rid;
-		MF_LOG_TRACE(fLogCategory) << plane->ID() << " => " << rid;
+	      for (auto const plane: ROPplanes[rid]) {
+		//assert(plane && plane->ID());
+		PlaneToROP[plane] = rid;
+		MF_LOG_TRACE(fLogCategory) << plane << " => " << rid;
 	      } // for planes in readout plane
 	    } // for readout planes in TPC set
 	} // for TPC sets in cryostat
     } // for cryostats
   
-  
   // copy to ReadoutMapInfo struct
   fReadoutMapInfo.set(
-		      std::move(TPCsetCount), std::move(TPCsetTPCs),
-		      std::move(ROPcount), std::move(ROPplanes),
-		      std::move(TPCtoTPCset), std::move(PlaneToROP)
-		      );
-  
+   		      std::move(TPCsetCount), std::move(TPCsetTPCs),
+   		      std::move(ROPcount), std::move(ROPplanes),
+   		      std::move(TPCtoTPCset), std::move(PlaneToROP)
+   		      );
 } // geo::ColdBoxChannelMapAlg::buildReadoutPlanes()
 
 
@@ -659,8 +680,14 @@ std::size_t geo::ColdBoxChannelMapAlg::findPlaneType(readout::ROPID const& rid) 
   };
   
   PlaneColl_t const& planes = ROPplanes(rid);
+  //std::cout<<"findPlaneType: "<<rid<<" "<<planes.size()<<" @ "<<planes.front()
+  //<<" "<<planes.front()->ID().Plane<<"\n";
+  //for (geo::PlaneGeo const* plane: planes)
+  //std::cout <<" (" << plane->ID() << ")";
+  //std::cout<<"\n";
+
   if (planes.empty()) return kUnknownType;
-  if (auto const planeNo = planes.front()->ID().Plane; planeNo < PlaneTypes.size())
+  if (auto const planeNo = planes.front().Plane; planeNo < PlaneTypes.size())
     return PlaneTypes[planeNo];
   else return kUnknownType;
   
@@ -688,47 +715,6 @@ geo::SigType_t geo::ColdBoxChannelMapAlg::SignalTypeForChannelImpl
   return geo::kMysteryType;
 } // geo::ColdBoxChannelMapAlg::SignalTypeForChannelImpl()
 
-
-/*
-// -----------------------------------------------------------------------------
-auto geo::ColdBoxChannelMapAlg::extractWirelessChannelParams
-  (Config::WirelessChannelStruct const& params) -> WirelessChannelCounts_t
-{
-  return {
-    // even TPC sets (e.g. C:0 S:0)
-    std::array{
-      std::make_pair(
-        params.FirstInductionPreChannels(),
-        params.FirstInductionPostChannels()
-        ),
-      std::make_pair(
-        params.SecondInductionEvenPreChannels(),
-        params.SecondInductionEvenPostChannels()
-        ),
-      std::make_pair(
-        params.CollectionEvenPreChannels(),
-        params.CollectionEvenPostChannels()
-        )
-    },
-    // odd TPC sets (e.g. C:0 S:1)
-    std::array{
-      std::make_pair(
-        params.FirstInductionPreChannels(),
-        params.FirstInductionPostChannels()
-        ),
-      std::make_pair(
-        params.SecondInductionOddPreChannels(),
-        params.SecondInductionOddPostChannels()
-        ),
-      std::make_pair(
-        params.CollectionOddPreChannels(),
-        params.CollectionOddPostChannels()
-        )
-    }
-    };
-  
-} // geo::ColdBoxChannelMapAlg::extractWirelessChannelParams()
-*/
 
 // ----------------------------------------------------------------------------
 std::string geo::ColdBoxChannelMapAlg::PlaneTypeName(PlaneType_t planeType) {
