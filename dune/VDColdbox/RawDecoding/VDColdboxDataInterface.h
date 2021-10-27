@@ -23,7 +23,7 @@ class VDColdboxDataInterface : public PDSPTPCDataInterfaceParent {
                    std::vector<raw::RDTimeStamp> &rd_timestamps,
                    std::vector<raw::RDStatus> &rdstatuses );
 
-  int retrieveTPCData (hid_t fd);
+  void readFragmentsForEvent (art::Event &evt);
 
   int retrieveDataAPAListWithLabels(
       art::Event &evt, std::string inputlabel,
