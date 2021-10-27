@@ -122,4 +122,8 @@
   <class name="std::vector<raw::RDStatus>"/>
   <class name="art::Wrapper<std::vector<raw::RDStatus>>"/>
 
+  <class name="art::Ptr<raw::DUNEHDF5FileInfo>"/>
+  <class name="raw::DUNEHDF5FileInfo"/>
+  <class name="art::Wrapper<raw::DUNEHDF5FileInfo>"/>
+
 </lcgdict>

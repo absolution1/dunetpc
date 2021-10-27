@@ -11,6 +11,7 @@ art_make(
 		    MF_MessageLogger
 		    cetlib cetlib_except
 		    ROOT_BASIC_LIB_LIST
+                    LIBHDF5
   DICT_LIBRARIES
   #  EXCLUDE OpDetDivRec.h OpDetDivRec.cc
   )
