@@ -12,7 +12,12 @@ art_make_library(LIBRARY_NAME VDColdboxHDF5Utils
          #${RCEDAMLIB}
          ${GALLERY_LIB}
          ${ART_LIB}
+         lardataobj_RawData
          art_Framework_Principal
+         dune_VDColdbox_ChannelMap_VDColdboxChannelMapService_service 
+         ART_FRAMEWORK_CORE
+         ART_FRAMEWORK_PRINCIPAL
+         ART_FRAMEWORK_SERVICES_REGISTRY
          LIBHDF5 
          pthread
          z

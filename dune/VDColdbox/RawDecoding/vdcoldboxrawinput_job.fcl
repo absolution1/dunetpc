@@ -7,7 +7,6 @@ outputs: {
 }
 
 physics: {
-#  my_output_modules: [ rootout ]
 output : [ rootout ]
 end_paths : [ output ]
 }

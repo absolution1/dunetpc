@@ -154,11 +154,11 @@ void readFragmentsForEvent (art::Event &evt)
 
 }
 
-
-
 // Keep this here for now. This needs scrutiny regarding whether the input labels are fetching right values.
 
-VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p) {
+VDColdboxDataInterface::VDColdboxDataInterface(fhicl::ParameterSet const& p)
+  : fForceOpen(p.get<bool>("ForceOpen", false)) {
+   
   //_input_labels_by_apa[1] = p.get< std::vector<std::string> >("APA1InputLabels");
   //  _input_labels_by_apa[2] = p.get< std::vector<std::string> >("APA2InputLabels");
   //  _input_labels_by_apa[3] = p.get< std::vector<std::string> >("APA3InputLabels");
@@ -195,34 +195,73 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
     std::vector<raw::RDStatus> &rdstatuses, 
     std::vector<int> &apalist) {
 
+  //if (apalist.size() > 0) {
+  //  if (apalist[0] > 1) return 0;
+  //}
+
+  std::cout << "Retrieving Data for " << apalist.size() << " APAs: ";
+  for (const int & i : apalist)
+    std::cout << i << " ";
+  std::cout << std::endl;
+
+  //Turn "daq" --> fcl parameter defined within constructor
   auto infoHandle = evt.getHandle<raw::DUNEHDF5FileInfo>("daq");
-  std::cout << "Got infos? " << infoHandle << std::endl;
   //Add check for infoHandle?
 
   //NOTE: this bit of code is just for testing/demonstration
   const std::string & event_group = infoHandle->GetEventGroupName();
   const std::string & file_name = infoHandle->GetFileName();
-  //const hid_t & hdf_file = infoHandle->GetHDF5FileHandle();
   std::cout << "\t" << file_name << std::endl;
   std::cout << "\t" << infoHandle->GetFormatVersion() << std::endl;
   std::cout << "\t" << event_group << std::endl;
 
-  hid_t hdf_file = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+  //If the fcl file said to force open the file
+  //(i.e. because one is just running DataPrep), then open
+  //but only if we are on a new file -- identified by if the handle
+  //stored in the event is different
+  hid_t stored_handle = infoHandle->GetHDF5FileHandle();
+  if (fForceOpen && (stored_handle != fPrevStoredHandle)) {
+    std::cout << "Opening" << std::endl;
+    fHDFFile = H5Fopen(file_name.data(), H5F_ACC_RDONLY, H5P_DEFAULT);
+  }//If the handle is the same, fHDFFile won't change 
+  else if (!fForceOpen) {
+    fHDFFile = stored_handle;
+  }
+  fPrevStoredHandle = stored_handle;
+
   hid_t the_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
-      hdf_file, event_group);
+      fHDFFile, event_group);
 
 
   std::list<std::string> det_types
       = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(the_group);
-  std::cout << "\tDet types: " << det_types.size() << std::endl;
+  std::cout << "\tDet types: " << det_types.size() << std::endl << std::endl;
+  std::string tpc_path = event_group + "/TPC";
+  std::cout << "Attempting to open " << tpc_path << std::endl;
+  hid_t tpc_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+      the_group, "TPC");
+  std::list<std::string> subdet_types
+      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(tpc_group);
+  std::cout << "\tSubdet types: " << subdet_types.size() << std::endl <<
+               std::endl;
+  for (const auto & t : subdet_types) {
+    std::cout << "\t" << t << std::endl;
+  }
+
+  hid_t apa_group = dune::VDColdboxHDF5Utils::getGroupFromPath(
+      tpc_group, "APA000");
+  std::list<std::string> link_names
+      = dune::VDColdboxHDF5Utils::getMidLevelGroupNames(apa_group);
+  std::cout << "\tLink types: " << link_names.size() << std::endl <<
+               std::endl;
+  for (const auto & t : link_names) {
+    std::cout << "\t" << t << std::endl;
+  }
   /////////////////////////////////////////////
 
-
-  //Here: need to form Fragments -- reimplement getFragmentsForEvent from HDFFileReader
-  //Then: process these as in PDSPTPCDataInterface
-
+  dune::VDColdboxHDF5Utils::getFragmentsForEvent(fHDFFile, event_group,
+                                                 raw_digits, rd_timestamps);
   int totretcode = 0;
- 
   /*
   for (size_t i=0; i<apalist.size(); ++i) 
   { 
@@ -237,14 +276,17 @@ int VDColdboxDataInterface::retrieveDataForSpecifiedAPAs(
 	if (retcode > totretcode) totretcode = retcode; // take most severe retcode of everything
       }
   }
-  _collectRDStatus(rdstatuses);*/
+*/
  
+
+  //Currently putting in dummy values for the RD Statuses
+  rdstatuses.clear();
+  rdstatuses.emplace_back(false, false, 0);
+
   return totretcode;
 }
 
-
 // get data for a specific label, but only return those raw digits that correspond to APA's on the list
-// 
 int VDColdboxDataInterface::retrieveDataAPAListWithLabels(
     art::Event &evt, 
     std::string inputLabel, 
