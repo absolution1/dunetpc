@@ -60,3 +60,5 @@ IndexVectorMapTool::IndexVector FclIndexVectorMapTool::get(Index idx) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FclIndexVectorMapTool)

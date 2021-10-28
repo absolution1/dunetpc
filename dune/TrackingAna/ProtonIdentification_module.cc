@@ -298,17 +298,16 @@ void ProtonIdentification::ProtonIdentification::analyze(art::Event const & evt)
 {
   //std::cout << "\n\n************* New Event / Module running *************\n\n" << std::endl;
   // Implementation of required member function here. 
-  art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+  auto trackListHandle = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  if (trackListHandle)
     art::fill_ptr_vector(tracklist, trackListHandle);
 
-  art::Handle< std::vector<recob::Track> > trackh;
-  evt.getByLabel(fTrackModuleLabel, trackh);
+  auto trackh = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   
-  art::Handle< std::vector<raw::ExternalTrigger> > trigListHandle;
   std::vector<art::Ptr<raw::ExternalTrigger> > triglist;
-  if (evt.getByLabel(fCounterT0ModuleLabel,trigListHandle))
+  auto trigListHandle = evt.getHandle< std::vector<raw::ExternalTrigger> >(fCounterT0ModuleLabel);
+  if (trigListHandle)
     art::fill_ptr_vector(triglist, trigListHandle);  
   
   const sim::ParticleList& plist = pi_serv->ParticleList();

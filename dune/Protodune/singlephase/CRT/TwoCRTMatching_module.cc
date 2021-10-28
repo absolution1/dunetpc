@@ -552,18 +552,16 @@ void CRT::TwoCRTMatching::analyze(art::Event
 
 	std::cout<<primaryHits_F.size()<<','<<primaryHits_B.size()<<std::endl;
   // Reconstruciton information
-  art::Handle < vector < recob::Track > > trackListHandle;
-  vector < art::Ptr < recob::Track > > trackList;
-  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
-  vector<art::Ptr<recob::PFParticle> > pfplist;
   
-
-  if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
+  vector < art::Ptr < recob::Track > > trackList;
+  auto trackListHandle = event.getHandle < vector < recob::Track > >(fTrackModuleLabel);
+  if (trackListHandle) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
 
-
-  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+  vector<art::Ptr<recob::PFParticle> > pfplist;
+  auto PFPListHandle = event.getHandle< std::vector<recob::PFParticle> >("pandora");
+  if (PFPListHandle) art::fill_ptr_vector(pfplist, PFPListHandle);
      
    if (pfplist.size()<1) return;    
 art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
@@ -572,9 +570,9 @@ art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
  art::FindManyP<recob::Hit> trackHits(trackListHandle, event, "pandoraTrack");
   int nTracksReco = trackList.size();
   //cout<<"Number of Potential CRT Reconstructed Through-Going Muon: "<<combTrackHits.size()<<endl;
-    art::Handle< std::vector<recob::Hit> > hitListHandle; // to get information about the hits
-    std::vector<art::Ptr<recob::Hit>> hitlist;
-    if(event.getByLabel("hitpdune", hitListHandle))
+    std::vector<art::Ptr<recob::Hit>> hitlist; // to get information about the hits
+    auto hitListHandle = event.getHandle< std::vector<recob::Hit> >("hitpdune");
+    if (hitListHandle)
       art::fill_ptr_vector(hitlist, hitListHandle);
   art::FindManyP < recob::Hit > hitsFromTrack(trackListHandle, event, fTrackModuleLabel);
 

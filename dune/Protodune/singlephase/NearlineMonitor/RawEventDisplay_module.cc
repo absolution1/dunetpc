@@ -260,9 +260,8 @@ namespace raw_event_display{
     std::cout << "EventNumber = " << fEvent << std::endl;
 
     // Get the objects holding raw information: RawDigit for TPC data
-    art::Handle< std::vector<raw::RawDigit> > RawTPC;
-    event.getByLabel(fTPCInput, fTPCInstance, RawTPC);
-
+    art::InputTag itag1(fTPCInput, fTPCInstance);
+    auto RawTPC = event.getHandle< std::vector<raw::RawDigit> >(itag1);
 
     // Fill pointer vectors - more useful form for the raw data
     // a more usable form

@@ -3,6 +3,7 @@
 #include "StandardRawDigitExtractService.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalService.h"
 #include "larevt/CalibrationDBI/Interface/DetPedestalProvider.h"

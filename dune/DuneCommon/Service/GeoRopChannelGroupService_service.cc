@@ -1,6 +1,7 @@
 // GeoRopChannelGroupService.cxx
 
 #include "dune/DuneCommon/Service/GeoRopChannelGroupService.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include <sstream>
 #include <iomanip>
 #include "larcorealg/Geometry/GeometryCore.h"

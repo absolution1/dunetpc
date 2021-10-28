@@ -15,7 +15,7 @@ cet_test(test_AdcChannelTool SOURCES test_AdcChannelTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )
 
@@ -28,6 +28,6 @@ cet_test(test_TpcDataTool SOURCES test_TpcDataTool.cxx
     fhiclcpp
     cetlib cetlib_except
     cetlib_except
-    ${SQLITE3}
+    SQLITE3
     ${Boost_FILESYSTEM_LIBRARY}
 )

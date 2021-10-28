@@ -47,3 +47,5 @@ Offset FixedTimeOffsetTool::offset(const Data& dat) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(FixedTimeOffsetTool)

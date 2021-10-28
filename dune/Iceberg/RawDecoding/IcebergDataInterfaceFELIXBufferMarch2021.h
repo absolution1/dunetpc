@@ -87,6 +87,5 @@ class IcebergDataInterfaceFELIXBufferMarch2021 : public PDSPTPCDataInterfacePare
 
 };
 
-DEFINE_ART_CLASS_TOOL(IcebergDataInterfaceFELIXBufferMarch2021)
 
 #endif

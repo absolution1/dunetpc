@@ -80,6 +80,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcNoiseSignalFinder)
 
 #endif

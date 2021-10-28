@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "dune/Utilities/SignalShapingServiceDUNE.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 using std::vector;
 using std::string;

@@ -582,37 +582,7 @@ AdcRoiViewer::AdcRoiViewer(fhicl::ParameterSet const& ps)
 
 AdcRoiViewer::~AdcRoiViewer() {
   const string myname = "AdcRoiViewer::dtor: ";
-  if ( m_LogLevel >= 1 ) {
-    cout << myname << "Exiting." << endl;
-    cout << myname << "  Event count: " << getState().eventCallCount.size() << endl;
-    cout << myname << "   Call count: " << getState().callCount << endl;
-    cout << myname << "  Sample unit: " << getState().cachedSampleUnit << endl;
-  }
-  if ( m_RoiPlotOpt == 2 ) {
-    Index ntpm = getState().roiPads.size();
-    if (  m_LogLevel >= 2 ) cout << myname << "Printing " << ntpm << " ROI pad"
-                                 << (ntpm == 1 ? "" : "s") << endl;
-    for ( TpmMap::value_type& itpm : getState().roiPads ) {
-      Index icha = itpm.first;
-      TpmPtr& pmantop = itpm.second;
-      if ( pmantop ) {
-        Name plotFileName = getState().roiPadNames[icha];
-        if ( m_LogLevel >=3 ) cout << myname << "Writing " << plotFileName << endl;
-        pmantop->print(plotFileName);
-        pmantop.reset(nullptr);
-      }
-    }
-  }
-  if ( getState().sumHists.size() ) {
-    fitSumHists();
-    writeSumHists();
-    writeSumPlots();
-  }
-  if ( getState().chanSumHists.size() ) {
-    fillChanSumHists();
-    writeChanSumHists();
-    writeChanSumPlots();
-  }
+  close(nullptr);
 }
 
 //**********************************************************************
@@ -671,6 +641,47 @@ DataMap AdcRoiViewer::viewMap(const AdcChannelDataMap& acds) const {
   ret.setInt("roiFailedChannelCount", nfail);
   ret.setIntVector("roiFailedChannels", failedChannels);
   ret.setInt("roiCount", nroi);
+  return ret;
+}
+
+//**********************************************************************
+
+DataMap AdcRoiViewer::close(const DataMap* pdmin) {
+  const string myname = "AdcRoiViewer::close: ";
+  DataMap ret;
+  if ( getState().closeCount ) return ret.setStatus(1);
+  ++getState().closeCount;
+  if ( m_LogLevel >= 1 ) {
+    cout << myname << "Closing." << endl;
+    cout << myname << "  Event count: " << getState().eventCallCount.size() << endl;
+    cout << myname << "   Call count: " << getState().callCount << endl;
+    cout << myname << "  Sample unit: " << getState().cachedSampleUnit << endl;
+  }
+  if ( m_RoiPlotOpt == 2 ) {
+    Index ntpm = getState().roiPads.size();
+    if (  m_LogLevel >= 2 ) cout << myname << "Printing " << ntpm << " ROI pad"
+                                 << (ntpm == 1 ? "" : "s") << endl;
+    for ( TpmMap::value_type& itpm : getState().roiPads ) {
+      Index icha = itpm.first;
+      TpmPtr& pmantop = itpm.second;
+      if ( pmantop ) {
+        Name plotFileName = getState().roiPadNames[icha];
+        if ( m_LogLevel >=3 ) cout << myname << "Writing " << plotFileName << endl;
+        pmantop->print(plotFileName);
+        pmantop.reset(nullptr);
+      }
+    }
+  }
+  if ( getState().sumHists.size() ) {
+    fitSumHists();
+    writeSumHists();
+    writeSumPlots(pdmin);
+  }
+  if ( getState().chanSumHists.size() ) {
+    fillChanSumHists();
+    writeChanSumHists();
+    writeChanSumPlots();
+  }
   return ret;
 }
 
@@ -1502,8 +1513,9 @@ void AdcRoiViewer::writeSumHists() const {
 
 //**********************************************************************
 
-void AdcRoiViewer::writeSumPlots() const {
+void AdcRoiViewer::writeSumPlots(const DataMap* pdmin) const {
   const string myname = "AdcRoiViewer::writeSumPlots: ";
+  int dbgin = pdmin == nullptr ? 0 : pdmin->getInt("dbg", 0);
   Index npad = 0;
   Index npadx = m_SumPlotPadX;
   Index npady = m_SumPlotPadY;
@@ -1526,6 +1538,13 @@ void AdcRoiViewer::writeSumPlots() const {
         cout << myname << "WARNING: Histogram " << ihst << " not found for template " << plotNameTemplate << endl;
       } else {
         Name hnam = ph->GetName();
+        bool haveExpectedValue = pdmin != nullptr && pdmin->haveFloat(hnam);
+        float expValue = haveExpectedValue ? pdmin->getFloat(hnam) : 0.0;
+        if ( dbgin ) {
+          cout << myname << "  Processing histogram " << hnam << endl;
+          if ( haveExpectedValue ) cout << myname << "    Expected value: " << expValue << endl;
+          else cout << myname << "    No expected value." << endl;
+        }
         if ( pmantop == nullptr ) {
           plotFileName = getState().getSumPlotName(hnam);
           if ( plotFileName.size() == 0 ) {
@@ -1561,43 +1580,70 @@ void AdcRoiViewer::writeSumPlots() const {
         NameVector labs;
         bool showMean = true;
         if ( showMean ) {
+          double mean = ph->GetMean();
+          double sigm = ph->GetRMS();
+          float meanDen = haveExpectedValue ? expValue : mean;
           ostringstream ssout;
           ssout.precision(3);
           ssout.setf(std::ios_base::fixed);
           ssout.str("");
-          ssout << "# ROI: " << ph->GetEntries();
+          ssout << "# ROI: " << int(ph->GetEntries() + 0.1);
           labs.push_back(ssout.str());
           ssout.str("");
-          ssout << "Hist Mean: " << ph->GetMean();
+          ssout << "Hist mean: " << mean;
           labs.push_back(ssout.str());
           ssout.str("");
-          ssout << "Hist RMS: " << ph->GetRMS();
+          ssout << "Hist RMS: " << sigm;
+          ssout.precision(1);
+          if ( meanDen != 0.0 ) ssout << " [" << 100*sigm/meanDen << "%]";
+          ssout.precision(3);
           labs.push_back(ssout.str());
+          if ( haveExpectedValue ) {
+            ssout.str("");
+            float bias = mean - expValue;
+            ssout << "Hist bias: " << bias;
+            ssout.precision(1);
+            if ( expValue != 0.0 ) ssout << " [" << 100*bias/expValue << "%]";
+            ssout.precision(3);
+            labs.push_back(ssout.str());
+          }
         }
         TF1* pffit = dynamic_cast<TF1*>(ph->GetListOfFunctions()->Last());
         if ( pffit != nullptr ) {
           string fnam = pffit->GetName();
           double mean = pffit->GetParameter("Mean");
           double sigm = pffit->GetParameter("Sigma");
-          double rat = mean == 0 ? 0.0 : sigm/mean;
-          labs.push_back(fnam);
+          float meanDen = haveExpectedValue ? expValue : mean;
+          labs.push_back("Fitter: " + fnam);
           ostringstream ssout;
           ssout.precision(3);
           ssout.setf(std::ios_base::fixed);
-          ssout << "Mean: " << mean;
+          ssout << "Fit mean: " << mean;
           labs.push_back(ssout.str());
           ssout.str("");
-          ssout << "Sigma: " << sigm;
+          ssout << "Fit sigma: " << sigm;
+          ssout.precision(1);
+          if ( meanDen != 0.0 ) ssout << " [" << 100*sigm/meanDen << "%]";
+          ssout.precision(3);
           labs.push_back(ssout.str());
+          if ( haveExpectedValue ) {
+            ssout.str("");
+            float bias = mean - expValue;
+            ssout << "Fit bias: " << bias;
+            ssout.precision(1);
+            if ( expValue != 0.0 ) ssout << " [" << 100*bias/expValue << "%]";
+            ssout.precision(3);
+            labs.push_back(ssout.str());
+          }
+        }
+        {
+          ostringstream ssout;
           ssout.str("");
-          ssout.precision(4);
-          ssout << "Ratio: " << rat;
-          labs.push_back(ssout.str());
           Index chanStat = getState().getChannelStatus(ph->GetName());
           if ( chanStat == AdcChannelStatusBad ) labs.push_back("Bad channel");
           if ( chanStat == AdcChannelStatusNoisy ) labs.push_back("Noisy channel");
         }
-        double xlab = 0.70;
+        double xlab = 0.65;
         double ylab = 0.80;
         double dylab = 0.04;
         for ( Name lab : labs ) {
@@ -1950,3 +1996,5 @@ void AdcRoiViewer::setPlotLabels(Name& sttl) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcRoiViewer)

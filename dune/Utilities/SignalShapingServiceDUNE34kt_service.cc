@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "dune/Utilities/SignalShapingServiceDUNE34kt.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"

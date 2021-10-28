@@ -12,6 +12,7 @@
 // Framework includes
 #include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Event.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 // C++ includes
 #include <iostream>

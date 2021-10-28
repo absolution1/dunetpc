@@ -283,18 +283,16 @@ void TrackingEfficiency::TrackingEfficiency::analyze(art::Event const & evt)
 {
   //std::cout << "\n\n************* New Event / Module running *************\n\n" << std::endl;
   // Implementation of required member function here. 
-  art::Handle< std::vector<recob::Track> > trackListHandle;
   std::vector<art::Ptr<recob::Track> > tracklist;
-  if (evt.getByLabel(fTrackModuleLabel,trackListHandle))
+  auto trackListHandle = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
+  if (trackListHandle)
     art::fill_ptr_vector(tracklist, trackListHandle);
   
   const sim::ParticleList& plist = pi_serv->ParticleList();
   
-  art::Handle< std::vector<recob::Track> > trackh;
-  evt.getByLabel(fTrackModuleLabel, trackh);
+  auto trackh = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel);
   
-  art::Handle< std::vector< art::PtrVector < recob::Track > > > trackvh;
-  evt.getByLabel(fTrackModuleLabel, trackvh);
+  auto trackvh = evt.getHandle< std::vector< art::PtrVector < recob::Track > > >(fTrackModuleLabel);
   
   int NPart = 0;
 

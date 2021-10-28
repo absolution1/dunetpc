@@ -91,9 +91,9 @@ void pdsp::HitAnaPDSP::analyze(art::Event const& e)
   pdg.clear();
 
    // Reconstruciton information
-  art::Handle < std::vector < recob::Hit > > hitListHandle;
   std::vector < art::Ptr < recob::Hit > > hitList;
-  if (e.getByLabel(fHitModuleLabel, hitListHandle)) {
+  auto hitListHandle = e.getHandle < std::vector < recob::Hit > >(fHitModuleLabel);
+  if (hitListHandle) {
     art::fill_ptr_vector(hitList, hitListHandle);
   }
   else return;

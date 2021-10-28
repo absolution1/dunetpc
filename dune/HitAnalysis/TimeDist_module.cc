@@ -96,8 +96,7 @@ namespace TimeDist {
   {
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event);
 
-    art::Handle< std::vector<recob::Hit> > hitHandle;
-    event.getByLabel(fHitProducerLabel, hitHandle);
+    auto hitHandle = event.getHandle< std::vector<recob::Hit> >(fHitProducerLabel);
 
     // For every Hit:
     for ( auto const& hit : (*hitHandle) )
@@ -109,8 +108,7 @@ namespace TimeDist {
 
       } // for each Hit
 
-    art::Handle< std::vector<recob::OpFlash> > flashHandle;
-    event.getByLabel(fFlashProducerLabel, flashHandle);
+    auto flashHandle = event.getHandle< std::vector<recob::OpFlash> >(fFlashProducerLabel);
 
     // For every Flash:
     for ( auto const& opflash : (*flashHandle) )

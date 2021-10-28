@@ -123,3 +123,5 @@ DataMap Roi2dToAdc::updateTpcData(TpcData& tpd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(Roi2dToAdc)

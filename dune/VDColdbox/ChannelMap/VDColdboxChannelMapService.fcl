@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+# ProtoDUNE-SP online/offline channel mapping.
+
+vdcoldboxchannelmap: {
+  FileName:         "vdcbce_chanmap_v1.txt"
+  LogLevel:         1
+}
+
+END_PROLOG

@@ -4173,10 +4173,8 @@ void dune::AnaRootParser::CreateTree(bool bClearData /* = false */) {
 void dune::AnaRootParser::beginSubRun(const art::SubRun& sr)
 {
 
-  //  art::Handle< sumdata::POTSummary > potListHandle;
-  //  //sr.getByLabel(fPOTModuleLabel,potListHandle);
-  //
-  //  if(sr.getByLabel(fPOTModuleLabel,potListHandle))
+  //  auto potListHandle = sr.getHandle< sumdata::POTSummary >(fPOTModuleLabel);
+  //  if(potListHandle)
   //    SubRunData.pot=potListHandle->totpot;
   //  else
   //    SubRunData.pot=0.;
@@ -4186,28 +4184,31 @@ void dune::AnaRootParser::beginSubRun(const art::SubRun& sr)
 void dune::AnaRootParser::endSubRun(const art::SubRun& sr)
 {
 
-  /*  art::Handle< sumdata::POTSummary > potListHandle;
-      if(sr.getByLabel(fPOTModuleLabel,potListHandle))
+  /*  auto potListHandle = sr.getHandle< sumdata::POTSummary >(fPOTModuleLabel);
+      if (potListHandle)
       SubRunData.pot=potListHandle->totpot;
       else
       SubRunData.pot=0.;
 
-      art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR860;
-      if (sr.getByLabel("beamdata","bnbETOR860",potSummaryHandlebnbETOR860)){
+      art::InputTag itag1("beamdata","bnbETOR860");
+      auto potSummaryHandlebnbETOR860 = sr.getHandle<sumdata::POTSummary>(itag1);
+      if (potSummaryHandlebnbETOR860){
       SubRunData.potbnbETOR860 = potSummaryHandlebnbETOR860->totpot;
       }
       else
       SubRunData.potbnbETOR860 = 0;
 
-      art::Handle<sumdata::POTSummary> potSummaryHandlebnbETOR875;
-      if (sr.getByLabel("beamdata","bnbETOR875",potSummaryHandlebnbETOR875)){
+      art::InputTag itag2("beamdata","bnbETOR875");
+      auto potSummaryHandlebnbETOR875 = sr.getHandle<sumdata::POTSummary>(itag2);
+      if (potSummaryHandlebnbETOR875){
       SubRunData.potbnbETOR875 = potSummaryHandlebnbETOR875->totpot;
       }
       else
       SubRunData.potbnbETOR875 = 0;
 
-      art::Handle<sumdata::POTSummary> potSummaryHandlenumiETORTGT;
-      if (sr.getByLabel("beamdata","numiETORTGT",potSummaryHandlenumiETORTGT)){
+      art::InputTag itag3("beamdata","numiETORTGT");
+      auto potSummaryHandlenumiETORTGT = sr.getHandle<sumdata::POTSummary>(itag3);
+      if (potSummaryHandlenumiETORTGT){
       SubRunData.potnumiETORTGT = potSummaryHandlenumiETORTGT->totpot;
       }
       else
@@ -4227,59 +4228,60 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // collect the sizes which might be needed to resize the tree data structure:
 
   // RawDigit
-  art::Handle< std::vector<raw::RawDigit> > rawdigitVecHandle;
   std::vector<art::Ptr<raw::RawDigit> > rawdigitlist;
-  if (evt.getByLabel(fRawDigitModuleLabel, rawdigitVecHandle))
+  auto rawdigitVecHandle = evt.getHandle< std::vector<raw::RawDigit> >(fRawDigitModuleLabel);
+  if (rawdigitVecHandle)
     art::fill_ptr_vector(rawdigitlist, rawdigitVecHandle);
 
   // RecobWire
-  art::Handle< std::vector<recob::Wire> > recobwireVecHandle;
   std::vector<art::Ptr<recob::Wire> > recobwirelist;
-  if (evt.getByLabel(fCalDataModuleLabel, recobwireVecHandle))
+  auto recobwireVecHandle = evt.getHandle< std::vector<recob::Wire> >(fCalDataModuleLabel);
+  if (recobwireVecHandle)
     art::fill_ptr_vector(recobwirelist, recobwireVecHandle);
 
 
   // recob::Wire
-//  art::Handle< std::vector<recob::Wire> > wireVecHandle;
-//  evt.getByLabel(fCalDataModuleLabel,wireVecHandle);
+//  auto wireVecHandle = evt.getHandle< std::vector<recob::Wire> >(fCalDataModuleLabel);
 
   // * photons
-  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
   //std::vector<art::Ptr<sim::SimPhotonsLite> > photonlist;
-  if(fSavePhotonInfo) evt.getByLabel(fPhotonPropS1ModuleLabel, photonHandle);
+  art::Handle< std::vector<sim::SimPhotonsLite> > photonHandle;
+  if(fSavePhotonInfo) photonHandle = evt.getHandle< std::vector<sim::SimPhotonsLite> >(fPhotonPropS1ModuleLabel);
 //    art::fill_ptr_vector(photonlist, photonHandle);
 
   // * hits
-  art::Handle< std::vector<recob::Hit> > hitListHandle;
   std::vector<art::Ptr<recob::Hit> > hitlist;
-  if (evt.getByLabel(fHitsModuleLabel,hitListHandle))
+  auto hitListHandle = evt.getHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
+  if (hitListHandle)
     art::fill_ptr_vector(hitlist, hitListHandle);
 
   // * clusters
   art::Handle< std::vector<recob::Cluster> > clusterListHandle;
   std::vector<art::Ptr<recob::Cluster> > clusterlist;
   if (fSaveClusterInfo){
-    if (evt.getByLabel(fClusterModuleLabel,clusterListHandle))
+    clusterListHandle = evt.getHandle< std::vector<recob::Cluster> >(fClusterModuleLabel);
+    if (clusterListHandle)
       art::fill_ptr_vector(clusterlist, clusterListHandle);
   }
 
   // * flashes
-  art::Handle< std::vector<recob::OpFlash> > flashListHandle;
   std::vector<art::Ptr<recob::OpFlash> > flashlist;
-  if (evt.getByLabel(fOpFlashModuleLabel,flashListHandle))
+  auto flashListHandle = evt.getHandle< std::vector<recob::OpFlash> >(fOpFlashModuleLabel);
+  if (flashListHandle)
     art::fill_ptr_vector(flashlist, flashListHandle);
 
   // * External Counters
-  art::Handle< std::vector<raw::ExternalTrigger> > countListHandle;
   std::vector<art::Ptr<raw::ExternalTrigger> > countlist;
-  if (evt.getByLabel(fExternalCounterModuleLabel,countListHandle))
+  auto countListHandle = evt.getHandle< std::vector<raw::ExternalTrigger> >(fExternalCounterModuleLabel);
+  if (countListHandle)
     art::fill_ptr_vector(countlist, countListHandle);
 
   // * MC truth information
   art::Handle< std::vector<simb::MCTruth> > mctruthListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclist;
   if (fIsMC){
-    if (evt.getByLabel(fGenieGenModuleLabel,mctruthListHandle))
+    mctruthListHandle = evt.getHandle< std::vector<simb::MCTruth> >(fGenieGenModuleLabel);
+    if (mctruthListHandle)
       art::fill_ptr_vector(mclist, mctruthListHandle);
   }
 
@@ -4289,11 +4291,11 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   int nLowestParticleIDSimEnergyDepositsTPCActive = 0;
   int nHighestParticleIDSimEnergyDepositsTPCActive = 0;
 
-  art::Handle< std::vector<sim::SimEnergyDeposit> > energyDepositTPCActiveHandle;
   std::vector<art::Ptr<sim::SimEnergyDeposit> > energyDepositTPCActivelist;
   if (fIsMC && fSaveSimEnergyDepositTPCActiveInfo)
   {
-    if (evt.getByLabel(fSimEnergyDepositTPCActiveLabel,energyDepositTPCActiveHandle))
+    auto energyDepositTPCActiveHandle = evt.getHandle< std::vector<sim::SimEnergyDeposit> >(fSimEnergyDepositTPCActiveLabel);
+    if (energyDepositTPCActiveHandle)
     {
       art::fill_ptr_vector(energyDepositTPCActivelist,energyDepositTPCActiveHandle);
       nSimEnergyDepositsTPCActive = energyDepositTPCActivelist.size();
@@ -4317,10 +4319,10 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   }
 
   // *MC truth cosmic generator information
-  art::Handle< std::vector<simb::MCTruth> > mctruthcryListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistcry;
   if (fIsMC && fSaveCryInfo){
-    if (evt.getByLabel(fCryGenModuleLabel,mctruthcryListHandle)){
+    auto mctruthcryListHandle = evt.getHandle< std::vector<simb::MCTruth> >(fCryGenModuleLabel);
+    if (mctruthcryListHandle){
       art::fill_ptr_vector(mclistcry, mctruthcryListHandle);
     }
     else{
@@ -4331,10 +4333,10 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   }
 
   // ProtoDUNE beam generator information
-  art::Handle< std::vector<simb::MCTruth> > mctruthprotoListHandle;
   std::vector<art::Ptr<simb::MCTruth> > mclistproto;
   if(fIsMC && fSaveProtoInfo){
-    if(evt.getByLabel(fProtoGenModuleLabel,mctruthprotoListHandle)){
+    auto mctruthprotoListHandle = evt.getHandle< std::vector<simb::MCTruth> >(fProtoGenModuleLabel);
+    if (mctruthprotoListHandle){
       art::fill_ptr_vector(mclistproto,mctruthprotoListHandle);
     }
     else{
@@ -4347,7 +4349,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // *MC Shower information
   art::Handle< std::vector<sim::MCShower> > mcshowerh;
   if (fIsMC)
-    evt.getByLabel(fMCShowerModuleLabel, mcshowerh);
+    mcshowerh = evt.getHandle< std::vector<sim::MCShower> >(fMCShowerModuleLabel);
 
   int nMCShowers = 0;
   if (fSaveMCShowerInfo && mcshowerh.isValid())
@@ -4356,7 +4358,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   // *MC Track information
   art::Handle< std::vector<sim::MCTrack> > mctrackh;
   if (fIsMC)
-    evt.getByLabel(fMCTrackModuleLabel, mctrackh);
+    mctrackh = evt.getHandle< std::vector<sim::MCTrack> >(fMCTrackModuleLabel);
 
   int nMCTracks = 0;
   if (fSaveMCTrackInfo && mctrackh.isValid())
@@ -4386,8 +4388,7 @@ void dune::AnaRootParser::analyze(const art::Event& evt)
   if (fIsMC) { //is MC
 
     //find origin
-    std::vector< art::Handle< std::vector<simb::MCTruth> > > allmclists;
-    evt.getManyByType(allmclists);
+    auto const allmclists = evt.getMany<std::vector<simb::MCTruth>>();
     for(size_t mcl = 0; mcl < allmclists.size(); ++mcl){
       art::Handle< std::vector<simb::MCTruth> > mclistHandle = allmclists[mcl];
       for(size_t m = 0; m < mclistHandle->size(); ++m){
@@ -4512,9 +4513,9 @@ if(fLogLevel >= 1)
   fData->isdata = int(!fIsMC);
 
   //  raw trigger
-  art::Handle< std::vector<raw::Trigger>> triggerListHandle;
-  std::vector<art::Ptr<raw::Trigger>> triggerlist;
-if (evt.getByLabel(fRawDigitModuleLabel, triggerListHandle)){  art::fill_ptr_vector(triggerlist, triggerListHandle);}
+  std::vector<art::Ptr<raw::Trigger> > triggerlist;
+  auto triggerListHandle = evt.getHandle< std::vector<raw::Trigger>>(fRawDigitModuleLabel);
+  if (triggerListHandle){  art::fill_ptr_vector(triggerlist, triggerListHandle);}
 
   if (triggerlist.size()){
     fData->triggernumber = triggerlist[0]->TriggerNumber();
@@ -4524,10 +4525,11 @@ if (evt.getByLabel(fRawDigitModuleLabel, triggerListHandle)){  art::fill_ptr_vec
   }
 
 //  vertices
-std::vector< art::Handle< std::vector<recob::Vertex> > > vertexListHandle(NVertexAlgos);
-std::vector< std::vector<art::Ptr<recob::Vertex> > > vertexlist(NVertexAlgos);
-for (unsigned int it = 0; it < NVertexAlgos; ++it){
-  if (evt.getByLabel(fVertexModuleLabel[it],vertexListHandle[it]))
+  std::vector< art::Handle< std::vector<recob::Vertex> > > vertexListHandle(NVertexAlgos);
+  std::vector< std::vector<art::Ptr<recob::Vertex> > > vertexlist(NVertexAlgos);
+  for (unsigned int it = 0; it < NVertexAlgos; ++it){
+  vertexListHandle[it] = evt.getHandle< std::vector<recob::Vertex> >(fVertexModuleLabel[it]);
+  if (vertexListHandle[it])
     art::fill_ptr_vector(vertexlist[it], vertexListHandle[it]);
 }
 
@@ -4540,7 +4542,8 @@ lar_pandora::LArPandoraHelper::CollectPFParticles(evt, fPFParticleModuleLabel, p
 std::vector< art::Handle< std::vector<recob::Track> > > trackListHandle(NTrackers);
 std::vector< std::vector<art::Ptr<recob::Track> > > tracklist(NTrackers);
 for (unsigned int it = 0; it < NTrackers; ++it){
-  if (evt.getByLabel(fTrackModuleLabel[it],trackListHandle[it]))
+  trackListHandle[it] = evt.getHandle< std::vector<recob::Track> >(fTrackModuleLabel[it]);
+  if (trackListHandle[it])
     art::fill_ptr_vector(tracklist[it], trackListHandle[it]);
 }
 
@@ -4554,8 +4557,8 @@ std::vector< art::Handle< std::vector<recob::Shower> > > showerListHandle;
 showerList.reserve(fShowerModuleLabel.size());
 if (fSaveShowerInfo) {
   for (art::InputTag ShowerInputTag: fShowerModuleLabel) {
-    art::Handle<std::vector<recob::Shower>> ShowerHandle;
-    if (!evt.getByLabel(ShowerInputTag, ShowerHandle)) {
+    auto ShowerHandle = evt.getHandle<std::vector<recob::Shower>>(ShowerInputTag);
+    if (!ShowerHandle) {
       showerList.push_back(nullptr);
       if (!bIgnoreMissingShowers) {
         throw art::Exception(art::errors::ProductNotFound)
@@ -4606,8 +4609,8 @@ if (fIsMC && fSaveGeantInfo){  evt.getView(fElecDriftModuleLabel, fSimChannels);
   fData->evttime_nanoseconds = ts.timeLow();
 
   //copied from MergeDataPaddles.cxx
-  art::Handle< raw::BeamInfo > beam;
-  if (evt.getByLabel("beamdata",beam)){
+  auto beam = evt.getHandle< raw::BeamInfo >("beamdata");
+  if (beam){
     fData->beamtime = (double)beam->get_t_ms();
     fData->beamtime/=1000.; //in second
     std::map<std::string, std::vector<double>> datamap = beam->GetDataMap();
@@ -4853,8 +4856,8 @@ if (fSaveHitInfo){
   } // Loop over hits
 
 
-
-  if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
+  hitListHandle = evt.getHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
+  if (hitListHandle){
     //Find tracks associated with hits
     art::FindManyP<recob::Track> fmtk(hitListHandle,evt,fTrackModuleLabel[0]);
     for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits
@@ -4873,7 +4876,8 @@ if (fSaveHitInfo){
   //In the case of ClusterCrawler or linecluster, use "linecluster or clustercrawler" as HitModuleLabel.
   //using cchit will not make this association. In the case of gaushit, just use gaushit
   //Not initializing clusterID to -1 since some clustering algorithms assign negative IDs!
-  if (evt.getByLabel(fHitsModuleLabel,hitListHandle)){
+  hitListHandle = evt.getHandle< std::vector<recob::Hit> >(fHitsModuleLabel);
+  if (hitListHandle){
     //Find clusters associated with hits
     art::FindManyP<recob::Cluster> fmcl(hitListHandle,evt,fClusterModuleLabel);
     for (size_t i = 0; i < NHits && i < kMaxHits ; ++i){//loop over hits

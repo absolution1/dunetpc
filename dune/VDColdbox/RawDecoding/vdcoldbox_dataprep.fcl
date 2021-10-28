@@ -1,0 +1,85 @@
+#include "protoDUNE_reco_data_Dec2018.fcl"
+#include "protodune_tools_dune.fcl"
+#
+process_name: VDRawDigit
+
+services: {
+  TimeTracker:       @local::dune_time_tracker
+  MemoryTracker:     @local::dune_memory_tracker
+  RandomNumberGenerator: {} 
+  FileCatalogMetadata:  @local::art_file_catalog_data
+                        @table::protodune_rawdecoding_services
+                        @table::protodune_data_reco_services
+  message:              @local::dune_message_services_prod
+  FileCatalogMetadata: {
+#       campaign: "beam_prep"
+       metadataFromInput: [ "dunemeta.data_stream", "dunemeta.dune_data.daqconfigname", 
+                            "dunemeta.dune_data.detector_config", "dunemeta.dune_data.inconsistent_hw_config",
+                            "dunemeta.dune_data.is_fake_data", "dunemeta.dune_data.accouple",
+                            "dunemeta.dune_data.calibpulsemode", "dunemeta.dune_data.febaselinehigh",
+                            "dunemeta.dune_data.fegain", "dunemeta.dune_data.feleak10x",
+                            "dunemeta.dune_data.feleakhigh", "dunemeta.dune_data.feshapingtime", "events",
+                            "data_quality.online_good_run_list", "detector.hv_value" ]
+       applicationVersion: "v07_08_00_04"
+       fileType: "detector"
+       runType: "protodune-sp"
+
+  }
+    
+
+  VDColdboxChannelMapService: {
+    #FileName:         "vdcbce_chanmap_v1.txt"
+    #FileName: "vdcbce_chanmap_v1_verticalslice.txt"
+    FileName: "vdcbce_chanmap_v1_dcchan3456_verticalslice.txt"
+    LogLevel:         1
+  }
+  TFileService: { 
+      closeFileFast: true  # default
+      fileName: "hist_%ifb_decoder_reco1.root"
+      tmpDir: "<parent-path-of-filename>"  # default
+  }
+  IFBeam:            {}
+  IFDH:              {}
+}
+
+physics: {
+  producers: {
+    caldata: @local::protoDUNE_reco_data_producers.caldata
+  }
+
+  produce: [
+    caldata
+  ]
+
+  output: [out1]
+  trigger_paths: [produce]
+  end_paths: [output]
+}
+
+outputs: {
+  out1: {
+    compressionLevel: 1
+    module_type: RootOutput
+    saveMemoryObjectThreshold: 10485760
+    fileName: "%ifb_reco1.root"
+    dataTier:    "full-reconstructed"
+    #outputCommands: [ "drop *", "keep raw::RawDigitrecob*_*_*_*", "keep recob::*_*_*_*" ]
+  }
+}
+
+source:
+{
+    module_type: RootInput
+    maxEvents : -1
+}
+
+tools.vdtool: {
+  tool_type: "VDColdboxDataInterface"
+  ForceOpen: true
+}
+
+
+services.LArFFT.FFTSize: 10000
+physics.producers.caldata.DecoderTool: "vdtool"
+physics.producers.caldata.ChannelGroups: ["all"]
+

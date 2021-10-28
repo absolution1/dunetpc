@@ -18,7 +18,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Persistency/Common/PtrMaker.h"
 #include "art_root_io/TFileService.h"
-
+#include "canvas/Persistency/Common/Assns.h"
 #include <memory>
 #include <cmath>
 
@@ -335,15 +335,15 @@ void IcebergTPCRawDecoder::produce(art::Event &e)
 bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, RDTimeStamps &timestamps, RDTsAssocs &tsassocs, RDPmkr &rdpm, TSPmkr &tspm)
 {
   size_t n_rce_frags = 0;
-  art::Handle<artdaq::Fragments> cont_frags;
-  evt.getByLabel(_rce_input_label, _rce_input_container_instance, cont_frags);  
+  art::InputTag itag1(_rce_input_label, _rce_input_container_instance);
+  auto cont_frags = evt.getHandle<artdaq::Fragments>(itag1);
 
   bool have_data=false;
   bool have_data_nc=false;
 
   uint32_t runNumber = evt.run();
 
-  if (cont_frags.isValid())
+  if (cont_frags)
     {
       have_data = true;
 
@@ -394,11 +394,10 @@ bool IcebergTPCRawDecoder::_processRCE(art::Event &evt, RawDigits& raw_digits, R
 
   //noncontainer frags
 
-  art::Handle<artdaq::Fragments> frags;
-  evt.getByLabel(_rce_input_label, _rce_input_noncontainer_instance, frags); 
+  art::InputTag itag2(_rce_input_label, _rce_input_noncontainer_instance);
+  auto frags = evt.getHandle<artdaq::Fragments>(itag2);
 
-
-  if (frags.isValid())
+  if (frags)
     {
       have_data_nc = true;
 
@@ -870,15 +869,15 @@ bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits,
 
   unsigned int n_felix_frags = 0;  
 
-  art::Handle<artdaq::Fragments> cont_frags;
-  evt.getByLabel(_felix_input_label, _felix_input_container_instance, cont_frags); 
+  art::InputTag itag3(_felix_input_label, _felix_input_container_instance);
+  auto cont_frags = evt.getHandle<artdaq::Fragments>(itag3);
 
   bool have_data = false;
   bool have_data_nc = false;
 
   uint32_t runNumber = evt.run();
 
-  if(cont_frags.isValid())
+  if (cont_frags)
     {
       have_data = true;
 
@@ -928,10 +927,10 @@ bool IcebergTPCRawDecoder::_processFELIX(art::Event &evt, RawDigits& raw_digits,
 
   // noncontainer frags
 
-  art::Handle<artdaq::Fragments> frags;
-  evt.getByLabel(_felix_input_label, _felix_input_noncontainer_instance, frags);
+  art::InputTag itag4(_felix_input_label, _felix_input_noncontainer_instance);
+  auto frags = evt.getHandle<artdaq::Fragments>(itag4);
 
-  if(frags.isValid())
+  if (frags)
     {
 
       if(_make_histograms)

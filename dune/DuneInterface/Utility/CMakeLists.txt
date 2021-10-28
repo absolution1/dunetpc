@@ -8,4 +8,4 @@
 #add_subdirectory(test)
 
 install_headers()
-install_source( README.txt )
+install_source()

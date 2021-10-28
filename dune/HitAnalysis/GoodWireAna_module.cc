@@ -169,8 +169,7 @@ void GoodWireAna::analyze(art::Event const & e)
   else{ fNEvtsPerRun.emplace(e.run(),1); }
 
   //Now get all a da hits from this event
-  art::Handle<std::vector<recob::Hit> > hitListHandle;
-  e.getByLabel( fHitModuleLabel, hitListHandle );
+  auto hitListHandle = e.getHandle<std::vector<recob::Hit> >(fHitModuleLabel);
   
   //Loop over the hits. Find their Cryo/TPC, plane, and fill the appropriate histogram
   //labeled by those three things.

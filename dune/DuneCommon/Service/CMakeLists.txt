@@ -5,24 +5,24 @@
 
 # Add plugin for each service.
 
-simple_plugin(GeoRopChannelGroupService   "service"
+cet_build_plugin(GeoRopChannelGroupService   art::service
                 larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(GeoApaChannelGroupService   "service"
+cet_build_plugin(GeoApaChannelGroupService   art::service
                 larcorealg_Geometry
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
-simple_plugin(FixedChannelGroupService   "service"
+cet_build_plugin(FixedChannelGroupService   art::service
                 art_Utilities canvas
                 cetlib cetlib_except
-                ${ROOT_BASIC_LIB_LIST}
+                ROOT_BASIC_LIB_LIST
              )
 
 add_subdirectory(test)

@@ -79,7 +79,7 @@
 //   MetadataFlags - Vector of any of none of the following:
 //                     write - Write value as ADC channel metadata.
 //                     warnpresent - Warn if metadata field is present before write.
-//                     read - read value from metadata (insteda of calculation) if present
+//                     read - read value from metadata (instead of calculation) if present
 //                     warnabsent - Warn if requested metatdata field is not present
 // For the title and file names, the following sustitutions are made:
 //     %RUN%    --> run number
@@ -354,6 +354,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcChannelMetric)
 
 #endif

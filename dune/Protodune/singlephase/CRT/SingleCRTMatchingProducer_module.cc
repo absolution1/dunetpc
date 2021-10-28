@@ -282,9 +282,9 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
 
   art::FindManyP < sim::AuxDetSimChannel > trigToSim(triggers, event, fCRTLabel);
 
-  art::Handle < vector < CRT::Trigger > > crtListHandle;
   vector < art::Ptr < CRT::Trigger > > crtList;
-  if (event.getByLabel(fCRTLabel, crtListHandle)) {
+  auto crtListHandle = event.getHandle < vector < CRT::Trigger > >(fCRTLabel);
+  if (crtListHandle) {
     art::fill_ptr_vector(crtList, crtListHandle);
   }
 
@@ -443,14 +443,17 @@ void CRT::SingleCRTMatchingProducer::produce(art::Event & event)
      auto const t0CandPtr = art::PtrMaker<anab::T0>(event);
      auto const crtPtr = art::PtrMaker<anab::CosmicTag>(event);	
   // Reconstruciton information
- art::Handle < vector < recob::Track > > trackListHandle;
+
+
   vector < art::Ptr < recob::Track > > trackList;
-  art::Handle< std::vector<recob::PFParticle> > PFPListHandle; 
-  vector<art::Ptr<recob::PFParticle> > pfplist;
-  if (event.getByLabel(fTrackModuleLabel, trackListHandle)) {
+  auto trackListHandle = event.getHandle < vector < recob::Track > >(fTrackModuleLabel);
+  if (trackListHandle) {
     art::fill_ptr_vector(trackList, trackListHandle);
   }
-  if(event.getByLabel("pandora",PFPListHandle)) art::fill_ptr_vector(pfplist, PFPListHandle);
+
+  vector<art::Ptr<recob::PFParticle> > pfplist;
+  auto PFPListHandle = event.getHandle< std::vector<recob::PFParticle> >("pandora");
+  if (PFPListHandle) art::fill_ptr_vector(pfplist, PFPListHandle);
   if (pfplist.size()<1) return;
   art::FindManyP<anab::T0> trk_t0_assn_v(PFPListHandle, event ,"pandora");
     art::FindManyP<recob::PFParticle> pfp_trk_assn(trackListHandle,event,"pandoraTrack");

@@ -20,6 +20,7 @@
 #include "dune/DuneObj/ProtoDUNEBeamSpill.h"
 #include "dune/DuneObj/ProtoDUNETimeStamp.h"
 #include "dune/DuneObj/RDStatus.h"
+#include "dune/DuneObj/DUNEHDF5FileInfo.h"
 #include <vector>
 #include <map>
 //#include <array>

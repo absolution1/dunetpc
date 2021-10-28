@@ -239,18 +239,12 @@ void MakeSNeTProfileHistos::analyze(art::Event const & e)
   //
 
   // Get the hits out of the event
-  art::Handle< std::vector< recob::Hit > > hits_list;
-  e.getByLabel(fHitLabel, hits_list);
+  auto hits_list = e.getHandle< std::vector< recob::Hit > >(fHitLabel);
 
   // Get the MCTruths out of the event
-  art::Handle< std::vector< simb::MCTruth > > truths_list;
-  e.getByLabel(fTruthLabel, truths_list);
-
-
+  auto truths_list = e.getHandle< std::vector< simb::MCTruth > >(fTruthLabel);
   
   fNMCTruths->Fill(truths_list->size());
-
-
 
   // Assert assumption that there is one and only one MCTruth in the event
   // (note:   this needs to be fixed later so that it can handle multiple MCTruths.

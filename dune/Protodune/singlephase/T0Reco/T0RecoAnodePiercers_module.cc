@@ -276,7 +276,7 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	// load Flashes
 	if (fDebug) std::cout << "Loading flash from producer " << fFlashProducer << std::endl;
 
-	event.getByLabel(fFlashProducer,flash_h);
+	flash_h = event.getHandle<std::vector<recob::OpFlash> >(fFlashProducer);
 
 	// make sure flashes look good
 	if(!flash_h.isValid()) {
@@ -287,10 +287,9 @@ void T0RecoAnodePiercers::produce(art::Event& event){
 	double trigger_time = 0;
 
 	if(!MC){
-		art::Handle<std::vector<recob::OpFlash> > trigger_h;
-		event.getByLabel(fTriggerProducer, trigger_h);
+  	        auto trigger_h = event.getHandle<std::vector<recob::OpFlash> >(fTriggerProducer);
 
-		if(trigger_h->empty()) {
+		if( (!trigger_h) || trigger_h->empty()) {
     		if(fDebug) std::cout << "\tTrigger not found. Skipping." << std::endl;
 			event.put(std::move(t0_v));
 			event.put(std::move(pfp_t0));

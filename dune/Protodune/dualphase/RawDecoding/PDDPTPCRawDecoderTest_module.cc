@@ -71,8 +71,7 @@ PDDPTPCRawDecoderTest::PDDPTPCRawDecoderTest(fhicl::ParameterSet const& p)
 
 void PDDPTPCRawDecoderTest::analyze(art::Event const& e)
 {
-  art::Handle< std::vector<raw::RawDigit> > Raw;
-  e.getByLabel(__RawDigitLabel, Raw);
+  auto Raw = e.getHandle< std::vector<raw::RawDigit> >(__RawDigitLabel);
   std::vector< art::Ptr<raw::RawDigit> >  Digits;
   art::fill_ptr_vector(Digits, Raw);
 

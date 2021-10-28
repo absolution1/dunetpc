@@ -137,11 +137,9 @@ void nlana::SSPMonitor::analyze(const art::Event& evt)
 
   art::ServiceHandle<art::TFileService> tFileService;
 
-  art::Handle< std::vector< recob::OpHit > > OpHitHandle;
-  evt.getByLabel(fOpHitModuleLabel, OpHitHandle);
+  auto OpHitHandle = evt.getHandle< std::vector< recob::OpHit > >(fOpHitModuleLabel);
 
-  art::Handle< std::vector< raw::OpDetWaveform > > OpDetWaveformHandle;
-  evt.getByLabel(fOpDetWaveformModuleLabel, OpDetWaveformHandle);
+  auto OpDetWaveformHandle = evt.getHandle< std::vector< raw::OpDetWaveform > >(fOpDetWaveformModuleLabel);
 
   fHEventNumber->Fill(evt.event());
 

@@ -23,6 +23,7 @@
 #include "art/Framework/Services/Optional/RandomNumberGenerator.h"
 #include "canvas/Utilities/Exception.h"
 #include "cetlib_except/exception.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/types/DelegatedParameter.h"
@@ -460,8 +461,8 @@ namespace opdet {
     // all DivRecs on the same channel into a single vector
     std::map< int, vector<const sim::OpDetDivRec *> > DivRecsByChannel;
     for (auto tag: fInputTags) {
-      art::Handle< vector< sim::OpDetDivRec > > dr_handle;
-      if (!event.getByLabel(tag, dr_handle)) {
+      auto dr_handle = event.getHandle< vector< sim::OpDetDivRec > >(tag);
+      if (!dr_handle) {
         mf::LogWarning("WaveformDigitizerSim") << "Could not load OpDetDivRecs " << tag << ". Skipping.";
         continue;
       }

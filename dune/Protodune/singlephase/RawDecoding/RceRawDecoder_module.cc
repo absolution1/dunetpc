@@ -154,8 +154,8 @@ void dune::RceRawDecoder::produce(art::Event & evt){
   unsigned int n_rce_frags = 0;
 
   if (_expect_container_fragments) {
-    art::Handle<artdaq::Fragments> cont_frags;
-    evt.getByLabel(_input_label, "ContainerTPC", cont_frags);
+    art::InputTag itag1(_input_label, "ContainerTPC");
+    auto cont_frags = evt.getHandle<artdaq::Fragments>(itag1);
     art::EventNumber_t eventNumber = evt.event();
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
@@ -167,7 +167,7 @@ void dune::RceRawDecoder::produce(art::Event & evt){
       return;
     }
     //Check that the data is valid
-    if(!cont_frags.isValid()){
+    if(!cont_frags){
       MF_LOG_ERROR("RceRawDecoder")
           << "Run: " << evt.run()
 		  << ", SubRun: " << evt.subRun()
@@ -190,8 +190,9 @@ void dune::RceRawDecoder::produce(art::Event & evt){
   }
   else
   {
-    art::Handle<artdaq::Fragments> frags;
-    evt.getByLabel(_input_label, "TPC", frags);
+    art::InputTag itag2(_input_label, "TPC");
+    auto frags = evt.getHandle<artdaq::Fragments>(itag2);
+
     // Check if there is Timing data in this event
     // Don't crash code if not present, just don't save anything
     art::EventNumber_t eventNumber = evt.event();

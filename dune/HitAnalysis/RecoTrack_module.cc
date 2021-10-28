@@ -264,11 +264,11 @@ namespace RecoTrack {
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event); // to get TPC clock and frequency
     frequency = clockData.TPCClock().Frequency();
 
-    art::Handle< std::vector<recob::Hit> > hitHandle; // to get information about the hits
-    event.getByLabel(fHitProducerLabel, hitHandle);
+    // get information about the hits
+    auto hitHandle = event.getHandle< std::vector<recob::Hit> >(fHitProducerLabel);
 
-    art::Handle< std::vector<recob::Track> > trackHandle; // to get track information
-    event.getByLabel(fTrackProducerLabel, trackHandle);
+    // get track information
+    auto trackHandle = event.getHandle< std::vector<recob::Track> >(fTrackProducerLabel);
     std::vector<art::Ptr<recob::Track> > trackVec;
     art::fill_ptr_vector(trackVec,trackHandle);
 

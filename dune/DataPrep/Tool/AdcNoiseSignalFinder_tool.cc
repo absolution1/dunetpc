@@ -199,3 +199,5 @@ DataMap AdcNoiseSignalFinder::view(const AdcChannelData& acd) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcNoiseSignalFinder)

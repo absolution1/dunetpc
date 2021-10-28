@@ -13,6 +13,7 @@
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Principal/Event.h"
 #include "canvas/Utilities/Exception.h"
 
 #include "larsim/MCCheater/ParticleInventoryService.h"
@@ -131,9 +132,10 @@ namespace cvn {
   {
 
     // Get the pixel maps
-    art::Handle<std::vector<cvn::PixelMap>> h_pixelmaps;
     std::vector<art::Ptr<cvn::PixelMap>> pixelmaps;
-    if (evt.getByLabel(fPixelMapInput, fPixelMapInput, h_pixelmaps))
+    art::InputTag itag1(fPixelMapInput, fPixelMapInput);
+    auto h_pixelmaps = evt.getHandle<std::vector<cvn::PixelMap>>(itag1);
+    if (h_pixelmaps)
       art::fill_ptr_vector(pixelmaps, h_pixelmaps);
 
     // If no pixel maps, quit

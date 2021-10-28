@@ -50,6 +50,7 @@
 #include "TTimeStamp.h"
 #include "lardataobj/RawData/RDTimeStamp.h"
 #include "dune/DuneObj/ProtoDUNEBeamEvent.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include <iomanip>
 
 using std::cout;
@@ -333,11 +334,11 @@ void DataPrepModule::produce(art::Event& evt) {
   AdcIndex trigFlag = 0;
   AdcLongIndex timingClock = 0;
   using TimeVector  = std::vector<raw::RDTimeStamp>;
-  art::Handle<TimeVector> htims;
   const TimeVector* ptims = nullptr;
   if ( true ) {
-    evt.getByLabel("timingrawdecoder", "daq", htims);
-    if ( htims.isValid() ) {
+    art::InputTag itag1("timingrawdecoder", "daq");
+    auto htims = evt.getHandle<TimeVector>(itag1);
+    if ( htims ) {
       ptims = &*htims;
       if ( ptims->size() != 1 ) {
         cout << myname << "WARNING: Unexpected timing clocks size: " << ptims->size() << endl;
@@ -454,12 +455,12 @@ void DataPrepModule::produce(art::Event& evt) {
 
   // Read the raw digit status.
   const std::vector<raw::RDStatus>* pstats = nullptr;
-  art::Handle<std::vector<raw::RDStatus>> hstats;
   if ( useDecoderTool ) {
     pstats = pstatsFromTool.get();
   } else {
-    evt.getByLabel(m_DigitProducer, m_DigitName, hstats);
-    if ( hstats.isValid() ) {
+    art::InputTag itag2(m_DigitProducer, m_DigitName);
+    auto hstats = evt.getHandle<std::vector<raw::RDStatus>>(itag2);
+    if ( hstats ) {
       pstats = &*hstats;
     } else {
       if ( evt.isRealData() ) {
@@ -490,9 +491,9 @@ void DataPrepModule::produce(art::Event& evt) {
   // Fetch beam information
   float beamTof = 0.0;    // Time of flight.
   if ( m_BeamEventLabel.size() ) {
-    art::Handle< std::vector<beam::ProtoDUNEBeamEvent> > pdbeamHandle;
     std::vector< art::Ptr<beam::ProtoDUNEBeamEvent> > beaminfo;
-    if ( evt.getByLabel(m_BeamEventLabel, pdbeamHandle) ) {
+    auto pdbeamHandle = evt.getHandle< std::vector<beam::ProtoDUNEBeamEvent> >(m_BeamEventLabel);
+    if ( pdbeamHandle ) {
       art::fill_ptr_vector(beaminfo, pdbeamHandle);
       if ( beaminfo.size() == 0 ) {
         cout << myname << "WARNING: Beam event vector is empty." << endl;
@@ -526,7 +527,8 @@ void DataPrepModule::produce(art::Event& evt) {
   if ( useDecoderTool ) {
     pdigits = pdigitsFromTool.get();
   } else {
-    evt.getByLabel(m_DigitProducer, m_DigitName, hdigits);
+    art::InputTag itag3(m_DigitProducer, m_DigitName);
+    hdigits = evt.getHandle<DigitVector>(itag3);
     pdigits = &*hdigits;
   }
   if ( m_LogLevel >= 3 ) {

@@ -93,8 +93,7 @@ namespace CalibrationTreeBuilder {
           art::ServiceHandle<cheat::BackTrackerService> BTS;
           art::ServiceHandle<cheat::PhotonBackTrackerService> PBS;*/
     //Get a list of generator names.
-    std::vector< art::Handle< std::vector< simb::MCTruth > > > mcHandles;
-    evt.getManyByType(mcHandles);
+    auto const mcHandles = evt.getMany<std::vector<simb::MCTruth>>();
     std::vector< std::pair<int, std::string>> track_id_to_label;
 
     for( auto const& mcHandle : mcHandles ){
@@ -107,13 +106,13 @@ namespace CalibrationTreeBuilder {
       }
     }
 
-    art::Handle<std::vector<recob::Hit>> hitHandle;
     std::vector<art::Ptr<recob::Hit>> hitList;
-    if(evt.getByLabel(private_HitLabel,hitHandle) )
+    auto hitHandle = evt.getHandle<std::vector<recob::Hit>>(private_HitLabel);
+    if ( hitHandle )
       art::fill_ptr_vector(hitList, hitHandle);
-    art::Handle<std::vector<recob::OpHit>> opHitHandle;
     std::vector<art::Ptr<recob::OpHit>> opHitList;
-    if(evt.getByLabel(private_OpHitLabel,opHitHandle) )
+    auto opHitHandle = evt.getHandle<std::vector<recob::OpHit>>(private_OpHitLabel);
+    if ( opHitHandle )
       art::fill_ptr_vector(opHitList, opHitHandle);
 
     //private_eventBuffer is the event record

@@ -7,6 +7,8 @@
 // class header
 #include "dune/Geometry/DUNEGeometryHelper.h"
 
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
+
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapAlg.h"
@@ -17,6 +19,7 @@
 #include "dune/Geometry/ChannelMapAPAAlg.h"
 #include "dune/Geometry/ChannelMapCRMAlg.h"
 #include "dune/Geometry/ChannelMapCRUAlg.h"
+#include "dune/Geometry/ColdBoxChannelMapAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlg.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlgv7.h"
 #include "dune/Geometry/ProtoDUNEChannelMapAlgv8.h"
@@ -99,8 +102,13 @@ DUNEGeometryHelper::doConfigureChannelMapAlg(fhicl::ParameterSet const& pset,
       channelMap = std::make_unique<geo::ChannelMapCRMAlg>(pset);
 
     // DUNE 10kt vd
-    } else if ( detectorName.find("dunevd10kt") != std::string::npos ) {
+    } else if ( ( detectorName.find("dunevd10kt") != std::string::npos ) ) {
       channelMap = std::make_unique<geo::ChannelMapCRUAlg>(pset);
+
+    // VD CRP cold box channel map 
+    } else if ( ( detectorName.find("dunevdcb") != std::string::npos ) ) {
+      channelMap = std::make_unique<geo::ColdBoxChannelMapAlg>(pset);
+      //channelMap = std::make_unique<geo::ChannelMapCRUAlg>(pset);
 
     // protoDUNE 6x6x6 dual phase
     } else if ( detectorName.find("protodunedphase") != std::string::npos ) {

@@ -61,8 +61,8 @@ bool dune::CounterFilter::filter(art::Event & e)
 {
   bool valid = false;
 
-  art::Handle< std::vector< anab::T0> > t0Handle;
-  if (e.getByLabel(fT0ModuleLabel,t0Handle))
+  auto t0Handle = e.getHandle< std::vector< anab::T0> >(fT0ModuleLabel);
+  if (t0Handle)
     {
 
       art::FindManyP<raw::ExternalTrigger> triggers(t0Handle,e,fT0ModuleLabel);

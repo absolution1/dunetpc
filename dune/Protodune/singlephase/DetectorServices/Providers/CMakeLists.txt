@@ -8,15 +8,15 @@ art_make( NO_PLUGINS
                         larcorealg_Geometry
                         art_Framework_Core
                         art_Framework_Principal
-                        ${ART_ROOT_IO_ROOTDB}
+                        ART_ROOT_IO_ROOTDB
                         art_Utilities
-                        ${MF_MESSAGELOGGER}
-                        ${ART_FRAMEWORK_SERVICES_REGISTRY}
+                        messagefacility::MF_MessageLogger
+                        ART_FRAMEWORK_SERVICES_REGISTRY
                         cetlib cetlib_except
                         canvas
                         ifdh
-                        ${FHICLCPP}
-                        ${ROOT_BASIC_LIB_LIST}
+                        FHICLCPP
+                        ROOT_BASIC_LIB_LIST
                         ${Boost_SYSTEM_LIBRARY}
         )
 

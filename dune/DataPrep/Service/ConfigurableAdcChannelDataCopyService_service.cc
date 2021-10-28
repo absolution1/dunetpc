@@ -3,6 +3,7 @@
 #include "ConfigurableAdcChannelDataCopyService.h"
 #include <iostream>
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 using std::string;
 using std::cout;

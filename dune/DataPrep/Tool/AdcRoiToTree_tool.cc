@@ -201,6 +201,7 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
   }
   ptre->ResetBranchAddresses();
   ptre->Write();
+  gDirectory->Purge();
   pfil->Close();
   delete pfil;
   ret.setInt("art_nfill", nfill);
@@ -208,3 +209,5 @@ DataMap AdcRoiToTree::viewMap(const AdcChannelDataMap& acds) const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcRoiToTree)

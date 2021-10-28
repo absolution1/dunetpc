@@ -184,8 +184,7 @@ namespace dunezsanalysis {
     fEvent  = event.id().event(); 
     fRun    = event.run();
 
-    art::Handle< std::vector<raw::RawDigit> > rawDigitHandle;
-    event.getByLabel("daq", rawDigitHandle);  // hard-code the module name
+    auto rawDigitHandle = event.getHandle< std::vector<raw::RawDigit> >("daq");
 
     for (int i=0;i<200;i++)
       {

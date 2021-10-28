@@ -196,6 +196,5 @@ private:
 
 };
 
-DEFINE_ART_CLASS_TOOL(AdcEventViewer)
 
 #endif

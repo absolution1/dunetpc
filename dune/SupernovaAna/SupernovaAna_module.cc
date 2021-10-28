@@ -173,8 +173,7 @@ void SupernovaAna::analyze(art::Event const & e)
   //==============================HITS================================
 
   // Get the Hits out of the event
-  art::Handle< std::vector< recob::Hit > > hits_list;
-  e.getByLabel(fHitLabel, hits_list);
+  auto hits_list = e.getHandle< std::vector< recob::Hit > >(fHitLabel);
 
   // Gets the number of hits per event and fills into a histogram
   NHits = hits_list->size();
@@ -192,8 +191,7 @@ void SupernovaAna::analyze(art::Event const & e)
   //============================MCTRUTHS==============================
 
   // Get the MCTruths out of the event
-  art::Handle< std::vector< simb::MCTruth > > truths_list;
-  e.getByLabel(fTruthLabel, truths_list);
+  auto truths_list = e.getHandle< std::vector< simb::MCTruth > >(fTruthLabel);
 
   // Gets the number of MC truths per event and fills into a histogram
   NMCTruths = truths_list->size();

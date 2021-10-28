@@ -493,6 +493,9 @@ DataMap AdcChannelMetric::
 viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricMap& mets) const {
   const string myname = "AdcChannelMetric::viewMapForOneRange: ";
   DataMap ret;
+  vector<int> ichas;
+  vector<float> vals;
+  vector<float> wgts;
   // Extract the metrics for the subset of this range included in the data.
   Index icha0 = ran.begin;
   AdcChannelDataMap::const_iterator iacd1=acds.lower_bound(icha0);
@@ -521,6 +524,9 @@ viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricM
       cout << myname << "    Chan: met, wt (wsum, range): " << icha <<  ": " << met << ", " << wt
            << " (" << metricSum.weightSum << ", " << metricSum.range() << ")" << endl;
     }
+    ichas.push_back(icha);
+    vals.push_back(met);
+    wgts.push_back(wt);
   }
   // Create the histogram for this data and this range.
   const AdcChannelData& acdFirst = acds.begin()->second;
@@ -534,6 +540,10 @@ viewMapForOneRange(const AdcChannelDataMap& acds, const IndexRange& ran, MetricM
   // Fill the histogram and create the plots for this data and this range.
   processMetricsForOneRange(ran, mets, ph, ofpname, ofrname, false);
   ret.setHist(ph, true);
+  ret.setString("metricName", m_Metric);
+  ret.setIntVector("metricChannels", ichas);
+  ret.setFloatVector("metricValues", vals);
+  ret.setFloatVector("metricWeights", wgts);
   return ret;
 }
 
@@ -705,7 +715,7 @@ int AdcChannelMetric::getMetric(const AdcChannelData& acdtop, Name met, double& 
           cout << " metric " << met << ": " << pacd->signal.size() << " != " << nsam << "." << endl;
           continue;
         }
-        for ( Index isam0=0; isam0+ncnt<nsam; ++isam0 ) {
+        for ( Index isam0=0; isam0+ncnt<=nsam; ++isam0 ) {
           bool foundSignal = false;
           float samSum = 0.0;
           for ( Index icnt=0; icnt<ncnt; ++icnt ) {
@@ -1023,3 +1033,5 @@ void AdcChannelMetric::evaluateFormulas() const {
 }
 
 //**********************************************************************
+
+DEFINE_ART_CLASS_TOOL(AdcChannelMetric)

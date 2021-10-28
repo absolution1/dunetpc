@@ -14,6 +14,8 @@
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Principal/Event.h"
+#include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Utilities/Exception.h"
 
 // Data products
@@ -57,6 +59,9 @@ namespace cvn {
     std::string fEnergyNumuLabel;
     std::string fEnergyNutauLabel;
 
+    unsigned int fPlaneLimit;
+    unsigned int fTDCLimit;
+
     std::string out_dir;
 
     void write_files(TrainingData td, unsigned int n);
@@ -87,6 +92,9 @@ namespace cvn {
     fEnergyNueLabel = pset.get<std::string>("EnergyNueLabel");
     fEnergyNumuLabel = pset.get<std::string>("EnergyNumuLabel");
     fEnergyNutauLabel = pset.get<std::string>("EnergyNutauLabel");
+
+    fPlaneLimit = pset.get<unsigned int>("PlaneLimit");
+    fTDCLimit = pset.get<unsigned int>("TDCLimit");
   }
 
   //......................................................................
@@ -126,9 +134,10 @@ namespace cvn {
   {
 
     // Get the pixel maps
-    art::Handle<std::vector<cvn::PixelMap>> h_pixelmaps;
     std::vector<art::Ptr<cvn::PixelMap>> pixelmaps;
-    if (evt.getByLabel(fPixelMapInput, fPixelMapInput, h_pixelmaps))
+    art::InputTag itag1(fPixelMapInput, fPixelMapInput);
+    auto h_pixelmaps = evt.getHandle<std::vector<cvn::PixelMap>>(itag1);
+    if (h_pixelmaps)
       art::fill_ptr_vector(pixelmaps, h_pixelmaps);
 
     // If no pixel maps, quit
@@ -137,9 +146,9 @@ namespace cvn {
     InteractionType interaction = kOther;
 
     // MC information
-    art::Handle<std::vector<simb::MCTruth>> h_mctruth;
     std::vector<art::Ptr<simb::MCTruth>> mctruth_list;
-    if (evt.getByLabel(fGenieGenModuleLabel, h_mctruth))
+    auto h_mctruth = evt.getHandle<std::vector<simb::MCTruth>>(fGenieGenModuleLabel);
+    if (h_mctruth)
       art::fill_ptr_vector(mctruth_list, h_mctruth);
 
     art::Ptr<simb::MCTruth> mctruth = mctruth_list[0];
@@ -162,22 +171,19 @@ namespace cvn {
 
     // Get nue info
     if (fEnergyNueLabel != "") {
-      art::Handle<dune::EnergyRecoOutput> h_ereco;
-      evt.getByLabel(fEnergyNueLabel, h_ereco);
+      auto h_ereco = evt.getHandle<dune::EnergyRecoOutput>(fEnergyNueLabel);
       reco_nue_energy = h_ereco->fNuLorentzVector.E();
     }
 
     // Get numu info
     if (fEnergyNueLabel != "") {
-      art::Handle<dune::EnergyRecoOutput> h_ereco;
-      evt.getByLabel(fEnergyNumuLabel, h_ereco);
+      auto h_ereco = evt.getHandle<dune::EnergyRecoOutput>(fEnergyNumuLabel);
       reco_numu_energy = h_ereco->fNuLorentzVector.E();
     }
 
     // Get nutau info
     if (fEnergyNutauLabel != "") {
-      art::Handle<dune::EnergyRecoOutput> h_ereco;
-      evt.getByLabel(fEnergyNutauLabel, h_ereco);
+      auto h_ereco = evt.getHandle<dune::EnergyRecoOutput>(fEnergyNutauLabel);
       reco_nutau_energy = h_ereco->fNuLorentzVector.E();
     }
 
@@ -206,14 +212,16 @@ namespace cvn {
   //......................................................................
   void CVNZlibMaker::write_files(TrainingData td, unsigned int n)
   {
-    CVNImageUtils image_utils;
-    std::vector<unsigned char> pixel_array(3 * td.fPMap.NWire() * td.fPMap.NTdc());
-
+    // cropped from 2880 x 500 to 500 x 500 here 
+    std::vector<unsigned char> pixel_array(3 * fPlaneLimit * fTDCLimit);
+   
+    CVNImageUtils image_utils(fPlaneLimit, fTDCLimit, 3);
+    image_utils.SetPixelMapSize(td.fPMap.NWire(), td.fPMap.NTdc());
     image_utils.SetLogScale(fSetLog);
     image_utils.SetViewReversal(fReverseViews);
     image_utils.ConvertPixelMapToPixelArray(td.fPMap, pixel_array);
 
-    ulong src_len = 3 * td.fPMap.NWire() * td.fPMap.NTdc(); // pixelArray length
+    ulong src_len = 3 * fPlaneLimit * fTDCLimit; // pixelArray length
     ulong dest_len = compressBound(src_len);     // calculate size of the compressed data               
     char* ostream = (char *) malloc(dest_len);  // allocate memory for the compressed data
 
